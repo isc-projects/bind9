@@ -197,8 +197,8 @@ version.catalog.example.    IN TXT "1"
       <!-- TODO masters IN MX (with TSIG), allow-query, allow-transfer -->
     </para>
 <screen>
-masters.catalog.example    IN A 192.0.2.1
-masters.catalog.example    IN AAAA 2001:db8::1
+masters.catalog.example.    IN A 192.0.2.1
+masters.catalog.example.    IN AAAA 2001:db8::1
 </screen>
     <para>
       (Note that if more than one server is defined, the order in which
@@ -218,7 +218,7 @@ masters.catalog.example    IN AAAA 2001:db8::1
       zone <literal>domain.example</literal>:
     </para>
 <screen>
-5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN PTR domain.example.
+5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN PTR domain.example.
 </screen>
     <para>
       The hash is necessary to identify options for a specific member
@@ -226,8 +226,8 @@ masters.catalog.example    IN AAAA 2001:db8::1
       global options, but in the member zone subdomain:
     </para>
 <screen>
-masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN A 192.0.2.2
-masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN AAAA 2001:db8::2
+masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN A 192.0.2.2
+masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
 </screen>
     <para>
       As would be expected, options defined for a specific zone override
