@@ -92,4 +92,6 @@ status=`expr $status + $ret`
 [ $status -eq 0 ] && echo "I:tsiggss tests all OK"
 
 kill `cat authsock.pid`
-exit $status
+
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

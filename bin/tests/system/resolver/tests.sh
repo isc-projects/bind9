@@ -661,5 +661,6 @@ ttl=`awk '/"A" "zero" "ttl"/ { print $2 }' dig.out.1.${n}`
 test ${ttl:-1} -eq 0 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

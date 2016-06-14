@@ -151,4 +151,4 @@ $DIG +tcp soa example. \
 grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || { echo "I:test $t failed" ; status=1; }
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

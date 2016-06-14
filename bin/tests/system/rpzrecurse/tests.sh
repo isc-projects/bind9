@@ -289,4 +289,5 @@ grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
     status=1
 }
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

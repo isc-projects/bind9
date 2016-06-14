@@ -66,4 +66,4 @@ if [ $count != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $count`
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

@@ -166,4 +166,5 @@ grep "status: SERVFAIL" dig.out.ns1.7 > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo "I:failed"
 status=`expr $status + $ret`
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

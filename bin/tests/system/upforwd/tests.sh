@@ -202,4 +202,4 @@ EOF
 fi
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

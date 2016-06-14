@@ -392,4 +392,4 @@ if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

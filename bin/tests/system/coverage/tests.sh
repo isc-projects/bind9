@@ -81,4 +81,4 @@ for dir in [0-9][0-9]-*; do
 done
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1
