@@ -281,7 +281,7 @@ init_desc(void) {
 	SET_NSSTATDESC(cookiebadtime, "COOKIE - bad time", "CookieBadTime");
 	SET_NSSTATDESC(cookienomatch, "COOKIE - no match", "CookieNoMatch");
 	SET_NSSTATDESC(cookiematch, "COOKIE - match", "CookieMatch");
-	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
+	SET_NSSTATDESC(ecsopt, "EDNS client subnet option received", "ECSOpt");
 	SET_NSSTATDESC(nxdomainredirect,
 		"queries resulted in NXDOMAIN that were redirected",
 		"QryNXRedir");

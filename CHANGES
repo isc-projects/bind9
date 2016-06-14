@@ -1,3 +1,6 @@
+4383.	[bug]		Correct spelling error in stats channel description of
+			"EDNS client subnet option received". [RT #42633]
+
 4382.	[bug]		rndc {addzone,modzone,delzone,showzone} should all
 			compare the zone name using a canonical format.
 			[RT #42630]
