@@ -1691,18 +1691,12 @@ $ <strong class="userinput"><code>patch -p1 -d openssl-0.9.8zc \
 $ <strong class="userinput"><code>cp pkcs11.GCC4.0.2.so.4.05 /opt/pkcs11/usr/lib/libpkcs11.so</code></strong>
 </pre>
 <p>
-	This library is only available for Linux as a 32-bit
-	binary. If we are compiling on a 64-bit Linux system, it is
-	necessary to force a 32-bit build, by specifying -m32 in the
-	build options.
-      </p>
-<p>
-	Finally, the Keyper library requires threads, so we
+	The Keyper library requires threads, so we
 	must specify -pthread.
       </p>
 <pre class="screen">
 $ <strong class="userinput"><code>cd openssl-0.9.8zc</code></strong>
-$ <strong class="userinput"><code>./Configure linux-generic32 -m32 -pthread \
+$ <strong class="userinput"><code>./Configure linux-x86_64 -pthread \
 	    --pk11-libname=/opt/pkcs11/usr/lib/libpkcs11.so \
 	    --pk11-flavor=sign-only \
 	    --prefix=/opt/pkcs11/usr</code></strong>
@@ -1825,15 +1819,9 @@ $ <strong class="userinput"><code>./Configure linux-x86_64 -pthread \
 	To link with the PKCS#11 provider, threads must be
 	enabled in the BIND 9 build.
       </p>
-<p>
-	The PKCS#11 library for the AEP Keyper is currently
-	only available as a 32-bit binary. If we are building on a
-	64-bit host, we must force a 32-bit build by adding "-m32" to
-	the CC options on the "configure" command line.
-      </p>
 <pre class="screen">
 $ <strong class="userinput"><code>cd ../bind9</code></strong>
-$ <strong class="userinput"><code>./configure CC="gcc -m32" --enable-threads \
+$ <strong class="userinput"><code>./configure --enable-threads \
 	   --with-openssl=/opt/pkcs11/usr \
 	   --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</code></strong>
 </pre>
@@ -2517,8 +2505,8 @@ version.catalog.example.    IN TXT "1"
       
     </p>
 <pre class="screen">
-masters.catalog.example    IN A 192.0.2.1
-masters.catalog.example    IN AAAA 2001:db8::1
+masters.catalog.example.    IN A 192.0.2.1
+masters.catalog.example.    IN AAAA 2001:db8::1
 </pre>
 <p>
       (Note that if more than one server is defined, the order in which
@@ -2538,7 +2526,7 @@ masters.catalog.example    IN AAAA 2001:db8::1
       zone <code class="literal">domain.example</code>:
     </p>
 <pre class="screen">
-5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN PTR domain.example.
+5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN PTR domain.example.
 </pre>
 <p>
       The hash is necessary to identify options for a specific member
@@ -2546,8 +2534,8 @@ masters.catalog.example    IN AAAA 2001:db8::1
       global options, but in the member zone subdomain:
     </p>
 <pre class="screen">
-masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN A 192.0.2.2
-masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example IN AAAA 2001:db8::2
+masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN A 192.0.2.2
+masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
 </pre>
 <p>
       As would be expected, options defined for a specific zone override
