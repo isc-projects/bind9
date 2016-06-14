@@ -328,7 +328,8 @@ if [ -n "${DELV}" -a -x "${DELV}" ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
-  exit $status
+  echo "I:exit status: $status"
+  [ $status -eq 0 ] || exit 1
 else
   echo "${DELV:-delv} is not available, so skipping these delv tests"
 fi

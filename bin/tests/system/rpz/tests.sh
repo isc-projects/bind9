@@ -553,4 +553,4 @@ $DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
 grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

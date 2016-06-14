@@ -118,4 +118,5 @@ echo "I:testing with 'minimal-responses no;'"
 minimal=no
 dotests
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

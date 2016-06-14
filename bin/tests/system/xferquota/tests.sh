@@ -68,4 +68,4 @@ grep ";" dig.out.ns2
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

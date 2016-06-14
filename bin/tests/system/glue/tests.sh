@@ -43,4 +43,4 @@ $DIG +norec @10.53.0.1 -p 5300 example.net. a > dig.out || status=1
 $PERL ../digcomp.pl noglue.good dig.out || status=1
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1
