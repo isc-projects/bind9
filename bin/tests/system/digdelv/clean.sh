@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f dig.out.test*
+rm -f dig.out.*test*
 rm -f delv.out.test*
 rm -f */named.memstats
 rm -f */named.run

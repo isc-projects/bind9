@@ -290,4 +290,4 @@ grep 'next resign' rndc.out > /dev/null 2>&1 || ret=1
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

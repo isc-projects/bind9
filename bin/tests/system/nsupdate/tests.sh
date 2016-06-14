@@ -657,4 +657,4 @@ grep "bad name" nsupdate.out4-$n > /dev/null && ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

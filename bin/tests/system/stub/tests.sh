@@ -67,4 +67,4 @@ $PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3 || ret=1
 done
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

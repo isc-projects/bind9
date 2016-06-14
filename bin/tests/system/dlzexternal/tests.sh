@@ -202,4 +202,5 @@ lookups=`grep "lookup #.*\.not\.there" ns1/named.run | wc -l`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

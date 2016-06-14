@@ -151,4 +151,5 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

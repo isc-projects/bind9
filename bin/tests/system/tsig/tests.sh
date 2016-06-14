@@ -244,4 +244,5 @@ if [ $ret -eq 1 ] ; then
 	echo "I: failed"; status=1
 fi
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

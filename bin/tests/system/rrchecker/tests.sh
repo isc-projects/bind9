@@ -79,4 +79,4 @@ done
 test $ret -eq 0 || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

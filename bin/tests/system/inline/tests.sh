@@ -979,4 +979,5 @@ serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns2.post.test$n`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

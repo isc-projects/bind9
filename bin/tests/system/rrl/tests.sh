@@ -284,6 +284,6 @@ if [ -f named.pid ]; then
 fi
 
 echo "I:exit status: $ret"
-exit $ret
+[ $ret -eq 0 ] || exit 1
 #[ $ret -ne 0 ] && echo "I:test failure overridden"
-#exit 0
+#[ $status -eq 0 ] || exit 1

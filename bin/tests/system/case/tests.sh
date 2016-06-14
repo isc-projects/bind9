@@ -137,5 +137,7 @@ echo "I:check A owner case is transfered to slave ($n)"
 ret=0
 $DIG axfr dynamic @10.53.0.2 -p 5300 > dig.ns2.test$n
 $PERL ../digcomp.pl dig.ns2.test$n postns1.good || ret=1
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

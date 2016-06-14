@@ -40,4 +40,4 @@ echo "I:killing reload loop"
 kill `cat reload.pid`
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

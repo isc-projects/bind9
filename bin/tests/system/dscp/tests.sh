@@ -38,4 +38,6 @@ do
 	done
 	test $ret = 0 || { echo "I:failed"; status=`expr $status + $ret`; }
 done
-exit $status
+
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

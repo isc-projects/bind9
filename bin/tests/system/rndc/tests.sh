@@ -557,4 +557,5 @@ EOF
     status=`expr $status + $ret`
 fi
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

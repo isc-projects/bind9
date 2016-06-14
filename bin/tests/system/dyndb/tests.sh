@@ -147,4 +147,5 @@ status=`expr $status + $ret`
 test_del test6.ipv6.example.nil. AAAA || ret=1
 status=`expr $status + $ret`
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

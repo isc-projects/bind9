@@ -263,7 +263,7 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +subnet with various prefix lengths ($n)"
   ret=0
   for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do
-      $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=255.255.255.255/$i A a.example > dig.out.test$n 2>&1 || ret=1
+      $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=255.255.255.255/$i A a.example > dig.out.$i.test$n 2>&1 || ret=1
       case $i in
       1|9|17) octet=128 ;;
       2|10|18) octet=192 ;;
@@ -279,8 +279,8 @@ if [ -x ${DIG} ] ; then
       9|10|11|12|13|14|15|16) addr="255.${octet}.0.0";;
       17|18|19|20|21|22|23|24) addr="255.255.${octet}.0" ;;
       esac
-      grep "FORMERR" < dig.out.test.$p.$n > /dev/null && ret=1
-      grep "CLIENT-SUBNET: $addr/$i/0" < dig.out.test$n > /dev/null || ret=1
+      grep "FORMERR" < dig.out.$i.test$n > /dev/null && ret=1
+      grep "CLIENT-SUBNET: $addr/$i/0" < dig.out.$i.test$n > /dev/null || ret=1
   done
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
@@ -510,7 +510,8 @@ if [ -x ${DELV} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
 
-  exit $status
+  echo "I:exit status: $status"
+  [ $status -eq 0 ] || exit 1
 else
   echo "$DELV is needed, so skipping these delv tests"
 fi

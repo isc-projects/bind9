@@ -123,4 +123,5 @@ $DIG +norec +nsid foo @10.53.0.3 -p 5300 > dig.out.ns3.$n
 grep "^; NSID: .* (\"this.is.a.test.of.server-id\")$" dig.out.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo I:failed; status=`expr $status + $ret`; fi
 
-exit $status
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

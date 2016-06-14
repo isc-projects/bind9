@@ -181,4 +181,4 @@ $DIG example. soa @10.53.0.2 +subnet="192.0.2.128/32" -p 5300 > dig.out.${t}
 grep "CLIENT-SUBNET.*192.0.2.128/32/24" dig.out.${t} > /dev/null || { echo "I:test $t failed" ; status=1; }
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

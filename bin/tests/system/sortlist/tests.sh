@@ -57,4 +57,4 @@ $DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
         egrep '10.53.0.5$' >> test2.out || status=1
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1

@@ -93,4 +93,6 @@ do
 	[ $ret = 0 ] || failed
 	[ $dumpit = 1 ] && cat verify.out.$n
 done
-exit $status
+
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1

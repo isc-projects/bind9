@@ -201,4 +201,4 @@ test $ret = 0 || echo I:failed, got "'""$ans""'", expected "'""$expect""'"
 status=`expr $status + $ret`
 
 echo "I:exit status: $status"
-exit $status
+[ $status -eq 0 ] || exit 1
