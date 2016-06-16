@@ -31,10 +31,11 @@ isc_result_t
 ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf);
 
 isc_result_t
-ns_config_get(const cfg_obj_t **maps, const char* name, const cfg_obj_t **obj);
+ns_config_get(cfg_obj_t const * const *maps, const char *name,
+	      const cfg_obj_t **obj);
 
 isc_result_t
-ns_checknames_get(const cfg_obj_t **maps, const char* name,
+ns_checknames_get(const cfg_obj_t **maps, const char *name,
 		  const cfg_obj_t **obj);
 
 int
