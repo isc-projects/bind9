@@ -1,7 +1,3 @@
-4384.	[bug]		isc_buffer_reallocate returns wrong result when passed
-			a smaller length than what is already allocated.
-			[RT #42612]
-
 4383.	[bug]		Correct spelling error in stats channel description of
 			"EDNS client subnet option received". [RT #42633]
 
