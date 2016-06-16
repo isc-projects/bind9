@@ -33,7 +33,10 @@ check(const char *buf, ssize_t count, size_t *start) {
 	const char chars[] = "abcdefghijklmnopqrstuvwxyz0123456789";
 	ssize_t i;
 
-	for (i = 0; i < count; i++, *start = (*start + 1) % (sizeof(chars) - 1)) {
+	for (i = 0;
+	     i < count;
+	     i++, *start = (*start + 1) % (sizeof(chars) - 1))
+	{
 		/* Just ignore the trailing newline */
 		if (buf[i] == '\n')
 			continue;
