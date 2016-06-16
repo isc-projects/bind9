@@ -391,7 +391,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep);
  */
 
 isc_result_t
-dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
+dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
 		 dns_name_t *foundname, void **data);
 /*%<
  * Get the data pointer associated with 'name'.
@@ -430,7 +430,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
  */
 
 isc_result_t
-dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
+dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
 		 unsigned int options, dns_rbtfindcallback_t callback,
 		 void *callback_arg);
