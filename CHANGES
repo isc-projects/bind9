@@ -1,3 +1,6 @@
+4384.	[bug]		Change 4256 accidentally disabled logging of the
+			rndc command. [RT #42654]
+
 4383.	[bug]		Correct spelling error in stats channel description of
 			"EDNS client subnet option received". [RT #42633]
 

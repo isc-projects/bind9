@@ -481,7 +481,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:test rndc status shows running on ($n)"
 ret=0
-$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > rndc.output.test$n /dev/null 2>&1 || ret=1
+$RNDC -s 10.53.0.5 -p 9953 -c ../common/rndc.conf status > rndc.output.test$n 2>&1 || ret=1
 grep "^running on " rndc.output.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -531,6 +531,14 @@ echo " I:check if query for the zone returns NOERROR ($n)"
 $DIG @10.53.0.6 -p 5300 -t soa huge.zone > dig.out.test$n
 grep "NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo " I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:verify that the full command is logged ($n)"
+ret=0
+$RNDCCMD null with extra arguments > /dev/null 2>&1
+grep "received control channel command 'null with extra arguments'" ns2/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 mv ns6/named.conf.save ns6/named.conf

@@ -147,7 +147,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, log_level,
 			      "rejecting restricted control channel "
-			      "command '%s'", command);
+			      "command '%s'", cmdline);
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
@@ -155,7 +155,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_CONTROL, log_level,
 		      "received control channel command '%s'",
-		      command);
+		      cmdline);
 
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
 		result = ns_server_reloadcommand(ns_g_server, lex, text);
