@@ -131,7 +131,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_CONTROL, log_level,
 		      "received control channel command '%s'",
-		      command);
+		      cmdline);
 
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
 		result = ns_server_reloadcommand(ns_g_server, lex, text);
