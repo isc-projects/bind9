@@ -27,7 +27,7 @@ status=0
 n=0
 
 n=`expr $n + 1`
-echo "I:preparing"
+echo "I:preparing ($n)"
 ret=0
 $NSUPDATE -p 5300 -k ns2/session.key > /dev/null 2>&1 <<END || ret=1
 server 10.53.0.2
@@ -122,7 +122,6 @@ $DIGCMD text4.nil. TXT | grep 'addition 4' >/dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-n=`expr $n + 1`
 echo "I:rndc sync -clean"
 ret=0
 $RNDCCMD sync -clean nil | sed 's/^/I:ns2 /'
