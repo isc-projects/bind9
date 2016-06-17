@@ -2856,7 +2856,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that a named managed zone that was signed 'in-the-future' is re-signed when loaded"
+echo "I:check that a named managed zone that was signed 'in-the-future' is re-signed when loaded ($n)"
 ret=0
 $DIG $DIGOPTS managed-future.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
