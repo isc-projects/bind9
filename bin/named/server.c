@@ -10912,7 +10912,7 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj = NULL;
 	dns_fixedname_t fixed1, fixed2;
-	dns_name_t *name1 = NULL, *name2;
+	dns_name_t *name1 = NULL, *name2 = NULL;
 	isc_result_t result;
 
 	if (strcmp(map_key_for_list, "zone") == 0) {
