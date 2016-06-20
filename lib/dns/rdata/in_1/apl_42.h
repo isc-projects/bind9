@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -34,9 +34,9 @@ typedef struct dns_rdata_in_apl {
 	isc_mem_t		*mctx;
 	/* type & class specific elements */
 	unsigned char           *apl;
-        isc_uint16_t            apl_len;
-        /* private */
-        isc_uint16_t            offset;
+	isc_uint16_t            apl_len;
+	/* private */
+	isc_uint16_t            offset;
 } dns_rdata_in_apl_t;
 
 /*
