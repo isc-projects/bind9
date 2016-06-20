@@ -21,6 +21,7 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -474,7 +475,7 @@ isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 
 	/* xxxwpk do it more low-level way ? */
-	l = snprintf(buf, 21, "%lld", v);
+	l = snprintf(buf, 21, "%" ISC_PRINT_QUADFORMAT "d", v);
 	RUNTIME_CHECK(l <= 21);
 	if (b->autore) {
 		result = isc_buffer_reserve(&b, l);
