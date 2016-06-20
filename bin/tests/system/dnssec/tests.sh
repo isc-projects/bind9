@@ -1768,7 +1768,9 @@ $PERL -e 'my $delay = '$start' + 11 - time(); select(undef, undef, undef, $delay
 # check nta table
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n._11
 lines=`wc -l < rndc.out.ns4.test$n._11`
-[ "$lines" -eq 2 ] || ret=1
+[ "$lines" -le 2 ] || ret=1
+grep "bogus.example: expiry" rndc.out.ns4.test$n._11 > /dev/null || ret=1
+grep "badds.example: expiry" rndc.out.ns4.test$n._11 > /dev/null && ret=1
 $DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.11 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.11 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.12 || ret=1
@@ -1801,7 +1803,6 @@ if [ $ret != 0 ]; then echo "I:failed - checking that all nta's have been lifted
 status=`expr $status + $ret`
 ret=0
 
-n=`expr $n + 1`
 echo "I: testing NTA removals ($n)"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta badds.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
