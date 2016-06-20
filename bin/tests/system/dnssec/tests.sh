@@ -1862,7 +1862,7 @@ ret=0
 echo "I:killing ns4 with SIGTERM"
 cd ns4
 kill -TERM `cat named.pid`
-rm named.pid
+rm -f named.pid
 cd ..
 
 #
@@ -1925,7 +1925,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 echo "I:killing ns4 with SIGTERM"
 cd ns4
 kill -TERM `cat named.pid`
-rm named.pid
+rm -f named.pid
 cd ..
 
 echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
@@ -1984,7 +1984,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 echo "I:killing ns4 with SIGTERM"
 cd ns4
 kill -TERM `cat named.pid`
-rm named.pid
+rm -f named.pid
 cd ..
 
 echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
@@ -2033,7 +2033,7 @@ echo "I: testing loading out of bounds lifetime from NTA file ($n)"
 echo "I:killing ns4 with SIGTERM"
 cd ns4
 kill -TERM `cat named.pid`
-rm named.pid
+rm -f named.pid
 cd ..
 
 echo "I:sleeping for an additional 4 seconds for ns4 to fully shutdown"
