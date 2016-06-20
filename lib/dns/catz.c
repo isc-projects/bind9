@@ -94,6 +94,9 @@ dns_catz_options_init(dns_catz_options_t *options) {
 	options->masters.keys = NULL;
 	options->masters.count = 0;
 
+	options->allow_query = NULL;
+	options->allow_transfer = NULL;
+
 	options->in_memory = ISC_FALSE;
 	options->min_update_interval = 5;
 	options->zonedir = NULL;
@@ -107,6 +110,10 @@ dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx) {
 		isc_mem_free(mctx, options->zonedir);
 		options->zonedir = NULL;
 	}
+	if (options->allow_query != NULL)
+		isc_buffer_free(&options->allow_query);
+	if (options->allow_transfer != NULL)
+		isc_buffer_free(&options->allow_transfer);
 }
 
 isc_result_t
@@ -116,6 +123,8 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 	/* TODO error handling */
 	REQUIRE(dst != NULL);
 	REQUIRE(dst->masters.count == 0);
+	REQUIRE(dst->allow_query == NULL);
+	REQUIRE(dst->allow_transfer == NULL);
 
 	if (src->masters.count != 0)
 		dns_ipkeylist_copy(mctx, &src->masters, &dst->masters);
@@ -128,6 +137,13 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 	if (src->zonedir != NULL)
 		dst->zonedir = isc_mem_strdup(mctx, src->zonedir);
 
+	if (src->allow_query != NULL)
+		isc_buffer_dup(mctx, &dst->allow_query, src->allow_query);
+
+	if (src->allow_transfer != NULL)
+		isc_buffer_dup(mctx, &dst->allow_transfer, src->allow_transfer);
+
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -135,10 +151,17 @@ isc_result_t
 dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 			    dns_catz_options_t *opts)
 {
-	if (opts->masters.count == 0)
-		dns_catz_options_copy(mctx, defaults, opts);
-	else if (defaults->zonedir != NULL)
+	if (opts->masters.count == 0 && defaults->masters.count != 0)
+		dns_ipkeylist_copy(mctx, &defaults->masters, &opts->masters);
+
+	if (defaults->zonedir != NULL)
 		opts->zonedir = isc_mem_strdup(mctx, defaults->zonedir);
+
+	if (opts->allow_query == NULL && defaults->allow_query != NULL)
+		isc_buffer_dup(mctx, &opts->allow_query, defaults->allow_query);
+	if (opts->allow_transfer == NULL && defaults->allow_transfer != NULL)
+		isc_buffer_dup(mctx, &opts->allow_transfer,
+			       defaults->allow_transfer);
 
 	/* This option is always taken from config, so it's always 'default' */
 	opts->in_memory = defaults->in_memory;
@@ -237,12 +260,38 @@ dns_catz_entry_validate(const dns_catz_entry_t *entry) {
 
 isc_boolean_t
 dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
+	isc_region_t ra, rb;
 	if (ea->opts.masters.count != eb->opts.masters.count)
 		return (ISC_FALSE);
 
 	if (memcmp(ea->opts.masters.addrs, eb->opts.masters.addrs,
 		   ea->opts.masters.count * sizeof(isc_sockaddr_t)))
 		return (ISC_FALSE);
+
+	/* If one is NULL and the other isn't, the entries don't match */
+	if ((ea->opts.allow_query == NULL) !=
+	    (eb->opts.allow_query == NULL))
+		return (ISC_FALSE);
+
+	/* If one is non-NULL, then they both are */
+	if (ea->opts.allow_query != NULL) {
+		isc_buffer_usedregion(ea->opts.allow_query, &ra);
+		isc_buffer_usedregion(eb->opts.allow_query, &rb);
+		if (isc_region_compare(&ra, &rb))
+			return (ISC_FALSE);
+	}
+
+	/* Repeat the above checks with allow_transfer */
+	if ((ea->opts.allow_transfer == NULL) !=
+	    (eb->opts.allow_transfer == NULL))
+		return (ISC_FALSE);
+
+	if (ea->opts.allow_transfer != NULL) {
+		isc_buffer_usedregion(ea->opts.allow_transfer, &ra);
+		isc_buffer_usedregion(eb->opts.allow_transfer, &rb);
+		if (isc_region_compare(&ra, &rb))
+			return (ISC_FALSE);
+	}
 
 	/* xxxwpk TODO compare dscps/keys! */
 	return (ISC_TRUE);
@@ -895,6 +944,84 @@ catz_process_ipkl(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 }
 
 static isc_result_t
+catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
+		 dns_rdataset_t *value)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_rdata_t rdata;
+	dns_rdata_in_apl_t rdata_apl;
+	dns_rdata_apl_ent_t apl_ent;
+	isc_netaddr_t addr;
+	isc_buffer_t *aclb = NULL;
+	unsigned char buf[256]; /* larger than INET6_ADDRSTRLEN */
+
+	REQUIRE(zone != NULL);
+	REQUIRE(aclbp != NULL);
+	REQUIRE(*aclbp == NULL);
+	REQUIRE(DNS_RDATASET_VALID(value));
+	REQUIRE(dns_rdataset_isassociated(value));
+
+	if (value->rdclass != dns_rdataclass_in ||
+	    value->type != dns_rdatatype_apl)
+		return (ISC_R_FAILURE);
+
+
+	if (dns_rdataset_count(value) > 1) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_WARNING,
+			      "catz: more than one APL entry for member zone, "
+			      "result is undefined");
+	}
+	result = dns_rdataset_first(value);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdata_init(&rdata);
+	dns_rdataset_current(value, &rdata);
+	result = dns_rdata_tostruct(&rdata, &rdata_apl, zone->catzs->mctx);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	result = isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
+	isc_buffer_setautorealloc(aclb, ISC_TRUE);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	for (result = dns_rdata_apl_first(&rdata_apl);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdata_apl_next(&rdata_apl)) {
+		result = dns_rdata_apl_current(&rdata_apl, &apl_ent);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		memset(buf, 0, sizeof(buf));
+		memcpy(buf, apl_ent.data, apl_ent.length);
+		if (apl_ent.family == 1)
+			isc_netaddr_fromin(&addr, (struct in_addr*) buf);
+		else if (apl_ent.family == 2)
+			isc_netaddr_fromin6(&addr, (struct in6_addr*) buf);
+		else
+			continue; /* xxxwpk log it or simply ignore? */
+		if (apl_ent.negative)
+			isc_buffer_putuint8(aclb, '!');
+		isc_buffer_reserve(&aclb, INET6_ADDRSTRLEN);
+		result = isc_netaddr_totext(&addr, aclb);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if ((apl_ent.family == 1 && apl_ent.prefix < 32) ||
+		    (apl_ent.family == 2 && apl_ent.prefix < 128)) {
+			isc_buffer_putuint8(aclb, '/');
+			isc_buffer_putdecint(aclb, apl_ent.prefix);
+		}
+		isc_buffer_putstr(aclb, "; ");
+	}
+	if (result == ISC_R_NOMORE)
+		result = ISC_R_SUCCESS;
+	else
+		goto cleanup;
+	*aclbp = aclb;
+	aclb = NULL;
+cleanup:
+	if (aclb != NULL)
+		isc_buffer_free(&aclb);
+	dns_rdata_freestruct(&rdata_apl);
+	return (result);
+}
+
+static isc_result_t
 catz_process_suboption(dns_catz_zone_t *zone, dns_label_t *mhash,
 		       catz_opt_t subopt, dns_rdataset_t *value)
 {
@@ -928,10 +1055,11 @@ catz_process_suboption(dns_catz_zone_t *zone, dns_label_t *mhash,
 		return (catz_process_ipkl(zone, &entry->opts.masters, value));
 		break;
 	case CATZ_OPT_ALLOW_QUERY:
-#if 0
-		return (process_apl(zone, &entry->opts))
-#endif
+		return (catz_process_apl(zone, &entry->opts.allow_query,
+					 value));
 	case CATZ_OPT_ALLOW_TRANSFER:
+		return (catz_process_apl(zone, &entry->opts.allow_transfer,
+					 value));
 	default:
 		return (ISC_R_FAILURE);
 	}
@@ -950,15 +1078,14 @@ catz_process_global_option(dns_catz_zone_t *zone, catz_opt_t option,
 	case CATZ_OPT_MASTERS:
 		return (catz_process_ipkl(zone, &zone->zoneoptions.masters,
 					  value));
-		break;
 	case CATZ_OPT_VERSION:
 		return (catz_process_version(zone, value));
-		break;
 	case CATZ_OPT_ALLOW_QUERY:
-#if 0
-		return (process_apl(zone, &entry->opts))
-#endif
+		return (catz_process_apl(zone, &zone->zoneoptions.allow_query,
+					 value));
 	case CATZ_OPT_ALLOW_TRANSFER:
+		return (catz_process_apl(zone, &zone->zoneoptions.allow_transfer,
+					 value));
 	default:
 		return (ISC_R_FAILURE);
 	}
@@ -1128,13 +1255,15 @@ isc_result_t
 dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 			  isc_buffer_t **buf)
 {
-	/* We have to generate a text buffer with regular zone config:
+	/*
+	 * We have to generate a text buffer with regular zone config:
 	 * zone foo.bar {
 	 * 	type slave;
 	 * 	masters { ip1 port1; ip2 port2; };
 	 * }
 	 */
 	isc_buffer_t *buffer = NULL;
+	isc_region_t region;
 	isc_result_t result;
 	isc_uint32_t i;
 	isc_netaddr_t netaddr;
@@ -1183,8 +1312,20 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		isc_buffer_putstr(buffer, "\";");
 
 	}
-	isc_buffer_putstr(buffer, "};");
+	if (entry->opts.allow_query != NULL) {
+		isc_buffer_putstr(buffer, "allow-query { ");
+		isc_buffer_usedregion(entry->opts.allow_query, &region);
+		isc_buffer_copyregion(buffer, &region);
+		isc_buffer_putstr(buffer, "};");
+	}
+	if (entry->opts.allow_transfer != NULL) {
+		isc_buffer_putstr(buffer, "allow-transfer { ");
+		isc_buffer_usedregion(entry->opts.allow_transfer, &region);
+		isc_buffer_copyregion(buffer, &region);
+		isc_buffer_putstr(buffer, "};");
+	}
 
+	isc_buffer_putstr(buffer, "};");
 	*buf = buffer;
 	return (ISC_R_SUCCESS);
 
@@ -1489,7 +1630,8 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 		isc_ht_iter_current(iter, (void **) &zone);
 		if (zone->active == ISC_FALSE) {
 			char cname[DNS_NAME_FORMATSIZE];
-			dns_name_format(&zone->name, cname, DNS_NAME_FORMATSIZE);
+			dns_name_format(&zone->name, cname,
+					DNS_NAME_FORMATSIZE);
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER,
 				      ISC_LOG_WARNING,

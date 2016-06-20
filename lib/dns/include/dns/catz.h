@@ -54,6 +54,10 @@ struct dns_catz_entry_options {
 	/* default-masters definition */
 	dns_ipkeylist_t masters;
 
+	/* both as text in config format, NULL if none */
+	isc_buffer_t *allow_query;
+	isc_buffer_t *allow_transfer;
+
 	/*
 	 * Options that are only set in named.conf
 	 */

@@ -2041,24 +2041,35 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	/* Zone shouldn't already exist */
 	result = dns_zt_find(ev->view->zonetable,
 			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
-	if (result == ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: zone \"%s\" already exists", nameb);
-		goto cleanup;
-	} else if (result == DNS_R_PARTIALMATCH) {
-		/* Create our sub-zone anyway */
-		dns_zone_detach(&zone);
-		zone = NULL;
-	} else if (result != ISC_R_NOTFOUND) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "catz: error \"%s\" while trying to "
-			      "add zone \"%s\"",
-			      isc_result_totext(result), nameb);
-		goto cleanup;
-	}
 
+	if (ev->mod == ISC_TRUE) {
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "catz: error \"%s\" while trying to"
+				      "modify zone \"%s\"",
+				      isc_result_totext(result),
+				      nameb);
+			goto cleanup;
+		} else {
+			dns_zone_detach(&zone);
+		}
+
+	} else {
+		if (result != ISC_R_NOTFOUND && result != DNS_R_PARTIALMATCH) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "catz: error \"%s\" while trying to"
+				      "add zone \"%s\"",
+				      isc_result_totext(result),
+				      nameb);
+			goto cleanup;
+		} else { /* this can happen in case of DNS_R_PARTIALMATCH */
+			if (zone != NULL)
+				dns_zone_detach(&zone);
+		}
+	}
+	RUNTIME_CHECK(zone == NULL);
 	/* Create a config for new zone */
 	confbuf = NULL;
 	dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);

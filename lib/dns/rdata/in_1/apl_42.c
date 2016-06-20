@@ -324,7 +324,7 @@ dns_rdata_apl_first(dns_rdata_in_apl_t *apl) {
 	 */
 	INSIST(apl->apl_len > 3U);
 	length = apl->apl[apl->offset + 3] & 0x7f;
-	INSIST(length <= apl->apl_len);
+	INSIST(4 + length <= apl->apl_len);
 
 	apl->offset = 0;
 	return (ISC_R_SUCCESS);
@@ -356,10 +356,10 @@ dns_rdata_apl_next(dns_rdata_in_apl_t *apl) {
 	 * 16 to 32 bits promotion as 'length' is 32 bits so there is
 	 * no overflow problems.
 	 */
-	INSIST(length + apl->offset <= apl->apl_len);
+	INSIST(4 + length + apl->offset <= apl->apl_len);
 
-	apl->offset += apl->apl[apl->offset + 3] & 0x7f;
-	return ((apl->offset >= apl->apl_len) ? ISC_R_SUCCESS : ISC_R_NOMORE);
+	apl->offset += 4 + length;
+	return ((apl->offset < apl->apl_len) ? ISC_R_SUCCESS : ISC_R_NOMORE);
 }
 
 isc_result_t
@@ -381,22 +381,27 @@ dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent) {
 	 */
 	INSIST(apl->apl_len > 3U);
 	INSIST(apl->offset <= apl->apl_len - 4U);
-	length = apl->apl[apl->offset + 3] & 0x7f;
+	length = (apl->apl[apl->offset + 3] & 0x7f);
 	/*
 	 * 16 to 32 bits promotion as 'length' is 32 bits so there is
 	 * no overflow problems.
 	 */
-	INSIST(length + apl->offset <= apl->apl_len);
+	INSIST(4 + length + apl->offset <= apl->apl_len);
 
 	ent->family = (apl->apl[apl->offset] << 8) + apl->apl[apl->offset + 1];
 	ent->prefix = apl->apl[apl->offset + 2];
-	ent->length = apl->apl[apl->offset + 3] & 0x7f;
+	ent->length = length;
 	ent->negative = ISC_TF((apl->apl[apl->offset + 3] & 0x80) != 0);
 	if (ent->length != 0)
 		ent->data = &apl->apl[apl->offset + 4];
 	else
 		ent->data = NULL;
 	return (ISC_R_SUCCESS);
+}
+
+unsigned int
+dns_rdata_apl_count(const dns_rdata_in_apl_t *apl) {
+	return (apl->apl_len);
 }
 
 static inline isc_result_t

@@ -1,3 +1,6 @@
+4385.	[func]		Add support for allow-query and allow-transfer ACLs
+			to catalog zones. [RT #42578]
+
 4384.	[bug]		Change 4256 accidentally disabled logging of the
 			rndc command. [RT #42654]
 

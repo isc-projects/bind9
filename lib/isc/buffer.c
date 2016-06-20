@@ -100,7 +100,7 @@ isc__buffer_region(isc_buffer_t *b, isc_region_t *r) {
 }
 
 void
-isc__buffer_usedregion(isc_buffer_t *b, isc_region_t *r) {
+isc__buffer_usedregion(const isc_buffer_t *b, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to the used region of 'b'.
 	 */
@@ -464,10 +464,55 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 	b->used += l;
 }
 
+void
+isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v) {
+	unsigned int l=0;
+	unsigned char *cp;
+	char buf[21];
+	isc_result_t result;
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+
+	/* xxxwpk do it more low-level way ? */
+	l = snprintf(buf, 21, "%lld", v);
+	RUNTIME_CHECK(l <= 21);
+	if (b->autore) {
+		result = isc_buffer_reserve(&b, l);
+		REQUIRE(result == ISC_R_SUCCESS);
+	}
+	REQUIRE(isc_buffer_availablelength(b) >= l);
+
+	cp = isc_buffer_used(b);
+	memmove(cp, buf, l);
+	b->used += l;
+}
+
+isc_result_t
+isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
+	isc_buffer_t *dst = NULL;
+	isc_region_t region;
+	isc_result_t result;
+
+	REQUIRE(dstp != NULL && *dstp == NULL);
+	REQUIRE(ISC_BUFFER_VALID(src));
+
+	isc_buffer_usedregion(src, &region);
+
+	result = isc_buffer_allocate(mctx, &dst, region.length);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = isc_buffer_copyregion(dst, &region);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS); /* NOSPACE is impossible */
+	*dstp = dst;
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	unsigned char *base;
 	unsigned int available;
+	isc_result_t result;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
@@ -477,6 +522,11 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	 */
 	base = isc_buffer_used(b);
 	available = isc_buffer_availablelength(b);
+	if (b->autore) {
+		result = isc_buffer_reserve(&b, r->length);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 	if (r->length > available)
 		return (ISC_R_NOSPACE);
 	memmove(base, r->base, r->length);

@@ -53,4 +53,7 @@ dns_rdata_apl_next(dns_rdata_in_apl_t *);
 isc_result_t
 dns_rdata_apl_current(dns_rdata_in_apl_t *, dns_rdata_apl_ent_t *);
 
+unsigned int
+dns_rdata_apl_count(const dns_rdata_in_apl_t *apl);
+
 #endif /* IN_1_APL_42_H */

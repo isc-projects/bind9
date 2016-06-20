@@ -341,7 +341,7 @@ isc__buffer_region(isc_buffer_t *b, isc_region_t *r);
  */
 
 void
-isc__buffer_usedregion(isc_buffer_t *b, isc_region_t *r);
+isc__buffer_usedregion(const isc_buffer_t *b, isc_region_t *r);
 /*!<
  * \brief Make 'r' refer to the used region of 'b'.
  *
@@ -704,6 +704,19 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source);
  *\li	strlen(source) <= isc_buffer_available(b) || b->mctx != NULL
  */
 
+void
+isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v);
+/*!<
+ * \brief Put decimal representation of 'v' in b
+ *
+ * Requires:
+ *\li	'b' is a valid buffer.
+ *
+ *\li	strlen(dec(v)) <= isc_buffer_available(b) || b->mctx != NULL
+ */
+
+
+
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
 /*!<
@@ -713,6 +726,22 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
  *\li	'b' is a valid buffer.
  *
  *\li	'r' is a valid region.
+ *
+ * Returns:
+ *
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOSPACE			The available region of 'b' is not
+ *					big enough.
+ */
+
+isc_result_t
+isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src);
+/*!<
+ * \brief Allocate 'dst' and copy used contents  of 'src' into it
+ *
+ * Requires:
+ *\li	'dstp' is not NULL and *dst is NULL
+ *\li	'src' is a valid buffer.
  *
  * Returns:
  *

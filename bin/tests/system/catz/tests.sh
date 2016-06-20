@@ -372,5 +372,208 @@ grep "'nonexistent' not found; zone files will not be saved" ns2/named.run > /de
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:Adding a domain dom6.example to master via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom6.example.db
+echo "@ IN NS invalid." >> ns1/dom6.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom6.example '{type master; file "dom6.example.db";};' || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom6.example is now served by master ($n)"
+ret=0
+$DIG soa dom6.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+n=`expr $n + 1`
+echo "I:Adding domain dom6.example to catalog1 zone with an allow-query statement ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example 3600 IN PTR dom6.example.
+    update add allow-query.4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example 3600 IN APL 1:10.53.0.1/32 !1:10.53.0.0/30 1:0.0.0.0/0
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom6.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom6.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom6.example is accessible from 10.53.0.1 ($n)"
+ret=0
+$DIG soa dom6.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom6.example is not accessible from 10.53.0.2 ($n)"
+ret=0
+$DIG soa dom6.example -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom6.example is accessible from 10.53.0.5 ($n)"
+ret=0
+$DIG soa dom6.example -b 10.53.0.5 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+n=`expr $n + 1`
+echo "I:Adding global allow-query and allow-domain ACLs ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add 636722929740e507aaf27c502812fc395d30fb17.zones.catalog1.example 3600 IN PTR dom2.example.
+    update add allow-query.catalog1.example 3600 IN APL 1:10.53.0.1/32
+    update add allow-transfer.catalog1.example 3600 IN APL 1:10.53.0.2/32
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom2.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is accessible from 10.53.0.1 ($n)"
+ret=0
+$DIG soa dom3.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is not accessible from 10.53.0.2 ($n)"
+ret=0
+$DIG soa dom3.example -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is not AXFR accessible from 10.53.0.1 ($n)"
+ret=0
+$DIG axfr dom3.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "Transfer failed." dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is AXFR accessible from 10.53.0.2 ($n)"
+ret=0
+$DIG axfr dom3.example -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.out.test$n
+grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+n=`expr $n + 1`
+echo "I:Deleting global allow-query and allow-domain ACLs ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update delete allow-query.catalog1.example 3600 IN APL 1:10.53.0.1/32
+    update delete allow-transfer.catalog1.example 3600 IN APL 1:10.53.0.2/32
+    send
+END
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+ret=0
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: update_from_db: new zone merged" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is accessible from 10.53.0.1 ($n)"
+ret=0
+$DIG soa dom3.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is accessible from 10.53.0.2 ($n)"
+ret=0
+$DIG soa dom3.example -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is AXFR accessible from 10.53.0.1 ($n)"
+ret=0
+$DIG axfr dom3.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:checking that dom3.example is AXFR accessible from 10.53.0.2 ($n)"
+ret=0
+$DIG axfr dom3.example -b 10.53.0.2 @10.53.0.2 -p 5300 > dig.out.test$n
+grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
