@@ -520,6 +520,10 @@ struct acachectl {
 #define ZEROTTL(header) \
 	(((header)->attributes & RDATASET_ATTR_ZEROTTL) != 0)
 
+#define ACTIVE(header, now) \
+	(((header)->rdh_ttl > (now)) || \
+	 ((header)->rdh_ttl == (now) && ZEROTTL(header)))
+
 #define DEFAULT_NODE_LOCK_COUNT         7       /*%< Should be prime. */
 
 /*%
@@ -4534,8 +4538,7 @@ check_stale_rdataset(dns_rbtnode_t *node, rdatasetheader_t *header,
 	UNUSED(lock);
 #endif
 
-	if (header->rdh_ttl < search->now ||
-	    (header->rdh_ttl == search->now && !ZEROTTL(header))) {
+	if (!ACTIVE(header, search->now)) {
 		/*
 		 * This rdataset is stale.  If no one else is using the
 		 * node, we can clean it up right now, otherwise we mark
@@ -5741,7 +5744,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (header->rdh_ttl < now) {
+		if (!ACTIVE(header, now)) {
 			if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
@@ -6065,7 +6068,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					}
 			}
 			if (topheader != NULL && EXISTS(topheader) &&
-			    topheader->rdh_ttl >= now) {
+			    ACTIVE(topheader, now)) {
 				/*
 				 * Found one.
 				 */
@@ -6130,7 +6133,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * has no effect, provided that the cache data isn't stale.
 		 */
 		if (rbtversion == NULL && trust < header->trust &&
-		    (header->rdh_ttl >= now || header_nx)) {
+		    (ACTIVE(header, now) || header_nx)) {
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
@@ -6204,7 +6207,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * Don't lower trust of existing record if the
 		 * update is forced.
 		 */
-		if (IS_CACHE(rbtdb) && header->rdh_ttl >= now &&
+		if (IS_CACHE(rbtdb) && ACTIVE(header, now) &&
 		    header->type == dns_rdatatype_ns &&
 		    !header_nx && !newheader_nx &&
 		    header->trust >= newheader->trust &&
@@ -6240,7 +6243,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * to be no more than the current NS RRset's TTL.  This
 		 * ensures the delegations that are withdrawn are honoured.
 		 */
-		if (IS_CACHE(rbtdb) && header->rdh_ttl >= now &&
+		if (IS_CACHE(rbtdb) && ACTIVE(header, now) &&
 		    header->type == dns_rdatatype_ns &&
 		    !header_nx && !newheader_nx &&
 		    header->trust <= newheader->trust) {
@@ -6248,7 +6251,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				newheader->rdh_ttl = header->rdh_ttl;
 			}
 		}
-		if (IS_CACHE(rbtdb) && header->rdh_ttl >= now &&
+		if (IS_CACHE(rbtdb) && ACTIVE(header, now) &&
 		    (options & DNS_DBADD_PREFETCH) == 0 &&
 		    (header->type == dns_rdatatype_a ||
 		     header->type == dns_rdatatype_aaaa ||
