@@ -1,3 +1,6 @@
+4387.	[bug]		Change 4336 was not complete leading to SERVFAIL
+			being return as NS records expired. [RT #42683]
+
 4384.	[bug]		Change 4256 accidentally disabled logging of the
 			rndc command. [RT #42654]
 
