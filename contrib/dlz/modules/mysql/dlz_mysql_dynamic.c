@@ -526,6 +526,7 @@ mysql_process_rs(mysql_instance_t *db, dns_sdlzlookup_t *lookup,
 				db->log(ISC_LOG_ERROR,
 					"MySQL module ttl must be "
 					"a postive number");
+				free(tmpString);
 				return (ISC_R_FAILURE);
 			}
 
