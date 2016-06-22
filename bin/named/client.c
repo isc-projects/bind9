@@ -1199,7 +1199,7 @@ client_send(ns_client_t *client) {
 		}
 #endif /* HAVE_DNSTAP */
 
-		
+
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
 			isc_stats_increment(ns_g_server->tcpoutstats4,

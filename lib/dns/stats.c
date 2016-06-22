@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2009, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -299,7 +299,7 @@ void
 dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
 
-        if (code <= dns_rcode_badcookie) 
+	if (code <= dns_rcode_badcookie)
 		isc_stats_increment(stats->counters, (isc_statscounter_t)code);
 }
 
