@@ -399,6 +399,8 @@ dns_geoip_shutdown
 dns_hashalg_fromtext
 dns_ipkeylist_clear
 dns_ipkeylist_copy
+dns_ipkeylist_init
+dns_ipkeylist_resize
 dns_iptable_addprefix
 dns_iptable_addprefix2
 dns_iptable_attach
@@ -1150,6 +1152,7 @@ dns_zone_flush
 dns_zone_forcereload
 dns_zone_forwardupdate
 dns_zone_fulldumptostream
+dns_zone_get_parentcatz
 dns_zone_get_rpz_num
 dns_zone_getadded
 dns_zone_getaltxfrsource4
@@ -1243,6 +1246,7 @@ dns_zone_rekey
 dns_zone_replacedb
 dns_zone_rpz_enable
 dns_zone_rpz_enable_db
+dns_zone_set_parentcatz
 dns_zone_setacache
 dns_zone_setadded
 dns_zone_setalsonotify
