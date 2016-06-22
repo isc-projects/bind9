@@ -384,7 +384,12 @@ struct dns_zone {
 	/*%
 	 * catalog zone data
 	 */
-	dns_catz_zones_t		*catzs;
+	dns_catz_zones_t	*catzs;
+
+	/*%
+	 * parent catalog zone
+	 */
+	dns_catz_zone_t		*parentcatz;
 
 	/*%
 	 * Serial number update method.
@@ -1044,6 +1049,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->rpz_num = DNS_RPZ_INVALID_NUM;
 
 	zone->catzs = NULL;
+	zone->parentcatz = NULL;
 
 	ISC_LIST_INIT(zone->forwards);
 	zone->raw = NULL;
@@ -1785,6 +1791,25 @@ dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
 					     zone->catzs);
 	}
+}
+
+/*
+ * Set catalog zone ownership of the zone
+ */
+void
+dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(catz != NULL);
+	LOCK_ZONE(zone);
+	INSIST(zone->parentcatz == NULL || zone->parentcatz == catz);
+	zone->parentcatz = catz;
+	UNLOCK_ZONE(zone);
+}
+
+dns_catz_zone_t *
+dns_zone_get_parentcatz(const dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->parentcatz);
 }
 
 

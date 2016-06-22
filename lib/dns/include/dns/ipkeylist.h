@@ -28,8 +28,19 @@ struct dns_ipkeylist {
 	isc_sockaddr_t		*addrs;
 	isc_dscp_t		*dscps;
 	dns_name_t		**keys;
+	dns_name_t		**labels;
 	isc_uint32_t		count;
+	isc_uint32_t		allocated;
 };
+
+void
+dns_ipkeylist_init(dns_ipkeylist_t *ipkl);
+/*%<
+ * Reset ipkl to empty state
+ *
+ * Requires:
+ *\li	'ipkl' to be non NULL.
+ */
 
 void
 dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
@@ -41,8 +52,7 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
  *
  * Requires:
  *\li	'mctx' to be a valid memory context.
- *\li	'ipkl' to be non NULL and have its members `addrs` and `keys`
- *      allocated. 'dscps' might be NULL.
+ *\li	'ipkl' to be non NULL.
  */
 
 isc_result_t
@@ -60,6 +70,21 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
  * Returns:
  *\li	#ISC_R_SUCCESS	-- success
  *\li	any other value -- failure
+ */
+isc_result_t
+dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
+/*%<
+ * Resize ipkl to contain n elements. Size (count) is not changed, and the
+ * added space is zeroed.
+ *
+ * Requires:
+ * \li	'mctx' to be a valid memory context.
+ * \li	'ipk' to be non NULL
+ * \li	'n' >= ipkl->count
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS if successs
+ * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untoched
  */
 
 #endif

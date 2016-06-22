@@ -2176,7 +2176,7 @@ dns_name_split(dns_name_t *name, unsigned int suffixlabels,
 
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(suffixlabels > 0);
-	REQUIRE(suffixlabels < name->labels);
+	REQUIRE(suffixlabels <= name->labels);
 	REQUIRE(prefix != NULL || suffix != NULL);
 	REQUIRE(prefix == NULL ||
 		(VALID_NAME(prefix) &&

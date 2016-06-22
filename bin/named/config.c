@@ -600,9 +600,12 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	} *stack = NULL;
 
 	REQUIRE(ipkl != NULL);
+	REQUIRE(ipkl->count == 0);
 	REQUIRE(ipkl->addrs == NULL);
 	REQUIRE(ipkl->keys == NULL);
 	REQUIRE(ipkl->dscps == NULL);
+	REQUIRE(ipkl->labels == NULL);
+	REQUIRE(ipkl->allocated == 0);
 
 	/*
 	 * Get system defaults.
@@ -859,6 +862,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	ipkl->dscps = dscps;
 	ipkl->keys = keys;
 	ipkl->count = addrcount;
+	ipkl->allocated = addrcount;
 
 	return (ISC_R_SUCCESS);
 

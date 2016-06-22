@@ -2415,6 +2415,27 @@ dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db);
  * \li	'zone' is a valid zone object
  * \li	'db' is not NULL
  */
+void
+dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz);
+/*%<
+ * Set parent catalog zone for this zone
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ * \li	'catz' is not NULL
+ */
+
+dns_catz_zone_t *
+dns_zone_get_parentcatz(const dns_zone_t *zone);
+/*%<
+ * Get parent catalog zone for this zone
+ *
+ * Requires:
+ *
+ * \li	'zone' is a valid zone object
+ */
+
 
 void
 dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level);

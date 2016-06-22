@@ -2046,12 +2046,31 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: error \"%s\" while trying to"
+				      "catz: error \"%s\" while trying to "
 				      "modify zone \"%s\"",
 				      isc_result_totext(result),
 				      nameb);
 			goto cleanup;
 		} else {
+			if (!dns_zone_getadded(zone)) {
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_WARNING,
+					      "catz: catz_addmodzone_taskaction: "
+					      "zone '%s' is not a dynamically "
+					      "added zone",
+					      nameb);
+				goto cleanup;
+			}
+			if (dns_zone_get_parentcatz(zone) != ev->origin) {
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+					      "catz: catz_delzone_taskaction: "
+					      "zone '%s' exists in multiple "
+					      "catalog zones",
+					      nameb);
+				goto cleanup;
+			}
 			dns_zone_detach(&zone);
 		}
 
@@ -2059,7 +2078,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (result != ISC_R_NOTFOUND && result != DNS_R_PARTIALMATCH) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: error \"%s\" while trying to"
+				      "catz: error \"%s\" while trying to "
 				      "add zone \"%s\"",
 				      isc_result_totext(result),
 				      nameb);
@@ -2141,6 +2160,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	/* Flag the zone as having been added at runtime */
 	dns_zone_setadded(zone, ISC_TRUE);
+	dns_zone_set_parentcatz(zone, ev->origin);
 
  cleanup:
 	if (zone != NULL)
@@ -2177,13 +2197,20 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
-	/* TODO make other flag for CZ zones */
-	/* TODO2 make sure that we delete only 'own' zones */
 	if (!dns_zone_getadded(zone)) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "catz: catz_delzone_taskaction: "
 			      "zone '%s' is not a dynamically added zone",
+			      cname);
+		goto cleanup;
+	}
+
+	if (dns_zone_get_parentcatz(zone) != ev->origin) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "catz: catz_delzone_taskaction: zone "
+			      "'%s' exists in multiple catalog zones",
 			      cname);
 		goto cleanup;
 	}
@@ -2196,7 +2223,8 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	CHECK(dns_zt_unmount(ev->view->zonetable, zone));
 	file = dns_zone_getfile(zone);
-	isc_file_remove(file);
+	if (file != NULL)
+		isc_file_remove(file);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -5408,8 +5436,11 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		dns_db_t *db = NULL;
 
 		tresult = dns_zone_getdb(zone, &db);
-		if (tresult == ISC_R_SUCCESS)
+		if (tresult == ISC_R_SUCCESS) {
 			dns_catz_dbupdate_callback(db, view->catzs);
+			dns_db_detach(&db);
+		}
+
 	}
 
 	/*

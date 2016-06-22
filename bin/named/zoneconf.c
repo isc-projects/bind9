@@ -1148,10 +1148,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		      ztype == dns_zone_master)))
 		{
 			dns_ipkeylist_t ipkl;
-			ipkl.count = 0;
-			ipkl.addrs = NULL;
-			ipkl.dscps = NULL;
-			ipkl.keys = NULL;
+			dns_ipkeylist_init(&ipkl);
+
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
 							 &ipkl));
 			result = dns_zone_setalsonotifydscpkeys(zone,
@@ -1623,10 +1621,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		(void)cfg_map_get(zoptions, "masters", &obj);
 		if (obj != NULL) {
 			dns_ipkeylist_t ipkl;
-			ipkl.count = 0;
-			ipkl.addrs = NULL;
-			ipkl.dscps = NULL;
-			ipkl.keys = NULL;
+			dns_ipkeylist_init(&ipkl);
+
 			RETERR(ns_config_getipandkeylist(config, obj, mctx,
 							 &ipkl));
 			result = dns_zone_setmasterswithkeys(mayberaw,

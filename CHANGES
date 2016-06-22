@@ -1,3 +1,8 @@
+4389.	[test]		Rewritten test suite for catalog zones. [RT #42676]
+
+4388.	[func]		Support for master entries with TSIG keys in catalog
+			zones. [RT #42577]
+
 4387.	[bug]		Change 4336 was not complete leading to SERVFAIL
 			being return as NS records expired. [RT #42683]
 
