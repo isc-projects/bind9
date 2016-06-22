@@ -1,3 +1,6 @@
+4387.	[bug]		Change 4336 was not complete leading to SERVFAIL
+			being return as NS records expired. [RT #42683]
+
 	--- 9.9.9-P1 released ---
 
 4366.	[bug]		Address race condition when updating rbtnode bit
