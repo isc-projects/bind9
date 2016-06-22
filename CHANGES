@@ -1,3 +1,6 @@
+4387.	[bug]		Change 4336 was not complete leading to SERVFAIL
+			being return as NS records expired. [RT #42683]
+
 	--- 9.10.4-P1 released ---
 
 4368.	[bug]		Fix a crash when calling "rndc stats" on some
