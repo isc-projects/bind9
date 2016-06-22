@@ -199,6 +199,8 @@ typedef void (*dns_rdatatypestats_dumper_t)(dns_rdatastatstype_t, isc_uint64_t,
 					    void *);
 typedef void (*dns_opcodestats_dumper_t)(dns_opcode_t, isc_uint64_t, void *);
 
+typedef void (*dns_rcodestats_dumper_t)(dns_rcode_t, isc_uint64_t, void *);
+
 ISC_LANG_BEGINDECLS
 
 isc_result_t
@@ -256,6 +258,22 @@ isc_result_t
 dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per opcode.
+ *
+ * Requires:
+ *\li	'mctx' must be a valid memory context.
+ *
+ *\li	'statsp' != NULL && '*statsp' == NULL.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS	-- all ok
+ *
+ *\li	anything else	-- failure
+ */
+
+isc_result_t
+dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+/*%<
+ * Create a statistics counter structure per assigned rcode.
  *
  * Requires:
  *\li	'mctx' must be a valid memory context.
@@ -341,6 +359,15 @@ dns_opcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
  */
 
 void
+dns_rcodestats_increment(dns_stats_t *stats, dns_opcode_t code);
+/*%<
+ * Increment the statistics counter for 'code'.
+ *
+ * Requires:
+ *\li	'stats' is a valid dns_stats_t created by dns_rcodestats_create().
+ */
+
+void
 dns_generalstats_dump(dns_stats_t *stats, dns_generalstats_dumper_t dump_fn,
 		      void *arg, unsigned int options);
 /*%<
@@ -390,6 +417,20 @@ dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
 /*%<
  * Dump the current statistics counters in a specified way.  For each counter
  * in stats, dump_fn is called with the corresponding opcode, the current
+ * counter value and the given argument arg.  By default counters that have a
+ * value of 0 is skipped; if options has the ISC_STATSDUMP_VERBOSE flag, even
+ * such counters are dumped.
+ *
+ * Requires:
+ *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
+ */
+
+void
+dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
+		    void *arg, unsigned int options);
+/*%<
+ * Dump the current statistics counters in a specified way.  For each counter
+ * in stats, dump_fn is called with the corresponding rcode, the current
  * counter value and the given argument arg.  By default counters that have a
  * value of 0 is skipped; if options has the ISC_STATSDUMP_VERBOSE flag, even
  * such counters are dumped.

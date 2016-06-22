@@ -753,6 +753,9 @@ dns_rbtnodechain_prev
 dns_rbtnodechain_reset
 dns_rcode_fromtext
 dns_rcode_totext
+dns_rcodestats_create
+dns_rcodestats_dump
+dns_rcodestats_increment
 dns_rdata_additionaldata
 dns_rdata_apl_current
 dns_rdata_apl_first

@@ -261,6 +261,10 @@ enum {
 #define dns_rcode_badvers		((dns_rcode_t)dns_rcode_badvers)
 	dns_rcode_badcookie = 23
 #define dns_rcode_badcookie		((dns_rcode_t)dns_rcode_badcookie)
+	/*
+	 * Update dns_rcodestats_create() and dns_rcodestats_increment()
+	 * and this comment if a rcode > dns_rcode_badcookie is assigned.
+	 */
 	/* Private space [3841..4095] */
 };
 

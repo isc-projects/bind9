@@ -101,10 +101,15 @@ struct ns_server {
 	isc_stats_t *		zonestats;	/*% Zone management stats */
 	isc_stats_t  *		resolverstats;	/*% Resolver stats */
 	isc_stats_t *		sockstats;	/*%< Socket stats */
-	isc_stats_t *		udpinstats;	/*%< Traffic size: UDP in */
-	isc_stats_t *		udpoutstats;	/*%< Traffic size: UDP out */
-	isc_stats_t *		tcpinstats;	/*%< Traffic size: TCP in */
-	isc_stats_t *		tcpoutstats;	/*%< Traffic size: TCP out */
+	isc_stats_t *		udpinstats4;	/*%< Traffic size: UDPv4 in */
+	isc_stats_t *		udpoutstats4;	/*%< Traffic size: UDPv4 out */
+	isc_stats_t *		udpinstats6;	/*%< Traffic size: UDPv6 in */
+	isc_stats_t *		udpoutstats6;	/*%< Traffic size: UDPv6 out */
+	isc_stats_t *		tcpinstats4;	/*%< Traffic size: TCPv4 in */
+	isc_stats_t *		tcpoutstats4;	/*%< Traffic size: TCPv4 out */
+	isc_stats_t *		tcpinstats6;	/*%< Traffic size: TCPv6 in */
+	isc_stats_t *		tcpoutstats6;	/*%< Traffic size: TCPv6 out */
+	dns_stats_t *		rcodestats;	/*%< Sent Response code stats */
 
 	ns_controls_t *		controls;	/*%< Control channels */
 	unsigned int		dispatchgen;

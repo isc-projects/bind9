@@ -24,7 +24,7 @@ my $file = $ARGV[0];
 
 my $ref = XMLin($file);
 
-my $udp = $ref->{traffic}->{udp}->{counters};
+my $udp = $ref->{traffic}->{ipv4}->{udp}->{counters};
 foreach $group (@$udp) {
     my $type = "udp " . $group->{type} . " ";
     if (exists $group->{counter}->{name}) {
@@ -36,7 +36,7 @@ foreach $group (@$udp) {
     }
 }
 
-my $tcp = $ref->{traffic}->{tcp}->{counters};
+my $tcp = $ref->{traffic}->{ipv4}->{tcp}->{counters};
 foreach $group (@$tcp) {
     my $type = "tcp " . $group->{type} . " ";
     if (exists $group->{counter}->{name}) {

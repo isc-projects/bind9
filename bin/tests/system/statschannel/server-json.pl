@@ -27,6 +27,9 @@ my $ref = decode_json($text);
 foreach $key (keys $ref->{opcodes}) {
     print "opcode " . $key . ": " . $ref->{opcodes}->{$key} . "\n";
 }
+foreach $key (keys $ref->{rcodes}) {
+    print "rcode " . $key . ": " . $ref->{rcodes}->{$key} . "\n";
+}
 foreach $key (keys $ref->{qtypes}) {
     print "qtype " . $key . ": " . $ref->{qtypes}->{$key} . "\n";
 }

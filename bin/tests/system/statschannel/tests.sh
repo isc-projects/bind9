@@ -147,6 +147,7 @@ $DIGCMD +tcp example ns > dig.out.$n || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats 2>&1 | sed 's/^/I:ns1 /'
 query_count=`awk '/QUERY/ {print $1}' ns2/named.stats`
 txt_count=`awk '/TXT/ {print $1}' ns2/named.stats`
+noerror_count=`awk '/NOERROR/ {print $1}' ns2/named.stats`
 if [ $PERL_XML ]; then
     file=`$PERL fetch.pl xml/v3/server`
     mv $file xml.stats
@@ -157,6 +158,9 @@ if [ $PERL_XML ]; then
     xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats`
     xml_txt_count=${xml_txt_count:-0}
     [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
+    xml_noerror_count=`awk '/rcode NOERROR/ { print $NF }' xml.fmtstats`
+    xml_noerror_count=${xml_noerror_count:-0}
+    [ "$noerror_count" -eq "$xml_noerror_count" ] || ret=1
 fi
 if [ $PERL_JSON ]; then
     file=`$PERL fetch.pl json/v1/server`
@@ -168,6 +172,9 @@ if [ $PERL_JSON ]; then
     json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats`
     json_txt_count=${json_txt_count:-0}
     [ "$txt_count" -eq "$json_txt_count" ] || ret=1
+    json_noerror_count=`awk '/rcode NOERROR/ { print $NF }' json.fmtstats`
+    json_noerror_count=${json_noerror_count:-0}
+    [ "$noerror_count" -eq "$json_noerror_count" ] || ret=1
 fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`

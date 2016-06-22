@@ -40,7 +40,8 @@ typedef enum {
 	dns_statstype_general = 0,
 	dns_statstype_rdtype = 1,
 	dns_statstype_rdataset = 2,
-	dns_statstype_opcode = 3
+	dns_statstype_opcode = 3,
+	dns_statstype_rcode = 4
 } dns_statstype_t;
 
 /*%
@@ -87,6 +88,11 @@ typedef struct opcodedumparg {
 	dns_opcodestats_dumper_t	fn;
 	void				*arg;
 } opcodedumparg_t;
+
+typedef struct rcodedumparg {
+	dns_rcodestats_dumper_t	fn;
+	void				*arg;
+} rcodedumparg_t;
 
 void
 dns_stats_attach(dns_stats_t *stats, dns_stats_t **statsp) {
@@ -191,6 +197,14 @@ dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	return (create_stats(mctx, dns_statstype_opcode, 16, statsp));
 }
 
+isc_result_t
+dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	return (create_stats(mctx, dns_statstype_rcode,
+			     dns_rcode_badcookie + 1, statsp));
+}
+
 /*%
  * Increment/Decrement methods
  */
@@ -279,6 +293,14 @@ dns_opcodestats_increment(dns_stats_t *stats, dns_opcode_t code) {
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_opcode);
 
 	isc_stats_increment(stats->counters, (isc_statscounter_t)code);
+}
+
+void
+dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
+	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
+
+        if (code <= dns_rcode_badcookie) 
+		isc_stats_increment(stats->counters, (isc_statscounter_t)code);
 }
 
 /*%
@@ -389,6 +411,13 @@ opcode_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
 	opcodearg->fn((dns_opcode_t)counter, value, opcodearg->arg);
 }
 
+static void
+rcode_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
+	rcodedumparg_t *rcodearg = arg;
+
+	rcodearg->fn((dns_rcode_t)counter, value, rcodearg->arg);
+}
+
 void
 dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
 		     void *arg0, unsigned int options)
@@ -400,6 +429,19 @@ dns_opcodestats_dump(dns_stats_t *stats, dns_opcodestats_dumper_t dump_fn,
 	arg.fn = dump_fn;
 	arg.arg = arg0;
 	isc_stats_dump(stats->counters, opcode_dumpcb, &arg, options);
+}
+
+void
+dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
+		     void *arg0, unsigned int options)
+{
+	rcodedumparg_t arg;
+
+	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_rcode);
+
+	arg.fn = dump_fn;
+	arg.arg = arg0;
+	isc_stats_dump(stats->counters, rcode_dumpcb, &arg, options);
 }
 
 /***

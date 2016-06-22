@@ -77,7 +77,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 pending pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrl rrchecker rrsetorder rsabigexponent
 	 runtime sfcache smartsign sortlist spf staticstub statistics
-	 stub tcp tkey tsig tsiggss unknown upforwd verify views
+	 statschannel stub tcp tkey tsig tsiggss unknown upforwd verify views
 	 wildcard xfer xferquota zero zonechecks"
 
 # Use the CONFIG_SHELL detected by configure for tests

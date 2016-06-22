@@ -32,9 +32,10 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/opcode.h>
-#include <dns/resolver.h>
+#include <dns/rcode.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/resolver.h>
 #include <dns/stats.h>
 #include <dns/view.h>
 #include <dns/zt.h>
@@ -1279,8 +1280,8 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 						 ISC_XMLCHAR codebuf ));
 		TRY0(xmlTextWriterWriteFormatString(writer,
-						       "%" ISC_PRINT_QUADFORMAT "u",
-						       val));
+						"%" ISC_PRINT_QUADFORMAT "u",
+						val));
 		TRY0(xmlTextWriterEndElement(writer)); /* counter */
 #endif
 		break;
@@ -1300,6 +1301,62 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
  error:
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_ERROR, "failed at opcodestat_dump()");
+	dumparg->result = ISC_R_FAILURE;
+	return;
+#endif
+}
+
+static void
+rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
+	FILE *fp;
+	isc_buffer_t b;
+	char codebuf[64];
+	stats_dumparg_t *dumparg = arg;
+#ifdef HAVE_LIBXML2
+	xmlTextWriterPtr writer;
+	int xmlrc;
+#endif
+#ifdef HAVE_JSON
+	json_object *zoneobj, *obj;
+#endif
+
+	isc_buffer_init(&b, codebuf, sizeof(codebuf) - 1);
+	dns_rcode_totext(code, &b);
+	codebuf[isc_buffer_usedlength(&b)] = '\0';
+
+	switch (dumparg->type) {
+	case isc_statsformat_file:
+		fp = dumparg->arg;
+		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, codebuf);
+		break;
+	case isc_statsformat_xml:
+#ifdef HAVE_LIBXML2
+		writer = dumparg->arg;
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
+						 ISC_XMLCHAR codebuf ));
+		TRY0(xmlTextWriterWriteFormatString(writer,
+						"%" ISC_PRINT_QUADFORMAT "u",
+						val));
+		TRY0(xmlTextWriterEndElement(writer)); /* counter */
+#endif
+		break;
+	case isc_statsformat_json:
+#ifdef HAVE_JSON
+		zoneobj = (json_object *) dumparg->arg;
+		obj = json_object_new_int64(val);
+		if (obj == NULL)
+			return;
+		json_object_object_add(zoneobj, codebuf, obj);
+#endif
+		break;
+	}
+	return;
+
+#ifdef HAVE_LIBXML2
+ error:
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+		      ISC_LOG_ERROR, "failed at rcodestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif
@@ -1482,6 +1539,17 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "rcode"));
+
+		dns_rcodestats_dump(server->rcodestats, rcodestat_dump,
+				    &dumparg, ISC_STATSDUMP_VERBOSE);
+		if (dumparg.result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer));
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "qtype"));
 
 		dumparg.result = ISC_R_SUCCESS;
@@ -1555,12 +1623,13 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 
 	if ((flags & STATS_XML_TRAFFIC) != 0) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "traffic"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ipv4"));
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "udp"));
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->udpinstats,
+		result = dump_counters(server->udpinstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, udpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1575,7 +1644,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->udpoutstats,
+		result = dump_counters(server->udpoutstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, udpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1592,7 +1661,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->tcpinstats,
+		result = dump_counters(server->tcpinstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1607,7 +1676,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->tcpoutstats,
+		result = dump_counters(server->tcpoutstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1618,9 +1687,75 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 
 		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
 		TRY0(xmlTextWriterEndElement(writer)); /* </tcp> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </ipv4> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ipv6"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "udp"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "request-size"));
+
+		result = dump_counters(server->udpinstats6,
+				       isc_statsformat_xml, writer,
+				       NULL, udpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       udpinsizestats_index,
+				       udpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "response-size"));
+
+		result = dump_counters(server->udpoutstats6,
+				       isc_statsformat_xml, writer,
+				       NULL, udpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       udpoutsizestats_index,
+				       udpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </udp> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tcp"));
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "request-size"));
+
+		result = dump_counters(server->tcpinstats6,
+				       isc_statsformat_xml, writer,
+				       NULL, tcpinsizestats_xmldesc,
+				       dns_sizecounter_in_max,
+				       tcpinsizestats_index,
+				       tcpinsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+
+		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
+		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "response-size"));
+
+		result = dump_counters(server->tcpoutstats6,
+				       isc_statsformat_xml, writer,
+				       NULL, tcpoutsizestats_xmldesc,
+				       dns_sizecounter_out_max,
+				       tcpoutsizestats_index,
+				       tcpoutsizestat_values, 0);
+		if (result != ISC_R_SUCCESS)
+			goto error;
+
+		TRY0(xmlTextWriterEndElement(writer)); /* </counters> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </tcp> */
+		TRY0(xmlTextWriterEndElement(writer)); /* </ipv6> */
 		TRY0(xmlTextWriterEndElement(writer)); /* </traffic> */
 	}
-
 
 	/*
 	 * Render views.  For each view we know of, call its
@@ -1928,6 +2063,12 @@ render_xml_traffic(const char *url, isc_httpdurl_t *urlinfo,
 #define STATS_JSON_TRAFFIC	0x20
 #define STATS_JSON_ALL		0xff
 
+#define CHECK(m) do { \
+	result = (m); \
+	if (result != ISC_R_SUCCESS) \
+		goto error; \
+} while (0)
+
 #define CHECKMEM(m) do { \
 	if (m == NULL) { \
 		result = ISC_R_NOMEMORY;\
@@ -2061,6 +2202,11 @@ generatejson(ns_server_t *server, size_t *msglen,
 	dns_view_t *view;
 	isc_result_t result = ISC_R_SUCCESS;
 	json_object *bindstats, *viewlist, *counters, *obj;
+	json_object *traffic = NULL;
+	json_object *udpreq4 = NULL, *udpresp4 = NULL;
+	json_object *tcpreq4 = NULL, *tcpresp4 = NULL;
+	json_object *udpreq6 = NULL, *udpresp6 = NULL;
+	json_object *tcpreq6 = NULL, *tcpresp6 = NULL;
 	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
 	isc_uint64_t adbstat_values[dns_adbstats_max];
@@ -2131,6 +2277,24 @@ generatejson(ns_server_t *server, size_t *msglen,
 
 		if (json_object_get_object(counters)->count != 0)
 			json_object_object_add(bindstats, "opcodes", counters);
+		else
+			json_object_put(counters);
+
+		/* OPCODE counters */
+		counters = json_object_new_object();
+
+		dumparg.type = isc_statsformat_json;
+		dumparg.arg = counters;
+
+		dns_rcodestats_dump(server->rcodestats, rcodestat_dump,
+				    &dumparg, ISC_STATSDUMP_VERBOSE);
+		if (dumparg.result != ISC_R_SUCCESS) {
+			json_object_put(counters);
+			goto error;
+		}
+
+		if (json_object_get_object(counters)->count != 0)
+			json_object_object_add(bindstats, "rcodes", counters);
 		else
 			json_object_put(counters);
 
@@ -2419,76 +2583,124 @@ generatejson(ns_server_t *server, size_t *msglen,
 	}
 
 	if ((flags & STATS_JSON_TRAFFIC) != 0) {
-		json_object *traffic, *udpreq, *udpresp, *tcpreq, *tcpresp;
 
 		traffic = json_object_new_object();
 		CHECKMEM(traffic);
 
-		udpreq = json_object_new_object();
-		CHECKMEM(udpreq);
+		udpreq4 = json_object_new_object();
+		CHECKMEM(udpreq4);
 
-		udpresp = json_object_new_object();
-		CHECKMEM(udpresp);
+		udpresp4 = json_object_new_object();
+		CHECKMEM(udpresp4);
 
-		tcpreq = json_object_new_object();
-		CHECKMEM(tcpreq);
+		tcpreq4 = json_object_new_object();
+		CHECKMEM(tcpreq4);
 
-		tcpresp = json_object_new_object();
-		CHECKMEM(tcpresp);
+		tcpresp4 = json_object_new_object();
+		CHECKMEM(tcpresp4);
 
-		result = dump_counters(server->udpinstats,
-				       isc_statsformat_json, udpreq, NULL,
-				       udpinsizestats_xmldesc,
-				       dns_sizecounter_in_max,
-				       udpinsizestats_index,
-				       udpinsizestat_values, 0);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(traffic);
-			goto error;
-		}
+		udpreq6 = json_object_new_object();
+		CHECKMEM(udpreq6);
 
-		result = dump_counters(server->udpoutstats,
-				       isc_statsformat_json, udpresp, NULL,
-				       udpoutsizestats_xmldesc,
-				       dns_sizecounter_out_max,
-				       udpoutsizestats_index,
-				       udpoutsizestat_values, 0);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(traffic);
-			goto error;
-		}
+		udpresp6 = json_object_new_object();
+		CHECKMEM(udpresp6);
 
-		result = dump_counters(server->tcpinstats,
-				       isc_statsformat_json, tcpreq, NULL,
-				       tcpinsizestats_xmldesc,
-				       dns_sizecounter_in_max,
-				       tcpinsizestats_index,
-				       tcpinsizestat_values, 0);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(traffic);
-			goto error;
-		}
+		tcpreq6 = json_object_new_object();
+		CHECKMEM(tcpreq6);
 
-		result = dump_counters(server->tcpoutstats,
-				       isc_statsformat_json, tcpresp, NULL,
-				       tcpoutsizestats_xmldesc,
-				       dns_sizecounter_out_max,
-				       tcpoutsizestats_index,
-				       tcpoutsizestat_values, 0);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(traffic);
-			goto error;
-		}
+		tcpresp6 = json_object_new_object();
+		CHECKMEM(tcpresp6);
+
+		CHECK(dump_counters(server->udpinstats4,
+				    isc_statsformat_json, udpreq4, NULL,
+				    udpinsizestats_xmldesc,
+				    dns_sizecounter_in_max,
+				    udpinsizestats_index,
+				    udpinsizestat_values, 0));
+
+		CHECK(dump_counters(server->udpoutstats4,
+				    isc_statsformat_json, udpresp4, NULL,
+				    udpoutsizestats_xmldesc,
+				    dns_sizecounter_out_max,
+				    udpoutsizestats_index,
+				    udpoutsizestat_values, 0));
+
+		CHECK(dump_counters(server->tcpinstats4,
+				    isc_statsformat_json, tcpreq4, NULL,
+				    tcpinsizestats_xmldesc,
+				    dns_sizecounter_in_max,
+				    tcpinsizestats_index,
+				    tcpinsizestat_values, 0));
+
+		CHECK(dump_counters(server->tcpoutstats4,
+				    isc_statsformat_json, tcpresp4, NULL,
+				    tcpoutsizestats_xmldesc,
+				    dns_sizecounter_out_max,
+				    tcpoutsizestats_index,
+				    tcpoutsizestat_values, 0));
+
+		CHECK(dump_counters(server->udpinstats6,
+				    isc_statsformat_json, udpreq6, NULL,
+				    udpinsizestats_xmldesc,
+				    dns_sizecounter_in_max,
+				    udpinsizestats_index,
+				    udpinsizestat_values, 0));
+
+		CHECK(dump_counters(server->udpoutstats6,
+				    isc_statsformat_json, udpresp6, NULL,
+				    udpoutsizestats_xmldesc,
+				    dns_sizecounter_out_max,
+				    udpoutsizestats_index,
+				    udpoutsizestat_values, 0));
+
+		CHECK(dump_counters(server->tcpinstats6,
+				    isc_statsformat_json, tcpreq6, NULL,
+				    tcpinsizestats_xmldesc,
+				    dns_sizecounter_in_max,
+				    tcpinsizestats_index,
+				    tcpinsizestat_values, 0));
+
+		CHECK(dump_counters(server->tcpoutstats6,
+				    isc_statsformat_json, tcpresp6, NULL,
+				    tcpoutsizestats_xmldesc,
+				    dns_sizecounter_out_max,
+				    tcpoutsizestats_index,
+				    tcpoutsizestat_values, 0));
 
 		json_object_object_add(traffic,
-				       "udp-requests-received", udpreq);
+				       "dns-udp-requests-sizes-received-ipv4",
+				       udpreq4);
 		json_object_object_add(traffic,
-				       "udp-responses-sent", udpresp);
+				       "dns-udp-responses-sizes-sent-ipv4",
+				       udpresp4);
 		json_object_object_add(traffic,
-				       "tcp-requests-received", tcpreq);
+				       "dns-tcp-requests-sizes-received-ipv4",
+				       tcpreq4);
 		json_object_object_add(traffic,
-				       "tcp-responses-sent", tcpresp);
+				       "dns-tcp-responses-sizes-sent-ipv4",
+				       tcpresp4);
+		json_object_object_add(traffic,
+				       "dns-udp-requests-sizes-received-ipv6",
+				       udpreq6);
+		json_object_object_add(traffic,
+				       "dns-udp-responses-sizes-sent-ipv6",
+				       udpresp6);
+		json_object_object_add(traffic,
+				       "dns-tcp-requests-sizes-received-ipv6",
+				       tcpreq6);
+		json_object_object_add(traffic,
+				       "dns-tcp-responses-sizes-sent-ipv6",
+				       tcpresp6);
 		json_object_object_add(bindstats, "traffic", traffic);
+		udpreq4 = NULL;
+		udpresp4 = NULL;
+		tcpreq4 = NULL;
+		tcpresp4 = NULL;
+		udpreq6 = NULL;
+		udpresp6 = NULL;
+		tcpreq6 = NULL;
+		tcpresp6 = NULL;
+		traffic = NULL;
 	}
 
 	*msg = json_object_to_json_string_ext(bindstats,
@@ -2503,6 +2715,24 @@ generatejson(ns_server_t *server, size_t *msglen,
 	result = ISC_R_SUCCESS;
 
   error:
+	if (udpreq4 != NULL)
+		json_object_put(udpreq4);
+	if (udpresp4 != NULL)
+		json_object_put(udpresp4);
+	if (tcpreq4 != NULL)
+		json_object_put(tcpreq4);
+	if (tcpresp4 != NULL)
+		json_object_put(tcpresp4);
+	if (udpreq6 != NULL)
+		json_object_put(udpreq6);
+	if (udpresp6 != NULL)
+		json_object_put(udpresp6);
+	if (tcpreq6 != NULL)
+		json_object_put(tcpreq6);
+	if (tcpresp6 != NULL)
+		json_object_put(tcpresp6);
+	if (traffic != NULL)
+		json_object_put(traffic);
 	if (bindstats != NULL)
 		json_object_put(bindstats);
 
@@ -3121,6 +3351,9 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	fprintf(fp, "++ Incoming Queries ++\n");
 	dns_rdatatypestats_dump(server->rcvquerystats, rdtypestat_dump,
 				&dumparg, 0);
+
+	fprintf(fp, "++ Outgoing Rcodes ++\n");
+	dns_rcodestats_dump(server->rcodestats, rcodestat_dump, &dumparg, 0);
 
 	fprintf(fp, "++ Outgoing Queries ++\n");
 	for (view = ISC_LIST_HEAD(server->viewlist);

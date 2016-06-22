@@ -7834,13 +7834,18 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->nsstats = NULL;
 	server->rcvquerystats = NULL;
 	server->opcodestats = NULL;
+	server->rcodestats = NULL;
 	server->zonestats = NULL;
 	server->resolverstats = NULL;
 	server->sockstats = NULL;
-	server->udpinstats = NULL;
-	server->udpoutstats = NULL;
-	server->tcpinstats = NULL;
-	server->tcpoutstats = NULL;
+	server->udpinstats4 = NULL;
+	server->udpoutstats4 = NULL;
+	server->udpinstats6 = NULL;
+	server->udpoutstats6 = NULL;
+	server->tcpinstats4 = NULL;
+	server->tcpoutstats4 = NULL;
+	server->tcpinstats6 = NULL;
+	server->tcpoutstats6 = NULL;
 	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
 				    isc_sockstatscounter_max),
 		   "isc_stats_create");
@@ -7882,6 +7887,9 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_opcodestats_create(ns_g_mctx, &server->opcodestats),
 		   "dns_stats_create (opcode)");
 
+	CHECKFATAL(dns_rcodestats_create(ns_g_mctx, &server->rcodestats),
+		   "dns_stats_create (rcode)");
+
 	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->zonestats,
 				    dns_zonestatscounter_max),
 		   "dns_stats_create (zone)");
@@ -7890,21 +7898,37 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 				    dns_resstatscounter_max),
 		   "dns_stats_create (resolver)");
 
-	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpinstats,
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpinstats4,
 				    dns_sizecounter_in_max),
-		   "dns_stats_create (inbound UDP traffic size)");
+		   "dns_stats_create (inbound UDP IPv4 traffic size)");
 
-	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpoutstats,
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpoutstats4,
 				    dns_sizecounter_out_max),
-		   "dns_stats_create (outbound UDP traffic size)");
+		   "dns_stats_create (outbound UDP IPv4 traffic size)");
 
-	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpinstats,
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpinstats6,
 				    dns_sizecounter_in_max),
-		   "dns_stats_create (inbound TCP traffic size)");
+		   "dns_stats_create (inbound UDP IPv6 traffic size)");
 
-	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpoutstats,
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->udpoutstats6,
 				    dns_sizecounter_out_max),
-		   "dns_stats_create (outbound TCP traffic size)");
+		   "dns_stats_create (outbound UDP IPv6 traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpinstats4,
+				    dns_sizecounter_in_max),
+		   "dns_stats_create (inbound TCP IPv4 traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpoutstats4,
+				    dns_sizecounter_out_max),
+		   "dns_stats_create (outbound TCP IPv4 traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpinstats6,
+				    dns_sizecounter_in_max),
+		   "dns_stats_create (inbound TCP IPv6 traffic size)");
+
+	CHECKFATAL(isc_stats_create(ns_g_mctx, &server->tcpoutstats6,
+				    dns_sizecounter_out_max),
+		   "dns_stats_create (outbound TCP IPv6 traffic size)");
 
 	server->flushonshutdown = ISC_FALSE;
 	server->log_queries = ISC_FALSE;
@@ -7948,13 +7972,18 @@ ns_server_destroy(ns_server_t **serverp) {
 	isc_stats_detach(&server->nsstats);
 	dns_stats_detach(&server->rcvquerystats);
 	dns_stats_detach(&server->opcodestats);
+	dns_stats_detach(&server->rcodestats);
 	isc_stats_detach(&server->zonestats);
 	isc_stats_detach(&server->resolverstats);
 	isc_stats_detach(&server->sockstats);
-	isc_stats_detach(&server->udpinstats);
-	isc_stats_detach(&server->udpoutstats);
-	isc_stats_detach(&server->tcpinstats);
-	isc_stats_detach(&server->tcpoutstats);
+	isc_stats_detach(&server->udpinstats4);
+	isc_stats_detach(&server->udpoutstats4);
+	isc_stats_detach(&server->udpinstats6);
+	isc_stats_detach(&server->udpoutstats6);
+	isc_stats_detach(&server->tcpinstats4);
+	isc_stats_detach(&server->tcpoutstats4);
+	isc_stats_detach(&server->tcpinstats6);
+	isc_stats_detach(&server->tcpoutstats6);
 
 	isc_mem_free(server->mctx, server->statsfile);
 	isc_mem_free(server->mctx, server->bindkeysfile);

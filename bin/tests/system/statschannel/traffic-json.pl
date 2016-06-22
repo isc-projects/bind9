@@ -27,25 +27,25 @@ close(INPUT);
 
 my $ref = decode_json($text);
 
-my $tcprcvd = $ref->{traffic}->{"tcp-requests-received"};
+my $tcprcvd = $ref->{traffic}->{"dns-tcp-requests-sizes-received-ipv4"};
 my $type = "tcp request-size ";
 foreach $key (keys $tcprcvd) {
     print $type . $key . ": ". $tcprcvd->{$key} ."\n";
 }
 
-my $tcpsent = $ref->{traffic}->{"tcp-responses-sent"};
+my $tcpsent = $ref->{traffic}->{"dns-tcp-responses-sizes-sent-ipv4"};
 my $type = "tcp response-size ";
 foreach $key (keys $tcpsent) {
     print $type . $key . ": ". $tcpsent->{$key} ."\n";
 }
 
-my $udprcvd = $ref->{traffic}->{"udp-requests-received"};
+my $udprcvd = $ref->{traffic}->{"dns-udp-requests-sizes-received-ipv4"};
 my $type = "udp request-size ";
 foreach $key (keys $udprcvd) {
     print $type . $key . ": ". $udprcvd->{$key} ."\n";
 }
 
-my $udpsent = $ref->{traffic}->{"udp-responses-sent"};
+my $udpsent = $ref->{traffic}->{"dns-udp-responses-sizes-sent-ipv4"};
 my $type = "udp response-size ";
 foreach $key (keys $udpsent) {
     print $type . $key . ": ". $udpsent->{$key} ."\n";

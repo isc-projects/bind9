@@ -1199,8 +1199,20 @@ client_send(ns_client_t *client) {
 		}
 #endif /* HAVE_DNSTAP */
 
-		isc_stats_increment(ns_g_server->tcpoutstats,
-				    ISC_MIN((int)respsize / 16, 256));
+		
+		switch (isc_sockaddr_pf(&client->peeraddr)) {
+		case AF_INET:
+			isc_stats_increment(ns_g_server->tcpoutstats4,
+					    ISC_MIN((int)respsize / 16, 256));
+			break;
+		case AF_INET6:
+			isc_stats_increment(ns_g_server->tcpoutstats6,
+					    ISC_MIN((int)respsize / 16, 256));
+			break;
+		default:
+			INSIST(0);
+			break;
+		}
 	} else {
 		respsize = isc_buffer_usedlength(&buffer);
 		result = client_sendpkg(client, &buffer);
@@ -1213,13 +1225,26 @@ client_send(ns_client_t *client) {
 		}
 #endif /* HAVE_DNSTAP */
 
-		isc_stats_increment(ns_g_server->udpoutstats,
-				    ISC_MIN((int)respsize / 16, 256));
+		switch (isc_sockaddr_pf(&client->peeraddr)) {
+		case AF_INET:
+			isc_stats_increment(ns_g_server->udpoutstats4,
+					    ISC_MIN((int)respsize / 16, 256));
+			break;
+		case AF_INET6:
+			isc_stats_increment(ns_g_server->udpoutstats6,
+					    ISC_MIN((int)respsize / 16, 256));
+			break;
+		default:
+			INSIST(0);
+			break;
+		}
 	}
 
 	/* update statistics (XXXJT: is it okay to access message->xxxkey?) */
 	isc_stats_increment(ns_g_server->nsstats, dns_nsstatscounter_response);
 
+	dns_rcodestats_increment(ns_g_server->rcodestats,
+				 client->message->rcode);
 	if (opt_included) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_edns0out);
@@ -2332,11 +2357,33 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	if (TCP_CLIENT(client)) {
 		isc_stats_increment(ns_g_server->nsstats,
 				    dns_nsstatscounter_requesttcp);
-		isc_stats_increment(ns_g_server->tcpinstats,
-				    ISC_MIN((int)reqsize / 16, 18));
+		switch (isc_sockaddr_pf(&client->peeraddr)) {
+		case AF_INET:
+			isc_stats_increment(ns_g_server->tcpinstats4,
+					    ISC_MIN((int)reqsize / 16, 18));
+			break;
+		case AF_INET6:
+			isc_stats_increment(ns_g_server->tcpinstats6,
+					    ISC_MIN((int)reqsize / 16, 18));
+			break;
+		default:
+			INSIST(0);
+			break;
+		}
 	} else {
-		isc_stats_increment(ns_g_server->udpinstats,
-				    ISC_MIN((int)reqsize / 16, 18));
+		switch (isc_sockaddr_pf(&client->peeraddr)) {
+		case AF_INET:
+			isc_stats_increment(ns_g_server->udpinstats4,
+					    ISC_MIN((int)reqsize / 16, 18));
+			break;
+		case AF_INET6:
+			isc_stats_increment(ns_g_server->udpinstats6,
+					    ISC_MIN((int)reqsize / 16, 18));
+			break;
+		default:
+			INSIST(0);
+			break;
+		}
 	}
 
 	/*
