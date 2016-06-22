@@ -77,6 +77,7 @@ isc_random_seed(isc_uint32_t seed)
 	 * the OS itself is supposed to seed the RNG and it is assumed
 	 * that no explicit seeding is required.
 	 */
+	UNUSED(seed);
 #endif
 }
 
