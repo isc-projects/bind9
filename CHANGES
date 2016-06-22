@@ -1,3 +1,5 @@
+4386.	[bug]		Remove shadowed overmem function/variable. [RT #42706]
+
 4385.	[func]		Add support for allow-query and allow-transfer ACLs
 			to catalog zones. [RT #42578]
 

@@ -401,12 +401,12 @@ ispersistent(dns_db_t *db) {
 }
 
 static void
-overmem(dns_db_t *db, isc_boolean_t overmem) {
+overmem(dns_db_t *db, isc_boolean_t over) {
 	sampledb_t *sampledb = (sampledb_t *) db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	dns_db_overmem(sampledb->rbtdb, overmem);
+	dns_db_overmem(sampledb->rbtdb, over);
 }
 
 static void
