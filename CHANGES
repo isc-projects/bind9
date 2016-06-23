@@ -1,3 +1,6 @@
+4493.	[bug]		Address potential NULL pointer dereferences in
+			dnstap code.
+
 4492.	[func]		Collect statistics for RSSAC02v3 traffic-volume,
 			traffic-sizes and rcode-volume reporting. [RT #41475]
 

@@ -232,10 +232,11 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		fstrm_writer_options_destroy(&fwopt);
 
 	if (result != ISC_R_SUCCESS) {
-		if (env->mctx != NULL)
-			isc_mem_detach(&env->mctx);
-		if (env != NULL)
+		if (env != NULL) {
+			if (env->mctx != NULL)
+				isc_mem_detach(&env->mctx);
 			isc_mem_put(mctx, env, sizeof(dns_dtenv_t));
+		}
 	}
 
 	return (result);
@@ -314,16 +315,11 @@ dns_dt_attach(dns_dtenv_t *source, dns_dtenv_t **destp) {
 }
 
 static void
-destroy(dns_dtenv_t **envp) {
-	dns_dtenv_t *env;
-
-	REQUIRE(envp != NULL && VALID_DTENV(*envp));
+destroy(dns_dtenv_t *env) {
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
 		      "closing dnstap");
-	env = *envp;
-
 	env->magic = 0;
 
 	fstrm_iothr_destroy(&env->iothr);
@@ -338,21 +334,21 @@ destroy(dns_dtenv_t **envp) {
 	}
 
 	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
-
-	*envp = NULL;
 }
 
 void
 dns_dt_detach(dns_dtenv_t **envp) {
 	unsigned int refs;
 	dns_dtenv_t *env = *envp;
-	REQUIRE(VALID_DTENV(env));
+
+	REQUIRE(envp != NULL && VALID_DTENV(*envp));
+
+	env = *envp;
+	*envp = NULL;
 
 	isc_refcount_decrement(&env->refcount, &refs);
 	if (refs == 0)
-		destroy(&env);
-
-	*envp = NULL;
+		destroy(env);
 }
 
 static isc_result_t
