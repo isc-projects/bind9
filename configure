@@ -705,6 +705,7 @@ W3M
 DBLATEX
 PDFLATEX
 LATEX
+DNSTAP_PB_C_H
 DNSTAPHTML
 DNSTAPMAN
 DNSTAPTARGETS
@@ -20263,11 +20264,12 @@ DNSTAPOBJS=
 DNSTAPTARGETS=
 DNSTAPMAN=
 DNSTAPHTML=
+DNSTAP_PB_C_H=
 if test "x$use_dnstap" != "xno"; then
-        if ! $use_threads; then
-                as_fn_error $? "Dnstap requires threads." "$LINENO" 5
-        fi
-        # Extract the first word of "protoc-c", so it can be a program name with args.
+	if ! $use_threads; then
+		as_fn_error $? "Dnstap requires threads." "$LINENO" 5
+	fi
+	# Extract the first word of "protoc-c", so it can be a program name with args.
 set dummy protoc-c; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -20307,38 +20309,38 @@ $as_echo "no" >&6; }
 fi
 
 
-        if test -z "$PROTOC_C"; then
-                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The protoc-c program was not found." >&5
+	if test -z "$PROTOC_C"; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The protoc-c program was not found." >&5
 $as_echo "$as_me: WARNING: The protoc-c program was not found." >&2;}
-        fi
+	fi
 
 # Check whether --with-protobuf-c was given.
 if test "${with_protobuf_c+set}" = set; then :
   withval=$with_protobuf_c;
-            # workaround for protobuf-c includes at old dir
-            # before protobuf-c-1.0.0
-            if test -f $withval/include/google/protobuf-c/protobuf-c.h
-            then
-                CFLAGS="$CFLAGS -I$withval/include/google"
-            else
-                CFLAGS="$CFLAGS -I$withval/include"
-            fi
-            LDFLAGS="$LDFLAGS -L$withval/lib"
+	    # workaround for protobuf-c includes at old dir
+	    # before protobuf-c-1.0.0
+	    if test -f $withval/include/google/protobuf-c/protobuf-c.h
+	    then
+		CFLAGS="$CFLAGS -I$withval/include/google"
+	    else
+		CFLAGS="$CFLAGS -I$withval/include"
+	    fi
+	    LDFLAGS="$LDFLAGS -L$withval/lib"
 
 else
 
-            # workaround for protobuf-c includes at old dir
-            # before protobuf-c-1.0.0
-            if test -f /usr/include/google/protobuf-c/protobuf-c.h
-            then
-                CFLAGS="$CFLAGS -I/usr/include/google"
-            else
-                if test -f /usr/local/include/google/protobuf-c/protobuf-c.h
-                then
-                    CFLAGS="$CFLAGS -I/usr/local/include/google"
-                    LDFLAGS="$LDFLAGS -L/usr/local/lib"
-                fi
-            fi
+	    # workaround for protobuf-c includes at old dir
+	    # before protobuf-c-1.0.0
+	    if test -f /usr/include/google/protobuf-c/protobuf-c.h
+	    then
+		CFLAGS="$CFLAGS -I/usr/include/google"
+	    else
+		if test -f /usr/local/include/google/protobuf-c/protobuf-c.h
+		then
+		    CFLAGS="$CFLAGS -I/usr/local/include/google"
+		    LDFLAGS="$LDFLAGS -L/usr/local/lib"
+		fi
+	    fi
 
 fi
 
@@ -20346,13 +20348,13 @@ fi
 # Check whether --with-libfstrm was given.
 if test "${with_libfstrm+set}" = set; then :
   withval=$with_libfstrm;
-            CFLAGS="$CFLAGS -I$withval/include"
-            LDFLAGS="$LDFLAGS -L$withval/lib"
+	    CFLAGS="$CFLAGS -I$withval/include"
+	    LDFLAGS="$LDFLAGS -L$withval/lib"
 
 fi
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fstrm_iothr_init" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fstrm_iothr_init" >&5
 $as_echo_n "checking for library containing fstrm_iothr_init... " >&6; }
 if ${ac_cv_search_fstrm_iothr_init+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -20410,7 +20412,7 @@ else
   as_fn_error $? "The fstrm library was not found. Please install fstrm!" "$LINENO" 5
 fi
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing protobuf_c_message_pack" >&5
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing protobuf_c_message_pack" >&5
 $as_echo_n "checking for library containing protobuf_c_message_pack... " >&6; }
 if ${ac_cv_search_protobuf_c_message_pack+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -20472,13 +20474,15 @@ fi
 
 $as_echo "#define HAVE_DNSTAP 1" >>confdefs.h
 
-        DNSTAP=dnstap
-        DNSTAPSRCS='${DNSTAPSRCS}'
-        DNSTAPOBJS='${DNSTAPOBJS}'
-        DNSTAPTARGETS='${DNSTAPTARGETS}'
-        DNSTAPMAN='${DNSTAPMAN}'
-        DNSTAPHTML='${DNSTAPHTML}'
+	DNSTAP=dnstap
+	DNSTAPSRCS='${DNSTAPSRCS}'
+	DNSTAPOBJS='${DNSTAPOBJS}'
+	DNSTAPTARGETS='${DNSTAPTARGETS}'
+	DNSTAPMAN='${DNSTAPMAN}'
+	DNSTAPHTML='${DNSTAPHTML}'
+	DNSTAP_PB_C_H="dnstap.pb-c.h"
 fi
+
 
 
 

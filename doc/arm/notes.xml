@@ -166,6 +166,10 @@
 	  a human-readable format.
 	</para>
 	<para>
+	  <command>rndc dnstap-reopen</command> can be used reopen
+	  dnstap output files after renaming them.
+	</para>
+	<para>
 	  For more information on <command>dnstap</command>, see
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://dnstap.info">http://dnstap.info</link>.
 	</para>

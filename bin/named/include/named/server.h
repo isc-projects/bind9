@@ -745,4 +745,10 @@ ns_server_testgen(isc_lex_t *lex, isc_buffer_t **text);
 isc_result_t
 ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
 
+/*%
+ * Close and reopen DNSTAP output file.
+ */
+isc_result_t
+ns_server_dnstap_reopen(ns_server_t *server);
+
 #endif /* NAMED_SERVER_H */

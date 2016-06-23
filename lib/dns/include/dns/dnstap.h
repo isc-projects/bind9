@@ -94,18 +94,6 @@ typedef struct dns_dthandle {
 } dns_dthandle_t;
 
 #ifdef HAVE_DNSTAP
-struct dns_dtenv {
-	unsigned int magic;
-	isc_refcount_t refcount;
-
-	isc_mem_t *mctx;
-
-	struct fstrm_iothr *iothr;
-
-	isc_region_t identity;
-	isc_region_t version;
-};
-
 struct dns_dtdata {
 	isc_mem_t *mctx;
 
@@ -167,6 +155,15 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *\li	#ISC_R_NOMEMORY
  *
  *\li	Other errors are possible.
+ */
+
+isc_result_t
+dns_dt_reopen(dns_dtenv_t *env);
+/*%<
+ * Reopens files established by dns_dt_create().
+ *
+ * Requires:
+ *\li	'env' is a valid dnstap environment.
  */
 
 isc_result_t

@@ -72,6 +72,7 @@
 #define NS_COMMAND_NTA		"nta"
 #define NS_COMMAND_TESTGEN	"testgen"
 #define NS_COMMAND_MKEYS	"managed-keys"
+#define NS_COMMAND_DNSTAPREOPEN	"dnstap-reopen"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

@@ -83,8 +83,8 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@
 PORTDNSOBJS =	client.@O@ ecdb.@O@
 
-OBJS=		${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} ${PORTDNSOBJS} \
-		@DNSTAPOBJS@ @GEOIPLINKOBJS@
+OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
+		${PORTDNSOBJS} @GEOIPLINKOBJS@
 
 
 # Alphabetically
@@ -168,6 +168,7 @@ clean distclean::
 	rm -f libdns.@A@ timestamp
 	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
 	rm -f include/dns/rdatastruct.h
+	rm -f dnstap.pb-c.c dnstap.pb-c.h include/dns/dnstap.pb-c.h
 
 newrr::
 	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h

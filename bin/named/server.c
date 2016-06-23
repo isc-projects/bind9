@@ -12189,3 +12189,16 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 
 	return (result);
 }
+
+isc_result_t
+ns_server_dnstap_reopen(ns_server_t *server) {
+
+#if HAVE_DNSTAP
+	if (server->dtenv != NULL)
+		return(dns_dt_reopen(server->dtenv));
+	return (ISC_R_NOTFOUND);
+#else
+	UNUSED(server);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}

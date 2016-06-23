@@ -90,6 +90,20 @@ struct dns_dtmsg {
 	Dnstap__Message m;
 };
 
+struct dns_dtenv {
+	unsigned int magic;
+	isc_refcount_t refcount;
+
+	isc_mem_t *mctx;
+
+	struct fstrm_iothr *iothr;
+	struct fstrm_writer *fw;
+
+	isc_region_t identity;
+	isc_region_t version;
+	char *path;
+};
+
 #define CHECK(x) do { \
 	result = (x); \
 	if (result != ISC_R_SUCCESS) \
@@ -174,6 +188,9 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	memset(env, 0, sizeof(dns_dtenv_t));
 
 	CHECK(isc_refcount_init(&env->refcount, 1));
+	env->path = isc_mem_strdup(mctx, path);
+	if (env->path == NULL)
+		CHECK(ISC_R_NOMEMORY);
 
 	fwopt = fstrm_writer_options_init();
 	if (fwopt == NULL)
@@ -189,13 +206,14 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	if (mode == dns_dtmode_file) {
 		ffwopt = fstrm_file_options_init();
 		if (ffwopt != NULL) {
-			fstrm_file_options_set_file_path(ffwopt, path);
+			fstrm_file_options_set_file_path(ffwopt, env->path);
 			fw = fstrm_file_writer_init(ffwopt, fwopt);
 		}
 	} else if (mode == dns_dtmode_unix) {
 		fuwopt = fstrm_unix_writer_options_init();
 		if (fuwopt != NULL) {
-			fstrm_unix_writer_options_set_socket_path(fuwopt, path);
+			fstrm_unix_writer_options_set_socket_path(fuwopt,
+								  env->path);
 			fw = fstrm_unix_writer_init(fuwopt, fwopt);
 		}
 	} else
@@ -207,11 +225,16 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	fopt = fstrm_iothr_options_init();
 	fstrm_iothr_options_set_num_input_queues(fopt, workers);
 
+	/*
+	 * Remember 'fw' so we can close and reopen it later.
+	 */
+	env->fw = fw;
 	env->iothr = fstrm_iothr_init(fopt, &fw);
 	if (env->iothr == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
 			      "unable to initialize dnstap I/O thread");
+		env->fw = NULL;
 		fstrm_writer_destroy(&fw);
 		CHECK(ISC_R_FAILURE);
 	}
@@ -235,9 +258,35 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		if (env != NULL) {
 			if (env->mctx != NULL)
 				isc_mem_detach(&env->mctx);
+			if (env->path != NULL)
+				isc_mem_free(mctx, env->path);
 			isc_mem_put(mctx, env, sizeof(dns_dtenv_t));
 		}
 	}
+
+	return (result);
+}
+
+isc_result_t
+dns_dt_reopen(dns_dtenv_t *env) {
+	isc_result_t result = ISC_R_SUCCESS;
+	fstrm_res res;
+
+	REQUIRE(VALID_DTENV(env));
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
+		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
+		      "reopening dnstap destination '%s'",
+		      env->path);
+
+	if (env->fw != NULL) {
+		res = fstrm_writer_close(env->fw);
+		if (res == fstrm_res_success)
+			fstrm_writer_open(env->fw);
+		return (ISC_R_SUCCESS);
+	}
+
+
 
 	return (result);
 }
@@ -332,6 +381,8 @@ destroy(dns_dtenv_t *env) {
 		isc_mem_free(env->mctx, env->version.base);
 		env->version.length = 0;
 	}
+	if (env->path != NULL)
+		isc_mem_free(env->mctx, env->path);
 
 	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
 }
