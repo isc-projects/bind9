@@ -2498,25 +2498,59 @@ version.catalog.example.    IN TXT "1"
       the domain name label immediately before the catalog zone domain.
     </p>
 <p>
-      Catalog zones can contain a set of global options that are applied to
-      all member zones, overriding the settings for the catalog zone
-      in the configuration file.  Currently only the "masters" option
-      is supported:
-      
+      Catalog zone options can be set either globally for the whole catalog
+      zone or for a single member zone. Global options override the settings
+      in the configuration file and member zone options override global
+      options.
     </p>
-<pre class="screen">
-masters.catalog.example.    IN A 192.0.2.1
-masters.catalog.example.    IN AAAA 2001:db8::1
-</pre>
 <p>
-      (Note that if more than one server is defined, the order in which
-      they are used is undefined. The above example could correspond to
-      a zone configured with
-      <code class="option">masters { 192.0.2.1; 2001:db8::1; };</code>
-      or with
-      <code class="option">masters { 2001:db8::1; 192.0.2.1; };</code>.
-      There is currently no way to force a particular ordering.)
-    </p>
+      Global options are set at the apex of the catalog zone, e.g.:
+</p>
+<pre class="screen">
+ masters.catalog.example.    IN AAAA 2001:db8::1
+</pre>
+<p>BIND currently supports the following options:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+<p>A simple <code class="option">masters</code> definition:</p>
+<pre class="screen">
+	 masters.catalog.example.    IN A 192.0.2.1
+	</pre>
+<p>
+	  This option defines a master server for the member zones - it
+	  can be either an A or AAAA record. If multiple masters are set the
+	  order in which they are used is random.
+	</p>
+</li>
+<li class="listitem">
+<p>A <code class="option">masters</code> with a TSIG key defined:</p>
+<pre class="screen">
+         label.masters.catalog.example.     IN A 192.0.2.2
+         label.masters.catalog.example.	    IN TXT "tsig_key_name"
+        </pre>
+<p>
+         This option defines a master server for the member zone with a TSIG
+         key set. The TSIG key must be configured in the configuration file.
+         <code class="option">label</code> can be any valid DNS label.
+        </p>
+</li>
+<li class="listitem">
+<p><code class="option">allow-query</code> and
+        <code class="option">allow-transfer</code> ACLs:</p>
+<pre class="screen">
+         allow-query.catalog.example.	IN APL 1:10.0.0.1/24
+         allow-transfer.catalog.example.	IN APL !1:10.0.0.1/32 1:10.0.0.0/24
+        </pre>
+<p>
+          These options are the equivalents of <code class="option">allow-query</code>
+          and <code class="option">allow-transfer</code> in a zone declaration in the
+          <code class="filename">named.conf</code> configuration file. The ACL is
+          processed in order - if there's no match to any rule the default
+          policy is to deny access.  For the syntax of the APL RR see RFC
+          3123
+        </p>
+</li>
+</ul></div>
 <p>
       A member zone is added by including a <code class="literal">PTR</code>
       resource record in the <code class="literal">zones</code> sub-domain of the
@@ -2535,7 +2569,9 @@ masters.catalog.example.    IN AAAA 2001:db8::1
     </p>
 <pre class="screen">
 masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN A 192.0.2.2
-masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
+label.masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN AAAA 2001:db8::2
+label.masters.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN TXT "tsig_key"
+allow-query.5960775ba382e7a4e09263fc06e7c00569b6a05c.zones.catalog.example. IN APL 1:10.0.0.0/24
 </pre>
 <p>
       As would be expected, options defined for a specific zone override
