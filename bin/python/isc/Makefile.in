@@ -33,7 +33,7 @@ TARGETS =	parsetab.py
 	$(PYTHON) -m compileall .
 
 parsetab.py: policy.py
-	$(PYTHON) ${srcdir}/policy.py parse /dev/null > /dev/null
+	$(PYTHON) policy.py parse /dev/null > /dev/null
 	PYTHONPATH=${srcdir} $(PYTHON) -m parsetab
 
 check test: subdirs

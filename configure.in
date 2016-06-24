@@ -4901,6 +4901,20 @@ AC_CONFIG_FILES([
 	bin/python/dnssec-checkds.py
 	bin/python/dnssec-coverage.py
 	bin/python/dnssec-keymgr.py
+	bin/python/isc/__init__.py
+	bin/python/isc/checkds.py
+	bin/python/isc/coverage.py
+	bin/python/isc/dnskey.py
+	bin/python/isc/eventlist.py
+	bin/python/isc/keydict.py
+	bin/python/isc/keyevent.py
+	bin/python/isc/keymgr.py
+	bin/python/isc/keyseries.py
+	bin/python/isc/keyzone.py
+	bin/python/isc/policy.py
+	bin/python/isc/rndc.py
+	bin/python/isc/tests/dnskey_test.py
+	bin/python/isc/tests/policy_test.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
 	bin/tests/atomic/Makefile

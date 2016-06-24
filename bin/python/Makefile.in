@@ -59,7 +59,13 @@ install:: ${TARGETS} installdirs
 	${INSTALL_DATA} ${srcdir}/dnssec-checkds.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/dnssec-keymgr.8 ${DESTDIR}${mandir}/man8
-	test -z "${PYTHON}" || ${PYTHON} ${srcdir}/setup.py install --prefix=${DESTDIR}${prefix}
+	if test -n "${PYTHON}" ; then \
+		if test -n "${DESTDIR}" ; then \
+			${PYTHON} ${srcdir}/setup.py install --root=${DESTDIR} --prefix=${prefix} ; \
+		else \
+			${PYTHON} ${srcdir}/setup.py install --prefix=${prefix} ; \
+		fi \
+	fi
 
 clean distclean::
 	rm -f ${TARGETS}
