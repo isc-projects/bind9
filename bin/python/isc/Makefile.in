@@ -22,8 +22,10 @@ SUBDIRS	=	tests
 
 PYTHON	=	@PYTHON@
 
-PYSRCS =	__init__.py dnskey.py eventlist.py keydict.py \
-		keyevent.py keyzone.py policy.py rndc.py
+PYSRCS =	__init__.py checkds.py coverage.py dnskey.py eventlist.py \
+		keydict.py keyevent.py keymgr.py keyseries.py keyzone.py \
+		policy.py rndc.py utils.py 
+
 TARGETS =	parsetab.py
 
 @BIND9_MAKE_RULES@
@@ -43,4 +45,4 @@ clean distclean::
 	rm -rf __pycache__ build
 
 distclean::
-	rm -Rf utils.py
+	rm -rf ${PYSRCS}

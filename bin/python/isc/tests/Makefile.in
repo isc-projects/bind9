@@ -30,4 +30,7 @@ check test:
 	done
 
 clean distclean::
-	rm -f *.pyc
+	rm -rf *.pyc __pycache__ 
+
+distclean::
+	rm -f ${PYTESTS}
