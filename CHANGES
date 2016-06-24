@@ -1,4 +1,6 @@
-4395	[bug]		Improve out-of-tree installation of python modules.
+4397.	[bug]		Update Windows python support. [RT #42538]
+
+4395.	[bug]		Improve out-of-tree installation of python modules.
 			[RT #42586]
 
 4387.	[bug]		Change 4336 was not complete leading to SERVFAIL

@@ -13,6 +13,19 @@ Unpack the kit into any convenient directory and run the BINDInstall
 program.  This will install the named and associated programs into
 the correct directories and set up the required registry keys.
 
+Usually BINDInstall must be run by/as Administrator or it can fail
+to operate on the filesystem or the registery or even return messages
+like 'A referral was returned from the server". The best way to
+avoid this kind of problems on Windows 7 or newer is:
+ - open a "file explorer" aka finder windows
+ - goes where the distribution was expanded
+ - click right on the BINDInstall application
+ - open "Properties" (last) menu
+ - open "Compatibility" (second) tab
+ - check on the (last) "Run this program as an administrator"
+Unfortunately this is not saved by zip (or any archiver?) as
+it is a property saved in the Registry.
+
 BINDInstall requires that you install it under an account with
 restricted privileges. The installer will prompt you for an account
 name (the default is "named") and a password for that account. It
