@@ -77,6 +77,8 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\pkcs11\\win32\\pk11list.mak",
                 "..\\bin\\python\\dnssec-checkds.py",
                 "..\\bin\\python\\dnssec-coverage.py",
+                "..\\bin\\python\\dnssec-keymgr.py",
+                "..\\bin\\python\\isc\\utils.py",
                 "..\\bin\\rndc\\win32\\rndc.dsp",
                 "..\\bin\\rndc\\win32\\rndc.mak",
                 "..\\bin\\rndc\\win32\\rndcutil.dsp",
@@ -390,6 +392,7 @@ my @substvar = ("BIND9_VERSION",
                 "COPTMLD",
                 "COPTX",
                 "COPTY",
+                "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
                 "OPENSSL_PATH",
@@ -1988,23 +1991,84 @@ if ($use_python eq "no") {
     }
     my $pythonret = `python -c "quit()" 2>&1`;
     if ($? != 0) {
-        die "can't launch the python interpreter: $pythonret\n";
+        print STDERR "can't launch the python interpreter: $pythonret\n";
+        $use_python = "no";
     }
-    $use_python = "yes";
 }
 if ($use_python ne "no") {
-    if ($verbose) {
+    if ($use_python ne "auto") {
+        if ($verbose) {
+           print "checking for $python_command\n";
+        }
         my $pythonret = `"$python_command" -c "quit()" 2>&1`;
         if ($? != 0) {
-            print STDERR
-                "can't lanch the local python interpreter: $pythonret\n";
+            die "can't launch $python_command: $pythonret\n";
         }
     }
-    $configcond{"PYTHON"} = 1;
-    $configdefd{"USE_PYTHON"} = "USE_PYTHON";
-    $configvar{"PYTHON"} = "$python_command";
-    # Only a default!
-    $configvar{"prefix"} = "C:\\Program Files\ISC BIND 9";
+    if ($verbose) {
+        print "checking for python module 'argparse'\n";
+    }
+    my $pythonret = `"$python_command" -c "import argparse" 2>&1`;
+    if ($? != 0) {
+        if ($use_python ne "auto") {
+            die "can't find python module 'argparse': $pythonret\n";
+        } else {
+            print STDERR "can't find python module 'argparse': $pythonret\n";
+            $use_python = "no";
+        }
+    }
+    if ($use_python ne "no") {
+        if ($verbose) {
+            print "checking for python module 'ply'\n";
+        }
+        $pythonret = `"$python_command" -c "from ply import *" 2>&1`;
+        if ($? != 0) {
+            if ($use_python ne "auto") {
+                die "can't find python module 'ply': $pythonret\n";
+            } else {
+                print STDERR "can't find python module 'ply': $pythonret\n";
+                $use_python = "no";
+            }
+        }
+    }
+    if ($use_python ne "no") {
+        if ($verbose) {
+            print "checking for python module 'win32api'\n";
+        }
+        $pythonret = `"$python_command" -c "import win32api" 2>&1`;
+        if ($? != 0) {
+            if ($use_python ne "auto") {
+                die "can't find python module 'win32api': $pythonret\n";
+            } else {
+                print STDERR
+                    "can't find python module 'win32api': $pythonret\n";
+                $use_python = "no";
+            }
+        }
+    }
+    if ($use_python ne "no") {
+        if ($verbose) {
+            print "checking for python module 'win32con'\n";
+        }
+        $pythonret = `"$python_command" -c "import win32con" 2>&1`;
+        if ($? != 0) {
+            if ($use_python ne "auto") {
+                die "can't find python module 'win32con': $pythonret\n";
+            } else {
+                print STDERR
+                    "can't find python module 'win32con': $pythonret\n";
+                $use_python = "no";
+            }
+        }
+    }
+    if ($use_python ne "no") {
+        $configcond{"PYTHON"} = 1;
+        $configdefd{"USE_PYTHON"} = "USE_PYTHON";
+        $configvar{"PYTHON"} = "$python_command";
+        # Doesn't matter
+        $configvar{"prefix"} = "__prefix__";
+        $configvar{"expanded_sysconfdir"} = "__prefix__\\etc";
+    }
 }
 
 # with-vcredist
@@ -2604,9 +2668,10 @@ sub makeinstallfile {
         print LOUT "pkcs11-list.exe-BNFF\n";
         print LOUT "pkcs11-tokens.exe-BNFF\n";
     }
-    if ($use_python eq "yes") {
+    if ($use_python ne "no") {
         print LOUT "dnssec-checkds.py-BNFF\n";
         print LOUT "dnssec-coverage.py-BNFF\n";
+        print LOUT "dnssec-keymgr.py-BNFF\n";
     }
     print LOUT "readme1st.txt-BTFT\n";
     close LOUT;
