@@ -24,7 +24,7 @@ PYTHON	=	@PYTHON@
 
 PYSRCS =	__init__.py checkds.py coverage.py dnskey.py eventlist.py \
 		keydict.py keyevent.py keymgr.py keyseries.py keyzone.py \
-		policy.py rndc.py utils.py 
+		policy.py rndc.py utils.py
 
 TARGETS =	parsetab.py
 

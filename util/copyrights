@@ -233,7 +233,7 @@
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006,2007,2009,2013,2016
-./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2014,2015
+./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2014,2015,2016
 ./bin/named/include/named/fuzz.h		C	2016
 ./bin/named/include/named/geoip.h		C	2013
 ./bin/named/include/named/globals.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -324,9 +324,7 @@
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009
 ./bin/pkcs11/openssl-0.9.8zh-patch		X	2015
 ./bin/pkcs11/openssl-1.0.0t-patch		X	2015
-./bin/pkcs11/openssl-1.0.1q-patch		X	2015
 ./bin/pkcs11/openssl-1.0.1t-patch		X	2016
-./bin/pkcs11/openssl-1.0.2f-patch		X	2016
 ./bin/pkcs11/openssl-1.0.2h-patch		X	2016
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010,2014,2015
@@ -388,17 +386,17 @@
 ./bin/python/isc/checkds.py.in			PYTHON	2012,2013,2014,2015,2016
 ./bin/python/isc/coverage.py.in			PYTHON	2013,2014,2015,2016
 ./bin/python/isc/dnskey.py.in			PYTHON	2013,2014,2015,2016
-./bin/python/isc/eventlist.py.in			PYTHON	2015,2016
+./bin/python/isc/eventlist.py.in		PYTHON	2015,2016
 ./bin/python/isc/keydict.py.in			PYTHON	2016
 ./bin/python/isc/keyevent.py.in			PYTHON	2013,2014,2015,2016
 ./bin/python/isc/keymgr.py.in			PYTHON	2016
-./bin/python/isc/keyseries.py.in			PYTHON	2016
+./bin/python/isc/keyseries.py.in		PYTHON	2016
 ./bin/python/isc/keyzone.py.in			PYTHON	2013,2014,2015,2016
 ./bin/python/isc/policy.py.in			PYTHON	2016
 ./bin/python/isc/rndc.py.in			PYTHON	2016
 ./bin/python/isc/tests/Makefile.in		MAKE	2016
-./bin/python/isc/tests/dnskey_test.py.in		PYTHON	2016
-./bin/python/isc/tests/policy_test.py.in		PYTHON	2016
+./bin/python/isc/tests/dnskey_test.py.in	PYTHON	2016
+./bin/python/isc/tests/policy_test.py.in	PYTHON	2016
 ./bin/python/isc/tests/test-policies/01-keysize.pol	CONF-C	2016
 ./bin/python/isc/tests/test-policies/02-prepublish.pol	CONF-C	2016
 ./bin/python/isc/tests/test-policies/03-postpublish.pol	CONF-C	2016
@@ -416,7 +414,7 @@
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007,2013,2014,2015
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
-./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014,2015
+./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014,2015,2016
 ./bin/rndc/rndc.html				HTML	DOCBOOK
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007,2015
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007,2009
@@ -919,9 +917,7 @@
 ./bin/tests/system/catz/clean.sh		SH	2016
 ./bin/tests/system/catz/ns1/catalog.example.db.in	ZONE	2016
 ./bin/tests/system/catz/ns1/named.conf		CONF-C	2016
-./bin/tests/system/catz/ns2/named.conf		CONF-C	2016
 ./bin/tests/system/catz/ns2/named.conf.in	CONF-C	2016
-./bin/tests/system/catz/ns3/dom4.example.db	ZONE	2016
 ./bin/tests/system/catz/ns3/dom5.example.db	ZONE	2016
 ./bin/tests/system/catz/ns3/dom6.example.db	ZONE	2016
 ./bin/tests/system/catz/ns3/named.conf		CONF-C	2016
@@ -1308,7 +1304,7 @@
 ./bin/tests/system/dnssec/signer/remove.db.in	ZONE	2016
 ./bin/tests/system/dnssec/signer/remove2.db.in	ZONE	2016
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./bin/tests/system/dnstap/clean.sh		SH	2015
+./bin/tests/system/dnstap/clean.sh		SH	2015,2016
 ./bin/tests/system/dnstap/ns1/named.conf	CONF-C	2015
 ./bin/tests/system/dnstap/ns1/root.db		ZONE	2015
 ./bin/tests/system/dnstap/ns2/example.db	ZONE	2015
@@ -3347,7 +3343,7 @@
 ./lib/bind9/win32/libbind9.vcxproj.in		X	2013,2014,2015,2016
 ./lib/bind9/win32/libbind9.vcxproj.user		X	2013
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007
-./lib/dns/.gitignore				X	2012,2013
+./lib/dns/.gitignore				X	2012,2013,2016
 ./lib/dns/Atffile				X	2011
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013,2015
@@ -3371,8 +3367,6 @@
 ./lib/dns/dns64.c				C	2010,2011,2014
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/dnstap.c				C	2015,2016
-./lib/dns/dnstap.pb-c.c				X	2015
-./lib/dns/dnstap.pb-c.h				X	2015
 ./lib/dns/dnstap.proto				X	2015
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007,2010,2012,2014
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -3418,8 +3412,7 @@
 ./lib/dns/include/dns/dlz_dlopen.h		C	2011,2012,2013
 ./lib/dns/include/dns/dns64.h			C	2010,2014
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016
-./lib/dns/include/dns/dnstap.h			C	2015
-./lib/dns/include/dns/dnstap.pb-c.h		X	2015
+./lib/dns/include/dns/dnstap.h			C	2015,2016
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010,2012,2014
 ./lib/dns/include/dns/dsdigest.h		C	2012
 ./lib/dns/include/dns/dyndb.h			C	2015,2016
@@ -4822,8 +4815,8 @@
 ./win32utils/index.html				HTML	2006,2007,2008,2012,2013,2014,2015
 ./win32utils/legacy/BINDBuild.dsw.in		X	2001,2005,2006,2008,2009,2010,2013,2014,2015
 ./win32utils/legacy/BuildAll.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2013,2014,2015
-./win32utils/legacy/BuildPost.bat.in		BAT	2005,2006,2013,2014
+./win32utils/legacy/BuildPost.bat.in		BAT	2005,2006,2013,2014,2016
 ./win32utils/legacy/BuildSetup.bat.in		BAT	2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015,2016
 ./win32utils/legacy/makedefs.pl			PERL	2001,2004,2007,2009,2012,2013,2014
 ./win32utils/legacy/win32-build.txt		TXT.BRIEF	2001,2002,2004,2005,2008,2009,2012,2013,2014
-./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2013,2014,2015
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016
