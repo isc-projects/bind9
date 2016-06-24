@@ -170,11 +170,14 @@ class dnskey:
                 self._changed[prop] = False
 
     @classmethod
-    def generate(cls, keygen_bin, keys_dir, name, alg, keysize, sep,
+    def generate(cls, keygen_bin, randomdev, keys_dir, name, alg, keysize, sep,
                  ttl, publish=None, activate=None, **kwargs):
         quiet = kwargs.get('quiet', False)
 
         keygen_cmd = [keygen_bin, "-q", "-K", keys_dir, "-L", str(ttl)]
+
+        if randomdev:
+            keygen_cmd += ["-r", randomdev]
 
         if sep:
             keygen_cmd.append("-fk")
@@ -210,7 +213,7 @@ class dnskey:
         except Exception as e:
             raise Exception('unable to parse generated key: %s' % str(e))
 
-    def generate_successor(self, keygen_bin, **kwargs):
+    def generate_successor(self, keygen_bin, randomdev, **kwargs):
         quiet = kwargs.get('quiet', False)
 
         if not self.inactive():
@@ -220,6 +223,9 @@ class dnskey:
 
         if self.ttl:
             keygen_cmd += ["-L", str(self.ttl)]
+
+        if randomdev:
+            keygen_cmd += ["-r", randomdev]
 
         if not quiet:
             print('# ' + ' '.join(keygen_cmd))

@@ -131,6 +131,7 @@ class keyseries:
             # generated if Inactive has been set in the predecessor key
             prev.commit(self._context['settime_path'], **kwargs)
             key = prev.generate_successor(self._context['keygen_path'],
+                                          self._context['randomdev'],
                                           **kwargs)
 
             key.setinactive(key.activate() + rp, **kwargs)
@@ -166,6 +167,7 @@ class keyseries:
             if 'ksk' not in kwargs or not kwargs['ksk']:
                 if len(self._Z[zone][algnum]) == 0:
                     k = dnskey.generate(self._context['keygen_path'],
+                                        self._context['randomdev'],
                                         keys_dir, zone, alg,
                                         policy.zsk_keysize, False,
                                         policy.keyttl or 3600,
@@ -176,6 +178,7 @@ class keyseries:
             if 'zsk' not in kwargs or not kwargs['zsk']:
                 if len(self._K[zone][algnum]) == 0:
                     k = dnskey.generate(self._context['keygen_path'],
+                                        self._context['randomdev'],
                                         keys_dir, zone, alg,
                                         policy.ksk_keysize, True,
                                         policy.keyttl or 3600,

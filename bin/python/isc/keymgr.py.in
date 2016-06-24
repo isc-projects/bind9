@@ -80,6 +80,9 @@ def parse_args():
     parser.add_argument('-g', dest='keygen', default=keygen, type=str,
                         help='Path to \'dnssec-keygen\'',
                         metavar='path')
+    parser.add_argument('-r', dest='randomdev', type=str, default=None,
+                        help='Path to a file containing random data to pass to \'dnssec-keygen\'',
+                        metavar='path')
     parser.add_argument('-s', dest='settime', default=settime, type=str,
                         help='Path to \'dnssec-settime\'',
                         metavar='path')
@@ -130,7 +133,8 @@ def main():
     # into a context object that can be passed around
     context = {'keygen_path': args.keygen,
                'settime_path': args.settime,
-               'keys_path': args.path}
+               'keys_path': args.path,
+               'randomdev': args.randomdev}
 
     try:
         dp = policy.dnssec_policy(args.policyfile)

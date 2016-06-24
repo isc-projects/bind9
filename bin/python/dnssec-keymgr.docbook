@@ -14,10 +14,9 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- Converted by db4-upgrade version 1.0 -->
 <refentry xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-keymgr">
   <info>
-    <date>2016-04-03</date>
+    <date>2016-06-03</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -53,6 +52,7 @@
       <arg choice="opt" rep="norepeat"><option>-v</option></arg>
       <arg choice="opt" rep="norepeat"><option>-z</option></arg>
       <arg choice="opt" rep="norepeat"><option>-g <replaceable class="parameter">path</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-r <replaceable class="parameter">path</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">path</replaceable></option></arg>
       <arg choice="opt" rep="repeat">zone</arg>
     </cmdsynopsis>
@@ -187,6 +187,18 @@
           <para>
             Quiet: suppress printing of <command>dnssec-keygen</command>
             and <command>dnssec-settime</command>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-r <replaceable class="parameter">randomdev</replaceable></term>
+        <listitem>
+          <para>
+            Specifies a path to a file containing random data.
+            This is passed to the <command>dnssec-keygen</command> binary
+            using its <option>-r</option> option.
+<!-- TODO: what to do about "-r keyboard"? -->
           </para>
         </listitem>
       </varlistentry>
