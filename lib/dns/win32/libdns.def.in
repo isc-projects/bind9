@@ -371,6 +371,7 @@ dns_dt_setidentity
 dns_dt_setversion
 dns_dt_attach
 dns_dt_detach
+dns_dt_reopen
 dns_dt_shutdown
 dns_dt_send
 dns_dt_parse
