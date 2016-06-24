@@ -76,6 +76,11 @@
       <Command>cd ..\..\python
 copy /Y dnssec-checkds.py ..\..\Build\$(Configuration)\dnssec-checkds.py
 copy /Y dnssec-coverage.py ..\..\Build\$(Configuration)\dnssec-coverage.py
+copy /Y dnssec-keymgr.py ..\..\Build\$(Configuration)\dnssec-keymgr.py
+cd isc
+@PYTHON@ policy.py parse \dev\nul > nul
+set PYTHONPATH=.
+@PYTHON@ -m parsetab
 </Command>
     </PostBuildEvent>
 @END PYTHON
@@ -113,6 +118,11 @@ copy /Y dnssec-coverage.py ..\..\Build\$(Configuration)\dnssec-coverage.py
       <Command>cd ..\..\python
 copy /Y dnssec-checkds.py ..\..\Build\$(Configuration)\dnssec-checkds.py
 copy /Y dnssec-coverage.py ..\..\Build\$(Configuration)\dnssec-coverage.py
+copy /Y dnssec-keymgr.py ..\..\Build\$(Configuration)\dnssec-keymgr.py
+cd isc
+@PYTHON@ policy.py parse \dev\nul > nul
+set PYTHONPATH=.
+@PYTHON@ -m parsetab
 </Command>
     </PostBuildEvent>
 @END PYTHON

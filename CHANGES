@@ -1,3 +1,5 @@
+4397.	[bug]		Update Windows python support. [RT #42538]
+
 4396.	[func]		dnssec-keymgr now takes a '-r randomfile' option.
 			[RT #42455]
 

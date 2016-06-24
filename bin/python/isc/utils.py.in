@@ -26,13 +26,32 @@ def prefix(bindir=''):
     if os.name != 'nt':
         return os.path.join('@prefix@', bindir)
 
+    hklm = win32con.HKEY_LOCAL_MACHINE
     bind_subkey = "Software\\ISC\\BIND"
+    sam = win32con.KEY_READ
     h_key = None
     key_found = True
+    # can fail if the registry redirected for 32/64 bits
     try:
-        h_key = win32api.RegOpenKeyEx(win32con.HKEY_LOCAL_MACHINE, bind_subkey)
+        h_key = win32api.RegOpenKeyEx(hklm, bind_subkey, 0, sam)
     except:
         key_found = False
+    # retry for 32 bit python with 64 bit bind9
+    if not key_found:
+        key_found = True
+        sam64 = sam | win32con.KEY_WOW64_64KEY
+        try:
+            h_key = win32api.RegOpenKeyEx(hklm, bind_subkey, 0, sam64)
+        except:
+            key_found = False
+    # retry 64 bit python with 32 bit bind9
+    if not key_found:
+        key_found = True
+        sam32 = sam | win32con.KEY_WOW64_32KEY
+        try:
+            h_key = win32api.RegOpenKeyEx(hklm, bind_subkey, 0, sam32)
+        except:
+            key_found = False
     if key_found:
         try:
             (named_base, _) = win32api.RegQueryValueEx(h_key, "InstallDir")
@@ -51,4 +70,7 @@ def shellquote(s):
 
 
 version = '@BIND9_VERSION@'
-sysconfdir = '@expanded_sysconfdir@'
+if os.name != 'nt':
+    sysconfdir = '@expanded_sysconfdir@'
+else:
+    sysconfdir = prefix('etc')
