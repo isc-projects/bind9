@@ -1,3 +1,6 @@
+4398.	[bug]		Correct spelling of ECDSAP256SHA256 in policy.py.
+			[RT #42718]
+
 4397.	[bug]		Update Windows python support. [RT #42538]
 
 4396.	[func]		dnssec-keymgr now takes a '-r randomfile' option.
