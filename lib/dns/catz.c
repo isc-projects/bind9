@@ -1041,7 +1041,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 		 * no optimization.
 		 */
 		for (i = 0; i < ipkl->count; i++) {
-			if (ipkl->labels != NULL &&
+			if (ipkl->labels[i] != NULL &&
 			    !dns_name_compare(name, ipkl->labels[i]))
 				break;
 		}
@@ -1060,7 +1060,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			}
 
 			ipkl->labels[i] = isc_mem_get(mctx, sizeof(dns_name_t));
-			if (ipkl->labels == NULL)  {
+			if (ipkl->labels[i] == NULL)  {
 				if (keyname != NULL) {
 					dns_name_free(keyname, mctx);
 					isc_mem_put(mctx, keyname,
