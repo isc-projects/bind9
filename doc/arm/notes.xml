@@ -40,7 +40,7 @@
 	<para>
 		With the release of BIND 9.11.0, ISC is changing the open source
 		license for BIND from the ISC license to the Mozilla Public License
-		(MPL 2.0).  This change is effective from BIND 9.11.0b1 onwards.  
+		(MPL 2.0).  This change is effective from BIND 9.11.0b1 onwards.
 	</para>
 	<para>
 		The MPL-2.0 license requires that if you make changes to licensed
@@ -58,7 +58,7 @@
 	<para>
 		Those unsure whether or not the license change affects their use of
 		BIND, or who wish to discuss how to comply with the license may contact
-		ISC at <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/mission/contact/">.
+		ISC at <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/mission/contact/">https://www.isc.org/mission/contact/</link>.
 	</para>
       </listitem>
     </itemizedlist>
