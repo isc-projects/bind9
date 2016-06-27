@@ -281,6 +281,12 @@ class Policy:
                         ('ZSK key size %d not divisible by 64 ' +
                          'as required for DSA') % self.zsk_keysize
 
+            if self.algorithm in ['ECCGOST', \
+                                  'ECDSAP256SHA256', \
+                                  'ECDSAP384SHA384']:
+                self.ksk_keysize = None
+                self.zsk_keysize = None
+
         return True, ''
 
 ############################################################################
@@ -371,10 +377,14 @@ class dnssec_policy:
         self.alg_policy['ECDSAP256SHA256'] = copy(p)
         self.alg_policy['ECDSAP256SHA256'].algorithm = "ECDSAP256SHA256"
         self.alg_policy['ECDSAP256SHA256'].name = "ECDSAP256SHA256"
+        self.alg_policy['ECDSAP256SHA256'].ksk_keysize = None;
+        self.alg_policy['ECDSAP256SHA256'].zsk_keysize = None;
 
         self.alg_policy['ECDSAP384SHA384'] = copy(p)
         self.alg_policy['ECDSAP384SHA384'].algorithm = "ECDSAP384SHA384"
         self.alg_policy['ECDSAP384SHA384'].name = "ECDSAP384SHA384"
+        self.alg_policy['ECDSAP384SHA384'].ksk_keysize = None;
+        self.alg_policy['ECDSAP384SHA384'].zsk_keysize = None;
 
         if filename:
             self.load(filename)

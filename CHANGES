@@ -1,3 +1,7 @@
+4399.	[bug] 		policy.py 'ECCGOST', 'ECDSAP256SHA256', and
+			'ECDSAP384SHA384' don't have settable keysize.
+			[RT #42718]
+
 4398.	[bug]		Correct spelling of ECDSAP256SHA256 in policy.py.
 			[RT #42718]
 
