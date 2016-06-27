@@ -18,12 +18,12 @@
 .\"     Title: dnssec-keymgr
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2016-04-03
+.\"      Date: 2016-06-03
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "DNSSEC\-KEYMGR" "8" "2016\-04\-03" "ISC" "BIND9"
+.TH "DNSSEC\-KEYMGR" "8" "2016\-06\-03" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -47,7 +47,7 @@
 dnssec-keymgr \- Ensures correct DNSKEY coverage for a zone based on a defined policy
 .SH "SYNOPSIS"
 .HP \w'\fBdnssec\-keymgr\fR\ 'u
-\fBdnssec\-keymgr\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-c\ \fR\fB\fIfile\fR\fR] [\fB\-d\ \fR\fB\fItime\fR\fR] [\fB\-k\fR] [\fB\-z\fR] [\fB\-g\ \fR\fB\fIpath\fR\fR] [\fB\-s\ \fR\fB\fIpath\fR\fR] [zone...]
+\fBdnssec\-keymgr\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-c\ \fR\fB\fIfile\fR\fR] [\fB\-f\fR] [\fB\-k\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-z\fR] [\fB\-g\ \fR\fB\fIpath\fR\fR] [\fB\-r\ \fR\fB\fIpath\fR\fR] [\fB\-s\ \fR\fB\fIpath\fR\fR] [zone...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keymgr\fR
@@ -95,13 +95,20 @@ is specified, then the DNSSEC policy is read from
 Force: allow updating of key events even if they are already in the past\&. This is not recommended for use with zones in which keys have already been published\&. However, if a set of keys has been generated all of which have publication and activation dates in the past, but the keys have not been published in a zone as yet, then this option can be used to clean them up and turn them into a proper series of keys with appropriate rollover intervals\&.
 .RE
 .PP
-\-g \fIkeygen path\fR
+\-g \fIkeygen\-path\fR
 .RS 4
 Specifies a path to a
 \fBdnssec\-keygen\fR
 binary\&. Used for testing\&. See also the
 \fB\-s\fR
 option\&.
+.RE
+.PP
+\-h
+.RS 4
+Print the
+\fBdnssec\-keymgr\fR
+help summary and exit\&.
 .RE
 .PP
 \-K \fIdirectory\fR
@@ -124,13 +131,29 @@ and
 \fBdnssec\-settime\fR\&.
 .RE
 .PP
-\-s \fIsettime path\fR
+\-r \fIrandomdev\fR
+.RS 4
+Specifies a path to a file containing random data\&. This is passed to the
+\fBdnssec\-keygen\fR
+binary using its
+\fB\-r\fR
+option\&.
+.RE
+.PP
+\-s \fIsettime\-path\fR
 .RS 4
 Specifies a path to a
 \fBdnssec\-settime\fR
 binary\&. Used for testing\&. See also the
 \fB\-g\fR
 option\&.
+.RE
+.PP
+\-v
+.RS 4
+Print the
+\fBdnssec\-keymgr\fR
+version and exit\&.
 .RE
 .PP
 \-z
@@ -154,14 +177,14 @@ file can specify three kinds of policies:
 .IP \(bu 2.3
 .\}
 \fIPolicy classes\fR
-	(\fBpolicy \fR\fB\fIname\fR\fR\fB { \&.\&.\&. };\fR)
-	can be inherited by zone policies or other policy classes; these
-	can be used to create sets of different security profiles\&. For
-	example, a policy class \fBnormal\fR might specify
-	1024\-bit key sizes, but a class \fBextra\fR might
-	specify 2048 bits instead; \fBextra\fR would be
-	used for zones that had unusually high security needs\&.
-      .RE
+(\fBpolicy \fR\fB\fIname\fR\fR\fB { \&.\&.\&. };\fR) can be inherited by zone policies or other policy classes; these can be used to create sets of different security profiles\&. For example, a policy class
+\fBnormal\fR
+might specify 1024\-bit key sizes, but a class
+\fBextra\fR
+might specify 2048 bits instead;
+\fBextra\fR
+would be used for zones that had unusually high security needs\&.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -171,13 +194,10 @@ file can specify three kinds of policies:
 .sp -1
 .IP \(bu 2.3
 .\}
-	Algorithm policies:
-	(\fBalgorithm\-policy \fR\fB\fIalgorithm\fR\fR\fB { \&.\&.\&. };\fR )
-	override default per\-algorithm settings\&.  For example, by default,
-	RSASHA256 keys use 2048\-bit key sizes for both KSK and ZSK\&. This
-	can be modified using \fBalgorithm\-policy\fR, and the
-	new key sizes would then be used for any key of type RSASHA256\&.
-      .RE
+Algorithm policies: (\fBalgorithm\-policy \fR\fB\fIalgorithm\fR\fR\fB { \&.\&.\&. };\fR
+) override default per\-algorithm settings\&. For example, by default, RSASHA256 keys use 2048\-bit key sizes for both KSK and ZSK\&. This can be modified using
+\fBalgorithm\-policy\fR, and the new key sizes would then be used for any key of type RSASHA256\&.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -187,85 +207,62 @@ file can specify three kinds of policies:
 .sp -1
 .IP \(bu 2.3
 .\}
-	Zone policies:
-	(\fBzone \fR\fB\fIname\fR\fR\fB { \&.\&.\&. };\fR )
-	set policy for a single zone by name\&. A zone policy can inherit
-	a policy class by including a \fBpolicy\fR option\&.
-      .RE
+Zone policies: (\fBzone \fR\fB\fIname\fR\fR\fB { \&.\&.\&. };\fR
+) set policy for a single zone by name\&. A zone policy can inherit a policy class by including a
+\fBpolicy\fR
+option\&.
+.RE
 .PP
 Options that can be specified in policies:
 .PP
 \fBalgorithm\fR
 .RS 4
-	  The key algorithm\&. If no policy is defined, the default is
-          RSASHA256\&.
-	.RE
+The key algorithm\&. If no policy is defined, the default is RSASHA256\&.
+.RE
 .PP
 \fBcoverage\fR
 .RS 4
-	  The length of time to ensure that keys will be correct; no action
-          will be taken to create new keys to be activated after this time\&.
-          This can be represented as a number of seconds, or as a duration using
-	  human\-readable units (examples: "1y" or "6 months")\&.
-	  A default value for this option can be set in algorithm policies
-	  as well as in policy classes or zone policies\&.
-          If no policy is configured, the default is six months\&.
-	.RE
+The length of time to ensure that keys will be correct; no action will be taken to create new keys to be activated after this time\&. This can be represented as a number of seconds, or as a duration using human\-readable units (examples: "1y" or "6 months")\&. A default value for this option can be set in algorithm policies as well as in policy classes or zone policies\&. If no policy is configured, the default is six months\&.
+.RE
 .PP
 \fBdirectory\fR
 .RS 4
-	  Specifies the directory in which keys should be stored\&.
-	.RE
+Specifies the directory in which keys should be stored\&.
+.RE
 .PP
 \fBkey\-size\fR
 .RS 4
-	  Specifies the number of bits to use in creating keys\&.
-	  Takes two arguments: keytype (eihter "zsk" or "ksk") and size\&.
-	  A default value for this option can be set in algorithm policies
-	  as well as in policy classes or zone policies\&. If no policy is
-          configured, the default is 1024 bits for DSA keys and 2048 for
-          RSA\&.
-	.RE
+Specifies the number of bits to use in creating keys\&. Takes two arguments: keytype (eihter "zsk" or "ksk") and size\&. A default value for this option can be set in algorithm policies as well as in policy classes or zone policies\&. If no policy is configured, the default is 1024 bits for DSA keys and 2048 for RSA\&.
+.RE
 .PP
 \fBkeyttl\fR
 .RS 4
-	  The key TTL\&. If no policy is defined, the default is one hour\&.
-	.RE
+The key TTL\&. If no policy is defined, the default is one hour\&.
+.RE
 .PP
 \fBpost\-publish\fR
 .RS 4
-	  How long after inactivation a key should be deleted from the zone\&.
-	  Note: If \fBroll\-period\fR is not set, this value is
-	  ignored\&. Takes two arguments: keytype (eihter "zsk" or "ksk") and a
-	  duration\&. A default value for this option can be set in algorithm
-	  policies as well as in policy classes or zone policies\&. The default
-	  is one month\&.
-	.RE
+How long after inactivation a key should be deleted from the zone\&. Note: If
+\fBroll\-period\fR
+is not set, this value is ignored\&. Takes two arguments: keytype (eihter "zsk" or "ksk") and a duration\&. A default value for this option can be set in algorithm policies as well as in policy classes or zone policies\&. The default is one month\&.
+.RE
 .PP
 \fBpre\-publish\fR
 .RS 4
-	  How long before activation a key should be published\&.  Note: If
-          \fBroll\-period\fR is not set, this value is ignored\&.
-	  Takes two arguments: keytype (either "zsk" or "ksk") and a duration\&.
-	  A default value for this option can be set in algorithm policies
-	  as well as in policy classes or zone policies\&.  The default is
-          one month\&.
-	.RE
+How long before activation a key should be published\&. Note: If
+\fBroll\-period\fR
+is not set, this value is ignored\&. Takes two arguments: keytype (either "zsk" or "ksk") and a duration\&. A default value for this option can be set in algorithm policies as well as in policy classes or zone policies\&. The default is one month\&.
+.RE
 .PP
 \fBroll\-period\fR
 .RS 4
-	  How frequently keys should be rolled over\&.
-	  Takes two arguments: keytype (eihter "zsk" or "ksk") and a duration\&.
-	  A default value for this option can be set in algorithm policies
-	  as well as in policy classes or zone policies\&.  If no policy is
-          configured, the default is one year for ZSK\*(Aqs\&. KSK\*(Aqs do not
-          roll over by default\&.
-	.RE
+How frequently keys should be rolled over\&. Takes two arguments: keytype (eihter "zsk" or "ksk") and a duration\&. A default value for this option can be set in algorithm policies as well as in policy classes or zone policies\&. If no policy is configured, the default is one year for ZSK\*(Aqs\&. KSK\*(Aqs do not roll over by default\&.
+.RE
 .PP
 \fBstandby\fR
 .RS 4
-	  Not yet implemented\&.
-	.RE
+Not yet implemented\&.
+.RE
 .SH "REMAINING WORK"
 .sp
 .RS 4
@@ -276,13 +273,16 @@ Options that can be specified in policies:
 .sp -1
 .IP \(bu 2.3
 .\}
-      Enable scheduling of KSK rollovers using the \fB\-P sync\fR
-      and \fB\-D sync\fR options to
-      \fBdnssec\-keygen\fR and
-      \fBdnssec\-settime\fR\&.  Check the parent zone
-      (as in \fBdnssec\-checkds\fR) to determine when it\*(Aqs
-      safe for the key to roll\&.
-    .RE
+Enable scheduling of KSK rollovers using the
+\fB\-P sync\fR
+and
+\fB\-D sync\fR
+options to
+\fBdnssec\-keygen\fR
+and
+\fBdnssec\-settime\fR\&. Check the parent zone (as in
+\fBdnssec\-checkds\fR) to determine when it\*(Aqs safe for the key to roll\&.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -292,9 +292,8 @@ Options that can be specified in policies:
 .sp -1
 .IP \(bu 2.3
 .\}
-      Allow configuration of standby keys and use of the REVOKE bit,
-      for keys that use RFC 5011 semantics\&.
-    .RE
+Allow configuration of standby keys and use of the REVOKE bit, for keys that use RFC 5011 semantics\&.
+.RE
 .SH "SEE ALSO"
 .PP
 \fBdnssec-coverage\fR(8),
