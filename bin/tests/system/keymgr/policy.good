@@ -47,7 +47,7 @@ constructed policy example.com:
 	zsk_postpublish 2592000
 	ksk_standby None
 	zsk_standby None
-	keyttl None
+	keyttl 3600
 
 policy default:
 	inherits None
@@ -81,7 +81,7 @@ zone policy example.com:
 	zsk_postpublish 604800
 	ksk_standby None
 	zsk_standby None
-	keyttl None
+	keyttl 7200
 
 constructed policy example.org:
 	inherits None
