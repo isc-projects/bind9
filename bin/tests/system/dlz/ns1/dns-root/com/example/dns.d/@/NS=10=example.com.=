@@ -1,5 +1,8 @@
-Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
-See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+Copyright (C) 2010, 2016  Internet Systems Consortium, Inc. ("ISC")
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 $Id: NS=10=example.com.=,v 1.1 2010/08/16 04:46:15 marka Exp $
 

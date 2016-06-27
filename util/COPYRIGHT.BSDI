@@ -1,5 +1,8 @@
 Copyright (C) @SYSYEARS@  Internet Systems Consortium, Inc. ("ISC")
-Copyright (C) @SFTYEARS@  Internet Software Consortium.
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 This code is derived from software contributed to ISC by
 Berkeley Software Design, Inc.
