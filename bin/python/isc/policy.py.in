@@ -493,6 +493,12 @@ class dnssec_policy:
             p.zsk_postpublish = parent and \
                 parent.zsk_postpublish or ap.zsk_postpublish
 
+        if p.keyttl is None:
+            parent = p.parent or self.named_policy['default']
+            while parent is not None and not parent.keyttl:
+                parent = parent.parent
+            p.keyttl = parent and parent.keyttl
+
         if 'novalidate' not in kwargs or not kwargs['novalidate']:
             (valid, msg) = p.validate()
             if not valid:
