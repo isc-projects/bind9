@@ -4097,7 +4097,7 @@ if test "x$use_dnstap" != "xno"; then
 	fi
 	AC_PATH_PROG([PROTOC_C], [protoc-c])
 	if test -z "$PROTOC_C"; then
-		AC_MSG_WARN([The protoc-c program was not found.])
+		AC_MSG_ERROR([The protoc-c program was not found.])
 	fi
 	AC_ARG_WITH([protobuf-c],
 		    AC_HELP_STRING([--with-protobuf-c=path],
