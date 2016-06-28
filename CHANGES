@@ -21,7 +21,7 @@
 			[RT #42586]
 
 4394.	[func]		Add rndc command "dnstap-reopen" to close and
-			reopen dnstap output filed. [RT #41803]
+			reopen dnstap output files. [RT #41803]
 
 4393.	[bug]		Address potential NULL pointer dereferences in
 			dnstap code.
