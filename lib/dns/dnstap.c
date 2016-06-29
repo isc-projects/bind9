@@ -46,6 +46,8 @@
 #error DNSTAP not configured.
 #endif /* HAVE_DNSTAP */
 
+#include <stdlib.h>
+
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/mem.h>
