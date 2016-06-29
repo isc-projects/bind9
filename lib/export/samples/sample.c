@@ -177,7 +177,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 	  const char *namespace)
 {
 	struct addrinfo hints, *res;
-	int gai_error;
+	int gaierror;
 	isc_sockaddr_t sa;
 	isc_sockaddrlist_t servers;
 	isc_result_t result;
@@ -191,10 +191,10 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 	hints.ai_flags = AI_NUMERICHOST;
-	gai_error = getaddrinfo(addrstr, port, &hints, &res);
-	if (gai_error != 0) {
+	gaierror = getaddrinfo(addrstr, port, &hints, &res);
+	if (gaierror != 0) {
 		fprintf(stderr, "getaddrinfo failed: %s\n",
-			gai_strerror(gai_error));
+			gai_strerror(gaierror));
 		exit(1);
 	}
 	INSIST(res->ai_addrlen <= sizeof(sa.type));

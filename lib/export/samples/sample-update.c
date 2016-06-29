@@ -88,7 +88,7 @@ int
 main(int argc, char *argv[]) {
 	int ch;
 	struct addrinfo hints, *res;
-	int gai_error;
+	int gaierror;
 	dns_client_t *client = NULL;
 	char *zonenamestr = NULL;
 	char *keyfilename = NULL;
@@ -185,10 +185,10 @@ main(int argc, char *argv[]) {
 #ifdef AI_NUMERICHOST
 		hints.ai_flags = AI_NUMERICHOST;
 #endif
-		gai_error = getaddrinfo(auth_server, "53", &hints, &res);
-		if (gai_error != 0) {
+		gaierror = getaddrinfo(auth_server, "53", &hints, &res);
+		if (gaierror != 0) {
 			fprintf(stderr, "getaddrinfo failed: %s\n",
-				gai_strerror(gai_error));
+				gai_strerror(gaierror));
 			exit(1);
 		}
 		INSIST(res->ai_addrlen <= sizeof(sa_auth.type));
@@ -209,10 +209,10 @@ main(int argc, char *argv[]) {
 #ifdef AI_NUMERICHOST
 		hints.ai_flags = AI_NUMERICHOST;
 #endif
-		gai_error = getaddrinfo(recursive_server, "53", &hints, &res);
-		if (gai_error != 0) {
+		gaierror = getaddrinfo(recursive_server, "53", &hints, &res);
+		if (gaierror != 0) {
 			fprintf(stderr, "getaddrinfo failed: %s\n",
-				gai_strerror(gai_error));
+				gai_strerror(gaierror));
 			exit(1);
 		}
 		INSIST(res->ai_addrlen <= sizeof(sa_recursive.type));

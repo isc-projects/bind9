@@ -2801,7 +2801,7 @@ dns_adb_detach(dns_adb_t **adbx) {
 
 void
 dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
-	isc_task_t *clone;
+	isc_task_t *tclone;
 	isc_event_t *event;
 	isc_boolean_t zeroirefcnt = ISC_FALSE;
 
@@ -2828,9 +2828,9 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 		event->ev_sender = adb;
 		isc_task_send(task, &event);
 	} else {
-		clone = NULL;
-		isc_task_attach(task, &clone);
-		event->ev_sender = clone;
+		tclone = NULL;
+		isc_task_attach(task, &tclone);
+		event->ev_sender = tclone;
 		ISC_LIST_APPEND(adb->whenshutdown, event, ev_link);
 	}
 

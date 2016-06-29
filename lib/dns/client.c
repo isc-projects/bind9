@@ -1271,7 +1271,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	dns_view_t *view = NULL;
 	dns_clientresevent_t *event = NULL;
 	resctx_t *rctx = NULL;
-	isc_task_t *clone = NULL;
+	isc_task_t *tclone = NULL;
 	isc_mem_t *mctx;
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
@@ -1295,10 +1295,10 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	/*
 	 * Prepare some intermediate resources
 	 */
-	clone = NULL;
-	isc_task_attach(task, &clone);
+	tclone = NULL;
+	isc_task_attach(task, &tclone);
 	event = (dns_clientresevent_t *)
-		isc_event_allocate(mctx, clone, DNS_EVENT_CLIENTRESDONE,
+		isc_event_allocate(mctx, tclone, DNS_EVENT_CLIENTRESDONE,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -1371,7 +1371,7 @@ dns_client_startresolve(dns_client_t *client, dns_name_t *name,
 	}
 	if (event != NULL)
 		isc_event_free(ISC_EVENT_PTR(&event));
-	isc_task_detach(&clone);
+	isc_task_detach(&tclone);
 	dns_view_detach(&view);
 
 	return (result);
@@ -1670,7 +1670,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 {
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	isc_task_t *clone = NULL;
+	isc_task_t *tclone = NULL;
 	dns_clientreqevent_t *event = NULL;
 	reqctx_t *ctx = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
@@ -1695,10 +1695,10 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	clone = NULL;
-	isc_task_attach(task, &clone);
+	tclone = NULL;
+	isc_task_attach(task, &tclone);
 	event = (dns_clientreqevent_t *)
-		isc_event_allocate(client->mctx, clone,
+		isc_event_allocate(client->mctx, tclone,
 				   DNS_EVENT_CLIENTREQDONE,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
@@ -1757,7 +1757,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	}
 	if (event != NULL)
 		isc_event_free(ISC_EVENT_PTR(&event));
-	isc_task_detach(&clone);
+	isc_task_detach(&tclone);
 	dns_view_detach(&view);
 
 	return (result);
@@ -2685,7 +2685,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	isc_result_t result;
 	dns_name_t *name, *newname;
 	updatectx_t *uctx;
-	isc_task_t *clone = NULL;
+	isc_task_t *tclone = NULL;
 	dns_section_t section = DNS_SECTION_UPDATE;
 	isc_sockaddr_t *server, *sa = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
@@ -2722,8 +2722,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
 		return (ISC_R_NOMEMORY);
 	}
-	clone = NULL;
-	isc_task_attach(task, &clone);
+	tclone = NULL;
+	isc_task_attach(task, &tclone);
 	uctx->client = client;
 	ISC_LINK_INIT(uctx, link);
 	uctx->state = dns_clientupdatestate_prepare;
@@ -2750,7 +2750,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (tsec != NULL)
 		dns_tsec_getkey(tsec, &uctx->tsigkey);
 	uctx->event = (dns_clientupdateevent_t *)
-		isc_event_allocate(client->mctx, clone, DNS_EVENT_UPDATEDONE,
+		isc_event_allocate(client->mctx, tclone, DNS_EVENT_UPDATEDONE,
 				   action, arg, sizeof(*uctx->event));
 	if (uctx->event == NULL)
 		goto fail;
@@ -2861,7 +2861,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		isc_event_free(ISC_EVENT_PTR(&uctx->event));
 	if (uctx->tsigkey != NULL)
 		dns_tsigkey_detach(&uctx->tsigkey);
-	isc_task_detach(&clone);
+	isc_task_detach(&tclone);
 	DESTROYLOCK(&uctx->lock);
 	uctx->magic = 0;
 	isc_mem_put(client->mctx, uctx, sizeof(*uctx));

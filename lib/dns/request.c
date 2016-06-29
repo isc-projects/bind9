@@ -215,7 +215,7 @@ void
 dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
 			    isc_event_t **eventp)
 {
-	isc_task_t *clone;
+	isc_task_t *tclone;
 	isc_event_t *event;
 
 	req_log(ISC_LOG_DEBUG(3), "dns_requestmgr_whenshutdown");
@@ -235,9 +235,9 @@ dns_requestmgr_whenshutdown(dns_requestmgr_t *requestmgr, isc_task_t *task,
 		event->ev_sender = requestmgr;
 		isc_task_send(task, &event);
 	} else {
-		clone = NULL;
-		isc_task_attach(task, &clone);
-		event->ev_sender = clone;
+		tclone = NULL;
+		isc_task_attach(task, &tclone);
+		event->ev_sender = tclone;
 		ISC_LIST_APPEND(requestmgr->whenshutdown, event, ev_link);
 	}
 	UNLOCK(&requestmgr->lock);
