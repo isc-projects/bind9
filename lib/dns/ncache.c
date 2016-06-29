@@ -509,7 +509,7 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	dns_name_t tname;
 	dns_rdatatype_t ttype;
 	dns_trust_t trust = dns_trust_none;
-	dns_rdataset_t clone;
+	dns_rdataset_t rclone;
 
 	REQUIRE(ncacherdataset != NULL);
 	REQUIRE(ncacherdataset->type == 0);
@@ -518,11 +518,11 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 	REQUIRE(type != dns_rdatatype_rrsig);
 
-	dns_rdataset_init(&clone);
-	dns_rdataset_clone(ncacherdataset, &clone);
-	result = dns_rdataset_first(&clone);
+	dns_rdataset_init(&rclone);
+	dns_rdataset_clone(ncacherdataset, &rclone);
+	result = dns_rdataset_first(&rclone);
 	while (result == ISC_R_SUCCESS) {
-		dns_rdataset_current(&clone, &rdata);
+		dns_rdataset_current(&rclone, &rdata);
 		isc_buffer_init(&source, rdata.data, rdata.length);
 		isc_buffer_add(&source, rdata.length);
 		dns_name_init(&tname, NULL);
@@ -541,10 +541,10 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 			isc_buffer_remainingregion(&source, &remaining);
 			break;
 		}
-		result = dns_rdataset_next(&clone);
+		result = dns_rdataset_next(&rclone);
 		dns_rdata_reset(&rdata);
 	}
-	dns_rdataset_disassociate(&clone);
+	dns_rdataset_disassociate(&rclone);
 	if (result == ISC_R_NOMORE)
 		return (ISC_R_NOTFOUND);
 	if (result != ISC_R_SUCCESS)
@@ -579,7 +579,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	dns_name_t tname;
 	dns_rdata_rrsig_t rrsig;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdataset_t clone;
+	dns_rdataset_t rclone;
 	dns_rdatatype_t type;
 	dns_trust_t trust = dns_trust_none;
 	isc_buffer_t source;
@@ -594,11 +594,11 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 	REQUIRE(name != NULL);
 	REQUIRE(!dns_rdataset_isassociated(rdataset));
 
-	dns_rdataset_init(&clone);
-	dns_rdataset_clone(ncacherdataset, &clone);
-	result = dns_rdataset_first(&clone);
+	dns_rdataset_init(&rclone);
+	dns_rdataset_clone(ncacherdataset, &rclone);
+	result = dns_rdataset_first(&rclone);
 	while (result == ISC_R_SUCCESS) {
-		dns_rdataset_current(&clone, &rdata);
+		dns_rdataset_current(&rclone, &rdata);
 		isc_buffer_init(&source, rdata.data, rdata.length);
 		isc_buffer_add(&source, rdata.length);
 		dns_name_init(&tname, NULL);
@@ -614,7 +614,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 		if (type != dns_rdatatype_rrsig ||
 		    !dns_name_equal(&tname, name)) {
-			result = dns_rdataset_next(&clone);
+			result = dns_rdataset_next(&rclone);
 			dns_rdata_reset(&rdata);
 			continue;
 		}
@@ -640,10 +640,10 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 			break;
 		}
 
-		result = dns_rdataset_next(&clone);
+		result = dns_rdataset_next(&rclone);
 		dns_rdata_reset(&rdata);
 	}
-	dns_rdataset_disassociate(&clone);
+	dns_rdataset_disassociate(&rclone);
 	if (result == ISC_R_NOMORE)
 		return (ISC_R_NOTFOUND);
 	if (result != ISC_R_SUCCESS)
