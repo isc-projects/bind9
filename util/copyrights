@@ -395,6 +395,7 @@
 ./bin/python/isc/keyzone.py.in			PYTHON	2013,2014,2015,2016
 ./bin/python/isc/policy.py.in			PYTHON	2016
 ./bin/python/isc/rndc.py.in			PYTHON	2016
+./bin/python/isc/tests/.gitignore		X	2016
 ./bin/python/isc/tests/Makefile.in		MAKE	2016
 ./bin/python/isc/tests/dnskey_test.py.in	PYTHON	2016
 ./bin/python/isc/tests/policy_test.py.in	PYTHON	2016
