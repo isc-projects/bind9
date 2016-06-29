@@ -1144,15 +1144,15 @@ sync_channellist(isc_logconfig_t *lcfg) {
 static isc_result_t
 greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	/* XXXDCL HIGHLY NT */
-	char *basename, *digit_end;
+	char *bname, *digit_end;
 	const char *dirname;
 	int version, greatest = -1;
-	size_t basenamelen;
+	size_t bnamelen;
 	isc_dir_t dir;
 	isc_result_t result;
 	char sep = '/';
 #ifdef _WIN32
-	char *basename2;
+	char *bname2;
 #endif
 
 	REQUIRE(channel->type == ISC_LOG_TOFILE);
@@ -1161,23 +1161,23 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup in isc_log_createchannel.
 	 */
-	basename = strrchr(FILE_NAME(channel), sep);
+	bname = strrchr(FILE_NAME(channel), sep);
 #ifdef _WIN32
-	basename2 = strrchr(FILE_NAME(channel), '\\');
-	if ((basename != NULL && basename2 != NULL && basename2 > basename) ||
-	    (basename == NULL && basename2 != NULL)) {
-		basename = basename2;
+	bname2 = strrchr(FILE_NAME(channel), '\\');
+	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
+	    (bname == NULL && bname2 != NULL)) {
+		bname = bname2;
 		sep = '\\';
 	}
 #endif
-	if (basename != NULL) {
-		*basename++ = '\0';
+	if (bname != NULL) {
+		*bname++ = '\0';
 		dirname = FILE_NAME(channel);
 	} else {
-		DE_CONST(FILE_NAME(channel), basename);
+		DE_CONST(FILE_NAME(channel), bname);
 		dirname = ".";
 	}
-	basenamelen = strlen(basename);
+	bnamelen = strlen(bname);
 
 	isc_dir_init(&dir);
 	result = isc_dir_open(&dir, dirname);
@@ -1185,8 +1185,8 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 	/*
 	 * Replace the file separator if it was taken out.
 	 */
-	if (basename != FILE_NAME(channel))
-		*(basename - 1) = sep;
+	if (bname != FILE_NAME(channel))
+		*(bname - 1) = sep;
 
 	/*
 	 * Return if the directory open failed.
@@ -1195,11 +1195,11 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 		return (result);
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
-		if (dir.entry.length > basenamelen &&
-		    strncmp(dir.entry.name, basename, basenamelen) == 0 &&
-		    dir.entry.name[basenamelen] == '.') {
+		if (dir.entry.length > bnamelen &&
+		    strncmp(dir.entry.name, bname, bnamelen) == 0 &&
+		    dir.entry.name[bnamelen] == '.') {
 
-			version = strtol(&dir.entry.name[basenamelen + 1],
+			version = strtol(&dir.entry.name[bnamelen + 1],
 					 &digit_end, 10);
 			if (*digit_end == '\0' && version > greatest)
 				greatest = version;

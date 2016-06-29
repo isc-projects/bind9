@@ -4076,7 +4076,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	  dns_fetch_t *fetch)
 {
-	isc_task_t *clone;
+	isc_task_t *tclone;
 	dns_fetchevent_t *event;
 
 	FCTXTRACE("join");
@@ -4086,13 +4086,13 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	 * sender field.  We'll make the fetch the sender when we actually
 	 * send the event.
 	 */
-	clone = NULL;
-	isc_task_attach(task, &clone);
+	tclone = NULL;
+	isc_task_attach(task, &tclone);
 	event = (dns_fetchevent_t *)
-		isc_event_allocate(fctx->res->mctx, clone, DNS_EVENT_FETCHDONE,
+		isc_event_allocate(fctx->res->mctx, tclone, DNS_EVENT_FETCHDONE,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
-		isc_task_detach(&clone);
+		isc_task_detach(&tclone);
 		return (ISC_R_NOMEMORY);
 	}
 	event->result = DNS_R_SERVFAIL;
@@ -9106,7 +9106,7 @@ void
 dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 			  isc_event_t **eventp)
 {
-	isc_task_t *clone;
+	isc_task_t *tclone;
 	isc_event_t *event;
 
 	REQUIRE(VALID_RESOLVER(res));
@@ -9124,9 +9124,9 @@ dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 		event->ev_sender = res;
 		isc_task_send(task, &event);
 	} else {
-		clone = NULL;
-		isc_task_attach(task, &clone);
-		event->ev_sender = clone;
+		tclone = NULL;
+		isc_task_attach(task, &tclone);
+		event->ev_sender = tclone;
 		ISC_LIST_APPEND(res->whenshutdown, event, ev_link);
 	}
 

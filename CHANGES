@@ -1,3 +1,6 @@
+4403.	[bug]		Rename variables and arguments that shadow: basename,
+			clone and gai_error.
+
 4397.	[bug]		Update Windows python support. [RT #42538]
 
 4395.	[bug]		Improve out-of-tree installation of python modules.

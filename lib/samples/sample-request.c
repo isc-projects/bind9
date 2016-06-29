@@ -147,7 +147,7 @@ print_section(dns_message_t *message, int section, isc_buffer_t *buf) {
 
 int
 main(int argc, char *argv[]) {
-	int ch, i, gai_error;
+	int ch, i, gaierror;
 	struct addrinfo hints, *res;
 	isc_textregion_t tr;
 	dns_client_t *client = NULL;
@@ -221,10 +221,10 @@ main(int argc, char *argv[]) {
 #ifdef AI_NUMERICHOST
 	hints.ai_flags = AI_NUMERICHOST;
 #endif
-	gai_error = getaddrinfo(argv[0], "53", &hints, &res);
-	if (gai_error != 0) {
+	gaierror = getaddrinfo(argv[0], "53", &hints, &res);
+	if (gaierror != 0) {
 		fprintf(stderr, "getaddrinfo failed: %s\n",
-			gai_strerror(gai_error));
+			gai_strerror(gaierror));
 		exit(1);
 	}
 	INSIST(res->ai_addrlen <= sizeof(sa.type));
