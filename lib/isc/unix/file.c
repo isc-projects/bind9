@@ -614,7 +614,7 @@ isc_file_safecreate(const char *filename, FILE **fp) {
 
 isc_result_t
 isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
-		   char const **basename)
+		   char const **bname)
 {
 	char *dir;
 	const char *file, *slash;
@@ -646,7 +646,7 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 	}
 
 	*dirname = dir;
-	*basename = file;
+	*bname = file;
 
 	return (ISC_R_SUCCESS);
 }

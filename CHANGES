@@ -1,3 +1,6 @@
+4403.	[bug]		Rename variables and arguments that shadow: basename,
+			clone and gai_error.
+
 4402.	[bug]		protoc-c is now a hard requirement for --enable-dnstap.
 
 4401.	[misc]		Change LICENSE to MPL 2.0.
