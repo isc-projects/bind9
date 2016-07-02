@@ -38,27 +38,31 @@
     <itemizedlist>
       <listitem>
 	<para>
-		With the release of BIND 9.11.0, ISC is changing the open source
-		license for BIND from the ISC license to the Mozilla Public License
-		(MPL 2.0).  This change is effective from BIND 9.11.0b1 onwards.
+	  With the release of BIND 9.11.0, ISC is changing the open source
+	  license for BIND from the ISC license to the Mozilla Public
+	  License (MPL 2.0).  This change is effective from BIND 9.11.0b1
+	  onwards.
 	</para>
 	<para>
-		The MPL-2.0 license requires that if you make changes to licensed
-		software (e.g. BIND) and distribute them outside your organization,
-		that you publish those changes under that same license. It does not
-		require that you publish or disclose anything other than the changes
-		you made to our software.
+	  The MPL-2.0 license requires that if you make changes to licensed
+	  software (e.g. BIND) and distribute them outside your
+	  organization, that you publish those changes under that same
+	  license. It does not require that you publish or disclose
+	  anything other than the changes you made to our software.
 	</para>
 	<para>
-		This new requirement will not affect anyone who is using BIND
-		without redistributing it, nor anyone redistributing it without changes,
-		therefore this change will be without consequence for most individuals
-		and organizations who are using BIND.
+	  This new requirement will not affect anyone who is using BIND
+	  without redistributing it, nor anyone redistributing it without
+	  changes, therefore this change will be without consequence for
+	  most individuals and organizations who are using BIND.
 	</para>
 	<para>
-		Those unsure whether or not the license change affects their use of
-		BIND, or who wish to discuss how to comply with the license may contact
-		ISC at <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/mission/contact/">https://www.isc.org/mission/contact/</link>.
+	  Those unsure whether or not the license change affects their use
+	  of BIND, or who wish to discuss how to comply with the license
+	  may contact ISC at <link xmlns:xlink="http://www.w3.org/1999/xlink"
+	    xlink:href="https://www.isc.org/mission/contact/">
+	      https://www.isc.org/mission/contact/
+	    </link>.
 	</para>
       </listitem>
     </itemizedlist>
@@ -77,14 +81,14 @@
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
-        <para>
+	<para>
 	  A new method of provisioning secondary servers called
 	  "Catalog Zones" has been added. This is an implementation of
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/draft-muks-dnsop-dns-catalog-zones/">
 	    draft-muks-dnsop-dns-catalog-zones/
 	  </link>.
-        </para>
-        <para>
+	</para>
+	<para>
 	  A catalog zone is a regular DNS zone which contains a list
 	  of "member zones", along with the configuration options for
 	  each of those zones.  When a server is configured to use a
@@ -96,14 +100,14 @@
 	  itself a DNS zone, this means configuration changes can be
 	  propagated to slaves using the standard AXFR/IXFR update
 	  mechanism.
-        </para>
-        <para>
+	</para>
+	<para>
       This feature should be considered experimental. It currently
 	  supports only basic features; more advanced features such as
 	  ACLs and TSIG keys are not yet supported. Example catalog
 	  zone configurations can be found in the Chapter 9 of the
 	  BIND Administrator Reference Manual.
-        </para>
+	</para>
 		<para>
 	  Support for master entries with TSIG keys has been added to catalog
 	  zones, as well as support for allow-query and allow-transfer.
@@ -567,7 +571,7 @@
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
-        <para>
+	<para>
 	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
 	  to be disabled in 2017.  A warning is now logged when
 	  <command>named</command> is configured to use this service,
@@ -576,14 +580,14 @@
 	</para>
       </listitem>
       <listitem>
-        <para>
+	<para>
 	  The timers returned by the statistics channel (indicating current
 	  time, server boot time, and most recent reconfiguration time) are
 	  now reported with millisecond accuracy. [RT #40082]
 	</para>
       </listitem>
       <listitem>
-        <para>
+	<para>
 	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
 	  and L.ROOT-SERVERS.NET.
 	</para>
