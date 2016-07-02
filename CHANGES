@@ -32,7 +32,7 @@
 4392.	[func]		Collect statistics for RSSAC02v3 traffic-volume,
 			traffic-sizes and rcode-volume reporting. [RT #41475]
 
-4391.	[bug]		Fix leaks in contrib DLZ code. [RT #42707]
+4391.	[contrib]	Fix leaks in contrib DLZ code. [RT #42707]
 
 4390.	[doc]		Description of masters with TSIG, allow-query and
 			allow-transfer options in catalog zones. [RT #42692]
