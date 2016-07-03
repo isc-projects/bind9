@@ -89,27 +89,30 @@
 <a name="relnotes_license"></a>License Change</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 <p>
-		With the release of BIND 9.11.0, ISC is changing the open source
-		license for BIND from the ISC license to the Mozilla Public License
-		(MPL 2.0).  This change is effective from BIND 9.11.0b1 onwards.
+	  With the release of BIND 9.11.0, ISC is changing the open source
+	  license for BIND from the ISC license to the Mozilla Public
+	  License (MPL 2.0).  This change is effective from BIND 9.11.0b1
+	  onwards.
 	</p>
 <p>
-		The MPL-2.0 license requires that if you make changes to licensed
-		software (e.g. BIND) and distribute them outside your organization,
-		that you publish those changes under that same license. It does not
-		require that you publish or disclose anything other than the changes
-		you made to our software.
+	  The MPL-2.0 license requires that if you make changes to licensed
+	  software (e.g. BIND) and distribute them outside your
+	  organization, that you publish those changes under that same
+	  license. It does not require that you publish or disclose
+	  anything other than the changes you made to our software.
 	</p>
 <p>
-		This new requirement will not affect anyone who is using BIND
-		without redistributing it, nor anyone redistributing it without changes,
-		therefore this change will be without consequence for most individuals
-		and organizations who are using BIND.
+	  This new requirement will not affect anyone who is using BIND
+	  without redistributing it, nor anyone redistributing it without
+	  changes, therefore this change will be without consequence for
+	  most individuals and organizations who are using BIND.
 	</p>
 <p>
-		Those unsure whether or not the license change affects their use of
-		BIND, or who wish to discuss how to comply with the license may contact
-		ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">https://www.isc.org/mission/contact/</a>.
+	  Those unsure whether or not the license change affects their use
+	  of BIND, or who wish to discuss how to comply with the license
+	  may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
+	      https://www.isc.org/mission/contact/
+	    </a>.
 	</p>
 </li></ul></div>
 </div>
@@ -131,7 +134,7 @@
 	  <a class="link" href="https://datatracker.ietf.org/doc/draft-muks-dnsop-dns-catalog-zones/" target="_top">
 	    draft-muks-dnsop-dns-catalog-zones/
 	  </a>.
-        </p>
+	</p>
 <p>
 	  A catalog zone is a regular DNS zone which contains a list
 	  of "member zones", along with the configuration options for
@@ -144,14 +147,14 @@
 	  itself a DNS zone, this means configuration changes can be
 	  propagated to slaves using the standard AXFR/IXFR update
 	  mechanism.
-        </p>
+	</p>
 <p>
       This feature should be considered experimental. It currently
 	  supports only basic features; more advanced features such as
 	  ACLs and TSIG keys are not yet supported. Example catalog
 	  zone configurations can be found in the Chapter 9 of the
 	  BIND Administrator Reference Manual.
-        </p>
+	</p>
 <p>
 	  Support for master entries with TSIG keys has been added to catalog
 	  zones, as well as support for allow-query and allow-transfer.
