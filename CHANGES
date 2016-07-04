@@ -1,3 +1,6 @@
+4404.	[misc]		Allow krb5-config to be used when configuring gssapi.
+			[RT #42580]
+
 4403.	[bug]		Rename variables and arguments that shadow: basename,
 			clone and gai_error.
 
