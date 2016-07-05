@@ -50,9 +50,8 @@
       <arg choice="opt" rep="norepeat"><option>-A <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
-      <arg><option>-D sync <replaceable class="parameter">date/offset</replaceable></option></arg>
-
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>
