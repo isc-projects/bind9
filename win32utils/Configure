@@ -3186,7 +3186,7 @@ exit 0;
 #  --enable-full-report supported by verbose
 #  --enable-dnstap not supported (requires libfstrm support on WIN32)
 #  --enable-seccomp not supported (Linux specific)
-#  --enable-afl not supported (not yet considered on WIN32)
+#  --enable-afl not supported (not yet available on Visual Studio C++)
 #  --with-python supported
 #  --with-openssl supported
 #  --with-pkcs11 supported
