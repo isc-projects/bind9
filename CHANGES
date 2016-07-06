@@ -1,3 +1,7 @@
+4405.	[bug]		Change 4342 introduced a regression where you could
+			not remove a delegation in a NSEC3 signed zone using
+			OPTOUT via nsupdate. [RT #42702]
+
 4387.	[bug]		Change 4336 was not complete leading to SERVFAIL
 			being return as NS records expired. [RT #42683]
 

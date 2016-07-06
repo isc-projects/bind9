@@ -1,0 +1,10 @@
+; Copyright (C) 2011, 2016  Internet Systems Consortium, Inc. ("ISC")
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0. If a copy of the MPL was not distributed with this
+; file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$TTL 10
+delegation.test. IN SOA delegation.test. hostmaster.delegation.test. 1 3600 900 2419200 3600
+delegation.test. IN NS delegation.test.
+delegation.test. IN A 10.53.0.3
