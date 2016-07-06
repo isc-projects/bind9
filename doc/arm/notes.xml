@@ -148,7 +148,7 @@
 	  experiencing denial-of-service attacks. When configured,
 	  these options can both reduce the harm done to authoritative
 	  servers and also avoid the resource exhaustion that can be
-	  experienced by recursives when they are being used as a
+	  experienced by recursive servers when they are being used as a
 	  vehicle for such an attack.
 	</para>
 	<itemizedlist>
@@ -246,7 +246,7 @@
 	</para>
 	<para>
 	  <command>dnssec-keymgr</command> now takes a -r
-	  <replacable>randomfile</replacable> option.
+	  <replaceable>randomfile</replaceable> option.
 	</para>
 	<para>
 	  (Many thanks to Sebasti&aacute;n
@@ -272,7 +272,7 @@
 	  the same query name and type will return another SERVFAIL until
 	  the cache times out.  This reduces the frequency of retries
 	  when a query is persistently failing, which can be a burden
-	  on recursive serviers.  The SERVFAIL cache timeout is controlled
+	  on recursive servers.  The SERVFAIL cache timeout is controlled
 	  by <option>servfail-ttl</option>, which defaults to 1 second
 	  and has an upper limit of 30.
 	</para>
@@ -781,7 +781,7 @@
 	  Visibility and Control).
 	</para>
 	<para>
-	  Changed <command>rndc reconfig</command> behaviour so that newly
+	  Changed <command>rndc reconfig</command> behavior so that newly
 	  added zones are loaded asynchronously and the loading does not
 	  block the server.
 	</para>
