@@ -9082,6 +9082,8 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 	dns_name_t *name, *origin;
 
 	if (rbtdbiter->result != ISC_R_SUCCESS &&
+	    rbtdbiter->result != ISC_R_NOTFOUND &&
+	    rbtdbiter->result != DNS_R_PARTIALMATCH &&
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
@@ -9135,6 +9137,8 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 	dns_name_t *name, *origin;
 
 	if (rbtdbiter->result != ISC_R_SUCCESS &&
+	    rbtdbiter->result != ISC_R_NOTFOUND &&
+	    rbtdbiter->result != DNS_R_PARTIALMATCH &&
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
@@ -9185,6 +9189,7 @@ dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
 
 	if (rbtdbiter->result != ISC_R_SUCCESS &&
 	    rbtdbiter->result != ISC_R_NOTFOUND &&
+	    rbtdbiter->result != DNS_R_PARTIALMATCH &&
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
@@ -9410,6 +9415,8 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
 
 	if (rbtdbiter->result != ISC_R_SUCCESS &&
+	    rbtdbiter->result != ISC_R_NOTFOUND &&
+	    rbtdbiter->result != DNS_R_PARTIALMATCH &&
 	    rbtdbiter->result != ISC_R_NOMORE)
 		return (rbtdbiter->result);
 
