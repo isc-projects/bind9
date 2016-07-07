@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.4-P2
+
+	This version contains a fix for CVE-2016-XXXX and address
+	two regressions introduced with BIND 9.10.4.
+
 BIND 9.10.4-P1
 
 	This version contains three urgent fixes to BIND 9.10.4:
