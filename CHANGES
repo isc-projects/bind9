@@ -1,3 +1,9 @@
+4406.	[bug]		getrrsetbyname with a non absolute name could
+			trigger a infinite recursion bug in lwresd
+			and named with lwres configured if when combined
+			with a search list entry the resulting name is
+			too long. [RT #42694]
+
 4405.	[bug]		Change 4342 introduced a regression where you could
 			not remove a delegation in a NSEC3 signed zone using
 			OPTOUT via nsupdate. [RT #42702]
