@@ -265,7 +265,7 @@
 ./bin/named/lwderror.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwdgabn.c				C	2000,2001,2004,2005,2006,2007,2009
 ./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005,2007,2008,2014
-./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2005,2006,2007,2009,2013,2014,2015
+./bin/named/lwdgrbn.c				C	2000,2001,2003,2004,2005,2006,2007,2009,2013,2014,2015,2016
 ./bin/named/lwdnoop.c				C	2000,2001,2004,2005,2007,2008
 ./bin/named/lwresd.8				MAN	DOCBOOK
 ./bin/named/lwresd.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2015
@@ -1562,7 +1562,7 @@
 ./bin/tests/system/lwresd/clean.sh		SH	2008,2012,2013,2015
 ./bin/tests/system/lwresd/lwresd1/lwresd.conf	CONF-C	2000,2001,2004,2007
 ./bin/tests/system/lwresd/lwresd1/resolv.conf	CONF-SH	2000,2001,2004,2007,2012
-./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007,2008,2012,2013,2015
+./bin/tests/system/lwresd/lwtest.c		C	2000,2001,2002,2004,2007,2008,2012,2013,2015,2016
 ./bin/tests/system/lwresd/ns1/10.10.10.in-addr.arpa.db	ZONE	2000,2001,2004,2007
 ./bin/tests/system/lwresd/ns1/e.example1.db	X	2008
 ./bin/tests/system/lwresd/ns1/example1.db	ZONE	2000,2001,2002,2003,2004,2007,2008
@@ -1754,6 +1754,7 @@
 ./bin/tests/system/rndc/ns2/named.conf		CONF-C	2011,2012,2013
 ./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012,2013
 ./bin/tests/system/rndc/ns3/named.conf		CONF-C	2012,2013
+./bin/tests/system/rndc/ns4/.gitignore		X	2016
 ./bin/tests/system/rndc/ns4/named.conf.in	CONF-C	2013,2015
 ./bin/tests/system/rndc/setup.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014,2015,2016
