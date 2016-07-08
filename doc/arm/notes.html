@@ -49,6 +49,13 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
+         getrrsetbyname with a non absolute name could trigger a
+         infinite recursion bug in lwresd and named with lwres
+         configured if when combined with a search list entry the
+         resulting name is too long.  This flaw is disclosed in
+         CVE-2016-XXXX.
+	</p></li>
+<li class="listitem"><p>
 	  Duplicate EDNS COOKIE options in a response could trigger
 	  an assertion failure. This flaw is disclosed in CVE-2016-2088.
 	  [RT #41809]
