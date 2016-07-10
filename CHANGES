@@ -1,6 +1,9 @@
 4409.	[bug]		DNS64 should exlude mapped addresses by default when
 			a exclude acl is not defined. [RT #42810]
 
+4407.	[performance]	Use GCC builtin for clz in RPZ lookup code.
+			[RT #42818]
+
 4406.	[bug]		getrrsetbyname with a non absolute name could
 			trigger a infinite recursion bug in lwresd
 			and named with lwres configured if when combined

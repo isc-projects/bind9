@@ -4008,6 +4008,23 @@ if test "$have_builtin_expect" = "yes"; then
 fi
 
 #
+# Check for __builtin_clz
+#
+AC_MSG_CHECKING([compiler support for __builtin_clz])
+AC_TRY_LINK(, [
+        return (__builtin_clz(0xff) == 24 ? 1 : 0);
+], [
+        have_builtin_clz=yes
+        AC_MSG_RESULT(yes)
+], [
+        have_builtin_clz=no
+        AC_MSG_RESULT(no)
+])
+if test "$have_builtin_clz" = "yes"; then
+        AC_DEFINE(HAVE_BUILTIN_CLZ, 1, [Define to 1 if the compiler supports __builtin_clz.])
+fi
+
+#
 # CPU relax (for spin locks)
 #
 if $use_threads
