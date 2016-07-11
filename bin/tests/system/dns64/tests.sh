@@ -76,6 +76,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I: checking default exclude acl works (::ffff:0.0.0.0/96) ($n)"
+ret=0
+$DIG $DIGOPTS a-and-mapped.example. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "2001:bbbb::1.2.3.5" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I: checking partially excluded only AAAA lookup works ($n)"
 ret=0
 $DIG $DIGOPTS partially-excluded-only.example. @10.53.0.2 -b 10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1

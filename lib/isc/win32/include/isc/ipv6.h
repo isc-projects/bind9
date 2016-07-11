@@ -44,6 +44,9 @@
 #ifndef IN6ADDR_LOOPBACK_INIT
 #define IN6ADDR_LOOPBACK_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}
 #endif
+#ifndef IN6ADDR_V4MAPPED_INIT
+#define IN6ADDR_V4MAPPED_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0xff,0xff,0,0,0,0 }}
+#endif
 
 LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_any;
 LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
