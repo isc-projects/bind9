@@ -5287,7 +5287,7 @@ options {
 		if they appear in a domain name's AAAA records, and
 		DNS64 will be applied to any A records the domain
 		name owns.  If not defined, <command>exclude</command>
-		defaults to none.
+		defaults to ::ffff:0.0.0.0/96.
 	      </para>
 	      <para>
 		A optional <command>suffix</command> can also

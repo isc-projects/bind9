@@ -1,3 +1,6 @@
+4409.	[bug]		DNS64 should exlude mapped addresses by default when
+			a exclude acl is not defined. [RT #42810]
+
 4407.	[performance]	Use GCC builtin for clz in RPZ lookup code.
 			[RT #42818]
 
