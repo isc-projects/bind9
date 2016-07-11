@@ -72,7 +72,7 @@
 	 infinite recursion bug in lwresd and named with lwres
 	 configured if when combined with a search list entry the
 	 resulting name is too long.  This issue is disclosed in
-	 CVE-2016-XXXX.
+	 CVE-2016-2775.
 	</para>
       </listitem>
     </itemizedlist>
