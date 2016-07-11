@@ -294,6 +294,7 @@ dns_dispatch_getattributes
 dns_dispatch_getdscp
 dns_dispatch_getentrysocket
 dns_dispatch_getlocaladdress
+dns_dispatch_getnext
 dns_dispatch_getsocket
 dns_dispatch_gettcp
 dns_dispatch_gettcp2

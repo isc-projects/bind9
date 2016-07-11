@@ -1,3 +1,6 @@
+4408.	[func]		Continue waiting for expected response when we the
+			response we get does not match the request. [RT #41026]
+
 4407.	[performance]	Use GCC builtin for clz in RPZ lookup code.
 			[RT #42818]
 

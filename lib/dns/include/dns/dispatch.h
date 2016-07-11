@@ -590,6 +590,17 @@ dns_dispatch_getdscp(dns_dispatch_t *disp);
  *\li	disp is valid.
  */
 
+isc_result_t
+dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent);
+/*%<
+ * Free the sockevent and trigger the sending of the next item off the
+ * dispatch queue if present.
+ *
+ * Requires:
+ *\li	resp is valid
+ *\li	*sockevent to be valid
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DISPATCH_H */
