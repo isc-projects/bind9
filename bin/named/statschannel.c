@@ -369,6 +369,7 @@ init_desc(void) {
 	SET_RESSTATDESC(zonequota, "spilled due to zone quota", "ZoneQuota");
 	SET_RESSTATDESC(serverquota, "spilled due to server quota",
 			"ServerQuota");
+	SET_RESSTATDESC(nextitem, "waited for next item", "NextItem");
 
 	INSIST(i == dns_resstatscounter_max);
 

@@ -162,8 +162,6 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 
 void
 dns_test_end(void) {
-	if (lctx != NULL)
-		isc_log_destroy(&lctx);
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = ISC_FALSE;
@@ -176,6 +174,9 @@ dns_test_end(void) {
 		isc_entropy_detach(&ectx);
 
 	cleanup_managers();
+
+	if (lctx != NULL)
+		isc_log_destroy(&lctx);
 
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);

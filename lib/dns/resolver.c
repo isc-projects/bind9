@@ -7643,7 +7643,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	resquery_t *query = event->ev_arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	isc_boolean_t keep_trying, get_nameservers, resend;
+	isc_boolean_t keep_trying, get_nameservers, resend, nextitem;
 	isc_boolean_t truncated;
 	dns_message_t *message;
 	dns_rdataset_t *opt;
@@ -7689,6 +7689,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	broken_server = ISC_R_SUCCESS;
 	get_nameservers = ISC_FALSE;
 	resend = ISC_FALSE;
+	nextitem = ISC_FALSE;
 	truncated = ISC_FALSE;
 	finish = NULL;
 	no_response = ISC_FALSE;
@@ -7897,12 +7898,47 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	if (message->cc_bad && (options & DNS_FETCHOPT_TCP) == 0) {
 		/*
-		 * If the COOKIE is bad assume it is a attack and retry.
+		 * If the COOKIE is bad, assume it is an attack and
+		 * keep listening for a good answer.
 		 */
-		resend = ISC_TRUE;
-		/* XXXMPA log it */
-		FCTXTRACE("bad cookie");
+		nextitem = ISC_TRUE;
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
+			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_format(&query->addrinfo->sockaddr,
+					    addrbuf, sizeof(addrbuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "bad cookie from %s", addrbuf);
+		}
 		goto done;
+	}
+
+	/*
+	 * Is the question the same as the one we asked?
+	 * NOERROR/NXDOMAIN/YXDOMAIN/REFUSED/SERVFAIL/BADCOOKIE must have
+	 * the same question.
+	 * FORMERR/NOTIMP if they have a question section then it must match.
+	 */
+	switch (message->rcode) {
+	case dns_rcode_notimp:
+	case dns_rcode_formerr:
+		if (message->counts[DNS_SECTION_QUESTION] == 0)
+			break;
+	case dns_rcode_nxrrset:	/* Not expected. */
+	case dns_rcode_badcookie:
+	case dns_rcode_noerror:
+	case dns_rcode_nxdomain:
+	case dns_rcode_yxdomain:
+	case dns_rcode_refused:
+	case dns_rcode_servfail:
+	default:
+		result = same_question(fctx);
+		if (result != ISC_R_SUCCESS) {
+			FCTXTRACE3("response did not match question", result);
+			nextitem = ISC_TRUE;
+			goto done;
+		}
+		break;
 	}
 
 	/*
@@ -8214,18 +8250,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * Is the question the same as the one we asked?
-	 */
-	result = same_question(fctx);
-	if (result != ISC_R_SUCCESS) {
-		/* XXXRTH Log */
-		if (result == DNS_R_FORMERR)
-			keep_trying = ISC_TRUE;
-		FCTXTRACE3("response did not match question", result);
-		goto done;
-	}
-
-	/*
 	 * Is the server lame?
 	 */
 	if (res->lame_ttl != 0 && !ISFORWARDER(query->addrinfo) &&
@@ -8488,7 +8512,9 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 *
 	 * XXXRTH  Don't cancel the query if waiting for validation?
 	 */
-	fctx_cancelquery(&query, &devent, finish, no_response, ISC_FALSE);
+	if (!nextitem)
+		fctx_cancelquery(&query, &devent, finish,
+				 no_response, ISC_FALSE);
 
 #ifdef ENABLE_AFL
 	if (fuzzing_resolver && (keep_trying || resend)) {
@@ -8585,6 +8611,16 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			if (bucket_empty)
 				empty_bucket(res);
 		}
+	} else if (nextitem) {
+		/*
+		 * Wait for next item.
+		 */
+		FCTXTRACE("nextitem");
+		inc_stats(fctx->res, dns_resstatscounter_nextitem);
+		INSIST(query->dispentry != NULL);
+		result = dns_dispatch_getnext(query->dispentry, &devent);
+		if (result != ISC_R_SUCCESS) 
+			fctx_done(fctx, result, __LINE__);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
 		 * All has gone well so far, but we are waiting for the

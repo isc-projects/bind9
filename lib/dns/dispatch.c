@@ -1697,7 +1697,7 @@ open_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 		return (ISC_R_SUCCESS);
 	} else {
 		result = isc_socket_create(mgr, isc_sockaddr_pf(local),
-					isc_sockettype_udp, &sock);
+					   isc_sockettype_udp, &sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -3406,6 +3406,48 @@ dns_dispatch_starttcp(dns_dispatch_t *disp) {
 	UNLOCK(&disp->lock);
 }
 
+isc_result_t
+dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent) {
+	dns_dispatch_t *disp;
+	dns_dispatchevent_t *ev;
+
+	REQUIRE(VALID_RESPONSE(resp));
+	REQUIRE(sockevent != NULL && *sockevent != NULL);
+
+	disp = resp->disp;
+	REQUIRE(VALID_DISPATCH(disp));
+
+	REQUIRE(resp->item_out == ISC_TRUE);
+	resp->item_out = ISC_FALSE;
+
+	ev = *sockevent;
+	*sockevent = NULL;
+
+	LOCK(&disp->lock);
+	if (ev->buffer.base != NULL)
+		free_buffer(disp, ev->buffer.base, ev->buffer.length);
+	free_devent(disp, ev);
+
+	if (disp->shutting_down == 1) {
+		UNLOCK(&disp->lock);
+		return (ISC_R_SHUTTINGDOWN);
+	}
+	ev = ISC_LIST_HEAD(resp->items);
+	if (ev != NULL) {
+		ISC_LIST_UNLINK(resp->items, ev, ev_link);
+		ISC_EVENT_INIT(ev, sizeof(*ev), 0, NULL, DNS_EVENT_DISPATCH,
+			       resp->action, resp->arg, resp, NULL, NULL);
+		request_log(disp, resp, LVL(90),
+			    "[c] Sent event %p buffer %p len %d to task %p",
+			    ev, ev->buffer.base, ev->buffer.length,
+			    resp->task);
+		resp->item_out = ISC_TRUE;
+		isc_task_send(resp->task, ISC_EVENT_PTR(&ev));
+	}
+	UNLOCK(&disp->lock);
+	return (ISC_R_SUCCESS);
+}
+
 void
 dns_dispatch_removeresponse(dns_dispentry_t **resp,
 			    dns_dispatchevent_t **sockevent)
@@ -3503,7 +3545,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	}
 
 	/*
-	 * Free any buffered requests as well
+	 * Free any buffered responses as well
 	 */
 	ev = ISC_LIST_HEAD(res->items);
 	while (ev != NULL) {
