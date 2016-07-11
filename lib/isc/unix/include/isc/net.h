@@ -38,7 +38,7 @@
  * It declares inet_aton(), inet_ntop(), and inet_pton().
  *
  * It ensures that #INADDR_LOOPBACK, #INADDR_ANY, #IN6ADDR_ANY_INIT,
- * in6addr_any, and in6addr_loopback are available.
+ * IN6ADDR_V4MAPPED_INIT, in6addr_any, and in6addr_loopback are available.
  *
  * It ensures that IN_MULTICAST() is available to check for multicast
  * addresses.
@@ -112,6 +112,15 @@
 #define IN6ADDR_LOOPBACK_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } } }
 #else
 #define IN6ADDR_LOOPBACK_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 } }
+#endif
+#endif
+
+#ifndef IN6ADDR_V4MAPPED_INIT
+#ifdef s6_addr
+/*% IPv6 v4mapped prefix init */
+#define IN6ADDR_V4MAPPED_INIT { { { 0,0,0,0,0,0,0,0,0,0,0xff,0xff,0,0,0,0 } } }
+#else
+#define IN6ADDR_V4MAPPED_INIT { { 0,0,0,0,0,0,0,0,0,0,0xff,0xff,0,0,0,0 } }
 #endif
 #endif
 

@@ -184,6 +184,8 @@ EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
 EXTERN const char *		ns_g_fuzz_named_addr	INIT(NULL);
 EXTERN ns_fuzz_t		ns_g_fuzz_type		INIT(ns_fuzz_none);
 
+EXTERN dns_acl_t *		ns_g_mapped		INIT(NULL);
+
 #undef EXTERN
 #undef INIT
 
