@@ -2336,8 +2336,7 @@ create_mapped_acl(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 		
-	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
-				        ISC_TRUE, ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, &addr, 96, ISC_TRUE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &ns_g_mapped);
 	dns_acl_detach(&acl);
