@@ -1031,6 +1031,9 @@ static void
 cleanup(void) {
 	destroy_managers();
 
+	if (ns_g_mapped != NULL)
+		dns_acl_detach(&ns_g_mapped);
+
 	ns_server_destroy(&ns_g_server);
 
 	isc_entropy_detach(&ns_g_entropy);

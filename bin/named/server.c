@@ -2073,6 +2073,28 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	return (result);
 }
 
+static isc_result_t
+create_mapped_acl(void) {
+	isc_result_t result;
+	dns_acl_t *acl = NULL;
+	isc_netaddr_t addr = {
+		.family = AF_INET6,
+		.type.in6 = IN6ADDR_V4MAPPED_INIT,
+        	.zone = 0
+	};
+
+	result = dns_acl_create(ns_g_mctx, 1, &acl);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+		
+	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
+				        ISC_TRUE, ISC_FALSE);
+	if (result == ISC_R_SUCCESS)
+		dns_acl_attach(acl, &ns_g_mapped);
+	dns_acl_detach(&acl);
+	return (result);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -2511,6 +2533,13 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 							    mctx, 0, &excluded);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
+			} else {
+				if (ns_g_mapped == NULL) {
+					result = create_mapped_acl();
+					if (result != ISC_R_SUCCESS)
+						goto cleanup;
+				}
+				dns_acl_attach(ns_g_mapped, &excluded);
 			}
 
 			obj = NULL;

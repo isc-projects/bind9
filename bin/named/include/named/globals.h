@@ -167,6 +167,8 @@ EXTERN isc_boolean_t		ns_g_disable6		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable4		INIT(ISC_FALSE);
 
 
+EXTERN dns_acl_t *		ns_g_mapped		INIT(NULL);
+
 #undef EXTERN
 #undef INIT
 
