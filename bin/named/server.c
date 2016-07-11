@@ -3014,15 +3014,15 @@ create_mapped_acl(void) {
 	isc_netaddr_t addr = {
 		.family = AF_INET6,
 		.type.in6 = IN6ADDR_V4MAPPED_INIT,
-        	.zone = 0
+		.zone = 0
 	};
 
 	result = dns_acl_create(ns_g_mctx, 1, &acl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-		
+
 	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
-				        ISC_TRUE, ISC_FALSE);
+					ISC_TRUE, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &ns_g_mapped);
 	dns_acl_detach(&acl);
