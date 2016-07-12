@@ -8619,7 +8619,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		inc_stats(fctx->res, dns_resstatscounter_nextitem);
 		INSIST(query->dispentry != NULL);
 		result = dns_dispatch_getnext(query->dispentry, &devent);
-		if (result != ISC_R_SUCCESS) 
+		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result, __LINE__);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
