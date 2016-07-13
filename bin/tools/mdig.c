@@ -606,7 +606,7 @@ sendquery(struct query *query, isc_task_t *task)
 				memmove(addr, &sin->sin_addr, 4);
 				if ((plen % 8) != 0)
 					addr[addrl-1] &=
-						~0 << (8 - (plen % 8));
+						~0U << (8 - (plen % 8));
 			} else {
 				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
@@ -615,7 +615,7 @@ sendquery(struct query *query, isc_task_t *task)
 
 			/* Mask off last address byte */
 			if (addrl > 0 && (plen % 8) != 0)
-				addr[addrl - 1] &= ~0 << (8 - (plen % 8));
+				addr[addrl - 1] &= ~0U << (8 - (plen % 8));
 
 			/* family */
 			isc_buffer_putuint16(&b, family);

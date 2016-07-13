@@ -158,7 +158,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 				return (DNS_R_OPTERR);
 
 			if (addrbytes != 0U && (addrlen % 8) != 0) {
-				isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
+				isc_uint8_t bits = ~0U << (8 - (addrlen % 8));
 				bits &= sregion.base[addrbytes - 1];
 				if (bits != sregion.base[addrbytes - 1])
 					return (DNS_R_OPTERR);

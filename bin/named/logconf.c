@@ -135,6 +135,22 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 				 cfg_tuple_get(fileobj, "versions");
 		isc_int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_offset_t size = 0;
+		isc_uint64_t maxoffset;
+
+		/*
+		 * isc_offset_t is a signed integer type, so the maximum
+		 * value is all 1s except for the MSB.
+		 */
+		switch (sizeof(isc_offset_t)) {
+		case 4:
+			maxoffset = 0x7fffffffLLU;
+			break;
+		case 8:
+			maxoffset = 0x7fffffffffffffffLLU;
+			break;
+		default:
+			INSIST(0);
+		}
 
 		type = ISC_LOG_TOFILE;
 
@@ -145,7 +161,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 			versions = ISC_LOG_ROLLINFINITE;
 		if (sizeobj != NULL &&
 		    cfg_obj_isuint64(sizeobj) &&
-		    cfg_obj_asuint64(sizeobj) < ISC_OFFSET_MAXIMUM)
+		    cfg_obj_asuint64(sizeobj) < maxoffset)
 			size = (isc_offset_t)cfg_obj_asuint64(sizeobj);
 		dest.file.stream = NULL;
 		dest.file.name = cfg_obj_asstring(pathobj);

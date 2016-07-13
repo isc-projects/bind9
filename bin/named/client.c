@@ -2037,7 +2037,7 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		optlen -= addrbytes;
 
 		if ((addrlen % 8) != 0) {
-			isc_uint8_t bits = ~0 << (8 - (addrlen % 8));
+			isc_uint8_t bits = ~0U << (8 - (addrlen % 8));
 			bits &= paddr[addrbytes - 1];
 			if (bits != paddr[addrbytes - 1])
 				return (DNS_R_OPTERR);
