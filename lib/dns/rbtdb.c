@@ -1659,7 +1659,7 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	free_acachearray(mctx, rdataset, rdataset->additional_auth);
 	free_acachearray(mctx, rdataset, rdataset->additional_glue);
 
-	if ((rdataset->attributes & RDATASET_ATTR_NONEXISTENT) != 0)
+	if (NONEXISTENT(rdataset))
 		size = sizeof(*rdataset);
 	else
 		size = dns_rdataslab_size((unsigned char *)rdataset,
@@ -6067,30 +6067,34 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			/*
 			 * We're adding a negative cache entry.
 			 */
-			for (topheader = rbtnode->data;
-			     topheader != NULL;
-			     topheader = topheader->next) {
+			if (covers == dns_rdatatype_any) {
 				/*
 				 * If we're adding an negative cache entry
 				 * which covers all types (NXDOMAIN,
-				 * NODATA(QTYPE=ANY)).
+				 * NODATA(QTYPE=ANY)),
 				 *
 				 * We make all other data stale so that the
 				 * only rdataset that can be found at this
 				 * node is the negative cache entry.
-				 *
-				 * Otherwise look for any RRSIGs of the
-				 * given type so they can be marked stale
-				 * later.
 				 */
-				if (covers == dns_rdatatype_any) {
+				for (topheader = rbtnode->data;
+				     topheader != NULL;
+				     topheader = topheader->next)
+				{
 					set_ttl(rbtdb, topheader, 0);
 					mark_stale_header(rbtdb, topheader);
-				} else if (topheader->type == sigtype)
-					sigheader = topheader;
-			}
-			if (covers == dns_rdatatype_any)
+				}
 				goto find_header;
+			}
+			/*
+			 * Otherwise look for any RRSIGs of the given
+			 * type so they can be marked stale later.
+			 */
+			for (topheader = rbtnode->data;
+			     topheader != NULL;
+			     topheader = topheader->next)
+				if (topheader->type == sigtype)
+					sigheader = topheader;
 			negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
 		} else {
 			/*
@@ -8903,8 +8907,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					 * ANY and RRSIG queries for 0 TTL
 					 * rdatasets to work.
 					 */
-					if ((header->attributes &
-					     RDATASET_ATTR_NONEXISTENT) != 0 ||
+					if (NONEXISTENT(header) ||
 					    (now != 0 && now > header->rdh_ttl))
 						header = NULL;
 					break;

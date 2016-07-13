@@ -2246,7 +2246,7 @@ fromtext_error(void (*callback)(dns_rdatacallbacks_t *, const char *, ...),
 
 dns_rdatatype_t
 dns_rdata_covers(dns_rdata_t *rdata) {
-	if (rdata->type == 46)
+	if (rdata->type == dns_rdatatype_rrsig)
 		return (covers_rrsig(rdata));
 	return (covers_sig(rdata));
 }
