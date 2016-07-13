@@ -1,3 +1,6 @@
+4410.	[bug]		Address use after free and memory leak with dnstap.
+			[RT #42746]
+
 4409.	[bug]		DNS64 should exclude mapped addresses by default when
 			an exclude acl is not defined. [RT #42810]
 

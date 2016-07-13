@@ -242,6 +242,9 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	if (fopt != NULL)
 		fstrm_iothr_options_destroy(&fopt);
 
+	if (ffwopt != NULL)
+		fstrm_file_options_destroy(&ffwopt);
+
 	if (fuwopt != NULL)
 		fstrm_unix_writer_options_destroy(&fuwopt);
 
@@ -279,8 +282,6 @@ dns_dt_reopen(dns_dtenv_t *env) {
 			fstrm_writer_open(env->fw);
 		return (ISC_R_SUCCESS);
 	}
-
-
 
 	return (result);
 }
@@ -641,8 +642,6 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 
 	if (pack_dt(&dm.d, &dm.buf, &dm.len) == ISC_R_SUCCESS)
 		send_dt(view->dtenv, dm.buf, dm.len);
-
-	return;
 }
 
 void
