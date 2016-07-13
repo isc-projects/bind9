@@ -1,5 +1,5 @@
-4409.	[bug]		DNS64 should exlude mapped addresses by default when
-			a exclude acl is not defined. [RT #42810]
+4409.	[bug]		DNS64 should exclude mapped addresses by default when
+			an exclude acl is not defined. [RT #42810]
 
 4406.	[bug]		getrrsetbyname with a non absolute name could
 			trigger a infinite recursion bug in lwresd
