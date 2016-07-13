@@ -24,6 +24,10 @@
       This document summarizes changes since BIND 9.10.4:
     </para>
     <para>
+      BIND 9.10.4-P2 addresses the security issues described in
+      CVE-2016-2775
+    </para>
+    <para>
       BIND 9.10.4-P1 addresses Windows installation issues, the %z
       modifier is not supported under Windows and a race condition
       in the rbt/rbtdb implementation resulting in named exiting
@@ -70,7 +74,7 @@
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
-        <para>
+	<para>
 	  None.
 	</para>
       </listitem>
