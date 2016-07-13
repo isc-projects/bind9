@@ -1,7 +1,7 @@
 4412.	[cleanup]	Make fixes for GCC 6. ISC_OFFSET_MAXIMUM macro was
 			removed. [RT #42721]
 
-4411.	[func]		"rndc dnstap -roll" automatically rolls the 
+4411.	[func]		"rndc dnstap -roll" automatically rolls the
 			dnstap output file; the previous version is
 			saved with ".0" suffix, and earlier versions
 			with ".1" and so on. An optional numeric argument
