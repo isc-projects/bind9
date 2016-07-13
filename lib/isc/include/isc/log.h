@@ -903,6 +903,15 @@ isc_log_setcontext(isc_log_t *lctx);
  *\li	lctx be a valid context.
  */
 
+isc_result_t
+isc_logfile_roll(isc_logfile_t *file);
+/*%<
+ * Roll a logfile.
+ *
+ * Requires:
+ *\li	file is not NULL.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_LOG_H */

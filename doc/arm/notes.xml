@@ -196,8 +196,19 @@
 	  a human-readable format.
 	</para>
 	<para>
-	  <command>rndc dnstap-reopen</command> can be used reopen
-	  dnstap output files after renaming them.
+	  <command>rndc dnstap -roll</command> causes <command>dnstap</command>
+	  output files to be rolled like log files -- the most recent output
+	  file is renamed with a <filename>.0</filename> suffix, the next
+	  most recent with <filename>.1</filename>, etc. (Note that this
+	  only works when <command>dnstap</command> output is being written
+	  to a file, not to a UNIX domain socket.) An optional numerical
+	  argument specifies how many backup log files to retain; if not
+	  specified or set to 0, there is no limit.
+	</para>
+	<para>
+	  <command>rndc dnstap -reopen</command> simply closes and reopens
+	  the <command>dnstap</command> output channel without renaming
+	  the output file.
 	</para>
 	<para>
 	  For more information on <command>dnstap</command>, see

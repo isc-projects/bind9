@@ -306,11 +306,18 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>dnstap-reopen</userinput></term>
+	<term><userinput>dnstap ( -reopen | -roll <optional><replaceable>number</replaceable></optional> )</userinput></term>
 	<listitem>
 	  <para>
-	    Close and re-open DNSTAP output files.  This allows the files
-	    to be renamed externally then to be re-opened.
+	    Close and re-open DNSTAP output files.
+	    <command>rndc dnstap -reopen</command> allows the output
+	    file to be renamed externally, then re-opened.
+	    <command>rndc dnstap -roll</command> causes the output file
+	    to be rolled automatically, similar to log files; the most
+	    recent output file has ".0" appended to its name; the
+	    previous most recent output file is moved to ".1", and so on.
+	    If <replaceable>number</replaceable> is specified, then the
+	    number of backup log files is limited to that number.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -605,17 +612,17 @@
       </varlistentry>
 
       <varlistentry>
-        <term><userinput>recursing</userinput></term>
-        <listitem>
-          <para>
-            Dump the list of queries <command>named</command> is currently
-            recursing on, and the list of domains to which iterative
-            queries are currently being sent.  (The second list includes
-            the number of fetches currently active for the given domain,
-            and how many have been passed or dropped because of the
-            <option>fetches-per-zone</option> option.)
-          </para>
-        </listitem>
+	<term><userinput>recursing</userinput></term>
+	<listitem>
+	  <para>
+	    Dump the list of queries <command>named</command> is currently
+	    recursing on, and the list of domains to which iterative
+	    queries are currently being sent.  (The second list includes
+	    the number of fetches currently active for the given domain,
+	    and how many have been passed or dropped because of the
+	    <option>fetches-per-zone</option> option.)
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>

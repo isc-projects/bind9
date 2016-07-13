@@ -12211,14 +12211,45 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 }
 
 isc_result_t
-ns_server_dnstap_reopen(ns_server_t *server) {
-
+ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 #if HAVE_DNSTAP
-	if (server->dtenv != NULL)
-		return(dns_dt_reopen(server->dtenv));
-	return (ISC_R_NOTFOUND);
+	char *ptr;
+
+	if (server->dtenv == NULL)
+		return (ISC_R_NOTFOUND);
+
+	/* Check the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* "dnstap-reopen" was used in 9.11.0b1 */
+	if (strcasecmp(ptr, "dnstap-reopen") == 0)
+		return (dns_dt_reopen(server->dtenv, ISC_FALSE));
+
+	/* Find out what we are to do. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	if (strcasecmp(ptr, "-reopen") == 0)
+		return (dns_dt_reopen(server->dtenv, -1));
+	else if ((strcasecmp(ptr, "-roll") == 0)) {
+		int backups = 0;
+		unsigned int n;
+		ptr = next_token(lex, text);
+		if (ptr != NULL) {
+			n = sscanf(ptr, "%u", &backups);
+			if (n != 1U)
+				return (ISC_R_BADNUMBER);
+		}
+		return (dns_dt_reopen(server->dtenv, backups));
+	} else
+		return (DNS_R_SYNTAX);
 #else
 	UNUSED(server);
+	UNUSED(lex);
+	UNUSED(text);
 	return (ISC_R_NOTIMPLEMENTED);
 #endif
 }
