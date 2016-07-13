@@ -25,7 +25,7 @@
     </para>
     <para>
       BIND 9.10.4-P2 addresses the security issues described in
-      CVE-2016-2775
+      CVE-2016-2775.
     </para>
     <para>
       BIND 9.10.4-P1 addresses Windows installation issues, the %z
@@ -54,7 +54,7 @@
 	  infinite recursion bug in lwresd and named with lwres
 	  configured if when combined with a search list entry the
 	  resulting name is too long.  This flaw is disclosed in
-	  CVE-2016-2775.
+	  CVE-2016-2775. [RT #42694]
 	</para>
       </listitem>
     </itemizedlist>
