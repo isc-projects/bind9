@@ -150,9 +150,15 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  */
 
 isc_result_t
-dns_dt_reopen(dns_dtenv_t *env);
+dns_dt_reopen(dns_dtenv_t *env, int roll);
 /*%<
  * Reopens files established by dns_dt_create().
+ *
+ * If 'roll' is non-negative and 'env->mode' is dns_dtmode_file,
+ * then the file is automatically rolled over before reopening.
+ * The value of 'roll' indicates the number of backup log files to
+ * keep.  If 'roll' is negative, or if 'env->mode' is dns_dtmode_unix,
+ * then the channel is simply reopened.
  *
  * Requires:
  *\li	'env' is a valid dnstap environment.

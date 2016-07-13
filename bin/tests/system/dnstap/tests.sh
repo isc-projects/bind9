@@ -15,15 +15,16 @@ status=0
 
 $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 
+# check three different dnstap reopen/roll methods:
+# ns1: dnstap-reopen; ns2: dnstap -reopen; ns3: dnstap -roll
 mv ns1/dnstap.out ns1/dnstap.out.save
 mv ns2/dnstap.out ns2/dnstap.out.save
-mv ns3/dnstap.out ns3/dnstap.out.save
 
 sleep 2
 
 $RNDCCMD -s 10.53.0.1 dnstap-reopen | sed 's/^/I:ns1 /'
-$RNDCCMD -s 10.53.0.2 dnstap-reopen | sed 's/^/I:ns2 /'
-$RNDCCMD -s 10.53.0.3 dnstap-reopen | sed 's/^/I:ns3 /'
+$RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/I:ns2 /'
+$RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/I:ns3 /'
 
 $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 sleep 1
@@ -56,6 +57,7 @@ cr2=`$DNSTAPREAD ns2/dnstap.out.save | grep "CR " | wc -l`
 rq2=`$DNSTAPREAD ns2/dnstap.out.save | grep "RQ " | wc -l`
 rr2=`$DNSTAPREAD ns2/dnstap.out.save | grep "RR " | wc -l`
 
+mv ns3/dnstap.out.0 ns3/dnstap.out.save
 udp3=`$DNSTAPREAD ns3/dnstap.out.save | grep "UDP " | wc -l`
 tcp3=`$DNSTAPREAD ns3/dnstap.out.save | grep "TCP " | wc -l`
 aq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "AQ " | wc -l`

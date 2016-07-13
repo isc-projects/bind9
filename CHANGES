@@ -1,3 +1,9 @@
+4411.	[func]		"rndc dnstap -roll" automatically rolls the 
+			dnstap output file; the previous version is
+			saved with ".0" suffix, and earlier versions
+			with ".1" and so on. An optional numeric argument
+			indicates how many prior files to save. [RT #42830]
+
 4410.	[bug]		Address use after free and memory leak with dnstap.
 			[RT #42746]
 

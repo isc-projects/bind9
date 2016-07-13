@@ -740,6 +740,6 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
  * Close and reopen DNSTAP output file.
  */
 isc_result_t
-ns_server_dnstap_reopen(ns_server_t *server);
+ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
 
 #endif /* NAMED_SERVER_H */

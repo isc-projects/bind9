@@ -139,11 +139,11 @@ ATF_TC_BODY(dispatchset_get, tc) {
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
-	isc_socket_t *socket = event->ev_arg;
+	isc_socket_t *sock = event->ev_arg;
 
 	UNUSED(task);
 
-	isc_socket_detach(&socket);
+	isc_socket_detach(&sock);
 	isc_event_free(&event);
 }
 
@@ -152,7 +152,7 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_region_t region;
 	isc_socket_t *dummy;
-	isc_socket_t *socket = event->ev_arg;
+	isc_socket_t *sock = event->ev_arg;
 	isc_socketevent_t *ev = (isc_socketevent_t *)event;
 	static unsigned char buf1[16];
 	static unsigned char buf2[16];
@@ -171,8 +171,8 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	region.base = buf1;
 	region.length = sizeof(buf1);
 	dummy = NULL;
-	isc_socket_attach(socket, &dummy);
-	result = isc_socket_sendto(socket, &region, task, senddone, socket,
+	isc_socket_attach(sock, &dummy);
+	result = isc_socket_sendto(sock, &region, task, senddone, sock,
 				   &ev->address, NULL);
 	if (result != ISC_R_SUCCESS)
 		isc_socket_detach(&dummy);
@@ -183,8 +183,8 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	region.base = buf2;
 	region.length = sizeof(buf2);
 	dummy = NULL;
-	isc_socket_attach(socket, &dummy);
-	result = isc_socket_sendto(socket, &region, task, senddone, socket,
+	isc_socket_attach(sock, &dummy);
+	result = isc_socket_sendto(sock, &region, task, senddone, sock,
 				   &ev->address, NULL);
 	if (result != ISC_R_SUCCESS)
 		isc_socket_detach(&dummy);
@@ -222,8 +222,8 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	isc_region_t region;
 	isc_result_t result;
 	isc_sockaddr_t local;
-	isc_socket_t *dsocket = NULL;
-	isc_socket_t *socket = NULL;
+	isc_socket_t *dsock = NULL;
+	isc_socket_t *sock = NULL;
 	isc_task_t *task = NULL;
 	isc_uint16_t id;
 	struct in_addr ina;
@@ -254,21 +254,21 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	 * Create a local udp nameserver on the loopback.
 	 */
 	result = isc_socket_create(socketmgr, AF_INET, isc_sockettype_udp,
-				   &socket);
+				   &sock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ina.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&local, &ina, 0);
-	result = isc_socket_bind(socket, &local, 0);
+	result = isc_socket_bind(sock, &local, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_socket_getsockname(socket, &local);
+	result = isc_socket_getsockname(sock, &local);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	first = ISC_TRUE;
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
-	result = isc_socket_recv(socket, &region, 1, task, nameserver, socket);
+	result = isc_socket_recv(sock, &region, 1, task, nameserver, sock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_addresponse(dispatch, &local, task, response,
@@ -279,10 +279,10 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	message[0] = (id >> 8) & 0xff;
 	message[1] = id & 0xff;
 
-	isc_socket_attach(dns_dispatch_getsocket(dispatch), &dsocket);
+	isc_socket_attach(dns_dispatch_getsocket(dispatch), &dsock);
 	region.base = message;
 	region.length = sizeof(message);
-	result = isc_socket_sendto(dsocket, &region, task, senddone, dsocket,
+	result = isc_socket_sendto(dsock, &region, task, senddone, dsock,
 				   &local, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
@@ -294,8 +294,8 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	/*
 	 * Shutdown nameserver.
 	 */
-	isc_socket_cancel(socket, task, ISC_SOCKCANCEL_RECV);
-	isc_socket_detach(&socket);
+	isc_socket_cancel(sock, task, ISC_SOCKCANCEL_RECV);
+	isc_socket_detach(&sock);
 	isc_task_detach(&task);
 
 	/*

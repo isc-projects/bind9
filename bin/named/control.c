@@ -272,8 +272,9 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 		result = ns_server_testgen(lex, text);
 	} else if (command_compare(command, NS_COMMAND_MKEYS)) {
 		result = ns_server_mkeys(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_DNSTAPREOPEN)) {
-		result = ns_server_dnstap_reopen(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_DNSTAP) ||
+		   command_compare(command, NS_COMMAND_DNSTAPREOPEN)) {
+		result = ns_server_dnstap(ns_g_server, lex, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

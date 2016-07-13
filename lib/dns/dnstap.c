@@ -96,6 +96,7 @@ struct dns_dtenv {
 	isc_region_t identity;
 	isc_region_t version;
 	char *path;
+	dns_dtmode_t mode;
 };
 
 #define CHECK(x) do { \
@@ -232,6 +233,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		fstrm_writer_destroy(&fw);
 		CHECK(ISC_R_FAILURE);
 	}
+	env->mode = mode;
 
 	isc_mem_attach(mctx, &env->mctx);
 
@@ -265,25 +267,46 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 }
 
 isc_result_t
-dns_dt_reopen(dns_dtenv_t *env) {
-	isc_result_t result = ISC_R_SUCCESS;
+dns_dt_reopen(dns_dtenv_t *env, int roll) {
+	isc_result_t result;
+	isc_logfile_t file;
 	fstrm_res res;
 
 	REQUIRE(VALID_DTENV(env));
 
+	if (env->fw == NULL)
+		return (ISC_R_FAILURE);
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
-		      "reopening dnstap destination '%s'",
+		      "%s dnstap destination '%s'",
+		      (roll < 0) ? "reopening" : "rolling",
 		      env->path);
 
-	if (env->fw != NULL) {
-		res = fstrm_writer_close(env->fw);
-		if (res == fstrm_res_success)
-			fstrm_writer_open(env->fw);
-		return (ISC_R_SUCCESS);
+	res = fstrm_writer_close(env->fw);
+	if (res != fstrm_res_success)
+		return (ISC_R_FAILURE);
+
+	if (roll >= 0) {
+		/*
+		 * Create a temporary isc_logfile_t structure so we can
+		 * take advantage of the logfile rolling facility.
+		 */
+		char *filename = isc_mem_strdup(env->mctx, env->path);
+		file.name = filename;
+		file.stream = NULL;
+		file.versions = roll != 0 ? roll : ISC_LOG_ROLLINFINITE;
+		file.maximum_size = 0;
+		file.maximum_reached = ISC_FALSE;
+		result = isc_logfile_roll(&file);
+		isc_mem_free(env->mctx, filename);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 
-	return (result);
+	fstrm_writer_open(env->fw);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
