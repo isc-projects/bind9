@@ -24,6 +24,10 @@
       This document summarizes changes since BIND 9.9.9:
     </para>
     <para>
+      BIND 9.9.9-P2 addresses the security issues described in
+      CVE-2016-2775
+    </para>
+    <para>
       BIND 9.9.9-P1 addresses Windows installation issues and a race
       condition in the rbt/rbtdb implementation resulting in named
       exiting due to assertion failures being detected.
