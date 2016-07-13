@@ -43,7 +43,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	 getrrsetbyname with a non absolute name could trigger a
+	 getrrsetbyname with a non absolute name could trigger an
 	 infinite recursion bug in lwresd and named with lwres
 	 configured if when combined with a search list entry the
 	 resulting name is too long.  This flaw is disclosed in
