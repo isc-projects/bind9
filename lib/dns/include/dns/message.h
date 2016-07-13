@@ -36,7 +36,7 @@
  *
  * How this beast works:
  *
- * When a dns message is received in a buffer, dns_message_fromwire() is called
+ * When a dns message is received in a buffer, dns_message_parse() is called
  * on the memory region.  Various items are checked including the format
  * of the message (if counts are right, if counts consume the entire sections,
  * and if sections consume the entire message) and known pseudo-RRs in the
