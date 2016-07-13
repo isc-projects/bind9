@@ -84,11 +84,40 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I: checking default exclude acl works (::ffff:0.0.0.0/96) ($n)"
+echo "I: checking default exclude acl ignores mapped A records (all mapped) ($n)"
 ret=0
 $DIG $DIGOPTS a-and-mapped.example. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 grep "2001:bbbb::1.2.3.5" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: checking default exclude acl ignores mapped A records (some mapped) ($n)"
+ret=0
+$DIG $DIGOPTS a-and-aaaa-and-mapped.example. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "2001:eeee::4" dig.out.ns2.test$n > /dev/null || ret=1
+grep "::ffff:1.2.3.4" dig.out.ns2.test$n > /dev/null && ret=1
+grep "::ffff:1.2.3.5" dig.out.ns2.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: checking default exclude acl works with AAAA only ($n)"
+ret=0
+$DIG $DIGOPTS aaaa-only.example. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "2001::2" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: checking default exclude acl A only lookup works ($n)"
+ret=0
+$DIG $DIGOPTS a-only.example. @10.53.0.2 -b 10.53.0.4 aaaa > dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "2001:bbbb::102:305" dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

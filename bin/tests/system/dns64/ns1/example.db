@@ -38,6 +38,9 @@ aaaa-only	AAAA	2001::2
 a-not-mapped	A	10.0.0.2
 a-and-mapped	AAAA	::ffff:1.2.3.4
 		A	1.2.3.5
+a-and-aaaa-and-mapped AAAA 2001:eeee::4
+a-and-aaaa-and-mapped AAAA ::ffff:1.2.3.4
+a-and-aaaa-and-mapped A	1.2.3.5
 mx-only		MX	10 ns.example.
 cname-excluded-good-a CNAME excluded-good-a
 cname-excluded-bad-a CNAME excluded-bad-a
