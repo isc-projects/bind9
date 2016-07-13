@@ -43,11 +43,11 @@
     <itemizedlist>
       <listitem>
 	<para>
-         getrrsetbyname with a non absolute name could trigger a
-         infinite recursion bug in lwresd and named with lwres
-         configured if when combined with a search list entry the
-         resulting name is too long.  This flaw is disclosed in
-         CVE-2016-2775.
+	 getrrsetbyname with a non absolute name could trigger a
+	 infinite recursion bug in lwresd and named with lwres
+	 configured if when combined with a search list entry the
+	 resulting name is too long.  This flaw is disclosed in
+	 CVE-2016-2775.
 	</para>
       </listitem>
       <listitem>
@@ -111,10 +111,10 @@
 	<para>
 	  The following resource record types have been implemented:
 	  AVC, CSYNC, NINFO, RKEY, SINK, SMIMEA, TA, TALINK.
- 	</para>
+	</para>
       </listitem>
       <listitem>
-        <para>
+	<para>
 	  Added a warning for a common misconfiguration involving forwarded
 	  RFC 1918 and IPv6 ULA (Universal Local Address) zones.
 	</para>
@@ -145,7 +145,7 @@
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
-        <para>
+	<para>
 	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
 	  to be disabled in 2017.  A warning is now logged when
 	  <command>named</command> is configured to use this service,
@@ -154,7 +154,7 @@
 	</para>
       </listitem>
       <listitem>
-        <para>
+	<para>
 	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
 	  and L.ROOT-SERVERS.NET.
 	</para>
