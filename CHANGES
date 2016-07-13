@@ -1,7 +1,7 @@
 	--- 9.9.9-P2 released ---
 
 4406.	[bug]		getrrsetbyname with a non absolute name could
-			trigger a infinite recursion bug in lwresd
+			trigger an infinite recursion bug in lwresd
 			and named with lwres configured if when combined
 			with a search list entry the resulting name is
 			too long. (CVE-2016-2775) [RT #42694]
