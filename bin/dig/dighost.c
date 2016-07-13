@@ -2519,7 +2519,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 			/* Mask off last address byte */
 			if (addrl > 0 && (plen % 8) != 0)
-				addr[addrl - 1] &= ~0 << (8 - (plen % 8));
+				addr[addrl - 1] &= ~0U << (8 - (plen % 8));
 
 			/* family */
 			isc_buffer_putuint16(&b, family);

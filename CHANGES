@@ -1,3 +1,6 @@
+4412.	[cleanup]	Make fixes for GCC 6. ISC_OFFSET_MAXIMUM macro was
+			removed. [RT #42721]
+
 4409.	[bug]		DNS64 should exclude mapped addresses by default when
 			an exclude acl is not defined. [RT #42810]
 
