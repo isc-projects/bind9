@@ -2326,11 +2326,10 @@ static isc_result_t
 create_mapped_acl(void) {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
-	isc_netaddr_t addr = {
-		.family = AF_INET6,
-		.type.in6 = IN6ADDR_V4MAPPED_INIT,
-		.zone = 0
-	};
+	struct in6_addr in6 = IN6ADDR_V4MAPPED_INIT;
+	isc_netaddr_t addr;
+
+	isc_netaddr_fromin6(&addr, &in6);
 
 	result = dns_acl_create(ns_g_mctx, 1, &acl);
 	if (result != ISC_R_SUCCESS)
