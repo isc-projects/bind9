@@ -1,3 +1,6 @@
+4413.	[bug]		GSSAPI negotiation could fail if GSS_S_CONTINUE_NEEDED
+			was returned. [RT #42733]
+
 	--- 9.11.0b2 released ---
 
 4412.	[cleanup]	Make fixes for GCC 6. ISC_OFFSET_MAXIMUM macro was
