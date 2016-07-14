@@ -2976,13 +2976,15 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname,
 				       &context, &tsigkey, gssring,
-				       use_win2k_gsstsig,
-				       &err_message);
+				       use_win2k_gsstsig, &err_message);
 	switch (result) {
 
 	case DNS_R_CONTINUE:
+		dns_message_destroy(&rcvmsg);
+		dns_request_destroy(&request);
 		send_gssrequest(kserver, tsigquery, &request, context);
-		break;
+		ddebug("Out of recvgss");
+		return;
 
 	case ISC_R_SUCCESS:
 		/*
@@ -3019,7 +3021,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		break;
 
 	default:
-		fatal("dns_tkey_negotiategss: %s %s",
+		fatal("dns_tkey_gssnegotiate: %s %s",
 		      isc_result_totext(result),
 		      err_message != NULL ? err_message : "");
 	}

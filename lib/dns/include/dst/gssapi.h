@@ -136,6 +136,7 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
  *	Returns:
  *		ISC_R_SUCCESS   msg was successfully updated to include the
  * 				query to be sent
+ *		DNS_R_CONTINUE	transaction still in progress
  *		other 		an error occurred while building the message
  */
 
