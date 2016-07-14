@@ -117,7 +117,7 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
-	 getrrsetbyname with a non absolute name could trigger a
+	 getrrsetbyname with a non absolute name could trigger an
 	 infinite recursion bug in lwresd and named with lwres
 	 configured if when combined with a search list entry the
 	 resulting name is too long.  This flaw is disclosed in
@@ -238,8 +238,19 @@
 	  a human-readable format.
 	</p>
 <p>
-	  <span class="command"><strong>rndc dnstap-reopen</strong></span> can be used reopen
-	  dnstap output files after renaming them.
+	  <span class="command"><strong>rndc dnstap -roll</strong></span> causes <span class="command"><strong>dnstap</strong></span>
+	  output files to be rolled like log files -- the most recent output
+	  file is renamed with a <code class="filename">.0</code> suffix, the next
+	  most recent with <code class="filename">.1</code>, etc. (Note that this
+	  only works when <span class="command"><strong>dnstap</strong></span> output is being written
+	  to a file, not to a UNIX domain socket.) An optional numerical
+	  argument specifies how many backup log files to retain; if not
+	  specified or set to 0, there is no limit.
+	</p>
+<p>
+	  <span class="command"><strong>rndc dnstap -reopen</strong></span> simply closes and reopens
+	  the <span class="command"><strong>dnstap</strong></span> output channel without renaming
+	  the output file.
 	</p>
 <p>
 	  For more information on <span class="command"><strong>dnstap</strong></span>, see
