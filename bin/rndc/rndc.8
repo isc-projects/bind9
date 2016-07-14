@@ -210,9 +210,15 @@ and
 \fBrndc modzone\fR\&.
 .RE
 .PP
-\fBdnstap\-reopen\fR
+\fBdnstap ( \-reopen | \-roll \fR\fB[\fInumber\fR]\fR\fB )\fR
 .RS 4
-Close and re\-open DNSTAP output files\&. This allows the files to be renamed externally then to be re\-opened\&.
+Close and re\-open DNSTAP output files\&.
+\fBrndc dnstap \-reopen\fR
+allows the output file to be renamed externally, then re\-opened\&.
+\fBrndc dnstap \-roll\fR
+causes the output file to be rolled automatically, similar to log files; the most recent output file has "\&.0" appended to its name; the previous most recent output file is moved to "\&.1", and so on\&. If
+\fInumber\fR
+is specified, then the number of backup log files is limited to that number\&.
 .RE
 .PP
 \fBdumpdb \fR\fB[\-all|\-cache|\-zone|\-adb|\-bad|\-fail]\fR\fB \fR\fB[\fIview \&.\&.\&.\fR]\fR
