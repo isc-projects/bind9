@@ -152,10 +152,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 		 */
 		switch (sizeof(isc_offset_t)) {
 		case 4:
-			maxoffset = 0x7fffffffLLU;
+			maxoffset = 0x7fffffffULL;
 			break;
 		case 8:
-			maxoffset = 0x7fffffffffffffffLLU;
+			maxoffset = 0x7fffffffffffffffULL;
 			break;
 		default:
 			INSIST(0);
