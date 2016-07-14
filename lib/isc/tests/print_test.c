@@ -46,7 +46,7 @@ ATF_TC_BODY(snprintf, tc) {
 	char buf[10000];
 	isc_uint64_t ll = 8589934592ULL;
 	isc_uint64_t nn = 20000000000000ULL;
-	isc_uint64_t zz = 10000000000000000000LLU;
+	isc_uint64_t zz = 10000000000000000000ULL;
 	int n;
 	size_t size;
 
@@ -110,7 +110,7 @@ ATF_TC_BODY(snprintf, tc) {
 	ATF_CHECK_EQ(n, 4);
 	ATF_CHECK_STREQ(buf, "1750");
 
-	zz = 0xf5f5f5f5f5f5f5f5LLU;
+	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
 	ATF_CHECK_EQ(n, 18);
