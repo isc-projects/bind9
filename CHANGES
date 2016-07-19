@@ -1,4 +1,4 @@
-4414.	[bug]		Corrected a bug in the MIPS implementation of 
+4414.	[bug]		Corrected a bug in the MIPS implementation of
 			isc_atomic_xadd(). [RT #41965]
 
 4413.	[bug]		GSSAPI negotiation could fail if GSS_S_CONTINUE_NEEDED
