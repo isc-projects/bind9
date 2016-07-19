@@ -3413,7 +3413,7 @@
 ./lib/isc/mips/Makefile.in			MAKE	2007,2012
 ./lib/isc/mips/include/Makefile.in		MAKE	2007,2012
 ./lib/isc/mips/include/isc/Makefile.in		MAKE	2007,2012,2015
-./lib/isc/mips/include/isc/atomic.h		C	2005,2007
+./lib/isc/mips/include/isc/atomic.h		C	2005,2007,2016
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2012,2014,2015
 ./lib/isc/netscope.c				C	2002,2004,2005,2006,2007
