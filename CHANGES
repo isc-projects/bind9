@@ -1,3 +1,6 @@
+4415.	[bug]		dnssec-keymgr: Expired/deleted keys were not always
+			excluded. [RT #42884]
+			
 4414.	[bug]		Corrected a bug in the MIPS implementation of
 			isc_atomic_xadd(). [RT #41965]
 
