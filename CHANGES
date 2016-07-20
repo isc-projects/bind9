@@ -1,3 +1,6 @@
+4416.	[bug]		dnssec-keymgr: Domain names in policy files could
+			fail to match due to trailing dots. [RT #42807]
+
 4415.	[bug]		dnssec-keymgr: Expired/deleted keys were not always
 			excluded. [RT #42884]
 			

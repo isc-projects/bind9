@@ -535,9 +535,9 @@ class dnssec_policy:
 
     def p_zone_policy(self, p):
         "zone_policy : ZONE name new_policy policy_option_group SEMI"
-        self.current.name = p[2]
+        self.current.name = p[2].rstrip('.')
         self.current.is_zone = True
-        self.zone_policy[p[2].lower()] = self.current
+        self.zone_policy[p[2].rstrip('.').lower()] = self.current
         pass
 
     def p_named_policy(self, p):
