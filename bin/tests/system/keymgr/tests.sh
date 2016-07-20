@@ -30,8 +30,11 @@ for dir in [0-9][0-9]-*; do
         kargs= cargs= kmatch= cmatch= kret= cret=0 warn= error= ok=
         . $dir/expect
 
+        # use policy.conf if available
+        policy=""
+        [ -e "$dir/policy.conf" ] && policy="-c $dir/policy.conf"
         # run keymgr to update keys
-        $KEYMGR -K $dir -g $KEYGEN -r $RANDFILE -s $SETTIME $kargs > keymgr.$n 2>&1
+        $KEYMGR $policy -K $dir -g $KEYGEN -r $RANDFILE -s $SETTIME $kargs > keymgr.$n 2>&1
         # check that return code matches expectations
         found=$?
         if [ $found -ne $kret ]; then

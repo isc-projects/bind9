@@ -1,3 +1,7 @@
+4417.	[bug]		dnssec-keymgr could fail to create successor keys
+			if the prepublication interval was set to a value
+			smaller than the default. [RT #42820]
+
 4416.	[bug]		dnssec-keymgr: Domain names in policy files could
 			fail to match due to trailing dots. [RT #42807]
 

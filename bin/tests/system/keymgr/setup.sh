@@ -202,3 +202,12 @@ z1=`$KEYGEN -K $dir -q3 example.com`
 z2=`$KEYGEN -K $dir -q3 example.com`
 z3=`$KEYGEN -K $dir -q3 example.com`
 z4=`$KEYGEN -K $dir -q3 example.com`
+
+# Test 18: Prepublication interval is set to a nonstandard value
+dir=18-nonstd-prepub
+echo I:set up $dir
+rm -f $dir/K*.key
+rm -f $dir/K*.private
+ksk1=`$KEYGEN -K $dir -3fk example.com`
+zsk1=`$KEYGEN -K $dir -3 example.com`
+$SETTIME -K $dir -I now+2mo -D now+3mo $z1 > /dev/null

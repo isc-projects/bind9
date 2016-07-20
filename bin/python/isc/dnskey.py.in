@@ -205,7 +205,7 @@ class dnskey:
         except Exception as e:
             raise Exception('unable to parse generated key: %s' % str(e))
 
-    def generate_successor(self, keygen_bin, randomdev, **kwargs):
+    def generate_successor(self, keygen_bin, randomdev, prepublish, **kwargs):
         quiet = kwargs.get('quiet', False)
 
         if not self.inactive():
@@ -218,6 +218,9 @@ class dnskey:
 
         if randomdev:
             keygen_cmd += ["-r", randomdev]
+
+        if prepublish:
+            keygen_cmd += ["-i", str(prepublish)]
 
         if not quiet:
             print('# ' + ' '.join(keygen_cmd))

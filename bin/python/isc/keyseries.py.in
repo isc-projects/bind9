@@ -123,7 +123,7 @@ class keyseries:
             prev.commit(self._context['settime_path'], **kwargs)
             key = prev.generate_successor(self._context['keygen_path'],
                                           self._context['randomdev'],
-                                          **kwargs)
+                                          prepub, **kwargs)
 
             key.setinactive(key.activate() + rp, **kwargs)
             key.setdelete(key.inactive() + postpub, **kwargs)
