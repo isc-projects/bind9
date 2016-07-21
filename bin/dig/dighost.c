@@ -466,9 +466,9 @@ reverse_octets(const char *in, char **p, char *end) {
 		result = append(".", 1, p, end);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		len = (int)(dot - in);
+		len = (int) (dot - in);
 	} else {
-		len = strlen(in);
+		len = (int) strlen(in);
 	}
 	return (append(in, len, p, end));
 }
@@ -933,7 +933,7 @@ setup_text_key(void) {
 	isc_result_t result;
 	dns_name_t keyname;
 	isc_buffer_t secretbuf;
-	int secretsize;
+	unsigned int secretsize;
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
@@ -942,7 +942,7 @@ setup_text_key(void) {
 	dns_name_init(&keyname, NULL);
 	check_result(result, "dns_name_init");
 	isc_buffer_putstr(namebuf, keynametext);
-	secretsize = strlen(keysecret) * 3 / 4;
+	secretsize = (unsigned int) strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
 	if (secretstore == NULL)
 		fatal("memory allocation failure in %s:%d",
@@ -964,8 +964,8 @@ setup_text_key(void) {
 		goto failure;
 
 	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
-				    secretsize, ISC_FALSE, NULL, 0, 0, mctx,
-				    NULL, &key);
+				    (int)secretsize, ISC_FALSE, NULL, 0, 0,
+				    mctx, NULL, &key);
  failure:
 	if (result != ISC_R_SUCCESS)
 		printf(";; Couldn't create key %s: %s\n",
@@ -1012,13 +1012,13 @@ parse_bits(char *arg, const char *desc, isc_uint32_t max) {
 void
 parse_hmac(const char *hmac) {
 	char buf[20];
-	int len;
+	size_t len;
 
 	REQUIRE(hmac != NULL);
 
 	len = strlen(hmac);
-	if (len >= (int) sizeof(buf))
-		fatal("unknown key type '%.*s'", len, hmac);
+	if (len >= sizeof(buf))
+		fatal("unknown key type '%.*s'", (int)len, hmac);
 	strlcpy(buf, hmac, sizeof(buf));
 
 	digestbits = 0;
@@ -2028,7 +2028,7 @@ isc_boolean_t
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result;
 	isc_uint32_t id;
-	int len;
+	unsigned int len;
 	dig_server_t *serv;
 	dig_query_t *query;
 	isc_buffer_t b;
@@ -2133,7 +2133,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		check_result(result, "dns_message_gettempname");
 		dns_name_init(lookup->oname, NULL);
 		/* XXX Helper funct to conv char* to name? */
-		len = strlen(lookup->origin->origin);
+		len = (unsigned int) strlen(lookup->origin->origin);
 		isc_buffer_init(&b, lookup->origin->origin, len);
 		isc_buffer_add(&b, len);
 		result = dns_name_fromtext(lookup->oname, &b, dns_rootname,
@@ -2155,7 +2155,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 			dns_fixedname_init(&fixed);
 			name = dns_fixedname_name(&fixed);
-			len = strlen(lookup->textname);
+			len = (unsigned int) strlen(lookup->textname);
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(name, &b, NULL, 0, NULL);
@@ -2189,14 +2189,14 @@ setup_lookup(dig_lookup_t *lookup) {
 			dns_name_clone(dns_rootname, lookup->name);
 		else {
 #ifdef WITH_IDN
-			len = strlen(idn_textname);
+			len = (unsigned int) strlen(idn_textname);
 			isc_buffer_init(&b, idn_textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
 						   dns_rootname, 0,
 						   &lookup->namebuf);
 #else
-			len = strlen(lookup->textname);
+			len = (unsigned int) strlen(lookup->textname);
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(lookup->name, &b,
