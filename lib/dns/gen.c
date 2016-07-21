@@ -105,20 +105,11 @@
 
 static const char copyright[] =
 "/*\n"
-" * Copyright (C) 2004%s Internet Systems Consortium, Inc. (\"ISC\")\n"
-" * Copyright (C) 1998-2003 Internet Software Consortium.\n"
+" * Copyright (C) 1998%s  Internet Systems Consortium, Inc. (\"ISC\")\n"
 " *\n"
-" * Permission to use, copy, modify, and distribute this software for any\n"
-" * purpose with or without fee is hereby granted, provided that the above\n"
-" * copyright notice and this permission notice appear in all copies.\n"
-" *\n"
-" * THE SOFTWARE IS PROVIDED \"AS IS\" AND ISC DISCLAIMS ALL WARRANTIES WITH\n"
-" * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY\n"
-" * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,\n"
-" * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM\n"
-" * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE\n"
-" * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR\n"
-" * PERFORMANCE OF THIS SOFTWARE.\n"
+" * This Source Code Form is subject to the terms of the Mozilla Public\n"
+" * License, v. 2.0. If a copy of the MPL was not distributed with this\n"
+" * file, You can obtain one at http://mozilla.org/MPL/2.0/.\n"
 " */\n"
 "\n"
 "/***************\n"
@@ -630,9 +621,9 @@ main(int argc, char **argv) {
 				     tm->tm_year + 1900);
 			INSIST(n > 0 && (unsigned)n < sizeof(year));
 		} else
-			year[0] = 0;
+			strcpy(year, "-2016");
 	} else
-		year[0] = 0;
+		strcpy(year, "-2016");
 
 	if (!depend) fprintf(stdout, copyright, year);
 
