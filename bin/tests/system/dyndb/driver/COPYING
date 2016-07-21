@@ -1,6 +1,10 @@
+Copyright (C) 1999-2014  Internet Systems Consortium, Inc. ("ISC")
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 Copyright (C) 2009-2015  Red Hat
-Copyright (C) 2004-2014  Internet Systems Consortium, Inc. ("ISC")
-Copyright (C) 1999-2003  Internet Software Consortium.
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
