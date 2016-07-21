@@ -326,6 +326,9 @@ isc_result_t
 dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	isc_result_t result;
 	isc_ht_iter_t *iter1 = NULL, *iter2 = NULL;
+	isc_ht_iter_t *iteradd = NULL, *itermod = NULL;
+	isc_ht_t *toadd = NULL, *tomod = NULL;
+	isc_boolean_t delcur = ISC_FALSE;
 	char czname[DNS_NAME_FORMATSIZE];
 	char zname[DNS_NAME_FORMATSIZE];
 	dns_catz_zoneop_fn_t addzone, modzone, delzone;
@@ -349,15 +352,33 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 	dns_name_format(&target->name, czname, DNS_NAME_FORMATSIZE);
 
+	result = isc_ht_init(&toadd, target->catzs->mctx, 16);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = isc_ht_init(&tomod, target->catzs->mctx, 16);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	result = isc_ht_iter_create(newzone->entries, &iter1);
 	if (result != ISC_R_SUCCESS)
-		return (result);
+		goto cleanup;
 
 	result = isc_ht_iter_create(target->entries, &iter2);
-	if (result != ISC_R_SUCCESS) {
-		isc_ht_iter_destroy(&iter1);
-		return (result);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	/*
+	 * We can create those iterators now, even though toadd and tomod are
+	 * empty
+	 */
+	result = isc_ht_iter_create(toadd, &iteradd);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = isc_ht_iter_create(tomod, &itermod);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	/*
 	 * First - walk the new zone and find all nodes that are not in the
@@ -365,22 +386,28 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	 */
 	for (result = isc_ht_iter_first(iter1);
 	     result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(iter1))
+	     result = delcur ? isc_ht_iter_delcurrent_next(iter1) :
+			     isc_ht_iter_next(iter1))
 	{
 		dns_catz_entry_t *nentry;
 		dns_catz_entry_t *oentry;
 		unsigned char * key;
 		size_t keysize;
+		delcur = ISC_FALSE;
 
 		isc_ht_iter_current(iter1, (void **) &nentry);
 		isc_ht_iter_currentkey(iter1, &key, &keysize);
 
 		/*
 		 * Spurious record that came from suboption without main
-		 * record, ignored.
+		 * record, removed.
+		 * xxxwpk: make it a separate verification phase?
 		 */
-		if (dns_name_countlabels(&nentry->name) == 0)
+		if (dns_name_countlabels(&nentry->name) == 0) {
+			dns_catz_entry_detach(newzone, &nentry);
+			delcur = ISC_TRUE;
 			continue;
+		}
 
 		dns_name_format(&nentry->name, zname, DNS_NAME_FORMATSIZE);
 
@@ -395,30 +422,29 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		result = isc_ht_find(target->entries, key, keysize,
 				     (void **) &oentry);
 		if (result != ISC_R_SUCCESS) {
-			result = addzone(nentry, target, target->catzs->view,
-				      target->catzs->taskmgr,
-				      target->catzs->zmm->udata);
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-				      "catz: adding zone '%s' from catalog "
-				      "'%s' - %s",
-				      zname, czname,
-				      isc_result_totext(result));
+			result = isc_ht_add(toadd, key, keysize, nentry);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_ERROR,
+					      "catz: error adding zone '%s' "
+					      "from catalog '%s' - %s",
+					      zname, czname,
+					      isc_result_totext(result));
 			continue;
 		}
 
 		if (dns_catz_entry_cmp(oentry, nentry) != ISC_TRUE) {
-			result = modzone(nentry, target, target->catzs->view,
-				      target->catzs->taskmgr,
-				      target->catzs->zmm->udata);
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-				      "catz: modifying zone '%s' from catalog "
-				      "'%s' - %s",
-				      zname, czname,
-				      isc_result_totext(result));
+			result = isc_ht_add(tomod, key, keysize, nentry);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_ERROR,
+					      "catz: error modifying zone '%s' "
+					      "from catalog '%s' - %s",
+					      zname, czname,
+					      isc_result_totext(result));
 		}
-
 		dns_catz_entry_detach(target, &oentry);
 		result = isc_ht_delete(target->entries, key, keysize);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -448,15 +474,64 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	}
 	RUNTIME_CHECK(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter2);
-
 	/* At this moment target->entries has to be be empty. */
 	INSIST(isc_ht_count(target->entries) == 0);
 	isc_ht_destroy(&target->entries);
 
+	for (result = isc_ht_iter_first(iteradd);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_delcurrent_next(iteradd))
+	{
+		dns_catz_entry_t *entry;
+		isc_ht_iter_current(iteradd, (void **) &entry);
+		result = addzone(entry, target, target->catzs->view,
+			      target->catzs->taskmgr,
+			      target->catzs->zmm->udata);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: adding zone '%s' from catalog "
+			      "'%s' - %s",
+			      zname, czname,
+			      isc_result_totext(result));
+	}
+
+	for (result = isc_ht_iter_first(itermod);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_delcurrent_next(itermod))
+	{
+		dns_catz_entry_t *entry;
+		isc_ht_iter_current(itermod, (void **) &entry);
+		result = modzone(entry, target, target->catzs->view,
+				 target->catzs->taskmgr,
+				 target->catzs->zmm->udata);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: modifying zone '%s' from catalog "
+			      "'%s' - %s",
+			      zname, czname,
+			      isc_result_totext(result));
+	}
+
 	target->entries = newzone->entries;
 	newzone->entries = NULL;
 
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+
+cleanup:
+	if (iter1 != NULL)
+		isc_ht_iter_destroy(&iter1);
+	if (iter2 != NULL)
+		isc_ht_iter_destroy(&iter2);
+	if (iteradd != NULL)
+		isc_ht_iter_destroy(&iteradd);
+	if (itermod != NULL)
+		isc_ht_iter_destroy(&itermod);
+	if (toadd != NULL)
+		isc_ht_destroy(&toadd);
+	if (tomod != NULL)
+		isc_ht_destroy(&tomod);
+	return (result);
+
 }
 
 isc_result_t
@@ -797,6 +872,7 @@ catz_process_zones(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	REQUIRE(name != NULL);
 
 	if (value->rdclass != dns_rdataclass_in)
+	        return (ISC_R_FAILURE);
 
 	if (name->labels == 0)
 		return (ISC_R_FAILURE);

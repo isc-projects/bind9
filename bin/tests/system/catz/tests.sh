@@ -1647,5 +1647,112 @@ grep "192.0.2.1" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
+##########################################################################
+echo "I:Testing changing label for a member zone"
+n=`expr $n + 1`
+echo "I: checking that dom15.example is not served by master ($n)"
+ret=0
+$DIG soa dom15.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: Adding a domain dom15.example to master ns1 via RNDC ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom15.example.db
+echo "@ IN NS invalid." >> ns1/dom15.example.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953  addzone dom15.example '{type master; file "dom15.example.db";};' || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: checking that dom15.example is now served by master ns1 ($n)"
+ret=0
+$DIG soa dom15.example @10.53.0.1 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+echo "I: Adding domain dom15.example to catalog1 zone with 'dom15label1' label ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add dom15label1.zones.catalog1.example 3600 IN PTR dom15.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: update_from_db: new zone merged" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+sleep 3
+
+n=`expr $n + 1`
+echo "I: checking that dom15.example is served by slave($n)"
+ret=0
+$DIG soa dom15.example @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+n=`expr $n + 1`
+echo "I: Changing label of domain dom15.example from 'dom15label1' to 'dom15label2' ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update delete dom15label1.zones.catalog1.example 3600 IN PTR dom15.example.
+    update add dom15label2.zones.catalog1.example 3600 IN PTR dom15.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: update_from_db: new zone merged" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: checking that dom15.example is served by slave ($n)"
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom15.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
