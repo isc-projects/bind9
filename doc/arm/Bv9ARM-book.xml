@@ -11,6 +11,10 @@
   <info>
     <title>BIND 9 Administrator Reference Manual</title>
     <copyright>
+      <year>2000</year>
+      <year>2001</year>
+      <year>2002</year>
+      <year>2003</year>
       <year>2004</year>
       <year>2005</year>
       <year>2006</year>
@@ -24,13 +28,6 @@
       <year>2014</year>
       <year>2015</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
-    </copyright>
-    <copyright>
-      <year>2000</year>
-      <year>2001</year>
-      <year>2002</year>
-      <year>2003</year>
-      <holder>Internet Software Consortium.</holder>
     </copyright>
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="releaseinfo.xml"/>
   </info>
