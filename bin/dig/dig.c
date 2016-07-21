@@ -714,7 +714,7 @@ cleanup:
 static void
 printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 	int i;
-	int remaining;
+	size_t remaining;
 	static isc_boolean_t first = ISC_TRUE;
 	char append[MXNAME];
 
@@ -1531,7 +1531,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		}
 		*open_type_class = ISC_FALSE;
 		tr.base = value;
-		tr.length = strlen(value);
+		tr.length = (unsigned int) strlen(value);
 		result = dns_rdataclass_fromtext(&rdclass,
 						 (isc_textregion_t *)&tr);
 		if (result == ISC_R_SUCCESS) {
@@ -1582,7 +1582,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			result = ISC_R_SUCCESS;
 		} else {
 			tr.base = value;
-			tr.length = strlen(value);
+			tr.length = (unsigned int) strlen(value);
 			result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
 			if (result == ISC_R_SUCCESS &&
@@ -1861,7 +1861,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					result = ISC_R_SUCCESS;
 				} else {
 					tr.base = rv[0];
-					tr.length = strlen(rv[0]);
+					tr.length =
+						(unsigned int) strlen(rv[0]);
 					result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
 					if (result == ISC_R_SUCCESS &&
