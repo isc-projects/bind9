@@ -10,8 +10,8 @@
 			automatically by converted to NZD databases.
 			To view the contents of an NZD or to roll back to
 			NZF format, use "named-nzd2nzf". To disable
-                        this feature, use "configure --without-lmdb".
-                        [RT #39837]
+			this feature, use "configure --without-lmdb".
+			[RT #39837]
 
 4420.	[func]		nslookup now looks for AAAA as well as A by default.
 			[RT #40420]

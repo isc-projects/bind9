@@ -872,7 +872,7 @@ catz_process_zones(dns_catz_zone_t *zone, dns_rdataset_t *value,
 	REQUIRE(name != NULL);
 
 	if (value->rdclass != dns_rdataclass_in)
-	        return (ISC_R_FAILURE);
+		return (ISC_R_FAILURE);
 
 	if (name->labels == 0)
 		return (ISC_R_FAILURE);

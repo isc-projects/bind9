@@ -10597,7 +10597,7 @@ nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
 	dns_fixedname_init(&fixed);
 	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
 	dns_name_format(dns_fixedname_name(&fixed), namebuf, buflen);
-	
+
 	key->mv_data = namebuf;
 	key->mv_size = strlen(namebuf);
 }
@@ -10920,7 +10920,7 @@ migrate_nzf(dns_view_t *view) {
 	 */
 	strlcpy(tempname, view->new_zone_file, sizeof(tempname));
 	if (strlen(tempname) < sizeof(tempname) - 1) {
-	        strcat(tempname, "~");
+		strcat(tempname, "~");
 		isc_file_rename(view->new_zone_file, tempname);
 	}
 
@@ -11585,12 +11585,12 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 			const cfg_obj_t *voptions =
 				cfg_tuple_get(cfg->vconfig, "options");
 			result = delete_zoneconf(view, cfg->conf_parser,
-					         voptions,
+						 voptions,
 						 dns_zone_getorigin(zone),
 						 NULL);
 		} else {
 			result = delete_zoneconf(view, cfg->conf_parser,
-					         cfg->config,
+						 cfg->config,
 						 dns_zone_getorigin(zone),
 						 NULL);
 		}

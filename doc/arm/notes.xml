@@ -485,7 +485,7 @@
 	  in a database, rather than in a flat "NZF" file.  This
 	  dramatically improves performance for
 	  <command>rndc delzone</command> and
-	  <command>rndc modzone</command>: deleting or changing 
+	  <command>rndc modzone</command>: deleting or changing
 	  the contents of a database is much faster than rewriting
 	  a text file.
 	</para>
