@@ -1,3 +1,5 @@
+4418.	[bug]		Fix a compiler warning in GSSAPI code. [RT #42879]
+
 4417.	[bug]		dnssec-keymgr could fail to create successor keys
 			if the prepublication interval was set to a value
 			smaller than the default. [RT #42820]
