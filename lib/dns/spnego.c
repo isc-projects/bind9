@@ -677,7 +677,7 @@ gss_accept_sec_context_spnego(OM_uint32 *minor_status,
 	if (ot != NULL && ot->length != 0U)
 		gss_release_buffer(&minor_status2, ot);
 
-	return (ret != GSS_S_COMPLETE ? ret : major_status);
+	return (ret != GSS_S_COMPLETE ? (OM_uint32) ret : major_status);
 }
 
 /* decapsulate.c */
