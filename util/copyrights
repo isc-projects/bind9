@@ -3279,7 +3279,6 @@
 ./doc/markdown/howto.mkd			MKD	2014,2016
 ./doc/markdown/style.mkd			MKD	2014,2016
 ./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012,2016
-./doc/misc/SIT					TXT.BRIEF	2014,2016
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004,2016
 ./doc/misc/format-options.pl			PERL	2001,2004,2007,2012,2016
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004,2016
