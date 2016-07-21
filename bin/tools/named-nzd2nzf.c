@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <lmdb.h>
 
+#include <isc/print.h>
+
 int
 main (int argc, char *argv[]) {
 	int status;
