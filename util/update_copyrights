@@ -83,11 +83,8 @@ sub copyright {
 }
 
 sub copyrights {
-	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")",
-		   grep({ $_ >= 2004} @_));
-	my $b = copyright("Internet Software Consortium.",
-		   grep({ $_ < 2004} @_));
-	return "$a$b";
+	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")", @_);
+	return "$a";
 }
 
 foreach $file (keys %file_types) {
