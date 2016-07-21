@@ -50,3 +50,6 @@ rm -f ns3/ttl*.db
 rm -f nsupdate.out
 rm -f signing.out.*
 rm -f settime.out.*
+rm -f ns3/*.nzd ns3/*.nzf
+rm -f digcomp.out.test*
+rm -f ns*/named.lock

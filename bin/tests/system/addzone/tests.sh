@@ -22,6 +22,8 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+# When LMDB support is compiled in, this tests that migration from
+# NZF to NZD occurs during named startup
 echo "I:checking previously added zone ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 a.previous.example a > dig.out.ns2.$n || ret=1
@@ -30,6 +32,14 @@ grep '^a.previous.example' dig.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+if [ -n "$NZD" ]; then
+    echo "I:checking that existing NZF file was renamed after migration ($n)"
+    [ -e ns2/3bf305731dd26307.nzf~ ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
 echo "I:adding new zone ($n)"
 ret=0
@@ -90,13 +100,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:verifying no comments in nzf file ($n)"
-ret=0
-hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
-[ $hcount -eq 0 ] || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+if [ -z "$NZD" ]; then
+    echo "I:verifying no comments in NZF file ($n)"
+    ret=0
+    hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+    [ $hcount -eq 0 ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
 echo "I:checking rndc showzone with previously added zone ($n)"
 ret=0
@@ -117,15 +129,17 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking nzf file now has comment ($n)"
-ret=0
-hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
-[ $hcount -eq 1 ] || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+if [ -z "$NZD" ]; then
+    echo "I:checking NZF file now has comment ($n)"
+    ret=0
+    hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+    [ $hcount -eq 1 ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
-echo "I:deleting newly added zone ($n)"
+echo "I:deleting newly added zone added.example ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone added.example 2>&1 | sed 's/^/I:ns2 /'
 $DIG $DIGOPTS @10.53.0.2 a.added.example a > dig.out.ns2.$n
@@ -302,15 +316,26 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking new nzf file has comment ($n)"
-ret=0
-hcount=`grep "^# New zone file for view: external" ns2/external.nzf | wc -l`
-[ $hcount -eq 1 ] || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+if [ -z "$NZD" ]; then
+    echo "I:checking new NZF file has comment ($n)"
+    ret=0
+    hcount=`grep "^# New zone file for view: external" ns2/external.nzf | wc -l`
+    [ $hcount -eq 1 ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
-echo "I:checking rndc reload causes named to reload the external view's NZF file ($n)"
+if [ -n "$NZD" ]; then
+    echo "I:verifying added.example in external view created an external.nzd DB ($n)"
+    ret=0
+    [ -e ns2/external.nzd ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
+
+echo "I:checking rndc reload causes named to reload the external view's new zone config ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.int.$n || ret=1
@@ -323,10 +348,20 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking rndc showzone with newly added zone ($n)"
-ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone added.example in external > rndc.out.ns2.$n
-expected='zone "added.example" in external { type master; file "added.db"; };'
-[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+# loop because showzone may complain if zones are still being
+# loaded from the NZDB at this point.
+for try in 0 1 2 3 4 5; do
+    ret=0
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone added.example in external > rndc.out.ns2.$n
+    if [ -z "$NZD" ]; then
+      expected='zone "added.example" in external { type master; file "added.db"; };'
+    else
+      expected='zone "added.example" { type master; file "added.db"; };'
+    fi
+    [ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

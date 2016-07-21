@@ -4,5 +4,6 @@ genrandom
 isc-hmac-fixup
 mdig
 named-journalprint
+named-nzd2nzf
 named-rrchecker
 nsec3hash

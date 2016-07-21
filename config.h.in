@@ -326,6 +326,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <linux/types.h> header file. */
 #undef HAVE_LINUX_TYPES_H
 
+/* Define if lmdb was found */
+#undef HAVE_LMDB
+
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
