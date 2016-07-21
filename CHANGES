@@ -1,3 +1,5 @@
+4418.	[bug]		Fix a compiler warning in GSSAPI code. [RT #42879]
+
 4414.	[bug]		Corrected a bug in the MIPS implementation of
 			isc_atomic_xadd(). [RT #41965]
 
