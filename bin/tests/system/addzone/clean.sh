@@ -13,6 +13,8 @@ rm -f rndc.out*
 rm -f ns2/named.conf
 rm -f */named.memstats
 rm -f ns2/*.nzf
+rm -f ns2/*.nzf~
+rm -f ns2/*.nzd ns2/*.nzd-lock
 rm -f ns2/core*
 rm -f ns2/inline.db.jbk
 rm -f ns2/inline.db.signed

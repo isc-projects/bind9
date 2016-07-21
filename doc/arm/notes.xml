@@ -102,20 +102,21 @@
 	  mechanism.
 	</para>
 	<para>
-      This feature should be considered experimental. It currently
+	  This feature should be considered experimental. It currently
 	  supports only basic features; more advanced features such as
 	  ACLs and TSIG keys are not yet supported. Example catalog
 	  zone configurations can be found in the Chapter 9 of the
 	  BIND Administrator Reference Manual.
 	</para>
-		<para>
+	<para>
 	  Support for master entries with TSIG keys has been added to catalog
 	  zones, as well as support for allow-query and allow-transfer.
-		</para>
+	</para>
       </listitem>
       <listitem>
 	<para>
-	  Added rndc python module.
+	  Added an <command>isc.rndc</command> Python module, which allows
+	  <command>rndc</command> commands to be sent from Python programs.
 	</para>
       </listitem>
       <listitem>
@@ -467,6 +468,32 @@
 	<para>
 	  <command>rndc showzone</command> displays the current
 	  configuration for a specified zone.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  When BIND is built with the <command>lmdb</command> library
+	  (Lightning Memory-Mapped Database), <command>named</command>
+	  will store the configuration information for zones
+	  that are added via <command>rndc addzone</command>
+	  in a database, rather than in a flat "NZF" file.  This
+	  dramatically improves performance for
+	  <command>rndc delzone</command> and
+	  <command>rndc modzone</command>: deleting or changing 
+	  the contents of a database is much faster than rewriting
+	  a text file.
+	</para>
+	<para>
+	  On startup, if <command>named</command> finds an existing
+	  NZF file, it will automatically convert it to the new NZD
+	  database format.
+	</para>
+	<para>
+	  To view the contents of an NZD, or to convert an
+	  NZD back to an NZF file (for example, to revert back
+	  to an earlier version of BIND which did not support the
+	  NZD format), use the new command <command>named-nzd2nzf</command>
+	  [RT #39837]
 	</para>
       </listitem>
       <listitem>

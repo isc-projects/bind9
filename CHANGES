@@ -1,3 +1,15 @@
+4421.	[func]		When built with LMDB (Lightning Memory-mapped
+			Database), named will now use a database to store
+			the configuration for zones added by "rndc addzone"
+			instead of using a flat NZF file. This improves
+			performance of "rndc delzone" and "rndc modzone"
+			significantly. Existing NZF files will
+			automatically by converted to NZD databases.
+			To view the contents of an NZD or to roll back to
+			NZF format, use "named-nzd2nzf". To disable
+                        this feature, use "configure --without-lmdb".
+                        [RT #39837]
+
 4420.	[func]		nslookup now looks for AAAA as well as A by default.
 			[RT #40420]
 

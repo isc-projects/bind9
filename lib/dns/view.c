@@ -10,6 +10,10 @@
 
 #include <config.h>
 
+#ifdef HAVE_LMDB
+#include <lmdb.h>
+#endif
+
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
@@ -230,8 +234,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->sendcookie = ISC_TRUE;
 	view->requireservercookie = ISC_FALSE;
 	view->new_zone_file = NULL;
+	view->new_zone_db = NULL;
+	view->new_zone_dbenv = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;
+	isc_mutex_init(&view->new_zone_lock);
 	view->fail_ttl = 0;
 	view->failcache = NULL;
 	view->v6bias = 0;
@@ -493,9 +500,22 @@ destroy(dns_view_t *view) {
 		dns_dt_detach(&view->dtenv);
 #endif /* HAVE_DNSTAP */
 	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+	if (view->new_zone_file != NULL) {
+		isc_mem_free(view->mctx, view->new_zone_file);
+		view->new_zone_file = NULL;
+	}
+#ifdef HAVE_LMDB
+	if (view->new_zone_dbenv != NULL)
+		mdb_env_close((MDB_env *) view->new_zone_dbenv);
+	if (view->new_zone_db != NULL) {
+		isc_mem_free(view->mctx, view->new_zone_db);
+		view->new_zone_db = NULL;
+	}
+#endif /* HAVE_LMDB */
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
 	dns_badcache_destroy(&view->failcache);
+	DESTROYLOCK(&view->new_zone_lock);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->nta_file);
@@ -1955,10 +1975,17 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 	dst_key_free(&key);
 }
 
-void
+isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		     void (*cfg_destroy)(void **))
 {
+	isc_result_t result;
+	char buffer[1024];
+#ifdef HAVE_LMDB
+	MDB_env *env = NULL;
+	int status;
+#endif
+
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE((cfgctx != NULL && cfg_destroy != NULL) || !allow);
 
@@ -1967,24 +1994,79 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		view->new_zone_file = NULL;
 	}
 
+#ifdef HAVE_LMDB
+	if (view->new_zone_dbenv != NULL) {
+		mdb_env_close((MDB_env *) view->new_zone_dbenv);
+		view->new_zone_dbenv = NULL;
+	}
+
+	if (view->new_zone_db != NULL) {
+		isc_mem_free(view->mctx, view->new_zone_db);
+		view->new_zone_db = NULL;
+	}
+#endif /* HAVE_LMDB */
+
 	if (view->new_zone_config != NULL) {
 		view->cfg_destroy(&view->new_zone_config);
 		view->cfg_destroy = NULL;
 	}
 
-	if (allow) {
-		isc_result_t result;
-		char buffer[1024];
+	if (!allow)
+		return (ISC_R_SUCCESS);
 
-		result = isc_file_sanitize(NULL, view->name, "nzf",
-					   buffer, sizeof(buffer));
-		if (result == ISC_R_SUCCESS) {
-			view->new_zone_file = isc_mem_strdup(view->mctx,
-							     buffer);
-			view->new_zone_config = cfgctx;
-			view->cfg_destroy = cfg_destroy;
-		}
+	result = isc_file_sanitize(NULL, view->name, "nzf",
+				   buffer, sizeof(buffer));
+	if (result != ISC_R_SUCCESS)
+		goto out;
+	view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
+
+#ifdef HAVE_LMDB
+	result = isc_file_sanitize(NULL, view->name, "nzd",
+				   buffer, sizeof(buffer));
+	if (result != ISC_R_SUCCESS)
+		goto out;
+	view->new_zone_db = isc_mem_strdup(view->mctx, buffer);
+
+	status = mdb_env_create(&env);
+	if (status != 0) {
+		result = ISC_R_FAILURE;
+		goto out;
 	}
+
+	status = mdb_env_open(env, view->new_zone_db,
+			      MDB_NOSUBDIR|MDB_CREATE, 0600);
+	if (status != 0) {
+		result = ISC_R_FAILURE;
+		goto out;
+	}
+
+	view->new_zone_dbenv = env;
+	env = NULL;
+#endif /* HAVE_LMDB */
+
+	view->new_zone_config = cfgctx;
+	view->cfg_destroy = cfg_destroy;
+
+ out:
+	if (result != ISC_R_SUCCESS) {
+		if (view->new_zone_file != NULL) {
+			isc_mem_free(view->mctx, view->new_zone_file);
+			view->new_zone_file = NULL;
+		}
+
+#ifdef HAVE_LMDB
+		if (view->new_zone_db != NULL) {
+			isc_mem_free(view->mctx, view->new_zone_db);
+			view->new_zone_db = NULL;
+		}
+		if (env != NULL)
+			mdb_env_close(env);
+#endif /* HAVE_LMDB */
+		view->new_zone_config = NULL;
+		view->cfg_destroy = NULL;
+	}
+
+	return (result);
 }
 
 isc_result_t
