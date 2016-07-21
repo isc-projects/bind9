@@ -1,3 +1,6 @@
+4420.	[func]		nslookup now looks for AAAA as well as A by default.
+			[RT #40420]
+
 4419.	[bug]		Don't cause undefined result if the label of an
 			entry in catalog zone is changed. [RT #42708]
 
