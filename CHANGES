@@ -1,3 +1,6 @@
+4422.	[port]		Silence clang warnings in dig.c and dighost.c.
+			[RT #42451]
+
 4421.	[func]		When built with LMDB (Lightning Memory-mapped
 			Database), named will now use a database to store
 			the configuration for zones added by "rndc addzone"
