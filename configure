@@ -14082,7 +14082,7 @@ case "$use_gssapi" in
 $as_echo "trying $use_gssapi" >&6; }
     if test "$use_gssapi" = krb5-config
     then
-        # Extract the first word of "$use_gssapi", so it can be a program name with args.
+	# Extract the first word of "$use_gssapi", so it can be a program name with args.
 set dummy $use_gssapi; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
