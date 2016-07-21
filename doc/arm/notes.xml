@@ -382,6 +382,12 @@
       </listitem>
       <listitem>
 	<para>
+	  <command>nslookup</command> will now look up IPv6 as well
+	  as IPv4 addresses by default. [RT #40420]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <option>serial-update-method</option> can now be set to
 	  <literal>date</literal>. On update, the serial number will
 	  be set to the current date in YYYYMMDDNN format.
