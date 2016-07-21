@@ -23,5 +23,85 @@ grep "origin = ns1.example" nslookup.out${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "Check A only lookup"
+ret=0
+$NSLOOKUP -port=5300 a-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep a-only.example.net nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "Check AAAA only lookup"
+ret=0
+$NSLOOKUP -port=5300 aaaa-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep aaaa-only.example.net nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+grep "2001::ffff" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "Check dual A + AAAA lookup"
+ret=0
+$NSLOOKUP -port=5300 dual.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep dual.example.net nslookup.out${n} | wc -l`
+test $lines = 2 || ret=1
+grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
+grep "2001::ffff" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "Check CNAME to A only lookup"
+ret=0
+$NSLOOKUP -port=5300 cname-a-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep "canonical name" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep a-only.example.net nslookup.out${n} | grep -v "canonical name" | wc -l`
+test $lines = 1 || ret=1
+grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "Check CNAME to AAAA only lookup"
+ret=0
+$NSLOOKUP -port=5300 cname-aaaa-only.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep "canonical name" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep aaaa-only.example.net nslookup.out${n} | grep -v "canonical name" |wc -l`
+test $lines = 1 || ret=1
+grep "2001::ffff" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "Check CNAME to dual A + AAAA lookup"
+ret=0
+$NSLOOKUP -port=5300 cname-dual.example.net 10.53.0.1 > nslookup.out${n} || ret=1
+lines=`grep "Server:" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep "canonical name" nslookup.out${n} | wc -l`
+test $lines = 1 || ret=1
+lines=`grep dual.example.net nslookup.out${n} | grep -v "canonical name" | wc -l`
+test $lines = 2 || ret=1
+grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
+grep "2001::ffff" nslookup.out${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
