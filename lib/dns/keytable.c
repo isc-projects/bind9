@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -39,24 +39,24 @@
 #define VALID_KEYNODE(kn)               ISC_MAGIC_VALID(kn, KEYNODE_MAGIC)
 
 struct dns_keytable {
-        /* Unlocked. */
-        unsigned int            magic;
-        isc_mem_t               *mctx;
-        isc_mutex_t             lock;
-        isc_rwlock_t            rwlock;
-        /* Locked by lock. */
-        isc_uint32_t            active_nodes;
-        /* Locked by rwlock. */
-        isc_uint32_t            references;
-        dns_rbt_t               *table;
+	/* Unlocked. */
+	unsigned int            magic;
+	isc_mem_t               *mctx;
+	isc_mutex_t             lock;
+	isc_rwlock_t            rwlock;
+	/* Locked by lock. */
+	isc_uint32_t            active_nodes;
+	/* Locked by rwlock. */
+	isc_uint32_t            references;
+	dns_rbt_t               *table;
 };
 
 struct dns_keynode {
-        unsigned int            magic;
-        isc_refcount_t          refcount;
-        dst_key_t *             key;
-        isc_boolean_t           managed;
-        struct dns_keynode *    next;
+	unsigned int            magic;
+	isc_refcount_t          refcount;
+	dst_key_t *             key;
+	isc_boolean_t           managed;
+	struct dns_keynode *    next;
 };
 
 static void

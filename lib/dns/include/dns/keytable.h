@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2010, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -428,7 +428,7 @@ dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
 
 isc_result_t
 dns_keytable_forall(dns_keytable_t *keytable,
-                    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
+		    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
 		    void *arg);
 ISC_LANG_ENDDECLS
 
