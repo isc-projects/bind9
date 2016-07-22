@@ -4052,7 +4052,7 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 			return;
 		dns_keytable_attachkeynode(keytable, keynode, &dummy);
 		result = create_keydata(zone, db, ver, diff, keytable,
-				        &dummy, changed);
+					&dummy, changed);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
 			((struct addifmissing_arg *)arg)->result = result;
 	}
