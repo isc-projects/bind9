@@ -1,3 +1,6 @@
+4423.	[maint]		Added missing IPv6 address 2001:500:84::b for
+			B.ROOT-SERVERS.NET. [RT #42898]
+
 4422.	[port]		Silence clang warnings in dig.c and dighost.c.
 			[RT #42451]
 
