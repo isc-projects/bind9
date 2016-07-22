@@ -141,7 +141,7 @@
 	  mechanism.
 	</p>
 <p>
-      This feature should be considered experimental. It currently
+	  This feature should be considered experimental. It currently
 	  supports only basic features; more advanced features such as
 	  ACLs and TSIG keys are not yet supported. Example catalog
 	  zone configurations can be found in the Chapter 9 of the
@@ -150,10 +150,11 @@
 <p>
 	  Support for master entries with TSIG keys has been added to catalog
 	  zones, as well as support for allow-query and allow-transfer.
-		</p>
+	</p>
 </li>
 <li class="listitem"><p>
-	  Added rndc python module.
+	  Added an <span class="command"><strong>isc.rndc</strong></span> Python module, which allows
+	  <span class="command"><strong>rndc</strong></span> commands to be sent from Python programs.
 	</p></li>
 <li class="listitem">
 <p>
@@ -385,6 +386,10 @@
 	  if mapped IPv4 addresses can be used.
 	</p></li>
 <li class="listitem"><p>
+	  <span class="command"><strong>nslookup</strong></span> will now look up IPv6 as well
+	  as IPv4 addresses by default. [RT #40420]
+	</p></li>
+<li class="listitem"><p>
 	  <code class="option">serial-update-method</code> can now be set to
 	  <code class="literal">date</code>. On update, the serial number will
 	  be set to the current date in YYYYMMDDNN format.
@@ -452,6 +457,32 @@
 	  <span class="command"><strong>rndc showzone</strong></span> displays the current
 	  configuration for a specified zone.
 	</p></li>
+<li class="listitem">
+<p>
+	  When BIND is built with the <span class="command"><strong>lmdb</strong></span> library
+	  (Lightning Memory-Mapped Database), <span class="command"><strong>named</strong></span>
+	  will store the configuration information for zones
+	  that are added via <span class="command"><strong>rndc addzone</strong></span>
+	  in a database, rather than in a flat "NZF" file.  This
+	  dramatically improves performance for
+	  <span class="command"><strong>rndc delzone</strong></span> and
+	  <span class="command"><strong>rndc modzone</strong></span>: deleting or changing
+	  the contents of a database is much faster than rewriting
+	  a text file.
+	</p>
+<p>
+	  On startup, if <span class="command"><strong>named</strong></span> finds an existing
+	  NZF file, it will automatically convert it to the new NZD
+	  database format.
+	</p>
+<p>
+	  To view the contents of an NZD, or to convert an
+	  NZD back to an NZF file (for example, to revert back
+	  to an earlier version of BIND which did not support the
+	  NZD format), use the new command <span class="command"><strong>named-nzd2nzf</strong></span>
+	  [RT #39837]
+	</p>
+</li>
 <li class="listitem">
 <p>
 	  Added server-side support for pipelined TCP queries.  Clients
