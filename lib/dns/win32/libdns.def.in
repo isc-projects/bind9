@@ -370,6 +370,7 @@ dns_keytable_find
 dns_keytable_finddeepestmatch
 dns_keytable_findkeynode
 dns_keytable_findnextkeynode
+dns_keytable_forall
 dns_keytable_issecuredomain
 dns_keytable_marksecure
 dns_keytable_nextkeynode
