@@ -1,3 +1,10 @@
+4424.	[experimental]	Named now sends _ta-XXXX.<trust-anchor>/NULL queries
+			to provide feedback to the trust-anchor administrators
+			about how key rollovers are progressing as per
+			draft-ietf-dnsop-edns-key-tag-02.  This can be
+			disabled using 'trust-anchor-telemetry no;'.
+			[RT #40583]
+
 4423.	[maint]		Added missing IPv6 address 2001:500:84::b for
 			B.ROOT-SERVERS.NET. [RT #42898]
 

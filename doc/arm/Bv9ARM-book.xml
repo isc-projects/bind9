@@ -6436,6 +6436,37 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>trust-anchor-telemetry</command></term>
+	      <listitem>
+		<para>
+		  Causes <command>named</command> to send specially-formed
+		  queries once per day to domains for which trust anchors
+		  have been configured via <command>trusted-keys</command>,
+		  <command>managed-keys</command>,
+		  <command>dnssec-validation auto</command>, or
+		  <command>dnssec-lookaside auto</command>.
+		</para>
+		<para>
+		  The query name used for these queries has the
+		  form "_ta-xxxx(-xxxx)(...)".&lt;domain&gt;, where
+		  each "xxxx" is a group of four hexadecimal digits
+		  representing the key ID of a trusted DNSSEC key.
+		  The key IDs for each domain are sorted smallest
+		  to largest prior to encoding. The query type is NULL.
+		</para>
+		<para>
+		  By monitoring these queries, zone operators will
+		  be able to see which resolvers have been updated to
+		  trust a new key; this may help them decide when it
+		  is safe to remove an old one.
+		</para>
+		<para>
+		  The default is <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>use-id-pool</command></term>
 	      <listitem>
 		<para>
