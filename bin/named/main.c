@@ -613,6 +613,9 @@ parse_command_line(int argc, char *argv[]) {
 					ns_main_earlyfatal("bad mkeytimer");
 			} else if (!strcmp(isc_commandline_argument, "notcp"))
 				ns_g_notcp = ISC_TRUE;
+			else if (!strncmp(isc_commandline_argument, "tat=", 4))
+				ns_g_tat_interval =
+					   atoi(isc_commandline_argument + 4);
 			else
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);

@@ -139,6 +139,19 @@
 	  when a system's clock needs to be reset backwards.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> now provides feedback to the
+	  owners of zones which have trust anchors configured
+	  (<command>trusted-keys</command>,
+	  <command>managed-keys</command>, <command>dnssec-validation
+	  auto;</command> and <command>dnssec-lookaside auto;</command>)
+	  by sending a daily query which encodes the keyids of the
+	  configured trust anchors for the zone.  This is controlled
+	  by <command>trust-anchor-telemetry</command> and defaults
+	  to yes.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

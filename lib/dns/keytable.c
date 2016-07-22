@@ -32,6 +32,33 @@
 #include <dns/rbt.h>
 #include <dns/result.h>
 
+#define KEYTABLE_MAGIC                  ISC_MAGIC('K', 'T', 'b', 'l')
+#define VALID_KEYTABLE(kt)              ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)
+
+#define KEYNODE_MAGIC                   ISC_MAGIC('K', 'N', 'o', 'd')
+#define VALID_KEYNODE(kn)               ISC_MAGIC_VALID(kn, KEYNODE_MAGIC)
+
+struct dns_keytable {
+        /* Unlocked. */
+        unsigned int            magic;
+        isc_mem_t               *mctx;
+        isc_mutex_t             lock;
+        isc_rwlock_t            rwlock;
+        /* Locked by lock. */
+        isc_uint32_t            active_nodes;
+        /* Locked by rwlock. */
+        isc_uint32_t            references;
+        dns_rbt_t               *table;
+};
+
+struct dns_keynode {
+        unsigned int            magic;
+        isc_refcount_t          refcount;
+        dst_key_t *             key;
+        isc_boolean_t           managed;
+        struct dns_keynode *    next;
+};
+
 static void
 free_keynode(void *node, void *arg) {
 	dns_keynode_t *keynode = node;
@@ -584,6 +611,43 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp)
 			fprintf(fp, "%s ; %s\n", pbuf,
 				knode->managed ? "managed" : "trusted");
 		}
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+			if (result == ISC_R_NOMORE)
+				result = ISC_R_SUCCESS;
+			break;
+		}
+	}
+
+   cleanup:
+	dns_rbtnodechain_invalidate(&chain);
+	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
+	return (result);
+}
+
+isc_result_t
+dns_keytable_forall(dns_keytable_t *keytable,
+		    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
+		    void *arg)
+{
+	isc_result_t result;
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+
+	REQUIRE(VALID_KEYTABLE(keytable));
+
+	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
+	dns_rbtnodechain_init(&chain, keytable->mctx);
+	result = dns_rbtnodechain_first(&chain, keytable->table, NULL, NULL);
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		if (result == ISC_R_NOTFOUND)
+			result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+	for (;;) {
+		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		if (node->data != NULL)
+			(*func)(keytable, node->data, arg);
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			if (result == ISC_R_NOMORE)
