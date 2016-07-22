@@ -4010,6 +4010,54 @@ failure:
 	return (result);
 }
 
+struct addifmissing_arg {
+	dns_db_t *db;
+	dns_dbversion_t *ver;
+	dns_diff_t *diff;
+	dns_zone_t *zone;
+	isc_boolean_t *changed;
+	isc_result_t result;
+};
+
+static void
+addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
+	dns_db_t *db = ((struct addifmissing_arg *)arg)->db;
+	dns_dbversion_t *ver = ((struct addifmissing_arg *)arg)->ver;
+	dns_diff_t *diff = ((struct addifmissing_arg *)arg)->diff;
+	dns_zone_t *zone = ((struct addifmissing_arg *)arg)->zone;
+	isc_boolean_t *changed = ((struct addifmissing_arg *)arg)->changed;
+	isc_result_t result;
+	dns_keynode_t *dummy = NULL;
+
+	if (((struct addifmissing_arg *)arg)->result != ISC_R_SUCCESS)
+		return;
+
+	if (dns_keynode_managed(keynode)) {
+		dns_fixedname_t fname;
+		dns_name_t *keyname;
+		dst_key_t *key;
+
+		key = dns_keynode_key(keynode);
+		if (key == NULL)
+			return;
+		dns_fixedname_init(&fname);
+
+		keyname = dst_key_name(key);
+		result = dns_db_find(db, keyname, ver,
+				     dns_rdatatype_keydata,
+				     DNS_DBFIND_NOWILD, 0, NULL,
+				     dns_fixedname_name(&fname),
+				     NULL, NULL);
+		if (result == ISC_R_SUCCESS)
+			return;
+		dns_keytable_attachkeynode(keytable, keynode, &dummy);
+		result = create_keydata(zone, db, ver, diff, keytable,
+				        &dummy, changed);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
+			((struct addifmissing_arg *)arg)->result = result;
+	}
+};
+
 /*
  * Synchronize the set of initializing keys found in managed-keys {}
  * statements with the set of trust anchors found in the managed-keys.bind
@@ -4023,21 +4071,15 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t changed = ISC_FALSE;
 	isc_boolean_t commit = ISC_FALSE;
-	dns_rbtnodechain_t chain;
-	dns_fixedname_t fn;
-	dns_name_t foundname, *origin;
 	dns_keynode_t *keynode = NULL;
 	dns_view_t *view = zone->view;
 	dns_keytable_t *sr = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
 	dns_rriterator_t rrit;
+	struct addifmissing_arg arg;
 
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "synchronizing trusted keys");
-
-	dns_name_init(&foundname, NULL);
-	dns_fixedname_init(&fn);
-	origin = dns_fixedname_name(&fn);
 
 	dns_diff_init(zone->mctx, &diff);
 
@@ -4097,52 +4139,14 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	 * Now walk secroots to find any managed keys that aren't
 	 * in the zone.  If we find any, we add them to the zone.
 	 */
-	RWLOCK(&sr->rwlock, isc_rwlocktype_write);
-	dns_rbtnodechain_init(&chain, zone->mctx);
-	result = dns_rbtnodechain_first(&chain, sr->table, &foundname, origin);
-	if (result == ISC_R_NOTFOUND)
-		result = ISC_R_NOMORE;
-	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		dns_rbtnode_t *rbtnode = NULL;
-
-		dns_rbtnodechain_current(&chain, &foundname, origin, &rbtnode);
-		if (rbtnode->data == NULL)
-			goto skip;
-
-		dns_keytable_attachkeynode(sr, rbtnode->data, &keynode);
-		if (dns_keynode_managed(keynode)) {
-			dns_fixedname_t fname;
-			dns_name_t *keyname;
-			dst_key_t *key;
-
-			key = dns_keynode_key(keynode);
-			dns_fixedname_init(&fname);
-
-			if (key == NULL)   /* fail_secure() was called. */
-				goto skip;
-
-			keyname = dst_key_name(key);
-			result = dns_db_find(db, keyname, ver,
-					     dns_rdatatype_keydata,
-					     DNS_DBFIND_NOWILD, 0, NULL,
-					     dns_fixedname_name(&fname),
-					     NULL, NULL);
-			if (result != ISC_R_SUCCESS)
-				result = create_keydata(zone, db, ver, &diff,
-							sr, &keynode, &changed);
-			if (result != ISC_R_SUCCESS)
-				break;
-		}
-  skip:
-		result = dns_rbtnodechain_next(&chain, &foundname, origin);
-		if (keynode != NULL)
-			dns_keytable_detachkeynode(sr, &keynode);
-	}
-	RWUNLOCK(&sr->rwlock, isc_rwlocktype_write);
-
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
-
+	arg.db = db;
+	arg.ver = ver;
+	arg.result = ISC_R_SUCCESS;
+	arg.diff = &diff;
+	arg.zone = zone;
+	arg.changed = &changed;
+	dns_keytable_forall(sr, addifmissing, &arg);
+	result = arg.result;
 	if (changed) {
 		/* Write changes to journal file. */
 		CHECK(update_soa_serial(db, ver, &diff, zone->mctx,

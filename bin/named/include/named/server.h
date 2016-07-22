@@ -76,6 +76,7 @@ struct ns_server {
 	isc_timer_t *		interface_timer;
 	isc_timer_t *		heartbeat_timer;
 	isc_timer_t *		pps_timer;
+	isc_timer_t *		tat_timer;
 
 	isc_uint32_t		interface_interval;
 	isc_uint32_t		heartbeat_interval;
