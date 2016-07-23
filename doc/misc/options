@@ -322,6 +322,7 @@ options {
         transfers-out <integer>;
         transfers-per-ns <integer>;
         treat-cr-as-space <boolean>; // obsolete
+        trust-anchor-telemetry <boolean>;
         try-tcp-refresh <boolean>;
         update-check-ksk <boolean>;
         use-alt-transfer-source <boolean>;
@@ -608,6 +609,7 @@ view <string> [ <class> ] {
             dscp <integer> ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
+        trust-anchor-telemetry <boolean>;
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         try-tcp-refresh <boolean>;
