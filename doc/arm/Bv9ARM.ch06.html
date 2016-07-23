@@ -3985,6 +3985,34 @@ options {
                   </p>
 </div>
 </dd>
+<dt><span class="term"><span class="command"><strong>trust-anchor-telemetry</strong></span></span></dt>
+<dd>
+<p>
+                  Causes <span class="command"><strong>named</strong></span> to send specially-formed
+                  queries once per day to domains for which trust anchors
+                  have been configured via <span class="command"><strong>trusted-keys</strong></span>,
+                  <span class="command"><strong>managed-keys</strong></span>,
+                  <span class="command"><strong>dnssec-validation auto</strong></span>, or
+                  <span class="command"><strong>dnssec-lookaside auto</strong></span>.
+                </p>
+<p>
+                  The query name used for these queries has the
+                  form "_ta-xxxx(-xxxx)(...)".&lt;domain&gt;, where
+                  each "xxxx" is a group of four hexadecimal digits
+                  representing the key ID of a trusted DNSSEC key.
+                  The key IDs for each domain are sorted smallest
+                  to largest prior to encoding. The query type is NULL.
+                </p>
+<p>
+                  By monitoring these queries, zone operators will
+                  be able to see which resolvers have been updated to
+                  trust a new key; this may help them decide when it
+                  is safe to remove an old one.
+                </p>
+<p>
+                  The default is <strong class="userinput"><code>yes</code></strong>.
+                </p>
+</dd>
 <dt><span class="term"><span class="command"><strong>use-id-pool</strong></span></span></dt>
 <dd><p>
                   <span class="emphasis"><em>This option is obsolete</em></span>.
