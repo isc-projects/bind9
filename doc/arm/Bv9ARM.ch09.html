@@ -161,6 +161,17 @@
 	  and if so, it will regenerate the RRSIG immediately. This helps
 	  when a system's clock needs to be reset backwards.
 	</p></li>
+<li class="listitem"><p>
+	  <span class="command"><strong>named</strong></span> now provides feedback to the
+	  owners of zones which have trust anchors configured
+	  (<span class="command"><strong>trusted-keys</strong></span>,
+	  <span class="command"><strong>managed-keys</strong></span>, <span class="command"><strong>dnssec-validation
+	  auto;</strong></span> and <span class="command"><strong>dnssec-lookaside auto;</strong></span>)
+	  by sending a daily query which encodes the keyids of the
+	  configured trust anchors for the zone.  This is controlled
+	  by <span class="command"><strong>trust-anchor-telemetry</strong></span> and defaults
+	  to yes.
+	</p></li>
 </ul></div>
 </div>
 <div class="section">
