@@ -49,16 +49,14 @@ SRCS =		arpaname.c named-journalprint.c named-rrchecker.c \
 		nsec3hash.c genrandom.c isc-hmac-fixup.c mdig.c \
 		@DNSTAPSRCS@ @NZDSRCS@
 
-DNSTAPMAN =	dnstap-read.1
-NZDMAN =	named-nzd2nzf.8
-MANPAGES =	arpaname.1 named-journalprint.8 named-rrchecker.1 nsec3hash.8 \
-		genrandom.8 isc-hmac-fixup.8 mdig.1 @DNSTAPMAN@ @NZDMAN@
+MANPAGES =	arpaname.1 dnstap-read.1 genrandom.8 \
+		isc-hmac-fixup.8 mdig.1 named-journalprint.8 \
+		named-nzd2nzf.8 named-rrchecker.1 nsec3hash.8
 
-DNSTAPHTML =	dnstap-read.html
-NZDHTML =	named-nzd2nzf.html
-HTMLPAGES =	arpaname.html named-journalprint.html named-rrchecker.html \
-		nsec3hash.html genrandom.html isc-hmac-fixup.html \
-		mdig.html @DNSTAPHTML@ @NZDHTML@
+HTMLPAGES =	arpaname.html dnstap-read.html genrandom.html \
+		isc-hmac-fixup.html mdig.html named-journalprint.html \
+		named-nzd2nzf.html named-rrchecker.html nsec3hash.html
+
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
@@ -112,6 +110,7 @@ docclean manclean maintainer-clean::
 	rm -f ${MANOBJS}
 
 installdirs:
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
@@ -119,19 +118,19 @@ installdirs:
 nzd:
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-nzd2nzf@EXEEXT@ \
 		${DESTDIR}${sbindir}
+	${INSTALL_DATA} ${srcdir}/named-nzd2nzf.8 ${DESTDIR}${mandir}/man8
 
 dnstap:
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} dnstap-read@EXEEXT@ \
-		${DESTDIR}${sbindir}
+		${DESTDIR}${bindir}
+	${INSTALL_DATA} ${srcdir}/dnstap-read.1 ${DESTDIR}${mandir}/man1
 
-install:: ${TARGETS} @DNSTAP@ @NZD_TOOLS@ installdirs
+install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} arpaname@EXEEXT@ \
-		${DESTDIR}${sbindir}
+		${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ \
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-rrchecker@EXEEXT@ \
-		${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-nzd2nzf@EXEEXT@ \
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsec3hash@EXEEXT@ \
 		${DESTDIR}${sbindir}
@@ -145,11 +144,9 @@ install:: ${TARGETS} @DNSTAP@ @NZD_TOOLS@ installdirs
 	${INSTALL_DATA} ${srcdir}/isc-hmac-fixup.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-journalprint.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-rrchecker.1 ${DESTDIR}${mandir}/man1
-	${INSTALL_DATA} ${srcdir}/named-nzd2nzf.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/genrandom.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/mdig.1 ${DESTDIR}${mandir}/man1
-	${INSTALL_DATA} ${srcdir}/dnstap-read.1 ${DESTDIR}${mandir}/man1
 
 clean distclean::
 	rm -f ${TARGETS}
