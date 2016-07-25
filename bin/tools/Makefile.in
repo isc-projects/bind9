@@ -131,7 +131,7 @@ install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ \
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-rrchecker@EXEEXT@ \
-		${DESTDIR}${sbindir}
+		${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsec3hash@EXEEXT@ \
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} genrandom@EXEEXT@ \
