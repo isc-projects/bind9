@@ -1,3 +1,5 @@
+	--- 9.11.0b3 released ---
+
 4424.	[experimental]	Named now sends _ta-XXXX.<trust-anchor>/NULL queries
 			to provide feedback to the trust-anchor administrators
 			about how key rollovers are progressing as per
