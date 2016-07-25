@@ -1,4 +1,4 @@
-4425.	[bug]		arpaname and named-rrchecker wer not being installed
+4425.	[bug]		arpaname and named-rrchecker were not being installed
 			into ${prefix}/bin.  [RT #42910]
 
 4424.	[experimental]	Named now sends _ta-XXXX.<trust-anchor>/NULL queries
