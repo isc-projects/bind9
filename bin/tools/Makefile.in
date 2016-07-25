@@ -81,16 +81,22 @@ docclean manclean maintainer-clean::
 	rm -f ${MANOBJS}
 
 installdirs:
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: ${TARGETS} installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} arpaname@EXEEXT@ ${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ ${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsec3hash@EXEEXT@ ${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} genrandom@EXEEXT@ ${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} isc-hmac-fixup@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} arpaname@EXEEXT@ \
+		${DESTDIR}${bindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsec3hash@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} genrandom@EXEEXT@ \
+		${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} isc-hmac-fixup@EXEEXT@ \
+		${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/arpaname.1 ${DESTDIR}${mandir}/man1
 	${INSTALL_DATA} ${srcdir}/isc-hmac-fixup.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-journalprint.8 ${DESTDIR}${mandir}/man8
