@@ -11797,7 +11797,7 @@ else
 fi
 
 
-python="python python3 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
+python="python python3 python3.5 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
 
 testargparse='try: import argparse
 except: exit(1)'
@@ -14034,7 +14034,7 @@ case "$use_gssapi" in
 $as_echo "trying $use_gssapi" >&6; }
     if test "$use_gssapi" = krb5-config
     then
-        # Extract the first word of "$use_gssapi", so it can be a program name with args.
+	# Extract the first word of "$use_gssapi", so it can be a program name with args.
 set dummy $use_gssapi; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
