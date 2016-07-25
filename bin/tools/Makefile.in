@@ -99,6 +99,7 @@ mdig@EXEEXT@: mdig.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
 dnstap-read@EXEEXT@: dnstap-read.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="dnstap-read.@O@"; \
 	export LIBS0="${DNSLIBS}"; \
+	${FINALBUILDCMD}
 
 named-nzd2nzf@EXEEXT@: named-nzd2nzf.@O@ ${NZDDEPLIBS}
 	export BASEOBJS="named-nzd2nzf.@O@"; \
