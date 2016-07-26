@@ -42,7 +42,7 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:checking that _default.nzf contains the expected content ($n)"
-grep 'zone added.example { type master; file "added.db"; };' ns1/_default.nzf > /dev/null || ret=1
+grep 'zone "added.example" { type master; file "added.db"; };' ns1/_default.nzf > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
