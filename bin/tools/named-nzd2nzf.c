@@ -9,7 +9,7 @@
 #include "config.h"
 
 #ifndef HAVE_LMDB
-#error This program requires the LMDBlibrary.
+#error This program requires the LMDB library.
 #endif
 
 #include <stdio.h>
