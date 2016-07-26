@@ -18296,6 +18296,7 @@ allow-query { !{ !10/8; any; }; key example; };
 
     <reference xml:id="Bv9ARM.ch13"><info><title>Manual pages</title></info>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/dig.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/mdig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/delv/delv.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-checkds.docbook"/>
@@ -18314,6 +18315,7 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkconf.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-journalprint.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-nzd2nzf.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-rrchecker.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/nsupdate/nsupdate.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/rndc/rndc.docbook"/>
@@ -18325,6 +18327,10 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/genrandom.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/isc-hmac-fixup.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/nsec3hash.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-destroy.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-list.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-keygen.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-tokens.docbook"/>
     </reference>
 
   </book>
