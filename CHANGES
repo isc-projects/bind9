@@ -1,10 +1,10 @@
+	--- 9.11.0b3 released ---
+
 4426.	[bug]		Addressed Coverity warnings. [RT #42908]
 
 4425.	[bug]		arpaname, dnstap-read and named-rrchecker were not
 			being installed into ${prefix}/bin.  Tidy up
 			installation issues with CHANGE 4421. [RT #42910]
-
-	--- 9.11.0b3 released ---
 
 4424.	[experimental]	Named now sends _ta-XXXX.<trust-anchor>/NULL queries
 			to provide feedback to the trust-anchor administrators
