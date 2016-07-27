@@ -1,3 +1,5 @@
+4426.	[bug]		Addressed Coverity warnings. [RT #42908]
+
 4425.	[bug]		arpaname, dnstap-read and named-rrchecker were not
 			being installed into ${prefix}/bin.  Tidy up
 			installation issues with CHANGE 4421. [RT #42910]

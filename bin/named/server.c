@@ -10734,6 +10734,7 @@ nzf_append(dns_view_t *view, const cfg_obj_t *zconfig) {
 	isc_result_t result;
 	off_t offset;
 	FILE *fp = NULL;
+	isc_boolean_t offsetok = ISC_FALSE;
 
 	LOCK(&view->new_zone_lock);
 
@@ -10741,16 +10742,38 @@ nzf_append(dns_view_t *view, const cfg_obj_t *zconfig) {
 	CHECK(isc_stdio_seek(fp, 0, SEEK_END));
 
 	CHECK(isc_stdio_tell(fp, &offset));
+	offsetok = ISC_TRUE;
 	if (offset == 0)
 		CHECK(add_comment(fp, view->name));
 
 	CHECK(isc_stdio_write("zone ", 5, 1, fp, NULL));
 	cfg_printx(zconfig, CFG_PRINTER_ONELINE, dumpzone, fp);
 	CHECK(isc_stdio_write(";\n", 2, 1, fp, NULL));
+	CHECK(isc_stdio_flush(fp));
+	CHECK(isc_stdio_close(fp));
+	fp = NULL;
 
  cleanup:
-	isc_stdio_flush(fp);
-	isc_stdio_close(fp);
+	if (fp != NULL) {
+		(void)isc_stdio_close(fp);
+		if (offsetok) {
+			isc_result_t result2;
+
+			result2 = isc_file_truncate(view->new_zone_file,
+						    offset);
+			if (result2 != ISC_R_SUCCESS) {
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_ERROR,
+					      "Error truncating NZF file '%s' "
+					      "during rollback from append: "
+					      "%s",
+					      view->new_zone_file,
+					      isc_result_totext(result2));
+			}
+		}
+	}
 	UNLOCK(&view->new_zone_lock);
 	return (result);
 }
@@ -11871,7 +11894,6 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	dns_zone_t *mayberaw;
 	dns_view_t *view = NULL;
 	char zonename[DNS_NAME_FORMATSIZE];
-	isc_boolean_t exclusive = ISC_FALSE;
 	isc_boolean_t cleanup = ISC_FALSE;
 	const char *ptr;
 	isc_boolean_t added;
@@ -11935,7 +11957,6 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	dns_zone_gettask(zone, &task);
 	isc_task_send(task, &dzevent);
 	dz = NULL;
-	dzevent = NULL;
 
 	/* Inform user about cleaning up stub/slave zone files */
 	dns_zone_getraw(zone, &raw);
@@ -11989,16 +12010,12 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (exclusive)
-		isc_task_endexclusive(server->task);
 	if (isc_buffer_usedlength(*text) > 0)
 		(void) putnull(text);
 	if (raw != NULL)
 		dns_zone_detach(&raw);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-	if (dzevent != NULL)
-		isc_event_free(&dzevent);
 	if (dz != NULL) {
 		dns_zone_detach(&dz->zone);
 		isc_mem_put(ns_g_mctx, dz, sizeof(*dz));
