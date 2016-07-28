@@ -11609,7 +11609,6 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 	if (added) {
 #ifndef HAVE_LMDB
-		CHECK(isc_stdio_open(view->new_zone_file, "a", &fp));
 		result = nzf_append(view, zoneobj);
 		if (result != ISC_R_SUCCESS) {
 			TCHECK(putstr(text, "\nNew zone config not saved: "));
