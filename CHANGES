@@ -1,3 +1,5 @@
+	--- 9.11.0b3 released ---
+
 4426.	[bug]		Addressed Coverity warnings. [RT #42908]
 
 4425.	[bug]		arpaname, dnstap-read and named-rrchecker were not
