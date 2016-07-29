@@ -11988,7 +11988,6 @@ $as_echo_n "checking python module 'argparse'... " >&6; }
 			if ${PYTHON:-false} -c "$testargparse"; then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
 $as_echo "found, using $PYTHON" >&6; }
-				break
 			else
 				as_fn_error $? "not found" "$LINENO" 5
 			fi
@@ -11997,7 +11996,6 @@ $as_echo_n "checking python module 'ply'... " >&6; }
 			if ${PYTHON:-false} -c "$testply"; then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
 $as_echo "found, using $PYTHON" >&6; }
-				break
 			else
 				as_fn_error $? "not found" "$LINENO" 5
 			fi
