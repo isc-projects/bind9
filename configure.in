@@ -278,7 +278,6 @@ case "$use_python" in
 			AC_MSG_CHECKING([python module 'argparse'])
 			if ${PYTHON:-false} -c "$testargparse"; then
 				AC_MSG_RESULT([found, using $PYTHON])
-				break
 			else
 				AC_MSG_ERROR([not found])
 			fi
