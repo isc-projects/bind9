@@ -1,3 +1,6 @@
+4427.	[bug]		The "query" and "response" parameters to the
+			"dnstap" option had their functions reversed.
+
 	--- 9.11.0b3 released ---
 
 4426.	[bug]		Addressed Coverity warnings. [RT #42908]

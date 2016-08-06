@@ -2976,9 +2976,9 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		}
 
 		str = cfg_obj_asstring(obj2);
-		if (strcasecmp(str, "query")) {
+		if (strcasecmp(str, "query") == 0) {
 			dt &= ~DNS_DTTYPE_RESPONSE;
-		} else if (strcasecmp(str, "response")) {
+		} else if (strcasecmp(str, "response") == 0) {
 			dt &= ~DNS_DTTYPE_QUERY;
 		}
 
