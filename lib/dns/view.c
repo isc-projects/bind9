@@ -2197,6 +2197,9 @@ dns_view_saventa(dns_view_t *view) {
 	if (result == ISC_R_NOTFOUND) {
 		removefile = ISC_TRUE;
 		result = ISC_R_SUCCESS;
+	} else if (result == ISC_R_SUCCESS) {
+		result = isc_stdio_close(fp);
+		fp = NULL;
 	}
 
  cleanup:
@@ -2204,7 +2207,7 @@ dns_view_saventa(dns_view_t *view) {
 		dns_ntatable_detach(&ntatable);
 
 	if (fp != NULL)
-		isc_stdio_close(fp);
+		(void)isc_stdio_close(fp);
 
 	/* Don't leave half-baked NTA save files lying around. */
 	if (result != ISC_R_SUCCESS || removefile)

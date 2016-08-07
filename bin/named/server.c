@@ -6268,7 +6268,10 @@ generate_session_key(const char *filename, const char *keynamestr,
 		(char*) isc_buffer_base(&key_txtbuffer));
 
 	CHECK(isc_stdio_flush(fp));
-	CHECK(isc_stdio_close(fp));
+	result = isc_stdio_close(fp);
+	fp = NULL;
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	dst_key_free(&key);
 
@@ -10750,7 +10753,7 @@ nzf_append(dns_view_t *view, const cfg_obj_t *zconfig) {
 	cfg_printx(zconfig, CFG_PRINTER_ONELINE, dumpzone, fp);
 	CHECK(isc_stdio_write(";\n", 2, 1, fp, NULL));
 	CHECK(isc_stdio_flush(fp));
-	CHECK(isc_stdio_close(fp));
+	result = isc_stdio_close(fp);
 	fp = NULL;
 
  cleanup:
@@ -10795,15 +10798,17 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 	cfg_printx(config, CFG_PRINTER_ONELINE, dumpzone, fp);
 
 	CHECK(isc_stdio_flush(fp));
-	CHECK(isc_stdio_close(fp));
+	result = isc_stdio_close(fp);
 	fp = NULL;
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 	CHECK(isc_file_rename(tmp, view->new_zone_file));
 	return (result);
 
  cleanup:
 	if (fp != NULL)
-		(void) isc_stdio_close(fp);
-	isc_file_remove(tmp);
+		(void)isc_stdio_close(fp);
+	(void)isc_file_remove(tmp);
 	return (result);
 }
 
@@ -11343,7 +11348,7 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		goto cleanup;
 	}
 
-	isc_stdio_close(fp);
+	(void)isc_stdio_close(fp);
 	fp = NULL;
 #else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
@@ -11435,7 +11440,7 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 #ifndef HAVE_LMDB
 	if (fp != NULL)
-		(void) isc_stdio_close(fp);
+		(void)isc_stdio_close(fp);
 #else /* HAVE_LMDB */
 	if (txn != NULL)
 		(void) nzd_close(&txn, ISC_FALSE);
@@ -11494,7 +11499,7 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		TCHECK(putstr(text, isc_result_totext(result)));
 		goto cleanup;
 	}
-	isc_stdio_close(fp);
+	(void)isc_stdio_close(fp);
 	fp = NULL;
 #else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
@@ -11636,7 +11641,7 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 #ifndef HAVE_LMDB
 	if (fp != NULL)
-		(void) isc_stdio_close(fp);
+		(void)isc_stdio_close(fp);
 #else /* HAVE_LMDB */
 	if (txn != NULL)
 		(void) nzd_close(&txn, ISC_FALSE);

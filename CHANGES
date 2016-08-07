@@ -1,3 +1,6 @@
+4429.	[bug]		Address potential use after free on fclose() error.
+			[RT #42976]
+
 4428.	[bug]		The "test dispatch getnext" unit test could fail
 			in a threaded build. [RT #42979]
 
