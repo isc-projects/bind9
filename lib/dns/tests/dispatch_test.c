@@ -191,26 +191,46 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
+static dns_dispatch_t *dispatch = NULL;
 static dns_dispentry_t *dispentry = NULL;
 static isc_boolean_t first = ISC_TRUE;
+static isc_mutex_t lock;
+static isc_sockaddr_t local;
 static unsigned int responses = 0;
 
 static void
 response(isc_task_t *task, isc_event_t *event) {
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_result_t result;
+	isc_boolean_t wasfirst;
 
 	UNUSED(task);
 
-	if (first) {
+	LOCK(&lock);
+	wasfirst = first;
+	first = ISC_FALSE;
+	responses++;
+	UNLOCK(&lock);
+
+	if (wasfirst) {
 		result = dns_dispatch_getnext(dispentry, &devent);
 		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	} else {
 		dns_dispatch_removeresponse(&dispentry, &devent);
 		isc_app_shutdown();
 	}
-	first = ISC_FALSE;
-	responses++;
+}
+
+static void
+startit(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	isc_socket_t *sock = NULL;
+
+	isc_socket_attach(dns_dispatch_getsocket(dispatch), &sock);
+	result = isc_socket_sendto(sock, event->ev_arg, task, senddone, sock,
+				   &local, NULL);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	isc_event_free(&event);
 }
 
 ATF_TC(dispatch_getnext);
@@ -218,11 +238,8 @@ ATF_TC_HEAD(dispatch_getnext, tc) {
 	atf_tc_set_md_var(tc, "descr", "test dispatch getnext");
 }
 ATF_TC_BODY(dispatch_getnext, tc) {
-	dns_dispatch_t *dispatch = NULL;
 	isc_region_t region;
 	isc_result_t result;
-	isc_sockaddr_t local;
-	isc_socket_t *dsock = NULL;
 	isc_socket_t *sock = NULL;
 	isc_task_t *task = NULL;
 	isc_uint16_t id;
@@ -232,6 +249,9 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	unsigned char rbuf[12];
 
 	UNUSED(tc);
+
+	result = isc_mutex_init(&lock);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -279,11 +299,9 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	message[0] = (id >> 8) & 0xff;
 	message[1] = id & 0xff;
 
-	isc_socket_attach(dns_dispatch_getsocket(dispatch), &dsock);
 	region.base = message;
 	region.length = sizeof(message);
-	result = isc_socket_sendto(dsock, &region, task, senddone, dsock,
-				   &local, NULL);
+	result = isc_app_onrun(mctx, task, startit, &region);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_app_run();

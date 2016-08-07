@@ -1,3 +1,6 @@
+4428.	[bug]		The "test dispatch getnext" unit test could fail
+			in a threaded build. [RT #42979]
+
 	--- 9.11.0b3 released ---
 
 4426.	[bug]		Addressed Coverity warnings. [RT #42908]
