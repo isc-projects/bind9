@@ -1421,7 +1421,7 @@ main(int argc, char *argv[]) {
 		if (result == ISC_R_SUCCESS) {
 			isc_mem_stats(ns_g_mctx, fp);
 			isc_mutex_stats(fp);
-			isc_stdio_close(fp);
+			(void) isc_stdio_close(fp);
 		}
 	}
 	isc_mem_destroy(&ns_g_mctx);
