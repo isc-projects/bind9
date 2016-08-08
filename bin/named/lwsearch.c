@@ -164,7 +164,6 @@ ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 		return (ISC_R_NOMORE);
 
 	if (sctx->searchname == NULL) {
-		INSIST (!sctx->exactfirst || sctx->doneexact);
 		if (sctx->exactfirst || sctx->doneexact)
 			return (ISC_R_NOMORE);
 		sctx->doneexact = ISC_TRUE;

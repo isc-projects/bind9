@@ -23,4 +23,5 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f dig.out
 rm -f lwresd1/lwresd.run.resolv
+rm -f lwresd1/lwresd.run.lwresd
 rm -f lwresd*/lwresd.run
