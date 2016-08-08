@@ -39,6 +39,7 @@
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/rrl.h>
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
@@ -514,6 +515,138 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	return (result);
 }
 
+#define CHECK_RRL(cond, pat, val1, val2)				\
+	do {								\
+		if (!(cond)) {						\
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,		\
+				    pat, val1, val2);			\
+			if (result == ISC_R_SUCCESS)			\
+				result = ISC_R_RANGE;			\
+		    }							\
+	} while (0)
+
+#define CHECK_RRL_RATE(rate, def, max_rate, name)			\
+	do {								\
+		obj = NULL;						\
+		mresult = cfg_map_get(map, name, &obj);			\
+		if (mresult == ISC_R_SUCCESS) {				\
+			rate = cfg_obj_asuint32(obj);			\
+			CHECK_RRL(rate <= max_rate, name" %d > %d",	\
+				  rate, max_rate);			\
+		}							\
+	} while (0)
+
+static isc_result_t
+check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
+		const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t mresult;
+	const cfg_obj_t *map = NULL;
+	const cfg_obj_t *options;
+	const cfg_obj_t *obj;
+	int min_entries, i;
+	int all_per_second;
+	int errors_per_second;
+	int nodata_per_second;
+	int nxdomains_per_second;
+	int referrals_per_second;
+	int responses_per_second;
+	int slip;
+
+	if (voptions != NULL)
+		cfg_map_get(voptions, "rate-limit", &map);
+	if (config != NULL && map == NULL) {
+		options = NULL;
+		cfg_map_get(config, "options", &options);
+		if (options != NULL)
+			cfg_map_get(options, "rate-limit", &map);
+	}
+	if (map == NULL)
+		return (ISC_R_SUCCESS);
+
+	min_entries = 500;
+	obj = NULL;
+	mresult = cfg_map_get(map, "min-table-size", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		min_entries = cfg_obj_asuint32(obj);
+		if (min_entries < 1)
+			min_entries = 1;
+	}
+
+	obj = NULL;
+	mresult = cfg_map_get(map, "max-table-size", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		i = cfg_obj_asuint32(obj);
+		CHECK_RRL(i >= min_entries,
+			  "max-table-size %d < min-table-size %d",
+			  i, min_entries);
+	}
+
+	CHECK_RRL_RATE(responses_per_second, 0, DNS_RRL_MAX_RATE,
+		       "responses-per-second");
+
+	CHECK_RRL_RATE(referrals_per_second, responses_per_second,
+		       DNS_RRL_MAX_RATE, "referrals-per-second");
+	CHECK_RRL_RATE(nodata_per_second, responses_per_second,
+		       DNS_RRL_MAX_RATE, "nodata-per-second");
+	CHECK_RRL_RATE(nxdomains_per_second, responses_per_second,
+		       DNS_RRL_MAX_RATE, "nxdomains-per-second");
+	CHECK_RRL_RATE(errors_per_second, responses_per_second,
+		       DNS_RRL_MAX_RATE, "errors-per-second");
+
+	CHECK_RRL_RATE(all_per_second, 0, DNS_RRL_MAX_RATE, "all-per-second");
+
+	CHECK_RRL_RATE(slip, 2, DNS_RRL_MAX_SLIP, "slip");
+
+	obj = NULL;
+	mresult = cfg_map_get(map, "window", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		i = cfg_obj_asuint32(obj);
+		CHECK_RRL(i >= 1 && i <= DNS_RRL_MAX_WINDOW,
+			  "window %d < 1 or > %d", i, DNS_RRL_MAX_WINDOW);
+	}
+
+	obj = NULL;
+	mresult = cfg_map_get(map, "qps-scale", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		i = cfg_obj_asuint32(obj);
+		CHECK_RRL(i >= 1, "invalid 'qps-scale %d'%s", i, "");
+	}
+
+	obj = NULL;
+	mresult = cfg_map_get(map, "ipv4-prefix-length", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		i = cfg_obj_asuint32(obj);
+		CHECK_RRL(i >= 8 && i <= 32,
+			  "invalid 'ipv4-prefix-length %d'%s", i, "");
+	}
+
+	obj = NULL;
+	mresult = cfg_map_get(map, "ipv6-prefix-length", &obj);
+	if (mresult == ISC_R_SUCCESS) {
+		i = cfg_obj_asuint32(obj);
+		CHECK_RRL(i >= 16 && i <= DNS_RRL_MAX_PREFIX,
+			  "ipv6-prefix-length %d < 16 or > %d",
+			  i, DNS_RRL_MAX_PREFIX);
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(map, "exempt-clients", &obj);
+	if (obj != NULL) {
+		dns_acl_t *acl = NULL;
+		isc_result_t tresult;
+
+		tresult = cfg_acl_fromconfig(obj, config, logctx, actx,
+					     mctx, 0, &acl);
+		if (acl != NULL)
+			dns_acl_detach(&acl);
+		if (result == ISC_R_SUCCESS)
+			result = tresult;
+	}
+
+	return (result);
+}
 
 /*
  * Check allow-recursion and allow-recursion-on acls, and also log a
@@ -2598,6 +2731,10 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		result = tresult;
 
 	tresult = check_dns64(actx, voptions, config, logctx, mctx);
+	if (tresult != ISC_R_SUCCESS)
+		result = tresult;
+
+	tresult = check_ratelimit(actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
