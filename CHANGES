@@ -1,3 +1,6 @@
+4430.	[bug]		Lwresd died if a search list was not defined.
+			Found by 0x710DDDD At Alibaba Security. [RT #42895]
+
 4425.	[bug]		arpaname was not being installed into ${prefix}/bin.
 			RT #42910]
 
