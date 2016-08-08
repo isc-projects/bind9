@@ -1,3 +1,6 @@
+4430.	[bug]		Lwresd died if a search list was not defined.
+			Found by 0x710DDDD At Alibaba Security. [RT #42895]
+
 4429.	[bug]		Address potential use after free on fclose() error.
 			[RT #42976]
 
