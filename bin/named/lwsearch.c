@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -48,7 +48,7 @@ ns_lwsearchlist_create(isc_mem_t *mctx, ns_lwsearchlist_t **listp) {
 	list = isc_mem_get(mctx, sizeof(ns_lwsearchlist_t));
 	if (list == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	result = isc_mutex_init(&list->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, list, sizeof(ns_lwsearchlist_t));
