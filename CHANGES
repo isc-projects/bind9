@@ -1,3 +1,6 @@
+4432.	[testing]	Hide rndc output on expected failures in logfileconfig
+			system test. [RT #27996]
+
 4431.	[bug]		named-checkconf now checks the rate-limit clause.
 			[RT #42970]
 
