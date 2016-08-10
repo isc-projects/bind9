@@ -11262,7 +11262,7 @@ get_edns_expire(dns_zone_t * zone, dns_message_t *message,
 			}
 			expire = isc_buffer_getuint32(&optbuf);
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "got EDNS EXPIRE of %u\n", expire);
+				     "got EDNS EXPIRE of %u", expire);
 			/*
 			 * Trim *expirep?
 			 */
