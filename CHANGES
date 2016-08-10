@@ -1,4 +1,4 @@
-4432.	[testing]	Hide rndc output on expected failures in logfileconfig
+4432.	[test]		Hide rndc output on expected failures in logfileconfig
 			system test. [RT #27996]
 
 4431.	[bug]		named-checkconf now checks the rate-limit clause.
@@ -1538,7 +1538,7 @@
 3991.	[func]		Add the ability to buffer logging output by specifying
 			"buffered yes;" when defining a channel. [RT #26561]
 
-3990.	[testing]	Add tests for unknown DNSSEC algorithm handling.
+3990.	[test]		Add tests for unknown DNSSEC algorithm handling.
 			[RT #37541]
 
 3989.	[cleanup]	Remove redundant dns_db_resigned calls. [RT #35748]
