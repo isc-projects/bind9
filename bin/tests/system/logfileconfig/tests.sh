@@ -35,15 +35,17 @@ waitforpidfile() {
 }
 
 status=0
+n=0
 
 cd $CONFDIR
 
-echo "I:testing log file validity (named -g + only plain files allowed)"
+n=`expr $n + 1`
+echo "I:testing log file validity (named -g + only plain files allowed) ($n)"
 
 # First run with a known good config.
 echo > $PLAINFILE
 cp $PLAINCONF named.conf
-$myRNDC reconfig
+$myRNDC reconfig > rndc.out.test$n 2>&1
 grep "reloading configuration failed" named.run > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
@@ -55,7 +57,8 @@ else
 fi
 
 # Now try directory, expect failure
-echo "I: testing directory as log file (named -g)"
+n=`expr $n + 1`
+echo "I: testing directory as log file (named -g) ($n)"
 echo > named.run
 rm -rf $DIRFILE
 mkdir -p $DIRFILE >/dev/null 2>&1
@@ -63,7 +66,7 @@ if [ $? -eq 0 ]
 then
 	cp $DIRCONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	grep "checking logging configuration failed: invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -78,7 +81,8 @@ else
 fi
 
 # Now try pipe file, expect failure
-echo "I: testing pipe file as log file (named -g)"
+n=`expr $n + 1`
+echo "I: testing pipe file as log file (named -g) ($n)"
 echo > named.run
 rm -f $PIPEFILE
 mkfifo $PIPEFILE >/dev/null 2>&1
@@ -86,7 +90,7 @@ if [ $? -eq 0 ]
 then
 	cp $PIPECONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	grep "checking logging configuration failed: invalid file" named.run  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -101,7 +105,8 @@ else
 fi
 
 # Now try symlink file to plain file, expect success 
-echo "I: testing symlink to plain file as log file (named -g)"
+n=`expr $n + 1`
+echo "I: testing symlink to plain file as log file (named -g) ($n)"
 # Assume success
 echo > named.run
 echo > $PLAINFILE
@@ -110,7 +115,7 @@ ln -s $PLAINFILE $SYMFILE >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
 	cp $SYMCONF named.conf
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	echo > named.run
 	grep "reloading configuration failed" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
@@ -141,12 +146,13 @@ fi
 
 status=0
 
-echo "I:testing log file validity (only plain files allowed)"
+n=`expr $n + 1`
+echo "I:testing log file validity (only plain files allowed) ($n)"
 
 # First run with a known good config.
 echo > $PLAINFILE
 cp $PLAINCONF named.conf
-$myRNDC reconfig
+$myRNDC reconfig > rndc.out.test$n 2>&1
 grep "reloading configuration failed" named.run > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
@@ -158,7 +164,8 @@ else
 fi
 
 # Now try directory, expect failure
-echo "I: testing directory as log file"
+n=`expr $n + 1`
+echo "I: testing directory as log file ($n)"
 echo > named.run
 rm -rf $DIRFILE
 mkdir -p $DIRFILE >/dev/null 2>&1
@@ -166,7 +173,7 @@ if [ $? -eq 0 ]
 then
 	cp $DIRCONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	grep "configuring logging: invalid file" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -181,7 +188,8 @@ else
 fi
 
 # Now try pipe file, expect failure
-echo "I: testing pipe file as log file"
+n=`expr $n + 1`
+echo "I: testing pipe file as log file ($n)"
 echo > named.run
 rm -f $PIPEFILE
 mkfifo $PIPEFILE >/dev/null 2>&1
@@ -189,7 +197,7 @@ if [ $? -eq 0 ]
 then
 	cp $PIPECONF named.conf
 	echo > named.run
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	grep "configuring logging: invalid file" named.run  > /dev/null 2>&1
 	if [ $? -ne 0 ]
 	then
@@ -204,7 +212,8 @@ else
 fi
 
 # Now try symlink file to plain file, expect success 
-echo "I: testing symlink to plain file as log file"
+n=`expr $n + 1`
+echo "I: testing symlink to plain file as log file ($n)"
 # Assume success
 status=0
 echo > named.run
@@ -214,7 +223,7 @@ ln -s $PLAINFILE $SYMFILE >/dev/null 2>&1
 if [ $? -eq 0 ]
 then
 	cp $SYMCONF named.conf
-	$myRNDC reconfig
+	$myRNDC reconfig > rndc.out.test$n 2>&1
 	echo > named.run
 	grep "reloading configuration failed" named.run > /dev/null 2>&1
 	if [ $? -ne 0 ]
@@ -231,6 +240,8 @@ fi
 
 status=0
 
+n=`expr $n + 1`
+echo "I:testing default logfile using named -L file ($n)"
 # Now stop the server again and test the -L option
 rm -f $DLFILE
 $PERL ../../stop.pl .. ns1
@@ -249,7 +260,7 @@ if ! test -f $PIDFILE; then
 	if [ -f "$DLFILE" ]; then
 		echo "I: testing default logfile using named -L succeeded"
 	else
-		echo "I:testing default logfile using named -L failed"
+		echo "I: testing default logfile using named -L failed"
 		echo "I:exit status: 1"
 		exit 1
 	fi
