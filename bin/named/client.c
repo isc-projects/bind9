@@ -859,6 +859,15 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	isc_buffer_usedregion(buffer, &r);
 
+	/*
+	 * If this is a UDP client and the IPv6 packet can't be
+	 * encapsulated without generating a PTB on a 1500 octet
+	 * MTU link force fragmentation at 1280 if it is a IPv6
+	 * response.
+	 */
+	if (!TCP_CLIENT(client) && r.length > 1432)
+		client->sendevent->attributes |= ISC_SOCKEVENTATTR_USEMINMTU;
+
 	CTRACE("sendto");
 
 	result = isc_socket_sendto2(sock, &r, client->task,

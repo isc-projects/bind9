@@ -196,6 +196,7 @@ struct isc_socket_connev {
  * _TIMESTAMP:	The timestamp member is valid.
  * _PKTINFO:	The pktinfo member is valid.
  * _MULTICAST:	The UDP packet was received via a multicast transmission.
+ * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
  */
 #define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
 #define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
@@ -203,6 +204,7 @@ struct isc_socket_connev {
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */
 #define ISC_SOCKEVENTATTR_PKTINFO		0x00100000U /* public */
 #define ISC_SOCKEVENTATTR_MULTICAST		0x00080000U /* public */
+#define ISC_SOCKEVENTATTR_USEMINMTU		0x00020000U /* public */
 /*@}*/
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
