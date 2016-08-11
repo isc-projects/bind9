@@ -8083,12 +8083,13 @@ dumpdone(void *arg, isc_result_t result) {
 }
 
 isc_result_t
-ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex) {
+ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	struct dumpcontext *dctx = NULL;
 	dns_view_t *view;
 	isc_result_t result;
 	char *ptr;
 	const char *sep;
+	isc_boolean_t found;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, NULL);
@@ -8154,15 +8155,26 @@ ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex) {
 	}
 
  nextview:
+	found = ISC_FALSE;
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (ptr != NULL && strcmp(view->name, ptr) != 0)
 			continue;
+		found = ISC_TRUE;
 		CHECK(add_view_tolist(dctx, view));
 	}
 	if (ptr != NULL) {
+		if (!found) {
+			putstr(text, "view '");
+			putstr(text, ptr);
+			putstr(text, "' not found");
+			putnull(text);
+			result = ISC_R_NOTFOUND;
+			dumpdone(dctx, result);
+			return (result);
+		}
 		ptr = next_token(lex, NULL);
 		if (ptr != NULL)
 			goto nextview;
