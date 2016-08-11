@@ -8223,21 +8223,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
 
 		/*
-		 * Return the time to expire for slave zones.
+		 * Return the time to expire for slave and master zones.
 		 */
-		if (zone != NULL) {
+		if (zone != NULL && is_zone && qtype == dns_rdatatype_soa &&
+		    (client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
+		    client->query.restarts == 0) {
 			dns_zone_t *raw = NULL, *mayberaw;
 
-			if (is_zone)
-				dns_zone_getraw(zone, &raw);
+			dns_zone_getraw(zone, &raw);
 			mayberaw = (raw != NULL) ? raw : zone;
 
-			if (is_zone && qtype == dns_rdatatype_soa &&
-			    ((client->attributes &
-			      NS_CLIENTATTR_WANTEXPIRE) != 0) &&
-			    client->query.restarts == 0 &&
-			    dns_zone_gettype(mayberaw) == dns_zone_slave)
-			{
+			if (dns_zone_gettype(mayberaw) == dns_zone_slave) {
 				isc_time_t expiretime;
 				isc_uint32_t secs;
 				dns_zone_getexpiretime(zone, &expiretime);
@@ -8248,6 +8244,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						NS_CLIENTATTR_HAVEEXPIRE;
 					client->expire = secs - client->now;
 				}
+			}
+			if (dns_zone_gettype(mayberaw) == dns_zone_master) {
+				dns_rdata_soa_t soa;
+				result = dns_rdataset_first(rdataset);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				dns_rdataset_current(rdataset, &rdata);
+				result = dns_rdata_tostruct(&rdata, &soa, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				client->expire = soa.expire;
+				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
 			}
 			if (raw != NULL)
 				dns_zone_detach(&raw);
