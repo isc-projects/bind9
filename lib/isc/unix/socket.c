@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -1505,12 +1503,12 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
-#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
-	if ((sock->type == isc_sockettype_udp)
-	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
-#if defined(IPV6_USE_MIN_MTU)
-		int use_min_mtu = 1;	/* -1, 0, 1 */
-#endif
+#if defined(USE_CMSG)
+
+#if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
+	if ((sock->type == isc_sockettype_udp) &&
+	    ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0))
+	{
 		struct in6_pktinfo *pktinfop;
 
 		socket_log(sock, NULL, TRACE,
@@ -1528,12 +1526,15 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		cmsgp->cmsg_len = cmsg_len(sizeof(struct in6_pktinfo));
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 		memmove(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
+	} 
+#endif
+
 #if defined(IPV6_USE_MIN_MTU)
-		/*
-		 * Set IPV6_USE_MIN_MTU as a per packet option as FreeBSD
-		 * ignores setsockopt(IPV6_USE_MIN_MTU) when IPV6_PKTINFO
-		 * is used.
-		 */
+	if ((sock->type == isc_sockettype_udp) &&
+	    ((dev->attributes & ISC_SOCKEVENTATTR_USEMINMTU) != 0))
+	{
+		int use_min_mtu = 1;	/* -1, 0, 1 */
+
 		cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
 					   msg->msg_controllen);
 		msg->msg_controllen += cmsg_space(sizeof(use_min_mtu));
@@ -1543,8 +1544,8 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		cmsgp->cmsg_type = IPV6_USE_MIN_MTU;
 		cmsgp->cmsg_len = cmsg_len(sizeof(use_min_mtu));
 		memmove(CMSG_DATA(cmsgp), &use_min_mtu, sizeof(use_min_mtu));
-#endif
 	}
+#endif
 
 	if (isc_dscp_check_value > -1) {
 		if (sock->type == isc_sockettype_udp)
@@ -1622,7 +1623,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 		}
 #endif
 	}
-#endif /* USE_CMSG && ISC_PLATFORM_HAVEIPV6 */
+#endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;
@@ -2756,7 +2757,8 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	/*
 	 * Use minimum mtu if possible.
 	 */
-	use_min_mtu(sock);
+	if (sock->type == isc_sockettype_tcp)
+		use_min_mtu(sock);
 
 #if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (sock->type == isc_sockettype_udp) {
