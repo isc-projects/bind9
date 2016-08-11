@@ -192,7 +192,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	} else if (command_compare(command, NS_COMMAND_QUERYLOG)) {
 		result = ns_server_togglequerylog(ns_g_server, lex);
 	} else if (command_compare(command, NS_COMMAND_DUMPDB)) {
-		ns_server_dumpdb(ns_g_server, lex);
+		ns_server_dumpdb(ns_g_server, lex, text);
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_SECROOTS)) {
 		result = ns_server_dumpsecroots(ns_g_server, lex);

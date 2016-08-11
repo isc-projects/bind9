@@ -271,7 +271,7 @@ ns_server_dumpstats(ns_server_t *server);
  * Dump the current cache to the dump file.
  */
 isc_result_t
-ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex);
+ns_server_dumpdb(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text);
 
 /*%
  * Dump the current security roots to the secroots file.
