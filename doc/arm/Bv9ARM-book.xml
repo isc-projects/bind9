@@ -10175,6 +10175,7 @@ example.com                 CNAME   rpz-tcp-only.
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
+    <optional> tcp-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
     <optional> keys { <replaceable>key_id</replaceable> }; </optional>
@@ -10305,6 +10306,13 @@ example.com                 CNAME   rpz-tcp-only.
 	    be silently adjusted).  This option is useful when you
 	    know that there is a firewall that is blocking large
 	    replies from <command>named</command>.
+	  </para>
+
+	  <para>
+	    The <command>tcp-only</command> option sets the transport
+	    protocol to TCP. The default is to use the UDP transport
+	    and to fallback on TCP only when a truncated response
+	    is received.
 	  </para>
 
 	  <para>

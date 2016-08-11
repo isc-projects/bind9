@@ -10369,7 +10369,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_tsigkey_t *key = NULL;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
-	int timeout;
+	unsigned int options, timeout;
 	isc_boolean_t have_notifysource = ISC_FALSE;
 	isc_boolean_t have_notifydscp = ISC_FALSE;
 	isc_dscp_t dscp = -1;
@@ -10433,8 +10433,10 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	/* XXX: should we log the tsig key too? */
 	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
 		   addrbuf);
+	options = 0;
 	if (notify->zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
+		isc_boolean_t usetcp = ISC_FALSE;
 		result = dns_peerlist_peerbyaddr(notify->zone->view->peers,
 						 &dstip, &peer);
 		if (result == ISC_R_SUCCESS) {
@@ -10444,6 +10446,9 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			dns_peer_getnotifydscp(peer, &dscp);
 			if (dscp != -1)
 				have_notifydscp = ISC_TRUE;
+			result = dns_peer_getforcetcp(peer, &usetcp);
+			if (result == ISC_R_SUCCESS && usetcp)
+				options |= DNS_FETCHOPT_TCP;
 		}
 	}
 	switch (isc_sockaddr_pf(&notify->dst)) {
@@ -10468,8 +10473,8 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		timeout = 30;
 	result = dns_request_createvia4(notify->zone->view->requestmgr,
 					message, &src, &notify->dst, dscp,
-					0, key, timeout * 3, timeout, 0,
-					notify->zone->task, notify_done,
+					options, key, timeout * 3, timeout,
+					0, notify->zone->task, notify_done,
 					notify, &notify->request);
 	if (result == ISC_R_SUCCESS) {
 		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
@@ -11696,11 +11701,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
+		  DNS_REQUESTOPT_TCP : 0;
 	have_xfrsource = have_xfrdscp = ISC_FALSE;
 	reqnsid = zone->view->requestnsid;
 	if (zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
-		isc_boolean_t edns;
+		isc_boolean_t edns, usetcp;
 		result = dns_peerlist_peerbyaddr(zone->view->peers,
 						 &masterip, &peer);
 		if (result == ISC_R_SUCCESS) {
@@ -11719,6 +11726,9 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				  dns_resolver_getudpsize(zone->view->resolver);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
+			result = dns_peer_getforcetcp(peer, &usetcp);
+			if (result == ISC_R_SUCCESS && usetcp)
+				options |= DNS_REQUESTOPT_TCP;
 		}
 	}
 
@@ -11755,9 +11765,6 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup;
 	}
-
-	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
-		  DNS_REQUESTOPT_TCP : 0;
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, udpsize, reqnsid);

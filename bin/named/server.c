@@ -1228,6 +1228,11 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "tcp-only", &obj);
+	if (obj != NULL)
+		CHECK(dns_peer_setforcetcp(peer, cfg_obj_asboolean(obj)));
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_settransfers(peer, cfg_obj_asuint32(obj)));

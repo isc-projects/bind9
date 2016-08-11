@@ -308,6 +308,7 @@ server <netprefix> {
         edns-udp-size <integer>;
         keys <server_key>;
         max-udp-size <integer>;
+        tcp-only <boolean>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
@@ -516,6 +517,7 @@ view <string> [ <class> ] {
                 edns-udp-size <integer>;
                 keys <server_key>;
                 max-udp-size <integer>;
+                tcp-only <boolean>;
                 notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
                     ) ] [ dscp <integer> ];
                 notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
