@@ -1,9 +1,3 @@
-4433.	[func]		Add a new tcp-only option to server (config) /
-			peer (struct) to use TCP transport to send
-			queries (in place of UDP transport with a
-			TCP fallback on truncated (TC set) response).
-			[RT #42840]
-
 4432.	[test]		Hide rndc output on expected failures in logfileconfig
 			system test. [RT #27996]
 
@@ -139,6 +133,12 @@
 
 4348.	[cleanup]	Refactor dnssec-coverage and dnssec-checkds
 			functionality into an "isc" python module. [RT #39211]
+
+4013.	[func]		Add a new tcp-only option to server (config) /
+			peer (struct) to use TCP transport to send
+			queries (in place of UDP transport with a
+			TCP fallback on truncated (TC set) response).
+			[RT #37800]
 
 	--- 9.10.4 released ---
 
