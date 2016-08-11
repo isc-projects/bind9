@@ -1,4 +1,5 @@
-4433.	[placeholder]
+4433.	[cleanup]	Report an error when passing an invalid option or
+			view name to "rndc dumpdb". [RT #42958]
 
 4432.	[test]		Hide rndc output on expected failures in logfileconfig
 			system test. [RT #27996]
