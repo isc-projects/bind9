@@ -16,81 +16,192 @@ n=0
 
 dotests() {
     n=`expr $n + 1`
-    echo "I:test with RT, single zone ($n)"
+    echo "I:test with RT, single zone (+rec) ($n)"
     ret=0
-    $DIG -t RT rt.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t RT rt.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with RT, two zones ($n)"
+    echo "I:test with RT, two zones (+rec) ($n)"
     ret=0
-    $DIG -t RT rt.rt2.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t RT rt.rt2.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with NAPTR, single zone ($n)"
+    echo "I:test with NAPTR, single zone (+rec) ($n)"
     ret=0
-    $DIG -t NAPTR nap.naptr.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t NAPTR nap.naptr.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with NAPTR, two zones ($n)"
+    echo "I:test with NAPTR, two zones (+rec) ($n)"
     ret=0
-    $DIG -t NAPTR nap.hang3b.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t NAPTR nap.hang3b.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with LP ($n)"
+    echo "I:test with LP (+rec) ($n)"
     ret=0
-    $DIG -t LP nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
-    if [ $minimal = no ] ; then
-      grep "L64" dig.out.$n > /dev/null || ret=1
-      grep "L32" dig.out.$n > /dev/null || ret=1
-    else
-      grep "L64" dig.out.$n > /dev/null && ret=1
-      grep "L32" dig.out.$n > /dev/null && ret=1
-    fi
+    $DIG +rec -t LP nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    case $minimal in
+    no)
+      grep -w "NS" dig.out.$n > /dev/null || ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    yes)
+      grep -w "NS" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+      ;;
+    no-auth)
+      grep -w "NS" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    no-auth-recursive)
+      grep -w "NS" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    esac
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with NID ($n)"
+    echo "I:test with NID (+rec) ($n)"
     ret=0
-    $DIG -t NID ns1.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t NID ns1.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $minimal = no ] ; then
       # change && to || when we support NID additional processing
-      grep "L64" dig.out.$n > /dev/null && ret=1
-      grep "L32" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
     else
-      grep "L64" dig.out.$n > /dev/null && ret=1
-      grep "L32" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
     fi
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
     fi
 
     n=`expr $n + 1`
-    echo "I:test with NID + LP ($n)"
+    echo "I:test with NID + LP (+rec) ($n)"
     ret=0
-    $DIG -t NID nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    $DIG +rec -t NID nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
     if [ $minimal = no ] ; then
       # change && to || when we support NID additional processing
-      grep "LP" dig.out.$n > /dev/null && ret=1
-      grep "L64" dig.out.$n > /dev/null && ret=1
-      grep "L32" dig.out.$n > /dev/null && ret=1
+      grep -w "LP" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
     else
-      grep "LP" dig.out.$n > /dev/null && ret=1
-      grep "L64" dig.out.$n > /dev/null && ret=1
-      grep "L32" dig.out.$n > /dev/null && ret=1
+      grep -w "LP" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+    fi
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with RT, single zone (+norec) ($n)"
+    ret=0
+    $DIG +norec -t RT rt.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with RT, two zones (+norec) ($n)"
+    ret=0
+    $DIG +norec -t RT rt.rt2.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with NAPTR, single zone (+norec) ($n)"
+    ret=0
+    $DIG +norec -t NAPTR nap.naptr.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with NAPTR, two zones (+norec) ($n)"
+    ret=0
+    $DIG +norec -t NAPTR nap.hang3b.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with LP (+norec) ($n)"
+    ret=0
+    $DIG +norec -t LP nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    case $minimal in
+    no)
+      grep -w "NS" dig.out.$n > /dev/null || ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    yes)
+      grep -w "NS" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+      ;;
+    no-auth)
+      grep -w "NS" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    no-auth-recursive)
+      grep -w "NS" dig.out.$n > /dev/null || ret=1
+      grep -w "L64" dig.out.$n > /dev/null || ret=1
+      grep -w "L32" dig.out.$n > /dev/null || ret=1
+      ;;
+    esac
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with NID (+norec) ($n)"
+    ret=0
+    $DIG +norec -t NID ns1.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $minimal = no ] ; then
+      # change && to || when we support NID additional processing
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+    else
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+    fi
+    if [ $ret -eq 1 ] ; then
+            echo "I: failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo "I:test with NID + LP (+norec) ($n)"
+    ret=0
+    $DIG +norec -t NID nid2.nid.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+    if [ $minimal = no ] ; then
+      # change && to || when we support NID additional processing
+      grep -w "LP" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
+    else
+      grep -w "LP" dig.out.$n > /dev/null && ret=1
+      grep -w "L64" dig.out.$n > /dev/null && ret=1
+      grep -w "L32" dig.out.$n > /dev/null && ret=1
     fi
     if [ $ret -eq 1 ] ; then
             echo "I: failed"; status=1
@@ -133,10 +244,18 @@ if [ $ret -eq 1 ] ; then
     echo "I: failed"; status=1
 fi
 
+echo "I:testing with 'minimal-responses no-auth;'"
+minimal=no-auth
+dotests
+
 echo "I:reconfiguring server"
 cp ns1/named4.conf ns1/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig 2>&1 | sed 's/^/I:ns1 /'
 sleep 2
+
+echo "I:testing with 'minimal-responses no-auth-recursive;'"
+minimal=no-auth-recursive
+dotests
 
 n=`expr $n + 1`
 echo "I:testing returning TLSA records with MX query ($n)"

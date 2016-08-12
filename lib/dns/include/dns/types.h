@@ -189,6 +189,13 @@ typedef enum {
 } dns_notifytype_t;
 
 typedef enum {
+	dns_minimal_no = 0,
+	dns_minimal_yes = 1,
+	dns_minimal_noauth = 2,
+	dns_minimal_noauthrec = 3
+} dns_minimaltype_t;
+
+typedef enum {
 	dns_dialuptype_no = 0,
 	dns_dialuptype_yes = 1,
 	dns_dialuptype_notify = 2,

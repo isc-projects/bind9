@@ -89,14 +89,19 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
-static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
 static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;
+static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_dialuptype;
+static cfg_type_t cfg_type_dlz;
+static cfg_type_t cfg_type_dnstap;
+static cfg_type_t cfg_type_dnstapoutput;
+static cfg_type_t cfg_type_dyndb;
+static cfg_type_t cfg_type_filter_aaaa;
 static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
@@ -105,15 +110,16 @@ static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_masterselement;
 static cfg_type_t cfg_type_maxttl;
+static cfg_type_t cfg_type_minimal;
 static cfg_type_t cfg_type_nameportiplist;
 static cfg_type_t cfg_type_negated;
 static cfg_type_t cfg_type_notifytype;
 static cfg_type_t cfg_type_optional_allow;
 static cfg_type_t cfg_type_optional_class;
+static cfg_type_t cfg_type_optional_dscp;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
-static cfg_type_t cfg_type_optional_dscp;
 static cfg_type_t cfg_type_optional_uint32;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_portiplist;
@@ -133,11 +139,6 @@ static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
-static cfg_type_t cfg_type_filter_aaaa;
-static cfg_type_t cfg_type_dlz;
-static cfg_type_t cfg_type_dyndb;
-static cfg_type_t cfg_type_dnstap;
-static cfg_type_t cfg_type_dnstapoutput;
 
 /*% tkey-dhkey */
 
@@ -1715,7 +1716,7 @@ view_clauses[] = {
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "minimal-any", &cfg_type_boolean, 0 },
-	{ "minimal-responses", &cfg_type_boolean, 0 },
+	{ "minimal-responses", &cfg_type_minimal, 0 },
 	{ "nta-recheck", &cfg_type_ttlval, 0 },
 	{ "nta-lifetime", &cfg_type_ttlval, 0 },
 	{ "nxdomain-redirect", &cfg_type_astring, 0 },
@@ -2463,6 +2464,20 @@ doc_notify_type(cfg_printer_t *pctx, const cfg_type_t *type) {
 static cfg_type_t cfg_type_notifytype = {
 	"notifytype", parse_notify_type, cfg_print_ustring, doc_notify_type,
 	&cfg_rep_string, notify_enums,
+};
+
+static const char *minimal_enums[] = { "no-auth", "no-auth-recursive", NULL };
+static isc_result_t
+parse_minimal(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static void
+doc_minimal(cfg_printer_t *pctx, const cfg_type_t *type) {
+	return (doc_enum_or_other(pctx, type, &cfg_type_boolean));
+}
+static cfg_type_t cfg_type_minimal = {
+	"mimimal", parse_minimal, cfg_print_ustring, doc_minimal,
+	&cfg_rep_string, minimal_enums,
 };
 
 static const char *ixfrdiff_enums[] = { "master", "slave", NULL };

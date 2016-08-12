@@ -117,7 +117,7 @@ struct dns_view {
 	isc_boolean_t			additionalfromcache;
 	isc_boolean_t			additionalfromauth;
 	isc_boolean_t			minimal_any;
-	isc_boolean_t			minimalresponses;
+	dns_minimaltype_t		minimalresponses;
 	isc_boolean_t			enablednssec;
 	isc_boolean_t			enablevalidation;
 	isc_boolean_t			acceptexpired;
