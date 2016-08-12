@@ -91,6 +91,10 @@
 #include <sys/utsname.h>
 #endif
 
+#ifdef ISC_PLATFORM_HAVETFO
+#include <netinet/tcp.h>
+#endif
+
 /*%
  * Choose the most preferable multiplex method.
  */
@@ -5647,6 +5651,24 @@ isc__socket_listen(isc_socket_t *sock0, unsigned int backlog) {
 
 		return (ISC_R_UNEXPECTED);
 	}
+
+#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+#ifdef __APPLE__
+	backlog = 1;
+#else
+	backlog = backlog / 2;
+	if (backlog == 0)
+		backlog = 1;
+#endif
+	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
+		       (void *)&backlog, sizeof(backlog)) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
+				 sock->fd, strbuf);
+		/* TCP_FASTOPEN is experimental so ignore failures */
+	}
+#endif
 
 	sock->listener = 1;
 

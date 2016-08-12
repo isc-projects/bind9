@@ -3319,6 +3319,9 @@ isc__socket_filter(isc_socket_t *sock, const char *filter) {
 isc_result_t
 isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	char strbuf[ISC_STRERRORSIZE];
+#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+	char on = 1;
+#endif
 
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -3348,6 +3351,17 @@ isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 
 		return (ISC_R_UNEXPECTED);
 	}
+
+#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
+		       &on, sizeof(on)) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
+				 sock->fd, strbuf);
+		/* TCP_FASTOPEN is experimental so ignore failures */
+	}
+#endif
 
 	socket_log(__LINE__, sock, NULL, TRACE,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_BOUND, "listening");

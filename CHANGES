@@ -1,3 +1,6 @@
+4440.	[func]		Enable TCP fast open support when available on the
+			server side. [RT #42866]
+
 4439.	[bug]		Address race conditions getting ownernames of nodes.
 			[RT #43005]
 
