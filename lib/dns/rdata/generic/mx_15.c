@@ -17,6 +17,8 @@
 
 #include <isc/net.h>
 
+#include <dns/fixedname.h>
+
 #define RRTYPE_MX_ATTRIBUTES (0)
 
 static isc_boolean_t
@@ -242,8 +244,15 @@ freestruct_mx(ARGS_FREESTRUCT) {
 	mx->mctx = NULL;
 }
 
+static unsigned char port25_offset[] = { 0, 3 };
+static unsigned char port25_ndata[] = "\003_25\004_tcp";
+static dns_name_t port25 =
+	 DNS_NAME_INITNONABSOLUTE(port25_ndata, port25_offset);
+
 static inline isc_result_t
 additionaldata_mx(ARGS_ADDLDATA) {
+	isc_result_t result;
+	dns_fixedname_t fixed;
 	dns_name_t name;
 	dns_offsets_t offsets;
 	isc_region_t region;
@@ -255,7 +264,20 @@ additionaldata_mx(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a));
+	if (dns_name_equal(&name, dns_rootname))
+		return (ISC_R_SUCCESS);
+
+	result = (add)(arg, &name, dns_rdatatype_a);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	dns_fixedname_init(&fixed);
+	result = dns_name_concatenate(&port25, &name,
+				      dns_fixedname_name(&fixed), NULL);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+
+	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
 }
 
 static inline isc_result_t
