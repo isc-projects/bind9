@@ -126,6 +126,11 @@
 @ISC_PLATFORM_HAVESOCKADDRSTORAGE@
 
 /*! \brief
+ * Define if the system has TCP_FASTOPEN socket option.
+ */
+@ISC_PLATFORM_HAVETFO@
+
+/*! \brief
  * Define if the system supports kqueue multiplexing
  */
 @ISC_PLATFORM_HAVEKQUEUE@
