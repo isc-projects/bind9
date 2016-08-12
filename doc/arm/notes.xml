@@ -537,7 +537,7 @@
       <listitem>
 	<para>
 	  An <command>--enable-querytrace</command> configure switch is
-	  now available to enable very verbose query tracelogging. This
+	  now available to enable very verbose query trace logging. This
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
 	  debugging. [RT #37520]
@@ -841,6 +841,15 @@
 	  Changed <command>rndc reconfig</command> behavior so that newly
 	  added zones are loaded asynchronously and the loading does not
 	  block the server.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>minimal-responses</command> now takes two new
+	  arguments: <option>no-auth</option> suppresses
+	  populating the authority section but not the additional
+	  section; <option>no-auth-recursive</option>
+	  does the same but only when answering recursive queries.
 	</para>
       </listitem>
     </itemizedlist>

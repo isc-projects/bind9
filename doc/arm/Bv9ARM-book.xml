@@ -4429,7 +4429,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics-max <replaceable>number</replaceable>; </optional>
     <optional> minimal-any <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> minimal-responses (<replaceable>yes_or_no</replaceable> | <constant>no-auth</constant> | <constant>no-auth-recursive</constant>); </optional>
     <optional> multiple-cnames <replaceable>yes_or_no</replaceable>; </optional>
     <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> | <replaceable>master-only</replaceable>; </optional>
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
@@ -6187,11 +6187,26 @@ options {
 	      <term><command>minimal-responses</command></term>
 	      <listitem>
 		<para>
-		  If <userinput>yes</userinput>, then when generating
+		  If set to <userinput>yes</userinput>, then when generating
 		  responses the server will only add records to the authority
 		  and additional data sections when they are required (e.g.
 		  delegations, negative responses).  This may improve the
 		  performance of the server.
+		</para>
+		<para>
+		  When set to <userinput>no-auth</userinput>, the
+		  server will omit records from the authority section
+		  unless they are required, but it may still add
+		  records to the additional section.  When set to
+		  <userinput>no-auth-recursive</userinput>, this
+		  is only done if the query is recursive.  These
+		  settings are useful when answering stub clients,
+		  which usually ignore the authority section.
+		  <userinput>no-auth-recursive</userinput> is
+		  designed for mixed-mode servers which handle
+		  both authoritative and recursive queries.
+		</para>
+		<para>
 		  The default is <userinput>no</userinput>.
 		</para>
 	      </listitem>

@@ -9048,9 +9048,21 @@ ns_query_start(ns_client_t *client) {
 	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0)
 		client->attributes |= NS_CLIENTATTR_WANTDNSSEC;
 
-	if (client->view->minimalresponses)
+	switch (client->view->minimalresponses) {
+	case dns_minimal_no:
+		break;
+	case dns_minimal_yes:
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
+		break;
+	case dns_minimal_noauth:
+		client->query.attributes |= NS_QUERYATTR_NOAUTHORITY;
+		break;
+	case dns_minimal_noauthrec:
+		if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
+			client->query.attributes |= NS_QUERYATTR_NOAUTHORITY;
+		break;
+	}
 
 	if ((client->view->cachedb == NULL)
 	    || (!client->view->additionalfromcache)) {

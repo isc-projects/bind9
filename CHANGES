@@ -1,3 +1,9 @@
+4437.	[func]		Minimal-responses now has two additional modes
+			no-auth and no-auth-recursive which suppress
+			adding the NS records to the authority section
+			as well as the associated address records for the
+			nameservers. [RT #42005]
+
 4436.	[func]		Return TLSA records as additional data for MX and SRV
 			lookups. [RT #42894]
 

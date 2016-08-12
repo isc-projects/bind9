@@ -4090,7 +4090,20 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = ns_config_get(maps, "minimal-responses", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->minimalresponses = cfg_obj_asboolean(obj);
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj))
+			view->minimalresponses = dns_minimal_yes;
+		else
+			view->minimalresponses = dns_minimal_no;
+	} else {
+		str = cfg_obj_asstring(obj);
+		if (strcasecmp(str, "no-auth") == 0) {
+			view->minimalresponses = dns_minimal_noauth;
+		} else if (strcasecmp(str, "no-auth-recursive") == 0) {
+			view->minimalresponses = dns_minimal_noauthrec;
+		} else
+			INSIST(0);
+	}
 
 	obj = NULL;
 	result = ns_config_get(maps, "transfer-format", &obj);
