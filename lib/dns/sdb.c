@@ -1289,7 +1289,8 @@ static dns_dbmethods_t sdb_methods = {
 	findnodeext,
 	findext,
 	NULL,			/* setcachestats */
-	NULL			/* hashsize */
+	NULL,			/* hashsize */
+	NULL			/* nodefullname */
 };
 
 static isc_result_t

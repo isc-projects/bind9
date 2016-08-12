@@ -1100,3 +1100,14 @@ dns_db_updatenotify_unregister(dns_db_t *db,
 
 	return (ISC_R_NOTFOUND);
 }
+
+isc_result_t
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
+	REQUIRE(db != NULL);
+	REQUIRE(node != NULL);
+	REQUIRE(name != NULL);
+
+	if (db->methods->nodefullname == NULL)
+		return (ISC_R_NOTIMPLEMENTED);
+	return ((db->methods->nodefullname)(db, node, name));
+}

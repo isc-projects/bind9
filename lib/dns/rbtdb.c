@@ -218,6 +218,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define new_reference new_reference64
 #define newversion newversion64
 #define nodecount nodecount64
+#define nodefullname nodefullname64
 #define overmem overmem64
 #define previous_closest_nsec previous_closest_nsec64
 #define printnode printnode64
@@ -6630,7 +6631,9 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	dns_rbt_fullnamefromnode(node, name);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (rdatasetheader_t *)region.base;
@@ -8061,6 +8064,23 @@ getrrsetstats(dns_db_t *db) {
 	return (rbtdb->rrsetstats);
 }
 
+static isc_result_t
+nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
+	isc_result_t result;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(node != NULL);
+	REQUIRE(name != NULL);
+
+	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+	result = dns_rbt_fullnamefromnode(rbtnode, name);
+	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
+
+	return (result);
+}
+
 static dns_dbmethods_t zone_methods = {
 	attach,
 	detach,
@@ -8104,7 +8124,8 @@ static dns_dbmethods_t zone_methods = {
 	NULL,
 	NULL,
 	NULL,
-	hashsize
+	hashsize,
+	nodefullname
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -8150,7 +8171,8 @@ static dns_dbmethods_t cache_methods = {
 	NULL,
 	NULL,
 	setcachestats,
-	hashsize
+	hashsize,
+	nodefullname
 };
 
 isc_result_t

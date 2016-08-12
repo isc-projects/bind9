@@ -186,6 +186,8 @@ typedef struct dns_dbmethods {
 				   dns_rdataset_t *sigrdataset);
 	isc_result_t	(*setcachestats)(dns_db_t *db, isc_stats_t *stats);
 	size_t		(*hashsize)(dns_db_t *db);
+	isc_result_t	(*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
+					dns_name_t *name);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1654,6 +1656,16 @@ dns_db_updatenotify_unregister(dns_db_t *db,
  *
  */
 
+isc_result_t
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+/*%<
+ * Get the name associated with a database node.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database
+ * \li	'node' and 'name' are not NULL
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DB_H */

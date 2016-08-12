@@ -1,3 +1,6 @@
+4439.	[bug]		Address race conditions getting ownernames of nodes.
+			[RT #43005]
+
 4438.	[func]		Use LIFO rather than FIFO when processing startup
 			notify and refresh queries. [RT #42825]
 
