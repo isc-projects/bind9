@@ -34,6 +34,7 @@ struct isc_ratelimiter {
 	isc_timer_t *		timer;
 	isc_interval_t		interval;
 	isc_uint32_t		pertic;
+	isc_boolean_t		pushpop;
 	isc_ratelimiter_state_t	state;
 	isc_event_t		shutdownevent;
 	ISC_LIST(isc_event_t)	pending;
@@ -64,6 +65,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	isc_interval_set(&rl->interval, 0, 0);
 	rl->timer = NULL;
 	rl->pertic = 1;
+	rl->pushpop = ISC_FALSE;
 	rl->state = isc_ratelimiter_idle;
 	ISC_LIST_INIT(rl->pending);
 
@@ -128,6 +130,14 @@ isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t pertic) {
 	rl->pertic = pertic;
 }
 
+void
+isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, isc_boolean_t pushpop) {
+
+	REQUIRE(rl != NULL);
+
+	rl->pushpop = pushpop;
+}
+
 isc_result_t
 isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 			isc_event_t **eventp)
@@ -146,7 +156,10 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 	    rl->state == isc_ratelimiter_stalled) {
 		ev->ev_sender = task;
 		*eventp = NULL;
-		ISC_LIST_APPEND(rl->pending, ev, ev_link);
+		if (rl->pushpop)
+			ISC_LIST_PREPEND(rl->pending, ev, ev_link);
+		else
+			ISC_LIST_APPEND(rl->pending, ev, ev_link);
 	} else if (rl->state == isc_ratelimiter_idle) {
 		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
 					 &rl->interval, ISC_FALSE);
