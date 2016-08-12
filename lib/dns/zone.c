@@ -15567,6 +15567,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	setrl(zmgr->startupnotifyrl, &zmgr->startupnotifyrate, 20);
 	setrl(zmgr->refreshrl, &zmgr->serialqueryrate, 20);
 	setrl(zmgr->startuprefreshrl, &zmgr->startupserialqueryrate, 20);
+	isc_ratelimiter_setpushpop(zmgr->startupnotifyrl, ISC_TRUE);
+	isc_ratelimiter_setpushpop(zmgr->startuprefreshrl, ISC_TRUE);
 
 	zmgr->iolimit = 1;
 	zmgr->ioactive = 0;

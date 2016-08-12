@@ -58,6 +58,13 @@ isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
  * If 'perint' is zero it is treated as 1.
  */
 
+void
+isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, isc_boolean_t pushpop);
+/*%<
+ * Set / clear the ratelimiter to from push pop mode rather
+ * first in - first out mode (default).
+ */
+
 isc_result_t
 isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 			isc_event_t **eventp);
