@@ -216,7 +216,7 @@ options {
         min-retry-time <integer>;
         min-roots <integer>; // not implemented
         minimal-any <boolean>;
-        minimal-responses <boolean>;
+        minimal-responses ( no-auth | no-auth-recursive | <boolean> );
         multi-master <boolean>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
@@ -508,7 +508,7 @@ view <string> [ <class> ] {
         min-retry-time <integer>;
         min-roots <integer>; // not implemented
         minimal-any <boolean>;
-        minimal-responses <boolean>;
+        minimal-responses ( no-auth | no-auth-recursive | <boolean> );
         multi-master <boolean>;
         no-case-compress { <address_match_element>; ... };
         nocookie-udp-size <integer>;

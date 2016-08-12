@@ -474,7 +474,7 @@
 	</p></li>
 <li class="listitem"><p>
 	  An <span class="command"><strong>--enable-querytrace</strong></span> configure switch is
-	  now available to enable very verbose query tracelogging. This
+	  now available to enable very verbose query trace logging. This
 	  option can only be set at compile time. This option has a
 	  negative performance impact and should be used only for
 	  debugging. [RT #37520]
@@ -718,6 +718,13 @@
 	  block the server.
 	</p>
 </li>
+<li class="listitem"><p>
+	  <span class="command"><strong>minimal-responses</strong></span> now takes two new
+	  arguments: <code class="option">no-auth</code> suppresses
+	  populating the authority section but not the additional
+	  section; <code class="option">no-auth-recursive</code>
+	  does the same but only when answering recursive queries.
+	</p></li>
 </ul></div>
 </div>
 <div class="section">

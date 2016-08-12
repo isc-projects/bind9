@@ -2309,7 +2309,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> host-statistics <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> host-statistics-max <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> minimal-any <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> minimal-responses <em class="replaceable"><code>yes_or_no</code></em>; </span>]
+    [<span class="optional"> minimal-responses (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">no-auth</code> | <code class="constant">no-auth-recursive</code>); </span>]
     [<span class="optional"> multiple-cnames <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> notify <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>explicit</code></em> | <em class="replaceable"><code>master-only</code></em>; </span>]
     [<span class="optional"> recursion <em class="replaceable"><code>yes_or_no</code></em>; </span>]
@@ -3804,14 +3804,31 @@ options {
                   6.1.3.2. The default is <strong class="userinput"><code>yes</code></strong>.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>minimal-responses</strong></span></span></dt>
-<dd><p>
-                  If <strong class="userinput"><code>yes</code></strong>, then when generating
+<dd>
+<p>
+                  If set to <strong class="userinput"><code>yes</code></strong>, then when generating
                   responses the server will only add records to the authority
                   and additional data sections when they are required (e.g.
                   delegations, negative responses).  This may improve the
                   performance of the server.
+                </p>
+<p>
+                  When set to <strong class="userinput"><code>no-auth</code></strong>, the
+                  server will omit records from the authority section
+                  unless they are required, but it may still add
+                  records to the additional section.  When set to
+                  <strong class="userinput"><code>no-auth-recursive</code></strong>, this
+                  is only done if the query is recursive.  These
+                  settings are useful when answering stub clients,
+                  which usually ignore the authority section.
+                  <strong class="userinput"><code>no-auth-recursive</code></strong> is
+                  designed for mixed-mode servers which handle
+                  both authoritative and recursive queries.
+                </p>
+<p>
                   The default is <strong class="userinput"><code>no</code></strong>.
-                </p></dd>
+                </p>
+</dd>
 <dt><span class="term"><span class="command"><strong>minimal-any</strong></span></span></dt>
 <dd><p>
                   If set to <strong class="userinput"><code>yes</code></strong>, then when
