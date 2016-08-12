@@ -110,8 +110,9 @@ echo "I:testing with 'minimal-responses no;'"
 minimal=no
 dotests
 
-echo "I:testing with 'minimal-any no;'"
 n=`expr $n + 1`
+echo "I:testing with 'minimal-any no;' ($n)"
+ret=0
 $DIG -t ANY www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
 grep "ANSWER: 3, AUTHORITY: 1, ADDITIONAL: 2" dig.out.$n > /dev/null || ret=1
 if [ $ret -eq 1 ] ; then
@@ -123,10 +124,38 @@ cp ns1/named3.conf ns1/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig 2>&1 | sed 's/^/I:ns1 /'
 sleep 2
 
-echo "I:testing with 'minimal-any yes;'"
 n=`expr $n + 1`
+echo "I:testing with 'minimal-any yes;' ($n)"
+ret=0
 $DIG -t ANY www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
 grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+
+echo "I:reconfiguring server"
+cp ns1/named4.conf ns1/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig 2>&1 | sed 's/^/I:ns1 /'
+sleep 2
+
+n=`expr $n + 1`
+echo "I:testing returning TLSA records with MX query ($n)"
+ret=0
+$DIG -t mx mx.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "mx\.example\..*MX.0 mail\.mx\.example" dig.out.$n > /dev/null || ret=1
+grep "mail\.mx\.example\..*A.1\.2\.3\.4" dig.out.$n > /dev/null || ret=1
+grep "_25\._tcp\.mail\.mx\.example\..*TLSA.3 0 1 5B30F9602297D558EB719162C225088184FAA32CA45E1ED15DE58A21 D9FCE383" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+
+n=`expr $n + 1`
+echo "I:testing returning TLSA records with SRV query ($n)"
+ret=0
+$DIG -t srv _xmpp-client._tcp.srv.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "_xmpp-client\._tcp\.srv\.example\..*SRV.1 0 5222 server\.srv\.example" dig.out.$n > /dev/null || ret=1
+grep "server\.srv\.example\..*A.1\.2\.3\.4" dig.out.$n > /dev/null || ret=1
+grep "_5222\._tcp\.server\.srv\.example\..*TLSA.3 0 1 5B30F9602297D558EB719162C225088184FAA32CA45E1ED15DE58A21 D9FCE383" dig.out.$n > /dev/null || ret=1
 if [ $ret -eq 1 ] ; then
     echo "I: failed"; status=1
 fi

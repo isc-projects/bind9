@@ -1,3 +1,6 @@
+4436.	[func]		Return TLSA records as additional data for MX and SRV
+			lookups. [RT #42894]
+
 4435.	[tuning]	Only set IPV6_USE_MIN_MTU for UDP when the message
 			will not fit into a single IPv4 encapsulated IPv6
 			UDP packet when transmitted over a Ethernet link.
