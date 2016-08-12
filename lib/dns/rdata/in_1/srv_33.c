@@ -329,7 +329,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 				      dns_fixedname_name(&fixed), NULL);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_SUCCESS);
- 
+
 	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
 }
 
