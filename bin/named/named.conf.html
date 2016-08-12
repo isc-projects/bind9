@@ -200,7 +200,7 @@ options {<br>
 	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
 	minimal-any <em class="replaceable"><code>boolean</code></em>;<br>
-	minimal-responses <em class="replaceable"><code>boolean</code></em>;<br>
+	minimal-responses ( <em class="replaceable"><code>boolean</code></em> | no-auth | no-auth-recursive );<br>
 	recursion <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order {<br>
 		[<span class="optional"> class <em class="replaceable"><code>string</code></em> </span>] [<span class="optional"> type <em class="replaceable"><code>string</code></em> </span>]<br>
