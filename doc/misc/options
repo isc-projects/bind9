@@ -308,7 +308,6 @@ server <netprefix> {
         edns-udp-size <integer>;
         keys <server_key>;
         max-udp-size <integer>;
-        tcp-only <boolean>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
@@ -320,6 +319,7 @@ server <netprefix> {
         request-nsid <boolean>;
         request-sit <boolean>; // not configured
         support-ixfr <boolean>; // obsolete
+        tcp-only <boolean>;
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];
@@ -517,7 +517,6 @@ view <string> [ <class> ] {
                 edns-udp-size <integer>;
                 keys <server_key>;
                 max-udp-size <integer>;
-                tcp-only <boolean>;
                 notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
                     ) ] [ dscp <integer> ];
                 notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
@@ -529,6 +528,7 @@ view <string> [ <class> ] {
                 request-nsid <boolean>;
                 request-sit <boolean>; // not configured
                 support-ixfr <boolean>; // obsolete
+                tcp-only <boolean>;
                 transfer-format ( many-answers | one-answer );
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
                     * ) ] [ dscp <integer> ];

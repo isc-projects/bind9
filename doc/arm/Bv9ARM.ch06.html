@@ -7118,6 +7118,7 @@ example.com                 CNAME   rpz-tcp-only.
     [<span class="optional"> edns <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> edns-udp-size <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> max-udp-size <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> tcp-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> transfers <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> transfer-format <em class="replaceable"><code>( one-answer | many-answers )</code></em> ; ]</span>]
     [<span class="optional"> keys { <em class="replaceable"><code>key_id</code></em> }; </span>]
@@ -7240,6 +7241,12 @@ example.com                 CNAME   rpz-tcp-only.
             be silently adjusted).  This option is useful when you
             know that there is a firewall that is blocking large
             replies from <span class="command"><strong>named</strong></span>.
+          </p>
+<p>
+            The <span class="command"><strong>tcp-only</strong></span> option sets the transport
+            protocol to TCP. The default is to use the UDP transport
+            and to fallback on TCP only when a truncated response
+            is received.
           </p>
 <p>
             The server supports two zone transfer methods. The first, <span class="command"><strong>one-answer</strong></span>,
