@@ -534,6 +534,7 @@ isc_ratelimiter_enqueue
 isc_ratelimiter_release
 isc_ratelimiter_setinterval
 isc_ratelimiter_setpertic
+isc_ratelimiter_setpushpop
 isc_ratelimiter_shutdown
 isc_ratelimiter_stall
 isc_refcount_init
