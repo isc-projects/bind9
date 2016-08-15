@@ -98,6 +98,10 @@ command is one of the following:\n\
 		Add zone to given view. Requires allow-new-zones option.\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view.\n\
+  dnstap -reopen\n\
+		Close and re-open the DNSTAP output file.\n\
+  dnstap -roll count\n\
+		Close, rename and re-open the DNSTAP output file(s).\n\
   dumpdb [-all|-cache|-zones|-adb|-bad|-fail] [view ...]\n\
 		Dump cache(s) to the dump file (named_dump.db).\n\
   flush 	Flushes all of the server's caches.\n\
