@@ -1176,7 +1176,7 @@ search(dns_rpz_zones_t *rpzs,
 				rpzs->cidr = new_parent;
 			else
 				parent->child[cur_num] = new_parent;
-			child_num = DNS_RPZ_IP_BIT(&cur->ip, tgt_prefix+1);
+			child_num = DNS_RPZ_IP_BIT(&cur->ip, tgt_prefix);
 			new_parent->child[child_num] = cur;
 			cur->parent = new_parent;
 			new_parent->set = *tgt_set;
