@@ -2473,7 +2473,7 @@ parse_minimal(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 }
 static void
 doc_minimal(cfg_printer_t *pctx, const cfg_type_t *type) {
-	return (doc_enum_or_other(pctx, type, &cfg_type_boolean));
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
 }
 static cfg_type_t cfg_type_minimal = {
 	"mimimal", parse_minimal, cfg_print_ustring, doc_minimal,
