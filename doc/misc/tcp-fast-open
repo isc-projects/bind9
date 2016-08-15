@@ -21,7 +21,10 @@ System specific notes:
 
  - Apple OS X/macOS allows only 0 or 1 so the code puts 1 for this system.
 
- - Windows 10 uses a 0/1 char flag and perhaps as not yet server support?
+ - Windows 10 uses a 0/1 char flag? Note that TCP_FASTOPEN is defined
+  only in SDK 10.0.14393.0 or higher (Visual Studio 2015 requires
+  extra setting of the "Target Platform Version" in all project
+  properties).
 
  - the only other system known to support this is Linux.
 
