@@ -1243,7 +1243,7 @@ if (grep { -f and -x } ".\\mscver.exe") {
     die "can't get _MSC_VER value: $compret\n";
 }
 if ($verbose) {
-    print "_MSV_VER == $msc_ver\n";
+    print "_MSC_VER == $msc_ver\n";
 }
 if ($msc_ver < 1600) {
     print STDERR "warning: old version of C++ compiler/Visual Studio\n";
