@@ -2017,6 +2017,7 @@
 ./bin/tests/system/rpzrecurse/ns2/.gitignore	X	2015
 ./bin/tests/system/rpzrecurse/ns2/db.clientip1	ZONE	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/db.clientip2	ZONE	2015,2016
+./bin/tests/system/rpzrecurse/ns2/db.clientip21	ZONE	2016
 ./bin/tests/system/rpzrecurse/ns2/db.log1	ZONE	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/db.log2	ZONE	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/db.log3	ZONE	2015,2016
@@ -2025,6 +2026,7 @@
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard2b	ZONE	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard3	ZONE	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/named.clientip.conf	CONF-C	2015,2016
+./bin/tests/system/rpzrecurse/ns2/named.clientip2.conf	CONF-C	2016
 ./bin/tests/system/rpzrecurse/ns2/named.conf.header	CONF-C	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/named.default.conf	CONF-C	2015,2016
 ./bin/tests/system/rpzrecurse/ns2/named.log.conf	CONF-C	2015,2016
