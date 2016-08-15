@@ -1824,11 +1824,13 @@
 ./bin/tests/system/rpzrecurse/ns2/.gitignore	X	2015
 ./bin/tests/system/rpzrecurse/ns2/db.clientip1	ZONE	2015
 ./bin/tests/system/rpzrecurse/ns2/db.clientip2	ZONE	2015
+./bin/tests/system/rpzrecurse/ns2/db.clientip21	ZONE	2016
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard1	ZONE	2015
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard2a	ZONE	2015
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard2b	ZONE	2015
 ./bin/tests/system/rpzrecurse/ns2/db.wildcard3	ZONE	2015
 ./bin/tests/system/rpzrecurse/ns2/named.clientip.conf	CONF-C	2015
+./bin/tests/system/rpzrecurse/ns2/named.clientip2.conf	CONF-C	2016
 ./bin/tests/system/rpzrecurse/ns2/named.conf.header	CONF-C	2015
 ./bin/tests/system/rpzrecurse/ns2/named.default.conf	CONF-C	2015
 ./bin/tests/system/rpzrecurse/ns2/named.wildcard1.conf	CONF-C	2015
@@ -3144,7 +3146,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005,2007,2013,2016
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2013,2014,2015
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013,2015
 ./lib/dns/dns64.c				C	2010,2011,2014
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
