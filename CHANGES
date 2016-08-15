@@ -1,3 +1,6 @@
+4443.	[func]		Set TCP_MAXSEG in addition to IPV6_USE_MIN_MTU on
+			TCP sockets. [RT #42864]
+
 4441.	[cleanup]	Alphabetize host's help output. [RT #43031]
 
 4433.	[cleanup]	Report an error when passing an invalid option or
