@@ -1,3 +1,8 @@
+4442.	[bug]		Fix RPZ CIDR tree insertion bug that corrupted
+			tree data structure with overlapping networks
+			(longest prefix match was ineffective).
+			[RT #43035]
+
 4441.	[cleanup]	Alphabetize host's help output. [RT #43031]
 
 4435.	[tuning]	Only set IPV6_USE_MIN_MTU for UDP when the message

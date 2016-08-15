@@ -3008,7 +3008,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 			isc_sockaddr_format(localaddr, addrbuf,
 					    ISC_SOCKADDR_FORMATSIZE);
 			mgr_log(mgr, LVL(90), "dns_dispatch_createudp: Created"
-				" UDP dispatch for %s with socket fd %d\n",
+				" UDP dispatch for %s with socket fd %d",
 				addrbuf, isc_socket_getfd(sock));
 		}
 

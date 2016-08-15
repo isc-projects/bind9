@@ -245,6 +245,35 @@ grep "^l2.l1.l0.[[:space:]]*[0-9]*[[:space:]]*IN[[:space:]]*A[[:space:]]*10.53.0
     status=1
 }
 
+# Check CLIENT-IP behavior #2
+t=`expr $t + 1`
+echo "I:testing CLIENT-IP behavior #2 (${t})"
+run_server clientip2
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.1 > dig.out.${t}.1
+grep "status: SERVFAIL" dig.out.${t}.1 > /dev/null 2>&1 || {
+    echo "I:test $t failed: query failed"
+    status=1
+}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.2 > dig.out.${t}.2
+grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null 2>&1 || {
+    echo "I:test $t failed: query failed"
+    status=1
+}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.3 > dig.out.${t}.3
+grep "status: NOERROR" dig.out.${t}.3 > /dev/null 2>&1 || {
+    echo "I:test $t failed: query failed"
+    status=1
+}
+grep "^l2.l1.l0.[ 	]*[0-9]*[ 	]*IN[ 	]*A[ 	]*10.53.0.1" dig.out.${t}.3 > /dev/null 2>&1 || {
+    echo "I:test $t failed: didn't get expected answer"
+    status=1
+}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p 5300 -b 10.53.0.4 > dig.out.${t}.4
+grep "status: SERVFAIL" dig.out.${t}.4 > /dev/null 2>&1 || {
+    echo "I:test $t failed: query failed"
+    status=1
+}
+
 # Check wildcard behavior
 
 t=`expr $t + 1`
