@@ -82,6 +82,8 @@
 #endif
 #endif
 
+#include <netinet/tcp.h>
+
 #include "errno2result.h"
 
 /* See task.c about the following definition: */
@@ -2559,6 +2561,15 @@ use_min_mtu(isc__socket_t *sock) {
 #endif
 }
 
+static void
+set_tcp_maxseg(isc__socket_t *sock, int size) {
+#ifdef TCP_MAXSEG
+	if (sock->type == isc_sockettype_tcp)
+		(void)setsockopt(sock->fd, IPPROTO_TCP, TCP_MAXSEG,
+				(void *)&size, sizeof(size));
+#endif
+}
+
 static isc_result_t
 opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	   isc__socket_t *dup_socket)
@@ -2764,8 +2775,10 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	/*
 	 * Use minimum mtu if possible.
 	 */
-	if (sock->type == isc_sockettype_tcp)
+	if (sock->type == isc_sockettype_tcp && sock->pf == AF_INET6) {
 		use_min_mtu(sock);
+		set_tcp_maxseg(sock, 1280 - 20 - 40); /* 1280 - TCP - IPV6 */
+	}
 
 #if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (sock->type == isc_sockettype_udp) {
@@ -3666,6 +3679,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 * Use minimum mtu if possible.
 		 */
 		use_min_mtu(NEWCONNSOCK(dev));
+		set_tcp_maxseg(NEWCONNSOCK(dev), 1280 - 20 - 40);
 
 		/*
 		 * Ensure DSCP settings are inherited across accept.
