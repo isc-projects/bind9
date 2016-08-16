@@ -419,10 +419,11 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					    &target->zoneoptions,
 					    &nentry->opts);
 
-		result = isc_ht_find(target->entries, key, keysize,
-				     (void **) &oentry);
+		result = isc_ht_find(target->entries, key,
+				     (isc_uint32_t)keysize, (void **) &oentry);
 		if (result != ISC_R_SUCCESS) {
-			result = isc_ht_add(toadd, key, keysize, nentry);
+			result = isc_ht_add(toadd, key, (isc_uint32_t)keysize,
+					    nentry);
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
@@ -435,7 +436,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		}
 
 		if (dns_catz_entry_cmp(oentry, nentry) != ISC_TRUE) {
-			result = isc_ht_add(tomod, key, keysize, nentry);
+			result = isc_ht_add(tomod, key, (isc_uint32_t)keysize,
+					    nentry);
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
@@ -446,7 +448,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					      isc_result_totext(result));
 		}
 		dns_catz_entry_detach(target, &oentry);
-		result = isc_ht_delete(target->entries, key, keysize);
+		result = isc_ht_delete(target->entries, key,
+				       (isc_uint32_t)keysize);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	RUNTIME_CHECK(result == ISC_R_NOMORE);
@@ -1463,7 +1466,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	if (entry->opts.zonedir != NULL)
 		rlen += strlen(entry->opts.zonedir) + 1;
 
-	result = isc_buffer_reserve(buffer, rlen);
+	result = isc_buffer_reserve(buffer, (unsigned int)rlen);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
