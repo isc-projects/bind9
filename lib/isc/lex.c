@@ -806,48 +806,46 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if (c == '{') {
 				if (escaped) {
 					escaped = ISC_FALSE;
-					INSIST(prev != NULL);
-					*prev = '{';
 				} else {
 					lex->brace_count++;
 				}
 			} else if (c == '}') {
 				if (escaped) {
 					escaped = ISC_FALSE;
-					INSIST(prev != NULL);
-					*prev = '}';
-					break;
+				} else {
+					INSIST(lex->brace_count > 0);
+					lex->brace_count--;
 				}
 
-				INSIST(lex->brace_count > 0);
-				lex->brace_count--;
-				if (lex->brace_count > 0)
+				if (lex->brace_count == 0) {
+					tokenp->type = isc_tokentype_btext;
+					tokenp->value.as_textregion.base =
+						lex->data;
+					tokenp->value.as_textregion.length =
+						(unsigned int) (lex->max_token -
+								remaining);
+					no_comments = ISC_FALSE;
+					done = ISC_TRUE;
 					break;
-
-				tokenp->type = isc_tokentype_btext;
-				tokenp->value.as_textregion.base = lex->data;
-				tokenp->value.as_textregion.length =
-					(unsigned int) (lex->max_token -
-							remaining);
-				no_comments = ISC_FALSE;
-				done = ISC_TRUE;
-			} else {
-				if (c == '\\' && !escaped)
-					escaped = ISC_TRUE;
-				else
-					escaped = ISC_FALSE;
-				if (remaining == 0U) {
-					result = grow_data(lex, &remaining,
-							   &curr, &prev);
-					if (result != ISC_R_SUCCESS)
-						goto done;
 				}
-				INSIST(remaining > 0U);
-				prev = curr;
-				*curr++ = c;
-				*curr = '\0';
-				remaining--;
 			}
+
+			if (c == '\\' && !escaped)
+				escaped = ISC_TRUE;
+			else
+				escaped = ISC_FALSE;
+
+			if (remaining == 0U) {
+				result = grow_data(lex, &remaining,
+						   &curr, &prev);
+				if (result != ISC_R_SUCCESS)
+					goto done;
+			}
+			INSIST(remaining > 0U);
+			prev = curr;
+			*curr++ = c;
+			*curr = '\0';
+			remaining--;
 			break;
 		default:
 			FATAL_ERROR(__FILE__, __LINE__,
