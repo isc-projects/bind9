@@ -34,7 +34,9 @@
  * not already there.
  */
 isc_result_t
-isc___errno2result(int posixerrno, const char *file, unsigned int line) {
+isc___errno2result(int posixerrno, isc_boolean_t dolog,
+		   const char *file, unsigned int line)
+{
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {
@@ -111,10 +113,12 @@ isc___errno2result(int posixerrno, const char *file, unsigned int line) {
 	case ECONNREFUSED:
 		return (ISC_R_CONNREFUSED);
 	default:
-		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(file, line, "unable to convert errno "
-				 "to isc_result: %d: %s",
-				 posixerrno, strbuf);
+		if (dolog) {
+			isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(file, line, "unable to convert errno "
+					 "to isc_result: %d: %s",
+					 posixerrno, strbuf);
+		}
 		/*
 		 * XXXDCL would be nice if perhaps this function could
 		 * return the system's error string, so the caller
