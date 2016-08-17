@@ -1,3 +1,7 @@
+4446.	[bug]		The cache_find() and _findrdataset() functions
+			could find rdatasets that had been marked stale.
+			[RT #42853]
+
 4445.	[cleanup]	isc_errno_toresult() can now be used to call the
 			formerly private function isc__errno2result().
 			[RT #43050]
