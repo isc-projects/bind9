@@ -45,17 +45,14 @@ dns_dyndb_version_t dyndb_version;
  * dyndb example-name "sample.so" { param1 param2 };
  * @endcode
  *
- * @param[in] name User-defined string from dyndb "name" {}; definition
- *                 in named.conf.
- *                 The example above will have name = "example-name".
- * @param[in] argc Number of arg parameters
- *                 definition. The example above will have
- *                 argc = 2;
- * @param[in] argv User-defined strings from arg parameters in dyndb
- *                 definition. The example above will have
- *                 argv[0] = "param1";
- *                 argv[1] = "param2";
- * @param[out] instp Pointer to instance-specific data (for one dyndb section).
+ * @param[in] name        User-defined string from dyndb "name" {}; definition
+ *                        in named.conf.
+ *                        The example above will have name = "example-name".
+ * @param[in] parameters  User-defined parameters from dyndb section as one
+ *                        string. The example above will have
+ *                        params = "param1 param2";
+ * @param[out] instp      Pointer to instance-specific data
+ *                        (for one dyndb section).
  */
 isc_result_t
 dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
