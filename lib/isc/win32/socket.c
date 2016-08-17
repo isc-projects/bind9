@@ -2473,7 +2473,7 @@ SocketIoThread(LPVOID ThreadContext) {
 			 * Did the I/O operation complete?
 			 */
 			errstatus = GetLastError();
-			isc_result = isc__errno2resultx(errstatus, __FILE__, __LINE__);
+			isc_result = isc__errno2result(errstatus);
 
 			LOCK(&sock->lock);
 			CONSISTENT(sock);
@@ -2525,7 +2525,7 @@ SocketIoThread(LPVOID ThreadContext) {
 						goto wait_again;
 					} else {
 						errstatus = GetLastError();
-						isc_result = isc__errno2resultx(errstatus, __FILE__, __LINE__);
+						isc_result = isc__errno2result(errstatus);
 						socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
 							"restart_accept() failed: errstatus=%d isc_result=%d",
 							errstatus, isc_result);

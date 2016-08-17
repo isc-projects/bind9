@@ -1,3 +1,7 @@
+4445.	[cleanup]	isc_errno_toresult() can now be used to call the
+			formerly private function isc__errno2result().
+			[RT #43050]
+
 4443.	[func]		Set TCP_MAXSEG in addition to IPV6_USE_MIN_MTU on
 			TCP sockets. [RT #42864]
 
