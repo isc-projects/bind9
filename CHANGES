@@ -1,3 +1,12 @@
+4445.	[cleanup]	isc_errno_toresult() can now be used to call the
+			formerly private function isc__errno2result().
+			[RT #43050]
+
+4444.	[bug]		Fixed some issues related to dyndb: A bug caused
+			braces to be omitted when passing configuration text
+			from named.conf to a dyndb driver, and there was a
+			use-after-free in the sample dyndb driver. [RT #43050]
+
 4443.	[func]		Set TCP_MAXSEG in addition to IPV6_USE_MIN_MTU on
 			TCP sockets. [RT #42864]
 

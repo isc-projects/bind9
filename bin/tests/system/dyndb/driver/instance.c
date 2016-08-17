@@ -82,8 +82,13 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name,
 
 	CHECKED_MEM_GET_PTR(mctx, inst);
 	ZERO_PTR(inst);
-	inst->db_name = db_name; /* const during lifetime of inst */
 	isc_mem_attach(mctx, &inst->mctx);
+
+	inst->db_name = isc_mem_strdup(mctx, db_name);
+	if (inst->db_name == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
 
 	dns_fixedname_init(&inst->zone1_fn);
 	inst->zone1_name = dns_fixedname_name(&inst->zone1_fn);
@@ -137,6 +142,8 @@ destroy_sample_instance(sample_instance_t **instp) {
 	if (inst == NULL)
 		return;
 
+	if (inst->db_name != NULL)
+		isc_mem_free(inst->mctx, inst->db_name);
 	if (inst->zone1 != NULL)
 		dns_zone_detach(&inst->zone1);
 	if (inst->zone2 != NULL)

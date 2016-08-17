@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -33,7 +31,7 @@ SRCS =		isctest.c taskpool_test.c socket_test.c hash_test.c \
 		parse_test.c pool_test.c print_test.c regex_test.c \
 		socket_test.c safe_test.c time_test.c aes_test.c \
 		file_test.c buffer_test.c counter_test.c mem_test.c \
-		result_test.c ht_test.c
+		result_test.c ht_test.c errno_test.c
 
 SUBDIRS =
 TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
@@ -43,7 +41,8 @@ TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
 		print_test@EXEEXT@ regex_test@EXEEXT@ socket_test@EXEEXT@ \
 		safe_test@EXEEXT@ time_test@EXEEXT@ aes_test@EXEEXT@ \
 		file_test@EXEEXT@ buffer_test@EXEEXT@ counter_test@EXEEXT@ \
-		mem_test@EXEEXT@ result_test@EXEEXT@ ht_test@EXEEXT@
+		mem_test@EXEEXT@ result_test@EXEEXT@ ht_test@EXEEXT@ \
+		errno_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -139,6 +138,10 @@ result_test@EXEEXT@: result_test.@O@ ${ISCDEPLIBS}
 ht_test@EXEEXT@: ht_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			ht_test.@O@ ${ISCLIBS} ${LIBS}
+
+errno_test@EXEEXT@: errno_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			errno_test.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

@@ -13,7 +13,7 @@
 
 struct sample_instance {
 	isc_mem_t		*mctx;
-	const char		*db_name;
+	char			*db_name;
 	dns_dbimplementation_t	*db_imp;
 
 	/* These are needed for zone creation. */
