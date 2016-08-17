@@ -171,7 +171,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define cache_findrdataset cache_findrdataset64
 #define cache_findzonecut cache_findzonecut64
 #define cache_zonecut_callback cache_zonecut_callback64
-#define check_stale_rdataset check_stale_rdataset64
+#define check_stale_header check_stale_header64
 #define cleanup_dead_nodes cleanup_dead_nodes64
 #define cleanup_dead_nodes_callback cleanup_dead_nodes_callback64
 #define closeversion closeversion64
@@ -4529,9 +4529,9 @@ zone_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 }
 
 static isc_boolean_t
-check_stale_rdataset(dns_rbtnode_t *node, rdatasetheader_t *header,
-		     isc_rwlocktype_t *locktype, nodelock_t *lock,
-		     rbtdb_search_t *search, rdatasetheader_t **header_prev)
+check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
+		   isc_rwlocktype_t *locktype, nodelock_t *lock,
+		   rbtdb_search_t *search, rdatasetheader_t **header_prev)
 {
 
 #if !defined(ISC_RWLOCK_USEATOMIC) || !defined(DNS_RBT_USEISCREFCOUNT)
@@ -4618,9 +4618,9 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (check_stale_rdataset(node, header,
-					 &locktype, lock, search,
-					 &header_prev)) {
+		if (check_stale_header(node, header,
+				       &locktype, lock, search,
+				       &header_prev)) {
 			/* Do nothing. */
 		} else if (header->type == dns_rdatatype_dname &&
 			   EXISTS(header)) {
@@ -4692,9 +4692,9 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 		header_prev = NULL;
 		for (header = node->data; header != NULL; header = header_next) {
 			header_next = header->next;
-			if (check_stale_rdataset(node, header,
-						 &locktype, lock, search,
-						 &header_prev)) {
+			if (check_stale_header(node, header,
+					       &locktype, lock, search,
+					       &header_prev)) {
 				/* Do nothing. */
 			} else if (EXISTS(header)) {
 				/*
@@ -4829,9 +4829,9 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		header_prev = NULL;
 		for (header = node->data; header != NULL; header = header_next) {
 			header_next = header->next;
-			if (check_stale_rdataset(node, header,
-						 &locktype, lock, search,
-						 &header_prev)) {
+			if (check_stale_header(node, header,
+					       &locktype, lock, search,
+					       &header_prev)) {
 				continue;
 			}
 			if (NONEXISTENT(header) ||
@@ -5014,11 +5014,11 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (check_stale_rdataset(node, header,
-					 &locktype, lock, &search,
-					 &header_prev)) {
+		if (check_stale_header(node, header,
+				       &locktype, lock, &search,
+				       &header_prev)) {
 			/* Do nothing. */
-		} else if (EXISTS(header)) {
+		} else if (EXISTS(header) && (!STALE(header))) {
 			/*
 			 * We now know that there is at least one active
 			 * non-stale rdataset at this node.
@@ -5289,9 +5289,9 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
-		if (check_stale_rdataset(node, header,
-					 &locktype, lock, &search,
-					 &header_prev)) {
+		if (check_stale_header(node, header,
+				       &locktype, lock, &search,
+				       &header_prev)) {
 			/* Do nothing. */
 		} else if (EXISTS(header)) {
 			/*
@@ -5763,7 +5763,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 */
 				mark_stale_header(rbtdb, header);
 			}
-		} else if (EXISTS(header)) {
+		} else if (EXISTS(header) && (!STALE(header))) {
 			if (header->type == matchtype)
 				found = header;
 			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
