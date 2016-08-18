@@ -358,6 +358,23 @@ dns_ds_buildrdata
 dns_dsdigest_fromtext
 dns_dsdigest_format
 dns_dsdigest_totext
+@IF NOTYET
+dns_dt_attach
+dns_dt_close
+dns_dt_create
+dns_dt_datatotext
+dns_dt_detach
+dns_dt_getframe
+dns_dt_getstats
+dns_dt_open
+dns_dt_parse
+dns_dt_reopen
+dns_dt_send
+dns_dt_setidentity
+dns_dt_setversion
+dns_dt_shutdown
+dns_dtdata_free
+@END NOTYET
 dns_dumpctx_attach
 dns_dumpctx_cancel
 dns_dumpctx_db
@@ -367,22 +384,6 @@ dns_dyndb_load
 dns_dyndb_cleanup
 dns_dyndb_createctx
 dns_dyndb_destroyctx
-@IF NOTYET
-dns_dt_create
-dns_dt_setidentity
-dns_dt_setversion
-dns_dt_attach
-dns_dt_detach
-dns_dt_reopen
-dns_dt_shutdown
-dns_dt_send
-dns_dt_parse
-dns_dt_datatotext
-dns_dtdata_free
-dns_dt_open
-dns_dt_getframe
-dns_dt_close
-@END NOTYET
 dns_ecdb_register
 dns_ecdb_unregister
 dns_fwdtable_add
