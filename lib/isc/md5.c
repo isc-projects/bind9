@@ -36,6 +36,10 @@
 
 #include "config.h"
 
+#include <pk11/site.h>
+
+#ifndef PK11_MD5_DISABLE
+
 #include <isc/assertions.h>
 #include <isc/md5.h>
 #include <isc/platform.h>
@@ -328,3 +332,15 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	memset(ctx, 0, sizeof(isc_md5_t));	/* In case it's sensitive */
 }
 #endif
+
+#else /* !PK11_MD5_DISABLE */
+#ifdef WIN32
+/* Make the Visual Studio linker happy */
+#include <isc/util.h>
+
+void isc_md5_final() { INSIST(0); }
+void isc_md5_init() { INSIST(0); }
+void isc_md5_invalidate() { INSIST(0); }
+void isc_md5_update() { INSIST(0); }
+#endif
+#endif /* PK11_MD5_DISABLE */

@@ -139,7 +139,8 @@
           <para>
             Specifies the algorithm to use for the TSIG key.  Available
             choices are: hmac-md5, hmac-sha1, hmac-sha224, hmac-sha256,
-            hmac-sha384 and hmac-sha512.  The default is hmac-md5.
+            hmac-sha384 and hmac-sha512.  The default is hmac-md5 or
+            if MD5 was disabled hmac-sha256.
           </para>
         </listitem>
       </varlistentry>

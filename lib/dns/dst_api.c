@@ -58,6 +58,8 @@
 #include <isc/util.h>
 #include <isc/file.h>
 
+#include <pk11/site.h>
+
 #define DST_KEY_INTERNAL
 
 #include <dns/fixedname.h>
@@ -197,7 +199,9 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	dst_result_register();
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
+#ifndef PK11_MD5_DISABLE
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
+#endif
 	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
 	RETERR(dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]));
 	RETERR(dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]));
@@ -205,8 +209,10 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 #ifdef OPENSSL
 	RETERR(dst__openssl_init(engine));
+#ifndef PK11_MD5_DISABLE
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5],
 				    DST_ALG_RSAMD5));
+#endif
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
 				    DST_ALG_RSASHA1));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
@@ -215,11 +221,13 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 				    DST_ALG_RSASHA256));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512],
 				    DST_ALG_RSASHA512));
-#ifdef HAVE_OPENSSL_DSA
+#if defined(HAVE_OPENSSL_DSA) && !defined(PK11_DSA_DISABLE)
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
 #endif
+#ifndef PK11_DH_DISABLE
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
+#endif
 #ifdef HAVE_OPENSSL_GOST
 	RETERR(dst__opensslgost_init(&dst_t_func[DST_ALG_ECCGOST]));
 #endif
@@ -229,14 +237,20 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 #endif
 #elif PKCS11CRYPTO
 	RETERR(dst__pkcs11_init(mctx, engine));
+#ifndef PK11_MD5_DISABLE
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
+#endif
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
+#ifndef PK11_DSA_DISABLE
 	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
+#endif
+#ifndef PK11_DH_DISABLE
 	RETERR(dst__pkcs11dh_init(&dst_t_func[DST_ALG_DH]));
+#endif
 #ifdef HAVE_PKCS11_ECDSA
 	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
@@ -1062,8 +1076,10 @@ comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 	if (key1->key_id != key2->key_id) {
 		if (!match_revoked_key)
 			return (ISC_FALSE);
+#ifndef PK11_MD5_DISABLE
 		if (key1->key_alg == DST_ALG_RSAMD5)
 			return (ISC_FALSE);
+#endif
 		if ((key1->key_flags & DNS_KEYFLAG_REVOKE) ==
 		    (key2->key_flags & DNS_KEYFLAG_REVOKE))
 			return (ISC_FALSE);
@@ -1226,17 +1242,21 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
 		*n = (key->key_size + 7) / 8;
 		break;
+#ifndef PK11_DSA_DISABLE
 	case DST_ALG_DSA:
 	case DST_ALG_NSEC3DSA:
 		*n = DNS_SIG_DSASIGSIZE;
 		break;
+#endif
 	case DST_ALG_ECCGOST:
 		*n = DNS_SIG_GOSTSIGSIZE;
 		break;
@@ -1246,9 +1266,11 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_ECDSA384:
 		*n = DNS_SIG_ECDSA384SIZE;
 		break;
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
 		*n = 16;
 		break;
+#endif
 	case DST_ALG_HMACSHA1:
 		*n = ISC_SHA1_DIGESTLENGTH;
 		break;
@@ -1267,7 +1289,9 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_GSSAPI:
 		*n = 128; /*%< XXX */
 		break;
+#ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
+#endif
 	default:
 		return (DST_R_UNSUPPORTEDALG);
 	}
@@ -1280,11 +1304,15 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
 
+#ifndef PK11_DH_DISABLE
 	if (key->key_alg == DST_ALG_DH)
 		*n = (key->key_size + 7) / 8;
 	else
+#endif
 		return (DST_R_UNSUPPORTEDALG);
+#ifndef PK11_DH_DISABLE
 	return (ISC_R_SUCCESS);
+#endif
 }
 
 /*%
@@ -1563,19 +1591,27 @@ issymmetric(const dst_key_t *key) {
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
+#ifndef PK11_DSA_DISABLE
 	case DST_ALG_DSA:
 	case DST_ALG_NSEC3DSA:
+#endif
+#ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
+#endif
 	case DST_ALG_ECCGOST:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 		return (ISC_FALSE);
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
+#endif
 	case DST_ALG_HMACSHA1:
 	case DST_ALG_HMACSHA224:
 	case DST_ALG_HMACSHA256:

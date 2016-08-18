@@ -47,6 +47,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/time.h>
 #include <dns/log.h>
 
@@ -95,16 +97,20 @@ static struct parse_map map[] = {
 	{TAG_RSA_ENGINE, "Engine:" },
 	{TAG_RSA_LABEL, "Label:" },
 
+#ifndef PK11_DH_DISABLE
 	{TAG_DH_PRIME, "Prime(p):"},
 	{TAG_DH_GENERATOR, "Generator(g):"},
 	{TAG_DH_PRIVATE, "Private_value(x):"},
 	{TAG_DH_PUBLIC, "Public_value(y):"},
+#endif
 
+#ifndef PK11_DSA_DISABLE
 	{TAG_DSA_PRIME, "Prime(p):"},
 	{TAG_DSA_SUBPRIME, "Subprime(q):"},
 	{TAG_DSA_BASE, "Base(g):"},
 	{TAG_DSA_PRIVATE, "Private_value(x):"},
 	{TAG_DSA_PUBLIC, "Public_value(y):"},
+#endif
 
 	{TAG_GOST_PRIVASN1, "GostAsn1:"},
 	{TAG_GOST_PRIVRAW, "PrivateKey:"},
@@ -113,8 +119,10 @@ static struct parse_map map[] = {
 	{TAG_ECDSA_ENGINE, "Engine:" },
 	{TAG_ECDSA_LABEL, "Label:" },
 
+#ifndef PK11_MD5_DISABLE
 	{TAG_HMACMD5_KEY, "Key:"},
 	{TAG_HMACMD5_BITS, "Bits:"},
+#endif
 
 	{TAG_HMACSHA1_KEY, "Key:"},
 	{TAG_HMACSHA1_BITS, "Bits:"},
@@ -222,6 +230,7 @@ check_rsa(const dst_private_t *priv, isc_boolean_t external) {
 	return (ok ? 0 : -1 );
 }
 
+#ifndef PK11_DH_DISABLE
 static int
 check_dh(const dst_private_t *priv) {
 	int i, j;
@@ -236,7 +245,9 @@ check_dh(const dst_private_t *priv) {
 	}
 	return (0);
 }
+#endif
 
+#ifndef PK11_DSA_DISABLE
 static int
 check_dsa(const dst_private_t *priv, isc_boolean_t external) {
 	int i, j;
@@ -256,6 +267,7 @@ check_dsa(const dst_private_t *priv, isc_boolean_t external) {
 	}
 	return (0);
 }
+#endif
 
 static int
 check_gost(const dst_private_t *priv, isc_boolean_t external) {
@@ -303,6 +315,7 @@ check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 	return (ok ? 0 : -1 );
 }
 
+#ifndef PK11_MD5_DISABLE
 static int
 check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 	int i, j;
@@ -329,6 +342,7 @@ check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 	}
 	return (0);
 }
+#endif
 
 static int
 check_hmac_sha(const dst_private_t *priv, unsigned int ntags,
@@ -351,26 +365,37 @@ static int
 check_data(const dst_private_t *priv, const unsigned int alg,
 	   isc_boolean_t old, isc_boolean_t external)
 {
+#ifdef PK11_MD5_DISABLE
+	UNUSED(old);
+#endif
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (alg) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
 		return (check_rsa(priv, external));
+#ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
 		return (check_dh(priv));
+#endif
+#ifndef PK11_DSA_DISABLE
 	case DST_ALG_DSA:
 	case DST_ALG_NSEC3DSA:
 		return (check_dsa(priv, external));
+#endif
 	case DST_ALG_ECCGOST:
 		return (check_gost(priv, external));
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 		return (check_ecdsa(priv, external));
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
 		return (check_hmac_md5(priv, old));
+#endif
 	case DST_ALG_HMACSHA1:
 		return (check_hmac_sha(priv, HMACSHA1_NTAGS, alg));
 	case DST_ALG_HMACSHA224:

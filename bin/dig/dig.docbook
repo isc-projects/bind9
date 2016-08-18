@@ -402,7 +402,8 @@
 	    <literal>hmac-sha1</literal>, <literal>hmac-sha224</literal>,
 	    <literal>hmac-sha256</literal>, <literal>hmac-sha384</literal>, or
 	    <literal>hmac-sha512</literal>.  If <parameter>hmac</parameter>
-	    is not specified, the default is <literal>hmac-md5</literal>.
+	    is not specified, the default is <literal>hmac-md5</literal>
+	    or if MD5 was disabled <literal>hmac-sha256</literal>.
 	  </para>
 	  <para>
 	    NOTE: You should use the <option>-k</option> option and

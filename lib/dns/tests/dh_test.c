@@ -27,6 +27,8 @@
 #include <isc/util.h>
 #include <isc/string.h>
 
+#include <pk11/site.h>
+
 #include <dns/name.h>
 #include <dst/result.h>
 
@@ -34,7 +36,7 @@
 
 #include "dnstest.h"
 
-#ifdef OPENSSL
+#if defined(OPENSSL) && !defined(PK11_DH_DISABLE)
 
 ATF_TC(isc_dh_computesecret);
 ATF_TC_HEAD(isc_dh_computesecret, tc) {
@@ -88,7 +90,7 @@ ATF_TC_BODY(untested, tc) {
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-#ifdef OPENSSL
+#if defined(OPENSSL) && !defined(PK11_DH_DISABLE)
 	ATF_TP_ADD_TC(tp, isc_dh_computesecret);
 #else
 	ATF_TP_ADD_TC(tp, untested);

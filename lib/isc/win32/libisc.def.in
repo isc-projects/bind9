@@ -774,4 +774,7 @@ isc_commandline_option		DATA
 isc_commandline_progname	DATA
 isc_commandline_reset		DATA
 isc_mem_debugging		DATA
+@IF PKCS11
+pk11_verbose_init		DATA
+@END PKCS11
 @END NOLONGER

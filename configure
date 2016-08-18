@@ -16604,6 +16604,8 @@ case "$want_native_pkcs11" in
 	yes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using native PKCS11 crypto" >&5
 $as_echo "using native PKCS11 crypto" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: tweaks are in lib/isc/include/pk11/site.h" >&5
+$as_echo "tweaks are in lib/isc/include/pk11/site.h" >&6; }
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
 		PKCS11_TEST=pkcs11

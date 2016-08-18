@@ -43,6 +43,10 @@
 #ifndef ISC_MD5_H
 #define ISC_MD5_H 1
 
+#include <pk11/site.h>
+
+#ifndef PK11_MD5_DISABLE
+
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
@@ -84,5 +88,7 @@ void
 isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 
 ISC_LANG_ENDDECLS
+
+#endif /* !PK11_MD5_DISABLE */
 
 #endif /* ISC_MD5_H */

@@ -28,6 +28,8 @@
 #include <isc/stdio.h>
 #include <isc/stdtime.h>
 
+#include <pk11/site.h>
+
 #include <dns/types.h>
 #include <dns/name.h>
 
@@ -36,8 +38,10 @@
 /*
  * Algorithms.
  */
+#ifndef PK11_MD5_DISABLE
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
+#endif
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME		dns_tsig_gssapi_name
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapims_name;

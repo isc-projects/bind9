@@ -32,6 +32,8 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
@@ -1637,7 +1639,11 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ptr = ptr2;
 			ptr2 = ptr3;
 		} else  {
+#ifndef PK11_MD5_DISABLE
 			hmacname = DNS_TSIG_HMACMD5_NAME;
+#else
+			hmacname = DNS_TSIG_HMACSHA256_NAME;
+#endif
 			digestbits = 0;
 		}
 		strncpy(keynametext, ptr, sizeof(keynametext));

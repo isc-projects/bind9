@@ -41,6 +41,8 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <isccfg/namedconf.h>
 
 #include <isccc/alist.h>
@@ -595,9 +597,12 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	secretstr = cfg_obj_asstring(secretobj);
 	algorithmstr = cfg_obj_asstring(algorithmobj);
 
+#ifndef PK11_MD5_DISABLE
 	if (strcasecmp(algorithmstr, "hmac-md5") == 0)
 		algorithm = ISCCC_ALG_HMACMD5;
-	else if (strcasecmp(algorithmstr, "hmac-sha1") == 0)
+	else
+#endif
+	if (strcasecmp(algorithmstr, "hmac-sha1") == 0)
 		algorithm = ISCCC_ALG_HMACSHA1;
 	else if (strcasecmp(algorithmstr, "hmac-sha224") == 0)
 		algorithm = ISCCC_ALG_HMACSHA224;

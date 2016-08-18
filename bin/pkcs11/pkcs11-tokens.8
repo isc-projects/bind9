@@ -47,7 +47,7 @@
 pkcs11-tokens \- list PKCS#11 available tokens
 .SH "SYNOPSIS"
 .HP \w'\fBpkcs11\-tokens\fR\ 'u
-\fBpkcs11\-tokens\fR [\fB\-m\ \fR\fB\fImodule\fR\fR]
+\fBpkcs11\-tokens\fR [\fB\-m\ \fR\fB\fImodule\fR\fR] [\fB\-v\fR]
 .SH "DESCRIPTION"
 .PP
 \fBpkcs11\-tokens\fR
@@ -57,6 +57,11 @@ lists the PKCS#11 available tokens with defaults from the slot/token scan perfor
 \-m \fImodule\fR
 .RS 4
 Specify the PKCS#11 provider module\&. This must be the full path to a shared library object implementing the PKCS#11 API for the device\&.
+.RE
+.PP
+\-e
+.RS 4
+Make the PKCS#11 libisc initialization verbose\&.
 .RE
 .SH "SEE ALSO"
 .PP

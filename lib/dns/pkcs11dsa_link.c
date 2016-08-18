@@ -18,6 +18,10 @@
 
 #include <config.h>
 
+#include <pk11/site.h>
+
+#ifndef PK11_DSA_DISABLE
+
 #include <string.h>
 
 #include <isc/entropy.h>
@@ -1106,6 +1110,7 @@ dst__pkcs11dsa_init(dst_func_t **funcp) {
 		*funcp = &pkcs11dsa_functions;
 	return (ISC_R_SUCCESS);
 }
+#endif /* !PK11_DSA_DISABLE */
 
 #else /* PKCS11CRYPTO */
 

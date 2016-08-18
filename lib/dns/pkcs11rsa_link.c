@@ -36,6 +36,7 @@
 #include "dst_pkcs11.h"
 
 #include <pk11/internal.h>
+#include <pk11/site.h>
 
 /*
  * Limit the size of public exponents.
@@ -84,11 +85,18 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret;
 	unsigned int i;
 
+#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
+#else
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
+		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
+		key->key_alg == DST_ALG_RSASHA256 ||
+		key->key_alg == DST_ALG_RSASHA512);
+#endif
 
 	rsa = key->keydata.pkey;
 
@@ -208,9 +216,11 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
     token_key:
 
 	switch (dctx->key->key_alg) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		mech.mechanism = CKM_MD5_RSA_PKCS;
 		break;
+#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
@@ -284,11 +294,18 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	isc_result_t ret;
 	unsigned int i;
 
+#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
+#else
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
+		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
+		key->key_alg == DST_ALG_RSASHA256 ||
+		key->key_alg == DST_ALG_RSASHA512);
+#endif
 
 	rsa = key->keydata.pkey;
 
@@ -340,9 +357,11 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		 ISC_R_FAILURE);
 
 	switch (dctx->key->key_alg) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		mech.mechanism = CKM_MD5_RSA_PKCS;
 		break;
+#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
