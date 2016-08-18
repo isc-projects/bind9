@@ -1,3 +1,6 @@
+4448.	[bug]		win32: ::1 was not being found when iterating
+			interfaces. [RT #42993]
+
 4445.	[cleanup]	isc_errno_toresult() can now be used to call the
 			formerly private function isc__errno2result().
 			[RT #43050]
