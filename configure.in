@@ -2082,6 +2082,7 @@ AC_SUBST(PKCS11_PROVIDER)
 
 PKCS11_ECDSA=""
 PKCS11_GOST=""
+set_pk11_flavor="no"
 AC_MSG_CHECKING(for native PKCS11)
 
 case "$want_native_pkcs11" in
@@ -2114,6 +2115,42 @@ case "$want_native_pkcs11" in
 			AC_MSG_RESULT(disabled)
 			;;
 		esac
+		AC_MSG_CHECKING(for PKCS11 flavor)
+		case "$PKCS11_PROVIDER" in
+			*nfast*)
+				AC_MSG_RESULT(Thales nCipher)
+				# default
+				pk11_flavor="PK11_THALES_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*libsofthsm2*)
+				AC_MSG_RESULT(SoftHSMv2)
+				pk11_flavor="PK11_SOFTHSMV2_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*libsofthsm*)
+				AC_MSG_RESULT(SoftHSM)
+				pk11_flavor="PK11_SOFTHSMV1_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*cryptech*)
+				AC_MSG_RESULT(Cryptech)
+				pk11_flavor="PK11_CRYPTECH_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*Keyper*)
+				AC_MSG_RESULT(AEP Keyper: not yet supported)
+				;;
+			undefined)
+				AC_MSG_RESULT(undefined provider?)
+				;;
+			*)
+				AC_MSG_RESULT(unknown provider: tweaks are in lib/isc/include/pk11/site.h)
+				;;
+		esac
+		if test "$set_pk11_flavor" = "yes" ; then
+			CFLAGS="$CFLAGS -DPK11_FLAVOR=$pk11_flavor"
+		fi
 		;;
 	no|'')
 		AC_MSG_RESULT(disabled)

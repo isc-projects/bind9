@@ -15,6 +15,10 @@
 
 #include "config.h"
 
+#include <pk11/site.h>
+
+#ifndef PK11_MD5_DISABLE
+
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
 #include <isc/md5.h>
@@ -24,7 +28,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if PKCS11CRYPTO || PKCS11CRYPTOWITHHMAC
+#if PKCS11CRYPTO
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
@@ -69,7 +73,9 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	HMAC_CTX_cleanup(ctx);
 }
 
-#elif PKCS11CRYPTOWITHHMAC
+#elif PKCS11CRYPTO
+
+#ifndef PK11_MD5_HMAC_REPLACE
 
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
@@ -142,8 +148,8 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 }
-
-#elif PKCS11CRYPTO
+#else
+/* Replace missing CKM_MD5_HMAC PKCS#11 mechanism */
 
 #define PADLEN 64
 #define IPAD 0x36
@@ -229,6 +235,7 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 			 (CK_ULONG_PTR) &len));
 	pk11_return_session(ctx);
 }
+#endif
 
 #else
 
@@ -319,3 +326,17 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 	isc_hmacmd5_sign(ctx, newdigest);
 	return (isc_safe_memequal(digest, newdigest, len));
 }
+
+#else /* !PK11_MD5_DISABLE */
+#ifdef WIN32
+/* Make the Visual Studio linker happy */
+#include <isc/util.h>
+
+void isc_hmacmd5_init() { INSIST(0); }
+void isc_hmacmd5_invalidate() { INSIST(0); }
+void isc_hmacmd5_sign() { INSIST(0); }
+void isc_hmacmd5_update() { INSIST(0); }
+void isc_hmacmd5_verify() { INSIST(0); }
+void isc_hmacmd5_verify2() { INSIST(0); }
+#endif
+#endif /* PK11_MD5_DISABLE */

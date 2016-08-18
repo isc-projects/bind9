@@ -20,6 +20,7 @@
 		 ((pk11_error_fatalcheck)(__FILE__, __LINE__, #func, rv), 0)))
 
 #include <pkcs11/cryptoki.h>
+#include <pk11/site.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -45,7 +46,9 @@ struct pk11_context {
 	CK_SESSION_HANDLE	session;
 	CK_BBOOL		ontoken;
 	CK_OBJECT_HANDLE	object;
-#ifndef PKCS11CRYPTOWITHHMAC
+#if defined(PK11_MD5_HMAC_REPLACE) ||  defined(PK11_SHA_1_HMAC_REPLACE) || \
+    defined(PK11_SHA224_HMAC_REPLACE) || defined(PK11_SHA256_HMAC_REPLACE) || \
+    defined(PK11_SHA384_HMAC_REPLACE) || defined(PK11_SHA512_HMAC_REPLACE)
 	unsigned char		*key;
 #endif
 };
@@ -64,6 +67,11 @@ typedef enum {
 	OP_AES = 8,
 	OP_MAX = 9
 } pk11_optype_t;
+
+/*%
+ * Global flag to make choose_slots() verbose
+ */
+LIBISC_EXTERNAL_DATA extern isc_boolean_t pk11_verbose_init;
 
 /*%
  * Function prototypes

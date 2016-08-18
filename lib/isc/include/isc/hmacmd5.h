@@ -16,6 +16,10 @@
 #ifndef ISC_HMACMD5_H
 #define ISC_HMACMD5_H 1
 
+#include <pk11/site.h>
+
+#ifndef PK11_MD5_DISABLE
+
 #include <isc/lang.h>
 #include <isc/md5.h>
 #include <isc/platform.h>
@@ -64,5 +68,7 @@ isc_boolean_t
 isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len);
 
 ISC_LANG_ENDDECLS
+
+#endif /* !PK11_MD5_DISABLE */
 
 #endif /* ISC_HMACMD5_H */

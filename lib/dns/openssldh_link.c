@@ -29,6 +29,10 @@
 
 #include <config.h>
 
+#include <pk11/site.h>
+
+#ifndef PK11_DH_DISABLE
+
 #include <ctype.h>
 
 #include <isc/mem.h>
@@ -689,6 +693,7 @@ dst__openssldh_init(dst_func_t **funcp) {
 	if (bn1536 != NULL) BN_free(bn1536);
 	return (ISC_R_NOMEMORY);
 }
+#endif /* !PK11_DH_DISABLE */
 
 #else /* OPENSSL */
 
