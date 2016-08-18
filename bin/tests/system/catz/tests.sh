@@ -79,9 +79,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom1.example is served by slave ($n)"
-ret=0
-$DIG soa dom1.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom1.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -216,9 +220,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom4.example is served by slave ($n)"
-ret=0
-$DIG soa dom4.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom4.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -276,9 +284,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom3.example is served by slave ($n)"
-ret=0
-$DIG soa dom3.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom3.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -358,9 +370,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom5.example is served by slave ($n)"
-ret=0
-$DIG soa dom5.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom5.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -445,9 +461,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom6.example is served by slave ($n)"
-ret=0
-$DIG soa dom6.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom6.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1002,9 +1022,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom11.example is served by slave ($n)"
-ret=0
-$DIG soa dom11.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom11.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1074,9 +1098,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that subdomain.of.dom11.example is served by slave ($n)"
-ret=0
-$DIG soa subdomain.of.dom11.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa subdomain.of.dom11.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1246,9 +1274,13 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom12.example is served by slave ($n)"
-ret=0
-$DIG soa dom12.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom12.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1706,9 +1738,13 @@ sleep 3
 
 n=`expr $n + 1`
 echo "I: checking that dom15.example is served by slave($n)"
-ret=0
-$DIG soa dom15.example @10.53.0.2 -p 5300 > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG soa dom15.example @10.53.0.2 -p 5300 > dig.out.test$n
+    ret=0
+    grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    [ $ret -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
