@@ -12,6 +12,8 @@
 
 #include <isc/mem.h>
 
+#include <pk11/site.h>
+
 #include <dns/tsec.h>
 #include <dns/tsig.h>
 #include <dns/result.h>
@@ -57,9 +59,11 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 	switch (type) {
 	case dns_tsectype_tsig:
 		switch (dst_key_alg(key)) {
+#ifndef PK11_MD5_DISABLE
 		case DST_ALG_HMACMD5:
 			algname = dns_tsig_hmacmd5_name;
 			break;
+#endif
 		case DST_ALG_HMACSHA1:
 			algname = dns_tsig_hmacsha1_name;
 			break;

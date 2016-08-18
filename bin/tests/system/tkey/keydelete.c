@@ -26,6 +26,8 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -220,12 +222,17 @@ main(int argc, char **argv) {
 	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
 	result = dst_key_fromnamedfile(keyname, NULL, type, mctx, &dstkey);
 	CHECK("dst_key_fromnamedfile", result);
+#ifndef PK11_MD5_DISABLE
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,
 					   dstkey, ISC_TRUE, NULL, 0, 0,
 					   mctx, ring, &tsigkey);
 	dst_key_free(&dstkey);
 	CHECK("dns_tsigkey_createfromkey", result);
+#else
+	dst_key_free(&dstkey);
+	CHECK("MD5 was disabled", ISC_R_NOTIMPLEMENTED);
+#endif
 
 	(void)isc_app_run();
 

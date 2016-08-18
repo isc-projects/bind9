@@ -40,6 +40,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <isccfg/namedconf.h>
 
 #include <dns/callbacks.h>
@@ -451,6 +453,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 	strncpy(buf, hmacstr, len);
 	buf[len] = 0;
 
+#ifndef PK11_MD5_DISABLE
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
@@ -459,7 +462,9 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 		if (result != ISC_R_SUCCESS || digestbits > 128)
 			fatal("digest-bits out of range [0..128]");
 		digestbits = (digestbits +7) & ~0x7U;
-	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
+	} else
+#endif
+	if (strcasecmp(buf, "hmac-sha1") == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
@@ -549,7 +554,11 @@ setup_keystr(void) {
 		secretstr = n + 1;
 		digestbits = parse_hmac(&hmacname, keystr, s - keystr);
 	} else {
+#ifndef PK11_MD5_DISABLE
 		hmacname = DNS_TSIG_HMACMD5_NAME;
+#else
+		hmacname = DNS_TSIG_HMACSHA256_NAME;
+#endif
 		name = keystr;
 		n = s;
 	}
@@ -683,9 +692,11 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 
 	switch (dst_key_alg(dstkey)) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		break;
+#endif
 	case DST_ALG_HMACSHA1:
 		hmacname = DNS_TSIG_HMACSHA1_NAME;
 		break;
@@ -1541,7 +1552,11 @@ evaluate_key(char *cmdline) {
 		digestbits = parse_hmac(&hmacname, namestr, n - namestr);
 		namestr = n + 1;
 	} else
+#ifndef PK11_MD5_DISABLE
 		hmacname = DNS_TSIG_HMACMD5_NAME;
+#else
+		hmacname = DNS_TSIG_HMACSHA256_NAME;
+#endif
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));

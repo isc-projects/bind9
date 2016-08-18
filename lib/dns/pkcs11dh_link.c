@@ -10,6 +10,10 @@
 
 #include <config.h>
 
+#include <pk11/site.h>
+
+#ifndef PK11_DH_DISABLE
+
 #include <ctype.h>
 
 #include <isc/mem.h>
@@ -1119,6 +1123,7 @@ dst__pkcs11dh_init(dst_func_t **funcp) {
 		*funcp = &pkcs11dh_functions;
 	return (ISC_R_SUCCESS);
 }
+#endif /* !PK11_DH_DISABLE */
 
 #else /* PKCS11CRYPTO */
 

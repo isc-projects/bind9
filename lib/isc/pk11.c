@@ -26,6 +26,7 @@
 #include <pk11/pk11.h>
 #include <pk11/internal.h>
 #include <pk11/result.h>
+#include <pk11/site.h>
 
 #include <pkcs11/cryptoki.h>
 #include <pkcs11/pkcs11.h>
@@ -38,6 +39,8 @@
 #ifndef PK11_NO_LOGERR
 #define PK11_NO_LOGERR 1
 #endif
+
+LIBISC_EXTERNAL_DATA isc_boolean_t pk11_verbose_init = ISC_FALSE;
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mem_t *pk11_mctx = NULL;
@@ -555,6 +558,15 @@ token_login(pk11_session_t *sp) {
 	return (ret);
 }
 
+#define PK11_TRACE(fmt) \
+	if (pk11_verbose_init) fprintf(stderr, fmt)
+#define PK11_TRACE1(fmt, arg) \
+	if (pk11_verbose_init) fprintf(stderr, fmt, arg)
+#define PK11_TRACE2(fmt, arg1, arg2) \
+	if (pk11_verbose_init) fprintf(stderr, fmt, arg1, arg2)
+#define PK11_TRACEM(mech) \
+	if (pk11_verbose_init) fprintf(stderr, #mech ": 0x%lx\n", rv)
+
 static void
 scan_slots(void) {
 	CK_MECHANISM_INFO mechInfo;
@@ -565,9 +577,11 @@ scan_slots(void) {
 	CK_ULONG slotCount;
 	pk11_token_t *token;
 	unsigned int i;
+	isc_boolean_t bad;
 
 	slotCount = 0;
 	PK11_FATALCHECK(pkcs_C_GetSlotList, (CK_FALSE, NULL_PTR, &slotCount));
+	PK11_TRACE1("slotCount=%lu\n", slotCount);
 	/* it's not an error if we didn't find any providers */
 	if (slotCount == 0)
 		return;
@@ -577,6 +591,7 @@ scan_slots(void) {
 
 	for (i = 0; i < slotCount; i++) {
 		slot = slotList[i];
+		PK11_TRACE2("slot#%u=0x%lx\n", i, slot);
 
 		rv = pkcs_C_GetTokenInfo(slot, &tokenInfo);
 		if (rv != CKR_OK)
@@ -592,167 +607,266 @@ scan_slots(void) {
 		memmove(token->model, tokenInfo.model, 16);
 		memmove(token->serial, tokenInfo.serialNumber, 16);
 		ISC_LIST_APPEND(tokens, token, link);
-		if ((tokenInfo.flags & CKF_RNG) == 0)
+		if ((tokenInfo.flags & CKF_RNG) == 0) {
+			PK11_TRACE("no CKF_RNG\n");
 			goto try_rsa;
+		}
 		token->operations |= 1 << OP_RAND;
 		if (rand_token == NULL)
 			rand_token = token;
 
 	try_rsa:
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			goto try_dsa;
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_RSA_PKCS_KEY_PAIR_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_RSA_PKCS,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
-			goto try_dsa;
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifndef PK11_MD5_DISABLE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_MD5_RSA_PKCS);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA1_RSA_PKCS,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
-			goto try_dsa;
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_RSA_PKCS,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
-			goto try_dsa;
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA256_RSA_PKCS);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_RSA_PKCS,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA512_RSA_PKCS);
+		}
+		if (bad)
 			goto try_dsa;
 		token->operations |= 1 << OP_RSA;
 		if (best_rsa_token == NULL)
 			best_rsa_token = token;
 
 	try_dsa:
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_PARAMETER_GEN,
 					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0))
-			goto try_dh;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
+#ifndef PK11_DSA_PARAMETER_GEN_SKIP
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			goto try_dh;
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_SHA1, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_DSA_SHA1);
+		}
+		if (bad)
 			goto try_dh;
+#ifndef PK11_DSA_DISABLE
 		token->operations |= 1 << OP_DSA;
 		if (best_dsa_token == NULL)
 			best_dsa_token = token;
+#endif
 
 	try_dh:
-#ifdef notdef
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_PARAMETER_GEN,
 					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0))
-			goto try_digest;
-#endif
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
+			PK11_TRACEM(CKM_DH_PKCS_PARAMETER_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			goto try_digest;
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+#ifndef PK11_DH_PKCS_PARAMETER_GEN_SKIP
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_DH_PKCS_KEY_PAIR_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_DERIVE,
 					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DERIVE) == 0))
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DERIVE) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_DH_PKCS_DERIVE);
+		}
+		if (bad)
 			goto try_digest;
+#ifndef PK11_DH_DISABLE
 		token->operations |= 1 << OP_DH;
 		if (best_dh_token == NULL)
 			best_dh_token = token;
+#endif
 
 	try_digest:
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			continue;
-#ifdef PKCS11CRYPTOWITHHMAC
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+#ifndef PK11_MD5_DISABLE
+			bad = ISC_TRUE;
 #endif
+			PK11_TRACEM(CKM_MD5);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA_1);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA224);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA256);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA384);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_SHA512);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_HMAC, &mechInfo);
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#if !defined(PK11_MD5_DISABLE) && !defined(PK11_MD5_HMAC_REPLACE)
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_MD5_HMAC);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA_1_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_SHA_1_HMAC);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA224_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_SHA224_HMAC);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA256_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_SHA256_HMAC);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA384_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_SHA384_HMAC);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0))
-			continue;
-		token->operations |= 1 << OP_DIGEST;
-		if (digest_token == NULL)
-			digest_token = token;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA512_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_SHA512_HMAC);
+		}
+		if (!bad) {
+			token->operations |= 1 << OP_DIGEST;
+			if (digest_token == NULL)
+				digest_token = token;
+		}
 
 		/* ECDSA requires digest */
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EC_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			goto try_gost;
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_EC_KEY_PAIR_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_ECDSA, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_ECDSA);
+		}
+		if (bad)
 			goto try_gost;
 		token->operations |= 1 << OP_EC;
 		if (best_ec_token == NULL)
 			best_ec_token = token;
 
 	try_gost:
+		bad = ISC_FALSE;
 		/* does GOST require digest too? */
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3411, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0))
-			goto try_aes;
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_GOSTR3411);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3410_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0))
-			goto try_aes;
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_GOSTR3410_KEY_PAIR_GEN);
+		}
 		rv = pkcs_C_GetMechanismInfo(slot,
 					     CKM_GOSTR3410_WITH_GOSTR3411,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0))
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_GOSTR3410_WITH_GOSTR3411);
+		}
+		if (bad)
 			goto try_aes;
 		token->operations |= 1 << OP_GOST;
 		if (best_gost_token == NULL)
 			best_gost_token = token;
 
 	try_aes:
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_AES_ECB, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0))
+		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_AES_ECB);
+		}
+		if (bad)
 			continue;
 		token->operations |= 1 << OP_AES;
 		if (aes_token == NULL)
@@ -1228,6 +1342,12 @@ pk11_dump_tokens(void)
 				printf(",");
 			first = ISC_FALSE;
 			printf("EC");
+		}
+		if (token->operations & (1 << OP_AES)) {
+			if (!first)
+				printf(",");
+			first = ISC_FALSE;
+			printf("AES");
 		}
 		printf(")\n");
 	}

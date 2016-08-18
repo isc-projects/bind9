@@ -31,6 +31,8 @@
 #include <isc/symtab.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/acl.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
@@ -2427,9 +2429,11 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	isc_buffer_t buf;
 	unsigned char secretbuf[1024];
 	static const algorithmtable algorithms[] = {
+#ifndef PK11_MD5_DISABLE
 		{ "hmac-md5", 128 },
 		{ "hmac-md5.sig-alg.reg.int", 0 },
 		{ "hmac-md5.sig-alg.reg.int.", 0 },
+#endif
 		{ "hmac-sha1", 160 },
 		{ "hmac-sha224", 224 },
 		{ "hmac-sha256", 256 },

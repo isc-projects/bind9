@@ -82,6 +82,8 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <isccfg/namedconf.h>
 
 #include <lwres/lwres.h>
@@ -1142,12 +1144,15 @@ parse_hmac(const char *hmac) {
 
 	digestbits = 0;
 
+#ifndef PK11_MD5_DISABLE
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		digestbits = parse_bits(&buf[9], "digest-bits [0..128]", 128);
-	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
+	} else
+#endif
+	if (strcasecmp(buf, "hmac-sha1") == 0) {
 		hmacname = DNS_TSIG_HMACSHA1_NAME;
 		digestbits = 0;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
@@ -1260,9 +1265,11 @@ setup_file_key(void) {
 	}
 
 	switch (dst_key_alg(dstkey)) {
+#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		break;
+#endif
 	case DST_ALG_HMACSHA1:
 		hmacname = DNS_TSIG_HMACSHA1_NAME;
 		break;

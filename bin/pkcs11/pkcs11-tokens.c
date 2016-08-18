@@ -38,10 +38,13 @@ main(int argc, char *argv[]) {
 	isc_mem_t *mctx = NULL;
 	pk11_context_t pctx;
 
-	while ((c = isc_commandline_parse(argc, argv, ":m:")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, ":m:v")) != -1) {
 		switch (c) {
 		case 'm':
 			lib_name = isc_commandline_argument;
+			break;
+		case 'v':
+			pk11_verbose_init = ISC_TRUE;
 			break;
 		case ':':
 			fprintf(stderr, "Option -%c requires an operand\n",
@@ -58,7 +61,7 @@ main(int argc, char *argv[]) {
 
 	if (errflg) {
 		fprintf(stderr, "Usage:\n");
-		fprintf(stderr, "\tpkcs11-tokens [-m module]\n");
+		fprintf(stderr, "\tpkcs11-tokens [-v] [-m module]\n");
 		exit(1);
 	}
 
@@ -73,7 +76,7 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	result = pk11_get_session(&pctx, OP_ANY, ISC_FALSE, ISC_FALSE,
+	result = pk11_get_session(&pctx, OP_ANY, ISC_TRUE, ISC_FALSE,
 				  ISC_FALSE, NULL, 0);
 	if (result == PK11_R_NORANDOMSERVICE ||
 	    result == PK11_R_NODIGESTSERVICE ||
@@ -81,7 +84,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr, "Warning: %s\n", isc_result_totext(result));
 		fprintf(stderr, "This HSM will not work with BIND 9 "
 				"using native PKCS#11.\n\n");
-	} else if (result != ISC_R_SUCCESS) {
+	} else if ((result != ISC_R_SUCCESS) && (result != ISC_R_NOTFOUND)) {
 		fprintf(stderr, "Unrecoverable error initializing "
 				"PKCS#11: %s\n", isc_result_totext(result));
 		exit(1);

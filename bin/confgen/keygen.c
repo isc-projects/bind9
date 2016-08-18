@@ -25,6 +25,8 @@
 #include <isc/result.h>
 #include <isc/string.h>
 
+#include <pk11/site.h>
+
 #include <dns/keyvalues.h>
 #include <dns/name.h>
 
@@ -40,8 +42,10 @@
 const char *
 alg_totext(dns_secalg_t alg) {
 	switch (alg) {
+#ifndef PK11_MD5_DISABLE
 	    case DST_ALG_HMACMD5:
 		return "hmac-md5";
+#endif
 	    case DST_ALG_HMACSHA1:
 		return "hmac-sha1";
 	    case DST_ALG_HMACSHA224:
@@ -66,8 +70,10 @@ alg_fromtext(const char *name) {
 	if (strncasecmp(p, "hmac-", 5) == 0)
 		p = &name[5];
 
+#ifndef PK11_MD5_DISABLE
 	if (strcasecmp(p, "md5") == 0)
 		return DST_ALG_HMACMD5;
+#endif
 	if (strcasecmp(p, "sha1") == 0)
 		return DST_ALG_HMACSHA1;
 	if (strcasecmp(p, "sha224") == 0)
@@ -122,7 +128,9 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 	dst_key_t *key = NULL;
 
 	switch (alg) {
+#ifndef PK11_MD5_DISABLE
 	    case DST_ALG_HMACMD5:
+#endif
 	    case DST_ALG_HMACSHA1:
 	    case DST_ALG_HMACSHA224:
 	    case DST_ALG_HMACSHA256:

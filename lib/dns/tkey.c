@@ -17,6 +17,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <pk11/site.h>
+
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -231,6 +233,7 @@ static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	       isc_region_t *serverrandomness, isc_buffer_t *secret)
 {
+#ifndef PK11_MD5_DISABLE
 	isc_md5_t md5ctx;
 	isc_region_t r, r2;
 	unsigned char digests[32];
@@ -275,7 +278,14 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 		isc_buffer_add(secret, sizeof(digests));
 	}
 	return (ISC_R_SUCCESS);
+#else
+	UNUSED(shared);
+	UNUSED(queryrandomness);
+	UNUSED(serverrandomness);
+	UNUSED(secret);
 
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }
 
 static isc_result_t
@@ -304,12 +314,18 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		return (DNS_R_REFUSED);
 	}
 
+#ifndef PK11_MD5_DISABLE
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey_log("process_dhtkey: algorithms other than "
 			 "hmac-md5 are not supported");
 		tkeyout->error = dns_tsigerror_badalg;
 		return (ISC_R_SUCCESS);
 	}
+#else
+	tkey_log("process_dhtkey: MD5 was disabled");
+	tkeyout->error = dns_tsigerror_badalg;
+	return (ISC_R_SUCCESS);
+#endif
 
 	/*
 	 * Look for a DH KEY record that will work with ours.
@@ -336,6 +352,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				dns_rdata_reset(&keyrdata);
 				continue;
 			}
+#ifndef PK11_DH_DISABLE
 			if (dst_key_alg(pubkey) == DNS_KEYALG_DH) {
 				if (dst_key_paramcompare(pubkey, tctx->dhkey))
 				{
@@ -345,6 +362,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 				} else
 					found_incompatible = ISC_TRUE;
 			}
+#endif
 			dst_key_free(&pubkey);
 			dns_rdata_reset(&keyrdata);
 		}
