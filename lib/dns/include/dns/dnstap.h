@@ -24,6 +24,8 @@
 #include <fstrm.h>
 #include <protobuf-c/protobuf-c.h>
 #include <dns/dnstap.pb-c.h>
+#else
+struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
 
 #include <isc/refcount.h>
@@ -112,7 +114,7 @@ struct dns_dtdata {
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	     unsigned int workers, dns_dtenv_t **envp);
+	      struct fstrm_iothr_options *fopt, dns_dtenv_t **envp);
 /*%<
  * Create and initialize the dnstap environment.
  *
@@ -126,18 +128,18 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *	with "file:", then dnstap logs are sent to a file instead of a
  *	socket.
  *
- *\li	This creates an I/O thread in libfstrm, and prepares
- *	'workers' input queues. 'workers' MUST be equal to the number
- *	of worker threads in named; if it's more, some queues will be
- *	wasted and if it's less, some threads will have no queue and
- *	will not log any dnstap events.
- *
+ *\li	'fopt' set the options for fstrm_iothr_init(). 'fopt' must have
+ *	have had the number of input queues set and this should be set
+ *	to the number of worker threads.  Additionally the queue model
+ *	should also be set.  Other options may be set if desired.
  *
  * Requires:
  *
  *\li	'mctx' is a valid memory context.
  *
  *\li	'path' is a valid C string.
+ *
+ *\li	'fopt' is non NULL.
  *
  *\li	envp != NULL && *envp == NULL
  *
@@ -204,6 +206,24 @@ dns_dt_detach(dns_dtenv_t **envp);
  *\li	'*envp' will be destroyed when the number of references reaches zero.
  *
  *\li	'*envp' is NULL.
+ */
+
+isc_result_t
+dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp);
+/*%<
+ * Attach to the stats struct if it exists.
+ *
+ * Requires:
+ *
+ *\li	'env' is a valid dnstap environment.
+ *
+ *\li	'statsp' is non NULL and '*statsp' is NULL.
+ *
+ * Returns:
+ *
+ *\li	ISC_R_SUCCESS
+ *
+ *\li	ISC_R_NOTFOUND
  */
 
 void

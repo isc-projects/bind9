@@ -2939,6 +2939,8 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	const cfg_obj_t *dlist = NULL;
 	dns_dtmsgtype_t dttypes = 0;
 	dns_dtmode_t dmode;
+	unsigned int i;
+	struct fstrm_iothr_options *fopt = NULL;
 
 	result = ns_config_get(maps, "dnstap", &dlist);
 	if (result != ISC_R_SUCCESS)
@@ -3004,7 +3006,71 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 
 		dpath = cfg_obj_asstring(obj2);
 
-		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, ns_g_cpus,
+		fopt = fstrm_iothr_options_init();
+		fstrm_iothr_options_set_num_input_queues(fopt, ns_g_cpus);
+		fstrm_iothr_options_set_queue_model(fopt,
+						 FSTRM_IOTHR_QUEUE_MODEL_MPSC);
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-buffer-hint", &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_buffer_hint(fopt, i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-flush-timeout", &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_flush_timeout(fopt, i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-input-queue-size",
+				       &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_input_queue_size(fopt, i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps,
+				       "fstrm-set-output-notify-threshold",
+				       &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_queue_notify_threshold(fopt,
+								       i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-output-queue-model",
+				       &obj);
+		if (result == ISC_R_SUCCESS) {
+			if (strcasecmp(cfg_obj_asstring(obj), "spsc") == 0)
+				i = FSTRM_IOTHR_QUEUE_MODEL_SPSC;
+			else
+				i = FSTRM_IOTHR_QUEUE_MODEL_MPSC;
+			fstrm_iothr_options_set_queue_model(fopt, i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-output-queue-size",
+				       &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_output_queue_size(fopt, i);
+		}
+
+		obj = NULL;
+		result = ns_config_get(maps, "fstrm-set-reopen-interval",
+				       &obj);
+		if (result == ISC_R_SUCCESS) {
+			i = cfg_obj_asuint32(obj);
+			fstrm_iothr_options_set_reopen_interval(fopt, i);
+		}
+
+		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, fopt,
 				     &ns_g_server->dtenv),
 		       "unable to create dnstap environment");
 	}
@@ -3041,6 +3107,9 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (fopt != NULL)
+		fstrm_iothr_options_destroy(&fopt);
+
 	return (result);
 }
 #endif /* HAVE_DNSTAP */
@@ -11011,7 +11080,7 @@ nzd_count(dns_view_t *view, int *countp) {
 	int status;
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
-	MDB_stat stat;
+	MDB_stat statbuf;
 
 	REQUIRE(countp != NULL);
 
@@ -11019,7 +11088,7 @@ nzd_count(dns_view_t *view, int *countp) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	status = mdb_stat(txn, dbi, &stat);
+	status = mdb_stat(txn, dbi, &statbuf);
 	if (status != 0) {
 		isc_log_write(ns_g_lctx,
 			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
@@ -11029,7 +11098,7 @@ nzd_count(dns_view_t *view, int *countp) {
 		goto cleanup;
 	}
 
-	*countp = stat.ms_entries;
+	*countp = statbuf.ms_entries;
 
  cleanup:
 	(void) nzd_close(&txn, ISC_FALSE);

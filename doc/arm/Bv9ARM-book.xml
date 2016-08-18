@@ -4396,6 +4396,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> dnstap-output ( <literal>file</literal> | <literal>unix</literal> ) <replaceable>path_name</replaceable>; </optional>
     <optional> dnstap-identity ( <replaceable>string</replaceable> | <literal>hostname</literal> | <literal>none</literal> ); </optional>
     <optional> dnstap-version ( <replaceable>string</replaceable> | <literal>none</literal> ); </optional>
+    <optional> fstrm-set-buffer-hint <replaceable>number</replaceable> ; </optional>
+    <optional> fstrm-set-flush-timeout <replaceable>number</replaceable> ; </optional>
+    <optional> fstrm-set-input-queue-size <replaceable>number</replaceable> ; </optional>
+    <optional> fstrm-set-output-notify-threshold <replaceable>number</replaceable> ; </optional>
+    <optional> fstrm-set-output-queue-model ( <replaceable>mpsc</replaceable> |
+                        <replaceable>spsc</replaceable> ) ; </optional>
+    <optional> fstrm-set-output-queue-size <replaceable>number</replaceable> ; </optional>
+    <optional> fstrm-set-reopen-interval <replaceable>number</replaceable> ; </optional>
     <optional> geoip-directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> managed-keys-directory <replaceable>path_name</replaceable>; </optional>
@@ -4869,6 +4877,81 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      <para>
 		For more information on <command>dnstap</command>, see
 		<link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://dnstap.info">http://dnstap.info</link>.
+	      </para>
+	      <para>
+		The fstrm library has a number of tunables that are exposed
+		in <filename>named.conf</filename>, and can be modified
+		if necessary to improve performance or prevent loss of data.
+		These are:
+	      </para>
+	      <itemizedlist>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-buffer-hint</command>: The
+		    threshold number of bytes to accumulate in the output
+		    buffer before forcing a buffer flush. The minimum is
+		    1K, the maximum is 64K, and the default is 8K.
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-flush-timeout</command>: The number
+		    of seconds to allow unflushed data to remain in the
+		    output buffer. The minimum is 1 second, the maximum is
+		    600 seconds (10 minutes), and the default is 1 second.
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-output-notify-threshold</command>:
+		    The number of outstanding queue entries to allow on
+		    an input queue before waking the I/O thread.
+		    The minimum is 1 and the default is 32.
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-output-queue-model</command>:
+		    Controls the queuing semantics to use for queue
+		    objects. The default is <literal>mpsc</literal>
+		    (multiple producer, single consumer); the other
+		    option is <literal>spsc</literal> (single producer,
+		    single consumer).
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-input-queue-size</command>: The
+		    number of queue entries to allocate for each
+		    input queue. The minimum is 2, the maximum is 16384,
+		    and the default is 512.
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-output-queue-size</command>:
+		    The number of queue entries to allocate for each
+		    output queue. The minimum is 2, the maximum is
+		    system-dependent and based on <option>IOV_MAX</option>,
+		    and the default is 64.
+		  </simpara>
+		</listitem>
+		<listitem>
+		  <simpara>
+		    <command>fstrm-set-reopen-interval</command>:
+		    The number of seconds to wait between attempts to
+		    reopen a closed output stream. The minimum is 1 second,
+		    the maximum is 600 seconds (10 minutes), and the default
+		    is 5 seconds.
+		  </simpara>
+		</listitem>
+	      </itemizedlist>
+	      <para>
+		Note that all of the above minimum, maximum, and default
+		values are set by the <command>libfstrm</command> library,
+		and may be subject to change in future versions of the
+		library. See the <command>libfstrm</command> documentation
+		for more information.
 	      </para>
 	    </listitem>
 	  </varlistentry>

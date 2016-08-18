@@ -32,6 +32,7 @@
 #include <isc/util.h>
 
 #include <dns/acl.h>
+#include <dns/dnstap.h>
 #include <dns/fixedname.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
@@ -869,6 +870,12 @@ typedef struct {
 	unsigned int max;
 } intervaltable;
 
+typedef struct {
+	const char *name;
+	unsigned int min;
+	unsigned int max;
+} fstrmtable;
+
 typedef enum {
 	optlevel_config,
 	optlevel_options,
@@ -944,6 +951,41 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		"dns64-server", "dns64-contact",
 		NULL
 	};
+
+#if HAVE_DNSTAP
+	static fstrmtable fstrm[] = {
+		{
+			"fstrm-set-buffer-hint",
+			FSTRM_IOTHR_BUFFER_HINT_MIN,
+			FSTRM_IOTHR_BUFFER_HINT_MAX
+		},
+		{
+			"fstrm-set-flush-timeout",
+			FSTRM_IOTHR_FLUSH_TIMEOUT_MIN,
+			FSTRM_IOTHR_FLUSH_TIMEOUT_MAX
+		},
+		{
+			"fstrm-set-input-queue-size",
+			FSTRM_IOTHR_INPUT_QUEUE_SIZE_MIN,
+			FSTRM_IOTHR_INPUT_QUEUE_SIZE_MAX
+		},
+		{
+			"fstrm-set-output-notify-threshold",
+			FSTRM_IOTHR_QUEUE_NOTIFY_THRESHOLD_MIN,
+			0
+		},
+		{
+			"fstrm-set-output-queue-size",
+			FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MIN,
+			FSTRM_IOTHR_OUTPUT_QUEUE_SIZE_MAX
+		},
+		{
+			"fstrm-set-reopen-interval",
+			FSTRM_IOTHR_REOPEN_INTERVAL_MIN,
+			FSTRM_IOTHR_REOPEN_INTERVAL_MAX
+		}
+	};
+#endif
 
 	/*
 	 * Check that fields specified in units of time other than seconds
@@ -1353,6 +1395,47 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			result = ISC_R_RANGE;
 		}
 	}
+
+#if HAVE_DNSTAP
+	for (i = 0; i < sizeof(fstrm) / sizeof(fstrm[0]); i++) {
+		isc_uint32_t value;
+
+		obj = NULL;
+		(void) cfg_map_get(options, fstrm[i].name, &obj);
+		if (obj == NULL)
+			continue;
+
+		value = cfg_obj_asuint32(obj);
+		if (value < fstrm[i].min ||
+		    (fstrm[i].max != 0U && value > fstrm[i].max)) {
+			if (fstrm[i].max != 0U)
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "%s '%u' out of range (%u..%u)",
+					    fstrm[i].name, value,
+					    fstrm[i].min, fstrm[i].max);
+			else
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "%s out of range (%u < %u)",
+					    fstrm[i].name, value, fstrm[i].min);
+			result = ISC_R_RANGE;
+		}
+
+		if (strcmp(fstrm[i].name, "fstrm-set-input-queue-size") == 0) {
+			int bits = 0;
+			do {
+				bits += value & 0x1;
+				value >>= 1;
+			} while (value != 0U);
+			if (bits != 1) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "%s '%u' not a power-of-2",
+					    fstrm[i].name,
+					    cfg_obj_asuint32(obj));
+				result = ISC_R_RANGE;
+			}
+		}
+	}
+#endif
 
 	return (result);
 }

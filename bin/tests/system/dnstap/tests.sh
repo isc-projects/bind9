@@ -13,6 +13,24 @@ RNDCCMD="$RNDC -p 9953 -c ../common/rndc.conf"
 
 status=0
 
+for bad in bad-*.conf
+do
+        ret=0
+        echo "I: checking that named-checkconf detects error in $bad"
+        $CHECKCONF $bad > /dev/null 2>&1
+        if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
+        status=`expr $status + $ret`
+done
+
+for good in good-*.conf
+do
+        ret=0
+        echo "I: checking that named-checkconf detects no error in $good"
+        $CHECKCONF $good > /dev/null 2>&1
+        if [ $? != 0 ]; then echo "I:failed"; ret=1; fi
+        status=`expr $status + $ret`
+done
+
 $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 
 # check three different dnstap reopen/roll methods:

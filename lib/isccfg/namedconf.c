@@ -994,6 +994,12 @@ bindkeys_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
+static const char *fstrm_model_enums[] = { "spsc", "mpsc", NULL };
+static cfg_type_t cfg_type_fstrm_model = {
+	"model", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &fstrm_model_enums
+};
+
 /*%
  * Clauses that can be found within the 'options' statement.
  */
@@ -1012,11 +1018,32 @@ options_clauses[] = {
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
 	{ "dnstap-identity", &cfg_type_serverid, 0 },
 	{ "dnstap-version", &cfg_type_qstringornone, 0 },
+	{ "fstrm-set-buffer-hint", &cfg_type_uint32, 0 },
+	{ "fstrm-set-flush-timeout", &cfg_type_uint32, 0 },
+	{ "fstrm-set-input-queue-size", &cfg_type_uint32, 0 },
+	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32, 0 },
+	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
+	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
+	{ "fstrm-set-reopen-interval", &cfg_type_uint32, 0 },
 #else
 	{ "dnstap-output", &cfg_type_dnstapoutput,
 		CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnstap-identity", &cfg_type_serverid, CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "dnstap-version", &cfg_type_qstringornone, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-flush-timeout", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-input-queue-size", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-output-queue-size", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fstrm-set-reopen-interval", &cfg_type_uint32,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
 	{ "session-keyfile", &cfg_type_qstringornone, 0 },
 	{ "session-keyname", &cfg_type_astring, 0 },
