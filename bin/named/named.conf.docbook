@@ -200,8 +200,19 @@ options {
 	coresize <replaceable>size</replaceable>;
 	datasize <replaceable>size</replaceable>;
 	directory <replaceable>quoted_string</replaceable>;
+	dnstap { <replaceable>message_type</replaceable>; ... };
+	dnstap-output ( <literal>file</literal> | <literal>unix</literal> ) <replaceable>path_name</replaceable>;
+	dnstap-identity ( <replaceable>string</replaceable> | <literal>hostname</literal> | <literal>none</literal> );
+	dnstap-version ( <replaceable>string</replaceable> | <literal>none</literal> );
 	dump-file <replaceable>quoted_string</replaceable>;
 	files <replaceable>size</replaceable>;
+	fstrm-set-buffer-hint <replaceable>number</replaceable>;
+	fstrm-set-flush-timeout <replaceable>number</replaceable>;
+	fstrm-set-input-queue-size <replaceable>number</replaceable>;
+	fstrm-set-output-notify-threshold <replaceable>number</replaceable>;
+	fstrm-set-output-queue-model ( <replaceable>mpsc</replaceable> | <replaceable>spsc</replaceable> ) ;
+	fstrm-set-output-queue-size <replaceable>number</replaceable>;
+	fstrm-set-reopen-interval <replaceable>number</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
 	host-statistics <replaceable>boolean</replaceable>; // not implemented
 	host-statistics-max <replaceable>number</replaceable>; // not implemented

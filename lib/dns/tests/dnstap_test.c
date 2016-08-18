@@ -56,6 +56,7 @@ ATF_TC_HEAD(create, tc) {
 ATF_TC_BODY(create, tc) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
+	struct fstrm_iothr_options *fopt;
 
 	UNUSED(tc);
 
@@ -64,14 +65,18 @@ ATF_TC_BODY(create, tc) {
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, 1, &dtenv);
+	fopt = fstrm_iothr_options_init();
+	ATF_REQUIRE(fopt != NULL);
+	fstrm_iothr_options_set_num_input_queues(fopt, 1);
+
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
 
 	ATF_CHECK(isc_file_exists(TAPFILE));
 
-	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, 1, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
@@ -79,12 +84,13 @@ ATF_TC_BODY(create, tc) {
 	/* 'create' should succeed, but the file shouldn't exist yet */
 	ATF_CHECK(!isc_file_exists(TAPSOCK));
 
-	result = dns_dt_create(mctx, 33, TAPSOCK, 1, &dtenv);
+	result = dns_dt_create(mctx, 33, TAPSOCK, fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_FAILURE);
 	ATF_CHECK_EQ(dtenv, NULL);
 
 	cleanup();
 
+	fstrm_iothr_options_destroy(&fopt);
 	dns_dt_shutdown();
 	dns_test_end();
 }
@@ -114,6 +120,7 @@ ATF_TC_BODY(send, tc) {
 	struct in_addr in;
 	isc_stdtime_t now;
 	isc_time_t p, f;
+	struct fstrm_iothr_options *fopt;
 
 	UNUSED(tc);
 
@@ -124,7 +131,11 @@ ATF_TC_BODY(send, tc) {
 
 	result = dns_test_makeview("test", &view);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, 1, &dtenv);
+	fopt = fstrm_iothr_options_init();
+	ATF_REQUIRE(fopt != NULL);
+	fstrm_iothr_options_set_num_input_queues(fopt, 1);
+
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, fopt, &dtenv);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	dns_dt_attach(dtenv, &view->dtenv);
@@ -242,6 +253,7 @@ ATF_TC_BODY(send, tc) {
 		dns_dtdata_free(&dtdata);
 	}
 
+	fstrm_iothr_options_destroy(&fopt);
 	dns_dt_close(&handle);
 	cleanup();
 

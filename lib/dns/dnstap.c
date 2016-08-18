@@ -61,10 +61,11 @@
 
 #include <dns/dnstap.h>
 #include <dns/log.h>
-#include <dns/name.h>
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/stats.h>
 #include <dns/types.h>
 #include <dns/view.h>
 
@@ -97,6 +98,7 @@ struct dns_dtenv {
 	isc_region_t version;
 	char *path;
 	dns_dtmode_t mode;
+	isc_stats_t *stats;
 };
 
 #define CHECK(x) do { \
@@ -158,11 +160,10 @@ unlock:
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      unsigned int workers, dns_dtenv_t **envp)
+	      struct fstrm_iothr_options *fopt, dns_dtenv_t **envp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
-	struct fstrm_iothr_options *fopt = NULL;
 	struct fstrm_unix_writer_options *fuwopt = NULL;
 	struct fstrm_file_options *ffwopt = NULL;
 	struct fstrm_writer_options *fwopt = NULL;
@@ -171,6 +172,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	REQUIRE(path != NULL);
 	REQUIRE(envp != NULL && *envp == NULL);
+	REQUIRE(fopt != NULL);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
@@ -183,6 +185,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	memset(env, 0, sizeof(dns_dtenv_t));
 
 	CHECK(isc_refcount_init(&env->refcount, 1));
+	CHECK(isc_stats_create(mctx, &env->stats, dns_dnstapcounter_max));
 	env->path = isc_mem_strdup(mctx, path);
 	if (env->path == NULL)
 		CHECK(ISC_R_NOMEMORY);
@@ -217,9 +220,6 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	if (fw == NULL)
 		CHECK(ISC_R_FAILURE);
 
-	fopt = fstrm_iothr_options_init();
-	fstrm_iothr_options_set_num_input_queues(fopt, workers);
-
 	/*
 	 * Remember 'fw' so we can close and reopen it later.
 	 */
@@ -241,9 +241,6 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	*envp = env;
 
  cleanup:
-	if (fopt != NULL)
-		fstrm_iothr_options_destroy(&fopt);
-
 	if (ffwopt != NULL)
 		fstrm_file_options_destroy(&ffwopt);
 
@@ -259,6 +256,8 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 				isc_mem_detach(&env->mctx);
 			if (env->path != NULL)
 				isc_mem_free(mctx, env->path);
+			if (env->stats != NULL)
+				isc_stats_detach(&env->stats);
 			isc_mem_put(mctx, env, sizeof(dns_dtenv_t));
 		}
 	}
@@ -381,6 +380,17 @@ dns_dt_attach(dns_dtenv_t *source, dns_dtenv_t **destp) {
 	*destp = source;
 }
 
+isc_result_t
+dns_dt_getstats(dns_dtenv_t *env, isc_stats_t **statsp) {
+	REQUIRE(VALID_DTENV(env));
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	if (env->stats == NULL)
+		return (ISC_R_NOTFOUND);
+	isc_stats_attach(env->stats, statsp);
+	return (ISC_R_SUCCESS);
+}
+
 static void
 destroy(dns_dtenv_t *env) {
 
@@ -401,6 +411,8 @@ destroy(dns_dtenv_t *env) {
 	}
 	if (env->path != NULL)
 		isc_mem_free(env->mctx, env->path);
+	if (env->stats != NULL)
+		isc_stats_detach(&env->stats);
 
 	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
 }
@@ -464,8 +476,16 @@ send_dt(dns_dtenv_t *env, void *buf, size_t len) {
 
 	res = fstrm_iothr_submit(env->iothr, ioq, buf, len,
 				 fstrm_free_wrapper, NULL);
-	if (res != fstrm_res_success)
+	if (res != fstrm_res_success) {
+		if (env->stats != NULL)
+			isc_stats_increment(env->stats,
+					    dns_dnstapcounter_drop);
 		free(buf);
+	} else {
+		if (env->stats != NULL)
+			isc_stats_increment(env->stats,
+					    dns_dnstapcounter_success);
+	}
 }
 
 static void

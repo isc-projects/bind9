@@ -123,6 +123,7 @@ static const char *udpinsizestats_desc[dns_sizecounter_in_max];
 static const char *udpoutsizestats_desc[dns_sizecounter_out_max];
 static const char *tcpinsizestats_desc[dns_sizecounter_in_max];
 static const char *tcpoutsizestats_desc[dns_sizecounter_out_max];
+static const char *dnstapstats_desc[dns_dnstapcounter_max];
 #if defined(EXTENDED_STATS)
 static const char *nsstats_xmldesc[dns_nsstatscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
@@ -134,6 +135,7 @@ static const char *udpinsizestats_xmldesc[dns_sizecounter_in_max];
 static const char *udpoutsizestats_xmldesc[dns_sizecounter_out_max];
 static const char *tcpinsizestats_xmldesc[dns_sizecounter_in_max];
 static const char *tcpoutsizestats_xmldesc[dns_sizecounter_out_max];
+static const char *dnstapstats_xmldesc[dns_dnstapcounter_max];
 #else
 #define nsstats_xmldesc NULL
 #define resstats_xmldesc NULL
@@ -145,6 +147,7 @@ static const char *tcpoutsizestats_xmldesc[dns_sizecounter_out_max];
 #define udpoutsizestats_xmldesc NULL
 #define tcpinsizestats_xmldesc NULL
 #define tcpoutsizestats_xmldesc NULL
+#define dnstapstats_xmldesc NULL
 #endif	/* EXTENDED_STATS */
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
@@ -164,6 +167,7 @@ static int udpinsizestats_index[dns_sizecounter_in_max];
 static int udpoutsizestats_index[dns_sizecounter_out_max];
 static int tcpinsizestats_index[dns_sizecounter_in_max];
 static int tcpoutsizestats_index[dns_sizecounter_out_max];
+static int dnstapstats_index[dns_dnstapcounter_max];
 
 static inline void
 set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
@@ -574,6 +578,27 @@ init_desc(void) {
 	SET_DNSSECSTATDESC(fail, "dnssec validation failures", "DNSSECfail");
 	INSIST(i == dns_dnssecstats_max);
 
+	/* Initialize dnstap statistics */
+	for (i = 0; i < dns_dnstapcounter_max; i++)
+		dnstapstats_desc[i] = NULL;
+#if defined(EXTENDED_STATS)
+	for (i = 0; i < dns_dnstapcounter_max; i++)
+		dnstapstats_xmldesc[i] = NULL;
+#endif
+
+#define SET_DNSTAPSTATDESC(counterid, desc, xmldesc) \
+	do { \
+		set_desc(dns_dnstapcounter_ ## counterid, \
+			 dns_dnstapcounter_max, \
+			 desc, dnstapstats_desc, \
+			 xmldesc, dnstapstats_xmldesc); \
+		dnstapstats_index[i++] = dns_dnstapcounter_ ## counterid; \
+	} while (0)
+	i = 0;
+	SET_DNSTAPSTATDESC(success, "dnstap messges written", "DNSTAPsuccess");
+	SET_DNSTAPSTATDESC(drop, "dnstap messages dropped", "DNSSECdropped");
+	INSIST(i == dns_dnstapcounter_max);
+
 	/* Sanity check */
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		INSIST(nsstats_desc[i] != NULL);
@@ -587,6 +612,8 @@ init_desc(void) {
 		INSIST(sockstats_desc[i] != NULL);
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		INSIST(dnssecstats_desc[i] != NULL);
+	for (i = 0; i < dns_dnstapcounter_max; i++)
+		INSIST(dnstapstats_desc[i] != NULL);
 #if defined(EXTENDED_STATS)
 	for (i = 0; i < dns_nsstatscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
@@ -600,6 +627,8 @@ init_desc(void) {
 		INSIST(sockstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_dnssecstats_max; i++)
 		INSIST(dnssecstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_dnstapcounter_max; i++)
+		INSIST(dnstapstats_xmldesc[i] != NULL);
 #endif
 
 	/* Initialize traffic size statistics */
@@ -1480,6 +1509,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
 	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
 	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
+#if HAVE_DNSTAP
+	isc_uint64_t dnstapstat_values[dns_dnstapcounter_max];
+#endif
 	isc_result_t result;
 
 	isc_time_now(&now);
@@ -1595,6 +1627,28 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		if (result != ISC_R_SUCCESS)
 			goto error;
 		TRY0(xmlTextWriterEndElement(writer)); /* resstat */
+
+#if HAVE_DNSTAP
+		if (server->dtenv != NULL) {
+			isc_stats_t *dnstapstats = NULL;
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "counters"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR "type",
+							 ISC_XMLCHAR "dnstap"));
+			dns_dt_getstats(ns_g_server->dtenv, &dnstapstats);
+			result = dump_counters(dnstapstats,
+					       isc_statsformat_xml, writer,
+					       NULL, dnstapstats_xmldesc,
+					       dns_dnstapcounter_max,
+					       dnstapstats_index,
+					       dnstapstat_values, 0);
+			isc_stats_detach(&dnstapstats);
+			if (result != ISC_R_SUCCESS)
+				goto error;
+			TRY0(xmlTextWriterEndElement(writer)); /* dnstap */
+		}
+#endif
 	}
 
 	if ((flags & STATS_XML_NET) != 0) {
@@ -2209,6 +2263,9 @@ generatejson(ns_server_t *server, size_t *msglen,
 	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
 	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
 	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
+#if HAVE_DNSTAP
+	isc_uint64_t dnstapstat_values[dns_dnstapcounter_max];
+#endif
 	stats_dumparg_t dumparg;
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
 	char configtime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
@@ -2370,6 +2427,35 @@ generatejson(ns_server_t *server, size_t *msglen,
 			json_object_object_add(bindstats, "resstats", counters);
 		else
 			json_object_put(counters);
+
+#if HAVE_DNSTAP
+		/* dnstap stat counters */
+		if (ns_g_server->dtenv != NULL) {
+			isc_stats_t *dnstapstats = NULL;
+			dns_dt_getstats(ns_g_server->dtenv, &dnstapstats);
+			counters = json_object_new_object();
+			dumparg.result = ISC_R_SUCCESS;
+			dumparg.arg = counters;
+			result = dump_counters(dnstapstats,
+					       isc_statsformat_json, counters,
+					       NULL, dnstapstats_xmldesc,
+					       dns_dnstapcounter_max,
+					       dnstapstats_index,
+					       dnstapstat_values, 0);
+			isc_stats_detach(&dnstapstats);
+			if (result != ISC_R_SUCCESS) {
+				json_object_put(counters);
+				goto error;
+			}
+
+			if (json_object_get_object(counters)->count != 0)
+				json_object_object_add(bindstats,
+						       "dnstapstats",
+						       counters);
+			else
+				json_object_put(counters);
+		}
+#endif
 	}
 
 	if ((flags & (STATS_JSON_ZONES | STATS_JSON_SERVER)) != 0) {

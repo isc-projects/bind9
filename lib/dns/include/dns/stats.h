@@ -129,7 +129,14 @@ enum {
 	dns_statscounter_recursion = 4,  /*%< Recursion was used */
 	dns_statscounter_failure = 5,    /*%< Some other failure */
 	dns_statscounter_duplicate = 6,  /*%< Duplicate query */
-	dns_statscounter_dropped = 7	 /*%< Duplicate query (dropped) */
+	dns_statscounter_dropped = 7,	 /*%< Duplicate query (dropped) */
+
+	/*%
+	 * DNSTAP statistics counters.
+	 */
+	dns_dnstapcounter_success = 0,
+	dns_dnstapcounter_drop =  1,
+	dns_dnstapcounter_max = 2
 };
 
 #define DNS_STATS_NCOUNTERS 8
