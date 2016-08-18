@@ -1,3 +1,6 @@
+4448.	[bug]		win32: ::1 was not being found when iterating
+			interfaces. [RT #42993]
+
 4447.	[tuning]	Allow the fstrm_iothr_init() options to be set using
 			named.conf to control how dnstap manages the data
 			flow. [RT #42974]
