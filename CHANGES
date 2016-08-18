@@ -1,3 +1,5 @@
+4449.	[test]		Fix catalog zones test on slower systems. [RT #42997]
+
 4448.	[bug]		win32: ::1 was not being found when iterating
 			interfaces. [RT #42993]
 
