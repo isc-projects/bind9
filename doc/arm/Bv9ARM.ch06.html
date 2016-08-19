@@ -2276,6 +2276,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> dnstap-output ( <code class="literal">file</code> | <code class="literal">unix</code> ) <em class="replaceable"><code>path_name</code></em>; </span>]
     [<span class="optional"> dnstap-identity ( <em class="replaceable"><code>string</code></em> | <code class="literal">hostname</code> | <code class="literal">none</code> ); </span>]
     [<span class="optional"> dnstap-version ( <em class="replaceable"><code>string</code></em> | <code class="literal">none</code> ); </span>]
+    [<span class="optional"> fstrm-set-buffer-hint <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> fstrm-set-flush-timeout <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> fstrm-set-input-queue-size <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> fstrm-set-output-notify-threshold <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> fstrm-set-output-queue-model ( <em class="replaceable"><code>mpsc</code></em> |
+                        <em class="replaceable"><code>spsc</code></em> ) ; </span>]
+    [<span class="optional"> fstrm-set-output-queue-size <em class="replaceable"><code>number</code></em> ; </span>]
+    [<span class="optional"> fstrm-set-reopen-interval <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> geoip-directory <em class="replaceable"><code>path_name</code></em>; </span>]
     [<span class="optional"> key-directory <em class="replaceable"><code>path_name</code></em>; </span>]
     [<span class="optional"> managed-keys-directory <em class="replaceable"><code>path_name</code></em>; </span>]
@@ -2731,6 +2739,67 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <p>
                 For more information on <span class="command"><strong>dnstap</strong></span>, see
                 <a class="link" href="http://dnstap.info" target="_top">http://dnstap.info</a>.
+              </p>
+<p>
+                The fstrm library has a number of tunables that are exposed
+                in <code class="filename">named.conf</code>, and can be modified
+                if necessary to improve performance or prevent loss of data.
+                These are:
+              </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-buffer-hint</strong></span>: The
+                    threshold number of bytes to accumulate in the output
+                    buffer before forcing a buffer flush. The minimum is
+                    1K, the maximum is 64K, and the default is 8K.
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-flush-timeout</strong></span>: The number
+                    of seconds to allow unflushed data to remain in the
+                    output buffer. The minimum is 1 second, the maximum is
+                    600 seconds (10 minutes), and the default is 1 second.
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-output-notify-threshold</strong></span>:
+                    The number of outstanding queue entries to allow on
+                    an input queue before waking the I/O thread.
+                    The minimum is 1 and the default is 32.
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-output-queue-model</strong></span>:
+                    Controls the queuing semantics to use for queue
+                    objects. The default is <code class="literal">mpsc</code>
+                    (multiple producer, single consumer); the other
+                    option is <code class="literal">spsc</code> (single producer,
+                    single consumer).
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-input-queue-size</strong></span>: The
+                    number of queue entries to allocate for each
+                    input queue. The minimum is 2, the maximum is 16384,
+                    and the default is 512.
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-output-queue-size</strong></span>:
+                    The number of queue entries to allocate for each
+                    output queue. The minimum is 2, the maximum is
+                    system-dependent and based on <code class="option">IOV_MAX</code>,
+                    and the default is 64.
+                  </li>
+<li class="listitem">
+                    <span class="command"><strong>fstrm-set-reopen-interval</strong></span>:
+                    The number of seconds to wait between attempts to
+                    reopen a closed output stream. The minimum is 1 second,
+                    the maximum is 600 seconds (10 minutes), and the default
+                    is 5 seconds.
+                  </li>
+</ul></div>
+<p>
+                Note that all of the above minimum, maximum, and default
+                values are set by the <span class="command"><strong>libfstrm</strong></span> library,
+                and may be subject to change in future versions of the
+                library. See the <span class="command"><strong>libfstrm</strong></span> documentation
+                for more information.
               </p>
 </dd>
 <dt><span class="term"><span class="command"><strong>dnstap-output</strong></span></span></dt>
