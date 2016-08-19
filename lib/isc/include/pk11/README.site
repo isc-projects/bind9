@@ -1,9 +1,13 @@
+Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
 How to use site.h for the PKCS#11 provider of your HSM
 ------------------------------------------------------
 
-First run pkcs11-tokens (in bin/pkcs11). It is available
-when bind9 was configured with the --with-pcks11 flag.
-It prints addresses of selected tokens per algorithm:
+First run "pkcs11-tokens" (in bin/pkcs11). This tool is built when BIND9
+is configured with the --with-pcks11 flag.  It prints the addresses of
+selected tokens per algorithm:
+
  - random number generation
  - RSA (sign/verify)
  - DSA (sign/verify)
@@ -12,57 +16,55 @@ It prints addresses of selected tokens per algorithm:
  - EC (ECDSA, sign/verify)
  - GOST (Russian hash and sign/verify)
  - AES (encrypt/decrypt)
-and a summary of found tokens.
 
-Current some well known HSMs are predefined site.h
-by HSM "flavors":
- - Thales nCipher (the default)
+...and a summary of PKCS#11 tokens that have been found.
+
+Current well-known HSMs are predefined in site.h according to HSM "flavors":
+
+ - Thales nCipher (default)
  - OpenDNSSEC SoftHSMv2
-and with an experimental status:
+
+...and with experimental status:
+
  - OpenDNSSEC SoftHSMv1 with SHA224 support added
  - Cryptech with SHA224 support added
 
-When bind9 was configured with native PKCS#11 support,
-pkcs11-tokens (and any bind9 tools using libisc) raises
-an error if a mandatory algorithm is not supported,
-(usually 0x70 aka CKR_MECHANISM_INVALID, 0x0 means
-a required flag was not available) so if there is a
-selected token with the 0x0 address:
- - rand or RSA: nothing can be done, i.e.,
-  bind9 native PKCS#11 is not supported with this HSM.
- - DSA or DH: run pkcs11-tokens with the -v (verbose) flag.
-  If the parameter generation mechanism is not supported
-  you can make the token selection to ignore the error.
-  Note DSA and DH are not critical, i.e., you can use bind9
-  without DSA or DH in production.
- - digest: run pkcs11-tokens with the -v (verbose) flag.
-  If the problem is with HMAC mechanisms, use the replace
-  flags in site.h. If the problem is with MD5, use the
-  corresponding disable flag in site.h. If the problem
-  is with SHA224 ask to have this hash algorithm implemented
-  in the PKCS#11 provider. For any other problem there is
-  nothing to do (for ever: some hash functions return void
-  so any internal error is fatal, i.e., crashes), bind9
-  native PKCS#11 is not supported with this HSM.
- - EC: doesn't matter but you should configure bind9 without
-  ECDSA support, i.e., add --without-ecdsa to configure arguments.
- - GOST: doesn't matter but you should really configure bind9
-  without GOST support, i.e., add --without-ecdsa to configure
-  arguments (really because GOST includes a hash algorithm).
- - AES: you must reconfigure bind9 without AES support,
-  i.e., add --without-aes to configure arguments.
+If BIND9 is configured with native PKCS#11 support (--enable-native-pkcs11),
+then pkcs11-tokens will raise an error when a mandatory algorithm is not
+supported.  (The usual error is 0x70, or CKR_MECHANISM_INVALID; 0x0
+indicates that a required flag is not available.)  The following steps
+may be taken, depending on which algorithms indicate failures:
 
-Note you can disable some standard algorithms (DSA, DH and
-MD5) and some algorithms are optional (ECDSA, GOST, AES).
-If you don't want an optional algorithm you should simply
-configure bind9 with it.
-Note the proper way to disable DSA is to simply add it
-in a "disable-algorithms" clause in the named config file.
-Disable removes the support code so can have some
-unwanted side effects, for instance to disable DH
-deeply breaks TKEY support.
-The only algorithm you might want to disable is MD5
-(even HMAC-MD5 is safe).
-A final note: disable flags in site.h work for OpenSSL
-code too but this feature is not officially supported yet
-(i.e., please don't rely on it).
+ - rand or RSA: nothing can be done; native PKCS#11 is not supported
+   in BIND9 with this HSM.
+
+ - DSA or DH: run pkcs11-tokens with the -v (verbose) flag.  If the
+   parameter generation mechanism is not supported you can make the token
+   selection to ignore the error.  Note DSA and DH are not critical
+   algorithms; you can use BIND9 in production without them.
+
+ - digest: run pkcs11-tokens with the -v (verbose) flag.  If the problem is
+   with HMAC mechanisms, use the corresponding REPLACE flags in site.h.
+   If the problem is with MD5, use the corresponding DISABLE flag in
+   site.h. If the problem is with SHA224, contact the implementor of the
+   PKCS#11 provider and ask to have this hash algorithm implemented.  For
+   any other problem, nothing can be done; native PKCS#11 is not supported
+   with this HSM.
+
+ - EC: you may wish to configure BIND9 without ECDSA support by adding
+   --without-ecdsa to the "configure" arguments.
+
+ - GOST: you SHOULD configure BIND9 without GOST support by adding
+   --without-gost to the "configure" arguments.
+
+ - AES: you MUST reconfigure bind9 without AES support by adding
+   --without-aes to configure arguments.
+
+You can disable some algorithms (e.g. DSA, DH and MD5) using the
+"disable-algorithms" option in named.conf, and some other algorithms can be
+disabled at compile time (ECDSA, GOST, AES).  Note, however, that disabling
+algorithms can have unwanted side effects; for instance, disabling DH breaks
+TKEY support.
+
+A final note: the DISABLE flags in site.h work for OpenSSL code too, but
+this feature is not officially supported yet and should not be relied on.

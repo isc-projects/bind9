@@ -24,13 +24,13 @@
 /*\brief Put here specific PKCS#11 tweaks
  *
  *\li PK11_<mechanism>_SKIP:
- *	don't consider the lack of this mechanism as a fatal error
+ *	Don't consider the lack of this mechanism as a fatal error.
  *
  *\li PK11_<mechanism>_REPLACE:
- *      same than skip and implement it using lower level steps
+ *      Same as SKIP, and implement the mechanism using lower-level steps.
  *
  *\li PK11_<algorithm>_DISABLE:
- *	same than skip but support of the whole algorithm is disabled
+ *	Same as SKIP, and disable support for the algorithm.
  */
 
 /* current implemented flags are:
