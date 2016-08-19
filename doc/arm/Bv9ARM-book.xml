@@ -4923,8 +4923,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		  <simpara>
 		    <command>fstrm-set-input-queue-size</command>: The
 		    number of queue entries to allocate for each
-		    input queue. The minimum is 2, the maximum is 16384,
-		    and the default is 512.
+		    input queue. This value must be a power of 2.
+		    The minimum is 2, the maximum is 16384, and
+		    the default is 512.
 		  </simpara>
 		</listitem>
 		<listitem>
