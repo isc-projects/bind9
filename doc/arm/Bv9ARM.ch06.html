@@ -2776,8 +2776,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <li class="listitem">
                     <span class="command"><strong>fstrm-set-input-queue-size</strong></span>: The
                     number of queue entries to allocate for each
-                    input queue. The minimum is 2, the maximum is 16384,
-                    and the default is 512.
+                    input queue. This value must be a power of 2.
+                    The minimum is 2, the maximum is 16384, and
+                    the default is 512.
                   </li>
 <li class="listitem">
                     <span class="command"><strong>fstrm-set-output-queue-size</strong></span>:
@@ -4048,7 +4049,7 @@ options {
 <dt><span class="term"><span class="command"><strong>cookie-secret</strong></span></span></dt>
 <dd><p>
                   If set, this is a shared secret used for generating
-                  and verifying Source Identity Token EDNS options
+                  and verifying EDNS COOKIE options
                   within an anycast cluster.  If not set, the system
                   will generate a random secret at startup.  The
                   shared secret is encoded as a hex string and needs
@@ -13548,6 +13549,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0b3</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc1</p>
 </body>
 </html>
