@@ -1,3 +1,5 @@
+	--- 9.11.0rc1 released ---
+
 4450.	[port]		Provide more nuanced HSM support which better matches
 			the specific PKCS11 providers capabilities. [RT #42458]
 
