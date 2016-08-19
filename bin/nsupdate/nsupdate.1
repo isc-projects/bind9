@@ -209,7 +209,9 @@ hmac\-sha384, or
 hmac\-sha512\&. If
 \fIhmac\fR
 is not specified, the default is
-hmac\-md5\&.
+hmac\-md5
+or if MD5 was disabled
+hmac\-sha256\&.
 .sp
 NOTE: Use of the
 \fB\-y\fR
@@ -284,7 +286,9 @@ Specifies that all updates are to be TSIG\-signed using the
 pair\&. If
 \fIhmac\fR
 is specified, then it sets the signing algorithm in use; the default is
-hmac\-md5\&. The
+hmac\-md5
+or if MD5 was disabled
+hmac\-sha256\&. The
 \fBkey\fR
 command overrides any key specified on the command line via
 \fB\-y\fR

@@ -177,8 +177,19 @@ options {<br>
 	coresize <em class="replaceable"><code>size</code></em>;<br>
 	datasize <em class="replaceable"><code>size</code></em>;<br>
 	directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	dnstap { <em class="replaceable"><code>message_type</code></em>; ... };<br>
+	dnstap-output ( <code class="literal">file</code> | <code class="literal">unix</code> ) <em class="replaceable"><code>path_name</code></em>;<br>
+	dnstap-identity ( <em class="replaceable"><code>string</code></em> | <code class="literal">hostname</code> | <code class="literal">none</code> );<br>
+	dnstap-version ( <em class="replaceable"><code>string</code></em> | <code class="literal">none</code> );<br>
 	dump-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	files <em class="replaceable"><code>size</code></em>;<br>
+	fstrm-set-buffer-hint <em class="replaceable"><code>number</code></em>;<br>
+	fstrm-set-flush-timeout <em class="replaceable"><code>number</code></em>;<br>
+	fstrm-set-input-queue-size <em class="replaceable"><code>number</code></em>;<br>
+	fstrm-set-output-notify-threshold <em class="replaceable"><code>number</code></em>;<br>
+	fstrm-set-output-queue-model ( <em class="replaceable"><code>mpsc</code></em> | <em class="replaceable"><code>spsc</code></em> ) ;<br>
+	fstrm-set-output-queue-size <em class="replaceable"><code>number</code></em>;<br>
+	fstrm-set-reopen-interval <em class="replaceable"><code>number</code></em>;<br>
 	heartbeat-interval <em class="replaceable"><code>integer</code></em>;<br>
 	host-statistics <em class="replaceable"><code>boolean</code></em>; // not implemented<br>
 	host-statistics-max <em class="replaceable"><code>number</code></em>; // not implemented<br>

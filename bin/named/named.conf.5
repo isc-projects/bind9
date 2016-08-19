@@ -216,8 +216,19 @@ options {
 	coresize \fIsize\fR;
 	datasize \fIsize\fR;
 	directory \fIquoted_string\fR;
+	dnstap { \fImessage_type\fR; \&.\&.\&. };
+	dnstap\-output ( file | unix ) \fIpath_name\fR;
+	dnstap\-identity ( \fIstring\fR | hostname | none );
+	dnstap\-version ( \fIstring\fR | none );
 	dump\-file \fIquoted_string\fR;
 	files \fIsize\fR;
+	fstrm\-set\-buffer\-hint \fInumber\fR;
+	fstrm\-set\-flush\-timeout \fInumber\fR;
+	fstrm\-set\-input\-queue\-size \fInumber\fR;
+	fstrm\-set\-output\-notify\-threshold \fInumber\fR;
+	fstrm\-set\-output\-queue\-model ( \fImpsc\fR | \fIspsc\fR ) ;
+	fstrm\-set\-output\-queue\-size \fInumber\fR;
+	fstrm\-set\-reopen\-interval \fInumber\fR;
 	heartbeat\-interval \fIinteger\fR;
 	host\-statistics \fIboolean\fR; // not implemented
 	host\-statistics\-max \fInumber\fR; // not implemented

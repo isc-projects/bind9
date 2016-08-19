@@ -168,6 +168,13 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
+        fstrm-set-buffer-hint <integer>; // not configured
+        fstrm-set-flush-timeout <integer>; // not configured
+        fstrm-set-input-queue-size <integer>; // not configured
+        fstrm-set-output-notify-threshold <integer>; // not configured
+        fstrm-set-output-queue-model ( spsc | mpsc ); // not configured
+        fstrm-set-output-queue-size <integer>; // not configured
+        fstrm-set-reopen-interval <integer>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
         geoip-use-ecs ( <quoted_string> | none ); // not configured
         has-old-clients <boolean>; // obsolete

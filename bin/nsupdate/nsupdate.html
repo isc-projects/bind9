@@ -201,7 +201,8 @@
 	    <code class="literal">hmac-sha1</code>, <code class="literal">hmac-sha224</code>,
 	    <code class="literal">hmac-sha256</code>, <code class="literal">hmac-sha384</code>, or
 	    <code class="literal">hmac-sha512</code>.  If <em class="parameter"><code>hmac</code></em>
-	    is not specified, the default is <code class="literal">hmac-md5</code>.
+	    is not specified, the default is <code class="literal">hmac-md5</code>
+	    or if MD5 was disabled <code class="literal">hmac-sha256</code>.
 	  </p>
 <p>
 	    NOTE: Use of the <code class="option">-y</code> option is discouraged because the
@@ -326,7 +327,8 @@
 	      <em class="parameter"><code>keyname</code></em> <em class="parameter"><code>secret</code></em> pair.
 	      If <em class="parameter"><code>hmac</code></em> is specified, then it sets the
 	      signing algorithm in use; the default is
-	      <code class="literal">hmac-md5</code>.  The <span class="command"><strong>key</strong></span>
+	      <code class="literal">hmac-md5</code> or if MD5 was disabled
+	      <code class="literal">hmac-sha256</code>.  The <span class="command"><strong>key</strong></span>
 	      command overrides any key specified on the command line via
 	      <code class="option">-y</code> or <code class="option">-k</code>.
 	    </p></dd>
