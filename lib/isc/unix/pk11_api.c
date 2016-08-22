@@ -30,6 +30,7 @@
 #include <pk11/internal.h>
 
 static void *hPK11 = NULL;
+static char loaderrmsg[1024];
 
 CK_RV
 pkcs_C_Initialize(CK_VOID_PTR pReserved) {
@@ -40,12 +41,20 @@ pkcs_C_Initialize(CK_VOID_PTR pReserved) {
 
 	hPK11 = dlopen(pk11_get_lib_name(), RTLD_NOW);
 
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
+		snprintf(loaderrmsg, sizeof(loaderrmsg),
+			 "dlopen(\"%s\") failed: %s\n",
+			 pk11_get_lib_name(), dlerror());
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
+	}
 	sym = (CK_C_Initialize)dlsym(hPK11, "C_Initialize");
 	if (sym == NULL)
 		return (CKR_SYMBOL_RESOLUTION_FAILED);
 	return (*sym)(pReserved);
+}
+
+char *pk11_get_load_error_message(void) {
+	return (loaderrmsg);
 }
 
 CK_RV
@@ -131,8 +140,12 @@ pkcs_C_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags,
 
 	if (hPK11 == NULL)
 		hPK11 = dlopen(pk11_get_lib_name(), RTLD_NOW);
-	if (hPK11 == NULL)
+	if (hPK11 == NULL) {
+		snprintf(loaderrmsg, sizeof(loaderrmsg),
+			 "dlopen(\"%s\") failed: %s\n",
+			 pk11_get_lib_name(), dlerror());
 		return (CKR_LIBRARY_FAILED_TO_LOAD);
+	}
 	if ((sym == NULL) || (hPK11 != pPK11)) {
 		pPK11 = hPK11;
 		sym = (CK_C_OpenSession)dlsym(hPK11, "C_OpenSession");
