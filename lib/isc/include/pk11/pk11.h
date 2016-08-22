@@ -158,6 +158,8 @@ void pk11_dump_tokens(void);
 CK_RV
 pkcs_C_Initialize(CK_VOID_PTR pReserved);
 
+char *pk11_get_load_error_message(void);
+
 CK_RV
 pkcs_C_Finalize(CK_VOID_PTR pReserved);
 

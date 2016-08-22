@@ -214,6 +214,8 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 
 	if (rv == 0xfe) {
 		result = PK11_R_NOPROVIDER;
+		fprintf(stderr, "Can't load PKCS#11 provider: %s\n",
+			pk11_get_load_error_message());
 		goto unlock;
 	}
 	if (rv != CKR_OK) {

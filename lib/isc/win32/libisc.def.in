@@ -711,6 +711,7 @@ pk11_error_fatalcheck
 pk11_finalize
 pk11_get_best_token
 pk11_get_lib_name
+pk11_get_load_error_message
 pk11_get_session
 pk11_initialize
 pk11_initmsgcat
