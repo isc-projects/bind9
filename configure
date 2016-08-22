@@ -16597,6 +16597,7 @@ esac
 
 PKCS11_ECDSA=""
 PKCS11_GOST=""
+set_pk11_flavor="no"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for native PKCS11" >&5
 $as_echo_n "checking for native PKCS11... " >&6; }
 
@@ -16604,8 +16605,6 @@ case "$want_native_pkcs11" in
 	yes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using native PKCS11 crypto" >&5
 $as_echo "using native PKCS11 crypto" >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: tweaks are in lib/isc/include/pk11/site.h" >&5
-$as_echo "tweaks are in lib/isc/include/pk11/site.h" >&6; }
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
 		PKCS11_TEST=pkcs11
@@ -16641,6 +16640,50 @@ $as_echo "#define HAVE_PKCS11_GOST 1" >>confdefs.h
 $as_echo "disabled" >&6; }
 			;;
 		esac
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 flavor" >&5
+$as_echo_n "checking for PKCS11 flavor... " >&6; }
+		case "$PKCS11_PROVIDER" in
+			*nfast*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Thales nCipher" >&5
+$as_echo "Thales nCipher" >&6; }
+				# default
+				pk11_flavor="PK11_THALES_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*libsofthsm2*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: SoftHSMv2" >&5
+$as_echo "SoftHSMv2" >&6; }
+				pk11_flavor="PK11_SOFTHSMV2_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*libsofthsm*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: SoftHSM" >&5
+$as_echo "SoftHSM" >&6; }
+				pk11_flavor="PK11_SOFTHSMV1_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*cryptech*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Cryptech" >&5
+$as_echo "Cryptech" >&6; }
+				pk11_flavor="PK11_CRYPTECH_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
+			*Keyper*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: AEP Keyper: not yet supported" >&5
+$as_echo "AEP Keyper: not yet supported" >&6; }
+				;;
+			undefined)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: undefined provider?" >&5
+$as_echo "undefined provider?" >&6; }
+				;;
+			*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: unknown provider: tweaks are in lib/isc/include/pk11/site.h" >&5
+$as_echo "unknown provider: tweaks are in lib/isc/include/pk11/site.h" >&6; }
+				;;
+		esac
+		if test "$set_pk11_flavor" = "yes" ; then
+			CFLAGS="$CFLAGS -DPK11_FLAVOR=$pk11_flavor"
+		fi
 		;;
 	no|'')
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
