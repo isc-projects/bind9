@@ -20,6 +20,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/thread.h>
 #include <isc/util.h>
