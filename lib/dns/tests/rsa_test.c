@@ -183,7 +183,7 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 	dns_fixedname_t fname;
 	isc_buffer_t buf;
 	dns_name_t *name;
-	dst_key_t *key = NULL;	
+	dst_key_t *key = NULL;
 	dst_context_t *ctx = NULL;
 	isc_region_t r;
 
