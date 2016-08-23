@@ -176,6 +176,8 @@ command is one of the following:\n\
 		Prime zone with NSEC3 chain if not yet signed.\n\
   signing -nsec3param none zone [class [view]]\n\
 		Remove NSEC3 chains from zone.\n\
+  signing -serial <value> zone [class [view]]\n\
+		Set the zones's serial to <value>.\n\
   stats		Write server statistics to the statistics file.\n\
   status	Display status of the server.\n\
   stop		Save pending updates to master files and stop the server.\n\
