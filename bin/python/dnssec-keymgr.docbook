@@ -60,7 +60,7 @@
     </para>
     <para>
       DNSSEC policy can be read from a configuration file (default
-      <filename>/etc/dnssec.policy</filename>), from which the key
+      <filename>/etc/dnssec-policy.conf</filename>), from which the key
       parameters, publication and rollover schedule, and desired
       coverage duration for any given zone can be determined.  This
       file may be used to define individual DNSSEC policies on a
@@ -109,7 +109,7 @@
             If <option>-c</option> is specified, then the DNSSEC
             policy is read from <option>file</option>.  (If not
             specified, then the policy is read from
-            <filename>/etc/policy.conf</filename>; if that file
+            <filename>/etc/dnssec-policy.conf</filename>; if that file
             doesn't exist, a built-in global default policy is used.)
           </para>
         </listitem>
@@ -228,7 +228,7 @@
 
   <refsection><info><title>POLICY CONFIGURATION</title></info>
     <para>
-      The <filename>policy.conf</filename> file can specify three kinds
+      The <filename>dnssec-policy.conf</filename> file can specify three kinds
       of policies:
     </para>
     <itemizedlist>

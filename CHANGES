@@ -1,5 +1,9 @@
 	--- 9.11.0rc1 released ---
 
+4452.	[bug]		The default key manager policy file is now
+			<sysdir>/dnssec-policy.conf (usually
+			/etc/dnssec-policy.conf). [RT #43064]
+
 4451.   [cleanup]       Log more useful information if a PKCS#11 provider
                         library cannot be loaded. [RT #43076]
 
