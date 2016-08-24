@@ -1,3 +1,6 @@
+4453.	[bug]		Prefetching of DS records failed to update their 
+			RRSIGs. [RT #42865]
+
 4451.   [cleanup]       Log more useful information if a PKCS#11 provider
 			library cannot be loaded. [RT #43076]
 
