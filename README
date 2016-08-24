@@ -67,10 +67,10 @@ BIND 9.11.0
 	- Added support for "dyndb", a new API for loading zone data
 	  from an external database, developed by Red Hat for the FreeIPA
 	  project.
-	- New "fetchlimit" quotas are now available for the use of
-	  recursive resolvers that are are under high query load for
-	  domains whose authoritative servers are nonresponsive or are
-	  experiencing a denial of service attack:
+	- "fetchlimit" quotas are now compiled in by default.  These
+          are for the use of recursive resolvers that are are under
+          high query load for domains whose authoritative servers are
+          nonresponsive or are experiencing a denial of service attack:
 	  + "fetches-per-server" limits the number of simultaneous queries
 	    that can be sent to any single authoritative server.  The
 	    configured value is a starting point; it is automatically
