@@ -1,5 +1,8 @@
 	--- 9.11.0rc1 released ---
 
+4451.   [cleanup]       Log more useful information if a PKCS#11 provider
+                        library cannot be loaded. [RT #43076]
+
 4450.	[port]		Provide more nuanced HSM support which better matches
 			the specific PKCS11 providers capabilities. [RT #42458]
 
