@@ -423,6 +423,27 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I:check prefetch of validated DS's RRSIG TTL is updated (${n})"
+ret=0
+$DIG +dnssec @10.53.0.5 -p 5300 ds.example.net ds > dig.out.1.${n} || ret=1
+ttl1=`awk '$4 == "DS" && $7 == "1" { print $2 - 2 }' dig.out.1.${n}`
+# sleep so we are in prefetch range
+sleep ${ttl1:-0}
+# trigger prefetch
+$DIG @10.53.0.5 -p 5300 ds.example.net ds > dig.out.2.${n} || ret=1
+ttl1=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.2.${n}`
+sleep 1
+# check that prefetch occured
+$DIG @10.53.0.5 -p 5300 ds.example.net ds +dnssec > dig.out.3.${n} || ret=1
+dsttl=`awk '$4 == "DS" i&& $7 == "1" { print $2 }' dig.out.3.${n}`
+sigttl=`awk '$4 == "RRSIG" && $5 == "DS" { print $2 }' dig.out.3.${n}`
+test ${dsttl:-0} -gt ${ttl2:-1} || ret=1
+test ${sigttl:-0} -gt ${ttl2:-1} || ret=1
+test ${dsttl:-0} -eq ${sigttl:-1} || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo "I:check prefetch disabled (${n})"
 ret=0
 $DIG @10.53.0.7 -p 5300 fetch.example.net txt > dig.out.1.${n} || ret=1

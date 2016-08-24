@@ -1,5 +1,8 @@
 	--- 9.11.0rc1 released ---
 
+4453.	[bug]		Prefetching of DS records failed to update their 
+			RRSIGs. [RT #42865]
+
 4452.	[bug]		The default key manager policy file is now
 			<sysdir>/dnssec-policy.conf (usually
 			/etc/dnssec-policy.conf). [RT #43064]

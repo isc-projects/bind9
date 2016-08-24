@@ -5028,7 +5028,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 			eresult = DNS_R_NCACHENXRRSET;
 	} else if (vevent->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->cache, node, NULL, now,
-					    vevent->sigrdataset, 0,
+					    vevent->sigrdataset, options,
 					    asigrdataset);
 		if (result != ISC_R_SUCCESS &&
 		    result != DNS_R_UNCHANGED)
@@ -5497,8 +5497,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 			 * Mark the rdataset as being prefetch eligible.
 			 */
 			if (rdataset->ttl > fctx->res->view->prefetch_eligible)
-				rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
-
+				rdataset->attributes |=
+					DNS_RDATASETATTR_PREFETCH;
 
 			/*
 			 * Cache this rdataset/sigrdataset pair as

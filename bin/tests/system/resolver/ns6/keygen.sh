@@ -11,7 +11,7 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-zone=example.net
+zone=ds.example.net
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
@@ -19,3 +19,23 @@ ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
 cat $ksk.key $zsk.key >> $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+zone=example.net
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cp $infile $zonefile
+ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
+zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+cat $ksk.key $zsk.key dsset-ds.example.net. >> $zonefile
+$SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+
+# Configure a trusted key statement (used by delve)
+cat $ksk.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+print <<EOF
+trusted-keys {
+    "$dn" $flags $proto $alg "$key";
+};
+EOF
+' > ../ns5/trusted.conf
