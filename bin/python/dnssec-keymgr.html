@@ -32,7 +32,7 @@
     </p>
 <p>
       DNSSEC policy can be read from a configuration file (default
-      <code class="filename">/etc/dnssec.policy</code>), from which the key
+      <code class="filename">/etc/dnssec-policy.conf</code>), from which the key
       parameters, publication and rollover schedule, and desired
       coverage duration for any given zone can be determined.  This
       file may be used to define individual DNSSEC policies on a
@@ -79,7 +79,7 @@
             If <code class="option">-c</code> is specified, then the DNSSEC
             policy is read from <code class="option">file</code>.  (If not
             specified, then the policy is read from
-            <code class="filename">/etc/policy.conf</code>; if that file
+            <code class="filename">/etc/dnssec-policy.conf</code>; if that file
             doesn't exist, a built-in global default policy is used.)
           </p></dd>
 <dt><span class="term">-f</span></dt>
@@ -146,7 +146,7 @@
 <div class="refsection">
 <a name="id-1.9"></a><h2>POLICY CONFIGURATION</h2>
 <p>
-      The <code class="filename">policy.conf</code> file can specify three kinds
+      The <code class="filename">dnssec-policy.conf</code> file can specify three kinds
       of policies:
     </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">

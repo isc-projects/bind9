@@ -40,7 +40,7 @@
 <div class="cmdsynopsis"><p><code class="command">dnssec-keymgr</code>  [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>] [<code class="option">-c <em class="replaceable"><code>file</code></em></code>] [<code class="option">-f</code>] [<code class="option">-k</code>] [<code class="option">-q</code>] [<code class="option">-v</code>] [<code class="option">-z</code>] [<code class="option">-g <em class="replaceable"><code>path</code></em></code>] [<code class="option">-r <em class="replaceable"><code>path</code></em></code>] [<code class="option">-s <em class="replaceable"><code>path</code></em></code>] [zone...]</p></div>
 </div>
 <div class="refsection">
-<a name="id-1.14.12.7"></a><h2>DESCRIPTION</h2>
+<a name="id-1.14.13.7"></a><h2>DESCRIPTION</h2>
 <p>
       <span class="command"><strong>dnssec-keymgr</strong></span> is a high level Python wrapper
       to facilitate the key rollover process for zones handled by
@@ -50,7 +50,7 @@
     </p>
 <p>
       DNSSEC policy can be read from a configuration file (default
-      <code class="filename">/etc/dnssec.policy</code>), from which the key
+      <code class="filename">/etc/dnssec-policy.conf</code>), from which the key
       parameters, publication and rollover schedule, and desired
       coverage duration for any given zone can be determined.  This
       file may be used to define individual DNSSEC policies on a
@@ -90,14 +90,14 @@
     </p>
 </div>
 <div class="refsection">
-<a name="id-1.14.12.8"></a><h2>OPTIONS</h2>
+<a name="id-1.14.13.8"></a><h2>OPTIONS</h2>
 <div class="variablelist"><dl class="variablelist">
 <dt><span class="term">-c <em class="replaceable"><code>file</code></em></span></dt>
 <dd><p>
             If <code class="option">-c</code> is specified, then the DNSSEC
             policy is read from <code class="option">file</code>.  (If not
             specified, then the policy is read from
-            <code class="filename">/etc/policy.conf</code>; if that file
+            <code class="filename">/etc/dnssec-policy.conf</code>; if that file
             doesn't exist, a built-in global default policy is used.)
           </p></dd>
 <dt><span class="term">-f</span></dt>
@@ -162,9 +162,9 @@
 </dl></div>
 </div>
 <div class="refsection">
-<a name="id-1.14.12.9"></a><h2>POLICY CONFIGURATION</h2>
+<a name="id-1.14.13.9"></a><h2>POLICY CONFIGURATION</h2>
 <p>
-      The <code class="filename">policy.conf</code> file can specify three kinds
+      The <code class="filename">dnssec-policy.conf</code> file can specify three kinds
       of policies:
     </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
@@ -263,7 +263,7 @@
 </dl></div>
 </div>
 <div class="refsection">
-<a name="id-1.14.12.10"></a><h2>REMAINING WORK</h2>
+<a name="id-1.14.13.10"></a><h2>REMAINING WORK</h2>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
         Enable scheduling of KSK rollovers using the <code class="option">-P sync</code>
@@ -280,7 +280,7 @@
 </ul></div>
 </div>
 <div class="refsection">
-<a name="id-1.14.12.11"></a><h2>SEE ALSO</h2>
+<a name="id-1.14.13.11"></a><h2>SEE ALSO</h2>
 <p>
       <span class="citerefentry"><span class="refentrytitle">dnssec-coverage</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -308,6 +308,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0a3</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc1</p>
 </body>
 </html>
