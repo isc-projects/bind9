@@ -1950,6 +1950,7 @@
 ./bin/tests/system/resolver/ns5/root.hint	ZONE	2010,2016
 ./bin/tests/system/resolver/ns6/broken.db	ZONE	2012,2016
 ./bin/tests/system/resolver/ns6/delegation-only.db	ZONE	2015,2016
+./bin/tests/system/resolver/ns6/ds.example.net.db.in	ZONE	2016
 ./bin/tests/system/resolver/ns6/example.net.db.in	ZONE	2010,2014,2016
 ./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016
 ./bin/tests/system/resolver/ns6/moves.db	ZONE	2011,2016
