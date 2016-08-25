@@ -245,7 +245,7 @@
 	  <command>dnssec-keymgr</command>, has been added. This tool
 	  is meant to run unattended (e.g., under <command>cron</command>).
 	  It reads a policy definition file
-	  (default: <filename>/etc/dnssec.policy</filename>)
+	  (default <filename>/etc/dnssec-policy.conf</filename>)
 	  and creates or updates DNSSEC keys as necessary to ensure that a
 	  zone's keys match the defined policy for that zone.  New keys are
 	  created whenever necessary to ensure rollovers occur correctly.
