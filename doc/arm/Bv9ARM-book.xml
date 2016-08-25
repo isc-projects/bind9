@@ -4890,7 +4890,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		    <command>fstrm-set-buffer-hint</command>: The
 		    threshold number of bytes to accumulate in the output
 		    buffer before forcing a buffer flush. The minimum is
-		    1024, the maximum is 65536, and the default is 8096.
+		    1024, the maximum is 65536, and the default is 8192.
 		  </simpara>
 		</listitem>
 		<listitem>
