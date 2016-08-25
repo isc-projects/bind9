@@ -86,8 +86,8 @@ struct dns_dtmsg {
 };
 
 struct dns_dthandle {
-        dns_dtmode_t mode;
-        struct fstrm_reader *reader;
+	dns_dtmode_t mode;
+	struct fstrm_reader *reader;
 	isc_mem_t *mctx;
 };
 
@@ -328,7 +328,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		      env->path);
 
 	generation++;
-	
+
 	if (env->iothr != NULL)
 		fstrm_iothr_destroy(&env->iothr);
 
