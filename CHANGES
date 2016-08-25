@@ -1,5 +1,7 @@
 	--- 9.11.0rc1 released ---
 
+4454.	[bug]		'rndc dnstap -reopen' had a race issue. [RT #43089]
+
 4453.	[bug]		Prefetching of DS records failed to update their 
 			RRSIGs. [RT #42865]
 

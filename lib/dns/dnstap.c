@@ -85,6 +85,12 @@ struct dns_dtmsg {
 	Dnstap__Message m;
 };
 
+struct dns_dthandle {
+        dns_dtmode_t mode;
+        struct fstrm_reader *reader;
+	isc_mem_t *mctx;
+};
+
 struct dns_dtenv {
 	unsigned int magic;
 	isc_refcount_t refcount;
@@ -92,7 +98,7 @@ struct dns_dtenv {
 	isc_mem_t *mctx;
 
 	struct fstrm_iothr *iothr;
-	struct fstrm_writer *fw;
+	struct fstrm_iothr_options *fopt;
 
 	isc_region_t identity;
 	isc_region_t version;
@@ -113,6 +119,11 @@ static isc_thread_key_t dt_key;
 static isc_once_t mutex_once = ISC_ONCE_INIT;
 static isc_mem_t *dt_mctx = NULL;
 
+/*
+ * Change under task exclusive.
+ */
+static unsigned int ioqversion;
+
 static void
 mutex_init(void) {
 	RUNTIME_CHECK(isc_mutex_init(&dt_mutex) == ISC_R_SUCCESS);
@@ -120,7 +131,7 @@ mutex_init(void) {
 
 static void
 dtfree(void *arg) {
-	UNUSED(arg);
+	free(arg);
 	isc_thread_key_setspecific(dt_key, NULL);
 }
 
@@ -160,7 +171,7 @@ unlock:
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options *fopt, dns_dtenv_t **envp)
+	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
@@ -172,11 +183,13 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	REQUIRE(path != NULL);
 	REQUIRE(envp != NULL && *envp == NULL);
-	REQUIRE(fopt != NULL);
+	REQUIRE(foptp!= NULL && *foptp != NULL);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
 		      "opening dnstap destination '%s'", path);
+
+	ioqversion++;
 
 	env = isc_mem_get(mctx, sizeof(dns_dtenv_t));
 	if (env == NULL)
@@ -200,7 +213,6 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	if (res != fstrm_res_success)
 		CHECK(ISC_R_FAILURE);
 
-
 	if (mode == dns_dtmode_file) {
 		ffwopt = fstrm_file_options_init();
 		if (ffwopt != NULL) {
@@ -220,20 +232,17 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	if (fw == NULL)
 		CHECK(ISC_R_FAILURE);
 
-	/*
-	 * Remember 'fw' so we can close and reopen it later.
-	 */
-	env->fw = fw;
-	env->iothr = fstrm_iothr_init(fopt, &fw);
+	env->iothr = fstrm_iothr_init(*foptp, &fw);
 	if (env->iothr == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
 			      "unable to initialize dnstap I/O thread");
-		env->fw = NULL;
 		fstrm_writer_destroy(&fw);
 		CHECK(ISC_R_FAILURE);
 	}
 	env->mode = mode;
+	env->fopt = *foptp;
+	*foptp = NULL;
 
 	isc_mem_attach(mctx, &env->mctx);
 
@@ -267,26 +276,63 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 isc_result_t
 dns_dt_reopen(dns_dtenv_t *env, int roll) {
-	isc_result_t result;
-	isc_logfile_t file;
+	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
+	isc_logfile_t file;
+	struct fstrm_unix_writer_options *fuwopt = NULL;
+	struct fstrm_file_options *ffwopt = NULL;
+	struct fstrm_writer_options *fwopt = NULL;
+	struct fstrm_writer *fw = NULL;
 
 	REQUIRE(VALID_DTENV(env));
 
-	if (env->fw == NULL)
-		return (ISC_R_FAILURE);
+	/*
+	 * Check that we can create a new fw object.
+	 */
+	fwopt = fstrm_writer_options_init();
+	if (fwopt == NULL)
+		return (ISC_R_NOMEMORY);
 
+	res = fstrm_writer_options_add_content_type(fwopt,
+					    DNSTAP_CONTENT_TYPE,
+					    sizeof(DNSTAP_CONTENT_TYPE) - 1);
+	if (res != fstrm_res_success)
+		CHECK(ISC_R_FAILURE);
+
+	if (env->mode == dns_dtmode_file) {
+		ffwopt = fstrm_file_options_init();
+		if (ffwopt != NULL) {
+			fstrm_file_options_set_file_path(ffwopt, env->path);
+			fw = fstrm_file_writer_init(ffwopt, fwopt);
+		}
+	} else if (env->mode == dns_dtmode_unix) {
+		fuwopt = fstrm_unix_writer_options_init();
+		if (fuwopt != NULL) {
+			fstrm_unix_writer_options_set_socket_path(fuwopt,
+								  env->path);
+			fw = fstrm_unix_writer_init(fuwopt, fwopt);
+		}
+	} else
+		CHECK(ISC_R_NOTIMPLEMENTED);
+
+	if (fw == NULL)
+		CHECK(ISC_R_FAILURE);
+
+	/*
+	 * We are committed here.
+	 */
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
 		      "%s dnstap destination '%s'",
 		      (roll < 0) ? "reopening" : "rolling",
 		      env->path);
+	
+	if (env->iothr != NULL)
+		fstrm_iothr_destroy(&env->iothr);
 
-	res = fstrm_writer_close(env->fw);
-	if (res != fstrm_res_success)
-		return (ISC_R_FAILURE);
+	ioqversion++;
 
-	if (roll >= 0) {
+	if (env->mode == dns_dtmode_file && roll >= 0) {
 		/*
 		 * Create a temporary isc_logfile_t structure so we can
 		 * take advantage of the logfile rolling facility.
@@ -299,13 +345,31 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		file.maximum_reached = ISC_FALSE;
 		result = isc_logfile_roll(&file);
 		isc_mem_free(env->mctx, filename);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		CHECK(result);
 	}
 
-	fstrm_writer_open(env->fw);
+	env->iothr = fstrm_iothr_init(env->fopt, &fw);
+	if (env->iothr == NULL) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
+			      DNS_LOGMODULE_DNSTAP, ISC_LOG_WARNING,
+			      "unable to initialize dnstap I/O thread");
+		CHECK(ISC_R_FAILURE);
+	}
 
-	return (ISC_R_SUCCESS);
+ cleanup:
+	if (ffwopt != NULL)
+		fstrm_file_options_destroy(&ffwopt);
+
+	if (fw != NULL)
+		fstrm_writer_destroy(&fw);
+
+	if (fwopt != NULL)
+		fstrm_writer_options_destroy(&fwopt);
+
+	if (fuwopt != NULL)
+		fstrm_unix_writer_options_destroy(&fuwopt);
+
+	return (result);
 }
 
 static isc_result_t
@@ -350,25 +414,46 @@ dns_dt_setversion(dns_dtenv_t *env, const char *version) {
 static struct fstrm_iothr_queue *
 dt_queue(dns_dtenv_t *env) {
 	isc_result_t result;
-	struct fstrm_iothr_queue *ioq;
+	struct ioq {
+		unsigned int ioqversion;
+		struct fstrm_iothr_queue *ioq;
+	} *ioq;
 
 	REQUIRE(VALID_DTENV(env));
+
+	if (env->iothr == NULL)
+		return (NULL);
 
 	result = dt_init();
 	if (result != ISC_R_SUCCESS)
 		return (NULL);
 
-	ioq = (struct fstrm_iothr_queue *) isc_thread_key_getspecific(dt_key);
+	ioq = (struct ioq *)isc_thread_key_getspecific(dt_key);
+	if (ioq != NULL && ioq->ioqversion != ioqversion) {
+		result = isc_thread_key_setspecific(dt_key, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (NULL);
+		free(ioq);
+		ioq = NULL;
+	}
 	if (ioq == NULL) {
-		ioq = fstrm_iothr_get_input_queue(env->iothr);
-		if (ioq != NULL) {
-			result = isc_thread_key_setspecific(dt_key, ioq);
-			if (result != ISC_R_SUCCESS)
-				ioq = NULL;
+		ioq = malloc(sizeof(*ioq));
+		if (ioq == NULL)
+			return (NULL);
+		ioq->ioqversion = ioqversion;
+		ioq->ioq = fstrm_iothr_get_input_queue(env->iothr);
+		if (ioq->ioq == NULL) {
+			free(ioq);
+			return (NULL);
+		}
+		result = isc_thread_key_setspecific(dt_key, ioq);
+		if (result != ISC_R_SUCCESS) {
+			free(ioq);
+			return (NULL);
 		}
 	}
 
-	return (ioq);
+	return (ioq->ioq);
 }
 
 void
@@ -399,7 +484,12 @@ destroy(dns_dtenv_t *env) {
 		      "closing dnstap");
 	env->magic = 0;
 
-	fstrm_iothr_destroy(&env->iothr);
+	ioqversion++;
+
+	if (env->iothr != NULL)
+		fstrm_iothr_destroy(&env->iothr);
+	if (env->fopt != NULL)
+		fstrm_iothr_options_destroy(&env->fopt);
 
 	if (env->identity.base != NULL) {
 		isc_mem_free(env->mctx, env->identity.base);
@@ -753,14 +843,22 @@ dnstap_file(struct fstrm_reader *r) {
 }
 
 isc_result_t
-dns_dt_open(const char *filename, dns_dtmode_t mode, dns_dthandle_t *handle) {
+dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
+	    dns_dthandle_t **handlep)
+{
 	isc_result_t result;
-	struct fstrm_file_options *fopt;
+	struct fstrm_file_options *fopt = NULL;
 	fstrm_res res;
+	dns_dthandle_t *handle;
 
-	REQUIRE(handle != NULL);
+	REQUIRE(handlep != NULL && *handlep == NULL);
+
+	handle = isc_mem_get(mctx, sizeof(*handle));
+	if (handle == NULL)
+		CHECK(ISC_R_NOMEMORY);
 
 	handle->mode = mode;
+	handle->mctx = NULL;
 
 	switch(mode) {
 	case dns_dtmode_file:
@@ -787,7 +885,10 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, dns_dthandle_t *handle) {
 		INSIST(0);
 	}
 
+	isc_mem_attach(mctx, &handle->mctx);
 	result = ISC_R_SUCCESS;
+	*handlep = handle;
+	handle = NULL;
 
  cleanup:
 	if (result != ISC_R_SUCCESS && handle->reader != NULL) {
@@ -796,6 +897,8 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, dns_dthandle_t *handle) {
 	}
 	if (fopt != NULL)
 		fstrm_file_options_destroy(&fopt);
+	if (handle != NULL)
+		isc_mem_put(mctx, handle, sizeof(*handle));
 	return (result);
 }
 
@@ -825,13 +928,19 @@ dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep) {
 }
 
 void
-dns_dt_close(dns_dthandle_t *handle) {
-	REQUIRE(handle != NULL);
+dns_dt_close(dns_dthandle_t **handlep) {
+	dns_dthandle_t *handle;
+
+	REQUIRE(handlep != NULL && *handlep != NULL);
+
+	handle = *handlep;
+	*handlep = NULL;
 
 	if (handle->reader != NULL) {
 		fstrm_reader_destroy(&handle->reader);
 		handle->reader = NULL;
 	}
+	isc_mem_putanddetach(&handle->mctx, handle, sizeof(*handle));
 }
 
 isc_result_t

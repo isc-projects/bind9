@@ -69,28 +69,43 @@ ATF_TC_BODY(create, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, fopt, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
+	if (fopt != NULL)
+		fstrm_iothr_options_destroy(&fopt);
 
 	ATF_CHECK(isc_file_exists(TAPFILE));
 
-	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, fopt, &dtenv);
+	fopt = fstrm_iothr_options_init();
+	ATF_REQUIRE(fopt != NULL);
+	fstrm_iothr_options_set_num_input_queues(fopt, 1);
+
+	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, &fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
+	if (fopt != NULL)
+		fstrm_iothr_options_destroy(&fopt);
 
 	/* 'create' should succeed, but the file shouldn't exist yet */
 	ATF_CHECK(!isc_file_exists(TAPSOCK));
 
-	result = dns_dt_create(mctx, 33, TAPSOCK, fopt, &dtenv);
+	fopt = fstrm_iothr_options_init();
+	ATF_REQUIRE(fopt != NULL);
+	fstrm_iothr_options_set_num_input_queues(fopt, 1);
+
+	result = dns_dt_create(mctx, 33, TAPSOCK, &fopt, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_FAILURE);
 	ATF_CHECK_EQ(dtenv, NULL);
+	if (dtenv != NULL)
+		dns_dt_detach(&dtenv);
+	if (fopt != NULL)
+		fstrm_iothr_options_destroy(&fopt);
 
 	cleanup();
 
-	fstrm_iothr_options_destroy(&fopt);
 	dns_dt_shutdown();
 	dns_test_end();
 }
@@ -102,7 +117,7 @@ ATF_TC_HEAD(send, tc) {
 ATF_TC_BODY(send, tc) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
-	dns_dthandle_t handle;
+	dns_dthandle_t *handle = NULL;
 	isc_uint8_t *data;
 	size_t dsize;
 	unsigned char zone[DNS_NAME_MAXWIRE];
@@ -135,7 +150,7 @@ ATF_TC_BODY(send, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, fopt, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, &dtenv);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	dns_dt_attach(dtenv, &view->dtenv);
@@ -227,10 +242,10 @@ ATF_TC_BODY(send, tc) {
 	 * XXX now read back and check content.
 	 */
 
-	result = dns_dt_open(TAPFILE, dns_dtmode_file, &handle);
+	result = dns_dt_open(TAPFILE, dns_dtmode_file, mctx, &handle);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	while (dns_dt_getframe(&handle, &data, &dsize) == ISC_R_SUCCESS) {
+	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
 		dns_dtdata_t *dtdata = NULL;
 		isc_region_t r;
 		static dns_dtmsgtype_t expected = DNS_DTTYPE_SQ;
@@ -253,8 +268,10 @@ ATF_TC_BODY(send, tc) {
 		dns_dtdata_free(&dtdata);
 	}
 
-	fstrm_iothr_options_destroy(&fopt);
-	dns_dt_close(&handle);
+	if (fopt != NULL)
+		fstrm_iothr_options_destroy(&fopt);
+	if (handle != NULL)
+		dns_dt_close(&handle);
 	cleanup();
 
 	dns_test_end();
@@ -266,7 +283,7 @@ ATF_TC_HEAD(totext, tc) {
 }
 ATF_TC_BODY(totext, tc) {
 	isc_result_t result;
-	dns_dthandle_t handle;
+	dns_dthandle_t *handle = NULL;
 	isc_uint8_t *data;
 	size_t dsize;
 	FILE *fp = NULL;
@@ -276,7 +293,7 @@ ATF_TC_BODY(totext, tc) {
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
-	result = dns_dt_open(TAPSAVED, dns_dtmode_file, &handle);
+	result = dns_dt_open(TAPSAVED, dns_dtmode_file, mctx, &handle);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_stdio_open(TAPTEXT, "r", &fp);
@@ -285,7 +302,7 @@ ATF_TC_BODY(totext, tc) {
 	/* make sure text conversion gets the right local time */
 	setenv("TZ", "MST7", 1);
 
-	while (dns_dt_getframe(&handle, &data, &dsize) == ISC_R_SUCCESS) {
+	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
 		dns_dtdata_t *dtdata = NULL;
 		isc_buffer_t *b = NULL;
 		isc_region_t r;
@@ -325,7 +342,8 @@ ATF_TC_BODY(totext, tc) {
 		isc_buffer_free(&b);
 	}
 
-	dns_dt_close(&handle);
+	if (handle != NULL)
+		dns_dt_close(&handle);
 	cleanup();
 
 	dns_test_end();

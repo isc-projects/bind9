@@ -198,7 +198,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t *b = NULL;
 	dns_dtdata_t *dt = NULL;
 	const dns_master_style_t *style = &dns_master_style_debug;
-	dns_dthandle_t handle = {dns_dtmode_none, NULL};
+	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, "mpy")) != -1) {
@@ -230,7 +230,9 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, &handle),
+	dns_result_register();
+
+	CHECKM(dns_dt_open(argv[0], dns_dtmode_file, mctx, &handle),
 	       "dns_dt_openfile");
 
 	for (;;) {
@@ -238,7 +240,7 @@ main(int argc, char *argv[]) {
 		isc_uint8_t *data;
 		size_t datalen;
 
-		result = dns_dt_getframe(&handle, &data, &datalen);
+		result = dns_dt_getframe(handle, &data, &datalen);
 		if (result == ISC_R_NOMORE)
 			break;
 		else
@@ -303,7 +305,8 @@ main(int argc, char *argv[]) {
  cleanup:
 	if (dt != NULL)
 		dns_dtdata_free(&dt);
-	dns_dt_close(&handle);
+	if (handle != NULL)
+		dns_dt_close(&handle);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	if (b != NULL)

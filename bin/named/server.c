@@ -3070,7 +3070,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 			fstrm_iothr_options_set_reopen_interval(fopt, i);
 		}
 
-		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, fopt,
+		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, &fopt,
 				     &ns_g_server->dtenv),
 		       "unable to create dnstap environment");
 	}
@@ -13372,6 +13372,9 @@ isc_result_t
 ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 #if HAVE_DNSTAP
 	char *ptr;
+	isc_result_t result;
+	isc_boolean_t reopen = ISC_FALSE;
+	int backups = 0;
 
 	if (server->dtenv == NULL)
 		return (ISC_R_NOTFOUND);
@@ -13382,18 +13385,17 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		return (ISC_R_UNEXPECTEDEND);
 
 	/* "dnstap-reopen" was used in 9.11.0b1 */
-	if (strcasecmp(ptr, "dnstap-reopen") == 0)
-		return (dns_dt_reopen(server->dtenv, ISC_FALSE));
+	if (strcasecmp(ptr, "dnstap-reopen") == 0) {
+		reopen = ISC_TRUE;
+	} else {
+		ptr = next_token(lex, text);
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+	}
 
-	/* Find out what we are to do. */
-	ptr = next_token(lex, text);
-	if (ptr == NULL)
-		return (ISC_R_UNEXPECTEDEND);
-
-	if (strcasecmp(ptr, "-reopen") == 0)
-		return (dns_dt_reopen(server->dtenv, -1));
-	else if ((strcasecmp(ptr, "-roll") == 0)) {
-		int backups = 0;
+	if (reopen || strcasecmp(ptr, "-reopen") == 0) {
+		backups = -1;
+	} else if ((strcasecmp(ptr, "-roll") == 0)) {
 		unsigned int n;
 		ptr = next_token(lex, text);
 		if (ptr != NULL) {
@@ -13401,9 +13403,14 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 			if (n != 1U)
 				return (ISC_R_BADNUMBER);
 		}
-		return (dns_dt_reopen(server->dtenv, backups));
 	} else
 		return (DNS_R_SYNTAX);
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	result = dns_dt_reopen(server->dtenv, backups);
+	isc_task_endexclusive(server->task);
+	return (result);
 #else
 	UNUSED(server);
 	UNUSED(lex);
