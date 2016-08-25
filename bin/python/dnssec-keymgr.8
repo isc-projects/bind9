@@ -49,7 +49,7 @@ and
 \fBdnssec\-settime\fR\&.
 .PP
 DNSSEC policy can be read from a configuration file (default
-/etc/dnssec\&.policy), from which the key parameters, publication and rollover schedule, and desired coverage duration for any given zone can be determined\&. This file may be used to define individual DNSSEC policies on a per\-zone basis, or to set a default policy used for all zones\&.
+/etc/dnssec\-policy\&.conf), from which the key parameters, publication and rollover schedule, and desired coverage duration for any given zone can be determined\&. This file may be used to define individual DNSSEC policies on a per\-zone basis, or to set a default policy used for all zones\&.
 .PP
 When
 \fBdnssec\-keymgr\fR
@@ -79,7 +79,7 @@ If
 \fB\-c\fR
 is specified, then the DNSSEC policy is read from
 \fBfile\fR\&. (If not specified, then the policy is read from
-/etc/policy\&.conf; if that file doesn\*(Aqt exist, a built\-in global default policy is used\&.)
+/etc/dnssec\-policy\&.conf; if that file doesn\*(Aqt exist, a built\-in global default policy is used\&.)
 .RE
 .PP
 \-f
@@ -157,7 +157,7 @@ option\&.
 .SH "POLICY CONFIGURATION"
 .PP
 The
-policy\&.conf
+dnssec\-policy\&.conf
 file can specify three kinds of policies:
 .sp
 .RS 4
