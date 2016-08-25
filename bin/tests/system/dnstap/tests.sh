@@ -38,14 +38,11 @@ $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 mv ns1/dnstap.out ns1/dnstap.out.save
 mv ns2/dnstap.out ns2/dnstap.out.save
 
-sleep 2
-
 $RNDCCMD -s 10.53.0.1 dnstap-reopen | sed 's/^/I:ns1 /'
 $RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/I:ns2 /'
 $RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/I:ns3 /'
 
 $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
-sleep 1
 
 # XXX: file output should be flushed once a second according
 # to the libfstrm source, but it doesn't seem to happen until
@@ -56,6 +53,8 @@ $RNDCCMD -s 10.53.0.1 stop | sed 's/^/I:ns1 /'
 $RNDCCMD -s 10.53.0.2 stop | sed 's/^/I:ns2 /'
 $RNDCCMD -s 10.53.0.3 stop | sed 's/^/I:ns3 /'
 sleep 1
+
+echo "I:checking initial message counts"
 
 udp1=`$DNSTAPREAD ns1/dnstap.out.save | grep "UDP " | wc -l`
 tcp1=`$DNSTAPREAD ns1/dnstap.out.save | grep "TCP " | wc -l`
@@ -85,7 +84,6 @@ cr3=`$DNSTAPREAD ns3/dnstap.out.save | grep "CR " | wc -l`
 rq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "RQ " | wc -l`
 rr3=`$DNSTAPREAD ns3/dnstap.out.save | grep "RR " | wc -l`
 
-echo "I:checking initial message counts"
 echo "I: checking UDP message counts"
 ret=0
 [ $udp1 -eq 0 ] || {
@@ -198,6 +196,8 @@ ret=0
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking reopened message counts"
+
 udp1=`$DNSTAPREAD ns1/dnstap.out | grep "UDP " | wc -l`
 tcp1=`$DNSTAPREAD ns1/dnstap.out | grep "TCP " | wc -l`
 aq1=`$DNSTAPREAD ns1/dnstap.out | grep "AQ " | wc -l`
@@ -224,8 +224,6 @@ cq3=`$DNSTAPREAD ns3/dnstap.out | grep "CQ " | wc -l`
 cr3=`$DNSTAPREAD ns3/dnstap.out | grep "CR " | wc -l`
 rq3=`$DNSTAPREAD ns3/dnstap.out | grep "RQ " | wc -l`
 rr3=`$DNSTAPREAD ns3/dnstap.out | grep "RR " | wc -l`
-
-echo "I:checking reopened message counts"
 
 echo "I: checking UDP message counts"
 ret=0

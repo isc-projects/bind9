@@ -82,10 +82,7 @@ typedef enum {
 	dns_dtmode_unix
 } dns_dtmode_t;
 
-typedef struct dns_dthandle {
-	dns_dtmode_t mode;
-	struct fstrm_reader *reader;
-} dns_dthandle_t;
+typedef struct dns_dthandle dns_dthandle_t;
 
 #ifdef HAVE_DNSTAP
 struct dns_dtdata {
@@ -114,7 +111,7 @@ struct dns_dtdata {
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options *fopt, dns_dtenv_t **envp);
+	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp);
 /*%<
  * Create and initialize the dnstap environment.
  *
@@ -128,10 +125,11 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *	with "file:", then dnstap logs are sent to a file instead of a
  *	socket.
  *
- *\li	'fopt' set the options for fstrm_iothr_init(). 'fopt' must have
+ *\li	'*foptp' set the options for fstrm_iothr_init(). '*foptp' must have
  *	have had the number of input queues set and this should be set
  *	to the number of worker threads.  Additionally the queue model
  *	should also be set.  Other options may be set if desired.
+ *	If dns_dt_create succeeds the *foptp is set to NULL.
  *
  * Requires:
  *
@@ -161,6 +159,8 @@ dns_dt_reopen(dns_dtenv_t *env, int roll);
  * The value of 'roll' indicates the number of backup log files to
  * keep.  If 'roll' is negative, or if 'env->mode' is dns_dtmode_unix,
  * then the channel is simply reopened.
+ *
+ * Note: dns_dt_reopen() must be called in task exclusive mode.
  *
  * Requires:
  *\li	'env' is a valid dnstap environment.
@@ -302,7 +302,8 @@ dns_dtdata_free(dns_dtdata_t **dp);
  */
 
 isc_result_t
-dns_dt_open(const char *filename, dns_dtmode_t mode, dns_dthandle_t *handle);
+dns_dt_open(const char *filename, dns_dtmode_t mode,
+	    isc_mem_t *mctx, dns_dthandle_t **handlep);
 /*%<
  * Opens a dnstap framestream at 'filename' and stores a pointer to the
  * reader object in a dns_dthandle_t structure.
@@ -314,7 +315,11 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, dns_dthandle_t *handle);
  *
  * Requires:
  *
- *\li	'handle' is not NULL
+ *\li	'filename' is not NULL.
+ *
+ *\li	'handlep' is not NULL and '*handlep' is NULL.
+ *
+ *\li	'*mctx' is not a valid memory context.
  *
  * Returns:
  *
@@ -350,13 +355,13 @@ dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep);
  */
 
 void
-dns_dt_close(dns_dthandle_t *handle);
+dns_dt_close(dns_dthandle_t **handlep);
 /*%<
  * Closes the dnstap file referenced by 'handle'.
  *
  * Requires:
  *
- *\li	'handle' is not NULL
+ *\li	'*handlep' is not NULL
  */
 
 #endif /* _DNSTAP_H */
