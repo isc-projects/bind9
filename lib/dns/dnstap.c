@@ -122,7 +122,7 @@ static isc_mem_t *dt_mctx = NULL;
 /*
  * Change under task exclusive.
  */
-static unsigned int ioqversion;
+static unsigned int generation;
 
 static void
 mutex_init(void) {
@@ -189,7 +189,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
 		      "opening dnstap destination '%s'", path);
 
-	ioqversion++;
+	generation++;
 
 	env = isc_mem_get(mctx, sizeof(dns_dtenv_t));
 	if (env == NULL)
@@ -326,11 +326,11 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		      "%s dnstap destination '%s'",
 		      (roll < 0) ? "reopening" : "rolling",
 		      env->path);
+
+	generation++;
 	
 	if (env->iothr != NULL)
 		fstrm_iothr_destroy(&env->iothr);
-
-	ioqversion++;
 
 	if (env->mode == dns_dtmode_file && roll >= 0) {
 		/*
@@ -415,7 +415,7 @@ static struct fstrm_iothr_queue *
 dt_queue(dns_dtenv_t *env) {
 	isc_result_t result;
 	struct ioq {
-		unsigned int ioqversion;
+		unsigned int generation;
 		struct fstrm_iothr_queue *ioq;
 	} *ioq;
 
@@ -429,7 +429,7 @@ dt_queue(dns_dtenv_t *env) {
 		return (NULL);
 
 	ioq = (struct ioq *)isc_thread_key_getspecific(dt_key);
-	if (ioq != NULL && ioq->ioqversion != ioqversion) {
+	if (ioq != NULL && ioq->generation != generation) {
 		result = isc_thread_key_setspecific(dt_key, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (NULL);
@@ -440,7 +440,7 @@ dt_queue(dns_dtenv_t *env) {
 		ioq = malloc(sizeof(*ioq));
 		if (ioq == NULL)
 			return (NULL);
-		ioq->ioqversion = ioqversion;
+		ioq->generation = generation;
 		ioq->ioq = fstrm_iothr_get_input_queue(env->iothr);
 		if (ioq->ioq == NULL) {
 			free(ioq);
@@ -484,7 +484,7 @@ destroy(dns_dtenv_t *env) {
 		      "closing dnstap");
 	env->magic = 0;
 
-	ioqversion++;
+	generation++;
 
 	if (env->iothr != NULL)
 		fstrm_iothr_destroy(&env->iothr);
