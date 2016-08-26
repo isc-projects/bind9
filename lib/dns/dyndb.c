@@ -348,7 +348,8 @@ unload_library(dyndb_implementation_t **impp)
 
 isc_result_t
 dns_dyndb_load(const char *libname, const char *name, const char *parameters,
-	       isc_mem_t *mctx, const dns_dyndbctx_t *dctx)
+	       const char *file, unsigned long line, isc_mem_t *mctx,
+	       const dns_dyndbctx_t *dctx)
 {
 	isc_result_t result;
 	dyndb_implementation_t *implementation = NULL;
@@ -365,8 +366,8 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 		CHECK(ISC_R_EXISTS);
 
 	CHECK(load_library(mctx, libname, name, &implementation));
-	CHECK(implementation->register_func(mctx, name, parameters, dctx,
-					    &implementation->inst));
+	CHECK(implementation->register_func(mctx, name, parameters, file, line,
+					    dctx, &implementation->inst));
 
 	APPEND(dyndb_implementations, implementation, link);
 	result = ISC_R_SUCCESS;

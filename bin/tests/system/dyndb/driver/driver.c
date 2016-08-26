@@ -51,11 +51,15 @@ dns_dyndb_version_t dyndb_version;
  * @param[in] parameters  User-defined parameters from dyndb section as one
  *                        string. The example above will have
  *                        params = "param1 param2";
+ * @param[in] file	  The name of the file from which the parameters
+ *                        were read.
+ * @param[in] line	  The line number from which the parameters were read.
  * @param[out] instp      Pointer to instance-specific data
  *                        (for one dyndb section).
  */
 isc_result_t
 dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
+	   const char *file, unsigned long line,
 	   const dns_dyndbctx_t *dctx, void **instp)
 {
 	isc_result_t result;
@@ -89,6 +93,10 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	result = isc_commandline_strtoargv(mctx, s, &argc, &argv, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+
+	log_write(ISC_LOG_DEBUG(9),
+		  "loading params for dyndb '%s' from %s:%lu",
+		  name, file, line);
 
 	/* Finally, create the instance. */
 	CHECK(new_sample_instance(mctx, name, argc, argv, dctx, &sample_inst));

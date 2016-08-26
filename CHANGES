@@ -1,5 +1,9 @@
 	--- 9.11.0rc1 released ---
 
+4455.	[cleanup]	Allow dyndb modules to correctly log the filename
+			and line number when processing configuration text
+			from named.conf. [RT #43050]
+
 4454.	[bug]		'rndc dnstap -reopen' had a race issue. [RT #43089]
 
 4453.	[bug]		Prefetching of DS records failed to update their

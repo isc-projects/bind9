@@ -405,6 +405,23 @@ isc_lex_setsourcename(isc_lex_t *lex, const char *name);
  * \li	#ISC_R_NOTFOUND - there are no sources.
  */
 
+isc_result_t
+isc_lex_setsourceline(isc_lex_t *lex, unsigned long line);
+/*%<
+ * Assigns a new line number to the input source. This can be used
+ * when parsing a buffer that's been excerpted from the middle a file,
+ * allowing logged messages to display the correct line number,
+ * rather than the line number within the buffer.
+ *
+ * Requires:
+ *
+ * \li	'lex' is a valid lexer.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND - there are no sources.
+ */
+
 isc_boolean_t
 isc_lex_isfile(isc_lex_t *lex);
 /*%<

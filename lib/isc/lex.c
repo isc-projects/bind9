@@ -973,7 +973,6 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r)
 		    source->ignored;
 }
 
-
 char *
 isc_lex_getsourcename(isc_lex_t *lex) {
 	inputsource *source;
@@ -1000,7 +999,6 @@ isc_lex_getsourceline(isc_lex_t *lex) {
 	return (source->line);
 }
 
-
 isc_result_t
 isc_lex_setsourcename(isc_lex_t *lex, const char *name) {
 	inputsource *source;
@@ -1010,12 +1008,26 @@ isc_lex_setsourcename(isc_lex_t *lex, const char *name) {
 	source = HEAD(lex->sources);
 
 	if (source == NULL)
-		return(ISC_R_NOTFOUND);
+		return (ISC_R_NOTFOUND);
 	newname = isc_mem_strdup(lex->mctx, name);
 	if (newname == NULL)
 		return (ISC_R_NOMEMORY);
 	isc_mem_free(lex->mctx, source->name);
 	source->name = newname;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_lex_setsourceline(isc_lex_t *lex, unsigned long line) {
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return (ISC_R_NOTFOUND);
+
+	source->line = line;
 	return (ISC_R_SUCCESS);
 }
 
