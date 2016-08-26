@@ -1,3 +1,6 @@
+4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
+			[RT #42587]
+
 4453.	[bug]		Prefetching of DS records failed to update their
 			RRSIGs. [RT #42865]
 
