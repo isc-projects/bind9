@@ -1,5 +1,8 @@
 	--- 9.11.0rc1 released ---
 
+4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
+			[RT #42587]
+
 4455.	[cleanup]	Allow dyndb modules to correctly log the filename
 			and line number when processing configuration text
 			from named.conf. [RT #43050]
