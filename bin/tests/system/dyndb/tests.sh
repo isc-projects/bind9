@@ -124,6 +124,11 @@ status=`expr $status + $ret`
 test_del test4.ipv6.example.nil. AAAA || ret=1
 status=`expr $status + $ret`
 
+newtest "I:checking parameter logging"
+grep "loading params for dyndb 'sample' from .*named.conf:33" ns1/named.run > /dev/null || ret=1
+grep "loading params for dyndb 'sample2' from .*named.conf:34" ns1/named.run > /dev/null || ret=1
+status=`expr $status + $ret`
+
 echo "I:checking dyndb still works after reload"
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
 

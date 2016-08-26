@@ -57,6 +57,8 @@ struct dns_dyndbctx {
 typedef isc_result_t dns_dyndb_register_t(isc_mem_t *mctx,
 					  const char *name,
 					  const char *parameters,
+					  const char *file,
+					  unsigned long line,
 					  const dns_dyndbctx_t *dctx,
 					  void **instp);
 /*%
@@ -95,7 +97,8 @@ typedef int dns_dyndb_version_t(unsigned int *flags);
 
 isc_result_t
 dns_dyndb_load(const char *libname, const char *name, const char *parameters,
-	       isc_mem_t *mctx, const dns_dyndbctx_t *dctx);
+	       const char *file, unsigned long line, isc_mem_t *mctx,
+	       const dns_dyndbctx_t *dctx);
 /*%
  * Load a dyndb module.
  *
@@ -103,6 +106,10 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
  * function (see dns_dyndb_register_t above), and if successful, adds
  * the instance handle to a list of dyndb instances so it can be cleaned
  * up later.
+ *
+ * 'file' and 'line' can be used to indicate the name of the file and
+ * the line number from which the parameters were taken, so that logged
+ * error messages, if any, will display the correct locations.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

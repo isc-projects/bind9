@@ -1410,8 +1410,9 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 
 	obj = cfg_tuple_get(dyndb, "parameters");
 	if (obj != NULL)
-		result = dns_dyndb_load(library, name,
-					cfg_obj_asstring(obj), mctx, dctx);
+		result = dns_dyndb_load(library, name, cfg_obj_asstring(obj),
+					cfg_obj_file(obj), cfg_obj_line(obj),
+					mctx, dctx);
 
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
