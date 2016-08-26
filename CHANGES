@@ -1,3 +1,6 @@
+4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
+			[RT #42587]
+
 4448.	[bug]		win32: ::1 was not being found when iterating
 			interfaces. [RT #42993]
 
