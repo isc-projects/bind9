@@ -444,7 +444,7 @@ ttl1=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.2.${n}`
 sleep 1
 # check that prefetch occured
 $DIG @10.53.0.5 -p 5300 ds.example.net ds +dnssec > dig.out.3.${n} || ret=1
-dsttl=`awk '$4 == "DS" i&& $7 == "1" { print $2 }' dig.out.3.${n}`
+dsttl=`awk '$4 == "DS" && $7 == "1" { print $2 }' dig.out.3.${n}`
 sigttl=`awk '$4 == "RRSIG" && $5 == "DS" { print $2 }' dig.out.3.${n}`
 test ${dsttl:-0} -gt ${ttl2:-1} || ret=1
 test ${sigttl:-0} -gt ${ttl2:-1} || ret=1
