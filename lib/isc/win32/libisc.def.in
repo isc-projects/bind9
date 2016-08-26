@@ -360,6 +360,7 @@ isc_lex_openbuffer
 isc_lex_openfile
 isc_lex_openstream
 isc_lex_setcomments
+isc_lex_setsourceline
 isc_lex_setsourcename
 isc_lex_setspecials
 isc_lex_ungettoken
