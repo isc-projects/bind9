@@ -3091,8 +3091,8 @@
 ./doc/xsl/graphics/tip.pdf			X	2015
 ./doc/xsl/graphics/warning.eps			X	2015
 ./doc/xsl/graphics/warning.pdf			X	2015
-./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014,2015
-./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014,2015
+./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005,2007,2014,2015,2016
+./doc/xsl/isc-docbook-html.xsl.in		SGML	2005,2007,2014,2015,2016
 ./doc/xsl/isc-docbook-text.xsl			SGML	2005,2007,2015
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005,2007,2015
 ./doc/xsl/isc-notes-html.xsl.in			SGML	2015
