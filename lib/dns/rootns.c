@@ -68,6 +68,7 @@ static char root_ns[] =
 "D.ROOT-SERVERS.NET.     3600000 IN      A       199.7.91.13\n"
 "D.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:2d::d\n"
 "E.ROOT-SERVERS.NET.     3600000 IN      A       192.203.230.10\n"
+"E.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:a8::e\n"
 "F.ROOT-SERVERS.NET.     3600000 IN      A       192.5.5.241\n"
 "F.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:2F::F\n"
 "G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n"
