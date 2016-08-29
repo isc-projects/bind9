@@ -1,5 +1,7 @@
 	--- 9.11.0rc1 released ---
 
+4457.	[maint]		Added AAAA (2001:500:a8::e) for E.ROOT-SERVERS.NET.
+
 4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
 			[RT #42587]
 
