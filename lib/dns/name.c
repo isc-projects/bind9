@@ -105,17 +105,17 @@ static unsigned char maptolower[] = {
 #define CONVERTTOASCII(c)
 #define CONVERTFROMASCII(c)
 
-#define INIT_OFFSETS(name, var, default) \
-	if (name->offsets != NULL) \
-		var = name->offsets; \
+#define INIT_OFFSETS(name, var, default_offsets) \
+	if ((name)->offsets != NULL)		 \
+		var = (name)->offsets;		 \
 	else \
-		var = default;
+		var = (default_offsets);
 
-#define SETUP_OFFSETS(name, var, default) \
-	if (name->offsets != NULL) \
-		var = name->offsets; \
+#define SETUP_OFFSETS(name, var, default_offsets) \
+	if ((name)->offsets != NULL)		  \
+		var = (name)->offsets;		  \
 	else { \
-		var = default; \
+		var = (default_offsets);      \
 		set_offsets(name, var, NULL); \
 	}
 
