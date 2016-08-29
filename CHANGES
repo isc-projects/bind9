@@ -10,7 +10,7 @@
 4453.	[bug]		Prefetching of DS records failed to update their
 			RRSIGs. [RT #42865]
 
-4451.   [cleanup]       Log more useful information if a PKCS#11 provider
+4451.	[cleanup]	Log more useful information if a PKCS#11 provider
 			library cannot be loaded. [RT #43076]
 
 4450.	[port]		Provide more nuanced HSM support which better matches
@@ -117,7 +117,7 @@
 4384.	[bug]		Change 4256 accidentally disabled logging of the
 			rndc command. [RT #42654]
 
-4379.   [bug]           An INSIST could be triggered if a zone contains
+4379.	[bug]		An INSIST could be triggered if a zone contains
 			RRSIG records with expiry fields that loop
 			using serial number arithmetic. [RT #40571]
 
@@ -544,7 +544,7 @@
 4207.	[bug]		Handle class mismatches with raw zone files.
 			[RT #40746]
 
-4206.   [bug]		contrib: fixed a possible NULL dereference in
+4206.	[bug]		contrib: fixed a possible NULL dereference in
 			DLZ wildcard module. [RT #40745]
 
 4205.	[bug]		'named-checkconf -p' could include unwanted spaces
@@ -755,7 +755,7 @@
 
 4136.	[bug]		Stale statistics counters with the leading
 			'#' prefix (such as #NXDOMAIN) were not being
-			updated correctly. This	has been fixed. [RT #39141]
+			updated correctly. This has been fixed. [RT #39141]
 
 4134.	[cleanup]	Include client-ip rules when logging the number
 			of RPZ rules of each type. [RT #39670]
