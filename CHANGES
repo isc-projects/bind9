@@ -301,9 +301,9 @@
 			probability of reference counting errors as seen
 			in 4365. [RT #42405]
 
-4373.	[bug]		Address undefined behaviour in getaddrinfo. [RT #42479]
+4373.	[bug]		Address undefined behavior in getaddrinfo. [RT #42479]
 
-4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
+4372.	[bug]		Address undefined behavior in libt_api. [RT #42480]
 
 4371.	[func]		New "minimal-any" option reduces the size of UDP
 			responses for qtype ANY by returning a single
@@ -337,7 +337,7 @@
 4363.	[port]		win32: Disable explicit triggering UAC when running
 			BINDInstall.
 
-4362.	[func]		Changed rndc reconfig behaviour so that newly added
+4362.	[func]		Changed rndc reconfig behavior so that newly added
 			zones are loaded asynchronously and the loading does
 			not block the server. [RT #41934]
 
@@ -406,7 +406,7 @@
 
 4344.	[port]		Address openssl version differences. [RT #42059]
 
-4343.	[bug]		dns_dnssec_syncupdate misdeclared in <dns/dnssec.h>.
+4343.	[bug]		dns_dnssec_syncupdate mis-declared in <dns/dnssec.h>.
 			[RT #42090]
 
 4342.	[bug]		'rndc flushtree' could fail to clean the tree if there
