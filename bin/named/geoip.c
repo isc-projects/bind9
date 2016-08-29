@@ -68,10 +68,12 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 	}
 
 	info = GeoIP_database_info(db);
-	if (info != NULL)
+	if (info != NULL) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "%s", info);
+		free(info);
+	}
 
 	*dbp = db;
 	return;
