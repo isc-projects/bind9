@@ -91,7 +91,7 @@ grep ";" dig.out.ns2
 $PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1
 
 echo "I:only one tcp socket was used"
-tcpclients=`grep "client 10.53.0.7#[0-9]*:" ns2/named.run | awk '{print $4}' | sort | uniq -c | wc -l`
+tcpclients=`awk '$3 == "client" && $5 ~ /10.53.0.7#[0-9]*:/ {print $5}' ns2/named.run | sort | uniq -c | wc -l`
 
 test $tcpclients -eq 1 || { status=1; echo "I:failed"; }
 
