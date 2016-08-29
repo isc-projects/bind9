@@ -1,4 +1,7 @@
 
+4458.	[cleanup]	Update assertions to be more correct, and also remove
+			use of a reserved word. [RT #43090]
+
 4457.	[maint]		Added AAAA (2001:500:a8::e) for E.ROOT-SERVERS.NET.
 
 4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
