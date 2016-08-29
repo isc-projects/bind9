@@ -1,4 +1,3 @@
-
 4458.	[cleanup]	Update assertions to be more correct, and also remove
 			use of a reserved word. [RT #43090]
 
@@ -96,9 +95,9 @@
 			probability of reference counting errors as seen
 			in 4365. [RT #42405]
 
-4373.	[bug]		Address undefined behaviour in getaddrinfo. [RT #42479]
+4373.	[bug]		Address undefined behavior in getaddrinfo. [RT #42479]
 
-4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
+4372.	[bug]		Address undefined behavior in libt_api. [RT #42480]
 
 4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
 			support. [RT #42484]
