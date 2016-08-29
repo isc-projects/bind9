@@ -81,7 +81,7 @@
 4384.	[bug]		Change 4256 accidentally disabled logging of the
 			rndc command. [RT #42654]
 
-4379.   [bug]           An INSIST could be triggered if a zone contains
+4379.	[bug]		An INSIST could be triggered if a zone contains
 			RRSIG records with expiry fields that loop
 			using serial number arithmetic. [RT #40571]
 
