@@ -1,5 +1,9 @@
 	--- 9.11.0rc1 released ---
 
+4459.	[bug]		TCP client objects created to handle pipeline queries
+			were not cleaned up correctly, causing uncontrolled
+			memory growth. [RT #43106]
+
 4458.	[cleanup]	Update assertions to be more correct, and also remove
 			use of a reserved word. [RT #43090]
 
