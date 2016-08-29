@@ -3543,6 +3543,7 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock)
 
 	client->attributes |= NS_CLIENTATTR_TCP;
 	client->pipelined = ISC_TRUE;
+	client->mortal = ISC_TRUE;
 
 	isc_socket_attach(ifp->tcpsocket, &client->tcplistener);
 	isc_socket_attach(sock, &client->tcpsocket);
@@ -3672,7 +3673,6 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *fmt, va_list ap)
 {
 	char msgbuf[4096];
-	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	char signerbuf[DNS_NAME_FORMATSIZE], qnamebuf[DNS_NAME_FORMATSIZE];
 	const char *viewname = "";
 	const char *sep1 = "", *sep2 = "", *sep3 = "", *sep4 = "";
@@ -3680,8 +3680,6 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	dns_name_t *q = NULL;
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-
-	ns_client_name(client, peerbuf, sizeof(peerbuf));
 
 	if (client->signer != NULL) {
 		dns_name_format(client->signer, signerbuf, sizeof(signerbuf));
@@ -3704,10 +3702,21 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 		viewname = client->view->name;
 	}
 
-	isc_log_write(ns_g_lctx, category, module, level,
-		      "client %s%s%s%s%s%s%s%s: %s",
-		      peerbuf, sep1, signer, sep2, qname, sep3,
-		      sep4, viewname, msgbuf);
+	if (client->peeraddr_valid) {
+		char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+
+		isc_sockaddr_format(&client->peeraddr,
+				    peerbuf, sizeof(peerbuf));
+		isc_log_write(ns_g_lctx, category, module, level,
+			      "client @%p %s%s%s%s%s%s%s%s: %s",
+			      client, peerbuf, sep1, signer, sep2, qname, sep3,
+			      sep4, viewname, msgbuf);
+	} else {
+		isc_log_write(ns_g_lctx, category, module, level,
+			      "client @%p%s%s%s%s%s%s%s: %s",
+			      client, sep1, signer, sep2, qname, sep3,
+			      sep4, viewname, msgbuf);
+	}
 }
 
 void

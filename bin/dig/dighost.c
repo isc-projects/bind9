@@ -4690,27 +4690,33 @@ chase_scanname(dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers)
 	     msg = ISC_LIST_NEXT(msg, link)) {
 		if (dns_message_firstname(msg->msg, DNS_SECTION_ANSWER)
 		    == ISC_R_SUCCESS)
+		{
 			rdataset = chase_scanname_section(msg->msg, name,
 							  type, covers,
 							  DNS_SECTION_ANSWER);
 			if (rdataset != NULL)
 				return (rdataset);
+		}
 		if (dns_message_firstname(msg->msg, DNS_SECTION_AUTHORITY)
 		    == ISC_R_SUCCESS)
+		{
 			rdataset =
 				chase_scanname_section(msg->msg, name,
 						       type, covers,
 						       DNS_SECTION_AUTHORITY);
 			if (rdataset != NULL)
 				return (rdataset);
+		}
 		if (dns_message_firstname(msg->msg, DNS_SECTION_ADDITIONAL)
 		    == ISC_R_SUCCESS)
+		{
 			rdataset =
 				chase_scanname_section(msg->msg, name, type,
 						       covers,
 						       DNS_SECTION_ADDITIONAL);
 			if (rdataset != NULL)
 				return (rdataset);
+		}
 	}
 
 	return (NULL);
