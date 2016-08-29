@@ -439,7 +439,7 @@ isc_hash_function(const void *data, size_t length,
 	const unsigned char *bp;
 	const unsigned char *be;
 
-	INSIST(data == NULL || length > 0);
+	REQUIRE(length == 0 || data != NULL);
 	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
@@ -506,7 +506,7 @@ isc_hash_function_reverse(const void *data, size_t length,
 	const unsigned char *bp;
 	const unsigned char *be;
 
-	INSIST(data == NULL || length > 0);
+	REQUIRE(length == 0 || data != NULL);
 	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
