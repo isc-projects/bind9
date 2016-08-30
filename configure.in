@@ -4257,6 +4257,7 @@ esac
 #
 # Activate dnstap?
 #
+AC_PATH_PROG(FSTRM_CAPTURE, fstrm_capture)
 AC_ARG_ENABLE(dnstap,
 	[  --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)],
                         use_dnstap=$enableval,

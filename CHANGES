@@ -1,5 +1,8 @@
 	--- 9.11.0rc1 released ---
 
+4460.	[test]		Add system test for dnstap using unix domain sockets.
+			[RT #42926]
+
 4459.	[bug]		TCP client objects created to handle pipeline queries
 			were not cleaned up correctly, causing uncontrolled
 			memory growth. [RT #43106]
