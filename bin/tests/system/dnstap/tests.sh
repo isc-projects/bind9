@@ -38,9 +38,16 @@ $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 mv ns1/dnstap.out ns1/dnstap.out.save
 mv ns2/dnstap.out ns2/dnstap.out.save
 
+if [ -n "$FSTRM_CAPTURE" ] ; then
+	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
+		-w dnstap.out >& fstrm_capture.out &
+	fstrm_capture_pid=$!
+fi
+
 $RNDCCMD -s 10.53.0.1 dnstap-reopen | sed 's/^/I:ns1 /'
 $RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/I:ns2 /'
 $RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/I:ns3 /'
+$RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/I:ns4 /'
 
 $DIG +short @10.53.0.3 -p 5300 a.example > dig.out
 
@@ -336,6 +343,167 @@ ret=0
 }
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
+
+
+if [ -n "$FSTRM_CAPTURE" ] ; then
+	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
+
+	echo "I:checking unix socket message counts"
+	sleep 2
+	kill $fstrm_capture_pid
+	wait
+	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
+	tcp4=`$DNSTAPREAD dnstap.out | grep "TCP " | wc -l`
+	aq4=`$DNSTAPREAD dnstap.out | grep "AQ " | wc -l`
+	ar4=`$DNSTAPREAD dnstap.out | grep "AR " | wc -l`
+	cq4=`$DNSTAPREAD dnstap.out | grep "CQ " | wc -l`
+	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
+	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
+	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
+
+	echo "I: checking UDP message counts"
+	ret=0
+	[ $udp4 -eq 2 ] || {
+		echo "ns4 $udp4 expected 2" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking TCP message counts"
+	ret=0
+	[ $tcp4 -eq 0 ] || {
+		echo "ns4 $tcp4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking AUTH_QUERY message counts"
+	ret=0
+	[ $aq4 -eq 0 ] || {
+		echo "ns4 $aq4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking AUTH_RESPONSE message counts"
+	ret=0
+	[ $ar4 -eq 0 ] || {
+		echo "ns4 $ar4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking CLIENT_QUERY message counts"
+	ret=0
+	[ $cq4 -eq 1 ] || {
+		echo "ns4 $cq4 expected 1" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking CLIENT_RESPONSE message counts"
+	ret=0
+	[ $cr4 -eq 1 ] || {
+		echo "ns4 $cr4 expected 1" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking RESOLVER_QUERY message counts"
+	ret=0
+	[ $rq4 -eq 0 ] || {
+		echo "ns4 $rq4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking RESOLVER_RESPONSE message counts"
+	ret=0
+	[ $rr4 -eq 0 ] || {
+		echo "ns4 $rr4 expected 0" ; ret=1
+	}
+	mv dnstap.out dnstap.out.save
+	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
+		-w dnstap.out >& fstrm_capture.out & 
+	fstrm_capture_pid=$!
+	$RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/I:ns4 /'
+	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
+
+	echo "I:checking reopened unix socket message counts"
+	sleep 2
+	kill $fstrm_capture_pid
+	wait
+	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
+	tcp4=`$DNSTAPREAD dnstap.out | grep "TCP " | wc -l`
+	aq4=`$DNSTAPREAD dnstap.out | grep "AQ " | wc -l`
+	ar4=`$DNSTAPREAD dnstap.out | grep "AR " | wc -l`
+	cq4=`$DNSTAPREAD dnstap.out | grep "CQ " | wc -l`
+	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
+	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
+	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
+
+	echo "I: checking UDP message counts"
+	ret=0
+	[ $udp4 -eq 2 ] || {
+		echo "ns4 $udp4 expected 2" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking TCP message counts"
+	ret=0
+	[ $tcp4 -eq 0 ] || {
+		echo "ns4 $tcp4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking AUTH_QUERY message counts"
+	ret=0
+	[ $aq4 -eq 0 ] || {
+		echo "ns4 $aq4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking AUTH_RESPONSE message counts"
+	ret=0
+	[ $ar4 -eq 0 ] || {
+		echo "ns4 $ar4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking CLIENT_QUERY message counts"
+	ret=0
+	[ $cq4 -eq 1 ] || {
+		echo "ns4 $cq4 expected 1" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking CLIENT_RESPONSE message counts"
+	ret=0
+	[ $cr4 -eq 1 ] || {
+		echo "ns4 $cr4 expected 1" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking RESOLVER_QUERY message counts"
+	ret=0
+	[ $rq4 -eq 0 ] || {
+		echo "ns4 $rq4 expected 0" ; ret=1
+	}
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+
+	echo "I: checking RESOLVER_RESPONSE message counts"
+	ret=0
+	[ $rr4 -eq 0 ] || {
+		echo "ns4 $rr4 expected 0" ; ret=1
+	}
+fi
 
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
