@@ -8504,7 +8504,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  The maximum number of simultaneous client TCP
 		  connections that the server will accept.
-		  The default is <literal>100</literal>.
+		  The default is <literal>150</literal>.
 		</para>
 	      </listitem>
 	    </varlistentry>
