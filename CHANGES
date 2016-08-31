@@ -1,3 +1,5 @@
+4477.	[test]		Fix mkeys test timing issues. [RT #41028]
+
 4476.	[test]		Fix reclimit test on slower machines. [RT #43283]
 
 4475.	[doc]		Update named-checkconf documentation. [RT #43153]
