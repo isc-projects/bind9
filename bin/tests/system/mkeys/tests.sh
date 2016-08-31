@@ -312,9 +312,9 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: wait 15 seconds for key add/remove holddowns to expire ($n)"
+echo "I: wait 30 seconds for key add/remove holddowns to expire ($n)"
 ret=0
-sleep 15
+sleep 30
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
