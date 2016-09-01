@@ -4443,7 +4443,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     <optional> recursion <replaceable>yes_or_no</replaceable>; </optional>
     <optional> send-cookie <replaceable>yes_or_no</replaceable>; </optional>
     <optional> require-server-cookie <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> cookie-algorithm <replaceable>secret_string</replaceable>; </optional>
+    <optional> cookie-algorithm <replaceable>algorithm_id</replaceable>; </optional>
     <optional> cookie-secret <replaceable>secret_string</replaceable>; </optional>
     <optional> nocookie-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> request-nsid <replaceable>yes_or_no</replaceable>; </optional>
