@@ -84,6 +84,10 @@ XMLLINT=@XMLLINT@
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
+
+# D2U is used only on Windows to strip '\r' out of windows commands outputs
+D2U=cat
+
 if test -n "$PERL"
 then
 	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null

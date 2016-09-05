@@ -152,7 +152,7 @@ sub stop_signal {
 		print "I:$server didn't die when sent a SIGTERM\n";
 		$errors++;
 	}
-	
+
 	my $result;
 	if ($^O eq 'cygwin') {
 		$result = system("/bin/kill -f -$sig $pid");
