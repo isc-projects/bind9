@@ -152,12 +152,22 @@ sub stop_signal {
 		print "I:$server didn't die when sent a SIGTERM\n";
 		$errors++;
 	}
-
-	my $result = kill $sig, $pid;
-	if (!$result) {
-		print "I:$server died before a SIG$sig was sent\n";
+	
+	my $result;
+	if ($^O eq 'cygwin') {
+		$result = system("/bin/kill -f -$sig $pid");
 		unlink $pid_file;
-		$errors++;
+		if ($result != 0) {
+			print "I:$server died before a SIG$sig was sent\n";
+			$errors++;
+		}
+	} else {
+		$result = kill $sig, $pid;
+		if (!$result) {
+			print "I:$server died before a SIG$sig was sent\n";
+			unlink $pid_file;
+			$errors++;
+		}
 	}
 
 	return;

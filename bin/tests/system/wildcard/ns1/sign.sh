@@ -19,8 +19,8 @@ zonefile=dlv.db
 outfile=dlv.db.signed
 dssets="$dssets dsset-$zone"
 
-keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
@@ -33,8 +33,9 @@ zonefile=nsec.db
 outfile=nsec.db.signed
 dssets="$dssets dsset-$zone"
 
-keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+echo "|$D2U"
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
@@ -46,8 +47,8 @@ infile=private.nsec.db.in
 zonefile=private.nsec.db
 outfile=private.nsec.db.signed
 
-keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
@@ -70,8 +71,8 @@ zonefile=nsec3.db
 outfile=nsec3.db.signed
 dssets="$dssets dsset-$zone"
 
-keyname1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
@@ -83,8 +84,8 @@ infile=private.nsec3.db.in
 zonefile=private.nsec3.db
 outfile=private.nsec3.db.signed
 
-keyname1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U` 
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
@@ -106,8 +107,8 @@ infile=root.db.in
 zonefile=root.db
 outfile=root.db.signed
 
-keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
+keyname2=`$KEYGEN -f KSK -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone 2> /dev/null |$D2U`
 
 cat $infile $keyname1.key $keyname2.key $dssets >$zonefile
 

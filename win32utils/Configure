@@ -442,19 +442,39 @@ my @substvar = ("BIND9_VERSION",
                 "COPTMLD",
                 "COPTX",
                 "COPTY",
-                "CURL", # in CYGWIN
                 "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
                 "OPENSSL_PATH",
-                "PERL",  # in CYGWIN
                 "PLATFORM",
                 "PKCS11_TOOLS",
                 "prefix",
                 "PYTHON",
-                "SHELL", # in CYGWIN
                 "VCREDIST_PATH"),
 
+my %configsystest;
+my @substsystest = ("CHECK_DSA",
+					"CHECKDS",
+					"COVERAGE",
+					"CURL",
+					"DNSTAP",
+					"FSTRM_CAPTURE",
+					"JSONSTATS",
+					"KEYMGR",
+					"NZD_TOOLS",
+					"PERL",
+					"PKCS11_TEST",
+					"SHELL",
+					"XMLLINT",
+					"XMLSTATS",
+					"ZLIB"),
+
+# Configure variables for bin/tests/system/conf.sh.win.in - for cygwin
+$configsystest{"CURL"} = "/bin/curl";
+$configsystest{"PERL"} = "/usr/bin/perl";
+$configsystest{"SHELL"} = "/bin/bash";
+
+					
 # defines
 
 my %configdefd;
@@ -701,11 +721,6 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
     $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "_mm_pause()";
 }
-
-# Configure variables for bin/tests/system/conf.sh.win.in
-$configvar{"CURL"} = "/bin/curl";
-$configvar{"PERL"} = "/bin/perl";
-$configvar{"SHELL"} = "/bin/shell";
 
 # get the version information
 
@@ -2642,7 +2657,14 @@ sub setupfile {
                 } else {
                     $line = "$`$'";
                 }
-            } else {
+            } elsif ($1 ~~ @substsystest) {
+				if (defined($configsystest{$1})) {
+					$val = kw($configsystest{$1});
+					$line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+				}
+			} else {
                 die "unknown control $& in $filename\n";
             }
         }
@@ -2653,6 +2675,7 @@ sub setupfile {
     if ($verbose) {
         print "Setting up $filename\n";
     }
+	binmode(F);
     foreach $line (@Linesout) {
         print F $line . "\n";
     }
