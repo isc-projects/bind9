@@ -472,7 +472,7 @@ my @substsystest = ("CHECK_DSA",
 # Configure variables for bin/tests/system/conf.sh.win.in - for cygwin
 $configsystest{"CURL"} = "/bin/curl";
 $configsystest{"PERL"} = "/usr/bin/perl";
-$configsystest{"SHELL"} = "/bin/bash";
+$configsystest{"SHELL"} = "\"/bin/bash -o igncr\"";
 
 					
 # defines
