@@ -442,14 +442,17 @@ my @substvar = ("BIND9_VERSION",
                 "COPTMLD",
                 "COPTX",
                 "COPTY",
+                "CURL", # in CYGWIN
                 "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
                 "OPENSSL_PATH",
+                "PERL",  # in CYGWIN
                 "PLATFORM",
                 "PKCS11_TOOLS",
                 "prefix",
                 "PYTHON",
+                "SHELL", # in CYGWIN
                 "VCREDIST_PATH"),
 
 # defines
@@ -698,6 +701,11 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
     $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "_mm_pause()";
 }
+
+# Configure variables for bin/tests/system/conf.sh.win.in
+$configvar{"CURL"} = "/bin/curl";
+$configvar{"PERL"} = "/bin/perl";
+$configvar{"SHELL"} = "/bin/shell";
 
 # get the version information
 
