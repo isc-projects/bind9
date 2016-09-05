@@ -111,6 +111,7 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\resolver\\win32\\t_resolver.mak",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.dsp",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.mak",
+                "..\\bin\\tests\\system\\conf.sh",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.dsp",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.mak",
                 "..\\bin\\tests\\timers\\win32\\t_timers.dsp",
@@ -2544,7 +2545,7 @@ sub setupfile {
     my @passes;
     my $val;
 
-    open F, $filename . ".in" || die $!;
+    open F, $filename . ".win.in" || open F, $filename . ".in" || die $!;
     @Linesin = <F>;
     close F;
 
