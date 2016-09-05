@@ -165,7 +165,7 @@ echo "I:running dig to cache CNAME record (${t})"
 $DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org CNAME > dig.out.${t}
 sleep 1
 echo "I:suspending authority server"
-kill -TSTP `cat ns1/named.pid`
+$KILL -TSTP `cat ns1/named.pid`
 echo "I:adding an NSDNAME policy"
 cp ns2/db.6a.00.policy.local ns2/saved.policy.local
 cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
@@ -180,7 +180,7 @@ cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
 sleep 1
 echo "I:resuming authority server"
-kill -CONT `cat ns1/named.pid`
+$KILL -CONT `cat ns1/named.pid`
 for n in 1 2 3 4 5 6 7 8 9; do
     sleep 1
     [ -s dig.out.${t} ] || continue
@@ -199,7 +199,7 @@ echo "I:running dig to cache CNAME record (${t})"
 $DIG $DIGOPTS @10.53.0.2 -p 5300 www.test.example.org CNAME > dig.out.${t}
 sleep 1
 echo "I:suspending authority server"
-kill -TSTP `cat ns1/named.pid`
+$KILL -TSTP `cat ns1/named.pid`
 echo "I:adding an NSDNAME policy"
 cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
@@ -213,7 +213,7 @@ cp ns2/named.default.conf ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig 2>&1 | sed 's/^/I:ns2 /'
 sleep 1
 echo "I:resuming authority server"
-kill -CONT `cat ns1/named.pid`
+$KILL -CONT `cat ns1/named.pid`
 for n in 1 2 3 4 5 6 7 8 9; do
     sleep 1
     [ -s dig.out.${t} ] || continue

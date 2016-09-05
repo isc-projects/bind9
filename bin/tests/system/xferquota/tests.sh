@@ -21,7 +21,7 @@ while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo "I:Changing test zone..."
 		cp -f ns1/changing2.db ns1/changing.db
-		kill -HUP `cat ns1/named.pid`
+		$KILL -HUP `cat ns1/named.pid`
 	fi
 	sleep 1
 	ticks=`expr $ticks + 1`

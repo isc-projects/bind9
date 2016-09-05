@@ -28,7 +28,7 @@ rolling=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < rolling.key`
 standby=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < standby.key`
 zsk=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < zsk.key`
 
-../../../tools/genrandom 400 $RANDFILE
+$GENRANDOM 400 $RANDFILE
 
 echo "I:signing zones"
 $SIGNER -Sg -o $czone $cfile > /dev/null 2>&1
@@ -142,8 +142,10 @@ ret=0
 chmod 644 `cat oldstyle.key`.private
 $SETTIME -P none `cat oldstyle.key` > tmp.out 2>&1 || ret=1
 grep "warning" tmp.out > /dev/null 2>&1 || ret=1
+cat tmp.out
 $SETTIME -P none `cat oldstyle.key` > tmp.out 2>&1 || ret=1
 grep "warning" tmp.out > /dev/null 2>&1 && ret=1
+cat tmp.out
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

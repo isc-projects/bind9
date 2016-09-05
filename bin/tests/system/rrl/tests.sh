@@ -271,7 +271,7 @@ sleep 2
 grep "min-table-size 1" broken.out > /dev/null || setret "I: min-table-size 0 was not changed to 1"
 
 if [ -f named.pid ]; then
-    kill `cat named.pid`
+    $KILL `cat named.pid`
     setret "I: named should not have started, but did"
 fi
 

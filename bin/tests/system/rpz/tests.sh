@@ -106,7 +106,7 @@ restart () {
 	    PID=`cat ns$1/named.pid 2>/dev/null`
 	    if test -n "$PID"; then
 		echo "I:killing ns$1 server $PID"
-		kill -9 $PID
+		$KILL -9 $PID
 	    fi
 	fi
     fi

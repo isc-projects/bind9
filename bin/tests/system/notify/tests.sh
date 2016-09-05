@@ -62,7 +62,7 @@ echo "I:reloading with example2 using HUP and waiting up to 45 seconds"
 sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
-kill -HUP `cat ns2/named.pid`
+$KILL -HUP `cat ns2/named.pid`
 try=0
 while test $try -lt 45
 do

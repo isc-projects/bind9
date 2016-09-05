@@ -1852,7 +1852,7 @@ ret=0
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -1915,7 +1915,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -1974,7 +1974,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -2023,7 +2023,7 @@ echo "I: testing loading out of bounds lifetime from NTA file ($n)"
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -2990,7 +2990,7 @@ else
 		 +trusted-key=ns3/trusted-future.key > dig.out.ns3.test$n &
 	pid=$!
 	sleep 1
-	kill -9 $pid 2> /dev/null
+	$KILL -9 $pid 2> /dev/null
 	wait $pid
 	grep ";; No DNSKEY is valid to check the RRSIG of the RRset: FAILED" dig.out.ns3.test$n > /dev/null || ret=1
 	if [ $ret != 0 ]; then echo "I:failed"; fi
