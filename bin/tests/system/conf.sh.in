@@ -57,8 +57,6 @@ FSTRM_CAPTURE=@FSTRM_CAPTURE@
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
-# There's no trailing period on Windows
-TP=.
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -75,6 +73,13 @@ SUBDIRS="acl additional addzone allow_query autosign builtin cacheclean case
 	 smartsign sortlist spf staticstub statistics statschannel stub tcp
 	 tkey tsig tsiggss unknown upforwd verify views wildcard xfer
 	 xferquota zero zonechecks"
+
+# Things that are different on Windows
+KILL=kill
+DIFF=diff
+DOS2UNIX=true
+# There's no trailing period on Windows
+TP=.
 
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
