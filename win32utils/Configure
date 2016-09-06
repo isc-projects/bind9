@@ -473,11 +473,6 @@ my @substsystest = ("CHECK_DSA",
 					"XMLSTATS",
 					"ZLIB"),
 
-# Configure variables for bin/tests/system/conf.sh.win.in - for cygwin
-$configsystest{"CURL"} = "/bin/curl";
-$configsystest{"PERL"} = "/usr/bin/perl";
-$configsystest{"SHELL"} = "\"/bin/bash -o igncr\"";
-
 					
 # defines
 

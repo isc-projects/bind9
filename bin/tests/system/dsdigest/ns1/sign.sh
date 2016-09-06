@@ -15,8 +15,8 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh)
 
-cp ../ns2/dsset-good. .
-cp ../ns2/dsset-bad. .
+cp ../ns2/dsset-good$TP .
+cp ../ns2/dsset-bad$TP .
 
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 2048 -n zone -f KSK $zone`

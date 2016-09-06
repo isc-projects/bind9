@@ -15,7 +15,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-(cd ../ns2 && sh sign.sh )
+(cd ../ns2 && $SHELL sign.sh )
 
 cp ../ns2/dsset-example. .
 

@@ -6,7 +6,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-../../../tools/genrandom 400 random.data
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$GENRANDOM 400 random.data
 
 if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
 then

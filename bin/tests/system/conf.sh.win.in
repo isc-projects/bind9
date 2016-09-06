@@ -57,6 +57,9 @@ FSTRM_CAPTURE=@FSTRM_CAPTURE@
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
+# No trailing period on Windows
+TP=
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -73,17 +76,13 @@ SUBDIRS="acl additional addzone allow_query autosign builtin cacheclean case
 	 tkey tsig tsiggss unknown upforwd verify views wildcard xfer
 	 xferquota zero zonechecks"
 
-# Use the CONFIG_SHELL detected by configure for tests
-SHELL=@SHELL@
-
-# CURL will be empty if no program was found by configure
+# Configure is launched from native environment, but tests are run in Cygwin -
+# so any detection is unreliable. 
+SHELL="/bin/bash -o igncr"
 CURL=@CURL@
-
-# XMLLINT will be empty if no program was found by configure
 XMLLINT=@XMLLINT@
+PERL=/usr/bin/perl
 
-# PERL will be an empty string if no perl interpreter was found.
-PERL=@PERL@
 if test -n "$PERL"
 then
 	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null

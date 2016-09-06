@@ -205,7 +205,8 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -O full -f ${zonefile}.tmp $zonefile > /de
 
 awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-$DSFROMKEY -A -f ${zonefile}.signed $zone > dsset-${zone}
+DSFILE=dsset-`echo ${zone} |sed -e "s/\.$//g"`$TP
+$DSFROMKEY -A -f ${zonefile}.signed $zone > $DSFILE
 
 #
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).
@@ -223,7 +224,8 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -U -O full -f ${zonefile}.tmp $zonefile > 
 
 awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-$DSFROMKEY -A -f ${zonefile}.signed $zone > dsset-${zone}
+DSFILE=dsset-`echo ${zone} |sed -e "s/\.$//g"`$TP
+$DSFROMKEY -A -f ${zonefile}.signed $zone > $DSFILE
 
 #
 # A multiple parameter nsec3 zone.
@@ -498,7 +500,7 @@ keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
-sed -e 's/bogus/badds/g' < dsset-bogus.example. > dsset-badds.example.
+sed -e 's/bogus/badds/g' < dsset-bogus.example$TP > dsset-badds.example$TP
 
 #
 # A zone with future signatures.
