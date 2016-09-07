@@ -1,3 +1,6 @@
+4461.	[bug]		win32: not all external data was properly marked
+			as external data for windows dll. [RT #43161]
+
 4458.	[cleanup]	Update assertions to be more correct, and also remove
 			use of a reserved word. [RT #43090]
 

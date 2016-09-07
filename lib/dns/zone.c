@@ -675,18 +675,17 @@ struct dns_asyncload {
 	void *loaded_arg;
 };
 
-#define HOUR 3600
-#define DAY (24*HOUR)
-#define MONTH (30*DAY)
-
 /*
  * These can be overridden by the -T mkeytimers option on the command
  * line, so that we can test with shorter periods than specified in
  * RFC 5011.
  */
-unsigned int dns_zone_mkey_hour = HOUR;
-unsigned int dns_zone_mkey_day = DAY;
-unsigned int dns_zone_mkey_month = MONTH;
+#define HOUR 3600
+#define DAY (24*HOUR)
+#define MONTH (30*DAY)
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_hour = HOUR;
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_day = DAY;
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_month = MONTH;
 
 #define SEND_BUFFER_SIZE 2048
 

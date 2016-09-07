@@ -54,8 +54,8 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	return (result);
 }
 
-isc_boolean_t dns_iptable_neg = ISC_FALSE;
-isc_boolean_t dns_iptable_pos = ISC_TRUE;
+static isc_boolean_t dns_iptable_neg = ISC_FALSE;
+static isc_boolean_t dns_iptable_pos = ISC_TRUE;
 
 /*
  * Add an IP prefix to an existing IP table
