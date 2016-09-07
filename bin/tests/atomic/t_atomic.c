@@ -338,7 +338,7 @@ testspec_t T_testlist[] = {
 #ifdef ISC_PLATFORM_HAVEATOMICSTORE
 	{ (PFV) test_atomic_store,	"test_atomic_store"		},
 #endif
-#if defined(ISC_PLATFORM_HAVEXADDQ)
+#if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
 	{ (PFV) test_atomic_storeq,	"test_atomic_storeq"		},
 #endif
 	{ (PFV) 0,			NULL }
