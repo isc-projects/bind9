@@ -54,8 +54,9 @@ struct isc_backtrace_symmap {
 	const char	*symbol;
 };
 
-extern const int isc__backtrace_nsymbols;
-extern const isc_backtrace_symmap_t isc__backtrace_symtable[];
+LIBISC_EXTERNAL_DATA extern const int isc__backtrace_nsymbols;
+LIBISC_EXTERNAL_DATA extern const
+	isc_backtrace_symmap_t isc__backtrace_symtable[];
 
 /***
  *** Functions

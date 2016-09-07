@@ -28,8 +28,6 @@ isc__appctx_destroy
 isc__appctx_setsocketmgr
 isc__appctx_settaskmgr
 isc__appctx_settimermgr
-isc__backtrace_nsymbols
-isc__backtrace_symtable
 isc__buffer_activeregion
 isc__buffer_add
 isc__buffer_availableregion
@@ -189,7 +187,6 @@ isc_dir_init
 isc_dir_open
 isc_dir_read
 isc_dir_reset
-isc_dscp_check_value
 isc_entropy_addcallbacksample
 isc_entropy_addsample
 isc_entropy_attach
@@ -767,6 +764,8 @@ syslog
 
 EXPORTS
 
+isc__backtrace_nsymbols		DATA
+isc__backtrace_symtable		DATA
 isc_bind9			DATA
 isc_commandline_argument	DATA
 isc_commandline_errprint	DATA
@@ -774,8 +773,11 @@ isc_commandline_index		DATA
 isc_commandline_option		DATA
 isc_commandline_progname	DATA
 isc_commandline_reset		DATA
+isc_dscp_check_value		DATA
 isc_mem_debugging		DATA
+isc_msgcat			DATA
 @IF PKCS11
+pk11_msgcat			DATA
 pk11_verbose_init		DATA
 @END PKCS11
 @END NOLONGER

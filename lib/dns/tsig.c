@@ -91,7 +91,7 @@ static dns_name_t hmacmd5 = {
 	{NULL, NULL}
 };
 
-dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
 #endif
 
 static unsigned char gsstsig_ndata[] = "\010gss-tsig";
