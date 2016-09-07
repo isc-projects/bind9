@@ -4223,15 +4223,15 @@ watcher(void *uap) {
 	const char *fnname = "ioctl(DP_POLL)";
 	struct dvpoll dvp;
 	int pass;
+#if defined(ISC_SOCKET_USE_POLLWATCH)
+	pollstate_t pollstate = poll_idle;
+#endif
 #elif defined (USE_SELECT)
 	const char *fnname = "select()";
 	int maxfd;
 	int ctlfd;
 #endif
 	char strbuf[ISC_STRERRORSIZE];
-#ifdef ISC_SOCKET_USE_POLLWATCH
-	pollstate_t pollstate = poll_idle;
-#endif
 
 #if defined (USE_SELECT)
 	/*

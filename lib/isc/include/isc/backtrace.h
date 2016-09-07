@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -54,8 +54,9 @@ struct isc_backtrace_symmap {
 	const char	*symbol;
 };
 
-extern const int isc__backtrace_nsymbols;
-extern const isc_backtrace_symmap_t isc__backtrace_symtable[];
+LIBISC_EXTERNAL_DATA extern const int isc__backtrace_nsymbols;
+LIBISC_EXTERNAL_DATA extern const
+	isc_backtrace_symmap_t isc__backtrace_symtable[];
 
 /***
  *** Functions

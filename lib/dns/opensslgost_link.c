@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2010-2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -281,7 +281,7 @@ opensslgost_destroy(dst_key_t *key) {
 	key->keydata.pkey = NULL;
 }
 
-unsigned char gost_prefix[37] = {
+static const unsigned char gost_prefix[37] = {
 	0x30, 0x63, 0x30, 0x1c, 0x06, 0x06, 0x2a, 0x85,
 	0x03, 0x02, 0x02, 0x13, 0x30, 0x12, 0x06, 0x07,
 	0x2a, 0x85, 0x03, 0x02, 0x02, 0x23, 0x01, 0x06,

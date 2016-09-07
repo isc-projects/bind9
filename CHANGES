@@ -1,10 +1,18 @@
+4461.	[bug]		win32: not all external data was properly marked
+			as external data for windows dll. [RT #43161]
+
+4458.	[cleanup]	Update assertions to be more correct, and also remove
+			use of a reserved word. [RT #43090]
+
+4457.	[maint]		Added AAAA (2001:500:a8::e) for E.ROOT-SERVERS.NET.
+
 4456.	[doc]		Add DOCTYPE and lang attribute to <html> tags.
 			[RT #42587]
 
 4453.	[bug]		Prefetching of DS records failed to update their
 			RRSIGs. [RT #42865]
 
-4451.   [cleanup]       Log more useful information if a PKCS#11 provider
+4451.	[cleanup]	Log more useful information if a PKCS#11 provider
 			library cannot be loaded. [RT #43076]
 
 4450.	[port]		Provide more nuanced HSM support which better matches
@@ -111,7 +119,7 @@
 4384.	[bug]		Change 4256 accidentally disabled logging of the
 			rndc command. [RT #42654]
 
-4379.   [bug]           An INSIST could be triggered if a zone contains
+4379.	[bug]		An INSIST could be triggered if a zone contains
 			RRSIG records with expiry fields that loop
 			using serial number arithmetic. [RT #40571]
 
@@ -126,9 +134,9 @@
 			probability of reference counting errors as seen
 			in 4365. [RT #42405]
 
-4373.	[bug]		Address undefined behaviour in getaddrinfo. [RT #42479]
+4373.	[bug]		Address undefined behavior in getaddrinfo. [RT #42479]
 
-4372.	[bug]		Address undefined behaviour in libt_api. [RT #42480]
+4372.	[bug]		Address undefined behavior in libt_api. [RT #42480]
 
 4369.	[bug]		Fix 'make' and 'make install' out-of-tree python
 			support. [RT #42484]
@@ -538,7 +546,7 @@
 4207.	[bug]		Handle class mismatches with raw zone files.
 			[RT #40746]
 
-4206.   [bug]		contrib: fixed a possible NULL dereference in
+4206.	[bug]		contrib: fixed a possible NULL dereference in
 			DLZ wildcard module. [RT #40745]
 
 4205.	[bug]		'named-checkconf -p' could include unwanted spaces
@@ -749,7 +757,7 @@
 
 4136.	[bug]		Stale statistics counters with the leading
 			'#' prefix (such as #NXDOMAIN) were not being
-			updated correctly. This	has been fixed. [RT #39141]
+			updated correctly. This has been fixed. [RT #39141]
 
 4134.	[cleanup]	Include client-ip rules when logging the number
 			of RPZ rules of each type. [RT #39670]
