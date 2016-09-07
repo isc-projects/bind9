@@ -66,7 +66,7 @@ ISC_LANG_BEGINDECLS
 #define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
 #define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
 
-extern isc_mem_t *dst__memory_pool;
+LIBDNS_EXTERNAL_DATA extern isc_mem_t *dst__memory_pool;
 
 /***
  *** Types

@@ -103,10 +103,10 @@
 #define BACKTRACE_MAXFRAME 128
 #endif
 
-extern int isc_dscp_check_value;
-extern unsigned int dns_zone_mkey_hour;
-extern unsigned int dns_zone_mkey_day;
-extern unsigned int dns_zone_mkey_month;
+LIBISC_EXTERNAL_DATA extern int isc_dscp_check_value;
+LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_hour;
+LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
+LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";

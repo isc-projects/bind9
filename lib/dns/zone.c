@@ -720,9 +720,9 @@ struct dns_include {
 #define HOUR 3600
 #define DAY (24*HOUR)
 #define MONTH (30*DAY)
-unsigned int dns_zone_mkey_hour = HOUR;
-unsigned int dns_zone_mkey_day = DAY;
-unsigned int dns_zone_mkey_month = MONTH;
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_hour = HOUR;
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_day = DAY;
+LIBDNS_EXTERNAL_DATA unsigned int dns_zone_mkey_month = MONTH;
 
 #define SEND_BUFFER_SIZE 2048
 
