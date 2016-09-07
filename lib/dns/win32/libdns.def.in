@@ -1240,9 +1240,6 @@ dns_zone_log
 dns_zone_logc
 dns_zone_maintenance
 dns_zone_markdirty
-dns_zone_mkey_day
-dns_zone_mkey_hour
-dns_zone_mkey_month
 dns_zone_name
 dns_zone_nameonly
 dns_zone_next
@@ -1466,5 +1463,13 @@ dst_result_totext
 
 EXPORTS
 
+dns_pps			DATA
 dns_master_style_full	DATA
+dns_msgcat		DATA
+dns_tsig_hmacmd5_name	DATA
+dns_zone_mkey_day	DATA
+dns_zone_mkey_hour	DATA
+dns_zone_mkey_month	DATA
+dst__memory_pool	DATA
+dst_msgcat		DATA
 @END NOLONGER

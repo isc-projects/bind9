@@ -74,7 +74,7 @@
  * other than -1, we check to make sure DSCP values match it, and
  * assert if not.
  */
-int isc_dscp_check_value = -1;
+LIBISC_EXTERNAL_DATA int isc_dscp_check_value = -1;
 
 /*
  * How in the world can Microsoft exist with APIs like this?
