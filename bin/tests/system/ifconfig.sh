@@ -130,6 +130,10 @@ case "$1" in
 			ifconfig lo0 alias 10.53.0.$ns
 			ifconfig lo0 inet6 fd92:7065:b8e:ffff::$ns alias
 			;;
+		    *-cygwin*)
+			echo "Please run ifconfig.bat as Administrator."
+			exit 1
+			;;
 		    *)
 			echo "Don't know how to set up interface.  Giving up."
 			exit 1
@@ -210,6 +214,10 @@ case "$1" in
 		    *darwin*)
 			ifconfig lo0 -alias 10.53.0.$ns
 			ifconfig lo0 inet6 fd92:7065:b8e:ffff::$ns delete
+			;;
+		    *-cygwin*)
+			echo "Please run ifconfig.bat as Administrator."
+			exit 1
 			;;
 		    *)
 			echo "Don't know how to destroy interface.  Giving up."
