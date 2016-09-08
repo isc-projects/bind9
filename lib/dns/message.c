@@ -3426,8 +3426,21 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				isc_buffer_forward(&optbuf, optlen);
 
 				if (optcode == DNS_OPT_COOKIE) {
-					if (msg->cc_ok)
+					/*
+					 * Valid server cookie?
+					 */
+					if (msg->cc_ok && optlen >= 16)
 						ADD_STRING(target, " (good)");
+					/*
+					 * Server cookie is not valid but
+					 * we had our cookie echoed back.
+					 */
+					if (msg->cc_ok && optlen < 16)
+						ADD_STRING(target, " (echoed)");
+					/*
+					 * We didn't get our cookie echoed
+					 * back.
+					 */
 					if (msg->cc_bad)
 						ADD_STRING(target, " (bad)");
 					ADD_STRING(target, "\n");
