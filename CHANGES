@@ -1,3 +1,6 @@
+4463.	[bug]		The dnstap system test failed on some systems.
+			[RT #43129]
+
 4462.	[bug]		Don't describe a returned EDNS COOKIE as "good"
 			when there isn't a valid server cookie. [RT #43167]
 

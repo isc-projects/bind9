@@ -40,7 +40,7 @@ mv ns2/dnstap.out ns2/dnstap.out.save
 
 if [ -n "$FSTRM_CAPTURE" ] ; then
 	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
-		-w dnstap.out >& fstrm_capture.out &
+		-w dnstap.out > fstrm_capture.out 2>&1 &
 	fstrm_capture_pid=$!
 fi
 
@@ -424,7 +424,7 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	}
 	mv dnstap.out dnstap.out.save
 	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
-		-w dnstap.out >& fstrm_capture.out & 
+		-w dnstap.out > fstrm_capture.out 2>&1 &
 	fstrm_capture_pid=$!
 	$RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/I:ns4 /'
 	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
