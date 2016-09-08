@@ -217,6 +217,12 @@ nmake /nologo -f timer_test.mak CFG="timer_test - @PLATFORM@ Release"  NO_EXTERN
 cd ..\..
 @END XTESTS
 
+@IF STESTS
+cd tests\system\win32
+nmake /nologo -f gencheck.mak CFG="gencheck - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+cd ..\..\..
+@END STESTS
+
 rem This is the BIND 9 Installer
 
 cd win32\BINDInstall

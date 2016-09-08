@@ -111,7 +111,7 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\resolver\\win32\\t_resolver.mak",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.dsp",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.mak",
-                "..\\bin\\tests\\system\\conf.sh",
+                "..\\bin\\tests\\system\\conf.sh.win32",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.dsp",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.mak",
                 "..\\bin\\tests\\timers\\win32\\t_timers.dsp",
@@ -446,6 +446,7 @@ my @substvar = ("BIND9_VERSION",
                 "COPTMLD",
                 "COPTX",
                 "COPTY",
+                "EXEEXT",
                 "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
@@ -456,24 +457,24 @@ my @substvar = ("BIND9_VERSION",
                 "PYTHON",
                 "VCREDIST_PATH"),
 
-my %configsystest;
-my @substsystest = ("CHECK_DSA",
-					"CHECKDS",
-					"COVERAGE",
-					"CURL",
-					"DNSTAP",
-					"FSTRM_CAPTURE",
-					"JSONSTATS",
-					"KEYMGR",
-					"NZD_TOOLS",
-					"PERL",
-					"PKCS11_TEST",
-					"SHELL",
-					"XMLLINT",
-					"XMLSTATS",
-					"ZLIB"),
+my %configtest;
 
-					
+my @substtest = ("CHECK_DSA",
+                 "CHECKDS",
+                 "COVERAGE",
+                 "CURL",
+                 "DNSTAP",
+                 "FSTRM_CAPTURE",
+                 "JSONSTATS",
+                 "KEYMGR",
+                 "NZD_TOOLS",
+                 "PERL",
+                 "PKCS11_TEST",
+                 "SHELL",
+                 "XMLLINT",
+                 "XMLSTATS",
+                 "ZLIB"),
+
 # defines
 
 my %configdefd;
@@ -499,6 +500,7 @@ my @substcond = ("AES",
                  "PKCS11",
                  "PYTHON",
                  "SAMPLES",
+                 "STESTS",
                  "TESTS",
                  "XTESTS",
                  "ZLIB");
@@ -523,6 +525,7 @@ my @enablelist = ("developer",
 # with-xxx/without-xxx
 
 my @withlist = ("aes",
+                "cc-alg",
                 "cross-compile",
                 "ecdsa",
                 "extra-tests",
@@ -537,7 +540,7 @@ my @withlist = ("aes",
                 "python",
                 "readline",
                 "samples",
-                "cc-alg",
+                "system-tests",
                 "tests",
                 "tuning",
                 "vcredist",
@@ -580,6 +583,7 @@ my @help = (
 "\nOptional Packages:\n",
 "  with-tests            build with test suite\n",
 "  with-extra-tests      build with extra test suite\n",
+"  with-system-tests     build with system test suite\n",
 "  with-samples          build with sample programs\n",
 "  with-openssl[=PATH]   build with OpenSSL yes|no|path\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
@@ -621,6 +625,7 @@ my $enable_rpz_nsip = "yes";
 my $enable_rpz_nsdname = "yes";
 my $use_tests = "no";
 my $use_xtests = "no";
+my $use_stests = "no";
 my $use_samples = "no";
 my $use_openssl = "auto";
 my $openssl_path = "..\\..\\";
@@ -720,6 +725,8 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
     $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "_mm_pause()";
 }
+# Standard configure variable
+$configvar{"EXEEXT"} = ".exe";
 
 # get the version information
 
@@ -866,6 +873,11 @@ sub mywith {
         if ($val =~ /^yes$/i) {
             $use_tests = "yes";
             $use_xtests = "yes";
+        }
+    } elsif ($key =~ /^system-tests$/i) {
+        if ($val =~ /^yes$/i) {
+            $use_tests = "yes";
+            $use_stests = "yes";
         }
     } elsif ($key =~ /^samples$/i) {
         if ($val =~ /^yes$/i) {
@@ -1107,6 +1119,9 @@ if ($verbose) {
     }
     if ($use_xtests eq "yes") {
         print "extra tests: enabled\n";
+    }
+    if ($use_stests eq "yes") {
+        print "system tests: enabled\n";
     }
     if ($use_samples eq "yes") {
         print "sample programs: enabled\n";
@@ -1469,6 +1484,11 @@ if ($use_tests eq "yes") {
 # with-extra-tests
 if ($use_xtests eq "yes") {
     $configcond{"XTESTS"} = 1;
+}
+
+# with-system-tests
+if ($use_stests eq "yes") {
+    $configcond{"STESTS"} = 1;
 }
 
 # with-samples
@@ -2554,7 +2574,7 @@ sub kw {
     }
 }
 
-# setup a file with %configcond stack and %config{var,defd,inc,lib,dll}
+# setup a file with %configcond stack and %config{var,defd,inc,lib,dll,test}
 
 sub setupfile {
     my $line;
@@ -2567,7 +2587,7 @@ sub setupfile {
     my @passes;
     my $val;
 
-    open F, $filename . ".win.in" || open F, $filename . ".in" || die $!;
+    open F, $filename . ".in" || die $!;
     @Linesin = <F>;
     close F;
 
@@ -2656,14 +2676,14 @@ sub setupfile {
                 } else {
                     $line = "$`$'";
                 }
-            } elsif ($1 ~~ @substsystest) {
-				if (defined($configsystest{$1})) {
-					$val = kw($configsystest{$1});
-					$line = "$`$val$'";
+            } elsif ($1 ~~ @substtest) {
+                if (defined($configtest{$1})) {
+                    $val = kw($configtest{$1});
+                    $line = "$`$val$'";
                 } else {
                     $line = "$`$'";
-				}
-			} else {
+                }
+            } else {
                 die "unknown control $& in $filename\n";
             }
         }
@@ -2674,7 +2694,7 @@ sub setupfile {
     if ($verbose) {
         print "Setting up $filename\n";
     }
-	binmode(F);
+    binmode(F);
     foreach $line (@Linesout) {
         print F $line . "\n";
     }
