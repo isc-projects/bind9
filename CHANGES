@@ -1,3 +1,5 @@
+4464.	[bug]		Fix windows python support. [RT #43173]
+
 4463.	[bug]		The dnstap system test failed on some systems.
 			[RT #43129]
 
