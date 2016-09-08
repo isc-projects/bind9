@@ -1,3 +1,5 @@
+4464.	[bug]		Fix windows python support. [RT #43173]
+
 4461.	[bug]		win32: not all external data was properly marked
 			as external data for windows dll. [RT #43161]
 
