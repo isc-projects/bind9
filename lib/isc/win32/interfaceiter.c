@@ -384,7 +384,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 	memset(&iter->current, 0, sizeof(iter->current));
 	iter->current.af = AF_INET6;
 
-	if (iter->pos6 != 0U || !iter->pos6zero) {
+	if (!iter->pos6zero) {
 		if (iter->pos6 == 0U)
 			iter->pos6zero = ISC_TRUE;
 		get_addr(AF_INET6, &iter->current.address,
@@ -475,9 +475,9 @@ internal_next(isc_interfaceiter_t *iter) {
 
 static isc_result_t
 internal_next6(isc_interfaceiter_t *iter) {
-	if (iter->pos6 == 0 && iter->v6loop)
+	if (iter->pos6 == 0U && iter->v6loop)
 		return (ISC_R_NOMORE);
-	if (iter->pos6 != 0)
+	if (iter->pos6 != 0U)
 		iter->pos6--;
 	return (ISC_R_SUCCESS);
 }
@@ -498,7 +498,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 	if (iter->buf6 != NULL) {
 		iter->pos6 = iter->buf6->iAddressCount;
 		iter->v6loop = ISC_FALSE;
-		iter->pos6zero = ISC_FALSE;
+		iter->pos6zero = ISC_TF(iter->pos6 == 0U);
 	}
 	iter->result = ISC_R_SUCCESS;
 	return (isc_interfaceiter_next(iter));

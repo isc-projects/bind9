@@ -1,3 +1,6 @@
+4466.	[bug]		Interface scanning didn't work on a Windows system
+			without a non local IPv6 addresses. [RT #43130]
+
 4464.	[bug]		Fix windows python support. [RT #43173]
 
 4461.	[bug]		win32: not all external data was properly marked
