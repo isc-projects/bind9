@@ -2816,6 +2816,7 @@
 ./contrib/dnsperf-2.1.0.0-1/resperf.c		X	2016
 ./contrib/dnsperf-2.1.0.0-1/util.h		X	2016
 ./contrib/dnsperf-2.1.0.0-1/version.h		X	2016
+./contrib/dnsperf-patches/0001-Add-support-for-sending-EDNS-CLIENT-SUBNET-option-in.patch	X	2016
 ./contrib/idn/README.idnkit			X	2005,2009
 ./contrib/idn/idnkit-1.0-src/.gitignore		X	2014
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003
