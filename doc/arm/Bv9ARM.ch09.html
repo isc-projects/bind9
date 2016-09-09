@@ -89,6 +89,11 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
+	  It was possible to trigger a assertion when rendering a
+	  message using a specially crafted request. This flaw is
+	  disclosed in CVE-2016-2776. [RT #43139]
+	</p></li>
+<li class="listitem"><p>
 	 getrrsetbyname with a non absolute name could trigger an
 	 infinite recursion bug in lwresd and named with lwres
 	 configured if when combined with a search list entry the
