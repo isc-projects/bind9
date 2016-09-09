@@ -44,6 +44,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  It was possible to trigger a assertion when rendering a
+	  message using a specially crafted request. This flaw is
+	  disclosed in CVE-2016-2776. [RT #43139]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	 getrrsetbyname with a non absolute name could trigger an
 	 infinite recursion bug in lwresd and named with lwres
 	 configured if when combined with a search list entry the
