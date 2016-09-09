@@ -1,3 +1,6 @@
+4467.	[security]	It was possible to trigger a assertion when rendering
+			a message. [RT #43139]
+
 4466.	[bug]		Interface scanning didn't work on a Windows system
 			without a non local IPv6 addresses. [RT #43130]
 
