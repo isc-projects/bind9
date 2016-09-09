@@ -1,3 +1,5 @@
+	 --- 9.11.0rc2 released ---
+
 4467.	[security]	It was possible to trigger a assertion when rendering
 			a message. (CVE-2016-2776) [RT #43139]
 
