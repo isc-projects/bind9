@@ -1,3 +1,6 @@
+4467.	[security]	It was possible to trigger a assertion when rendering
+			a message. [RT #43139]
+
 	--- 9.10.4-P2 released ---
 
 4406.	[bug]		getrrsetbyname with a non absolute name could
