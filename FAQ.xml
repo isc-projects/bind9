@@ -18,7 +18,7 @@
 <!-- Converted by db4-upgrade version 1.0 -->
 <article xmlns="http://docbook.org/ns/docbook" version="5.0" class="faq">
 
-  <info>
+  <articleinfo>
     <copyright>
       <year>2004</year>
       <year>2005</year>
@@ -29,6 +29,7 @@
       <year>2010</year>
       <year>2013</year>
       <year>2014</year>
+      <year>2015</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
@@ -38,7 +39,7 @@
       <year>2003</year>
       <holder>Internet Software Consortium.</holder>
     </copyright>
-  </info>
+  </articleinfo>
   <qandaset defaultlabel="qanda">
 
     <qandadiv><title>Compilation and Installation Questions</title>
