@@ -1,5 +1,5 @@
 4467.	[security]	It was possible to trigger a assertion when rendering
-			a message. [RT #43139]
+			a message. (CVE-2016-2776) [RT #43139]
 
 	--- 9.10.4-P2 released ---
 
