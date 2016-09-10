@@ -134,12 +134,26 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\system\\win32\\bigkey.mak",
                 "..\\bin\\tests\\system\\win32\\dlopen.dsp",
                 "..\\bin\\tests\\system\\win32\\dlopen.mak",
+                "..\\bin\\tests\\system\\win32\\edns-version.dsp",
+                "..\\bin\\tests\\system\\win32\\edns-version.mak",
+                "..\\bin\\tests\\system\\win32\\filter-aaaa.dsp",
+                "..\\bin\\tests\\system\\win32\\filter-aaaa.mak",
                 "..\\bin\\tests\\system\\win32\\gencheck.dsp",
                 "..\\bin\\tests\\system\\win32\\gencheck.mak",
                 "..\\bin\\tests\\system\\win32\\gethostname.dsp",
                 "..\\bin\\tests\\system\\win32\\gethostname.mak",
+                "..\\bin\\tests\\system\\win32\\keycreate.dsp",
+                "..\\bin\\tests\\system\\win32\\keycreate.mak",
+                "..\\bin\\tests\\system\\win32\\keydelete.dsp",
+                "..\\bin\\tests\\system\\win32\\keydelete.mak",
                 "..\\bin\\tests\\system\\win32\\lwtest.dsp",
                 "..\\bin\\tests\\system\\win32\\lwtest.mak",
+                "..\\bin\\tests\\system\\win32\\pipequeries.dsp",
+                "..\\bin\\tests\\system\\win32\\pipequeries.mak",
+                "..\\bin\\tests\\system\\win32\\rpz.dsp",
+                "..\\bin\\tests\\system\\win32\\rpz.mak",
+                "..\\bin\\tests\\system\\win32\\xmlstats.dsp",
+                "..\\bin\\tests\\system\\win32\\xmlstats.mak",
                 "..\\bin\\tests\\win32\\backtrace_test.dsp",
                 "..\\bin\\tests\\win32\\backtrace_test.mak",
                 "..\\bin\\tests\\win32\\inter_test.dsp",
@@ -303,12 +317,26 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\system\\win32\\bigkey.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\dlopen.vcxproj",
                    "..\\bin\\tests\\system\\win32\\dlopen.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\edns-version.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\edns-version.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\filter-aaaa.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\filter-aaaa.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\gencheck.vcxproj",
                    "..\\bin\\tests\\system\\win32\\gencheck.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\gethostname.vcxproj",
                    "..\\bin\\tests\\system\\win32\\gethostname.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\keycreate.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\keycreate.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\keydelete.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\keydelete.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\lwtest.vcxproj",
                    "..\\bin\\tests\\system\\win32\\lwtest.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\pipequeries.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\pipequeries.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\rpz.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\rpz.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\xmlstats.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\xmlstats.vcxproj.filters",
                    "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj",
                    "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj.filters",
                    "..\\bin\\tests\\timers\\win32\\t_timers.vcxproj",
@@ -433,16 +461,12 @@ my %configtest;
 my @substtest = ("CHECK_DSA",
                  "CHECKDS",
                  "COVERAGE",
-                 "CURL",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
                  "KEYMGR",
                  "NZD_TOOLS",
-                 "PERL",
                  "PKCS11_TEST",
-                 "SHELL",
-                 "XMLLINT",
                  "XMLSTATS",
                  "ZLIB"),
 
@@ -2405,6 +2429,7 @@ if ($use_libxml2 eq "yes") {
     }
     $configcond{"LIBXML2"} = 1;
     $configdefh{"HAVE_LIBXML2"} = 1;
+    $configtest{"XMLSTATS"} = 1;
     my $libxml2_inc = File::Spec->catdir($libxml2_path, "include");
     $configinc{"LIBXML2_INC"} = "$libxml2_inc";
     my $libxml2_libdir = File::Spec->catdir($libxml2_path, "win32\\bin.msvc");
@@ -2421,6 +2446,7 @@ if ($use_zlib eq "no") {
     }
 } else {
     $configcond{"ZLIB"} = 1;
+    $configtest{"ZLIB"} = 1;
     $zlib_path = File::Spec->rel2abs($zlib_path);
     if ($verbose) {
         print "checking for zlib directory at \"$zlib_path\"\n";
@@ -3220,6 +3246,28 @@ sub makeinstallfile {
     print LOUT "readme1st.txt-BTFT\n";
     close LOUT;
 }
+
+# Adjust system tests
+
+# WIN32 not a BSD
+$configtest{"CHECK_DSA"} = 0;
+
+# should be set if python is configured
+#$configtest{"CHECKDS"} = "checkds";
+#$configtest{"COVERAGE"} = "coverage";
+#$configtest{"KEYMGR"} = "keymgr";
+
+# dnstap not supported
+#$configtest{"DNSTAP"} = "dnstap";
+#$configtest{"FSTRM_CAPTURE"} = "fstrm_capture";
+
+# no json-c library for WIN32
+#$configtest{"JSONSTATS"} = 1;
+
+# lmdb not supported
+#$configtest{"NZD_TOOLS"} = "nzd";
+
+# TODO check for pkcs11ssl and set PKCS11_TEST
 
 # Status
 

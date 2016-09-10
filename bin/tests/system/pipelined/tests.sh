@@ -13,7 +13,7 @@ status=0
 
 echo "I:check pipelined TCP queries"
 ret=0
-./pipequeries < input > raw || ret=1
+$PIPEQUERIES < input > raw || ret=1
 awk '{ print $1 " " $5 }' < raw > output
 sort < output > output-sorted
 diff ref output-sorted || { ret=1 ; echo "I: diff sorted failed"; }
@@ -37,7 +37,7 @@ status=`expr $status + $ret`
 
 echo "I:check keep-response-order"
 ret=0
-./pipequeries ++ < inputb > rawb || ret=1
+$PIPEQUERIES ++ < inputb > rawb || ret=1
 awk '{ print $1 " " $5 }' < rawb > outputb
 diff refb outputb || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi

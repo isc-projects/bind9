@@ -63,12 +63,17 @@ RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
 BIGKEY=$TOP/Build/$VSCONF/bigkey@EXEEXT@
 DLOPEN=$TOP/Build/$VSCONF/dlopen@EXEEXT@
+EDNSVERSION=$TOP/Build/$VSCONF/edns-version@EXEEXT@
+FILTERAAAA=$TOP/Build/$VSCONF/filter-aaaa@EXEEXT@
 GENCHECK=$TOP/Build/$VSCONF/gencheck@EXEEXT@
 GETHOSTNAME=$TOP/Build/$VSCONF/gethostname@EXEEXT@
 KEYCREATE=$TOP/Build/$VSCONF/keycreate@EXEEXT@
 KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
 LWTEST=$TOP/Build/$VSCONF/lwtest@EXEEXT@
 MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
+PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
+RPZ=$TOP/Build/$VSCONF/rpz@EXEEXT@
+XMLSTATS=$TOP/Build/$VSCONF/xmlstats@EXEEXT@
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -96,8 +101,8 @@ TP=
 # Configure is launched from native environment, but tests are run in Cygwin -
 # so any detection is unreliable. 
 SHELL="/bin/bash -o igncr"
-CURL=@CURL@
-XMLLINT=@XMLLINT@
+CURL=/usr/bin/curl
+XMLLINT=/usr/bin/xmllint
 PERL=/usr/bin/perl
 
 if test -n "$PERL"
@@ -125,8 +130,8 @@ PYTHON=@PYTHON@
 # Determine if we support various optional features.
 #
 CHECK_DSA=@CHECK_DSA@
-XMLSTATS=@XMLSTATS@
-JSONSTATS=@JSONSTATS@
+HAVEXMLSTATS=@XMLSTATS@
+HAVEJSONSTATS=@JSONSTATS@
 ZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
 
@@ -136,5 +141,5 @@ export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
        JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
        MDIG FSTRM_CAPTURE NZD2NZF \
-       RANDFILE BIGKEY DLOPEN GENCHECK GETHOSTNAME KEYCREATE KEYDELETE \
-       LWTEST MAKEJOURNAL
+       RANDFILE BIGKEY DLOPEN EDNSVERSION FILTERAAAA GENCHECK GETHOSTNAME \
+       KEYCREATE KEYDELETE LWTEST MAKEJOURNAL PIPEQUERIES RPZ XMLSTATS

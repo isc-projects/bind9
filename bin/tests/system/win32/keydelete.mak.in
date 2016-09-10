@@ -1,20 +1,20 @@
-# Microsoft Developer Studio Generated NMAKE File, Based on bigkey.dsp
+# Microsoft Developer Studio Generated NMAKE File, Based on keydelete.dsp
 !IF "$(CFG)" == ""
-CFG=bigkey - @PLATFORM@ Debug
-!MESSAGE No configuration specified. Defaulting to bigkey - @PLATFORM@ Debug.
+CFG=keydelete - @PLATFORM@ Debug
+!MESSAGE No configuration specified. Defaulting to keydelete - @PLATFORM@ Debug.
 !ENDIF 
 
-!IF "$(CFG)" != "bigkey - @PLATFORM@ Release" && "$(CFG)" != "bigkey - @PLATFORM@ Debug"
+!IF "$(CFG)" != "keydelete - @PLATFORM@ Release" && "$(CFG)" != "keydelete - @PLATFORM@ Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "bigkey.mak" CFG="bigkey - @PLATFORM@ Debug"
+!MESSAGE NMAKE /f "keydelete.mak" CFG="keydelete - @PLATFORM@ Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "bigkey - @PLATFORM@ Release" (based on "@PLATFORM@ (x86) Console Application")
-!MESSAGE "bigkey - @PLATFORM@ Debug" (based on "@PLATFORM@ (x86) Console Application")
+!MESSAGE "keydelete - @PLATFORM@ Release" (based on "@PLATFORM@ (x86) Console Application")
+!MESSAGE "keydelete - @PLATFORM@ Debug" (based on "@PLATFORM@ (x86) Console Application")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ENDIF 
@@ -29,7 +29,7 @@ CPP=cl.exe
 RSC=rc.exe
 LIBXML=@LIBXML2_LIB@
 
-!IF  "$(CFG)" == "bigkey - @PLATFORM@ Release"
+!IF  "$(CFG)" == "keydelete - @PLATFORM@ Release"
 _VC_MANIFEST_INC=0
 _VC_MANIFEST_BASENAME=__VC80
 !ELSE
@@ -104,18 +104,18 @@ _VC_MANIFEST_CLEAN=
 
 !endif
 
-!IF  "$(CFG)" == "bigkey - @PLATFORM@ Release"
+!IF  "$(CFG)" == "keydelete - @PLATFORM@ Release"
 
 OUTDIR=.\Release
 INTDIR=.\Release
 
 !IF "$(RECURSE)" == "0" 
 
-ALL : "..\..\..\..\Build\Release\bigkey.exe"
+ALL : "..\..\..\..\Build\Release\keydelete.exe"
 
 !ELSE 
 
-ALL : "libisc - @PLATFORM@ Release" "libdns - @PLATFORM@ Release" "..\..\..\..\Build\Release\bigkey.exe"
+ALL : "libisc - @PLATFORM@ Release" "libdns - @PLATFORM@ Release" "..\..\..\..\Build\Release\keydelete.exe"
 
 !ENDIF 
 
@@ -124,33 +124,33 @@ CLEAN :"libdns - @PLATFORM@ ReleaseCLEAN" "libisc - @PLATFORM@ ReleaseCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
-	-@erase "$(INTDIR)\bigkey.obj"
+	-@erase "$(INTDIR)\keydelete.obj"
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "..\..\..\..\Build\Release\bigkey.exe"
+	-@erase "..\..\..\..\Build\Release\keydelete.exe"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../../" @LIBXML2_INC@ @OPENSSL_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /I "../../../../lib/dns/win32/include" /I "../../../../lib/dns/include" @CRYPTO@ /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\bigkey.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../../" @LIBXML2_INC@ @OPENSSL_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /I "../../../../lib/dns/win32/include" /I "../../../../lib/dns/include" @CRYPTO@ /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\keydelete.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\bigkey.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\keydelete.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Release/libisc.lib ../../../../lib/dns/win32/Release/libdns.lib $(LIBXML) @OPENSSL_LIB@ /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\bigkey.pdb" @MACHINE@ /out:"../../../../Build/Release/bigkey.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Release/libisc.lib ../../../../lib/dns/win32/Release/libdns.lib $(LIBXML) @OPENSSL_LIB@ /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\keydelete.pdb" @MACHINE@ /out:"../../../../Build/Release/keydelete.exe" 
 LINK32_OBJS= \
-	"$(INTDIR)\bigkey.obj" \
+	"$(INTDIR)\keydelete.obj" \
 	"..\..\..\..\lib\isc\win32\Release\libisc.lib" \
 	"..\..\..\..\lib\isc\win32\Release\libdns.lib"
 
-"..\..\..\..\Build\Release\bigkey.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\..\Build\Release\keydelete.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
     $(_VC_MANIFEST_EMBED_EXE)
 
-!ELSEIF  "$(CFG)" == "bigkey - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "keydelete - @PLATFORM@ Debug"
 
 OUTDIR=.\Debug
 INTDIR=.\Debug
@@ -160,11 +160,11 @@ OutDir=.\Debug
 
 !IF "$(RECURSE)" == "0" 
 
-ALL : "..\..\..\..\Build\Debug\bigkey.exe" "$(OUTDIR)\bigkey.bsc"
+ALL : "..\..\..\..\Build\Debug\keydelete.exe" "$(OUTDIR)\keydelete.bsc"
 
 !ELSE 
 
-ALL : "libisc - @PLATFORM@ Debug" "libdns - @PLATFORM@ Debug" "..\..\..\..\Build\Debug\bigkey.exe" "$(OUTDIR)\bigkey.bsc"
+ALL : "libisc - @PLATFORM@ Debug" "libdns - @PLATFORM@ Debug" "..\..\..\..\Build\Debug\keydelete.exe" "$(OUTDIR)\keydelete.bsc"
 
 !ENDIF 
 
@@ -173,15 +173,15 @@ CLEAN :"libdns - @PLATFORM@ DebugCLEAN" "libisc - @PLATFORM@ DebugCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
-	-@erase "$(INTDIR)\bigkey.obj"
-	-@erase "$(INTDIR)\bigkey.sbr"
+	-@erase "$(INTDIR)\keydelete.obj"
+	-@erase "$(INTDIR)\keydelete.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(OUTDIR)\bigkey.bsc"
-	-@erase "$(OUTDIR)\bigkey.map"
-	-@erase "$(OUTDIR)\bigkey.pdb"
-	-@erase "..\..\..\..\Build\Debug\bigkey.exe"
-	-@erase "..\..\..\..\Build\Debug\bigkey.ilk"
+	-@erase "$(OUTDIR)\keydelete.bsc"
+	-@erase "$(OUTDIR)\keydelete.map"
+	-@erase "$(OUTDIR)\keydelete.pdb"
+	-@erase "..\..\..\..\Build\Debug\keydelete.exe"
+	-@erase "..\..\..\..\Build\Debug\keydelete.ilk"
 	-@$(_VC_MANIFEST_CLEAN)
 
 "$(OUTDIR)" :
@@ -189,23 +189,23 @@ CLEAN :
 
 CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../../" @LIBXML2_INC@ @OPENSSL_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /I "../../../../lib/dns/win32/include" /I "../../../../lib/dns/include" @CRYPTO@ /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "i386" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\bigkey.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\keydelete.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\bigkey.sbr"
+	"$(INTDIR)\keydelete.sbr"
 
-"$(OUTDIR)\bigkey.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+"$(OUTDIR)\keydelete.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
   $(BSC32_FLAGS) $(BSC32_SBRS)
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Debug/libisc.lib ../../../../lib/dns/win32/Debug/libdns.lib $(LIBXML) @OPENSSL_LIB@ /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\bigkey.pdb" /map:"$(INTDIR)\bigkey.map" /debug @MACHINE@ /out:"../../../../Build/Debug/bigkey.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Debug/libisc.lib ../../../../lib/dns/win32/Debug/libdns.lib $(LIBXML) @OPENSSL_LIB@ /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\keydelete.pdb" /map:"$(INTDIR)\keydelete.map" /debug @MACHINE@ /out:"../../../../Build/Debug/keydelete.exe" /pdbtype:sept 
 LINK32_OBJS= \
-	"$(INTDIR)\bigkey.obj" \
+	"$(INTDIR)\keydelete.obj" \
 	"..\..\..\..\lib\isc\win32\Debug\libisc.lib" \
 	"..\..\..\..\lib\isc\win32\Debug\libdns.lib"
 
-"..\..\..\..\Build\Debug\bigkey.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+"..\..\..\..\Build\Debug\keydelete.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
@@ -245,34 +245,34 @@ LINK32_OBJS= \
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
-!IF EXISTS("bigkey.dep")
-!INCLUDE "bigkey.dep"
+!IF EXISTS("keydelete.dep")
+!INCLUDE "keydelete.dep"
 !ELSE 
-!MESSAGE Warning: cannot find "bigkey.dep"
+!MESSAGE Warning: cannot find "keydelete.dep"
 !ENDIF 
 !ENDIF 
 
 
-!IF "$(CFG)" == "bigkey - @PLATFORM@ Release" || "$(CFG)" == "bigkey - @PLATFORM@ Debug"
-SOURCE=..\rsabigexponent\bigkey.c
+!IF "$(CFG)" == "keydelete - @PLATFORM@ Release" || "$(CFG)" == "keydelete - @PLATFORM@ Debug"
+SOURCE=..\tkey\keydelete.c
 
-!IF  "$(CFG)" == "bigkey - @PLATFORM@ Release"
+!IF  "$(CFG)" == "keydelete - @PLATFORM@ Release"
 
 
-"$(INTDIR)\bigkey.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\keydelete.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-!ELSEIF  "$(CFG)" == "bigkey - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "keydelete - @PLATFORM@ Debug"
 
 
-"$(INTDIR)\bigkey.obj"	"$(INTDIR)\bigkey.sbr" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\keydelete.obj"	"$(INTDIR)\keydelete.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
 
-!IF  "$(CFG)" == "bigkey - @PLATFORM@ Release"
+!IF  "$(CFG)" == "keydelete - @PLATFORM@ Release"
 
 "libdns - @PLATFORM@ Release" : 
    cd "..\..\..\..\lib\dns\win32"
@@ -284,7 +284,7 @@ SOURCE=..\rsabigexponent\bigkey.c
    $(MAKE) /$(MAKEFLAGS) /F ".\libdns.mak" CFG="libdns - @PLATFORM@ Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\tests\system\win32"
 
-!ELSEIF  "$(CFG)" == "bigkey - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "keydelete - @PLATFORM@ Debug"
 
 "libdns - @PLATFORM@ Debug" : 
    cd "..\..\..\..\lib\dns\win32"
@@ -298,7 +298,7 @@ SOURCE=..\rsabigexponent\bigkey.c
 
 !ENDIF 
 
-!IF  "$(CFG)" == "bigkey - @PLATFORM@ Release"
+!IF  "$(CFG)" == "keydelete - @PLATFORM@ Release"
 
 "libisc - @PLATFORM@ Release" : 
    cd "..\..\..\..\lib\isc\win32"
@@ -310,7 +310,7 @@ SOURCE=..\rsabigexponent\bigkey.c
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - @PLATFORM@ Release" RECURSE=1 CLEAN 
    cd "..\..\..\bin\tests\system\win32"
 
-!ELSEIF  "$(CFG)" == "bigkey - @PLATFORM@ Debug"
+!ELSEIF  "$(CFG)" == "keydelete - @PLATFORM@ Debug"
 
 "libisc - @PLATFORM@ Debug" : 
    cd "..\..\..\..\lib\isc\win32"

@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{61F9D673-EB5C-47A5-8907-24E034C75EF8}</ProjectGuid>
+    <ProjectGuid>{4F9A0F6F-366D-4483-B131-793832840508}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>bigkey</RootNamespace>
+    <RootNamespace>keycreate</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'" Label="Configuration">
@@ -100,7 +100,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\rsabigexponent\bigkey.c" />
+    <ClCompile Include="..\tkey\keycreate.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
