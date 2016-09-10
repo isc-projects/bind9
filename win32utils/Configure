@@ -21,6 +21,7 @@ use Cwd;
 my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
 my $confshfile = "..\\bin\\tests\\system\\conf.sh";
+my $icshfile = "..\\isc-config.sh";
 
 my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\check\\win32\\checkconf.dsp",
@@ -129,10 +130,14 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.mak",
                 "..\\bin\\tests\\timers\\win32\\t_timers.dsp",
                 "..\\bin\\tests\\timers\\win32\\t_timers.mak",
+                "..\\bin\\tests\\system\\win32\\bigkey.dsp",
+                "..\\bin\\tests\\system\\win32\\bigkey.mak",
                 "..\\bin\\tests\\system\\win32\\dlopen.dsp",
                 "..\\bin\\tests\\system\\win32\\dlopen.mak",
                 "..\\bin\\tests\\system\\win32\\gencheck.dsp",
                 "..\\bin\\tests\\system\\win32\\gencheck.mak",
+                "..\\bin\\tests\\system\\win32\\gethostname.dsp",
+                "..\\bin\\tests\\system\\win32\\gethostname.mak",
                 "..\\bin\\tests\\system\\win32\\lwtest.dsp",
                 "..\\bin\\tests\\system\\win32\\lwtest.mak",
                 "..\\bin\\tests\\win32\\backtrace_test.dsp",
@@ -294,10 +299,14 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\resolver\\win32\\t_resolver.vcxproj.filters",
                    "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj",
                    "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\bigkey.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\bigkey.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\dlopen.vcxproj",
                    "..\\bin\\tests\\system\\win32\\dlopen.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\gencheck.vcxproj",
                    "..\\bin\\tests\\system\\win32\\gencheck.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\gethostname.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\gethostname.vcxproj.filters",
                    "..\\bin\\tests\\system\\win32\\lwtest.vcxproj",
                    "..\\bin\\tests\\system\\win32\\lwtest.vcxproj.filters",
                    "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj",
@@ -670,7 +679,7 @@ my $geoip_path = "";
 my $use_libxml2 = "auto";
 my $libxml2_path = "..\\..\\";
 my $use_python = "auto";
-my $python_command = "python";
+my $python_command = "python.exe";
 my $use_readline = "no";
 my $readline_path = "..\\..\\";
 my $use_idn = "no";
@@ -1058,6 +1067,7 @@ if ($want_clean eq "yes") {
     unlink($configfile);
     unlink($platformfile);
     unlink($confshfile);
+    unlink($icshfile);
 
     foreach $file (@filelist) {
         unlink($file);
@@ -2441,7 +2451,7 @@ if ($use_python eq "no") {
     if ($verbose) {
         print "checking for python in path\n";
     }
-    my $pythonret = `python -c "quit()" 2>&1`;
+    my $pythonret = `python.exe -c "quit()" 2>&1`;
     if ($? != 0) {
         print STDERR "can't launch the python interpreter: $pythonret\n";
         $use_python = "no";
@@ -2457,6 +2467,10 @@ if ($use_python ne "no") {
             die "can't launch $python_command: $pythonret\n";
         }
     }
+    if ($python_command !~ /\.exe$/i) {
+        $python_command = $python_command . ".exe";
+    }
+    # tried to use the full path without success here
     if ($verbose) {
         print "checking for python module 'argparse'\n";
     }
@@ -2645,6 +2659,44 @@ sub setupconfsh {
     open F, ">" . $confshfile || die $!;
     if ($verbose) {
         print "Setting up $confshfile\n";
+    }
+    binmode(F);
+    foreach $line (@Lines) {
+        print F $line . "\n";
+    }
+    close F;
+}
+
+# setup isc-config.sh with %configvar accepting undefined
+
+sub setupicsh {
+    my $line;
+    my @Lines;
+    my $val;
+
+    open F, $icshfile . ".in" || die $!;
+    @Lines = <F>;
+    close F;
+
+    foreach $line (@Lines) {
+        chomp $line;
+        while ($line =~ /@([^@]+)\@/) {
+            if ($1 ~~ @substvar) {
+                if (defined($configvar{$1})) {
+                    $val = kw($configvar{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            }  else {
+                $line = "$`__$1__$'";
+            }
+        }
+    }
+
+    open F, ">" . $icshfile || die $!;
+    if ($verbose) {
+        print "Setting up $icshfile\n";
     }
     binmode(F);
     foreach $line (@Lines) {
@@ -3257,6 +3309,8 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
     setupplatformh();
 
     setupconfsh();
+
+    setupicsh();
 
     my $file;
     foreach $file (@filelist) {

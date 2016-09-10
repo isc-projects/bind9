@@ -224,6 +224,8 @@ cd ..\system\win32
 nmake /nologo -f gencheck.mak CFG="gencheck - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f dlopen.mak CFG="dlopen - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f lwtest.mak CFG="lwtest - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f gethostname.mak CFG="gethostname - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f bigkey.mak CFG="bigkey - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..\..
 @END STESTS
 

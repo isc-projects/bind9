@@ -17,54 +17,58 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 # Make it absolute so that it continues to work after we cd.
 TOP=`cd $TOP && pwd`
 
-NAMED=$TOP/Build/Debug/named@EXEEXT@
+# Visual Studio build configurations are Release and Debug
+VSCONF=Debug
+
+NAMED=$TOP/Build/$VSCONF/named@EXEEXT@
 # We must use "named -l" instead of "lwresd" because argv[0] is lost
 # if the program is libtoolized.
-LWRESD="$TOP/Build/Debug/named@EXEEXT@ -l"
-DIG=$TOP/Build/Debug/dig@EXEEXT@
-DELV=$TOP/Build/Debug/delv@EXEEXT@
-RNDC=$TOP/Build/Debug/rndc@EXEEXT@
-NSUPDATE=$TOP/Build/Debug/nsupdate@EXEEXT@
-DDNSCONFGEN=$TOP/Build/Debug/ddns-confgen@EXEEXT@
-TSIGKEYGEN=$TOP/Build/Debug/tsig-keygen@EXEEXT@
-RNDCCONFGEN=$TOP/Build/Debug/rndc-confgen@EXEEXT@
-KEYGEN=$TOP/Build/Debug/dnssec-keygen@EXEEXT@
-KEYFRLAB=$TOP/Build/Debug/dnssec-keyfromlabel@EXEEXT@
-SIGNER=$TOP/Build/Debug/dnssec-signzone@EXEEXT@
-REVOKE=$TOP/Build/Debug/dnssec-revoke@EXEEXT@
-SETTIME=$TOP/Build/Debug/dnssec-settime@EXEEXT@
-DSFROMKEY=$TOP/Build/Debug/dnssec-dsfromkey@EXEEXT@
-IMPORTKEY=$TOP/Build/Debug/dnssec-importkey@EXEEXT@
-CHECKDS=$TOP/Build/Debug/dnssec-checkds@EXEEXT@
-COVERAGE=$TOP/Build/Debug/dnssec-coverage@EXEEXT@
-KEYMGR=$TOP/Build/Debug/dnssec-keymgr@EXEEXT@
-CHECKZONE=$TOP/Build/Debug/named-checkzone@EXEEXT@
-CHECKCONF=$TOP/Build/Debug/named-checkconf@EXEEXT@
-PK11GEN="$TOP/Build/Debug/pkcs11-keygen@EXEEXT@ -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11LIST="$TOP/Build/Debug/pkcs11-list@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11DEL="$TOP/Build/Debug/pkcs11-destroy@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
-JOURNALPRINT=$TOP/Build/Debug/named-journalprint@EXEEXT@
-VERIFY=$TOP/Build/Debug/dnssec-verify@EXEEXT@
-ARPANAME=$TOP/Build/Debug/arpaname@EXEEXT@
+LWRESD="$TOP/Build/$VSCONF/named@EXEEXT@ -l"
+DIG=$TOP/Build/$VSCONF/dig@EXEEXT@
+DELV=$TOP/Build/$VSCONF/delv@EXEEXT@
+RNDC=$TOP/Build/$VSCONF/rndc@EXEEXT@
+NSUPDATE=$TOP/Build/$VSCONF/nsupdate@EXEEXT@
+DDNSCONFGEN=$TOP/Build/$VSCONF/ddns-confgen@EXEEXT@
+TSIGKEYGEN=$TOP/Build/$VSCONF/tsig-keygen@EXEEXT@
+RNDCCONFGEN=$TOP/Build/$VSCONF/rndc-confgen@EXEEXT@
+KEYGEN=$TOP/Build/$VSCONF/dnssec-keygen@EXEEXT@
+KEYFRLAB=$TOP/Build/$VSCONF/dnssec-keyfromlabel@EXEEXT@
+SIGNER=$TOP/Build/$VSCONF/dnssec-signzone@EXEEXT@
+REVOKE=$TOP/Build/$VSCONF/dnssec-revoke@EXEEXT@
+SETTIME=$TOP/Build/$VSCONF/dnssec-settime@EXEEXT@
+DSFROMKEY=$TOP/Build/$VSCONF/dnssec-dsfromkey@EXEEXT@
+IMPORTKEY=$TOP/Build/$VSCONF/dnssec-importkey@EXEEXT@
+CHECKDS="$PYTHON `cygpath -w $TOP/bin/pythond/nssec-checkds.py`"
+COVERAGE="$PYTHON `cygpath -w $TOP/bin/python//dnssec-coverage.py`"
+KEYMGR="$PYTHON `cygpath -w $TOP/bin/python/dnssec-keymgr.py`"
+CHECKZONE=$TOP/Build/$VSCONF/named-checkzone@EXEEXT@
+CHECKCONF=$TOP/Build/$VSCONF/named-checkconf@EXEEXT@
+PK11GEN="$TOP/Build/$VSCONF/pkcs11-keygen@EXEEXT@ -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+PK11LIST="$TOP/Build/$VSCONF/pkcs11-list@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+PK11DEL="$TOP/Build/$VSCONF/pkcs11-destroy@EXEEXT@ -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
+JOURNALPRINT=$TOP/Build/$VSCONF/named-journalprint@EXEEXT@
+VERIFY=$TOP/Build/$VSCONF/dnssec-verify@EXEEXT@
+ARPANAME=$TOP/Build/$VSCONF/arpaname@EXEEXT@
 RESOLVE=$TOP/lib/samples/resolve
-RRCHECKER=$TOP/Build/Debug/named-rrchecker@EXEEXT@
-GENRANDOM=$TOP/Build/Debug/genrandom@EXEEXT@
-NSLOOKUP=$TOP/Build/Debug/nslookup@EXEEXT@
-DNSTAPREAD=$TOP/Build/Debug/dnstap-read@EXEEXT@
-MDIG=$TOP/Build/Debug/mdig@EXEEXT@
-NZD2NZF=$TOP/Build/Debug/named-nzd2nzf@EXEEXT@
+RRCHECKER=$TOP/Build/$VSCONF/named-rrchecker@EXEEXT@
+GENRANDOM=$TOP/Build/$VSCONF/genrandom@EXEEXT@
+NSLOOKUP=$TOP/Build/$VSCONF/nslookup@EXEEXT@
+DNSTAPREAD=$TOP/Build/$VSCONF/dnstap-read@EXEEXT@
+MDIG=$TOP/Build/$VSCONF/mdig@EXEEXT@
+NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
 
 # this is given as argument to native WIN32 executables
 RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
-BIGKEY=$TOP/Build/Debug/bigkey@EXEEXT@
-DLOPEN=$TOP/Build/Debug/dlopen@EXEEXT@
-GENCHECK=$TOP/Build/Debug/gencheck@EXEEXT@
-KEYCREATE=$TOP/Build/Debug/keycreate@EXEEXT@
-KEYDELETE=$TOP/Build/Debug/keydelete@EXEEXT@
-LWTEST=$TOP/Build/Debug/lwtest@EXEEXT@
-MAKEJOURNAL=$TOP/Build/Debug/makejournal@EXEEXT@
+BIGKEY=$TOP/Build/$VSCONF/bigkey@EXEEXT@
+DLOPEN=$TOP/Build/$VSCONF/dlopen@EXEEXT@
+GENCHECK=$TOP/Build/$VSCONF/gencheck@EXEEXT@
+GETHOSTNAME=$TOP/Build/$VSCONF/gethostname@EXEEXT@
+KEYCREATE=$TOP/Build/$VSCONF/keycreate@EXEEXT@
+KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
+LWTEST=$TOP/Build/$VSCONF/lwtest@EXEEXT@
+MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -132,5 +136,5 @@ export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
        JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
        MDIG FSTRM_CAPTURE NZD2NZF \
-       RANDFILE BIGKEY DLOPEN GENCHECK KEYCREATE KEYDELETE LWTEST \
-       MAKEJOURNAL
+       RANDFILE BIGKEY DLOPEN GENCHECK GETHOSTNAME KEYCREATE KEYDELETE \
+       LWTEST MAKEJOURNAL
