@@ -58,11 +58,13 @@ FSTRM_CAPTURE=@FSTRM_CAPTURE@
 # this is given as argument to native WIN32 executables
 RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
+BIGKEY=$TOP/Build/Debug/bigkey@EXEEXT@
 DLOPEN=$TOP/Build/Debug/dlopen@EXEEXT@
 GENCHECK=$TOP/Build/Debug/gencheck@EXEEXT@
-BIGKEY=$TOP/Build/Debug/bigkey@EXEEXT@
 KEYCREATE=$TOP/Build/Debug/keycreate@EXEEXT@
 KEYDELETE=$TOP/Build/Debug/keydelete@EXEEXT@
+LWTEST=$TOP/Build/Debug/lwtest@EXEEXT@
+MAKEJOURNAL=$TOP/Build/Debug/makejournal@EXEEXT@
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -130,5 +132,5 @@ export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
        JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
        MDIG FSTRM_CAPTURE NZD2NZF \
-       RANDFILE DLOPEN GENCHECK BIGKEY KEYCREATE KEYDELETE
-
+       RANDFILE BIGKEY DLOPEN GENCHECK KEYCREATE KEYDELETE LWTEST \
+       MAKEJOURNAL

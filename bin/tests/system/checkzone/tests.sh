@@ -51,7 +51,7 @@ echo "I:checking with journal file ($n)"
 ret=0
 $CHECKZONE -D -o test.orig.db test zones/test1.db > /dev/null 2>&1 || ret=1
 $CHECKZONE -D -o test.changed.db test zones/test2.db > /dev/null 2>&1 || ret=1
-../../makejournal test test.orig.db test.changed.db test.orig.db.jnl 2>&1 || ret=1
+$MAKEJOURNAL test test.orig.db test.changed.db test.orig.db.jnl 2>&1 || ret=1
 jlines=`$JOURNALPRINT test.orig.db.jnl | wc -l`
 [ $jlines = 3 ] || ret=1
 $CHECKZONE -D -j -o test.out1.db test test.orig.db > /dev/null 2>&1 || ret=1
