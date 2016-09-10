@@ -55,7 +55,8 @@ MDIG=$TOP/Build/Debug/mdig@EXEEXT@
 NZD2NZF=$TOP/Build/Debug/named-nzd2nzf@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
 
-RANDFILE=$TOP/bin/tests/system/random.data
+# this is given as argument to native WIN32 executables
+RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
 DLOPEN=$TOP/Build/Debug/dlopen@EXEEXT@
 GENCHECK=$TOP/Build/Debug/gencheck@EXEEXT@
