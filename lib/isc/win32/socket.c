@@ -992,6 +992,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 		memmove(cpbuffer->buf,(dev->region.base + dev->n), write_count);
 		cpbuffer->buflen = (unsigned int)write_count;
+		ISC_LINK_INIT(cpbuffer, link);
 		ISC_LIST_ENQUEUE(lpo->bufferlist, cpbuffer, link);
 		iov[0].buf = cpbuffer->buf;
 		iov[0].len = (u_long)write_count;
