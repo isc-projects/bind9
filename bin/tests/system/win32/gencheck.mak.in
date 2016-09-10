@@ -115,12 +115,12 @@ ALL : "..\..\..\..\Build\Release\gencheck.exe"
 
 !ELSE 
 
-ALL : "libtests - @PLATFORM@ Release" "libisc - @PLATFORM@ Release" "..\..\..\..\Build\Release\gencheck.exe"
+ALL : "libisc - @PLATFORM@ Release" "..\..\..\..\Build\Release\gencheck.exe"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libisc - @PLATFORM@ ReleaseCLEAN" "libtests - @PLATFORM@ ReleaseCLEAN"
+CLEAN :"libisc - @PLATFORM@ ReleaseCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -132,17 +132,16 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../../" @LIBXML2_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /I "../../../../lib/tests/include" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\gencheck.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MD /W3 @COPTX@ @COPTI@ /O2 /I "./" /I "../../../../" @LIBXML2_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /D "WIN32" /D "NDEBUG" /D "__STDC__" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\gencheck.pch" @COPTY@ /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\gencheck.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Release/libisc.lib ../../../../lib/tests/win32/Release/libtests.lib $(LIBXML) /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\gencheck.pdb" @MACHINE@ /out:"../../../../Build/Release/gencheck.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Release/libisc.lib $(LIBXML) /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\gencheck.pdb" @MACHINE@ /out:"../../../../Build/Release/gencheck.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\gencheck.obj" \
-	"..\..\..\..\lib\isc\win32\Release\libisc.lib" \
-	"..\..\..\..\lib\tests\win32\Release\libtests.lib"
+	"..\..\..\..\lib\isc\win32\Release\libisc.lib"
 
 "..\..\..\..\Build\Release\gencheck.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -164,12 +163,12 @@ ALL : "..\..\..\..\Build\Debug\gencheck.exe" "$(OUTDIR)\gencheck.bsc"
 
 !ELSE 
 
-ALL : "libtests - @PLATFORM@ Debug" "libisc - @PLATFORM@ Debug" "..\..\..\..\Build\Debug\gencheck.exe" "$(OUTDIR)\gencheck.bsc"
+ALL : "libisc - @PLATFORM@ Debug" "..\..\..\..\Build\Debug\gencheck.exe" "$(OUTDIR)\gencheck.bsc"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libisc - @PLATFORM@ DebugCLEAN" "libtests - @PLATFORM@ DebugCLEAN"
+CLEAN :"libisc - @PLATFORM@ DebugCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -187,7 +186,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../../" @LIBXML2_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /I "../../../../lib/tests/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "i386" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MDd /W3 /Gm @COPTX@ @COPTI@ /ZI /Od /I "./" /I "../../../../" @LIBXML2_INC@ /I "../../../../lib/isc/win32" /I "../../../../lib/isc/win32/include" /I "../../../../lib/isc/include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "i386" /FR"$(INTDIR)\\" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\gencheck.bsc" 
 BSC32_SBRS= \
@@ -199,11 +198,10 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Debug/libisc.lib ../../../../lib/tests/win32/Debug/libtests.lib $(LIBXML) /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\gencheck.pdb" /map:"$(INTDIR)\gencheck.map" /debug @MACHINE@ /out:"../../../../Build/Debug/gencheck.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib kernel32.lib ws2_32.lib ../../../../lib/isc/win32/Debug/libisc.lib $(LIBXML) /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\gencheck.pdb" /map:"$(INTDIR)\gencheck.map" /debug @MACHINE@ /out:"../../../../Build/Debug/gencheck.exe" /pdbtype:sept 
 LINK32_OBJS= \
 	"$(INTDIR)\gencheck.obj" \
-	"..\..\..\..\lib\isc\win32\Debug\libisc.lib" \
-	"..\..\..\..\lib\tests\win32\Debug\libtests.lib"
+	"..\..\..\..\lib\isc\win32\Debug\libisc.lib"
 
 "..\..\..\..\Build\Debug\gencheck.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -277,53 +275,26 @@ SOURCE=..\rndc\gencheck.c
 "libisc - @PLATFORM@ Release" : 
    cd "..\..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - @PLATFORM@ Release" 
-   cd "..\..\..\bin\tests\timers\win32"
+   cd "..\..\..\bin\tests\system\win32"
 
 "libisc - @PLATFORM@ ReleaseCLEAN" : 
    cd "..\..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - @PLATFORM@ Release" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\tests\timers\win32"
+   cd "..\..\..\bin\tests\system\win32"
 
 !ELSEIF  "$(CFG)" == "gencheck - @PLATFORM@ Debug"
 
 "libisc - @PLATFORM@ Debug" : 
    cd "..\..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - @PLATFORM@ Debug" 
-   cd "..\..\..\bin\tests\timers\win32"
+   cd "..\..\..\bin\tests\system\win32"
 
 "libisc - @PLATFORM@ DebugCLEAN" : 
    cd "..\..\..\..\lib\isc\win32"
    $(MAKE) /$(MAKEFLAGS) /F ".\libisc.mak" CFG="libisc - @PLATFORM@ Debug" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\tests\timers\win32"
+   cd "..\..\..\bin\tests\system\win32"
 
 !ENDIF 
-
-!IF  "$(CFG)" == "gencheck - @PLATFORM@ Release"
-
-"libtests - @PLATFORM@ Release" : 
-   cd "..\..\..\..\lib\tests\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libtests.mak" CFG="libtests - @PLATFORM@ Release" 
-   cd "..\..\..\bin\tests\timers\win32"
-
-"libtests - @PLATFORM@ ReleaseCLEAN" : 
-   cd "..\..\..\..\lib\tests\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libtests.mak" CFG="libtests - @PLATFORM@ Release" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\tests\timers\win32"
-
-!ELSEIF  "$(CFG)" == "gencheck - @PLATFORM@ Debug"
-
-"libtests - @PLATFORM@ Debug" : 
-   cd "..\..\..\..\lib\tests\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libtests.mak" CFG="libtests - @PLATFORM@ Debug" 
-   cd "..\..\..\bin\tests\timers\win32"
-
-"libtests - @PLATFORM@ DebugCLEAN" : 
-   cd "..\..\..\..\lib\tests\win32"
-   $(MAKE) /$(MAKEFLAGS) /F ".\libtests.mak" CFG="libtests - @PLATFORM@ Debug" RECURSE=1 CLEAN 
-   cd "..\..\..\bin\tests\timers\win32"
-
-!ENDIF 
-
 
 !ENDIF 
 
