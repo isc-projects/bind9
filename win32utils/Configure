@@ -3004,7 +3004,7 @@ sub makesrcid {
     my $data;
     my $name;
     my $value;
-    my $srcid = "unset";
+    my $srcid = "unset_id";
 
     open SOUT, ">..\\srcid.h" || die "cannot open srcid.h: $!\n";
     if (open (SIN, "..\\srcid")) {
