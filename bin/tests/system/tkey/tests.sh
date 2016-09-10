@@ -30,7 +30,7 @@ for owner in . foo.example.
 do
 	echo "I:creating new key using owner name \"$owner\""
 	ret=0
-	keyname=`./keycreate $dhkeyname $owner` || ret=1
+	keyname=`$KEYCREATE $dhkeyname $owner` || ret=1
 	if [ $ret != 0 ]; then
 		echo "I:failed"
 		status=`expr $status + $ret`
@@ -52,7 +52,7 @@ do
 
 	echo "I:deleting new key"
 	ret=0
-	./keydelete $keyname || ret=1
+	$KEYDELETE $keyname || ret=1
 	if [ $ret != 0 ]; then
 		echo "I:failed"
 	fi
@@ -72,7 +72,7 @@ done
 
 echo "I:creating new key using owner name bar.example."
 ret=0
-keyname=`./keycreate $dhkeyname bar.example.` || ret=1
+keyname=`$KEYCREATE $dhkeyname bar.example.` || ret=1
 if [ $ret != 0 ]; then
         echo "I:failed"
 	status=`expr $status + $ret`
@@ -113,7 +113,7 @@ status=`expr $status + $ret`
 
 echo "I:recreating the bar.example. key"
 ret=0
-keyname=`./keycreate $dhkeyname bar.example.` || ret=1
+keyname=`$KEYCREATE $dhkeyname bar.example.` || ret=1
 if [ $ret != 0 ]; then
         echo "I:failed"
 	status=`expr $status + $ret`

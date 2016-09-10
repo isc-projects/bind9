@@ -18,9 +18,9 @@ use Cwd;
 
 # files to configure
 
-my $configfilein = "..\\config.h.win32";
-my $configfileout = ">..\\config.h";
+my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
+my $confshfile = "..\\bin\\tests\\system\\conf.sh";
 
 my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\check\\win32\\checkconf.dsp",
@@ -73,6 +73,20 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\python\\dnssec-checkds.py",
                 "..\\bin\\python\\dnssec-coverage.py",
                 "..\\bin\\python\\dnssec-keymgr.py",
+                "..\\bin\\python\\isc\\__init__.py",
+                "..\\bin\\python\\isc\\checkds.py",
+                "..\\bin\\python\\isc\\coverage.py",
+                "..\\bin\\python\\isc\\dnskey.py",
+                "..\\bin\\python\\isc\\eventlist.py",
+                "..\\bin\\python\\isc\\keydict.py",
+                "..\\bin\\python\\isc\\keyevent.py",
+                "..\\bin\\python\\isc\\keymgr.py",
+                "..\\bin\\python\\isc\\keyseries.py",
+                "..\\bin\\python\\isc\\keyzone.py",
+                "..\\bin\\python\\isc\\policy.py",
+                "..\\bin\\python\\isc\\rndc.py",
+                "..\\bin\\python\\isc\\tests\\dnskey_test.py",
+                "..\\bin\\python\\isc\\tests\\policy_test.py",
                 "..\\bin\\python\\isc\\utils.py",
                 "..\\bin\\rndc\\win32\\rndc.dsp",
                 "..\\bin\\rndc\\win32\\rndc.mak",
@@ -111,7 +125,6 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\resolver\\win32\\t_resolver.mak",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.dsp",
                 "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.mak",
-                "..\\bin\\tests\\system\\conf.sh.win32",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.dsp",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.mak",
                 "..\\bin\\tests\\timers\\win32\\t_timers.dsp",
@@ -392,6 +405,26 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_USEBACKTRACE",
                  "ISC_PLATFORM_WANTAES");
 
+# for conf.sh
+
+my %configtest;
+
+my @substtest = ("CHECK_DSA",
+                 "CHECKDS",
+                 "COVERAGE",
+                 "CURL",
+                 "DNSTAP",
+                 "FSTRM_CAPTURE",
+                 "JSONSTATS",
+                 "KEYMGR",
+                 "NZD_TOOLS",
+                 "PERL",
+                 "PKCS11_TEST",
+                 "SHELL",
+                 "XMLLINT",
+                 "XMLSTATS",
+                 "ZLIB"),
+
 # includes
 
 my %configinc;
@@ -456,24 +489,6 @@ my @substvar = ("BIND9_VERSION",
                 "prefix",
                 "PYTHON",
                 "VCREDIST_PATH"),
-
-my %configtest;
-
-my @substtest = ("CHECK_DSA",
-                 "CHECKDS",
-                 "COVERAGE",
-                 "CURL",
-                 "DNSTAP",
-                 "FSTRM_CAPTURE",
-                 "JSONSTATS",
-                 "KEYMGR",
-                 "NZD_TOOLS",
-                 "PERL",
-                 "PKCS11_TEST",
-                 "SHELL",
-                 "XMLLINT",
-                 "XMLSTATS",
-                 "ZLIB"),
 
 # defines
 
@@ -856,6 +871,8 @@ if ($enable_developer eq "yes") {
     $enable_fixed_rrset = "yes";
     # TODO: dlz filesystem
     $use_tests = "yes";
+    $use_xtests = "yes";
+    $use_stests = "yes";
     $use_samples = "yes";
 }
 
@@ -1025,6 +1042,11 @@ if ($want_help ne "no") {
 # clean up and exit if requested
 if ($want_clean eq "yes") {
     my $file;
+
+    unlink($configfile);
+    unlink($platformfile);
+    unlink($confshfile);
+
     foreach $file (@filelist) {
         unlink($file);
     }
@@ -2502,13 +2524,23 @@ if ($tuning eq "large") {
     $configdefh{"TUNE_LARGE"} = 1;
 }
 
+# escape spaces
+
+sub kw {
+    if ($_[0] =~ / /) {
+        return "\"$_[0]\"";
+    } else {
+        return "$_[0]";
+    }
+}
+
 # setup config.h with %configdefh
 
 sub setupconfigh {
     my $line;
     my @Lines;
 
-    open F, $configfilein || die $!;
+    open F, $configfile . ".win32" || die $!;
     @Lines = <F>;
     close F;
 
@@ -2523,9 +2555,9 @@ sub setupconfigh {
         }
     }
 
-    open F, $configfileout || die $!;
+    open F, ">" . $configfile || die $!;
     if ($verbose) {
-        print "Setting up config.h\n";
+        print "Setting up $configfile\n";
     }
     foreach $line (@Lines) {
         print F $line . "\n";
@@ -2556,7 +2588,7 @@ sub setupplatformh {
 
     open F, ">" . $platformfile || die $!;
     if ($verbose) {
-        print "Setting up platform.h\n";
+        print "Setting up $platformfile\n";
     }
     foreach $line (@Lines) {
         print F $line . "\n";
@@ -2564,14 +2596,49 @@ sub setupplatformh {
     close F;
 }
 
-# escape spaces
+# setup conf.sh with %configtest and %configvar
 
-sub kw {
-    if ($_[0] =~ / /) {
-        return "\"$_[0]\"";
-    } else {
-        return "$_[0]";
+sub setupconfsh {
+    my $line;
+    my @Lines;
+    my $val;
+
+    open F, $confshfile . ".win32" || die $!;
+    @Lines = <F>;
+    close F;
+
+    foreach $line (@Lines) {
+        chomp $line;
+        while ($line =~ /@([^@]+)\@/) {
+            if ($1 ~~ @substtest) {
+                if (defined($configtest{$1})) {
+                    $val = kw($configtest{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            } elsif ($1 ~~ @substvar) {
+                if (defined($configvar{$1})) {
+                    $val = kw($configvar{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            }  else {
+                die "unknown control $& in $confshfile.win32\n";
+            }
+        }
     }
+
+    open F, ">" . $confshfile || die $!;
+    if ($verbose) {
+        print "Setting up $confshfile\n";
+    }
+    binmode(F);
+    foreach $line (@Lines) {
+        print F $line . "\n";
+    }
+    close F;
 }
 
 # setup a file with %configcond stack and %config{var,defd,inc,lib,dll,test}
@@ -2672,13 +2739,6 @@ sub setupfile {
             } elsif ($1 ~~ @substdll) {
                 if (defined($configdll{$1})) {
                     $val = kw($configdll{$1});
-                    $line = "$`$val$'";
-                } else {
-                    $line = "$`$'";
-                }
-            } elsif ($1 ~~ @substtest) {
-                if (defined($configtest{$1})) {
-                    $val = kw($configtest{$1});
                     $line = "$`$val$'";
                 } else {
                     $line = "$`$'";
@@ -3122,6 +3182,15 @@ if ($verbose) {
         }
     }
 
+    print "\tconf.sh:\n";
+    foreach $name (@substtest) {
+        if (defined($configtest{$name})) {
+            print qq(\t\t$name defined to "$configtest{$name}"\n);
+        } else {
+            printf qq(\t\t$name undefined\n);
+        }
+    }
+
     print "\tconditions:\n";
     foreach $name (@substcond) {
         if (defined($configcond{$name})) {
@@ -3174,6 +3243,8 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
     setupconfigh();
 
     setupplatformh();
+
+    setupconfsh();
 
     my $file;
     foreach $file (@filelist) {

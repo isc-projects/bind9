@@ -9,9 +9,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$GENRANDOM 400 random.data
+$GENRANDOM 400 $RANDFILE
 
-if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r random.data foo > /dev/null 2>&1
+if $KEYGEN -q -a RSAMD5 -b 512 -n zone -r $RANDFILE foo > /dev/null 2>&1
 then
     rm -f Kfoo*
 else

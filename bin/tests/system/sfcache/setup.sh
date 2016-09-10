@@ -9,7 +9,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$GENRANDOM 400 random.data
+$SHELL clean.sh
+
+test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 cd ns1 && $SHELL sign.sh
 

@@ -606,7 +606,7 @@ t_getdate(char *buf, size_t buflen) {
 /*
  * Some generally used utilities.
  */
-struct dns_errormap {
+static const struct dns_errormap {
 	isc_result_t	result;
 	const char *text;
 } dns_errormap[] = {
@@ -660,8 +660,8 @@ struct dns_errormap {
 isc_result_t
 t_dns_result_fromtext(char *name) {
 
-	isc_result_t		result;
-	struct dns_errormap	*pmap;
+	isc_result_t			result;
+	const struct dns_errormap	*pmap;
 
 	result = ISC_R_UNEXPECTED;
 
@@ -678,7 +678,7 @@ t_dns_result_fromtext(char *name) {
 	return (result);
 }
 
-struct dc_method_map {
+static const struct dc_method_map {
 	unsigned int	dc_method;
 	const char 	*text;
 } dc_method_map[] = {
@@ -691,8 +691,8 @@ struct dc_method_map {
 
 unsigned int
 t_dc_method_fromtext(char *name) {
-	unsigned int		dc_method;
-	struct dc_method_map	*pmap;
+	unsigned int			dc_method;
+	const struct dc_method_map	*pmap;
 
 	dc_method = DNS_COMPRESS_NONE;
 
