@@ -1,3 +1,23 @@
+4467.	[security]	It was possible to trigger a assertion when rendering
+			a message. (CVE-2016-2776) [RT #43139]
+
+4466.	[bug]		Interface scanning didn't work on a Windows system
+			without a non local IPv6 addresses. [RT #43130]
+
+4465.	[bug]		Don't use "%z" as Windows doesn't support it.
+			[RT #43131]
+
+4464.	[bug]		Fix windows python support. [RT #43173]
+
+4463.	[bug]		The dnstap system test failed on some systems.
+			[RT #43129]
+
+4462.	[bug]		Don't describe a returned EDNS COOKIE as "good"
+			when there isn't a valid server cookie. [RT #43167]
+
+4461.	[bug]		win32: not all external data was properly marked
+			as external data for windows dll. [RT #43161]
+
 	--- 9.11.0rc1 released ---
 
 4461.	[bug]		win32: not all external data was properly marked
