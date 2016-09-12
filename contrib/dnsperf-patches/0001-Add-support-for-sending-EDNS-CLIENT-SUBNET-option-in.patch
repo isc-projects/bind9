@@ -1,4 +1,4 @@
-From 4ae1f8fb0d1873f90d7abd1d396bd40044961551 Mon Sep 17 00:00:00 2001
+From bbbf023b5daddcf355f398286280ab45ce1b8933 Mon Sep 17 00:00:00 2001
 From: Mukund Sivaraman <muks@isc.org>
 Date: Fri, 9 Sep 2016 13:34:13 +0530
 Subject: [PATCH] Add support for sending EDNS CLIENT-SUBNET option in queries
@@ -12,7 +12,7 @@ Subject: [PATCH] Add support for sending EDNS CLIENT-SUBNET option in queries
  4 files changed, 100 insertions(+), 7 deletions(-)
 
 diff --git a/contrib/dnsperf-2.1.0.0-1/dns.c b/contrib/dnsperf-2.1.0.0-1/dns.c
-index be16490..8fe5a3f 100644
+index be16490..c9c2517 100644
 --- a/contrib/dnsperf-2.1.0.0-1/dns.c
 +++ b/contrib/dnsperf-2.1.0.0-1/dns.c
 @@ -300,7 +300,10 @@ perf_dns_destroytsigkey(perf_dnstsigkey_t **tsigkeyp)
@@ -48,7 +48,7 @@ index be16490..8fe5a3f 100644
 +			isc_buffer_putuint8(packet, 0);
 +			/* SCOPE PREFIX-LENGTH=0 */
 +			isc_buffer_putuint8(packet, 0);
-+		} else if (ecs_fixed)
++		} else if (ecs_fixed) {
 +			/* rdlen */
 +			isc_buffer_putuint16(packet, 11);
 +			/* CLIENT-SUBNET option code */
