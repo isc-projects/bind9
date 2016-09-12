@@ -57,6 +57,7 @@ echo "I:dumping initial stats for ns3"
 rm -f ns3/named.stats
 $RNDCCMD -s 10.53.0.3 stats > /dev/null 2>&1
 [ -f ns3/named.stats ] || ret=1
+[ "$CYGWIN" ] || \
 nsock0nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
 
 echo "I:sending queries to ns3"
@@ -84,14 +85,16 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-echo "I: verifying active sockets output in named.stats"
-nsock1nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
+if [ ! "CYGWIN" ]; then
+    echo "I: verifying active sockets output in named.stats"
+    nsock1nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
 
-ret=0
-[ `expr $nsock1nstat - $nsock0nstat` -eq 1 ] || ret=1
-if [ $ret != 0 ]; then echo "I: failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+    ret=0
+    [ `expr $nsock1nstat - $nsock0nstat` -eq 1 ] || ret=1
+    if [ $ret != 0 ]; then echo "I: failed"; fi
+    status=`expr $status + $ret`
+    n=`expr $n + 1`
+fi
 
 ret=0
 # there should be 1 UDP and no TCP queries.  As the TCP counter is zero

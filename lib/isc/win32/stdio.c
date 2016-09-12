@@ -126,6 +126,10 @@ isc_result_t
 isc_stdio_sync(FILE *f) {
 	int r;
 
+	/* Windows really prefers real files */
+	if ((f == stdout) || (f == stderr))
+		return (ISC_R_SUCCESS);
+
 	r = _commit(_fileno(f));
 	if (r == 0)
 		return (ISC_R_SUCCESS);

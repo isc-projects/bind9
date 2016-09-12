@@ -13,7 +13,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-cp ../ns2/dsset-example.in dsset-example.
+cp ../ns2/dsset-example.in dsset-example$TP
 
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 

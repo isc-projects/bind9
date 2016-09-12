@@ -19,6 +19,8 @@ grep "another named process" ns2/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+if [ ! "$CYGWIN" ]; then
+
 n=`expr $n + 1`
 echo "I:verifying that named checks for conflicting listeners ($n)"
 ret=0
@@ -28,6 +30,8 @@ grep "unable to listen on any configured interface" ns2/named2.run > /dev/null |
 [ -s ns2/named2.pid ] && $KILL -15 `cat ns2/named2.pid`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+fi
 
 n=`expr $n + 1`
 echo "I:verifying that named checks for conflicting named processes ($n)"

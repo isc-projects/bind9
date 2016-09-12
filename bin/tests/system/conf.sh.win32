@@ -11,6 +11,9 @@
 # other shell scripts.
 #
 
+# For specific stuff (currently kill HUP -> rdnc reload in notify)
+CYGWIN=1
+
 # Find the top of the BIND9 tree.
 TOP=${SYSTEMTESTTOP:=.}/../../..
 
@@ -38,8 +41,8 @@ REVOKE=$TOP/Build/$VSCONF/dnssec-revoke@EXEEXT@
 SETTIME=$TOP/Build/$VSCONF/dnssec-settime@EXEEXT@
 DSFROMKEY=$TOP/Build/$VSCONF/dnssec-dsfromkey@EXEEXT@
 IMPORTKEY=$TOP/Build/$VSCONF/dnssec-importkey@EXEEXT@
-CHECKDS="$PYTHON `cygpath -w $TOP/bin/pythond/nssec-checkds.py`"
-COVERAGE="$PYTHON `cygpath -w $TOP/bin/python//dnssec-coverage.py`"
+CHECKDS="$PYTHON `cygpath -w $TOP/bin/python/dnssec-checkds.py`"
+COVERAGE="$PYTHON `cygpath -w $TOP/bin/python/dnssec-coverage.py`"
 KEYMGR="$PYTHON `cygpath -w $TOP/bin/python/dnssec-keymgr.py`"
 CHECKZONE=$TOP/Build/$VSCONF/named-checkzone@EXEEXT@
 CHECKCONF=$TOP/Build/$VSCONF/named-checkconf@EXEEXT@

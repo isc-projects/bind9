@@ -15,7 +15,7 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL sign.sh )
 
-cp ../ns2/dsset-example. .
+cp ../ns2/dsset-example$TP .
 
 keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
