@@ -1614,35 +1614,57 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	     client->ecs_addr.family == AF_INET6 ||
 	     client->ecs_addr.family == AF_UNSPEC))
 	{
-		int i, addrbytes = (client->ecs_addrlen + 7) / 8;
-		isc_uint8_t *paddr;
 		isc_buffer_t buf;
+		isc_uint8_t addr[16];
+		isc_uint32_t plen, addrl;
+		isc_uint16_t family;
 
-		/* Add client subnet option. */
+		/* Add CLIENT-SUBNET option. */
+
+		plen = client->ecs_addrlen;
+
+		/* Round up prefix len to a multiple of 8 */
+		addrl = (plen + 7) / 8;
+
+		switch (client->ecs_addr.family) {
+		case AF_UNSPEC:
+			INSIST(plen == 0);
+			family = 0;
+			break;
+		case AF_INET:
+			INSIST(plen <= 32);
+			family = 1;
+			memmove(addr, &client->ecs_addr.type, addrl);
+			break;
+		case AF_INET6:
+			INSIST(plen <= 128);
+			family = 2;
+			memmove(addr, &client->ecs_addr.type, addrl);
+			break;
+		default:
+			INSIST(0);
+		}
+
 		isc_buffer_init(&buf, ecs, sizeof(ecs));
-		if (client->ecs_addr.family == AF_UNSPEC ||
-		    client->ecs_addrlen == 0)
-			isc_buffer_putuint16(&buf, 0);
-		else if (client->ecs_addr.family == AF_INET)
-			isc_buffer_putuint16(&buf, 1);
-		else
-			isc_buffer_putuint16(&buf, 2);
+		/* family */
+		isc_buffer_putuint16(&buf, family);
+		/* source prefix-length */
 		isc_buffer_putuint8(&buf, client->ecs_addrlen);
+		/* scope prefix-length */
 		isc_buffer_putuint8(&buf, client->ecs_scope);
 
-		paddr = (isc_uint8_t *) &client->ecs_addr.type;
-		for (i = 0; i < addrbytes; i++) {
-			unsigned char uc;
-			uc = paddr[i];
-			if (i == addrbytes - 1 &&
-			    ((client->ecs_addrlen % 8) != 0))
-				uc &= (0xffU << (8 -
-						 (client->ecs_addrlen % 8)));
-			isc_buffer_putuint8(&buf, uc);
+		/* address */
+		if (addrl > 0) {
+			/* Mask off last address byte */
+			if ((plen % 8) != 0)
+				addr[addrl - 1] &=
+					~0U << (8 - (plen % 8));
+			isc_buffer_putmem(&buf, addr,
+					  (unsigned) addrl);
 		}
 
 		ednsopts[count].code = DNS_OPT_CLIENT_SUBNET;
-		ednsopts[count].length = addrbytes + 4;
+		ednsopts[count].length = addrl + 4;
 		ednsopts[count].value = ecs;
 		count++;
 	}
@@ -1972,14 +1994,6 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "EDNS client-subnet option: invalid scope");
-		return (DNS_R_OPTERR);
-	}
-
-	if (addrlen == 0U && family != 0U) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
-			      "EDNS client-subnet option: "
-			      "source == 0 but family != 0");
 		return (DNS_R_OPTERR);
 	}
 

@@ -281,7 +281,9 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +subnet=0/0 ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=0/0 A a.example > dig.out.test$n 2>&1 || ret=1
-  grep "CLIENT-SUBNET: 0/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
+  grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -289,7 +291,9 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +subnet=0 ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=0 A a.example > dig.out.test$n 2>&1 || ret=1
-  grep "CLIENT-SUBNET: 0/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
+  grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
@@ -297,7 +301,30 @@ if [ -x ${DIG} ] ; then
   echo "I:checking dig +subnet=::/0 ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=::/0 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
+  grep "CLIENT-SUBNET: ::/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +ednsopt=8:00000000 (family=0, source=0, scope=0) ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +ednsopt=8:00000000 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
   grep "CLIENT-SUBNET: 0/0/0" < dig.out.test$n > /dev/null || ret=1
+  grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +ednsopt=8:00030000 (family=3, source=0, scope=0) ($n)"
+  ret=0
+  $DIG $DIGOPTS +qr +tcp @10.53.0.2 +ednsopt=8:00030000 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "status: FORMERR" < dig.out.test$n > /dev/null || ret=1
+  grep "CLIENT-SUBNET: 00 03 00 00" < dig.out.test$n > /dev/null || ret=1
+  lines=`grep "CLIENT-SUBNET: 00 03 00 00" dig.out.test$n | wc -l`
+  [ ${lines:-0} -eq 1 ] || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
