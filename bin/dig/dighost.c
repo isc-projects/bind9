@@ -1070,10 +1070,23 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_uint32_t prefix_length = 0xffffffff;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
+	isc_boolean_t prefix_parsed = ISC_FALSE;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
 	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf))
 		fatal("invalid prefix '%s'\n", value);
+
+	sa = isc_mem_allocate(mctx, sizeof(*sa));
+	if (sa == NULL)
+		fatal("out of memory");
+	memset(sa, 0, sizeof(*sa));
+
+	if (strcmp(buf, "0") == 0) {
+		sa->type.sa.sa_family = AF_UNSPEC;
+		parsed = ISC_TRUE;
+		prefix_length = 0;
+		goto done;
+	}
 
 	slash = strchr(buf, '/');
 	if (slash != NULL) {
@@ -1083,16 +1096,9 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 			fatal("invalid prefix length in '%s': %s\n",
 			      value, isc_result_totext(result));
 		}
+		prefix_parsed = ISC_TRUE;
 	}
 
-	if (strcmp(buf, "0") == 0) {
-		parsed = ISC_TRUE;
-		prefix_length = 0;
-	}
-
-	sa = isc_mem_allocate(mctx, sizeof(*sa));
-	if (sa == NULL)
-		fatal("out of memory");
 	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = ISC_TRUE;
 		isc_sockaddr_fromin6(sa, &in6, 0);
@@ -1103,7 +1109,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		isc_sockaddr_fromin(sa, &in4, 0);
 		if (prefix_length > 32)
 			prefix_length = 32;
-	} else if (prefix_length != 0xffffffff && prefix_length != 0) {
+	} else if (prefix_parsed) {
 		int i;
 
 		for (i = 0; i < 3 && strlen(buf) < sizeof(buf) - 2; i++) {
@@ -1122,10 +1128,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	if (!parsed)
 		fatal("invalid address '%s'", value);
 
+done:
 	sa->length = prefix_length;
-	if (prefix_length == 0)
-		sa->type.sa.sa_family = AF_UNSPEC;
-
 	*sap = sa;
 
 	return (ISC_R_SUCCESS);
@@ -2480,8 +2484,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->ecs_addr != NULL) {
-			isc_uint8_t addr[16], family;
-			int proto;
+			isc_uint8_t addr[16];
+			isc_uint16_t family;
 			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
@@ -2498,46 +2502,65 @@ setup_lookup(dig_lookup_t *lookup) {
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
 			opts[i].length = (isc_uint16_t) addrl + 4;
 			check_result(result, "isc_buffer_allocate");
-			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 
-			/* If prefix length is zero, don't set family */
-			proto = sa->sa_family;
-			if (plen == 0)
-				proto = AF_UNSPEC;
-
-			switch (proto) {
+			/*
+			 * XXXMUKS: According to RFC7871, "If there is
+			 * no ADDRESS set, i.e., SOURCE PREFIX-LENGTH is
+			 * set to 0, then FAMILY SHOULD be set to the
+			 * transport over which the query is sent."
+			 *
+			 * However, at this point we don't know what
+			 * transport(s) we'll be using, so we can't
+			 * set the value now. For now, we're using
+			 * IPv4 as the default the +subnet option
+			 * used an IPv4 prefix, or for +subnet=0,
+			 * and IPv6 if the +subnet option used an
+			 * IPv6 prefix.
+			 *
+			 * (For future work: preserve the offset into
+			 * the buffer where the family field is;
+			 * that way we can update it in send_udp()
+			 * or send_tcp_connect() once we know
+			 * what it outght to be.)
+			 */
+			switch (sa->sa_family) {
 			case AF_UNSPEC:
 				INSIST(plen == 0);
-				family = 0;
+				family = 1;
 				break;
 			case AF_INET:
+				INSIST(plen <= 32);
 				family = 1;
 				sin = (struct sockaddr_in *) sa;
-				memmove(addr, &sin->sin_addr, 4);
+				memmove(addr, &sin->sin_addr, addrl);
 				break;
 			case AF_INET6:
+				INSIST(plen <= 128);
 				family = 2;
 				sin6 = (struct sockaddr_in6 *) sa;
-				memmove(addr, &sin6->sin6_addr, 16);
+				memmove(addr, &sin6->sin6_addr, addrl);
 				break;
 			default:
 				INSIST(0);
 			}
 
-			/* Mask off last address byte */
-			if (addrl > 0 && (plen % 8) != 0)
-				addr[addrl - 1] &= ~0U << (8 - (plen % 8));
-
+			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			/* family */
 			isc_buffer_putuint16(&b, family);
 			/* source prefix-length */
 			isc_buffer_putuint8(&b, plen);
 			/* scope prefix-length */
 			isc_buffer_putuint8(&b, 0);
+
 			/* address */
-			if (addrl > 0)
+			if (addrl > 0) {
+				/* Mask off last address byte */
+				if ((plen % 8) != 0)
+					addr[addrl - 1] &=
+						~0U << (8 - (plen % 8));
 				isc_buffer_putmem(&b, addr,
 						  (unsigned)addrl);
+			}
 
 			opts[i].value = (isc_uint8_t *) ecsbuf;
 			i++;

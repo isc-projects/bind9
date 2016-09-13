@@ -134,9 +134,6 @@ fromwire_opt(ARGS_FROMWIRE) {
 			scope = uint8_fromregion(&sregion);
 			isc_region_consume(&sregion, 1);
 
-			if (addrlen == 0U && family != 0U)
-				return (DNS_R_OPTERR);
-
 			switch (family) {
 			case 0:
 				/*

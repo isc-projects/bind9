@@ -987,7 +987,7 @@
 	    <para>
               <command>dig +subnet=0.0.0.0/0</command>, or simply
               <command>dig +subnet=0</command> for short, sends an EDNS
-              client-subnet option with an empty address and a source
+              CLIENT-SUBNET option with an empty address and a source
               prefix-length of zero, which signals a resolver that
               the client's address information must
               <emphasis>not</emphasis> be used when resolving
