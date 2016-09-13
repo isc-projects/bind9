@@ -1,5 +1,12 @@
 	--- 9.10.4-P3 released ---
 
+4468.	[bug]		Address ECS option handling issues. [RT #43191]
+
+			Note: Only the parts required to restore
+			interoperation with ECS clients have been
+			included in this security release.  The full
+			fix is included in BIND 9.10.5.
+
 4467.	[security]	It was possible to trigger a assertion when rendering
 			a message. (CVE-2016-2776) [RT #43139]
 
