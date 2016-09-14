@@ -25,7 +25,8 @@
     </para>
     <para>
       BIND 9.10.4-P3 addresses the security issue described in
-      CVE-2016-2776.
+      CVE-2016-2776 and addresses an interoperability issue with
+      ECS clients.
     </para>
     <para>
       BIND 9.10.4-P2 addresses the security issue described in
@@ -104,6 +105,12 @@
 
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  ECS clients with the option set to 0.0.0.0/0/0 or ::/0/0
+	  where incorrectly getting a FORMERR response.
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  Windows installs were failing due to triggering UAC without
