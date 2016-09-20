@@ -1,3 +1,8 @@
+	--- 9.11.0rc3 released ---
+
+4470.	[bug]		Reset message with intent parse before
+			calling dns_dispatch_getnext. [RT #43229]
+
 	--- 9.11.0rc2 released ---
 
 4468.	[bug]		Address ECS option handling issues. [RT #43191]
