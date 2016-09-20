@@ -1,3 +1,5 @@
+	--- 9.11.0rc3 released ---
+
 4471.	[cleanup]	Render client/query logging format consistent for
 			ease of log file parsing. (Note that this affects
 			"querylog" format: there is now an additional field
