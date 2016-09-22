@@ -1,5 +1,10 @@
 	--- 9.11.0rc3 released ---
 
+4471.	[cleanup]	Render client/query logging format consistent for
+			ease of log file parsing. (Note that this affects
+			"querylog" format: there is now an additional field
+			indicating the client object address.) [RT #43238]
+
 4470.	[bug]		Reset message with intent parse before
 			calling dns_dispatch_getnext. [RT #43229]
 
