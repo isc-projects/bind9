@@ -3688,6 +3688,7 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 {
 	char msgbuf[4096];
 	char signerbuf[DNS_NAME_FORMATSIZE], qnamebuf[DNS_NAME_FORMATSIZE];
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	const char *viewname = "";
 	const char *sep1 = "", *sep2 = "", *sep3 = "", *sep4 = "";
 	const char *signer = "", *qname = "";
@@ -3717,20 +3718,16 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	}
 
 	if (client->peeraddr_valid) {
-		char peerbuf[ISC_SOCKADDR_FORMATSIZE];
-
 		isc_sockaddr_format(&client->peeraddr,
 				    peerbuf, sizeof(peerbuf));
-		isc_log_write(ns_g_lctx, category, module, level,
-			      "client @%p %s%s%s%s%s%s%s%s: %s",
-			      client, peerbuf, sep1, signer, sep2, qname, sep3,
-			      sep4, viewname, msgbuf);
 	} else {
-		isc_log_write(ns_g_lctx, category, module, level,
-			      "client @%p%s%s%s%s%s%s%s: %s",
-			      client, sep1, signer, sep2, qname, sep3,
-			      sep4, viewname, msgbuf);
+		snprintf(peerbuf, sizeof(peerbuf), "(no-peer)");
 	}
+
+	isc_log_write(ns_g_lctx, category, module, level,
+		      "client @%p %s%s%s%s%s%s%s%s: %s",
+		      client, peerbuf, sep1, signer, sep2, qname, sep3,
+		      sep4, viewname, msgbuf);
 }
 
 void

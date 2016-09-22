@@ -641,6 +641,11 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The logging format used for <command>querylog</command> has been
+	  altered. It now includes an additional field indicating the
+	  address in memory of the client object processing the query.
+	</para>
+	<para>
 	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
 	  to be disabled in 2017.  A warning is now logged when
 	  <command>named</command> is configured to use this service,
