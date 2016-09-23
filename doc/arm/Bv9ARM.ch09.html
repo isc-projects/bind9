@@ -599,13 +599,20 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem"><p>
+<li class="listitem">
+<p>
+	  The logging format used for <span class="command"><strong>querylog</strong></span> has been
+	  altered. It now includes an additional field indicating the
+	  address in memory of the client object processing the query.
+	</p>
+<p>
 	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
 	  to be disabled in 2017.  A warning is now logged when
 	  <span class="command"><strong>named</strong></span> is configured to use this service,
 	  either explicitly or via <code class="option">dnssec-lookaside auto;</code>.
 	  [RT #42207]
-	</p></li>
+	</p>
+</li>
 <li class="listitem"><p>
 	  The timers returned by the statistics channel (indicating current
 	  time, server boot time, and most recent reconfiguration time) are
