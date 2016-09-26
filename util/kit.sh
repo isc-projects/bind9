@@ -28,7 +28,7 @@
 #   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
-remote=--remote=cvs.isc.org:/proj/git/prod/bind9.git
+remote=--remote=repo.isc.org:/proj/git/prod/bind9.git
 
 case "${1:-}" in
 --remote=*)
