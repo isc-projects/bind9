@@ -12,6 +12,7 @@ use warnings;
 use IO::File;
 use Getopt::Long;
 use Net::DNS::Nameserver;
+use Time::HiRes qw(usleep nanosleep);
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";
@@ -51,6 +52,8 @@ sub reply_handler {
     STDOUT->flush();
 
     $count += 1;
+    # Sleep 100ms to make sure that named sends both A and AAAA queries.
+    usleep(100000);
 
     if ($qname eq "count" ) {
 	if ($qtype eq "TXT") {
