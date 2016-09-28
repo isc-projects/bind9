@@ -101,7 +101,7 @@ command is one of the following:\n\
   delzone [-clean] zone [class [view]]\n\
 		Removes zone from given view.\n\
   dnstap -reopen\n\
-		Close and re-open the DNSTAP output file.\n\
+		Close, truncate and re-open the DNSTAP output file.\n\
   dnstap -roll count\n\
 		Close, rename and re-open the DNSTAP output file(s).\n\
   dumpdb [-all|-cache|-zones|-adb|-bad|-fail] [view ...]\n\
