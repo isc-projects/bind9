@@ -247,6 +247,15 @@
         </varlistentry>
 
         <varlistentry>
+          <term><option>+[no]continue</option></term>
+          <listitem>
+            <para>
+              Continue on errors (e.g. timeouts).
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
           <term><option>+[no]crypto</option></term>
           <listitem>
             <para>

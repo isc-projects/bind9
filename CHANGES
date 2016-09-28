@@ -1,3 +1,5 @@
+4478.	[func]		Add +continue option to mdig, allow continue on socket errors. [RT #43281]
+
 4477.	[test]		Fix mkeys test timing issues. [RT #41028]
 
 4476.	[test]		Fix reclimit test on slower machines. [RT #43283]
