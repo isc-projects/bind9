@@ -101,6 +101,7 @@ static isc_boolean_t display_answer  = ISC_TRUE;
 static isc_boolean_t display_authority = ISC_TRUE;
 static isc_boolean_t display_additional = ISC_TRUE;
 static isc_boolean_t display_unknown_format = ISC_FALSE;
+static isc_boolean_t continue_on_error = ISC_FALSE;
 static isc_uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
 static char *server;
@@ -205,7 +206,7 @@ static void
 recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
 	isc_result_t result;
-	dns_message_t *query, *response;
+	dns_message_t *query = NULL, *response = NULL;
 	unsigned int parseflags = 0;
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
@@ -216,16 +217,17 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	REQUIRE(reqev != NULL);
+	query = reqev->ev_arg;
 
 	if (reqev->result != ISC_R_SUCCESS) {
 		fprintf(stderr, "response failed with %s\n",
 			isc_result_totext(reqev->result));
-		exit(-1);
+		if (continue_on_error)
+			goto cleanup;
+		else
+			exit(-1);
 	}
 
-	query = reqev->ev_arg;
-
-	response = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 	CHECK("dns_message_create", result);
 
@@ -468,8 +470,10 @@ cleanup:
 	fflush(stdout);
 	if (style != NULL)
 		dns_master_styledestroy(&style, mctx);
-	dns_message_destroy(&query);
-	dns_message_destroy(&response);
+	if (query != NULL)
+		dns_message_destroy(&query);
+	if (response != NULL)
+		dns_message_destroy(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
 
@@ -1161,6 +1165,11 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 				FULLCHECK("comments");
 				GLOBAL();
 				display_comments = state;
+				break;
+			case 'n':
+				FULLCHECK("continue");
+				GLOBAL();
+				continue_on_error = state;
 				break;
 			case 'o':
 				FULLCHECK("cookie");
