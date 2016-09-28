@@ -1,3 +1,5 @@
+4476.	[test]		Fix reclimit test on slower machines. [RT #43283]
+
 4475.	[doc]		Update named-checkconf documentation. [RT #43153]
 
 4474.	[bug]		win32: call WSAStartup in fromtext_in_wks so that
