@@ -205,7 +205,9 @@ and
 .RS 4
 Close and re\-open DNSTAP output files\&.
 \fBrndc dnstap \-reopen\fR
-allows the output file to be renamed externally, then re\-opened\&.
+allows the output file to be renamed externally, so that
+\fBnamed\fR
+can truncate and re\-open it\&.
 \fBrndc dnstap \-roll\fR
 causes the output file to be rolled automatically, similar to log files; the most recent output file has "\&.0" appended to its name; the previous most recent output file is moved to "\&.1", and so on\&. If
 \fInumber\fR
