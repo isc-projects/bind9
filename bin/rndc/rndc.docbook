@@ -308,7 +308,8 @@
 	  <para>
 	    Close and re-open DNSTAP output files.
 	    <command>rndc dnstap -reopen</command> allows the output
-	    file to be renamed externally, then re-opened.
+	    file to be renamed externally, so
+	    that <command>named</command> can truncate and re-open it.
 	    <command>rndc dnstap -roll</command> causes the output file
 	    to be rolled automatically, similar to log files; the most
 	    recent output file has ".0" appended to its name; the
