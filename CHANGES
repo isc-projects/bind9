@@ -1,4 +1,4 @@
-4471.   [cleanup]       Revert a query logging change inadvertently
+4471.	[cleanup]	Revert a query logging change inadvertently
 			backported from 9.11. [RT #43238]
 
 4468.	[bug]		Address ECS option handling issues. [RT #43191]
