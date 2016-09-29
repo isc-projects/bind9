@@ -2003,7 +2003,7 @@
 ./bin/tests/system/statschannel/clean.sh	SH	2015
 ./bin/tests/system/statschannel/fetch.pl	PERL	2015
 ./bin/tests/system/statschannel/ns2/example.db	ZONE	2015
-./bin/tests/system/statschannel/ns2/named.conf	CONF-C	2015
+./bin/tests/system/statschannel/ns2/named.conf	CONF-C	2015,2016
 ./bin/tests/system/statschannel/prereq.sh	SH	2015
 ./bin/tests/system/statschannel/server-json.pl	PERL	2015
 ./bin/tests/system/statschannel/server-xml.pl	PERL	2015
