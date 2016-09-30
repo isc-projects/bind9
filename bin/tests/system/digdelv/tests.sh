@@ -203,7 +203,7 @@ if [ -x ${DIG} ] ; then
   
   n=`expr $n + 1`
   echo "I:checking dig @IPv4addr -6 +mapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
+  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null && [ `uname -s` != "OpenBSD" ]
   then
     ret=0
     ret=0
@@ -212,7 +212,7 @@ if [ -x ${DIG} ] ; then
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
   else
-    echo "I:IPv6 unavailable; skipping"
+    echo "I:IPv6 or IPv4-to-IPv6 mapping unavailable; skipping"
   fi
 
   n=`expr $n + 1`
