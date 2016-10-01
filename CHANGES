@@ -1,8 +1,8 @@
 4471.   [cleanup]       Revert a query logging change inadvertently
 			backported from 9.11. [RT #43238]
 
-4467.	[security]	It was possible to trigger a assertion when rendering
-			a message. (CVE-2016-2776) [RT #43139]
+4467.	[security]	It was possible to trigger an assertion when
+			rendering a message. (CVE-2016-2776) [RT #43139]
 
 4466.	[bug]		Interface scanning didn't work on a Windows system
 			without a non local IPv6 addresses. [RT #43130]
