@@ -3372,7 +3372,7 @@
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/namespace.h		C	2009,2010,2011,2012,2013,2015
-./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009,2015
+./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009,2015,2016
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/os.h			C	2000,2001,2004,2005,2006,2007
@@ -3428,7 +3428,7 @@
 ./lib/isc/mips/include/isc/Makefile.in		MAKE	2007,2012,2015
 ./lib/isc/mips/include/isc/atomic.h		C	2005,2007,2016
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005,2007,2011,2012
-./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2012,2014,2015
+./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2012,2014,2015,2016
 ./lib/isc/netscope.c				C	2002,2004,2005,2006,2007
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012
 ./lib/isc/nls/msgcat.c				C	1999,2000,2001,2004,2005,2007
