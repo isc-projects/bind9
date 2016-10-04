@@ -1,3 +1,8 @@
+4472.	[bug]		Named could fail to find the correct NSEC3 records when
+			a zone was updated between looking for the answer and
+			looking for the NSEC3 records proving non-existance
+			of the answer. [RT #43247]
+
 	--- 9.11.0 released ---
 
 	--- 9.11.0rc3 released ---

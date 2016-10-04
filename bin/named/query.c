@@ -3621,7 +3621,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		/*
 		 * Add closest (provable) encloser NSEC3.
 		 */
-		query_findclosestnsec3(cname, db, NULL, client, rdataset,
+		query_findclosestnsec3(cname, db, version, client, rdataset,
 				       sigrdataset, fname, ISC_TRUE, cname);
 		if (!dns_rdataset_isassociated(rdataset))
 			goto cleanup;
@@ -3660,7 +3660,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		else
 			dns_name_split(name, labels, NULL, wname);
 
-		query_findclosestnsec3(wname, db, NULL, client, rdataset,
+		query_findclosestnsec3(wname, db, version, client, rdataset,
 				       sigrdataset, fname, ISC_FALSE, NULL);
 		if (!dns_rdataset_isassociated(rdataset))
 			goto cleanup;
@@ -3700,7 +3700,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 
-		query_findclosestnsec3(wname, db, NULL, client, rdataset,
+		query_findclosestnsec3(wname, db, version, client, rdataset,
 				       sigrdataset, fname, nodata, NULL);
 		if (!dns_rdataset_isassociated(rdataset))
 			goto cleanup;
