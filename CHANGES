@@ -1,3 +1,5 @@
+4473.	[bug]		Only call fsync / _commit on regular files. [RT #43196]
+
 4472.	[bug]		Named could fail to find the correct NSEC3 records when
 			a zone was updated between looking for the answer and
 			looking for the NSEC3 records proving non-existance
