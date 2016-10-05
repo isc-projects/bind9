@@ -133,7 +133,7 @@ isc_stdio_sync(FILE *f) {
 
 	if (fstat(fileno(f), &buf) != 0)
 		return (isc__errno2result(errno));
- 
+
 	/*
 	 * Only call fsync() on regular files.
 	 */
