@@ -48,14 +48,12 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>named-checkconf</command>
-      <arg choice="opt" rep="norepeat"><option>-h</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-v</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-j</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-hjvz</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-p</option>
+	<arg choice="opt" rep="norepeat"><option>-x</option>
+      </arg></arg>
       <arg choice="opt" rep="norepeat"><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="req" rep="norepeat">filename</arg>
-      <arg choice="opt" rep="norepeat"><option>-p</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-x</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-z</option></arg>
     </cmdsynopsis>
   </refsynopsisdiv>
 
@@ -82,13 +80,32 @@
 
   <refsection><info><title>OPTIONS</title></info>
 
-
     <variablelist>
       <varlistentry>
         <term>-h</term>
         <listitem>
           <para>
             Print the usage summary and exit.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-j</term>
+        <listitem>
+          <para>
+            When loading a zonefile read the journal if it exists.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-p</term>
+        <listitem>
+          <para>
+	    Print out the <filename>named.conf</filename> and included files
+	    in canonical form if no errors were detected.
+            See also the <option>-x</option> option.
           </para>
         </listitem>
       </varlistentry>
@@ -115,16 +132,6 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-p</term>
-        <listitem>
-          <para>
-	    Print out the <filename>named.conf</filename> and included files
-	    in canonical form if no errors were detected.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>-x</term>
         <listitem>
           <para>
@@ -145,15 +152,6 @@
           <para>
 	    Perform a test load of all master zones found in
 	    <filename>named.conf</filename>.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>-j</term>
-        <listitem>
-          <para>
-            When loading a zonefile read the journal if it exists.
           </para>
         </listitem>
       </varlistentry>
