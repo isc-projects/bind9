@@ -68,7 +68,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: %s [-h] [-j] [-p] [-v] [-z] [-t directory] "
+	fprintf(stderr, "usage: %s [-hjvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n", program);
 	exit(1);
 }
