@@ -58,6 +58,19 @@
 		} \
 	} while (0)
 
+#define CHECK(op)						\
+	do { result = (op);					\
+		if (result != ISC_R_SUCCESS) goto cleanup;	\
+	} while (0)
+
+#define CHECKTOK(op)						\
+	do { result = (op);					\
+		if (result != ISC_R_SUCCESS) {			\
+			isc_lex_ungettoken(lexer, &token);	\
+			goto cleanup;				\
+		}						\
+	} while (0)
+
 #define DNS_AS_STR(t) ((t).value.as_textregion.base)
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
