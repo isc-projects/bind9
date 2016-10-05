@@ -1,3 +1,6 @@
+4474.	[bug]		win32: call WSAStartup in fromtext_in_wks so that
+			getprotobyname and getservbyname work.  [RT #43197]
+
 4473.	[bug]		Only call fsync / _commit on regular files. [RT #43196]
 
 4472.	[bug]		Named could fail to find the correct NSEC3 records when
