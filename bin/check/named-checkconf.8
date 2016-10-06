@@ -39,7 +39,7 @@
 named-checkconf \- named configuration file syntax checking tool
 .SH "SYNOPSIS"
 .HP \w'\fBnamed\-checkconf\fR\ 'u
-\fBnamed\-checkconf\fR [\fB\-h\fR] [\fB\-v\fR] [\fB\-j\fR] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] {filename} [\fB\-p\fR] [\fB\-x\fR] [\fB\-z\fR]
+\fBnamed\-checkconf\fR [\fB\-hjvz\fR] [\fB\-p\fR\ [\fB\-x\fR\ ]] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] {filename}
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-checkconf\fR
@@ -69,6 +69,20 @@ can be run on these files explicitly, however\&.
 Print the usage summary and exit\&.
 .RE
 .PP
+\-j
+.RS 4
+When loading a zonefile read the journal if it exists\&.
+.RE
+.PP
+\-p
+.RS 4
+Print out the
+named\&.conf
+and included files in canonical form if no errors were detected\&. See also the
+\fB\-x\fR
+option\&.
+.RE
+.PP
 \-t \fIdirectory\fR
 .RS 4
 Chroot to
@@ -84,13 +98,6 @@ Print the version of the
 program and exit\&.
 .RE
 .PP
-\-p
-.RS 4
-Print out the
-named\&.conf
-and included files in canonical form if no errors were detected\&.
-.RE
-.PP
 \-x
 .RS 4
 When printing the configuration files in canonical form, obscure shared secrets by replacing them with strings of question marks (\*(Aq?\*(Aq)\&. This allows the contents of
@@ -103,11 +110,6 @@ and related files to be shared \(em for example, when submitting bug reports \(e
 .RS 4
 Perform a test load of all master zones found in
 named\&.conf\&.
-.RE
-.PP
-\-j
-.RS 4
-When loading a zonefile read the journal if it exists\&.
 .RE
 .PP
 filename
