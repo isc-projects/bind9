@@ -158,6 +158,11 @@ Display [do not display] the CLASS when printing the record\&.
 Toggle the display of comment lines in the output\&. The default is to print comments\&.
 .RE
 .PP
+\fB+[no]continue\fR
+.RS 4
+Continue on errors (e\&.g\&. timeouts)\&.
+.RE
+.PP
 \fB+[no]crypto\fR
 .RS 4
 Toggle the display of cryptographic fields in DNSSEC records\&. The contents of these field are unnecessary to debug most DNSSEC validation failures and removing them makes it easier to see the common failures\&. The default is to display the fields\&. When omitted they are replaced by the string "[omitted]" or in the DNSKEY case the key id is displayed as the replacement, e\&.g\&. "[ key id = value ]"\&.
