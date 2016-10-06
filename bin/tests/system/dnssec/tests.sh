@@ -1807,6 +1807,10 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
 grep "badds.example: expiry" rndc.out.ns4.test$n.3 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+ret=0
+
 echo "I: remove non-existent NTA three times"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -r foo > rndc.out.ns4.test$n.4 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -remove foo > rndc.out.ns4.test$n.5 2>&1
@@ -1821,9 +1825,17 @@ echo "I: testing NTA with bogus lifetimes ($n)"
 echo "I:check with no nta lifetime specified"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l "" foo > rndc.out.ns4.test$n.1 2>&1
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.1 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+ret=0
+
 echo "I:check with bad nta lifetime"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l garbage foo > rndc.out.ns4.test$n.2 2>&1
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+ret=0
+
 echo "I:check with too long nta lifetime"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -l 7d1h foo > rndc.out.ns4.test$n.3 2>&1
 grep "'nta' failed: out of range" rndc.out.ns4.test$n.3 > /dev/null || ret=1
