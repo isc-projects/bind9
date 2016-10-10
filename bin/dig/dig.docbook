@@ -1205,8 +1205,9 @@
       can also be supplied.  These global query options must precede the
       first tuple of name, class, type, options, flags, and query options
       supplied on the command line.  Any global query options (except
-      the <option>+[no]cmd</option> option) can be
-      overridden by a query-specific set of query options.  For example:
+      <option>+[no]cmd</option> and <option>+[no]short</option> options)
+      can be overridden by a query-specific set of query options.
+      For example:
       <programlisting>
 dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
 </programlisting>

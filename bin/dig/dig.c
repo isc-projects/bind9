@@ -59,14 +59,17 @@ static char hexcookie[81];
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
+#ifdef DIG_SIGCHASE
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
-	onesoa = ISC_FALSE, use_usec = ISC_FALSE,
 	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE,
+#endif
 	ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
 
 /*% rrcomments are neither explicitly enabled nor disabled by default */
+#ifdef DIG_SIGCHASE
 static int rrcomments = 0;
+#endif
 
 /*% opcode text */
 static const char * const opcodetext[] = {
@@ -249,7 +252,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 
 	if (query->lookup->stats && !short_form) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
-		if (use_usec)
+		if (query->lookup->use_usec)
 			printf(";; Query time: %ld usec\n", (long) diff);
 		else
 			printf(";; Query time: %ld msec\n", (long) diff / 1000);
@@ -278,7 +281,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		puts("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
-		if (use_usec)
+		if (query->lookup->use_usec)
 			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
@@ -324,9 +327,9 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	}
 
 	/* Turn on rrcomments if explicitly enabled */
-	if (rrcomments > 0)
+	if (query->lookup->rrcomments > 0)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (nocrypto)
+	if (query->lookup->nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
 	if (query->lookup->print_unknown_format)
 		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
@@ -339,7 +342,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
-		if (use_usec)
+		if (query->lookup->use_usec)
 			snprintf(store, 19, " in %ld us.", (long) diff);
 		else
 			snprintf(store, 19, " in %ld ms.", (long) diff / 1000);
@@ -477,17 +480,17 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	if (query->lookup->print_unknown_format)
 		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
 	/* Turn on rrcomments if explicitly enabled */
-	if (rrcomments > 0)
+	if (query->lookup->rrcomments > 0)
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (ttlunits)
+	if (query->lookup->ttlunits)
 		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
-	if (nottl)
+	if (query->lookup->nottl)
 		styleflags |= DNS_STYLEFLAG_NO_TTL;
-	if (noclass)
+	if (query->lookup->noclass)
 		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (nocrypto)
+	if (query->lookup->nocrypto)
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	if (multiline) {
+	if (query->lookup->multiline) {
 		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
 		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
 		styleflags |= DNS_STYLEFLAG_REL_DATA;
@@ -495,14 +498,15 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		styleflags |= DNS_STYLEFLAG_TTL;
 		styleflags |= DNS_STYLEFLAG_MULTILINE;
 		/* Turn on rrcomments unless explicitly disabled */
-		if (rrcomments >= 0)
+		if (query->lookup->rrcomments >= 0)
 			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	}
-	if (multiline || (nottl && noclass))
+	if (query->lookup->multiline ||
+	    (query->lookup->nottl && query->lookup->noclass))
 		result = dns_master_stylecreate2(&style, styleflags,
 						 24, 24, 24, 32, 80, 8,
 						 splitwidth, mctx);
-	else if (nottl || noclass)
+	else if (query->lookup->nottl || query->lookup->noclass)
 		result = dns_master_stylecreate2(&style, styleflags,
 						 24, 24, 32, 40, 80, 8,
 						 splitwidth, mctx);
@@ -526,7 +530,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		flags |= DNS_MESSAGETEXTFLAG_NOHEADERS;
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 	}
-	if (onesoa && query->lookup->rdtype == dns_rdatatype_axfr)
+	if (query->lookup->onesoa &&
+	    query->lookup->rdtype == dns_rdatatype_axfr)
 		flags |= (query->msg_count == 0) ? DNS_MESSAGETEXTFLAG_ONESOA :
 						   DNS_MESSAGETEXTFLAG_OMITSOA;
 	if (!query->lookup->comments)
@@ -872,7 +877,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		case 'l': /* class */
 			/* keep +cl for backwards compatibility */
 			FULLCHECK2("cl", "class");
+			lookup->noclass = ISC_TF(!state);
+#ifdef DIG_SIGCHASE
 			noclass = ISC_TF(!state);
+#endif
 			break;
 		case 'm': /* cmd */
 			FULLCHECK("cmd");
@@ -906,7 +914,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'r':
 			FULLCHECK("crypto");
+			lookup->nocrypto = ISC_TF(!state);
+#ifdef DIG_SIGCHASE
 			nocrypto = ISC_TF(!state);
+#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1069,7 +1080,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'u':
 			FULLCHECK("multiline");
+			lookup->multiline = state;
+#ifdef DIG_SIGCHASE
 			multiline = state;
+#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1111,7 +1125,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->rdtype = dns_rdatatype_ns;
 					lookup->rdtypeset = ISC_TRUE;
 					short_form = ISC_TRUE;
+					lookup->rrcomments = 0;
+#ifdef DIG_SIGCHASE
 					rrcomments = 0;
+#endif
 				}
 				break;
 			default:
@@ -1126,7 +1143,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'n':
 			FULLCHECK("onesoa");
-			onesoa = state;
+			lookup->onesoa = state;
 			break;
 		case 'p':
 			FULLCHECK("opcode");
@@ -1159,7 +1176,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		switch (cmd[1]) {
 		case 'r': /* qr */
 			FULLCHECK("qr");
-			qr = state;
+			lookup->qr = state;
 			break;
 		case 'u': /* question */
 			FULLCHECK("question");
@@ -1201,7 +1218,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'r': /* rrcomments */
 			FULLCHECK("rrcomments");
+			lookup->rrcomments = state ? 1 : -1;
+#ifdef DIG_SIGCHASE
 			rrcomments = state ? 1 : -1;
+#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1230,7 +1250,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->section_question = ISC_FALSE;
 					lookup->comments = ISC_FALSE;
 					lookup->stats = ISC_FALSE;
+					lookup->rrcomments = -1;
+#ifdef DIG_SIGCHASE
 					rrcomments = -1;
+#endif
 				}
 				break;
 			case 'w': /* showsearch */
@@ -1346,7 +1369,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->recurse = ISC_FALSE;
 					lookup->identify = ISC_TRUE;
 					lookup->comments = ISC_FALSE;
+					lookup->rrcomments = 0;
+#ifdef DIG_SIGCHASE
 					rrcomments = 0;
+#endif
 					lookup->stats = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
@@ -1393,12 +1419,19 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				case 0:
 				case 'i': /* ttlid */
 					FULLCHECK2("ttl", "ttlid");
+					lookup->nottl = ISC_TF(!state);
+#ifdef DIG_SIGCHASE
 					nottl = ISC_TF(!state);
+#endif
 					break;
 				case 'u': /* ttlunits */
 					FULLCHECK("ttlunits");
+					lookup->nottl = ISC_FALSE;
+					lookup->ttlunits = ISC_TF(state);
+#ifdef DIG_SIGCHASE
 					nottl = ISC_FALSE;
 					ttlunits = ISC_TF(state);
+#endif
 					break;
 				default:
 					goto invalid_option;
@@ -1513,7 +1546,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			/* deprecated */
 			break;
 		case 'u':
-			use_usec = ISC_TRUE;
+			(*lookup)->use_usec = ISC_TRUE;
 			break;
 		case 'v':
 			version();

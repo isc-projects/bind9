@@ -129,7 +129,15 @@ struct dig_lookup {
 		header_only,
 		ednsneg,
 		mapped,
-		print_unknown_format;
+		print_unknown_format,
+		multiline,
+		nottl,
+		noclass,
+		onesoa,
+		use_usec,
+		nocrypto,
+		ttlunits,
+		qr;
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
 #if DIG_SIGCHASE_TD
@@ -190,6 +198,7 @@ isc_boolean_t	sigchase;
 	isc_dscp_t dscp;
 	unsigned int ednsflags;
 	dns_opcode_t opcode;
+	int rrcomments;
 };
 
 /*% The dig_query structure */
@@ -260,7 +269,7 @@ extern dig_searchlistlist_t search_list;
 extern unsigned int extrabytes;
 
 extern isc_boolean_t check_ra, have_ipv4, have_ipv6, specified_source,
-	usesearch, showsearch, qr;
+	usesearch, showsearch;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;

@@ -121,7 +121,6 @@ isc_boolean_t
 	cancel_now = ISC_FALSE,
 	usesearch = ISC_FALSE,
 	showsearch = ISC_FALSE,
-	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
 	keep_open = ISC_FALSE,
 	verbose = ISC_FALSE;
@@ -781,6 +780,15 @@ make_empty_lookup(void) {
 	looknew->sendcookie = ISC_FALSE;
 	looknew->seenbadcookie = ISC_FALSE;
 	looknew->badcookie = ISC_TRUE;
+	looknew->multiline = ISC_FALSE;
+	looknew->nottl = ISC_FALSE;
+	looknew->noclass = ISC_FALSE;
+	looknew->onesoa = ISC_FALSE;
+	looknew->use_usec = ISC_FALSE;
+	looknew->nocrypto = ISC_FALSE;
+	looknew->ttlunits = ISC_FALSE;
+	looknew->ttlunits = ISC_FALSE;
+	looknew->qr = ISC_FALSE;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = ISC_FALSE;
 #if DIG_SIGCHASE_TD
@@ -826,6 +834,7 @@ make_empty_lookup(void) {
 	looknew->ednsneg = ISC_TRUE;
 	looknew->mapped = ISC_TRUE;
 	looknew->dscp = -1;
+	looknew->rrcomments = 0;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
@@ -885,6 +894,14 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
 	looknew->ednsneg = lookold->ednsneg;
 	looknew->mapped = lookold->mapped;
+	looknew->multiline = lookold->multiline;
+	looknew->nottl = lookold->nottl;
+	looknew->noclass = lookold->noclass;
+	looknew->onesoa = lookold->onesoa;
+	looknew->use_usec = lookold->use_usec;
+	looknew->nocrypto = lookold->nocrypto;
+	looknew->ttlunits = lookold->ttlunits;
+	looknew->qr = lookold->qr;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -919,6 +936,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
 	looknew->dscp = lookold->dscp;
+	looknew->rrcomments = lookold->rrcomments;
 
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
@@ -2702,7 +2720,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 
 	/* XXX qrflag, print_query, etc... */
-	if (!ISC_LIST_EMPTY(lookup->q) && qr) {
+	if (!ISC_LIST_EMPTY(lookup->q) && lookup->qr) {
 		extrabytes = 0;
 		printmessage(ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
 			     ISC_TRUE);

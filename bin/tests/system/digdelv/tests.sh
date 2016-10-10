@@ -103,6 +103,24 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo "I:checking dig multi flag is local($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 -t DNSKEY dnskey.example +nomulti dnskey.example +nomulti > dig.out.nn.$n || ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.3 -t DNSKEY dnskey.example +multi dnskey.example +nomulti > dig.out.mn.$n || ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.3 -t DNSKEY dnskey.example +nomulti dnskey.example +multi > dig.out.nm.$n || ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.3 -t DNSKEY dnskey.example +multi dnskey.example +multi > dig.out.mm.$n || ret=1
+  lcnn=`wc -l < dig.out.nn.$n`
+  lcmn=`wc -l < dig.out.mn.$n`
+  lcnm=`wc -l < dig.out.nm.$n`
+  lcmm=`wc -l < dig.out.mm.$n`
+  test $lcmm -ge $lcnm || ret=1
+  test $lcmm -ge $lcmn || ret=1
+  test $lcnm -ge $lcnn || ret=1
+  test $lcmn -ge $lcnn || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   echo "I:checking dig +noheader-only works ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +noheader-only A example > dig.out.test$n || ret=1
