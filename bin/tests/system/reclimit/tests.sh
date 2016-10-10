@@ -35,6 +35,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: attempt permissible lookup ($n)"
 ret=0
+sleep 2
 echo "12" > ans2/ans.limit
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 flush 2>&1 | sed 's/^/I:ns1 /'
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
