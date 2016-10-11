@@ -3359,6 +3359,10 @@ yes|auto)
 			break
 		fi
 	done
+	if test "X$readline" = Xyes -a "$ac_cv_func_readline" != yes
+	then
+		AC_MSG_ERROR([The readline library was not found.])
+	fi
 	LIBS="$saved_LIBS"
 	;;
 *)
@@ -3382,6 +3386,10 @@ yes|auto)
 				break
 			fi
 		done
+	fi
+	if test "$ac_cv_func_readline" != yes
+	then
+		AC_MSG_ERROR([The readline library was not found.])
 	fi
 	LIBS="$saved_LIBS"
 	;;

@@ -1,3 +1,6 @@
+4484.	[bug]		Failure to find readline when requested should be
+			fatal to configure. [RT #43328]
+
 4483.	[func]		Check prefixes in acls to make sure the address and
 			prefix lengths are consistent.  Warn only in
 			BIND 9.11 and earlier. [RT #43367]
