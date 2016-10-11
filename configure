@@ -19082,11 +19082,11 @@ case "$readline" in
 no)	;;
 yes|auto)
 	saved_LIBS="$LIBS"
-	for readline in -ledit -lreadline
+	for xreadline in -ledit -lreadline
 	do
-		LIBS="$readline"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline" >&5
-$as_echo "$as_me: checking for readline with $readline" >&6;}
+		LIBS="$xreadline"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $xreadline" >&5
+$as_echo "$as_me: checking for readline with $xreadline" >&6;}
 		for ac_func in readline
 do :
   ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
@@ -19100,15 +19100,15 @@ done
 
 		if test "$ac_cv_func_readline" = "yes"
 		then
-			READLINE_LIB="$readline"
+			READLINE_LIB="$xreadline"
 			break
 		fi
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline $lib" >&5
-$as_echo "$as_me: checking for readline with $readline $lib" >&6;}
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $xreadline $lib" >&5
+$as_echo "$as_me: checking for readline with $xreadline $lib" >&6;}
 			unset ac_cv_func_readline
-			LIBS="$readline $lib"
+			LIBS="$xreadline $lib"
 			for ac_func in readline
 do :
   ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
@@ -19122,7 +19122,7 @@ done
 
 			if test "$ac_cv_func_readline" = "yes"
 			then
-				READLINE_LIB="$readline $lib"
+				READLINE_LIB="$xreadline $lib"
 				break
 			fi
 		done
@@ -19131,7 +19131,7 @@ done
 			break
 		fi
 	done
-	if test "X$readline" = Xyes -a "$ac_cv_func_readline" != yes
+	if test "X$xreadline" = Xyes -a "$ac_cv_func_readline" != yes
 	then
 		as_fn_error $? "The readline library was not found." "$LINENO" 5
 	fi
