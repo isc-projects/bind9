@@ -1,3 +1,5 @@
+4482.	[cleanup]	Change #4455 was incomplete. [RT #43252]
+
 4478.	[func]		Add +continue option to mdig, allow continue on socket
 			errors. [RT #43281]
 
