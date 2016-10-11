@@ -432,7 +432,6 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	isc_lexspecials_t specials;
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(lctx != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
 
 	pctx = isc_mem_get(mctx, sizeof(*pctx));
@@ -2668,10 +2667,9 @@ cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level,
 	char msgbuf[2048];
 
 	REQUIRE(obj != NULL);
-	REQUIRE(lctx != NULL);
 	REQUIRE(fmt != NULL);
 
-	if (! isc_log_wouldlog(lctx, level))
+	if (! isc_log_wouldlog(lctx, l))
 		return;
 
 	va_start(ap, fmt);
