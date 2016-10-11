@@ -2750,7 +2750,7 @@ cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level,
 	REQUIRE(obj != NULL);
 	REQUIRE(fmt != NULL);
 
-	if (! isc_log_wouldlog(lctx, l))
+	if (! isc_log_wouldlog(lctx, level))
 		return;
 
 	va_start(ap, fmt);
