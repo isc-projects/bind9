@@ -17702,6 +17702,10 @@ done
 			break
 		fi
 	done
+	if test "X$readline" = Xyes -a "$ac_cv_func_readline" != yes
+	then
+		as_fn_error $? "The readline library was not found." "$LINENO" 5
+	fi
 	LIBS="$saved_LIBS"
 	;;
 *)
@@ -17747,6 +17751,10 @@ done
 				break
 			fi
 		done
+	fi
+	if test "$ac_cv_func_readline" != yes
+	then
+		as_fn_error $? "The readline library was not found." "$LINENO" 5
 	fi
 	LIBS="$saved_LIBS"
 	;;
