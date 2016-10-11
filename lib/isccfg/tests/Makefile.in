@@ -30,7 +30,7 @@ ISCCFGDEPLIBS = ../libisccfg.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
-OBJS =	
+OBJS =
 SRCS =		parser_test.c
 
 SUBDIRS =
