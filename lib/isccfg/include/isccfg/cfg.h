@@ -106,15 +106,20 @@ cfg_parser_setcallback(cfg_parser_t *pctx,
  */
 
 isc_result_t
-cfg_parse_file(cfg_parser_t *pctx, const char *filename,
+cfg_parse_file(cfg_parser_t *pctx, const char *file,
 	       const cfg_type_t *type, cfg_obj_t **ret);
+
 isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
 		 const cfg_type_t *type, cfg_obj_t **ret);
 isc_result_t
 cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		  const char *bufname, const cfg_type_t *type,
+		  const char *file, const cfg_type_t *type,
 		  cfg_obj_t **ret);
+isc_result_t
+cfg_parse_buffer3(cfg_parser_t *pctx, isc_buffer_t *buffer,
+		  const char *file, unsigned int line,
+		  const cfg_type_t *type, cfg_obj_t **ret);
 /*%<
  * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
@@ -123,10 +128,14 @@ cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
  * (isc_parse_file()) or the buffer 'buffer'
  * (isc_parse_buffer()).
  *
- * If 'bufname' is not NULL, it is a name for the buffer that
- * can be reported when logging errors.
+ * If 'file' is not NULL, it is the name of the file, or a name to use
+ * for the buffer in place of the filename, when logging errors.
  *
- * Returns an error if the file does not parse correctly.
+ * If 'line' is not 0, then it is the beginning line number to report
+ * when logging errors. This is useful when passing text that has been
+ * read from the middle of a file.
+ *
+ * Returns an error if the file or buffer does not parse correctly.
  *
  * Requires:
  *\li 	"filename" is valid.

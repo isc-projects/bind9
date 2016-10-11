@@ -305,7 +305,7 @@ ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
 	isc_buffer_add(&b, sizeof(defaultconf) - 1);
-	return (cfg_parse_buffer2(parser, &b, __FILE__,
+	return (cfg_parse_buffer3(parser, &b, __FILE__, 0,
 				  &cfg_type_namedconf, conf));
 }
 

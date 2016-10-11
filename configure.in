@@ -5192,6 +5192,7 @@ AC_CONFIG_FILES([
 	lib/isccfg/Makefile
 	lib/isccfg/include/Makefile
 	lib/isccfg/include/isccfg/Makefile
+	lib/isccfg/tests/Makefile
 	lib/lwres/Makefile
 	lib/lwres/include/Makefile
 	lib/lwres/include/lwres/Makefile

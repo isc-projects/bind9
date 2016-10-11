@@ -1306,7 +1306,7 @@ cfg_parse_rpz_policy(cfg_parser_t *pctx, const cfg_type_t *type,
 		     cfg_obj_t **ret)
 {
 	isc_result_t result;
-	cfg_obj_t *obj;
+	cfg_obj_t *obj = NULL;
 	const cfg_tuplefielddef_t *fields;
 
 	CHECK(cfg_create_tuple(pctx, type, &obj));
@@ -1338,11 +1338,10 @@ cleanup:
 static isc_result_t
 cfg_parse_kv_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	const cfg_tuplefielddef_t *fields, *f;
-	cfg_obj_t *obj;
+	cfg_obj_t *obj = NULL;
 	int fn;
 	isc_result_t result;
 
-	obj = NULL;
 	CHECK(cfg_create_tuple(pctx, type, &obj));
 
 	/*

@@ -1,3 +1,5 @@
+4482.	[cleanup]	Change #4455 was incomplete. [RT #43252]
+
 4481.	[func]		dig: make +class, +crypto, +multiline, +rrcomments,
 			+onesoa, +qr, +ttlid, +ttlunits and -u per lookup
 			rather than global. [RT #42450]
