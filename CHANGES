@@ -1,3 +1,7 @@
+4483.	[func]		Check prefixes in acls to make sure the address and
+			prefix lengths are consistent.  Warn only in
+			BIND 9.11 and earlier. [RT #43367]
+
 4482.	[bug]		Address use before require check and remove extraneous
 			dns_message_gettsigkey call in dns_tsig_sign.
 			[RT #43374]

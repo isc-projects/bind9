@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #include <isc/mem.h>
@@ -711,6 +709,14 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 				if (nest_level != 0)
 					dns_acl_detach(&de->nestedacl);
 				continue;
+			}
+			result = isc_netaddr_prefixok(&addr, bitlen);
+			if (result != ISC_R_SUCCESS) {
+				char buf[ISC_NETADDR_FORMATSIZE + 1];
+				isc_netaddr_format(&addr, buf, sizeof(buf));
+				cfg_obj_log(ce, lctx, ISC_LOG_WARNING,
+					    "'%s/%u': address/prefix length "
+					    "mismatch", buf, bitlen);
 			}
 
 			/*
