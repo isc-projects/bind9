@@ -714,7 +714,7 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 			if (result != ISC_R_SUCCESS) {
 				char buf[ISC_NETADDR_FORMATSIZE + 1];
 				isc_netaddr_format(&addr, buf, sizeof(buf));
-				cfg_obj_log(ce, lctx, ISC_LOG_WARNING,
+				cfg_obj_log(ce, lctx, ISC_LOG_ERROR,
 					    "'%s/%u': address/prefix length "
 					    "mismatch", buf, bitlen);
 				goto cleanup;
