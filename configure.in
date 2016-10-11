@@ -3441,25 +3441,25 @@ case "$readline" in
 no)	;;
 yes|auto)
 	saved_LIBS="$LIBS"
-	for readline in -ledit -lreadline
+	for xreadline in -ledit -lreadline
 	do
-		LIBS="$readline"
-		AC_MSG_NOTICE(checking for readline with $readline)
+		LIBS="$xreadline"
+		AC_MSG_NOTICE(checking for readline with $xreadline)
 		AC_CHECK_FUNCS(readline)
 		if test "$ac_cv_func_readline" = "yes"
 		then
-			READLINE_LIB="$readline"
+			READLINE_LIB="$xreadline"
 			break
 		fi
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
-			AC_MSG_NOTICE(checking for readline with $readline $lib)
+			AC_MSG_NOTICE(checking for readline with $xreadline $lib)
 			unset ac_cv_func_readline
-			LIBS="$readline $lib"
+			LIBS="$xreadline $lib"
 			AC_CHECK_FUNCS(readline)
 			if test "$ac_cv_func_readline" = "yes"
 			then
-				READLINE_LIB="$readline $lib"
+				READLINE_LIB="$xreadline $lib"
 				break
 			fi
 		done
@@ -3468,7 +3468,7 @@ yes|auto)
 			break
 		fi
 	done
-	if test "X$readline" = Xyes -a "$ac_cv_func_readline" != yes
+	if test "X$xreadline" = Xyes -a "$ac_cv_func_readline" != yes
 	then
 		AC_MSG_ERROR([The readline library was not found.])
 	fi
