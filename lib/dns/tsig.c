@@ -909,21 +909,22 @@ dns_tsig_sign(dns_message_t *msg) {
 	isc_result_t ret;
 	unsigned char badtimedata[BADTIMELEN];
 	unsigned int sigsize = 0;
-	isc_boolean_t response = is_response(msg);
+	isc_boolean_t response;
 
 	REQUIRE(msg != NULL);
-	REQUIRE(VALID_TSIG_KEY(dns_message_gettsigkey(msg)));
+	key = dns_message_gettsigkey(msg);
+	REQUIRE(VALID_TSIG_KEY(key));
 
 	/*
 	 * If this is a response, there should be a query tsig.
 	 */
+	response = is_response(msg);
 	if (response && msg->querytsig == NULL)
 		return (DNS_R_EXPECTEDTSIG);
 
 	dynbuf = NULL;
 
 	mctx = msg->mctx;
-	key = dns_message_gettsigkey(msg);
 
 	tsig.mctx = mctx;
 	tsig.common.rdclass = dns_rdataclass_any;

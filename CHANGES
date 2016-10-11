@@ -1,3 +1,7 @@
+4482.	[bug]		Address use before require check and remove extraneous
+			dns_message_gettsigkey call in dns_tsig_sign.
+			[RT #43374]
+
 4482.	[cleanup]	Change #4455 was incomplete. [RT #43252]
 
 4478.	[func]		Add +continue option to mdig, allow continue on socket
@@ -16,7 +20,7 @@
 
 4472.	[bug]		Named could fail to find the correct NSEC3 records when
 			a zone was updated between looking for the answer and
-			looking for the NSEC3 records proving non-existance
+			looking for the NSEC3 records proving nonexistence
 			of the answer. [RT #43247]
 
 	--- 9.11.0 released ---
