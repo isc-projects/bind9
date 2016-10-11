@@ -12,7 +12,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(sys.argv[0]))
 if os.name != 'nt':
-    sys.path.insert(1, os.path.join('@prefix@', 'lib'))
+    sys.path.insert(1, os.path.join('@prefix@', 'lib',
+		    'python' + sys.version[:3], 'site-packages'))
 
 import isc.checkds
 
