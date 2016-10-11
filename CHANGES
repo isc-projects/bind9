@@ -1,3 +1,7 @@
+4482.	[bug]		Address use before require check and remove extraneous
+			dns_message_gettsigkey call in dns_tsig_sign.
+			[RT #43374]
+
 4476.	[test]		Fix reclimit test on slower machines. [RT #43283]
 
 4475.	[doc]		Update named-checkconf documentation. [RT #43153]
@@ -9,7 +13,7 @@
 
 4472.	[bug]		Named could fail to find the correct NSEC3 records when
 			a zone was updated between looking for the answer and
-			looking for the NSEC3 records proving non-existance
+			looking for the NSEC3 records proving nonexistence
 			of the answer. [RT #43247]
 
 4471.	[cleanup]	Revert a query logging change inadvertently
