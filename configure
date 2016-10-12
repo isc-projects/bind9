@@ -18781,20 +18781,24 @@ fi
 
 # Check whether --with-readline was given.
 if test "${with_readline+set}" = set; then :
-  withval=$with_readline; readline="$withval"
+  withval=$with_readline; use_readline="$withval"
 else
-  readline="auto"
+  use_readline="auto"
 fi
 
-case "$readline" in
+case "$use_readline" in
 no)	;;
-yes|auto)
+*)
 	saved_LIBS="$LIBS"
-	for xreadline in -ledit -lreadline
+	case "$use_readline" in
+	yes|auto) try_readline="-ledit"; or_readline="-lreadline" ;;
+	*) try_readline="$use_readline"
+	esac
+	for readline in "$try_readline" $or_readline
 	do
-		LIBS="$xreadline"
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $xreadline" >&5
-$as_echo "$as_me: checking for readline with $xreadline" >&6;}
+		LIBS="$readline"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline" >&5
+$as_echo "$as_me: checking for readline with $readline" >&6;}
 		for ac_func in readline
 do :
   ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
@@ -18808,63 +18812,9 @@ done
 
 		if test "$ac_cv_func_readline" = "yes"
 		then
-			READLINE_LIB="$xreadline"
+			READLINE_LIB="$readline"
 			break
 		fi
-		for lib in -lterminfo -ltermcap -lncurses -lcurses
-		do
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $xreadline $lib" >&5
-$as_echo "$as_me: checking for readline with $xreadline $lib" >&6;}
-			unset ac_cv_func_readline
-			LIBS="$xreadline $lib"
-			for ac_func in readline
-do :
-  ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
-if test "x$ac_cv_func_readline" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_READLINE 1
-_ACEOF
-
-fi
-done
-
-			if test "$ac_cv_func_readline" = "yes"
-			then
-				READLINE_LIB="$xreadline $lib"
-				break
-			fi
-		done
-		if test "$ac_cv_func_readline" = "yes"
-		then
-			break
-		fi
-	done
-	if test "X$xreadline" = Xyes -a "$ac_cv_func_readline" != yes
-	then
-		as_fn_error $? "The readline library was not found." "$LINENO" 5
-	fi
-	LIBS="$saved_LIBS"
-	;;
-*)
-	saved_LIBS="$LIBS"
-	LIBS="$readline"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline" >&5
-$as_echo "$as_me: checking for readline with $readline" >&6;}
-	for ac_func in readline
-do :
-  ac_fn_c_check_func "$LINENO" "readline" "ac_cv_func_readline"
-if test "x$ac_cv_func_readline" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_READLINE 1
-_ACEOF
-
-fi
-done
-
-	if test "$ac_cv_func_readline" = "yes"
-	then
-		READLINE_LIB="$readline"
-	else
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for readline with $readline $lib" >&5
@@ -18888,8 +18838,13 @@ done
 				break
 			fi
 		done
-	fi
-	if test "$ac_cv_func_readline" != yes
+		if test "$ac_cv_func_readline" = "yes"
+		then
+			break
+		fi
+	done
+	if test "$use_readline" != "auto" &&
+	   test "X$READLINE_LIB" = "X"
 	then
 		as_fn_error $? "The readline library was not found." "$LINENO" 5
 	fi
