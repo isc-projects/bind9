@@ -2670,53 +2670,25 @@ AC_SUBST(ISC_PLATFORM_NEEDSTRCASESTR)
 AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,
 	[  --with-readline[=LIBSPEC]    specify readline library [default auto]],
-	readline="$withval", readline="auto")
-case "$readline" in
+	use_readline="$withval", use_readline="auto")
+case "$use_readline" in
 no)	;;
-yes|auto)
+*)
 	saved_LIBS="$LIBS"
-	for xreadline in -ledit -lreadline
+	case "$use_readline" in
+	yes|auto) try_readline="-ledit"; or_readline="-lreadline" ;;
+	*) try_readline="$use_readline"
+	esac
+	for readline in "$try_readline" $or_readline
 	do
-		LIBS="$xreadline"
-		AC_MSG_NOTICE(checking for readline with $xreadline)
+		LIBS="$readline"
+		AC_MSG_NOTICE(checking for readline with $readline)
 		AC_CHECK_FUNCS(readline)
 		if test "$ac_cv_func_readline" = "yes"
 		then
-			READLINE_LIB="$xreadline"
+			READLINE_LIB="$readline"
 			break
 		fi
-		for lib in -lterminfo -ltermcap -lncurses -lcurses
-		do
-			AC_MSG_NOTICE(checking for readline with $xreadline $lib)
-			unset ac_cv_func_readline
-			LIBS="$xreadline $lib"
-			AC_CHECK_FUNCS(readline)
-			if test "$ac_cv_func_readline" = "yes"
-			then
-				READLINE_LIB="$xreadline $lib"
-				break
-			fi
-		done
-		if test "$ac_cv_func_readline" = "yes"
-		then
-			break
-		fi
-	done
-	if test "X$xreadline" = Xyes -a "$ac_cv_func_readline" != yes
-	then
-		AC_MSG_ERROR([The readline library was not found.])
-	fi
-	LIBS="$saved_LIBS"
-	;;
-*)
-	saved_LIBS="$LIBS"
-	LIBS="$readline"
-	AC_MSG_NOTICE(checking for readline with $readline)
-	AC_CHECK_FUNCS(readline)
-	if test "$ac_cv_func_readline" = "yes"
-	then
-		READLINE_LIB="$readline"
-	else
 		for lib in -lterminfo -ltermcap -lncurses -lcurses
 		do
 			AC_MSG_NOTICE(checking for readline with $readline $lib)
@@ -2729,8 +2701,13 @@ yes|auto)
 				break
 			fi
 		done
-	fi
-	if test "$ac_cv_func_readline" != yes
+		if test "$ac_cv_func_readline" = "yes"
+		then
+			break
+		fi
+	done
+	if test "$use_readline" != "auto" &&
+	   test "X$READLINE_LIB" = "X"
 	then
 		AC_MSG_ERROR([The readline library was not found.])
 	fi
