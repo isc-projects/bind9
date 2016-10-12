@@ -1,14 +1,14 @@
-4485.	[bug]		Look in $prefix/lib/pythonX.Y/site-packages for
+4486.	[bug]		Look in $prefix/lib/pythonX.Y/site-packages for
 			the python modules we install. [RT #43330]
 
-4484.	[bug]		Failure to find readline when requested should be
+4485.	[bug]		Failure to find readline when requested should be
 			fatal to configure. [RT #43328]
 
-4483.	[func]		Check prefixes in acls to make sure the address and
+4484.	[func]		Check prefixes in acls to make sure the address and
 			prefix lengths are consistent.  Warn only in
 			BIND 9.11 and earlier. [RT #43367]
 
-4482.	[bug]		Address use before require check and remove extraneous
+4483.	[bug]		Address use before require check and remove extraneous
 			dns_message_gettsigkey call in dns_tsig_sign.
 			[RT #43374]
 
