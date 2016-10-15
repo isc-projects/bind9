@@ -431,6 +431,11 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		<optional>...</optional>
 	};
 
+	managed-keys {
+		<replaceable>domain_name</replaceable> <constant>initial-key</constant> <replaceable>flags</replaceable> <replaceable>protocol</replaceable> <replaceable>algorithm</replaceable> <replaceable>key</replaceable>;
+		<optional>...</optional>
+	};
+
 	allow-recursion { <replaceable>address_match_element</replaceable>; ... };
 	allow-recursion-on { <replaceable>address_match_element</replaceable>; ... };
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
