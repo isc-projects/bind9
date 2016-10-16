@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -429,6 +429,10 @@ view \fIstring\fR \fIoptional_class\fR {
 		\fIstring\fR \fIinteger\fR \fIinteger\fR \fIinteger\fR \fIquoted_string\fR;
 		[\&.\&.\&.]
 	};
+	managed\-keys {
+		\fIdomain_name\fR \fBinitial\-key\fR \fIflags\fR \fIprotocol\fR \fIalgorithm\fR \fIkey\fR;
+		[\&.\&.\&.]
+	};
 	allow\-recursion { \fIaddress_match_element\fR; \&.\&.\&. };
 	allow\-recursion\-on { \fIaddress_match_element\fR; \&.\&.\&. };
 	sortlist { \fIaddress_match_element\fR; \&.\&.\&. };
@@ -663,5 +667,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
 .br

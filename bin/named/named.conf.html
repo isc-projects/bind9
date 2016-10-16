@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -383,6 +383,11 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 <br>
 	trusted-keys {<br>
 		<em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>;<br>
+		[<span class="optional">...</span>]<br>
+	};<br>
+<br>
+	managed-keys {<br>
+		<em class="replaceable"><code>domain_name</code></em> <code class="constant">initial-key</code> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>;<br>
 		[<span class="optional">...</span>]<br>
 	};<br>
 <br>
