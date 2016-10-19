@@ -286,7 +286,7 @@ case "$INSTALL" in
 		changequote([, ])
 
 		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
-		test "$ac_dir" = "$ac_prog" && ac_dir=.
+		test "X$ac_dir" = "X$ac_prog" && ac_dir=.
 		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
 		INSTALL="$ac_dir/$ac_prog"
 		;;
@@ -688,7 +688,7 @@ AC_ARG_WITH(openssl,
     use_openssl="$withval", use_openssl="auto")
 
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
-if test "$use_openssl" = "auto"
+if test "auto" = "$use_openssl"
 then
 	for d in $openssldirs
 	do
@@ -723,7 +723,7 @@ case "$use_openssl" in
 If you don't want OpenSSL, use --without-openssl])
 		;;
 	*)
-		if test "$use_openssl" = "yes"
+		if test "yes" = "$use_openssl"
 		then
 			# User did not specify a path - guess it
 			for d in $openssldirs
@@ -734,7 +734,7 @@ If you don't want OpenSSL, use --without-openssl])
 					break
 				fi
 			done
-			if test "$use_openssl" = "yes"
+			if test "yes" = "$use_openssl"
 			then
 				AC_MSG_RESULT(not found)
 				AC_MSG_ERROR(
@@ -745,7 +745,7 @@ If you don't want OpenSSL, use --without-openssl])
 			AC_MSG_ERROR(["$use_openssl/include/openssl/opensslv.h" not found])
 		fi
 		USE_OPENSSL='-DOPENSSL'
-		if test "$use_openssl" = "/usr"
+		if test "/usr" = "$use_openssl"
 		then
 			DST_OPENSSL_INC=""
 			DNS_OPENSSL_LIBS="-lcrypto"
@@ -1095,7 +1095,7 @@ AC_ARG_WITH(gssapi,
 case "$use_gssapi" in
 */krb5-config|krb5-config)
     AC_MSG_RESULT(trying $use_gssapi)
-    if test "$use_gssapi" = krb5-config
+    if test krb5-config = "$use_gssapi"
     then
 	AC_PATH_PROG(KRB5_CONFIG, $use_gssapi)
     else
@@ -1107,14 +1107,14 @@ case "$use_gssapi" in
     CPPFLAGS="$gssapi_cflags $CPPFLAGS"
     AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
 	[ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
-    if test "$ISC_PLATFORM_GSSAPIHEADER" = ""; then
+    if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
 	AC_MSG_RESULT([krb5-config: gssapi.h not found])
 	CPPFLAGS="$saved_cppflags"
 	use_gssapi="yes"
     else
 	AC_CHECK_HEADERS(krb5/krb5.h krb5.h,
 	    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
-	if test "$ISC_PLATFORM_KRB5HEADER" = ""; then
+	if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
 	    AC_MSG_RESULT([krb5-config: krb5.h not found])
 	    CPPFLAGS="$saved_cppflags"
 	    use_gssapi="yes"
@@ -1134,10 +1134,19 @@ case "$use_gssapi" in
 	    LIBS=$saved_libs
 	fi
     fi
-    if test "$use_gssapi" = "yes"; then
+    if test "yes" = "$use_gssapi"; then
 	AC_MSG_CHECKING([for GSSAPI library, non krb5-config method])
     fi
     ;;
+esac
+
+case "$host" in
+*darwin*)
+	if test "yes" = "$use_gssapi"
+	then
+		use_gssapi=framework
+	fi
+	;;
 esac
 
 # gssapi is just the framework, we really require kerberos v5, so
@@ -1146,7 +1155,7 @@ esac
 # for the specification of gssapi and krb5 headers in different locations,
 # which probably ought to be fixed although fixing might raise the issue of
 # trying to build with incompatible versions of gssapi and krb5.
-if test "$use_gssapi" = "yes"
+if test "yes" = "$use_gssapi"
 then
 	# first, deal with the obvious
 	if test \( -f /usr/include/kerberosv5/krb5.h -o \
@@ -1188,6 +1197,14 @@ case "$use_gssapi" in
 		DST_GSSAPI_INC="$gssapi_cflags"
 		DNS_GSSAPI_LIBS="$gssapi_libs"
 		;;
+	framework)
+		USE_GSSAPI='-DGSSAPI'
+		ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <Kerberos/Kerberos.h>"
+		ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <Kerberos/Kerberos.h>"
+		DNS_GSSAPI_LIBS="-framework Kerberos"
+		AC_MSG_RESULT(framework)
+		;;
+		
 	*)
 		AC_MSG_RESULT(looking in $use_gssapi/lib)
 		USE_GSSAPI='-DGSSAPI'
@@ -1197,7 +1214,7 @@ case "$use_gssapi" in
 		    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
 		     gssapi_hack="#include <$ac_header>"])
 
-		if test "$ISC_PLATFORM_GSSAPIHEADER" = ""; then
+		if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
 		    AC_MSG_ERROR([gssapi.h not found])
 		fi
 
@@ -1209,7 +1226,7 @@ case "$use_gssapi" in
 		    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
 		    krb5_hack="#include <$ac_header>"])
 
-		if test "$ISC_PLATFORM_KRB5HEADER" = ""; then
+		if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
 		    AC_MSG_ERROR([krb5.h not found])
 		fi
 
@@ -1250,7 +1267,7 @@ case "$use_gssapi" in
 		    # -L/usr/local/lib to LIBS, which can make the
 		    # -lgssapi_krb5 test succeed with shared libraries even
 		    # when you are trying to build with KTH in /usr/lib.
-		    if test "$use_gssapi" = "/usr"
+		    if test "/usr" = "$use_gssapi"
 		    then
 			    LIBS="$TRY_LIBS"
 		    else
@@ -1288,7 +1305,7 @@ gsskrb5_register_acceptor_identity(NULL);
 		# many times as it is the right thing.  Something better
 		# needs to be done.
 		#
-		if test "$use_gssapi" = "/usr" -a \
+		if test "/usr" = "$use_gssapi" -a \
 			-f /usr/local/lib/libkrb5.a; then
 		    FIX_KTH_VS_MIT=yes
 		fi
@@ -1579,7 +1596,7 @@ case "$use_libxml2" in
 			libxml2_cflags=`xml2-config --cflags`
 			;;
 		*)
-			if test "$use_libxml2" = "yes" ; then
+			if test "yes" = "$use_libxml2" ; then
 				AC_MSG_RESULT(no)
 				AC_MSG_ERROR(required libxml2 version not available)
 			else
@@ -1667,7 +1684,7 @@ if test "X$GCC" = "Xyes"; then
 	CFLAGS="$CFLAGS -Werror -fno-strict-aliasing"
 	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
 	CFLAGS="$SAVE_CFLAGS"
-	if test "$FNOSTRICTALIASING" = "yes"; then
+	if test "yes" = "$FNOSTRICTALIASING"; then
 		AC_MSG_RESULT(yes)
 		STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"
 	else
@@ -1682,7 +1699,7 @@ if test "X$GCC" = "Xyes"; then
 	AC_TRY_COMPILE(,, [FNODELETENULLPOINTERCHECKS=yes],
 			  [FNODELETENULLPOINTERCHECKS=no])
 	CFLAGS="$SAVE_CFLAGS"
-	if test "$FNODELETENULLPOINTERCHECKS" = "yes"; then
+	if test "yes" = "$FNODELETENULLPOINTERCHECKS"; then
 		AC_MSG_RESULT(yes)
 		STD_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"
 	else
@@ -1916,12 +1933,12 @@ AC_ARG_ENABLE(symtable,
 		want_symtable="$enableval",  want_symtable="minimal")
 case $want_symtable in
 yes|all|minimal)     # "yes" is a hidden value equivalent to "minimal"
-	if test "$PERL" = ""
+	if test "" = "$PERL"
 	then
 		AC_MSG_ERROR([Internal symbol table requires perl but no perl is found.
 Install perl or explicitly disable the feature by --disable-symtable.])
 	fi
-	if test "$use_libtool" = "yes"; then
+	if test "yes" = "$use_libtool"; then
 		AC_MSG_WARN([Internal symbol table does not work with libtool.  Disabling symbol table.])
 	else
 		# we generate the internal symbol table only for those systems
@@ -2684,7 +2701,7 @@ no)	;;
 		LIBS="$readline"
 		AC_MSG_NOTICE(checking for readline with $readline)
 		AC_CHECK_FUNCS(readline)
-		if test "$ac_cv_func_readline" = "yes"
+		if test "yes" = "$ac_cv_func_readline"
 		then
 			READLINE_LIB="$readline"
 			break
@@ -2695,13 +2712,13 @@ no)	;;
 			unset ac_cv_func_readline
 			LIBS="$readline $lib"
 			AC_CHECK_FUNCS(readline)
-			if test "$ac_cv_func_readline" = "yes"
+			if test "yes" = "$ac_cv_func_readline"
 			then
 				READLINE_LIB="$readline $lib"
 				break
 			fi
 		done
-		if test "$ac_cv_func_readline" = "yes"
+		if test "yes" = "$ac_cv_func_readline"
 		then
 			break
 		fi
@@ -3167,7 +3184,7 @@ ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
-if test "$use_atomic" = "yes"; then
+if test "yes" = "$use_atomic"; then
 	have_atomic=yes		# set default
 	case "$host" in
 	[i[3456]86-*])
@@ -3211,7 +3228,7 @@ if test "$use_atomic" = "yes"; then
 	AC_MSG_RESULT($arch)
 fi
 
-if test "$have_atomic" = "yes"; then
+if test "yes" = "$have_atomic"; then
 	AC_MSG_CHECKING([compiler support for inline assembly code])
 
 	compiler=generic
@@ -3283,11 +3300,11 @@ if test "$have_atomic" = "yes"; then
 	AC_MSG_RESULT($compiler)
 fi
 
-if test "$have_atomic" = "yes"; then
+if test "yes" = "$have_atomic"; then
 	ISC_PLATFORM_HAVEXADD="#define ISC_PLATFORM_HAVEXADD 1"
 	ISC_PLATFORM_HAVECMPXCHG="#define ISC_PLATFORM_HAVECMPXCHG 1"
 	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
-	if test "$have_xaddq" = "yes"; then
+	if test "yes" = "$have_xaddq"; then
 		ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
 		ISC_PLATFORM_HAVEATOMICSTOREQ="#define ISC_PLATFORM_HAVEATOMICSTOREQ 1"
 	else
@@ -3329,7 +3346,7 @@ AC_TRY_LINK(, [
         have_builtin_expect=no
         AC_MSG_RESULT(no)
 ])
-if test "$have_builtin_expect" = "yes"; then
+if test "yes" = "$have_builtin_expect"; then
         AC_DEFINE(HAVE_BUILTIN_EXPECT, 1, [Define to 1 if the compiler supports __builtin_expect.])
 fi
 
@@ -3638,7 +3655,7 @@ esac
 AC_ARG_WITH(idnlib,
 	[  --with-idnlib=ARG       specify libidnkit],
 	idnlib="$withval", idnlib="no")
-if test "$idnlib" = yes; then
+if test "yes" = "$idnlib"; then
 	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
 fi
 
@@ -3660,7 +3677,7 @@ AC_SUBST(IDNLIBS)
 AC_ARG_WITH(atf,
 	[  --with-atf=ARG          Automated Test Framework support],
 	atf="$withval", atf="no")
-if test "$atf" = yes; then
+if test yes = "$atf"; then
 	atf=`pwd`/unit/atf
 	ATFBUILD=atf-src
 	AC_SUBST(ATFBUILD)
@@ -3849,22 +3866,22 @@ case $host in
 		;;
 esac
 
-if test "$dlopen" = "yes"; then
+if test "yes" = "$dlopen"; then
 	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
-	if test "$have_dl" = "yes"; then
+	if test "yes" = "$have_dl"; then
 		LIBS="-ldl $LIBS"
 	fi
 	AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
 fi
 
-if test "$dlopen" = "yes"; then
+if test "yes" = "$dlopen"; then
 	case $host in
 		*-linux*|*-gnu*)
 			SO_CFLAGS="-fPIC"
 			SO_LDFLAGS=""
-			if test "$have_dl" = "yes"
+			if test "yes" = "$have_dl"
 			then
-				if test "$use_libtool" = "yes"; then
+				if test "yes" = "$use_libtool"; then
 					SO_LDFLAGS="-Xcompiler -shared"
 					SO_LD="${CC}"
 				else
@@ -3878,8 +3895,7 @@ if test "$dlopen" = "yes"; then
 			;;
 		*-freebsd*|*-openbsd*)
 			SO_CFLAGS="-fpic"
-			elf=`${CC} -dM -E - < /dev/null | grep __ELF__`
-			if test "$use_libtool" = "yes"; then
+			if test "yes" = "$use_libtool"; then
 				SO_LDFLAGS="-Xcompiler -shared"
 				SO_LD="${CC}"
 			else
@@ -3912,7 +3928,7 @@ if test "$dlopen" = "yes"; then
 		SO_CFLAGS="-fPIC"
 		if test -z "$SO_LD"
 		then
-			if test "$use_libtool" = "yes"; then
+			if test "yes" = "$use_libtool"; then
 				SO_LDFLAGS="-Xcompiler -shared"
 				SO_LD="${CC}"
 			else
@@ -3957,7 +3973,7 @@ AC_SUBST(DLZ_DRIVER_OBJS)
 AC_SUBST(DLZ_SYSTEM_TEST)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
-if test "$cross_compiling" = "yes"; then
+if test "yes" = "$cross_compiling"; then
 	if test -z "$BUILD_CC"; then
 		AC_MSG_ERROR([BUILD_CC not set])
 	fi
@@ -4285,31 +4301,31 @@ echo "------------------------------------------------------------------------"
 echo "Optional features enabled:"
 $use_threads && echo "    Multiprocessing support (--enable-threads)"
 
-test "$enable_rrl" = "yes" && \
+test "yes" = "$enable_rrl" && \
     echo "    Response Rate Limiting (--enable-rrl)"
-test "$enable_fetchlimit" = "yes" && \
+test "yes" = "$enable_fetchlimit" && \
     echo "    Recursive fetch limits for DoS attack mitigation (--enable-fetchlimit)"
-test "$use_gssapi" = "no" || echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-test "$enable_newstats" = "yes" && \
+test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
+test "no" = "$use_pkcs11" || echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "yes" = "$enable_newstats" && \
     echo "    New statistics (--enable-newstats)"
-test "$enable_fixed" = "yes" && \
+test "yes" = "$enable_fixed" && \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-test "$enable_filter" = "yes" && \
+test "yes" = "$enable_filter" && \
     echo "    AAAA filtering (--enable-filter-aaaa)"
-test "$want_backtrace" = "yes" && \
+test "yes" = "$want_backtrace" && \
     echo "    Print backtrace on crash (--enable-backtrace)"
-test "$want_symtable" = "minimal" && \
+test "minimal" = "$want_symtable" && \
     echo "    Use symbol table for backtrace, named only (--enable-symtable)"
-test "$want_symtable" = "yes" -o "$want_symtable" = "all" && \
+test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
     echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-test "$want_querytrace" = "yes" && \
+test "yes" = "$want_querytrace" && \
     echo "    Very verbose query trace logging (--enable-querytrace)"
-test "$atf" = "no" || echo "    Automated Testing Framework (--with-atf)"
+test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
 
 # these lines are only printed if run with --enable-full-report 
-if test "$enable_full_report" = "yes"; then
-    test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" || \
+if test "yes" = "$enable_full_report"; then
+    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
 	echo "    IPv6 support (--enable-ipv6)"
     test "X$USE_OPENSSL" = "X" || \
 	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
@@ -4322,41 +4338,41 @@ if test "$enable_full_report" = "yes"; then
 fi
 
 echo "    Dynamically loadable zone (DLZ) drivers:"
-test "$use_dlz_bdb" = "no" || \
+test "no" = "$use_dlz_bdb" || \
     echo "        Berkeley DB (--with-dlz-bdb)"
-test "$use_dlz_ldap" = "no" || \
+test "no" = "$use_dlz_ldap" || \
     echo "        LDAP (--with-dlz-ldap)"
-test "$use_dlz_mysql" = "no" || \
+test "no" = "$use_dlz_mysql" || \
     echo "        MySQL (--with-dlz-mysql)"
-test "$use_dlz_odbc" = "no" || \
+test "no" = "$use_dlz_odbc" || \
     echo "        ODBC (--with-dlz-odbc)"
-test "$use_dlz_postgres" = "no" || \
+test "no" = "$use_dlz_postgres" || \
     echo "        Postgres (--with-dlz-postgres)"
-test "$use_dlz_filesystem" = "no" || \
+test "no" = "$use_dlz_filesystem" || \
     echo "        Filesystem (--with-dlz-filesystem)"
-test "$use_dlz_stub" = "no" || \
+test "no" = "$use_dlz_stub" || \
     echo "        Stub (--with-dlz-stub)"
-test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+test "no no no no no no no" = "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" && echo "        None"
 echo
 
 echo "Features disabled or unavailable on this platform:"
 $use_threads || echo "    Multiprocessing support (--enable-threads)"
-test "$enable_ipv6" = "no" -o "$found_ipv6" = "no" && \
+test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
 	echo "    IPv6 support (--enable-ipv6)"
-test "$enable_rrl" = "yes" || \
+test "yes" = "$enable_rrl" || \
     echo "    Response Rate Limiting (--enable-rrl)"
-test "$enable_fetchlimit" = "no" && \
+test "no" = "$enable_fetchlimit" && \
         echo "    Recursive fetch limits for DoS attack mitigation (--enable-fetchlimit)"
-test "$use_gssapi" = "no" && echo "    GSS-API (--with-gssapi)"
-test "$use_pkcs11" = "no" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
+test "no" = "$use_pkcs11" && echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
 test "X$enable_newstats" = "X" && echo "    New statistics (--enable-newstats)"
-test "$enable_fixed" = "yes" || \
+test "yes" = "$enable_fixed" || \
     echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-test "$want_backtrace" = "yes" || \
+test "yes" = "$want_backtrace" || \
     echo "    Print backtrace on crash (--enable-backtrace)"
-test "$want_querytrace" = "yes" || \
+test "yes" = "$want_querytrace" || \
     echo "    Very verbose query trace logging (--enable-querytrace)"
-test "$atf" = "no" && echo "    Automated Testing Framework (--with-atf)"
+test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
 test "X$USE_OPENSSL" = "X" && \
 	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 test "X$USE_OPENSSL" != "X" -a "$OPENSSL_GOST" != "yes" && \
