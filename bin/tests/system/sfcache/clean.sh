@@ -8,7 +8,6 @@
 
 rm -f */K*.key */K*.private */*.signed */*.db */dsset-*
 rm -f */managed.conf */trusted.conf
-rm -f random.data
 rm -f */named.memstats
 rm -f */named.run
 rm -f dig.*

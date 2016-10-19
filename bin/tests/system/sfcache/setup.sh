@@ -6,9 +6,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-../../../tools/genrandom 400 random.data
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-cd ns1 && sh sign.sh
+$SHELL clean.sh
+
+test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+
+cd ns1 && $SHELL sign.sh
 
 cd ../ns5 && cp -f trusted.conf.bad trusted.conf
 

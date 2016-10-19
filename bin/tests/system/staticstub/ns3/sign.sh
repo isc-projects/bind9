@@ -15,7 +15,7 @@ zonefile=example.db
 
 (cd ../ns4 && $SHELL -e sign.sh )
 
-cp ../ns4/dsset-sub.example. .
+cp ../ns4/dsset-sub.example$TP .
 
 keyname1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
 keyname2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 2048 -f KSK -n zone $zone`

@@ -93,4 +93,9 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 isc_boolean_t
 isoptarg(const char *arg, char **argv, void (*usage)(void));
 
+#ifdef _WIN32
+void InitSockets(void);
+void DestroySockets(void);
+#endif
+
 #endif /* DNSSEC_DNSSECTOOL_H */

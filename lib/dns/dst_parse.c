@@ -659,8 +659,17 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	result = isc_file_mode(filename, &mode);
 	if (result == ISC_R_SUCCESS && mode != 0600) {
 		/* File exists; warn that we are changing its permissions */
+		int level;
+
+#ifdef _WIN32
+		/* Windows security model is pretty different,
+		 * e.g., there is no umask... */
+		level = ISC_LOG_NOTICE;
+#else
+		level = ISC_LOG_WARNING;
+#endif
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+			      DNS_LOGMODULE_DNSSEC, level,
 			      "Permissions on the file %s "
 			      "have changed from 0%o to 0600 as "
 			      "a result of this operation.",

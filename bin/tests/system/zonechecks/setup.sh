@@ -21,7 +21,8 @@ touch master.db.signed
 echo '$INCLUDE "master.db.signed"' >> master.db
 $KEYGEN -r $RANDFILE -3q master.example > /dev/null 2>&1
 $KEYGEN -r $RANDFILE -3qfk master.example > /dev/null 2>&1
-$SIGNER -SD -o master.example master.db > /dev/null 2>&1
+$SIGNER -SD -o master.example master.db > /dev/null \
+    2> signer.err || cat signer.err
 echo '$INCLUDE "soa.db"' > reload.db
 echo '@ 0 NS .' >> reload.db
 echo '@ 0 SOA . . 1 0 0 0 0' > soa.db

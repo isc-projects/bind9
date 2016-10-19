@@ -25,7 +25,7 @@ $DIG +nostats +nocmd ttl2. axfr @10.53.0.1 -p 5300 >>dig.out.$n
 echo "I:test of master file RFC1035 TTL and \$TTL semantics ($n)"
 $DIG +nostats +nocmd ttl2. axfr @10.53.0.1 -p 5300 >>dig.out.$n
 
-diff dig.out.$n knowngood.dig.out || status=1
+$DIFF dig.out.$n knowngood.dig.out || status=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -49,7 +49,7 @@ ret=0
 n=`expr $n + 1`
 echo "I:test owner inheritence after "'$INCLUDE'" ($n)"
 $CHECKZONE -Dq example zone/inheritownerafterinclude.db > checkzone.out$n
-diff checkzone.out$n zone/inheritownerafterinclude.good || ret=1
+$DIFF checkzone.out$n zone/inheritownerafterinclude.good || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

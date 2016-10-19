@@ -15,7 +15,7 @@ infile=root.db.in
 
 (cd ../ns2 && $SHELL keygen.sh )
 
-cat $infile ../ns2/dsset-example. > $zonefile
+cat $infile ../ns2/dsset-example$TP > $zonefile
 
 zskact=`$KEYGEN -3 -q -r $RANDFILE $zone`
 zskvanish=`$KEYGEN -3 -q -r $RANDFILE $zone`

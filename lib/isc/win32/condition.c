@@ -80,6 +80,7 @@ register_thread(unsigned long thrd, isc_condition_t *gblcond,
 	/*
 	 * The thread is holding the manager lock so this is safe
 	 */
+	ISC_LINK_INIT(newthread, link);
 	ISC_LIST_APPEND(gblcond->threadlist, newthread, link);
 	*localcond = newthread;
 	return (ISC_R_SUCCESS);

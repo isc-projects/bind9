@@ -9,10 +9,15 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIG="./dig.sh"
+if [ "$CYGWIN" ]; then
+    DIG=".\dig.bat"
+    WINDSFROMKEY=`cygpath -w $DSFROMKEY`
+    CHECKDS="$CHECKDS -d $DIG -D $WINDSFROMKEY"
+else
+    DIG="./dig.sh"
+    CHECKDS="$CHECKDS -d $DIG -D $DSFROMKEY"
+fi
 chmod +x $DIG
-
-CHECKDS="$CHECKDS -d $DIG -D $DSFROMKEY"
 
 status=0
 n=1

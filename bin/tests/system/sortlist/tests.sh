@@ -27,7 +27,7 @@ $DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd a.example. \
 	@10.53.0.1 -b 10.53.0.1 -p 5300 >test1.dig
 # Note that this can't use digcomp.pl because here, the ordering of the
 # result RRs is significant.
-diff test1.dig test1.good || status=1
+$DIFF test1.dig test1.good || status=1
 
 echo "I:test 1-element sortlist statement and undocumented BIND 8 features"
 	cat <<EOF >test2.good

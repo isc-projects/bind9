@@ -14,15 +14,15 @@ t=0
 
 echo "I:class list"
 $RRCHECKER -C > classlist.out
-diff classlist.out classlist.good || { echo "I:failed"; status=`expr $status + 1`; }
+$DIFF classlist.out classlist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:type list"
 $RRCHECKER -T > typelist.out
-diff typelist.out typelist.good || { echo "I:failed"; status=`expr $status + 1`; }
+$DIFF typelist.out typelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:private type list"
 $RRCHECKER -P > privatelist.out
-diff privatelist.out privatelist.good || { echo "I:failed"; status=`expr $status + 1`; }
+$DIFF privatelist.out privatelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
 myecho() {
 cat << EOF
