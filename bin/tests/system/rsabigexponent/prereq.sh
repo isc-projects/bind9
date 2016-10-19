@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-if ./bigkey > /dev/null 2>&1
+if $BIGKEY > /dev/null 2>&1
 then
     rm -f Kexample.*
 else

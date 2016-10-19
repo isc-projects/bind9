@@ -10,5 +10,6 @@ rm -f *.out
 rm -f */named.memstats
 rm -f */named.run
 rm -f */*.db */*.db.signed */K*.key */K*.private */*.jnl */dsset-*
+rm -f */signer.err
 rm -f rndc.out.*
 rm -f ns*/named.lock

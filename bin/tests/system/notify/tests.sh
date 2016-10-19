@@ -58,11 +58,16 @@ awk '$1 > 5 { exit(1) }' log.out || ret=1
 [ $ret = 0 ] || echo "I:failed"
 status=`expr $ret + $status`
 
-echo "I:reloading with example2 using HUP and waiting up to 45 seconds"
 sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
-kill -HUP `cat ns2/named.pid`
+if [ ! "$CYGWIN" ]; then
+    echo "I:reloading with example2 using HUP and waiting up to 45 seconds"
+    $KILL -HUP `cat ns2/named.pid`
+else
+    echo "I:reloading with example2 using rndc and waiting up to 45 seconds"
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 2>&1 | sed 's/^/I:ns2 /'
+fi
 try=0
 while test $try -lt 45
 do

@@ -26,7 +26,7 @@ infile="${zonefile}.in"
 cp $infile $zonefile
 ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
 zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
-cat $ksk.key $zsk.key dsset-ds.example.net. >> $zonefile
+cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 # Configure a trusted key statement (used by delve)

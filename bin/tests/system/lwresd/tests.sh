@@ -36,7 +36,7 @@ do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-./lwtest || ret=1
+$LWTEST || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
 fi
@@ -55,7 +55,7 @@ do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-./lwtest || ret=1
+$LWTEST || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
 fi
@@ -74,7 +74,7 @@ do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-./lwtest -nosearch || ret=1
+$LWTEST -nosearch || ret=1
 if [ $ret != 0 ]; then
 	echo "I:failed"
 fi

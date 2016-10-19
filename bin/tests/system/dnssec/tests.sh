@@ -1864,7 +1864,7 @@ ret=0
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -1927,7 +1927,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -1986,7 +1986,7 @@ grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.2 > /dev/null || ret=1
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -2035,7 +2035,7 @@ echo "I: testing loading out of bounds lifetime from NTA file ($n)"
 
 echo "I:killing ns4 with SIGTERM"
 cd ns4
-kill -TERM `cat named.pid`
+$KILL -TERM `cat named.pid`
 rm -f named.pid
 cd ..
 
@@ -2538,7 +2538,7 @@ awk '{
 	for (i=1;i<7;i++) printf("%s ", $i);
 	for (i=7;i<=NF;i++) printf("%s", $i);
 	printf("\n");
-}' < ns1/dsset-algroll. > canonical2.$n || ret=1
+}' < ns1/dsset-algroll$TP > canonical2.$n || ret=1
 diff -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -3002,7 +3002,7 @@ else
 		 +trusted-key=ns3/trusted-future.key > dig.out.ns3.test$n &
 	pid=$!
 	sleep 1
-	kill -9 $pid 2> /dev/null
+	$KILL -9 $pid 2> /dev/null
 	wait $pid
 	grep ";; No DNSKEY is valid to check the RRSIG of the RRset: FAILED" dig.out.ns3.test$n > /dev/null || ret=1
 	if [ $ret != 0 ]; then echo "I:failed"; fi

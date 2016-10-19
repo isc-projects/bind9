@@ -34,7 +34,13 @@ for dir in [0-9][0-9]-*; do
         policy=""
         [ -e "$dir/policy.conf" ] && policy="-c $dir/policy.conf"
         # run keymgr to update keys
-        $KEYMGR $policy -K $dir -g $KEYGEN -r $RANDFILE -s $SETTIME $kargs > keymgr.$n 2>&1
+	if [ "$CYGWIN" ]; then
+            $KEYMGR $policy -K $dir -g `cygpath -w $KEYGEN` -r $RANDFILE \
+		-s `cygpath -w $SETTIME` $kargs > keymgr.$n 2>&1
+	else
+	    $KEYMGR $policy -K $dir -g $KEYGEN -r $RANDFILE \
+		-s $SETTIME $kargs > keymgr.$n 2>&1
+	fi
         # check that return code matches expectations
         found=$?
         if [ $found -ne $kret ]; then
@@ -92,6 +98,7 @@ done
 echo "I:checking policy.conf parser ($n)"
 ret=0
 ${PYTHON} testpolicy.py policy.sample > policy.out
+$DOS2UNIX policy.out > /dev/null
 cmp -s policy.good policy.out || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

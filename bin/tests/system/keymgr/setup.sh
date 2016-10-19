@@ -210,4 +210,4 @@ rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -3fk example.com`
 zsk1=`$KEYGEN -K $dir -3 example.com`
-$SETTIME -K $dir -I now+2mo -D now+3mo $z1 > /dev/null
+$SETTIME -K $dir -I now+2mo -D now+3mo $zsk1 > /dev/null

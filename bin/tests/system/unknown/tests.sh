@@ -20,7 +20,7 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 a$i.example a in > dig.out || ret=1
-	echo 10.0.0.1 | diff - dig.out || ret=1
+	echo 10.0.0.1 | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -33,7 +33,7 @@ for i in 1 2 3 4 5 6 7
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 txt$i.example txt in > dig.out || ret=1
-	echo '"hello"' | diff - dig.out || ret=1
+	echo '"hello"' | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -46,7 +46,7 @@ for i in 1 2 3
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 unk$i.example type123 in > dig.out || ret=1
-	echo '\# 1 00' | diff - dig.out || ret=1
+	echo '\# 1 00' | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -57,14 +57,14 @@ done
 echo "I:querying for NULL record"
 ret=0
 $DIG +short $DIGOPTS @10.53.0.1 null.example null in > dig.out || ret=1
-echo '\# 1 00' | diff - dig.out || ret=1
+echo '\# 1 00' | $DIFF - dig.out || ret=1
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
 echo "I:querying for empty NULL record"
 ret=0
 $DIG +short $DIGOPTS @10.53.0.1 empty.example null in > dig.out || ret=1
-echo '\# 0' | diff - dig.out || ret=1
+echo '\# 0' | $DIFF - dig.out || ret=1
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
@@ -73,7 +73,7 @@ for i in 1 2
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 a$i.example a class10 > dig.out || ret=1
-	echo '\# 4 0A000001' | diff - dig.out || ret=1
+	echo '\# 4 0A000001' | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -86,7 +86,7 @@ for i in 1 2 3 4
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 txt$i.example txt class10 > dig.out || ret=1
-	echo '"hello"' | diff - dig.out || ret=1
+	echo '"hello"' | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -99,7 +99,7 @@ for i in 1 2
 do
 	ret=0
 	$DIG +short $DIGOPTS @10.53.0.1 unk$i.example type123 class10 > dig.out || ret=1
-	echo '\# 1 00' | diff - dig.out || ret=1
+	echo '\# 1 00' | $DIFF - dig.out || ret=1
 	if [ $ret != 0 ]
 	then
 		echo "#$i failed"
@@ -123,14 +123,14 @@ done
 echo "I:checking large unknown record loading on master"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+$DIFF -s large.out dig.out > /dev/null || { ret=1 ; echo "I: $DIFF failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
 echo "I:checking large unknown record loading on slave"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+$DIFF -s large.out dig.out > /dev/null || { ret=1 ; echo "I: $DIFF failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
@@ -141,14 +141,14 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 echo "I:checking large unknown record loading on slave"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff -s large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+$DIFF -s large.out dig.out > /dev/null || { ret=1 ; echo "I: $DIFF failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
 echo "I:checking large unknown record loading on inline slave"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+$DIFF large.out dig.out > /dev/null || { ret=1 ; echo "I: $DIFF failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
@@ -159,21 +159,21 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns3
 echo "I:checking large unknown record loading on inline slave"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out || { ret=1 ; echo I: dig failed ; }
-diff large.out dig.out > /dev/null || { ret=1 ; echo "I: diff failed"; }
+$DIFF large.out dig.out > /dev/null || { ret=1 ; echo "I: $DIFF failed"; }
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
 echo "I:check that '"'"\\#"'"' is not treated as the unknown escape sequence"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 +tcp +short txt8.example txt > dig.out
-echo '"#" "2" "0145"' | diff - dig.out || ret=1
+echo '"#" "2" "0145"' | $DIFF - dig.out || ret=1
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
 echo "I:check that 'TXT \# text' is not treated as the unknown escape sequence"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 +tcp +short txt9.example txt > dig.out
-echo '"#" "text"' | diff - dig.out || ret=1
+echo '"#" "text"' | $DIFF - dig.out || ret=1
 [ $ret = 0 ] || echo "I: failed"
 status=`expr $status + $ret`
 
