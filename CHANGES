@@ -1,3 +1,5 @@
+4488.	[port]		Darwin: use -framework for Kerberos. [RT #43418]
+
 4487.	[test]		Make system tests work on Windows. [RT #42931]
 
 4486.	[bug]		Look in $prefix/lib/pythonX.Y/site-packages for
