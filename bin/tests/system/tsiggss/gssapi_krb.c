@@ -20,13 +20,7 @@
 
 int
 main() {
-#if (defined(HAVE_GSSAPI_H) || \
-     defined(HAVE_GSSAPI_GSSAPI_H)) && \
-    (defined(HAVE_KRB5_H) || \
-     defined(HAVE_KRB5_KRB5_H) || \
-     defined(HAVE_GSSAPI_GSSAPI_KRB5_H) || \
-     defined(HAVE_GSSAPI_KRB5_H) || \
-     defined(HAVE_KERBEROSV5_KRB5_H))
+#ifdef GSSAPI
 	return (0);
 #else
 	return (1);

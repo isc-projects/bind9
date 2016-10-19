@@ -22,21 +22,17 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
-CDEFINES =
+CINCLUDES =
+CDEFINES =	@USE_GSSAPI@
 CWARNINGS =
 
 LIBS =		@LIBS@
 
-#SO_TARGETS =    driver.@SO@
-TARGETS =	gssapi_krb@EXEEXT@ @SO_TARGETS@
+TARGETS =	gssapi_krb@EXEEXT@
 
-SRCS =		gssapi_krb.c driver.c
+SRCS =		gssapi_krb.c
 
 GSSAPIKRBOBJS      = gssapi_krb.@O@
-
-SO_OBJS         = driver.@O@
-SO_SRCS         = driver.c
 
 OBJS =          ${GSSAPIKRBOBJS}
 
@@ -47,9 +43,6 @@ CFLAGS =	@CFLAGS@ @SO_CFLAGS@
 gssapi_krb@EXEEXT@: ${GSSAPIKRBOBJS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
 		-o $@ ${GSSAPIKRBOBJS} ${LIBS}
-
-#driver.@SO@: ${SO_OBJS}
-#	@SO_LD@ -o $@ driver.o
 
 clean distclean::
 	rm -f ${TARGETS}
