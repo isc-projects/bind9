@@ -2056,10 +2056,10 @@
 ./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006,2007
 ./bin/tests/system/tsig/setup.sh		SH	2016
 ./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011,2012,2016
-./bin/tests/system/tsiggss/Makefile.in		MAKE	2011,2012,2015
+./bin/tests/system/tsiggss/Makefile.in		MAKE	2011,2012,2015,2016
 ./bin/tests/system/tsiggss/authsock.pl		PERL	2011,2012
 ./bin/tests/system/tsiggss/clean.sh		SH	2010,2011,2014,2015
-./bin/tests/system/tsiggss/gssapi_krb.c		C	2011
+./bin/tests/system/tsiggss/gssapi_krb.c		C	2011,2016
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
 ./bin/tests/system/tsiggss/ns1/dns.keytab	X	2010
 ./bin/tests/system/tsiggss/ns1/example.nil.db.in	X	2011
