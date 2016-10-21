@@ -51,6 +51,10 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.11.0-P1
+
+	This version contains a fix for CVE-2016-8864.
+
 BIND 9.11.0
 
 	BIND 9.11.0 includes a number of changes from BIND 9.10 and earlier
