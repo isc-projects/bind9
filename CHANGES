@@ -1,3 +1,6 @@
+4491.	[bug]		Improve message emitted when testing whether sendmsg
+			works with TOS/TCLASS fails. [RT #43483]
+
 4490.	[maint]		Added AAAA (2001:500:12::d0d) for G.ROOT-SERVERS.NET.
 
 4489.	[security]	It was possible to trigger assertions when processing
