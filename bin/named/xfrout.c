@@ -1172,7 +1172,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->txmem = NULL;
 	xfr->txmemlen = 0;
 	xfr->nmsg = 0;
-	xfr->many_answers = many_answers,
+	xfr->many_answers = many_answers;
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
 	xfr->mnemonic = NULL;
