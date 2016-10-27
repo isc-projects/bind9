@@ -38,6 +38,7 @@ SRCS =		context.c \
 LIBS =		@LIBS@
 
 SUBDIRS =	include
+TESTDIRS =	@UNITTESTS@
 TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@
