@@ -88,8 +88,12 @@
 #include <bind9/getaddresses.h>
 
 #if defined(HAVE_READLINE)
+#if defined(HAVE_EDITLINE_READLINE_H)
+#include <editline/readline.h>
+#else
 #include <readline/readline.h>
 #include <readline/history.h>
+#endif
 #endif
 
 #ifdef HAVE_ADDRINFO

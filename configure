@@ -17732,6 +17732,49 @@ done
 	LIBS="$saved_LIBS"
 	;;
 esac
+if test yes = "$ac_cv_func_readline"
+then
+	case "$READLINE_LIB" in
+	*edit*)
+		for ac_header in editline/readline.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "editline/readline.h" "ac_cv_header_editline_readline_h" "$ac_includes_default"
+if test "x$ac_cv_header_editline_readline_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EDITLINE_READLINE_H 1
+_ACEOF
+
+fi
+
+done
+
+		;;
+	esac
+	for ac_header in readline/readline.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "readline/readline.h" "ac_cv_header_readline_readline_h" "$ac_includes_default"
+if test "x$ac_cv_header_readline_readline_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READLINE_READLINE_H 1
+_ACEOF
+
+fi
+
+done
+
+	for ac_header in readline/history.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "readline/history.h" "ac_cv_header_readline_history_h" "$ac_includes_default"
+if test "x$ac_cv_header_readline_history_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_READLINE_HISTORY_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
 
 ISC_PRINT_OBJS=
 ISC_PRINT_SRCS=

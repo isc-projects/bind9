@@ -1,3 +1,5 @@
+4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
+
 4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
 			causing bad writes if resolv.conf contained a
 			sortlist directive. [RT #43459]
