@@ -3388,6 +3388,16 @@ no)	;;
 	LIBS="$saved_LIBS"
 	;;
 esac
+if test yes = "$ac_cv_func_readline"
+then
+	case "$READLINE_LIB" in
+	*edit*)
+		AC_CHECK_HEADERS(editline/readline.h)
+		;;
+	esac
+	AC_CHECK_HEADERS(readline/readline.h)
+	AC_CHECK_HEADERS(readline/history.h)
+fi
 
 ISC_PRINT_OBJS=
 ISC_PRINT_SRCS=
