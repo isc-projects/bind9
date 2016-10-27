@@ -1,3 +1,6 @@
+4493.	[bug]		bin/tests/system/dyndb/driver/Makefile.in should use
+			SO_TARGETS. [RT# 43336]
+
 4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
 			causing bad writes if resolv.conf contained a
 			sortlist directive. [RT #43459]

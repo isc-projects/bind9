@@ -32,7 +32,8 @@ SRCS =		db.c driver.c instance.c \
 OBJS =		db.@O@ driver.@O@ instance.@O@ \
 		lock.@O@ log.@O@ syncptr.@O@ zone.@O@
 
-TARGETS =	lib/sample.@SO@
+SO_TARGETS =	lib/sample.@SO@
+TARGETS =	@SO_TARGETS@
 
 @BIND9_MAKE_RULES@
 
