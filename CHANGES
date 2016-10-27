@@ -1,3 +1,7 @@
+4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
+			causing bad writes if resolv.conf contained a
+			sortlist directive. [RT #43459]
+
 4490.	[maint]		Added AAAA (2001:500:12::d0d) for G.ROOT-SERVERS.NET.
 
 4489.	[security]	It was possible to trigger assertions when processing
