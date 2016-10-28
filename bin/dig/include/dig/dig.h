@@ -137,6 +137,7 @@ struct dig_lookup {
 		use_usec,
 		nocrypto,
 		ttlunits,
+		idnout,
 		qr;
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;

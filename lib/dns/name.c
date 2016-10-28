@@ -2375,7 +2375,8 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 		return (ISC_R_SUCCESS);
 	}
 	if (proc == NULL) {
-		isc_mem_put(thread_key_mctx, mem, sizeof(*mem));
+		if (mem != NULL)
+			isc_mem_put(thread_key_mctx, mem, sizeof(*mem));
 		res = isc_thread_key_setspecific(totext_filter_proc_key, NULL);
 		if (res != 0)
 			result = ISC_R_UNEXPECTED;
