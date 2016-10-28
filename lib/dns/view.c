@@ -239,18 +239,22 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->new_zone_dbenv = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;
-	isc_mutex_init(&view->new_zone_lock);
 	view->fail_ttl = 0;
 	view->failcache = NULL;
+	(void)dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
+				   &view->failcache);
 	view->v6bias = 0;
-	dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE, &view->failcache);
 	view->dtenv = NULL;
 	view->dttypes = 0;
+
+	result = isc_mutex_init(&view->new_zone_lock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_dynkeys;
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup_dynkeys;
+			goto cleanup_new_zone_lock;
 	}
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
@@ -285,6 +289,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  cleanup_order:
 	if (view->order != NULL)
 		dns_order_detach(&view->order);
+
+ cleanup_new_zone_lock:
+	DESTROYLOCK(&view->new_zone_lock);
 
  cleanup_dynkeys:
 	if (view->dynamickeys != NULL)
@@ -515,7 +522,8 @@ destroy(dns_view_t *view) {
 #endif /* HAVE_LMDB */
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
-	dns_badcache_destroy(&view->failcache);
+	if (view->failcache != NULL)
+		dns_badcache_destroy(&view->failcache);
 	DESTROYLOCK(&view->new_zone_lock);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
