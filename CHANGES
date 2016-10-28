@@ -2,7 +2,8 @@
 			display in punycode or not.  Requires idn support
 			to be enabled at compile time. [RT #43398]
 
-4495.	[bug]		A isc_mutex_init call was it being checked. [RT #43391]
+4495.	[bug]		A isc_mutex_init call was not being checked.
+			[RT #43391]
 
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
