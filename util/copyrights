@@ -1439,6 +1439,7 @@
 ./bin/tests/system/emptyzones/ns1/root.hint	ZONE	2014,2016
 ./bin/tests/system/emptyzones/setup.sh		SH	2014,2016
 ./bin/tests/system/emptyzones/tests.sh		SH	2014,2015,2016
+./bin/tests/system/feature-test.c		C	2016
 ./bin/tests/system/fetchlimit/ans4/ans.pl	PERL	2015,2016
 ./bin/tests/system/fetchlimit/clean.sh		SH	2015,2016
 ./bin/tests/system/fetchlimit/ns1/named.conf	CONF-C	2015,2016
