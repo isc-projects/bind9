@@ -42,7 +42,7 @@ usage() {
 
 int
 main(int argc, char **argv) {
-	
+
 	if (argc != 2) {
 		usage();
 		return (1);
@@ -85,7 +85,7 @@ main(int argc, char **argv) {
 #endif
 	}
 
-	if (strcmp(argv[1], "--have-dlopen") == 0) {	
+	if (strcmp(argv[1], "--have-dlopen") == 0) {
 #if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN)
 		return (0);
 #else
@@ -93,7 +93,7 @@ main(int argc, char **argv) {
 #endif
 	}
 
-	if (strcmp(argv[1], "--have-geoip") == 0) {	
+	if (strcmp(argv[1], "--have-geoip") == 0) {
 #ifdef HAVE_GEOIP
 		return (0);
 #else
@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 #endif
 	}
 
-        if (strcmp(argv[1], "--have-libxml2") == 0) {
+	if (strcmp(argv[1], "--have-libxml2") == 0) {
 #ifdef HAVE_LIBXML2
 		return (0);
 #else
@@ -109,21 +109,21 @@ main(int argc, char **argv) {
 #endif
 	}
 
-        if (strcmp(argv[1], "--rpz-nsip") == 0) {
+	if (strcmp(argv[1], "--rpz-nsip") == 0) {
 #ifdef ENABLE_RPZ_NSIP
-                return (0);
+		return (0);
 #else
-                return (1);
+		return (1);
 #endif
-        }
+	}
 
-        if (strcmp(argv[1], "--rpz-nsdname") == 0) {
+	if (strcmp(argv[1], "--rpz-nsdname") == 0) {
 #ifdef ENABLE_RPZ_NSDNAME
-                return (0);
+		return (0);
 #else
-                return (1);
+		return (1);
 #endif
-        }
+	}
 
 	if (strcmp(argv[1], "--with-idn") == 0) {
 #ifdef WITH_IDN
