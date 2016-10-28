@@ -1,3 +1,5 @@
+4495.	[bug]		A isc_mutex_init call was it being checked. [RT #43391]
+
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
 4493.	[bug]		bin/tests/system/dyndb/driver/Makefile.in should use
