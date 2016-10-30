@@ -28,9 +28,15 @@
 #define ISC_HMACMD5_KEYLENGTH 64
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
+#include <openssl/opensslv.h>
 #include <openssl/hmac.h>
 
-typedef HMAC_CTX isc_hmacmd5_t;
+typedef struct {
+	HMAC_CTX *ctx;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	HMAC_CTX _ctx;
+#endif
+} isc_hmacmd5_t;
 
 #elif PKCS11CRYPTO
 #include <pk11/pk11.h>

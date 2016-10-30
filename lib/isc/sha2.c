@@ -61,18 +61,26 @@
 #endif
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new() &(context->_ctx)
+#define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
+#define EVP_MD_CTX_reset(c) EVP_MD_CTX_cleanup(c)
+#endif
 
 void
 isc_sha224_init(isc_sha224_t *context) {
 	if (context == (isc_sha224_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(EVP_DigestInit(context, EVP_sha224()) == 1);
+	context->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(context->ctx != NULL);
+	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha224()) == 1);
 }
 
 void
 isc_sha224_invalidate(isc_sha224_t *context) {
-	EVP_MD_CTX_cleanup(context);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -83,9 +91,11 @@ isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 	}
 
 	/* Sanity check: */
-	REQUIRE(context != (isc_sha224_t *)0 && data != (isc_uint8_t*)0);
+	REQUIRE(context != (isc_sha224_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
+	REQUIRE(data != (isc_uint8_t*)0);
 
-	RUNTIME_CHECK(EVP_DigestUpdate(context,
+	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
@@ -93,13 +103,14 @@ void
 isc_sha224_final(isc_uint8_t digest[], isc_sha224_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha224_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0) {
-		RUNTIME_CHECK(EVP_DigestFinal(context, digest, NULL) == 1);
-	} else {
-		EVP_MD_CTX_cleanup(context);
-	}
+	if (digest != (isc_uint8_t*)0)
+		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
+					      digest, NULL) == 1);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -107,12 +118,15 @@ isc_sha256_init(isc_sha256_t *context) {
 	if (context == (isc_sha256_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(EVP_DigestInit(context, EVP_sha256()) == 1);
+	context->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(context->ctx != NULL);
+	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha256()) == 1);
 }
 
 void
 isc_sha256_invalidate(isc_sha256_t *context) {
-	EVP_MD_CTX_cleanup(context);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -123,9 +137,11 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 	}
 
 	/* Sanity check: */
-	REQUIRE(context != (isc_sha256_t *)0 && data != (isc_uint8_t*)0);
+	REQUIRE(context != (isc_sha256_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
+	REQUIRE(data != (isc_uint8_t*)0);
 
-	RUNTIME_CHECK(EVP_DigestUpdate(context,
+	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
@@ -133,13 +149,14 @@ void
 isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha256_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0) {
-		RUNTIME_CHECK(EVP_DigestFinal(context, digest, NULL) == 1);
-	} else {
-		EVP_MD_CTX_cleanup(context);
-	}
+	if (digest != (isc_uint8_t*)0)
+		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
+					      digest, NULL) == 1);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -147,12 +164,15 @@ isc_sha512_init(isc_sha512_t *context) {
 	if (context == (isc_sha512_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(EVP_DigestInit(context, EVP_sha512()) == 1);
+	context->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(context->ctx != NULL);
+	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha512()) == 1);
 }
 
 void
 isc_sha512_invalidate(isc_sha512_t *context) {
-	EVP_MD_CTX_cleanup(context);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t len) {
@@ -162,22 +182,25 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 	}
 
 	/* Sanity check: */
-	REQUIRE(context != (isc_sha512_t *)0 && data != (isc_uint8_t*)0);
+	REQUIRE(context != (isc_sha512_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
+	REQUIRE(data != (isc_uint8_t*)0);
 
-	RUNTIME_CHECK(EVP_DigestUpdate(context,
+	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
 void isc_sha512_final(isc_uint8_t digest[], isc_sha512_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0) {
-		RUNTIME_CHECK(EVP_DigestFinal(context, digest, NULL) == 1);
-	} else {
-		EVP_MD_CTX_cleanup(context);
-	}
+	if (digest != (isc_uint8_t*)0)
+		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
+					      digest, NULL) == 1);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -185,12 +208,15 @@ isc_sha384_init(isc_sha384_t *context) {
 	if (context == (isc_sha384_t *)0) {
 		return;
 	}
-	RUNTIME_CHECK(EVP_DigestInit(context, EVP_sha384()) == 1);
+	context->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(context->ctx != NULL);
+	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha384()) == 1);
 }
 
 void
 isc_sha384_invalidate(isc_sha384_t *context) {
-	EVP_MD_CTX_cleanup(context);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void
@@ -201,9 +227,11 @@ isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
 	}
 
 	/* Sanity check: */
-	REQUIRE(context != (isc_sha512_t *)0 && data != (isc_uint8_t*)0);
+	REQUIRE(context != (isc_sha512_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
+	REQUIRE(data != (isc_uint8_t*)0);
 
-	RUNTIME_CHECK(EVP_DigestUpdate(context,
+	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
@@ -211,13 +239,14 @@ void
 isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha384_t *)0);
+	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0) {
-		RUNTIME_CHECK(EVP_DigestFinal(context, digest, NULL) == 1);
-	} else {
-		EVP_MD_CTX_cleanup(context);
-	}
+	if (digest != (isc_uint8_t*)0)
+		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
+					      digest, NULL) == 1);
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 #elif PKCS11CRYPTO
@@ -1578,7 +1607,7 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 		*buffer = (char)0;
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
-		EVP_MD_CTX_cleanup(context);
+		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
 #else
@@ -1619,7 +1648,7 @@ isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 		*buffer = (char)0;
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
-		EVP_MD_CTX_cleanup(context);
+		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
 #else
@@ -1660,7 +1689,7 @@ isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 		*buffer = (char)0;
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
-		EVP_MD_CTX_cleanup(context);
+		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
 #else
@@ -1701,7 +1730,7 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 		*buffer = (char)0;
 	} else {
 #ifdef ISC_PLATFORM_OPENSSLHASH
-		EVP_MD_CTX_cleanup(context);
+		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
 #else

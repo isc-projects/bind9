@@ -28,6 +28,11 @@
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define EVP_MD_CTX_new() &(ctx->_ctx), EVP_MD_CTX_init(&(ctx->_ctx))
+#define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
+#endif
+
 static ENGINE *e = NULL;
 static const EVP_MD *opensslgost_digest;
 extern const EVP_MD *EVP_gost(void);
@@ -48,8 +53,10 @@ isc_gost_init(isc_gost_t *ctx) {
 	md = EVP_gost();
 	if (md == NULL)
 		return (DST_R_CRYPTOFAILURE);
-	EVP_MD_CTX_init(ctx);
-	ret = EVP_DigestInit(ctx, md);
+	ctx->ctx = EVP_MD_CTX_new();
+	if (ctx->ctx == NULL)
+		return (ISC_R_NOMEMORY);
+	ret = EVP_DigestInit(ctx->ctx, md);
 	if (ret != 1)
 		return (DST_R_CRYPTOFAILURE);
 	return (ISC_R_SUCCESS);
@@ -57,7 +64,8 @@ isc_gost_init(isc_gost_t *ctx) {
 
 void
 isc_gost_invalidate(isc_gost_t *ctx) {
-	EVP_MD_CTX_cleanup(ctx);
+	EVP_MD_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
 }
 
 isc_result_t
@@ -67,9 +75,10 @@ isc_gost_update(isc_gost_t *ctx, const unsigned char *data,
 	int ret;
 
 	INSIST(ctx != NULL);
+	INSIST(ctx->ctx != NULL);
 	INSIST(data != NULL);
 
-	ret = EVP_DigestUpdate(ctx, (const void *) data, (size_t) len);
+	ret = EVP_DigestUpdate(ctx->ctx, (const void *) data, (size_t) len);
 	if (ret != 1)
 		return (DST_R_CRYPTOFAILURE);
 	return (ISC_R_SUCCESS);
@@ -80,9 +89,12 @@ isc_gost_final(isc_gost_t *ctx, unsigned char *digest) {
 	int ret;
 
 	INSIST(ctx != NULL);
+	INSIST(ctx->ctx != NULL);
 	INSIST(digest != NULL);
 
-	ret = EVP_DigestFinal(ctx, digest, NULL);
+	ret = EVP_DigestFinal(ctx->ctx, digest, NULL);
+	EVP_MD_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
 	if (ret != 1)
 		return (DST_R_CRYPTOFAILURE);
 	return (ISC_R_SUCCESS);

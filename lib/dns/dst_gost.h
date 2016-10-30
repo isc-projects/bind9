@@ -18,7 +18,13 @@
 #ifdef HAVE_OPENSSL_GOST
 #include <openssl/evp.h>
 
-typedef EVP_MD_CTX isc_gost_t;
+typedef struct {
+	EVP_MD_CTX *ctx;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	EVP_MD_CTX _ctx;
+#endif
+} isc_gost_t;
+
 #endif
 #ifdef HAVE_PKCS11_GOST
 #include <pk11/pk11.h>
