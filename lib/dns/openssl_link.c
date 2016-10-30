@@ -121,7 +121,7 @@ id_callback(void) {
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 #define FLARG_PASS      , __FILE__, __LINE__
-#define FLARG           
+#define FLARG
 #define FILELINE
 #else
 #define FLARG           , const char *file, int line
