@@ -82,7 +82,7 @@ static BIGNUM *bn2, *bn768, *bn1024, *bn1536;
  * DH_get0_key, DH_set0_key, DH_get0_pqg and DH_set0_pqg
  * are from OpenSSL 1.1.0.
  */
-static void 
+static void
 DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key) {
 	if (pub_key != NULL)
 		*pub_key = dh->pub_key;
@@ -659,7 +659,7 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		BIGNUM *bn;
 		bn = BN_bin2bn(priv.elements[i].data,
 			       priv.elements[i].length, NULL);
-		if (bn == NULL) 
+		if (bn == NULL)
 			DST_RET(ISC_R_NOMEMORY);
 
 		switch (priv.elements[i].tag) {
