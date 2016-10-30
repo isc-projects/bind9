@@ -1,3 +1,5 @@
+4497.	[port]		Add support for OpenSSL 1.1.0. [RT #41284]
+
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
 4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt

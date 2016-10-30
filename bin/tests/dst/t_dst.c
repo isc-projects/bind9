@@ -919,9 +919,42 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
  * signed at some earlier time, possibly with an entire different
  * version or implementation of the DSA and RSA algorithms
  */
-static const char *a2 =
-		"the dst module provides the capability to "
-		"verify data signed with the RSA and DSA algorithms";
+
+isc_mem_t *t2_mctx = NULL;
+isc_entropy_t *t2_ectx = NULL;
+
+static int
+t2_vfy_init(void) {
+	isc_result_t	isc_result;
+
+	t2_mctx = NULL;
+	isc_result = isc_mem_create(0, 0, &t2_mctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_mem_create failed %s\n",
+		       isc_result_totext(isc_result));
+		return(0);
+	}
+	t2_ectx = NULL;
+	isc_result = isc_entropy_create(t2_mctx, &t2_ectx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %s\n",
+		       isc_result_totext(isc_result));
+		return(0);
+	}
+	isc_result = isc_entropy_createfilesource(t2_ectx, "randomfile");
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_entropy_create failed %s\n",
+		       isc_result_totext(isc_result));
+		return(0);
+	}
+	isc_result = dst_lib_init(t2_mctx, t2_ectx, ISC_ENTROPY_BLOCKING);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("dst_lib_init failed %s\n",
+		       isc_result_totext(isc_result));
+		return(0);
+	}
+	return(1);
+}
 
 /*
  * av ==  datafile, sigpath, keyname, keyid, alg, exp_result.
@@ -938,9 +971,6 @@ t2_vfy(char **av) {
 	char		*exp_result;
 	int		nfails;
 	int		nprobs;
-	isc_mem_t	*mctx;
-	isc_entropy_t	*ectx;
-	isc_result_t	isc_result;
 	int		result;
 
 	datapath	= *av++;
@@ -962,33 +992,6 @@ t2_vfy(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	mctx = NULL;
-	isc_result = isc_mem_create(0, 0, &mctx);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_mem_create failed %s\n",
-		       isc_result_totext(isc_result));
-		return(T_UNRESOLVED);
-	}
-	ectx = NULL;
-	isc_result = isc_entropy_create(mctx, &ectx);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
-		       isc_result_totext(isc_result));
-		return(T_UNRESOLVED);
-	}
-	isc_result = isc_entropy_createfilesource(ectx, "randomfile");
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_entropy_create failed %s\n",
-		       isc_result_totext(isc_result));
-		return(T_UNRESOLVED);
-	}
-	isc_result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("dst_lib_init failed %s\n",
-		       isc_result_totext(isc_result));
-		return(T_UNRESOLVED);
-	}
-
 	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
 		dst_lib_destroy();
 		t_info("library built without crypto support\n");
@@ -999,14 +1002,8 @@ t2_vfy(char **av) {
 			datapath, sigpath, keyname, key, alg, exp_result);
 	t2_sigchk(datapath, sigpath, keyname, keyid,
 			algid, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
-			mctx, exp_result,
+			t2_mctx, exp_result,
 			&nfails, &nprobs);
-
-	dst_lib_destroy();
-
-	isc_entropy_detach(&ectx);
-
-	isc_mem_destroy(&mctx);
 
 	result = T_UNRESOLVED;
 	if (nfails)
@@ -1017,11 +1014,24 @@ t2_vfy(char **av) {
 	return(result);
 }
 
+static const char *a2 =
+		"the dst module provides the capability to "
+		"verify data signed with the RSA and DSA algorithms";
+
 static void
 t2(void) {
 	int	result;
 	t_assert("dst", 2, T_REQUIRED, "%s", a2);
-	result = t_eval("dst_2_data", t2_vfy, 6);
+	if (!t2_vfy_init()) {
+		result = T_UNRESOLVED;
+	} else {
+		result = t_eval("dst_2_data", t2_vfy, 6);
+		dst_lib_destroy();
+	}
+	if (t2_ectx)
+		isc_entropy_detach(&t2_ectx);
+	if (t2_mctx)
+		isc_mem_destroy(&t2_mctx);
 	t_result(result);
 }
 

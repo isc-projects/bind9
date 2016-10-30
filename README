@@ -406,7 +406,7 @@ Building
 	systems.
 
 	For the server to support DNSSEC, you need to build it
-	with crypto support.  You must have OpenSSL 0.9.5a
+	with crypto support.  You must have OpenSSL 1.0.1t
 	or newer installed and specify "--with-openssl" on the
 	configure command line.  If OpenSSL is installed under
 	a nonstandard prefix, you can tell configure where to
