@@ -22,8 +22,10 @@
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
 
-#if !defined(OPENSSL_NO_ENGINE) && defined(CRYPTO_LOCK_ENGINE) && \
-    (OPENSSL_VERSION_NUMBER >= 0x0090707f)
+#if !defined(OPENSSL_NO_ENGINE) && \
+    ((defined(CRYPTO_LOCK_ENGINE) && \
+      (OPENSSL_VERSION_NUMBER >= 0x0090707f)) || \
+     (OPENSSL_VERSION_NUMBER >= 0x10100000L))
 #define USE_ENGINE 1
 #endif
 
@@ -39,6 +41,15 @@
 #define BN_GENCB_free(x) (x = NULL);
 #define BN_GENCB_new() (&_cb)
 #define BN_GENCB_get_arg(x) ((x)->arg)
+#endif
+
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+/*
+ * EVP_dss1() is a version of EVP_sha1() that was needed prior to
+ * 1.1.0 because there was a link between digests and signing algorithms;
+ * the link has been eliminated and EVP_sha1() can be used now instead.
+ */
+#define EVP_dss1 EVP_sha1
 #endif
 
 ISC_LANG_BEGINDECLS

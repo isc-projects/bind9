@@ -27,9 +27,15 @@
 #define ISC_SHA1_BLOCK_LENGTH 64U
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
+#include <openssl/opensslv.h>
 #include <openssl/evp.h>
 
-typedef EVP_MD_CTX isc_sha1_t;
+typedef struct {
+	EVP_MD_CTX *ctx;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	EVP_MD_CTX _ctx;
+#endif
+} isc_sha1_t;
 
 #elif PKCS11CRYPTO
 #include <pk11/pk11.h>

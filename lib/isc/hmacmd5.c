@@ -34,43 +34,41 @@
 #endif
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define HMAC_CTX_new() &(ctx->_ctx), HMAC_CTX_init(&(ctx->_ctx))
+#define HMAC_CTX_free(ptr) HMAC_CTX_cleanup(ptr)
+#endif
 
 void
 isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 		 unsigned int len)
 {
-#ifdef HMAC_RETURN_INT
-	RUNTIME_CHECK(HMAC_Init(ctx, (const void *) key,
-				(int) len, EVP_md5()) == 1);
-#else
-	HMAC_Init(ctx, (const void *) key, (int) len, EVP_md5());
-#endif
+	ctx->ctx = HMAC_CTX_new();
+	RUNTIME_CHECK(ctx->ctx != NULL);
+	RUNTIME_CHECK(HMAC_Init_ex(ctx->ctx, (const void *) key,
+				   (int) len, EVP_md5(), NULL) == 1);
 }
 
 void
 isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
-	HMAC_CTX_cleanup(ctx);
+	if (ctx->ctx == NULL)
+		return;
+	HMAC_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
 }
 
 void
 isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
 		   unsigned int len)
 {
-#ifdef HMAC_RETURN_INT
-	RUNTIME_CHECK(HMAC_Update(ctx, buf, (int) len) == 1);
-#else
-	HMAC_Update(ctx, buf, (int) len);
-#endif
+	RUNTIME_CHECK(HMAC_Update(ctx->ctx, buf, (int) len) == 1);
 }
 
 void
 isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
-#ifdef HMAC_RETURN_INT
-	RUNTIME_CHECK(HMAC_Final(ctx, digest, NULL) == 1);
-#else
-	HMAC_Final(ctx, digest, NULL);
-#endif
-	HMAC_CTX_cleanup(ctx);
+	RUNTIME_CHECK(HMAC_Final(ctx->ctx, digest, NULL) == 1);
+	HMAC_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
 }
 
 #elif PKCS11CRYPTO

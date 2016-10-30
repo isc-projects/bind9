@@ -1595,8 +1595,8 @@ If you don't want OpenSSL, use --without-openssl])
 		saved_cc="$CC"
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
-		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DST_OPENSSL_LIBS"
+		CFLAGS="$DST_OPENSSL_INC $CFLAGS"
+		LIBS="$DST_OPENSSL_LIBS $LIBS"
 		AC_MSG_CHECKING(whether linking with OpenSSL works)
 		AC_TRY_RUN([
 #include <openssl/err.h>
@@ -1615,16 +1615,38 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 
 		AC_MSG_CHECKING(whether linking with OpenSSL requires -ldl)
 		AC_TRY_LINK([
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#include <openssl/crypto.h>
+#else
 #include <openssl/err.h>
 #include <openssl/dso.h>
+#endif
 ],
-[ DSO_METHOD_dlfcn(); ],
+[
+#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+#else
+DSO_METHOD_dlfcn();
+#endif
+],
 		[AC_MSG_RESULT(no)],
 		[LIBS="$LIBS -ldl"
 		AC_TRY_LINK([
+#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#include <openssl/crypto.h>
+#else
 #include <openssl/err.h>
 #include <openssl/dso.h>
-],[ DSO_METHOD_dlfcn(); ],
+#endif
+],
+[
+#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
+#else
+DSO_METHOD_dlfcn();
+#endif
+],
 		[AC_MSG_RESULT(yes)
 		DST_OPENSSL_LIBS="$DST_OPENSSL_LIBS -ldl"
 		],
@@ -1651,7 +1673,7 @@ int main() {
 	     OPENSSL_VERSION_NUMBER < 0x10002000L) ||
 	     OPENSSL_VERSION_NUMBER >= 0x1000205fL)
 		return (0);
-	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
+	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010lx\n",
 		OPENSSL_VERSION_NUMBER);
 	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
 	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n"
@@ -1803,7 +1825,7 @@ int main() {
 	AC_TRY_RUN([
 #include <openssl/evp.h>
 int main() {
-	EVP_CIPHER *aes128, *aes192, *aes256;
+	const EVP_CIPHER *aes128, *aes192, *aes256;
 
 	aes128 = EVP_aes_128_ecb();
 	aes192 = EVP_aes_192_ecb();
@@ -1953,22 +1975,6 @@ case $want_openssl_hash in
 		ISC_PLATFORM_OPENSSLHASH="#define ISC_PLATFORM_OPENSSLHASH 1"
 		ISC_OPENSSL_INC="$DST_OPENSSL_INC"
 		ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
-		saved_cflags="$CFLAGS"
-		save_libs="$LIBS"
-		CFLAGS="$CFLAGS $ISC_OPENSSL_INC"
-		LIBS="$LIBS $ISC_OPENSSL_LIBS"
-		AC_MSG_CHECKING([HMAC_Init() return type])
-		AC_TRY_COMPILE([
-		#include <openssl/hmac.h>],[
-		HMAC_CTX ctx;
-		int n = HMAC_Init(&ctx, NULL, 0, NULL);
-		n += HMAC_Update(&ctx, NULL, 0);
-		n += HMAC_Final(&ctx, NULL, NULL);],[
-		AC_MSG_RESULT(int)
-		AC_DEFINE(HMAC_RETURN_INT, 1, [HMAC_*() return ints])],[
-		AC_MSG_RESULT(void)])
-		CFLAGS="$saved_cflags"
-		LIBS="$save_libs"
 		;;
 	no)
 		AC_MSG_RESULT(no)

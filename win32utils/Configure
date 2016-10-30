@@ -432,7 +432,6 @@ my @substdefh = ("AES_CC",
                  "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
                  "HAVE_ZLIB",
-                 "HMAC_RETURN_INT",
                  "HMAC_SHA1_CC",
                  "HMAC_SHA256_CC",
                  "ISC_LIST_CHECKINIT",
@@ -1590,8 +1589,14 @@ if ($use_openssl eq "no") {
     foreach $file (sort {uc($b) cmp uc($a)} @dirlist) {
         if (-f File::Spec->catfile($openssl_path,
                                    $file,
-                                   "inc32\\openssl",
-                                   "opensslv.h")) {
+                                   "inc32\\openssl\\opensslv.h")) {
+            $openssl_path = File::Spec->catdir($openssl_path, $file);
+            $use_openssl = "yes";
+            last;
+        }
+        if (-f File::Spec->catfile($openssl_path,
+                                   $file,
+                                   "include\\openssl\\opensslv.h")) {
             $openssl_path = File::Spec->catdir($openssl_path, $file);
             $use_openssl = "yes";
             last;
@@ -1609,21 +1614,50 @@ if ($use_openssl eq "yes") {
     if ($verbose) {
         print "checking for OpenSSL built directory at \"$openssl_path\"\n";
     }
+    my $openssl_new = 0;
     if (!-f File::Spec->catfile($openssl_path,
-                                "inc32\\openssl",
-                                "opensslv.h")) {
-        die "can't find OpenSSL opensslv.h include\n";
-    }
-    if (!-f File::Spec->catfile($openssl_path, "out32dll", "libeay32.lib")) {
-        die "can't find OpenSSL libeay32.lib library\n";
-    }
-    if (!-f File::Spec->catfile($openssl_path, "out32dll", "libeay32.dll")) {
-        die "can't find OpenSSL libeay32.dll DLL\n";
+                                "inc32\\openssl\\opensslv.h")) {
+        $openssl_new = 1;
+        if (!-f File::Spec->catfile($openssl_path,
+                                "include\\openssl\\opensslv.h")) {
+            die "can't find OpenSSL opensslv.h include\n";
+        }
     }
     my $openssl_inc = File::Spec->catdir($openssl_path, "inc32");
     my $openssl_libdir = File::Spec->catdir($openssl_path, "out32dll");
     my $openssl_lib = File::Spec->catfile($openssl_libdir, "libeay32.lib");
     my $openssl_dll = File::Spec->catfile($openssl_libdir, "libeay32.dll");
+    if (!$openssl_new) {
+        # Check libraries are where we expect
+        if (!-f $openssl_lib) {
+            die "can't find OpenSSL libeay32.lib library\n";
+        }
+        if (!-f $openssl_dll) {
+            die "can't find OpenSSL libeay32.dll DLL\n";
+        }
+    } else {
+        # OpenSSL >= 1.1 is easier at the exception of the DLL
+        if ($verbose) {
+            print "new (>= 1.1) OpenSSL version\n";
+        }
+        $openssl_inc = File::Spec->catdir($openssl_path, "include");
+        $openssl_libdir = $openssl_path;
+        $openssl_lib = File::Spec->catfile($openssl_path, "libcrypto.lib");
+        if (!-f $openssl_lib) {
+            die "can't find OpenSSL libcrypto.lib library\n";
+        }
+        opendir DIR, $openssl_path || die "No Directory: $!\n";
+        my @dirlist = grep (/^libcrypto-[^.]+\.dll$/i, readdir(DIR));
+        closedir(DIR);
+        # We must get one file only
+        if (scalar(@dirlist) == 0) {
+            die "can't find OpenSSL libcrypto-*.dll DLL\n";
+        }
+        if (scalar(@dirlist) != 1) {
+            die "find more than one OpenSSL libcrypto-*.dll DLL candidate\n";
+        }
+        $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
+    }   
 
     $configcond{"OPENSSL"} = 1;
     $configdefd{"CRYPTO"} = "OPENSSL";
@@ -2055,30 +2089,6 @@ if ($enable_openssl_hash eq "yes") {
         die "No OpenSSL for hash functions\n";
     }
     $configdefp{"ISC_PLATFORM_OPENSSLHASH"} = 1;
-    if ($verbose) {
-        print "checking HMAC_Init() return type\n";
-    }
-    open F, ">testhmac.c" || die $!;
-    print F << 'EOF';
-#include <openssl/hmac.h>
-
-int
-main(void)
-{
-        HMAC_CTX ctx;
-        int n = HMAC_Init(&ctx, NULL, 0, NULL);
-        n += HMAC_Update(&ctx, NULL, 0);
-        n += HMAC_Final(&ctx, NULL, NULL);
-        return(n);
-}
-EOF
-    close F;
-    my $include = $configinc{"OPENSSL_INC"};
-    my $library = $configlib{"OPENSSL_LIB"};
-    $compret = `cl /nologo /MD /I "$include" testhmac.c "$library"`;
-    if (grep { -f and -x } ".\\testhmac.exe") {
-        $configdefh{"HMAC_RETURN_INT"} = 1;
-    }
 }
 
 # with-pkcs11
@@ -3186,7 +3196,11 @@ sub makeinstallfile {
     print LOUT "liblwres.dll-BCFT\n";
     print LOUT "libirs.dll-BCFT\n";
     if ($use_openssl eq "yes") {
-        print LOUT "libeay32.dll-BCFT\n";
+        my $v;
+        my $d;
+        my $name;
+        ($v, $d, $name) =File::Spec->splitpath($configdll{"OPENSSL_DLL"});
+        print LOUT "${name}-BCFT\n";
     }
     if ($use_libxml2 eq "yes") {
         print LOUT "libxml2.dll-BCFT\n";
