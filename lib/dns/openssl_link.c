@@ -58,8 +58,10 @@
 
 static RAND_METHOD *rm = NULL;
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static isc_mutex_t *locks = NULL;
 static int nlocks;
+#endif
 
 #ifdef USE_ENGINE
 static ENGINE *e = NULL;
@@ -194,6 +196,7 @@ dst__openssl_init(const char *engine) {
 	CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
 #endif
 	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	nlocks = CRYPTO_num_locks();
 	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks FILELINE);
 	if (locks == NULL)
@@ -201,7 +204,6 @@ dst__openssl_init(const char *engine) {
 	result = isc_mutexblock_init(locks, nlocks);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutexalloc;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
 #endif
@@ -278,11 +280,13 @@ dst__openssl_init(const char *engine) {
 	rm = NULL;
 #endif
  cleanup_mutexinit:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_locking_callback(NULL);
 	DESTROYMUTEXBLOCK(locks, nlocks);
  cleanup_mutexalloc:
 	mem_free(locks FILELINE);
 	locks = NULL;
+#endif
 	return (result);
 }
 
