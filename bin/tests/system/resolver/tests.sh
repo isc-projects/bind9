@@ -510,7 +510,7 @@ grep ';1\.0\.0\.127\.in-addr\.arpa\..*IN.*PTR$' dig.out.3.${n} > /dev/null || re
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-edns=`$EDNSVERSION`
+edns=`$FEATURETEST --edns-version`
 
 n=`expr $n + 1`
 echo "I:check that EDNS version is logged (${n})"

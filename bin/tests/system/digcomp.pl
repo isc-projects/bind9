@@ -28,9 +28,8 @@ $rcode2 = "none";
 
 open(FILE1, $file1) || die("open: $file1: $!\n");
 while (<FILE1>) {
-	chomp;
-	~ s/\n//g;
 	~ s/\r\n//g;
+	~ s/\n//g;
 	if (/^;.+status:\s+(\S+).+$/) {
 		$rcode1 = $1;
 	}
@@ -65,9 +64,8 @@ $printed = 0;
 
 open(FILE2, $file2) || die("open: $file2: $!\n");
 while (<FILE2>) {
-	chomp;
-	~ s/\n//g;
 	~ s/\r\n//g;
+	~ s/\n//g;
 	if (/^;.+status:\s+(\S+).+$/) {
 		$rcode2 = $1;
 	}

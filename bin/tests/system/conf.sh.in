@@ -59,18 +59,12 @@ FEATURETEST=$TOP/bin/tests/system/feature-test
 RANDFILE=$TOP/bin/tests/system/random.data
 
 BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
-DLOPEN=$TOP/bin/tests/system/dlzexternal/dlopen
-EDNSVERSION=$TOP/bin/tests/system/resolver/edns-version
-FILTERAAAA=$TOP/bin/tests/system/filter-aaaa/filter-aaaa
 GENCHECK=$TOP/bin/tests/system/rndc/gencheck
-GETHOSTNAME=$TOP/bin/tests/system/builtin/gethostname
 KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
 KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
 LWTEST=$TOP/bin/tests/system/lwresd/lwtest
 MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
-RPZ=$TOP/bin/tests/system/rpz/rpz
-XMLSTATS=$TOP/bin/tests/system/statistics/xmlstats
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -144,13 +138,9 @@ export BIGKEY
 export CHECKZONE
 export DESCRIPTION
 export DIG
-export DLOPEN
-export EDNSVERSION
 export FEATURETEST
-export FILTERAAAA
 export FSTRM_CAPTURE
 export GENCHECK
-export GETHOSTNAME
 export JOURNALPRINT
 export KEYCREATE
 export KEYDELETE
@@ -175,9 +165,7 @@ export PYTHON
 export RANDFILE
 export RESOLVE
 export RNDC
-export RPZ
 export RRCHECKER
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
-export XMLSTATS

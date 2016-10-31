@@ -10,7 +10,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 # enable the tsiggss test only if gssapi was enabled
-./gssapi_krb ||  {
+$FEATURETEST --gssapi ||  {
         echo "I:gssapi and krb5 not supported - skipping tsiggss test"
         exit 255
 }

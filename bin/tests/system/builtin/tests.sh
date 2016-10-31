@@ -35,7 +35,7 @@ grep "zone serial (0) unchanged." ns1/named.run > /dev/null && ret=1
 if [ $ret != 0 ] ; then echo I:failed; status=`expr $status + $ret`; fi
 
 VERSION=`../../../../isc-config.sh  --version | cut -d = -f 2`
-HOSTNAME=`$GETHOSTNAME`
+HOSTNAME=`$FEATURETEST --gethostname`
 
 n=`expr $n + 1`
 ret=0

@@ -12,17 +12,15 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-SUBDIRS =	builtin dlzexternal dyndb filter-aaaa geoip lwresd \
-		pipelined resolver rndc rpz rsabigexponent statistics tkey \
-		tsiggss
+SUBDIRS =	dlzexternal dyndb lwresd pipelined rndc rsabigexponent tkey
 
-CINCLUDES =	${ISC_INCLUDES}
+CINCLUDES =	${ISC_INCLUDES} ${DNS_INCLUDES}
 
 CDEFINES =	@USE_GSSAPI@
 CWARNINGS =
 
 DNSLIBS =
-ISCLIBS =	.
+ISCLIBS =	../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 DNSDEPLIBS =
 ISCDEPLIBS =
@@ -39,7 +37,7 @@ TARGETS =	feature-test@EXEEXT@
 @BIND9_MAKE_RULES@
 
 feature-test@EXEEXT@: feature-test.@O@
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
 
 
 # Running the scripts below is bypassed when a separate

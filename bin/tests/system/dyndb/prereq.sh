@@ -9,7 +9,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$DLOPEN ||  {
+$FEATURETEST --have-dlopen ||  {
         echo "I:dlopen() not supported - skipping dyndb test"
         exit 255
 }

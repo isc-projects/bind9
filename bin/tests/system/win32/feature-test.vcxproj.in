@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{9BE43C51-E550-411A-B383-E1497F1272BB}</ProjectGuid>
+    <ProjectGuid>{63A921F6-1200-4723-828A-98960127B73D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>dlopen</RootNamespace>
+    <RootNamespace>feature-test</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|@PLATFORM@'" Label="Configuration">
@@ -60,7 +60,7 @@
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;..\..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,7 +86,7 @@
       <AssemblerListingLocation>.\$(Configuration)\</AssemblerListingLocation>
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\;..\..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\..\..\lib\isc\win32;..\..\..\..\lib\isc\win32\include;..\..\..\..\lib\isc\include;..\..\..\..\lib\dns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -100,7 +100,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\dlzexternal\dlopen.c" />
+    <ClCompile Include="..\feature-test.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

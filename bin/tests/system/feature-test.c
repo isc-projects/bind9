@@ -15,6 +15,11 @@
 
 #include <isc/print.h>
 #include <isc/util.h>
+#include <dns/edns.h>
+
+#ifdef WIN32
+#include <Winsock2.h>
+#endif
 
 #ifndef MAXHOSTNAMELEN
 #ifdef HOST_NAME_MAX
@@ -28,7 +33,7 @@ static void
 usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
-	fprintf(stderr, "	--allow-filter-aaaa\n");
+	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--edns-version\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
@@ -42,13 +47,12 @@ usage() {
 
 int
 main(int argc, char **argv) {
-
 	if (argc != 2) {
 		usage();
 		return (1);
 	}
 
-	if (strcmp(argv[1], "--allow-filter-aaaa") == 0) {
+	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
 #ifdef ALLOW_FILTER_AAAA
 		return (0);
 #else
@@ -68,12 +72,29 @@ main(int argc, char **argv) {
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[MAXHOSTNAMELEN];
 		int n;
+#ifdef WIN32
+		/* From lwres InitSocket() */
+		WORD wVersionRequested;
+		WSADATA wsaData;
+		int err;
+
+		wVersionRequested = MAKEWORD(2, 0);
+		err = WSAStartup( wVersionRequested, &wsaData );
+		if (err != 0) {
+			fprintf(stderr, "WSAStartup() failed: %d\n", err);
+			exit(1);
+		}
+#endif
+
 		n = gethostname(hostname, sizeof(hostname));
 		if (n == -1) {
 			perror("gethostname");
 			return(1);
 		}
 		fprintf(stdout, "%s\n", hostname);
+#ifdef WIN32
+		WSACleanup();
+#endif
 		return (0);
 	}
 
