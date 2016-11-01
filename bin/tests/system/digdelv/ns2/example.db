@@ -26,6 +26,8 @@ b			AAAA	fd92:7065:b8e:ffff::2
 c			A	10.0.0.3
 c			AAAA	fd92:7065:b8e:ffff::3
 
+xn--caf-dma		A	10.1.2.3
+
 foo			TXT	"testing"
 foo			A	10.0.1.0
 foo			SSHFP	2 1 123456789abcdef67890123456789abcdef67890

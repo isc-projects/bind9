@@ -186,6 +186,7 @@ help(void) {
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
 "                 +[no]header-only    (Send query without a question section)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
+"                 +[no]idnout         (convert IDN response)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
 "                 +[no]mapped         (Allow mapped IPv4 over IPv6)\n"
@@ -1046,8 +1047,22 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 	case 'i':
 		switch (cmd[1]) {
 		case 'd': /* identify */
-			FULLCHECK("identify");
-			lookup->identify = state;
+			switch (cmd[2]) {
+			case 'e':
+				FULLCHECK("identify");
+				lookup->identify = state;
+				break;
+			case 'n':
+				FULLCHECK("idnout");
+#ifndef WITH_IDN
+				fprintf(stderr, ";; IDN support not enabled\n");
+#else
+				lookup->idnout = state;
+#endif
+				break;
+			default:
+				goto invalid_option;
+			}
 			break;
 		case 'g': /* ignore */
 		default: /*

@@ -781,6 +781,19 @@ make_empty_lookup(void) {
 	looknew->sendcookie = ISC_FALSE;
 	looknew->seenbadcookie = ISC_FALSE;
 	looknew->badcookie = ISC_TRUE;
+	looknew->multiline = ISC_FALSE;
+	looknew->nottl = ISC_FALSE;
+	looknew->noclass = ISC_FALSE;
+	looknew->onesoa = ISC_FALSE;
+	looknew->use_usec = ISC_FALSE;
+	looknew->nocrypto = ISC_FALSE;
+	looknew->ttlunits = ISC_FALSE;
+	looknew->qr = ISC_FALSE;
+#ifdef WITH_IDN
+	looknew->idnout = ISC_TRUE;
+#else
+	looknew->idnout = ISC_FALSE;
+#endif
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = ISC_FALSE;
 #if DIG_SIGCHASE_TD
@@ -885,6 +898,15 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
 	looknew->ednsneg = lookold->ednsneg;
 	looknew->mapped = lookold->mapped;
+	looknew->multiline = lookold->multiline;
+	looknew->nottl = lookold->nottl;
+	looknew->noclass = lookold->noclass;
+	looknew->onesoa = lookold->onesoa;
+	looknew->use_usec = lookold->use_usec;
+	looknew->nocrypto = lookold->nocrypto;
+	looknew->ttlunits = lookold->ttlunits;
+	looknew->qr = lookold->qr;
+	looknew->idnout = lookold->idnout;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -2228,7 +2250,8 @@ setup_lookup(dig_lookup_t *lookup) {
 #endif
 
 #ifdef WITH_IDN
-	result = dns_name_settotextfilter(output_filter);
+	result = dns_name_settotextfilter(lookup->idnout ?
+					  output_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
 #endif
 
