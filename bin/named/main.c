@@ -688,7 +688,8 @@ parse_command_line(int argc, char *argv[]) {
 #ifdef OPENSSL
 			printf("compiled with OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
+#if !defined(LIBRESSL_VERSION_NUMBER) && \
+    OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 			printf("linked to OpenSSL version: %s\n",
 			       OpenSSL_version(OPENSSL_VERSION));
 
