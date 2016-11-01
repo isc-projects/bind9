@@ -279,7 +279,7 @@ dst__openssl_init(const char *engine) {
 
 void
 dst__openssl_destroy(void) {
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	OPENSSL_cleanup();
 	if (rm != NULL) {
 		mem_free(rm FILELINE);
