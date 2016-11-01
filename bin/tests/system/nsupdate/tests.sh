@@ -277,7 +277,7 @@ $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || ret=1
 
 echo "I:SIGKILL and restart server ns1"
 cd ns1
-kill -KILL `cat named.pid`
+$KILL -KILL `cat named.pid`
 rm named.pid
 cd ..
 sleep 10
@@ -317,8 +317,13 @@ END
 
 sleep 5
 
-echo "I:SIGHUP slave"
-kill -HUP `cat ns2/named.pid`
+if [ ! "$CYGWIN" ]; then
+    echo "I:SIGHUP slave"
+    $KILL -HUP `cat ns2/named.pid`
+else
+    echo "I:reload slave"
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload > /dev/null 2>&1
+fi
 
 sleep 5
 
@@ -335,8 +340,13 @@ END
 
 sleep 5
 
-echo "I:SIGHUP slave again"
-kill -HUP `cat ns2/named.pid`
+if [ ! "$CYGWIN" ]; then
+    echo "I:SIGHUP slave again"
+    $KILL -HUP `cat ns2/named.pid`
+else
+    echo "I:reload slave again"
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload > /dev/null 2>&1
+fi
 
 sleep 5
 

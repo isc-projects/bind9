@@ -62,6 +62,17 @@ FEATURETEST=$TOP/bin/tests/system/feature-test
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
+BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
+DLOPEN=$TOP/bin/tests/system/dlzexternal/dlopen
+FILTERAAAA=$TOP/bin/tests/system/filter-aaaa/filter-aaaa
+GETHOSTNAME=$TOP/bin/tests/system/builtin/gethostname
+KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
+KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
+LWTEST=$TOP/bin/tests/system/lwresd/lwtest
+MAKEJOURNAL=$TOP/bin/tests/makejournal
+RPZ=$TOP/bin/tests/system/rpz/rpz
+XMLSTATS=$TOP/bin/tests/system/statistics/xmlstats
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -81,6 +92,13 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 unknown upforwd verify views wildcard xfer xferquota zero
 	 zonechecks"
 
+# Things that are different on Windows
+KILL=kill
+DIFF=diff
+DOS2UNIX=true
+# There's no trailing period on Windows
+TP=.
+
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
 
@@ -92,6 +110,7 @@ XMLLINT=@XMLLINT@
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
+
 if test -n "$PERL"
 then
 	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null
@@ -117,8 +136,8 @@ PYTHON=@PYTHON@
 # Determine if we support various optional features.
 #
 CHECK_DSA=@CHECK_DSA@
-XMLSTATS=@XMLSTATS@
-JSONSTATS=@JSONSTATS@
+HAVEXMLSTATS=@XMLSTATS@
+HAVEJSONSTATS=@JSONSTATS@
 ZLIB=@ZLIB@
 
 . ${TOP}/version
@@ -126,4 +145,6 @@ ZLIB=@ZLIB@
 export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
        PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
        JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
+       RANDFILE BIGKEY DLOPEN EDNSVERSION FILTERAAAA GENCHECK GETHOSTNAME \
+       KEYCREATE KEYDELETE LWTEST MAKEJOURNAL PIPEQUERIES RPZ XMLSTATS \
        FEATURETEST

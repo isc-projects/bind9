@@ -19,7 +19,7 @@ SYSTEMTESTTOP=..
 
 DIGCMD="$DIG @10.53.0.2 -p 5300"
 
-if [ ! "$JSONSTATS" ]
+if [ ! "$HAVEJSONSTATS" ]
 then
     unset PERL_JSON
     echo "I:JSON was not configured; skipping" >&2
@@ -31,7 +31,7 @@ else
     echo "I:JSON tests require JSON library; skipping" >&2
 fi
 
-if [ ! "$XMLSTATS" ]
+if [ ! "$HAVEXMLSTATS" ]
 then
     unset PERL_XML
     echo "I:XML was not configured; skipping" >&2

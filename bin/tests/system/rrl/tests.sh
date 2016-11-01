@@ -251,7 +251,6 @@ $RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
 ckstats final dropped 56
 ckstats final truncated 23
 
-
 echo "I:exit status: $ret"
 #[ $status -eq 0 ] || exit 1
 [ $ret -eq 0 ] || echo "I:test failure overridden"

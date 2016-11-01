@@ -25,7 +25,7 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude ${ISC_INCLUDES} @ISC_OPENSSL_INC@
-CDEFINES =	-DTESTS="\"${top_builddir}/lib/isc/tests/\""
+CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/isc/tests/\""
 
 ISCLIBS =	../libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCDEPLIBS =	../libisc.@A@

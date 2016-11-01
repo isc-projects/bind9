@@ -15,6 +15,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f K* */K* */dsset-*. */*.signed */trusted.conf */tmp*
+rm -f ns*/dsset-example
 rm -f ns*/named.run
 rm -f ns*/named.memstats
 rm -f ns1/root.db

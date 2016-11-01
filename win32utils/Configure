@@ -26,9 +26,10 @@ use Cwd;
 
 # files to configure
 
-my $configfilein = "..\\config.h.win32";
-my $configfileout = ">..\\config.h";
+my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
+my $confshfile = "..\\bin\\tests\\system\\conf.sh";
+my $icshfile = "..\\isc-config.sh";
 
 my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\check\\win32\\checkconf.dsp",
@@ -96,6 +97,7 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\rndc\\win32\\rndc.dsp",
                 "..\\bin\\rndc\\win32\\rndc.mak",
                 "..\\bin\\rndc\\win32\\rndcutil.dsp",
+                "..\\bin\\tests\\system\\dlz\\prereq.sh",
                 "..\\bin\\tools\\win32\\arpaname.dsp",
                 "..\\bin\\tools\\win32\\arpaname.mak",
                 "..\\bin\\tools\\win32\\genrandom.dsp",
@@ -132,10 +134,30 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\tests\\tasks\\win32\\t_tasks.mak",
                 "..\\bin\\tests\\timers\\win32\\t_timers.dsp",
                 "..\\bin\\tests\\timers\\win32\\t_timers.mak",
+                "..\\bin\\tests\\system\\win32\\bigkey.dsp",
+                "..\\bin\\tests\\system\\win32\\bigkey.mak",
+                "..\\bin\\tests\\system\\win32\\dlopen.dsp",
+                "..\\bin\\tests\\system\\win32\\dlopen.mak",
+                "..\\bin\\tests\\system\\win32\\filter-aaaa.dsp",
+                "..\\bin\\tests\\system\\win32\\filter-aaaa.mak",
+                "..\\bin\\tests\\system\\win32\\gethostname.dsp",
+                "..\\bin\\tests\\system\\win32\\gethostname.mak",
+                "..\\bin\\tests\\system\\win32\\keycreate.dsp",
+                "..\\bin\\tests\\system\\win32\\keycreate.mak",
+                "..\\bin\\tests\\system\\win32\\keydelete.dsp",
+                "..\\bin\\tests\\system\\win32\\keydelete.mak",
+                "..\\bin\\tests\\system\\win32\\lwtest.dsp",
+                "..\\bin\\tests\\system\\win32\\lwtest.mak",
+                "..\\bin\\tests\\system\\win32\\rpz.dsp",
+                "..\\bin\\tests\\system\\win32\\rpz.mak",
+                "..\\bin\\tests\\system\\win32\\xmlstats.dsp",
+                "..\\bin\\tests\\system\\win32\\xmlstats.mak",
                 "..\\bin\\tests\\win32\\backtrace_test.dsp",
                 "..\\bin\\tests\\win32\\backtrace_test.mak",
                 "..\\bin\\tests\\win32\\inter_test.dsp",
                 "..\\bin\\tests\\win32\\inter_test.mak",
+                "..\\bin\\tests\\win32\\makejournal.dsp",
+                "..\\bin\\tests\\win32\\makejournal.mak",
                 "..\\bin\\tests\\win32\\rwlock_test.dsp",
                 "..\\bin\\tests\\win32\\rwlock_test.mak",
                 "..\\bin\\tests\\win32\\shutdown_test.dsp",
@@ -287,6 +309,24 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\resolver\\win32\\t_resolver.vcxproj.filters",
                    "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj",
                    "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\bigkey.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\bigkey.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\dlopen.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\dlopen.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\filter-aaaa.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\filter-aaaa.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\gethostname.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\gethostname.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\keycreate.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\keycreate.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\keydelete.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\keydelete.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\lwtest.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\lwtest.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\rpz.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\rpz.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\xmlstats.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\xmlstats.vcxproj.filters",
                    "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj",
                    "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj.filters",
                    "..\\bin\\tests\\timers\\win32\\t_timers.vcxproj",
@@ -295,6 +335,8 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj.filters",
+                   "..\\bin\\tests\\win32\\makejournal.vcxproj",
+                   "..\\bin\\tests\\win32\\makejournal.vcxproj.filters",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\shutdown_test.vcxproj",
@@ -400,6 +442,22 @@ my @substdefp = ("ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_USESIT",
                  "ISC_PLATFORM_WANTAES");
 
+# for conf.sh
+
+my %configtest;
+
+my @substtest = ("CHECK_DSA",
+                 "CHECKDS",
+                 "COVERAGE",
+                 "DNSTAP",
+                 "FSTRM_CAPTURE",
+                 "JSONSTATS",
+                 "KEYMGR",
+                 "NZD_TOOLS",
+                 "PKCS11_TEST",
+                 "XMLSTATS",
+                 "ZLIB"),
+
 # includes
 
 my %configinc;
@@ -451,6 +509,8 @@ my @substvar = ("BIND9_VERSION",
                 "COPTMLD",
                 "COPTX",
                 "COPTY",
+                "DLZ_SYSTEM_TEST",
+                "EXEEXT",
                 "expanded_sysconfdir",
                 "INTRINSIC",
                 "MACHINE",
@@ -486,6 +546,7 @@ my @substcond = ("AES",
                  "PKCS11",
                  "PYTHON",
                  "SAMPLES",
+                 "STESTS",
                  "TESTS",
                  "XTESTS");
 
@@ -510,6 +571,7 @@ my @enablelist = ("developer",
 # with-xxx/without-xxx
 
 my @withlist = ("aes",
+                "cc-alg",
                 "cross-compile",
                 "ecdsa",
                 "extra-tests",
@@ -524,7 +586,7 @@ my @withlist = ("aes",
                 "python",
                 "readline",
                 "samples",
-                "cc-alg",
+                "system-tests",
                 "tests",
                 "tuning",
                 "vcredist");
@@ -567,6 +629,7 @@ my @help = (
 "\nOptional Packages:\n",
 "  with-tests            build with test suite\n",
 "  with-extra-tests      build with extra test suite\n",
+"  with-system-tests     build with system test suite\n",
 "  with-samples          build with sample programs\n",
 "  with-openssl[=PATH]   build with OpenSSL yes|no|path\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
@@ -608,6 +671,7 @@ my $enable_rpz_nsdname = "yes";
 my $enable_sit = "yes";
 my $use_tests = "no";
 my $use_xtests = "no";
+my $use_stests = "no";
 my $use_samples = "no";
 my $use_openssl = "auto";
 my $openssl_path = "..\\..\\";
@@ -625,7 +689,7 @@ my $geoip_path = "";
 my $use_libxml2 = "auto";
 my $libxml2_path = "..\\..\\";
 my $use_python = "auto";
-my $python_command = "python";
+my $python_command = "python.exe";
 my $use_readline = "no";
 my $readline_path = "..\\..\\";
 my $use_idn = "no";
@@ -703,6 +767,8 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"MACHINE"} = "/machine:X64";
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
 }
+# Standard configure variable
+$configvar{"EXEEXT"} = ".exe";
 
 # get the version information
 
@@ -836,6 +902,8 @@ if ($enable_developer eq "yes") {
     $enable_fixed_rrset = "yes";
     # TODO: dlz filesystem
     $use_tests = "yes";
+    $use_xtests = "yes";
+    $use_stests = "yes";
     $use_samples = "yes";
     $enable_sit = "yes";
 }
@@ -854,6 +922,11 @@ sub mywith {
         if ($val =~ /^yes$/i) {
             $use_tests = "yes";
             $use_xtests = "yes";
+        }
+    } elsif ($key =~ /^system-tests$/i) {
+        if ($val =~ /^yes$/i) {
+            $use_tests = "yes";
+            $use_stests = "yes";
         }
     } elsif ($key =~ /^samples$/i) {
         if ($val =~ /^yes$/i) {
@@ -994,6 +1067,12 @@ if ($want_help ne "no") {
 # clean up and exit if requested
 if ($want_clean eq "yes") {
     my $file;
+
+    unlink($configfile);
+    unlink($platformfile);
+    unlink($confshfile);
+    unlink($icshfile);
+
     foreach $file (@filelist) {
         unlink($file);
     }
@@ -1093,6 +1172,9 @@ if ($verbose) {
     }
     if ($use_xtests eq "yes") {
         print "extra tests: enabled\n";
+    }
+    if ($use_stests eq "yes") {
+        print "system tests: enabled\n";
     }
     if ($use_samples eq "yes") {
         print "sample programs: enabled\n";
@@ -1455,6 +1537,11 @@ if ($use_tests eq "yes") {
 # with-extra-tests
 if ($use_xtests eq "yes") {
     $configcond{"XTESTS"} = 1;
+}
+
+# with-system-tests
+if ($use_stests eq "yes") {
+    $configcond{"STESTS"} = 1;
 }
 
 # with-samples
@@ -2340,6 +2427,7 @@ if ($use_libxml2 eq "yes") {
     }
     $configcond{"LIBXML2"} = 1;
     $configdefh{"HAVE_LIBXML2"} = 1;
+    $configtest{"XMLSTATS"} = 1;
     my $libxml2_inc = File::Spec->catdir($libxml2_path, "include");
     $configinc{"LIBXML2_INC"} = "$libxml2_inc";
     my $libxml2_libdir = File::Spec->catdir($libxml2_path, "win32\\bin.msvc");
@@ -2358,7 +2446,7 @@ if ($use_python eq "no") {
     if ($verbose) {
         print "checking for python in path\n";
     }
-    my $pythonret = `python -c "quit()" 2>&1`;
+    my $pythonret = `python.exe -c "quit()" 2>&1`;
     if ($? != 0) {
         print STDERR "can't launch the python interpreter: $pythonret\n";
         $use_python = "no";
@@ -2374,6 +2462,10 @@ if ($use_python ne "no") {
             die "can't launch $python_command: $pythonret\n";
         }
     }
+    if ($python_command !~ /\.exe$/i) {
+        $python_command = $python_command . ".exe";
+    }
+    # tried to use the full path without success here
     if ($verbose) {
         print "checking for python module 'argparse'\n";
     }
@@ -2434,6 +2526,9 @@ if ($use_python ne "no") {
         $configcond{"PYTHON"} = 1;
         $configdefd{"USE_PYTHON"} = "USE_PYTHON";
         $configvar{"PYTHON"} = "$python_command";
+        $configtest{"CHECKDS"} = "checkds";
+        $configtest{"COVERAGE"} = "coverage";
+        $configtest{"KEYMGR"} = "keymgr";
         # Doesn't matter
         $configvar{"prefix"} = "__prefix__";
         $configvar{"expanded_sysconfdir"} = "__prefix__\\etc";
@@ -2453,13 +2548,23 @@ if ($tuning eq "large") {
     $configdefh{"TUNE_LARGE"} = 1;
 }
 
+# escape spaces
+
+sub kw {
+    if ($_[0] =~ / /) {
+        return "\"$_[0]\"";
+    } else {
+        return "$_[0]";
+    }
+}
+
 # setup config.h with %configdefh
 
 sub setupconfigh {
     my $line;
     my @Lines;
 
-    open F, $configfilein || die $!;
+    open F, $configfile . ".win32" || die $!;
     @Lines = <F>;
     close F;
 
@@ -2474,9 +2579,9 @@ sub setupconfigh {
         }
     }
 
-    open F, $configfileout || die $!;
+    open F, ">" . $configfile || die $!;
     if ($verbose) {
-        print "Setting up config.h\n";
+        print "Setting up $configfile\n";
     }
     foreach $line (@Lines) {
         print F $line . "\n";
@@ -2507,7 +2612,7 @@ sub setupplatformh {
 
     open F, ">" . $platformfile || die $!;
     if ($verbose) {
-        print "Setting up platform.h\n";
+        print "Setting up $platformfile\n";
     }
     foreach $line (@Lines) {
         print F $line . "\n";
@@ -2515,17 +2620,90 @@ sub setupplatformh {
     close F;
 }
 
-# escape spaces
+# setup conf.sh with %configtest and %configvar
 
-sub kw {
-    if ($_[0] =~ / /) {
-        return "\"$_[0]\"";
-    } else {
-        return "$_[0]";
+sub setupconfsh {
+    my $line;
+    my @Lines;
+    my $val;
+
+    open F, $confshfile . ".win32" || die $!;
+    @Lines = <F>;
+    close F;
+
+    foreach $line (@Lines) {
+        chomp $line;
+        while ($line =~ /@([^@]+)\@/) {
+            if ($1 ~~ @substtest) {
+                if (defined($configtest{$1})) {
+                    $val = kw($configtest{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            } elsif ($1 ~~ @substvar) {
+                if (defined($configvar{$1})) {
+                    $val = kw($configvar{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            }  else {
+                die "unknown control $& in $confshfile.win32\n";
+            }
+        }
     }
+
+    open F, ">" . $confshfile || die $!;
+    if ($verbose) {
+        print "Setting up $confshfile\n";
+    }
+    binmode(F);
+    foreach $line (@Lines) {
+        print F $line . "\n";
+    }
+    close F;
 }
 
-# setup a file with %configcond stack and %config{var,defd,inc,lib,dll}
+# setup isc-config.sh with %configvar accepting undefined
+
+sub setupicsh {
+    my $line;
+    my @Lines;
+    my $val;
+
+    open F, $icshfile . ".in" || die $!;
+    @Lines = <F>;
+    close F;
+
+    foreach $line (@Lines) {
+        chomp $line;
+        while ($line =~ /@([^@]+)\@/) {
+            if ($1 ~~ @substvar) {
+                if (defined($configvar{$1})) {
+                    $val = kw($configvar{$1});
+                    $line = "$`$val$'";
+                } else {
+                    $line = "$`$'";
+                }
+            }  else {
+                $line = "$`__$1__$'";
+            }
+        }
+    }
+
+    open F, ">" . $icshfile || die $!;
+    if ($verbose) {
+        print "Setting up $icshfile\n";
+    }
+    binmode(F);
+    foreach $line (@Lines) {
+        print F $line . "\n";
+    }
+    close F;
+}
+
+# setup a file with %configcond stack and %config{var,defd,inc,lib,dll,test}
 
 sub setupfile {
     my $line;
@@ -2638,6 +2816,7 @@ sub setupfile {
     if ($verbose) {
         print "Setting up $filename\n";
     }
+    binmode(F);
     foreach $line (@Linesout) {
         print F $line . "\n";
     }
@@ -2896,7 +3075,7 @@ sub makesrcid {
     my $data;
     my $name;
     my $value;
-    my $srcid = "unset";
+    my $srcid = "unset_id";
 
     open SOUT, ">..\\srcid.h" || die "cannot open srcid.h: $!\n";
     if (open (SIN, "..\\srcid")) {
@@ -3062,6 +3241,23 @@ sub makeinstallfile {
     close LOUT;
 }
 
+# Adjust system tests
+
+# WIN32 not a BSD
+$configtest{"CHECK_DSA"} = 0;
+
+# dnstap not supported
+#$configtest{"DNSTAP"} = "dnstap";
+#$configtest{"FSTRM_CAPTURE"} = "fstrm_capture";
+
+# no json-c library for WIN32
+#$configtest{"JSONSTATS"} = 1;
+
+# lmdb not supported
+#$configtest{"NZD_TOOLS"} = "nzd";
+
+# TODO check for pkcs11ssl and set PKCS11_TEST
+
 # Status
 
 if ($verbose) {
@@ -3082,6 +3278,15 @@ if ($verbose) {
     foreach $name (@substdefp) {
         if (defined($configdefp{$name})) {
             print qq(\t\t$name defined to "$configdefp{$name}"\n);
+        } else {
+            printf qq(\t\t$name undefined\n);
+        }
+    }
+
+    print "\tconf.sh:\n";
+    foreach $name (@substtest) {
+        if (defined($configtest{$name})) {
+            print qq(\t\t$name defined to "$configtest{$name}"\n);
         } else {
             printf qq(\t\t$name undefined\n);
         }
@@ -3139,6 +3344,10 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
     setupconfigh();
 
     setupplatformh();
+
+    setupconfsh();
+
+    setupicsh();
 
     my $file;
     foreach $file (@filelist) {

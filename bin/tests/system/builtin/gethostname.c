@@ -23,6 +23,10 @@
 #include <isc/print.h>
 #include <isc/util.h>
 
+#ifdef WIN32
+#include <Winsock2.h>
+#endif
+
 #ifndef MAXHOSTNAMELEN
 #ifdef HOST_NAME_MAX
 #define MAXHOSTNAMELEN HOST_NAME_MAX
@@ -32,12 +36,22 @@
 #endif
 
 int
-main(int argc, char **argv) {
+main(void) {
 	char hostname[MAXHOSTNAMELEN];
 	int n;
+#ifdef WIN32
+	/* From lwres InitSocket() */
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
 
-	UNUSED(argc);
-	UNUSED(argv);
+	wVersionRequested = MAKEWORD(2, 0);
+	err = WSAStartup( wVersionRequested, &wsaData );
+	if (err != 0) {
+		fprintf(stderr, "WSAStartup() failed: %d\n", err);
+		exit(1);
+	}
+#endif
 
 	n = gethostname(hostname, sizeof(hostname));
 	if (n == -1) {
@@ -45,5 +59,8 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 	fprintf(stdout, "%s\n", hostname);
+#ifdef WIN32
+	WSACleanup();
+#endif
 	return (0);
 }

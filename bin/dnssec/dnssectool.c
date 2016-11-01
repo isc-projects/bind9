@@ -25,6 +25,10 @@
 
 #include <stdlib.h>
 
+#ifdef _WIN32
+#include <Winsock2.h>
+#endif
+
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -1859,3 +1863,25 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		}
 	}
 }
+
+#ifdef _WIN32
+void
+InitSockets(void) {
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
+
+	wVersionRequested = MAKEWORD(2, 0);
+
+	err = WSAStartup( wVersionRequested, &wsaData );
+	if (err != 0) {
+		fprintf(stderr, "WSAStartup() failed: %d\n", err);
+		exit(1);
+	}
+}
+
+void
+DestroySockets(void) {
+	WSACleanup();
+}
+#endif
