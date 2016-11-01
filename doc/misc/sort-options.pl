@@ -21,7 +21,7 @@ sub sortlevel() {
 	my $fin = "";
 	my $i = 0;
 	while (<>) {
-		if (/^\s*};$/) {
+		if (/^\s*};$/ || /^\s*}; \/\/.*$/) {
 			$fin = $_;
 			# print 2, $_;
 			last;
