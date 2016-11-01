@@ -32,7 +32,10 @@ static void
 usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
+	fprintf(stderr, "	--enable-fetchlimit\n");
 	fprintf(stderr, "	--enable-filter-aaaa\n");
+	fprintf(stderr, "	--enable-newstats\n");
+	fprintf(stderr, "	--enable-rrl\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
 	fprintf(stderr, "	--have-dlopen\n");
@@ -50,8 +53,32 @@ main(int argc, char **argv) {
 		return (1);
 	}
 
+	if (strcmp(argv[1], "--enable-fetchlimit") == 0) {
+#ifdef ENABLE_FETCHLIMIT
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
 	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
 #ifdef ALLOW_FILTER_AAAA
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--enable-newstats") == 0) {
+#ifdef NEWSTATS
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--enable-rrl") == 0) {
+#ifdef USE_RRL
 		return (0);
 #else
 		return (1);

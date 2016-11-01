@@ -60,6 +60,7 @@ FEATURETEST=$TOP/bin/tests/system/feature-test
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -106,6 +107,26 @@ fi
 
 . ${TOP}/version
 
-export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
-       PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
-       JOURNALPRINT ARPANAME SAMPLE NSLOOKUP DESCRIPTION FEATURETEST
+export ARPANAME
+export CHECKZONE
+export DESCRIPTION
+export DIG
+export FEATURETEST
+export JOURNALPRINT
+export KEYFRLAB
+export KEYGEN
+export LWRESD
+export NAMED
+export NSLOOKUP
+export NSUPDATE
+export PERL
+export PK11DEL
+export PK11GEN
+export PK11LIST
+export PYTHON
+export RANDFILE
+export RESOLVE
+export RNDC
+export SIGNER
+export SUBDIRS
+export TESTSOCK6

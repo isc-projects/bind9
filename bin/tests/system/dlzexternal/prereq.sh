@@ -14,7 +14,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-./dlopen ||  {
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$FEATURETEST --have-dlopen ||  {
         echo "I:dlopen() not supported - skipping dlzexternal test"
         exit 255
 }

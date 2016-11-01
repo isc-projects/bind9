@@ -1,3 +1,6 @@
+4498.	[test]		Simplify prerequisite checks in system tests.
+			[RT #43516]
+
 4496.	[func]		dig: add +idnout to control whether labels are
 			display in punycode or not.  Requires idn support
 			to be enabled at compile time. [RT #43398]
