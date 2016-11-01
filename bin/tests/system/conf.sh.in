@@ -54,22 +54,17 @@ DNSTAPREAD=$TOP/bin/tools/dnstap-read
 MDIG=$TOP/bin/tools/mdig
 NZD2NZF=$TOP/bin/tools/named-nzd2nzf
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
+FEATURETEST=$TOP/bin/tests/system/feature-test
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
 BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
-DLOPEN=$TOP/bin/tests/system/dlzexternal/dlopen
-EDNSVERSION=$TOP/bin/tests/system/resolver/edns-version
-FILTERAAAA=$TOP/bin/tests/system/filter-aaaa/filter-aaaa
 GENCHECK=$TOP/bin/tests/system/rndc/gencheck
-GETHOSTNAME=$TOP/bin/tests/system/builtin/gethostname
 KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
 KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
 LWTEST=$TOP/bin/tests/system/lwresd/lwtest
 MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
-RPZ=$TOP/bin/tests/system/rpz/rpz
-XMLSTATS=$TOP/bin/tests/system/statistics/xmlstats
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -138,9 +133,39 @@ NZD=@NZD_TOOLS@
 
 . ${TOP}/version
 
-export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
-       PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
-       JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
-       MDIG FSTRM_CAPTURE NZD2NZF \
-       RANDFILE BIGKEY DLOPEN EDNSVERSION FILTERAAAA GENCHECK GETHOSTNAME \
-       KEYCREATE KEYDELETE LWTEST MAKEJOURNAL PIPEQUERIES RPZ XMLSTATS
+export ARPANAME
+export BIGKEY
+export CHECKZONE
+export DESCRIPTION
+export DIG
+export FEATURETEST
+export FSTRM_CAPTURE
+export GENCHECK
+export JOURNALPRINT
+export KEYCREATE
+export KEYDELETE
+export KEYFRLAB
+export KEYGEN
+export KEYSETTOOL
+export KEYSIGNER
+export LWRESD
+export LWTEST
+export MAKEJOURNAL
+export MDIG
+export NAMED
+export NSLOOKUP
+export NSUPDATE
+export NZD2NZF
+export PERL
+export PIPEQUERIES
+export PK11DEL
+export PK11GEN
+export PK11LIST
+export PYTHON
+export RANDFILE
+export RESOLVE
+export RNDC
+export RRCHECKER
+export SIGNER
+export SUBDIRS
+export TESTSOCK6

@@ -60,23 +60,18 @@ DNSTAPREAD=$TOP/Build/$VSCONF/dnstap-read@EXEEXT@
 MDIG=$TOP/Build/$VSCONF/mdig@EXEEXT@
 NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
+FEATURETEST=$TOP/Build/$VSCONF/feature-test@EXEEXT@
 
 # this is given as argument to native WIN32 executables
 RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
 BIGKEY=$TOP/Build/$VSCONF/bigkey@EXEEXT@
-DLOPEN=$TOP/Build/$VSCONF/dlopen@EXEEXT@
-EDNSVERSION=$TOP/Build/$VSCONF/edns-version@EXEEXT@
-FILTERAAAA=$TOP/Build/$VSCONF/filter-aaaa@EXEEXT@
 GENCHECK=$TOP/Build/$VSCONF/gencheck@EXEEXT@
-GETHOSTNAME=$TOP/Build/$VSCONF/gethostname@EXEEXT@
 KEYCREATE=$TOP/Build/$VSCONF/keycreate@EXEEXT@
 KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
 LWTEST=$TOP/Build/$VSCONF/lwtest@EXEEXT@
 MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
-RPZ=$TOP/Build/$VSCONF/rpz@EXEEXT@
-XMLSTATS=$TOP/Build/$VSCONF/xmlstats@EXEEXT@
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -140,9 +135,39 @@ NZD=@NZD_TOOLS@
 
 . ${TOP}/version
 
-export NAMED LWRESD DIG NSUPDATE KEYGEN KEYFRLAB SIGNER KEYSIGNER KEYSETTOOL \
-       PERL SUBDIRS RNDC CHECKZONE PK11GEN PK11LIST PK11DEL TESTSOCK6 \
-       JOURNALPRINT ARPANAME RESOLVE RRCHECKER NSLOOKUP DESCRIPTION PYTHON \
-       MDIG FSTRM_CAPTURE NZD2NZF \
-       RANDFILE BIGKEY DLOPEN EDNSVERSION FILTERAAAA GENCHECK GETHOSTNAME \
-       KEYCREATE KEYDELETE LWTEST MAKEJOURNAL PIPEQUERIES RPZ XMLSTATS
+export ARPANAME
+export BIGKEY
+export CHECKZONE
+export DESCRIPTION
+export DIG
+export FEATURETEST
+export FSTRM_CAPTURE
+export GENCHECK
+export JOURNALPRINT
+export KEYCREATE
+export KEYDELETE
+export KEYFRLAB
+export KEYGEN
+export KEYSETTOOL
+export KEYSIGNER
+export LWRESD
+export LWTEST
+export MAKEJOURNAL
+export MDIG
+export NAMED
+export NSLOOKUP
+export NSUPDATE
+export NZD2NZF
+export PERL
+export PIPEQUERIES
+export PK11DEL
+export PK11GEN
+export PK11LIST
+export PYTHON
+export RANDFILE
+export RESOLVE
+export RNDC
+export RRCHECKER
+export SIGNER
+export SUBDIRS
+export TESTSOCK6

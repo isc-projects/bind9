@@ -1,3 +1,6 @@
+4498.	[test]		Simplify prerequisite checks in system tests.
+			[RT #43516]
+
 4497.	[port]		Add support for OpenSSL 1.1.0. [RT #41284]
 
 4495.	[bug]		A isc_mutex_init call was not being checked.

@@ -438,7 +438,7 @@ nochange a5-1-2.tld2
 end_group
 ckstats $ns3 'radix tree deletions' ns3 0
 
-if $RPZ nsdname; then
+if $FEATURETEST --rpz-nsdname; then
     # these tests assume "min-ns-dots 0"
     start_group "NSDNAME rewrites" test3
     nochange a3-1.tld2			# 1
@@ -459,7 +459,7 @@ else
     echo "I:NSDNAME not checked; named configured with --disable-rpz-nsdname"
 fi
 
-if $RPZ nsip; then
+if $FEATURETEST --rpz-nsip; then
     # these tests assume "min-ns-dots 0"
     start_group "NSIP rewrites" test4
     nxdomain a3-1.tld2			# 1 NXDOMAIN for all of tld2

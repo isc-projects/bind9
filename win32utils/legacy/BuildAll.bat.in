@@ -222,17 +222,12 @@ cd tests\win32
 nmake /nologo -f makejournal.mak CFG="makejournal - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\system\win32
 nmake /nologo -f gencheck.mak CFG="gencheck - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f dlopen.mak CFG="dlopen - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f lwtest.mak CFG="lwtest - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f gethostname.mak CFG="gethostname - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f bigkey.mak CFG="bigkey - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f pipequeries.mak CFG="pipequeries - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f keycreate.mak CFG="keycreate - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f keydelete.mak CFG="keydelete - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f edns-version.mak CFG="edns-version - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f rpz.mak CFG="rpz - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f xmlstats.mak CFG="xmlstats - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
-nmake /nologo -f filter-aaaa.mak CFG="filter-aaaa - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
+nmake /nologo -f feature-test.mak CFG="feature-test - @PLATFORM@ Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..\..
 @END STESTS
 

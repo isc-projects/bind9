@@ -116,7 +116,7 @@ n=`expr $n + 1`
 ret=0
 n=`expr $n + 1`
 echo "I:checking that zones with slash are properly shown in XML output ($n)"
-if $XMLSTATS && [ -x ${CURL} ] ; then
+if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:8053/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
     grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN">' curl.out.${t} > /dev/null || ret=1
 else
@@ -128,7 +128,7 @@ status=`expr $status + $ret`
 ret=0
 n=`expr $n + 1`
 echo "I:checking that zones return their type ($n)"
-if $XMLSTATS && [ -x ${CURL} ] ; then
+if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:8053/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
     grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN"><type>master</type>' curl.out.${t} > /dev/null || ret=1
 else
