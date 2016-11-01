@@ -21,9 +21,30 @@ top_srcdir =	@top_srcdir@
 
 SUBDIRS =	builtin dlzexternal fetchlimit filter-aaaa lwresd \
 		statistics rpz rrl rsabigexponent tkey tsiggss
-TARGETS =
+CINCLUDES =	${ISC_INCLUDES} ${DNS_INCLUDES}
+
+CDEFINES =	@USE_GSSAPI@
+CWARNINGS =
+
+DNSLIBS =
+ISCLIBS =	../../../lib/isc/libisc.@A@
+
+DNSDEPLIBS =
+ISCDEPLIBS =
+
+DEPLIBS =
+
+LIBS =		@LIBS@
+
+OBJS =		feature-test.@O@
+SRCS =		feature-test.c
+
+TARGETS =	feature-test@EXEEXT@
 
 @BIND9_MAKE_RULES@
+
+feature-test@EXEEXT@: feature-test.@O@
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
 
 # Running the scripts below is bypassed when a separate
 # build directory is used.
@@ -37,6 +58,8 @@ testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
 	rm -f systests.output
 	rm -f random.data
+	rm -f ${TARGETS}
+	rm -f ${OBJS}
 
 distclean::
 	rm -f conf.sh

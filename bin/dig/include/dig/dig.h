@@ -129,7 +129,8 @@ struct dig_lookup {
 		done_as_is,
 		besteffort,
 		dnssec,
-		nsid;   /*% Name Server ID (RFC 5001) */
+		nsid,   /*% Name Server ID (RFC 5001) */
+		idnout;
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
 #if DIG_SIGCHASE_TD
