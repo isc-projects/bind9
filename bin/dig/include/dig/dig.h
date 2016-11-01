@@ -130,15 +130,7 @@ struct dig_lookup {
 		ednsneg,
 		mapped,
 		print_unknown_format,
-		multiline,
-		nottl,
-		noclass,
-		onesoa,
-		use_usec,
-		nocrypto,
-		ttlunits,
-		idnout,
-		qr;
+		idnout;
 #ifdef DIG_SIGCHASE
 isc_boolean_t	sigchase;
 #if DIG_SIGCHASE_TD
