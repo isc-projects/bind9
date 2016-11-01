@@ -1,6 +1,6 @@
 4500.	[bug]		Support modifier I64 in isc__print_printf. [RT #43526]
 
-4499.	[port]		MacOSX: silence deprecated function warning 
+4499.	[port]		MacOSX: silence deprecated function warning
 			by using arc4random_stir() when available
 			instead of arc4random_addrandom(). [RT #43503]
 
