@@ -64,6 +64,9 @@
 /** define if arc4random() exists */
 #undef HAVE_ARC4RANDOM
 
+/** define if arc4random_stir() exists */
+#undef HAVE_ARC4RANDOM_STIR
+
 /** define if arc4random_addrandom() exists */
 #undef HAVE_ARC4RANDOM_ADDRANDOM
 
