@@ -216,8 +216,7 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 static int
-progress_cb(int p, int n, BN_GENCB *cb)
-{
+progress_cb(int p, int n, BN_GENCB *cb) {
 	union {
 		void *dptr;
 		void (*fptr)(int);
