@@ -545,9 +545,9 @@ if [ -x ${DELV} ] ; then
   grep "a.example." < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi 
   status=`expr $status + $ret`
-
-  echo "I:exit status: $status"
-  [ $status -eq 0 ] || exit 1
 else
   echo "$DELV is needed, so skipping these delv tests"
 fi
+
+echo "I:exit status: $status"
+[ $status -eq 0 ] || exit 1
