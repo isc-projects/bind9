@@ -46,6 +46,8 @@
 #define CFG_CLAUSEFLAG_TESTONLY		0x00000040
 /*% A configuration option that was not configured at compile time. */
 #define CFG_CLAUSEFLAG_NOTCONFIGURED	0x00000080
+/*% A option for a experimental feature. */
+#define CFG_CLAUSEFLAG_EXPERIMENTAL	0x00000100
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
