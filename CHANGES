@@ -1,3 +1,6 @@
+4502.	[func]		Report multiple and experimental options when printing
+			grammar. [RT #43134]
+
 4500.	[bug]		Support modifier I64 in isc__print_printf. [RT #43526]
 
 4499.	[port]		MacOSX: silence deprecated function warning

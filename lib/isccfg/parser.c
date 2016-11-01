@@ -1760,6 +1760,37 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 }
 
+static struct flagtext {
+	unsigned int flag;
+	const char *text;
+} flagtexts[] = {
+	{ CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
+	{ CFG_CLAUSEFLAG_NYI, "not yet implemented" },
+	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
+	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
+	{ CFG_CLAUSEFLAG_TESTONLY, "test only" },
+	{ CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
+	{ CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
+	{ CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
+	{ 0, NULL }
+};
+
+static void
+print_clause_flags(cfg_printer_t *pctx, unsigned int flags) {
+	struct flagtext *p;
+	isc_boolean_t first = ISC_TRUE;
+	for (p = flagtexts; p->flag != 0; p++) {
+		if ((flags & p->flag) != 0) {
+			if (first)
+				cfg_print_cstr(pctx, " // ");
+			else
+				cfg_print_cstr(pctx, ", ");
+			cfg_print_cstr(pctx, p->text);
+			first = ISC_FALSE;
+		}
+	}
+}
+
 void
 cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const cfg_clausedef_t * const *clauseset;
@@ -1775,25 +1806,12 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 			cfg_print_cstr(pctx, clause->name);
 			cfg_print_chars(pctx, " ", 1);
 			cfg_doc_obj(pctx, clause->type);
-			cfg_print_chars(pctx, ";", 1);
-			/* XXX print flags here? */
-			cfg_print_chars(pctx, "\n\n", 2);
+			cfg_print_cstr(pctx, ";");
+			print_clause_flags(pctx, clause->flags);
+			cfg_print_cstr(pctx, "\n\n");
 		}
 	}
 }
-
-static struct flagtext {
-	unsigned int flag;
-	const char *text;
-} flagtexts[] = {
-	{ CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
-	{ CFG_CLAUSEFLAG_NYI, "not yet implemented" },
-	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
-	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
-	{ CFG_CLAUSEFLAG_TESTONLY, "test only" },
-	{ CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
-	{ 0, NULL }
-};
 
 void
 cfg_print_map(cfg_printer_t *pctx, const cfg_obj_t *obj) {
@@ -1807,22 +1825,6 @@ cfg_print_map(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	print_open(pctx);
 	cfg_print_mapbody(pctx, obj);
 	print_close(pctx);
-}
-
-static void
-print_clause_flags(cfg_printer_t *pctx, unsigned int flags) {
-	struct flagtext *p;
-	isc_boolean_t first = ISC_TRUE;
-	for (p = flagtexts; p->flag != 0; p++) {
-		if ((flags & p->flag) != 0) {
-			if (first)
-				cfg_print_chars(pctx, " // ", 4);
-			else
-				cfg_print_chars(pctx, ", ", 2);
-			cfg_print_cstr(pctx, p->text);
-			first = ISC_FALSE;
-		}
-	}
 }
 
 void

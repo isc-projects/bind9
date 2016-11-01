@@ -1,0 +1,696 @@
+diff --git a/CHANGES b/CHANGES
+index 957a989..46d9c37 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -1,3 +1,5 @@
++	--- 9.11.0 released ---
++
+ 	--- 9.11.0rc3 released ---
+ 
+ 4471.	[cleanup]	Render client/query logging format consistent for
+diff --git a/doc/arm/Bv9ARM.ch01.html b/doc/arm/Bv9ARM.ch01.html
+index c466ef4..c2b9066 100644
+--- a/doc/arm/Bv9ARM.ch01.html
++++ b/doc/arm/Bv9ARM.ch01.html
+@@ -547,6 +547,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch02.html b/doc/arm/Bv9ARM.ch02.html
+index 19f867b..d491819 100644
+--- a/doc/arm/Bv9ARM.ch02.html
++++ b/doc/arm/Bv9ARM.ch02.html
+@@ -145,6 +145,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch03.html b/doc/arm/Bv9ARM.ch03.html
+index a74c56c..9cb7d5a 100644
+--- a/doc/arm/Bv9ARM.ch03.html
++++ b/doc/arm/Bv9ARM.ch03.html
+@@ -661,6 +661,6 @@ controls {
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch04.html b/doc/arm/Bv9ARM.ch04.html
+index 20c16a1..35eef4e 100644
+--- a/doc/arm/Bv9ARM.ch04.html
++++ b/doc/arm/Bv9ARM.ch04.html
+@@ -2674,6 +2674,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch05.html b/doc/arm/Bv9ARM.ch05.html
+index 3a753e4..eaec6ee 100644
+--- a/doc/arm/Bv9ARM.ch05.html
++++ b/doc/arm/Bv9ARM.ch05.html
+@@ -136,6 +136,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch06.html b/doc/arm/Bv9ARM.ch06.html
+index b41e966..ad6c528 100644
+--- a/doc/arm/Bv9ARM.ch06.html
++++ b/doc/arm/Bv9ARM.ch06.html
+@@ -13550,6 +13550,6 @@ HOST-127.EXAMPLE. MX 0 .
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch07.html b/doc/arm/Bv9ARM.ch07.html
+index b29a862..c34344b 100644
+--- a/doc/arm/Bv9ARM.ch07.html
++++ b/doc/arm/Bv9ARM.ch07.html
+@@ -370,6 +370,6 @@ allow-query { !{ !10/8; any; }; key example; };
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch08.html b/doc/arm/Bv9ARM.ch08.html
+index 8fd3d45..361e1ea 100644
+--- a/doc/arm/Bv9ARM.ch08.html
++++ b/doc/arm/Bv9ARM.ch08.html
+@@ -126,6 +126,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch09.html b/doc/arm/Bv9ARM.ch09.html
+index 2a3c3e6..51e72f7 100644
+--- a/doc/arm/Bv9ARM.ch09.html
++++ b/doc/arm/Bv9ARM.ch09.html
+@@ -36,7 +36,7 @@
+ <div class="toc">
+ <p><b>Table of Contents</b></p>
+ <dl class="toc">
+-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0rc3</a></span></dt>
++<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0</a></span></dt>
+ <dd><dl>
+ <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
+ <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
+@@ -52,7 +52,7 @@
+ </div>
+ <div class="section">
+ <div class="titlepage"><div><div><h2 class="title" style="clear: both">
+-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.0rc3</h2></div></div></div>
++<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.0</h2></div></div></div>
+ <div class="section">
+ <div class="titlepage"><div><div><h3 class="title">
+ <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
+@@ -856,6 +856,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch10.html b/doc/arm/Bv9ARM.ch10.html
+index ecf3e90..e351cc3 100644
+--- a/doc/arm/Bv9ARM.ch10.html
++++ b/doc/arm/Bv9ARM.ch10.html
+@@ -147,6 +147,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch11.html b/doc/arm/Bv9ARM.ch11.html
+index 9260f2d..55eccf5 100644
+--- a/doc/arm/Bv9ARM.ch11.html
++++ b/doc/arm/Bv9ARM.ch11.html
+@@ -489,6 +489,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch12.html b/doc/arm/Bv9ARM.ch12.html
+index aeabb99..04ca153 100644
+--- a/doc/arm/Bv9ARM.ch12.html
++++ b/doc/arm/Bv9ARM.ch12.html
+@@ -535,6 +535,6 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.ch13.html b/doc/arm/Bv9ARM.ch13.html
+index 404a7d5..ba5d293 100644
+--- a/doc/arm/Bv9ARM.ch13.html
++++ b/doc/arm/Bv9ARM.ch13.html
+@@ -175,6 +175,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/Bv9ARM.html b/doc/arm/Bv9ARM.html
+index 3dc5252..092e741 100644
+--- a/doc/arm/Bv9ARM.html
++++ b/doc/arm/Bv9ARM.html
+@@ -32,7 +32,7 @@
+ <div>
+ <div><h1 class="title">
+ <a name="id-1"></a>BIND 9 Administrator Reference Manual</h1></div>
+-<div><p class="releaseinfo">BIND Version 9.11.0rc3</p></div>
++<div><p class="releaseinfo">BIND Version 9.11.0</p></div>
+ <div><p class="copyright">Copyright © 2000-2015 Internet Systems Consortium, Inc. ("ISC")</p></div>
+ </div>
+ <hr>
+@@ -241,7 +241,7 @@
+ </dl></dd>
+ <dt><span class="appendix"><a href="Bv9ARM.ch09.html">A. Release Notes</a></span></dt>
+ <dd><dl>
+-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0rc3</a></span></dt>
++<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.0</a></span></dt>
+ <dd><dl>
+ <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
+ <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
+@@ -416,6 +416,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.arpaname.html b/doc/arm/man.arpaname.html
+index 5986e6c..58cdbd4 100644
+--- a/doc/arm/man.arpaname.html
++++ b/doc/arm/man.arpaname.html
+@@ -73,6 +73,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.ddns-confgen.html b/doc/arm/man.ddns-confgen.html
+index 96f8422..f3d358e 100644
+--- a/doc/arm/man.ddns-confgen.html
++++ b/doc/arm/man.ddns-confgen.html
+@@ -177,6 +177,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.delv.html b/doc/arm/man.delv.html
+index d18ef76..2e78183 100644
+--- a/doc/arm/man.delv.html
++++ b/doc/arm/man.delv.html
+@@ -501,6 +501,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dig.html b/doc/arm/man.dig.html
+index 15c174d..601610f 100644
+--- a/doc/arm/man.dig.html
++++ b/doc/arm/man.dig.html
+@@ -848,6 +848,6 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-checkds.html b/doc/arm/man.dnssec-checkds.html
+index 8cec806..0245b8a 100644
+--- a/doc/arm/man.dnssec-checkds.html
++++ b/doc/arm/man.dnssec-checkds.html
+@@ -104,6 +104,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-coverage.html b/doc/arm/man.dnssec-coverage.html
+index a23525e..741d052 100644
+--- a/doc/arm/man.dnssec-coverage.html
++++ b/doc/arm/man.dnssec-coverage.html
+@@ -221,6 +221,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-dsfromkey.html b/doc/arm/man.dnssec-dsfromkey.html
+index 0623264..ebc042f 100644
+--- a/doc/arm/man.dnssec-dsfromkey.html
++++ b/doc/arm/man.dnssec-dsfromkey.html
+@@ -205,6 +205,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-importkey.html b/doc/arm/man.dnssec-importkey.html
+index ff14f91..31e00a3 100644
+--- a/doc/arm/man.dnssec-importkey.html
++++ b/doc/arm/man.dnssec-importkey.html
+@@ -179,6 +179,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-keyfromlabel.html b/doc/arm/man.dnssec-keyfromlabel.html
+index 8c4f5f5..12f8ff4 100644
+--- a/doc/arm/man.dnssec-keyfromlabel.html
++++ b/doc/arm/man.dnssec-keyfromlabel.html
+@@ -383,6 +383,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-keygen.html b/doc/arm/man.dnssec-keygen.html
+index 023b645..616a8b2 100644
+--- a/doc/arm/man.dnssec-keygen.html
++++ b/doc/arm/man.dnssec-keygen.html
+@@ -457,6 +457,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-keymgr.html b/doc/arm/man.dnssec-keymgr.html
+index 2a198b2..47bd2f4 100644
+--- a/doc/arm/man.dnssec-keymgr.html
++++ b/doc/arm/man.dnssec-keymgr.html
+@@ -309,6 +309,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-revoke.html b/doc/arm/man.dnssec-revoke.html
+index d435909..2897bcc 100644
+--- a/doc/arm/man.dnssec-revoke.html
++++ b/doc/arm/man.dnssec-revoke.html
+@@ -126,6 +126,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-settime.html b/doc/arm/man.dnssec-settime.html
+index dadb23c..b252979 100644
+--- a/doc/arm/man.dnssec-settime.html
++++ b/doc/arm/man.dnssec-settime.html
+@@ -269,6 +269,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-signzone.html b/doc/arm/man.dnssec-signzone.html
+index 88cd831..7911995 100644
+--- a/doc/arm/man.dnssec-signzone.html
++++ b/doc/arm/man.dnssec-signzone.html
+@@ -559,6 +559,6 @@ db.example.com.signed
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnssec-verify.html b/doc/arm/man.dnssec-verify.html
+index 63db9e3..fbf11ec 100644
+--- a/doc/arm/man.dnssec-verify.html
++++ b/doc/arm/man.dnssec-verify.html
+@@ -156,6 +156,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.dnstap-read.html b/doc/arm/man.dnstap-read.html
+index 3df9793..1276982 100644
+--- a/doc/arm/man.dnstap-read.html
++++ b/doc/arm/man.dnstap-read.html
+@@ -99,6 +99,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.genrandom.html b/doc/arm/man.genrandom.html
+index 05ac04f..c20aec3 100644
+--- a/doc/arm/man.genrandom.html
++++ b/doc/arm/man.genrandom.html
+@@ -94,6 +94,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.host.html b/doc/arm/man.host.html
+index 7a034ce..09985e6 100644
+--- a/doc/arm/man.host.html
++++ b/doc/arm/man.host.html
+@@ -284,6 +284,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.isc-hmac-fixup.html b/doc/arm/man.isc-hmac-fixup.html
+index d1ffbf2..e776c45 100644
+--- a/doc/arm/man.isc-hmac-fixup.html
++++ b/doc/arm/man.isc-hmac-fixup.html
+@@ -104,6 +104,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.lwresd.html b/doc/arm/man.lwresd.html
+index 546c6db..958b6ce 100644
+--- a/doc/arm/man.lwresd.html
++++ b/doc/arm/man.lwresd.html
+@@ -245,6 +245,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.mdig.html b/doc/arm/man.mdig.html
+index 843bef9..c388808 100644
+--- a/doc/arm/man.mdig.html
++++ b/doc/arm/man.mdig.html
+@@ -459,6 +459,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named-checkconf.html b/doc/arm/man.named-checkconf.html
+index 7cc16f0..4e7addd 100644
+--- a/doc/arm/man.named-checkconf.html
++++ b/doc/arm/man.named-checkconf.html
+@@ -143,6 +143,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named-checkzone.html b/doc/arm/man.named-checkzone.html
+index bd289fc..1d35635 100644
+--- a/doc/arm/man.named-checkzone.html
++++ b/doc/arm/man.named-checkzone.html
+@@ -330,6 +330,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named-journalprint.html b/doc/arm/man.named-journalprint.html
+index 2e90b1f..f5b0f30 100644
+--- a/doc/arm/man.named-journalprint.html
++++ b/doc/arm/man.named-journalprint.html
+@@ -94,6 +94,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named-nzd2nzf.html b/doc/arm/man.named-nzd2nzf.html
+index 7729124..dcedae8 100644
+--- a/doc/arm/man.named-nzd2nzf.html
++++ b/doc/arm/man.named-nzd2nzf.html
+@@ -95,6 +95,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named-rrchecker.html b/doc/arm/man.named-rrchecker.html
+index 9978442..70ae789 100644
+--- a/doc/arm/man.named-rrchecker.html
++++ b/doc/arm/man.named-rrchecker.html
+@@ -96,6 +96,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named.conf.html b/doc/arm/man.named.conf.html
+index a0ad312..09cdaac 100644
+--- a/doc/arm/man.named.conf.html
++++ b/doc/arm/man.named.conf.html
+@@ -706,6 +706,6 @@ zone
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.named.html b/doc/arm/man.named.html
+index e372c68..9312ee8 100644
+--- a/doc/arm/man.named.html
++++ b/doc/arm/man.named.html
+@@ -376,6 +376,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.nsec3hash.html b/doc/arm/man.nsec3hash.html
+index 71f3e05..88caae8 100644
+--- a/doc/arm/man.nsec3hash.html
++++ b/doc/arm/man.nsec3hash.html
+@@ -99,6 +99,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.nslookup.html b/doc/arm/man.nslookup.html
+index fca7f98..d188ff3 100644
+--- a/doc/arm/man.nslookup.html
++++ b/doc/arm/man.nslookup.html
+@@ -346,6 +346,6 @@ nslookup -query=hinfo  -timeout=10
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.nsupdate.html b/doc/arm/man.nsupdate.html
+index 68bd682..176acce 100644
+--- a/doc/arm/man.nsupdate.html
++++ b/doc/arm/man.nsupdate.html
+@@ -668,6 +668,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.pkcs11-destroy.html b/doc/arm/man.pkcs11-destroy.html
+index 8858161..017df9c 100644
+--- a/doc/arm/man.pkcs11-destroy.html
++++ b/doc/arm/man.pkcs11-destroy.html
+@@ -116,6 +116,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.pkcs11-keygen.html b/doc/arm/man.pkcs11-keygen.html
+index 4708a0d..f9a1b2b 100644
+--- a/doc/arm/man.pkcs11-keygen.html
++++ b/doc/arm/man.pkcs11-keygen.html
+@@ -140,6 +140,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.pkcs11-list.html b/doc/arm/man.pkcs11-list.html
+index f5bf829..d037737 100644
+--- a/doc/arm/man.pkcs11-list.html
++++ b/doc/arm/man.pkcs11-list.html
+@@ -114,6 +114,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.pkcs11-tokens.html b/doc/arm/man.pkcs11-tokens.html
+index 6ab81ab..edf0fe8 100644
+--- a/doc/arm/man.pkcs11-tokens.html
++++ b/doc/arm/man.pkcs11-tokens.html
+@@ -87,6 +87,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.rndc-confgen.html b/doc/arm/man.rndc-confgen.html
+index 82b5ad5..cfb0d0e 100644
+--- a/doc/arm/man.rndc-confgen.html
++++ b/doc/arm/man.rndc-confgen.html
+@@ -216,6 +216,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.rndc.conf.html b/doc/arm/man.rndc.conf.html
+index c261e41..97250f1 100644
+--- a/doc/arm/man.rndc.conf.html
++++ b/doc/arm/man.rndc.conf.html
+@@ -238,6 +238,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/man.rndc.html b/doc/arm/man.rndc.html
+index 3987d17..4792a0d 100644
+--- a/doc/arm/man.rndc.html
++++ b/doc/arm/man.rndc.html
+@@ -787,6 +787,6 @@
+ </tr>
+ </table>
+ </div>
+-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0rc3</p>
++<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.0</p>
+ </body>
+ </html>
+diff --git a/doc/arm/notes.html b/doc/arm/notes.html
+index c0da082..2639a46 100644
+--- a/doc/arm/notes.html
++++ b/doc/arm/notes.html
+@@ -13,7 +13,7 @@
+ </head>
+ <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="section">
+ <div class="titlepage"><div><div><h2 class="title" style="clear: both">
+-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.0rc3</h2></div></div></div>
++<a name="id-1.2"></a>Release Notes for BIND Version 9.11.0</h2></div></div></div>
+ <div class="section">
+ <div class="titlepage"><div><div><h3 class="title">
+ <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
+diff --git a/version b/version
+index 171b685..90416fc 100644
+--- a/version
++++ b/version
+@@ -6,6 +6,6 @@ DESCRIPTION=
+ MAJORVER=9
+ MINORVER=11
+ PATCHVER=0
+-RELEASETYPE=rc
+-RELEASEVER=3
++RELEASETYPE=
++RELEASEVER=
+ EXTENSIONS=
