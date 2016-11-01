@@ -752,7 +752,7 @@
 ./bin/tests/startperf/setup.sh			SH	2011,2012,2016
 ./bin/tests/startperf/smallzone.db		ZONE	2011,2016
 ./bin/tests/sym_test.c				C	1998,1999,2000,2001,2004,2005,2007,2015,2016
-./bin/tests/system/.gitignore			X	2012
+./bin/tests/system/.gitignore			X	2012,2016
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011,2013,2015,2016
 ./bin/tests/system/acl/clean.sh			SH	2008,2012,2014,2015,2016
@@ -1453,7 +1453,7 @@
 ./bin/tests/system/fetchlimit/ns3/root.hint	ZONE	2015,2016
 ./bin/tests/system/fetchlimit/setup.sh		SH	2015,2016
 ./bin/tests/system/fetchlimit/tests.sh		SH	2015,2016
-./bin/tests/system/filter-aaaa/.gitignore	X	2012,2014
+./bin/tests/system/filter-aaaa/.gitignore	X	2012,2014,2016
 ./bin/tests/system/filter-aaaa/Makefile.in	MAKE	2010,2011,2012,2015,2016
 ./bin/tests/system/filter-aaaa/clean.sh		SH	2010,2012,2014,2016
 ./bin/tests/system/filter-aaaa/conf/bad1.conf	CONF-C	2010,2016
@@ -2425,6 +2425,12 @@
 ./bin/tests/system/win32/edns-version.vcxproj.filters.in	X	2016
 ./bin/tests/system/win32/edns-version.vcxproj.in	X	2016
 ./bin/tests/system/win32/edns-version.vcxproj.user	X	2016
+./bin/tests/system/win32/feature-test.dsp.in	X	2016
+./bin/tests/system/win32/feature-test.dsw	X	2016
+./bin/tests/system/win32/feature-test.mak.in	X	2016
+./bin/tests/system/win32/feature-test.vcxproj.filters.in	X	2016
+./bin/tests/system/win32/feature-test.vcxproj.in	X	2016
+./bin/tests/system/win32/feature-test.vcxproj.user	X	2016
 ./bin/tests/system/win32/filter-aaaa.dsp.in	X	2016
 ./bin/tests/system/win32/filter-aaaa.dsw	X	2016
 ./bin/tests/system/win32/filter-aaaa.mak.in	X	2016
