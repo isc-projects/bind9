@@ -723,6 +723,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]idnout</option></term>
+	  <listitem>
+	    <para>
+	      Convert [do not convert] puny code on output.
+	      This requires IDN SUPPORT to have been enabled at
+	      compile time.  The default is to convert output.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]ignore</option></term>
 	  <listitem>
 	    <para>

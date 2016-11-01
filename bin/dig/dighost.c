@@ -789,6 +789,11 @@ make_empty_lookup(void) {
 	looknew->opcode = dns_opcode_query;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
+#ifdef WITH_IDN
+	looknew->idnout = ISC_TRUE;
+#else
+	looknew->idnout = ISC_FALSE;
+#endif
 #ifdef ISC_PLATFORM_USESIT
 	looknew->sit = ISC_FALSE;
 #endif
@@ -892,6 +897,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsopts = lookold->ednsopts;
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
 	looknew->ednsneg = lookold->ednsneg;
+	looknew->idnout = lookold->idnout;
 #ifdef DIG_SIGCHASE
 	looknew->sigchase = lookold->sigchase;
 #if DIG_SIGCHASE_TD
@@ -2204,7 +2210,8 @@ setup_lookup(dig_lookup_t *lookup) {
 #endif
 
 #ifdef WITH_IDN
-	result = dns_name_settotextfilter(output_filter);
+	result = dns_name_settotextfilter(lookup->idnout ?
+					  output_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
 #endif
 
