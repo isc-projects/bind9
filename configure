@@ -15940,7 +15940,7 @@ $as_echo_n "checking whether linking with OpenSSL requires -ldl... " >&6; }
 /* end confdefs.h.  */
 
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100004L)
 #include <openssl/crypto.h>
 #else
 #include <openssl/err.h>
@@ -15951,7 +15951,7 @@ int
 main ()
 {
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100004L)
 OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
 #else
 DSO_METHOD_dlfcn();
@@ -15969,7 +15969,7 @@ else
 		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100004L)
 #include <openssl/crypto.h>
 #else
 #include <openssl/err.h>
@@ -15980,7 +15980,7 @@ int
 main ()
 {
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100004L
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100004L)
 OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ALL_BUILTIN, NULL);
 #else
 DSO_METHOD_dlfcn();
@@ -16177,7 +16177,7 @@ else
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 int main() {
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10000000L)
 	ENGINE *e;
 	EC_KEY *ek;
 
