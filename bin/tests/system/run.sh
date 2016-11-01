@@ -80,7 +80,7 @@ then
 fi
 
 # Start name servers running
-$PERL start.pl $test || { echo "E:$test:`date`"; exit 1; }
+$PERL start.pl $test || { echo "R:FAIL"; echo "E:$test:`date`"; exit 1; }
 
 # Run the tests
 ( cd $test ; $SHELL tests.sh )

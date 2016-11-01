@@ -120,7 +120,7 @@ sub check_ports {
 		if (++$tries > 4) {
 			print "$0: could not bind to server addresses, still running?\n";
 			print "I:server sockets not available\n";
-			print "R:FAIL\n";
+			print "I:failed\n";
 			system("$PERL $topdir/stop.pl $testdir"); # Is this the correct behavior?
 			exit 1;
 		}
@@ -245,7 +245,7 @@ sub start_server {
 		$pid_file = "ans.pid";
 	} else {
 		print "I:Unknown server type $server\n";
-		print "R:FAIL\n";
+		print "I:failed\n";
 		system "$PERL $topdir/stop.pl $testdir";
 		exit 1;
 	}
@@ -272,7 +272,7 @@ sub start_server {
 	while (!-s $pid_file) {
 		if (++$tries > 140) {
 			print "I:Couldn't start server $server (pid=$child)\n";
-			print "R:FAIL\n";
+			print "I:failed\n";
 			system "kill -9 $child" if ("$child" ne "");
 			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
@@ -312,7 +312,7 @@ sub verify_server {
 		if (++$tries >= 30) {
 			print `grep ";" dig.out > /dev/null`;
 			print "I:no response from $server\n";
-			print "R:FAIL\n";
+			print "I:failed\n";
 			system("$PERL $topdir/stop.pl $testdir");
 			exit 1;
 		}
