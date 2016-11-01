@@ -1,3 +1,5 @@
+4501.	[bug]		Fix 'dig -4 -6'/'dig -6 -4' error handling. [RT #43259]
+
 4500.	[bug]		Support modifier I64 in isc__print_printf. [RT #43526]
 
 4499.	[port]		MacOSX: silence deprecated function warning 

@@ -934,7 +934,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 }
 
 
-static void
+void
 setup_text_key(void) {
 	isc_result_t result;
 	dns_name_t keyname;
@@ -1121,7 +1121,7 @@ read_confkey(void) {
 	return (result);
 }
 
-static void
+void
 setup_file_key(void) {
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;
@@ -1224,12 +1224,30 @@ create_search_list(lwres_conf_t *confdata) {
  * settings.
  */
 void
-setup_system(void) {
+setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 	dig_searchlist_t *domain = NULL;
 	lwres_result_t lwresult;
 	unsigned int lwresflags;
 
 	debug("setup_system()");
+
+	if (ipv4only) {
+		if (have_ipv4) {
+			isc_net_disableipv6();
+			have_ipv6 = ISC_FALSE;
+		} else {
+			fatal("can't find IPv4 networking");
+		}
+	}
+
+	if (ipv6only) {
+		if (have_ipv6) {
+			isc_net_disableipv4();
+			have_ipv4 = ISC_FALSE;
+		} else {
+			fatal("can't find IPv6 networking");
+		}
+	}
 
 	lwresflags = LWRES_CONTEXT_SERVERMODE;
 	if (have_ipv4)

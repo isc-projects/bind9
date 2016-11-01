@@ -331,7 +331,7 @@ void
 setup_libs(void);
 
 void
-setup_system(void);
+setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only);
 
 isc_result_t
 parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
@@ -415,6 +415,9 @@ chase_scanname(dns_name_t *name, dns_rdatatype_t type, dns_rdatatype_t covers);
 void
 chase_sig(dns_message_t *msg);
 #endif
+
+void setup_file_key(void);
+void setup_text_key(void);
 
 ISC_LANG_ENDDECLS
 
