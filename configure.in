@@ -4904,22 +4904,14 @@ AC_CONFIG_FILES([
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
-	bin/tests/system/builtin/Makefile
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/named.conf
-	bin/tests/system/dlzredir/prereq.sh
-	bin/tests/system/fetchlimit/Makefile
-	bin/tests/system/filter-aaaa/Makefile
-	bin/tests/system/geoip/Makefile
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
-	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/sit/prereq.sh
-	bin/tests/system/statistics/Makefile
 	bin/tests/system/tkey/Makefile
-	bin/tests/system/tsiggss/Makefile
 	bin/tests/tasks/Makefile
 	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile

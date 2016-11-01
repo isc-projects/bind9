@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.1.4.11 2012/02/01 16:54:32 each Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -109,9 +107,9 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 ret=0
-t=`expr $t + 1`
+n=`expr $n + 1`
 echo "I:checking that zones with slash are properly shown in XML output (${t})"
-if $XMLSTATS && [ -x ${CURL} ] ; then
+if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:8053/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
     grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN">' curl.out.${t} > /dev/null || ret=1
 else

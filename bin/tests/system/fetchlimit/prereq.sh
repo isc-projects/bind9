@@ -17,7 +17,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if ./fetchlimit
+if $FEATURETEST --enable-fetchlimit
 then
     :
 else

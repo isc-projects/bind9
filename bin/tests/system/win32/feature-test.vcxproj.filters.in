@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\statistics\xmlstats.c">
+    <ClCompile Include="..\feature-test.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -17,9 +17,11 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+VERSION=@BIND9_VERSION@
+
 @BIND9_MAKE_INCLUDES@
 
-SUBDIRS =	builtin dlzexternal fetchlimit filter-aaaa geoip lwresd rpz rsabigexponent statistics tkey tsiggss
+SUBDIRS =	dlzexternal lwresd rsabigexponent tkey
 CINCLUDES =	${ISC_INCLUDES} ${DNS_INCLUDES}
 
 CDEFINES =	@USE_GSSAPI@

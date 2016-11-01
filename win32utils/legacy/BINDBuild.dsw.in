@@ -1367,21 +1367,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "dlopen"="..\..\bin\tests\system\win32\dlopen.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libisc
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "lwtest"="..\..\bin\tests\system\win32\lwtest.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -1395,21 +1380,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name liblwres
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "gethostname"="..\..\bin\tests\system\win32\gethostname.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libisc
     End Project Dependency
 }}}
 
@@ -1469,37 +1439,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "rpz"="..\..\bin\tests\system\win32\rpz.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libisc
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "xmlstats"="..\..\bin\tests\system\win32\xmlstats.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libisc
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "filter-aaaa"="..\..\bin\tests\system\win32\filter-aaaa.dsp" - Package Owner=<4>
+Project: "feature-test"="..\..\bin\tests\system\win32\feature-test.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -32,6 +32,7 @@ static void
 usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
+	fprintf(stderr, "	--enable-fetchlimit\n");
 	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
@@ -48,6 +49,14 @@ main(int argc, char **argv) {
 	if (argc != 2) {
 		usage();
 		return (1);
+	}
+
+	if (strcmp(argv[1], "--enable-fetchlimit") == 0) {
+#ifdef ENABLE_FETCHLIMIT
+		return (0);
+#else
+		return (1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
