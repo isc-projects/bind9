@@ -991,6 +991,13 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setmaxttl(raw, maxttl);
 	}
 
+	obj = NULL;
+	result = ns_config_get(maps, "max-records", &obj);
+	INSIST(result == ISC_R_SUCCESS && obj != NULL);
+	dns_zone_setmaxrecords(mayberaw, cfg_obj_asuint32(obj));
+	if (zone != mayberaw)
+		dns_zone_setmaxrecords(zone, 0);
+
 	if (raw != NULL && filename != NULL) {
 #define SIGNED ".signed"
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);

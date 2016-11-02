@@ -30,3 +30,5 @@ cp ns2/mapped.db.in ns2/mapped.db
 
 $PERL -e 'for ($i=0;$i<4096;$i++){ printf("name%u 259200 A 1.2.3.4\nname%u 259200 TXT \"Hello World %u\"\n", $i, $i, $i);}' > ns8/small.db
 $PERL -e 'printf("large IN TYPE45234 \\# 48000 "); for ($i=0;$i<16*3000;$i++) { printf("%02x", $i % 256); } printf("\n");' > ns8/large.db
+
+cp -f ns1/ixfr-too-big.db.in ns1/ixfr-too-big.db

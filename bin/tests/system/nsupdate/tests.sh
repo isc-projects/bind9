@@ -686,5 +686,20 @@ $DIG +tcp @10.53.0.3 -p 5300 ns child.delegation.test > dig.out.ns1.test$n
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
+n=`expr $n + 1`
+echo "I:check that adding too many records is blocked ($n)"
+ret=0
+$NSUPDATE -v << EOF > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 5300
+zone too-big.test.
+update add r1.too-big.test 3600 IN TXT r1.too-big.test
+send
+EOF
+grep "update failed: SERVFAIL" nsupdate.out-$n > /dev/null || ret=1
+DIG +tcp @10.53.0.3 -p 5300 r1.too-big.test TXT > dig.out.ns3.test$n
+grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+grep "records in zone (4) exceeds max-records (3)" ns3/named.run > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

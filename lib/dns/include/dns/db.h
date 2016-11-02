@@ -188,6 +188,8 @@ typedef struct dns_dbmethods {
 	size_t		(*hashsize)(dns_db_t *db);
 	isc_result_t	(*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
 					dns_name_t *name);
+	isc_result_t	(*getsize)(dns_db_t *db, dns_dbversion_t *version,
+				   isc_uint64_t *records, isc_uint64_t *bytes);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1499,6 +1501,24 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND - the DB implementation does not support this feature
  *			  or this zone does not have NSEC3 records.
+ */
+
+isc_result_t
+dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
+               isc_uint64_t *bytes);
+/*%<
+ * Get the number of records in the given version of the database as well
+ * as the number bytes used to store those records.
+ *
+ * Requires:
+ * \li	'db' is a valid zone database.
+ * \li	'version' is NULL or a valid version.
+ * \li	'records' is NULL or a pointer to return the record count in.
+ * \li	'bytes' is NULL or a pointer to return the byte count in.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTIMPLEMENTED
  */
 
 isc_result_t

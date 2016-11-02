@@ -623,7 +623,8 @@ static dns_dbmethods_t sampledb_methods = {
 	findext,
 	setcachestats,
 	hashsize,
-	NULL
+	NULL,
+	NULL,
 };
 
 /* Auxiliary driver functions. */

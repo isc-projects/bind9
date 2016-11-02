@@ -161,6 +161,7 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"TSIG in wrong location",	       /*%< 115 DNS_R_BADTSIG */
 	"SIG(0) in wrong location",	       /*%< 116 DNS_R_BADSIG0 */
+	"too many records",	               /*%< 117 DNS_R_TOOMANYRECORDS */
 };
 
 static const char *ids[DNS_R_NRESULTS] = {
