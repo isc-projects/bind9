@@ -203,6 +203,7 @@ dns_db_dump
 dns_db_dump2
 dns_db_endload
 dns_db_expirenode
+dns_db_getsize
 dns_db_find
 dns_db_findext
 dns_db_findnode
@@ -844,6 +845,7 @@ dns_rdatasetstats_create
 dns_rdatasetstats_decrement
 dns_rdatasetstats_dump
 dns_rdatasetstats_increment
+dns_rdataslab_count
 dns_rdataslab_equal
 dns_rdataslab_equalx
 dns_rdataslab_fromrdataset
@@ -1183,6 +1185,7 @@ dns_zone_getjournalsize
 dns_zone_getkeydirectory
 dns_zone_getkeyopts
 dns_zone_getloadtime
+dns_zone_getmaxrecords
 dns_zone_getmaxttl
 dns_zone_getmaxxfrin
 dns_zone_getmaxxfrout
@@ -1284,6 +1287,7 @@ dns_zone_setkeydirectory
 dns_zone_setkeyopt
 dns_zone_setmasters
 dns_zone_setmasterswithkeys
+dns_zone_setmaxrecords
 dns_zone_setmaxrefreshtime
 dns_zone_setmaxretrytime
 dns_zone_setmaxttl
