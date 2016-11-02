@@ -527,7 +527,7 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 		return;
 
 	/*
-	 * If a loopback address found and there is the other family
+	 * If a loopback address found and the other family
 	 * doesn't exist or is negative, return.
 	 */
 	if (prefix->bitlen == 32 &&
