@@ -87,13 +87,9 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_merge(notany, any, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-fprintf(stderr, "any\n");
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */
-fprintf(stderr, "none\n");
 	ATF_CHECK(!dns_acl_isinsecure(none));		/* none; */
-fprintf(stderr, "!any\n");
 	ATF_CHECK(!dns_acl_isinsecure(notany));		/* !any; */
-fprintf(stderr, "!none\n");
 	ATF_CHECK(!dns_acl_isinsecure(notnone));	/* !none; */
 
 	dns_acl_detach(&any);
@@ -181,21 +177,13 @@ fprintf(stderr, "!none\n");
 	result = dns_acl_merge(notneg4neg6, neg4neg6, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-fprintf(stderr, "pos4pos6\n");
 	ATF_CHECK(dns_acl_isinsecure(pos4pos6));
-fprintf(stderr, "notpos4pos6\n");
 	ATF_CHECK(!dns_acl_isinsecure(notpos4pos6));
-fprintf(stderr, "neg4pos6\n");
 	ATF_CHECK(dns_acl_isinsecure(neg4pos6));
-fprintf(stderr, "notneg4pos6\n");
 	ATF_CHECK(!dns_acl_isinsecure(notneg4pos6));
-fprintf(stderr, "pos4neg6\n");
 	ATF_CHECK(dns_acl_isinsecure(pos4neg6));
-fprintf(stderr, "notpos4neg6\n");
 	ATF_CHECK(!dns_acl_isinsecure(notpos4neg6));
-fprintf(stderr, "neg4neg6\n");
 	ATF_CHECK(!dns_acl_isinsecure(neg4neg6));
-fprintf(stderr, "notneg4neg6\n");
 	ATF_CHECK(!dns_acl_isinsecure(notneg4neg6));
 
 	dns_acl_detach(&pos4pos6);
