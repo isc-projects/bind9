@@ -1296,7 +1296,8 @@ static dns_dbmethods_t sdb_methods = {
 	NULL,			/* rpz_enabled */
 	NULL,			/* rpz_findips */
 	findnodeext,
-	findext
+	findext,
+	NULL			/* getsize */
 };
 
 static isc_result_t

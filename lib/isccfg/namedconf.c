@@ -1596,6 +1596,7 @@ zone_clauses[] = {
 	{ "masterfile-format", &cfg_type_masterformat, 0 },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-journal-size", &cfg_type_sizenodefault, 0 },
+	{ "max-records", &cfg_type_uint32, 0 },
 	{ "max-refresh-time", &cfg_type_uint32, 0 },
 	{ "max-retry-time", &cfg_type_uint32, 0 },
 	{ "max-transfer-idle-in", &cfg_type_uint32, 0 },

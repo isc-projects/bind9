@@ -2455,6 +2455,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_dnskey_t dnskey;
 	isc_boolean_t had_dnskey;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
+	isc_uint32_t maxrecords;
+	isc_uint64_t records;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -3104,6 +3106,20 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					   ISC_LOG_ERROR,
 					   "RRSIG/NSEC/NSEC3 update failed: %s",
 					   isc_result_totext(result));
+				goto failure;
+			}
+		}
+
+		maxrecords = dns_zone_getmaxrecords(zone);
+		if (maxrecords != 0U) {
+			result = dns_db_getsize(db, ver, &records, NULL);
+			if (result == ISC_R_SUCCESS && records > maxrecords) {
+				update_log(client, zone, ISC_LOG_ERROR,
+					   "records in zone (%"
+					   ISC_PRINT_QUADFORMAT
+					   "u) exceeds max-records (%u)",
+					   records, maxrecords);
+				result = DNS_R_TOOMANYRECORDS;
 				goto failure;
 			}
 		}

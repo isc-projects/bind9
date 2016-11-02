@@ -167,11 +167,16 @@ static const char *text[DNS_R_NRESULTS] = {
 	"covered by negative trust anchor",    /*%< 110 DNS_R_NTACOVERED */
 	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
 	"bad CDNSKEY",			       /*%< 112 DNS_R_BADCDNSKEY */
-	"malformed OPT option"		       /*%< 113 DNS_R_OPTERR */
+	"malformed OPT option",		       /*%< 113 DNS_R_OPTERR */
+	"malformed DNSTAP data",	       /*%< 114 DNS_R_BADDNSTAP */
+
+	"TSIG in wrong location",	       /*%< 115 DNS_R_BADTSIG */
+	"SIG(0) in wrong location",	       /*%< 116 DNS_R_BADSIG0 */
+	"too many records",	               /*%< 117 DNS_R_TOOMANYRECORDS */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
-	"NOERROR",				/*%< 0 DNS_R_NOEROR */
+	"NOERROR",				/*%< 0 DNS_R_NOERROR */
 	"FORMERR",				/*%< 1 DNS_R_FORMERR */
 	"SERVFAIL",				/*%< 2 DNS_R_SERVFAIL */
 	"NXDOMAIN",				/*%< 3 DNS_R_NXDOMAIN */

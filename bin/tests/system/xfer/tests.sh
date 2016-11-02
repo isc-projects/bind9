@@ -23,7 +23,9 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 
 status=0
+n=0
 
+n=`expr $n + 1`
 echo "I:testing basic zone transfer functionality"
 $DIG $DIGOPTS example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
@@ -49,6 +51,7 @@ $PERL ../digcomp.pl dig1.good dig.out.ns2 || status=1
 
 $PERL ../digcomp.pl dig1.good dig.out.ns3 || status=1
 
+n=`expr $n + 1`
 echo "I:testing TSIG signed zone transfers"
 $DIG $DIGOPTS tsigzone. \
     	@10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
@@ -124,6 +127,7 @@ grep "1397051952 ; serial" ns2/slave.db > /dev/null 2>&1 || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences yes;"
 tmp=0
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -146,6 +150,7 @@ test -f ns3/example.bk.jnl || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences master; (master zone)"
 tmp=0
 
@@ -166,6 +171,7 @@ test -f ns3/master.bk.jnl || tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences master; (slave zone)"
 tmp=0
 
@@ -186,6 +192,7 @@ test -f ns6/slave.bk.jnl && tmp=1
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
 
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences slave; (master zone)"
 tmp=0
 
@@ -195,6 +202,8 @@ test -f ns7/master2.db.jnl && tmp=1
 
 if test $tmp != 0 ; then echo "I:failed"; fi
 status=`expr $status + $tmp`
+
+n=`expr $n + 1`
 echo "I:testing ixfr-from-differences slave; (slave zone)"
 tmp=0
 
@@ -367,6 +376,32 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
     echo "I:failed"
     status=1
 }
+
+n=`expr $n + 1`
+echo "I:test that a zone with too many records is rejected (AXFR) ($n)"
+tmp=0
+grep "'axfr-too-big/IN'.*: too many records" ns6/named.run >/dev/null || tmp=1
+if test $tmp != 0 ; then echo "I:failed"; fi
+status=`expr $status + $tmp`
+
+n=`expr $n + 1`
+echo "I:test that a zone with too many records is rejected (IXFR) ($n)"
+tmp=0
+grep "'ixfr-too-big./IN.*: too many records" ns6/named.run >/dev/null && tmp=1
+$NSUPDATE << EOF
+zone ixfr-too-big
+server 10.53.0.1 5300
+update add the-31st-record.ixfr-too-big 0 TXT this is it
+send
+EOF
+for i in 1 2 3 4 5 6 7 8
+do
+    grep "'ixfr-too-big/IN'.*: too many records" ns6/named.run >/dev/null && break
+    sleep 1
+done
+grep "'ixfr-too-big/IN'.*: too many records" ns6/named.run >/dev/null || tmp=1
+if test $tmp != 0 ; then echo "I:failed"; fi
+status=`expr $status + $tmp`
 
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

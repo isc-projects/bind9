@@ -583,7 +583,8 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL,			/* rpz_enabled */
 	NULL,			/* rpz_findips */
 	NULL,			/* findnodeext */
-	NULL			/* findext */
+	NULL,			/* findext */
+	NULL			/* getsize */
 };
 
 static isc_result_t

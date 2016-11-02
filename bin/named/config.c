@@ -198,6 +198,7 @@ options {\n\
 	max-transfer-time-out 120;\n\
 	max-transfer-idle-in 60;\n\
 	max-transfer-idle-out 60;\n\
+	max-records 0;\n\
 	max-retry-time 1209600; /* 2 weeks */\n\
 	min-retry-time 500;\n\
 	max-refresh-time 2419200; /* 4 weeks */\n\

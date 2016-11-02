@@ -27,12 +27,14 @@ test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 rm -f ns1/*.jnl ns1/example.db ns2/*.jnl ns2/example.bk
 rm -f ns2/update.bk ns2/update.alt.bk
 rm -f ns3/example.db.jnl
+rm -f ns3/too-big.test.db.jnl
 
 cp -f ns1/example1.db ns1/example.db
 sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
 sed 's/example.nil/unixtime.nil/g' ns1/example1.db > ns1/unixtime.db
 sed 's/example.nil/keytests.nil/g' ns1/example1.db > ns1/keytests.db
 cp -f ns3/example.db.in ns3/example.db
+cp -f ns3/too-big.test.db.in ns3/too-big.test.db
 
 # update_test.pl has its own zone file because it
 # requires a specific NS record set.

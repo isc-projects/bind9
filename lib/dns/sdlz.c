@@ -1267,7 +1267,8 @@ static dns_dbmethods_t sdlzdb_methods = {
 	NULL,			/* rpz_enabled */
 	NULL,			/* rpz_findips */
 	findnodeext,
-	findext
+	findext,
+	NULL			/* getsize */
 };
 
 /*

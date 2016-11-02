@@ -339,6 +339,7 @@ options {
 	};
 
 	max-journal-size <replaceable>size_no_default</replaceable>;
+	max-records <replaceable>integer</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
@@ -533,6 +534,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	};
 
 	max-journal-size <replaceable>size_no_default</replaceable>;
+	max-records <replaceable>integer</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
@@ -630,6 +632,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	};
 
 	max-journal-size <replaceable>size_no_default</replaceable>;
+	max-records <replaceable>integer</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
 	max-transfer-time-out <replaceable>integer</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;

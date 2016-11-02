@@ -289,6 +289,32 @@ dns_zone_getfile(dns_zone_t *zone);
  *\li	Pointer to null-terminated file name, or NULL.
  */
 
+void
+dns_zone_setmaxrecords(dns_zone_t *zone, isc_uint32_t records);
+/*%<
+ * 	Sets the maximim number of records permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
+ */
+
+isc_uint32_t
+dns_zone_getmaxrecords(dns_zone_t *zone);
+/*%<
+ * 	Gets the maximim number of records permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	isc_uint32_t maxrecords.
+ */
+
 isc_result_t
 dns_zone_load(dns_zone_t *zone);
 

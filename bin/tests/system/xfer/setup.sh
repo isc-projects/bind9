@@ -33,3 +33,5 @@ cp -f ns4/named.conf.base ns4/named.conf
 
 cp ns2/slave.db.in ns2/slave.db
 touch -t 200101010000 ns2/slave.db
+
+cp -f ns1/ixfr-too-big.db.in ns1/ixfr-too-big.db

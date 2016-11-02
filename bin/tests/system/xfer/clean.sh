@@ -36,3 +36,4 @@ rm -f ns7/*.db ns7/*.bk ns7/*.jnl
 rm -f */named.memstats
 rm -f */named.run
 rm -f */ans.run
+rm -f ns1/ixfr-too-big.db ns1/ixfr-too-big.db.jnl

@@ -248,6 +248,8 @@ struct dns_zone {
 	isc_uint32_t		maxretry;
 	isc_uint32_t		minretry;
 
+	isc_uint32_t		maxrecords;
+
 	isc_sockaddr_t		*masters;
 	dns_name_t		**masterkeynames;
 	isc_boolean_t		*mastersok;
@@ -9688,6 +9690,20 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 	zone->maxretry = val;
 }
 
+isc_uint32_t
+dns_zone_getmaxrecords(dns_zone_t *zone) {
+        REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->maxrecords);
+}
+
+void
+dns_zone_setmaxrecords(dns_zone_t *zone, isc_uint32_t val) {
+        REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->maxrecords = val;
+}
+
 static isc_boolean_t
 notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
 		isc_sockaddr_t *addr, dns_tsigkey_t *key)
@@ -13976,7 +13992,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
 
 	TIME_NOW(&now);
-	switch (result) {
+	switch (xfrresult) {
 	case ISC_R_SUCCESS:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		/*FALLTHROUGH*/
@@ -14102,6 +14118,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		/* Force retry with AXFR. */
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLAG_NOIXFR);
 		goto same_master;
+
+	case DNS_R_TOOMANYRECORDS:
+		DNS_ZONE_JITTER_ADD(&now, zone->refresh, &zone->refreshtime);
+		inc_stats(zone, dns_zonestatscounter_xfrfail);
+		break;
 
 	default:
 	next_master:
