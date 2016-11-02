@@ -1269,7 +1269,8 @@ static dns_dbmethods_t sdlzdb_methods = {
 	findnodeext,
 	findext,
 	NULL,			/* setcachestats */
-	NULL			/* hashsize */
+	NULL,			/* hashsize */
+	NULL			/* getsize */
 };
 
 /*
