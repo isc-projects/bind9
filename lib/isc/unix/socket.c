@@ -2866,17 +2866,17 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		 */
 		if (sock->pf == AF_INET) {
 			int action;
-#ifdef defined(IP_PMTUDISC_OMIT)
+#if defined(IP_PMTUDISC_OMIT)
 			action = IP_PMTUDISC_OMIT;
-			if (setsockopt(sock->fd, IPPROTO_IPV6,
-					 IPV6_MTU_DISCOVER, &action,
-					 sizeof(action)) < 0) {
+			if (setsockopt(sock->fd, IPPROTO_IP,
+				       IP_MTU_DISCOVER, &action,
+				       sizeof(action)) < 0) {
 #endif
 				action = IP_PMTUDISC_DONT;
 				(void)setsockopt(sock->fd, IPPROTO_IP,
 						 IP_MTU_DISCOVER,
 						 &action, sizeof(action));
-#ifdef defined(IP_PMTUDISC_OMIT)
+#if defined(IP_PMTUDISC_OMIT)
 			}
 #endif
 		}
