@@ -1004,6 +1004,19 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 }
 
 isc_result_t
+dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
+	       isc_uint64_t *bytes)
+{
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+
+	if (db->methods->getsize != NULL)
+		return ((db->methods->getsize)(db, version, records, bytes));
+
+	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
 dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 		      isc_stdtime_t resign)
 {

@@ -296,6 +296,32 @@ dns_zone_getfile(dns_zone_t *zone);
  */
 
 void
+dns_zone_setmaxrecords(dns_zone_t *zone, isc_uint32_t records);
+/*%<
+ * 	Sets the maximim number of records permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
+ */
+
+isc_uint32_t
+dns_zone_getmaxrecords(dns_zone_t *zone);
+/*%<
+ * 	Gets the maximim number of records permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	isc_uint32_t maxrecords.
+ */
+
+void
 dns_zone_setmaxttl(dns_zone_t *zone, isc_uint32_t maxttl);
 /*%<
  * 	Sets the max ttl of the zone.
@@ -316,7 +342,7 @@ dns_zone_getmaxttl(dns_zone_t *zone);
  *\li	'zone' to be valid initialised zone.
  *
  * Returns:
- *\li	isc_uint32_t maxttl.
+ *\li	dns_ttl_t maxttl.
  */
 
 isc_result_t

@@ -149,8 +149,9 @@
 #define DNS_R_BADDNSTAP			(ISC_RESULTCLASS_DNS + 114)
 #define DNS_R_BADTSIG			(ISC_RESULTCLASS_DNS + 115)
 #define DNS_R_BADSIG0			(ISC_RESULTCLASS_DNS + 116)
+#define DNS_R_TOOMANYRECORDS		(ISC_RESULTCLASS_DNS + 117)
 
-#define DNS_R_NRESULTS			117	/*%< Number of results */
+#define DNS_R_NRESULTS			118	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

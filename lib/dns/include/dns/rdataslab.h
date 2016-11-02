@@ -95,6 +95,7 @@ dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
  * Ensures:
  *\li	'rdataset' is associated and points to a valid rdataest.
  */
+
 unsigned int
 dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
 /*%<
@@ -105,6 +106,18 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  *
  * Returns:
  *\li	The number of bytes in the slab, including the reservelen.
+ */
+
+unsigned int
+dns_rdataslab_count(unsigned char *slab, unsigned int reservelen);
+/*%<
+ * Return the number of records in the rdataslab
+ *
+ * Requires:
+ *\li	'slab' points to a slab.
+ *
+ * Returns:
+ *\li	The number of records in the slab.
  */
 
 isc_result_t
