@@ -1,3 +1,5 @@
+4505.	[port]		Use IP_PMTUDISC_OMIT if available. [RT #35494]
+
 4504.	[security]	Allow the maximum number of records in a zone to
 			be specified.  This provides a control for issues
 			raised in CVE-2016-6170. [RT #42143]
