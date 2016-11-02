@@ -74,5 +74,8 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libisccc.@A@ ${DESTDIR}${libdir}
 
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libisccc.@A@
+
 clean distclean::
 	rm -f libisccc.@A@ timestamp

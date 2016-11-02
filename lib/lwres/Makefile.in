@@ -71,5 +71,8 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} liblwres.@A@ ${DESTDIR}${libdir}
 
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/liblwres.@A@
+
 clean distclean::
 	rm -f liblwres.@A@ liblwres.la timestamp

@@ -79,5 +79,10 @@ install:: rndc@EXEEXT@ installdirs
 	${INSTALL_DATA} ${srcdir}/rndc.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/rndc.conf.5 ${DESTDIR}${mandir}/man5
 
+uninstall::
+	rm -f ${DESTDIR}${mandir}/man5/rndc.conf.5
+	rm -f ${DESTDIR}${mandir}/man8/rndc.8
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/rndc@EXEEXT@
+
 clean distclean maintainer-clean::
 	rm -f ${TARGETS}

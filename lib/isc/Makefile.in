@@ -133,6 +133,9 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libisc.@A@ ${DESTDIR}${libdir}
 
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libisc.@A@
+
 clean distclean::
 	rm -f libisc.@A@ libisc-nosymtbl.@A@ libisc.la \
 	libisc-nosymtbl.la timestamp
