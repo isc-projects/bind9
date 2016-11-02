@@ -4908,6 +4908,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/named.conf
+	bin/tests/system/dlzredir/prereq.sh
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/lwresd/Makefile
 	bin/tests/system/rsabigexponent/Makefile
