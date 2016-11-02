@@ -579,19 +579,6 @@ initialize_action(void) {
  */
 static void
 is_insecure(isc_prefix_t *prefix, void **data) {
-	int bitlen, family, off;
-
-	bitlen = prefix->bitlen;
-	family = prefix->family;
-	
-	off = ISC_RADIX_OFF(prefix);
-fprintf(stderr, "%d %d %d %d %d %d %d\n",
-	bitlen, family, off,
-	data[0] ? (* (isc_boolean_t *) data[0]) : -1,
-	data[1] ? (* (isc_boolean_t *) data[1]) : -1,
-	data[2] ? (* (isc_boolean_t *) data[2]) : -1,
-	data[3] ? (* (isc_boolean_t *) data[3]) : -1);
-
 	/*
 	 * If all nonexistent or negative then this node is secure.
 	 */
@@ -605,13 +592,13 @@ fprintf(stderr, "%d %d %d %d %d %d %d\n",
 	 * If a loopback address found and there is the other family
 	 * doesn't exist or is negative, return.
 	 */
-	if (bitlen == 32 &&
+	if (prefix->bitlen == 32 &&
 	    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK &&
 	    (data[1] == NULL || !* (isc_boolean_t *) data[1]) &&
 	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
 		return;
 
-	if (bitlen == 128 &&
+	if (prefix->bitlen == 128 &&
 	    IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6) &&
 	    (data[0] == NULL || !* (isc_boolean_t *) data[0]) &&
 	    (data[2] == NULL || !* (isc_boolean_t *) data[2]))
