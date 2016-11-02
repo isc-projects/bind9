@@ -68,3 +68,5 @@ distclean::
 installdirs:
 
 install::
+
+uninstall::

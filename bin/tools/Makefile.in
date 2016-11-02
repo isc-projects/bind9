@@ -114,5 +114,25 @@ install:: ${TARGETS} installdirs
 	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/genrandom.8 ${DESTDIR}${mandir}/man8
 
+uninstall::
+	rm -f ${DESTDIR}${mandir}/man8/genrandom.8
+	rm -f ${DESTDIR}${mandir}/man8/nsec3hash.8
+	rm -f ${DESTDIR}${mandir}/man1/named-rrchecker.1
+	rm -f ${DESTDIR}${mandir}/man8/named-journalprint.8
+	rm -f ${DESTDIR}${mandir}/man8/isc-hmac-fixup.8
+	rm -f ${DESTDIR}${mandir}/man1/arpaname.1
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${sbindir}/isc-hmac-fixup@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${sbindir}/genrandom@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${sbindir}/nsec3hash@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${bindir}/named-rrchecker@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${sbindir}/named-journalprint@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f \
+		${DESTDIR}${bindir}/arpaname@EXEEXT@
+
 clean distclean::
 	rm -f ${TARGETS}
