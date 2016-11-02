@@ -109,12 +109,12 @@ isc_random_seed(isc_uint32_t seed) {
 	arc4random_addrandom((u_char *) &seed, sizeof(isc_uint32_t));
 #else
        /*
-        * If arcrandom() is available and no corresponding seeding
-        * function arc4random_addrandom() is available, no seeding is
-        * done on such platforms (e.g., OpenBSD 5.5).  This is because
-        * the OS itself is supposed to seed the RNG and it is assumed
-        * that no explicit seeding is required.
-        */
+	* If arcrandom() is available and no corresponding seeding
+	* function arc4random_addrandom() is available, no seeding is
+	* done on such platforms (e.g., OpenBSD 5.5).  This is because
+	* the OS itself is supposed to seed the RNG and it is assumed
+	* that no explicit seeding is required.
+	*/
        UNUSED(seed);
 #endif
 }

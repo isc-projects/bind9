@@ -1505,7 +1505,7 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-               isc_uint64_t *bytes);
+	       isc_uint64_t *bytes);
 /*%<
  * Get the number of records in the given version of the database as well
  * as the number bytes used to store those records.
