@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2011, 2013-2015 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -404,6 +404,12 @@
 	      short form answers are requested, the default is not
 	      to show the source address and port number of the
 	      server that provided the answer.
+	    </p></dd>
+<dt><span class="term"><code class="option">+[no]idnout</code></span></dt>
+<dd><p>
+	      Convert [do not convert] puny code on output.
+	      This requires IDN SUPPORT to have been enabled at
+	      compile time.  The default is to convert output.
 	    </p></dd>
 <dt><span class="term"><code class="option">+[no]ignore</code></span></dt>
 <dd><p>
