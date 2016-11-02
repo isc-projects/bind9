@@ -1,3 +1,6 @@
+4506.	[func]		'named-checkconf -l' will now list the zones found in
+			named.conf. [RT #43154]
+
 4505.	[port]		Use IP_PMTUDISC_OMIT if available. [RT #35494]
 
 4504.	[security]	Allow the maximum number of records in a zone to

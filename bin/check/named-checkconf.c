@@ -59,7 +59,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: %s [-hjvz] [-p [-x]] [-t directory] "
+	fprintf(stderr, "usage: %s [-hjlvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n", program);
 	exit(1);
 }
@@ -162,7 +162,7 @@ configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 static isc_result_t
 configure_zone(const char *vclass, const char *view,
 	       const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
-	       const cfg_obj_t *config, isc_mem_t *mctx)
+	       const cfg_obj_t *config, isc_mem_t *mctx, isc_boolean_t list)
 {
 	int i = 0;
 	isc_result_t result;
@@ -204,12 +204,22 @@ configure_zone(const char *vclass, const char *view,
 	maps[i] = NULL;
 
 	cfg_map_get(zoptions, "in-view", &inviewobj);
+	if (inviewobj != NULL && list) {
+		const char *inview = cfg_obj_asstring(inviewobj);
+		printf("%s %s %s in-view %s\n", zname, zclass, view, inview);
+	}
 	if (inviewobj != NULL)
 		return (ISC_R_SUCCESS);
 
 	cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL)
 		return (ISC_R_FAILURE);
+
+	if (list) {
+		const char *ztype = cfg_obj_asstring(typeobj);
+		printf("%s %s %s %s\n", zname, zclass, view, ztype);
+		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * Skip checks when using an alternate data source.
@@ -401,7 +411,7 @@ configure_zone(const char *vclass, const char *view,
 /*% configure a view */
 static isc_result_t
 configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
-	       const cfg_obj_t *vconfig, isc_mem_t *mctx)
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx, isc_boolean_t list)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *voptions;
@@ -425,7 +435,7 @@ configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
 	{
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		tresult = configure_zone(vclass, view, zconfig, vconfig,
-					 config, mctx);
+					 config, mctx, list);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
@@ -449,7 +459,9 @@ config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 
 /*% load zones from the configuration */
 static isc_result_t
-load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx) {
+load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
+		      isc_boolean_t list_zones)
+{
 	const cfg_listelt_t *element;
 	const cfg_obj_t *views;
 	const cfg_obj_t *vconfig;
@@ -480,13 +492,15 @@ load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx) {
 
 		dns_rdataclass_format(viewclass, buf, sizeof(buf));
 		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
-		tresult = configure_view(buf, vname, config, vconfig, mctx);
+		tresult = configure_view(buf, vname, config, vconfig, mctx,
+					 list_zones);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
 
 	if (views == NULL) {
-		tresult = configure_view("IN", "_default", config, NULL, mctx);
+		tresult = configure_view("IN", "_default", config, NULL, mctx,
+					 list_zones);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 	}
@@ -516,6 +530,7 @@ main(int argc, char **argv) {
 	int exit_status = 0;
 	isc_entropy_t *ectx = NULL;
 	isc_boolean_t load_zones = ISC_FALSE;
+	isc_boolean_t list_zones = ISC_FALSE;
 	isc_boolean_t print = ISC_FALSE;
 	unsigned int flags = 0;
 
@@ -524,7 +539,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "dhjm:t:pvxz"
+#define CMDLINE_FLAGS "dhjlm:t:pvxz"
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (c) {
 		case 'm':
@@ -555,6 +570,10 @@ main(int argc, char **argv) {
 
 		case 'j':
 			nomerge = ISC_FALSE;
+			break;
+
+		case 'l':
+			list_zones = ISC_TRUE;
 			break;
 
 		case 'm':
@@ -607,6 +626,10 @@ main(int argc, char **argv) {
 		fprintf(stderr, "%s: -x cannot be used without -p\n", program);
 		exit(1);
 	}
+	if (print && list_zones) {
+		fprintf(stderr, "%s: -l cannot be used with -p\n", program);
+		exit(1);
+	}
 
 	if (isc_commandline_index + 1 < argc)
 		usage();
@@ -639,8 +662,8 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		exit_status = 1;
 
-	if (result == ISC_R_SUCCESS && load_zones) {
-		result = load_zones_fromconfig(config, mctx);
+	if (result == ISC_R_SUCCESS && (load_zones || list_zones)) {
+		result = load_zones_fromconfig(config, mctx, list_zones);
 		if (result != ISC_R_SUCCESS)
 			exit_status = 1;
 	}

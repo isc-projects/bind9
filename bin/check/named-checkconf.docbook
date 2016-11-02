@@ -48,7 +48,7 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>named-checkconf</command>
-      <arg choice="opt" rep="norepeat"><option>-hjvz</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-hjlvz</option></arg>
       <arg choice="opt" rep="norepeat"><option>-p</option>
 	<arg choice="opt" rep="norepeat"><option>-x</option>
       </arg></arg>
@@ -95,6 +95,17 @@
         <listitem>
           <para>
             When loading a zonefile read the journal if it exists.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-l</term>
+        <listitem>
+          <para>
+            List all the configured zones. Each line of output
+            contains the zone name, class (e.g. IN), view, and type
+            (e.g. master or slave).
           </para>
         </listitem>
       </varlistentry>
