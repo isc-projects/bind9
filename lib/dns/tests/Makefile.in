@@ -30,7 +30,8 @@ DNSDEPLIBS =	../libdns.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		dnstest.@O@
-SRCS =		db_test.c \
+SRCS =		acl_test.c \
+		db_test.c \
 		dbdiff_test.c \
 		dbiterator_test.c \
 		dh_test.c \
@@ -57,7 +58,8 @@ SRCS =		db_test.c \
 		zt_test.c
 
 SUBDIRS =
-TARGETS =	db_test@EXEEXT@ \
+TARGETS =	acl_test@EXEEXT@ \
+		db_test@EXEEXT@ \
 		dbdiff_test@EXEEXT@ \
 		dbiterator_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ \
@@ -84,6 +86,11 @@ TARGETS =	db_test@EXEEXT@ \
 		zt_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
+
+acl_test@EXEEXT@: acl_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			acl_test.@O@ dnstest.@O@ ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
 
 master_test@EXEEXT@: master_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	test -d testdata || mkdir testdata
