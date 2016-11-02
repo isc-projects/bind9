@@ -1,4 +1,4 @@
-4503.	[cleanup]	"make uninstall" now removes file installed by
+4503.	[cleanup]	"make uninstall" now removes files installed by
 			BIND. (This currently excludes Python files
 			due to lack of support in setup.py.) [RT #42912]
 
