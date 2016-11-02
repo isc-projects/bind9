@@ -32,5 +32,12 @@ install:: installdirs
 	${INSTALL_DATA} netdb.h ${DESTDIR}${includedir}/lwres
 	${INSTALL_DATA} platform.h ${DESTDIR}${includedir}/lwres
 
+uninstall::
+	rm -f ${DESTDIR}${includedir}/lwres/platform.h
+	rm -f ${DESTDIR}${includedir}/lwres/netdb.h
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${includedir}/lwres/$$i ; \
+	done
+
 distclean::
 	rm -f netdb.h platform.h

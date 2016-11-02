@@ -31,3 +31,8 @@ install:: installdirs
 	for i in ${HEADERS}; do \
 		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/isccc ; \
 	done
+
+uninstall::
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${includedir}/isccc/$$i ; \
+	done

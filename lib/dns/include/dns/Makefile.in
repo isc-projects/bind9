@@ -47,3 +47,11 @@ install:: installdirs
 	for i in ${GENHEADERS}; do \
 		${INSTALL_DATA} $$i ${DESTDIR}${includedir}/dns ; \
 	done
+
+uninstall::
+	for i in ${GENHEADERS}; do \
+		rm -f ${DESTDIR}${includedir}/dns/$$i ; \
+	done
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${includedir}/dns/$$i ; \
+	done

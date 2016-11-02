@@ -23,3 +23,8 @@ install:: installdirs
 	for i in ${HEADERS}; do \
 		${INSTALL_DATA} $(srcdir)/$$i ${DESTDIR}${includedir}/pkcs11 ; \
 	done
+
+uninstall::
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${includedir}/pkcs11/$$i ; \
+	done

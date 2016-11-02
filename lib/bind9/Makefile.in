@@ -72,5 +72,8 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libbind9.@A@ ${DESTDIR}${libdir}
 
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libbind9.@A@
+
 clean distclean::
 	rm -f libbind9.@A@ timestamp

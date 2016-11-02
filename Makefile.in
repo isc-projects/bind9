@@ -60,6 +60,13 @@ install:: isc-config.sh installdirs
 	@LN@ ${DESTDIR}${mandir}/man1/isc-config.sh.1 ${DESTDIR}${mandir}/man1/bind9-config.1
 	${INSTALL_DATA} ${top_srcdir}/bind.keys ${DESTDIR}${sysconfdir}
 
+uninstall::
+	rm -f ${DESTDIR}${sysconfdir}/bind.keys
+	rm -f ${DESTDIR}${mandir}/man1/bind9-config.1
+	rm -f ${DESTDIR}${mandir}/man1/isc-config.sh.1
+	rm -f ${DESTDIR}${bindir}/bind9-config
+	rm -f ${DESTDIR}${bindir}/isc-config.sh
+
 tags:
 	rm -f TAGS
 	find lib bin -name "*.[ch]" -print | @ETAGS@ -

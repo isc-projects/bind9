@@ -76,7 +76,7 @@ testdirs:
 
 install:: all
 
-install clean distclean maintainer-clean doc docclean man manclean::
+install uninstall clean distclean maintainer-clean doc docclean man manclean::
 	@for i in ${ALL_SUBDIRS} ${ALL_TESTDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
@@ -133,6 +133,7 @@ LIBTOOL = @LIBTOOL@
 LIBTOOL_MODE_COMPILE = ${LIBTOOL} @LIBTOOL_MODE_COMPILE@
 LIBTOOL_MODE_INSTALL = ${LIBTOOL} @LIBTOOL_MODE_INSTALL@
 LIBTOOL_MODE_LINK = ${LIBTOOL} @LIBTOOL_MODE_LINK@
+LIBTOOL_MODE_UNINSTALL = ${LIBTOOL} @LIBTOOL_MODE_UNINSTALL@
 PURIFY = @PURIFY@
 
 MKDEP = ${SHELL} ${top_builddir}/make/mkdep
