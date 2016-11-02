@@ -1,4 +1,4 @@
-4507.	[bug]		Name could incorrectly log 'allows updates by IP
+4507.	[bug]		Named could incorrectly log 'allows updates by IP
 			address, which is insecure' [RT #43432]
 
 4505.	[port]		Use IP_PMTUDISC_OMIT if available. [RT #35494]
