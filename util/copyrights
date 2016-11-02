@@ -1826,6 +1826,7 @@
 ./bin/tests/system/nsupdate/ns3/named.conf	CONF-C	2010,2011,2013,2014,2016
 ./bin/tests/system/nsupdate/ns3/nsec3param.test.db.in	ZONE	2010,2016
 ./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010,2011,2012,2014,2016
+./bin/tests/system/nsupdate/ns3/too-big.test.db.in	ZONE	2016
 ./bin/tests/system/nsupdate/prereq.sh		SH	2014,2015,2016
 ./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2016
 ./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016
@@ -2494,6 +2495,8 @@
 ./bin/tests/system/xfer/dig1.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/xfer/dig2.good		X	2000,2001,2003,2004,2009,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/xfer/knowngood.mapped	X	2016
+./bin/tests/system/xfer/ns1/axfr-too-big.db	ZONE	2016
+./bin/tests/system/xfer/ns1/ixfr-too-big.db.in	ZONE	2016
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004,2007,2011,2014,2016
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004,2007,2016
 ./bin/tests/system/xfer/ns2/mapped.db.in	ZONE	2016
@@ -3876,6 +3879,7 @@
 ./lib/dns/tests/Kdh.+002+18602.key		X	2014
 ./lib/dns/tests/Krsa.+005+29235.key		X	2016
 ./lib/dns/tests/Makefile.in			MAKE	2011,2012,2013,2014,2015,2016
+./lib/dns/tests/acl_test.c			C	2016
 ./lib/dns/tests/db_test.c			C	2013,2015,2016
 ./lib/dns/tests/dbdiff_test.c			C	2011,2012,2016
 ./lib/dns/tests/dbiterator_test.c		C	2011,2012,2016
