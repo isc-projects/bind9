@@ -62,5 +62,13 @@ install:: installdirs
 	${INSTALL_DATA} ${export_srcdir}/isc/include/isc/bind9.h \
 	${DESTDIR}${export_includedir}/isc
 
+uninstall::
+	rm -f ${DESTDIR}${export_includedir}/isc/bind9.h
+	rm -f ${DESTDIR}${export_includedir}/isc/atomic.h
+	rm -f ${DESTDIR}${export_includedir}/isc/platform.h
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${export_includedir}/isc/$$i ; \
+	done
+
 distclean::
 	rm -f platform.h

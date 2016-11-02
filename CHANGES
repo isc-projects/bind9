@@ -1,3 +1,7 @@
+4503.	[cleanup]	"make uninstall" now removes file installed by
+			BIND. (This currently excludes Python files
+			due to lack of support in setup.py.) [RT #42912]
+
 4502.	[func]		Report multiple and experimental options when printing
 			grammar. [RT #43134]
 

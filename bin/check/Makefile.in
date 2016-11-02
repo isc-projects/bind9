@@ -96,5 +96,12 @@ install:: named-checkconf@EXEEXT@ named-checkzone@EXEEXT@ installdirs
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done
 	(cd ${DESTDIR}${mandir}/man8; rm -f named-compilezone.8; ${LINK_PROGRAM} named-checkzone.8 named-compilezone.8)
 
+uninstall::
+	rm -f ${DESTDIR}${mandir}/man8/named-compilezone.8
+	for m in ${MANPAGES}; do rm -f ${DESTDIR}${mandir}/man8/$$m ; done
+	rm -f ${DESTDIR}${sbindir}/named-compilezone@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/named-checkconf@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/named-checkzone@EXEEXT@
+
 clean distclean::
 	rm -f ${TARGETS} r1.htm

@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2010/06/09 23:50:58 tbox Exp $
-
 top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/isc
 export_srcdir =	@top_srcdir@/lib/export
@@ -138,6 +136,9 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisc.@A@ \
 	${DESTDIR}${export_libdir}
+
+uninstall::
+	rm -f ${DESTDIR}${export_libdir}/libisc.@A@
 
 clean distclean::
 	rm -f libisc.@A@ libisc.la timestamp

@@ -40,5 +40,12 @@ install:: installdirs
 	${INSTALL_DATA} ${top_srcdir}/lib/irs/include/irs/platform.h \
 	${DESTDIR}${export_includedir}/irs
 
+uninstall::
+	rm -f ${DESTDIR}${export_includedir}/irs/netdb.h
+	rm -f ${DESTDIR}${export_includedir}/irs/platform.h
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${export_includedir}/irs/$$i ; \
+	done
+
 distclean::
 	rm -f netdb.h platform.h

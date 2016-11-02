@@ -97,5 +97,13 @@ install:: rndc-confgen@EXEEXT@ ddns-confgen@EXEEXT@ installdirs
 	${INSTALL_DATA} ${srcdir}/rndc-confgen.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/ddns-confgen.8 ${DESTDIR}${mandir}/man8
 
+uninstall::
+	rm -f ${DESTDIR}${mandir}/man8/tsig-keygen.8
+	rm -f ${DESTDIR}${sbindir}/tsig-keygen@EXEEXT@
+	rm -f ${DESTDIR}${mandir}/man8/ddns-confgen.8
+	rm -f ${DESTDIR}${mandir}/man8/rndc-confgen.8
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/ddns-confgen@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/rndc-confgen@EXEEXT@
+
 clean distclean maintainer-clean::
 	rm -f ${TARGETS}

@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 top_srcdir =	@top_srcdir@
 srcdir =	@top_srcdir@/lib/dns
 export_srcdir =	@top_srcdir@/lib/export
@@ -136,6 +134,9 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libdns.@A@ \
 	${DESTDIR}${export_libdir}/
+
+uninstall::
+	rm -f ${DESTDIR}${export_libdir}/libdns.@A@
 
 clean distclean::
 	rm -f libdns.@A@ timestamp

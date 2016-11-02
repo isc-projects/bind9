@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2009/09/18 07:18:04 jinmei Exp $
-
 srcdir =	@srcdir@
 top_srcdir =	@top_srcdir@
 
@@ -53,4 +51,12 @@ install:: installdirs
 	done
 	for i in ${GENHEADERS}; do \
 		${INSTALL_DATA} $$i ${DESTDIR}${export_includedir}/dns ; \
+	done
+
+uninstall::
+	for i in ${HEADERS}; do \
+		rm -f ${DESTDIR}${export_includedir}/dns/$$i ; \
+	done
+	for i in ${GENHEADERS}; do \
+		rm -f ${DESTDIR}${export_includedir}/dns/$$i ; \
 	done

@@ -94,3 +94,7 @@ installdirs:
 install:: nsupdate@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} nsupdate@EXEEXT@ ${DESTDIR}${bindir}
 	${INSTALL_DATA} ${srcdir}/nsupdate.1 ${DESTDIR}${mandir}/man1
+
+uninstall::
+	rm -f ${DESTDIR}${mandir}/man1/nsupdate.1
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/nsupdate@EXEEXT@

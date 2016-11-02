@@ -105,3 +105,11 @@ install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
 	for m in ${MANPAGES}; do \
 		${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; \
 		done
+
+uninstall::
+	for m in ${MANPAGES}; do \
+		rm -f ${DESTDIR}${mandir}/man1/$$m ; \
+	done
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/nslookup@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/host@EXEEXT@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/dig@EXEEXT@

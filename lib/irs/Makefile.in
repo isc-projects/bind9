@@ -77,5 +77,8 @@ installdirs:
 install:: timestamp installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libirs.@A@ ${DESTDIR}${libdir}
 
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libirs.@A@
+
 clean distclean::
 	rm -f libirs.@A@ libirs.la timestamp
