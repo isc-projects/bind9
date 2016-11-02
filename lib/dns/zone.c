@@ -9692,14 +9692,14 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 
 isc_uint32_t
 dns_zone_getmaxrecords(dns_zone_t *zone) {
-        REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->maxrecords);
 }
 
 void
 dns_zone_setmaxrecords(dns_zone_t *zone, isc_uint32_t val) {
-        REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(DNS_ZONE_VALID(zone));
 
 	zone->maxrecords = val;
 }

@@ -7599,7 +7599,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 
 static isc_result_t
 getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-        isc_uint64_t *bytes)
+	isc_uint64_t *bytes)
 {
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result = ISC_R_SUCCESS;

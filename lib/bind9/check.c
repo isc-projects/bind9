@@ -1467,7 +1467,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "masters", SLAVEZONE | STUBZONE | REDIRECTZONE },
 	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
 	{ "max-records", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE |
-          STATICSTUBZONE | REDIRECTZONE },
+	  STATICSTUBZONE | REDIRECTZONE },
 	{ "max-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "max-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
 	{ "max-transfer-idle-in", SLAVEZONE | STUBZONE | STREDIRECTZONE },
