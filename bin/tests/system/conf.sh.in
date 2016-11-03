@@ -61,6 +61,7 @@ NSLOOKUP=$TOP/bin/dig/nslookup
 FEATURETEST=$TOP/bin/tests/system/feature-test
 
 RANDFILE=$TOP/bin/tests/system/random.data
+MDIG=$TOP/bin/tests/mdig
 
 BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
 KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
@@ -153,6 +154,7 @@ export KEYSIGNER
 export LWRESD
 export LWTEST
 export MAKEJOURNAL
+export MDIG
 export NAMED
 export NSLOOKUP
 export NSUPDATE

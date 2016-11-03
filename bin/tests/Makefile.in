@@ -13,8 +13,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.145 2011/02/03 05:41:53 marka Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -22,18 +20,21 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} @DST_OPENSSL_INC@ \
-		${ISCCFG_INCLUDES} ${LWRES_INCLUDES} ${OMAPI_INCLUDES}
+		${ISCCFG_INCLUDES} ${LWRES_INCLUDES} ${OMAPI_INCLUDES} \
+		${BIND9_INCLUDES}
 
 CDEFINES =	@CRYPTO@
 CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
 
+BIND9LIBS =	../../lib/bind9/libbind9.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
+BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../lib/isc/libisc-nosymtbl.@A@
@@ -50,7 +51,7 @@ SUBDIRS =	atomic db dst master mem hashes names net rbt resolver \
 # makejournal is needed by system tests
 
 # Alphabetically
-TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ wire_test@EXEEXT@
+TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ wire_test@EXEEXT@ mdig@EXEEXT@
 
 # All the other tests are optional and not built by default.
 
@@ -94,7 +95,7 @@ XTARGETS =	adb_test@EXEEXT@ \
 		zone_test@EXEEXT@
 
 # Alphabetically
-SRCS =		cfg_test.c makejournal.c wire_test.c ${XSRCS}
+SRCS =		cfg_test.c makejournal.c mdig.c wire_test.c ${XSRCS}
 
 XSRCS =		adb_test.c \
 		byaddr_test.c \
@@ -314,6 +315,10 @@ cfg_test@EXEEXT@: cfg_test.@O@ ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 makejournal@EXEEXT@: makejournal.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ makejournal.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+mdig@EXEEXT@: mdig.@O@ ${BIND9DEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ mdig.@O@ \
+		${BIND9LIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 distclean::
 	rm -f headerdep_test.sh
