@@ -1,3 +1,7 @@
+4508.	[security]	Named incorrectly tried to cache TKEY records which
+			could trigger a assertion failure when there was
+			a class mismatch. (CVE-2016-9131) [RT #43522]
+
 	--- 9.9.9-P4 released ---
 
 4489.	[security]	It was possible to trigger assertions when processing
