@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.71 2011/12/05 17:10:50 each Exp $
-
 #
 # Common configuration data for system tests, to be sourced into
 # other shell scripts.
@@ -59,6 +57,7 @@ NSLOOKUP=$TOP/bin/dig/nslookup
 FEATURETEST=$TOP/bin/tests/system/feature-test
 
 RANDFILE=$TOP/bin/tests/system/random.data
+MDIG=$TOP/bin/tests/mdig
 
 
 # The "stress" test is not run by default since it creates enough
@@ -116,6 +115,7 @@ export JOURNALPRINT
 export KEYFRLAB
 export KEYGEN
 export LWRESD
+export MDIG
 export NAMED
 export NSLOOKUP
 export NSUPDATE
