@@ -36,6 +36,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Named incorrectly tried to cache TKEY records which could
+	  trigger a assertion failure when there was a class mismatch.
+	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  It was possible to trigger assertions when processing
 	  a response. This flaw is disclosed in CVE-2016-8864. [RT #43465]
 	</para>
