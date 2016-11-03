@@ -20,7 +20,7 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">named-checkconf</code>  [<code class="option">-hjvz</code>] [<code class="option">-p</code>
+<div class="cmdsynopsis"><p><code class="command">named-checkconf</code>  [<code class="option">-hjlvz</code>] [<code class="option">-p</code>
 	 [<code class="option">-x</code>
       ]] [<code class="option">-t <em class="replaceable"><code>directory</code></em></code>] {filename}</p></div>
 </div>
@@ -54,6 +54,12 @@
 <dt><span class="term">-j</span></dt>
 <dd><p>
             When loading a zonefile read the journal if it exists.
+          </p></dd>
+<dt><span class="term">-l</span></dt>
+<dd><p>
+            List all the configured zones. Each line of output
+            contains the zone name, class (e.g. IN), view, and type
+            (e.g. master or slave).
           </p></dd>
 <dt><span class="term">-p</span></dt>
 <dd><p>
