@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1488,7 +1488,7 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-               isc_uint64_t *bytes);
+	       isc_uint64_t *bytes);
 /*%<
  * Get the number of records in the given version of the database as well
  * as the number bytes used to store those records.
