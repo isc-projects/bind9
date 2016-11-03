@@ -2402,6 +2402,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
     [<span class="optional"> use-queryport-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
     [<span class="optional"> queryport-pool-ports <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> queryport-pool-updateinterval <em class="replaceable"><code>number</code></em>; </span>]
+    [<span class="optional"> max-records <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-time-in <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-time-out <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-transfer-idle-in <em class="replaceable"><code>number</code></em>; </span>]
@@ -5593,6 +5594,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   <code class="literal">unlimited</code>, which also
                   means 2 gigabytes.
                   This may also be set on a per-zone basis.
+                </p></dd>
+<dt><span class="term"><span class="command"><strong>max-records</strong></span></span></dt>
+<dd><p>
+                  The maximum number of records permitted in a zone.
+                  The default is zero which means unlimited.
                 </p></dd>
 <dt><span class="term"><span class="command"><strong>host-statistics-max</strong></span></span></dt>
 <dd><p>
@@ -9170,6 +9176,11 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dd><p>
                     See the description of
                     <span class="command"><strong>max-journal-size</strong></span> in <a class="xref" href="Bv9ARM.ch06.html#server_resource_limits" title="Server Resource Limits">the section called &#8220;Server  Resource Limits&#8221;</a>.
+                  </p></dd>
+<dt><span class="term"><span class="command"><strong>max-records</strong></span></span></dt>
+<dd><p>
+                    See the description of
+                    <span class="command"><strong>max-records</strong></span> in <a class="xref" href="Bv9ARM.ch06.html#server_resource_limits" title="Server Resource Limits">the section called &#8220;Server  Resource Limits&#8221;</a>.
                   </p></dd>
 <dt><span class="term"><span class="command"><strong>max-transfer-time-in</strong></span></span></dt>
 <dd><p>
