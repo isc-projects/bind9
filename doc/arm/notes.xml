@@ -24,6 +24,10 @@
       This document summarizes changes since BIND 9.9.9:
     </para>
     <para>
+      BIND 9.9.9-P5 addresses the security issue described in
+      CVE-2016-9131.
+    </para>
+    <para>
       BIND 9.9.9-P4 addresses the security issue described in
       CVE-2016-8864.
     </para>
