@@ -16,6 +16,10 @@
       This document summarizes changes since BIND 9.11.0:
     </para>
     <para>
+      BIND 9.11.0-P2 addresses the security issue described in
+      CVE-2016-9131.
+    </para>
+    <para>
       BIND 9.11.0-P1 addresses the security issue described in
       CVE-2016-8864.
     </para>
