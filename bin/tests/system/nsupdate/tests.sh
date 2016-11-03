@@ -696,7 +696,7 @@ update add r1.too-big.test 3600 IN TXT r1.too-big.test
 send
 EOF
 grep "update failed: SERVFAIL" nsupdate.out-$n > /dev/null || ret=1
-DIG +tcp @10.53.0.3 -p 5300 r1.too-big.test TXT > dig.out.ns3.test$n
+$DIG +tcp @10.53.0.3 -p 5300 r1.too-big.test TXT > dig.out.ns3.test$n
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 grep "records in zone (4) exceeds max-records (3)" ns3/named.run > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
