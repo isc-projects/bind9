@@ -39,7 +39,7 @@
 named-checkconf \- named configuration file syntax checking tool
 .SH "SYNOPSIS"
 .HP \w'\fBnamed\-checkconf\fR\ 'u
-\fBnamed\-checkconf\fR [\fB\-hjvz\fR] [\fB\-p\fR\ [\fB\-x\fR\ ]] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] {filename}
+\fBnamed\-checkconf\fR [\fB\-hjlvz\fR] [\fB\-p\fR\ [\fB\-x\fR\ ]] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] {filename}
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-checkconf\fR
@@ -72,6 +72,11 @@ Print the usage summary and exit\&.
 \-j
 .RS 4
 When loading a zonefile read the journal if it exists\&.
+.RE
+.PP
+\-l
+.RS 4
+List all the configured zones\&. Each line of output contains the zone name, class (e\&.g\&. IN), view, and type (e\&.g\&. master or slave)\&.
 .RE
 .PP
 \-p
