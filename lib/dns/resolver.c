@@ -6992,15 +6992,19 @@ answer_response(fetchctx_t *fctx) {
 						 * a CNAME or DNAME).
 						 */
 						INSIST(!external);
-						if ((rdataset->type !=
-						     dns_rdatatype_cname) ||
-						    !found_dname ||
-						    (aflag ==
-						     DNS_RDATASETATTR_ANSWER))
+						/*
+						 * Don't use found_cname here
+						 * as we have just set it
+						 * above.
+						 */
+						if (cname == NULL &&
+						    !found_dname &&
+						    aflag ==
+						     DNS_RDATASETATTR_ANSWER)
 						{
 							have_answer = ISC_TRUE;
-							if (rdataset->type ==
-							    dns_rdatatype_cname)
+							if (found_cname &&
+							    cname == NULL)
 								cname = name;
 							name->attributes |=
 							    DNS_NAMEATTR_ANSWER;
