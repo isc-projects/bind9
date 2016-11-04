@@ -70,7 +70,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
-#ifdef ALLOW_FILTER_AAAA
+#ifdef ALLOW_FILTER_AAAA_ON_V4
 		return (0);
 #else
 		return (1);
