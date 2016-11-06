@@ -3209,6 +3209,7 @@ sub makeinstallfile {
     print LOUT "rndc.exe-BNFF\n";
     print LOUT "dig.exe-BNFT\n";
     print LOUT "host.exe-BNFT\n";
+    print LOUT "mdig.exe-BNFT\n";
     print LOUT "nslookup.exe-BNFT\n";
     print LOUT "delv.exe-BNFT\n";
     print LOUT "arpaname.exe-BNFT\n";
