@@ -1,3 +1,6 @@
+4512.	[bug]		win32: @GEOIP_INC@ missing from delv.vcxproj.in.
+			[RT #43556]
+
 4511.	[bug]		win32: mdig.exe-BNFT was missing Configure. [RT #43554]
 
 4510.	[placeholder]
