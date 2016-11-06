@@ -1,3 +1,5 @@
+4511.	[bug]		win32: mdig.exe-BNFT was missing Configure. [RT #43554]
+
 4510.	[placeholder]
 
 4509.	[test]		Make the rrl system test more reliable on slower
