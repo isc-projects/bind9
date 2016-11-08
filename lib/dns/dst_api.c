@@ -135,7 +135,7 @@ static isc_result_t	addsuffix(char *filename, int len,
 			return (_r);		\
 	} while (0);				\
 
-#if defined(OPENSSL) && defined(BIND9)
+#if defined(OPENSSL)
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
