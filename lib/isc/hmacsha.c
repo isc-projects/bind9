@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005-2007, 2009, 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005-2007, 2009, 2011-2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -44,10 +44,10 @@ void
 isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 		  unsigned int len)
 {
-        ctx->ctx = HMAC_CTX_new();
-        RUNTIME_CHECK(ctx->ctx != NULL);
-        RUNTIME_CHECK(HMAC_Init_ex(ctx->ctx, (const void *) key,
-                                   (int) len, EVP_sha1(), NULL) == 1);
+	ctx->ctx = HMAC_CTX_new();
+	RUNTIME_CHECK(ctx->ctx != NULL);
+	RUNTIME_CHECK(HMAC_Init_ex(ctx->ctx, (const void *) key,
+				   (int) len, EVP_sha1(), NULL) == 1);
 }
 
 void

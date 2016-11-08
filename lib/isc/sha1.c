@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -62,8 +62,8 @@ isc_sha1_init(isc_sha1_t *context)
 
 void
 isc_sha1_invalidate(isc_sha1_t *context) {
-        EVP_MD_CTX_free(context->ctx);
-        context->ctx = NULL;
+	EVP_MD_CTX_free(context->ctx);
+	context->ctx = NULL;
 }
 
 void

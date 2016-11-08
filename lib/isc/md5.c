@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -51,15 +51,15 @@
 
 void
 isc_md5_init(isc_md5_t *ctx) {
-        ctx->ctx = EVP_MD_CTX_new();
-        RUNTIME_CHECK(ctx->ctx != NULL);
-        RUNTIME_CHECK(EVP_DigestInit(ctx->ctx, EVP_md5()) == 1);
+	ctx->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(ctx->ctx != NULL);
+	RUNTIME_CHECK(EVP_DigestInit(ctx->ctx, EVP_md5()) == 1);
 }
 
 void
 isc_md5_invalidate(isc_md5_t *ctx) {
-        EVP_MD_CTX_free(ctx->ctx);
-        ctx->ctx = NULL;
+	EVP_MD_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
 }
 
 void
