@@ -1686,7 +1686,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTERDUMP,
 				      ISC_LOG_DEBUG(1),
-				      "dumptostreaminc(%p) new nodes -> %d\n",
+				      "dumptostreaminc(%p) new nodes -> %d",
 				      dctx, dctx->nodes);
 		}
 		result = DNS_R_CONTINUE;
