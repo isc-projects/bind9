@@ -190,11 +190,13 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setname(dst__memory_pool, "dst", NULL);
+#else
+	isc_mem_attach(mctx, &dst__memory_pool);
+#endif
+#if defined(OPENSSL)
 #ifndef OPENSSL_LEAKS
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #endif
-#else
-	isc_mem_attach(mctx, &dst__memory_pool);
 #endif
 #ifdef BIND9
 	isc_entropy_attach(ectx, &dst_entropy_pool);

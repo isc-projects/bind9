@@ -35,25 +35,21 @@
  */
 
 static void
-iteration_test(const char* file, unsigned int expected) {
+iteration_test(const char *file, unsigned int expected) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	unsigned int iterations;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "test", file);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s", file);
 
 	result = dns_nsec3_maxiterations(db, NULL, mctx, &iterations);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s", file);
 
-	ATF_REQUIRE_EQ(iterations, expected);
+	ATF_CHECK_EQ_MSG(iterations, expected, "%s", file);
 
 	dns_db_detach(&db);
-
-	dns_test_end();
 }
 
 /*
@@ -66,14 +62,20 @@ ATF_TC_HEAD(max_iterations, tc) {
 			  " is returned for different key size mixes");
 }
 ATF_TC_BODY(max_iterations, tc) {
+	isc_result_t result;
 
 	UNUSED(tc);
+
+	result = dns_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	iteration_test("testdata/nsec3/1024.db", 150);
 	iteration_test("testdata/nsec3/2048.db", 500);
 	iteration_test("testdata/nsec3/4096.db", 2500);
 	iteration_test("testdata/nsec3/min-1024.db", 150);
 	iteration_test("testdata/nsec3/min-2048.db", 500);
+
+	dns_test_end();
 }
 #else
 ATF_TC(untested);

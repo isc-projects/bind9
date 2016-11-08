@@ -35,6 +35,11 @@
 #include <openssl/rsa.h>
 #include <openssl/engine.h>
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#define EVP_MD_CTX_new() &(ctx->_ctx), EVP_MD_CTX_init(&(ctx->_ctx))
+#define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
+#endif
+
 static ENGINE *e = NULL;
 static const EVP_MD *opensslgost_digest;
 extern const EVP_MD *EVP_gost(void);
@@ -319,7 +324,7 @@ opensslgost_tofile(const dst_key_t *key, const char *directory) {
 	priv.elements[0].tag = TAG_GOST_PRIVASN1;
 	priv.elements[0].length = len;
 	priv.elements[0].data = der;
-	priv.nelements = GOST_NTAGS;
+	priv.nelements = 1;
 
 	result = dst__privstruct_writefile(key, &priv, directory);
  fail:
@@ -336,28 +341,31 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	EVP_PKEY *pkey = NULL;
 	const unsigned char *p;
 
-	UNUSED(pub);
-
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECCGOST, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	if (key->external) {
-		INSIST(priv.nelements == 0);
+		if (priv.nelements != 0)
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		if (pub == NULL)
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		key->keydata.pkey = pub->keydata.pkey;
 		pub->keydata.pkey = NULL;
-	} else {
-		INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
-		p = priv.elements[0].data;
-		if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				   (long) priv.elements[0].length) == NULL)
-			DST_RET(dst__openssl_toresult2("d2i_PrivateKey",
-						     DST_R_INVALIDPRIVATEKEY));
-		key->keydata.pkey = pkey;
+		key->key_size = pub->key_size;
+		dst__privstruct_free(&priv, mctx);
+		memset(&priv, 0, sizeof(priv));
+		return (ISC_R_SUCCESS)
 	}
+
+	INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
+	p = priv.elements[0].data;
+	if (d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+			   (long) priv.elements[0].length) == NULL)
+		DST_RET(dst__openssl_toresult2("d2i_PrivateKey",
+					     DST_R_INVALIDPRIVATEKEY));
+	key->keydata.pkey = pkey;
 	key->key_size = EVP_PKEY_bits(pkey);
 	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
