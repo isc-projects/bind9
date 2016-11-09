@@ -47,6 +47,7 @@
 #include <isc/fsaccess.h>
 #include <isc/hmacsha.h>
 #include <isc/lex.h>
+#include <isc/namespace.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/platform.h>
@@ -135,22 +136,6 @@ static isc_result_t	addsuffix(char *filename, int len,
 			return (_r);		\
 	} while (0);				\
 
-#if defined(OPENSSL)
-static void *
-default_memalloc(void *arg, size_t size) {
-	UNUSED(arg);
-	if (size == 0U)
-		size = 1;
-	return (malloc(size));
-}
-
-static void
-default_memfree(void *arg, void *ptr) {
-	UNUSED(arg);
-	free(ptr);
-}
-#endif
-
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	return (dst_lib_init2(mctx, ectx, NULL, eflags));
@@ -185,8 +170,7 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	 * ISC_MEMFLAG_INTERNAL as it will free up memory still being used
 	 * by libcrypto.
 	 */
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &dst__memory_pool, 0);
+	result = isc_mem_create2(0, 0, &dst__memory_pool, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setname(dst__memory_pool, "dst", NULL);
