@@ -356,7 +356,7 @@ opensslgost_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->key_size = pub->key_size;
 		dst__privstruct_free(&priv, mctx);
 		memset(&priv, 0, sizeof(priv));
-		return (ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
 	}
 
 	INSIST(priv.elements[0].tag == TAG_GOST_PRIVASN1);
