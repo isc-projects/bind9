@@ -993,7 +993,6 @@ t2_vfy(char **av) {
 	}
 
 	if (!dst_algorithm_supported(DST_ALG_RSAMD5)) {
-		dst_lib_destroy();
 		t_info("library built without crypto support\n");
 		return (T_SKIPPED);
 	}
