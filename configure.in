@@ -154,10 +154,14 @@ AC_ARG_WITH(python,
 [  --with-python=PATH      Specify path to python interpreter],
     use_python="$withval", use_python="unspec")
 
-python="python python3 python3.5 python3.4 python3.3 python3.2 python3.1 python3.0 python2 python2.7 python2.6 python2.5 python2.4"
+python="python python3 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
 testargparse='try: import argparse
 except: exit(1)'
+
+testminvers='import sys
+if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
+   exit(1)'
 
 case "$use_python" in
 	no)
@@ -172,6 +176,15 @@ case "$use_python" in
 				AC_PATH_PROGS(PYTHON, $p)
 				if test "X$PYTHON" = "X"; then
 					continue;
+				fi
+				AC_MSG_CHECKING([python2 version >= 2.7 or python3 version >= 3.2])
+				if ${PYTHON:-false} -c "$testminvers"; then
+					AC_MSG_RESULT([found])
+                                else
+                                        AC_MSG_RESULT([not found])
+                                        unset ac_cv_path_PYTHON
+                                        unset PYTHON
+                                        continue
 				fi
 				AC_MSG_CHECKING([python module 'argparse'])
 				if ${PYTHON:-false} -c "$testargparse"; then
@@ -206,6 +219,12 @@ case "$use_python" in
 				AC_PATH_PROGS(PYTHON, $use_python)
 				;;
 			esac
+			AC_MSG_CHECKING([python2 version >= 2.7 or python3 version >= 3.2])
+			if ${PYTHON:-false} -c "$testminvers"; then
+				AC_MSG_RESULT([found])
+			else
+				AC_MSG_ERROR([not found])
+			fi
 			AC_MSG_CHECKING([python module 'argparse'])
 			if ${PYTHON:-false} -c "$testargparse"; then
 				AC_MSG_RESULT([found, using $PYTHON])

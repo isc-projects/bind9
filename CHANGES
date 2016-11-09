@@ -1,4 +1,7 @@
-4508.	[test]		Make the rrl system test more reliable on slower
+4513.	[cleanup]	Minimum Python versions are now 2.7 and 3.2.
+			[RT #43566]
+
+4509.	[test]		Make the rrl system test more reliable on slower
 			machines by using mdig instead of dig. [RT #43280]
 
 4507.	[bug]		Named could incorrectly log 'allows updates by IP
