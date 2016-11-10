@@ -4811,6 +4811,7 @@ SO_CFLAGS=""
 SO_LDFLAGS=""
 SO_LD=""
 SO_TARGETS=""
+SO_STRIP="cat"
 
 AC_ARG_WITH(dlopen,
 	[  --with-dlopen=ARG       support dynamically loadable DLZ drivers],
@@ -4863,6 +4864,7 @@ if test "yes" = "$dlopen"; then
 			SO_CFLAGS="-fpic"
 			SO_LDFLAGS="-Bshareable -x"
 			SO_LD="ld"
+			SO_STRIP="sed -e s/-Wl,//g"
 			;;
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
@@ -4907,6 +4909,7 @@ AC_SUBST(SO)
 AC_SUBST(SO_CFLAGS)
 AC_SUBST(SO_LDFLAGS)
 AC_SUBST(SO_LD)
+AC_SUBST(SO_STRIP)
 AC_SUBST(SO_TARGETS)
 
 sinclude(contrib/dlz/config.dlz.in)
