@@ -34,6 +34,7 @@ OBJS =		db.@O@ driver.@O@ instance.@O@ \
 
 SO_TARGETS =	lib/sample.@SO@
 TARGETS =	@SO_TARGETS@
+SO_STRIP =	@SO_STRIP@
 
 @BIND9_MAKE_RULES@
 
@@ -45,8 +46,9 @@ lib/sample.@SO@: sample.@SO@
 	${LIBTOOL_MODE_INSTALL} ${INSTALL} sample.@SO@ `pwd`/lib
 
 sample.@SO@: ${OBJS} ${DNSDEPLIBS} ${ISCDEPLIBS}
+	CLEANED=`echo "${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}" | ${SO_STRIP}`; \
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ ${OBJS} \
-		${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
+		$${CLEANED}
 
 clean distclean::
 	rm -f ${OBJS} sample.so lib/sample.so

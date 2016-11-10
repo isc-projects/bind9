@@ -1,3 +1,5 @@
+4514.	[port]		NetBSD: strip -WL, from ld command line. [RT #43204]
+
 4513.	[cleanup]	Minimum Python versions are now 2.7 and 3.2.
 			[RT #43566]
 

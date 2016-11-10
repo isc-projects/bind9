@@ -654,6 +654,7 @@ DLZ_DRIVER_INCLUDES
 CONTRIB_DLZ
 PG_CONFIG
 SO_TARGETS
+SO_STRIP
 SO_LD
 SO_LDFLAGS
 SO_CFLAGS
@@ -22068,6 +22069,7 @@ SO_CFLAGS=""
 SO_LDFLAGS=""
 SO_LD=""
 SO_TARGETS=""
+SO_STRIP="cat"
 
 
 # Check whether --with-dlopen was given.
@@ -22179,6 +22181,7 @@ if test "yes" = "$dlopen"; then
 			SO_CFLAGS="-fpic"
 			SO_LDFLAGS="-Bshareable -x"
 			SO_LD="ld"
+			SO_STRIP="sed -e s/-Wl,//g"
 			;;
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
@@ -22219,6 +22222,7 @@ $as_echo "#define ISC_DLZ_DLOPEN 1" >>confdefs.h
 	fi
 fi
 CFLAGS="$CFLAGS $SO_CFLAGS"
+
 
 
 
