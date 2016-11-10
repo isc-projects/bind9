@@ -15,6 +15,7 @@
 
 #include <isc/print.h>
 #include <isc/util.h>
+#include <isc/net.h>
 #include <dns/edns.h>
 
 #ifdef WIN32
@@ -33,15 +34,16 @@ static void
 usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
-	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--edns-version\n");
+	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
 	fprintf(stderr, "	--have-dlopen\n");
 	fprintf(stderr, "	--have-geoip\n");
 	fprintf(stderr, "	--have-libxml2\n");
-	fprintf(stderr, "	--rpz-nsip\n");
+	fprintf(stderr, "	--ipv6only=no\n");
 	fprintf(stderr, "	--rpz-nsdname\n");
+	fprintf(stderr, "	--rpz-nsip\n");
 	fprintf(stderr, "	--with-idn\n");
 }
 
@@ -149,6 +151,25 @@ main(int argc, char **argv) {
 	if (strcmp(argv[1], "--with-idn") == 0) {
 #ifdef WITH_IDN
 		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--ipv6only=no") == 0) {
+#ifdef WIN32
+		return (0);
+#elif defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
+		int s;
+		int n;
+		int v6only = -1;
+		ISC_SOCKADDR_LEN_T len = sizeof(v6only);
+
+		s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+		n = getsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+			       (void *)&v6only, &len);
+		close(s);
+		return ((n == 0 && v6only == 0) ? 0 : 1);
 #else
 		return (1);
 #endif
