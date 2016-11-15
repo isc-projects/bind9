@@ -189,14 +189,16 @@ main(int argc, char **argv) {
 		return (0);
 #elif defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY)
 		int s;
-		int n;
+		int n = -1;
 		int v6only = -1;
 		ISC_SOCKADDR_LEN_T len = sizeof(v6only);
 
 		s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		n = getsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
-			       (void *)&v6only, &len);
-		close(s);
+		if (s >= 0) {
+			n = getsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+				       (void *)&v6only, &len);
+			close(s);
+		}
 		return ((n == 0 && v6only == 0) ? 0 : 1);
 #else
 		return (1);
