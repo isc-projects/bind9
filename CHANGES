@@ -1,3 +1,6 @@
+4600.	[bug]		Adjust RPZ trigger counts only when the entry
+			being deleted exists. [RT #43386]
+
 4599.	[bug]		Fix inconsistencies in inline signing time
 			comparison that were introduced with the
 			introduction of rdatasetheader->resign_lsb.
