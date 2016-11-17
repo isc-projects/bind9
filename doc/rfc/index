@@ -167,3 +167,4 @@
 	  IPv4 Locally-Served DNS Zones Registry 
 7830:	The EDNS(0) Padding Option
 7873:	Domain Name System (DNS) Cookies
+8020:	NXDOMAIN: There Really Is Nothing Underneath
