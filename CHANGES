@@ -1,3 +1,6 @@
+4515.	[port]		FreeBSD: Find readline headers when they are in
+                        edit/readline/ instead of readline/. [RT #43658]
+
 4514.	[port]		NetBSD: strip -WL, from ld command line. [RT #43204]
 
 4513.	[cleanup]	Minimum Python versions are now 2.7 and 3.2.
