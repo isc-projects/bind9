@@ -81,7 +81,12 @@
 #include <bind9/getaddresses.h>
 
 #if defined(HAVE_READLINE)
-#if defined(HAVE_EDITLINE_READLINE_H)
+#if defined(HAVE_EDIT_READLINE_READLINE_H)
+#include <edit/readline/readline.h>
+#if defined(HAVE_EDIT_READLINE_HISTORY_H)
+#include <edit/readline/history.h>
+#endif
+#elif defined(HAVE_EDITLINE_READLINE_H)
 #include <editline/readline.h>
 #else
 #include <readline/readline.h>
