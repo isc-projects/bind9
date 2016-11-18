@@ -1172,9 +1172,9 @@ AC_SUBST(CHECK_DSA)
 # Do we have arc4random(), etc ?
 # Will use stir and if not exist addrandom
 #
-AC_CHECK_FUNC(arc4random, AC_DEFINE(HAVE_ARC4RANDOM))
-AC_CHECK_FUNC(arc4random_stir, AC_DEFINE(HAVE_ARC4RANDOM_STIR))
-AC_CHECK_FUNC(arc4random_addrandom, AC_DEFINE(HAVE_ARC4RANDOM_ADDRANDOM))
+AC_CHECK_FUNCS(arc4random)
+AC_CHECK_FUNCS(arc4random_stir)
+AC_CHECK_FUNCS(arc4random_addrandom)
 
 sinclude(config.threads.in)dnl
 
@@ -3422,6 +3422,8 @@ then
 	case "$READLINE_LIB" in
 	*edit*)
 		AC_CHECK_HEADERS(editline/readline.h)
+		AC_CHECK_HEADERS(edit/readline/readline.h)
+		AC_CHECK_HEADERS(edit/readline/history.h)
 		;;
 	esac
 	AC_CHECK_HEADERS(readline/readline.h)

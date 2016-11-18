@@ -14554,23 +14554,38 @@ fi
 # Do we have arc4random(), etc ?
 # Will use stir and if not exist addrandom
 #
-ac_fn_c_check_func "$LINENO" "arc4random" "ac_cv_func_arc4random"
+for ac_func in arc4random
+do :
+  ac_fn_c_check_func "$LINENO" "arc4random" "ac_cv_func_arc4random"
 if test "x$ac_cv_func_arc4random" = xyes; then :
-  $as_echo "#define HAVE_ARC4RANDOM 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ARC4RANDOM 1
+_ACEOF
 
 fi
+done
 
-ac_fn_c_check_func "$LINENO" "arc4random_stir" "ac_cv_func_arc4random_stir"
+for ac_func in arc4random_stir
+do :
+  ac_fn_c_check_func "$LINENO" "arc4random_stir" "ac_cv_func_arc4random_stir"
 if test "x$ac_cv_func_arc4random_stir" = xyes; then :
-  $as_echo "#define HAVE_ARC4RANDOM_STIR 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ARC4RANDOM_STIR 1
+_ACEOF
 
 fi
+done
 
-ac_fn_c_check_func "$LINENO" "arc4random_addrandom" "ac_cv_func_arc4random_addrandom"
+for ac_func in arc4random_addrandom
+do :
+  ac_fn_c_check_func "$LINENO" "arc4random_addrandom" "ac_cv_func_arc4random_addrandom"
 if test "x$ac_cv_func_arc4random_addrandom" = xyes; then :
-  $as_echo "#define HAVE_ARC4RANDOM_ADDRANDOM 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ARC4RANDOM_ADDRANDOM 1
+_ACEOF
 
 fi
+done
 
 
 #
@@ -18897,6 +18912,30 @@ do :
 if test "x$ac_cv_header_editline_readline_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_EDITLINE_READLINE_H 1
+_ACEOF
+
+fi
+
+done
+
+		for ac_header in edit/readline/readline.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "edit/readline/readline.h" "ac_cv_header_edit_readline_readline_h" "$ac_includes_default"
+if test "x$ac_cv_header_edit_readline_readline_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EDIT_READLINE_READLINE_H 1
+_ACEOF
+
+fi
+
+done
+
+		for ac_header in edit/readline/history.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "edit/readline/history.h" "ac_cv_header_edit_readline_history_h" "$ac_includes_default"
+if test "x$ac_cv_header_edit_readline_history_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EDIT_READLINE_HISTORY_H 1
 _ACEOF
 
 fi
