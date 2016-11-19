@@ -188,6 +188,15 @@ int sigwait(const unsigned int *set, int *sig);
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
+/* Define to 1 if you have the `arc4random' function. */
+#undef HAVE_ARC4RANDOM
+
+/* Define to 1 if you have the `arc4random_addrandom' function. */
+#undef HAVE_ARC4RANDOM_ADDRANDOM
+
+/* Define to 1 if you have the `arc4random_stir' function. */
+#undef HAVE_ARC4RANDOM_STIR
+
 /* Define to 1 if the compiler supports __builtin_expect. */
 #undef HAVE_BUILTIN_EXPECT
 
@@ -418,20 +427,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
-
-<<<<<<< HEAD
-/* HMAC_*() return ints */
-#undef HMAC_RETURN_INT
-=======
-/* Define if zlib was found */
-#undef HAVE_ZLIB
-
-/* Use HMAC-SHA1 for Client Cookie generation */
-#undef HMAC_SHA1_CC
-
-/* Use HMAC-SHA256 for Client Cookie generation */
-#undef HMAC_SHA256_CC
->>>>>>> eb4ffd6... 4515.   [port]          FreeBSD: Find readline headers when they are in
 
 /* return type of gai_strerror */
 #undef IRS_GAISTRERROR_RETURN_T
