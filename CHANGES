@@ -1,5 +1,5 @@
 4515.	[port]		FreeBSD: Find readline headers when they are in
-                        edit/readline/ instead of readline/. [RT #43658]
+			edit/readline/ instead of readline/. [RT #43658]
 
 4514.	[port]		NetBSD: strip -WL, from ld command line. [RT #43204]
 
