@@ -1,5 +1,5 @@
 4515.	[port]		FreeBSD: Find readline headers when they are in
-                        edit/readline/ instead of readline/. [RT #43658]
+			edit/readline/ instead of readline/. [RT #43658]
 
 4513.	[cleanup]	Minimum Python versions are now 2.7 and 3.2.
 			[RT #43566]
