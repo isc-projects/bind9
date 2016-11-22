@@ -22,7 +22,7 @@
     </p>
 <p>
       BIND 9.11.0-P2 addresses the security issues described in
-      CVE-2016-9131 and CVE-2016-9147.
+      CVE-2016-9131, CVE-2016-9147 and CVE-2016-9444.
     </p>
 <p>
       BIND 9.11.0-P1 addresses the security issue described in
@@ -45,10 +45,15 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	 Named mishandled some responses where covering RRSIG
-	 records are returned without the requested data
-	 resulting in a assertion failure. This flaw is disclosed in
-	 CVE-2016-9147. [RT #43548]
+	  Named could mishandle authority sections that were missing
+	  RRSIGs triggering an assertion failure.  This flaw is
+	  disclosed in CVE-2016-9444. [RT # 43632]
+	</p></li>
+<li class="listitem"><p>
+	  Named mishandled some responses where covering RRSIG
+	  records are returned without the requested data
+	  resulting in a assertion failure. This flaw is disclosed in
+	  CVE-2016-9147. [RT #43548]
 	</p></li>
 <li class="listitem"><p>
 	  Named incorrectly tried to cache TKEY records which could
