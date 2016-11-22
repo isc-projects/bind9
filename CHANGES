@@ -63,6 +63,10 @@
 
 4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
 
+4517.	[security]	Named could mishandle authority sections that were
+			missing RRSIGs triggering an assertion failure.
+			(CVE-2016-9444) [RT # 43632]
+
 4516.	[bug]		isc_socketmgr_renderjson was missing from the
 			windows build. [RT #43602]
 
