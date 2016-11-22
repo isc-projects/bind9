@@ -5194,13 +5194,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 							      rdataset->type,
 							      &noqname);
 					if (tresult == ISC_R_SUCCESS &&
-					    noqname != NULL) {
-						tresult =
-						     dns_rdataset_addnoqname(
+					    noqname != NULL)
+						(void) dns_rdataset_addnoqname(
 							    rdataset, noqname);
-						RUNTIME_CHECK(tresult ==
-							      ISC_R_SUCCESS);
-					}
 				}
 				addedrdataset = ardataset;
 				result = dns_db_addrdataset(fctx->cache, node,
@@ -5330,11 +5326,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				tresult = findnoqname(fctx, name,
 						      rdataset->type, &noqname);
 				if (tresult == ISC_R_SUCCESS &&
-				    noqname != NULL) {
-					tresult = dns_rdataset_addnoqname(
-							    rdataset, noqname);
-					RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
-				}
+				    noqname != NULL)
+					(void) dns_rdataset_addnoqname(
+						       rdataset, noqname);
 			}
 
 			/*
