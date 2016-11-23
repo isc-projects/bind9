@@ -1721,7 +1721,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		case ISC_LOG_TOFILEDESC:
 			fprintf(FILE_STREAM(channel),
 				"%s%s%s%s%s%s%s%s%s%s\n",
-			        printtime     ? time_string	: "",
+				printtime     ? time_string	: "",
 				printtime     ? " "		: "",
 				printtag      ? lcfg->tag	: "",
 				printcolon    ? ": "		: "",
