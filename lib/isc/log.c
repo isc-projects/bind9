@@ -697,7 +697,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	isc_logchannel_t *channel;
 	isc_mem_t *mctx;
 	unsigned int permitted = ISC_LOG_PRINTALL | ISC_LOG_DEBUGONLY |
-				 ISC_LOG_BUFFERED;
+				 ISC_LOG_BUFFERED | ISC_LOG_ISO8601 |
+				 ISC_LOG_UTC;
 
 	REQUIRE(VALID_CONFIG(lcfg));
 	REQUIRE(name != NULL);
@@ -1396,12 +1397,15 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	     const char *format, va_list args)
 {
 	int syslog_level;
-	char time_string[64];
+	const char *time_string;
+	char local_time[64];
+	char iso8601z_string[64];
+	char iso8601l_string[64];
 	char level_string[24];
 	const char *iformat;
 	struct stat statbuf;
 	isc_boolean_t matched = ISC_FALSE;
-	isc_boolean_t printtime, printtag, printcolon;
+	isc_boolean_t printtime, iso8601, utc, printtag, printcolon;
 	isc_boolean_t printcategory, printmodule, printlevel, buffered;
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
@@ -1433,7 +1437,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	else
 		iformat = format;
 
-	time_string[0]  = '\0';
+	local_time[0] = '\0';
+	iso8601l_string[0] = '\0';
+	iso8601z_string[0] = '\0';
 	level_string[0] = '\0';
 
 	LOCK(&lctx->lock);
@@ -1496,12 +1502,21 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			continue;
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
-		    time_string[0] == '\0') {
+		    local_time[0] == '\0')
+		{
 			isc_time_t isctime;
 
 			TIME_NOW(&isctime);
-			isc_time_formattimestamp(&isctime, time_string,
-						 sizeof(time_string));
+
+			isc_time_formattimestamp(&isctime,
+						 local_time,
+						 sizeof(local_time));
+			isc_time_formatISO8601ms(&isctime,
+						 iso8601z_string,
+						 sizeof(iso8601z_string));
+			isc_time_formatISO8601Lms(&isctime,
+						  iso8601l_string,
+						  sizeof(iso8601l_string));
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTLEVEL) != 0 &&
@@ -1628,6 +1643,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			}
 		}
 
+		utc	      = ISC_TF((channel->flags & ISC_LOG_UTC) != 0);
+		iso8601       = ISC_TF((channel->flags & ISC_LOG_ISO8601) != 0);
 		printtime     = ISC_TF((channel->flags & ISC_LOG_PRINTTIME)
 				       != 0);
 		printtag      = ISC_TF((channel->flags &
@@ -1643,6 +1660,19 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				       != 0);
 		buffered      = ISC_TF((channel->flags & ISC_LOG_BUFFERED)
 				       != 0);
+
+		if (printtime) {
+			if (iso8601) {
+				if (utc) {
+					time_string = iso8601z_string;
+				} else {
+					time_string = iso8601l_string;
+				}
+			} else {
+				time_string = local_time;
+			}
+		} else
+			time_string = "";
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:
@@ -1691,7 +1721,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		case ISC_LOG_TOFILEDESC:
 			fprintf(FILE_STREAM(channel),
 				"%s%s%s%s%s%s%s%s%s%s\n",
-				printtime     ? time_string	: "",
+			        printtime     ? time_string	: "",
 				printtime     ? " "		: "",
 				printtag      ? lcfg->tag	: "",
 				printcolon    ? ": "		: "",

@@ -123,6 +123,7 @@ static cfg_type_t cfg_type_optional_port;
 static cfg_type_t cfg_type_optional_uint32;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_portiplist;
+static cfg_type_t cfg_type_printtime;
 static cfg_type_t cfg_type_querysource4;
 static cfg_type_t cfg_type_querysource6;
 static cfg_type_t cfg_type_querysource;
@@ -2070,7 +2071,6 @@ static cfg_type_t cfg_type_server = {
 	server_clausesets
 };
 
-
 /*%
  * Clauses that can be found in a 'channel' clause in the
  * 'logging' statement.
@@ -2078,8 +2078,24 @@ static cfg_type_t cfg_type_server = {
  * These have some additional constraints that need to be
  * checked after parsing:
  *  - There must exactly one of file/syslog/null/stderr
- *
  */
+
+static const char *printtime_enums[] = {
+	"local", "iso8601", "iso8601-utc", NULL
+};
+static isc_result_t
+parse_printtime(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static void
+doc_printtime(cfg_printer_t *pctx, const cfg_type_t *type) {
+	doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
+static cfg_type_t cfg_type_printtime = {
+	"printtime", parse_printtime, cfg_print_ustring, doc_printtime,
+	&cfg_rep_string, printtime_enums
+};
+
 static cfg_clausedef_t
 channel_clauses[] = {
 	/* Destinations.  We no longer require these to be first. */
@@ -2089,7 +2105,7 @@ channel_clauses[] = {
 	{ "stderr", &cfg_type_void, 0 },
 	/* Options.  We now accept these for the null channel, too. */
 	{ "severity", &cfg_type_logseverity, 0 },
-	{ "print-time", &cfg_type_boolean, 0 },
+	{ "print-time", &cfg_type_printtime, 0 },
 	{ "print-severity", &cfg_type_boolean, 0 },
 	{ "print-category", &cfg_type_boolean, 0 },
 	{ "buffered", &cfg_type_boolean, 0 },

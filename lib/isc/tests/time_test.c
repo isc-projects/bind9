@@ -8,6 +8,7 @@
 
 #include <config.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <atf-c.h>
 
@@ -33,11 +34,118 @@ ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
 	ATF_REQUIRE_EQ(isc_time_seconds(&t), isc_time_seconds(&x));
 }
 
+ATF_TC(isc_time_formatISO8601);
+ATF_TC_HEAD(isc_time_formatISO8601, tc) {
+	atf_tc_set_md_var(tc, "descr", "print UTC in ISO8601");
+}
+ATF_TC_BODY(isc_time_formatISO8601, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	char buf[64];
+
+	setenv("TZ", "PST8PDT", 1);
+	result = isc_time_now(&t);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* yyyy-mm-ddThh:mm:ssZ */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_formatISO8601(&t, buf, sizeof(buf));
+	ATF_CHECK_EQ(strlen(buf), 20);
+	ATF_CHECK_EQ(buf[4], '-');
+	ATF_CHECK_EQ(buf[7], '-');
+	ATF_CHECK_EQ(buf[10], 'T');
+	ATF_CHECK_EQ(buf[13], ':');
+	ATF_CHECK_EQ(buf[16], ':');
+	ATF_CHECK_EQ(buf[19], 'Z');
+}
+
+ATF_TC(isc_time_formatISO8601ms);
+ATF_TC_HEAD(isc_time_formatISO8601ms, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "print UTC in ISO8601 with milliseconds");
+}
+ATF_TC_BODY(isc_time_formatISO8601ms, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	char buf[64];
+
+	setenv("TZ", "PST8PDT", 1);
+	result = isc_time_now(&t);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* yyyy-mm-ddThh:mm:ss.sssZ */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_formatISO8601ms(&t, buf, sizeof(buf));
+	ATF_CHECK_EQ(strlen(buf), 24);
+	ATF_CHECK_EQ(buf[4], '-');
+	ATF_CHECK_EQ(buf[7], '-');
+	ATF_CHECK_EQ(buf[10], 'T');
+	ATF_CHECK_EQ(buf[13], ':');
+	ATF_CHECK_EQ(buf[16], ':');
+	ATF_CHECK_EQ(buf[19], '.');
+	ATF_CHECK_EQ(buf[23], 'Z');
+}
+
+ATF_TC(isc_time_formatISO8601L);
+ATF_TC_HEAD(isc_time_formatISO8601L, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "print local time in ISO8601");
+}
+ATF_TC_BODY(isc_time_formatISO8601L, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	char buf[64];
+
+	setenv("TZ", "PST8PDT", 1);
+	result = isc_time_now(&t);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* yyyy-mm-ddThh:mm:ss */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_formatISO8601L(&t, buf, sizeof(buf));
+	ATF_CHECK_EQ(strlen(buf), 19);
+	ATF_CHECK_EQ(buf[4], '-');
+	ATF_CHECK_EQ(buf[7], '-');
+	ATF_CHECK_EQ(buf[10], 'T');
+	ATF_CHECK_EQ(buf[13], ':');
+	ATF_CHECK_EQ(buf[16], ':');
+}
+
+ATF_TC(isc_time_formatISO8601Lms);
+ATF_TC_HEAD(isc_time_formatISO8601Lms, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "print local time in ISO8601 with milliseconds");
+}
+ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	char buf[64];
+
+	setenv("TZ", "PST8PDT", 1);
+	result = isc_time_now(&t);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* yyyy-mm-ddThh:mm:ss.sss */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
+	ATF_CHECK_EQ(strlen(buf), 23);
+	ATF_CHECK_EQ(buf[4], '-');
+	ATF_CHECK_EQ(buf[7], '-');
+	ATF_CHECK_EQ(buf[10], 'T');
+	ATF_CHECK_EQ(buf[13], ':');
+	ATF_CHECK_EQ(buf[16], ':');
+	ATF_CHECK_EQ(buf[19], '.');
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_time_parsehttptimestamp);
+	ATF_TP_ADD_TC(tp, isc_time_formatISO8601);
+	ATF_TP_ADD_TC(tp, isc_time_formatISO8601ms);
+	ATF_TP_ADD_TC(tp, isc_time_formatISO8601L);
+	ATF_TP_ADD_TC(tp, isc_time_formatISO8601Lms);
 	return (atf_no_error());
 }
 

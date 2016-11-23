@@ -87,8 +87,7 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
  * in 'cchan' and add it to 'logconfig'.
  */
 static isc_result_t
-channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
-{
+channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 	isc_result_t result;
 	isc_logdestination_t dest;
 	unsigned int type;
@@ -202,12 +201,21 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 
 		if (printcat != NULL && cfg_obj_asboolean(printcat))
 			flags |= ISC_LOG_PRINTCATEGORY;
-		if (printtime != NULL && cfg_obj_asboolean(printtime))
-			flags |= ISC_LOG_PRINTTIME;
 		if (printsev != NULL && cfg_obj_asboolean(printsev))
 			flags |= ISC_LOG_PRINTLEVEL;
 		if (buffered != NULL && cfg_obj_asboolean(buffered))
 			flags |= ISC_LOG_BUFFERED;
+		if (printtime != NULL && cfg_obj_isboolean(printtime)) {
+			if (cfg_obj_asboolean(printtime))
+				flags |= ISC_LOG_PRINTTIME;
+		} else if (printtime != NULL) {	/* local/iso8601/iso8601-utc */
+			const char *s = cfg_obj_asstring(printtime);
+			flags |= ISC_LOG_PRINTTIME;
+			if (strcasecmp(s, "iso8601") == 0)
+				flags |= ISC_LOG_ISO8601;
+			else if (strcasecmp(s, "iso8601-utc") == 0)
+				flags |= ISC_LOG_ISO8601 | ISC_LOG_UTC;
+		}
 	}
 
 	level = ISC_LOG_INFO;

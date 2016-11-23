@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: clean.sh,v 1.4 2011/03/22 16:51:50 smann Exp $
-
 #
 # Clean up after log file tests
 #
@@ -19,4 +17,6 @@ rm -rf ns1/named_dir
 rm -f ns1/named_deflog
 rm -f ns*/named.lock
 rm -f ns1/query_log
+rm -f ns1/named_iso8601
+rm -f ns1/named_iso8601_utc
 rm -f ns1/rndc.out.test*

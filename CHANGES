@@ -1,3 +1,10 @@
+4518.	[func]		The "print-time" option in the logging configuration
+			can now take arguments "local", "iso8601" or
+			"iso8601-utc" to indicate the format in which the
+			date and time should be logged. For backward
+			compatibility, "yes" is a synonym for "local".
+			[RT #42585]
+
 4517.	[placeholder]
 
 4516.	[bug]		isc_socketmgr_renderjson was missing from the

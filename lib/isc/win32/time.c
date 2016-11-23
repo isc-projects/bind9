@@ -329,6 +329,49 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 }
 
 void
+isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
+	SYSTEMTIME st;
+	char DateBuf[50];
+	char TimeBuf[50];
+
+	/* strtime() format: "%Y-%m-%dT%H:%M:%S" */
+
+	REQUIRE(len > 0);
+	if (FileTimeToSystemTime(&t->absolute, &st)) {
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
+			      DateBuf, 50);
+		GetTimeFormat(LOCALE_USER_DEFAULT,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
+			      &st, "hh':'mm':'ss", TimeBuf, 50);
+		snprintf(buf, len, "%sT%s", DateBuf, TimeBuf);
+	} else {
+		buf[0] = 0;
+	}
+}
+
+void
+isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
+	SYSTEMTIME st;
+	char DateBuf[50];
+	char TimeBuf[50];
+
+	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSS" */
+
+	REQUIRE(len > 0);
+	if (FileTimeToSystemTime(&t->absolute, &st)) {
+		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
+			      DateBuf, 50);
+		GetTimeFormat(LOCALE_USER_DEFAULT,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
+			      &st, "hh':'mm':'ss", TimeBuf, 50);
+		snprintf(buf, len, "%sT%s.%03u", DateBuf, TimeBuf,
+			 st.wMilliseconds);
+	} else {
+		buf[0] = 0;
+	}
+}
+
+void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	SYSTEMTIME st;
 	char DateBuf[50];

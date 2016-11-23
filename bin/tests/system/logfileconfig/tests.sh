@@ -12,16 +12,19 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 THISDIR=`pwd`
 CONFDIR="ns1"
-PLAINCONF="${THISDIR}/${CONFDIR}/named.plain"
 DIRCONF="${THISDIR}/${CONFDIR}/named.dirconf"
 PIPECONF="${THISDIR}/${CONFDIR}/named.pipeconf"
 SYMCONF="${THISDIR}/${CONFDIR}/named.symconf"
 PLAINCONF="${THISDIR}/${CONFDIR}/named.plainconf"
+ISOCONF="${THISDIR}/${CONFDIR}/named.iso8601"
+ISOCONFUTC="${THISDIR}/${CONFDIR}/named.iso8601-utc"
 PLAINFILE="named_log"
 DIRFILE="named_dir"
 PIPEFILE="named_pipe"
 SYMFILE="named_sym"
 DLFILE="named_deflog"
+ISOFILE="named_iso8601"
+ISOUTCFILE="named_iso8601_utc"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
 myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -T nosyslog -d 99 -X named.lock -U 4"
@@ -238,10 +241,8 @@ else
 	echo "I: skipping symlink test (unable to create symlink)"
 fi
 
-status=0
-
 n=`expr $n + 1`
-echo "I:testing default logfile using named -L file ($n)"
+echo "I: testing default logfile using named -L file ($n)"
 # Now stop the server again and test the -L option
 rm -f $DLFILE
 $PERL ../../stop.pl .. ns1
@@ -268,6 +269,30 @@ else
 	echo "I:failed to cleanly stop $myNAMED"
 	echo "I:exit status: 1"
 	exit 1
+fi
+
+echo "I:testing logging functionality"
+
+n=`expr $n + 1`
+echo "I: testing iso8601 timestamp ($n)"
+cp $ISOCONF named.conf
+$myRNDC reconfig > rndc.out.test$n 2>&1
+if grep '^....-..-..T..:..:..\.... ' $ISOFILE > /dev/null; then
+        echo "I: testing iso8601 timestamp succeeded"
+else
+        echo "I: testing iso8601 timestamp failed"
+        status=`expr $status + 1`
+fi
+
+n=`expr $n + 1`
+echo "I: testing iso8601-utc timestamp ($n)"
+cp $ISOCONFUTC named.conf
+$myRNDC reconfig > rndc.out.test$n 2>&1
+if grep '^....-..-..T..:..:..\....Z' $ISOUTCFILE > /dev/null; then
+        echo "I: testing iso8601-utc timestamp succeeded"
+else
+        echo "I: testing iso8601-utc timestamp failed"
+        status=`expr $status + 1`
 fi
 
 echo "I:exit status: $status"

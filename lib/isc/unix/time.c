@@ -425,6 +425,34 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 }
 
 void
+isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime(&now));
+	INSIST(flen < len);
+}
+
+void
+isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime(&now));
+	INSIST(flen < len);
+	if (flen > 0U && len - flen >= 6) {
+		snprintf(buf + flen, len - flen, ".%03u",
+			 t->nanoseconds / NS_PER_MS);
+	}
+}
+
+void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
@@ -446,8 +474,8 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 	now = (time_t)t->seconds;
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
 	INSIST(flen < len);
-	if (flen == len - 5) {
-		flen -= 1; /* rewind one character */
+	if (flen > 0U && len - flen >= 5) {
+		flen -= 1; /* rewind one character (Z) */
 		snprintf(buf + flen, len - flen, ".%03uZ",
 			 t->nanoseconds / NS_PER_MS);
 	}

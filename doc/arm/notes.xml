@@ -39,9 +39,10 @@
       <listitem>
 	<para>
 	  Added the ability to specify the maximum number of records
-	  permitted in a zone (max-records #;).  This provides a mechanism
-	  to block overly large zone transfers, which is a potential risk
-	  with slave zones from other parties, as described in CVE-2016-6170.
+	  permitted in a zone (<option>max-records #;</option>).
+	  This provides a mechanism to block overly large zone
+	  transfers, which is a potential risk with slave zones from
+	  other parties, as described in CVE-2016-6170.
 	  [RT #42143]
 	</para>
       </listitem>
@@ -52,7 +53,13 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  The <option>print-time</option> option in the
+	  <option>logging</option> configuration can now take arguments
+	  <userinput>local</userinput>, <userinput>iso8601</userinput> or
+	  <userinput>iso8601-utc</userinput> to indicate the format in
+	  which the date and time should be logged. For backward
+	  compatibility, <userinput>yes</userinput> is a synonym for
+	  <userinput>local</userinput>.  [RT #42585]
 	</para>
       </listitem>
     </itemizedlist>

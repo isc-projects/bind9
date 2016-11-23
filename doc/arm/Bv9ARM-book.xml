@@ -3644,7 +3644,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		 <option>info</option> | <option>debug</option> [ <replaceable>level</replaceable> ] | <option>dynamic</option> ); ]
      [ <command>print-category</command> <option>yes</option> or <option>no</option>; ]
      [ <command>print-severity</command> <option>yes</option> or <option>no</option>; ]
-     [ <command>print-time</command> <option>yes</option> or <option>no</option>; ]
+     [ <command>print-time</command> ( <option>>yes</option> | <option>no</option> | <option>local</option> | <option>iso8601</option> | <option>iso8601-utc</option> ) ;
      [ <command>buffered</command> <option>yes</option> or <option>no</option>; ]
    }; ]
    [ <command>category</command> <replaceable>category_name</replaceable> {
@@ -3877,14 +3877,30 @@ notrace</command>. All debugging messages in the server have a debug
 	    server's global debug level to determine what messages to print.
 	  </para>
 	  <para>
-	    If <command>print-time</command> has been turned on,
-	    then
-	    the date and time will be logged. <command>print-time</command> may
+	    <command>print-time</command> can be set to
+	    <userinput>yes</userinput>, <userinput>no</userinput>,
+	    or a time format specifier, which may be one of
+	    <option>local</option>, <option>iso8601</option> or
+	    <option>iso8601-utc</option>.  If set to
+	    <userinput>no</userinput>, then the date and time will
+	    not be logged.  If set to <userinput>yes</userinput>
+	    or <option>local</option>, the date and time are logged
+	    in a human readable format, using the local time zone.
+	    If set to <option>iso8601</option> the local time is
+	    logged in ISO8601 format.  If set to
+	    <option>iso8601-utc</option>, then the date and time
+	    are logged in ISO8601 format, with time zone set to
+	    UTC. The default is <option>local</option>.
+	  </para>
+	  <para>
+	    <command>print-time</command> may
 	    be specified for a <command>syslog</command> channel,
-	    but is usually
+	    but it is usually
 	    pointless since <command>syslog</command> also logs
-	    the date and
-	    time. If <command>print-category</command> is
+	    the date and time.
+	  </para>
+	  <para>
+	    If <command>print-category</command> is
 	    requested, then the
 	    category of the message will be logged as well. Finally, if <command>print-severity</command> is
 	    on, then the severity level of the message will be logged. The <command>print-</command> options may
