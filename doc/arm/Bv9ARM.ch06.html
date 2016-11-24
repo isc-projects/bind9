@@ -1193,7 +1193,7 @@
                  <code class="option">info</code> | <code class="option">debug</code> [ <em class="replaceable"><code>level</code></em> ] | <code class="option">dynamic</code> ); ]
      [ <span class="command"><strong>print-category</strong></span> <code class="option">yes</code> or <code class="option">no</code>; ]
      [ <span class="command"><strong>print-severity</strong></span> <code class="option">yes</code> or <code class="option">no</code>; ]
-     [ <span class="command"><strong>print-time</strong></span> <code class="option">yes</code> or <code class="option">no</code>; ]
+     [ <span class="command"><strong>print-time</strong></span> ( <code class="option">&gt;yes</code> | <code class="option">no</code> | <code class="option">local</code> | <code class="option">iso8601</code> | <code class="option">iso8601-utc</code> ) ;
      [ <span class="command"><strong>buffered</strong></span> <code class="option">yes</code> or <code class="option">no</code>; ]
    }; ]
    [ <span class="command"><strong>category</strong></span> <em class="replaceable"><code>category_name</code></em> {
@@ -1409,14 +1409,30 @@ notrace</strong></span>. All debugging messages in the server have a debug
             server's global debug level to determine what messages to print.
           </p>
 <p>
-            If <span class="command"><strong>print-time</strong></span> has been turned on,
-            then
-            the date and time will be logged. <span class="command"><strong>print-time</strong></span> may
+            <span class="command"><strong>print-time</strong></span> can be set to
+            <strong class="userinput"><code>yes</code></strong>, <strong class="userinput"><code>no</code></strong>,
+            or a time format specifier, which may be one of
+            <code class="option">local</code>, <code class="option">iso8601</code> or
+            <code class="option">iso8601-utc</code>.  If set to
+            <strong class="userinput"><code>no</code></strong>, then the date and time will
+            not be logged.  If set to <strong class="userinput"><code>yes</code></strong>
+            or <code class="option">local</code>, the date and time are logged
+            in a human readable format, using the local time zone.
+            If set to <code class="option">iso8601</code> the local time is
+            logged in ISO8601 format.  If set to
+            <code class="option">iso8601-utc</code>, then the date and time
+            are logged in ISO8601 format, with time zone set to
+            UTC. The default is <code class="option">local</code>.
+          </p>
+<p>
+            <span class="command"><strong>print-time</strong></span> may
             be specified for a <span class="command"><strong>syslog</strong></span> channel,
-            but is usually
+            but it is usually
             pointless since <span class="command"><strong>syslog</strong></span> also logs
-            the date and
-            time. If <span class="command"><strong>print-category</strong></span> is
+            the date and time.
+          </p>
+<p>
+            If <span class="command"><strong>print-category</strong></span> is
             requested, then the
             category of the message will be logged as well. Finally, if <span class="command"><strong>print-severity</strong></span> is
             on, then the severity level of the message will be logged. The <span class="command"><strong>print-</strong></span> options may

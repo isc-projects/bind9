@@ -38,7 +38,7 @@ logging {
                 null;
                 print-category <boolean>;
                 print-severity <boolean>;
-                print-time <boolean>;
+                print-time ( local | iso8601 | iso8601-utc | <boolean> );
                 severity <log_severity>;
                 stderr;
                 syslog [ <syslog_facility> ];
