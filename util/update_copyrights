@@ -555,6 +555,10 @@ foreach $file (keys %file_types) {
 			$r .= "    <xi:include href=\"releaseinfo.xml\"/>\n";
 			s:<bookinfo>.*?</bookinfo>:<bookinfo>\n$r  </bookinfo>:s;
 		}
+		if ($type eq 'SGML' && m:<!-- insert copyright start -->.*?<!-- insert copyright end -->:s) {
+			my $r = copyrights(@years);
+			s:<!-- insert copyright start -->.*?<!-- insert copyright end -->:<!-- insert copyright start -->\n$r    <!-- insert copyright end -->:s;
+		}
 
                 my ($start, $end);
 		if ($type =~ /^PYTHON(|-BIN)$/) {
