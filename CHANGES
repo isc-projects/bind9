@@ -1,3 +1,5 @@
+4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
+
 4518.	[func]		The "print-time" option in the logging configuration
 			can now take arguments "local", "iso8601" or
 			"iso8601-utc" to indicate the format in which the
