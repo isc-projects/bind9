@@ -2183,7 +2183,7 @@ static cfg_tuplefielddef_t addzone_fields[] = {
 };
 static cfg_type_t cfg_type_addzone = {
 	"zone", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
-	&cfg_rep_tuple, addzone_fields 
+	&cfg_rep_tuple, addzone_fields
 };
 
 static cfg_clausedef_t
