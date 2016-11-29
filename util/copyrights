@@ -1711,6 +1711,7 @@
 ./bin/tests/system/logfileconfig/ns1/named.plain	CONF-C	2011,2013,2014,2016
 ./bin/tests/system/logfileconfig/ns1/named.plainconf	CONF-C	2014,2016
 ./bin/tests/system/logfileconfig/ns1/named.symconf	CONF-C	2011,2013,2016
+./bin/tests/system/logfileconfig/ns1/named.versconf	CONF-C	2016
 ./bin/tests/system/logfileconfig/ns1/rndc.conf	CONF-C	2011,2013,2016
 ./bin/tests/system/logfileconfig/ns1/root.db	ZONE	2011,2016
 ./bin/tests/system/logfileconfig/setup.sh	SH	2011,2012,2014,2016

@@ -17,11 +17,15 @@ DIRCONF="${THISDIR}/${CONFDIR}/named.dirconf"
 PIPECONF="${THISDIR}/${CONFDIR}/named.pipeconf"
 SYMCONF="${THISDIR}/${CONFDIR}/named.symconf"
 PLAINCONF="${THISDIR}/${CONFDIR}/named.plainconf"
+VERSCONF="${THISDIR}/${CONFDIR}/named.versconf"
+UNLIMITEDCONF="${THISDIR}/${CONFDIR}/named.unlimited"
 PLAINFILE="named_log"
 DIRFILE="named_dir"
 PIPEFILE="named_pipe"
 SYMFILE="named_sym"
 DLFILE="named_deflog"
+VERSFILE="named_vers"
+UNLIMITEDFILE="named_unlimited"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
 myNAMED="$NAMED -c ${THISDIR}/${CONFDIR}/named.conf -m record,size,mctx -T clienttest -T nosyslog -d 99 -X named.lock -U 4"
@@ -268,6 +272,75 @@ else
 	echo "I:failed to cleanly stop $myNAMED"
 	echo "I:exit status: 1"
 	exit 1
+fi
+
+echo "I:testing logging functionality"
+
+n=`expr $n + 1`
+echo "I: testing explict versions ($n)"
+cp $VERSCONF named.conf
+# a seconds since epoch version number
+touch $VERSFILE.1480039317
+t1=`$PERL -e 'print time()."\n";'`
+$myRNDC reconfig > rndc.out.test$n 2>&1
+$DIG version.bind txt ch @10.53.0.1 -p 5300 > dig.out.test$n
+t2=`$PERL -e 'print time()."\n";'`
+t=`expr ${t2:-0} - ${t1:-0}`
+if test ${t:-1000} -gt 1
+then
+	echo "I: testing explict versions failed cleanup of old entries took too long"
+	status=`expr $status + 1`
+fi 
+if ! grep "status: NOERROR" dig.out.test$n > /dev/null
+then
+	echo "I: testing explict versions failed DiG lookup failed"
+	status=`expr $status + 1`
+fi
+if test -f $VERSFILE.1480039317
+then
+	echo "I: testing explict versions failed $VERSFILE.1480039317 not removed"
+	status=`expr $status + 1`
+fi
+if test -f $VERSFILE.5
+then
+	echo "I: testing explict versions failed $VERSFILE.5 exists"
+	status=`expr $status + 1`
+fi
+if test ! -f $VERSFILE.4
+then
+	echo "I: testing explict versions failed $VERSFILE.4 does not exist"
+	status=`expr $status + 1`
+fi
+
+n=`expr $n + 1`
+echo "I: testing unlimited versions ($n)"
+cp $UNLIMITEDCONF named.conf
+# a seconds since epoch version number
+touch $UNLIMITEDFILE.1480039317
+t1=`$PERL -e 'print time()."\n";'`
+$myRNDC reconfig > rndc.out.test$n 2>&1
+$DIG version.bind txt ch @10.53.0.1 -p 5300 > dig.out.test$n
+t2=`$PERL -e 'print time()."\n";'`
+t=`expr ${t2:-0} - ${t1:-0}`
+if test ${t:-1000} -gt 1
+then
+	echo "I: testing unlimited versions failed took too long"
+	status=`expr $status + 1`
+fi 
+if ! grep "status: NOERROR" dig.out.test$n > /dev/null
+then
+	echo "I: testing unlimited versions failed DiG lookup failed"
+	status=`expr $status + 1`
+fi
+if test ! -f $UNLIMITEDFILE.1480039317
+then
+	echo "I: testing unlimited versions failed $UNLIMITEDFILE.1480039317 removed"
+	status=`expr $status + 1`
+fi
+if test ! -f $UNLIMITEDFILE.5
+then
+	echo "I: testing unlimited versions failed $UNLIMITEDFILE.5 does not"
+	status=`expr $status + 1`
 fi
 
 echo "I:exit status: $status"

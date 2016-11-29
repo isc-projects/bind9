@@ -20,3 +20,8 @@ rm -f ns1/named_deflog
 rm -f ns*/named.lock
 rm -f ns1/query_log
 rm -f ns1/rndc.out.test*
+rm -f ns1/dig.out.test*
+rm -f ns1/named_vers
+rm -f ns1/named_vers.*
+rm -f ns1/named_unlimited
+rm -f ns1/named_unlimited.*
