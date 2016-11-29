@@ -7733,13 +7733,18 @@ load_configuration(const char *filename, ns_server_t *server,
 				      "no source of entropy found");
 		} else {
 			const char *randomdev = cfg_obj_asstring(obj);
+			int level = ISC_LOG_ERROR;
 			result = isc_entropy_createfilesource(ns_g_entropy,
 							      randomdev);
+#ifdef PATH_RANDOMDEV
+			if (ns_g_fallbackentropy != NULL)
+				level = ISC_LOG_INFO;
+#endif
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(ns_g_lctx,
 					      NS_LOGCATEGORY_GENERAL,
 					      NS_LOGMODULE_SERVER,
-					      ISC_LOG_INFO,
+					      level,
 					      "could not open entropy source "
 					      "%s: %s",
 					      randomdev,
