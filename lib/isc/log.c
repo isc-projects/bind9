@@ -232,7 +232,7 @@ static isc_result_t
 sync_channellist(isc_logconfig_t *lcfg);
 
 static isc_result_t
-greatest_version(isc_logchannel_t *channel, int *greatest);
+greatest_version(isc_logchannel_t *channel, int versions, int *greatest);
 
 static isc_result_t
 roll_log(isc_logchannel_t *channel);
@@ -1142,7 +1142,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
 }
 
 static isc_result_t
-greatest_version(isc_logchannel_t *channel, int *greatestp) {
+greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
 	/* XXXDCL HIGHLY NT */
 	char *bname, *digit_end;
 	const char *dirname;
@@ -1201,13 +1201,24 @@ greatest_version(isc_logchannel_t *channel, int *greatestp) {
 
 			version = strtol(&dir.entry.name[bnamelen + 1],
 					 &digit_end, 10);
-			if (*digit_end == '\0' && version > greatest)
+			/*
+			 * Remove any backup files that exceed versions.
+			 */
+			if (*digit_end == '\0' && version >= versions) {
+				result = isc_file_remove(dir.entry.name);
+				if (result != ISC_R_SUCCESS &&
+				    result != ISC_R_FILENOTFOUND)
+					syslog(LOG_ERR, "unable to remove "
+					       "log file '%s': %s",
+					       dir.entry.name,
+					       isc_result_totext(result));
+			} else if (*digit_end == '\0' && version > greatest)
 				greatest = version;
 		}
 	}
 	isc_dir_close(&dir);
 
-	*greatestp = ++greatest;
+	*greatestp = greatest;
 
 	return (ISC_R_SUCCESS);
 }
@@ -1230,57 +1241,42 @@ roll_log(isc_logchannel_t *channel) {
 
 	path = FILE_NAME(channel);
 
-	/*
-	 * Set greatest_version to the greatest existing version
-	 * (not the maximum requested version).  This is 1 based even
-	 * though the file names are 0 based, so an oldest log of log.1
-	 * is a greatest_version of 2.
-	 */
-	result = greatest_version(channel, &greatest);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	/*
-	 * Now greatest should be set to the highest version number desired.
-	 * Since the highest number is one less than FILE_VERSIONS(channel)
-	 * when not doing infinite log rolling, greatest will need to be
-	 * decremented when it is equal to -- or greater than --
-	 * FILE_VERSIONS(channel).  When greatest is less than
-	 * FILE_VERSIONS(channel), it is already suitable for use as
-	 * the maximum version number.
-	 */
-
-	if (FILE_VERSIONS(channel) == ISC_LOG_ROLLINFINITE ||
-	    FILE_VERSIONS(channel) > greatest)
-		;		/* Do nothing. */
-	else
+	if (FILE_VERSIONS(channel) == ISC_LOG_ROLLINFINITE) {
 		/*
-		 * When greatest is >= FILE_VERSIONS(channel), it needs to
-		 * be reduced until it is FILE_VERSIONS(channel) - 1.
-		 * Remove any excess logs on the way to that value.
+		 * Find the first missing entry in the log file sequence.
 		 */
-		while (--greatest >= FILE_VERSIONS(channel)) {
-			n = snprintf(current, sizeof(current), "%s.%d",
-				     path, greatest);
+		for (greatest = 0; greatest < INT_MAX; greatest++) {
+			n = snprintf(current, sizeof(current),
+				     "%s.%u", path, greatest) ;
 			if (n >= (int)sizeof(current) || n < 0)
-				result = ISC_R_NOSPACE;
-			else
-				result = isc_file_remove(current);
-			if (result != ISC_R_SUCCESS &&
-			    result != ISC_R_FILENOTFOUND)
-				syslog(LOG_ERR,
-				       "unable to remove log file '%s.%d': %s",
-				       path, greatest,
-				       isc_result_totext(result));
+				break;
+			if (!isc_file_exists(current))
+				break;
 		}
+	} else {
+		/*
+		 * Get the largest existing version and remove any
+		 * version greater than the permitted version.
+		 */
+		result = greatest_version(channel, FILE_VERSIONS(channel),
+					  &greatest);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
+		/*
+		 * Increment if greatest is not the actual maximum value.
+		 */
+		if (greatest < FILE_VERSIONS(channel) - 1)
+			greatest++;
+	}
 
 	for (i = greatest; i > 0; i--) {
 		result = ISC_R_SUCCESS;
-		n = snprintf(current, sizeof(current), "%s.%d", path, i - 1);
+		n = snprintf(current, sizeof(current), "%s.%u", path, i - 1);
 		if (n >= (int)sizeof(current) || n < 0)
 			result = ISC_R_NOSPACE;
 		if (result == ISC_R_SUCCESS) {
-			n = snprintf(new, sizeof(new), "%s.%d", path, i);
+			n = snprintf(new, sizeof(new), "%s.%u", path, i);
 			if (n >= (int)sizeof(new) || n < 0)
 				result = ISC_R_NOSPACE;
 		}
@@ -1289,8 +1285,8 @@ roll_log(isc_logchannel_t *channel) {
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_FILENOTFOUND)
 			syslog(LOG_ERR,
-			       "unable to rename log file '%s.%d' to "
-			       "'%s.%d': %s", path, i - 1, path, i,
+			       "unable to rename log file '%s.%u' to "
+			       "'%s.%u': %s", path, i - 1, path, i,
 			       isc_result_totext(result));
 	}
 
