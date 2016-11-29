@@ -1,3 +1,5 @@
+4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
+
 4516.	[bug]		isc_socketmgr_renderjson was missing from the
 			windows build. [RT #43602]
 
