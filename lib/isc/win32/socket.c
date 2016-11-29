@@ -2514,14 +2514,16 @@ SocketIoThread(LPVOID ThreadContext) {
 
 		request = lpo->request_type;
 
-		errstatus = 0;
-		if (!bSuccess) {
+		if (!bSuccess)
+			errstatus = GetLastError();
+		else
+			errstatus = 0;
+		if (!bSuccess && errstatus != ERROR_MORE_DATA) {
 			isc_result_t isc_result;
 
 			/*
 			 * Did the I/O operation complete?
 			 */
-			errstatus = GetLastError();
 			isc_result = isc__errno2result(errstatus);
 
 			LOCK(&sock->lock);
