@@ -1,3 +1,6 @@
+4521.	[cleanup]	Log it as an error if an entropy source is not
+			found and there is no fallback available. [RT #43659]
+
 4520.	[cleanup]	Alphabetise more of the grammar when printing it
 			out. [RT #43755]
 
