@@ -1104,6 +1104,14 @@ parse_btext(cfg_parser_t *pctx, const cfg_type_t *type,
 
 static void
 print_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	/*
+	 * We need to print "{" instead of running print_open()
+	 * in order to preserve the exact original formatting
+	 * of the bracketed text. But we increment the indent value
+	 * so that print_close() will leave us back in our original
+	 * state.
+	 */
+	pctx->indent++;
 	cfg_print_cstr(pctx, "{");
 	cfg_print_chars(pctx, obj->value.string.base, obj->value.string.length);
 	print_close(pctx);
