@@ -1,3 +1,6 @@
+4520.	[cleanup]	Alphabetise more of the grammar when printing it
+			out. [RT #43755]
+
 4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
 
 4515.	[port]		FreeBSD: Find readline headers when they are in
