@@ -943,6 +943,7 @@ namedconf_or_view_clauses[] = {
 	/* only 1 DLZ per view allowed */
 	{ "dlz", &cfg_type_dlz, 0 },
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
