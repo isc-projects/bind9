@@ -115,14 +115,14 @@ options {
         clients-per-query <integer>;
         cookie-algorithm ( aes | sha1 | sha256 );
         cookie-secret <string>;
-        coresize ( unlimited | default | <sizeval> );
-        datasize ( unlimited | default | <sizeval> );
+        coresize ( default | unlimited | <sizeval> );
+        datasize ( default | unlimited | <sizeval> );
         deallocate-on-exit <boolean>; // obsolete
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
             <quoted_string>; ... } ];
-        dialup ( notify | notify-passive | refresh | passive | <boolean> );
+        dialup ( notify | notify-passive | passive | refresh | <boolean> );
         directory <quoted_string>;
         disable-algorithms <string> { <string>;
             ... }; // may occur multiple times
@@ -149,8 +149,8 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( client | resolver | auth | forwarder |
-            all ) [ ( query | response ) ]; ... }; // not configured
+        dnstap { ( all | auth | client | forwarder |
+            resolver ) [ ( query | response ) ]; ... }; // not configured
         dnstap-identity ( <quoted_string> | none |
             hostname ); // not configured
         dnstap-output ( file | unix ) <quoted_string>; // not configured
@@ -170,7 +170,7 @@ options {
         fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
-        files ( unlimited | default | <sizeval> );
+        files ( default | unlimited | <sizeval> );
         filter-aaaa { <address_match_element>; ... }; // not configured
         filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
         filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
@@ -182,7 +182,7 @@ options {
         fstrm-set-flush-timeout <integer>; // not configured
         fstrm-set-input-queue-size <integer>; // not configured
         fstrm-set-output-notify-threshold <integer>; // not configured
-        fstrm-set-output-queue-model ( spsc | mpsc ); // not configured
+        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
         fstrm-set-output-queue-size <integer>; // not configured
         fstrm-set-reopen-interval <integer>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
@@ -207,14 +207,14 @@ options {
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
-        masterfile-format ( text | raw | map );
+        masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         match-mapped-addresses <boolean>;
         max-acache-size ( unlimited | <sizeval> );
-        max-cache-size ( unlimited | default | <sizeval> | <percentage> );
+        max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
-        max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
+        max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
         max-journal-size ( unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-records <integer>;
@@ -294,8 +294,8 @@ options {
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ policy ( given | disabled |
-            passthru | no-op | drop | tcp-only | nxdomain | nodata | cname
+            max-policy-ttl <integer> ] [ policy ( cname | disabled | drop |
+            given | no-op | nodata | nxdomain | passthru | tcp-only
             <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
             break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
@@ -308,7 +308,7 @@ options {
         send-cookie <boolean>;
         serial-queries <integer>; // obsolete
         serial-query-rate <integer>;
-        serial-update-method ( increment | unixtime | date );
+        serial-update-method ( date | increment | unixtime );
         server-id ( <quoted_string> | none | hostname );
         servfail-ttl <ttlval>;
         session-keyalg <string>;
@@ -320,7 +320,7 @@ options {
         sig-validity-interval <integer> [ <integer> ];
         sit-secret <string>; // obsolete
         sortlist { <address_match_element>; ... };
-        stacksize ( unlimited | default | <sizeval> );
+        stacksize ( default | unlimited | <sizeval> );
         startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
@@ -446,7 +446,7 @@ view <string> [ <class> ] {
             except-from { <quoted_string>; ... } ];
         deny-answer-aliases { <quoted_string>; ... } [ except-from {
             <quoted_string>; ... } ];
-        dialup ( notify | notify-passive | refresh | passive | <boolean> );
+        dialup ( notify | notify-passive | passive | refresh | <boolean> );
         disable-algorithms <string> { <string>;
             ... }; // may occur multiple times
         disable-ds-digests <string> { <string>;
@@ -476,8 +476,8 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( client | resolver | auth | forwarder |
-            all ) [ ( query | response ) ]; ... }; // not configured
+        dnstap { ( all | auth | client | forwarder |
+            resolver ) [ ( query | response ) ]; ... }; // not configured
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -510,16 +510,16 @@ view <string> [ <class> ] {
         managed-keys { <string> <string>
             <integer> <integer> <integer>
             <quoted_string>; ... }; // may occur multiple times
-        masterfile-format ( text | raw | map );
+        masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
         max-acache-size ( unlimited | <sizeval> );
-        max-cache-size ( unlimited | default | <sizeval> | <percentage> );
+        max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
-        max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
+        max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
         max-journal-size ( unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-records <integer>;
@@ -586,8 +586,8 @@ view <string> [ <class> ] {
         require-server-cookie <boolean>;
         resolver-query-timeout <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ policy ( given | disabled |
-            passthru | no-op | drop | tcp-only | nxdomain | nodata | cname
+            max-policy-ttl <integer> ] [ policy ( cname | disabled | drop |
+            given | no-op | nodata | nxdomain | passthru | tcp-only
             <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
             break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
@@ -597,7 +597,7 @@ view <string> [ <class> ] {
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         send-cookie <boolean>;
-        serial-update-method ( increment | unixtime | date );
+        serial-update-method ( date | increment | unixtime );
         server <netprefix> {
                 bogus <boolean>;
                 edns <boolean>;
@@ -677,7 +677,7 @@ view <string> [ <class> ] {
                 check-wildcard <boolean>;
                 database <string>;
                 delegation-only <boolean>;
-                dialup ( notify | notify-passive | refresh | passive |
+                dialup ( notify | notify-passive | passive | refresh |
                     <boolean> );
                 dlz <string>;
                 dnssec-dnskey-kskonly <boolean>;
@@ -697,12 +697,12 @@ view <string> [ <class> ] {
                 journal <quoted_string>;
                 key-directory <quoted_string>;
                 maintain-ixfr-base <boolean>; // obsolete
-                masterfile-format ( text | raw | map );
+                masterfile-format ( map | raw | text );
                 masterfile-style ( full | relative );
                 masters [ port <integer> ] [ dscp <integer> ] { ( <masters>
                     | <ipv4_address> [ port <integer> ] | <ipv6_address> [
                     port <integer> ] ) [ key <string> ]; ... };
-                max-ixfr-log-size ( unlimited | default |
+                max-ixfr-log-size ( default | unlimited |
                     <sizeval> ); // obsolete
                 max-journal-size ( unlimited | <sizeval> );
                 max-records <integer>;
@@ -730,7 +730,7 @@ view <string> [ <class> ] {
                     <quoted_string>; // obsolete, may occur multiple times
                 request-expire <boolean>;
                 request-ixfr <boolean>;
-                serial-update-method ( increment | unixtime | date );
+                serial-update-method ( date | increment | unixtime );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
                     port <integer> ]; ... };
                 server-names { <quoted_string>; ... };
@@ -743,14 +743,14 @@ view <string> [ <class> ] {
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ] [ dscp <integer> ];
                 try-tcp-refresh <boolean>;
-                type ( master | slave | stub | static-stub | hint | forward
-                    | delegation-only | redirect );
+                type ( delegation-only | forward | hint | master | redirect
+                    | slave | static-stub | stub );
                 update-check-ksk <boolean>;
-                update-policy ( local | { ( grant | deny ) <string> ( name
-                    | subdomain | wildcard | self | selfsub | selfwild |
-                    krb5-self | ms-self | krb5-subdomain | ms-subdomain |
-                    tcp-self | 6to4-self | zonesub | external ) [ <string>
-                    ] <rrtypelist>; ... };
+                update-policy ( local | { ( deny | grant ) <string> (
+                    6to4-self | external | krb5-self | krb5-subdomain |
+                    ms-self | ms-subdomain | name | self | selfsub |
+                    selfwild | subdomain | tcp-self | wildcard | zonesub )
+                    [ <string> ] <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
                 zone-statistics ( full | terse | none | <boolean> );
@@ -784,7 +784,7 @@ zone <string> [ <class> ] {
         check-wildcard <boolean>;
         database <string>;
         delegation-only <boolean>;
-        dialup ( notify | notify-passive | refresh | passive | <boolean> );
+        dialup ( notify | notify-passive | passive | refresh | <boolean> );
         dlz <string>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-loadkeys-interval <integer>;
@@ -802,12 +802,12 @@ zone <string> [ <class> ] {
         journal <quoted_string>;
         key-directory <quoted_string>;
         maintain-ixfr-base <boolean>; // obsolete
-        masterfile-format ( text | raw | map );
+        masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         masters [ port <integer> ] [ dscp <integer> ] { ( <masters> |
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
-        max-ixfr-log-size ( unlimited | default | <sizeval> ); // obsolete
+        max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
         max-journal-size ( unlimited | <sizeval> );
         max-records <integer>;
         max-refresh-time <integer>;
@@ -832,7 +832,7 @@ zone <string> [ <class> ] {
             <integer> <quoted_string>; // obsolete, may occur multiple times
         request-expire <boolean>;
         request-ixfr <boolean>;
-        serial-update-method ( increment | unixtime | date );
+        serial-update-method ( date | increment | unixtime );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
             <integer> ]; ... };
         server-names { <quoted_string>; ... };
@@ -845,13 +845,13 @@ zone <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         try-tcp-refresh <boolean>;
-        type ( master | slave | stub | static-stub | hint | forward |
-            delegation-only | redirect );
+        type ( delegation-only | forward | hint | master | redirect | slave
+            | static-stub | stub );
         update-check-ksk <boolean>;
-        update-policy ( local | { ( grant | deny ) <string> ( name |
-            subdomain | wildcard | self | selfsub | selfwild | krb5-self |
-            ms-self | krb5-subdomain | ms-subdomain | tcp-self | 6to4-self
-            | zonesub | external ) [ <string> ] <rrtypelist>; ... };
+        update-policy ( local | { ( deny | grant ) <string> ( 6to4-self |
+            external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
+            | name | self | selfsub | selfwild | subdomain | tcp-self |
+            wildcard | zonesub ) [ <string> ] <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics ( full | terse | none | <boolean> );
