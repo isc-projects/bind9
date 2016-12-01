@@ -46,6 +46,9 @@ lwres {
         view <string> [ <class> ];
 }; // may occur multiple times
 
+managed-keys { <string> <string> <integer>
+    <integer> <integer> <quoted_string>; ... }; // may occur multiple times
+
 masters <string> [ port <integer> ] { (
     <masters> | <ipv4_address> [ port <integer>
     ] | <ipv6_address> [ port <integer> ] ) [
@@ -395,6 +398,9 @@ view <string> [ <class> ] {
         key-directory <quoted_string>;
         lame-ttl <integer>;
         maintain-ixfr-base <boolean>; // obsolete
+        managed-keys { <string> <string>
+            <integer> <integer> <integer>
+            <quoted_string>; ... }; // may occur multiple times
         masterfile-format ( raw | text );
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
