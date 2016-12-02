@@ -2973,18 +2973,41 @@ print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 }
 
+static void
+doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
+	const unsigned int *flagp = type->of;
+
+	cfg_print_cstr(pctx, "( ( [ address ] ( ");
+	if (*flagp & CFG_ADDR_V4OK)
+		cfg_print_cstr(pctx, "<ipv4_address>");
+	else if (*flagp & CFG_ADDR_V6OK)
+		cfg_print_cstr(pctx, "<ipv6_address>");
+	else
+		INSIST(0);
+	cfg_print_cstr(pctx, " | * ) [ port ( <integer> | * ) ] ) | "
+		       "( [ [ address ] ( ");
+	if (*flagp & CFG_ADDR_V4OK)
+		cfg_print_cstr(pctx, "<ipv4_address>");
+	else if (*flagp & CFG_ADDR_V6OK)
+		cfg_print_cstr(pctx, "<ipv6_address>");
+	else
+		INSIST(0);
+	cfg_print_cstr(pctx, " | * ) ] port ( <integer> | * ) ) )"
+		       " [ dscp <integer> ]");
+}
+
 static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK |
 					  CFG_ADDR_DSCPOK;
 static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK |
 					  CFG_ADDR_DSCPOK;
 
 static cfg_type_t cfg_type_querysource4 = {
-	"querysource4", parse_querysource, NULL, cfg_doc_terminal,
+	"querysource4", parse_querysource, NULL, doc_querysource,
 	NULL, &sockaddr4wild_flags
 };
 
 static cfg_type_t cfg_type_querysource6 = {
-	"querysource6", parse_querysource, NULL, cfg_doc_terminal,
+	"querysource6", parse_querysource, NULL, doc_querysource,
 	NULL, &sockaddr6wild_flags
 };
 

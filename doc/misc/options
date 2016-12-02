@@ -260,8 +260,12 @@ options {
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
         querylog <boolean>;
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
@@ -370,8 +374,12 @@ server <netprefix> {
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
             [ dscp <integer> ];
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
         request-expire <boolean>;
         request-ixfr <boolean>;
         request-nsid <boolean>;
@@ -557,8 +565,12 @@ view <string> [ <class> ] {
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) ) [ dscp <integer> ];
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
         rate-limit {
@@ -610,8 +622,14 @@ view <string> [ <class> ] {
                 notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
                     | * ) ] [ dscp <integer> ];
                 provide-ixfr <boolean>;
-                query-source <querysource4>;
-                query-source-v6 <querysource6>;
+                query-source ( ( [ address ] ( <ipv4_address> | * ) [ port
+                    ( <integer> | * ) ] ) | ( [ [ address ] (
+                    <ipv4_address> | * ) ] port ( <integer> | * ) ) ) [
+                    dscp <integer> ];
+                query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [
+                    port ( <integer> | * ) ] ) | ( [ [ address ] (
+                    <ipv6_address> | * ) ] port ( <integer> | * ) ) ) [
+                    dscp <integer> ];
                 request-expire <boolean>;
                 request-ixfr <boolean>;
                 request-nsid <boolean>;
