@@ -9,6 +9,7 @@
 #include <config.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <atf-c.h>
 
@@ -47,7 +48,7 @@ ATF_TC_BODY(isc_time_formatISO8601, tc) {
 	result = isc_time_now(&t);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/* yyyy-mm-ddThh:mm:ssZ */
+	/* check formatting: yyyy-mm-ddThh:mm:ssZ */
 	memset(buf, 'X', sizeof(buf));
 	isc_time_formatISO8601(&t, buf, sizeof(buf));
 	ATF_CHECK_EQ(strlen(buf), 20);
@@ -57,6 +58,17 @@ ATF_TC_BODY(isc_time_formatISO8601, tc) {
 	ATF_CHECK_EQ(buf[13], ':');
 	ATF_CHECK_EQ(buf[16], ':');
 	ATF_CHECK_EQ(buf[19], 'Z');
+
+	/* check time conversion correctness */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_settoepoch(&t);
+	isc_time_formatISO8601(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "1970-01-01T00:00:00Z");
+
+	memset(buf, 'X', sizeof(buf));
+	isc_time_set(&t, 1450000000, 123000000);
+	isc_time_formatISO8601(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "2015-12-13T09:46:40Z");
 }
 
 ATF_TC(isc_time_formatISO8601ms);
@@ -73,7 +85,7 @@ ATF_TC_BODY(isc_time_formatISO8601ms, tc) {
 	result = isc_time_now(&t);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/* yyyy-mm-ddThh:mm:ss.sssZ */
+	/* check formatting: yyyy-mm-ddThh:mm:ss.sssZ */
 	memset(buf, 'X', sizeof(buf));
 	isc_time_formatISO8601ms(&t, buf, sizeof(buf));
 	ATF_CHECK_EQ(strlen(buf), 24);
@@ -84,6 +96,17 @@ ATF_TC_BODY(isc_time_formatISO8601ms, tc) {
 	ATF_CHECK_EQ(buf[16], ':');
 	ATF_CHECK_EQ(buf[19], '.');
 	ATF_CHECK_EQ(buf[23], 'Z');
+
+	/* check time conversion correctness */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_settoepoch(&t);
+	isc_time_formatISO8601ms(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "1970-01-01T00:00:00.000Z");
+
+	memset(buf, 'X', sizeof(buf));
+	isc_time_set(&t, 1450000000, 123000000);
+	isc_time_formatISO8601ms(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "2015-12-13T09:46:40.123Z");
 }
 
 ATF_TC(isc_time_formatISO8601L);
@@ -100,7 +123,7 @@ ATF_TC_BODY(isc_time_formatISO8601L, tc) {
 	result = isc_time_now(&t);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/* yyyy-mm-ddThh:mm:ss */
+	/* check formatting: yyyy-mm-ddThh:mm:ss */
 	memset(buf, 'X', sizeof(buf));
 	isc_time_formatISO8601L(&t, buf, sizeof(buf));
 	ATF_CHECK_EQ(strlen(buf), 19);
@@ -109,6 +132,17 @@ ATF_TC_BODY(isc_time_formatISO8601L, tc) {
 	ATF_CHECK_EQ(buf[10], 'T');
 	ATF_CHECK_EQ(buf[13], ':');
 	ATF_CHECK_EQ(buf[16], ':');
+
+	/* check time conversion correctness */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_settoepoch(&t);
+	isc_time_formatISO8601L(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "1969-12-31T16:00:00");
+
+	memset(buf, 'X', sizeof(buf));
+	isc_time_set(&t, 1450000000, 123000000);
+	isc_time_formatISO8601L(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "2015-12-13T01:46:40");
 }
 
 ATF_TC(isc_time_formatISO8601Lms);
@@ -125,7 +159,7 @@ ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
 	result = isc_time_now(&t);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	/* yyyy-mm-ddThh:mm:ss.sss */
+	/* check formatting: yyyy-mm-ddThh:mm:ss.sss */
 	memset(buf, 'X', sizeof(buf));
 	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
 	ATF_CHECK_EQ(strlen(buf), 23);
@@ -135,6 +169,17 @@ ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
 	ATF_CHECK_EQ(buf[13], ':');
 	ATF_CHECK_EQ(buf[16], ':');
 	ATF_CHECK_EQ(buf[19], '.');
+
+	/* check time conversion correctness */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_settoepoch(&t);
+	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "1969-12-31T16:00:00.000");
+
+	memset(buf, 'X', sizeof(buf));
+	isc_time_set(&t, 1450000000, 123000000);
+	isc_time_formatISO8601Lms(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "2015-12-13T01:46:40.123");
 }
 
 /*
