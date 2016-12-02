@@ -1,3 +1,6 @@
+4523.	[doc]		Expand config doc for <querysource4> and
+			<querysource6>. [RT #43768]
+
 4522.	[bug]		Handle big gaps in log file version numbers better.
 			[RT #38688]
 

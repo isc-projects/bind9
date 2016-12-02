@@ -206,8 +206,12 @@ options {
         port <integer>;
         preferred-glue <string>;
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) );
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) );
         querylog <boolean>;
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
@@ -282,8 +286,12 @@ server <netprefix> {
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) );
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) );
         request-ixfr <boolean>;
         support-ixfr <boolean>; // obsolete
         transfer-format ( many-answers | one-answer );
@@ -436,8 +444,12 @@ view <string> [ <class> ] {
         nsec3-test-zone <boolean>; // test only
         preferred-glue <string>;
         provide-ixfr <boolean>;
-        query-source <querysource4>;
-        query-source-v6 <querysource6>;
+        query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
+            port ( <integer> | * ) ) );
+        query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port (
+            <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ]
+            port ( <integer> | * ) ) );
         queryport-pool-ports <integer>; // obsolete
         queryport-pool-updateinterval <integer>; // obsolete
         recursion <boolean>;
@@ -465,8 +477,12 @@ view <string> [ <class> ] {
                 notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
                     | * ) ];
                 provide-ixfr <boolean>;
-                query-source <querysource4>;
-                query-source-v6 <querysource6>;
+                query-source ( ( [ address ] ( <ipv4_address> | * ) [ port
+                    ( <integer> | * ) ] ) | ( [ [ address ] (
+                    <ipv4_address> | * ) ] port ( <integer> | * ) ) );
+                query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [
+                    port ( <integer> | * ) ] ) | ( [ [ address ] (
+                    <ipv6_address> | * ) ] port ( <integer> | * ) ) );
                 request-ixfr <boolean>;
                 support-ixfr <boolean>; // obsolete
                 transfer-format ( many-answers | one-answer );
