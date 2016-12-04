@@ -161,6 +161,7 @@ EXTERN isc_boolean_t		ns_g_dropedns		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_noedns		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_nosoa		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_noaa		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		ns_g_keepstderr		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_nonearest		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_notcp		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable6		INIT(ISC_FALSE);
