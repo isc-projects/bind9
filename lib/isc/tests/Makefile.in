@@ -39,7 +39,8 @@ SRCS =		isctest.c taskpool_test.c socket_test.c hash_test.c \
 		lex_test.c radix_test.c \
 		sockaddr_test.c symtab_test.c task_test.c queue_test.c \
 		parse_test.c pool_test.c print_test.c regex_test.c \
-		safe_test.c time_test.c counter_test.c errno_test.c
+		safe_test.c time_test.c counter_test.c errno_test.c \
+		netaddr_test.c
 
 SUBDIRS =
 TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
@@ -48,7 +49,7 @@ TARGETS =	taskpool_test@EXEEXT@ socket_test@EXEEXT@ hash_test@EXEEXT@ \
 		queue_test@EXEEXT@ parse_test@EXEEXT@ pool_test@EXEEXT@ \
 		print_test@EXEEXT@ regex_test@EXEEXT@ socket_test@EXEEXT@ \
 		safe_test@EXEEXT@ time_test@EXEEXT@ counter_test@EXEEXT@ \
-		errno_test@EXEEXT@
+		errno_test@EXEEXT@ netaddr_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -120,6 +121,10 @@ counter_test@EXEEXT@: counter_test.@O@ ${ISCDEPLIBS}
 errno_test@EXEEXT@: errno_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			errno_test.@O@ ${ISCLIBS} ${LIBS}
+
+netaddr_test@EXEEXT@: netaddr_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			netaddr_test.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh
