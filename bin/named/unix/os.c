@@ -48,6 +48,7 @@
 #include <isc/strerror.h>
 #include <isc/string.h>
 
+#include <named/globals.h>
 #include <named/main.h>
 #include <named/os.h>
 #ifdef HAVE_LIBSCF
@@ -460,7 +461,7 @@ ns_os_daemonize(void) {
 			(void)close(STDOUT_FILENO);
 			(void)dup2(devnullfd, STDOUT_FILENO);
 		}
-		if (devnullfd != STDERR_FILENO) {
+		if (devnullfd != STDERR_FILENO && !ns_g_keepstderr) {
 			(void)close(STDERR_FILENO);
 			(void)dup2(devnullfd, STDERR_FILENO);
 		}
