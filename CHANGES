@@ -1,3 +1,6 @@
+4526.	[doc]		Corrected errors and improved formatting of
+			grammar defintiions in the ARM. [RT #43739]
+
 4525.	[doc]		Fixed outdated documentation on managed-keys.
 			[RT #43810]
 
