@@ -303,9 +303,9 @@ then
 	echo "I: testing unlimited versions failed $UNLIMITEDFILE.1480039317 removed"
 	status=`expr $status + 1`
 fi
-if test ! -f $UNLIMITEDFILE.5
+if test ! -f $UNLIMITEDFILE.4
 then
-	echo "I: testing unlimited versions failed $UNLIMITEDFILE.5 does not"
+	echo "I: testing unlimited versions failed $UNLIMITEDFILE.4 does not"
 	status=`expr $status + 1`
 fi
 
