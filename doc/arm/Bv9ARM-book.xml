@@ -10068,9 +10068,9 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    sees the <command>managed-keys</command> statement, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
-	    key specified in the <command>managed-keys</command> is not
-	    used to validate answers; it has been superseded by the key or
-	    keys stored in the managed keys database.
+	    key specified in the <command>managed-keys</command>
+	    statement is not used to validate answers; it has been
+	    superseded by the key or keys stored in the managed keys database.
 	  </para>
 	  <para>
 	    The next time <command>named</command> runs after a name
@@ -10081,25 +10081,28 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    domain.
 	  </para>
 	  <para>
-	    <command>named</command> only maintains a single managed keys
-	    database; consequently, unlike <command>trusted-keys</command>,
-	    <command>managed-keys</command> may only be set at the top
-	    level of <filename>named.conf</filename>, not within a view.
+	    In the current implementation, the managed keys database
+	    is stored as a master-format zone file.
 	  </para>
 	  <para>
-	    In the current implementation, the managed keys database is
-	    stored as a master-format zone file called
-	    <filename>managed-keys.bind</filename>.  When the key database
-	    is changed, the zone is updated.  As with any other dynamic
-	    zone, changes will be written into a journal file,
-	    <filename>managed-keys.bind.jnl</filename>.  They are committed
-	    to the master file as soon as possible afterward; in the case
-	    of the managed key database, this will usually occur within 30
+	    On servers which do not use views, this file is named
+	    <filename>managed-keys.bind</filename>.  When views are in
+	    use, there will be a separate managed keys database for each
+	    view; the filename will be a hash of the view name followed by
+	    the suffix <filename>.mkeys</filename>.
+	  </para>
+	  <para>
+	    When the key database is changed, the zone is updated.
+	    As with any other dynamic zone, changes will be written
+	    into a journal file, e.g.,
+	    <filename>managed-keys.bind.jnl</filename>.
+	    Changes are committed to the master file as soon as
+	    possible afterward; this will usually occur within 30
 	    seconds.  So, whenever <command>named</command> is using
-	    automatic key maintenance, those two files can be expected to
-	    exist in the working directory.  (For this reason among others,
-	    the working directory should be always be writable by
-	    <command>named</command>.)
+	    automatic key maintenance, the zone file and journal file
+	    can be expected to exist in the working directory.
+	    (For this reason among others, the working directory
+	    should be always be writable by <command>named</command>.)
 	  </para>
 	  <para>
 	    If the <command>dnssec-validation</command> option is
@@ -10109,9 +10112,11 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    option is set to <userinput>auto</userinput>,
 	    <command>named</command> will automatically initialize
 	    a managed key for the zone <literal>dlv.isc.org</literal>.
-	    In both cases, the key that is used to initialize the key
-	    maintenance process is built into <command>named</command>,
-	    and can be overridden from <command>bindkeys-file</command>.
+	    (Note: The ISC DLV service is expected to cease operation by
+	    the end of 2017.) In both cases, the key that is used to
+	    initialize the key maintenance process is built into
+	    <command>named</command>, and can be overridden from
+	    <command>bindkeys-file</command>.
 	  </para>
 	</section>
 

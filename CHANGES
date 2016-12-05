@@ -1,3 +1,6 @@
+4525.	[doc]		Fixed outdated documentation on managed-keys.
+			[RT #43810]
+
 4524.	[bug]		The net zero test was broken causing IPv4 servers
 			with addresses ending in .0 to be rejected. [RT #43776]
 
