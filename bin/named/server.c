@@ -10877,7 +10877,7 @@ named_server_dumpsecroots(named_server_t *server, isc_lex_t *lex,
 				continue;
 			}
 			CHECK(putstr(text, "\n   Negative trust anchors:\n\n"));
-			CHECK(dns_ntatable_totext(ntatable, text));
+			CHECK(dns_ntatable_totext(ntatable, NULL, text));
 		}
 		if (ptr != NULL)
 			ptr = next_token(lex, text);
@@ -14314,6 +14314,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	isc_result_t result = ISC_R_SUCCESS;
 	char *ptr, *nametext = NULL, *viewname;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	char viewbuf[DNS_NAME_FORMATSIZE];
 	isc_stdtime_t now, when;
 	isc_time_t t;
 	char tbuf[64];
@@ -14323,8 +14324,9 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	const dns_name_t *ntaname;
 	dns_name_t *fname;
 	dns_ttl_t ntattl;
-	bool ttlset = false, excl = false;
+	bool ttlset = false, excl = false, viewfound = false;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
+	bool first = true;
 
 	UNUSED(force);
 
@@ -14337,18 +14339,24 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	}
 
 	for (;;) {
+		bool opts = true;
+
 		/* Check for options */
 		ptr = next_token(lex, text);
 		if (ptr == NULL) {
 			return (ISC_R_UNEXPECTEDEND);
 		}
 
-		if (argcheck(ptr, "dump")) {
+		if (!opts) {
+			nametext = ptr;
+		} else if (strcmp(ptr, "--") == 0) {
+			opts = false;
+		} else if (argcheck(ptr, "dump")) {
 			dump = true;
 		} else if (argcheck(ptr, "remove")) {
 			ntattl = 0;
 			ttlset = true;
-		} else if (argcheck(ptr, "force")) {
+		} else if (opts && argcheck(ptr, "force")) {
 			force = true;
 			continue;
 		} else if (argcheck(ptr, "lifetime")) {
@@ -14388,6 +14396,9 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			tr.length = strlen(ptr);
 			CHECK(dns_rdataclass_fromtext(&rdclass, &tr));
 			continue;
+		} else if (ptr[0] == '-') {
+			msg = "Unknown option";
+			CHECK(DNS_R_SYNTAX);
 		} else {
 			nametext = ptr;
 		}
@@ -14410,7 +14421,8 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			if (result == ISC_R_NOTFOUND) {
 				continue;
 			}
-			CHECK(dns_ntatable_totext(ntatable, text));
+
+			CHECK(dns_ntatable_totext(ntatable, view->name, text));
 		}
 		CHECK(putnull(text));
 
@@ -14448,6 +14460,14 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 
 	/* Look for the view name. */
 	viewname = next_token(lex, text);
+	if (viewname != NULL) {
+		strlcpy(viewbuf, viewname, DNS_NAME_FORMATSIZE);
+		viewname = viewbuf;
+	}
+
+	if (next_token(lex, text) != NULL) {
+		CHECK(DNS_R_SYNTAX);
+	}
 
 	isc_stdtime_get(&now);
 
@@ -14458,11 +14478,10 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		static bool first = true;
-
 		if (viewname != NULL && strcmp(view->name, viewname) != 0) {
 			continue;
 		}
+		viewfound = true;
 
 		if (view->rdclass != rdclass && rdclass != dns_rdataclass_any) {
 			continue;
@@ -14518,22 +14537,37 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 				      "added NTA '%s' (%d sec) in view '%s'",
 				      namebuf, ntattl, view->name);
 		} else {
-			CHECK(dns_ntatable_delete(ntatable, ntaname));
+			bool removed;
+
+			result = dns_ntatable_delete(ntatable, ntaname);
+			if (result == ISC_R_SUCCESS) {
+				removed = true;
+			} else if (result == ISC_R_NOTFOUND) {
+				removed = false;
+			} else {
+				goto cleanup;
+			}
 
 			if (!first) {
 				CHECK(putstr(text, "\n"));
 			}
 			first = false;
 
-			CHECK(putstr(text, "Negative trust anchor removed: "));
+			CHECK(putstr(text, "Negative trust anchor "));
+			CHECK(putstr(text, removed ? "removed: "
+						   : "not found: "));
 			CHECK(putstr(text, namebuf));
 			CHECK(putstr(text, "/"));
 			CHECK(putstr(text, view->name));
 
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "removed NTA '%s' in view %s",
-				      namebuf, view->name);
+			if (removed) {
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_SERVER,
+					      ISC_LOG_INFO,
+					      "removed NTA '%s' in view %s",
+					      namebuf, view->name);
+			}
 		}
 
 		result = dns_view_saventa(view);
@@ -14546,6 +14580,11 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 		}
 	}
 
+	if (!viewfound) {
+		msg = "No such view";
+		CHECK(ISC_R_NOTFOUND);
+	}
+
 	CHECK(putnull(text));
 
  cleanup:
@@ -14553,6 +14592,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 		(void) putstr(text, msg);
 		(void) putnull(text);
 	}
+
 	if (excl) {
 		isc_task_endexclusive(server->task);
 	}
