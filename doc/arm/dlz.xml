@@ -7,7 +7,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dlz-info"><info><title>DLZ (Dynamically Loadable Zones)</title></info>
+<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dlz-info"><info><title>DLZ (Dynamically Loadable Zones)</title></info>
 
   <para>
     DLZ (Dynamically Loadable Zones) is an extension to BIND 9 that allows

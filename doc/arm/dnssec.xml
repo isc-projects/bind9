@@ -7,7 +7,7 @@
 -->
 
 <!-- Converted by db4-upgrade version 1.0 -->
-<section xmlns="http://docbook.org/ns/docbook" version="5.0" xml:id="dnssec.dynamic.zones"><info><title>DNSSEC, Dynamic Zones, and Automatic Signing</title></info>
+<section xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="dnssec.dynamic.zones"><info><title>DNSSEC, Dynamic Zones, and Automatic Signing</title></info>
 
   <para>As of BIND 9.7.0 it is possible to change a dynamic zone
   from insecure to signed and back again. A secure zone can use
