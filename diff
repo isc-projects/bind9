@@ -1,0 +1,153 @@
+diff --git a/lib/isc/log.c b/lib/isc/log.c
+index 00a63a4..642c2a4 100644
+--- a/lib/isc/log.c
++++ b/lib/isc/log.c
+@@ -231,10 +231,10 @@ static isc_result_t
+ sync_channellist(isc_logconfig_t *lcfg);
+ 
+ static isc_result_t
+-greatest_version(isc_logchannel_t *channel, int versions, int *greatest);
+ 
+ static isc_result_t
+ roll_log(isc_logchannel_t *channel);
++greatest_version(isc_logfile_t *file, int versions, int *greatest);
+ 
+ static isc_result_t
+ roll_log(isc_logchannel_t *channel);
+ 
+ static void
+ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
+@@ -1141,8 +1138,7 @@ sync_channellist(isc_logconfig_t *lcfg) {
+ }
+ 
+ static isc_result_t
+-greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+-	/* XXXDCL HIGHLY NT */
++greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
+ 	char *bname, *digit_end;
+ 	const char *dirname;
+ 	int version, greatest = -1;
+@@ -1154,15 +1150,13 @@ greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+ 	char *bname2;
+ #endif
+ 
+-	REQUIRE(channel->type == ISC_LOG_TOFILE);
+-
+ 	/*
+ 	 * It is safe to DE_CONST the file.name because it was copied
+-	 * with isc_mem_strdup in isc_log_createchannel.
++	 * with isc_mem_strdup().
+ 	 */
+-	bname = strrchr(FILE_NAME(channel), sep);
++	bname = strrchr(file->name, sep);
+ #ifdef _WIN32
+-	bname2 = strrchr(FILE_NAME(channel), '\\');
++	bname2 = strrchr(file->name, '\\');
+ 	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
+ 	    (bname == NULL && bname2 != NULL)) {
+ 		bname = bname2;
+@@ -1171,9 +1165,9 @@ greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+ #endif
+ 	if (bname != NULL) {
+ 		*bname++ = '\0';
+-		dirname = FILE_NAME(channel);
++		dirname = file->name;
+ 	} else {
+-		DE_CONST(FILE_NAME(channel), bname);
++		DE_CONST(file->name, bname);
+ 		dirname = ".";
+ 	}
+ 	bnamelen = strlen(bname);
+@@ -1184,7 +1178,7 @@ greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+ 	/*
+ 	 * Replace the file separator if it was taken out.
+ 	 */
+-	if (bname != FILE_NAME(channel))
++	if (bname != file->name)
+ 		*(bname - 1) = sep;
+ 
+ 	/*
+@@ -1196,8 +1190,8 @@ greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+ 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+ 		if (dir.entry.length > bnamelen &&
+ 		    strncmp(dir.entry.name, bname, bnamelen) == 0 &&
+-		    dir.entry.name[bnamelen] == '.') {
+-
++		    dir.entry.name[bnamelen] == '.')
++		{
+ 			version = strtol(&dir.entry.name[bnamelen + 1],
+ 					 &digit_end, 10);
+ 			/*
+@@ -1222,25 +1216,27 @@ greatest_version(isc_logchannel_t *channel, int versions, int *greatestp) {
+ 	return (ISC_R_SUCCESS);
+ }
+ 
+-static isc_result_t
+-roll_log(isc_logchannel_t *channel) {
++static isc_result_t
++roll_log(isc_logfile_t *file) {
+ 	int i, n, greatest;
+ 	char current[PATH_MAX + 1];
+ 	char new[PATH_MAX + 1];
+ 	const char *path;
+ 	isc_result_t result;
+ 
++	REQUIRE(file != NULL);
++
+ 	/*
+ 	 * Do nothing (not even excess version trimming) if ISC_LOG_ROLLNEVER
+ 	 * is specified.  Apparently complete external control over the log
+ 	 * files is desired.
+ 	 */
+-	if (FILE_VERSIONS(channel) == ISC_LOG_ROLLNEVER)
++	if (file->versions == ISC_LOG_ROLLNEVER)
+ 		return (ISC_R_SUCCESS);
+ 
+-	path = FILE_NAME(channel);
++	path = file->name;
+ 
+-	if (FILE_VERSIONS(channel) == ISC_LOG_ROLLINFINITE) {
++	if (file->versions == ISC_LOG_ROLLINFINITE) {
+ 		/*
+ 		 * Find the first missing entry in the log file sequence.
+ 		 */
+@@ -1257,15 +1253,14 @@ roll_log(isc_logchannel_t *channel) {
+ 		 * Get the largest existing version and remove any
+ 		 * version greater than the permitted version.
+ 		 */
+-		result = greatest_version(channel, FILE_VERSIONS(channel),
+-					  &greatest);
++		result = greatest_version(file, file->versions, &greatest);
+ 		if (result != ISC_R_SUCCESS)
+ 			return (result);
+ 
+ 		/*
+ 		 * Increment if greatest is not the actual maximum value.
+ 		 */
+-		if (greatest < FILE_VERSIONS(channel) - 1)
++		if (greatest < file->versions - 1)
+ 			greatest++;
+ 	}
+ 
+@@ -1289,7 +1284,7 @@ roll_log(isc_logchannel_t *channel) {
+ 			       isc_result_totext(result));
+ 	}
+ 
+-	if (FILE_VERSIONS(channel) != 0) {
++	if (file->versions != 0) {
+ 		n = snprintf(new, sizeof(new), "%s.0", path);
+ 		if (n >= (int)sizeof(new) || n < 0)
+ 			result = ISC_R_NOSPACE;
+@@ -1351,11 +1346,11 @@ isc_log_open(isc_logchannel_t *channel) {
+ 	if (result == ISC_R_SUCCESS && roll) {
+ 		if (FILE_VERSIONS(channel) == ISC_LOG_ROLLNEVER)
+ 			return (ISC_R_MAXSIZE);
+-		result = roll_log(channel);
++		result = roll_log(&channel->destination.file);
+ 		if (result != ISC_R_SUCCESS) {
+ 			if ((channel->flags & ISC_LOG_OPENERR) == 0) {
+ 				syslog(LOG_ERR,
+ 				       "isc_log_open: roll_log '%s' "
+ 				       "failed: %s",
+ 				       FILE_NAME(channel),
+ 				       isc_result_totext(result));
