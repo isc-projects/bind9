@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<section xmlns="http://docbook.org/ns/docbook" version="5.0"><info/>
+<section xmlns:db="http://docbook.org/ns/docbook" version="5.0"><info/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
