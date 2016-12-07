@@ -49,22 +49,24 @@
 <dt><span class="section"><a href="Bv9ARM.ch05.html#lwresd">Running a Resolver Daemon</a></span></dt>
 </dl>
 </div>
-<div class="section">
+
+    <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="lightweight_resolver"></a>The Lightweight Resolver Library</h2></div></div></div>
-<p>
+
+      <p>
         Traditionally applications have been linked with a stub resolver
         library that sends recursive DNS queries to a local caching name
         server.
       </p>
-<p>
+      <p>
         IPv6 once introduced new complexity into the resolution process,
         such as following A6 chains and DNAME records, and simultaneous
         lookup of IPv4 and IPv6 addresses.  Though most of the complexity was
         then removed, these are hard or impossible
         to implement in a traditional stub resolver.
       </p>
-<p>
+      <p>
         <acronym class="acronym">BIND</acronym> 9 therefore can also provide resolution
         services to local clients
         using a combination of a lightweight resolver library and a resolver
@@ -72,18 +74,20 @@
         a simple UDP-based protocol, the "lightweight resolver protocol"
         that is distinct from and simpler than the full DNS protocol.
       </p>
-</div>
-<div class="section">
+    </div>
+    <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="lwresd"></a>Running a Resolver Daemon</h2></div></div></div>
-<p>
+
+      <p>
         To use the lightweight resolver interface, the system must
         run the resolver daemon <span class="command"><strong>lwresd</strong></span> or a
         local
         name server configured with a <span class="command"><strong>lwres</strong></span>
         statement.
       </p>
-<p>
+
+      <p>
         By default, applications using the lightweight resolver library will
         make
         UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
@@ -92,12 +96,14 @@
         lines in
         <code class="filename">/etc/resolv.conf</code>.
       </p>
-<p>
+
+      <p>
         The daemon currently only looks in the DNS, but in the future
         it may use other sources such as <code class="filename">/etc/hosts</code>,
         NIS, etc.
       </p>
-<p>
+
+      <p>
         The <span class="command"><strong>lwresd</strong></span> daemon is essentially a
         caching-only name server that responds to requests using the
         lightweight
@@ -110,7 +116,7 @@
         autonomously if
         none are specified.
       </p>
-<p>
+      <p>
         The <span class="command"><strong>lwresd</strong></span> daemon may also be
         configured with a
         <code class="filename">named.conf</code> style configuration file,
@@ -120,8 +126,8 @@
         be configured to act as a lightweight resolver daemon using the
         <span class="command"><strong>lwres</strong></span> statement in <code class="filename">named.conf</code>.
       </p>
-</div>
-</div>
+    </div>
+  </div>
 <div class="navfooter">
 <hr>
 <table width="100%" summary="Navigation footer">
