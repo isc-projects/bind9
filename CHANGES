@@ -1,5 +1,8 @@
 	--- 9.10.4-P5 released ---
 
+4528.	[bug]		Only set the flag bits for the i/o we are waiting
+			for on EPOLLERR or EPOLLHUP. [RT #43617]
+
 4517.	[security]	Named could mishandle authority sections that were
 			missing RRSIGs triggering an assertion failure.
 			(CVE-2016-9444) [RT # 43632]
