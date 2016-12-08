@@ -1,3 +1,6 @@
+4528.	[bug]		Only set the flag bits for the i/o we are waiting
+			for on EPOLLERR or EPOLLHUP. [RT #43617]
+
 4527.	[doc]		Support DocBook XSL Stylesheets v1.79.1. [RT #43831]
 
 4526.	[doc]		Corrected errors and improved formatting of
