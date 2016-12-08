@@ -572,6 +572,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		case EOPNOTSUPP:
 #endif
 		case EINVAL:
+		case EPERM:
 			break;
 		default:
 			debug = ISC_LOG_NOTICE;
