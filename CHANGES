@@ -1,3 +1,7 @@
+4530.	[bug]		Change 4489 broke the handling of CNAME -> DNAME
+			in responses resulting in SERVFAIL being returned.
+			[RT #43779]
+
 4529.	[cleanup]	Silence noisy log warning when DSCP probe fails
 			due to firewall rules. [RT #43847]
 
