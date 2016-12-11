@@ -69,7 +69,7 @@
     </p>
 <p>
       BIND 9.10.4-P5 addresses the security issues described in
-      CVE-2016-9131, CVE-2016-9147 and CVE-2016-9444.
+      CVE-2016-9131, CVE-2016-9147, CVE-2016-9444 and CVE-2016-9778.
     </p>
 <p>
       BIND 9.10.4-P4 addresses the security issue described in
@@ -106,6 +106,13 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+	  A coding error in the <code class="option">nxdomain-redirect</code>
+	  feature could lead to an assertion failure if the redirection
+	  namespace was served from a local authoritative data source
+	  such as a local zone or a DLZ instead of via recursive
+	  lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
+	</p></li>
 <li class="listitem"><p>
 	  Named could mishandle authority sections that were missing
 	  RRSIGs triggering an assertion failure.  This flaw is
