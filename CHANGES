@@ -1,3 +1,6 @@
+4532.	[contrib]	Make gen-data-queryperf.py python 3 compatible.
+			[RT #43836]
+
 4530.	[bug]		Change 4489 broke the handling of CNAME -> DNAME
 			in responses resulting in SERVFAIL being returned.
 			[RT #43779]
