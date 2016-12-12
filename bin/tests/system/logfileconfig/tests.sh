@@ -286,9 +286,9 @@ $myRNDC reconfig > rndc.out.test$n 2>&1
 $DIG version.bind txt ch @10.53.0.1 -p 5300 > dig.out.test$n
 t2=`$PERL -e 'print time()."\n";'`
 t=`expr ${t2:-0} - ${t1:-0}`
-if test ${t:-1000} -gt 1
+if test ${t:-1000} -gt 5
 then
-	echo "I: testing explict versions failed cleanup of old entries took too long"
+        echo "I: testing explict versions failed cleanup of old entries took too long ($t secs)"
 	status=`expr $status + 1`
 fi 
 if ! grep "status: NOERROR" dig.out.test$n > /dev/null
@@ -322,9 +322,9 @@ $myRNDC reconfig > rndc.out.test$n 2>&1
 $DIG version.bind txt ch @10.53.0.1 -p 5300 > dig.out.test$n
 t2=`$PERL -e 'print time()."\n";'`
 t=`expr ${t2:-0} - ${t1:-0}`
-if test ${t:-1000} -gt 1
+if test ${t:-1000} -gt 5
 then
-	echo "I: testing unlimited versions failed took too long"
+        echo "I: testing unlimited versions failed took too long ($t secs)"
 	status=`expr $status + 1`
 fi 
 if ! grep "status: NOERROR" dig.out.test$n > /dev/null
