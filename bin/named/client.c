@@ -1017,7 +1017,8 @@ client_send(ns_client_t *client) {
 
 	CTRACE("send");
 
-	if ((client->attributes & NS_CLIENTATTR_RA) != 0)
+	if (client->message->opcode == dns_opcode_query &&
+	    (client->attributes & NS_CLIENTATTR_RA) != 0)
 		client->message->flags |= DNS_MESSAGEFLAG_RA;
 
 	if ((client->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
