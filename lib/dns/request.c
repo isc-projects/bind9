@@ -439,10 +439,11 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	 * as we do in resolver.c, but we prefer implementation simplicity
 	 * at this moment.
 	 */
+	request->flags |= DNS_REQUEST_F_SENDING;
 	result = isc_socket_sendto(sock, &r, task, req_senddone,
 				  request, address, NULL);
-	if (result == ISC_R_SUCCESS)
-		request->flags |= DNS_REQUEST_F_SENDING;
+	if (result != ISC_R_SUCCESS)
+		request->flags &= ~DNS_REQUEST_F_SENDING;
 	return (result);
 }
 
