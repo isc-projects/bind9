@@ -162,7 +162,7 @@ main(int argc, char *argv[]) {
 			port = optarg;
 			break;
 		case 'r':
-			if (nsa_recursive < 
+			if (nsa_recursive <
 				sizeof(sa_recursive)/sizeof(*sa_recursive) &&
 			    addserver(optarg, &rec_servers,
 				      &sa_recursive[nsa_recursive]))
