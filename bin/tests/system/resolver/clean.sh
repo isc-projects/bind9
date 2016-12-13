@@ -30,5 +30,5 @@ rm -f ns6/example.net.db.signed ns6/example.net.db
 rm -f ns6/dsset-example.net. ns6/example.net.db.signed.jnl
 rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns7/server.db ns7/server.db.jnl ns7/named.conf
-rm -f sample.out
+rm -f sample.out.*.test*
 rm -f .digrc
