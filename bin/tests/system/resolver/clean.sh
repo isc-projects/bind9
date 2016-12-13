@@ -34,6 +34,6 @@ rm -f ns6/dsset-ds.example.net*
 rm -f ns6/dsset-example.net* ns6/example.net.db.signed.jnl
 rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns7/server.db ns7/server.db.jnl ns7/named.conf
-rm -f resolve.out
+rm -f resolve.out.*.test*
 rm -f .digrc
 rm -f ns5/trusted.conf
