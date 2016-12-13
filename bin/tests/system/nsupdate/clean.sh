@@ -44,3 +44,8 @@ rm -f ns3/nsec3param.test.db
 rm -f ns3/too-big.test.db
 rm -f nsupdate.out*
 rm -f typelist.out.*
+rm -f ns1/sample.db
+rm -f ns2/sample.db
+rm -f update.out.*
+rm -f check.out.*
+rm -f update.out.*

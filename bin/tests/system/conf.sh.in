@@ -59,6 +59,7 @@ FEATURETEST=$TOP/bin/tests/system/feature-test
 RANDFILE=$TOP/bin/tests/system/random.data
 MDIG=$TOP/bin/tests/mdig
 
+SAMPLEUPDATE=$TOP/lib/export/samples/sample-update
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -127,6 +128,7 @@ export PYTHON
 export RANDFILE
 export RESOLVE
 export RNDC
+export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
