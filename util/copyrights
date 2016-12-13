@@ -1638,8 +1638,10 @@
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/ns1/example1.db	ZONE	2000,2001,2002,2004,2007,2009
 ./bin/tests/system/nsupdate/ns1/max-ttl.db	ZONE	2014
-./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012,2013,2014
-./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007,2011,2013
+./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012,2013,2014,2016
+./bin/tests/system/nsupdate/ns1/sample.db.in	ZONE	2016
+./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007,2011,2013,2016
+./bin/tests/system/nsupdate/ns2/sample.db.in	ZONE	2016
 ./bin/tests/system/nsupdate/ns3/delegation.test.db.in	ZONE	2016
 ./bin/tests/system/nsupdate/ns3/dnskey.test.db.in	ZONE	2011
 ./bin/tests/system/nsupdate/ns3/example.db.in	ZONE	2010
