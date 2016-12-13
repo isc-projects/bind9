@@ -166,7 +166,7 @@ main(int argc, char *argv[]) {
 			port = isc_commandline_argument;
 			break;
 		case 'r':
-			if (nsa_recursive < 
+			if (nsa_recursive <
 				sizeof(sa_recursive)/sizeof(*sa_recursive) &&
 			    addserver(isc_commandline_argument, &rec_servers,
 				      &sa_recursive[nsa_recursive]))
