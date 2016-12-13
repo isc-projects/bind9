@@ -1,4 +1,4 @@
-4533.	[bug]		dns_client_update should terminate on prerequiste
+4533.	[bug]		dns_client_update should terminate on prerequisite
 			failures (NXDOMAIN, YXDOMAIN, NXRRSET, YXRRSET)
 			and also on BADZONE.  [RT #43865]
 
@@ -18,7 +18,7 @@
 4527.	[doc]		Support DocBook XSL Stylesheets v1.79.1. [RT #43831]
 
 4526.	[doc]		Corrected errors and improved formatting of
-			grammar defintiions in the ARM. [RT #43739]
+			grammar definitions in the ARM. [RT #43739]
 
 4525.	[doc]		Fixed outdated documentation on managed-keys.
 			[RT #43810]
