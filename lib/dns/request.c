@@ -445,10 +445,11 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 		sendevent->dscp = request->dscp;
 	}
 
+	request->flags |= DNS_REQUEST_F_SENDING;
 	result = isc_socket_sendto2(sock, &r, task, address, NULL,
 				    sendevent, 0);
-	if (result == ISC_R_SUCCESS)
-		request->flags |= DNS_REQUEST_F_SENDING;
+	if (result != ISC_R_SUCCESS)
+		request->flags &= ~DNS_REQUEST_F_SENDING;
 	return (result);
 }
 
