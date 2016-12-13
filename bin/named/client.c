@@ -915,6 +915,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	 * MTU link force fragmentation at 1280 if it is a IPv6
 	 * response.
 	 */
+	client->sendevent->attributes &= ~ISC_SOCKEVENTATTR_USEMINMTU;
 	if (!TCP_CLIENT(client) && r.length > 1432)
 		client->sendevent->attributes |= ISC_SOCKEVENTATTR_USEMINMTU;
 
