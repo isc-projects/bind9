@@ -1,3 +1,6 @@
+4536.	[bug]		ISC_SOCKEVENTATTR_USEMINMTU was not being cleared
+			when reusing the event structure. [RT #43885]
+
 4535.	[bug]		Address race condition in setting / testing of
 			DNS_REQUEST_F_SENDING. [RT #43889]
 
