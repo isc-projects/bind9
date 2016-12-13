@@ -63,3 +63,6 @@ $DDNSCONFGEN -q -r $RANDFILE -a hmac-sha384 -k sha384-key -z keytests.nil > ns1/
 $DDNSCONFGEN -q -r $RANDFILE -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/sha512.key
 
 (cd ns3; $SHELL -e sign.sh)
+
+cp ns1/sample.db.in ns1/sample.db
+cp ns2/sample.db.in ns2/sample.db
