@@ -575,8 +575,14 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that unexpected opcodes are handled correctly (${n})"
 ret=0
-$DIG soa all-cnames @10.53.0.5 -p 5300 +opcode=status > dig.out.ns5.test${n} || ret=1
+$DIG soa all-cnames @10.53.0.5 -p 5300 +opcode=15 +cd +rec +ad +zflag > dig.out.ns5.test${n} || ret=1
 grep "status: NOTIMP" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "flags:[^;]* qr[; ]" dig.out.ns5.test${n} > /dev/null || ret=1
+grep "flags:[^;]* ra[; ]" dig.out.ns5.test${n} > /dev/null && ret=1
+grep "flags:[^;]* rd[; ]" dig.out.ns5.test${n} > /dev/null && ret=1
+grep "flags:[^;]* cd[; ]" dig.out.ns5.test${n} > /dev/null && ret=1
+grep "flags:[^;]* ad[; ]" dig.out.ns5.test${n} > /dev/null && ret=1
+grep "flags:[^;]*; MBZ: " dig.out.ns5.test${n} > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

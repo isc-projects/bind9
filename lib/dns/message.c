@@ -2591,7 +2591,10 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 	 * We now clear most flags and then set QR, ensuring that the
 	 * reply's flags will be in a reasonable state.
 	 */
-	msg->flags &= DNS_MESSAGE_REPLYPRESERVE;
+	if (msg->opcode == dns_opcode_query)
+		msg->flags &= DNS_MESSAGE_REPLYPRESERVE;
+	else
+		msg->flags = 0;
 	msg->flags |= DNS_MESSAGEFLAG_QR;
 
 	/*
