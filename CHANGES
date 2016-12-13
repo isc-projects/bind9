@@ -1,3 +1,7 @@
+4533.	[bug]		dns_client_update should terminate on prerequiste
+			failures (NXDOMAIN, YXDOMAIN, NXRRSET, YXRRSET)
+			and also on BADZONE.  [RT #43865]
+
 4532.	[contrib]	Make gen-data-queryperf.py python 3 compatible.
 			[RT #43836]
 

@@ -1978,8 +1978,21 @@ update_done(isc_task_t *task, isc_event_t *event) {
 	LOCK(&uctx->lock);
 	uctx->currentserver = ISC_LIST_NEXT(uctx->currentserver, link);
 	dns_request_destroy(&uctx->updatereq);
-	if (result != ISC_R_SUCCESS && !uctx->canceled &&
-	    uctx->currentserver != NULL) {
+	/*
+	 * Moving on to the next server shouldn't change the result
+	 * for NXDOMAIN, YXDOMAIN, NXRRSET and YXRRSET as they
+	 * indicate a prerequisite failure.  REFUSED should also
+	 * be consistent across all servers but often isn't as that
+	 * is policy rather that zone content driven (slaves that
+	 * aren't willing to forward should return NOTIMPL).  NOTZONE
+	 * indicates that we stuffed up the request construction so
+	 * don't retry.
+	 */
+	if (result != ISC_R_SUCCESS && result != DNS_R_NXDOMAIN &&
+	    result != DNS_R_YXDOMAIN && result != DNS_R_YXRRSET &&
+	    result != DNS_R_NXRRSET && result != DNS_R_NOTZONE &&
+	    !uctx->canceled && uctx->currentserver != NULL)
+	{
 		dns_message_renderreset(uctx->updatemsg);
 		dns_message_settsigkey(uctx->updatemsg, NULL);
 
