@@ -1,0 +1,8 @@
+@ 0 SOA ns1 . 0 0 0 0 0
+@ 0 NS ns1
+ns1 0 A 10.53.0.1
+; a RRset that exists
+exists 0 TXT This RRset exists.
+; nxdomain
+; A named without a TXT RRset
+no-txt 0 A 1.2.3.4

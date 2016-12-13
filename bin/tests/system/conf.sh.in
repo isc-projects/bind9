@@ -65,6 +65,7 @@ KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
 LWTEST=$TOP/bin/tests/system/lwresd/lwtest
 MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
+SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
@@ -166,6 +167,7 @@ export RANDFILE
 export RESOLVE
 export RNDC
 export RRCHECKER
+export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
