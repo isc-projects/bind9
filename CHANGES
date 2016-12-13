@@ -1,3 +1,5 @@
+4534.	[bug]		Only set RD, RA and CD in QUERY responses. [RT #43879]
+
 4533.	[bug]		dns_client_update should terminate on prerequisite
 			failures (NXDOMAIN, YXDOMAIN, NXRRSET, YXRRSET)
 			and also on BADZONE.  [RT #43865]
