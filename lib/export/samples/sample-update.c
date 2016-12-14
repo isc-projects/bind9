@@ -111,10 +111,10 @@ addserver(const char *server, isc_sockaddrlist_t *list,
 	}
 	INSIST(res->ai_addrlen <= sizeof(sockaddr->type));
 	memmove(&sockaddr->type, res->ai_addr, res->ai_addrlen);
-	freeaddrinfo(res);
 	sockaddr->length = (unsigned int)res->ai_addrlen;
 	ISC_LINK_INIT(sockaddr, link);
 	ISC_LIST_APPEND(*list, sockaddr, link);
+	freeaddrinfo(res);
 	return (ISC_TRUE);
 }
 
