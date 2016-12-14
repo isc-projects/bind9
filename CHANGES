@@ -1,3 +1,5 @@
+4537.	[bug]		Handle timouts better in dig/host/nslookup. [RT #43576]
+
 4535.	[bug]		Address race condition in setting / testing of
 			DNS_REQUEST_F_SENDING. [RT #43889]
 
