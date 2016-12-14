@@ -18,7 +18,6 @@
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/task.h>
 #include <isc/netaddr.h>
@@ -947,8 +946,6 @@ flush_lookup_list(void) {
 		}
 		if (l->sendmsg != NULL)
 			dns_message_destroy(&l->sendmsg);
-		if (l->timer != NULL)
-			isc_timer_detach(&l->timer);
 		lp = l;
 		l = ISC_LIST_NEXT(l, link);
 		ISC_LIST_DEQUEUE(lookup_list, lp, link);

@@ -170,7 +170,6 @@ isc_boolean_t	sigchase;
 	isc_buffer_t renderbuf;
 	char *sendspace;
 	dns_name_t *name;
-	isc_timer_t *timer;
 	isc_interval_t interval;
 	dns_message_t *sendmsg;
 	dns_name_t *oname;
@@ -213,7 +212,8 @@ struct dig_query {
 		second_rr_rcvd,
 		first_repeat_rcvd,
 		recv_made,
-		warn_id;
+		warn_id,
+		timedout;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
 	isc_uint32_t msg_count;
@@ -238,6 +238,7 @@ struct dig_query {
 	isc_time_t time_recv;
 	isc_uint64_t byte_count;
 	isc_buffer_t sendbuf;
+	isc_timer_t *timer;
 };
 
 struct dig_server {
