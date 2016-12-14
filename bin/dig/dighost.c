@@ -772,7 +772,6 @@ make_empty_lookup(void) {
 	looknew->sendmsg = NULL;
 	looknew->name = NULL;
 	looknew->oname = NULL;
-	looknew->timer = NULL;
 	looknew->xfr_q = NULL;
 	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
@@ -1645,6 +1644,8 @@ clear_query(dig_query_t *query) {
 
 	debug("clear_query(%p)", query);
 
+	if (query->timer != NULL)
+		isc_timer_detach(&query->timer);
 	lookup = query->lookup;
 
 	if (lookup->current_query == query)
@@ -1738,8 +1739,6 @@ destroy_lookup(dig_lookup_t *lookup) {
 		debug("freeing buffer %p", lookup->querysig);
 		isc_buffer_free(&lookup->querysig);
 	}
-	if (lookup->timer != NULL)
-		isc_timer_detach(&lookup->timer);
 	if (lookup->sendspace != NULL)
 		isc_mempool_put(commctx, lookup->sendspace);
 
@@ -2645,6 +2644,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		debug("create query %p linked to lookup %p",
 		       query, lookup);
 		query->lookup = lookup;
+		query->timer = NULL;
 		query->waiting_connect = ISC_FALSE;
 		query->waiting_senddone = ISC_FALSE;
 		query->pending_free = ISC_FALSE;
@@ -2654,6 +2654,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->second_rr_rcvd = ISC_FALSE;
 		query->first_repeat_rcvd = ISC_FALSE;
 		query->warn_id = ISC_TRUE;
+		query->timedout = ISC_FALSE;
 		query->first_rr_serial = 0;
 		query->second_rr_serial = 0;
 		query->servname = serv->servername;
@@ -2759,8 +2760,6 @@ cancel_lookup(dig_lookup_t *lookup) {
 		}
 		query = next;
 	}
-	if (lookup->timer != NULL)
-		isc_timer_detach(&lookup->timer);
 	lookup->pending = ISC_FALSE;
 	lookup->retries = 0;
 }
@@ -2778,7 +2777,7 @@ bringup_timer(dig_query_t *query, unsigned int default_timeout) {
 	 * just reset it.
 	 */
 	l = query->lookup;
-	if (ISC_LIST_NEXT(query, link) != NULL)
+	if (ISC_LINK_LINKED(query, link) && ISC_LIST_NEXT(query, link) != NULL)
 		local_timeout = SERVER_TIMEOUT;
 	else {
 		if (timeout == 0)
@@ -2788,21 +2787,21 @@ bringup_timer(dig_query_t *query, unsigned int default_timeout) {
 	}
 	debug("have local timeout of %d", local_timeout);
 	isc_interval_set(&l->interval, local_timeout, 0);
-	if (l->timer != NULL)
-		isc_timer_detach(&l->timer);
+	if (query->timer != NULL)
+		isc_timer_detach(&query->timer);
 	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 				  &l->interval, global_task, connect_timeout,
-				  l, &l->timer);
+				  query, &query->timer);
 	check_result(result, "isc_timer_create");
 }
 
 static void
-force_timeout(dig_lookup_t *l, dig_query_t *query) {
+force_timeout(dig_query_t *query) {
 	isc_event_t *event;
 
 	debug("force_timeout ()");
 	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
-				   connect_timeout, l,
+				   connect_timeout, query,
 				   sizeof(isc_event_t));
 	if (event == NULL) {
 		fatal("isc_event_allocate: %s",
@@ -2816,8 +2815,8 @@ force_timeout(dig_lookup_t *l, dig_query_t *query) {
 	 * We need to cancel the possible timeout event not to confuse
 	 * ourselves due to the duplicate events.
 	 */
-	if (l->timer != NULL)
-		isc_timer_detach(&l->timer);
+	if (query->timer != NULL)
+		isc_timer_detach(&query->timer);
 }
 
 
@@ -2847,7 +2846,7 @@ send_tcp_connect(dig_query_t *query) {
 		 * by triggering an immediate 'timeout' (we lie, but the effect
 		 * is the same).
 		 */
-		force_timeout(l, query);
+		force_timeout(query);
 		return;
 	}
 
@@ -2857,7 +2856,10 @@ send_tcp_connect(dig_query_t *query) {
 		printf(";; Skipping server %s, incompatible "
 		       "address family\n", query->servname);
 		query->waiting_connect = ISC_FALSE;
-		next = ISC_LIST_NEXT(query, link);
+		if (ISC_LINK_LINKED(query, link))
+			next = ISC_LIST_NEXT(query, link);
+		else
+			next = NULL;
 		l = query->lookup;
 		clear_query(query);
 		if (next == NULL) {
@@ -2908,9 +2910,11 @@ send_tcp_connect(dig_query_t *query) {
 	 */
 	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
-		next = ISC_LIST_NEXT(query, link);
-		if (ISC_LINK_LINKED(query, link))
+		if (ISC_LINK_LINKED(query, link)) {
+			next = ISC_LIST_NEXT(query, link);
 			ISC_LIST_DEQUEUE(l->q, query, link);
+		} else
+			next = NULL;
 		ISC_LIST_ENQUEUE(l->connecting, query, clink);
 		if (next != NULL)
 			send_tcp_connect(next);
@@ -2951,7 +2955,7 @@ send_udp(dig_query_t *query) {
 		result = get_address(query->servname, port, &query->sockaddr);
 		if (result != ISC_R_SUCCESS) {
 			/* This servname doesn't have an address. */
-			force_timeout(l, query);
+			force_timeout(query);
 			return;
 		}
 
@@ -3006,7 +3010,7 @@ send_udp(dig_query_t *query) {
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *query = NULL, *next, *cq;
+	dig_query_t *query = NULL, *cq;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
@@ -3014,13 +3018,14 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 	debug("connect_timeout()");
 
 	LOCK_LOOKUP;
-	l = event->ev_arg;
-	query = l->current_query;
+	query = event->ev_arg;
+	l = query->lookup;
 	isc_event_free(&event);
 
 	INSIST(!free_now);
 
 	if ((query != NULL) && (query->lookup->current_query != NULL) &&
+	    ISC_LINK_LINKED(query->lookup->current_query, link) &&
 	    (ISC_LIST_NEXT(query->lookup->current_query, link) != NULL)) {
 		debug("trying next server...");
 		cq = query->lookup->current_query;
@@ -3030,12 +3035,15 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			if (query->sock != NULL)
 				isc_socket_cancel(query->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
-			next = ISC_LIST_NEXT(cq, link);
-			if (next != NULL)
-				send_tcp_connect(next);
+			send_tcp_connect(ISC_LIST_NEXT(cq, link));
 		}
 		UNLOCK_LOOKUP;
 		return;
+	}
+
+	if (l->tcp_mode && query->sock != NULL) {
+		query->timedout = ISC_TRUE;
+		isc_socket_cancel(query->sock, NULL, ISC_SOCKCANCEL_ALL);
 	}
 
 	if (l->retries > 1) {
@@ -3052,9 +3060,11 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			check_next_lookup(l);
 		}
 	} else {
-		fputs(l->cmdline, stdout);
-		printf(";; connection timed out; no servers could be "
-		       "reached\n");
+		if (!l->ns_search_only) {
+			fputs(l->cmdline, stdout);
+			printf(";; connection timed out; no servers could be "
+			       "reached\n");
+		}
 		cancel_lookup(l);
 		check_next_lookup(l);
 		if (exitcode < 9)
@@ -3220,6 +3230,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
  */
 static void
 connect_done(isc_task_t *task, isc_event_t *event) {
+	char sockstr[ISC_SOCKADDR_FORMATSIZE];
 	isc_socketevent_t *sevent = NULL;
 	dig_query_t *query = NULL, *next;
 	dig_lookup_t *l;
@@ -3241,6 +3252,12 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 
 	if (sevent->result == ISC_R_CANCELED) {
 		debug("in cancel handler");
+		isc_sockaddr_format(&query->sockaddr, sockstr, sizeof(sockstr));
+		if (query->timedout)
+			printf(";; Connection to %s(%s) for %s failed: %s.\n",
+			       sockstr, query->servname,
+			       query->lookup->textname,
+			       isc_result_totext(ISC_R_TIMEDOUT));
 		isc_socket_detach(&query->sock);
 		INSIST(sockcount > 0);
 		sockcount--;
@@ -3254,7 +3271,6 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	if (sevent->result != ISC_R_SUCCESS) {
-		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		debug("unsuccessful connection: %s",
 		      isc_result_totext(sevent->result));
@@ -3265,8 +3281,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 			       query->servname, query->lookup->textname,
 			       isc_result_totext(sevent->result));
 		isc_socket_detach(&query->sock);
+		INSIST(sockcount > 0);
 		sockcount--;
-		INSIST(sockcount >= 0);
 		/* XXX Clean up exitcodes */
 		if (exitcode < 9)
 			exitcode = 9;
@@ -3595,8 +3611,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	INSIST(b == &query->recvbuf);
 	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
 
-	if ((l->tcp_mode) && (l->timer != NULL))
-		isc_timer_touch(l->timer);
+	if ((l->tcp_mode) && (query->timer != NULL))
+		isc_timer_touch(query->timer);
 	if ((!l->pending && !l->ns_search_only) || cancel_now) {
 		debug("no longer pending.  Got %s",
 			isc_result_totext(sevent->result));
@@ -3907,7 +3923,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		 * the timeout to much longer, so brief network
 		 * outages won't cause the XFR to abort
 		 */
-		if (timeout != INT_MAX && l->timer != NULL) {
+		if (timeout != INT_MAX && query->timer != NULL) {
 			unsigned int local_timeout;
 
 			if (timeout == 0) {
@@ -3923,7 +3939,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			}
 			debug("have local timeout of %d", local_timeout);
 			isc_interval_set(&l->interval, local_timeout, 0);
-			result = isc_timer_reset(l->timer,
+			result = isc_timer_reset(query->timer,
 						 isc_timertype_once,
 						 NULL,
 						 &l->interval,
@@ -4216,8 +4232,6 @@ cancel_all(void) {
 	}
 	cancel_now = ISC_TRUE;
 	if (current_lookup != NULL) {
-		if (current_lookup->timer != NULL)
-			isc_timer_detach(&current_lookup->timer);
 		for (q = ISC_LIST_HEAD(current_lookup->q);
 		     q != NULL;
 		     q = nq)
