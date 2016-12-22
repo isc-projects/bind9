@@ -174,20 +174,21 @@ include: include/dns/enumtype.h include/dns/enumclass.h \
 rdata.@O@: code.h
 
 include/dns/enumtype.h: gen
-	./gen -s ${srcdir} -t > $@
+	./gen -s ${srcdir} -t > $@ || { rm -f $@ ; exit 1; }
 
 include/dns/enumclass.h: gen
-	./gen -s ${srcdir} -c > $@
+	./gen -s ${srcdir} -c > $@ || { rm -f $@ ; exit 1; }
 
 include/dns/rdatastruct.h: gen \
 		${srcdir}/rdata/rdatastructpre.h \
 		${srcdir}/rdata/rdatastructsuf.h
 	./gen -s ${srcdir} -i \
 		-P ${srcdir}/rdata/rdatastructpre.h \
-		-S ${srcdir}/rdata/rdatastructsuf.h > $@
+		-S ${srcdir}/rdata/rdatastructsuf.h > $@ || \
+	{ rm -f $@ ; exit 1; }
 
 code.h:	gen
-	./gen -s ${srcdir} > code.h
+	./gen -s ${srcdir} > code.h || { rm -f $@ ; exit 1; }
 
 gen: gen.c
 	${BUILD_CC} ${BUILD_CFLAGS} -I${top_srcdir}/lib/isc/include \
