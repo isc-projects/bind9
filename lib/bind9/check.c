@@ -2749,6 +2749,53 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 }
 
 static isc_result_t
+check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
+	       const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx)
+{
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj, *nameobj, *zoneobj;
+	const char *zonename, *zonetype;
+	const char *forview = " for view ";
+	isc_symvalue_t value;
+	isc_result_t result, tresult;
+
+	if (viewname == NULL) {
+		viewname = "";
+		forview = "";
+	}
+	result = ISC_R_SUCCESS;
+
+	obj = cfg_tuple_get(rpz_obj, "zone list");
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element)) {
+		obj = cfg_listelt_value(element);
+		nameobj = cfg_tuple_get(obj, "zone name");
+		zonename = cfg_obj_asstring(nameobj);
+		zonetype = "";
+		tresult = isc_symtab_lookup(symtab, zonename, 3, &value);
+		if (tresult == ISC_R_SUCCESS) {
+			obj = NULL;
+			zoneobj = value.as_cpointer;
+			if (zoneobj != NULL && cfg_obj_istuple(zoneobj))
+				zoneobj = cfg_tuple_get(zoneobj, "options");
+			if (zoneobj != NULL && cfg_obj_ismap(zoneobj))
+				(void)cfg_map_get(zoneobj, "type", &obj);
+			if (obj != NULL)
+				zonetype = cfg_obj_asstring(obj);
+		}
+		if (strcasecmp(zonetype, "master") != 0 &&
+		    strcasecmp(zonetype, "slave") != 0) {
+			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
+				    "%s '%s'%s%s is not a master or slave zone",
+				    rpz_catz, zonename, forview, viewname);
+			result = ISC_R_FAILURE;
+		}
+	}
+	return (result);
+}
+
+static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
 	       isc_symtab_t *files, isc_log_t *logctx, isc_mem_t *mctx)
@@ -2762,6 +2809,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	cfg_aclconfctx_t *actx = NULL;
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *opts = NULL;
 	isc_boolean_t enablednssec, enablevalidation;
 	const char *valstr = "no";
 
@@ -2769,6 +2817,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Get global options block
 	 */
 	(void)cfg_map_get(config, "options", &options);
+
+	/*
+	 * The most relevant options for this view
+	 */
+	if (voptions != NULL)
+		opts = voptions;
+	else
+		opts = options;
 
 	/*
 	 * Check that all zone statements are syntactically correct and
@@ -2799,20 +2855,30 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			result = ISC_R_FAILURE;
 	}
 
+	/*
+	 * Check that the response-policy and catalog-zones options
+	 * refer to zones that exist.
+	 */
+	if (opts != NULL) {
+		obj = NULL;
+		if (cfg_map_get(opts, "response-policy", &obj) == ISC_R_SUCCESS
+		    && check_rpz_catz("response-policy zone", obj,
+				 viewname, symtab, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+		obj = NULL;
+		if (cfg_map_get(opts, "catalog-zones", &obj) == ISC_R_SUCCESS
+		    && check_rpz_catz("catalog zone", obj,
+				  viewname, symtab, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
+	}
+
 	isc_symtab_destroy(&symtab);
 
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (voptions == NULL) {
-		if (options != NULL)
-			if (check_forward(options, NULL,
-					  logctx) != ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
-	} else {
-		if (check_forward(voptions, NULL, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
-	}
+	if (opts != NULL && check_forward(opts, NULL, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	/*
 	 * Check non-zero options at the global and view levels.
@@ -2825,22 +2891,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	/*
 	 * Check that dual-stack-servers is reasonable.
 	 */
-	if (voptions == NULL) {
-		if (options != NULL)
-			if (check_dual_stack(options, logctx) != ISC_R_SUCCESS)
-				result = ISC_R_FAILURE;
-	} else {
-		if (check_dual_stack(voptions, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
-	}
+	if (opts != NULL && check_dual_stack(opts, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	/*
 	 * Check that rrset-order is reasonable.
 	 */
-	if (voptions != NULL) {
-		if (check_order(voptions, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
-	}
+	if (opts != NULL && check_order(opts, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	/*
 	 * Check that all key statements are syntactically correct and
@@ -3275,10 +3333,6 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		result = ISC_R_FAILURE;
 
 	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS)
-		result = ISC_R_FAILURE;
-
-	if (options != NULL &&
-	    check_order(options, logctx) != ISC_R_SUCCESS)
 		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);

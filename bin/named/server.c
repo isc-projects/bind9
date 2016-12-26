@@ -2541,29 +2541,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	/*
-	 * Check that a master or slave zone was found for each
-	 * zone named in the response policy statement.
-	 */
-	if (view->rpzs != NULL) {
-		dns_rpz_num_t n;
-
-		for (n = 0; n < view->rpzs->p.num_zones; ++n)
-		{
-			if ((view->rpzs->defined & DNS_RPZ_ZBIT(n)) == 0) {
-				char namebuf[DNS_NAME_FORMATSIZE];
-
-				dns_name_format(&view->rpzs->zones[n]->origin,
-						namebuf, sizeof(namebuf));
-				cfg_obj_log(obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
-					    "'%s' is not a master or slave zone",
-					    namebuf);
-				result = ISC_R_NOTFOUND;
-				goto cleanup;
-			}
-		}
-	}
-
-	/*
 	 * If we're allowing added zones, then load zone configuration
 	 * from the newzone file for zones that were added during previous
 	 * runs.
