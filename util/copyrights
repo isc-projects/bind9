@@ -873,6 +873,7 @@
 ./bin/tests/system/checkconf/bad-rate-limit-responses-per-second.conf	CONF-C	2016
 ./bin/tests/system/checkconf/bad-rate-limit-slip.conf	CONF-C	2016
 ./bin/tests/system/checkconf/bad-rate-limit-window.conf	CONF-C	2016
+./bin/tests/system/checkconf/bad-rpz-zone.conf	CONF-C	2016
 ./bin/tests/system/checkconf/bad-sharedwritable1.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-sharedwritable2.conf	CONF-C	2014
 ./bin/tests/system/checkconf/bad-tsig.conf	CONF-C	2012,2013
@@ -2870,7 +2871,7 @@
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010,2012
 ./lib/dns/include/dns/ecdb.h			C	2009,2012
-./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011
+./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2016
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/forward.h			C	2000,2001,2004,2005,2006,2007,2009,2016
 ./lib/dns/include/dns/iptable.h			C	2007,2012
