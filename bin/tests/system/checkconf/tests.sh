@@ -43,8 +43,10 @@ do
 	n=`expr $n + 1`
 	echo "I: checking that named-checkconf detects error in $bad ($n)"
 	ret=0
-	$CHECKCONF $bad > /dev/null 2>&1
-	if [ $? != 1 ]; then echo "I:failed"; ret=1; fi
+	$CHECKCONF $bad > checkconf.out 2>&1
+	if [ $? != 1 ]; then ret=1; fi
+	grep "^$bad:[0-9]*: " checkconf.out > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo "I:failed"; fi
 	status=`expr $status + $ret`
 done
 

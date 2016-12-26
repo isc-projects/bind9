@@ -2963,7 +2963,7 @@ cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level,
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
 
-	if (have_current_file(obj->pctx)) {
+	if (obj->file != NULL) {
 		isc_log_write(lctx, CAT, MOD, level,
 			      "%s:%u: %s", obj->file, obj->line, msgbuf);
 	} else {
