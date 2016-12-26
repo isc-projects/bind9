@@ -1,3 +1,6 @@
+4538.	[bug]		Call dns_client_startresolve from client->task.
+			[RT #43896]
+
 4537.	[bug]		Handle timouts better in dig/host/nslookup. [RT #43576]
 
 4535.	[bug]		Address race condition in setting / testing of

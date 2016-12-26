@@ -2686,6 +2686,46 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	return (result);
 }
 
+static void
+runintask(isc_task_t *task, isc_event_t *event) {
+	updatectx_t *uctx;
+	isc_result_t result;
+	unsigned int resoptions;
+
+	REQUIRE(event != NULL);
+
+	UNUSED(task);
+
+	uctx = event->ev_arg;
+
+	if (uctx->zonename != NULL && uctx->currentserver != NULL) {
+		result = send_update(uctx);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	} else if (uctx->currentserver != NULL) {
+		result = request_soa(uctx);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	} else {
+		resoptions = 0;
+		dns_name_clone(uctx->firstname, &uctx->soaqname);
+		result = dns_client_startresolve(uctx->client, &uctx->soaqname,
+						 uctx->rdclass,
+						 dns_rdatatype_soa, resoptions,
+						 uctx->client->task,
+						 resolvesoa_done, uctx,
+						 &uctx->restrans);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	}
+
+	isc_event_free(&event);
+
+fail:
+	if (result != ISC_R_SUCCESS)
+		update_sendevent(uctx, result);
+}
+
 isc_result_t
 dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		       dns_name_t *zonename, dns_namelist_t *prerequisites,
@@ -2702,6 +2742,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	dns_section_t section = DNS_SECTION_UPDATE;
 	isc_sockaddr_t *server, *sa = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
+	isc_event_t *runinevent;
 
 	UNUSED(options);
 
@@ -2723,18 +2764,33 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/* Create a context and prepare some resources */
+	/*
+	 * Create a context and prepare some resources.
+	 */
+
 	uctx = isc_mem_get(client->mctx, sizeof(*uctx));
 	if (uctx == NULL) {
 		dns_view_detach(&view);
 		return (ISC_R_NOMEMORY);
 	}
-	result = isc_mutex_init(&uctx->lock);
-	if (result != ISC_R_SUCCESS) {
+
+	runinevent = isc_event_allocate(client->mctx, client->task,
+					DNS_EVENT_RUNIN, runintask,
+					uctx, sizeof(*runinevent));
+	if (runinevent == NULL) { 
 		dns_view_detach(&view);
 		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
 		return (ISC_R_NOMEMORY);
 	}
+
+	result = isc_mutex_init(&uctx->lock);
+	if (result != ISC_R_SUCCESS) {
+		dns_view_detach(&view);
+		isc_event_free(&runinevent);
+		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
+		return (ISC_R_NOMEMORY);
+	}
+
 	tclone = NULL;
 	isc_task_attach(task, &tclone);
 	uctx->client = client;
@@ -2835,30 +2891,14 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	ISC_LIST_APPEND(client->updatectxs, uctx, link);
 	UNLOCK(&client->lock);
 
-	if (uctx->zonename != NULL && uctx->currentserver != NULL) {
-		result = send_update(uctx);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-	} else if (uctx->currentserver != NULL) {
-		result = request_soa(uctx);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-	} else {
-		dns_name_clone(uctx->firstname, &uctx->soaqname);
-		result = dns_client_startresolve(uctx->client, &uctx->soaqname,
-						 uctx->rdclass,
-						 dns_rdatatype_soa, 0,
-						 client->task, resolvesoa_done,
-						 uctx, &uctx->restrans);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-	}
-
 	*transp = (dns_clientupdatetrans_t *)uctx;
+	isc_task_send(client->task, &runinevent);
 
 	return (ISC_R_SUCCESS);
 
  fail:
+	if (runinevent != NULL)
+		isc_event_free(&runinevent);
 	if (ISC_LINK_LINKED(uctx, link)) {
 		LOCK(&client->lock);
 		ISC_LIST_UNLINK(client->updatectxs, uctx, link);
