@@ -2749,8 +2749,8 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 }
 
 static isc_result_t
-check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
-	       const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx)
+check_rpz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
+	  const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj, *nameobj, *zoneobj;
@@ -2856,19 +2856,13 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Check that the response-policy and catalog-zones options
-	 * refer to zones that exist.
+	 * Check that the response-policy refers to zones that exist.
 	 */
 	if (opts != NULL) {
 		obj = NULL;
 		if (cfg_map_get(opts, "response-policy", &obj) == ISC_R_SUCCESS
-		    && check_rpz_catz("response-policy zone", obj,
+		    && check_rpz("response-policy zone", obj,
 				 viewname, symtab, logctx) != ISC_R_SUCCESS)
-			result = ISC_R_FAILURE;
-		obj = NULL;
-		if (cfg_map_get(opts, "catalog-zones", &obj) == ISC_R_SUCCESS
-		    && check_rpz_catz("catalog zone", obj,
-				  viewname, symtab, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
