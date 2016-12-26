@@ -2432,7 +2432,7 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 	opts = dns_catz_zone_getdefoptions(zone);
 
 	obj = cfg_tuple_get(catz_obj, "default-masters");
-	if (obj != NULL)
+	if (obj != NULL && cfg_obj_istuple(obj))
 		result = ns_config_getipandkeylist(config, obj,
 						   view->mctx, &opts->masters);
 
@@ -3332,29 +3332,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
 				     viewlist, actx, ISC_FALSE, old_rpz_ok,
 				     ISC_FALSE));
-	}
-
-	/*
-	 * Check that a master or slave zone was found for each
-	 * zone named in the response policy statement.
-	 */
-	if (view->rpzs != NULL) {
-		dns_rpz_num_t n;
-
-		for (n = 0; n < view->rpzs->p.num_zones; ++n)
-		{
-			if ((view->rpzs->defined & DNS_RPZ_ZBIT(n)) == 0) {
-				char namebuf[DNS_NAME_FORMATSIZE];
-
-				dns_name_format(&view->rpzs->zones[n]->origin,
-						namebuf, sizeof(namebuf));
-				cfg_obj_log(obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
-					    "'%s' is not a master or slave zone",
-					    namebuf);
-				result = ISC_R_NOTFOUND;
-				goto cleanup;
-			}
-		}
 	}
 
 	/*
