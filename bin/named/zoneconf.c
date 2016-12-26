@@ -1366,8 +1366,8 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (updateacl != NULL  && dns_acl_isinsecure(updateacl))
 			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "zone '%s' allows updates by IP "
-				      "address, which is insecure",
+				      "zone '%s' allows unsigned updates "
+				      "from remote hosts, which is insecure",
 				      zname);
 
 		RETERR(configure_zone_ssutable(zoptions, mayberaw, zname));
