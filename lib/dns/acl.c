@@ -589,19 +589,21 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 		return;
 
 	/*
-	 * If a loopback address found and the other family
-	 * doesn't exist or is negative, return.
+	 * If a loopback address found and the other family and
+	 * ecs entry doesn't exist or is negative, return.
 	 */
 	if (prefix->bitlen == 32 &&
 	    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK &&
 	    (data[1] == NULL || !* (isc_boolean_t *) data[1]) &&
+	    (data[2] == NULL || !* (isc_boolean_t *) data[2]) &&
 	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
 		return;
 
 	if (prefix->bitlen == 128 &&
 	    IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6) &&
 	    (data[0] == NULL || !* (isc_boolean_t *) data[0]) &&
-	    (data[2] == NULL || !* (isc_boolean_t *) data[2]))
+	    (data[2] == NULL || !* (isc_boolean_t *) data[2]) &&
+	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
 		return;
 
 	/* Non-negated, non-loopback */
