@@ -2677,11 +2677,13 @@ cfg_obj_log(const cfg_obj_t *obj, isc_log_t *lctx, int level,
 	va_start(ap, fmt);
 
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
-	isc_log_write(lctx, CAT, MOD, level,
-		      "%s:%u: %s",
-		      obj->file == NULL ? "<unknown file>" : obj->file,
-		      obj->line, msgbuf);
 	va_end(ap);
+	if (obj->file != NULL) {
+		isc_log_write(lctx, CAT, MOD, level,
+			      "%s:%u: %s", obj->file, obj->line, msgbuf);
+	} else {
+		isc_log_write(lctx, CAT, MOD, level, "%s", msgbuf);
+	}
 }
 
 const char *

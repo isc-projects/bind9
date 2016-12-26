@@ -2160,7 +2160,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
 	unsigned int query_timeout, ndisp;
 	struct cfg_context *nzctx;
-	dns_rpz_zone_t *rpz;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2317,22 +2316,6 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
 				     actx, ISC_FALSE));
-	}
-
-	for (rpz = ISC_LIST_HEAD(view->rpz_zones);
-	     rpz != NULL;
-	     rpz = ISC_LIST_NEXT(rpz, link))
-	{
-		if (!rpz->defined) {
-			char namebuf[DNS_NAME_FORMATSIZE];
-
-			dns_name_format(&rpz->origin, namebuf, sizeof(namebuf));
-			cfg_obj_log(obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
-				    "'%s' is not a master or slave zone",
-				    namebuf);
-			result = ISC_R_NOTFOUND;
-			goto cleanup;
-		}
 	}
 
 	/*
