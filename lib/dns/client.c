@@ -2834,7 +2834,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	runinevent = isc_event_allocate(client->mctx, client->task,
 					DNS_EVENT_RUNIN, runintask,
 					uctx, sizeof(*runinevent));
-	if (runinevent == NULL) { 
+	if (runinevent == NULL) {
 		dns_view_detach(&view);
 		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
 		return (ISC_R_NOMEMORY);
