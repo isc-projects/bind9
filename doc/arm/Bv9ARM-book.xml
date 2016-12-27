@@ -17205,6 +17205,18 @@ zone "example.com" {
 	  in ACLs that are not prefixed with "ecs" are matched only
 	  against the source address.
 	</para>
+	<note>
+	  <simpara>
+	    (Note: The authoritative ECS implementation in
+	    <command>named</command> is based on an early version of the
+	    specification, and is known to have incompatibilities with
+	    other implementations.  It is also inefficient, requiring
+	    a separate view for each client subnet to be sent different
+	    answers, and it is unable to correct for overlapping subnets in
+	    the configuration.  It can be used for testing purposes, but is
+	    not recommended for production use.)
+	  </simpara>
+	</note>
 	<para>
 	  When <acronym>BIND</acronym> 9 is built with GeoIP support,
 	  ACLs can also be used for geographic access restrictions.
