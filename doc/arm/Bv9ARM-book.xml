@@ -9144,6 +9144,16 @@ deny-answer-aliases { "example.net"; };
 	    or contain other IP addresses or data.
 	  </para>
 
+	  <warning>
+	    <para>
+	      The RPZ implementation in BIND 9.9 is based on an early
+	      version of the RPZ specification, and is known to contain
+	      numerous bugs. It is not actively maintained. If you
+	      want to use the RPZ feature in production, please use
+	      BIND 9.10 and above.
+	    </para>
+	  </warning>
+
 	  <para>
 	    Response policy zones are named in the
 	    <command>response-policy</command> option for the view or among the
