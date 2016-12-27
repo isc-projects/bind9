@@ -1,3 +1,6 @@
+4541.	[bug]		rndc addzone should properly reject non master/slave
+			zones. [RT #43665]
+
 4540.	[bug]		Correctly handle ecs entries in dns_acl_isinsecure.
 			[RT #43601]
 
