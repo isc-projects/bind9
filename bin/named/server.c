@@ -2560,9 +2560,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		     element = cfg_list_next(element))
 		{
 			const cfg_obj_t *zconfig = cfg_listelt_value(element);
-			CHECK(configure_zone(config, zconfig, vconfig,
-					     mctx, view, NULL, actx,
-					     ISC_TRUE, ISC_FALSE));
+			CHECK(configure_zone(config, zconfig, vconfig, mctx,
+					     view, viewlist, actx, ISC_TRUE,
+					     ISC_FALSE));
 		}
 	}
 
@@ -4090,7 +4090,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 
 	if (ISC_LIST_EMPTY(fwdlist)) {
 		if (forwardtype != NULL)
-			cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(forwardtype, ns_g_lctx, ISC_LOG_WARNING,
 				    "no forwarders seen; disabling "
 				    "forwarding");
 		fwdpolicy = dns_fwdpolicy_none;
@@ -9233,6 +9233,7 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	const cfg_obj_t	    *views = NULL;
 	const cfg_obj_t     *parms = NULL;
 	const cfg_obj_t     *obj = NULL;
+	const cfg_obj_t     *zoptions = NULL;
 	const cfg_listelt_t *element;
 	const char	    *zonename;
 	const char	    *classname = NULL;
@@ -9265,6 +9266,34 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	dns_fixedname_init(&fname);
 	dnsname = dns_fixedname_name(&fname);
 	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, 0, NULL));
+
+	/* Check the zone type for ones that are not supported by addzone. */
+	zoptions = cfg_tuple_get(parms, "options");
+ 
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "type", &obj);
+	if (obj == NULL) {
+		(void) cfg_map_get(zoptions, "in-view", &obj);
+		if (obj != NULL) {
+			(void) putstr(text,
+				      "'in-view' zones not supported by ");
+			(void) putstr(text, "addzone");
+		} else
+			(void) putstr(text, "zone type not specified");
+		CHECK(ISC_R_FAILURE);
+	}
+ 
+	if (strcasecmp(cfg_obj_asstring(obj), "hint") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "forward") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "redirect") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "delegation-only") == 0)
+	{
+		(void) putstr(text, "'");
+		(void) putstr(text, cfg_obj_asstring(obj));
+		(void) putstr(text, "' zones not supported by ");
+		(void) putstr(text, "addzone");
+		CHECK(ISC_R_FAILURE);
+	}
 
 	/* Make sense of optional class argument */
 	obj = cfg_tuple_get(parms, "class");
@@ -9336,8 +9365,8 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_view_thaw(view);
-	result = configure_zone(cfg->config, parms, vconfig,
-				server->mctx, view, NULL, cfg->actx,
+	result = configure_zone(cfg->config, parms, vconfig, server->mctx,
+				view, &ns_g_server->viewlist, cfg->actx,
 				ISC_FALSE, ISC_FALSE);
 	dns_view_freeze(view);
 	isc_task_endexclusive(server->task);
