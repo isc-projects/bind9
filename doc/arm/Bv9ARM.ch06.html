@@ -6749,6 +6749,17 @@ deny-answer-aliases { "example.net"; };
             or contain other IP addresses or data.
           </p>
 
+          <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Warning</h3>
+            <p>
+              The RPZ implementation in BIND 9.9 is based on an early
+              version of the RPZ specification, and is known to contain
+              numerous bugs. It is not actively maintained. If you
+              want to use the RPZ feature in production, please use
+              BIND 9.10 and above.
+            </p>
+          </div>
+
           <p>
             Response policy zones are named in the
             <span class="command"><strong>response-policy</strong></span> option for the view or among the
