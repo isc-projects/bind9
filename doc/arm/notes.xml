@@ -922,6 +922,24 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_misc"><info><title>Miscellaneous Notes</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Authoritative server support for the EDNS Client Subnet option
+	  (ECS), introduced in BIND 9.11.0, was based on an early version
+	  of the specification, and is now known to have incompatibilities
+	  with other ECS implementations. It is also inefficient, requiring
+	  a separate view for each answer, and is unable to correct for
+	  overlapping subnets in the configuration.  It is intended for
+	  testing purposes but is not recommended for for production use.
+	  This was not made sufficiently clear in the documentation at
+	  the time of release.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="end_of_life"><info><title>End of Life</title></info>
     <para>
       The end of life for BIND 9.11 is yet to be determined but
