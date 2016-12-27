@@ -2147,8 +2147,9 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_view_thaw(ev->view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig,
-				ev->cbd->server->mctx, ev->view, NULL,
-				cfg->actx, ISC_TRUE, ISC_FALSE, ev->mod);
+				ev->cbd->server->mctx, ev->view, 
+				&ev->cbd->server->viewlist, cfg->actx,
+				ISC_TRUE, ISC_FALSE, ev->mod);
 	dns_view_freeze(ev->view);
 	isc_task_endexclusive(task);
 
@@ -4994,7 +4995,7 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 
 	if (ISC_LIST_EMPTY(fwdlist)) {
 		if (forwardtype != NULL)
-			cfg_obj_log(forwarders, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(forwardtype, ns_g_lctx, ISC_LOG_WARNING,
 				    "no forwarders seen; disabling "
 				    "forwarding");
 		fwdpolicy = dns_fwdpolicy_none;
@@ -6656,8 +6657,8 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
-		CHECK(configure_zone(config, zconfig, vconfig,
-				     mctx, view, NULL, actx,
+		CHECK(configure_zone(config, zconfig, vconfig, mctx,
+				     view, &ns_g_server->viewlist, actx,
 				     ISC_TRUE, ISC_FALSE, ISC_FALSE));
 	}
 
@@ -6785,8 +6786,8 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			CHECK(ISC_R_FAILURE);
 
 		zoneobj = cfg_listelt_value(cfg_list_first(zlist));
-		CHECK(configure_zone(config, zoneobj, vconfig,
-				     mctx, view, NULL, actx,
+		CHECK(configure_zone(config, zoneobj, vconfig, mctx,
+				     view, &ns_g_server->viewlist, actx,
 				     ISC_TRUE, ISC_FALSE, ISC_FALSE));
 
 		cfg_obj_destroy(ns_g_addparser, &zoneconf);
@@ -11252,6 +11253,7 @@ newzone_parse(ns_server_t *server, char *command, dns_view_t **viewp,
 	cfg_obj_t *zoneconf = NULL;
 	const cfg_obj_t *zlist = NULL;
 	const cfg_obj_t *zoneobj = NULL;
+	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *obj = NULL;
 	const char *viewname = NULL;
 	dns_rdataclass_t rdclass;
@@ -11259,6 +11261,8 @@ newzone_parse(ns_server_t *server, char *command, dns_view_t **viewp,
 	const char *bn;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
+	REQUIRE(zoneobjp != NULL && *zoneobjp == NULL);
+	REQUIRE(zoneconfp != NULL && *zoneconfp == NULL);
 
 	/* Try to parse the argument string */
 	isc_buffer_init(&argbuf, command, (unsigned int) strlen(command));
@@ -11281,11 +11285,39 @@ newzone_parse(ns_server_t *server, char *command, dns_view_t **viewp,
 	CHECK(cfg_parse_buffer3(ns_g_addparser, &argbuf, bn, 0,
 				&cfg_type_addzoneconf, &zoneconf));
 	CHECK(cfg_map_get(zoneconf, "zone", &zlist));
-	if (! cfg_obj_islist(zlist))
+	if (!cfg_obj_islist(zlist))
 		CHECK(ISC_R_FAILURE);
 
 	/* For now we only support adding one zone at a time */
 	zoneobj = cfg_listelt_value(cfg_list_first(zlist));
+
+	/* Check the zone type for ones that are not supported by addzone. */
+	zoptions = cfg_tuple_get(zoneobj, "options");
+
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "type", &obj);
+	if (obj == NULL) {
+		(void) cfg_map_get(zoptions, "in-view", &obj);
+		if (obj != NULL) {
+			(void) putstr(text,
+				      "'in-view' zones not supported by ");
+			(void) putstr(text, bn);
+		} else
+			(void) putstr(text, "zone type not specified");
+		CHECK(ISC_R_FAILURE);
+	}
+
+	if (strcasecmp(cfg_obj_asstring(obj), "hint") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "forward") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "redirect") == 0 ||
+	    strcasecmp(cfg_obj_asstring(obj), "delegation-only") == 0)
+	{
+		(void) putstr(text, "'");
+		(void) putstr(text, cfg_obj_asstring(obj));
+		(void) putstr(text, "' zones not supported by ");
+		(void) putstr(text, bn);
+		CHECK(ISC_R_FAILURE);
+	}
 
 	/* Make sense of optional class argument */
 	obj = cfg_tuple_get(zoneobj, "class");
@@ -11344,7 +11376,7 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx,
 
 	cfg_map_get(config, "zone", &zl);
 
-	if (! cfg_obj_islist(zl))
+	if (!cfg_obj_islist(zl))
 		CHECK(ISC_R_FAILURE);
 
 	DE_CONST(&zl->value.list, list);
@@ -11446,8 +11478,8 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Mark view unfrozen and configure zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig,
-				server->mctx, view, NULL, cfg->actx,
-				ISC_TRUE, ISC_FALSE, ISC_FALSE);
+				server->mctx, view, &server->viewlist,
+				cfg->actx, ISC_TRUE, ISC_FALSE, ISC_FALSE);
 	dns_view_freeze(view);
 
 	isc_task_endexclusive(server->task);
@@ -11594,8 +11626,8 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Reconfigure the zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig,
-				server->mctx, view, NULL, cfg->actx,
-				ISC_TRUE, ISC_FALSE, ISC_TRUE);
+				server->mctx, view, &server->viewlist,
+				cfg->actx, ISC_TRUE, ISC_FALSE, ISC_TRUE);
 	dns_view_freeze(view);
 
 	exclusive = ISC_FALSE;
@@ -11754,7 +11786,8 @@ ns_server_changezone(ns_server_t *server, char *command, isc_buffer_t **text) {
 		addzone = ISC_FALSE;
 	}
 
-	CHECK(newzone_parse(server, command, &view, &zoneconf, &zoneobj, text));
+	CHECK(newzone_parse(server, command, &view, &zoneconf,
+			    &zoneobj, text));
 
 	/* Are we accepting new zones in this view? */
 #ifdef HAVE_LMDB
