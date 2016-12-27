@@ -45,6 +45,7 @@
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_misc">Miscellaneous Notes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_thanks">Thank You</a></span></dt>
 </dl></dd>
@@ -972,6 +973,24 @@
 	</p>
       </li>
 </ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_misc"></a>Miscellaneous Notes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  Authoritative server support for the EDNS Client Subnet option
+	  (ECS), introduced in BIND 9.11.0, was based on an early version
+	  of the specification, and is now known to have incompatibilities
+	  with other ECS implementations. It is also inefficient, requiring
+	  a separate view for each answer, and is unable to correct for
+	  overlapping subnets in the configuration.  It is intended for
+	  testing purposes but is not recommended for for production use.
+	  This was not made sufficiently clear in the documentation at
+	  the time of release.
+	</p>
+      </li></ul></div>
   </div>
 
   <div class="section">
