@@ -2147,7 +2147,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_view_thaw(ev->view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig,
-				ev->cbd->server->mctx, ev->view, 
+				ev->cbd->server->mctx, ev->view,
 				&ev->cbd->server->viewlist, cfg->actx,
 				ISC_TRUE, ISC_FALSE, ev->mod);
 	dns_view_freeze(ev->view);
