@@ -1,3 +1,7 @@
+4543.	[bug]		dns_client_startupdate now delays sending the update
+			request until isc_app_ctxrun has been called.
+			[RT #43976]
+
 4541.	[bug]		rndc addzone should properly reject non master/slave
 			zones. [RT #43665]
 
