@@ -892,6 +892,14 @@
 	  local operating system. [RT #42866]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Expanded and improved the YAML output from
+	  <command>dnstap-read -y</command>: it now includes packet
+	  size and a detailed breakdown of message contents.
+	  [RT #43622] [RT #43642]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

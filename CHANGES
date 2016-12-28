@@ -1,7 +1,8 @@
-4545.	[func]		Make dnstap-read output more functionally usable.
+4545.	[func]		Expand YAML output from dnstap-read to include 
+			a detailed breakdown of the DNS message contents.
 			[RT #43642]
 
-4544.	[func]		Add message/payload size to dnstap-read YAML output.
+4544.	[bug]		Add message/payload size to dnstap-read YAML output.
 			[RT #43622]
 
 4543.	[bug]		dns_client_startupdate now delays sending the update
