@@ -80,6 +80,12 @@
 	  <command>rndc modzone</command> commands.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named-checkconf -l</command> lists the zones found
+	  in <filename>named.conf</filename>. [RT #43154]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
@@ -93,6 +99,14 @@
 	  [RT #43622] [RT #43642]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  If an ACL is specified with an address prefix in which the
+	  prefix length is longer than the address portion (for example,
+	  192.0.2.1/8), it will now be treated as a fatal error during
+	  configuration. [RT #43367]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
@@ -100,7 +114,34 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  Referencing a nonexistent zone in a <command>response-policy</command>
+	  statement could cause an assertion failure during configuration.
+	  [RT #43787]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>rndc addzone</command> could cause a crash
+	  when attempting to add a zone with a type other than
+	  <command>master</command> or <command>slave</command>.
+	  Such zones are now rejected. [RT #43665]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> could hang when encountering log
+	  file names with large apparent gaps in version number (for
+	  example, when files exist called "logfile.0", "logfile.1",
+	  and "logfile.1482954169").  This is now handled correctly.
+	  [RT #38688]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  If a zone was updated while <command>named</command> was
+	  processing a query for nonexistent data, it could return
+	  out-of-sync NSEC3 records causing potential DNSSEC validation
+	  failure. [RT #43247]
 	</para>
       </listitem>
     </itemizedlist>
