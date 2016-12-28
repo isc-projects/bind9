@@ -785,11 +785,13 @@
 ./bin/tests/system/addzone/ns1/named.conf	CONF-C	2013,2016
 ./bin/tests/system/addzone/ns2/added.db		ZONE	2010,2013,2016
 ./bin/tests/system/addzone/ns2/default.nzf.in	X	2010
+./bin/tests/system/addzone/ns2/hints.db		ZONE	2016
 ./bin/tests/system/addzone/ns2/inline.db	ZONE	2013,2016
 ./bin/tests/system/addzone/ns2/named1.conf	CONF-C	2010,2016
 ./bin/tests/system/addzone/ns2/named2.conf	CONF-C	2010,2011,2016
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010,2016
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010,2016
+./bin/tests/system/addzone/ns2/redirect.db	ZONE	2016
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014,2016
 ./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/allow_query/clean.sh		SH	2010,2012,2014,2015,2016
@@ -1359,6 +1361,7 @@
 ./bin/tests/system/dnstap/ns3/named.conf	CONF-C	2015,2016
 ./bin/tests/system/dnstap/ns4/named.conf	CONF-C	2016
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016
+./bin/tests/system/dnstap/ydump.py		PYTHON	2016
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014,2015,2016
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013,2016
