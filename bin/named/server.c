@@ -8980,8 +8980,8 @@ zone_from_args(ns_server_t *server, isc_lex_t *lex, const char *zonetxt,
 			}
 		} else {
 			result = dns_viewlist_findzone(&server->viewlist,
-				          name, ISC_TF(classtxt == NULL),
-				          rdclass, zonep);
+					  name, ISC_TF(classtxt == NULL),
+					  rdclass, zonep);
 			if (result == ISC_R_NOTFOUND)
 				snprintf(problem, sizeof(problem),
 					 "no matching zone '%s' in any view",
@@ -9006,7 +9006,7 @@ zone_from_args(ns_server_t *server, isc_lex_t *lex, const char *zonetxt,
 				result = ISC_R_SUCCESS;
 			} else
 				result = ISC_R_NOTFOUND;
-		} else 
+		} else
 			result = dns_zt_find(view->zonetable, name, 0,
 					     NULL, zonep);
 		if (result != ISC_R_SUCCESS)
@@ -11699,7 +11699,7 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		dns_zone_attach(view->redirect, &zone);
 	} else
 		CHECK(dns_zt_find(view->zonetable, name, 0, NULL, &zone));
-	
+
 
 
 #ifndef HAVE_LMDB
