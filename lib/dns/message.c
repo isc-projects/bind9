@@ -1639,7 +1639,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) &&
 	    !preserve_order &&
 	    !auth_signed(section)) 
-		DO_ERROR(DNS_R_FORMERR);
+		DO_FORMERR;
 
 	if (seen_problem)
 		return (DNS_R_RECOVERABLE);
