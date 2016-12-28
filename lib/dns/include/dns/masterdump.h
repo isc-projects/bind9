@@ -103,6 +103,9 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Indent output. */
 #define DNS_STYLEFLAG_INDENT		0x40000000U
 
+/*% Output in YAML style. */
+#define DNS_STYLEFLAG_YAML		0x80000000U
+
 ISC_LANG_BEGINDECLS
 
 /***
@@ -168,12 +171,30 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_indent;
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_keyzone;
 
 /*%
+ * YAML-compatible output
+ */
+LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_yaml;
+
+/*%
  * The default indent string to prepend lines with when using
- * styleflag DNS_STYLEFLAG_INDENT.  This is set to "\t" by default.
- * The indent preceeds everything else on the line, including comment
- * characters (;).
+ * styleflag DNS_STYLEFLAG_INDENT or DNS_STYLEFLAG_YAML.
+ * This is set to "\t" by default. The indent is repeated
+ * 'dns_master_indent' times. This precedes everything else
+ * on the line, including comment characters (;).
+ *
+ * XXX: Changing this value at runtime is not thread-safe.
  */
 LIBDNS_EXTERNAL_DATA extern const char *dns_master_indentstr;
+
+/*%
+ * The number of copies of the indent string to put at the beginning
+ * of the line when using DNS_STYLEFLAG_INDENT or DNS_STYLEFLAG_YAML.
+ * This is set to 1 by default. It is increased and decreased
+ * to adjust indentation levels when producing YAML output.
+ *
+ * XXX: This is not thread-safe.
+ */
+LIBDNS_EXTERNAL_DATA extern unsigned int dns_master_indent;
 
 /***
  ***	Functions
@@ -394,6 +415,7 @@ dns_master_stylecreate2(dns_master_style_t **style, unsigned int flags,
 		       unsigned int type_column, unsigned int rdata_column,
 		       unsigned int line_length, unsigned int tab_width,
 		       unsigned int split_width, isc_mem_t *mctx);
+
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);
 

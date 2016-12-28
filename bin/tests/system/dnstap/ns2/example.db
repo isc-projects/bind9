@@ -18,6 +18,8 @@ ns2.example.		A	10.53.0.2
 
 $ORIGIN example.
 a			A	10.0.0.1
+a			A	10.0.0.3
+a			A	10.0.0.5
 			MX	10 mail.example.
 
 mail			A	10.0.0.2

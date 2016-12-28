@@ -83,16 +83,79 @@ usage(void) {
 }
 
 static void
-print_yaml(dns_dtdata_t *d) {
-	Dnstap__Dnstap *frame = d->frame;
+print_dtdata(dns_dtdata_t *dt) {
+	isc_result_t result;
+	isc_buffer_t *b = NULL;
+
+	isc_buffer_allocate(mctx, &b, 2048);
+	if (b == NULL)
+		fatal("out of memory");
+
+	CHECKM(dns_dt_datatotext(dt, &b), "dns_dt_datatotext");
+	printf("%.*s\n", (int) isc_buffer_usedlength(b),
+	       (char *) isc_buffer_base(b));
+
+ cleanup:
+	if (b != NULL)
+		isc_buffer_free(&b);
+}
+
+static void
+print_packet(dns_dtdata_t *dt, const dns_master_style_t *style) {
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+
+	if (dt->msg != NULL) {
+		size_t textlen = 2048;
+
+		isc_buffer_allocate(mctx, &b, textlen);
+		if (b == NULL)
+			fatal("out of memory");
+
+		for (;;) {
+			isc_buffer_reserve(&b, textlen);
+			if (b == NULL)
+				fatal("out of memory");
+
+			result = dns_message_totext(dt->msg, style, 0, b);
+			if (result == ISC_R_NOSPACE) {
+				textlen *= 2;
+				continue;
+			} else if (result == ISC_R_SUCCESS) {
+				printf("%.*s",
+				       (int) isc_buffer_usedlength(b),
+				       (char *) isc_buffer_base(b));
+				isc_buffer_free(&b);
+			} else {
+				isc_buffer_free(&b);
+				CHECKM(result, "dns_message_totext");
+			}
+			break;
+		}
+	}
+
+ cleanup:
+	if (b != NULL)
+		isc_buffer_free(&b);
+}
+
+static void
+print_yaml(dns_dtdata_t *dt) {
+	Dnstap__Dnstap *frame = dt->frame;
 	Dnstap__Message *m = frame->message;
 	const ProtobufCEnumValue *ftype, *mtype;
+	static isc_boolean_t first = ISC_TRUE;
 
 	ftype = protobuf_c_enum_descriptor_get_value(
 				     &dnstap__dnstap__type__descriptor,
 				     frame->type);
 	if (ftype == NULL)
 		return;
+
+	if (!first)
+		printf("---\n");
+	else
+		first = ISC_FALSE;
 
 	printf("type: %s\n", ftype->name);
 
@@ -117,17 +180,22 @@ print_yaml(dns_dtdata_t *d) {
 
 	printf("  type: %s\n", mtype->name);
 
-	if (!isc_time_isepoch(&d->qtime)) {
+	if (!isc_time_isepoch(&dt->qtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&d->qtime, buf, sizeof(buf));
+		isc_time_formatISO8601(&dt->qtime, buf, sizeof(buf));
 		printf("  query_time: !!timestamp %s\n", buf);
 	}
 
-	if (!isc_time_isepoch(&d->rtime)) {
+	if (!isc_time_isepoch(&dt->rtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&d->rtime, buf, sizeof(buf));
+		isc_time_formatISO8601(&dt->rtime, buf, sizeof(buf));
 		printf("  response_time: !!timestamp %s\n", buf);
 	}
+
+        if (dt->msgdata.base != NULL) {
+                printf("  message_size: %zdb\n", (size_t) dt->msgdata.length);
+        } else
+                printf("  message_size: 0b\n");
 
 	if (m->has_socket_family) {
 		const ProtobufCEnumValue *type =
@@ -138,7 +206,7 @@ print_yaml(dns_dtdata_t *d) {
 			printf("  socket_family: %s\n", type->name);
 	}
 
-	printf("  socket_protocol: %s\n", d->tcp ? "TCP" : "UDP");
+	printf("  socket_protocol: %s\n", dt->tcp ? "TCP" : "UDP");
 
 	if (m->has_query_address) {
 		ProtobufCBinaryData *ip = &m->query_address;
@@ -186,9 +254,18 @@ print_yaml(dns_dtdata_t *d) {
 		}
 	}
 
-	if (d->msg != NULL)
-		printf("  %s: |\n", ((d->type & DNS_DTTYPE_QUERY) != 0)
-				     ? "query_message" : "response_message");
+	if (dt->msg != NULL) {
+		printf("  %s:\n", ((dt->type & DNS_DTTYPE_QUERY) != 0)
+				     ? "query_message_data"
+				     : "response_message_data");
+
+		print_packet(dt, &dns_master_style_yaml);
+
+		printf("  %s: |\n", ((dt->type & DNS_DTTYPE_QUERY) != 0)
+				     ? "query_message"
+				     : "response_message");
+		print_packet(dt, &dns_master_style_indent);
+	}
 };
 
 int
@@ -197,7 +274,6 @@ main(int argc, char *argv[]) {
 	dns_message_t *message = NULL;
 	isc_buffer_t *b = NULL;
 	dns_dtdata_t *dt = NULL;
-	const dns_master_style_t *style = &dns_master_style_debug;
 	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
 
@@ -212,9 +288,8 @@ main(int argc, char *argv[]) {
 				break;
 			case 'y':
 				yaml = ISC_TRUE;
-				style = &dns_master_style_indent;
-				dns_master_indentstr = "    ";
-				printmessage = ISC_TRUE;
+				dns_master_indentstr = "  ";
+				dns_master_indent = 2;
 				break;
 			default:
 				usage();
@@ -261,43 +336,14 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 
-		if (yaml)
+		if (yaml) {
 			print_yaml(dt);
-		else {
-			CHECKM(dns_dt_datatotext(dt, &b), "dns_dt_datatotext");
-			printf("%.*s\n", (int) isc_buffer_usedlength(b),
-			       (char *) isc_buffer_base(b));
+		} else if (printmessage) {
+			print_dtdata(dt);
+			print_packet(dt, &dns_master_style_debug);
+		} else {
+			print_dtdata(dt);
 		}
-
-		if (printmessage && dt->msg != NULL) {
-			size_t textlen = 2048;
-
-			isc_buffer_clear(b);
-
-			for (;;) {
-				isc_buffer_reserve(&b, textlen);
-				if (b == NULL)
-					fatal("out of memory");
-				result = dns_message_totext(dt->msg, style,
-							    0, b);
-				if (result == ISC_R_NOSPACE) {
-					textlen *= 2;
-					continue;
-				} else if (result == ISC_R_SUCCESS) {
-					printf("%.*s",
-					       (int) isc_buffer_usedlength(b),
-					       (char *) isc_buffer_base(b));
-					isc_buffer_free(&b);
-				} else {
-					isc_buffer_free(&b);
-					CHECKM(result, "dns_message_totext");
-				}
-				break;
-			}
-		}
-
-		if (yaml)
-			printf("---\n");
 
 		dns_dtdata_free(&dt);
 	}
