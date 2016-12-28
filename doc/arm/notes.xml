@@ -21,11 +21,10 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      This document summarizes significant changes since the last
-      production release of BIND on the corresponding major release
-      branch.
-      Please see the CHANGES file for a further list of bug fixes and
-      other changes.
+      This document summarizes changes since the last production
+      release on the BIND 9.10 branch.
+      Please see the <filename>CHANGES</filename> file for a further
+      list of bug fixes and other changes.
     </para>
   </section>
 
@@ -42,6 +41,13 @@
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
+      <listitem>
+	<para>
+	  It was possible to trigger assertions when processing
+	  responses containing an answer of type DNAME. This flaw is
+	  disclosed in CVE-2016-8864. [RT #43465]
+	</para>
+      </listitem>
 	<para>
 	  Added the ability to specify the maximum number of records
 	  permitted in a zone (max-records #;).  This provides a mechanism
@@ -52,7 +58,7 @@
       </listitem>
       <listitem>
 	<para>
-	  It was possible to trigger a assertion when rendering a
+	  It was possible to trigger an assertion when rendering a
 	  message using a specially crafted request. This flaw is
 	  disclosed in CVE-2016-2776. [RT #43139]
 	</para>
@@ -66,95 +72,11 @@
 	 CVE-2016-2775. [RT #42694]
 	</para>
       </listitem>
-      <listitem>
-	<para>
-	  Duplicate EDNS COOKIE options in a response could trigger
-	  an assertion failure. This flaw is disclosed in CVE-2016-2088.
-	  [RT #41809]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The resolver could abort with an assertion failure due to
-	  improper DNAME handling when parsing fetch reply
-	  messages. This flaw is disclosed in CVE-2016-1286. [RT #41753]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Malformed control messages can trigger assertions in named
-	  and rndc. This flaw is disclosed in CVE-2016-1285. [RT
-	  #41666]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Certain errors that could be encountered when printing out
-	  or logging an OPT record containing a CLIENT-SUBNET option
-	  could be mishandled, resulting in an assertion failure.
-	  This flaw is disclosed in CVE-2015-8705. [RT #41397]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Specific APL data could trigger an INSIST.  This flaw
-	  is disclosed in CVE-2015-8704. [RT #41396]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Incorrect reference counting could result in an INSIST
-	  failure if a socket error occurred while performing a
-	  lookup.  This flaw is disclosed in CVE-2015-8461. [RT#40945]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Insufficient testing when parsing a message allowed
-	  records with an incorrect class to be be accepted,
-	  triggering a REQUIRE failure when those records
-	  were subsequently cached.  This flaw is disclosed
-	  in CVE-2015-8000. [RT #40987]
-	</para>
-      </listitem>
     </itemizedlist>
-
   </section>
 
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
-      <listitem>
-	<para>
-	  The following resource record types have been implemented:
-	  AVC, CSYNC, NINFO, RKEY, SINK, SMIMEA, TA, TALINK.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Added a warning for a common misconfiguration involving forwarded
-	  RFC 1918 and IPv6 ULA (Universal Local Address) zones.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Contributed software from Nominum is included in the source at
-	  contrib/dnsperf-2.1.0.0-1/. It includes dnsperf for measuring
-	  the performance of authoritative DNS servers, resperf for
-	  testing the resolution performance of a caching DNS server,
-	  resperf-report for generating a resperf report in HTML with
-	  gnuplot graphs, and queryparse to extract DNS queries from
-	  pcap capture files. This software is not installed by default
-	  with BIND.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When loading a signed zone, <command>named</command> will
-	  now check whether an RRSIG's inception time is in the future,
-	  and if so, it will regenerate the RRSIG immediately. This helps
-	  when a system's clock needs to be reset backwards.
-	</para>
-      </listitem>
       <listitem>
 	<para>
 	  <command>named</command> now provides feedback to the
@@ -166,6 +88,14 @@
 	  configured trust anchors for the zone.  This is controlled
 	  by <command>trust-anchor-telemetry</command> and defaults
 	  to yes.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A new <command>tcp-only</command> option has been added to
+	  <command>server</command> clauses, to indicate that UDP should
+	  not be used when sending queries to a specified IP address or
+	  prefix.
 	</para>
       </listitem>
     </itemizedlist>
@@ -184,49 +114,11 @@
       </listitem>
       <listitem>
 	<para>
-	  Updated the compiled-in addresses for H.ROOT-SERVERS.NET
-	  and L.ROOT-SERVERS.NET.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The default preferred glue is now the address type of the
-	  transport the query was received over.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  On machines with 2 or more processors (CPU), the default value
-	  for the number of UDP listeners has been changed to the number
-	  of detected processors minus one.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Zone transfers now use smaller message sizes to improve
-	  message compression. This results in reduced network usage.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  named -V output now also includes operating system details.
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes_port"><info><title>Porting Changes</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  The Microsoft Windows install tool
-	  <command>BINDInstall.exe</command> which requires a
-	  non-free version of Visual Studio to be built, now uses two
-	  files (lists of flags and files) created by the Configure
-	  perl script with all the needed information which were
-	  previously compiled in the binary. Read
-	  <filename>win32utils/build.txt</filename> for more details.
-	  [RT #38915]
+	  If an ACL is specified with an address prefix in which the
+	  prefix length is longer than the address portion (for example,
+	  192.0.2.1/8), <command>named</command> will now log a warning.
+	  In future releases this will be a fatal configuration error.
+	  [RT #43367]
 	</para>
       </listitem>
     </itemizedlist>
@@ -258,61 +150,87 @@
       </listitem>
       <listitem>
 	<para>
-	  <command>rndc flushtree</command> now works even if there wasn't
-	  a cached node at the specified name. [RT #41846]
+	  Referencing a nonexistent zone in a <command>response-policy</command>
+	  statement could cause an assertion failure during configuration.
+	  [RT #43787]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Don't emit records with zero TTL unless the records were
-	  received with a zero TTL. After being returned to waiting
-	  clients, the answer will be discarded from the cache. [RT #41687]
+	  <command>rndc addzone</command> could cause a crash
+	  when attempting to add a zone with a type other than
+	  <command>master</command> or <command>slave</command>.
+	  Such zones are now rejected. [RT #43665]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  For Windows platforms, the SIT (Source Identity Token) support
-	  was restored. (It was mistakenly partially replaced in a
-	  previous beta with new 9.11 COOKIE support.) [RT #41905]
+	  <command>named</command> could hang when encountering log
+	  file names with large apparent gaps in version number (for
+	  example, when files exist called "logfile.0", "logfile.1",
+	  and "logfile.1482954169").  This is now handled correctly.
+	  [RT #38688]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  When deleting records from a zone database, interior nodes
-	  could be left empty but not deleted, damaging search
-	  performance afterward. [RT #40997] [RT #41941]
+	  If a zone was updated while <command>named</command> was
+	  processing a query for nonexistent data, it could return
+	  out-of-sync NSEC3 records causing potential DNSSEC validation
+	  failure. [RT #43247]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  The server could crash due to a use-after-free if a
-	  zone transfer timed out. [RT #41297]
+	  <command>named</command> could crash when loading a zone
+	  which had RRISG records whose expiry fields were far enough
+	  apart to cause an integer overflow when comparing them.
+	  [RT #40571]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Authoritative servers that were marked as bogus (e.g. blackholed
-	  in configuration or with invalid addresses) were being queried
-	  anyway. [RT #41321]
+	  The <command>arpaname</command> and <command>named-rrchecker</command>
+	  commands were not installed into the correct
+	  <command>prefix</command><filename>/bin</filename> directory.
+	  [RT #42910]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Some of the options for GeoIP ACLs, including "areacode",
-	  "metrocode", and "timezone", were incorrectly documented
-	  as "area", "metro" and "tz".  Both the long and abbreviated
-	  versions are now accepted.
+	  When receiving a response from an authoritative server with
+	  a TTL value of zero, <command>named></command> will now only use
+	  that response once, to answer the currently active clients that
+	  were waiting for it. Previously, such response could be cached
+	  and reused for up to one second. [RT #42142]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Zones configured to use <command>map</command> format
-	  master files can't be used as policy zones because RPZ
-	  summary data isn't compiled when such zones are mapped into
-	  memory.  This limitation may be fixed in a future release,
-	  but in the meantime it has been documented, and attempting
-	  to use such zones in <command>response-policy</command>
-	  statements is now a configuration error.  [RT #38321]
+	  <command>named-checkconf</command> now checks the
+	  <command>rate-limit</command> clause for correctness.
+	  [RT #42970]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Corrected a bug in the <command>rndc</command> control channel
+	  that could allow a read past the end of a buffer, crashing
+	  <command>named</command>. Thanks to Lian Yihan for reporting
+	  this error.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes_maint"><info><title>Maintenance</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The built-in root hints have been updated to include
+	  IPv6 addresses for B.ROOT-SERVERS.NET (2001:500:84::b),
+	  E.ROOT-SERVERS.NET (2001:500:a8::e) and
+	  G.ROOT-SERVERS.NET (2001:500:12::d0d).
 	</para>
       </listitem>
     </itemizedlist>
