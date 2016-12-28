@@ -8497,14 +8497,14 @@ ns_server_add_zone(ns_server_t *server, char *args, isc_buffer_t *text) {
 
 	/* Check the zone type for ones that are not supported by addzone. */
 	zoptions = cfg_tuple_get(parms, "options");
- 
+
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "type", &obj);
 	if (obj == NULL) {
 		(void) putstr(text, "zone type not specified");
 		CHECK(ISC_R_FAILURE);
 	}
- 
+
 	if (strcasecmp(cfg_obj_asstring(obj), "hint") == 0 ||
 	    strcasecmp(cfg_obj_asstring(obj), "forward") == 0 ||
 	    strcasecmp(cfg_obj_asstring(obj), "redirect") == 0 ||
