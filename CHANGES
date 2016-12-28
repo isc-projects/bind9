@@ -1,3 +1,7 @@
+4543.	[bug]		dns_client_startupdate now delays sending the update
+			request until isc_app_ctxrun has been called.
+			[RT #43976]
+
 4542.	[func]		Allow rndc to manipulate redirect zones with using
 			-redirect as the zone name (use "-redirect." to
 			manipulate a zone named "-redirect"). [RT #43971]

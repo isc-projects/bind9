@@ -2773,7 +2773,7 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 }
 
 static void
-runintask(isc_task_t *task, isc_event_t *event) {
+startupdate(isc_task_t *task, isc_event_t *event) {
 	updatectx_t *uctx;
 	isc_result_t result;
 	unsigned int resoptions;
@@ -2831,7 +2831,6 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	isc_sockaddr_t *server, *sa = NULL;
 	dns_tsectype_t tsectype = dns_tsectype_none;
 	isc_boolean_t want_tcp;
-	isc_event_t *runinevent;
 
 	UNUSED(options);
 
@@ -2865,19 +2864,9 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		return (ISC_R_NOMEMORY);
 	}
 
-	runinevent = isc_event_allocate(client->mctx, client->task,
-					DNS_EVENT_RUNIN, runintask,
-					uctx, sizeof(*runinevent));
-	if (runinevent == NULL) {
-		dns_view_detach(&view);
-		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
-		return (ISC_R_NOMEMORY);
-	}
-
 	result = isc_mutex_init(&uctx->lock);
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&view);
-		isc_event_free(&runinevent);
 		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
 		return (ISC_R_NOMEMORY);
 	}
@@ -2984,13 +2973,13 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	UNLOCK(&client->lock);
 
 	*transp = (dns_clientupdatetrans_t *)uctx;
-	isc_task_send(client->task, &runinevent);
-
-	return (ISC_R_SUCCESS);
+	result = isc_app_ctxonrun(client->actx, client->mctx, client->task,
+				  startupdate, uctx);
+	if (result == ISC_R_SUCCESS)
+		return (result);
+	*transp = NULL;
 
  fail:
-	if (runinevent != NULL)
-		isc_event_free(&runinevent);
 	if (ISC_LINK_LINKED(uctx, link)) {
 		LOCK(&client->lock);
 		ISC_LIST_UNLINK(client->updatectxs, uctx, link);
