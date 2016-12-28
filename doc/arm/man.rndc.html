@@ -835,6 +835,19 @@
 	  </p>
 	</dd>
 </dl></div>
+
+    <p>
+      <span class="command"><strong>rndc</strong></span> commands that specify zone names,
+      such as <span class="command"><strong>reload</strong></span>, <span class="command"><strong>retransfer</strong></span>
+      or <span class="command"><strong>zonestatus</strong></span>, can be ambiguous when applied
+      to zones of type <code class="option">redirect</code>. Redirect zones are
+      always called ".", and can be confused with zones of type
+      <code class="option">hint</code> or with slaved copies of the root zone.
+      To specify a redirect zone, use the special zone name
+      <strong class="userinput"><code>-redirect</code></strong>, without a trailing period.
+      (With a trailing period, this would specify a zone called
+      "-redirect".)
+    </p>
   </div>
 
   <div class="refsection">

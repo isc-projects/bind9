@@ -600,6 +600,17 @@ Displays the current status of the given zone, including the master file name an
 See also
 \fBrndc showzone\fR\&.
 .RE
+.PP
+\fBrndc\fR
+commands that specify zone names, such as
+\fBreload\fR,
+\fBretransfer\fR
+or
+\fBzonestatus\fR, can be ambiguous when applied to zones of type
+\fBredirect\fR\&. Redirect zones are always called "\&.", and can be confused with zones of type
+\fBhint\fR
+or with slaved copies of the root zone\&. To specify a redirect zone, use the special zone name
+\fB\-redirect\fR, without a trailing period\&. (With a trailing period, this would specify a zone called "\-redirect"\&.)
 .SH "LIMITATIONS"
 .PP
 There is currently no way to provide the shared secret for a
