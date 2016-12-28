@@ -306,18 +306,30 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that zone type 'redirect' (master) is properly rejected ($n)"
+echo "I:check that adding a 'master redirect' zone works ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; file "redirect.db"; };' > rndc.out.ns2.$n 2>&1 && ret=1
-grep "zones not supported by addzone" rndc.out.ns2.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; file "redirect.db"; };' > rndc.out.ns2.$n 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that zone type 'redirect' (slave) is properly rejected ($n)"
+echo "I:check that deleting a 'master redirect' zone works ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; masters { 1.2.3.4; }; file "redirect.bk"; };' > rndc.out.ns2.$n 2>&1 && ret=1
-grep "zones not supported by addzone" rndc.out.ns2.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone -redirect > rndc.out.ns2.$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that adding a 'slave redirect' zone works ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; masters { 1.2.3.4; }; file "redirect.bk"; };' > rndc.out.ns2.$n 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that deleting a 'slave redirect' zone works ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone -redirect > rndc.out.ns2.$n 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

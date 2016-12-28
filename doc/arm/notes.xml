@@ -62,6 +62,13 @@
 	  <userinput>local</userinput>.  [RT #42585]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Rndc commands can now manipulate redirect zones using "-redirect".
+	  To manipulate a zone called "-redirect" reference it using absolute
+	  name form ("-redirect.").
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

@@ -1,3 +1,7 @@
+4542.	[func]		Allow rndc to manipulate redirect zones with using
+			-redirect as the zone name (use "-redirect." to
+			manipulate a zone named "-redirect"). [RT #43971]
+
 4541.	[bug]		rndc addzone should properly reject non master/slave
 			zones. [RT #43665]
 

@@ -968,6 +968,19 @@
       </varlistentry>
 
     </variablelist>
+
+    <para>
+      <command>rndc</command> commands that specify zone names,
+      such as <command>reload</command>, <command>retransfer</command>
+      or <command>zonestatus</command>, can be ambiguous when applied
+      to zones of type <option>redirect</option>. Redirect zones are
+      always called ".", and can be confused with zones of type
+      <option>hint</option> or with slaved copies of the root zone.
+      To specify a redirect zone, use the special zone name
+      <userinput>-redirect</userinput>, without a trailing period.
+      (With a trailing period, this would specify a zone called
+      "-redirect".)
+    </para>
   </refsection>
 
   <refsection><info><title>LIMITATIONS</title></info>
