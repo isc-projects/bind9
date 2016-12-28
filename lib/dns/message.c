@@ -83,7 +83,7 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 				   isc_buffer_availablelength(b)) { \
 				       result = ISC_R_NOSPACE; \
 				       goto cleanup; \
-                                 } else \
+				 } else \
 				       isc_buffer_putstr(b, s);}
 #define VALID_PSEUDOSECTION(s)	(((s) >= DNS_PSEUDOSECTION_ANY) \
 				 && ((s) < DNS_PSEUDOSECTION_MAX))
@@ -1632,7 +1632,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	    ((msg->flags & DNS_MESSAGEFLAG_QR) != 0) &&
 	    ((msg->flags & DNS_MESSAGEFLAG_TC) == 0) &&
 	    !preserve_order &&
-	    !auth_signed(section)) 
+	    !auth_signed(section))
 		DO_ERROR(DNS_R_FORMERR);
 
 	if (seen_problem)

@@ -1,4 +1,4 @@
-4545.	[func]		Expand YAML output from dnstap-read to include 
+4545.	[func]		Expand YAML output from dnstap-read to include
 			a detailed breakdown of the DNS message contents.
 			[RT #43642]
 

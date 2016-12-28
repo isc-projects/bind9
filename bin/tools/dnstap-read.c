@@ -192,10 +192,10 @@ print_yaml(dns_dtdata_t *dt) {
 		printf("  response_time: !!timestamp %s\n", buf);
 	}
 
-        if (dt->msgdata.base != NULL) {
-                printf("  message_size: %zdb\n", (size_t) dt->msgdata.length);
-        } else
-                printf("  message_size: 0b\n");
+	if (dt->msgdata.base != NULL) {
+		printf("  message_size: %zdb\n", (size_t) dt->msgdata.length);
+	} else
+		printf("  message_size: 0b\n");
 
 	if (m->has_socket_family) {
 		const ProtobufCEnumValue *type =
