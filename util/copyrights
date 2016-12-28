@@ -1365,6 +1365,7 @@
 ./bin/tests/system/dnstap/ns3/named.conf	CONF-C	2015,2016
 ./bin/tests/system/dnstap/ns4/named.conf	CONF-C	2016
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016
+./bin/tests/system/dnstap/ydump.py		PYTHON	2016
 ./bin/tests/system/dscp/clean.sh		SH	2013,2014,2015,2016
 ./bin/tests/system/dscp/ns1/named.args		X	2013,2014
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013,2016
