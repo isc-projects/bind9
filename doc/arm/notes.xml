@@ -18,6 +18,8 @@
     <para>
       This document summarizes changes since the last production
       release on the BIND 9.11 branch.
+      Please see the <filename>CHANGES</filename> file for a further
+      list of bug fixes and other changes.
     </para>
   </section>
 
