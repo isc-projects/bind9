@@ -344,6 +344,18 @@ ret=0
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
+HAS_PYYAML=0
+if [ -n "$PYTHON" ] ; then
+	$PYTHON -c "import yaml" && HAS_PYYAML=1
+fi
+
+if [ $HAS_PYYAML ] ; then
+	echo "I:checking dnstap-read YAML output"
+	ret=0
+	$PYTHON ydump.py "$DNSTAPREAD" "ns3/dnstap.out.save" > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo "I: failed"; fi
+	status=`expr $status + $ret`
+fi
 
 if [ -n "$FSTRM_CAPTURE" ] ; then
 	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out

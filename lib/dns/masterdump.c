@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 
+#include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/magic.h>
@@ -185,11 +186,22 @@ dns_master_style_comment = {
 	24, 32, 40, 48, 80, 8, UINT_MAX
 };
 
+/*%
+ * YAML style
+ */
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
+dns_master_style_yaml = {
+	DNS_STYLEFLAG_YAML |
+	DNS_STYLEFLAG_REL_OWNER |
+	DNS_STYLEFLAG_INDENT,
+	24, 32, 40, 48, 80, 8, UINT_MAX
+};
 
 /*%
  * Default indent string.
  */
 LIBDNS_EXTERNAL_DATA const char *dns_master_indentstr = "\t";
+LIBDNS_EXTERNAL_DATA unsigned int dns_master_indent = 1;
 
 #define N_SPACES 10
 static char spaces[N_SPACES+1] = "          ";
@@ -321,14 +333,15 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		r.base[0] = '\n';
 		isc_buffer_add(&buf, 1);
 
-		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0) {
-			unsigned int ilen = strlen(dns_master_indentstr);
-			isc_buffer_availableregion(&buf, &r);
-			if (r.length < ilen)
-				return (DNS_R_TEXTTOOLONG);
-			isc_buffer_putmem(&buf,
-				(const isc_uint8_t *) dns_master_indentstr,
-				(unsigned int)ilen);
+		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+		{
+			unsigned int i, len = strlen(dns_master_indentstr);
+			for (i = 0; i < dns_master_indent; i++) {
+				if (isc_buffer_availablelength(&buf) < len)
+					return (DNS_R_TEXTTOOLONG);
+				isc_buffer_putstr(&buf, dns_master_indentstr);
+			}
 		}
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0) {
@@ -373,7 +386,11 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 
 #define INDENT_TO(col) \
 	do { \
-		 if ((result = indent(&column, ctx->style.col, \
+		 if ((ctx->style.flags & DNS_STYLEFLAG_YAML) != 0) { \
+			if ((result = str_totext(" ", target)) \
+			    != ISC_R_SUCCESS) \
+				return (result); \
+		 } else if ((result = indent(&column, ctx->style.col, \
 				      ctx->style.tab_width, target)) \
 		     != ISC_R_SUCCESS) \
 			    return (result); \
@@ -465,6 +482,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	unsigned int type_start;
 	dns_fixedname_t fixed;
 	dns_name_t *name = NULL;
+	unsigned int i;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
@@ -487,8 +505,18 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		/*
 		 * Indent?
 		 */
-		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0)
-			RETERR(str_totext(dns_master_indentstr, target));
+		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+			for (i = 0; i < dns_master_indent; i++)
+				RETERR(str_totext(dns_master_indentstr,
+						  target));
+
+		/*
+		 * YAML enumerator?
+		 */
+		if ((ctx->style.flags & DNS_STYLEFLAG_YAML) != 0) {
+			RETERR(str_totext("- ", target));
+		}
 
 		/*
 		 * Comment?
@@ -612,9 +640,13 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 */
 		INDENT_TO(rdata_column);
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
-			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0)
-				RETERR(str_totext(dns_master_indentstr,
-						  target));
+			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+			{
+				for (i = 0; i < dns_master_indent; i++)
+					RETERR(str_totext(dns_master_indentstr,
+							  target));
+			}
 			if (NXDOMAIN(rdataset))
 				RETERR(str_totext(";-$NXDOMAIN\n", target));
 			else
@@ -984,11 +1016,16 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 
 	for (i = 0; i < n; i++) {
 		dns_rdataset_t *rds = sorted[i];
-		if (ctx->style.flags & DNS_STYLEFLAG_TRUST)
-			fprintf(f, "%s; %s\n",
-				(ctx->style.flags & DNS_STYLEFLAG_INDENT)
-				 ? dns_master_indentstr : "",
-				dns_trust_totext(rds->trust));
+		if (ctx->style.flags & DNS_STYLEFLAG_TRUST) {
+			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+			{
+				unsigned int j;
+				for (j = 0; j < dns_master_indent; j++)
+					fprintf(f, "%s", dns_master_indentstr);
+			}
+			fprintf(f, "; %s\n", dns_trust_totext(rds->trust));
+		}
 		if (((rds->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
@@ -1008,10 +1045,14 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
 			memset(buf, 0, sizeof(buf));
 			isc_buffer_init(&b, buf, sizeof(buf) - 1);
 			dns_time64_totext((isc_uint64_t)rds->resign, &b);
-			fprintf(f, "%s; resign=%s\n",
-				(ctx->style.flags & DNS_STYLEFLAG_INDENT)
-				 ? dns_master_indentstr : "",
-				buf);
+			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+			{
+				unsigned int j;
+				for (j = 0; j < dns_master_indent; j++)
+					fprintf(f, "%s", dns_master_indentstr);
+			}
+			fprintf(f, "; resign=%s\n", buf);
 		}
 		dns_rdataset_disassociate(rds);
 	}
@@ -2066,7 +2107,6 @@ dns_master_stylecreate2(dns_master_style_t **stylep, unsigned int flags,
 	style->line_length = line_length;
 	style->tab_width = tab_width;
 	style->split_width = split_width;
-
 	*stylep = style;
 	return (ISC_R_SUCCESS);
 }

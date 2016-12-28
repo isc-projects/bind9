@@ -1,3 +1,9 @@
+4545.	[func]		Make dnstap-read output more functionally usable.
+			[RT #43642]
+
+4544.	[func]		Add message/payload size to dnstap-read YAML output.
+			[RT #43622]
+
 4543.	[bug]		dns_client_startupdate now delays sending the update
 			request until isc_app_ctxrun has been called.
 			[RT #43976]
