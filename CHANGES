@@ -19,7 +19,7 @@
 4540.	[bug]		Correctly handle ecs entries in dns_acl_isinsecure.
 			[RT #43601]
 
-4539.	[bug]		Referencing a nonexistant zone with rpz could lead
+4539.	[bug]		Referencing a nonexistent zone with RPZ could lead
 			to a assertion failure when configuring. [RT #43787]
 
 4538.	[bug]		Call dns_client_startresolve from client->task.
