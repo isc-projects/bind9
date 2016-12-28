@@ -501,7 +501,6 @@ dns_master_questiontotext
 dns_master_rdatasettotext
 dns_master_stylecreate
 dns_master_stylecreate2
-dns_master_stylecreate3
 dns_master_styledestroy
 dns_master_styleflags
 dns_message_addname
