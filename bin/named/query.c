@@ -701,6 +701,8 @@ ns_query_init(ns_client_t *client) {
 	client->query.redirect.result = ISC_R_SUCCESS;
 	client->query.redirect.rdataset = NULL;
 	client->query.redirect.sigrdataset = NULL;
+	client->query.redirect.authoritative = ISC_FALSE;
+	client->query.redirect.is_zone  = ISC_FALSE;
 	dns_fixedname_init(&client->query.redirect.fixed);
 	client->query.redirect.fname =
 		dns_fixedname_name(&client->query.redirect.fixed);
@@ -1175,7 +1177,6 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 
 	return (result);
 }
-
 
 static inline isc_result_t
 query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
@@ -6306,7 +6307,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 static isc_result_t
 redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	  dns_dbnode_t **nodep, dns_db_t **dbp, dns_dbversion_t **versionp,
-	  dns_rdatatype_t qtype)
+	  dns_rdatatype_t qtype, isc_boolean_t *is_zonep)
 {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
@@ -6320,8 +6321,8 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfo_t ci;
 	dns_dbversion_t *version = NULL;
 	dns_zone_t *zone = NULL;
+	isc_boolean_t is_zone;
 	unsigned int options;
-	isc_boolean_t is_zonep = ISC_FALSE;
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2");
 
@@ -6381,7 +6382,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	options = 0;
 	result = query_getdb(client, redirectname, qtype, options, &zone,
-			     &db, &version, &is_zonep);
+			     &db, &version, &is_zone);
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOTFOUND);
 	if (zone != NULL)
@@ -6459,6 +6460,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_db_attach(db, dbp);
 	dns_db_detachnode(db, &node);
 	dns_db_detach(&db);
+	*is_zonep = is_zone;
 	*versionp = version;
 
 	client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
@@ -6651,6 +6653,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			RESTORE(node, client->query.redirect.node);
 			RESTORE(zone, client->query.redirect.zone);
 			authoritative = client->query.redirect.authoritative;
+			is_zone = client->query.redirect.is_zone;
 
 			/*
 			 * Free resources used while recursing.
@@ -6746,7 +6749,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			isc_event_free(ISC_EVENT_PTR(&event));
 		} else if (REDIRECT(client)) {
 			result = client->query.redirect.result;
-			is_zone = ISC_TF(result == DNS_R_NXDOMAIN);
+			is_zone = client->query.redirect.is_zone;
 		} else {
 			result = event->result;
 		}
@@ -7785,7 +7788,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/* FALLTHROUGH */
 
 	case DNS_R_NXDOMAIN:
-		INSIST(is_zone);
+		INSIST(is_zone || REDIRECT(client));
 		if (!empty_wild) {
 			tresult = redirect(client, fname, rdataset, &node,
 					   &db, &version, type);
@@ -7804,7 +7807,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				goto ncache_nxrrset;
 			}
 			tresult = redirect2(client, fname, rdataset, &node,
-					    &db, &version, type);
+					    &db, &version, type, &is_zone);
 			if (tresult == DNS_R_CONTINUE) {
 				inc_stats(client,
 					  dns_nsstatscounter_nxdomainredirect_rlookup);
@@ -7822,6 +7825,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					      NULL);
 				client->query.redirect.authoritative =
 					authoritative;
+				client->query.redirect.is_zone = is_zone;
 				goto cleanup;
 			}
 			if (tresult == ISC_R_SUCCESS) {
@@ -7919,7 +7923,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			goto ncache_nxrrset;
 		}
 		tresult = redirect2(client, fname, rdataset, &node,
-				    &db, &version, type);
+				    &db, &version, type, &is_zone);
 		if (tresult == DNS_R_CONTINUE) {
 			inc_stats(client,
 				  dns_nsstatscounter_nxdomainredirect_rlookup);
@@ -7934,6 +7938,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_name_copy(fname, client->query.redirect.fname,
 				      NULL);
 			client->query.redirect.authoritative = authoritative;
+			client->query.redirect.is_zone = is_zone;
 			goto cleanup;
 		}
 		if (tresult == ISC_R_SUCCESS) {

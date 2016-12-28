@@ -42,7 +42,9 @@
 4532.	[contrib]	Make gen-data-queryperf.py python 3 compatible.
 			[RT #43836]
 
-4531.	[placeholder]
+4531.	[security]	'is_zone' was not being properly updated by redirect2
+			and subsequently preserved leading to an assertion
+			failure. (CVE-2016-9778) [RT #43837]
 
 4530.	[bug]		Change 4489 broke the handling of CNAME -> DNAME
 			in responses resulting in SERVFAIL being returned.

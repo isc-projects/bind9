@@ -69,6 +69,7 @@ struct ns_query {
 		dns_rdataset_t *	rdataset;
 		dns_rdataset_t *	sigrdataset;
 		isc_boolean_t		authoritative;
+		isc_boolean_t		is_zone;
 	} redirect;
 
 };
