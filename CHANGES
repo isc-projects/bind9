@@ -59,7 +59,7 @@
 			found and there is no fallback available. [RT #43659]
 
 4520.	[cleanup]	Alphabetize more of the grammar when printing it
-			out. Fix unbalanced indenting. [RT #43755]
+			out. [RT #43755]
 
 4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
 
