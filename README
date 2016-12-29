@@ -54,7 +54,8 @@ BIND 9
 BIND 9.11.1
 	
 	BIND 9.11.1 is a maintenance release and addresses the security
-	flaws disclosed in CVE-2016-6170, CVE-2016-8864 and CVE-2016-9131.
+	flaws disclosed in CVE-2016-6170, CVE-2016-8864, CVE-2016-9131,
+	CVE-2016-9147, and CVE-2016-9778.
 
 BIND 9.11.0
 
@@ -73,9 +74,9 @@ BIND 9.11.0
 	  from an external database, developed by Red Hat for the FreeIPA
 	  project.
 	- "fetchlimit" quotas are now compiled in by default.  These
-          are for the use of recursive resolvers that are are under
-          high query load for domains whose authoritative servers are
-          nonresponsive or are experiencing a denial of service attack:
+	  are for the use of recursive resolvers that are are under
+	  high query load for domains whose authoritative servers are
+	  nonresponsive or are experiencing a denial of service attack:
 	  + "fetches-per-server" limits the number of simultaneous queries
 	    that can be sent to any single authoritative server.  The
 	    configured value is a starting point; it is automatically
