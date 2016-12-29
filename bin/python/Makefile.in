@@ -62,10 +62,8 @@ install:: ${TARGETS} installdirs
 	fi
 
 uninstall::
-	rm -f ${DESTDIR}${mandir}/man8/dnssec-keymgr.8
 	rm -f ${DESTDIR}${mandir}/man8/dnssec-coverage.8
 	rm -f ${DESTDIR}${mandir}/man8/dnssec-checkds.8
-	rm -f ${DESTDIR}${sbindir}/dnssec-keymgr
 	rm -f ${DESTDIR}${sbindir}/dnssec-coverage
 	rm -f ${DESTDIR}${sbindir}/dnssec-checkds
 	# only manually uninstall for the python package itself
