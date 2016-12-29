@@ -40,6 +40,7 @@
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
@@ -79,8 +80,45 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_license"></a>License Change</h3></div></div></div>
+    <p>
+      With the release of BIND 9.11.0, ISC changed to the open
+      source license for BIND from the ISC license to the Mozilla
+      Public License (MPL 2.0).
+    </p>
+    <p>
+      The MPL-2.0 license requires that if you make changes to
+      licensed software (e.g. BIND) and distribute them outside
+      your organization, that you publish those changes under that
+      same license. It does not require that you publish or disclose
+      anything other than the changes you made to our software.
+    </p>
+    <p>
+      This new requirement will not affect anyone who is using BIND
+      without redistributing it, nor anyone redistributing it without
+      changes, therefore this change will be without consequence
+      for most individuals and organizations who are using BIND.
+    </p>
+    <p>
+      Those unsure whether or not the license change affects their
+      use of BIND, or who wish to discuss how to comply with the
+      license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
+      https://www.isc.org/mission/contact/</a>.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  Named incorrectly tried to cache TKEY records which could
+	  trigger a assertion failure when there was a class mismatch.
+	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	</p>
+      </li>
+<li class="listitem">
 	<p>
 	  Added the ability to specify the maximum number of records
 	  permitted in a zone (<code class="option">max-records #;</code>).
@@ -89,7 +127,8 @@
 	  other parties, as described in CVE-2016-6170.
 	  [RT #42143]
 	</p>
-      </li></ul></div>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
@@ -109,9 +148,26 @@
       </li>
 <li class="listitem">
 	<p>
-	  Rndc commands can now manipulate redirect zones using "-redirect".
-	  To manipulate a zone called "-redirect" reference it using absolute
-	  name form ("-redirect.").
+	  <span class="command"><strong>rndc</strong></span> commands which refer to zone names
+	  can now reference a zone of type <span class="command"><strong>redirect</strong></span>
+	  by using the special zone name "-redirect". (Previously this
+	  was not possible because <span class="command"><strong>redirect</strong></span> zones
+	  always have the name ".", which can be ambiguous.)
+	</p>
+	<p>
+	  In the event you need to manipulate a a zone actually
+	  called "-redirect", use a trailing dot: "-redirect."
+	</p>
+	<p>
+	  Note: This change does not appply to the
+	  <span class="command"><strong>rndc addzone</strong></span> or
+	  <span class="command"><strong>rndc modzone</strong></span> commands.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named-checkconf -l</strong></span> lists the zones found
+	  in <code class="filename">named.conf</code>. [RT #43154]
 	</p>
       </li>
 </ul></div>
@@ -120,21 +176,63 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
 	<p>
-	  None.
+	  Expanded and improved the YAML output from
+	  <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
+	  size and a detailed breakdown of message contents.
+	  [RT #43622] [RT #43642]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  If an ACL is specified with an address prefix in which the
+	  prefix length is longer than the address portion (for example,
+	  192.0.2.1/8), it will now be treated as a fatal error during
+	  configuration. [RT #43367]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
 	<p>
-	  None.
+	  Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
+	  statement could cause an assertion failure during configuration.
+	  [RT #43787]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>rndc addzone</strong></span> could cause a crash
+	  when attempting to add a zone with a type other than
+	  <span class="command"><strong>master</strong></span> or <span class="command"><strong>slave</strong></span>.
+	  Such zones are now rejected. [RT #43665]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> could hang when encountering log
+	  file names with large apparent gaps in version number (for
+	  example, when files exist called "logfile.0", "logfile.1",
+	  and "logfile.1482954169").  This is now handled correctly.
+	  [RT #38688]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  If a zone was updated while <span class="command"><strong>named</strong></span> was
+	  processing a query for nonexistent data, it could return
+	  out-of-sync NSEC3 records causing potential DNSSEC validation
+	  failure. [RT #43247]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
