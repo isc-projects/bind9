@@ -34,8 +34,44 @@
     </para>
   </section>
 
+  <section xml:id="relnotes_license"><info><title>License Change</title></info>
+    <para>
+      With the release of BIND 9.11.0, ISC changed to the open
+      source license for BIND from the ISC license to the Mozilla
+      Public License (MPL 2.0).
+    </para>
+    <para>
+      The MPL-2.0 license requires that if you make changes to
+      licensed software (e.g. BIND) and distribute them outside
+      your organization, that you publish those changes under that
+      same license. It does not require that you publish or disclose
+      anything other than the changes you made to our software.
+    </para>
+    <para>
+      This new requirement will not affect anyone who is using BIND
+      without redistributing it, nor anyone redistributing it without
+      changes, therefore this change will be without consequence
+      for most individuals and organizations who are using BIND.
+    </para>
+    <para>
+      Those unsure whether or not the license change affects their
+      use of BIND, or who wish to discuss how to comply with the
+      license may contact ISC at <link
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xlink:href="https://www.isc.org/mission/contact/">
+      https://www.isc.org/mission/contact/</link>.
+    </para>
+  </section>
+
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  Named incorrectly tried to cache TKEY records which could
+	  trigger a assertion failure when there was a class mismatch.
+	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  Added the ability to specify the maximum number of records
