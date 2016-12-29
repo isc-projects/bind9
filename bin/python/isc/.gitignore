@@ -5,11 +5,5 @@ dnskey.py
 eventlist.py
 keydict.py
 keyevent.py
-keymgr.py
-keyseries.py
 keyzone.py
-parser.out
-parsetab.py
-policy.py
-rndc.py
 utils.py
