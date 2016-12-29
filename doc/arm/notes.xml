@@ -74,6 +74,13 @@
 	 CVE-2016-2775. [RT #42694]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Named incorrectly tried to cache TKEY records which could
+	  trigger a assertion failure when there was a class mismatch.
+	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

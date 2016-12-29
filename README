@@ -51,7 +51,12 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
-BIND 9.9.9
+BIND 9.9.10
+	
+	BIND 9.9.10 is a maintenance release and addresses the security
+	flaws disclosed in CVE-2016-6170, CVE-2016-8864 and CVE-2016-9131.
+
+BIND 9.9.91
 
 	BIND 9.9.9 is a maintenance release and addresses bugs found
 	in BIND 9.9.8 and earlier, as well as the security flaws
