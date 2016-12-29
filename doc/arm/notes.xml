@@ -35,7 +35,7 @@
 
   <section xml:id="relnotes_license"><info><title>License Change</title></info>
     <para>
-      With the release of BIND 9.11.0, ISC changed the open
+      With the release of BIND 9.11.0, ISC changed to the open
       source license for BIND from the ISC license to the Mozilla
       Public License (MPL 2.0).
     </para>
@@ -78,6 +78,13 @@
 	  It was possible to trigger assertions when processing
 	  responses containing an answer of type DNAME. This flaw is
 	  disclosed in CVE-2016-8864. [RT #43465]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Named incorrectly tried to cache TKEY records which could
+	  trigger a assertion failure when there was a class mismatch.
+	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
 	</para>
       </listitem>
     </itemizedlist>

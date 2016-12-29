@@ -6863,6 +6863,19 @@ answer_response(fetchctx_t *fctx) {
 					log_formerr(fctx, "NSEC3 in answer");
 					return (DNS_R_FORMERR);
 				}
+				if (rdataset->type == dns_rdatatype_tkey) {
+					/*
+					 * TKEY is not a valid record in a
+					 * response to any query we can make.
+					 */
+					log_formerr(fctx, "TKEY in answer");
+					return (DNS_R_FORMERR);
+				}
+				if (rdataset->rdclass != fctx->res->rdclass) {
+					log_formerr(fctx, "Mismatched class "
+						    "in answer");
+					return (DNS_R_FORMERR);
+				}
 
 				/*
 				 * Apply filters, if given, on answers to reject
@@ -7049,6 +7062,12 @@ answer_response(fetchctx_t *fctx) {
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link))
 			{
+				if (rdataset->rdclass != fctx->res->rdclass) {
+					log_formerr(fctx, "Mismatched class "
+						    "in answer");
+					return (DNS_R_FORMERR);
+				}
+
 				/*
 				 * Only pass DNAME or RRSIG(DNAME).
 				 */

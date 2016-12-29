@@ -100,6 +100,10 @@
 4509.	[test]		Make the rrl system test more reliable on slower
 			machines by using mdig instead of dig. [RT #43280]
 
+4508.	[security]	Named incorrectly tried to cache TKEY records which
+			could trigger a assertion failure when there was
+			a class mismatch. (CVE-2016-9131) [RT #43522]
+
 4507.	[bug]		Named could incorrectly log 'allows updates by IP
 			address, which is insecure' [RT #43432]
 
