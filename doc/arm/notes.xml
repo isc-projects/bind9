@@ -49,33 +49,34 @@
       </listitem>
       <listitem>
 	<para>
-	  Named could mishandle authority sections that were missing
-	  RRSIGs triggering an assertion failure.  This flaw is
-	  disclosed in CVE-2016-9444. [RT # 43632]
+	  <command>named</command> could mishandle authority sections
+	  with missing RRSIGs, triggering an assertion failure. This
+	  flaw is disclosed in CVE-2016-9444. [RT #43632]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Named mishandled some responses where covering RRSIG
-	  records are returned without the requested data
-	  resulting in a assertion failure. This flaw is disclosed in
-	  CVE-2016-9147. [RT #43548]
+	  <command>named</command> mishandled some responses where
+	  covering RRSIG records were returned without the requested
+	  data, resulting in an assertion failure. This flaw is
+	  disclosed in CVE-2016-9147. [RT #43548]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Named incorrectly tried to cache TKEY records which could
-	  trigger a assertion failure when there was a class mismatch.
-	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	  <command>named</command> incorrectly tried to cache TKEY
+	  records which could trigger an assertion failure when there was
+	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
+	  [RT #43522]
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  It was possible to trigger assertions when processing
-	  a response. This flaw is disclosed in CVE-2016-8864. [RT #43465]
+	  responses containing answers of type DNAME. This flaw is
+	  disclosed in CVE-2016-8864. [RT #43465]
 	</para>
       </listitem>
-
     </itemizedlist>
   </section>
 
