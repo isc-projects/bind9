@@ -2797,7 +2797,9 @@ sub setupfile {
     if ($verbose) {
         print "Setting up $filename\n";
     }
-    binmode(F);
+    if (!$legacy_only) {
+        binmode(F);
+    }
     foreach $line (@Linesout) {
         print F $line . "\n";
     }
