@@ -67,9 +67,41 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Named incorrectly tried to cache TKEY records which could
-	  trigger a assertion failure when there was a class mismatch.
-	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
+	  A coding error in the <option>nxdomain-redirect</option>
+	  feature could lead to an assertion failure if the redirection
+	  namespace was served from a local authoritative data source
+	  such as a local zone or a DLZ instead of via recursive
+	  lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> could mishandle authority sections
+	  with missing RRSIGs, triggering an assertion failure. This
+	  flaw is disclosed in CVE-2016-9444. [RT #43632]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> mishandled some responses where
+	  covering RRSIG records were returned without the requested
+	  data, resulting in an assertion failure. This flaw is
+	  disclosed in CVE-2016-9147. [RT #43548]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> incorrectly tried to cache TKEY
+	  records which could trigger an assertion failure when there was
+	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
+	  [RT #43522]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  It was possible to trigger assertions when processing
+	  responses containing answers of type DNAME. This flaw is
+	  disclosed in CVE-2016-8864. [RT #43465]
 	</para>
       </listitem>
       <listitem>
