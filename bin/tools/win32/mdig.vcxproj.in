@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{98743A7C-6AF8-467f-9911-FA69C451AF2B}</ProjectGuid>
+    <ProjectGuid>{3115091C-8135-481F-9757-F013A26255E0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>mdig</RootNamespace>
   </PropertyGroup>
