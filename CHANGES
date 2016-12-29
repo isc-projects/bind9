@@ -124,14 +124,7 @@
 
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
-<<<<<<< HEAD
-4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
-=======
-4493.	[bug]		bin/tests/system/dyndb/driver/Makefile.in should use
-			SO_TARGETS. [RT# 43336]
-
 4492.	[bug]		irs_resconf_load failed to initialize sortlistnxt
->>>>>>> 91a54c6... spelling
 			causing bad writes if resolv.conf contained a
 			sortlist directive. [RT #43459]
 
