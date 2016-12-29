@@ -81,7 +81,6 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\pkcs11\\win32\\pk11tokens.mak",
                 "..\\bin\\python\\dnssec-checkds.py",
                 "..\\bin\\python\\dnssec-coverage.py",
-                "..\\bin\\python\\dnssec-keymgr.py",
                 "..\\bin\\python\\isc\\__init__.py",
                 "..\\bin\\python\\isc\\checkds.py",
                 "..\\bin\\python\\isc\\coverage.py",
@@ -3219,7 +3218,6 @@ sub makeinstallfile {
     if ($use_python ne "no") {
         print LOUT "dnssec-checkds.py-BNFF\n";
         print LOUT "dnssec-coverage.py-BNFF\n";
-        print LOUT "dnssec-keymgr.py-BNFF\n";
     }
     print LOUT "readme1st.txt-BTFT\n";
     close LOUT;
