@@ -11,7 +11,7 @@
 4538.	[bug]		Call dns_client_startresolve from client->task.
 			[RT #43896]
 
-4537.	[bug]		Handle timouts better in dig/host/nslookup. [RT #43576]
+4537.	[bug]		Handle timeouts better in dig/host/nslookup. [RT #43576]
 
 4536.	[bug]		ISC_SOCKEVENTATTR_USEMINMTU was not being cleared
 			when reusing the event structure. [RT #43885]
@@ -58,8 +58,8 @@
 4521.	[cleanup]	Log it as an error if an entropy source is not
 			found and there is no fallback available. [RT #43659]
 
-4520.	[cleanup]	Alphabetise more of the grammar when printing it
-			out. [RT #43755]
+4520.	[cleanup]	Alphabetize more of the grammar when printing it
+			out. Fix unbalanced indenting. [RT #43755]
 
 4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
 
@@ -124,7 +124,14 @@
 
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
+<<<<<<< HEAD
 4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
+=======
+4493.	[bug]		bin/tests/system/dyndb/driver/Makefile.in should use
+			SO_TARGETS. [RT# 43336]
+
+4492.	[bug]		irs_resconf_load failed to initialize sortlistnxt
+>>>>>>> 91a54c6... spelling
 			causing bad writes if resolv.conf contained a
 			sortlist directive. [RT #43459]
 
