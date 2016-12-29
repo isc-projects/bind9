@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.10.5
+	
+	BIND 9.10.5 is a maintenance release and addresses the security
+	flaws disclosed in CVE-2016-6170, CVE-2016-8864 and CVE-2016-9131.
+
 BIND 9.10.4
 
 	BIND 9.10.4 is a maintenance release and addresses bugs
