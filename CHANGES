@@ -11,7 +11,7 @@
 4538.	[bug]		Call dns_client_startresolve from client->task.
 			[RT #43896]
 
-4537.	[bug]		Handle timouts better in dig/host/nslookup. [RT #43576]
+4537.	[bug]		Handle timeouts better in dig/host/nslookup. [RT #43576]
 
 4535.	[bug]		Address race condition in setting / testing of
 			DNS_REQUEST_F_SENDING. [RT #43889]
@@ -52,7 +52,7 @@
 4521.	[cleanup]	Log it as an error if an entropy source is not
 			found and there is no fallback available. [RT #43659]
 
-4520.	[cleanup]	Alphabetise more of the grammar when printing it
+4520.	[cleanup]	Alphabetize more of the grammar when printing it
 			out. [RT #43755]
 
 4519.	[port]		win32: handle ERROR_MORE_DATA. [RT #43534]
@@ -114,7 +114,7 @@
 
 4494.	[bug]		Look for <editline/readline.h>. [RT #43429]
 
-4492.	[bug]		irs_resconf_load failed to initialise sortlistnxt
+4492.	[bug]		irs_resconf_load failed to initialize sortlistnxt
 			causing bad writes if resolv.conf contained a
 			sortlist directive. [RT #43459]
 
