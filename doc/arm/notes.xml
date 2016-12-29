@@ -42,17 +42,41 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>named</command> could mishandle authority sections
+	  with missing RRSIGs, triggering an assertion failure. This
+	  flaw is disclosed in CVE-2016-9444. [RT #43632]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> mishandled some responses where
+	  covering RRSIG records were returned without the requested
+	  data, resulting in an assertion failure. This flaw is
+	  disclosed in CVE-2016-9147. [RT #43548]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> incorrectly tried to cache TKEY
+	  records which could trigger an assertion failure when there was
+	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
+	  [RT #43522]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  It was possible to trigger assertions when processing
-	  responses containing an answer of type DNAME. This flaw is
+	  responses containing answers of type DNAME. This flaw is
 	  disclosed in CVE-2016-8864. [RT #43465]
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Added the ability to specify the maximum number of records
-	  permitted in a zone (max-records #;).  This provides a mechanism
-	  to block overly large zone transfers, which is a potential risk
-	  with slave zones from other parties, as described in CVE-2016-6170.
+	  permitted in a zone (<option>max-records #;</option>).
+	  This provides a mechanism to block overly large zone
+	  transfers, which is a potential risk with slave zones from
+	  other parties, as described in CVE-2016-6170.
 	  [RT #42143]
 	</para>
       </listitem>
@@ -65,11 +89,13 @@
       </listitem>
       <listitem>
 	<para>
-	 getrrsetbyname with a non absolute name could trigger an
-	 infinite recursion bug in lwresd and named with lwres
-	 configured if when combined with a search list entry the
-	 resulting name is too long.  This flaw is disclosed in
-	 CVE-2016-2775. [RT #42694]
+	  Calling <command>getrrsetbyname()</command> with a non
+	  absolute name could trigger an infinite recursion bug in
+	  <command>lwresd</command> or <command>named</command> with
+	  <command>lwres</command> configured if, when combined with
+	  a search list entry from <filename>resolv.conf</filename>,
+	  the resulting name is too long.  This flaw is disclosed in
+	  CVE-2016-2775. [RT #42694]
 	</para>
       </listitem>
     </itemizedlist>
@@ -96,13 +122,6 @@
 	  <command>server</command> clauses, to indicate that UDP should
 	  not be used when sending queries to a specified IP address or
 	  prefix.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Named incorrectly tried to cache TKEY records which could
-	  trigger a assertion failure when there was a class mismatch.
-	  This flaw is disclosed in CVE-2016-9131.  [RT #43522]
 	</para>
       </listitem>
     </itemizedlist>
