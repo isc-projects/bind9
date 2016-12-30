@@ -1407,7 +1407,7 @@
 ./bin/tests/system/dyndb/driver/Makefile.in	MAKE	2015,2016
 ./bin/tests/system/dyndb/driver/README		X	2015
 ./bin/tests/system/dyndb/driver/db.c		X	2015,2016
-./bin/tests/system/dyndb/driver/db.h		X	2015
+./bin/tests/system/dyndb/driver/db.h		X	2015,2016
 ./bin/tests/system/dyndb/driver/driver.c	X	2015,2016
 ./bin/tests/system/dyndb/driver/instance.c	X	2015,2016
 ./bin/tests/system/dyndb/driver/instance.h	X	2015,2016
