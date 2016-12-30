@@ -432,7 +432,7 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 isc_uint16_t family, ns_listenlist_t **target);
 
 static isc_result_t
-configure_forward(const cfg_obj_t *config, dns_view_t *view, 
+configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		  const dns_name_t *origin, const cfg_obj_t *forwarders,
 		  const cfg_obj_t *forwardtype);
 

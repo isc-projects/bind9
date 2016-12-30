@@ -3457,7 +3457,7 @@ activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
 
 static inline isc_boolean_t
 activeemtpynode(rbtdb_search_t *search, const dns_name_t *qname,
-	        dns_name_t *wname)
+		dns_name_t *wname)
 {
 	dns_fixedname_t fnext;
 	dns_fixedname_t forigin;

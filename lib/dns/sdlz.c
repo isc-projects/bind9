@@ -1768,7 +1768,7 @@ dns_sdlzconfigure(void *driverarg, void *dbdata,
 
 static isc_boolean_t
 dns_sdlzssumatch(const dns_name_t *signer, const dns_name_t *name,
-	 	 const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
+		 const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
 		 const dst_key_t *key, void *driverarg, void *dbdata)
 {
 	dns_sdlzimplementation_t *imp;

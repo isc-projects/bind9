@@ -195,7 +195,7 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 isc_boolean_t
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
-			          const dns_name_t *realm);
+				  const dns_name_t *realm);
 /*
  *	Compare a "signer" (in the format of a Kerberos-format Kerberos5
  *	principal: host/example.com@EXAMPLE.COM) to the realm name stored

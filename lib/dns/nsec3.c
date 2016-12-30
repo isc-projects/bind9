@@ -1537,7 +1537,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version,
 }
 
 isc_result_t
-dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version, 
+dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version,
 		    const dns_name_t *name,
 		    dns_diff_t *diff)
 {
@@ -1545,7 +1545,7 @@ dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version,
 }
 
 isc_result_t
-dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version, 
+dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 		     const dns_name_t *name,
 		     dns_rdatatype_t privatetype, dns_diff_t *diff)
 {

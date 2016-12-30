@@ -286,7 +286,7 @@ static inline void free_adbname(dns_adb_t *, dns_adbname_t **);
 static inline dns_adbnamehook_t *new_adbnamehook(dns_adb_t *,
 						 dns_adbentry_t *);
 static inline void free_adbnamehook(dns_adb_t *, dns_adbnamehook_t **);
-static inline dns_adblameinfo_t *new_adblameinfo(dns_adb_t *, 
+static inline dns_adblameinfo_t *new_adblameinfo(dns_adb_t *,
 						 const dns_name_t *,
 						 dns_rdatatype_t);
 static inline void free_adblameinfo(dns_adb_t *, dns_adblameinfo_t **);

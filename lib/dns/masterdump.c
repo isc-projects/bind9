@@ -232,7 +232,7 @@ struct dns_dumpctx {
 	char 			*tmpfile;
 	dns_masterformat_t	format;
 	dns_masterrawheader_t	header;
-	isc_result_t		(*dumpsets)(isc_mem_t *mctx, 
+	isc_result_t		(*dumpsets)(isc_mem_t *mctx,
 					    const dns_name_t *name,
 					    dns_rdatasetiter_t *rdsiter,
 					    dns_totext_ctx_t *ctx,

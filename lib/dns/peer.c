@@ -150,7 +150,7 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 
 isc_result_t
 dns_peerlist_peerbyaddr(dns_peerlist_t *servers, const isc_netaddr_t *addr,
-		        dns_peer_t **retval)
+			dns_peer_t **retval)
 {
 	dns_peer_t *server;
 	isc_result_t res;
