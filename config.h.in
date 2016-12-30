@@ -486,9 +486,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
-/* HMAC_*() return ints */
-#undef HMAC_RETURN_INT
-
 /* Use HMAC-SHA1 for Source Identity Token generation */
 #undef HMAC_SHA1_SIT
 
