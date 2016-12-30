@@ -343,8 +343,9 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-		   dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin,
-		   unsigned int options, isc_mem_t *mctx,
+		   dns_rdatatype_t type, isc_lex_t *lexer,
+		   const dns_name_t *origin, unsigned int options,
+		   isc_mem_t *mctx,
 		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks);
 /*%<
  * Convert the textual representation of a DNS rdata into uncompressed wire
@@ -399,7 +400,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  */
 
 isc_result_t
-dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target);
+dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
+		 isc_buffer_t *target);
 /*%<
  * Convert 'rdata' into text format, storing the result in 'target'.
  * The text will consist of a single line, with fields separated by
@@ -432,9 +434,10 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target);
  */
 
 isc_result_t
-dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
-		    unsigned int width, unsigned int split_width,
-		    const char *linebreak, isc_buffer_t *target);
+dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
+		    unsigned int flags, unsigned int width,
+		    unsigned int split_width, const char *linebreak,
+		    isc_buffer_t *target);
 /*%<
  * Like dns_rdata_totext, but do formatted output suitable for
  * database dumps.  This is intended for use by dns_db_dump();
@@ -724,7 +727,7 @@ dns_rdata_covers(dns_rdata_t *rdata);
  */
 
 isc_boolean_t
-dns_rdata_checkowner(dns_name_t* name, dns_rdataclass_t rdclass,
+dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, isc_boolean_t wildcard);
 /*
  * Returns whether this is a valid ownername for this <type,class>.
@@ -736,7 +739,8 @@ dns_rdata_checkowner(dns_name_t* name, dns_rdataclass_t rdclass,
  */
 
 isc_boolean_t
-dns_rdata_checknames(dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad);
+dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
+		     dns_name_t *bad);
 /*
  * Returns whether 'rdata' contains valid domain names.  The checks are
  * sensitive to the owner name.

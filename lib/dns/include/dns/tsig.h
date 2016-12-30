@@ -30,22 +30,22 @@
  * Algorithms.
  */
 #ifndef PK11_MD5_DISABLE
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacmd5_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME		dns_tsig_hmacmd5_name
 #endif
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapi_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME		dns_tsig_gssapi_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapims_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_gssapims_name;
 #define DNS_TSIG_GSSAPIMS_NAME		dns_tsig_gssapims_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha1_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacsha1_name;
 #define DNS_TSIG_HMACSHA1_NAME		dns_tsig_hmacsha1_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha224_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacsha224_name;
 #define DNS_TSIG_HMACSHA224_NAME	dns_tsig_hmacsha224_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha256_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacsha256_name;
 #define DNS_TSIG_HMACSHA256_NAME	dns_tsig_hmacsha256_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha384_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacsha384_name;
 #define DNS_TSIG_HMACSHA384_NAME	dns_tsig_hmacsha384_name
-LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha512_name;
+LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_tsig_hmacsha512_name;
 #define DNS_TSIG_HMACSHA512_NAME	dns_tsig_hmacsha512_name
 
 /*%
@@ -74,7 +74,7 @@ struct dns_tsigkey {
 	isc_mem_t		*mctx;
 	dst_key_t		*key;		/*%< Key */
 	dns_name_t		name;		/*%< Key name */
-	dns_name_t		*algorithm;	/*%< Algorithm name */
+	const dns_name_t	*algorithm;	/*%< Algorithm name */
 	dns_name_t		*creator;	/*%< name that created secret */
 	isc_boolean_t		generated;	/*%< was this generated? */
 	isc_stdtime_t		inception;	/*%< start of validity period */
@@ -92,16 +92,16 @@ struct dns_tsigkey {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
+dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dns_name_t *creator, isc_stdtime_t inception,
+		   const dns_name_t *creator, isc_stdtime_t inception,
 		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
 
 isc_result_t
-dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
+dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, isc_boolean_t generated,
-			  dns_name_t *creator, isc_stdtime_t inception,
+			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
 /*%<
@@ -217,8 +217,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  */
 
 isc_result_t
-dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
-		 dns_name_t *algorithm, dns_tsig_keyring_t *ring);
+dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
+		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring);
 /*%<
  *	Returns the TSIG key corresponding to this name and (possibly)
  *	algorithm.  Also increments the key's reference counter.
@@ -251,7 +251,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
  */
 
 isc_result_t
-dns_tsigkeyring_add(dns_tsig_keyring_t *ring, dns_name_t *name,
+dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 		    dns_tsigkey_t *tkey);
 /*%<
  *      Place a TSIG key onto a key ring.

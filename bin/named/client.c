@@ -1703,7 +1703,7 @@ allowed(isc_netaddr_t *addr, dns_name_t *signer,
  */
 isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
-		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *dstaddr,
+		 const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *dstaddr,
 		 dns_rdataclass_t rdclass, void *arg)
 {
 	dns_view_t *view;
@@ -2189,7 +2189,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t tbuffer;
 	dns_view_t *view;
 	dns_rdataset_t *opt;
-	dns_name_t *signame;
+	const dns_name_t *signame;
 	isc_boolean_t ra;	/* Recursion available. */
 	isc_netaddr_t netaddr;
 	int match;
@@ -3747,7 +3747,7 @@ ns_client_log(ns_client_t *client, isc_logcategory_t *category,
 }
 
 void
-ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdatatype_t type,
+ns_client_aclmsg(const char *msg, const dns_name_t *name, dns_rdatatype_t type,
 		 dns_rdataclass_t rdclass, char *buf, size_t len)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];

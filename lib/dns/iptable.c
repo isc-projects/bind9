@@ -51,14 +51,14 @@ static isc_boolean_t dns_iptable_pos = ISC_TRUE;
  * Add an IP prefix to an existing IP table
  */
 isc_result_t
-dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
+dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		      isc_uint16_t bitlen, isc_boolean_t pos)
 {
 	return(dns_iptable_addprefix2(tab, addr, bitlen, pos, ISC_FALSE));
 }
 
 isc_result_t
-dns_iptable_addprefix2(dns_iptable_t *tab, isc_netaddr_t *addr,
+dns_iptable_addprefix2(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		       isc_uint16_t bitlen, isc_boolean_t pos,
 		       isc_boolean_t is_ecs)
 {

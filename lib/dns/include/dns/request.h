@@ -155,7 +155,7 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		   isc_sockaddr_t *address, unsigned int options,
+		   const isc_sockaddr_t *address, unsigned int options,
 		   dns_tsigkey_t *key,
 		   unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
@@ -193,16 +193,17 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 /*% See dns_request_createvia4() */
 isc_result_t
 dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
-		      unsigned int options, dns_tsigkey_t *key,
-		      unsigned int timeout, isc_task_t *task,
-		      isc_taskaction_t action, void *arg,
+		      const isc_sockaddr_t *srcaddr,
+		      const isc_sockaddr_t *destaddr, unsigned int options,
+		      dns_tsigkey_t *key, unsigned int timeout,
+		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
 
 /*% See dns_request_createvia4() */
 isc_result_t
 dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, dns_tsigkey_t *key,
 		       unsigned int timeout, unsigned int udptimeout,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -211,7 +212,8 @@ dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
 /*% See dns_request_createvia4() */
 isc_result_t
 dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, dns_tsigkey_t *key,
 		       unsigned int timeout, unsigned int udptimeout,
 		       unsigned int udpretries, isc_task_t *task,
@@ -220,7 +222,8 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 isc_result_t
 dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       isc_dscp_t dscp, unsigned int options,
 		       dns_tsigkey_t *key, unsigned int timeout,
 		       unsigned int udptimeout, unsigned int udpretries,
@@ -264,7 +267,8 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 /*% See dns_request_createraw4() */
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		      const isc_sockaddr_t *srcaddr,
+		      const isc_sockaddr_t *destaddr,
 		      unsigned int options, unsigned int timeout,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
@@ -272,7 +276,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 /*% See dns_request_createraw4() */
 isc_result_t
 dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, unsigned int timeout,
 		       unsigned int udptimeout, isc_task_t *task,
 		       isc_taskaction_t action, void *arg,
@@ -281,7 +286,8 @@ dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 /*% See dns_request_createraw4() */
 isc_result_t
 dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, unsigned int timeout,
 		       unsigned int udptimeout, unsigned int udpretries,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -289,7 +295,8 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 isc_result_t
 dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       isc_dscp_t dscp, unsigned int options,
 		       unsigned int timeout, unsigned int udptimeout,
 		       unsigned int udpretries, isc_task_t *task,

@@ -103,8 +103,8 @@ dlz_impfind(const char *name) {
  ***/
 
 isc_result_t
-dns_dlzallowzonexfr(dns_view_t *view, dns_name_t *name,
-		    isc_sockaddr_t *clientaddr, dns_db_t **dbp)
+dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
+		    const isc_sockaddr_t *clientaddr, dns_db_t **dbp)
 {
 	isc_result_t result = ISC_R_NOTFOUND;
 	dns_dlzallowzonexfr_t allowzonexfr;
@@ -520,8 +520,8 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 }
 
 isc_boolean_t
-dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, dns_name_t *signer,
-		 dns_name_t *name, isc_netaddr_t *tcpaddr,
+dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
+		 const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		 dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_dlzimplementation_t *impl;

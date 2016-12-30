@@ -391,10 +391,10 @@ typedef void
 (*dns_rawdatafunc_t)(dns_zone_t *, dns_masterrawheader_t *);
 
 typedef isc_result_t
-(*dns_addrdatasetfunc_t)(void *, dns_name_t *, dns_rdataset_t *);
+(*dns_addrdatasetfunc_t)(void *, const dns_name_t *, dns_rdataset_t *);
 
 typedef isc_result_t
-(*dns_additionaldatafunc_t)(void *, dns_name_t *, dns_rdatatype_t);
+(*dns_additionaldatafunc_t)(void *, const dns_name_t *, dns_rdatatype_t);
 
 typedef isc_result_t
 (*dns_digestfunc_t)(void *, isc_region_t *);
@@ -409,18 +409,18 @@ typedef int
 (*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *);
 
 typedef isc_boolean_t
-(*dns_checkmxfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *);
+(*dns_checkmxfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
 
 typedef isc_boolean_t
-(*dns_checksrvfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *);
+(*dns_checksrvfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
 
 typedef isc_boolean_t
-(*dns_checknsfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *,
+(*dns_checknsfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *,
 		     dns_rdataset_t *, dns_rdataset_t *);
 
 typedef isc_boolean_t
-(*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, isc_sockaddr_t *,
-		    isc_sockaddr_t *, dns_rdataclass_t, void *);
+(*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, const isc_sockaddr_t *,
+		    const isc_sockaddr_t *, dns_rdataclass_t, void *);
 
 typedef isc_result_t
 (*dns_deserializefunc_t)(void *, FILE *, off_t);

@@ -166,7 +166,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 
 static isc_result_t
 insert(dns_keytable_t *keytable, isc_boolean_t managed,
-       dns_name_t *keyname, dst_key_t **keyp)
+       const dns_name_t *keyname, dst_key_t **keyp)
 {
 	isc_result_t result;
 	dns_keynode_t *knode = NULL;
@@ -239,12 +239,12 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 }
 
 isc_result_t
-dns_keytable_marksecure(dns_keytable_t *keytable, dns_name_t *name) {
+dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
 	return (insert(keytable, ISC_TRUE, name, NULL));
 }
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, dns_name_t *keyname) {
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
@@ -331,7 +331,7 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 }
 
 isc_result_t
-dns_keytable_find(dns_keytable_t *keytable, dns_name_t *keyname,
+dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 		  dns_keynode_t **keynodep)
 {
 	isc_result_t result;
@@ -384,7 +384,7 @@ dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 }
 
 isc_result_t
-dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
 			 dns_secalg_t algorithm, dns_keytag_t tag,
 			 dns_keynode_t **keynodep)
 {
@@ -478,7 +478,7 @@ dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 }
 
 isc_result_t
-dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 			      dns_name_t *foundname)
 {
 	isc_result_t result;
@@ -543,7 +543,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 }
 
 isc_result_t
-dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 			    dns_name_t *foundname, isc_boolean_t *wantdnssecp)
 {
 	isc_result_t result;

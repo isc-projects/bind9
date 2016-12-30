@@ -448,7 +448,7 @@ reset_system(void) {
 }
 
 static isc_uint16_t
-parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
+parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len) {
 	isc_uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
@@ -543,7 +543,7 @@ setup_keystr(void) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *mykeyname;
 	char *name;
-	dns_name_t *hmacname = NULL;
+	const dns_name_t *hmacname = NULL;
 	isc_uint16_t digestbits = 0;
 
 	dns_fixedname_init(&fkeyname);
@@ -674,7 +674,7 @@ static void
 setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
-	dns_name_t *hmacname = NULL;
+	const dns_name_t *hmacname = NULL;
 
 	debug("Creating key...");
 
@@ -1543,7 +1543,7 @@ evaluate_key(char *cmdline) {
 	int secretlen;
 	unsigned char *secret = NULL;
 	isc_buffer_t secretbuf;
-	dns_name_t *hmacname = NULL;
+	const dns_name_t *hmacname = NULL;
 	isc_uint16_t digestbits = 0;
 	char *n;
 

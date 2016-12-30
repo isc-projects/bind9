@@ -72,7 +72,7 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep) {
 }
 
 isc_result_t
-dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, dns_name_t *name,
+dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		    dns_forwarderlist_t *fwdrs, dns_fwdpolicy_t fwdpolicy)
 {
 	isc_result_t result;
@@ -121,7 +121,7 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, dns_name_t *name,
 }
 
 isc_result_t
-dns_fwdtable_add(dns_fwdtable_t *fwdtable, dns_name_t *name,
+dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		 isc_sockaddrlist_t *addrs, dns_fwdpolicy_t fwdpolicy)
 {
 	isc_result_t result;
@@ -172,7 +172,7 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, dns_name_t *name,
 }
 
 isc_result_t
-dns_fwdtable_delete(dns_fwdtable_t *fwdtable, dns_name_t *name) {
+dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name) {
 	isc_result_t result;
 
 	REQUIRE(VALID_FWDTABLE(fwdtable));
@@ -188,14 +188,14 @@ dns_fwdtable_delete(dns_fwdtable_t *fwdtable, dns_name_t *name) {
 }
 
 isc_result_t
-dns_fwdtable_find(dns_fwdtable_t *fwdtable, dns_name_t *name,
+dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		  dns_forwarders_t **forwardersp)
 {
 	return (dns_fwdtable_find2(fwdtable, name, NULL, forwardersp));
 }
 
 isc_result_t
-dns_fwdtable_find2(dns_fwdtable_t *fwdtable, dns_name_t *name,
+dns_fwdtable_find2(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		   dns_name_t *foundname, dns_forwarders_t **forwardersp)
 {
 	isc_result_t result;

@@ -46,8 +46,8 @@ struct dns_dns64 {
 };
 
 isc_result_t
-dns_dns64_create(isc_mem_t *mctx, isc_netaddr_t *prefix,
-		 unsigned int prefixlen, isc_netaddr_t *suffix,
+dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
+		 unsigned int prefixlen, const isc_netaddr_t *suffix,
 		 dns_acl_t *clients, dns_acl_t *mapped, dns_acl_t *excluded,
 		 unsigned int flags, dns_dns64_t **dns64)
 {

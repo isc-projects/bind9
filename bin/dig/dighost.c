@@ -177,7 +177,7 @@ char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
 unsigned char cookie_secret[33];
 unsigned char cookie[8];
-dns_name_t *hmacname = NULL;
+const dns_name_t *hmacname = NULL;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;

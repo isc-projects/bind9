@@ -328,13 +328,13 @@ dns_adb_shutdown(dns_adb_t *adb);
 
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		   void *arg, dns_name_t *name, dns_name_t *qname,
+		   void *arg, const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target,
 		   in_port_t port, dns_adbfind_t **find);
 isc_result_t
 dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		    void *arg, dns_name_t *name, dns_name_t *qname,
+		    void *arg, const dns_name_t *name, const dns_name_t *qname,
 		    dns_rdatatype_t qtype, unsigned int options,
 		    isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		    unsigned int depth, isc_counter_t *qc,
@@ -493,8 +493,9 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
  */
 
 isc_result_t
-dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *qname,
-		 dns_rdatatype_t type, isc_stdtime_t expire_time);
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
+		 const dns_name_t *qname, dns_rdatatype_t type,
+		 isc_stdtime_t expire_time);
 /*%<
  * Mark the given address as lame for the <qname,qtype>.  expire_time should
  * be set to the time when the entry should expire.  That is, if it is to
@@ -672,7 +673,7 @@ dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 
 
 isc_result_t
-dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
+dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 		     dns_adbaddrinfo_t **addrp, isc_stdtime_t now);
 /*%<
  * Return a dns_adbaddrinfo_t that is associated with address 'sa'.
@@ -726,7 +727,7 @@ dns_adb_setadbsize(dns_adb_t *adb, size_t size);
  */
 
 void
-dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
+dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name);
 /*%<
  * Flush 'name' from the adb cache.
  *
@@ -736,7 +737,7 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name);
  */
 
 void
-dns_adb_flushnames(dns_adb_t *adb, dns_name_t *name);
+dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name);
 /*%<
  * Flush 'name' and all subdomains from the adb cache.
  *

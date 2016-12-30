@@ -111,10 +111,11 @@ static gss_OID_set_desc mech_oid_set = {
 
 #ifdef GSSAPI
 static inline void
-name_to_gbuffer(dns_name_t *name, isc_buffer_t *buffer,
+name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		gss_buffer_desc *gbuffer)
 {
-	dns_name_t tname, *namep;
+	dns_name_t tname;
+	const dns_name_t *namep;
 	isc_region_t r;
 	isc_result_t result;
 
@@ -243,7 +244,7 @@ check_config(const char *gss_name) {
 #endif
 
 isc_result_t
-dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
+dst_gssapi_acquirecred(const dns_name_t *name, isc_boolean_t initiate,
 		       gss_cred_id_t *cred)
 {
 #ifdef GSSAPI
@@ -341,8 +342,9 @@ cleanup:
 }
 
 isc_boolean_t
-dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
-				    dns_name_t *realm)
+dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
+				    const dns_name_t *name,
+				    const dns_name_t *realm)
 {
 #ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
@@ -414,8 +416,9 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
 }
 
 isc_boolean_t
-dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
-				  dns_name_t *realm)
+dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
+				  const dns_name_t *name,
+				  const dns_name_t *realm)
 {
 #ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
@@ -553,7 +556,7 @@ gss_err_message(isc_mem_t *mctx, isc_uint32_t major, isc_uint32_t minor,
 #endif
 
 isc_result_t
-dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
+dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message)
 {

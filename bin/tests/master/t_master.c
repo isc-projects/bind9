@@ -31,13 +31,13 @@
 #define	BIGBUFLEN	(64 * 1024)
 
 static isc_result_t
-t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset);
+t1_add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset);
 
 isc_mem_t	*T1_mctx;
 char		*Tokens[T_MAXTOKS + 1];
 
 static isc_result_t
-t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
+t1_add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;

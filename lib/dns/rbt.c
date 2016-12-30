@@ -418,11 +418,11 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
  * Forward declarations.
  */
 static isc_result_t
-create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep);
+create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep);
 
 #ifdef DNS_RBT_USEHASH
 static inline void
-hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name);
+hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name);
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
 static void
@@ -447,7 +447,7 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
 
 static isc_result_t
 treefix(dns_rbt_t *rbt, void *base, size_t size,
-	dns_rbtnode_t *n, dns_name_t *name,
+	dns_rbtnode_t *n, const dns_name_t *name,
 	dns_rbtdatafixer_t datafixer, void *fixer_arg,
 	isc_uint64_t *crc);
 
@@ -746,7 +746,7 @@ dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 
 static isc_result_t
 treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
-	dns_name_t *name, dns_rbtdatafixer_t datafixer,
+	const dns_name_t *name, dns_rbtdatafixer_t datafixer,
 	void *fixer_arg, isc_uint64_t *crc)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1100,7 +1100,7 @@ move_chain_to_last(dns_rbtnodechain_t *chain, dns_rbtnode_t *node) {
  */
 
 isc_result_t
-dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
+dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	/*
 	 * Does this thing have too many variables or what?
 	 */
@@ -1418,7 +1418,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
  * Add a name to the tree of trees, associating it with some data.
  */
 isc_result_t
-dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
+dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data) {
 	isc_result_t result;
 	dns_rbtnode_t *node;
 
@@ -2002,7 +2002,9 @@ dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
  * Delete a name from the tree of trees.
  */
 isc_result_t
-dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
+dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
+		   isc_boolean_t recurse)
+{
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
 
@@ -2195,7 +2197,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname, unsigned int size)
 }
 
 static isc_result_t
-create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
+create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node;
 	isc_region_t region;
 	unsigned int labels;
@@ -2277,7 +2279,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 #ifdef DNS_RBT_USEHASH
 static inline void
-hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name) {
+hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	unsigned int hash;
 
 	REQUIRE(name != NULL);
@@ -2345,7 +2347,7 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 }
 
 static inline void
-hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_name_t *name) {
+hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
 	if (rbt->nodecount >= (rbt->hashsize * 3))

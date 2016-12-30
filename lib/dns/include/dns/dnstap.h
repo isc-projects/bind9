@@ -235,7 +235,7 @@ dns_dt_shutdown(void);
 
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
-	    isc_sockaddr_t *sa, isc_boolean_t tcp, isc_region_t *zone,
+	    const isc_sockaddr_t *sa, isc_boolean_t tcp, isc_region_t *zone,
 	    isc_time_t *qtime, isc_time_t *rtime, isc_buffer_t *buf);
 /*%<
  * Sends a dnstap message to the log, if 'msgtype' is one of the message

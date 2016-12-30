@@ -55,7 +55,7 @@ soa_get(dns_rdata_t *rdata, int offset) {
 }
 
 isc_result_t
-dns_soa_buildrdata(dns_name_t *origin, dns_name_t *contact,
+dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
 		   dns_rdataclass_t rdclass,
 		   isc_uint32_t serial, isc_uint32_t refresh,
 		   isc_uint32_t retry, isc_uint32_t expire,

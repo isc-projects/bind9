@@ -92,7 +92,7 @@ dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
 
 isc_result_t
 dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
-		    dns_dbnode_t *node, dns_name_t *target,
+		    dns_dbnode_t *node, const dns_name_t *target,
 		    unsigned char *buffer, dns_rdata_t *rdata)
 {
 	isc_result_t result;
@@ -167,7 +167,7 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	       dns_name_t *target, dns_ttl_t ttl)
+	       const dns_name_t *target, dns_ttl_t ttl)
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -290,8 +290,8 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
  * Return ISC_R_IGNORE when the NSEC is not the appropriate one.
  */
 isc_result_t
-dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
-		       dns_name_t *nsecname, dns_rdataset_t *nsecset,
+dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
+		       const dns_name_t *nsecname, dns_rdataset_t *nsecset,
 		       isc_boolean_t *exists, isc_boolean_t *data,
 		       dns_name_t *wild, dns_nseclog_t logit, void *arg)
 {

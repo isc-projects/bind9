@@ -133,7 +133,7 @@ typedef struct sdb_rdatasetiter {
 
 static int dummy;
 
-static isc_result_t dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin,
+static isc_result_t dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin,
 				   dns_dbtype_t type, dns_rdataclass_t rdclass,
 				   unsigned int argc, char *argv[],
 				   void *driverarg, dns_db_t **dbp);
@@ -159,7 +159,7 @@ static void		dbiterator_destroy(dns_dbiterator_t **iteratorp);
 static isc_result_t	dbiterator_first(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_last(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_seek(dns_dbiterator_t *iterator,
-					dns_name_t *name);
+					const dns_name_t *name);
 static isc_result_t	dbiterator_prev(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_next(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_current(dns_dbiterator_t *iterator,
@@ -342,7 +342,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	unsigned int size = 0; /* Init to suppress compiler warning */
 	isc_mem_t *mctx;
 	dns_sdbimplementation_t *imp;
-	dns_name_t *origin;
+	const dns_name_t *origin;
 	isc_buffer_t b;
 	isc_buffer_t rb;
 
@@ -421,7 +421,8 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 
 static isc_result_t
 getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
-	dns_name_t *newname, *origin;
+	dns_name_t *newname;
+	const dns_name_t *origin;
 	dns_fixedname_t fnewname;
 	dns_sdb_t *sdb = (dns_sdb_t *)allnodes->common.db;
 	dns_sdbimplementation_t *imp = sdb->implementation;
@@ -716,7 +717,7 @@ destroynode(dns_sdbnode_t *node) {
 }
 
 static isc_result_t
-findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
 	    dns_dbnode_t **nodep)
 {
@@ -804,7 +805,7 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 }
 
 static isc_result_t
-findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	dns_dbnode_t **nodep, dns_name_t *foundname,
 	dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
@@ -982,7 +983,7 @@ findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 }
 
 static isc_result_t
-findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
@@ -1295,7 +1296,7 @@ static dns_dbmethods_t sdb_methods = {
 };
 
 static isc_result_t
-dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
+dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 	       void *driverarg, dns_db_t **dbp)
 {
@@ -1490,7 +1491,7 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 }
 
 static isc_result_t
-dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
 
 	sdbiter->current = ISC_LIST_HEAD(sdbiter->nodelist);

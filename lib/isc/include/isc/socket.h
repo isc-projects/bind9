@@ -336,18 +336,22 @@ typedef struct isc_socketmethods {
 	void		(*attach)(isc_socket_t *socket,
 				  isc_socket_t **socketp);
 	void		(*detach)(isc_socket_t **socketp);
-	isc_result_t	(*bind)(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
+	isc_result_t	(*bind)(isc_socket_t *sock,
+				const isc_sockaddr_t *sockaddr,
 				unsigned int options);
 	isc_result_t	(*sendto)(isc_socket_t *sock, isc_region_t *region,
 				  isc_task_t *task, isc_taskaction_t action,
-				  void *arg, isc_sockaddr_t *address,
+				  void *arg,
+				  const isc_sockaddr_t *address,
 				  struct in6_pktinfo *pktinfo);
 	isc_result_t	(*sendto2)(isc_socket_t *sock, isc_region_t *region,
-				   isc_task_t *task, isc_sockaddr_t *address,
+				   isc_task_t *task,
+				   const isc_sockaddr_t *address,
 				   struct in6_pktinfo *pktinfo,
 				   isc_socketevent_t *event,
 				   unsigned int flags);
-	isc_result_t	(*connect)(isc_socket_t *sock, isc_sockaddr_t *addr,
+	isc_result_t	(*connect)(isc_socket_t *sock,
+				   const isc_sockaddr_t *addr,
 				   isc_task_t *task, isc_taskaction_t action,
 				   void *arg);
 	isc_result_t	(*recv)(isc_socket_t *sock, isc_region_t *region,
@@ -683,7 +687,7 @@ isc_socket_close(isc_socket_t *sock);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
+isc_socket_bind(isc_socket_t *sock, const isc_sockaddr_t *addressp,
 		unsigned int options);
 /*%<
  * Bind 'socket' to '*addressp'.
@@ -759,7 +763,7 @@ isc_socket_accept(isc_socket_t *sock,
  */
 
 isc_result_t
-isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
+isc_socket_connect(isc_socket_t *sock, const isc_sockaddr_t *addressp,
 		   isc_task_t *task, isc_taskaction_t action,
 		   void *arg);
 /*%<
@@ -919,23 +923,23 @@ isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
+		  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
 isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
 isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
+		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
 isc_socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		    isc_task_t *task, isc_taskaction_t action, void *arg,
-		    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		    unsigned int flags);
 isc_result_t
 isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		   isc_task_t *task,
-		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		   isc_socketevent_t *event, unsigned int flags);
 
 /*!
@@ -1155,7 +1159,7 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
  */
 
 void
-isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
+isc_socket_cleanunix(const isc_sockaddr_t *addr, isc_boolean_t active);
 
 /*%<
  * Cleanup UNIX domain sockets in the file-system.  If 'active' is true
@@ -1173,7 +1177,7 @@ isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
  */
 
 isc_result_t
-isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
+isc_socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 		    isc_uint32_t owner, isc_uint32_t group);
 /*%<
  * Set ownership and file permissions on the UNIX domain socket.

@@ -364,7 +364,7 @@ isc_netaddr_any6(isc_netaddr_t *netaddr) {
 }
 
 isc_boolean_t
-isc_netaddr_ismulticast(isc_netaddr_t *na) {
+isc_netaddr_ismulticast(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_TF(ISC_IPADDR_ISMULTICAST(na->type.in.s_addr)));
@@ -376,7 +376,7 @@ isc_netaddr_ismulticast(isc_netaddr_t *na) {
 }
 
 isc_boolean_t
-isc_netaddr_isexperimental(isc_netaddr_t *na) {
+isc_netaddr_isexperimental(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_TF(ISC_IPADDR_ISEXPERIMENTAL(na->type.in.s_addr)));
@@ -386,7 +386,7 @@ isc_netaddr_isexperimental(isc_netaddr_t *na) {
 }
 
 isc_boolean_t
-isc_netaddr_islinklocal(isc_netaddr_t *na) {
+isc_netaddr_islinklocal(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_FALSE);
@@ -398,7 +398,7 @@ isc_netaddr_islinklocal(isc_netaddr_t *na) {
 }
 
 isc_boolean_t
-isc_netaddr_issitelocal(isc_netaddr_t *na) {
+isc_netaddr_issitelocal(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_FALSE);
@@ -414,7 +414,7 @@ isc_netaddr_issitelocal(isc_netaddr_t *na) {
 		== ISC__IPADDR(0x00000000))
 
 isc_boolean_t
-isc_netaddr_isnetzero(isc_netaddr_t *na) {
+isc_netaddr_isnetzero(const isc_netaddr_t *na) {
 	switch (na->family) {
 	case AF_INET:
 		return (ISC_TF(ISC_IPADDR_ISNETZERO(na->type.in.s_addr)));

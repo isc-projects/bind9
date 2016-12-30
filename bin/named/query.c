@@ -757,7 +757,7 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 }
 
 static inline isc_result_t
-query_validatezonedb(ns_client_t *client, dns_name_t *name,
+query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		     dns_rdatatype_t qtype, unsigned int options,
 		     dns_zone_t *zone, dns_db_t *db,
 		     dns_dbversion_t **versionp)
@@ -907,9 +907,9 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 }
 
 static inline isc_result_t
-query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
-		unsigned int options, dns_zone_t **zonep, dns_db_t **dbp,
-		dns_dbversion_t **versionp)
+query_getzonedb(ns_client_t *client, const dns_name_t *name,
+		dns_rdatatype_t qtype, unsigned int options,
+		dns_zone_t **zonep, dns_db_t **dbp, dns_dbversion_t **versionp)
 {
 	isc_result_t result;
 	unsigned int ztoptions;
@@ -1082,8 +1082,8 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 }
 
 static inline isc_result_t
-query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
-		 dns_db_t **dbp, unsigned int options)
+query_getcachedb(ns_client_t *client, const dns_name_t *name,
+		 dns_rdatatype_t qtype, dns_db_t **dbp, unsigned int options)
 {
 	isc_result_t result;
 	isc_boolean_t check_acl;
@@ -1314,7 +1314,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 }
 
 static isc_result_t
-query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
+query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
 	isc_result_t result, eresult;
 	dns_dbnode_t *node;
@@ -1774,7 +1774,7 @@ query_iscachevalid(dns_zone_t *zone, dns_db_t *db, dns_db_t *db0,
 }
 
 static isc_result_t
-query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
+query_addadditional2(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	client_additionalctx_t *additionalctx = arg;
 	dns_rdataset_t *rdataset_base;
 	ns_client_t *client;
@@ -6999,17 +6999,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		char log_buf[DNS_RRL_LOG_BUF_LEN];
 		isc_result_t nc_result, resp_result;
 		dns_rrl_result_t rrl_result;
+		const dns_name_t *constname;
 
 		client->query.attributes |= NS_QUERYATTR_RRL_CHECKED;
 
 		wouldlog = isc_log_wouldlog(ns_g_lctx, DNS_RRL_LOG_DROP);
-		tname = fname;
+		constname = fname;
 		if (result == DNS_R_NXDOMAIN) {
 			/*
 			 * Use the database origin name to rate limit NXDOMAIN
 			 */
 			if (db != NULL)
-				tname = dns_db_origin(db);
+				constname = dns_db_origin(db);
 			resp_result = result;
 		} else if (result == DNS_R_NCACHENXDOMAIN &&
 			   rdataset != NULL &&
@@ -7029,7 +7030,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						   &nc_rdataset);
 				if (nc_rdataset.type == dns_rdatatype_soa) {
 					dns_rdataset_disassociate(&nc_rdataset);
-					tname = dns_fixedname_name(&fixed);
+					constname = dns_fixedname_name(&fixed);
 					break;
 				}
 				dns_rdataset_disassociate(&nc_rdataset);
@@ -7046,14 +7047,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * is off or not requested and the hints have not
 			 * been loaded or we have "additional-from-cache no".
 			 */
-			tname = dns_rootname;
+			constname = dns_rootname;
 			resp_result = DNS_R_DELEGATION;
 		} else {
 			resp_result = ISC_R_SUCCESS;
 		}
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
 				     TCP(client), client->message->rdclass,
-				     qtype, tname, resp_result, client->now,
+				     qtype, constname, resp_result, client->now,
 				     wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*

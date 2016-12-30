@@ -1382,7 +1382,7 @@ catz_process_value(dns_catz_zone_t *zone, dns_name_t *name,
 
 isc_result_t
 dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
-			dns_name_t *src_name, dns_rdataset_t *rdataset)
+			const dns_name_t *src_name, dns_rdataset_t *rdataset)
 {
 	isc_result_t result;
 	int order;

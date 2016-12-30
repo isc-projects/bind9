@@ -132,7 +132,7 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
  */
 
 isc_result_t
-dns_keytable_marksecure(dns_keytable_t *keytable, dns_name_t *name);
+dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name);
 /*%<
  * Add a null key to 'keytable' for name 'name'.  This marks the
  * name as a secure domain, but doesn't supply any key data to allow the
@@ -161,7 +161,7 @@ dns_keytable_marksecure(dns_keytable_t *keytable, dns_name_t *name);
  */
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, dns_name_t *keyname);
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
 /*%<
  * Delete node(s) from 'keytable' matching name 'keyname'
  *
@@ -197,7 +197,7 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey);
  */
 
 isc_result_t
-dns_keytable_find(dns_keytable_t *keytable, dns_name_t *keyname,
+dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 		  dns_keynode_t **keynodep);
 /*%<
  * Search for the first instance of a key named 'name' in 'keytable',
@@ -244,7 +244,7 @@ dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
  */
 
 isc_result_t
-dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
 			 dns_secalg_t algorithm, dns_keytag_t tag,
 			 dns_keynode_t **keynodep);
 /*%<
@@ -293,7 +293,7 @@ dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
  */
 
 isc_result_t
-dns_keytable_finddeepestmatch(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
 			      dns_name_t *foundname);
 /*%<
  * Search for the deepest match of 'name' in 'keytable'.
@@ -349,7 +349,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable,
  */
 
 isc_result_t
-dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
+dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 			    dns_name_t *foundname, isc_boolean_t *wantdnssecp);
 /*%<
  * Is 'name' at or beneath a trusted key?

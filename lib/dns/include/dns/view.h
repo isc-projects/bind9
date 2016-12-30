@@ -519,12 +519,12 @@ dns_view_thaw(dns_view_t *view);
  *\li	'view' is no longer frozen.
  */
 isc_result_t
-dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 isc_result_t
-dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+dns_view_find2(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	       isc_stdtime_t now, unsigned int options,
 	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
 	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -615,9 +615,9 @@ dns_view_find2(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  */
 
 isc_result_t
-dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-		    isc_stdtime_t now, unsigned int options,
-		    isc_boolean_t use_hints,
+dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
+		    dns_rdatatype_t type, isc_stdtime_t now,
+		    unsigned int options, isc_boolean_t use_hints,
 		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
@@ -677,14 +677,15 @@ dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 /*% See dns_view_findzonecut2() */
 isc_result_t
-dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
-		     isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints,
+dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
+		     dns_name_t *fname, isc_stdtime_t now,
+		     unsigned int options, isc_boolean_t use_hints,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
 isc_result_t
-dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
-		      isc_stdtime_t now, unsigned int options,
+dns_view_findzonecut2(dns_view_t *view, const dns_name_t *name,
+		      dns_name_t *fname, isc_stdtime_t now,
+		      unsigned int options,
 		      isc_boolean_t use_hints, isc_boolean_t use_cache,
 		      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
@@ -744,8 +745,9 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
  */
 
 isc_result_t
-dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allclasses,
-		      dns_rdataclass_t rdclass, dns_zone_t **zonep);
+dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
+		      isc_boolean_t allclasses, dns_rdataclass_t rdclass,
+		      dns_zone_t **zonep);
 
 /*%<
  * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
@@ -758,7 +760,8 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name, isc_boolean_t allc
  */
 
 isc_result_t
-dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep);
+dns_view_findzone(dns_view_t *view, const dns_name_t *name,
+		  dns_zone_t **zonep);
 /*%<
  * Search for the zone 'name' in the zone table of 'view'.
  * If found, 'zonep' is (strongly) attached to it.  There
@@ -801,7 +804,7 @@ dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
  */
 
 isc_result_t
-dns_view_gettsig(dns_view_t *view, dns_name_t *keyname,
+dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
 		 dns_tsigkey_t **keyp);
 /*%<
  * Find the TSIG key configured in 'view' with name 'keyname',
@@ -817,7 +820,7 @@ dns_view_gettsig(dns_view_t *view, dns_name_t *keyname,
  */
 
 isc_result_t
-dns_view_getpeertsig(dns_view_t *view, isc_netaddr_t *peeraddr,
+dns_view_getpeertsig(dns_view_t *view, const isc_netaddr_t *peeraddr,
 		     dns_tsigkey_t **keyp);
 /*%<
  * Find the TSIG key configured in 'view' for the server whose
@@ -897,7 +900,8 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly);
  */
 
 isc_result_t
-dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree);
+dns_view_flushnode(dns_view_t *view, const dns_name_t *name,
+		   isc_boolean_t tree);
 /*%<
  * Flush the given name from the view's cache (and optionally ADB/badcache).
  *
@@ -914,7 +918,7 @@ dns_view_flushnode(dns_view_t *view, dns_name_t *name, isc_boolean_t tree);
  */
 
 isc_result_t
-dns_view_flushname(dns_view_t *view, dns_name_t *name);
+dns_view_flushname(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Flush the given name from the view's cache, ADB and badcache.
  * Equivalent to dns_view_flushnode(view, name, ISC_FALSE).
@@ -930,7 +934,7 @@ dns_view_flushname(dns_view_t *view, dns_name_t *name);
  */
 
 isc_result_t
-dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
+dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
  *
@@ -944,7 +948,7 @@ dns_view_adddelegationonly(dns_view_t *view, dns_name_t *name);
  */
 
 isc_result_t
-dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
+dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
  *
@@ -959,7 +963,7 @@ dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name);
  */
 
 isc_boolean_t
-dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name);
+dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Check if 'name' is in the delegation only table or if
  * rootdelonly is set that name is not being excluded.
@@ -1158,7 +1162,7 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
  */
 
 isc_result_t
-dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
+dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 			isc_stdtime_t now, isc_boolean_t checknta,
 			isc_boolean_t *secure_domain);
 /*%<
@@ -1178,7 +1182,7 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
 
 isc_boolean_t
 dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
-		   dns_name_t *name, dns_name_t *anchor);
+		   const dns_name_t *name, const dns_name_t *anchor);
 /*%<
  * Is there a current negative trust anchor above 'name' and below 'anchor'?
  *
@@ -1191,7 +1195,7 @@ dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
  */
 
 void
-dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
+dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 		 dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
 /*%<
  * Remove keys that match 'keyname' and 'dnskey' from the views trust
@@ -1239,7 +1243,7 @@ void
 dns_view_restorekeyring(dns_view_t *view);
 
 isc_result_t
-dns_view_searchdlz(dns_view_t *view, dns_name_t *name,
+dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		   unsigned int minlabels,
 		   dns_clientinfomethods_t *methods,
 		   dns_clientinfo_t *clientinfo,

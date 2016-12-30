@@ -385,8 +385,8 @@ hash_key(const dns_rrl_key_t *key) {
  */
 static void
 make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
-	 const isc_sockaddr_t *client_addr,
-	 dns_rdatatype_t qtype, dns_name_t *qname, dns_rdataclass_t qclass,
+	 const isc_sockaddr_t *client_addr, dns_rdatatype_t qtype,
+	 const dns_name_t *qname, dns_rdataclass_t qclass,
 	 dns_rrl_rtype_t rtype)
 {
 	dns_name_t base;
@@ -484,9 +484,9 @@ response_balance(dns_rrl_t *rrl, const dns_rrl_entry_t *e, int age) {
  */
 static dns_rrl_entry_t *
 get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
-	  dns_rdataclass_t qclass, dns_rdatatype_t qtype, dns_name_t *qname,
-	  dns_rrl_rtype_t rtype, isc_stdtime_t now, isc_boolean_t create,
-	  char *log_buf, unsigned int log_buf_len)
+	  dns_rdataclass_t qclass, dns_rdatatype_t qtype,
+	  const dns_name_t *qname, dns_rrl_rtype_t rtype, isc_stdtime_t now,
+	  isc_boolean_t create, char *log_buf, unsigned int log_buf_len)
 {
 	dns_rrl_key_t key;
 	isc_uint32_t hval;
@@ -781,7 +781,7 @@ add_log_str(isc_buffer_t *lb, const char *str, unsigned int str_len) {
 static void
 make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 	     const char *str1, const char *str2, isc_boolean_t plural,
-	     dns_name_t *qname, isc_boolean_t save_qname,
+	     const dns_name_t *qname, isc_boolean_t save_qname,
 	     dns_rrl_result_t rrl_result, isc_result_t resp_result,
 	     char *log_buf, unsigned int log_buf_len)
 {
@@ -1000,7 +1000,7 @@ dns_rrl_result_t
 dns_rrl(dns_view_t *view,
 	const isc_sockaddr_t *client_addr, isc_boolean_t is_tcp,
 	dns_rdataclass_t qclass, dns_rdatatype_t qtype,
-	dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
+	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
 	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len)
 {
 	dns_rrl_t *rrl;

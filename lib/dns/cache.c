@@ -1204,7 +1204,7 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 }
 
 static isc_result_t
-cleartree(dns_db_t *db, dns_name_t *name) {
+cleartree(dns_db_t *db, const dns_name_t *name) {
 	isc_result_t result, answer = ISC_R_SUCCESS;
 	dns_dbiterator_t *iter = NULL;
 	dns_dbnode_t *node = NULL, *top = NULL;
@@ -1268,12 +1268,12 @@ cleartree(dns_db_t *db, dns_name_t *name) {
 }
 
 isc_result_t
-dns_cache_flushname(dns_cache_t *cache, dns_name_t *name) {
+dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name) {
 	return (dns_cache_flushnode(cache, name, ISC_FALSE));
 }
 
 isc_result_t
-dns_cache_flushnode(dns_cache_t *cache, dns_name_t *name,
+dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
 		    isc_boolean_t tree)
 {
 	isc_result_t result;

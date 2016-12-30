@@ -232,7 +232,8 @@ struct dns_dumpctx {
 	char 			*tmpfile;
 	dns_masterformat_t	format;
 	dns_masterrawheader_t	header;
-	isc_result_t		(*dumpsets)(isc_mem_t *mctx, dns_name_t *name,
+	isc_result_t		(*dumpsets)(isc_mem_t *mctx, 
+					    const dns_name_t *name,
 					    dns_rdatasetiter_t *rdsiter,
 					    dns_totext_ctx_t *ctx,
 					    isc_buffer_t *buffer, FILE *f);
@@ -468,7 +469,7 @@ ncache_summary(dns_rdataset_t *rdataset, isc_boolean_t omit_final_dot,
 
 static isc_result_t
 rdataset_totext(dns_rdataset_t *rdataset,
-		dns_name_t *owner_name,
+		const dns_name_t *owner_name,
 		dns_totext_ctx_t *ctx,
 		isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
@@ -708,7 +709,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
  */
 static isc_result_t
 question_totext(dns_rdataset_t *rdataset,
-		dns_name_t *owner_name,
+		const dns_name_t *owner_name,
 		dns_totext_ctx_t *ctx,
 		isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
@@ -775,7 +776,7 @@ question_totext(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
 		    isc_boolean_t question,
 		    isc_buffer_t *target)
@@ -807,7 +808,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 }
 
 isc_result_t
-dns_master_rdatasettotext(dns_name_t *owner_name,
+dns_master_rdatasettotext(const dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
 			  isc_buffer_t *target)
@@ -826,7 +827,7 @@ dns_master_rdatasettotext(dns_name_t *owner_name,
 }
 
 isc_result_t
-dns_master_questiontotext(dns_name_t *owner_name,
+dns_master_questiontotext(const dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
 			  isc_buffer_t *target)
@@ -852,8 +853,8 @@ dns_master_questiontotext(dns_name_t *owner_name,
  */
 
 static isc_result_t
-dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
-	      dns_totext_ctx_t *ctx,
+dump_rdataset(isc_mem_t *mctx, const dns_name_t *name,
+	      dns_rdataset_t *rdataset, dns_totext_ctx_t *ctx,
 	      isc_buffer_t *buffer, FILE *f)
 {
 	isc_region_t r;
@@ -979,7 +980,7 @@ dump_order_compare(const void *a, const void *b) {
 #define MAXSORT 64
 
 static isc_result_t
-dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
+dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 		    dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
 		    isc_buffer_t *buffer, FILE *f)
 {
@@ -1077,8 +1078,8 @@ dump_rdatasets_text(isc_mem_t *mctx, dns_name_t *name,
  * Dump given RRsets in the "raw" format.
  */
 static isc_result_t
-dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
-		  isc_buffer_t *buffer, FILE *f)
+dump_rdataset_raw(isc_mem_t *mctx, const dns_name_t *name,
+		  dns_rdataset_t *rdataset, isc_buffer_t *buffer, FILE *f)
 {
 	isc_result_t result;
 	isc_uint32_t totallen;
@@ -1184,7 +1185,7 @@ dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 }
 
 static isc_result_t
-dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
+dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *name,
 		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
 		   isc_buffer_t *buffer, FILE *f)
 {
@@ -1217,7 +1218,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, dns_name_t *name,
 }
 
 static isc_result_t
-dump_rdatasets_map(isc_mem_t *mctx, dns_name_t *name,
+dump_rdatasets_map(isc_mem_t *mctx, const dns_name_t *name,
 		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
 		   isc_buffer_t *buffer, FILE *f)
 {
@@ -1985,7 +1986,7 @@ dns_master_dump3(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 isc_result_t
 dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 			    dns_dbversion_t *version,
-			    dns_dbnode_t *node, dns_name_t *name,
+			    dns_dbnode_t *node, const dns_name_t *name,
 			    const dns_master_style_t *style,
 			    FILE *f)
 {
@@ -2028,7 +2029,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 
 isc_result_t
 dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
-		    dns_dbnode_t *node, dns_name_t *name,
+		    dns_dbnode_t *node, const dns_name_t *name,
 		    const dns_master_style_t *style, const char *filename)
 {
 	FILE *f = NULL;

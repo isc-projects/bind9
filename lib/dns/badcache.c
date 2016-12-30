@@ -150,7 +150,7 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 }
 
 void
-dns_badcache_add(dns_badcache_t *bc, dns_name_t *name,
+dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		 dns_rdatatype_t type, isc_boolean_t update,
 		 isc_uint32_t flags, isc_time_t *expire)
 {
@@ -220,7 +220,7 @@ dns_badcache_add(dns_badcache_t *bc, dns_name_t *name,
 }
 
 isc_boolean_t
-dns_badcache_find(dns_badcache_t *bc, dns_name_t *name,
+dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		  dns_rdatatype_t type, isc_uint32_t *flagp,
 		  isc_time_t *now)
 {
@@ -311,7 +311,7 @@ dns_badcache_flush(dns_badcache_t *bc) {
 }
 
 void
-dns_badcache_flushname(dns_badcache_t *bc, dns_name_t *name) {
+dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 	dns_bcentry_t *bad, *prev, *next;
 	isc_result_t result;
 	isc_time_t now;
@@ -348,7 +348,7 @@ dns_badcache_flushname(dns_badcache_t *bc, dns_name_t *name) {
 }
 
 void
-dns_badcache_flushtree(dns_badcache_t *bc, dns_name_t *name) {
+dns_badcache_flushtree(dns_badcache_t *bc, const dns_name_t *name) {
 	dns_bcentry_t *bad, *prev, *next;
 	unsigned int i;
 	int n;

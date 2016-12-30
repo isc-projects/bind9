@@ -840,7 +840,7 @@ static void             dbiterator_destroy(dns_dbiterator_t **iteratorp);
 static isc_result_t     dbiterator_first(dns_dbiterator_t *iterator);
 static isc_result_t     dbiterator_last(dns_dbiterator_t *iterator);
 static isc_result_t     dbiterator_seek(dns_dbiterator_t *iterator,
-					dns_name_t *name);
+					const dns_name_t *name);
 static isc_result_t     dbiterator_prev(dns_dbiterator_t *iterator);
 static isc_result_t     dbiterator_next(dns_dbiterator_t *iterator);
 static isc_result_t     dbiterator_current(dns_dbiterator_t *iterator,
@@ -2896,7 +2896,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
  * a wildcard level.
  */
 static isc_result_t
-add_wildcard_magic(dns_rbtdb_t *rbtdb, dns_name_t *name) {
+add_wildcard_magic(dns_rbtdb_t *rbtdb, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t foundname;
 	dns_offsets_t offsets;
@@ -2919,7 +2919,7 @@ add_wildcard_magic(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 }
 
 static isc_result_t
-add_empty_wildcards(dns_rbtdb_t *rbtdb, dns_name_t *name) {
+add_empty_wildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t foundname;
 	dns_offsets_t offsets;
@@ -2949,7 +2949,7 @@ add_empty_wildcards(dns_rbtdb_t *rbtdb, dns_name_t *name) {
 }
 
 static isc_result_t
-findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
+findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 	       isc_boolean_t create, dns_dbnode_t **nodep)
 {
 	dns_rbtnode_t *node = NULL;
@@ -3046,7 +3046,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, dns_name_t *name,
 }
 
 static isc_result_t
-findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnode(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	 dns_dbnode_t **nodep)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -3057,7 +3057,7 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 }
 
 static isc_result_t
-findnsec3node(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnsec3node(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	      dns_dbnode_t **nodep)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -3405,7 +3405,7 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 
 static inline isc_boolean_t
 activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
-	    dns_name_t *name)
+	    const dns_name_t *name)
 {
 	dns_fixedname_t fnext;
 	dns_fixedname_t forigin;
@@ -3456,7 +3456,9 @@ activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
 }
 
 static inline isc_boolean_t
-activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
+activeemtpynode(rbtdb_search_t *search, const dns_name_t *qname,
+	        dns_name_t *wname)
+{
 	dns_fixedname_t fnext;
 	dns_fixedname_t forigin;
 	dns_fixedname_t fprev;
@@ -3572,7 +3574,7 @@ activeemtpynode(rbtdb_search_t *search, dns_name_t *qname, dns_name_t *wname) {
 
 static inline isc_result_t
 find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
-	      dns_name_t *qname)
+	      const dns_name_t *qname)
 {
 	unsigned int i, j;
 	dns_rbtnode_t *node, *level_node, *wnode;
@@ -3775,9 +3777,9 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
  */
 static inline isc_result_t
 previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
-		    dns_name_t *name, dns_name_t *origin,
-		    dns_rbtnode_t **nodep, dns_rbtnodechain_t *nsecchain,
-		    isc_boolean_t *firstp)
+		      dns_name_t *name, dns_name_t *origin,
+		      dns_rbtnode_t **nodep, dns_rbtnodechain_t *nsecchain,
+		      isc_boolean_t *firstp)
 {
 	dns_fixedname_t ftarget;
 	dns_name_t *target;
@@ -4071,7 +4073,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 }
 
 static isc_result_t
-zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	  dns_dbnode_t **nodep, dns_name_t *foundname,
 	  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -4580,7 +4582,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 }
 
 static isc_result_t
-zone_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 isc_stdtime_t now, dns_dbnode_t **nodep,
 		 dns_name_t *foundname,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -4983,7 +4985,7 @@ rpz_ready(dns_db_t *db) {
 }
 
 static isc_result_t
-cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	   dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	   dns_dbnode_t **nodep, dns_name_t *foundname,
 	   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -5297,7 +5299,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 }
 
 static isc_result_t
-cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		  isc_stdtime_t now, dns_dbnode_t **nodep,
 		  dns_name_t *foundname,
 		  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -7122,7 +7124,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * load a non-NSEC3 node in the main tree and optionally to the auxiliary NSEC
  */
 static isc_result_t
-loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
+loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	 isc_boolean_t hasnsec)
 {
 	isc_result_t noderesult, rpzresult, nsecresult, tmpresult;
@@ -7234,7 +7236,9 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 }
 
 static isc_result_t
-loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
+loading_addrdataset(void *arg, const dns_name_t *name,
+		    dns_rdataset_t *rdataset)
+{
 	rbtdb_load_t *loadctx = arg;
 	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
 	dns_rbtnode_t *node;
@@ -8282,7 +8286,7 @@ dns_rbtdb64_create
 #else
 dns_rbtdb_create
 #endif
-		(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
+		(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 void *driverarg, dns_db_t **dbp)
 {
@@ -8787,7 +8791,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 	dns_dbnode_t *cloned_node;
-	struct noqname *noqname = rdataset->private6;
+	const struct noqname *noqname = rdataset->private6;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
@@ -8833,7 +8837,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_db_t *db = rdataset->private1;
 	dns_dbnode_t *node = rdataset->private2;
 	dns_dbnode_t *cloned_node;
-	struct noqname *closest = rdataset->private7;
+	const struct noqname *closest = rdataset->private7;
 
 	cloned_node = NULL;
 	attachnode(db, node, &cloned_node);
@@ -9321,7 +9325,7 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 }
 
 static isc_result_t
-dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 	isc_result_t result, tresult;
 	rbtdb_dbiterator_t *rbtdbiter = (rbtdb_dbiterator_t *)iterator;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)iterator->db;

@@ -67,7 +67,8 @@ typedef struct dns_dbiteratormethods {
 	void		(*destroy)(dns_dbiterator_t **iteratorp);
 	isc_result_t	(*first)(dns_dbiterator_t *iterator);
 	isc_result_t	(*last)(dns_dbiterator_t *iterator);
-	isc_result_t	(*seek)(dns_dbiterator_t *iterator, dns_name_t *name);
+	isc_result_t	(*seek)(dns_dbiterator_t *iterator,
+				const dns_name_t *name);
 	isc_result_t	(*prev)(dns_dbiterator_t *iterator);
 	isc_result_t	(*next)(dns_dbiterator_t *iterator);
 	isc_result_t	(*current)(dns_dbiterator_t *iterator,
@@ -145,7 +146,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator);
  */
 
 isc_result_t
-dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name);
+dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
 /*%<
  * Move the node cursor to the node with name 'name'.
  *

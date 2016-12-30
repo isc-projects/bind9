@@ -173,6 +173,6 @@ void
 ns_interfacemgr_dumprecursing(FILE *f, ns_interfacemgr_t *mgr);
 
 isc_boolean_t
-ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr);
+ns_interfacemgr_listeningon(ns_interfacemgr_t *mgr, const isc_sockaddr_t *addr);
 
 #endif /* NAMED_INTERFACEMGR_H */

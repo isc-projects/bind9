@@ -175,7 +175,7 @@ logged(char *key, int value) {
 }
 
 static isc_boolean_t
-checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
+checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	dns_rdataset_t *a, dns_rdataset_t *aaaa)
 {
 #ifdef USE_GETADDRINFO
@@ -379,7 +379,7 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 }
 
 static isc_boolean_t
-checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
+checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
 	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
@@ -464,7 +464,7 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 }
 
 static isc_boolean_t
-checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
+checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
 	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];

@@ -49,14 +49,11 @@ unsigned char name_buf[BUFLEN];
 dns_rdatacallbacks_t callbacks;
 char *include_file = NULL;
 
-static isc_result_t
-add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset);
-
 static void
 rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *header);
 
 static isc_result_t
-add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
+add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;

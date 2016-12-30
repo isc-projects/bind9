@@ -215,7 +215,7 @@ dns_catz_zone_detach(dns_catz_zone_t** zonep);
 
 isc_result_t
 dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
-		const dns_name_t *name);
+		  const dns_name_t *name);
 /*%<
  * Allocate a new catz zone on catzs mctx
  *
@@ -268,7 +268,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
 
 isc_result_t
 dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
-			 dns_name_t *src_name, dns_rdataset_t *rdataset);
+			const dns_name_t *src_name, dns_rdataset_t *rdataset);
 /*%<
  * Process a single rdataset from a catalog zone 'zone' update, src_name is the
  * record name.

@@ -123,31 +123,31 @@ isc_netaddr_any6(isc_netaddr_t *netaddr);
  */
 
 isc_boolean_t
-isc_netaddr_ismulticast(isc_netaddr_t *na);
+isc_netaddr_ismulticast(const isc_netaddr_t *na);
 /*%<
  * Returns ISC_TRUE if the address is a multicast address.
  */
 
 isc_boolean_t
-isc_netaddr_isexperimental(isc_netaddr_t *na);
+isc_netaddr_isexperimental(const isc_netaddr_t *na);
 /*%<
  * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */
 
 isc_boolean_t
-isc_netaddr_islinklocal(isc_netaddr_t *na);
+isc_netaddr_islinklocal(const isc_netaddr_t *na);
 /*%<
  * Returns #ISC_TRUE if the address is a link local address.
  */
 
 isc_boolean_t
-isc_netaddr_issitelocal(isc_netaddr_t *na);
+isc_netaddr_issitelocal(const isc_netaddr_t *na);
 /*%<
  * Returns #ISC_TRUE if the address is a site local address.
  */
 
 isc_boolean_t
-isc_netaddr_isnetzero(isc_netaddr_t *na);
+isc_netaddr_isnetzero(const isc_netaddr_t *na);
 /*%<
  * Returns #ISC_TRUE if the address is in net zero.
  */

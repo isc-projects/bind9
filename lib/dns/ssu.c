@@ -150,8 +150,8 @@ dns_ssutable_detach(dns_ssutable_t **tablep) {
 
 isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
-		     dns_name_t *identity, unsigned int matchtype,
-		     dns_name_t *name, unsigned int ntypes,
+		     const dns_name_t *identity, unsigned int matchtype,
+		     const dns_name_t *name, unsigned int ntypes,
 		     dns_rdatatype_t *types)
 {
 	dns_ssurule_t *rule;
@@ -244,10 +244,10 @@ isusertype(dns_rdatatype_t type) {
 }
 
 static void
-reverse_from_address(dns_name_t *tcpself, isc_netaddr_t *tcpaddr) {
+reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr) {
 	char buf[16 * 4 + sizeof("IP6.ARPA.")];
 	isc_result_t result;
-	unsigned char *ap;
+	const unsigned char *ap;
 	isc_buffer_t b;
 	unsigned long l;
 
@@ -296,10 +296,10 @@ reverse_from_address(dns_name_t *tcpself, isc_netaddr_t *tcpaddr) {
 }
 
 static void
-stf_from_address(dns_name_t *stfself, isc_netaddr_t *tcpaddr) {
+stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
 	char buf[sizeof("X.X.X.X.Y.Y.Y.Y.2.0.0.2.IP6.ARPA.")];
 	isc_result_t result;
-	unsigned char *ap;
+	const unsigned char *ap;
 	isc_buffer_t b;
 	unsigned long l;
 
@@ -338,10 +338,9 @@ stf_from_address(dns_name_t *stfself, isc_netaddr_t *tcpaddr) {
 }
 
 isc_boolean_t
-dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
-			dns_name_t *name, isc_netaddr_t *tcpaddr,
-			dns_rdatatype_t type,
-			const dst_key_t *key)
+dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
+			const dns_name_t *name, const isc_netaddr_t *tcpaddr,
+			dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_ssurule_t *rule;
 	unsigned int i;

@@ -179,7 +179,7 @@ typedef struct sdlz_rdatasetiter {
 /*
  * Forward references.
  */
-static isc_result_t getnodedata(dns_db_t *db, dns_name_t *name,
+static isc_result_t getnodedata(dns_db_t *db, const dns_name_t *name,
 				isc_boolean_t create, unsigned int options,
 				dns_clientinfomethods_t *methods,
 				dns_clientinfo_t *clientinfo,
@@ -195,7 +195,7 @@ static void		dbiterator_destroy(dns_dbiterator_t **iteratorp);
 static isc_result_t	dbiterator_first(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_last(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_seek(dns_dbiterator_t *iterator,
-					dns_name_t *name);
+					const dns_name_t *name);
 static isc_result_t	dbiterator_prev(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_next(dns_dbiterator_t *iterator);
 static isc_result_t	dbiterator_current(dns_dbiterator_t *iterator,
@@ -532,7 +532,7 @@ destroynode(dns_sdlznode_t *node) {
 }
 
 static isc_result_t
-getnodedata(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+getnodedata(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	    unsigned int options, dns_clientinfomethods_t *methods,
 	    dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep)
 {
@@ -614,20 +614,23 @@ getnodedata(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 		for (i = 0; i < dlabels; i++) {
 			char wildstr[DNS_NAME_MAXTEXT + 1];
 			dns_fixedname_t fixed;
-			dns_name_t *wild;
+			const dns_name_t *wild;
 
 			dns_fixedname_init(&fixed);
 			if (i == dlabels)
 				wild = dns_wildcardname;
 			else {
-				wild = dns_fixedname_name(&fixed);
+				dns_name_t *fname;
+				fname = dns_fixedname_name(&fixed);
 				dns_name_getlabelsequence(name, i + 1,
 							  dlabels - i - 1,
-							  wild);
+							  fname);
 				result = dns_name_concatenate(dns_wildcardname,
-							      wild, wild, NULL);
+							      fname, fname,
+							      NULL);
 				if (result != ISC_R_SUCCESS)
 					return (result);
+				wild = fname;
 			}
 
 			isc_buffer_init(&b, wildstr, sizeof(wildstr));
@@ -691,7 +694,7 @@ getnodedata(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 }
 
 static isc_result_t
-findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
 	    dns_dbnode_t **nodep)
 {
@@ -699,14 +702,14 @@ findnodeext(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 }
 
 static isc_result_t
-findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnode(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	 dns_dbnode_t **nodep)
 {
 	return (getnodedata(db, name, create, 0, NULL, NULL, nodep));
 }
 
 static isc_result_t
-findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
+findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
 	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
@@ -879,7 +882,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 }
 
 static isc_result_t
-findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	dns_dbnode_t **nodep, dns_name_t *foundname,
 	dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
@@ -1049,7 +1052,7 @@ findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 }
 
 static isc_result_t
-find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
      dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
      dns_dbnode_t **nodep, dns_name_t *foundname,
      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -1374,7 +1377,7 @@ dbiterator_last(dns_dbiterator_t *iterator) {
 }
 
 static isc_result_t
-dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 	sdlz_dbiterator_t *sdlziter = (sdlz_dbiterator_t *)iterator;
 
 	sdlziter->current = ISC_LIST_HEAD(sdlziter->nodelist);
@@ -1513,7 +1516,8 @@ list_tordataset(dns_rdatalist_t *rdatalist,
 
 static isc_result_t
 dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
-		  dns_name_t *name, dns_rdataclass_t rdclass, dns_db_t **dbp)
+		  const dns_name_t *name, dns_rdataclass_t rdclass,
+		  dns_db_t **dbp)
 {
 	isc_result_t result;
 	dns_sdlz_db_t *sdlzdb;
@@ -1574,8 +1578,8 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 
 static isc_result_t
 dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
-		     dns_rdataclass_t rdclass, dns_name_t *name,
-		     isc_sockaddr_t *clientaddr, dns_db_t **dbp)
+		     dns_rdataclass_t rdclass, const dns_name_t *name,
+		     const isc_sockaddr_t *clientaddr, dns_db_t **dbp)
 {
 	isc_buffer_t b;
 	isc_buffer_t b2;
@@ -1691,7 +1695,7 @@ dns_sdlzdestroy(void *driverdata, void **dbdata) {
 
 static isc_result_t
 dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
-		 dns_rdataclass_t rdclass, dns_name_t *name,
+		 dns_rdataclass_t rdclass, const dns_name_t *name,
 		 dns_clientinfomethods_t *methods,
 		 dns_clientinfo_t *clientinfo,
 		 dns_db_t **dbp)
@@ -1763,9 +1767,9 @@ dns_sdlzconfigure(void *driverarg, void *dbdata,
 }
 
 static isc_boolean_t
-dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
-		 dns_rdatatype_t type, const dst_key_t *key, void *driverarg,
-		 void *dbdata)
+dns_sdlzssumatch(const dns_name_t *signer, const dns_name_t *name,
+	 	 const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
+		 const dst_key_t *key, void *driverarg, void *dbdata)
 {
 	dns_sdlzimplementation_t *imp;
 	char b_signer[DNS_NAME_FORMATSIZE];
@@ -1849,7 +1853,7 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 	isc_result_t result;
 	unsigned int size;
 	isc_mem_t *mctx;
-	dns_name_t *origin;
+	const dns_name_t *origin;
 
 	REQUIRE(VALID_SDLZLOOKUP(lookup));
 	REQUIRE(type != NULL);
@@ -1959,7 +1963,8 @@ isc_result_t
 dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 		    const char *type, dns_ttl_t ttl, const char *data)
 {
-	dns_name_t *newname, *origin;
+	dns_name_t *newname;
+	const dns_name_t *origin;
 	dns_fixedname_t fnewname;
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)allnodes->common.db;
 	dns_sdlznode_t *sdlznode;
@@ -2159,7 +2164,7 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 
 isc_result_t
 dns_sdlz_setdb(dns_dlzdb_t *dlzdatabase, dns_rdataclass_t rdclass,
-	       dns_name_t *name, dns_db_t **dbp)
+	       const dns_name_t *name, dns_db_t **dbp)
 {
 	isc_result_t result;
 

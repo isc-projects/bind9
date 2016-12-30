@@ -164,7 +164,7 @@ static isc_result_t
 finddlvsep(dns_validator_t *val, isc_boolean_t resume);
 
 static isc_result_t
-startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure);
+startfinddlvsep(dns_validator_t *val, const dns_name_t *unsecure);
 
 /*%
  * Mark the RRsets as a answer.
@@ -3048,7 +3048,7 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
  * \li	Others on validation failures.
  */
 static isc_result_t
-startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure) {
+startfinddlvsep(dns_validator_t *val, const dns_name_t *unsecure) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
 

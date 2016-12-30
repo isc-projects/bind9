@@ -298,7 +298,9 @@ settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, isc_uint32_t lifetime) {
 }
 
 static isc_result_t
-nta_create(dns_ntatable_t *ntatable, dns_name_t *name, dns_nta_t **target) {
+nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
+	   dns_nta_t **target)
+{
 	isc_result_t result;
 	dns_nta_t *nta = NULL;
 	dns_view_t *view;
@@ -336,7 +338,7 @@ nta_create(dns_ntatable_t *ntatable, dns_name_t *name, dns_nta_t **target) {
 }
 
 isc_result_t
-dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
+dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
 		 isc_boolean_t force, isc_stdtime_t now,
 		 isc_uint32_t lifetime)
 {
@@ -391,7 +393,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
  * Caller must hold a write lock on rwlock.
  */
 static isc_result_t
-delete(dns_ntatable_t *ntatable, dns_name_t *name) {
+delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
@@ -413,7 +415,7 @@ delete(dns_ntatable_t *ntatable, dns_name_t *name) {
 }
 
 isc_result_t
-dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *name) {
+dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
@@ -425,7 +427,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *name) {
 
 isc_boolean_t
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
-		     dns_name_t *name, dns_name_t *anchor)
+		     const dns_name_t *name, const dns_name_t *anchor)
 {
 	isc_result_t result;
 	dns_fixedname_t fn;

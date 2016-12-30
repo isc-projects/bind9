@@ -167,7 +167,7 @@ msgblock_free(isc_mem_t *, dns_msgblock_t *, unsigned int);
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     isc_sockaddr_t *address, isc_logcategory_t *category,
+	     const isc_sockaddr_t *address, isc_logcategory_t *category,
 	     isc_logmodule_t *module, const dns_master_style_t *style,
 	     int level, isc_mem_t *mctx);
 
@@ -808,7 +808,7 @@ dns_message_destroy(dns_message_t **msgp) {
 }
 
 static isc_result_t
-findname(dns_name_t **foundname, dns_name_t *target,
+findname(dns_name_t **foundname, const dns_name_t *target,
 	 dns_namelist_t *section)
 {
 	dns_name_t *curr;
@@ -827,7 +827,7 @@ findname(dns_name_t **foundname, dns_name_t *target,
 }
 
 isc_result_t
-dns_message_find(dns_name_t *name, dns_rdataclass_t rdclass,
+dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
 		 dns_rdatatype_t type, dns_rdatatype_t covers,
 		 dns_rdataset_t **rdataset)
 {
@@ -851,7 +851,7 @@ dns_message_find(dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
+dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdataset)
 {
 	dns_rdataset_t *curr;
@@ -1936,7 +1936,7 @@ norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options,
 #endif
 
 static isc_result_t
-renderset(dns_rdataset_t *rdataset, dns_name_t *owner_name,
+renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	  dns_compress_t *cctx, isc_buffer_t *target,
 	  unsigned int reserved, unsigned int options, unsigned int *countp)
 {
@@ -2412,7 +2412,7 @@ dns_message_currentname(dns_message_t *msg, dns_section_t section,
 
 isc_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
-		     dns_name_t *target, dns_rdatatype_t type,
+		     const dns_name_t *target, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_name_t **name,
 		     dns_rdataset_t **rdataset)
 {
@@ -2762,7 +2762,7 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 }
 
 dns_rdataset_t *
-dns_message_gettsig(dns_message_t *msg, dns_name_t **owner) {
+dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner) {
 
 	/*
 	 * Get the TSIG record and owner for 'msg'.
@@ -2905,7 +2905,7 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 }
 
 dns_rdataset_t *
-dns_message_getsig0(dns_message_t *msg, dns_name_t **owner) {
+dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner) {
 
 	/*
 	 * Get the SIG(0) record for 'msg'.
@@ -3414,7 +3414,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				isc_buffer_t *target)
 {
 	dns_rdataset_t *ps = NULL;
-	dns_name_t *name = NULL;
+	const dns_name_t *name = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	char buf[sizeof("1234567890")];
 	isc_uint32_t mbz;
@@ -3658,7 +3658,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				isc_buffer_t *target)
 {
 	dns_rdataset_t *ps = NULL;
-	dns_name_t *name = NULL;
+	const dns_name_t *name = NULL;
 	isc_result_t result;
 	char buf[sizeof("1234567890")];
 	isc_uint32_t mbz;
@@ -4118,7 +4118,7 @@ dns_message_logpacket(dns_message_t *message, const char *description,
 
 void
 dns_message_logpacket2(dns_message_t *message,
-		       const char *description, isc_sockaddr_t *address,
+		       const char *description, const isc_sockaddr_t *address,
 		       isc_logcategory_t *category, isc_logmodule_t *module,
 		       int level, isc_mem_t *mctx)
 {
@@ -4140,7 +4140,8 @@ dns_message_logfmtpacket(dns_message_t *message, const char *description,
 
 void
 dns_message_logfmtpacket2(dns_message_t *message,
-			  const char *description, isc_sockaddr_t *address,
+			  const char *description,
+			  const isc_sockaddr_t *address,
 			  isc_logcategory_t *category, isc_logmodule_t *module,
 			  const dns_master_style_t *style, int level,
 			  isc_mem_t *mctx)
@@ -4153,7 +4154,7 @@ dns_message_logfmtpacket2(dns_message_t *message,
 
 static void
 logfmtpacket(dns_message_t *message, const char *description,
-	     isc_sockaddr_t *address, isc_logcategory_t *category,
+	     const isc_sockaddr_t *address, isc_logcategory_t *category,
 	     isc_logmodule_t *module, const dns_master_style_t *style,
 	     int level, isc_mem_t *mctx)
 {

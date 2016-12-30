@@ -54,7 +54,7 @@ dns_dbiterator_last(dns_dbiterator_t *iterator) {
 }
 
 isc_result_t
-dns_dbiterator_seek(dns_dbiterator_t *iterator, dns_name_t *name) {
+dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name) {
 	/*
 	 * Move the node cursor to the node with name 'name'.
 	 */

@@ -47,7 +47,7 @@ rdata_covers(dns_rdata_t *rdata) {
 
 isc_result_t
 dns_difftuple_create(isc_mem_t *mctx,
-		     dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
+		     dns_diffop_t op, const dns_name_t *name, dns_ttl_t ttl,
 		     dns_rdata_t *rdata, dns_difftuple_t **tp)
 {
 	dns_difftuple_t *t;
@@ -232,7 +232,7 @@ getownercase(dns_rdataset_t *rdataset, dns_name_t *name) {
 }
 
 static void
-setownercase(dns_rdataset_t *rdataset, dns_name_t *name) {
+setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_setownercase(rdataset, name);
 }

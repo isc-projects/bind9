@@ -885,7 +885,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 }
 
 static isc_result_t
-buildquery(dns_message_t *msg, dns_name_t *name,
+buildquery(dns_message_t *msg, const dns_name_t *name,
 	   dns_rdata_tkey_t *tkey, isc_boolean_t win2k)
 {
 	dns_name_t *qname = NULL, *aname = NULL;
@@ -968,9 +968,9 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 }
 
 isc_result_t
-dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
-		      dns_name_t *algorithm, isc_buffer_t *nonce,
-		      isc_uint32_t lifetime)
+dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
+		      const dns_name_t *name, const dns_name_t *algorithm,
+		      isc_buffer_t *nonce, isc_uint32_t lifetime)
 {
 	dns_rdata_tkey_t tkey;
 	dns_rdata_t *rdata = NULL;
@@ -980,6 +980,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	dns_namelist_t namelist;
 	isc_result_t result;
 	isc_stdtime_t now;
+	dns_name_t *item;
 
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
@@ -1025,12 +1026,12 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 
 	ISC_LIST_INIT(namelist);
 	RETERR(add_rdata_to_list(msg, &keyname, rdata, 0, &namelist));
-	name = ISC_LIST_HEAD(namelist);
-	while (name != NULL) {
-		dns_name_t *next = ISC_LIST_NEXT(name, link);
-		ISC_LIST_UNLINK(namelist, name, link);
-		dns_message_addname(msg, name, DNS_SECTION_ADDITIONAL);
-		name = next;
+	item = ISC_LIST_HEAD(namelist);
+	while (item != NULL) {
+		dns_name_t *next = ISC_LIST_NEXT(item, link);
+		ISC_LIST_UNLINK(namelist, item, link);
+		dns_message_addname(msg, item, DNS_SECTION_ADDITIONAL);
+		item = next;
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1043,7 +1044,8 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 }
 
 isc_result_t
-dns_tkey_buildgssquery(dns_message_t *msg, dns_name_t *name, dns_name_t *gname,
+dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
+		       const dns_name_t *gname,
 		       isc_buffer_t *intoken, isc_uint32_t lifetime,
 		       gss_ctx_id_t *context, isc_boolean_t win2k,
 		       isc_mem_t *mctx, char **err_message)
@@ -1272,7 +1274,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 isc_result_t
 dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			    dns_name_t *gname, gss_ctx_id_t *context,
+			    const dns_name_t *gname, gss_ctx_id_t *context,
 			    isc_buffer_t *outtoken, dns_tsigkey_t **outkey,
 			    dns_tsig_keyring_t *ring, char **err_message)
 {
@@ -1405,7 +1407,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 
 isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
-		      dns_name_t *server, gss_ctx_id_t *context,
+		      const dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
 		      isc_boolean_t win2k, char **err_message)
 {

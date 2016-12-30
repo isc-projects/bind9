@@ -44,7 +44,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 	isc_result_t result;
 	dns_tsec_t *tsec;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_name_t *algname;
+	const dns_name_t *algname;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(tsecp != NULL && *tsecp == NULL);

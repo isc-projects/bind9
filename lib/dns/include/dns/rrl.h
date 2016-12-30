@@ -257,7 +257,7 @@ dns_rrl_result_t
 dns_rrl(dns_view_t *view,
 	const isc_sockaddr_t *client_addr, isc_boolean_t is_tcp,
 	dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
-	dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
+	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
 	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len);
 
 void

@@ -187,8 +187,8 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     isc_sockaddr_t *masteraddr,
-	     isc_sockaddr_t *sourceaddr,
+	     const isc_sockaddr_t *masteraddr,
+	     const isc_sockaddr_t *sourceaddr,
 	     isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp);
@@ -228,12 +228,12 @@ static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	   const char *fmt, va_list ap)
      ISC_FORMAT_PRINTF(4, 0);
 
 static void
-xfrin_log1(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...)
      ISC_FORMAT_PRINTF(4, 5);
 
@@ -626,7 +626,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 
 isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		 isc_sockaddr_t *masteraddr, dns_tsigkey_t *tsigkey,
+		 const isc_sockaddr_t *masteraddr, dns_tsigkey_t *tsigkey,
 		 isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		 isc_socketmgr_t *socketmgr, isc_task_t *task,
 		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
@@ -654,7 +654,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 isc_result_t
 dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		  isc_sockaddr_t *masteraddr, isc_sockaddr_t *sourceaddr,
+		  const isc_sockaddr_t *masteraddr,
+		  const isc_sockaddr_t *sourceaddr,
 		  dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
 		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		  isc_task_t *task, dns_xfrindone_t done,
@@ -667,7 +668,8 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 
 isc_result_t
 dns_xfrin_create3(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		  isc_sockaddr_t *masteraddr, isc_sockaddr_t *sourceaddr,
+		  const isc_sockaddr_t *masteraddr,
+		  const isc_sockaddr_t *sourceaddr,
 		  isc_dscp_t dscp, dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
 		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		  isc_task_t *task, dns_xfrindone_t done,
@@ -810,8 +812,8 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
-	     isc_sockaddr_t *masteraddr,
-	     isc_sockaddr_t *sourceaddr,
+	     const isc_sockaddr_t *masteraddr,
+	     const isc_sockaddr_t *sourceaddr,
 	     isc_dscp_t dscp,
 	     dns_tsigkey_t *tsigkey,
 	     dns_xfrin_ctx_t **xfrp)
@@ -1229,7 +1231,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	dns_message_t *msg = NULL;
 	dns_name_t *name;
 	dns_tcpmsg_t *tcpmsg;
-	dns_name_t *tsigowner = NULL;
+	const dns_name_t *tsigowner = NULL;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -1557,7 +1559,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message>
  */
 static void
-xfrin_logv(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	   const char *fmt, va_list ap)
 {
 	char mastertext[ISC_SOCKADDR_FORMATSIZE];
@@ -1577,7 +1579,7 @@ xfrin_logv(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
  */
 
 static void
-xfrin_log1(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 	   const char *fmt, ...)
 {
 	va_list ap;

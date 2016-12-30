@@ -48,7 +48,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dst_gssapi_acquirecred(dns_name_t *name, isc_boolean_t initiate,
+dst_gssapi_acquirecred(const dns_name_t *name, isc_boolean_t initiate,
 		       gss_cred_id_t *cred);
 /*
  *	Acquires GSS credentials.
@@ -84,7 +84,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred);
  */
 
 isc_result_t
-dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
+dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 		   isc_buffer_t *outtoken, gss_ctx_id_t *gssctx,
 		   isc_mem_t *mctx, char **err_message);
 /*
@@ -182,8 +182,9 @@ gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
  */
 
 isc_boolean_t
-dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
-			      dns_name_t *realm);
+dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
+				    const dns_name_t *name,
+				    const dns_name_t *realm);
 /*
  *	Compare a "signer" (in the format of a Kerberos-format Kerberos5
  *	principal: host/example.com@EXAMPLE.COM) to the realm name stored
@@ -192,8 +193,9 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
  */
 
 isc_boolean_t
-dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
-			    dns_name_t *realm);
+dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
+				  const dns_name_t *name,
+			          const dns_name_t *realm);
 /*
  *	Compare a "signer" (in the format of a Kerberos-format Kerberos5
  *	principal: host/example.com@EXAMPLE.COM) to the realm name stored

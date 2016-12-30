@@ -90,8 +90,8 @@ dns_ssutable_detach(dns_ssutable_t **tablep);
 
 isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
-		     dns_name_t *identity, unsigned int matchtype,
-		     dns_name_t *name, unsigned int ntypes,
+		     const dns_name_t *identity, unsigned int matchtype,
+		     const dns_name_t *name, unsigned int ntypes,
 		     dns_rdatatype_t *types);
 /*%<
  *	Adds a new rule to a simple-secure-update rule table.  The rule
@@ -122,8 +122,8 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
  */
 
 isc_boolean_t
-dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
-			dns_name_t *name, isc_netaddr_t *tcpaddr,
+dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
+			const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 			dns_rdatatype_t type, const dst_key_t *key);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
@@ -193,8 +193,8 @@ isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
  * Check a policy rule via an external application
  */
 isc_boolean_t
-dns_ssu_external_match(dns_name_t *identity, dns_name_t *signer,
-		       dns_name_t *name, isc_netaddr_t *tcpaddr,
+dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
+		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,
 		       isc_mem_t *mctx);
 

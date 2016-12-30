@@ -112,7 +112,7 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep);
  */
 
 isc_result_t
-dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
+dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
 		 isc_boolean_t force, isc_stdtime_t now,
 		 isc_uint32_t lifetime);
 /*%<
@@ -140,7 +140,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
  */
 
 isc_result_t
-dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *keyname);
+dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *keyname);
 /*%<
  * Delete node(s) from 'ntatable' matching name 'keyname'
  *
@@ -159,7 +159,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *keyname);
 
 isc_boolean_t
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
-		     dns_name_t *name, dns_name_t *anchor);
+		     const dns_name_t *name, const dns_name_t *anchor);
 /*%<
  * Return ISC_TRUE if 'name' is below a non-expired negative trust
  * anchor which in turn is at or below 'anchor'.

@@ -65,13 +65,13 @@ typedef struct dns_rdatasetmethods {
 					 dns_rdataset_t *target);
 	unsigned int		(*count)(dns_rdataset_t *rdataset);
 	isc_result_t		(*addnoqname)(dns_rdataset_t *rdataset,
-					      dns_name_t *name);
+					      const dns_name_t *name);
 	isc_result_t		(*getnoqname)(dns_rdataset_t *rdataset,
 					      dns_name_t *name,
 					      dns_rdataset_t *neg,
 					      dns_rdataset_t *negsig);
 	isc_result_t		(*addclosest)(dns_rdataset_t *rdataset,
-					      dns_name_t *name);
+					      const dns_name_t *name);
 	isc_result_t		(*getclosest)(dns_rdataset_t *rdataset,
 					      dns_name_t *name,
 					      dns_rdataset_t *neg,
@@ -158,8 +158,8 @@ struct dns_rdataset {
 	void *				private3;
 	unsigned int			privateuint4;
 	void *				private5;
-	void *				private6;
-	void *				private7;
+	const void *			private6;
+	const void *			private7;
 	/*@}*/
 
 };
@@ -354,7 +354,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 
 isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
 		    isc_boolean_t question,
 		    isc_buffer_t *target);
@@ -379,7 +379,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int options,
@@ -530,7 +530,7 @@ dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name);
+dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name);
 /*%<
  * Associate a closest encloset proof with this record.
  * Sets #DNS_RDATASETATTR_CLOSEST if successful.

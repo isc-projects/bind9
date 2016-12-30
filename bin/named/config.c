@@ -956,14 +956,14 @@ struct keyalgorithms {
 };
 
 isc_result_t
-ns_config_getkeyalgorithm(const char *str, dns_name_t **name,
+ns_config_getkeyalgorithm(const char *str, const dns_name_t **name,
 			  isc_uint16_t *digestbits)
 {
 	return (ns_config_getkeyalgorithm2(str, name, NULL, digestbits));
 }
 
 isc_result_t
-ns_config_getkeyalgorithm2(const char *str, dns_name_t **name,
+ns_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			   unsigned int *typep, isc_uint16_t *digestbits)
 {
 	int i;

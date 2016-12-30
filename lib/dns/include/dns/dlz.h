@@ -94,9 +94,8 @@ ISC_LANG_BEGINDECLS
 
 typedef isc_result_t
 (*dns_dlzallowzonexfr_t)(void *driverarg, void *dbdata, isc_mem_t *mctx,
-			 dns_rdataclass_t rdclass, dns_name_t *name,
-			 isc_sockaddr_t *clientaddr,
-			 dns_db_t **dbp);
+			 dns_rdataclass_t rdclass, const dns_name_t *name,
+			 const isc_sockaddr_t *clientaddr, dns_db_t **dbp);
 
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface MUST
@@ -131,7 +130,7 @@ typedef void
 
 typedef isc_result_t
 (*dns_dlzfindzone_t)(void *driverarg, void *dbdata, isc_mem_t *mctx,
-		     dns_rdataclass_t rdclass, dns_name_t *name,
+		     dns_rdataclass_t rdclass, const dns_name_t *name,
 		     dns_clientinfomethods_t *methods,
 		     dns_clientinfo_t *clientinfo,
 		     dns_db_t **dbp);
@@ -172,9 +171,9 @@ typedef isc_result_t
  */
 
 
-typedef isc_boolean_t (*dns_dlzssumatch_t)(dns_name_t *signer,
-					   dns_name_t *name,
-					   isc_netaddr_t *tcpaddr,
+typedef isc_boolean_t (*dns_dlzssumatch_t)(const dns_name_t *signer,
+					   const dns_name_t *name,
+					   const isc_netaddr_t *tcpaddr,
 					   dns_rdatatype_t type,
 					   const dst_key_t *key,
 					   void *driverarg, void *dbdata);
@@ -225,8 +224,8 @@ struct dns_dlzdb {
  ***/
 
 isc_result_t
-dns_dlzallowzonexfr(dns_view_t *view, dns_name_t *name,
-		    isc_sockaddr_t *clientaddr, dns_db_t **dbp);
+dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
+		    const isc_sockaddr_t *clientaddr, dns_db_t **dbp);
 
 /*%<
  * This method is called when the DNS server is performing a zone
@@ -323,9 +322,9 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
  */
 
 isc_boolean_t
-dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase,
-		  dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
-		  dns_rdatatype_t type, const dst_key_t *key);
+dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
+		 const dns_name_t *name, const isc_netaddr_t *tcpaddr,
+		 dns_rdatatype_t type, const dst_key_t *key);
 /*%<
  * call a DLZ drivers ssumatch method, if supplied. Otherwise return ISC_FALSE
  */

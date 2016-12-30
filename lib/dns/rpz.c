@@ -641,7 +641,7 @@ new_node(dns_rpz_zones_t *rpzs,
 }
 
 static void
-badname(int level, dns_name_t *name, const char *str1, const char *str2) {
+badname(int level, const dns_name_t *name, const char *str1, const char *str2) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 
 	/*
@@ -664,7 +664,7 @@ badname(int level, dns_name_t *name, const char *str1, const char *str2) {
  */
 static isc_result_t
 ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
-	dns_name_t *base_name, dns_name_t *ip_name)
+	const dns_name_t *base_name, dns_name_t *ip_name)
 {
 #ifndef INET6_ADDRSTRLEN
 #define INET6_ADDRSTRLEN 46
@@ -733,7 +733,7 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
  * Determine the type a of a name in a response policy zone.
  */
 static dns_rpz_type_t
-type_from_name(dns_rpz_zone_t *rpz, dns_name_t *name) {
+type_from_name(dns_rpz_zone_t *rpz, const dns_name_t *name) {
 
 	if (dns_name_issubdomain(name, &rpz->ip))
 		return (DNS_RPZ_TYPE_IP);
@@ -762,7 +762,7 @@ type_from_name(dns_rpz_zone_t *rpz, dns_name_t *name) {
 static isc_result_t
 name2ipkey(int log_level,
 	   const dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	   dns_rpz_type_t rpz_type, dns_name_t *src_name,
+	   dns_rpz_type_t rpz_type, const dns_name_t *src_name,
 	   dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t *tgt_prefix,
 	   dns_rpz_addr_zbits_t *new_set)
 {
@@ -1250,7 +1250,7 @@ search(dns_rpz_zones_t *rpzs,
  */
 static isc_result_t
 add_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	 dns_rpz_type_t rpz_type, dns_name_t *src_name)
+	 dns_rpz_type_t rpz_type, const dns_name_t *src_name)
 {
 	dns_rpz_cidr_key_t tgt_ip;
 	dns_rpz_prefix_t tgt_prefix;
@@ -1337,7 +1337,7 @@ add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name,
 
 static isc_result_t
 add_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	 dns_rpz_type_t rpz_type, dns_name_t *src_name)
+	 dns_rpz_type_t rpz_type, const dns_name_t *src_name)
 {
 	dns_rpz_nm_data_t new_data;
 	dns_fixedname_t trig_namef;
@@ -1883,7 +1883,8 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
  * Add an IP address to the radix tree or a name to the summary database.
  */
 isc_result_t
-dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_name_t *src_name)
+dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
+	    const dns_name_t *src_name)
 {
 	dns_rpz_zone_t *rpz;
 	dns_rpz_type_t rpz_type;
@@ -1922,7 +1923,7 @@ dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num, dns_name_t *src_name)
  */
 static void
 del_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	 dns_rpz_type_t rpz_type, dns_name_t *src_name)
+	 dns_rpz_type_t rpz_type, const dns_name_t *src_name)
 {
 	isc_result_t result;
 	dns_rpz_cidr_key_t tgt_ip;
@@ -2009,7 +2010,7 @@ del_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 
 static void
 del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	 dns_rpz_type_t rpz_type, dns_name_t *src_name)
+	 dns_rpz_type_t rpz_type, const dns_name_t *src_name)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t trig_namef;
@@ -2088,7 +2089,8 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
  */
 void
 dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	       dns_name_t *src_name) {
+	       const dns_name_t *src_name)
+{
 	dns_rpz_zone_t *rpz;
 	dns_rpz_type_t rpz_type;
 

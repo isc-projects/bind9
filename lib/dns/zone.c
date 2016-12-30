@@ -16765,7 +16765,9 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 }
 
 isc_result_t
-dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
+dns_zone_checknames(dns_zone_t *zone, const dns_name_t *name,
+		    dns_rdata_t *rdata)
+{
 	isc_boolean_t ok = ISC_TRUE;
 	isc_boolean_t fail = ISC_FALSE;
 	char namebuf[DNS_NAME_FORMATSIZE];

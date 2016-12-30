@@ -149,8 +149,8 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 }
 
 isc_result_t
-dns_peerlist_peerbyaddr(dns_peerlist_t *servers,
-			isc_netaddr_t *addr, dns_peer_t **retval)
+dns_peerlist_peerbyaddr(dns_peerlist_t *servers, const isc_netaddr_t *addr,
+		        dns_peer_t **retval)
 {
 	dns_peer_t *server;
 	isc_result_t res;
@@ -191,7 +191,7 @@ dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval) {
 }
 
 isc_result_t
-dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
+dns_peer_new(isc_mem_t *mem, const isc_netaddr_t *addr, dns_peer_t **peerptr) {
 	unsigned int prefixlen = 0;
 
 	REQUIRE(peerptr != NULL);
@@ -210,8 +210,8 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 }
 
 isc_result_t
-dns_peer_newprefix(isc_mem_t *mem, isc_netaddr_t *addr, unsigned int prefixlen,
-		   dns_peer_t **peerptr)
+dns_peer_newprefix(isc_mem_t *mem, const isc_netaddr_t *addr,
+		   unsigned int prefixlen, dns_peer_t **peerptr)
 {
 	dns_peer_t *peer;
 

@@ -592,7 +592,7 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int options,
@@ -658,7 +658,7 @@ dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 }
 
 isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
+dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);

@@ -373,7 +373,7 @@ levent_destroy(isc_event_t *event) {
 }
 
 isc_result_t
-dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
+dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
 		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp)
 {

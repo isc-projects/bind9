@@ -356,7 +356,7 @@ dns_sdlz_putsoa_t dns_sdlz_putsoa;
 
 typedef isc_result_t dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase,
 				      dns_rdataclass_t rdclass,
-				      dns_name_t *name,
+				      const dns_name_t *name,
 				      dns_db_t **dbp);
 dns_sdlz_setdb_t dns_sdlz_setdb;
 /*%<

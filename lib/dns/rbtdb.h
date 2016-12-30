@@ -26,7 +26,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_rbtdb_create(isc_mem_t *mctx, dns_name_t *base, dns_dbtype_t type,
+dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 void *driverarg, dns_db_t **dbp);
 

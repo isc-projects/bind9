@@ -109,9 +109,9 @@ ux_socket_connect(const char *path) {
  * the authorization server.
  */
 isc_boolean_t
-dns_ssu_external_match(dns_name_t *identity,
-		       dns_name_t *signer, dns_name_t *name,
-		       isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
+dns_ssu_external_match(const dns_name_t *identity,
+		       const dns_name_t *signer, const dns_name_t *name,
+		       const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
 		       const dst_key_t *key, isc_mem_t *mctx)
 {
 	char b_identity[DNS_NAME_FORMATSIZE];

@@ -71,7 +71,7 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 }
 
 isc_result_t
-dns_order_add(dns_order_t *order, dns_name_t *name,
+dns_order_add(dns_order_t *order, const dns_name_t *name,
 	      dns_rdatatype_t rdtype, dns_rdataclass_t rdclass,
 	      unsigned int mode)
 {
@@ -98,7 +98,7 @@ dns_order_add(dns_order_t *order, dns_name_t *name,
 }
 
 static inline isc_boolean_t
-match(dns_name_t *name1, dns_name_t *name2) {
+match(const dns_name_t *name1, const dns_name_t *name2) {
 
 	if (dns_name_iswildcard(name2))
 		return(dns_name_matcheswildcard(name1, name2));
@@ -106,7 +106,7 @@ match(dns_name_t *name1, dns_name_t *name2) {
 }
 
 unsigned int
-dns_order_find(dns_order_t *order, dns_name_t *name,
+dns_order_find(dns_order_t *order, const dns_name_t *name,
 	       dns_rdatatype_t rdtype, dns_rdataclass_t rdclass)
 {
 	dns_order_ent_t *ent;

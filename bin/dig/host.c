@@ -356,8 +356,9 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 }
 
 static isc_result_t
-printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
-	   const char *set_name, isc_boolean_t headers)
+printrdata(dns_message_t *msg, dns_rdataset_t *rdataset,
+	   const dns_name_t *owner, const char *set_name,
+	   isc_boolean_t headers)
 {
 	isc_buffer_t target;
 	isc_result_t result;
@@ -410,7 +411,7 @@ isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	dns_rdataset_t *opt, *tsig = NULL;
-	dns_name_t *tsigname;
+	const dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
 	int force_error;
 

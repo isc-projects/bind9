@@ -267,7 +267,7 @@ dns_cache_flush(dns_cache_t *cache);
  */
 
 isc_result_t
-dns_cache_flushnode(dns_cache_t *cache, dns_name_t *name,
+dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
 		    isc_boolean_t tree);
 /*
  * Flush a given name from the cache.  If 'tree' is true, then
@@ -284,7 +284,7 @@ dns_cache_flushnode(dns_cache_t *cache, dns_name_t *name,
  */
 
 isc_result_t
-dns_cache_flushname(dns_cache_t *cache, dns_name_t *name);
+dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name);
 /*
  * Flush a given name from the cache.  Equivalent to
  * dns_cache_flushpartial(cache, name, ISC_FALSE).

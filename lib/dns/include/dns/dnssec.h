@@ -65,8 +65,8 @@ struct dns_dnsseckey {
 };
 
 isc_result_t
-dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
-			dst_key_t **key);
+dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
+			isc_mem_t *mctx, dst_key_t **key);
 /*%<
  *	Creates a DST key from a DNS record.  Basically a wrapper around
  *	dst_key_fromdns().
@@ -86,7 +86,7 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
  */
 
 isc_result_t
-dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
 		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata);
 /*%<
@@ -115,17 +115,17 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  */
 
 isc_result_t
-dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  isc_boolean_t ignoretime, isc_mem_t *mctx,
 		  dns_rdata_t *sigrdata);
 
 isc_result_t
-dns_dnssec_verify2(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+dns_dnssec_verify2(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		   isc_boolean_t ignoretime, isc_mem_t *mctx,
 		   dns_rdata_t *sigrdata, dns_name_t *wild);
 
 isc_result_t
-dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+dns_dnssec_verify3(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		   isc_boolean_t ignoretime, unsigned int maxbits,
 		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild);
 /*%<
@@ -162,20 +162,20 @@ dns_dnssec_verify3(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 /*@{*/
 isc_result_t
 dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
-			dns_name_t *name, isc_mem_t *mctx,
+			const dns_name_t *name, isc_mem_t *mctx,
 			unsigned int maxkeys, dst_key_t **keys,
 			unsigned int *nkeys);
 
 isc_result_t
 dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, dns_name_t *name,
+			 dns_dbnode_t *node, const dns_name_t *name,
 			 const char *directory, isc_mem_t *mctx,
 			 unsigned int maxkeys, dst_key_t **keys,
 			 unsigned int *nkeys);
 
 isc_result_t
 dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, dns_name_t *name,
+			 dns_dbnode_t *node, const dns_name_t *name,
 			 const char *directory, isc_stdtime_t now,
 			 isc_mem_t *mctx, unsigned int maxkeys,
 			 dst_key_t **keys, unsigned int *nkeys);
@@ -242,13 +242,13 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
  */
 
 isc_boolean_t
-dns_dnssec_selfsigns(dns_rdata_t *rdata, dns_name_t *name,
+dns_dnssec_selfsigns(dns_rdata_t *rdata, const dns_name_t *name,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     isc_boolean_t ignoretime, isc_mem_t *mctx);
 
 
 isc_boolean_t
-dns_dnssec_signs(dns_rdata_t *rdata, dns_name_t *name,
+dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		 isc_boolean_t ignoretime, isc_mem_t *mctx);
 /*%<
@@ -287,11 +287,11 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp);
  */
 
 isc_result_t
-dns_dnssec_findmatchingkeys(dns_name_t *origin, const char *directory,
+dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist);
 
 isc_result_t
-dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
+dns_dnssec_findmatchingkeys2(const dns_name_t *origin, const char *directory,
 			     isc_stdtime_t now, isc_mem_t *mctx,
 			     dns_dnsseckeylist_t *keylist);
 /*%<
@@ -314,7 +314,7 @@ dns_dnssec_findmatchingkeys2(dns_name_t *origin, const char *directory,
  */
 
 isc_result_t
-dns_dnssec_keylistfromrdataset(dns_name_t *origin,
+dns_dnssec_keylistfromrdataset(const dns_name_t *origin,
 			       const char *directory, isc_mem_t *mctx,
 			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
 			       dns_rdataset_t *soasigs, isc_boolean_t savekeys,
@@ -334,7 +334,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 
 isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
-		      dns_dnsseckeylist_t *removed, dns_name_t *origin,
+		      dns_dnsseckeylist_t *removed, const dns_name_t *origin,
 		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_boolean_t allzsk,
 		      isc_mem_t *mctx, void (*report)(const char *, ...));
 /*%<

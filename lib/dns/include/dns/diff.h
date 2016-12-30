@@ -112,7 +112,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_difftuple_create(isc_mem_t *mctx,
-		     dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
+		     dns_diffop_t op, const dns_name_t *name, dns_ttl_t ttl,
 		     dns_rdata_t *rdata, dns_difftuple_t **tp);
 /*%<
  * Create a tuple.  Deep copies are made of the name and rdata, so

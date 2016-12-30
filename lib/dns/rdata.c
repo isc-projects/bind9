@@ -74,7 +74,7 @@
 #define DNS_AS_STR(t) ((t).value.as_textregion.base)
 
 #define ARGS_FROMTEXT	int rdclass, dns_rdatatype_t type, \
-			isc_lex_t *lexer, dns_name_t *origin, \
+			isc_lex_t *lexer, const dns_name_t *origin, \
 			unsigned int options, isc_buffer_t *target, \
 			dns_rdatacallbacks_t *callbacks
 
@@ -102,10 +102,11 @@
 
 #define ARGS_DIGEST	dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg
 
-#define ARGS_CHECKOWNER dns_name_t *name, dns_rdataclass_t rdclass, \
+#define ARGS_CHECKOWNER const dns_name_t *name, dns_rdataclass_t rdclass, \
 			dns_rdatatype_t type, isc_boolean_t wildcard
 
-#define ARGS_CHECKNAMES dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad
+#define ARGS_CHECKNAMES dns_rdata_t *rdata, const dns_name_t *owner, \
+			dns_name_t *bad
 
 
 /*%
@@ -114,7 +115,7 @@
  * conversion.
  */
 typedef struct dns_rdata_textctx {
-	dns_name_t *origin;	/*%< Current origin, or NULL. */
+	const dns_name_t *origin;	/*%< Current origin, or NULL. */
 	unsigned int flags;	/*%< DNS_STYLEFLAG_*  */
 	unsigned int width;	/*%< Width of rdata column. */
 	const char *linebreak;	/*%< Line break string. */
@@ -136,10 +137,10 @@ static isc_result_t
 multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target);
 
 static isc_boolean_t
-name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target);
+name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target);
 
 static unsigned int
-name_length(dns_name_t *name);
+name_length(const dns_name_t *name);
 
 static isc_result_t
 str_totext(const char *source, isc_buffer_t *target);
@@ -163,7 +164,7 @@ static isc_result_t
 uint8_tobuffer(isc_uint32_t, isc_buffer_t *target);
 
 static isc_result_t
-name_tobuffer(dns_name_t *name, isc_buffer_t *target);
+name_tobuffer(const dns_name_t *name, isc_buffer_t *target);
 
 static isc_uint32_t
 uint32_fromregion(isc_region_t *region);
@@ -209,7 +210,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	     isc_buffer_t *target);
 
 static void
-warn_badname(dns_name_t *name, isc_lex_t *lexer,
+warn_badname(const dns_name_t *name, isc_lex_t *lexer,
 	     dns_rdatacallbacks_t *callbacks);
 
 static void
@@ -401,7 +402,7 @@ getquad(const void *src, struct in_addr *dst,
 }
 
 static inline isc_result_t
-name_duporclone(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
+name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
 	if (mctx != NULL)
 		return (dns_name_dup(source, mctx, target));
@@ -919,8 +920,9 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 isc_result_t
 dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
-		   dns_name_t *origin, unsigned int options, isc_mem_t *mctx,
-		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
+		   const dns_name_t *origin, unsigned int options,
+		   isc_mem_t *mctx, isc_buffer_t *target,
+		   dns_rdatacallbacks_t *callbacks)
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
@@ -1121,7 +1123,8 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 }
 
 isc_result_t
-dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
+dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
+		 isc_buffer_t *target)
 {
 	dns_rdata_textctx_t tctx;
 
@@ -1138,7 +1141,7 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target)
 }
 
 isc_result_t
-dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
+dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 		    unsigned int flags, unsigned int width,
 		    unsigned int split_width, const char *linebreak,
 		    isc_buffer_t *target)
@@ -1279,7 +1282,7 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 }
 
 isc_boolean_t
-dns_rdata_checkowner(dns_name_t *name, dns_rdataclass_t rdclass,
+dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, isc_boolean_t wildcard)
 {
 	isc_boolean_t result;
@@ -1289,7 +1292,8 @@ dns_rdata_checkowner(dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 isc_boolean_t
-dns_rdata_checknames(dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad)
+dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
+		     dns_name_t *bad)
 {
 	isc_boolean_t result;
 
@@ -1392,7 +1396,7 @@ dns_rdatatype_format(dns_rdatatype_t rdtype,
  */
 
 static unsigned int
-name_length(dns_name_t *name) {
+name_length(const dns_name_t *name) {
 	return (name->length);
 }
 
@@ -1673,7 +1677,7 @@ multitxt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 }
 
 static isc_boolean_t
-name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target) {
+name_prefix(dns_name_t *name, const dns_name_t *origin, dns_name_t *target) {
 	int l1, l2;
 
 	if (origin == NULL)
@@ -1783,7 +1787,7 @@ uint8_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 }
 
 static isc_result_t
-name_tobuffer(dns_name_t *name, isc_buffer_t *target) {
+name_tobuffer(const dns_name_t *name, isc_buffer_t *target) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);
 	return (isc_buffer_copyregion(target, &r));
@@ -2195,7 +2199,7 @@ warn_badmx(isc_token_t *token, isc_lex_t *lexer,
 }
 
 static void
-warn_badname(dns_name_t *name, isc_lex_t *lexer,
+warn_badname(const dns_name_t *name, isc_lex_t *lexer,
 	     dns_rdatacallbacks_t *callbacks)
 {
 	const char *file;

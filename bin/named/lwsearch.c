@@ -174,7 +174,7 @@ ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 
 isc_result_t
 ns_lwsearchctx_current(ns_lwsearchctx_t *sctx, dns_name_t *absname) {
-	dns_name_t *tname;
+	const dns_name_t *tname;
 	isc_boolean_t useexact = ISC_FALSE;
 
 	REQUIRE(sctx != NULL);

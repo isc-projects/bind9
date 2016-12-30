@@ -190,7 +190,7 @@ isc__rdatalist_count(dns_rdataset_t *rdataset) {
 }
 
 isc_result_t
-isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name) {
+isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	dns_rdataset_t *neg = NULL;
 	dns_rdataset_t *negsig = NULL;
 	dns_rdataset_t *rdset;
@@ -243,7 +243,7 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_rdataclass_t rdclass = rdataset->rdclass;
 	dns_rdataset_t *tneg = NULL;
 	dns_rdataset_t *tnegsig = NULL;
-	dns_name_t *noqname = rdataset->private6;
+	const dns_name_t *noqname = rdataset->private6;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0);
@@ -281,7 +281,7 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 }
 
 isc_result_t
-isc__rdatalist_addclosest(dns_rdataset_t *rdataset, dns_name_t *name) {
+isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	dns_rdataset_t *neg = NULL;
 	dns_rdataset_t *negsig = NULL;
 	dns_rdataset_t *rdset;
@@ -334,7 +334,7 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	dns_rdataclass_t rdclass = rdataset->rdclass;
 	dns_rdataset_t *tneg = NULL;
 	dns_rdataset_t *tnegsig = NULL;
-	dns_name_t *closest = rdataset->private7;
+	const dns_name_t *closest = rdataset->private7;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0);

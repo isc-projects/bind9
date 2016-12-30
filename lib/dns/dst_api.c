@@ -80,7 +80,7 @@ LIBDNS_EXTERNAL_DATA isc_mem_t *dst__memory_pool = NULL;
 /*
  * Static functions.
  */
-static dst_key_t *	get_key_struct(dns_name_t *name,
+static dst_key_t *	get_key_struct(const dns_name_t *name,
 				       unsigned int alg,
 				       unsigned int flags,
 				       unsigned int protocol,
@@ -97,7 +97,7 @@ static isc_result_t	buildfilename(dns_name_t *name,
 				      const char *directory,
 				      isc_buffer_t *out);
 static isc_result_t	computeid(dst_key_t *key);
-static isc_result_t	frombuffer(dns_name_t *name,
+static isc_result_t	frombuffer(const dns_name_t *name,
 				   unsigned int alg,
 				   unsigned int flags,
 				   unsigned int protocol,
@@ -728,7 +728,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 }
 
 isc_result_t
-dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
+dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {
 	isc_uint8_t alg, proto;
@@ -770,7 +770,7 @@ dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dst_key_frombuffer(dns_name_t *name, unsigned int alg,
+dst_key_frombuffer(const dns_name_t *name, unsigned int alg,
 		   unsigned int flags, unsigned int protocol,
 		   dns_rdataclass_t rdclass,
 		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
@@ -840,8 +840,8 @@ dst_key_getgssctx(const dst_key_t *key)
 }
 
 isc_result_t
-dst_key_fromgssapi(dns_name_t *name, gss_ctx_id_t gssctx, isc_mem_t *mctx,
-		   dst_key_t **keyp, isc_region_t *intoken)
+dst_key_fromgssapi(const dns_name_t *name, gss_ctx_id_t gssctx,
+		   isc_mem_t *mctx, dst_key_t **keyp, isc_region_t *intoken)
 {
 	dst_key_t *key;
 	isc_result_t result;
@@ -872,7 +872,7 @@ out:
 }
 
 isc_result_t
-dst_key_buildinternal(dns_name_t *name, unsigned int alg,
+dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 		      unsigned int bits, unsigned int flags,
 		      unsigned int protocol, dns_rdataclass_t rdclass,
 		      void *data, isc_mem_t *mctx, dst_key_t **keyp)
@@ -906,7 +906,7 @@ dst_key_buildinternal(dns_name_t *name, unsigned int alg,
 }
 
 isc_result_t
-dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
+dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 		  unsigned int protocol, dns_rdataclass_t rdclass,
 		  const char *engine, const char *label, const char *pin,
 		  isc_mem_t *mctx, dst_key_t **keyp)
@@ -948,7 +948,7 @@ dst_key_fromlabel(dns_name_t *name, int alg, unsigned int flags,
 }
 
 isc_result_t
-dst_key_generate(dns_name_t *name, unsigned int alg,
+dst_key_generate(const dns_name_t *name, unsigned int alg,
 		 unsigned int bits, unsigned int param,
 		 unsigned int flags, unsigned int protocol,
 		 dns_rdataclass_t rdclass,
@@ -959,7 +959,7 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 }
 
 isc_result_t
-dst_key_generate2(dns_name_t *name, unsigned int alg,
+dst_key_generate2(const dns_name_t *name, unsigned int alg,
 		  unsigned int bits, unsigned int param,
 		  unsigned int flags, unsigned int protocol,
 		  dns_rdataclass_t rdclass,
@@ -1409,7 +1409,7 @@ dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
  * Allocates a key structure and fills in some of the fields.
  */
 static dst_key_t *
-get_key_struct(dns_name_t *name, unsigned int alg,
+get_key_struct(const dns_name_t *name, unsigned int alg,
 	       unsigned int flags, unsigned int protocol,
 	       unsigned int bits, dns_rdataclass_t rdclass,
 	       dns_ttl_t ttl, isc_mem_t *mctx)
@@ -1868,7 +1868,7 @@ computeid(dst_key_t *key) {
 }
 
 static isc_result_t
-frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
+frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	   unsigned int protocol, dns_rdataclass_t rdclass,
 	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {

@@ -66,8 +66,8 @@ typedef struct dns_byaddrevent {
 #define DNS_BYADDROPT_IPV6INT		0x0002
 
 isc_result_t
-dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
-		  unsigned int options, isc_task_t *task,
+dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
+		  dns_view_t *view, unsigned int options, isc_task_t *task,
 		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp);
 /*%<
  * Find the domain name of 'address'.
@@ -138,11 +138,11 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
  */
 
 isc_result_t
-dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+dns_byaddr_createptrname(const isc_netaddr_t *address, isc_boolean_t nibble,
 			 dns_name_t *name);
 
 isc_result_t
-dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
+dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
 			  dns_name_t *name);
 /*%<
  * Creates a name that would be used in a PTR query for this address.  The

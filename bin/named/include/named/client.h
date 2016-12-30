@@ -361,7 +361,7 @@ ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	       isc_logmodule_t *module, int level, const char *fmt, va_list ap) ISC_FORMAT_PRINTF(5, 0);
 
 void
-ns_client_aclmsg(const char *msg, dns_name_t *name, dns_rdatatype_t type,
+ns_client_aclmsg(const char *msg, const dns_name_t *name, dns_rdatatype_t type,
 		 dns_rdataclass_t rdclass, char *buf, size_t len);
 
 #define NS_CLIENT_ACLMSGSIZE(x) \
@@ -394,7 +394,7 @@ ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
 
 isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
-		 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		 const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
 		 dns_rdataclass_t rdclass, void *arg);
 /*%
  * Isself callback.

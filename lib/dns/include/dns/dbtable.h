@@ -137,7 +137,7 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable);
  */
 
 isc_result_t
-dns_dbtable_find(dns_dbtable_t *dbtable, dns_name_t *name,
+dns_dbtable_find(dns_dbtable_t *dbtable, const dns_name_t *name,
 		 unsigned int options, dns_db_t **dbp);
 /*%<
  * Find the deepest match to 'name' in the dbtable, and return it

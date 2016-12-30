@@ -416,7 +416,9 @@ mgr_gethash(dns_requestmgr_t *requestmgr) {
 }
 
 static inline isc_result_t
-req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
+req_send(dns_request_t *request, isc_task_t *task,
+	 const isc_sockaddr_t *address)
+{
 	isc_region_t r;
 	isc_socket_t *sock;
 	isc_socketevent_t *sendevent;
@@ -494,7 +496,7 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp)
 
 
 static isc_boolean_t
-isblackholed(dns_dispatchmgr_t *dispatchmgr, isc_sockaddr_t *destaddr) {
+isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 	dns_acl_t *blackhole;
 	isc_netaddr_t netaddr;
 	int match;
@@ -519,8 +521,8 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, isc_sockaddr_t *destaddr) {
 static isc_result_t
 create_tcp_dispatch(isc_boolean_t newtcp, isc_boolean_t share,
 		    dns_requestmgr_t *requestmgr,
-		    isc_sockaddr_t *srcaddr,
-		    isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		    const isc_sockaddr_t *srcaddr,
+		    const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
 		    isc_boolean_t *connected, dns_dispatch_t **dispatchp)
 {
 	isc_result_t result;
@@ -595,8 +597,8 @@ cleanup:
 }
 
 static isc_result_t
-find_udp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
-		  isc_sockaddr_t *destaddr, dns_dispatch_t **dispatchp)
+find_udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
+		  const isc_sockaddr_t *destaddr, dns_dispatch_t **dispatchp)
 {
 	dns_dispatch_t *disp = NULL;
 	unsigned int attrs, attrmask;
@@ -650,7 +652,7 @@ find_udp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 static isc_result_t
 get_dispatch(isc_boolean_t tcp, isc_boolean_t newtcp, isc_boolean_t share,
 	     dns_requestmgr_t *requestmgr,
-	     isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
 	     isc_dscp_t dscp, isc_boolean_t *connected,
 	     dns_dispatch_t **dispatchp)
 {
@@ -686,7 +688,8 @@ set_timer(isc_timer_t *timer, unsigned int timeout, unsigned int udpresend) {
 
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		      const isc_sockaddr_t *srcaddr,
+		      const isc_sockaddr_t *destaddr,
 		      unsigned int options, unsigned int timeout,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp)
@@ -698,7 +701,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 isc_result_t
 dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, unsigned int timeout,
 		       unsigned int udptimeout, isc_task_t *task,
 		       isc_taskaction_t action, void *arg,
@@ -717,7 +721,8 @@ dns_request_createraw2(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 isc_result_t
 dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, unsigned int timeout,
 		       unsigned int udptimeout, unsigned int udpretries,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -731,7 +736,8 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 isc_result_t
 dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       isc_dscp_t dscp, unsigned int options,
 		       unsigned int timeout, unsigned int udptimeout,
 		       unsigned int udpretries, isc_task_t *task,
@@ -907,7 +913,7 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		   isc_sockaddr_t *address, unsigned int options,
+		   const isc_sockaddr_t *address, unsigned int options,
 		   dns_tsigkey_t *key,
 		   unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
@@ -920,7 +926,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 isc_result_t
 dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		      isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		      const isc_sockaddr_t *srcaddr,
+		      const isc_sockaddr_t *destaddr,
 		      unsigned int options, dns_tsigkey_t *key,
 		      unsigned int timeout, isc_task_t *task,
 		      isc_taskaction_t action, void *arg,
@@ -933,7 +940,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 isc_result_t
 dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, dns_tsigkey_t *key,
 		       unsigned int timeout, unsigned int udptimeout,
 		       isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -951,7 +959,8 @@ dns_request_createvia2(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 isc_result_t
 dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       unsigned int options, dns_tsigkey_t *key,
 		       unsigned int timeout, unsigned int udptimeout,
 		       unsigned int udpretries, isc_task_t *task,
@@ -966,7 +975,8 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 isc_result_t
 dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		       isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+		       const isc_sockaddr_t *srcaddr,
+		       const isc_sockaddr_t *destaddr,
 		       isc_dscp_t dscp, unsigned int options,
 		       dns_tsigkey_t *key, unsigned int timeout,
 		       unsigned int udptimeout, unsigned int udpretries,

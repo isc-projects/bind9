@@ -432,8 +432,9 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 isc_uint16_t family, ns_listenlist_t **target);
 
 static isc_result_t
-configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
-		  const cfg_obj_t *forwarders, const cfg_obj_t *forwardtype);
+configure_forward(const cfg_obj_t *config, dns_view_t *view, 
+		  const dns_name_t *origin, const cfg_obj_t *forwarders,
+		  const cfg_obj_t *forwardtype);
 
 static isc_result_t
 configure_alternates(const cfg_obj_t *config, dns_view_t *view,
@@ -788,7 +789,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 static isc_result_t
 load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 	       dns_view_t *view, isc_boolean_t managed,
-	       dns_name_t *keyname, isc_mem_t *mctx)
+	       const dns_name_t *keyname, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
 	const cfg_obj_t *key, *keylist;
@@ -2684,8 +2685,8 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 }
 
 static isc_result_t
-add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-	dns_name_t *origin, dns_name_t *contact)
+add_soa(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
+	const dns_name_t *origin, const dns_name_t *contact)
 {
 	dns_dbnode_t *node = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -2715,8 +2716,8 @@ add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 }
 
 static isc_result_t
-add_ns(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-       dns_name_t *nsname)
+add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
+       const dns_name_t *nsname)
 {
 	dns_dbnode_t *node = NULL;
 	dns_rdata_ns_t ns;
@@ -4916,8 +4917,9 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 }
 
 static isc_result_t
-configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
-		  const cfg_obj_t *forwarders, const cfg_obj_t *forwardtype)
+configure_forward(const cfg_obj_t *config, dns_view_t *view,
+		  const dns_name_t *origin, const cfg_obj_t *forwarders,
+		   const cfg_obj_t *forwardtype)
 {
 	const cfg_obj_t *portobj, *dscpobj;
 	const cfg_obj_t *faddresses;
@@ -6269,8 +6271,8 @@ cleanup_session_key(ns_server_t *server, isc_mem_t *mctx) {
 
 static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
-		     dns_name_t *keyname, const char *algstr,
-		     dns_name_t *algname, unsigned int algtype,
+		     const dns_name_t *keyname, const char *algstr,
+		     const dns_name_t *algname, unsigned int algtype,
 		     isc_uint16_t bits, isc_mem_t *mctx,
 		     dns_tsigkey_t **tsigkeyp)
 {
@@ -6365,7 +6367,8 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 	const char *keyfile, *keynamestr, *algstr;
 	unsigned int algtype;
 	dns_fixedname_t fname;
-	dns_name_t *keyname, *algname;
+	dns_name_t *keyname;
+	const dns_name_t *algname;
 	isc_buffer_t buffer;
 	isc_uint16_t bits;
 	const cfg_obj_t *obj;
@@ -12938,14 +12941,15 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_boolean_t readonly,
 	const char *msg = NULL;
 	isc_boolean_t dump = ISC_FALSE, force = ISC_FALSE;
 	dns_fixedname_t fn;
-	dns_name_t *ntaname;
+	const dns_name_t *ntaname;
+	dns_name_t *fname;
 	dns_ttl_t ntattl;
 	isc_boolean_t ttlset = ISC_FALSE, excl = ISC_FALSE;
 
 	UNUSED(force);
 
 	dns_fixedname_init(&fn);
-	ntaname = dns_fixedname_name(&fn);
+	fname = dns_fixedname_name(&fn);
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
@@ -13039,7 +13043,8 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_boolean_t readonly,
 		isc_buffer_t b;
 		isc_buffer_init(&b, namebuf, strlen(namebuf));
 		isc_buffer_add(&b, strlen(namebuf));
-		CHECK(dns_name_fromtext(ntaname, &b, dns_rootname, 0, NULL));
+		CHECK(dns_name_fromtext(fname, &b, dns_rootname, 0, NULL));
+		ntaname = fname;
 	}
 
 	/* Look for the view name. */

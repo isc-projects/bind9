@@ -283,7 +283,7 @@ extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
 extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
-extern dns_name_t *hmacname;
+extern const dns_name_t *hmacname;
 extern unsigned int digestbits;
 #ifdef DIG_SIGCHASE
 extern char trustedkey[MXNAME];

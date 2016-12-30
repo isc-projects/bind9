@@ -40,7 +40,7 @@ static char hex_digits[] = {
 };
 
 isc_result_t
-dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+dns_byaddr_createptrname(const isc_netaddr_t *address, isc_boolean_t nibble,
 			 dns_name_t *name)
 {
 	/*
@@ -53,11 +53,11 @@ dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
 }
 
 isc_result_t
-dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
+dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
 			  dns_name_t *name)
 {
 	char textname[128];
-	unsigned char *bytes;
+	const unsigned char *bytes;
 	int i;
 	char *cp;
 	isc_buffer_t buffer;
@@ -71,7 +71,7 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 	 * of the knowledge of wire format in the dns_name_ routines.
 	 */
 
-	bytes = (unsigned char *)(&address->type);
+	bytes = (const unsigned char *)(&address->type);
 	if (address->family == AF_INET) {
 		(void)snprintf(textname, sizeof(textname),
 			       "%u.%u.%u.%u.in-addr.arpa.",
@@ -203,8 +203,8 @@ bevent_destroy(isc_event_t *event) {
 }
 
 isc_result_t
-dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
-		  unsigned int options, isc_task_t *task,
+dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
+		  dns_view_t *view, unsigned int options, isc_task_t *task,
 		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp)
 {
 	isc_result_t result;
