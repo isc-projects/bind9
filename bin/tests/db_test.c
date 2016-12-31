@@ -361,7 +361,7 @@ main(int argc, char *argv[]) {
 	const char *origintext;
 	dbinfo *dbi;
 	dns_dbversion_t *version;
-	dns_name_t *origin;
+	const dns_name_t *origin;
 	size_t memory_quota = 0;
 	dns_trust_t trust = 0;
 	unsigned int addopts;
