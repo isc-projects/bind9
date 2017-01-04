@@ -16721,8 +16721,10 @@ $as_echo "Cryptech" >&6; }
 				set_pk11_flavor="yes"
 				;;
 			*Keyper*)
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: AEP Keyper: not yet supported" >&5
-$as_echo "AEP Keyper: not yet supported" >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: AEP Keyper" >&5
+$as_echo "AEP Keyper" >&6; }
+				pk11_flavor="PK11_AEP_FLAVOR"
+				set_pk11_flavor="yes"
 				;;
 			undefined)
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: undefined provider?" >&5
