@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: peer.c,v 1.33 2009/09/02 23:48:02 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -33,14 +31,16 @@
 #define SUPPORT_EDNS_BIT		 5
 #define SERVER_UDPSIZE_BIT		 6
 #define SERVER_MAXUDP_BIT		 7
-#define REQUEST_NSID_BIT                 8
-#define SEND_COOKIE_BIT                  9
-#define NOTIFY_DSCP_BIT                 10
-#define TRANSFER_DSCP_BIT               11
-#define QUERY_DSCP_BIT                 	12
-#define REQUEST_EXPIRE_BIT              13
-#define EDNS_VERSION_BIT	        14
+#define REQUEST_NSID_BIT		 8
+#define SEND_COOKIE_BIT			 9
+#define NOTIFY_DSCP_BIT			10
+#define TRANSFER_DSCP_BIT		11
+#define QUERY_DSCP_BIT			12
+#define REQUEST_EXPIRE_BIT		13
+#define EDNS_VERSION_BIT		14
 #define FORCE_TCP_BIT			15
+#define SERVER_PADDING_BIT		16
+#define REQUEST_TCP_KEEPALIVE_BIT	17
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -524,6 +524,32 @@ dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
+dns_peer_settcpkeepalive(dns_peer_t *peer, isc_boolean_t newval) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(REQUEST_TCP_KEEPALIVE_BIT, &peer->bitflags);
+
+	peer->tcp_keepalive = newval;
+	DNS_BIT_SET(REQUEST_TCP_KEEPALIVE_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_gettcpkeepalive(dns_peer_t *peer, isc_boolean_t *retval) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(retval != NULL);
+
+	if (DNS_BIT_CHECK(REQUEST_TCP_KEEPALIVE_BIT, &peer->bitflags)) {
+		*retval = peer->tcp_keepalive;
+		return (ISC_R_SUCCESS);
+	} else
+		return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
 dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval) {
 	isc_boolean_t existed;
 
@@ -786,6 +812,36 @@ dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp) {
 
 	if (DNS_BIT_CHECK(SERVER_MAXUDP_BIT, &peer->bitflags)) {
 		*maxudp = peer->maxudp;
+		return (ISC_R_SUCCESS);
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+}
+
+isc_result_t
+dns_peer_setpadding(dns_peer_t *peer, isc_uint16_t padding) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(SERVER_PADDING_BIT, &peer->bitflags);
+
+	if (padding > 512)
+		padding = 512;
+	peer->padding = padding;
+	DNS_BIT_SET(SERVER_PADDING_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getpadding(dns_peer_t *peer, isc_uint16_t *padding) {
+
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(padding != NULL);
+
+	if (DNS_BIT_CHECK(SERVER_PADDING_BIT, &peer->bitflags)) {
+		*padding = peer->padding;
 		return (ISC_R_SUCCESS);
 	} else {
 		return (ISC_R_NOTFOUND);

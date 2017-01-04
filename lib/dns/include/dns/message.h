@@ -97,12 +97,13 @@
 #define DNS_OPT_CLIENT_SUBNET	8		/*%< client subnet opt code */
 #define DNS_OPT_EXPIRE		9		/*%< EXPIRE opt code */
 #define DNS_OPT_COOKIE		10		/*%< COOKIE opt code */
+#define DNS_OPT_TCP_KEEPALIVE	11		/*%< TCP keepalive opt code */
 #define DNS_OPT_PAD		12		/*%< PAD opt code */
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
 /*%< The number of EDNS options we know about. */
-#define DNS_EDNSOPTIONS	5
+#define DNS_EDNSOPTIONS	7
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
@@ -217,6 +218,9 @@ struct dns_message {
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;
 	unsigned int			reserved; /* reserved space (render) */
+
+	isc_uint16_t			padding;
+	unsigned int			padding_off;
 
 	isc_buffer_t		       *buffer;
 	dns_compress_t		       *cctx;
@@ -1424,6 +1428,16 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass);
  *
  * Requires:
  * \li   msg be a valid message with parsing intent.
+ */
+
+void
+dns_message_setpadding(dns_message_t *msg, isc_uint16_t padding);
+/*%<
+ * Set the padding block size in the response.
+ * 0 means no padding (default).
+ *
+ * Requires:
+ * \li	msg be a valid message.
  */
 
 ISC_LANG_ENDDECLS

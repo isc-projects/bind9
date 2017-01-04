@@ -101,7 +101,11 @@ options {\n\
 	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 #	statistics-interval <obsolete>;\n\
+	tcp-advertised-timeout 300;\n\
 	tcp-clients 150;\n\
+	tcp-idle-timeout 300;\n\
+	tcp-initial-timeout 300;\n\
+	tcp-keepalive-timeout 300;\n\
 	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
 #	tkey-gssapi-credential <none>\n\

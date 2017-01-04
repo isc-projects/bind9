@@ -1,3 +1,9 @@
+4549.	[func]		Added support for the EDNS TCP Keepalive option
+			(RFC 7828). [RT #42126]
+
+4548.	[func]		Added support for the EDNS Padding option (RFC 7830).
+			[RT #42094]
+
 4547.	[port]		Add support for --enable-native-pkcs11 on the AEP
 			Keyper HSM. [RT #42463]
 

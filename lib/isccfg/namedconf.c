@@ -1115,7 +1115,11 @@ options_clauses[] = {
 	{ "startup-notify-rate", &cfg_type_uint32, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_NYI },
+	{ "tcp-advertised-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-clients", &cfg_type_uint32, 0 },
+	{ "tcp-idle-timeout", &cfg_type_uint32, 0 },
+	{ "tcp-initial-timeout", &cfg_type_uint32, 0 },
+	{ "tcp-keepalive-timeout", &cfg_type_uint32, 0 },
 	{ "tcp-listen-queue", &cfg_type_uint32, 0 },
 	{ "tkey-dhkey", &cfg_type_tkey_dhkey, 0 },
 	{ "tkey-gssapi-credential", &cfg_type_qstring, 0 },
@@ -1230,6 +1234,24 @@ static const char *masterstyle_enums[] = { "full", "relative", NULL };
 static cfg_type_t cfg_type_masterstyle = {
 	"masterstyle", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &masterstyle_enums
+};
+
+static keyword_type_t blocksize_kw = { "block-size", &cfg_type_uint32 };
+
+static cfg_type_t cfg_type_blocksize = {
+	"blocksize", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_uint32, &blocksize_kw
+};
+
+static cfg_tuplefielddef_t resppadding_fields[] = {
+	{ "acl", &cfg_type_bracketed_aml, 0 },
+	{ "block-size", &cfg_type_blocksize, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_resppadding = {
+	"resppadding", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, resppadding_fields
 };
 
 /*%
@@ -1792,6 +1814,7 @@ view_clauses[] = {
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "require-server-cookie", &cfg_type_boolean, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
+	{ "response-padding", &cfg_type_resppadding, 0 },
 	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
@@ -2072,8 +2095,10 @@ server_clauses[] = {
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "tcp-only", &cfg_type_boolean, 0 },
+	{ "tcp-keepalive", &cfg_type_boolean, 0 },
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "padding", &cfg_type_uint32, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "query-source", &cfg_type_querysource4, 0 },
 	{ "query-source-v6", &cfg_type_querysource6, 0 },

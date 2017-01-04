@@ -121,6 +121,21 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Added support for the EDNS TCP Keepalive option (RFC 7828);
+	  this allows negotiation of longer-lived TCP sessions
+	  to reduce the overhead of setting up TCP for individual
+	  queries. [RT #42126]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Added support for the EDNS Padding option (RFC 7830),
+	  which obfuscates packet size analysis when DNS queries
+	  are sent over an encrypted channel. [RT #42094]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The <option>print-time</option> option in the
 	  <option>logging</option> configuration can now take arguments
 	  <userinput>local</userinput>, <userinput>iso8601</userinput> or

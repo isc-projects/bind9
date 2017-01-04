@@ -1282,10 +1282,10 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "edns-udp-size", &obj);
 	if (obj != NULL) {
 		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
-		if (udpsize < 512)
-			udpsize = 512;
-		if (udpsize > 4096)
-			udpsize = 4096;
+		if (udpsize < 512U)
+			udpsize = 512U;
+		if (udpsize > 4096U)
+			udpsize = 4096U;
 		CHECK(dns_peer_setudpsize(peer, (isc_uint16_t)udpsize));
 	}
 
@@ -1293,8 +1293,8 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "edns-version", &obj);
 	if (obj != NULL) {
 		isc_uint32_t ednsversion = cfg_obj_asuint32(obj);
-		if (ednsversion > 255)
-			ednsversion = 255;
+		if (ednsversion > 255U)
+			ednsversion = 255U;
 		CHECK(dns_peer_setednsversion(peer, (isc_uint8_t)ednsversion));
 	}
 
@@ -1302,17 +1302,35 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "max-udp-size", &obj);
 	if (obj != NULL) {
 		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
-		if (udpsize < 512)
-			udpsize = 512;
-		if (udpsize > 4096)
-			udpsize = 4096;
+		if (udpsize < 512U)
+			udpsize = 512U;
+		if (udpsize > 4096U)
+			udpsize = 4096U;
 		CHECK(dns_peer_setmaxudp(peer, (isc_uint16_t)udpsize));
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "padding", &obj);
+	if (obj != NULL) {
+		isc_uint32_t padding = cfg_obj_asuint32(obj);
+		if (padding > 512U) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+				    "server padding value cannot "
+				    "exceed 512: lowering");
+			padding = 512U;
+		}
+		CHECK(dns_peer_setpadding(peer, (isc_uint16_t)padding));
 	}
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "tcp-only", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_setforcetcp(peer, cfg_obj_asboolean(obj)));
+
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "tcp-keepalive", &obj);
+	if (obj != NULL)
+		CHECK(dns_peer_settcpkeepalive(peer, cfg_obj_asboolean(obj)));
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);
@@ -4345,6 +4363,26 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->sendcookie = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	if (view->pad_acl != NULL)
+		dns_acl_detach(&view->pad_acl);
+	result = ns_config_get(optionmaps, "response-padding", &obj);
+	if (result == ISC_R_SUCCESS) {
+		const cfg_obj_t *padobj = cfg_tuple_get(obj, "block-size");
+		const cfg_obj_t *aclobj = cfg_tuple_get(obj, "acl");
+		isc_uint32_t padding = cfg_obj_asuint32(padobj);
+
+		if (padding > 512U) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+				    "response-padding block-size cannot "
+				    "exceed 512: lowering");
+			padding = 512U;
+		}
+		view->padding = (isc_uint16_t)padding;
+		CHECK(cfg_acl_fromconfig(aclobj, config, ns_g_lctx,
+					 actx, ns_g_mctx, 0, &view->pad_acl));
+	}
+
+	obj = NULL;
 	result = ns_config_get(maps, "require-server-cookie", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->requireservercookie = cfg_obj_asboolean(obj);
@@ -7237,6 +7275,65 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	CHECKM(ns_statschannels_configure(ns_g_server, config, ns_g_aclconfctx),
 	       "configuring statistics server(s)");
+
+	obj = NULL;
+	result = ns_config_get(maps, "tcp-initial-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_initialtimo = cfg_obj_asuint32(obj);
+	if (ns_g_initialtimo > 1200) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-initial-timeout value is out of range: "
+			    "lowering to 1200");
+		ns_g_initialtimo = 1200;
+	} else if (ns_g_initialtimo < 25) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-initial-timeout value is out of range: "
+			    "raising to 25");
+		ns_g_initialtimo = 25;
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "tcp-idle-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_idletimo = cfg_obj_asuint32(obj);
+	if (ns_g_idletimo > 1200) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-idle-timeout value is out of range: "
+			    "lowering to 1200");
+		ns_g_idletimo = 1200;
+	} else if (ns_g_idletimo < 1) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-idle-timeout value is out of range: "
+			    "raising to 1");
+		ns_g_idletimo = 1;
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "tcp-keepalive-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_keepalivetimo = cfg_obj_asuint32(obj);
+	if (ns_g_keepalivetimo > 1200) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-keepalive-timeout value is out of range: "
+			    "lowering to 1200");
+		ns_g_keepalivetimo = 1200;
+	} else if (ns_g_keepalivetimo < 1) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-keepalive-timeout value is out of range: "
+			    "raising to 1");
+		ns_g_keepalivetimo = 1;
+	}
+
+	obj = NULL;
+	result = ns_config_get(maps, "tcp-advertised-timeout", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	ns_g_advertisedtimo = cfg_obj_asuint32(obj);
+	if (ns_g_advertisedtimo > 1200) {
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "tcp-advertized-timeout value is out of range: "
+			    "lowering to 1200");
+		ns_g_advertisedtimo = 1200;
+	}
 
 	/*
 	 * Configure sets of UDP query source ports.
@@ -13511,4 +13608,84 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	UNUSED(text);
 	return (ISC_R_NOTIMPLEMENTED);
 #endif
+}
+
+isc_result_t
+ns_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
+	char *ptr;
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int initial;
+	unsigned int idle;
+	unsigned int keepalive;
+	unsigned int advertised;
+	char msg[128];
+
+	/* Skip the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	/* Look for optional arguments. */
+	ptr = next_token(lex, NULL);
+	if (ptr != NULL) {
+		CHECK(isc_parse_uint32(&initial, ptr, 10));
+		if (initial > 1200)
+			CHECK(ISC_R_RANGE);
+		if (initial < 25)
+			CHECK(ISC_R_RANGE);
+
+		ptr = next_token(lex, text);
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+		CHECK(isc_parse_uint32(&idle, ptr, 10));
+		if (idle > 1200)
+			CHECK(ISC_R_RANGE);
+		if (idle < 1)
+			CHECK(ISC_R_RANGE);
+
+		ptr = next_token(lex, text);
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+		CHECK(isc_parse_uint32(&keepalive, ptr, 10));
+		if (keepalive > 1200)
+			CHECK(ISC_R_RANGE);
+		if (keepalive < 1)
+			CHECK(ISC_R_RANGE);
+
+		ptr = next_token(lex, text);
+		if (ptr == NULL)
+			return (ISC_R_UNEXPECTEDEND);
+		CHECK(isc_parse_uint32(&advertised, ptr, 10));
+		if (advertised > 1200)
+			CHECK(ISC_R_RANGE);
+
+		result = isc_task_beginexclusive(ns_g_server->task);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		ns_g_initialtimo = initial;
+		ns_g_idletimo = idle;
+		ns_g_keepalivetimo = keepalive;
+		ns_g_advertisedtimo = advertised;
+
+		isc_task_endexclusive(ns_g_server->task);
+	}
+
+	snprintf(msg, sizeof(msg), "tcp-initial-timeout=%u\n",
+		 ns_g_initialtimo);
+	CHECK(putstr(text, msg));
+	snprintf(msg, sizeof(msg), "tcp-idle-timeout=%u\n",
+		 ns_g_idletimo);
+	CHECK(putstr(text, msg));
+	snprintf(msg, sizeof(msg), "tcp-keepalive-timeout=%u\n",
+		 ns_g_keepalivetimo);
+	CHECK(putstr(text, msg));
+	snprintf(msg, sizeof(msg), "tcp-advertised-timeout=%u",
+		 ns_g_advertisedtimo);
+	CHECK(putstr(text, msg));
+
+ cleanup:
+	if (isc_buffer_usedlength(*text) > 0)
+		(void) putnull(text);
+
+	return (result);
 }

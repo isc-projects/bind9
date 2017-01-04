@@ -775,6 +775,8 @@ make_empty_lookup(void) {
 	looknew->opcode = dns_opcode_query;
 	looknew->expire = ISC_FALSE;
 	looknew->nsid = ISC_FALSE;
+	looknew->tcp_keepalive = ISC_FALSE;
+	looknew->padding = 0;
 	looknew->header_only = ISC_FALSE;
 	looknew->sendcookie = ISC_FALSE;
 	looknew->seenbadcookie = ISC_FALSE;
@@ -889,6 +891,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->opcode = lookold->opcode;
 	looknew->expire = lookold->expire;
 	looknew->nsid = lookold->nsid;
+	looknew->tcp_keepalive = lookold->tcp_keepalive;
 	looknew->header_only = lookold->header_only;
 	looknew->sendcookie = lookold->sendcookie;
 	looknew->seenbadcookie = lookold->seenbadcookie;
@@ -897,6 +900,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ednsopts = lookold->ednsopts;
 	looknew->ednsoptscnt = lookold->ednsoptscnt;
 	looknew->ednsneg = lookold->ednsneg;
+	looknew->padding = lookold->padding;
 	looknew->mapped = lookold->mapped;
 	looknew->multiline = lookold->multiline;
 	looknew->nottl = lookold->nottl;
@@ -1579,8 +1583,11 @@ setup_libs(void) {
 	check_result(result, "isc_mutex_init");
 }
 
-#define EDNSOPTS 100U
-static dns_ednsopt_t ednsopts[EDNSOPTS];
+/*
+ * Array of up to 100 options configured by +ednsopt
+ */
+#define EDNSOPT_OPTIONS 100U
+static dns_ednsopt_t ednsopts[EDNSOPT_OPTIONS];
 static unsigned char ednsoptscnt = 0;
 
 void
@@ -1589,7 +1596,7 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	if (ednsoptscnt == EDNSOPTS)
+	if (ednsoptscnt == EDNSOPT_OPTIONS)
 		fatal("too many ednsopts");
 
 	result = parse_uint(&num, code, 65535, "ednsopt");
@@ -2520,17 +2527,24 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->udpsize > 0 || lookup->dnssec ||
 	    lookup->edns > -1 || lookup->ecs_addr != NULL)
 	{
-		dns_ednsopt_t opts[EDNSOPTS + DNS_EDNSOPTIONS];
+#define MAXOPTS (EDNSOPT_OPTIONS + DNS_EDNSOPTIONS)
+		dns_ednsopt_t opts[MAXOPTS];
 		unsigned int flags;
-		int i = 0;
+		unsigned int i = 0;
 
+		/*
+		 * There can't be more than MAXOPTS options to send:
+		 * a maximum of EDNSOPT_OPTIONS set by +ednsopt
+		 * and DNS_EDNSOPTIONS set by other arguments
+		 * (+nsid, +cookie, etc).
+		 */
 		if (lookup->udpsize == 0)
 			lookup->udpsize = 4096;
 		if (lookup->edns < 0)
 			lookup->edns = 0;
 
 		if (lookup->nsid) {
-			INSIST(i < DNS_EDNSOPTIONS);
+			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_NSID;
 			opts[i].length = 0;
 			opts[i].value = NULL;
@@ -2552,7 +2566,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			/* Round up prefix len to a multiple of 8 */
 			addrl = (plen + 7) / 8;
 
-			INSIST(i < DNS_EDNSOPTIONS);
+			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
 			opts[i].length = (isc_uint16_t) addrl + 4;
 			check_result(result, "isc_buffer_allocate");
@@ -2621,7 +2635,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->sendcookie) {
-			INSIST(i < DNS_EDNSOPTIONS);
+			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_COOKIE;
 			if (lookup->cookie != NULL) {
 				isc_buffer_init(&b, cookiebuf,
@@ -2640,17 +2654,41 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 
 		if (lookup->expire) {
-			INSIST(i < DNS_EDNSOPTIONS);
+			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_EXPIRE;
 			opts[i].length = 0;
 			opts[i].value = NULL;
 			i++;
 		}
 
+		if (lookup->tcp_keepalive) {
+			INSIST(i < MAXOPTS);
+			opts[i].code = DNS_OPT_TCP_KEEPALIVE;
+			opts[i].length = 0;
+			opts[i].value = NULL;
+			i++;
+		}
+
 		if (lookup->ednsoptscnt != 0) {
+			INSIST(i + lookup->ednsoptscnt <= MAXOPTS);
 			memmove(&opts[i], lookup->ednsopts,
 				sizeof(dns_ednsopt_t) * lookup->ednsoptscnt);
 			i += lookup->ednsoptscnt;
+		}
+
+		if (lookup->padding && (i >= MAXOPTS)) {
+			debug("turned off padding because of EDNS overflow");
+			lookup->padding = 0;
+		}
+
+		if (lookup->padding) {
+			INSIST(i < MAXOPTS);
+			opts[i].code = DNS_OPT_PAD;
+			opts[i].length = 0;
+			opts[i].value = NULL;
+			i++;
+			dns_message_setpadding(lookup->sendmsg,
+					       lookup->padding);
 		}
 
 		flags = lookup->ednsflags;

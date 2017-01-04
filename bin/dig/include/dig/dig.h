@@ -126,6 +126,7 @@ struct dig_lookup {
 		seenbadcookie,
 		badcookie,
 		nsid,   /*% Name Server ID (RFC 5001) */
+		tcp_keepalive,
 		header_only,
 		ednsneg,
 		mapped,
@@ -184,6 +185,7 @@ isc_boolean_t	sigchase;
 	int nsfound;
 	isc_uint16_t udpsize;
 	isc_int16_t edns;
+	isc_int16_t padding;
 	isc_uint32_t ixfr_serial;
 	isc_buffer_t rdatabuf;
 	char rdatastore[MXNAME];

@@ -868,6 +868,24 @@
       </varlistentry>
 
       <varlistentry>
+	<term><userinput>tcp-timeouts <optional><replaceable>initial</replaceable> <replaceable>idle</replaceable> <replaceable>keepalive</replaceable> <replaceable>advertised</replaceable></optional></userinput></term>
+	<listitem>
+	  <para>
+	    When called without arguments, display the current
+            values of the <command>tcp-initial-timeout</command>,
+	    <command>tcp-idle-timeout</command>,
+	    <command>tcp-keepalive-timeout</command> and
+	    <command>tcp-advertised-timeout</command> options.
+            When called with arguments, update these values. This
+            allows an administrator to make rapid adjustments when
+            under a denial of service attack.  See the descriptions of
+            these options in the BIND 9 Administrator Reference Manual
+            for details of their use.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
 	<term><userinput>thaw <optional><replaceable>zone</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></optional></userinput></term>
 	<listitem>
 	  <para>

@@ -297,6 +297,8 @@ options {
         require-server-cookie <boolean>;
         reserved-sockets <integer>;
         resolver-query-timeout <integer>;
+        response-padding { <address_match_element>; ... }
+            block-size <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
             max-policy-ttl <integer> ] [ policy ( cname | disabled | drop |
             given | no-op | nodata | nxdomain | passthru | tcp-only
@@ -329,6 +331,10 @@ options {
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
         suppress-initial-notify <boolean>; // not yet implemented
+        tcp-advertised-timeout <integer>;
+        tcp-idle-timeout <integer>;
+        tcp-initial-timeout <integer>;
+        tcp-keepalive-timeout <integer>;
         tcp-clients <integer>;
         tcp-listen-queue <integer>;
         tkey-dhkey <quoted_string> <integer>;
@@ -373,6 +379,7 @@ server <netprefix> {
             dscp <integer> ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]
             [ dscp <integer> ];
+        padding <integer>;
         provide-ixfr <boolean>;
         query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
             <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
@@ -387,6 +394,7 @@ server <netprefix> {
         send-cookie <boolean>;
         support-ixfr <boolean>; // obsolete
         tcp-only <boolean>;
+        tcp-keepalive <boolean>;
         transfer-format ( many-answers | one-answer );
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [
             dscp <integer> ];

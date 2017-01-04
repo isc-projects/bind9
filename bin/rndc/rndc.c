@@ -188,6 +188,9 @@ command is one of the following:\n\
   sync [-clean] zone [class [view]]\n\
 		Dump a single zone's changes to disk, and optionally\n\
 		remove its journal file.\n\
+  tcp-timeouts	Display the tcp-*-timeout option values\n\
+  tcp-timeouts initial idle keepalive advertised\n\
+		Update the tcp-*-timeout option values\n\
   thaw		Enable updates to all dynamic zones and reload them.\n\
   thaw zone [class [view]]\n\
 		Enable updates to a frozen dynamic zone and reload it.\n\

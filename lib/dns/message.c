@@ -380,6 +380,8 @@ msginitprivate(dns_message_t *m) {
 	m->opt_reserved = 0;
 	m->sig_reserved = 0;
 	m->reserved = 0;
+	m->padding = 0;
+	m->padding_off = 0;
 	m->buffer = NULL;
 }
 
@@ -2283,6 +2285,52 @@ dns_message_renderend(dns_message_t *msg) {
 	}
 
 	/*
+	 * Deal with EDNS padding.
+	 *
+	 * padding_off is the length of the OPT with the 0-length PAD
+	 * at the end.
+	 */
+	if (msg->padding_off > 0) {
+		unsigned char *cp = isc_buffer_used(msg->buffer);
+		isc_uint16_t len;
+
+		/* Check PAD */
+		if ((cp[-4] != 0) ||
+		    (cp[-3] != DNS_OPT_PAD) ||
+		    (cp[-2] != 0) ||
+		    (cp[-1] != 0))
+			return (ISC_R_UNEXPECTED);
+
+		/*
+		 * Zero-fill the PAD to the computed size;
+		 * patch PAD length and OPT rdlength
+		 */
+		unsigned int used, remaining;
+		isc_uint16_t padsize;
+
+		/* Aligned used length + reserved to padding block */
+		used = isc_buffer_usedlength(msg->buffer);
+		padsize = ((isc_uint16_t)used + msg->reserved) % msg->padding;
+		if (padsize)
+			padsize = msg->padding - padsize;
+		/* Stay below the available length */
+		remaining = isc_buffer_availablelength(msg->buffer);
+		if (padsize > remaining)
+			padsize = remaining;
+
+		isc_buffer_add(msg->buffer, padsize);
+		memset(cp, 0, padsize);
+		cp[-2] = (unsigned char)((padsize & 0xff00U) >> 8);
+		cp[-1] = (unsigned char)(padsize & 0x00ffU);
+		cp -= msg->padding_off;
+		len = ((isc_uint16_t)(cp[-2])) << 8;
+		len |= ((isc_uint16_t)(cp[-1]));
+		len += padsize;
+		cp[-2] = (unsigned char)((len & 0xff00U) >> 8);
+		cp[-1] = (unsigned char)(len & 0x00ffU);
+	}
+
+	/*
 	 * If we're adding a TSIG record, generate and render it.
 	 */
 	if (msg->tsigkey != NULL) {
@@ -3660,7 +3708,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	dns_rdataset_t *ps = NULL;
 	const dns_name_t *name = NULL;
 	isc_result_t result;
-	char buf[sizeof("1234567890")];
+	char buf[sizeof(" (65000 bytes)")];
 	isc_uint32_t mbz;
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
@@ -3765,8 +3813,28 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					continue;
 				}
 				ADD_STRING(target, "; EXPIRE");
+			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
+				if (optlen == 2) {
+					isc_uint16_t dsecs;
+					dsecs = isc_buffer_getuint16(&optbuf);
+					ADD_STRING(target, "; TCP KEEPALIVE:");
+					snprintf(buf, sizeof(buf), " %u.%u",
+						 dsecs / 10, dsecs % 10);
+					ADD_STRING(target, buf);
+					ADD_STRING(target, " secs\n");
+					continue;
+				}
+				ADD_STRING(target, "; TCP KEEPALIVE");
 			} else if (optcode == DNS_OPT_PAD) {
 				ADD_STRING(target, "; PAD");
+				if (optlen > 0U) {
+					snprintf(buf, sizeof(buf),
+						 " (%u bytes)", optlen);
+					ADD_STRING(target, buf);
+					isc_buffer_forward(&optbuf, optlen);
+				}
+				ADD_STRING(target, "\n");
+				continue;
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);
@@ -4242,6 +4310,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	 */
 	if (count != 0U) {
 		isc_buffer_t *buf = NULL;
+		isc_boolean_t seenpad = ISC_FALSE;
 		for (i = 0; i < count; i++)
 			len += ednsopts[i].length + 4;
 
@@ -4255,14 +4324,27 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 			goto cleanup;
 
 		for (i = 0; i < count; i++)  {
+			if (ednsopts[i].code == DNS_OPT_PAD &&
+			    ednsopts[i].length == 0U && !seenpad) {
+				seenpad = ISC_TRUE;
+				continue;
+			}
 			isc_buffer_putuint16(buf, ednsopts[i].code);
 			isc_buffer_putuint16(buf, ednsopts[i].length);
 			isc_buffer_putmem(buf, ednsopts[i].value,
 					  ednsopts[i].length);
 		}
+
+		/* Padding must be the final option */
+		if (seenpad) {
+			isc_buffer_putuint16(buf, DNS_OPT_PAD);
+			isc_buffer_putuint16(buf, 0);
+		}
 		rdata->data = isc_buffer_base(buf);
 		rdata->length = len;
 		dns_message_takebuffer(message, &buf);
+		if (seenpad)
+			message->padding_off = len;
 	} else {
 		rdata->data = NULL;
 		rdata->length = 0;
@@ -4299,4 +4381,14 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass) {
 
 	msg->rdclass = rdclass;
 	msg->rdclass_set = 1;
+}
+
+void
+dns_message_setpadding(dns_message_t *msg, isc_uint16_t padding) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+
+	/* Avoid silly large padding */
+	if (padding > 512)
+		padding = 512;
+	msg->padding = padding;
 }

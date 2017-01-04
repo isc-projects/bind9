@@ -4552,6 +4552,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>serial-query-rate</command> <replaceable>number</replaceable> ; ]
   [ <command>serial-queries</command> <replaceable>number</replaceable> ; ]
   [ <command>tcp-listen-queue</command> <replaceable>number</replaceable> ; ]
+  [ <command>tcp-initial-timeout</command> <replaceable>number</replaceable>; ]
+  [ <command>tcp-idle-timeout</command> <replaceable>number</replaceable>; ]
+  [ <command>tcp-keepalive-timeout</command> <replaceable>number</replaceable>; ]
+  [ <command>tcp-advertised-timeout</command> <replaceable>number</replaceable>; ]
   [ <command>transfer-format</command> ( <option>one-answer</option> | <option>many-answers</option> ) ; ]
   [ <command>transfer-message-size</command>  <replaceable>number</replaceable> ; ]
   [ <command>transfers-in</command>  <replaceable>number</replaceable> ; ]
@@ -4634,6 +4638,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>preferred-glue</command> ( <option>A</option> | <option>AAAA</option> | <option>none</option> ); ]
   [ <command>edns-udp-size</command> <replaceable>number</replaceable> ; ]
   [ <command>max-udp-size</command> <replaceable>number</replaceable> ; ]
+  [ <command>response-padding</command> { <replaceable>address_match_list</replaceable> } block-size <replaceable>number</replaceable> ; ]
   [ <command>max-rsa-exponent-size</command> <replaceable>number</replaceable> ; ]
   [ <command>root-delegation-only</command> [ <command>exclude {</command> <replaceable>namelist</replaceable> <command>}</command> ] ; ]
   [ <command>querylog</command> <replaceable>yes_or_no</replaceable> ; ]
@@ -6530,6 +6535,46 @@ options {
 		  shared secret is encoded as a hex string and needs
 		  to be 128 bits for AES128, 160 bits for SHA1 and
 		  256 bits for SHA256.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>response-padding</command></term>
+	      <listitem>
+		<para>
+		  The EDNS Padding option is intended to improve
+		  confidentiality when DNS queries are sent over an
+		  encrypted channel by reducing the variability in
+		  packet sizes.  If a query:
+		  <orderedlist inheritnum="ignore" continuation="restarts">
+		    <listitem>
+		      contains an EDNS Padding option,
+		    </listitem>
+		    <listitem>
+		      includes a valid server cookie or uses TCP,
+		    </listitem>
+		    <listitem>
+		      is <emphasis>not</emphasis> signed using TSIG or
+		      SIG(0), and
+		    </listitem>
+		    <listitem>
+		      is from a client whose address matches the specified ACL,
+		    </listitem>
+		  </orderedlist>
+		  then the response is padded with an EDNS Padding option
+		  to a multiple of <varname>block-size</varname> bytes.
+		  If these conditions are not met, the response is not
+		  padded.
+		</para>
+		<para>
+		  If <varname>block-size</varname> is 0 or the ACL is
+		  <command>none;</command>, then this feature is
+		  disabled and no padding will occur; this is the
+		  default.  If <varname>block-size</varname> is greater
+		  than 512, a warning is logged and the value is truncated
+		  to 512.  Block sizes are ordinarily expected to be powers
+		  of two (for instance, 128), but this is not mandatory.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8477,7 +8522,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  The maximum number of records permitted in a zone.
 		  The default is zero which means unlimited.
-	 	</para>
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -8768,6 +8813,84 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  less than 10 will be silently raised. A value of 0 may also
 		  be used; on most platforms this sets the listen queue
 		  length to a system-defined default value.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>tcp-initial-timeout</command></term>
+	      <listitem>
+		<para>
+		  The amount of time (in units of 100 milliseconds) the
+		  server waits on a new TCP connection for the first message
+		  from the client. The default is 300 (30 seconds),
+		  the minimum is 25 (2.5 seconds), and the maximum is
+		  1200 (two minutes). Values above the maximum or below
+		  the minimum will be adjusted with a logged warning.
+		  (Note: This value must be greater than the expected
+		  round trip delay time; otherwise no client will ever
+		  have enough time to submit a message.)
+		  This value can be updated at runtime by using
+		  <command>rndc tcp-timeouts</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>tcp-idle-timeout</command></term>
+	      <listitem>
+		<para>
+		  The amount of time (in units of 100 milliseconds) the
+		  server waits on an idle TCP conenction before closing
+		  it when the client is not using the EDNS TCP keepalive
+		  option.  The default is 300 (30 seconds), the maximum
+		  is 1200 (two minutes), and the minimum is 1 (one tenth
+		  of a second). Values above the maximum or below the minimum
+		  will be adjusted with a logged warning.
+		  See <command>tcp-keepalive-timeout</command>
+		  for clients using the EDNS TCP keepalive option.
+		  This value can be updated at runtime by using
+		  <command>rndc tcp-timeouts</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>tcp-keepalive-timeout</command></term>
+	      <listitem>
+		<para>
+		  The amount of time (in units of 100 milliseconds) the
+		  server waits on an idle TCP conenction before closing
+		  it when the client is using the EDNS TCP keepalive
+		  option.  The default is 300 (30 seconds), the maximum
+		  is 1200 (two minutes), and the minimum is 1 (one tenth
+		  of a second). Values above the maximum or below the minimum
+		  will be adjusted with a logged warning.
+		  This value may be greater than
+		  <command>tcp-idle-timeout</command>, because
+		  clients using the EDNS TCP keepalive option are expected
+		  to use TCP connections for more than one message.
+		  This value can be updated at runtime by using
+		  <command>rndc tcp-timeouts</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>tcp-advertised-timeout</command></term>
+	      <listitem>
+		<para>
+		  The timeout value (in units of 100 milliseconds) the
+		  server will send in respones containing the EDNS TCP
+		  keepalive option. This informs a client of the 
+		  amount of time it may keep the session open.
+		  The default is 300 (30 seconds), the maximum is
+		  1200 (two minutes), and the minimum is 0, which
+		  signals that the clients must close TCP connections
+		  immediately.  Ordinarily this should be set to the
+		  same value as <command>tcp-keepalive-timeout</command>.
+		  This value can be updated at runtime by using
+		  <command>rndc tcp-timeouts</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10909,7 +11032,9 @@ example.com                 CNAME   rpz-tcp-only.
   [ <command>edns-udp-size</command> <replaceable>number</replaceable> ; ]
   [ <command>edns-version</command> <replaceable>number</replaceable> ; ]
   [ <command>max-udp-size</command> <replaceable>number</replaceable> ; ]
+  [ <command>padding</command> <replaceable>number</replaceable> ; ]
   [ <command>tcp-only</command> <replaceable>yes_or_no</replaceable> ; ]
+  [ <command>tcp-keepalive</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>transfers</command> <replaceable>number</replaceable> ; ]
   [ <command>transfer-format</command> ( one-answer | many-answers ) ; ]
   [ <command>keys</command> <command>{</command> <replaceable>key_id</replaceable> <command>}</command> ; ]
@@ -11076,10 +11201,29 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
+	    The <command>padding</command> option adds EDNS Padding
+	    options to outgoing messages, increasing the packet size to
+	    a multiple of the specified block size. Valid block sizes
+	    range from 0 (the default, which disables the use of
+	    EDNS Padding) to 512 bytes.  Larger values will be reduced
+	    to 512, with a logged warning.
+	    Note: This option is not currently compatible with no TSIG
+	    or SIG(0), as the EDNS OPT record containing the padding
+	    would have to be added to the packet after it had already
+	    been signed.
+	  </para>
+
+	  <para>
 	    The <command>tcp-only</command> option sets the transport
 	    protocol to TCP. The default is to use the UDP transport
 	    and to fallback on TCP only when a truncated response
 	    is received.
+	  </para>
+
+	  <para>
+	    The <command>tcp-keepalive</command> option adds EDNS
+	    TCP keepalive to messages sent over TCP. Note currently
+	    idle timeouts in responses are ignored.
 	  </para>
 
 	  <para>

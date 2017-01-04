@@ -193,19 +193,21 @@ enum {
 	dns_nsstatscounter_expireopt = 44,
 	dns_nsstatscounter_otheropt = 45,
 	dns_nsstatscounter_ecsopt = 46,
+	dns_nsstatscounter_padopt = 47,
+	dns_nsstatscounter_keepaliveopt = 48,
 
-	dns_nsstatscounter_nxdomainredirect = 47,
-	dns_nsstatscounter_nxdomainredirect_rlookup = 48,
+	dns_nsstatscounter_nxdomainredirect = 49,
+	dns_nsstatscounter_nxdomainredirect_rlookup = 50,
 
-	dns_nsstatscounter_cookiein = 49,
-	dns_nsstatscounter_cookiebadsize = 50,
-	dns_nsstatscounter_cookiebadtime = 51,
-	dns_nsstatscounter_cookienomatch = 52,
-	dns_nsstatscounter_cookiematch = 53,
-	dns_nsstatscounter_cookienew = 54,
-	dns_nsstatscounter_badcookie = 55,
+	dns_nsstatscounter_cookiein = 51,
+	dns_nsstatscounter_cookiebadsize = 52,
+	dns_nsstatscounter_cookiebadtime = 53,
+	dns_nsstatscounter_cookienomatch = 54,
+	dns_nsstatscounter_cookiematch = 55,
+	dns_nsstatscounter_cookienew = 56,
+	dns_nsstatscounter_badcookie = 57,
 
-	dns_nsstatscounter_max = 56
+	dns_nsstatscounter_max = 58
 };
 
 /*%
@@ -743,5 +745,11 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
  */
 isc_result_t
 ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
+
+/*%
+ * Display or update tcp-{initial,idle,keepalive,advertised}-timeout options.
+ */
+isc_result_t
+ns_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text);
 
 #endif /* NAMED_SERVER_H */

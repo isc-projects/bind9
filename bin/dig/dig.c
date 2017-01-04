@@ -191,6 +191,7 @@ help(void) {
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]idnout         (convert IDN response)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)\n"
+"                 +[no]keepalive      (Request EDNS TCP keepalive)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
 "                 +[no]mapped         (Allow mapped IPv4 over IPv6)\n"
 "                 +[no]multiline      (Print records in an expanded format)\n"
@@ -199,6 +200,7 @@ help(void) {
 "                 +[no]nssearch       (Search all authoritative nameservers)\n"
 "                 +[no]onesoa         (AXFR prints only one soa record)\n"
 "                 +[no]opcode=###     (Set the opcode of the request)\n"
+"                 +padding=###        (Set padding block size [0])\n"
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]question       (Control display of question section)\n"
 "                 +[no]rdflag         (Recursive mode (+[no]recurse))\n"
@@ -1084,8 +1086,36 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		}
 		break;
 	case 'k':
-		FULLCHECK("keepopen");
-		keep_open = state;
+		switch (cmd[1]) {
+		case 'e':
+			switch (cmd[2]) {
+			case 'e':
+				switch (cmd[3]) {
+				case 'p':
+					switch (cmd[4]) {
+					case 'a':
+						FULLCHECK("keepalive");
+						lookup->tcp_keepalive = state;
+						break;
+					case 'o':
+						FULLCHECK("keepopen");
+						keep_open = state;
+						break;
+					default:
+						goto invalid_option;
+					}
+					break;
+				default:
+					goto invalid_option;
+				}
+				break;
+			default:
+				goto invalid_option;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
 		break;
 	case 'm': /* multiline */
 		switch (cmd[1]) {
@@ -1186,6 +1216,17 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		default:
 			goto invalid_option;
 		}
+		break;
+	case 'p':
+		FULLCHECK("padding");
+		if (state && lookup->edns == -1)
+			lookup->edns = 0;
+		if (value == NULL)
+			goto need_value;
+		result = parse_uint(&num, value, 512, "padding");
+		if (result != ISC_R_SUCCESS)
+			fatal("Couldn't parse padding");
+		lookup->padding = (isc_uint16_t)num;
 		break;
 	case 'q':
 		switch (cmd[1]) {

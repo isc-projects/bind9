@@ -271,6 +271,9 @@ init_desc(void) {
 	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
 	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
 	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
+	SET_NSSTATDESC(keepaliveopt, "EDNS TCP keepalive option received",
+		       "KeepAliveOpt");
+	SET_NSSTATDESC(padopt, "EDNS padding option received", "PadOpt");
 	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
 	SET_NSSTATDESC(cookiein, "COOKIE option received", "CookieIn");
 	SET_NSSTATDESC(cookienew, "COOKIE - client only", "CookieNew");

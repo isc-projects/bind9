@@ -108,7 +108,9 @@ server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> 
 	edns <replaceable>boolean</replaceable>;
 	edns-udp-size <replaceable>integer</replaceable>;
 	max-udp-size <replaceable>integer</replaceable>;
+	padding <replaceable>integer</replaceable>;
 	tcp-only <replaceable>boolean</replaceable>;
+	tcp-keepalive <replaceable>boolean</replaceable>;
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	keys <replaceable>server_key</replaceable>;
@@ -403,6 +405,10 @@ options {
 	require-server-cookie <replaceable>boolean</replaceable>;
 	send-cookie <replaceable>boolean</replaceable>;
 	nocookie-udp-size <replaceable>integer</replaceable>;
+
+	response-padding {
+		<replaceable>address_match_list</replaceable>
+	} block-size <replaceable>integer</replaceable>;
 
 	deny-answer-addresses {
 		<replaceable>address_match_list</replaceable>

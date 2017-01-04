@@ -877,6 +877,23 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+padding=value</option></term>
+	  <listitem>
+	    <para>
+	      Pad the size of the query packet using the EDNS Padding option
+	      to blocks of <parameter>value</parameter> bytes. For example,
+	      <option>+padding=32</option> would cause a 48-byte query to
+	      be padded to 64 bytes.  The default block size is 0, which
+	      disables padding. The maximum is 512. Values are
+	      ordinarily expected to be powers of two, such as 128;
+	      however, this is not mandatory.  Responses to
+	      padded queries may also be padded, but only if the query
+	      uses TCP or DNS COOKIE.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]qr</option></term>
 	  <listitem>
 	    <para>
@@ -1029,13 +1046,13 @@
 	      specified IP address or network prefix.
 	    </para>
 	    <para>
-              <command>dig +subnet=0.0.0.0/0</command>, or simply
-              <command>dig +subnet=0</command> for short, sends an EDNS
-              CLIENT-SUBNET option with an empty address and a source
-              prefix-length of zero, which signals a resolver that
-              the client's address information must
-              <emphasis>not</emphasis> be used when resolving
-              this query.
+	      <command>dig +subnet=0.0.0.0/0</command>, or simply
+	      <command>dig +subnet=0</command> for short, sends an EDNS
+	      CLIENT-SUBNET option with an empty address and a source
+	      prefix-length of zero, which signals a resolver that
+	      the client's address information must
+	      <emphasis>not</emphasis> be used when resolving
+	      this query.
 	    </para>
 	  </listitem>
 	</varlistentry>

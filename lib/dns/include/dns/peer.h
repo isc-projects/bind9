@@ -68,6 +68,7 @@ struct dns_peer {
 	isc_boolean_t		send_cookie;
 	isc_boolean_t		request_expire;
 	isc_boolean_t		force_tcp;
+	isc_boolean_t		tcp_keepalive;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
 	isc_dscp_t		transfer_dscp;
@@ -77,6 +78,7 @@ struct dns_peer {
 	isc_dscp_t		query_dscp;
 	isc_uint16_t		udpsize;		/* receive size */
 	isc_uint16_t		maxudp;			/* transmit size */
+	isc_uint16_t		padding;		/* pad block size */
 	isc_uint8_t		ednsversion;		/* edns version */
 
 	isc_uint32_t		bitflags;
@@ -176,6 +178,12 @@ isc_result_t
 dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
+dns_peer_gettcpkeepalive(dns_peer_t *peer, isc_boolean_t *retval);
+
+isc_result_t
+dns_peer_settcpkeepalive(dns_peer_t *peer, isc_boolean_t newval);
+
+isc_result_t
 dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
@@ -217,6 +225,12 @@ dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp);
 
 isc_result_t
 dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp);
+
+isc_result_t
+dns_peer_setpadding(dns_peer_t *peer, isc_uint16_t padding);
+
+isc_result_t
+dns_peer_getpadding(dns_peer_t *peer, isc_uint16_t *padding);
 
 isc_result_t
 dns_peer_setnotifysource(dns_peer_t *peer, const isc_sockaddr_t *notify_source);
