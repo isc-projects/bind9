@@ -164,16 +164,20 @@ pkcs11gost_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret;
 	unsigned int i;
 
+	REQUIRE(key != NULL);
+	gost = key->keydata.pkey;
+	REQUIRE(gost != NULL);
+
 	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_GOST));
+			       gost->reqlogon, NULL,
+			       pk11_get_best_token(OP_GOST));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	gost = key->keydata.pkey;
 	if (gost->ontoken && (gost->object != CK_INVALID_HANDLE)) {
 		pk11_ctx->ontoken = gost->ontoken;
 		pk11_ctx->object = gost->object;
@@ -265,16 +269,20 @@ pkcs11gost_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret;
 	unsigned int i;
 
+	REQUIRE(key != NULL);
+	gost = key->keydata.pkey;
+	REQUIRE(gost != NULL);
+
 	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
 	ret = pk11_get_session(pk11_ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_GOST));
+			       gost->reqlogon, NULL,
+			       pk11_get_best_token(OP_GOST));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
-	gost = key->keydata.pkey;
 	if (gost->ontoken && (gost->object != CK_INVALID_HANDLE)) {
 		pk11_ctx->ontoken = gost->ontoken;
 		pk11_ctx->object = gost->object;

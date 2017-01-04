@@ -82,9 +82,9 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	pk11_object_t *ec = key->keydata.pkey;
 	isc_result_t ret;
 
-	UNUSED(key);
 	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
 		dctx->key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(ec != NULL);
 
 	if (dctx->key->key_alg == DST_ALG_ECDSA256)
 		mech.mechanism = CKM_SHA256;
@@ -100,8 +100,8 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		slotid = ec->slot;
 	else
 		slotid = pk11_get_best_token(OP_EC);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE, ISC_FALSE,
-			       NULL, slotid);
+	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+			       ec->reqlogon, NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -356,7 +356,7 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		 (pk11_ctx->session,
 		  digest, dgstlen,
 		  (CK_BYTE_PTR) sig->base, (CK_ULONG) sig->length),
-		 DST_R_SIGNFAILURE);
+		 DST_R_VERIFYFAILURE);
 
  err:
 

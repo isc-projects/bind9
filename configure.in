@@ -2222,7 +2222,9 @@ case "$want_native_pkcs11" in
 				set_pk11_flavor="yes"
 				;;
 			*Keyper*)
-				AC_MSG_RESULT(AEP Keyper: not yet supported)
+				AC_MSG_RESULT(AEP Keyper)
+				pk11_flavor="PK11_AEP_FLAVOR"
+				set_pk11_flavor="yes"
 				;;
 			undefined)
 				AC_MSG_RESULT(undefined provider?)

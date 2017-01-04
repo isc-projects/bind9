@@ -1,3 +1,6 @@
+4547.	[port]		Add support for --enable-native-pkcs11 on the AEP
+			Keyper HSM. [RT #42463]
+
 	--- 9.10.5b1 released ---
 
 4543.	[bug]		dns_client_startupdate now delays sending the update
