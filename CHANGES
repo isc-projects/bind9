@@ -1,3 +1,6 @@
+4547.	[port]		Add support for --enable-native-pkcs11 on the AEP
+			Keyper HSM. [RT #42463]
+
 	--- 9.11.1b1 released ---
 
 4545.	[func]		Expand YAML output from dnstap-read to include

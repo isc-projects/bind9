@@ -631,7 +631,7 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#ifndef PK11_MD5_DISABLE
+#if !defined(PK11_MD5_DISABLE) && !defined(PK11_RSA_PKCS_REPLACE)
 			bad = ISC_TRUE;
 #endif
 			PK11_TRACEM(CKM_MD5_RSA_PKCS);
@@ -641,7 +641,9 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
+#endif
 			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_RSA_PKCS,
@@ -649,7 +651,9 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
+#endif
 			PK11_TRACEM(CKM_SHA256_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_RSA_PKCS,
@@ -657,8 +661,19 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
+#endif
 			PK11_TRACEM(CKM_SHA512_RSA_PKCS);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS, &mechInfo);
+		if ((rv != CKR_OK) ||
+		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifdef PK11_RSA_PKCS_REPLACE
+			bad = ISC_TRUE;
+#endif
+			PK11_TRACEM(CKM_RSA_PKCS);
 		}
 		if (bad)
 			goto try_dsa;
@@ -1282,8 +1297,7 @@ pk11_error_fatalcheck(const char *file, int line,
 }
 
 void
-pk11_dump_tokens(void)
-{
+pk11_dump_tokens(void) {
 	pk11_token_t *token;
 	isc_boolean_t first;
 
