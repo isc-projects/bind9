@@ -191,8 +191,9 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	if (attr == NULL)
 		return (DST_R_INVALIDPUBLICKEY);
 
-	ret = pk11_get_session(&ctx, OP_DH, ISC_TRUE, ISC_FALSE, ISC_FALSE,
-			       NULL, pk11_get_best_token(OP_DH));
+	ret = pk11_get_session(&ctx, OP_DH, ISC_TRUE, ISC_FALSE,
+			       priv->keydata.pkey->reqlogon, NULL,
+			       pk11_get_best_token(OP_DH));
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

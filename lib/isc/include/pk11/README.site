@@ -30,7 +30,8 @@ Current well-known HSMs are predefined in site.h according to HSM "flavors":
 ...and with experimental status:
 
  - OpenDNSSEC SoftHSMv1 with SHA224 support added
- - Cryptech with SHA224 support added
+ - Cryptech
+ - AEP Keyper
 
 If BIND9 is configured with native PKCS#11 support (--enable-native-pkcs11),
 then pkcs11-tokens will raise an error when a mandatory algorithm is not

@@ -1,3 +1,6 @@
+4547.	[port]		Add support for --enable-native-pkcs11 on the AEP
+			Keyper HSM. [RT #42463]
+
 4546.	[func]		Extend the use of const declarations. [RT #43379]
 
 4545.	[func]		Expand YAML output from dnstap-read to include
