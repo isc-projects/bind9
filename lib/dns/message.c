@@ -2292,7 +2292,8 @@ dns_message_renderend(dns_message_t *msg) {
 	 */
 	if (msg->padding_off > 0) {
 		unsigned char *cp = isc_buffer_used(msg->buffer);
-		isc_uint16_t len;
+		unsigned int used, remaining;
+		isc_uint16_t len, padsize;
 
 		/* Check PAD */
 		if ((cp[-4] != 0) ||
@@ -2305,8 +2306,6 @@ dns_message_renderend(dns_message_t *msg) {
 		 * Zero-fill the PAD to the computed size;
 		 * patch PAD length and OPT rdlength
 		 */
-		unsigned int used, remaining;
-		isc_uint16_t padsize;
 
 		/* Aligned used length + reserved to padding block */
 		used = isc_buffer_usedlength(msg->buffer);
