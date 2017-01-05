@@ -101,7 +101,9 @@ server ( \fIipv4_address\fR\fI[/prefixlen]\fR | \fIipv6_address\fR\fI[/prefixlen
 	edns \fIboolean\fR;
 	edns\-udp\-size \fIinteger\fR;
 	max\-udp\-size \fIinteger\fR;
+	padding \fIinteger\fR;
 	tcp\-only \fIboolean\fR;
+	tcp\-keepalive \fIboolean\fR;
 	provide\-ixfr \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
 	keys \fIserver_key\fR;
@@ -407,6 +409,9 @@ options {
 	require\-server\-cookie \fIboolean\fR;
 	send\-cookie \fIboolean\fR;
 	nocookie\-udp\-size \fIinteger\fR;
+	response\-padding {
+		\fIaddress_match_list\fR
+	} block\-size \fIinteger\fR;
 	deny\-answer\-addresses {
 		\fIaddress_match_list\fR
 	} [ except\-from { \fInamelist\fR } ];

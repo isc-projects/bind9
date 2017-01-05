@@ -697,6 +697,20 @@
 	      value.  The default value is QUERY (0).
 	    </p>
 	  </dd>
+<dt><span class="term"><code class="option">+padding=value</code></span></dt>
+<dd>
+	    <p>
+	      Pad the size of the query packet using the EDNS Padding option
+	      to blocks of <em class="parameter"><code>value</code></em> bytes. For example,
+	      <code class="option">+padding=32</code> would cause a 48-byte query to
+	      be padded to 64 bytes.  The default block size is 0, which
+	      disables padding. The maximum is 512. Values are
+	      ordinarily expected to be powers of two, such as 128;
+	      however, this is not mandatory.  Responses to
+	      padded queries may also be padded, but only if the query
+	      uses TCP or DNS COOKIE.
+	    </p>
+	  </dd>
 <dt><span class="term"><code class="option">+[no]qr</code></span></dt>
 <dd>
 	    <p>
@@ -813,13 +827,13 @@
 	      specified IP address or network prefix.
 	    </p>
 	    <p>
-              <span class="command"><strong>dig +subnet=0.0.0.0/0</strong></span>, or simply
-              <span class="command"><strong>dig +subnet=0</strong></span> for short, sends an EDNS
-              CLIENT-SUBNET option with an empty address and a source
-              prefix-length of zero, which signals a resolver that
-              the client's address information must
-              <span class="emphasis"><em>not</em></span> be used when resolving
-              this query.
+	      <span class="command"><strong>dig +subnet=0.0.0.0/0</strong></span>, or simply
+	      <span class="command"><strong>dig +subnet=0</strong></span> for short, sends an EDNS
+	      CLIENT-SUBNET option with an empty address and a source
+	      prefix-length of zero, which signals a resolver that
+	      the client's address information must
+	      <span class="emphasis"><em>not</em></span> be used when resolving
+	      this query.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>

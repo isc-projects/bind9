@@ -115,7 +115,9 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 	edns <em class="replaceable"><code>boolean</code></em>;<br>
 	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	padding <em class="replaceable"><code>integer</code></em>;<br>
 	tcp-only <em class="replaceable"><code>boolean</code></em>;<br>
+	tcp-keepalive <em class="replaceable"><code>boolean</code></em>;<br>
 	provide-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 	request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 	keys <em class="replaceable"><code>server_key</code></em>;<br>
@@ -416,6 +418,10 @@ options {<br>
 	require-server-cookie <em class="replaceable"><code>boolean</code></em>;<br>
 	send-cookie <em class="replaceable"><code>boolean</code></em>;<br>
 	nocookie-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+<br>
+	response-padding {<br>
+		<em class="replaceable"><code>address_match_list</code></em><br>
+	} block-size <em class="replaceable"><code>integer</code></em>;<br>
 <br>
 	deny-answer-addresses {<br>
 		<em class="replaceable"><code>address_match_list</code></em><br>
