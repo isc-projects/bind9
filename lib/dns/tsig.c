@@ -391,7 +391,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		dns_name_init(tmpname, NULL);
 		ret = dns_name_dup(algorithm, mctx, tmpname);
 		if (ret != ISC_R_SUCCESS) {
-			dns_name_free(tmpname, mctx);
+			isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
 			goto cleanup_name;
 		}
 		(void)dns_name_downcase(tmpname, tmpname, NULL);
