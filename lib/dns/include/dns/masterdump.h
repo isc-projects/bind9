@@ -40,7 +40,7 @@ typedef struct dns_master_style dns_master_style_t;
  */
 
 /*% Omit the owner name when possible. */
-#define	DNS_STYLEFLAG_OMIT_OWNER        0x00010000U
+#define	DNS_STYLEFLAG_OMIT_OWNER        0x000010000ULL
 
 /*%
  * Omit the TTL when possible.  If DNS_STYLEFLAG_TTL is
@@ -58,53 +58,56 @@ typedef struct dns_master_style dns_master_style_t;
  * versions of BIND which use the SOA MINTTL as a
  * default TTL value.
  */
-#define	DNS_STYLEFLAG_OMIT_TTL		0x00020000U
+#define	DNS_STYLEFLAG_OMIT_TTL		0x000020000ULL
 
 /*% Omit the class when possible. */
-#define	DNS_STYLEFLAG_OMIT_CLASS	0x00040000U
+#define	DNS_STYLEFLAG_OMIT_CLASS	0x000040000ULL
 
 /*% Output $TTL directives. */
-#define	DNS_STYLEFLAG_TTL		0x00080000U
+#define	DNS_STYLEFLAG_TTL		0x000080000ULL
 
 /*%
  * Output $ORIGIN directives and print owner names relative to
  * the origin when possible.
  */
-#define	DNS_STYLEFLAG_REL_OWNER		0x00100000U
+#define	DNS_STYLEFLAG_REL_OWNER		0x000100000ULL
 
 /*% Print domain names in RR data in relative form when possible.
    For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
-#define	DNS_STYLEFLAG_REL_DATA		0x00200000U
+#define	DNS_STYLEFLAG_REL_DATA		0x000200000ULL
 
 /*% Print the trust level of each rdataset. */
-#define	DNS_STYLEFLAG_TRUST		0x00400000U
+#define	DNS_STYLEFLAG_TRUST		0x000400000ULL
 
 /*% Print negative caching entries. */
-#define	DNS_STYLEFLAG_NCACHE		0x00800000U
+#define	DNS_STYLEFLAG_NCACHE		0x000800000ULL
 
 /*% Never print the TTL. */
-#define	DNS_STYLEFLAG_NO_TTL		0x01000000U
+#define	DNS_STYLEFLAG_NO_TTL		0x001000000ULL
 
 /*% Never print the CLASS. */
-#define	DNS_STYLEFLAG_NO_CLASS		0x02000000U
+#define	DNS_STYLEFLAG_NO_CLASS		0x002000000ULL
 
 /*% Report re-signing time. */
-#define	DNS_STYLEFLAG_RESIGN		0x04000000U
+#define	DNS_STYLEFLAG_RESIGN		0x004000000ULL
 
 /*% Don't printout the cryptographic parts of DNSSEC records. */
-#define	DNS_STYLEFLAG_NOCRYPTO		0x08000000U
+#define	DNS_STYLEFLAG_NOCRYPTO		0x008000000ULL
 
 /*% Comment out data by prepending with ";" */
-#define	DNS_STYLEFLAG_COMMENTDATA	0x10000000U
+#define	DNS_STYLEFLAG_COMMENTDATA	0x010000000ULL
 
 /*% Print TTL with human-readable units. */
-#define DNS_STYLEFLAG_TTL_UNITS		0x20000000U
+#define DNS_STYLEFLAG_TTL_UNITS		0x020000000ULL
 
 /*% Indent output. */
-#define DNS_STYLEFLAG_INDENT		0x40000000U
+#define DNS_STYLEFLAG_INDENT		0x040000000ULL
 
 /*% Output in YAML style. */
-#define DNS_STYLEFLAG_YAML		0x80000000U
+#define DNS_STYLEFLAG_YAML		0x080000000ULL
+
+/*% Print ECS cache entries as comments (reserved for future use). */
+#define DNS_STYLEFLAG_ECSCACHE		0x100000000ULL
 
 ISC_LANG_BEGINDECLS
 
@@ -399,7 +402,7 @@ dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		    dns_dbnode_t *node, const dns_name_t *name,
 		    const dns_master_style_t *style, const char *filename);
 
-unsigned int
+dns_masterstyle_flags_t
 dns_master_styleflags(const dns_master_style_t *style);
 
 isc_result_t

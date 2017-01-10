@@ -3299,7 +3299,8 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	dns_rdataset_t *rdataset;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t seensoa = ISC_FALSE;
-	unsigned int sflags, saveindent;
+	unsigned int saveindent;
+	dns_masterstyle_flags_t sflags;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);

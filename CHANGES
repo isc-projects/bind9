@@ -1,3 +1,6 @@
+4550.	[cleanup]	Increased the number of available master file
+			output style flags from 32 to 64. [RT #44043]
+
 4549.	[func]		Added support for the EDNS TCP Keepalive option
 			(RFC 7828). [RT #42126]
 
