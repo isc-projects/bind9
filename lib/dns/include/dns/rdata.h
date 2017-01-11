@@ -156,17 +156,17 @@ struct dns_rdata {
 
 /*% Split the rdata into multiple lines to try to keep it
  within the "width". */
-#define DNS_STYLEFLAG_MULTILINE		0x00000001U
+#define DNS_STYLEFLAG_MULTILINE		0x00000001ULL
 
 /*% Output explanatory comments. */
-#define DNS_STYLEFLAG_COMMENT		0x00000002U
-#define DNS_STYLEFLAG_RRCOMMENT		0x00000004U
+#define DNS_STYLEFLAG_COMMENT		0x00000002ULL
+#define DNS_STYLEFLAG_RRCOMMENT		0x00000004ULL
 
 /*% Output KEYDATA in human readable format. */
-#define DNS_STYLEFLAG_KEYDATA		0x00000008U
+#define DNS_STYLEFLAG_KEYDATA		0x00000008ULL
 
 /*% Output textual RR type and RDATA in RFC 3597 unknown format */
-#define DNS_STYLEFLAG_UNKNOWNFORMAT	0x00000010U
+#define DNS_STYLEFLAG_UNKNOWNFORMAT	0x00000010ULL
 
 #define DNS_RDATA_DOWNCASE		DNS_NAME_DOWNCASE
 #define DNS_RDATA_CHECKNAMES		DNS_NAME_CHECKNAMES
