@@ -32,6 +32,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -67,7 +68,7 @@
 	} while (0)
 
 struct dns_master_style {
-	unsigned int flags;		/* DNS_STYLEFLAG_* */
+	dns_masterstyle_flags_t flags;		/* DNS_STYLEFLAG_* */
 	unsigned int ttl_column;
 	unsigned int class_column;
 	unsigned int type_column;
