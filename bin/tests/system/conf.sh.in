@@ -76,18 +76,15 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
 	 @COVERAGE@ database delv digdelv dlv dlvauto dlz dlzexternal
-	 dlzredir dname dns64 dnssec dsdigest dscp
-	 ecdsa ednscompliance emptyzones
-	 fetchlimit filter-aaaa formerr forward
-         geoip glue gost ixfr inline
-         legacy limits logfileconfig lwresd
-	 masterfile masterformat metadata notify nslookup nsupdate pending
-	 @PKCS11_TEST@ reclimit redirect resolver rndc rpz rpzrecurse
-	 rrl rrchecker rrsetorder rsabigexponent
-         sit smartsign sortlist spf staticstub statistics statschannel stub
-         tcp tkey tsig tsiggss
-	 unknown upforwd verify views wildcard xfer xferquota zero
-	 zonechecks"
+	 dlzredir dname dns64 dnssec dsdigest dscp ecdsa ednscompliance
+	 emptyzones fetchlimit filter-aaaa formerr forward geoip
+	 glue gost ixfr inline integrity legacy limits logfileconfig
+	 lwresd masterfile masterformat metadata notify nslookup
+	 nsupdate pending @PKCS11_TEST@ reclimit redirect resolver
+	 rndc rpz rpzrecurse rrl rrchecker rrsetorder rsabigexponent
+	 sit smartsign sortlist spf staticstub statistics statschannel
+	 stub tcp tkey tsig tsiggss unknown upforwd verify views
+	 wildcard xfer xferquota zero zonechecks"
 
 # Things that are different on Windows
 KILL=kill
