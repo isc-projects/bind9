@@ -7380,6 +7380,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 			nsec3chain->save_delete_nsec = nsec3chain->delete_nsec;
 	}
 
+	if (nsec3chain != NULL)
+		goto skip_removals;
+
 	/*
 	 * Process removals.
 	 */
@@ -7587,6 +7590,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		first = ISC_TRUE;
 	}
 
+ skip_removals:
 	/*
 	 * We may need to update the NSEC/NSEC3 records for the zone apex.
 	 */
@@ -7648,9 +7652,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 			}
 		}
 	}
-
-	if (nsec3chain != NULL)
-		dns_dbiterator_pause(nsec3chain->dbiterator);
 
 	/*
 	 * Add / update signatures for the NSEC3 records.
@@ -8365,6 +8366,14 @@ zone_sign(dns_zone_t *zone) {
 
  failure:
 	/*
+	 * Pause all dbiterators.
+	 */
+	for (signing = ISC_LIST_HEAD(zone->signing);
+	     signing != NULL;
+	     signing = ISC_LIST_NEXT(signing, link))
+		dns_dbiterator_pause(signing->dbiterator);
+
+	/*
 	 * Rollback the cleanup list.
 	 */
 	signing = ISC_LIST_HEAD(cleanup);
@@ -8375,11 +8384,6 @@ zone_sign(dns_zone_t *zone) {
 		dns_dbiterator_pause(signing->dbiterator);
 		signing = ISC_LIST_HEAD(cleanup);
 	}
-
-	for (signing = ISC_LIST_HEAD(zone->signing);
-	     signing != NULL;
-	     signing = ISC_LIST_NEXT(signing, link))
-		dns_dbiterator_pause(signing->dbiterator);
 
 	dns_diff_clear(&_sig_diff);
 
