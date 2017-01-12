@@ -70,18 +70,19 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone allow_query autosign builtin cacheclean case
-	 catz checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
-	 database digdelv dlv dlvauto dlz dlzexternal dname dns64 dnssec
-	 @DNSTAP@ dscp dsdigest dyndb ecdsa ednscompliance emptyzones
-	 fetchlimit filter-aaaa formerr forward geoip glue gost inline ixfr
-	 @KEYMGR@ legacy limits logfileconfig lwresd masterfile masterformat
-	 metadata mkeys names notify nslookup nsupdate nzd2nzf pending
-	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc rpz
-	 rpzrecurse rrchecker rrl rrsetorder rsabigexponent runtime sfcache
-	 smartsign sortlist spf staticstub statistics statschannel stub tcp
-	 tkey tsig tsiggss unknown upforwd verify views wildcard xfer
-	 xferquota zero zonechecks"
+SUBDIRS="acl additional addzone allow_query autosign builtin
+	 cacheclean case catz checkconf @CHECKDS@ checknames checkzone
+	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
+	 dname dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa
+	 ednscompliance emptyzones fetchlimit filter-aaaa formerr
+	 forward geoip glue gost inline integrity ixfr @KEYMGR@
+	 legacy limits logfileconfig lwresd masterfile masterformat
+	 metadata mkeys names notify nslookup nsupdate nzd2nzf
+	 pending @PKCS11_TEST@ pipelined reclimit redirect resolver
+	 rndc rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
+	 runtime sfcache smartsign sortlist spf staticstub statistics
+	 statschannel stub tcp tkey tsig tsiggss unknown upforwd
+	 verify views wildcard xfer xferquota zero zonechecks"
 
 # Things that are different on Windows
 KILL=kill
