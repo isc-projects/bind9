@@ -40,7 +40,8 @@ SUBDIRS =	atomic db dst master mem hashes names \
 # makejournal is needed by system tests
 
 # Alphabetically
-TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ wire_test@EXEEXT@
+TARGETS =	@XTARGETS@ cfg_test@EXEEXT@ makejournal@EXEEXT@ \
+		wire_test@EXEEXT@
 
 # All the other tests are optional and not built by default.
 
