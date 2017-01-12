@@ -9266,6 +9266,9 @@ dbiterator_first(dns_dbiterator_t *iterator) {
 
 	rbtdbiter->result = result;
 
+	if (result != ISC_R_SUCCESS)
+		ENSURE(!rbtdbiter->paused);
+
 	return (result);
 }
 
