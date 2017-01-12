@@ -49,7 +49,7 @@ SUBDIRS =	atomic db dst master mem hashes names net rbt resolver \
 # cfg_test is needed for regenerating doc/misc/options
 
 # Alphabetically
-TARGETS =	cfg_test@EXEEXT@ wire_test@EXEEXT@ mdig@EXEEXT@
+TARGETS =	@XTARGETS@ cfg_test@EXEEXT@ wire_test@EXEEXT@ mdig@EXEEXT@
 
 # All the other tests are optional and not built by default.
 
