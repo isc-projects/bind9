@@ -130,6 +130,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Named could trigger a assertion when sending notify
+	  messages. [RT #44019]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Windows installs were failing due to triggering UAC without
 	  the installation binary being signed.
 	</para>
