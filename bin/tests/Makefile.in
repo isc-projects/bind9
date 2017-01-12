@@ -51,7 +51,8 @@ SUBDIRS =	atomic db dst master mem hashes names net rbt resolver \
 # makejournal is needed by system tests
 
 # Alphabetically
-TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ wire_test@EXEEXT@ mdig@EXEEXT@
+TARGETS =	@XTARGETS@ cfg_test@EXEEXT@ makejournal@EXEEXT@ \
+		mdig@EXEEXT@ wire_test@EXEEXT@
 
 # All the other tests are optional and not built by default.
 
