@@ -4512,7 +4512,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					    "WARNING: the DLV server at "
 					    "'dlv.isc.org' is expected to "
 					    "cease operation by the end "
-					    "of 2017");
+					    "of January 2017");
 			}
 		}
 	} else
