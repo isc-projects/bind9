@@ -154,6 +154,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Named could trigger a assertion when sending notify
+	  messages. [RT #44019]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Fixed a crash when calling <command>rndc stats</command> on some
 	  Windows builds: some Visual Studio compilers generate code that
 	  crashes when the "%z" printf() format specifier is used. [RT #42380]
