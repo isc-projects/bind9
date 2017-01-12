@@ -1,3 +1,7 @@
+4553.	[bug]		Named could deadlock there were multiple changes to
+			NSEC/NSEC3 parameters for a zone being processed at
+			the same time. [RT #42770]
+
 4552.	[bug]		Named could trigger a assertion when sending notify
 			messages. [RT #44019]
 
