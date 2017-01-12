@@ -52,7 +52,7 @@ static isc_taskmgr_t *taskmgr;
 static dns_view_t *view = NULL;
 static dns_adbfind_t *find = NULL;
 static isc_task_t *task = NULL;
-static dns_fixedname_t name;
+static dns_fixedname_t fixed;
 static dns_fixedname_t target;
 static isc_log_t *lctx;
 static isc_logconfig_t *lcfg;
@@ -92,10 +92,10 @@ log_init(void) {
 }
 
 static void
-print_addresses(dns_adbfind_t *find) {
+print_addresses(dns_adbfind_t *adbfind) {
 	dns_adbaddrinfo_t *address;
 
-	for (address = ISC_LIST_HEAD(find->list);
+	for (address = ISC_LIST_HEAD(adbfind->list);
 	     address != NULL;
 	     address = ISC_LIST_NEXT(address, publink)) {
 		isc_netaddr_t netaddr;
@@ -125,7 +125,7 @@ do_find(isc_boolean_t want_event) {
 		options |= DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT;
 	dns_fixedname_init(&target);
 	result = dns_adb_createfind(view->adb, task, adb_callback, NULL,
-				    dns_fixedname_name(&name),
+				    dns_fixedname_name(&fixed),
 				    dns_rootname, 0, options, 0,
 				    dns_fixedname_name(&target), 0,
 				    &find);
@@ -192,8 +192,8 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 }
 
 static void
-run(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
+run(isc_task_t *xtask, isc_event_t *event) {
+	UNUSED(xtask);
 	do_find(ISC_TRUE);
 	isc_event_free(&event);
 }
@@ -341,9 +341,9 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&b, argv[isc_commandline_index],
 			strlen(argv[isc_commandline_index]));
 	isc_buffer_add(&b, strlen(argv[isc_commandline_index]));
-	dns_fixedname_init(&name);
+	dns_fixedname_init(&fixed);
 	dns_fixedname_init(&target);
-	RUNTIME_CHECK(dns_name_fromtext(dns_fixedname_name(&name), &b,
+	RUNTIME_CHECK(dns_name_fromtext(dns_fixedname_name(&fixed), &b,
 					dns_rootname, 0, NULL) ==
 		      ISC_R_SUCCESS);
 

@@ -34,8 +34,6 @@
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 
-isc_mem_t *mctx;
-isc_lex_t *lex;
 
 isc_lexspecials_t specials;
 
@@ -898,6 +896,8 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 
 int
 main(int argc, char *argv[]) {
+	isc_mem_t *mctx = NULL;
+	isc_lex_t *lex = NULL;
 	isc_token_t token;
 	isc_result_t result;
 	int quiet = 0;
