@@ -66,15 +66,14 @@ SAMPLEUPDATE=$TOP/lib/export/samples/sample-update
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case checkconf @CHECKDS@ checknames checkzone
-	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal dname dns64
-	 dnssec ecdsa emptyzones
-         fetchlimit filter-aaaa formerr forward glue gost ixfr inline
-         legacy limits logfileconfig lwresd masterfile
-	 masterformat metadata notify nslookup nsupdate pending pkcs11
-	 reclimit redirect resolver rndc rpz rrl rrsetorder rsabigexponent
-	 smartsign sortlist spf staticstub stub tkey tsig tsiggss
-	 unknown upforwd verify views wildcard xfer xferquota zero
-	 zonechecks"
+	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
+	 dname dns64 dnssec ecdsa emptyzones fetchlimit filter-aaaa
+	 formerr forward glue gost inline integrity ixfr legacy
+	 limits logfileconfig lwresd masterfile masterformat metadata
+	 notify nslookup nsupdate pending pkcs11 reclimit redirect
+	 resolver rndc rpz rrl rrsetorder rsabigexponent smartsign
+	 sortlist spf staticstub stub tkey tsig tsiggss unknown
+	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
