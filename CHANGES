@@ -1,3 +1,6 @@
+4552.	[bug]		Named could trigger a assertion when sending notify
+			messages. [RT #44019]
+
 4551.	[test]		Add system tests for integrity checks of MX and
 			SRV records. [RT #43953]
 

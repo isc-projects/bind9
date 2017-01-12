@@ -546,6 +546,7 @@ task_send(isc__task_t *task, isc_event_t **eventp) {
 	REQUIRE(event != NULL);
 	REQUIRE(event->ev_type > 0);
 	REQUIRE(task->state != task_state_done);
+	REQUIRE(!ISC_LINK_LINKED(event, ev_ratelink));
 
 	XTRACE("task_send");
 
