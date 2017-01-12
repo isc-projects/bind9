@@ -281,7 +281,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007
 ./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012,2014
@@ -417,7 +417,7 @@
 ./bin/tests/.gitignore				X	2012,2013
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
-./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2013,2015
 ./bin/tests/atomic/Makefile.in			MAKE	2011,2012,2014
 ./bin/tests/atomic/t_atomic.c			C	2011,2013,2015,2016
@@ -436,7 +436,7 @@
 ./bin/tests/bigtest/tests.sh			SH	2013
 ./bin/tests/bigtest/zones			X	2013
 ./bin/tests/byaddr_test.c			C	2000,2001,2002,2004,2005,2007,2012,2015
-./bin/tests/byname_test.c			C	2000,2001,2004,2005,2007,2009,2012,2015
+./bin/tests/byname_test.c			C	2000,2001,2004,2005,2007,2009,2012,2015,2017
 ./bin/tests/cfg_test.c				C	2001,2002,2004,2005,2007,2009,2010,2011,2015
 ./bin/tests/compress_test.c			C	1999,2000,2001,2004,2005,2006,2007,2015
 ./bin/tests/db/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009,2010,2012,2014,2016
@@ -707,7 +707,7 @@
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012
-./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2011,2012,2014,2015
+./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2011,2012,2014,2015,2017
 ./bin/tests/resolv.conf.sample			CONF-SH	2000,2001,2004,2007,2012
 ./bin/tests/resolver/Makefile.in		MAKE	2011,2012,2014,2016
 ./bin/tests/resolver/t_resolver.c		C	2011,2012,2013,2014
@@ -1034,7 +1034,7 @@
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007,2013
 ./bin/tests/system/common/rndc.key		CONF-C	2011,2013
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004,2007
-./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/conf.sh.win32		SH	2016
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013
 ./bin/tests/system/coverage/01-ksk-inactive/expect	X	2013
@@ -1277,7 +1277,7 @@
 ./bin/tests/system/dnssec/signer/example.db.in	ZONE	2010
 ./bin/tests/system/dnssec/signer/remove.db.in	ZONE	2016
 ./bin/tests/system/dnssec/signer/remove2.db.in	ZONE	2016
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/dscp/clean.sh		SH	2013,2015
 ./bin/tests/system/dscp/ns1/named.args		X	2013
 ./bin/tests/system/dscp/ns1/named.conf		CONF-C	2013
@@ -1499,6 +1499,11 @@
 ./bin/tests/system/inline/prereq.sh		SH	2014
 ./bin/tests/system/inline/setup.sh		SH	2011,2012,2013,2014
 ./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014,2016
+./bin/tests/system/integrity/clean.sh		SH	2017
+./bin/tests/system/integrity/ns1/mx-cname.db	ZONE	2017
+./bin/tests/system/integrity/ns1/named.conf	CONF-C	2017
+./bin/tests/system/integrity/ns1/srv-cname.db	ZONE	2017
+./bin/tests/system/integrity/tests.sh		SH	2017
 ./bin/tests/system/ixfr/ans2/startme		X	2011
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007,2011,2012,2014,2015
 ./bin/tests/system/ixfr/ns1/.gitignore		X	2012
@@ -3042,7 +3047,7 @@
 ./doc/arm/notes.conf				X	2015
 ./doc/arm/notes.html				X	2014,2015,2016
 ./doc/arm/notes.pdf				X	2014,2015,2016
-./doc/arm/notes.xml				SGML	2014,2015,2016
+./doc/arm/notes.xml				SGML	2014,2015,2016,2017
 ./doc/arm/noteversion.xml.in			SGML	2015
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015,2016
 ./doc/arm/pkgversion.xml.in			SGML	2015
@@ -3326,7 +3331,7 @@
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007,2014
 ./lib/dns/private.c				C	2009,2011,2012,2015
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015,2016
-./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005,2007
@@ -3598,7 +3603,7 @@
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007,2013
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2015,2016
-./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014,2015,2016
 ./lib/irs/Atffile				X	2016
@@ -3705,7 +3710,7 @@
 ./lib/isc/include/isc/entropy.h			C	2000,2001,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/errno.h			C	2016
 ./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009,2016
-./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014
+./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014,2017
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2014,2015
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007
@@ -3840,7 +3845,7 @@
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014,2016
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014,2016
-./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012,2014,2015
+./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005,2007,2012,2014,2015,2017
 ./lib/isc/refcount.c				C	2005,2007
 ./lib/isc/regex.c				C	2013,2014,2015
 ./lib/isc/region.c				C	2002,2004,2005,2007
@@ -3860,7 +3865,7 @@
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006,2007,2011,2012,2014,2015
 ./lib/isc/strtoul.c				C	2003,2004,2005,2007,2014
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2011,2012,2013
-./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2017
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009,2011,2012,2013
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011
@@ -4616,7 +4621,7 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015,2016
 ./util/xc					SH	2012,2013
 ./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./win32utils/Configure				PERL	2013,2014,2015,2016
+./win32utils/Configure				PERL	2013,2014,2015,2016,2017
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013,2014,2016
 ./win32utils/build.txt				TXT.BRIEF	2013,2014,2015,2016
