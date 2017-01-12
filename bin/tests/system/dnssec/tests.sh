@@ -3251,7 +3251,7 @@ $KEYGEN -q -r $RANDFILE -3 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null || {
+grep "RRSIG MX" signer/remove.db.signed > /dev/null || {
 	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.pre$n;
 }
 # re-generate signed zone without MX and AAAA records at apex.
@@ -3259,7 +3259,7 @@ grep -w MX signer/remove.db.signed > /dev/null || {
 cd signer
 $SIGNER -S -o remove -D -f remove.db.signed remove2.db.in > signer.out.2.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null &&  {
+grep "RRSIG MX" signer/remove.db.signed > /dev/null &&  {
 	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.post$n;
 }
 n=`expr $n + 1`
@@ -3274,7 +3274,7 @@ cd signer
 echo > remove.db.signed
 $SIGNER -3 - -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null || {
+grep "RRSIG MX" signer/remove.db.signed > /dev/null || {
 	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.pre$n;
 }
 # re-generate signed zone without MX and AAAA records at apex.
@@ -3282,7 +3282,7 @@ grep -w MX signer/remove.db.signed > /dev/null || {
 cd signer
 $SIGNER -3 - -S -o remove -D -f remove.db.signed remove2.db.in > signer.out.2.$n 2>&1
 )
-grep -w MX signer/remove.db.signed > /dev/null &&  {
+grep "RRSIG MX" signer/remove.db.signed > /dev/null &&  {
 	ret=1 ; cp signer/remove.db.signed signer/remove.db.signed.post$n;
 }
 n=`expr $n + 1`
