@@ -886,6 +886,7 @@ PERL
 ETAGS
 LN
 ARFLAGS
+XTARGETS
 BACKTRACECFLAGS
 CCNOOPT
 CCOPT
@@ -11460,6 +11461,7 @@ if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
 fi
 
+XTARGETS=
 case "$enable_developer" in
 yes)
 	STD_CDEFINES="$STD_CDEFINES -DISC_LIST_CHECKINIT=1"
@@ -11472,8 +11474,10 @@ yes)
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
 	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
 	test "${with_zlib+set}" = set || with_zlib=yes
+	XTARGETS='${XTARGETS}'
 	;;
 esac
+
 
 # American Fuzzy Lop
 # Check whether --enable-afl was given.
