@@ -680,6 +680,7 @@ my $use_vcredist = "yes";
 my $vcredist_path = " --infer-- ";
 my $cross_compile = "no";
 my $tuning = "default";
+my $want_checkfiles = "no";
 
 # no arguments -> usage
 
@@ -721,6 +722,8 @@ foreach (@ARGV) {
         $want_x64 = "yes";
     } elsif (/^clean$/i) {
         $want_clean = "yes";
+    } elsif (/^checkfiles$/i) {
+        $want_checkfiles = "yes";
     } else {
         $want_unknown = "yes";
         $unknown_value = $_;
@@ -731,6 +734,22 @@ foreach (@ARGV) {
 
 if ($legacy_only && ($want_x64 ne "yes")) {
     $want_win32 = "yes";
+}
+
+if ($want_checkfiles eq "yes") {
+	foreach (@filelist) {
+		next if -r $_ . ".in";
+		s/\\/\//g;
+		next if -r $_ . ".in";
+		print "missing $_.in from filelist\n";
+	}
+	foreach (@projectlist) {
+		next if -r $_ . ".in";
+		s/\\/\//g;
+		next if -r $_ . ".in";
+		print "missing $_.in from projectlist\n";
+	}
+	exit(0);
 }
 
 # configure the platform
