@@ -155,6 +155,19 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Named could deadlock there were multiple changes to
+	  NSEC/NSEC3 parameters for a zone being processed at the
+	  same time. [RT #42770]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Named could trigger a assertion when sending notify
+	  messages. [RT #44019]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
 	  statement could cause an assertion failure during configuration.
 	  [RT #43787]
