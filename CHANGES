@@ -1,3 +1,6 @@
+4554.	[bug]		Remove double unlock in dns_dispatchmgr_setudp.
+			[RT #44336]
+
 4553.	[bug]		Named could deadlock there were multiple changes to
 			NSEC/NSEC3 parameters for a zone being processed at
 			the same time. [RT #42770]

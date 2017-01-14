@@ -2076,10 +2076,9 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 	}
 	result = isc_mempool_create(mgr->mctx, sizeof(dispsocket_t),
 				    &mgr->spool);
-	if (result != ISC_R_SUCCESS) {
-		UNLOCK(&mgr->buffer_lock);
+	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	}
+
 	isc_mempool_setname(mgr->spool, "dispmgr_spool");
 	isc_mempool_setmaxalloc(mgr->spool, maxrequests);
 	isc_mempool_setfreemax(mgr->spool, maxrequests);
