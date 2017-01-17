@@ -94,7 +94,7 @@
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
 /*% Is TCP? */
-#define TCP(c)                  (((c)->attributes & NS_CLIENTATTR_TCP) != 0)
+#define TCP(c)			(((c)->attributes & NS_CLIENTATTR_TCP) != 0)
 
 /*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
@@ -3928,7 +3928,7 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	tmprdataset = query_newrdataset(client);
 	if (tmprdataset == NULL)
 		return;
-	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (!TCP(client))
 		peeraddr = &client->peeraddr;
 	else
 		peeraddr = NULL;
@@ -4014,7 +4014,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			ns_client_killoldestquery(client);
 		}
 		if (result == ISC_R_SUCCESS && !client->mortal &&
-		    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
+		    !TCP(client)) {
 			result = ns_client_replace(client);
 			if (result != ISC_R_SUCCESS) {
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
@@ -4052,7 +4052,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 	if (client->query.timerset == ISC_FALSE)
 		ns_client_settimeout(client, 60);
-	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (!TCP(client))
 		peeraddr = &client->peeraddr;
 	else
 		peeraddr = NULL;
@@ -6575,7 +6575,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		client->query.authdbset = ISC_TRUE;
 
 		/* Track TCP vs UDP stats per zone */
-		if ((client->attributes & NS_CLIENTATTR_TCP) != 0)
+		if (TCP(client))
 			inc_stats(client, dns_nsstatscounter_tcp);
 		else
 			inc_stats(client, dns_nsstatscounter_udp);
@@ -6700,10 +6700,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			resp_result = ISC_R_SUCCESS;
 		}
 		rrl_result = dns_rrl(client->view, &client->peeraddr,
-				     ISC_TF((client->attributes
-					     & NS_CLIENTATTR_TCP) != 0),
-				     client->message->rdclass, qtype, tname,
-				     resp_result, client->now,
+				     TCP(client), client->message->rdclass,
+				     qtype, tname, resp_result, client->now,
 				     wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
@@ -6789,7 +6787,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		if (rpz_st->m.policy != DNS_RPZ_POLICY_MISS &&
 		    rpz_st->m.policy != DNS_RPZ_POLICY_PASSTHRU &&
 		    (rpz_st->m.policy != DNS_RPZ_POLICY_TCP_ONLY ||
-		     (client->attributes & NS_CLIENTATTR_TCP) == 0) &&
+		     !TCP(client)) &&
 		    rpz_st->m.policy != DNS_RPZ_POLICY_ERROR)
 		{
 			/*
@@ -8474,8 +8472,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S" : "",
 		      (client->ednsversion >= 0) ? "E" : "",
-		      ((client->attributes & NS_CLIENTATTR_TCP) != 0) ?
-				 "T" : "",
+		      TCP(client) ? "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
 		      onbuf);
@@ -8671,8 +8668,7 @@ ns_query_start(ns_client_t *client) {
 	/*
 	 * Turn on minimal responses for EDNS/UDP bufsize 512 queries.
 	 */
-	if (client->ednsversion >= 0 && client->udpsize <= 512U &&
-	    (client->attributes & NS_CLIENTATTR_TCP) == 0)
+	if (client->ednsversion >= 0 && client->udpsize <= 512U && !TCP(client))
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 
