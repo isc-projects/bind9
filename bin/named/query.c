@@ -8959,7 +8959,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 		      level, "query: %s %s %s %s%s%s%s%s%s%s (%s)", namebuf,
 		      classname, typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S" : "", ednsbuf,
-		      TCP(client) ?  "T" : "",
+		      TCP(client) ? "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
 		      HAVECOOKIE(client) ? "V" : WANTCOOKIE(client) ? "K" : "",
