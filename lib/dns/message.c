@@ -2293,7 +2293,7 @@ dns_message_renderend(dns_message_t *msg) {
 	if (msg->padding_off > 0) {
 		unsigned char *cp = isc_buffer_used(msg->buffer);
 		unsigned int used, remaining;
-		isc_uint16_t len, padsize;
+		isc_uint16_t len, padsize = 0;
 
 		/* Check PAD */
 		if ((cp[-4] != 0) ||
@@ -2309,9 +2309,13 @@ dns_message_renderend(dns_message_t *msg) {
 
 		/* Aligned used length + reserved to padding block */
 		used = isc_buffer_usedlength(msg->buffer);
-		padsize = ((isc_uint16_t)used + msg->reserved) % msg->padding;
-		if (padsize)
+		if (msg->padding != 0) {
+			padsize = ((isc_uint16_t)used + msg->reserved)
+				% msg->padding;
+		}
+		if (padsize != 0) {
 			padsize = msg->padding - padsize;
+		}
 		/* Stay below the available length */
 		remaining = isc_buffer_availablelength(msg->buffer);
 		if (padsize > remaining)
@@ -3760,7 +3764,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		 * Print EDNS info, if any.
 		 *
 		 * WARNING: The option contents may be malformed as
-		 * dig +ednsopt=value:<content> does not validity
+		 * dig +ednsopt=value:<content> does no validity
 		 * checking.
 		 */
 		dns_rdata_init(&rdata);
@@ -3772,6 +3776,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			INSIST(isc_buffer_remaininglength(&optbuf) >= 4U);
 			optcode = isc_buffer_getuint16(&optbuf);
 			optlen = isc_buffer_getuint16(&optbuf);
+
 			INSIST(isc_buffer_remaininglength(&optbuf) >= optlen);
 
 			INDENT(style);
@@ -4325,7 +4330,8 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 
 		for (i = 0; i < count; i++)  {
 			if (ednsopts[i].code == DNS_OPT_PAD &&
-			    ednsopts[i].length == 0U && !seenpad) {
+			    ednsopts[i].length == 0U && !seenpad)
+			{
 				seenpad = ISC_TRUE;
 				continue;
 			}

@@ -2409,7 +2409,7 @@ resquery_send(resquery_t *query) {
 			if ((peer != NULL) &&
 			    (query->options & DNS_FETCHOPT_TCP) != 0)
 				(void) dns_peer_getpadding(peer, &padding);
-			if (padding) {
+			if (padding != 0) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_PAD;
 				ednsopts[ednsopt].length = 0;

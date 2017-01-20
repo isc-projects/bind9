@@ -1,3 +1,6 @@
+4556.	[bug]		Sending an EDNS Padding option using "dig
+			+ednsopt" could cause a crash in dig. [RT #44462]
+
 4555.	[func]		dig +ednsopt: EDNS options can now be specified by
 			name in addition to numeric value. [RT #44461]
 

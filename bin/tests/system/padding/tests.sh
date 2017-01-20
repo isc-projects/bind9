@@ -107,5 +107,15 @@ if [ "$opad" -ne "$npad" ]; then ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that zero-length padding option has no effect ($n)"
+ret=0
+n=`expr $n + 1`
+$DIG +qr +ednsopt=12 foo.example @10.53.0.2 -p 5300 > dig.out.test$n.1
+grep "; PAD" dig.out.test$n.1 > /dev/null || ret=1
+$DIG +qr +ednsopt=12:00 foo.example @10.53.0.2 -p 5300 > dig.out.test$n.2
+grep "; PAD" dig.out.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

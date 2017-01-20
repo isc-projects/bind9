@@ -2710,12 +2710,12 @@ setup_lookup(dig_lookup_t *lookup) {
 			i += lookup->ednsoptscnt;
 		}
 
-		if (lookup->padding && (i >= MAXOPTS)) {
+		if (lookup->padding != 0 && (i >= MAXOPTS)) {
 			debug("turned off padding because of EDNS overflow");
 			lookup->padding = 0;
 		}
 
-		if (lookup->padding) {
+		if (lookup->padding != 0) {
 			INSIST(i < MAXOPTS);
 			opts[i].code = DNS_OPT_PAD;
 			opts[i].length = 0;
