@@ -1,3 +1,6 @@
+4555.	[func]		dig +ednsopt: EDNS options can now be specified by
+			name in addition to numeric value. [RT #44461]
+
 4554.	[bug]		Remove double unlock in dns_dispatchmgr_setudp.
 			[RT #44336]
 
