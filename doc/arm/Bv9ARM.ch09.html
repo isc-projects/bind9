@@ -169,6 +169,15 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
+	  for EDNS options in addition to numeric values. For example,
+	  an EDNS Client-Subnet option could be sent using
+	  <span class="command"><strong>dig +ednsopt=ecs:...</strong></span>. Thanks to
+	  John Worley of Secure64 for the contribution. [RT #44461]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Added support for the EDNS TCP Keepalive option (RFC 7828);
 	  this allows negotiation of longer-lived TCP sessions
 	  to reduce the overhead of setting up TCP for individual
