@@ -1,3 +1,6 @@
+4556.	[security]	Combining dns64 and rpz can result in dereferencing
+			a NULL pointer (read).  (CVE-2017-3135) [RT#44434]
+
 4554.	[bug]		Remove double unlock in dns_dispatchmgr_setudp.
 			[RT #44336]
 
