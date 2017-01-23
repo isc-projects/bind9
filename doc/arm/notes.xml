@@ -67,6 +67,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Combining dns64 and rpz can result in dereferencing
+	  a NULL pointer (read).  This flaw is dislosed in CVE-2017-3135.
+	 [RT#44434]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  A coding error in the <option>nxdomain-redirect</option>
 	  feature could lead to an assertion failure if the redirection
 	  namespace was served from a local authoritative data source
