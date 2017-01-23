@@ -6507,7 +6507,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_rpz_st_t *rpz_st;
 	isc_boolean_t resuming;
 	int line = -1;
-	isc_boolean_t dns64_exclude, dns64;
+	isc_boolean_t dns64_exclude, dns64, rpz;
 	isc_boolean_t nxrewrite = ISC_FALSE;
 	isc_boolean_t redirected = ISC_FALSE;
 	dns_clientinfomethods_t cm;
@@ -6523,6 +6523,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	char qbuf[DNS_NAME_FORMATSIZE];
 	char tbuf[DNS_RDATATYPE_FORMATSIZE];
 #endif
+	dns_name_t *rpzqname;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_find");
 
@@ -6548,7 +6549,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	zone = NULL;
 	need_wildcardproof = ISC_FALSE;
 	empty_wild = ISC_FALSE;
-	dns64_exclude = dns64 = ISC_FALSE;
+	dns64_exclude = dns64 = rpz = ISC_FALSE;
 	options = 0;
 	resuming = ISC_FALSE;
 	is_zone = ISC_FALSE;
@@ -6822,6 +6823,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	version = NULL;
 	zversion = NULL;
 	need_wildcardproof = ISC_FALSE;
+	rpz = ISC_FALSE;
 
 	if (client->view->checknames &&
 	    !dns_rdata_checkowner(client->query.qname,
@@ -6964,11 +6966,29 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 
 	/*
-	 * Now look for an answer in the database.
+	 * Now look for an answer in the database.  If this is a dns64
+	 * AAAA lookup on a rpz database adjust the qname.
 	 */
-	result = dns_db_findext(db, client->query.qname, version, type,
+	if (dns64 && rpz)
+		rpzqname = client->query.rpz_st->p_name;
+	else
+		rpzqname = client->query.qname;
+
+	result = dns_db_findext(db, rpzqname, version, type,
 				client->query.dboptions, client->now,
 				&node, fname, &cm, &ci, rdataset, sigrdataset);
+	/*
+	 * Fixup fname and sigrdataset.
+	 */
+	if (dns64 && rpz) {
+		isc_result_t rresult;
+
+		rresult = dns_name_copy(client->query.qname, fname, NULL);
+		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+	}
 
 	if (!is_zone)
 		dns_cache_updatestats(client->view->cache, result);
@@ -7206,10 +7226,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			case DNS_RPZ_POLICY_NXDOMAIN:
 				result = DNS_R_NXDOMAIN;
 				nxrewrite = ISC_TRUE;
+				rpz = ISC_TRUE;
 				break;
 			case DNS_RPZ_POLICY_NODATA:
 				result = DNS_R_NXRRSET;
 				nxrewrite = ISC_TRUE;
+				rpz = ISC_TRUE;
 				break;
 			case DNS_RPZ_POLICY_RECORD:
 				result = rpz_st->m.result;
@@ -7229,6 +7251,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					rdataset->ttl = ISC_MIN(rdataset->ttl,
 								rpz_st->m.ttl);
 				}
+				rpz = ISC_TRUE;
 				break;
 			case DNS_RPZ_POLICY_WILDCNAME:
 				result = dns_rdataset_first(rdataset);
@@ -7271,7 +7294,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 						NS_CLIENTATTR_WANTAD);
 			client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			query_putrdataset(client, &sigrdataset);
-			rpz_st->q.is_zone = is_zone;
 			is_zone = ISC_TRUE;
 			rpz_log_rewrite(client, ISC_FALSE, rpz_st->m.policy,
 					rpz_st->m.type, zone, rpz_st->p_name,
@@ -7646,15 +7668,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
 			type = qtype = dns_rdatatype_a;
-			rpz_st = client->query.rpz_st;
-			if (rpz_st != NULL) {
-				/*
-				 * Arrange for RPZ rewriting of any A records.
-				 */
-				if ((rpz_st->state & DNS_RPZ_REWRITTEN) != 0)
-					is_zone = rpz_st->q.is_zone;
-				rpz_st_clear(client);
-			}
 			dns64 = ISC_TRUE;
 			goto db_find;
 		}
@@ -8039,15 +8052,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
 			type = qtype = dns_rdatatype_a;
-			rpz_st = client->query.rpz_st;
-			if (rpz_st != NULL) {
-				/*
-				 * Arrange for RPZ rewriting of any A records.
-				 */
-				if ((rpz_st->state & DNS_RPZ_REWRITTEN) != 0)
-					is_zone = rpz_st->q.is_zone;
-				rpz_st_clear(client);
-			}
 			dns64 = ISC_TRUE;
 			goto db_find;
 		}
@@ -8675,15 +8679,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_releasename(client, &fname);
 			dns_db_detachnode(db, &node);
 			type = qtype = dns_rdatatype_a;
-			rpz_st = client->query.rpz_st;
-			if (rpz_st != NULL) {
-				/*
-				 * Arrange for RPZ rewriting of any A records.
-				 */
-				if ((rpz_st->state & DNS_RPZ_REWRITTEN) != 0)
-					is_zone = rpz_st->q.is_zone;
-				rpz_st_clear(client);
-			}
 			dns64_exclude = dns64 = ISC_TRUE;
 			goto db_find;
 		}

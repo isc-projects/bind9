@@ -1,3 +1,6 @@
+4556.	[security]	Combining dns64 and rpz can result in dereferencing
+			a NULL pointer (read).  (CVE-2017-3135) [RT#44434]
+
 	--- 9.11.0-P2 released ---
 
 4531.	[security]	'is_zone' was not being properly updated by redirect2
