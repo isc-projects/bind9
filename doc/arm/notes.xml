@@ -42,6 +42,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Combining dns64 and rpz can result in dereferencing
+	  a NULL pointer (read).  This flaw is dislosed in CVE-2017-3135.
+	 [RT#44434]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>named</command> could mishandle authority sections
 	  with missing RRSIGs, triggering an assertion failure. This
 	  flaw is disclosed in CVE-2016-9444. [RT #43632]
