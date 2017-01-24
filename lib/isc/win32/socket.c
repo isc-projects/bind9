@@ -3083,7 +3083,7 @@ isc__socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc__socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+                  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -3135,7 +3135,7 @@ isc__socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		    isc_task_t *task, isc_taskaction_t action, void *arg,
-		    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+                   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	return (isc_socket_sendtov2(sock, buflist, task, action, arg, address,
 				    pktinfo, 0));
@@ -3144,7 +3144,7 @@ isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+                    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		     unsigned int flags)
 {
 	isc_socketevent_t *dev;
@@ -3201,7 +3201,7 @@ isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		    isc_task_t *task,
-		    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+                   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		    isc_socketevent_t *event, unsigned int flags)
 {
 	isc_result_t ret;
@@ -3234,7 +3234,7 @@ isc__socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc__socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr,
+isc__socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
 		 unsigned int options) {
 	int bind_errno;
 	char strbuf[ISC_STRERRORSIZE];
@@ -3497,7 +3497,7 @@ isc__socket_accept(isc_socket_t *sock,
 }
 
 isc_result_t
-isc__socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
+isc__socket_connect(isc_socket_t *sock, const isc_sockaddr_t *addr,
 		    isc_task_t *task, isc_taskaction_t action, void *arg)
 {
 	char strbuf[ISC_STRERRORSIZE];
@@ -3921,13 +3921,13 @@ isc__socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
 }
 
 void
-isc__socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active) {
+isc__socket_cleanunix(const isc_sockaddr_t *addr, isc_boolean_t active) {
 	UNUSED(addr);
 	UNUSED(active);
 }
 
 isc_result_t
-isc__socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
+isc__socket_permunix(const isc_sockaddr_t *addr, isc_uint32_t perm,
 		     isc_uint32_t owner,	isc_uint32_t group)
 {
 	UNUSED(addr);
