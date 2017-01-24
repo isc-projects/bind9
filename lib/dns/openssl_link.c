@@ -131,10 +131,17 @@ id_callback(void) {
 #endif
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-#define FLARG_PASS      , __FILE__, __LINE__
+
 #define FLARG
 #define FILELINE
+#if ISC_MEM_TRACKLINES
+#define FLARG_PASS      , __FILE__, __LINE__
 #else
+#define FLARG_PASS
+#endif
+
+#else
+
 #define FLARG           , const char *file, int line
 #define FILELINE	, __FILE__, __LINE__
 #if ISC_MEM_TRACKLINES
