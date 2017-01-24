@@ -735,6 +735,7 @@ help(void) {
 "                 -6                  (use IPv6 query transport only)\n"
 "                 -b address[#port]   (bind to source address/port)\n"
 "                 -p port             (specify port number)\n"
+"                 -m                  (enable memory usage debugging)\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
 "                 +[no]besteffort     (Try to parse even illegal messages)\n"
@@ -1482,7 +1483,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 /*%
  * #ISC_TRUE returned if value was used
  */
-static const char *single_dash_opts = "46hiv";
+static const char *single_dash_opts = "46himv";
 /*static const char *dash_opts = "46bcfhiptvx";*/
 static isc_boolean_t
 dash_option(const char *option, char *next, struct query *query,
@@ -1538,6 +1539,11 @@ dash_option(const char *option, char *next, struct query *query,
 			break;
 		case 'i':
 			query->ip6_int = ISC_TRUE;
+			break;
+		case 'm':
+			/*
+			 * handled by preparse_args()
+			 */
 			break;
 		case 'v':
 			exit(0);
@@ -1653,6 +1659,39 @@ clone_default_query() {
 		query->timeout = tcp_mode ? TCPTIMEOUT : UDPTIMEOUT;
 
 	return query;
+}
+
+/*%
+ * Because we may be trying to do memory allocation recording, we're going
+ * to need to parse the arguments for the -m *before* we start the main
+ * argument parsing routine.
+ *
+ * I'd prefer not to have to do this, but I am not quite sure how else to
+ * fix the problem.  Argument parsing in mdig involves memory allocation
+ * by its nature, so it can't be done in the main argument parser.
+ */
+static void
+preparse_args(int argc, char **argv) {
+	int rc;
+	char **rv;
+	char *option;
+
+	rc = argc;
+	rv = argv;
+	for (rc--, rv++; rc > 0; rc--, rv++) {
+		if (rv[0][0] != '-')
+			continue;
+		option = &rv[0][1];
+		while (strpbrk(option, single_dash_opts) == &option[0]) {
+			switch (option[0]) {
+			case 'm':
+				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
+					ISC_MEM_DEBUGRECORD;
+				break;
+			}
+			option = &option[1];
+		}
+	}
 }
 
 static void
@@ -1831,8 +1870,9 @@ main(int argc, char *argv[]) {
 	if (!have_ipv4 && !have_ipv6)
 		fatal("could not find either IPv4 or IPv6");
 
+	preparse_args(argc, argv);
+
 	mctx = NULL;
-isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	RUNCHECK(isc_mem_create(0, 0, &mctx));
 
 	lctx = NULL;
