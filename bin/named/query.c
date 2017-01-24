@@ -6022,7 +6022,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 * AAAA lookup on a rpz database adjust the qname.
 	 */
 	if (dns64 && rpz)
-		rpzqname = client->query.rpz_st->p_name;
+		rpzqname = client->query.rpz_st->qname;
 	else
 		rpzqname = client->query.qname;
 
