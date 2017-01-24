@@ -1,7 +1,7 @@
 4560.	[bug]		mdig: add -m option to enable memory debugging rather
-			than have in on all the time. [RT #44509]
+			than having it on all the time. [RT #44509]
 
-4559.	[bug]  		Openssl_link.c didn't compile if ISC_MEM_TRACKLINES
+4559.	[bug]  		openssl_link.c didn't compile if ISC_MEM_TRACKLINES
 			was turned off.  [RT #44509]
 
 4558.	[bug]		Synthesised CNAME before matching DNAME was still
