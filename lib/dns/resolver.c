@@ -6805,10 +6805,10 @@ answer_response(fetchctx_t *fctx) {
 	dns_name_t *name, *dname = NULL, *qname, tname, *ns_name;
 	dns_name_t *cname = NULL;
 	dns_rdataset_t *rdataset, *ns_rdataset;
-	isc_boolean_t done, external, chaining, aa, found, want_chaining;
+	isc_boolean_t done, external, aa, found, want_chaining;
 	isc_boolean_t have_answer, found_cname, found_dname, found_type;
 	isc_boolean_t wanted_chaining;
-	unsigned int aflag;
+	unsigned int aflag, chaining;
 	dns_rdatatype_t type;
 	dns_fixedname_t fdname, fqname;
 	dns_view_t *view;
@@ -6826,9 +6826,9 @@ answer_response(fetchctx_t *fctx) {
 	found_cname = ISC_FALSE;
 	found_dname = ISC_FALSE;
 	found_type = ISC_FALSE;
-	chaining = ISC_FALSE;
 	have_answer = ISC_FALSE;
 	want_chaining = ISC_FALSE;
+	chaining = 0;
 	POST(want_chaining);
 	if ((message->flags & DNS_MESSAGEFLAG_AA) != 0)
 		aa = ISC_TRUE;
@@ -6975,7 +6975,7 @@ answer_response(fetchctx_t *fctx) {
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_answer;
-					if (!chaining) {
+					if (chaining == 0) {
 						/*
 						 * This data is "the" answer
 						 * to our question only if
@@ -7052,8 +7052,8 @@ answer_response(fetchctx_t *fctx) {
 			 * cause us to ignore the signatures of
 			 * CNAMEs.
 			 */
-			if (wanted_chaining)
-				chaining = ISC_TRUE;
+			if (wanted_chaining && chaining < 2U)
+				chaining++;
 		} else {
 			dns_rdataset_t *dnameset = NULL;
 
@@ -7084,7 +7084,7 @@ answer_response(fetchctx_t *fctx) {
 				 * If we're not chaining, then the DNAME and
 				 * its signature should not be external.
 				 */
-				if (!chaining && external) {
+				if (chaining == 0 && external) {
 					char qbuf[DNS_NAME_FORMATSIZE];
 					char obuf[DNS_NAME_FORMATSIZE];
 
@@ -7168,7 +7168,14 @@ answer_response(fetchctx_t *fctx) {
 				name->attributes |= DNS_NAMEATTR_CACHE;
 				rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 				rdataset->trust = dns_trust_answer;
-				if (!chaining) {
+				/*
+				 * If we are not chaining or the first CNAME
+				 * is a synthesised CNAME before the DNAME.
+				 */
+				if ((chaining == 0) ||
+				    (chaining == 1U &&
+				     namereln == dns_namereln_commonancestor))
+				{
 					/*
 					 * This data is "the" answer to
 					 * our question only if we're
@@ -7216,8 +7223,12 @@ answer_response(fetchctx_t *fctx) {
 				dnameset->attributes |=
 					    DNS_RDATASETATTR_CHAINING;
 			}
-			if (wanted_chaining)
-				chaining = ISC_TRUE;
+			/*
+			 * Ensure that we can't ever get chaining == 1
+			 * above if we have processed a DNAME.
+			 */
+			if (wanted_chaining && chaining < 2U)
+				chaining += 2;
 		}
 		result = dns_message_nextname(message, DNS_SECTION_ANSWER);
 	}
@@ -7242,7 +7253,7 @@ answer_response(fetchctx_t *fctx) {
 	/*
 	 * Did chaining end before we got the final answer?
 	 */
-	if (chaining) {
+	if (chaining != 0) {
 		/*
 		 * Yes.  This may be a negative reply, so hand off
 		 * authority section processing to the noanswer code.
@@ -7291,7 +7302,7 @@ answer_response(fetchctx_t *fctx) {
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
-					if (aa && !chaining)
+					if (aa && chaining == 0)
 						rdataset->trust =
 						    dns_trust_authauthority;
 					else
