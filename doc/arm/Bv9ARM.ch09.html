@@ -113,6 +113,13 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Combining dns64 and rpz can result in dereferencing
+	  a NULL pointer (read).  This flaw is dislosed in CVE-2017-3135.
+	 [RT#44434]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  A coding error in the <code class="option">nxdomain-redirect</code>
 	  feature could lead to an assertion failure if the redirection
 	  namespace was served from a local authoritative data source
