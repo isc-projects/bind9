@@ -44,6 +44,7 @@
       <arg choice="opt" rep="norepeat"><option>-v</option></arg>
       <arg choice="opt" rep="norepeat"><option>-4</option></arg>
       <arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-m</option></arg>
       <arg choice="opt" rep="norepeat"><option>-b <replaceable class="parameter">address</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-p <replaceable class="parameter">port#</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">class</replaceable></option></arg>
@@ -160,6 +161,10 @@
       address on one of the host's network interfaces or "0.0.0.0" or
       "::".  An optional port may be specified by appending
       "#&lt;port&gt;"
+    </para>
+
+    <para>
+      The <option>-m</option> option enables memory usage debugging.
     </para>
 
     <para>
