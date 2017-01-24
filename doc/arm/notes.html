@@ -54,6 +54,13 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Combining dns64 and rpz can result in dereferencing
+	  a NULL pointer (read).  This flaw is dislosed in CVE-2017-3135.
+	 [RT#44434]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>named</strong></span> could mishandle authority sections
 	  with missing RRSIGs, triggering an assertion failure. This
 	  flaw is disclosed in CVE-2016-9444. [RT #43632]
