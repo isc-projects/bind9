@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -3083,7 +3083,7 @@ isc__socket_send(isc_socket_t *sock, isc_region_t *region,
 isc_result_t
 isc__socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		   isc_task_t *task, isc_taskaction_t action, void *arg,
-                  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+		  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -3135,7 +3135,7 @@ isc__socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		    isc_task_t *task, isc_taskaction_t action, void *arg,
-                   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
 {
 	return (isc_socket_sendtov2(sock, buflist, task, action, arg, address,
 				    pktinfo, 0));
@@ -3144,7 +3144,7 @@ isc__socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-                    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		     unsigned int flags)
 {
 	isc_socketevent_t *dev;
@@ -3201,7 +3201,7 @@ isc__socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
 isc_result_t
 isc__socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		    isc_task_t *task,
-                   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		    isc_socketevent_t *event, unsigned int flags)
 {
 	isc_result_t ret;
