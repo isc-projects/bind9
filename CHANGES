@@ -1,4 +1,4 @@
-4556.	[security]	Combining dns64 and rpz can result in dereferencing
+4557.	[security]	Combining dns64 and rpz can result in dereferencing
 			a NULL pointer (read).  (CVE-2017-3135) [RT#44434]
 
 	--- 9.9.9-P5 released ---
