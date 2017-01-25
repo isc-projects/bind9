@@ -1,4 +1,4 @@
-.\" Copyright (C) 2015, 2016 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2015-2017 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@
 mdig \- DNS pipelined lookup utility
 .SH "SYNOPSIS"
 .HP \w'\fBmdig\fR\ 'u
-\fBmdig\fR {@server} [\fB\-f\ \fR\fB\fIfilename\fR\fR] [\fB\-h\fR] [\fB\-v\fR] [\fB\-4\fR] [\fB\-6\fR] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-i\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [plusopt...]
+\fBmdig\fR {@server} [\fB\-f\ \fR\fB\fIfilename\fR\fR] [\fB\-h\fR] [\fB\-v\fR] [\fB\-4\fR] [\fB\-6\fR] [\fB\-m\fR] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-i\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [plusopt...]
 .HP \w'\fBmdig\fR\ 'u
 \fBmdig\fR {\-h}
 .HP \w'\fBmdig\fR\ 'u
@@ -112,6 +112,10 @@ The
 \fB\-b\fR
 option sets the source IP address of the query to
 \fIaddress\fR\&. This must be a valid address on one of the host\*(Aqs network interfaces or "0\&.0\&.0\&.0" or "::"\&. An optional port may be specified by appending "#<port>"
+.PP
+The
+\fB\-m\fR
+option enables memory usage debugging\&.
 .PP
 The
 \fB\-p\fR
@@ -400,5 +404,5 @@ RFC1035\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2015, 2016 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2015-2017 Internet Systems Consortium, Inc. ("ISC")
 .br
