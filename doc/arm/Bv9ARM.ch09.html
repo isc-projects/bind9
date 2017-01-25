@@ -93,9 +93,11 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
-	  Combining dns64 and rpz can result in dereferencing
-	  a NULL pointer (read).  This flaw is dislosed in CVE-2017-3135.
-	 [RT#44434]
+	  If a server is configured with a response policy zone (RPZ)
+	  that rewrites an answer with local data, and is also configured
+	  for DNS64 address mapping, a NULL pointer can be read
+	  triggering a server crash.  This flaw is disclosed in
+	  CVE-2017-3135. [RT #44434]
 	</p>
       </li>
 <li class="listitem">
