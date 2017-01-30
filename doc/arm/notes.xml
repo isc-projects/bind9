@@ -121,9 +121,12 @@
 
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
-      <listitem>
-	<para>
-	  None.
+       <listitem>
+ 	<para>
+	  A synthesized CNAME record appearing in a response before the
+	  associated DNAME could be cached, when it should not have been.
+	  This was a regression introduced while addressing CVE-2016-8864.
+	  [RT #44318]
 	</para>
       </listitem>
     </itemizedlist>
