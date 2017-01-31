@@ -267,6 +267,14 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  A synthesized CNAME record appearing in a response before the
+	  associated DNAME could be cached, when it should not have been.
+	  This was a regression introduced while addressing CVE-2016-8864.
+	  [RT #44318]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Named could deadlock there were multiple changes to
 	  NSEC/NSEC3 parameters for a zone being processed at the
 	  same time. [RT #42770]
