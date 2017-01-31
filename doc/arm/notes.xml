@@ -16,6 +16,11 @@
       This document summarizes changes since BIND 9.11.0:
     </para>
     <para>
+      BIND 9.11.0-P3 addresses the security issue described in
+      CVE-2017-3135, and fixes a regression introduced in a prior
+      security release.
+    </para>
+    <para>
       BIND 9.11.0-P2 addresses the security issues described in
       CVE-2016-9131, CVE-2016-9147, CVE-2016-9444 and CVE-2016-9778.
     </para>
