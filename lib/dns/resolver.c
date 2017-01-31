@@ -6104,7 +6104,7 @@ cname_target(dns_rdataset_t *rdataset, dns_name_t *tname) {
  * the DNAME RR and store it in 'target'.
  */
 static inline isc_result_t
-dname_target(dns_rdataset_t *rdataset, const dns_name_t *qname,
+dname_target(dns_rdataset_t *rdataset, dns_name_t *qname,
 	     unsigned int nlabels, dns_name_t *target)
 {
 	isc_result_t result;
@@ -6136,7 +6136,7 @@ dname_target(dns_rdataset_t *rdataset, const dns_name_t *qname,
  * and 'rdataset'.
  */
 static inline isc_result_t
-fromdname(dns_rdataset_t *rdataset, const dns_name_t *lastcname,
+fromdname(dns_rdataset_t *rdataset, dns_name_t *lastcname,
 	  unsigned int nlabels, const dns_name_t *qname)
 {
 	dns_fixedname_t fixed;
