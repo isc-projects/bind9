@@ -42,7 +42,7 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 	isc_eventdestructor_t		ev_destroy; \
 	void *				ev_destroy_arg; \
 	ISC_LINK(ltype)			ev_link; \
-	ISC_LINK(ltype)			ev_ratelink;
+	ISC_LINK(ltype)			ev_ratelink
 
 /*%
  * Attributes matching a mask of 0x000000ff are reserved for the task library's
