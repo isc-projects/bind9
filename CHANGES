@@ -1,3 +1,5 @@
+	--- 9.9.9-P6 released ---
+
 4558.	[bug]		Synthesised CNAME before matching DNAME was still
 			being cached when it should have been.  [RT #44318]
 
