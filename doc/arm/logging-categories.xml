@@ -205,9 +205,11 @@
 	  </para>
 
 	  <para>
-	    The query log entry reports the client's IP
+	    The query log entry first reports a client object
+	    identifier in @0x&lt;hexadecimal-number&gt;
+	    format. Next, it reports the client's IP
 	    address and port number, and the query name,
-	    class and type.  Next it reports whether the
+	    class and type.  Next, it reports whether the
 	    Recursion Desired flag was set (+ if set, -
 	    if not set), if the query was signed (S),
 	    EDNS was in used along with the EDNS version
