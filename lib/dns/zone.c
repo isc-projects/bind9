@@ -1740,7 +1740,6 @@ zone_touched(dns_zone_t *zone) {
 			return (ISC_TRUE);
 	}
 
-
 	return (ISC_FALSE);
 }
 
@@ -1820,6 +1819,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
 	if (zone->masterfile != NULL) {
+		isc_time_t filetime;
+
 		/*
 		 * The file is already loaded.	If we are just doing a
 		 * "rndc reconfig", we are done.
@@ -1839,6 +1840,16 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 			result = DNS_R_UPTODATE;
 			goto cleanup;
 		}
+
+
+		/*
+		 * If the file modification time is in the past
+		 * set loadtime to that value.
+		 */
+		result = isc_file_getmodtime(zone->masterfile, &filetime);
+		if (result == ISC_R_SUCCESS &&
+		    isc_time_compare(&loadtime, &filetime) > 0)
+			loadtime = filetime;
 	}
 
 	/*
