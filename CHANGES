@@ -1,3 +1,6 @@
+4563.	[bug]		Modified zones would occasionally fail to reload.
+			[RT #39424]
+
 4562.	[func]		Add additional memory statistics currently malloced
 			and maxmalloced per memory context. [RT #43593]
 
