@@ -2441,8 +2441,8 @@
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005,2009
-./bind.keys					X	2009,2010,2011
-./bind.keys.h					X	2009,2010,2011,2012,2014
+./bind.keys					X	2009,2010,2011,2017
+./bind.keys.h					X	2009,2010,2011,2012,2014,2017
 ./config.guess					X	1998,1999,2000,2001,2004,2009,2013
 ./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./config.h.win32				C	1999,2000,2001,2004,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
@@ -3270,7 +3270,7 @@
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/rpz.h			C	2011,2012,2013,2015
 ./lib/dns/include/dns/rriterator.h		C	2009,2011
-./lib/dns/include/dns/rrl.h			C	2013,2015
+./lib/dns/include/dns/rrl.h			C	2013,2015,2017
 ./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012
 ./lib/dns/include/dns/sdlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005,2006,2007,2009
@@ -4594,7 +4594,7 @@
 ./util/COPYRIGHT.NOM				X	2001,2004,2007
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000,2001,2004,2007
 ./util/altbuild.sh				SH	2000,2001,2002,2004,2007,2008,2012
-./util/bindkeys.pl				PERL	2009,2010,2011,2012,2014
+./util/bindkeys.pl				PERL	2009,2010,2011,2012,2014,2017
 ./util/branchsync.sh				SH	2013
 ./util/check-categories.sh			SH	2015
 ./util/check-changes				PERL	2002,2004,2007,2012
@@ -4621,7 +4621,7 @@
 ./util/update_branches				PERL	2005,2007,2012
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015,2016
 ./util/xc					SH	2012,2013
-./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./version					X	1998,1999,2000,2001,2003,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./win32utils/Configure				PERL	2013,2014,2015,2016,2017
 ./win32utils/GeoIP.diff				X	2013
 ./win32utils/bind9.sln.in			X	2013,2014,2016
