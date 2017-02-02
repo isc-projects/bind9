@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2010, 2012-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1997-2010, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1119,7 +1119,7 @@ destroy(isc__mem_t *ctx) {
 		if (ctx->basic_table != NULL) {
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
 			ctx->malloced -= ctx->basic_table_size *
-                                         sizeof(unsigned char *);
+					 sizeof(unsigned char *);
 		}
 	}
 

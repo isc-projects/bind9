@@ -7,7 +7,7 @@
 
 4564.	[maint]		Update the built in managed keys to include the
 			upcoming root KSK. [RT #44579]
-			
+
 4563.	[bug]		Modified zones would occasionally fail to reload.
 			[RT #39424]
 

@@ -12361,7 +12361,7 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 				const cfg_obj_t *zoptions;
 				const cfg_obj_t *typeobj = NULL;
 				zoptions = cfg_tuple_get(obj, "options");
-				
+
 				if (zoptions != NULL)
 					cfg_map_get(zoptions, "type", &typeobj);
 				if (redirect && typeobj != NULL &&
