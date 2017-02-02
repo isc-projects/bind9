@@ -9,7 +9,7 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
   <xsl:output method="html" indent="yes" version="4.0"/>
-  <xsl:template match="statistics[@version=&quot;3.8&quot;]">
+  <xsl:template match="statistics[@version=&quot;3.9&quot;]">
     <html>
       <head>
         <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
@@ -960,6 +960,8 @@
               <th>TotalUse</th>
               <th>InUse</th>
               <th>MaxUse</th>
+              <th>Malloced</th>
+              <th>MaxMalloced</th>
               <th>BlockSize</th>
               <th>Pools</th>
               <th>HiWater</th>
@@ -991,6 +993,12 @@
                 </td>
                 <td>
                   <xsl:value-of select="maxinuse"/>
+                </td>
+                <td>
+                  <xsl:value-of select="malloced"/>
+                </td>
+                <td>
+                  <xsl:value-of select="maxmalloced"/>
                 </td>
                 <td>
                   <xsl:value-of select="blocksize"/>

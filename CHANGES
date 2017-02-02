@@ -1,3 +1,6 @@
+4562.	[func]		Add additional memory statistics currently malloced
+			and maxmalloced per memory context. [RT #43593]
+
 4561.	[port]		Silence a warning in strict C99 compilers. [RT #44414]
 
 4560.	[bug]		mdig: add -m option to enable memory debugging rather

@@ -135,6 +135,8 @@ struct isc__mem {
 	size_t			total;
 	size_t			inuse;
 	size_t			maxinuse;
+	size_t			malloced;
+	size_t			maxmalloced;
 	size_t			hi_water;
 	size_t			lo_water;
 	isc_boolean_t		hi_called;
@@ -414,6 +416,9 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
 
 	dl = malloc(sizeof(debuglink_t));
 	INSIST(dl != NULL);
+	mctx->malloced += sizeof(debuglink_t);
+	if (mctx->malloced > mctx->maxmalloced)
+		mctx->maxmalloced = mctx->malloced;
 
 	ISC_LINK_INIT(dl, link);
 	for (i = 1; i < DEBUGLIST_COUNT; i++) {
@@ -468,6 +473,7 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 					ISC_LIST_UNLINK(mctx->debuglist[size],
 							dl, link);
 					free(dl);
+					mctx->malloced -= sizeof(*dl);
 				}
 				return;
 			}
@@ -532,11 +538,16 @@ more_basic_blocks(isc__mem_t *ctx) {
 			ctx->memalloc_failures++;
 			return (ISC_FALSE);
 		}
+		ctx->malloced += table_size * sizeof(unsigned char *);
+		if (ctx->malloced > ctx->maxmalloced)
+			ctx->maxmalloced = ctx->malloced;
 		if (ctx->basic_table_size != 0) {
 			memmove(table, ctx->basic_table,
 				ctx->basic_table_size *
 				  sizeof(unsigned char *));
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
+			ctx->malloced -= ctx->basic_table_size *
+					 sizeof(unsigned char *);
 		}
 		ctx->basic_table = table;
 		ctx->basic_table_size = table_size;
@@ -550,6 +561,9 @@ more_basic_blocks(isc__mem_t *ctx) {
 	ctx->total += increment;
 	ctx->basic_table[ctx->basic_table_count] = new;
 	ctx->basic_table_count++;
+	ctx->malloced += NUM_BASIC_BLOCKS * ctx->mem_target;
+	if (ctx->malloced > ctx->maxmalloced)
+			ctx->maxmalloced = ctx->malloced;
 
 	curr = new;
 	next = curr + ctx->mem_target;
@@ -658,6 +672,9 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 		ctx->inuse += size;
 		ctx->stats[ctx->max_size].gets++;
 		ctx->stats[ctx->max_size].totalgets++;
+		ctx->malloced += size;
+		if (ctx->malloced > ctx->maxmalloced)
+			ctx->maxmalloced = ctx->malloced;
 		/*
 		 * If we don't set new_size to size, then the
 		 * ISC_MEM_FILL code might write over bytes we
@@ -735,6 +752,7 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->inuse);
 		ctx->inuse -= size;
+		ctx->malloced -= size;
 		return;
 	}
 
@@ -787,6 +805,11 @@ mem_get(isc__mem_t *ctx, size_t size) {
 		ret[size-1] = 0xbe;
 #  endif
 #endif
+	if (ret != NULL) {
+		ctx->malloced += size;
+		if (ctx->malloced > ctx->maxmalloced)
+			ctx->maxmalloced = ctx->malloced;
+	}
 
 	return (ret);
 }
@@ -802,10 +825,9 @@ mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 #endif
 #if ISC_MEM_FILL
 	memset(mem, 0xde, size); /* Mnemonic for "dead". */
-#else
-	UNUSED(size);
 #endif
 	(ctx->memfree)(ctx->arg, mem);
+	ctx->malloced -= size;
 }
 
 /*!
@@ -924,6 +946,8 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->total = 0;
 	ctx->inuse = 0;
 	ctx->maxinuse = 0;
+	ctx->malloced = sizeof(*ctx);
+	ctx->maxmalloced = sizeof(*ctx);
 	ctx->hi_water = 0;
 	ctx->lo_water = 0;
 	ctx->hi_called = ISC_FALSE;
@@ -960,6 +984,8 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		goto error;
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof(struct stats));
+	ctx->malloced += (ctx->max_size+1) * sizeof(struct stats);
+	ctx->maxmalloced += (ctx->max_size+1) * sizeof(struct stats);
 
 	if ((flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		if (target_size == 0U)
@@ -974,6 +1000,8 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		}
 		memset(ctx->freelists, 0,
 		       ctx->max_size * sizeof(element *));
+		ctx->malloced += ctx->max_size * sizeof(element *);
+		ctx->maxmalloced += ctx->max_size * sizeof(element *);
 	}
 
 #if ISC_MEM_TRACKLINES
@@ -988,6 +1016,8 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		}
 		for (i = 0; i <= ctx->max_size; i++)
 			ISC_LIST_INIT(ctx->debuglist[i]);
+		ctx->malloced += (ctx->max_size+1) * sizeof(debuglist_t);
+		ctx->maxmalloced += (ctx->max_size+1) * sizeof(debuglist_t);
 	}
 #endif
 
@@ -1051,9 +1081,11 @@ destroy(isc__mem_t *ctx) {
 					ISC_LIST_UNLINK(ctx->debuglist[i],
 							dl, link);
 					free(dl);
+					ctx->malloced -= sizeof(*dl);
 				}
 		}
 		(ctx->memfree)(ctx->arg, ctx->debuglist);
+		ctx->malloced -= (ctx->max_size+1) * sizeof(debuglist_t);
 	}
 #endif
 	INSIST(ctx->references == 0);
@@ -1075,19 +1107,29 @@ destroy(isc__mem_t *ctx) {
 	}
 
 	(ctx->memfree)(ctx->arg, ctx->stats);
+	ctx->malloced -= (ctx->max_size+1) * sizeof(struct stats);
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		for (i = 0; i < ctx->basic_table_count; i++)
+		for (i = 0; i < ctx->basic_table_count; i++) {
 			(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
+			ctx->malloced -= NUM_BASIC_BLOCKS * ctx->mem_target;
+		}
 		(ctx->memfree)(ctx->arg, ctx->freelists);
-		if (ctx->basic_table != NULL)
+		ctx->malloced -= ctx->max_size * sizeof(element *);
+		if (ctx->basic_table != NULL) {
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
+			ctx->malloced -= ctx->basic_table_size *
+                                         sizeof(unsigned char *);
+		}
 	}
 
 	ondest = ctx->ondestroy;
 
 	if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
 		DESTROYLOCK(&ctx->lock);
+	ctx->malloced -= sizeof(*ctx);
+	if (ctx->checkfree)
+		INSIST(ctx->malloced == 0);
 	(ctx->memfree)(ctx->arg, ctx);
 
 	isc_ondestroy_notify(&ondest, ctx);
@@ -2323,6 +2365,7 @@ isc_mem_references(isc_mem_t *ctx0) {
 typedef struct summarystat {
 	isc_uint64_t	total;
 	isc_uint64_t	inuse;
+	isc_uint64_t	malloced;
 	isc_uint64_t	blocksize;
 	isc_uint64_t	contextsize;
 } summarystat_t;
@@ -2386,6 +2429,19 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 					    "%" ISC_PRINT_QUADFORMAT "u",
 					    (isc_uint64_t)ctx->maxinuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
+
+	summary->malloced += ctx->malloced;
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
+	TRY0(xmlTextWriterWriteFormatString(writer,
+					    "%" ISC_PRINT_QUADFORMAT "u",
+					    (isc_uint64_t)ctx->malloced));
+	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxmalloced"));
+	TRY0(xmlTextWriterWriteFormatString(writer,
+					    "%" ISC_PRINT_QUADFORMAT "u",
+					    (isc_uint64_t)ctx->maxmalloced));
+	TRY0(xmlTextWriterEndElement(writer)); /* maxmalloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "blocksize"));
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
@@ -2468,6 +2524,12 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 					    summary.inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
+	TRY0(xmlTextWriterWriteFormatString(writer,
+					    "%" ISC_PRINT_QUADFORMAT "u",
+					    summary.malloced));
+	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
+
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "BlockSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" ISC_PRINT_QUADFORMAT "u",
@@ -2519,6 +2581,7 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 		ctx->basic_table_count * sizeof(char *);
 	summary->total += ctx->total;
 	summary->inuse += ctx->inuse;
+	summary->malloced += ctx->malloced;
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0)
 		summary->blocksize += ctx->basic_table_count *
 			NUM_BASIC_BLOCKS * ctx->mem_target;
@@ -2559,6 +2622,14 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 	obj = json_object_new_int64(ctx->maxinuse);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "maxinuse", obj);
+
+	obj = json_object_new_int64(ctx->malloced);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "malloced", obj);
+
+	obj = json_object_new_int64(ctx->maxmalloced);
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "maxmalloced", obj);
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		isc_uint64_t blocksize;
@@ -2628,6 +2699,10 @@ isc_mem_renderjson(json_object *memobj) {
 	obj = json_object_new_int64(summary.inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "InUse", obj);
+
+	obj = json_object_new_int64(summary.malloced);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "Malloced", obj);
 
 	obj = json_object_new_int64(summary.blocksize);
 	CHECKMEM(obj);

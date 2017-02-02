@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/perl
 #
 # Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
 #
@@ -6,12 +6,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-rm -f traffic traffic.out.*
-rm -f dig.out*
-rm -f */named.memstats
-rm -f */named.run
-rm -f ns*/named.lock
-rm -f ns*/named.stats
-rm -f xml.*stats json.*stats
-rm -f xml.*mem json.*mem
-rm -f compressed.headers regular.headers compressed.out regular.out
+# server-xml.pl:
+# Parses the XML version of the server stats into a normalized format.
+
+use XML::Simple;
+use Data::Dumper;
+
+my $ref = XMLin("xml.mem");
+print Dumper($ref);
