@@ -1,3 +1,7 @@
+4565.	[cleanup]	The inline macro versions of isc_buffer_put*()
+			did not implement automatic buffer reallocation.
+			[RT #44216]
+
 4564.	[maint]		Update the built in managed keys to include the
 			upcoming root KSK. [RT #44579]
 			

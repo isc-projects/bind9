@@ -281,7 +281,7 @@ void
 isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, 1);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -315,7 +315,7 @@ void
 isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, 2);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -328,7 +328,7 @@ void
 isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, 3);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -364,7 +364,7 @@ void
 isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, 4);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -405,7 +405,7 @@ isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val) {
 	isc_uint32_t vallo;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, 6);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -423,7 +423,7 @@ isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, length);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -445,7 +445,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 	 * Do not use ISC__BUFFER_PUTSTR(), so strlen is only done once.
 	 */
 	l = strlen(source);
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, l);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -468,7 +468,7 @@ isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v) {
 	/* xxxwpk do it more low-level way ? */
 	l = snprintf(buf, 21, "%" ISC_PRINT_QUADFORMAT "d", v);
 	RUNTIME_CHECK(l <= 21);
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, l);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -514,7 +514,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	 */
 	base = isc_buffer_used(b);
 	available = isc_buffer_availablelength(b);
-	if (b->autore) {
+	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, r->length);
 		if (result != ISC_R_SUCCESS)
 			return (result);
