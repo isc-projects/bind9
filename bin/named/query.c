@@ -18,6 +18,7 @@
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
+#include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
