@@ -12445,7 +12445,7 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 #ifndef HAVE_LMDB
 	if (zconfig == NULL && cfg->nzf_config != NULL)
 		zconfig = find_name_in_list_from_map(cfg->nzf_config,
-						     "zone", zonename);
+						     "zone", zonename, redirect);
 #else /* HAVE_LMDB */
 	if (zconfig == NULL) {
 		const cfg_obj_t *zlist = NULL;
