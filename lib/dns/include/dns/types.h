@@ -79,6 +79,7 @@ typedef struct dns_dtenv			dns_dtenv_t;
 typedef struct dns_dtmsg			dns_dtmsg_t;
 typedef isc_uint16_t 				dns_dtmsgtype_t;
 typedef struct dns_dumpctx			dns_dumpctx_t;
+typedef struct dns_ecs				dns_ecs_t;
 typedef struct dns_ednsopt			dns_ednsopt_t;
 typedef struct dns_fetch			dns_fetch_t;
 typedef struct dns_fixedname			dns_fixedname_t;

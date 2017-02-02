@@ -1643,9 +1643,9 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		count++;
 	}
 	if (((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) &&
-	    (client->ecs_addr.family == AF_INET ||
-	     client->ecs_addr.family == AF_INET6 ||
-	     client->ecs_addr.family == AF_UNSPEC))
+	    (client->ecs.addr.family == AF_INET ||
+	     client->ecs.addr.family == AF_INET6 ||
+	     client->ecs.addr.family == AF_UNSPEC))
 	{
 		isc_buffer_t buf;
 		isc_uint8_t addr[16];
@@ -1654,12 +1654,12 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 		/* Add CLIENT-SUBNET option. */
 
-		plen = client->ecs_addrlen;
+		plen = client->ecs.source;
 
 		/* Round up prefix len to a multiple of 8 */
 		addrl = (plen + 7) / 8;
 
-		switch (client->ecs_addr.family) {
+		switch (client->ecs.addr.family) {
 		case AF_UNSPEC:
 			INSIST(plen == 0);
 			family = 0;
@@ -1667,12 +1667,12 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		case AF_INET:
 			INSIST(plen <= 32);
 			family = 1;
-			memmove(addr, &client->ecs_addr.type, addrl);
+			memmove(addr, &client->ecs.addr.type, addrl);
 			break;
 		case AF_INET6:
 			INSIST(plen <= 128);
 			family = 2;
-			memmove(addr, &client->ecs_addr.type, addrl);
+			memmove(addr, &client->ecs.addr.type, addrl);
 			break;
 		default:
 			INSIST(0);
@@ -1682,9 +1682,9 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		/* family */
 		isc_buffer_putuint16(&buf, family);
 		/* source prefix-length */
-		isc_buffer_putuint8(&buf, client->ecs_addrlen);
+		isc_buffer_putuint8(&buf, client->ecs.source);
 		/* scope prefix-length */
-		isc_buffer_putuint8(&buf, client->ecs_scope);
+		isc_buffer_putuint8(&buf, client->ecs.scope);
 
 		/* address */
 		if (addrl > 0) {
@@ -2137,9 +2137,9 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		}
 	}
 
-	memmove(&client->ecs_addr, &caddr, sizeof(caddr));
-	client->ecs_addrlen = addrlen;
-	client->ecs_scope = 0;
+	memmove(&client->ecs.addr, &caddr, sizeof(caddr));
+	client->ecs.source = addrlen;
+	client->ecs.scope = 0;
 	client->attributes |= NS_CLIENTATTR_HAVEECS;
 
 	isc_buffer_forward(buf, (unsigned int)optlen);
@@ -2551,8 +2551,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	else
 		opt = dns_message_getopt(client->message);
 
-	client->ecs_addrlen = 0;
-	client->ecs_scope = 0;
+	client->ecs.source = 0;
+	client->ecs.scope = 0;
 
 	if (opt != NULL) {
 		/*
@@ -2664,11 +2664,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			}
 
 			if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
-				addr = &client->ecs_addr;
-				scope = &client->ecs_scope;
+				addr = &client->ecs.addr;
+				scope = &client->ecs.scope;
 			}
 
-			if (allowed(&netaddr, tsig, addr, client->ecs_addrlen,
+			if (allowed(&netaddr, tsig, addr, client->ecs.source,
 				    scope, view->matchclients) &&
 			    allowed(&client->destaddr, tsig, NULL,
 				    0, NULL, view->matchdestinations) &&
@@ -3077,8 +3077,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
-	client->ecs_addrlen = 0;
-	client->ecs_scope = 0;
+	dns_ecs_init(&client->ecs);
 #ifdef ALLOW_FILTER_AAAA
 	client->filter_aaaa = dns_aaaa_ok;
 #endif
@@ -3711,8 +3710,8 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
-		ecs_addr = &client->ecs_addr;
-		ecs_addrlen = client->ecs_addrlen;
+		ecs_addr = &client->ecs.addr;
+		ecs_addrlen = client->ecs.source;
 	}
 
 	result = dns_acl_match2(netaddr, client->signer,

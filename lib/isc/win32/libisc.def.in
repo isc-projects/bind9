@@ -483,6 +483,7 @@ isc_netaddr_masktoprefixlen
 isc_netaddr_prefixok
 isc_netaddr_setzone
 isc_netaddr_totext
+isc_netaddr_unspec
 isc_netscope_pton
 isc_ntpaths_get
 isc_ntpaths_init

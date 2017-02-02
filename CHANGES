@@ -1,3 +1,6 @@
+4566.	[func]		Query logging now includes the ECS option if one
+			was included in the query. [RT #44476]
+
 4565.	[cleanup]	The inline macro versions of isc_buffer_put*()
 			did not implement automatic buffer reallocation.
 			[RT #44216]

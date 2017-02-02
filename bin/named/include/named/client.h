@@ -60,6 +60,7 @@
 #include <isc/queue.h>
 
 #include <dns/db.h>
+#include <dns/ecs.h>
 #include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
@@ -135,9 +136,7 @@ struct ns_client {
 	isc_boolean_t		peeraddr_valid;
 	isc_netaddr_t		destaddr;
 
-	isc_netaddr_t		ecs_addr;	/*%< EDNS client subnet */
-	isc_uint8_t		ecs_addrlen;
-	isc_uint8_t		ecs_scope;
+	dns_ecs_t		ecs;   /*%< EDNS client subnet sent by client */
 
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;

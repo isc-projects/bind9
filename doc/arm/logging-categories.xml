@@ -211,15 +211,19 @@
 	    address and port number, and the query name,
 	    class and type.  Next, it reports whether the
 	    Recursion Desired flag was set (+ if set, -
-	    if not set), if the query was signed (S),
-	    EDNS was in used along with the EDNS version
-	    number (E(#)), if TCP was used (T), if DO
-	    (DNSSEC Ok) was set (D), if CD (Checking
-	    Disabled) was set (C), if a valid DNS Server
-	    COOKIE was received (V), or if a DNS COOKIE
-	    option without a valid Server COOKIE was
+	    if not set), whether the query was signed (S),
+	    whether EDNS was in use along with the EDNS version
+	    number (E(#)), whether TCP was used (T), whether
+	    DO (DNSSEC Ok) was set (D), whether CD (Checking
+	    Disabled) was set (C), whether a valid DNS Server
+	    COOKIE was received (V), and whether a DNS
+	    COOKIE option without a valid Server COOKIE was
 	    present (K).  After this the destination
 	    address the query was sent to is reported.
+	    Finally, if any CLIENT-SUBNET option
+	    was present in the client query, it is
+	    included in square brackets in the format
+	    [ECS <replaceable>address/source/scope</replaceable>].
 	  </para>
 
 	  <para>

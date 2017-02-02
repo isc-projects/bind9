@@ -15,7 +15,7 @@ HEADERS =	acache.h acl.h adb.h badcache.h bit.h byaddr.h \
 		client.h clientinfo.h compress.h \
 		db.h dbiterator.h dbtable.h diff.h dispatch.h \
 		dlz.h dlz_dlopen.h dns64.h dnssec.h ds.h dsdigest.h \
-		dnstap.h dyndb.h \
+		dnstap.h dyndb.h ecs.h \
 		edns.h ecdb.h events.h fixedname.h forward.h geoip.h \
 		ipkeylist.h iptable.h \
 		journal.h keydata.h keyflags.h keytable.h keyvalues.h \

@@ -146,6 +146,7 @@ CLEAN :
 	-@erase "$(INTDIR)\dst_result.obj"
 	-@erase "$(INTDIR)\dyndb.obj"
 	-@erase "$(INTDIR)\ecdb.obj"
+	-@erase "$(INTDIR)\ecs.obj"
 	-@erase "$(INTDIR)\forward.obj"
 @IF GEOIP
 	-@erase "$(INTDIR)\geoip.obj"
@@ -303,6 +304,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\dyndb.obj" \
 	"$(INTDIR)\ecdb.obj" \
+	"$(INTDIR)\ecs.obj" \
 	"$(INTDIR)\forward.obj" \
 @IF GEOIP
 	"$(INTDIR)\geoip.obj" \
@@ -472,6 +474,8 @@ CLEAN :
 	-@erase "$(INTDIR)\dyndb.sbr"
 	-@erase "$(INTDIR)\ecdb.obj"
 	-@erase "$(INTDIR)\ecdb.sbr"
+	-@erase "$(INTDIR)\ecs.obj"
+	-@erase "$(INTDIR)\ecs.sbr"
 	-@erase "$(INTDIR)\forward.obj"
 	-@erase "$(INTDIR)\forward.sbr"
 @IF GEOIP
@@ -705,6 +709,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\ds.sbr" \
 	"$(INTDIR)\dyndb.sbr" \
 	"$(INTDIR)\ecdb.sbr" \
+	"$(INTDIR)\ecs.sbr" \
 	"$(INTDIR)\forward.sbr" \
 @IF GEOIP
 	"$(INTDIR)\geoip.sbr" \
@@ -824,6 +829,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\ds.obj" \
 	"$(INTDIR)\dyndb.obj" \
 	"$(INTDIR)\ecdb.obj" \
+	"$(INTDIR)\ecs.obj" \
 	"$(INTDIR)\forward.obj" \
 @IF GEOIP
 	"$(INTDIR)\geoip.obj" \
@@ -1342,6 +1348,24 @@ SOURCE=..\ecdb.c
 
 
 "$(INTDIR)\ecdb.obj"	"$(INTDIR)\ecdb.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\ecs.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\ecs.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\ecs.obj"	"$(INTDIR)\ecs.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

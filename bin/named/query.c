@@ -100,6 +100,9 @@
 /*% Client presented a COOKIE. */
 #define WANTCOOKIE(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTCOOKIE) != 0)
+/*% Client presented a CLIENT-SUBNET option. */
+#define HAVEECS(c)		(((c)->attributes & \
+				  NS_CLIENTATTR_HAVEECS) != 0)
 /*% No authority? */
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
@@ -8933,6 +8936,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char typename[DNS_RDATATYPE_FORMATSIZE];
 	char classname[DNS_RDATACLASS_FORMATSIZE];
 	char onbuf[ISC_NETADDR_FORMATSIZE];
+	char ecsbuf[DNS_ECS_FORMATSIZE + sizeof(" [ECS ]") - 1] = { 0 };
 	char ednsbuf[sizeof("E(255)")] = { 0 };
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
@@ -8951,15 +8955,22 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 		snprintf(ednsbuf, sizeof(ednsbuf), "E(%d)",
 			 client->ednsversion);
 
+	if (HAVEECS(client)) {
+		strlcpy(ecsbuf, " [ECS ", sizeof(ecsbuf));
+		dns_ecs_format(&client->ecs, ecsbuf + 6, sizeof(ecsbuf) - 6);
+		strlcat(ecsbuf, "]", sizeof(ecsbuf));
+	}
+
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s %s%s%s%s%s%s%s (%s)", namebuf,
-		      classname, typename, WANTRECURSION(client) ? "+" : "-",
+		      level, "query: %s %s %s %s%s%s%s%s%s%s (%s)%s",
+		      namebuf, classname, typename,
+		      WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S" : "", ednsbuf,
 		      TCP(client) ? "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
 		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "",
 		      HAVECOOKIE(client) ? "V" : WANTCOOKIE(client) ? "K" : "",
-		      onbuf);
+		      onbuf, ecsbuf);
 }
 
 static inline void

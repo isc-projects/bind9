@@ -133,6 +133,7 @@
     <ClCompile Include="..\dst_result.c" />
     <ClCompile Include="..\dyndb.c" />
     <ClCompile Include="..\ecdb.c" />
+    <ClCompile Include="..\ecs.c" />
     <ClCompile Include="..\forward.c" />
 @IF GEOIP
     <ClCompile Include="..\geoip.c" />
@@ -254,6 +255,7 @@
     <ClInclude Include="..\include\dns\dsdigest.h" />
     <ClInclude Include="..\include\dns\dyndb.h" />
     <ClInclude Include="..\include\dns\ecdb.h" />
+    <ClInclude Include="..\include\dns\ecs.h" />
     <ClInclude Include="..\include\dns\edns.h" />
     <ClInclude Include="..\include\dns\enumclass.h" />
     <ClInclude Include="..\include\dns\enumtype.h" />

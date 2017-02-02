@@ -202,6 +202,10 @@ SOURCE=..\include\dns\ecdb.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\ecs.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\edns.h
 # End Source File
 # Begin Source File
@@ -589,6 +593,10 @@ SOURCE=..\dyndb.c
 # Begin Source File
 
 SOURCE=..\ecdb.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\ecs.c
 # End Source File
 # Begin Source File
 

@@ -187,6 +187,13 @@
 	  in <filename>named.conf</filename>. [RT #43154]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Query logging now includes the ECS option, if one was
+	  present in the query, in the format
+	  "[ECS <replaceable>address/source/scope</replaceable>]".
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

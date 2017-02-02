@@ -363,6 +363,12 @@ isc_netaddr_any6(isc_netaddr_t *netaddr) {
 	netaddr->type.in6 = in6addr_any;
 }
 
+void
+isc_netaddr_unspec(isc_netaddr_t *netaddr) {
+	memset(netaddr, 0, sizeof(*netaddr));
+	netaddr->family = AF_UNSPEC;
+}
+
 isc_boolean_t
 isc_netaddr_ismulticast(const isc_netaddr_t *na) {
 	switch (na->family) {

@@ -387,6 +387,8 @@ dns_dyndb_createctx
 dns_dyndb_destroyctx
 dns_ecdb_register
 dns_ecdb_unregister
+dns_ecs_init
+dns_ecs_format
 dns_fwdtable_add
 dns_fwdtable_addfwd
 dns_fwdtable_create

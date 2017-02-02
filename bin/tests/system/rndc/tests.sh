@@ -388,16 +388,25 @@ echo "I:testing rndc with querylog command ($n)"
 ret=0
 # first enable it with querylog on option
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf querylog on >/dev/null 2>&1 || ret=1
-# query for builtin and check if query was logged
-$DIG @10.53.0.4 -p 5300 -c ch -t txt foo12345.bind > /dev/null || ret 1
 grep "query logging is now on" ns4/named.run > /dev/null || ret=1
-grep "query: foo12345.bind CH TXT" ns4/named.run > /dev/null || ret=1
+# query for builtin and check if query was logged (without +subnet)
+$DIG @10.53.0.4 -p 5300 -c ch -t txt foo12345.bind > /dev/null || ret 1
+grep "query: foo12345.bind CH TXT.*(.*)$" ns4/named.run > /dev/null || ret=1
+# query for another builtin zone and check if query was logged (with +subnet=127.0.0.1)
+$DIG +subnet=127.0.0.1 @10.53.0.4 -p 5300 -c ch -t txt foo12346.bind > /dev/null || ret 1
+grep "query: foo12346.bind CH TXT.*\[ECS 127\.0\.0\.1\/32\/0]" ns4/named.run > /dev/null || ret=1
+# query for another builtin zone and check if query was logged (with +subnet=127.0.0.1/24)
+$DIG +subnet=127.0.0.1/24 @10.53.0.4 -p 5300 -c ch -t txt foo12347.bind > /dev/null || ret 1
+grep "query: foo12347.bind CH TXT.*\[ECS 127\.0\.0\.0\/24\/0]" ns4/named.run > /dev/null || ret=1
+# query for another builtin zone and check if query was logged (with +subnet=::1)
+$DIG +subnet=::1 @10.53.0.4 -p 5300 -c ch -t txt foo12348.bind > /dev/null || ret 1
+grep "query: foo12348.bind CH TXT.*\[ECS \:\:1\/128\/0]" ns4/named.run > /dev/null || ret=1
 # toggle query logging and check again
 $RNDC -s 10.53.0.4 -p 9956 -c ns4/key6.conf querylog > /dev/null 2>&1 || ret=1
-# query for another builtin zone and check if query was logged
-$DIG @10.53.0.4 -p 5300 -c ch -t txt foo9876.bind > /dev/null || ret 1
 grep "query logging is now off" ns4/named.run > /dev/null || ret=1
-grep "query: foo9876.bind CH TXT" ns4/named.run > /dev/null && ret=1
+# query for another builtin zone and check if query was logged (without +subnet)
+$DIG @10.53.0.4 -p 5300 -c ch -t txt foo9876.bind > /dev/null || ret 1
+grep "query: foo9876.bind CH TXT.*(.*)$" ns4/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
