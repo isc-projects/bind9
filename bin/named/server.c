@@ -9042,7 +9042,8 @@ zone_from_args(ns_server_t *server, isc_lex_t *lex, const char *zonetxt,
 	} else
 		strlcpy(zonebuf, zonetxt, DNS_NAME_FORMATSIZE);
 	if (zonename != NULL)
-		strlcpy(zonename, zonetxt, DNS_NAME_FORMATSIZE);
+		strlcpy(zonename, redirect ? "." : zonetxt,
+			DNS_NAME_FORMATSIZE);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -9161,7 +9162,9 @@ ns_server_retransfercommand(ns_server_t *server, isc_lex_t *lex,
 		dns_zone_detach(&raw);
 	}
 	type = dns_zone_gettype(zone);
-	if (type == dns_zone_slave || type == dns_zone_stub)
+	if (type == dns_zone_slave || type == dns_zone_stub ||
+	    (type == dns_zone_redirect &&
+	     dns_zone_getredirecttype(zone) == dns_zone_slave))
 		dns_zone_forcereload(zone);
 	else
 		result = ISC_R_NOTFOUND;
@@ -12318,7 +12321,7 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 static const cfg_obj_t *
 find_name_in_list_from_map(const cfg_obj_t *config,
 			   const char *map_key_for_list,
-			   const char *name)
+			   const char *name, isc_boolean_t redirect)
 {
 	const cfg_obj_t *list = NULL;
 	const cfg_listelt_t *element;
@@ -12354,8 +12357,20 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 		if (name1 != NULL) {
 			result = dns_name_fromstring(name2, vname, 0, NULL);
 			if (result == ISC_R_SUCCESS &&
-			    dns_name_equal(name1, name2))
-				break;
+			    dns_name_equal(name1, name2)) {
+				const cfg_obj_t *zoptions;
+				const cfg_obj_t *typeobj = NULL;
+				zoptions = cfg_tuple_get(obj, "options");
+				
+				if (zoptions != NULL)
+					cfg_map_get(zoptions, "type", &typeobj);
+				if (redirect && typeobj != NULL &&
+				    strcasecmp(cfg_obj_asstring(typeobj),
+					       "redirect") == 0)
+					break;
+				else if (!redirect)
+					break;
+			}
 		} else if (strcasecmp(vname, name) == 0)
 			break;
 
@@ -12387,6 +12402,7 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 #ifdef HAVE_LMDB
 	cfg_obj_t *nzconfig = NULL;
 #endif /* HAVE_LMDB */
+	isc_boolean_t added, redirect;
 
 	/* Parse parameters */
 	CHECK(zone_from_args(server, lex, NULL, &zone, zonename,
@@ -12396,6 +12412,8 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		goto cleanup;
 	}
 
+	redirect = dns_zone_gettype(zone) == dns_zone_redirect;
+	added = dns_zone_getadded(zone);
 	view = dns_zone_getview(zone);
 	dns_zone_detach(&zone);
 
@@ -12409,16 +12427,20 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	exclusive = ISC_TRUE;
 
-	/* Find the view statement */
-	vconfig = find_name_in_list_from_map(cfg->config, "view", view->name);
+	if (!added) {
+		/* Find the view statement */
+		vconfig = find_name_in_list_from_map(cfg->config, "view",
+						     view->name, ISC_FALSE);
 
-	/* Find the zone statement */
-	if (vconfig != NULL)
-		map = cfg_tuple_get(vconfig, "options");
-	else
-		map = cfg->config;
+		/* Find the zone statement */
+		if (vconfig != NULL)
+			map = cfg_tuple_get(vconfig, "options");
+		else
+			map = cfg->config;
 
-	zconfig = find_name_in_list_from_map(map, "zone", zonename);
+		zconfig = find_name_in_list_from_map(map, "zone", zonename,
+						     redirect);
+	}
 
 #ifndef HAVE_LMDB
 	if (zconfig == NULL && cfg->nzf_config != NULL)

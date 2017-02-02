@@ -1210,6 +1210,7 @@ dns_zone_getqueryacl
 dns_zone_getqueryonacl
 dns_zone_getraw
 dns_zone_getrcvquerystats
+dns_zone_getredirecttype
 dns_zone_getrefreshkeytime
 dns_zone_getrefreshtime
 dns_zone_getrequestexpire

@@ -177,6 +177,36 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking rndc showzone with a normally-loaded redirect zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 showzone -redirect > rndc.out.ns1.$n
+expected='zone "." { type redirect; file "redirect.db"; };'
+[ "`cat rndc.out.ns1.$n`" = "$expected" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking rndc zonestatus with a normally-loaded redirect zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus -redirect > rndc.out.ns1.$n
+grep "type: redirect" rndc.out.ns1.$n > /dev/null || ret=1
+grep "serial: 0" rndc.out.ns1.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking rndc reload with a normally-loaded redirect zone ($n)"
+ret=0
+sleep 1
+cp -f ns1/redirect.db.2 ns1/redirect.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload -redirect > rndc.out.ns1.$n
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 zonestatus -redirect > zonestatus.out.ns1.$n
+grep "type: redirect" zonestatus.out.ns1.$n > /dev/null || ret=1
+grep "serial: 1" zonestatus.out.ns1.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:delete a normally-loaded zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone normal.example > rndc.out.ns2.$n 2>&1
@@ -309,20 +339,63 @@ status=`expr $status + $ret`
 echo "I:check that adding a 'master redirect' zone works ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; file "redirect.db"; };' > rndc.out.ns2.$n 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone -redirect > showzone.out.ns2.$n 2>&1 || ret=1
+grep "type redirect;" showzone.out.ns2.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus -redirect > zonestatus.out.ns2.$n 2>&1 || ret=1
+grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
+grep "serial: 0" zonestatus.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+
+echo "I:check that reloading a added 'master redirect' zone works ($n)"
+ret=0
+sleep 1
+cp -f ns2/redirect.db.2 ns2/redirect.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload -redirect > rndc.out.ns2.$n
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus -redirect > zonestatus.out.ns2.$n 2>&1 || ret=1
+grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
+grep "serial: 1" zonestatus.out.ns2.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+
+echo "I:check that retransfer of a added 'master redirect' zone fails ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 retransfer -redirect > rndc.out.ns2.$n 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
 
 echo "I:check that deleting a 'master redirect' zone works ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone -redirect > rndc.out.ns2.$n 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone -redirect > showzone.out.ns2.$n 2>&1 
+grep 'not found' showzone.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:check that adding a 'slave redirect' zone works ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; masters { 1.2.3.4; }; file "redirect.bk"; };' > rndc.out.ns2.$n 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone '"." { type redirect; masters { 10.53.0.3;}; file "redirect.bk"; };' > rndc.out.ns2.$n 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone -redirect > showzone.out.ns2.$n 2>&1 || ret=1
+grep "type redirect;" showzone.out.ns2.$n > /dev/null || ret=1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus -redirect > zonestatus.out.ns2.$n 2>&1 || ret=1
+grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
+grep "serial: 0" zonestatus.out.ns2.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that retransfering a added 'slave redirect' zone works ($n)"
+ret=0
+cp -f ns3/redirect.db.2 ns3/redirect.db
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload . > showzone.out.ns3.$n 2>&1 || ret=1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 retransfer -redirect > rndc.out.ns2.$n 2>&1 || ret=1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 zonestatus -redirect > zonestatus.out.ns2.$n 2>&1 || ret=1
+grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
+grep "serial: 1" zonestatus.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -330,6 +403,8 @@ status=`expr $status + $ret`
 echo "I:check that deleting a 'slave redirect' zone works ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone -redirect > rndc.out.ns2.$n 2>&1 || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 showzone -redirect > showzone.out.ns2.$n 2>&1 
+grep 'not found' showzone.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -1338,6 +1338,21 @@ dns_zone_gettype(dns_zone_t *zone);
  *\li	'zone' to be valid initialised zone.
  */
 
+dns_zonetype_t
+dns_zone_getredirecttype(dns_zone_t *zone);
+/*%<
+ * Returns whether the redirect zone is configured as a master or a
+ * slave zone.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *\li	'zone' to be a redirect zone.
+ *
+ * Returns:
+ *\li	'dns_zone_master'
+ *\li	'dns_zone_slave'
+ */
+
 void
 dns_zone_settask(dns_zone_t *zone, isc_task_t *task);
 /*%<

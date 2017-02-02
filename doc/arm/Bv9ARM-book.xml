@@ -11972,7 +11972,11 @@ view "external" {
 
 <command>zone</command> <replaceable>"."</replaceable> [ <replaceable>class</replaceable> ] <command>{</command>
     <command>type</command> redirect;
-    <command>file</command> <replaceable>string</replaceable> ;
+  [ <command>file</command> <replaceable>string</replaceable> ; ]
+  [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
+      ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
+        ...
+    <command>}</command> ; ]
   [ <command>masterfile-format</command> ( <option>text</option> | <option>raw</option> | <option>map</option> ) ; ]
   [ <command>allow-query</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
   [ <command>max-zone-ttl</command> <replaceable>number</replaceable> ; ]
@@ -12276,17 +12280,24 @@ view "external" {
 			AAAA records.
 		      </para>
 		      <para>
+			If a redirect zone is configured with a
+			<option>masters</option> option, then it is
+			transfered in as if it were a slave zone.
+			Otherwise, it is loaded from a file as if it
+			were a master zone.
+		      </para>
+		      <para>
 			Because redirect zones are not referenced
 			directly by name, they are not kept in the
 			zone lookup table with normal master and slave
-			zones. Consequently, it is not currently possible
-			to use
-			<command>rndc reload
-				<replaceable>zonename</replaceable></command>
-			to reload a redirect zone.  However, when using
-			<command>rndc reload</command> without specifying
-			a zone name, redirect zones will be reloaded along
-			with other zones.
+			zones. To reload a redirect zone, use
+			<command>rndc reload -redirect</command>,
+			and to retransfer a redirect zone configured
+			as slave, use
+			<command>rndc retransfer -redirect</command>.
+			When using <command>rndc reload</command>
+			without specifying a zone name, redirect zones
+			will be reloaded along with other zones.
 		      </para>
 		    </entry>
 		  </row>
