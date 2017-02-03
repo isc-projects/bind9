@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: byname_test.c,v 1.33 2009/09/02 23:48:01 tbox Exp $ */
-
 /*! \file
  * \author
  * Principal Author: Bob Halley

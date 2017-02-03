@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: bindkeys.pl,v 1.7 2011/01/04 23:47:13 tbox Exp $
-
 use strict;
 use warnings;
 

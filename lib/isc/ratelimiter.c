@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: ratelimiter.c,v 1.25 2007/06/19 23:47:17 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>

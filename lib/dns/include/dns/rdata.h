@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: rdata.h,v 1.80 2011/03/20 02:31:53 marka Exp $ */
-
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
 

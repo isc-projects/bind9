@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: masterdump.h,v 1.47 2011/12/08 23:46:49 tbox Exp $ */
-
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
 

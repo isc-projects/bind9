@@ -22,7 +22,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id$
  */
 #ifdef OPENSSL
 

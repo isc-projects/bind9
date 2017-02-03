@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 #ifdef PKCS11CRYPTO
 
 #include <config.h>
