@@ -31,6 +31,7 @@
 
 #include <isc/dir.h>
 #include <isc/magic.h>
+#include <isc/netdb.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -172,6 +173,14 @@ isc_dir_chroot(const char *dirname) {
 	REQUIRE(dirname != NULL);
 
 #ifdef HAVE_CHROOT
+	/*
+	 * Try to use getservbyname and getprotobyname before chroot.
+	 * If WKS records are used in a zone under chroot, Name Service Switch
+	 * may fail to load library in chroot.
+	 * Do not report errors if it fails, we do not need any result now.
+	 */
+	getprotobyname("udp") && getservbyname("domain", "udp");
+
 	if (chroot(dirname) < 0 || chdir("/") < 0)
 		return (isc__errno2result(errno));
 
