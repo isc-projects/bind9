@@ -1883,15 +1883,19 @@ category notify { null; };
 	    address and port number, and the query name,
 	    class and type.  Next, it reports whether the
 	    Recursion Desired flag was set (+ if set, -
-	    if not set), if the query was signed (S),
-	    EDNS was in used along with the EDNS version
-	    number (E(#)), if TCP was used (T), if DO
-	    (DNSSEC Ok) was set (D), if CD (Checking
-	    Disabled) was set (C), if a valid DNS Server
-	    COOKIE was received (V), or if a DNS COOKIE
-	    option without a valid Server COOKIE was
+	    if not set), whether the query was signed (S),
+	    whether EDNS was in use along with the EDNS version
+	    number (E(#)), whether TCP was used (T), whether
+	    DO (DNSSEC Ok) was set (D), whether CD (Checking
+	    Disabled) was set (C), whether a valid DNS Server
+	    COOKIE was received (V), and whether a DNS
+	    COOKIE option without a valid Server COOKIE was
 	    present (K).  After this the destination
 	    address the query was sent to is reported.
+	    Finally, if any CLIENT-SUBNET option
+	    was present in the client query, it is
+	    included in square brackets in the format
+	    [ECS <em class="replaceable"><code>address/source/scope</code></em>].
 	  </p>
 
 	  <p>
@@ -9454,7 +9458,11 @@ view "external" {
 
 <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>"."</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
     <span class="command"><strong>type</strong></span> redirect;
-    <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ;
+  [ <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
+  [ <span class="command"><strong>masters</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
+      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
+        ...
+    <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
   [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>max-zone-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
@@ -9762,17 +9770,24 @@ view "external" {
                         AAAA records.
                       </p>
                       <p>
+                        If a redirect zone is configured with a
+                        <code class="option">masters</code> option, then it is
+                        transfered in as if it were a slave zone.
+                        Otherwise, it is loaded from a file as if it
+                        were a master zone.
+                      </p>
+                      <p>
                         Because redirect zones are not referenced
                         directly by name, they are not kept in the
                         zone lookup table with normal master and slave
-                        zones. Consequently, it is not currently possible
-                        to use
-                        <span class="command"><strong>rndc reload
-                                <em class="replaceable"><code>zonename</code></em></strong></span>
-                        to reload a redirect zone.  However, when using
-                        <span class="command"><strong>rndc reload</strong></span> without specifying
-                        a zone name, redirect zones will be reloaded along
-                        with other zones.
+                        zones. To reload a redirect zone, use
+                        <span class="command"><strong>rndc reload -redirect</strong></span>,
+                        and to retransfer a redirect zone configured
+                        as slave, use
+                        <span class="command"><strong>rndc retransfer -redirect</strong></span>.
+                        When using <span class="command"><strong>rndc reload</strong></span>
+                        without specifying a zone name, redirect zones
+                        will be reloaded along with other zones.
                       </p>
                     </td>
 </tr>

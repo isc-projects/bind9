@@ -235,6 +235,13 @@
 	  in <code class="filename">named.conf</code>. [RT #43154]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  Query logging now includes the ECS option, if one was
+	  present in the query, in the format
+	  "[ECS <em class="replaceable"><code>address/source/scope</code></em>]".
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -242,6 +249,12 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  The built in mangaged keys for the global root zone have been
+	  updated to include the upcoming key signing key (keyid 20326).
+	</p>
+      </li>
 <li class="listitem">
 	<p>
 	  Expanded and improved the YAML output from
