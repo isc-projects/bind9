@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.c,v 1.25 2007/06/19 23:47:17 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>

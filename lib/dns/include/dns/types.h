@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 
