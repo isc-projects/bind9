@@ -1,3 +1,6 @@
+4567.	[port]		Call getprotobyname and getservbyname prior to calling
+			chroot so that shared libraries get loaded. [RT #44537]
+
 4566.	[func]		Query logging now includes the ECS option if one
 			was included in the query. [RT #44476]
 
