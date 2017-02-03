@@ -827,6 +827,9 @@ mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 	memset(mem, 0xde, size); /* Mnemonic for "dead". */
 #endif
 	(ctx->memfree)(ctx->arg, mem);
+#if ISC_MEM_CHECKOVERRUN
+	size += 1;
+#endif
 	ctx->malloced -= size;
 }
 
