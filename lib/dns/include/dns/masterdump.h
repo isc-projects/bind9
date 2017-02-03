@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.47 2011/12/08 23:46:49 tbox Exp $ */
-
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
 

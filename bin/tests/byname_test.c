@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.33 2009/09/02 23:48:01 tbox Exp $ */
-
 /*! \file
  * \author
  * Principal Author: Bob Halley

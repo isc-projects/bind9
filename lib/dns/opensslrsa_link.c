@@ -17,7 +17,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id$
  */
 #ifdef OPENSSL
 #include <config.h>
