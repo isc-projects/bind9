@@ -5,7 +5,7 @@
 static char xslmsg[] =
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	"<!--\n"
-	" - Copyright (C) 2006-2009, 2012-2016 Internet Systems Consortium, Inc. (\"ISC\")\n"
+	" - Copyright (C) 2006-2009, 2012-2017 Internet Systems Consortium, Inc. (\"ISC\")\n"
 	" -\n"
 	" - This Source Code Form is subject to the terms of the Mozilla Public\n"
 	" - License, v. 2.0. If a copy of the MPL was not distributed with this\n"
