@@ -169,6 +169,9 @@ isc_dir_chdir(const char *dirname) {
 
 isc_result_t
 isc_dir_chroot(const char *dirname) {
+#ifdef HAVE_CHROOT
+	void *tmp;
+#endif
 
 	REQUIRE(dirname != NULL);
 
@@ -179,7 +182,9 @@ isc_dir_chroot(const char *dirname) {
 	 * may fail to load library in chroot.
 	 * Do not report errors if it fails, we do not need any result now.
 	 */
-	getprotobyname("udp") && getservbyname("domain", "udp");
+	tmp = getprotobyname("udp");
+	if (tmp != NULL)
+		(void) getservbyname("domain", "udp");
 
 	if (chroot(dirname) < 0 || chdir("/") < 0)
 		return (isc__errno2result(errno));
