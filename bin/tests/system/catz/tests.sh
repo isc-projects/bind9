@@ -447,7 +447,7 @@ do
 done
 
 try=0
-while test $try -lt 45
+while test $try -lt 120
 do
     sleep 1
     sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom6.example/IN' from " > /dev/null && {
