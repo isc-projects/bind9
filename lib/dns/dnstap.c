@@ -674,8 +674,9 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
 
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
-	    isc_sockaddr_t *sa, isc_boolean_t tcp, isc_region_t *zone,
-	    isc_time_t *qtime, isc_time_t *rtime, isc_buffer_t *buf)
+	    isc_sockaddr_t *qaddr, isc_sockaddr_t *raddr,
+	    isc_boolean_t tcp, isc_region_t *zone, isc_time_t *qtime,
+	    isc_time_t *rtime, isc_buffer_t *buf)
 {
 	isc_time_t now, *t;
 	dns_dtmsg_t dm;
@@ -758,19 +759,15 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 		break;
 	}
 
-	switch (msgtype) {
-	case DNS_DTTYPE_RQ:
-	case DNS_DTTYPE_RR:
-	case DNS_DTTYPE_FQ:
-	case DNS_DTTYPE_FR:
-		setaddr(&dm, sa, tcp,
-			&dm.m.response_address, &dm.m.has_response_address,
-			&dm.m.response_port, &dm.m.has_response_port);
-		break;
-	default:
-		setaddr(&dm, sa, tcp,
+	if (qaddr != NULL) {
+		setaddr(&dm, qaddr, tcp,
 			&dm.m.query_address, &dm.m.has_query_address,
 			&dm.m.query_port, &dm.m.has_query_port);
+	}
+	if (raddr != NULL) {
+		setaddr(&dm, raddr, tcp,
+			&dm.m.response_address, &dm.m.has_response_address,
+			&dm.m.response_port, &dm.m.has_response_port);
 	}
 
 	if (pack_dt(&dm.d, &dm.buf, &dm.len) == ISC_R_SUCCESS)
@@ -1052,10 +1049,16 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 		d->qaddr.base = m->query_address.data;
 		d->qaddr.length = m->query_address.len;
 	}
+	if (m->has_query_port) {
+		d->qport = m->query_port;
+	}
 
 	if (m->has_response_address) {
 		d->raddr.base = m->response_address.data;
 		d->raddr.length = m->response_address.len;
+	}
+	if (m->has_response_port) {
+		d->rport = m->response_port;
 	}
 
 	/* Socket protocol */
@@ -1161,25 +1164,27 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 		return (DNS_R_BADDNSTAP);
 	}
 
-	/* Peer address */
-	switch (d->type) {
-	case DNS_DTTYPE_RQ:
-	case DNS_DTTYPE_RR:
-	case DNS_DTTYPE_FQ:
-	case DNS_DTTYPE_FR:
-		if (d->raddr.length != 0)
-			CHECK(putaddr(dest, &d->raddr));
-		else
-			CHECK(putstr(dest, "?"));
-		break;
-	default:
-		if (d->qaddr.length != 0)
-			CHECK(putaddr(dest, &d->qaddr));
-		else
-			CHECK(putstr(dest, "?"));
-		break;
+	/* Query and response addresses */
+	if (d->qaddr.length != 0) {
+		CHECK(putaddr(dest, &d->qaddr));
+		snprintf(buf, sizeof(buf), ":%u", d->qport);
+		CHECK(putstr(dest, buf));
+	} else {
+		CHECK(putstr(dest, "?"));
 	}
-
+	if ((d->type & DNS_DTTYPE_QUERY) != 0) {
+		CHECK(putstr(dest, " -> "));
+	} else {
+		CHECK(putstr(dest, " <- "));
+	}
+	if (d->raddr.length != 0) {
+		CHECK(putaddr(dest, &d->raddr));
+		snprintf(buf, sizeof(buf), ":%u", d->rport);
+		CHECK(putstr(dest, buf));
+	} else {
+		CHECK(putstr(dest, "?"));
+	}
+	
 	CHECK(putstr(dest, " "));
 
 	/* Protocol */
