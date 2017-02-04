@@ -1,3 +1,6 @@
+4568.	[contrib]	Added a --with-bind option to the dnsperf configure
+			script to specify BIND prefix path.
+
 4567.	[port]		Call getprotobyname and getservbyname prior to calling
 			chroot so that shared libraries get loaded. [RT #44537]
 
