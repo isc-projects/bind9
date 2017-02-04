@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1184,7 +1184,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 	} else {
 		CHECK(putstr(dest, "?"));
 	}
-	
+
 	CHECK(putstr(dest, " "));
 
 	/* Protocol */
