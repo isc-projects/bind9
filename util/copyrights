@@ -2229,8 +2229,8 @@
 ./contrib/dnsperf-2.1.0.0-1/acx_pthread.m4	X	2016
 ./contrib/dnsperf-2.1.0.0-1/config.guess	X	2016
 ./contrib/dnsperf-2.1.0.0-1/config.sub		X	2016
-./contrib/dnsperf-2.1.0.0-1/configure		X	2016
-./contrib/dnsperf-2.1.0.0-1/configure.in	X	2016
+./contrib/dnsperf-2.1.0.0-1/configure		X	2016,2017
+./contrib/dnsperf-2.1.0.0-1/configure.in	X	2016,2017
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/INSTALL	X	2016
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/USAGE	X	2016
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/queryparse	X	2016
