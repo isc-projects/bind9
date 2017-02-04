@@ -2867,8 +2867,8 @@
 ./contrib/dnsperf-2.1.0.0-1/acx_pthread.m4	X	2016
 ./contrib/dnsperf-2.1.0.0-1/config.guess	X	2016
 ./contrib/dnsperf-2.1.0.0-1/config.sub		X	2016
-./contrib/dnsperf-2.1.0.0-1/configure		X	2016
-./contrib/dnsperf-2.1.0.0-1/configure.in	X	2016
+./contrib/dnsperf-2.1.0.0-1/configure		X	2016,2017
+./contrib/dnsperf-2.1.0.0-1/configure.in	X	2016,2017
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/INSTALL	X	2016
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/USAGE	X	2016
 ./contrib/dnsperf-2.1.0.0-1/contrib/queryparse/queryparse	X	2016
@@ -3523,7 +3523,7 @@
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005,2007,2009,2010,2011,2012,2013,2015,2016
 ./lib/dns/dns64.c				C	2010,2011,2014,2016
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./lib/dns/dnstap.c				C	2015,2016
+./lib/dns/dnstap.c				C	2015,2016,2017
 ./lib/dns/dnstap.proto				X	2015
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006,2007,2010,2012,2014,2016
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -3880,7 +3880,7 @@
 ./lib/dns/tests/dbversion_test.c		C	2011,2012,2014,2015,2016
 ./lib/dns/tests/dh_test.c			C	2014,2016
 ./lib/dns/tests/dispatch_test.c			C	2012,2014,2016
-./lib/dns/tests/dnstap_test.c			C	2015,2016
+./lib/dns/tests/dnstap_test.c			C	2015,2016,2017
 ./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014,2015,2016
 ./lib/dns/tests/dnstest.h			C	2011,2012,2014,2015,2016
 ./lib/dns/tests/geoip_test.c			C	2013,2014,2015,2016
@@ -3903,8 +3903,8 @@
 ./lib/dns/tests/testdata/diff/zone1.data	ZONE	2011,2012,2016
 ./lib/dns/tests/testdata/diff/zone2.data	ZONE	2011,2012,2016
 ./lib/dns/tests/testdata/diff/zone3.data	ZONE	2011,2012,2016
-./lib/dns/tests/testdata/dnstap/dnstap.saved	X	2015
-./lib/dns/tests/testdata/dnstap/dnstap.text	X	2015
+./lib/dns/tests/testdata/dnstap/dnstap.saved	X	2015,2017
+./lib/dns/tests/testdata/dnstap/dnstap.text	X	2015,2017
 ./lib/dns/tests/testdata/dnstap/query.auth	X	2015
 ./lib/dns/tests/testdata/dnstap/query.recursive	X	2015
 ./lib/dns/tests/testdata/dnstap/response.auth	X	2015
