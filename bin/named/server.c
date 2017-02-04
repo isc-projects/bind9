@@ -757,6 +757,29 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 }
 
 /*%
+ * Check whether a key has been successfully loaded.
+ */
+static isc_boolean_t
+keyloaded(dns_view_t *view, dns_name_t *name) {
+	isc_result_t result;
+	dns_keytable_t *secroots = NULL;
+	dns_keynode_t *keynode = NULL;
+
+	result = dns_view_getsecroots(view, &secroots);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_FALSE);
+
+	result = dns_keytable_find(secroots, name, &keynode);
+
+	if (keynode != NULL)
+		dns_keytable_detachkeynode(secroots, &keynode);
+	if (secroots != NULL)
+		dns_keytable_detach(&secroots);
+
+	return (ISC_TF(result == ISC_R_SUCCESS));
+}
+
+/*%
  * Configure DNSSEC keys for a view.
  *
  * The per-view configuration values and the server-global defaults are read
@@ -821,21 +844,40 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		const cfg_obj_t *builtin_keys = NULL;
 		const cfg_obj_t *builtin_managed_keys = NULL;
 
-		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "using built-in DLV key for view %s",
-			      view->name);
-
 		/*
-		 * If bind.keys exists, it overrides the managed-keys
-		 * clause hard-coded in ns_g_config.
+		 * If bind.keys exists and is populated, it overrides
+		 * the managed-keys clause hard-coded in ns_g_config.
 		 */
 		if (bindkeys != NULL) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "obtaining DLV key for view %s "
+				      "from '%s'",
+				      view->name, ns_g_server->bindkeysfile);
+
 			(void)cfg_map_get(bindkeys, "trusted-keys",
 					  &builtin_keys);
 			(void)cfg_map_get(bindkeys, "managed-keys",
 					  &builtin_managed_keys);
-		} else {
+			if ((builtin_keys == NULL) &&
+			    (builtin_managed_keys == NULL))
+				isc_log_write(ns_g_lctx,
+					      DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_WARNING,
+					      "dnssec-lookaside auto: "
+					      "WARNING: key for dlv.isc.org "
+					      "not found");
+		}
+
+		if ((builtin_keys == NULL) &&
+		    (builtin_managed_keys == NULL))
+		{
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "using built-in DLV key for view %s",
+				      view->name);
+
 			(void)cfg_map_get(ns_g_config, "trusted-keys",
 					  &builtin_keys);
 			(void)cfg_map_get(ns_g_config, "managed-keys",
@@ -848,27 +890,54 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		if (builtin_managed_keys != NULL)
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
 					     view, ISC_TRUE, view->dlv, mctx));
+		if (!keyloaded(view, view->dlv)) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "DLV key not loaded");
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
 	}
 
 	if (auto_root && view->rdclass == dns_rdataclass_in) {
 		const cfg_obj_t *builtin_keys = NULL;
 		const cfg_obj_t *builtin_managed_keys = NULL;
 
-		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "using built-in root key for view %s",
-			      view->name);
-
 		/*
-		 * If bind.keys exists, it overrides the managed-keys
-		 * clause hard-coded in ns_g_config.
+		 * If bind.keys exists and is populated, it overrides
+		 * the managed-keys clause hard-coded in ns_g_config.
 		 */
 		if (bindkeys != NULL) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "obtaining root key for view %s "
+				      "from '%s'",
+				      view->name, ns_g_server->bindkeysfile);
+
 			(void)cfg_map_get(bindkeys, "trusted-keys",
 					  &builtin_keys);
 			(void)cfg_map_get(bindkeys, "managed-keys",
 					  &builtin_managed_keys);
-		} else {
+
+			if ((builtin_keys == NULL) &&
+			    (builtin_managed_keys == NULL))
+				isc_log_write(ns_g_lctx,
+					      DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_WARNING,
+					      "dnssec-validation auto: "
+					      "WARNING: root zone key "
+					      "not found");
+		}
+
+		if ((builtin_keys == NULL) &&
+		    (builtin_managed_keys == NULL))
+		{
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "using built-in root key for view %s",
+				      view->name);
+
 			(void)cfg_map_get(ns_g_config, "trusted-keys",
 					  &builtin_keys);
 			(void)cfg_map_get(ns_g_config, "managed-keys",
@@ -882,6 +951,14 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			CHECK(load_view_keys(builtin_managed_keys, vconfig,
 					     view, ISC_TRUE, dns_rootname,
 					     mctx));
+
+		if (!keyloaded(view, dns_rootname)) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "root key not loaded");
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
 	}
 
 	CHECK(load_view_keys(view_keys, vconfig, view, ISC_FALSE,
@@ -5147,6 +5224,11 @@ load_configuration(const char *filename, ns_server_t *server,
 		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
 					&cfg_type_bindkeys, &bindkeys);
 		CHECK(result);
+	} else {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "unable to open '%s' using built-in keys",
+			      server->bindkeysfile);
 	}
 
 	/* Ensure exclusive access to configuration data. */
