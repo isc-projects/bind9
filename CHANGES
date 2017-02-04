@@ -1,3 +1,7 @@
+4570.	[cleanup]	named did not correctly fall back to the built-in
+			initializing keys if the bind.keys file was present
+			but empty. [RT #44531]
+
 4569.	[func]		Store both local and remote addresses in dnstap
 			logging, and modify dnstap-read output format to
 			print them. [RT #43595]
