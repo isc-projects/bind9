@@ -2115,6 +2115,7 @@ resquery_send(resquery_t *query) {
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
 #ifdef HAVE_DNSTAP
+	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_dtmsgtype_t dtmsgtype;
 	isc_region_t zr;
@@ -2610,7 +2611,11 @@ resquery_send(resquery_t *query) {
 	else
 		dtmsgtype = DNS_DTTYPE_RQ;
 
-	dns_dt_send(fctx->res->view, dtmsgtype, &query->addrinfo->sockaddr,
+	result = isc_socket_getsockname(sock, &localaddr);
+	if (result == ISC_R_SUCCESS)
+		la = &localaddr;
+
+	dns_dt_send(fctx->res->view, dtmsgtype, la, &query->addrinfo->sockaddr,
 		    ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0),
 		    &zr, &query->start, NULL, &query->buffer);
 #endif /* HAVE_DNSTAP */
@@ -7801,6 +7806,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res;
 	isc_boolean_t bucket_empty;
 #ifdef HAVE_DNSTAP
+	isc_socket_t *sock = NULL;
+	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_dtmsgtype_t dtmsgtype;
 	dns_compress_t cctx;
@@ -8012,12 +8019,26 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		dns_compress_invalidate(&cctx);
 	}
 
-	if ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0)
+	if ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0) {
 		dtmsgtype = DNS_DTTYPE_FR;
-	else
+	} else {
 		dtmsgtype = DNS_DTTYPE_RR;
+	}
 
-	dns_dt_send(res->view, dtmsgtype, &query->addrinfo->sockaddr,
+	if (query->exclusivesocket) {
+		sock = dns_dispatch_getentrysocket(query->dispentry);
+	} else {
+		sock = dns_dispatch_getsocket(query->dispatch);
+	}
+
+	if (sock != NULL) {
+		result = isc_socket_getsockname(sock, &localaddr);
+		if (result == ISC_R_SUCCESS) {
+			la = &localaddr;
+		}
+	}
+
+	dns_dt_send(res->view, dtmsgtype, la, &query->addrinfo->sockaddr,
 		    ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0),
 		    &zr, &query->start, NULL, &devent->buffer);
 #endif /* HAVE_DNSTAP */
@@ -8809,7 +8830,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		fctx_done(fctx, result, __LINE__);
 	}
 }
-
 
 /***
  *** Resolver Methods

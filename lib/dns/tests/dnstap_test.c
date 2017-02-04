@@ -131,7 +131,8 @@ ATF_TC_BODY(send, tc) {
 	dns_view_t *view = NULL;
 	dns_compress_t cctx;
 	isc_region_t zr;
-	isc_sockaddr_t addr;
+	isc_sockaddr_t qaddr;
+	isc_sockaddr_t raddr;
 	struct in_addr in;
 	isc_stdtime_t now;
 	isc_time_t p, f;
@@ -176,7 +177,9 @@ ATF_TC_BODY(send, tc) {
 	isc_buffer_usedregion(&zb, &zr);
 
 	in.s_addr = inet_addr("10.53.0.1");
-	isc_sockaddr_fromin(&addr, &in, 2112);
+	isc_sockaddr_fromin(&qaddr, &in, 2112);
+	in.s_addr = inet_addr("10.53.0.2");
+	isc_sockaddr_fromin(&raddr, &in, 2112);
 
 	isc_stdtime_get(&now);
 	isc_time_set(&p, now - 3600, 0); /* past */
@@ -208,6 +211,7 @@ ATF_TC_BODY(send, tc) {
 
 	for (dt = DNS_DTTYPE_SQ; dt <= DNS_DTTYPE_TR; dt <<= 1) {
 		isc_buffer_t *m;
+		isc_sockaddr_t *q = &qaddr, *r = &raddr;
 
 		switch (dt) {
 		case DNS_DTTYPE_AQ:
@@ -223,14 +227,14 @@ ATF_TC_BODY(send, tc) {
 			break;
 		}
 
-		dns_dt_send(view, dt, &addr, ISC_FALSE, &zr, &p, &f, m);
-		dns_dt_send(view, dt, &addr, ISC_FALSE, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, &addr, ISC_FALSE, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, &addr, ISC_FALSE, &zr, NULL, NULL, m);
-		dns_dt_send(view, dt, &addr, ISC_TRUE, &zr, &p, &f, m);
-		dns_dt_send(view, dt, &addr, ISC_TRUE, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, &addr, ISC_TRUE, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, &addr, ISC_TRUE, &zr, NULL, NULL, m);
+		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, NULL, &f, m);
+		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, &p, NULL, m);
+		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, NULL, NULL, m);
+		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, NULL, &f, m);
+		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, &p, NULL, m);
+		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, NULL, NULL, m);
 	}
 
 	dns_dt_detach(&view->dtenv);
@@ -300,7 +304,7 @@ ATF_TC_BODY(totext, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* make sure text conversion gets the right local time */
-	setenv("TZ", "MST7", 1);
+	setenv("TZ", "PST8", 1);
 
 	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
 		dns_dtdata_t *dtdata = NULL;

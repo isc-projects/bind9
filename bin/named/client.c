@@ -1217,12 +1217,12 @@ client_send(ns_client_t *client) {
 		isc_buffer_usedregion(&buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
-
 #ifdef HAVE_DNSTAP
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype,
-				    &client->peeraddr, ISC_TRUE, &zr,
-				    &client->requesttime, NULL, &buffer);
+				    &client->peeraddr, &client->interface->addr,
+				    ISC_TRUE, &zr, &client->requesttime, NULL,
+				    &buffer);
 		}
 #endif /* HAVE_DNSTAP */
 
@@ -1246,11 +1246,12 @@ client_send(ns_client_t *client) {
 	} else {
 		respsize = isc_buffer_usedlength(&buffer);
 		result = client_sendpkg(client, &buffer);
-
 #ifdef HAVE_DNSTAP
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype,
-				    &client->peeraddr, ISC_FALSE, &zr,
+				    &client->peeraddr,
+				    &client->interface->addr,
+				    ISC_FALSE, &zr,
 				    &client->requesttime, NULL, &buffer);
 		}
 #endif /* HAVE_DNSTAP */
@@ -2867,7 +2868,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			dtmsgtype = DNS_DTTYPE_AQ;
 
 		dns_dt_send(view, dtmsgtype, &client->peeraddr,
-			    TCP_CLIENT(client), NULL,
+			    &client->interface->addr, TCP_CLIENT(client), NULL,
 			    &client->requesttime, NULL, buffer);
 #endif /* HAVE_DNSTAP */
 

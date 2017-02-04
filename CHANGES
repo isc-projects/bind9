@@ -1,3 +1,7 @@
+4569.	[func]		Store both local and remote addresses in dnstap
+			logging, and modify dnstap-read output format to
+			print them. [RT #43595]
+
 4568.	[contrib]	Added a --with-bind option to the dnsperf configure
 			script to specify BIND prefix path.
 

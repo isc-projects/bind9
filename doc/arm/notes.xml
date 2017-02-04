@@ -201,6 +201,17 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>dnstap</command> now stores both the local and remote
+	  addresses for all messages, instead of only the remote address.
+	  The default output format for <command>dnstap-read</command> has
+	  been updated to include these addresses, with the initiating
+	  address first and the responding address second, separated by
+	  "-%gt;" or "%lt;-" to indicate in which direction the message
+	  was sent. [RT #43595]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The built in mangaged keys for the global root zone have been
 	  updated to include the upcoming key signing key (keyid 20326).
 	</para>
