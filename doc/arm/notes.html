@@ -214,6 +214,17 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
+	  addresses for all messages, instead of only the remote address.
+	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
+	  been updated to include these addresses, with the initiating
+	  address first and the responding address second, separated by
+	  "-%gt;" or "%lt;-" to indicate in which direction the message
+	  was sent. [RT #43595]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  The built in mangaged keys for the global root zone have been
 	  updated to include the upcoming key signing key (keyid 20326).
 	</p>
