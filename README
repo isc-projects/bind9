@@ -55,7 +55,8 @@ BIND 9.9.10
 	
 	BIND 9.9.10 is a maintenance release and addresses the security
 	flaws disclosed in CVE-2016-2775, CVE-2016-2776, CVE-2016-6170,
-	CVE-2016-8864, CVE-2016-9131, CVE-2016-9147, and CVE-2016-9444.
+	CVE-2016-8864, CVE-2016-9131, CVE-2016-9147, CVE-2016-9444,
+	and CVE-2017-3135.
 
 BIND 9.9.91
 
