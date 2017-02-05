@@ -49,6 +49,7 @@
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#root_key">New DNSSEC Root Key</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
@@ -84,6 +85,36 @@
       There you will find additional information about each release,
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="root_key"></a>New DNSSEC Root Key</h3></div></div></div>
+    <p>
+      ICANN is in the process of introducing a new Key Signing Key (KSK) for
+      the global root zone. BIND has multiple methods for managing DNSSEC
+      trust anchors, with somewhat different behaviors. If the root
+      key is configured using the <span class="command"><strong>managed-keys</strong></span>
+      statement, or if the pre-configured root key is enabled by using
+      <span class="command"><strong>dnssec-validation auto</strong></span>, then BIND can keep
+      keys up to date automatically. Servers configured in this way
+      will roll seamlessly to the new key when it is published in
+      the root zone. However, keys configured using the
+      <span class="command"><strong>trusted-keys</strong></span> statement are not automatically
+      maintained. If your server is performing DNSSEC validation
+      and is configured using <span class="command"><strong>trusted-keys</strong></span>, you are
+      advised to change your configuration before the root zone begins
+      signing with the new KSK. This is currently scheduled for
+      October 11, 2017.
+    </p>
+    <p>
+      This release includes an updated version of the
+      <code class="filename">bind.keys</code> file containing the new root
+      key. This file can also be downloaded from
+      <a class="link" href="https://www.isc.org/bind-keys" target="_top">
+	https://www.isc.org/bind-keys
+      </a>.
     </p>
   </div>
 
