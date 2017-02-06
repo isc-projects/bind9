@@ -145,12 +145,6 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The built in mangaged keys for the global root zone have been
-	  updated to include the upcoming key signing key (keyid 20326).
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
 	  to be disabled in 2017.  A warning is now logged when
 	  <command>named</command> is configured to use this service,
