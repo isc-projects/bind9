@@ -877,10 +877,11 @@ ISC_LANG_ENDDECLS
 #define ISC__BUFFER_PUTMEM(_b, _base, _length) \
 	do { \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), _length) \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, _length) \
 				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= _length); \
+		REQUIRE(isc_buffer_availablelength(_b) >= (unsigned int) _length); \
 		memmove(isc_buffer_used(_b), (_base), (_length)); \
 		(_b)->used += (_length); \
 	} while (0)
@@ -891,10 +892,11 @@ ISC_LANG_ENDDECLS
 		unsigned char *_cp; \
 		_length = strlen(_source); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), _length) \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, _length) \
 				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= _length); \
+		REQUIRE(isc_buffer_availablelength(_b) >= (unsigned int) _length); \
 		_cp = isc_buffer_used(_b); \
 		memmove(_cp, (_source), _length); \
 		(_b)->used += (_length); \
@@ -905,10 +907,11 @@ ISC_LANG_ENDDECLS
 		unsigned char *_cp; \
 		isc_uint8_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), 1) \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, 1) \
 				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= 1); \
+		REQUIRE(isc_buffer_availablelength(_b) >= 1U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used++; \
 		_cp[0] = _val2 & 0x00ff; \
@@ -919,9 +922,11 @@ ISC_LANG_ENDDECLS
 		unsigned char *_cp; \
 		isc_uint16_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), 2) == ISC_R_SUCCESS); \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, 2) \
+				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= 2); \
+		REQUIRE(isc_buffer_availablelength(_b) >= 2U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 2; \
 		_cp[0] = (unsigned char)((_val2 & 0xff00U) >> 8); \
@@ -933,10 +938,11 @@ ISC_LANG_ENDDECLS
 		unsigned char *_cp; \
 		isc_uint32_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), 3) \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, 3) \
 				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= 3); \
+		REQUIRE(isc_buffer_availablelength(_b) >= 3U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 3; \
 		_cp[0] = (unsigned char)((_val2 & 0xff0000U) >> 16); \
@@ -949,10 +955,11 @@ ISC_LANG_ENDDECLS
 		unsigned char *_cp; \
 		isc_uint32_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
-			REQUIRE(isc_buffer_reserve(&(_b), 4) \
+			isc_buffer_t *tmpbuf = _b; \
+			REQUIRE(isc_buffer_reserve(&tmpbuf, 4) \
 				== ISC_R_SUCCESS); \
 		} \
-		REQUIRE(isc_buffer_availablelength(_b) >= 4); \
+		REQUIRE(isc_buffer_availablelength(_b) >= 4U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 4; \
 		_cp[0] = (unsigned char)((_val2 & 0xff000000) >> 24); \
