@@ -212,12 +212,6 @@
       </listitem>
       <listitem>
 	<para>
-	  The built in mangaged keys for the global root zone have been
-	  updated to include the upcoming key signing key (keyid 20326).
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  Expanded and improved the YAML output from
 	  <command>dnstap-read -y</command>: it now includes packet
 	  size and a detailed breakdown of message contents.
