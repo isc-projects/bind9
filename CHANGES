@@ -1,5 +1,7 @@
 	--- 9.9.10rc1 released ---
 
+4571.	[bug]		Out-of-tree builds of backtrace_test failed.
+
 4570.	[cleanup]	named did not correctly fall back to the built-in
 			initializing keys if the bind.keys file was present
 			but empty. [RT #44531]
