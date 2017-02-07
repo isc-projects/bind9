@@ -372,6 +372,7 @@ dns_dt_parse
 dns_dt_reopen
 dns_dt_send
 dns_dt_setidentity
+dns_dt_setupfile
 dns_dt_setversion
 dns_dt_shutdown
 dns_dtdata_free
