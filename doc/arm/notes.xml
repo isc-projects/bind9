@@ -185,7 +185,7 @@
 	  always have the name ".", which can be ambiguous.)
 	</para>
 	<para>
-	  In the event you need to manipulate a a zone actually
+	  In the event you need to manipulate a zone actually
 	  called "-redirect", use a trailing dot: "-redirect."
 	</para>
 	<para>
@@ -254,15 +254,15 @@
       </listitem>
       <listitem>
 	<para>
-	  Named could deadlock there were multiple changes to
-	  NSEC/NSEC3 parameters for a zone being processed at the
-	  same time. [RT #42770]
+	  <command>named</command> could deadlock if multiple changes
+	  to NSEC/NSEC3 parameters for the same zone were being processed
+	  at the same time. [RT #42770]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Named could trigger a assertion when sending notify
-	  messages. [RT #44019]
+	  <command>named</command> could trigger an assertion when
+	  sending NOTIFY messages. [RT #44019]
 	</para>
       </listitem>
       <listitem>
