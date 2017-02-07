@@ -107,6 +107,7 @@ static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_logversions;
 static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_masterselement;
 static cfg_type_t cfg_type_maxttl;
@@ -1297,6 +1298,18 @@ static cfg_type_t cfg_type_dnstap = {
 /*%
  * dnstap-output
  */
+static keyword_type_t dtsize_kw = { "size", &cfg_type_sizenodefault};
+static cfg_type_t cfg_type_dnstap_size = {
+	"dnstap_size", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint64, &dtsize_kw
+};
+
+static keyword_type_t dtversions_kw = { "versions", &cfg_type_logversions};
+static cfg_type_t cfg_type_dnstap_versions = {
+	"dnstap_versions", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue, &cfg_rep_uint32, &dtversions_kw
+};
+
 static const char *dtoutmode_enums[] = { "file", "unix", NULL };
 static cfg_type_t cfg_type_dtmode = {
 	"dtmode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
@@ -1306,6 +1319,8 @@ static cfg_type_t cfg_type_dtmode = {
 static cfg_tuplefielddef_t dtout_fields[] = {
 	{ "mode", &cfg_type_dtmode, 0 },
 	{ "path", &cfg_type_qstring, 0 },
+	{ "size", &cfg_type_dnstap_size, 0 },
+	{ "versions", &cfg_type_dnstap_versions, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -2384,7 +2399,6 @@ static cfg_type_t cfg_type_sizenodefault = {
 /*%
  * A size in absolute values or percents.
  */
-
 static cfg_type_t cfg_type_sizeval_percent = {
 	"sizeval_percent", parse_sizeval_percent, cfg_print_ustring,
 	doc_sizeval_percent, &cfg_rep_string, NULL

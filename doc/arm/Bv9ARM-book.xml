@@ -4416,7 +4416,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>server-id</command> <replaceable>server_id_string</replaceable> ; ]
   [ <command>directory</command> <replaceable>path_name</replaceable> ; ]
   [ <command>dnstap {</command> <replaceable>message_type</replaceable> ; ... <command>}</command> ; ]
-  [ <command>dnstap-output</command> ( <option>file</option> | <option>unix</option> ) <replaceable>path_name</replaceable> ; ]
+  [ <command>dnstap-output</command> ( <option>file</option> | <option>unix</option> ) <replaceable>path_name</replaceable> [ <command>size</command> <replaceable>size_spec</replaceable> ] [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ] ; ]
   [ <command>dnstap-identity</command> ( <replaceable>string</replaceable> | <option>hostname</option> | <option>none</option> ) ; ]
   [ <command>dnstap-version</command> ( <replaceable>string</replaceable> | <option>none</option> ) ; ]
   [ <command>fstrm-set-buffer-hint</command> <replaceable>number</replaceable> ; ]
@@ -4999,6 +4999,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		<command>fstrm_capture</command>
 		(provided with <command>libfstrm</command>) is listening on
 		the socket.)
+	      </para>
+	      <para>
+		If the first argument is <literal>file</literal>, then
+		two additional options can be added:
+		<command>size</command> indicates the size to which a
+		<command>dnstap</command> log file can grow before being
+		rolled to a new file, and <command>versions</command>
+		specifies the number of rolled log files to retain. These
+		are similar to the <command>size</command> and
+		<command>versions</command> options in a
+		<command>logging</comamnd> channel.  The default
+		is to allow <command>dnstap</command> log files to grow to
+		any size without rolling.
 	      </para>
 	      <para>
 		<command>dnstap-output</command> can only be set globally

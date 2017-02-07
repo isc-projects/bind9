@@ -1,3 +1,8 @@
+4572.	[func]		The "dnstap-output" option can now take "size" and
+			"versions" parameters to indicate the maximum size
+			a dnstap log file can grow before rolling to a new
+			file, and how many old files to retain. [RT #44502]
+
 4571.	[bug]		Out-of-tree builds of backtrace_test failed.
 
 4570.	[cleanup]	named did not correctly fall back to the built-in

@@ -1437,6 +1437,46 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			}
 		}
 	}
+
+	/* Check that dnstap-ouput values are consistent */
+	obj = NULL;
+	(void) cfg_map_get(options, "dnstap-output", &obj);
+	if (obj != NULL) {
+		const cfg_obj_t *obj2;
+		dns_dtmode_t dmode;
+
+		obj2 = cfg_tuple_get(obj, "mode");
+		if (obj2 == NULL) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnstap-output mode not found");
+			return (ISC_R_FAILURE);
+		}
+
+		if (strcasecmp(cfg_obj_asstring(obj2), "file") == 0)
+			dmode = dns_dtmode_file;
+		else
+			dmode = dns_dtmode_unix;
+
+		obj2 = cfg_tuple_get(obj, "size");
+		if (obj2 != NULL && !cfg_obj_isvoid(obj2) &&
+		    dmode == dns_dtmode_unix)
+		{
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnstap-output size "
+				    "cannot be set with mode unix");
+			return (ISC_R_FAILURE);
+		}
+
+		obj2 = cfg_tuple_get(obj, "versions");
+		if (obj2 != NULL && !cfg_obj_isvoid(obj2) &&
+		    dmode == dns_dtmode_unix)
+		{
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnstap-output versions "
+				    "cannot be set with mode unix");
+			return (ISC_R_FAILURE);
+		}
+	}
 #endif
 
 	return (result);

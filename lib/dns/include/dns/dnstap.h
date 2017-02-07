@@ -153,6 +153,24 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  */
 
 isc_result_t
+dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls);
+/*%<
+ * Sets up the dnstap logfile limits.
+ *
+ * 'max_size' is the size a log file may grow before it is rolled
+ *
+ * 'rolls' is the number of rolled files to retain.
+ *
+ * Requires:
+ *
+ *\li	'env' is a valid dnstap environment.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS on success
+ *\li	#ISC_R_INVALIDFILE if dnstap is set to use a UNIX domain socket
+ */
+
+isc_result_t
 dns_dt_reopen(dns_dtenv_t *env, int roll);
 /*%<
  * Reopens files established by dns_dt_create().

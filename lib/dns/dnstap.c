@@ -104,6 +104,8 @@ struct dns_dtenv {
 	isc_region_t version;
 	char *path;
 	dns_dtmode_t mode;
+	isc_uint64_t max_size;
+	isc_uint32_t rolls;
 	isc_stats_t *stats;
 };
 
@@ -241,6 +243,8 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 		CHECK(ISC_R_FAILURE);
 	}
 	env->mode = mode;
+	env->max_size = 0;
+	env->rolls = ISC_LOG_ROLLNEVER;
 	env->fopt = *foptp;
 	*foptp = NULL;
 
@@ -272,6 +276,22 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	}
 
 	return (result);
+}
+
+isc_result_t
+dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls) {
+	REQUIRE(VALID_DTENV(env));
+
+	if (max_size != 0 && rolls != ISC_LOG_ROLLNEVER &&
+	    env->mode != dns_dtmode_file)
+	{
+		return (ISC_R_INVALIDFILE);
+	}
+
+	env->max_size = max_size;
+	env->rolls = rolls;
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -690,6 +710,14 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 		return;
 
 	REQUIRE(VALID_DTENV(view->dtenv));
+
+	if (view->dtenv->max_size != 0) {
+		struct stat statbuf;
+		if (stat(view->dtenv->path, &statbuf) >= 0 &&
+		    (size_t) statbuf.st_size > view->dtenv->max_size) {
+			dns_dt_reopen(view->dtenv, view->dtenv->rolls);
+		}
+	}
 
 	TIME_NOW(&now);
 	t = &now;

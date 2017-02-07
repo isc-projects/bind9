@@ -3036,7 +3036,6 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	const char *dpath = ns_g_defaultdnstap;
 	const cfg_obj_t *dlist = NULL;
 	dns_dtmsgtype_t dttypes = 0;
-	dns_dtmode_t dmode;
 	unsigned int i;
 	struct fstrm_iothr_options *fopt = NULL;
 
@@ -3086,6 +3085,9 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	}
 
 	if (ns_g_server->dtenv == NULL && dttypes != 0) {
+		dns_dtmode_t dmode;
+		isc_uint64_t max_size = 0;
+		isc_uint32_t rolls = 0;
 		obj = NULL;
 		CHECKM(ns_config_get(maps, "dnstap-output", &obj),
 		       "'dnstap-output' must be set if 'dnstap' is set");
@@ -3103,6 +3105,32 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 			CHECKM(ISC_R_FAILURE, "dnstap-output path not found");
 
 		dpath = cfg_obj_asstring(obj2);
+
+		obj2 = cfg_tuple_get(obj, "size");
+		if (obj2 != NULL && cfg_obj_isuint64(obj2)) {
+			max_size = cfg_obj_asuint64(obj2);
+			if (max_size > SIZE_MAX) {
+				cfg_obj_log(obj2, ns_g_lctx,
+				    ISC_LOG_WARNING,
+				    "'dnstap-output size "
+				    "%" ISC_PRINT_QUADFORMAT "u' "
+				    "is too large for this "
+				    "system; reducing to %lu",
+				    max_size, (unsigned long)SIZE_MAX);
+				max_size = SIZE_MAX;
+			}
+		}
+
+		obj2 = cfg_tuple_get(obj, "versions");
+		if (obj2 != NULL && cfg_obj_isuint32(obj2)) {
+			rolls = cfg_obj_asuint32(obj2);
+		} else if (obj2 != NULL && cfg_obj_isstring(obj2) &&
+			 strcasecmp(cfg_obj_asstring(obj2), "unlimited") == 0)
+		{
+			rolls = ISC_LOG_ROLLINFINITE;
+		} else {
+			rolls = ISC_LOG_ROLLNEVER;
+		}
 
 		fopt = fstrm_iothr_options_init();
 		fstrm_iothr_options_set_num_input_queues(fopt, ns_g_cpus);
@@ -3168,9 +3196,12 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 			fstrm_iothr_options_set_reopen_interval(fopt, i);
 		}
 
-		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath, &fopt,
-				     &ns_g_server->dtenv),
+		CHECKM(dns_dt_create(ns_g_mctx, dmode, dpath,
+				     &fopt, &ns_g_server->dtenv),
 		       "unable to create dnstap environment");
+
+		CHECKM(dns_dt_setupfile(ns_g_server->dtenv, max_size, rolls),
+		       "unable to set up dnstap logfile");
 	}
 
 	if (ns_g_server->dtenv == NULL)
@@ -13689,7 +13720,7 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	}
 
 	if (reopen || strcasecmp(ptr, "-reopen") == 0) {
-		backups = -1;
+		backups = ISC_LOG_ROLLNEVER;
 	} else if ((strcasecmp(ptr, "-roll") == 0)) {
 		unsigned int n;
 		ptr = next_token(lex, text);
