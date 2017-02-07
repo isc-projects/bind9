@@ -1298,17 +1298,84 @@ static cfg_type_t cfg_type_dnstap = {
 /*%
  * dnstap-output
  */
-static keyword_type_t dtsize_kw = { "size", &cfg_type_sizenodefault};
-static cfg_type_t cfg_type_dnstap_size = {
-	"dnstap_size", parse_optional_keyvalue, print_keyvalue,
-	doc_optional_keyvalue, &cfg_rep_uint64, &dtsize_kw
-};
+static isc_result_t
+parse_dtout(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	const cfg_tuplefielddef_t *fields = type->of;
 
-static keyword_type_t dtversions_kw = { "versions", &cfg_type_logversions};
-static cfg_type_t cfg_type_dnstap_versions = {
-	"dnstap_versions", parse_optional_keyvalue, print_keyvalue,
-	doc_optional_keyvalue, &cfg_rep_uint32, &dtversions_kw
-};
+	CHECK(cfg_create_tuple(pctx, type, &obj));
+
+	/* Parse the mandatory "mode" and "path" fields */
+	CHECK(cfg_parse_obj(pctx, fields[0].type, &obj->value.tuple[0]));
+	CHECK(cfg_parse_obj(pctx, fields[1].type, &obj->value.tuple[1]));
+
+	/* Parse "versions" and "size" fields in any order. */
+	for (;;) {
+		CHECK(cfg_peektoken(pctx, 0));
+		if (pctx->token.type == isc_tokentype_string) {
+			CHECK(cfg_gettoken(pctx, 0));
+			if (strcasecmp(TOKEN_STRING(pctx),
+				       "size") == 0 &&
+			    obj->value.tuple[2] == NULL)
+			{
+				CHECK(cfg_parse_obj(pctx, fields[2].type,
+						    &obj->value.tuple[2]));
+			} else if (strcasecmp(TOKEN_STRING(pctx),
+					      "versions") == 0 &&
+				   obj->value.tuple[3] == NULL)
+			{
+				CHECK(cfg_parse_obj(pctx, fields[3].type,
+						    &obj->value.tuple[3]));
+			} else {
+				cfg_parser_error(pctx, CFG_LOG_NEAR,
+						 "unexpected token");
+				result = ISC_R_UNEXPECTEDTOKEN;
+				goto cleanup;
+			}
+		} else {
+			break;
+		}
+	}
+
+	/* Create void objects for missing optional values. */
+	if (obj->value.tuple[2] == NULL)
+		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[2]));
+	if (obj->value.tuple[3] == NULL)
+		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[3]));
+
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+static void
+print_dtout(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_print_obj(pctx, obj->value.tuple[0]); /* mode */
+	cfg_print_obj(pctx, obj->value.tuple[1]); /* file */
+	if (obj->value.tuple[2]->type->print != cfg_print_void) {
+		cfg_print_cstr(pctx, " size ");
+		cfg_print_obj(pctx, obj->value.tuple[2]);
+	}
+	if (obj->value.tuple[3]->type->print != cfg_print_void) {
+		cfg_print_cstr(pctx, " versions ");
+		cfg_print_obj(pctx, obj->value.tuple[3]);
+	}
+}
+
+
+static void
+doc_dtout(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_cstr(pctx, "( file | unix ) <quoted_string>");
+	cfg_print_cstr(pctx, " ");
+	cfg_print_cstr(pctx, "[ size ( unlimited | <size> ) ]");
+	cfg_print_cstr(pctx, " ");
+	cfg_print_cstr(pctx, "[ versions ( unlimited | <integer> ) ]");
+}
 
 static const char *dtoutmode_enums[] = { "file", "unix", NULL };
 static cfg_type_t cfg_type_dtmode = {
@@ -1319,13 +1386,13 @@ static cfg_type_t cfg_type_dtmode = {
 static cfg_tuplefielddef_t dtout_fields[] = {
 	{ "mode", &cfg_type_dtmode, 0 },
 	{ "path", &cfg_type_qstring, 0 },
-	{ "size", &cfg_type_dnstap_size, 0 },
-	{ "versions", &cfg_type_dnstap_versions, 0 },
+	{ "size", &cfg_type_sizenodefault, 0 },
+	{ "versions", &cfg_type_logversions, 0 },
 	{ NULL, NULL, 0 }
 };
 
 static cfg_type_t cfg_type_dnstapoutput = {
-	"dnstapoutput", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	"dnstapoutput", parse_dtout, print_dtout, doc_dtout,
 	&cfg_rep_tuple, dtout_fields
 };
 
