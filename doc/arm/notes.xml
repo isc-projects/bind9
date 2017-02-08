@@ -129,6 +129,13 @@
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
+        <para>
+	  Query logic has been substantially refactored (e.g. query_find
+	  function has been split into smaller functions) for improved
+	  readability, maintainability and testability. [RT #43929]
+	</para>
+      </listitem>
+      <listitem>
 	<para>
 	  <command>dnstap</command> logfiles can now be configured to
 	  automatically roll when they reach a specified size. If
