@@ -6612,7 +6612,7 @@ query_respond_any(query_ctx_t *qctx) {
 
 			query_addrrset(qctx->client,
 				       (qctx->fname != NULL)
-				        ? &qctx->fname
+					? &qctx->fname
 					: &tname,
 				       &qctx->rdataset, NULL,
 				       NULL, DNS_SECTION_ANSWER);
@@ -9740,7 +9740,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	if (client->ednsversion >= 0)
 		snprintf(ednsbuf, sizeof(ednsbuf), "E(%d)",
 			 client->ednsversion);
-	
+
 	if (HAVEECS(client)) {
 		strlcpy(ecsbuf, " [ECS ", sizeof(ecsbuf));
 		dns_ecs_format(&client->ecs, ecsbuf + 6, sizeof(ecsbuf) - 6);
