@@ -318,7 +318,7 @@ typedef struct query_ctx {
 	isc_boolean_t is_zone;			/* is DB a zone DB? */
 	isc_boolean_t is_staticstub_zone;
 	isc_boolean_t resuming;			/* resumed from recursion? */
-	isc_boolean_t dns64, dns64_exclude;
+	isc_boolean_t dns64, dns64_exclude, rpz;
 	isc_boolean_t authoritative;		/* authoritative query? */
 	isc_boolean_t want_restart;		/* CNAME chain or other
 						 * restart needed */
@@ -5067,7 +5067,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->zone = NULL;
 	qctx->need_wildcardproof = ISC_FALSE;
 	qctx->redirected = ISC_FALSE;
-	qctx->dns64_exclude = qctx->dns64 = ISC_FALSE;
+	qctx->dns64_exclude = qctx->dns64 = qctx->rpz = ISC_FALSE;
 	qctx->options = 0;
 	qctx->resuming = ISC_FALSE;
 	qctx->is_zone = ISC_FALSE;
@@ -5223,6 +5223,7 @@ query_start(query_ctx_t *qctx) {
 	qctx->version = NULL;
 	qctx->zversion = NULL;
 	qctx->need_wildcardproof = ISC_FALSE;
+	qctx->rpz = ISC_FALSE;
 
 	if (qctx->client->view->checknames &&
 	    !dns_rdata_checkowner(qctx->client->query.qname,
@@ -5368,6 +5369,7 @@ query_lookup(query_ctx_t *qctx) {
 	isc_result_t result;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	dns_name_t *rpzqname = NULL;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -5410,12 +5412,34 @@ query_lookup(query_ctx_t *qctx) {
 	/*
 	 * Now look for an answer in the database.
 	 */
-	result = dns_db_findext(qctx->db, qctx->client->query.qname,
+	if (qctx->dns64 && qctx->rpz) {
+		rpzqname = qctx->client->query.rpz_st->p_name;
+	} else {
+		rpzqname = qctx->client->query.qname;
+	}
+
+	result = dns_db_findext(qctx->db, rpzqname,
 				qctx->version, qctx->type,
 				qctx->client->query.dboptions,
 				qctx->client->now, &qctx->node,
 				qctx->fname, &cm, &ci,
 				qctx->rdataset, qctx->sigrdataset);
+
+	/*
+	 * Fixup fname and sigrdataset.
+	 */
+	if (qctx->dns64 && qctx->rpz) {
+		isc_result_t rresult;
+
+		rresult = dns_name_copy(qctx->client->query.qname,
+					qctx->fname, NULL);
+		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
+		if (qctx->sigrdataset != NULL &&
+		    dns_rdataset_isassociated(qctx->sigrdataset))
+		{
+			dns_rdataset_disassociate(qctx->sigrdataset);
+		}
+	}
 
 	if (!qctx->is_zone) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
@@ -6190,10 +6214,12 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		case DNS_RPZ_POLICY_NXDOMAIN:
 			result = DNS_R_NXDOMAIN;
 			qctx->nxrewrite = ISC_TRUE;
+			qctx->rpz = ISC_TRUE;
 			break;
 		case DNS_RPZ_POLICY_NODATA:
 			result = DNS_R_NXRRSET;
 			qctx->nxrewrite = ISC_TRUE;
+			qctx->rpz = ISC_TRUE;
 			break;
 		case DNS_RPZ_POLICY_RECORD:
 			result = qctx->rpz_st->m.result;
@@ -6214,6 +6240,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 					ISC_MIN(qctx->rdataset->ttl,
 						qctx->rpz_st->m.ttl);
 			}
+			qctx->rpz = ISC_TRUE;
 			break;
 		case DNS_RPZ_POLICY_WILDCNAME: {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -6925,15 +6952,6 @@ query_respond(query_ctx_t *qctx) {
 		query_releasename(qctx->client, &qctx->fname);
 		dns_db_detachnode(qctx->db, &qctx->node);
 		qctx->type = qctx->qtype = dns_rdatatype_a;
-		qctx->rpz_st = qctx->client->query.rpz_st;
-		if (qctx->rpz_st != NULL) {
-			/*
-			 * Arrange for RPZ rewriting of any A records.
-			 */
-			if ((qctx->rpz_st->state & DNS_RPZ_REWRITTEN) != 0)
-				qctx->is_zone = qctx->rpz_st->q.is_zone;
-			rpz_st_clear(qctx->client);
-		}
 		qctx->dns64_exclude = qctx->dns64 = ISC_TRUE;
 
 		return (query_lookup(qctx));
@@ -7928,15 +7946,6 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 		query_releasename(qctx->client, &qctx->fname);
 		dns_db_detachnode(qctx->db, &qctx->node);
 		qctx->type = qctx->qtype = dns_rdatatype_a;
-		qctx->rpz_st = qctx->client->query.rpz_st;
-		if (qctx->rpz_st != NULL) {
-			/*
-			 * Arrange for RPZ rewriting of any A records.
-			 */
-			if ((qctx->rpz_st->state & DNS_RPZ_REWRITTEN) != 0)
-				qctx->is_zone = qctx->rpz_st->q.is_zone;
-			rpz_st_clear(qctx->client);
-		}
 		qctx->dns64 = ISC_TRUE;
 		return (query_lookup(qctx));
 	}
