@@ -256,7 +256,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
  *    answer. If an answer is found, go to 7.
  *
  * 5. If recursion is allowed, begin recursion (query_recurse()).
- *    Go to X to clean up this phase of the query. When recursion
+ *    Go to 15 to clean up this phase of the query. When recursion
  *    is complete, processing will resume at 6.
  *
  * 6. Resume from recursion; set up query context for resumed processing.
@@ -274,16 +274,16 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
  *    Set up a referral and go to 9.
  *
  * 9. Handle a delegation response (query_delegation()). If we are
- *    allowed to recurse, go to 5, otherwise go to X to clean up and
+ *    allowed to recurse, go to 5, otherwise go to 15 to clean up and
  *    return the delegation to the client.
  *
  * 10. No such domain (query_nxdomain()). Attempt redirection; if
  *     unsuccessful, add authority section records (query_addsoa(),
- *     query_addauth()), then go to X to return NXDOMAIN to client.
+ *     query_addauth()), then go to 15 to return NXDOMAIN to client.
  *
  * 11. Empty answer (query_nodata()). Add authority section records
  *     (query_addsoa(), query_addauth()) and signatures if authoritative
- *     (query_sign_nodata()) then go to X and return
+ *     (query_sign_nodata()) then go to 15 and return
  *     NOERROR/ANCOUNT=0 to client.
  *
  * 12. No such domain or empty answer returned from cache (query_ncache()).
@@ -294,7 +294,8 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
  *     query_respond_any()).
  *
  * 14. If a restart is needed due to CNAME/DNAME chaining, go to 2.
- *     Clean up resources. If recursing, stop and wait for the event
+ *
+ * 15. Clean up resources. If recursing, stop and wait for the event
  *     handler to be called back (step 6).  If an answer is ready,
  *     return it to the client.
  *
