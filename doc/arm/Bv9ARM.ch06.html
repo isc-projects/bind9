@@ -2434,7 +2434,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>server-id</strong></span> <em class="replaceable"><code>server_id_string</code></em> ; ]
   [ <span class="command"><strong>directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>dnstap {</strong></span> <em class="replaceable"><code>message_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dnstap-output</strong></span> ( <code class="option">file</code> | <code class="option">unix</code> ) <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>dnstap-output</strong></span> ( <code class="option">file</code> | <code class="option">unix</code> ) <em class="replaceable"><code>path_name</code></em> [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ] [ <span class="command"><strong>versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <code class="option">unlimited</code> ) ] ; ]
   [ <span class="command"><strong>dnstap-identity</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">hostname</code> | <code class="option">none</code> ) ; ]
   [ <span class="command"><strong>dnstap-version</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">none</code> ) ; ]
   [ <span class="command"><strong>fstrm-set-buffer-hint</strong></span> <em class="replaceable"><code>number</code></em> ; ]
@@ -3009,6 +3009,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 <span class="command"><strong>fstrm_capture</strong></span>
                 (provided with <span class="command"><strong>libfstrm</strong></span>) is listening on
                 the socket.)
+              </p>
+              <p>
+                If the first argument is <code class="literal">file</code>, then
+                two additional options can be added:
+                <span class="command"><strong>size</strong></span> indicates the size to which a
+                <span class="command"><strong>dnstap</strong></span> log file can grow before being
+                rolled to a new file, and <span class="command"><strong>versions</strong></span>
+                specifies the number of rolled log files to retain. These
+                are similar to the <span class="command"><strong>size</strong></span> and
+                <span class="command"><strong>versions</strong></span> options in a
+                <span class="command"><strong>logging</strong></span> channel.  The default
+                is to allow <span class="command"><strong>dnstap</strong></span> log files to grow to
+                any size without rolling.
               </p>
               <p>
                 <span class="command"><strong>dnstap-output</strong></span> can only be set globally

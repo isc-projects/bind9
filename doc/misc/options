@@ -153,7 +153,9 @@ options {
             resolver ) [ ( query | response ) ]; ... }; // not configured
         dnstap-identity ( <quoted_string> | none |
             hostname ); // not configured
-        dnstap-output ( file | unix ) <quoted_string>; // not configured
+        dnstap-output ( file | unix ) <quoted_string> [
+            size ( unlimited | <size> ) ] [ versions (
+            unlimited | <integer> ) ]; // not configured
         dnstap-version ( <quoted_string> | none ); // not configured
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port

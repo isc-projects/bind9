@@ -140,6 +140,26 @@
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
+        <p>
+	  Query logic has been substantially refactored (e.g. query_find
+	  function has been split into smaller functions) for improved
+	  readability, maintainability and testability. [RT #43929]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dnstap</strong></span> logfiles can now be configured to
+	  automatically roll when they reach a specified size. If
+	  <span class="command"><strong>dnstap-output</strong></span> is configured with mode
+	  <code class="literal">file</code>, then it can take optional
+	  <span class="command"><strong>size</strong></span> and <span class="command"><strong>versions</strong></span>
+	  key-value arguments to set the logfile rolling parameters.
+	  (These have the same semantics as the corresponding
+	  options in a <span class="command"><strong>logging</strong></span> channel statement.)
+	  [RT #44502]
+	</p>
+      </li>
+<li class="listitem">
 	<p>
 	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
 	  for EDNS options in addition to numeric values. For example,
@@ -183,7 +203,7 @@
 	  always have the name ".", which can be ambiguous.)
 	</p>
 	<p>
-	  In the event you need to manipulate a a zone actually
+	  In the event you need to manipulate a zone actually
 	  called "-redirect", use a trailing dot: "-redirect."
 	</p>
 	<p>
@@ -225,12 +245,6 @@
       </li>
 <li class="listitem">
 	<p>
-	  The built in mangaged keys for the global root zone have been
-	  updated to include the upcoming key signing key (keyid 20326).
-	</p>
-      </li>
-<li class="listitem">
-	<p>
 	  Expanded and improved the YAML output from
 	  <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
 	  size and a detailed breakdown of message contents.
@@ -262,15 +276,15 @@
       </li>
 <li class="listitem">
 	<p>
-	  Named could deadlock there were multiple changes to
-	  NSEC/NSEC3 parameters for a zone being processed at the
-	  same time. [RT #42770]
+	  <span class="command"><strong>named</strong></span> could deadlock if multiple changes
+	  to NSEC/NSEC3 parameters for the same zone were being processed
+	  at the same time. [RT #42770]
 	</p>
       </li>
 <li class="listitem">
 	<p>
-	  Named could trigger a assertion when sending notify
-	  messages. [RT #44019]
+	  <span class="command"><strong>named</strong></span> could trigger an assertion when
+	  sending NOTIFY messages. [RT #44019]
 	</p>
       </li>
 <li class="listitem">
