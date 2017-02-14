@@ -1,3 +1,6 @@
+4574.	[bug]		Dig leaked memory with multiple +subnet options.
+			[RT #44683]
+
 4573.	[func]		Query logic has been substantially refactored (e.g.
 			query_find function has been split into smaller
 			functions) for improved readability, maintainability

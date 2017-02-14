@@ -270,6 +270,14 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo "I:checking dig +subnet +subnet ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.0 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
+  grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   echo "I:checking dig +subnet with various prefix lengths ($n)"
   ret=0
   for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do

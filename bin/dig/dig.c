@@ -1378,7 +1378,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			}
 			if (lookup->edns == -1)
 				lookup->edns = 0;
-
+			if (lookup->ecs_addr != NULL) {
+				isc_mem_free(mctx, lookup->ecs_addr);
+				lookup->ecs_addr = NULL;
+			}
 			result = parse_netprefix(&lookup->ecs_addr, value);
 			if (result != ISC_R_SUCCESS)
 				fatal("Couldn't parse client");
