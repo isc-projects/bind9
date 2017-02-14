@@ -1,6 +1,9 @@
 4584.	[bug]		A number of memory usage statistics were not properly
 			reported when they exceeded 4G.  [RT #44750]
 
+4574.	[bug]		Dig leaked memory with multiple +subnet options.
+			[RT #44683]
+
 	--- 9.10.5 released ---
 
 	--- 9.10.5rc3 released ---
