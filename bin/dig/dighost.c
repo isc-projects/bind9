@@ -1074,6 +1074,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_boolean_t prefix_parsed = ISC_FALSE;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
+	REQUIRE(sap != NULL && *sap == NULL);
+
 	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf))
 		fatal("invalid prefix '%s'\n", value);
 
