@@ -24,6 +24,11 @@
       This document summarizes changes since BIND 9.9.9:
     </para>
     <para>
+      BIND 9.9.9-P7 addresses the security issue described in
+      CVE-2017-3136, and updates the built in trusted keys for
+      the root zone.
+    </para>
+    <para>
       BIND 9.9.9-P6 addresses the security issue described in
       CVE-2017-3135, and fixes a regression introduced in a prior
       security release.
