@@ -6984,6 +6984,7 @@ query_respond(query_ctx_t *qctx) {
 
 	if (qctx->dns64) {
 		result = query_dns64(qctx);
+		qctx->noqname = NULL;
 		dns_rdataset_disassociate(qctx->rdataset);
 		dns_message_puttemprdataset(qctx->client->message,
 					    &qctx->rdataset);
@@ -7110,7 +7111,7 @@ query_dns64(query_ctx_t *qctx) {
 
 	result = isc_buffer_allocate(client->mctx, &buffer,
 				     view->dns64cnt * 16 *
-				      dns_rdataset_count(qctx->rdataset));
+				     dns_rdataset_count(qctx->rdataset));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	result = dns_message_gettemprdataset(client->message,
