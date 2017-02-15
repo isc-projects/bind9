@@ -8740,6 +8740,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			result = query_dns64(client, &fname, rdataset,
 					     sigrdataset, dbuf,
 					     DNS_SECTION_ANSWER);
+			noqname = NULL;
 			dns_rdataset_disassociate(rdataset);
 			dns_message_puttemprdataset(client->message, &rdataset);
 			if (result == ISC_R_NOMORE) {
