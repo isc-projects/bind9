@@ -1,4 +1,4 @@
-4575.	[security]	Dns64 with break-dnssec yes; can result in a
+4575.	[security]	DNS64 with "break-dnssec yes;" can result in an
 			assertion failure. (CVE-2017-3136) [RT #44653]
 
 4574.	[bug]		Dig leaked memory with multiple +subnet options.
