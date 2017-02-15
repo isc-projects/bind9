@@ -5,7 +5,7 @@
 
 4564.	[maint]		Update the built in managed keys to include the
 			upcoming root KSK. [RT #44579]
-			
+
 	--- 9.11.0-P3 released ---
 
 4558.	[bug]		Synthesised CNAME before matching DNAME was still
