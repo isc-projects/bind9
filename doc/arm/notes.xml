@@ -16,6 +16,11 @@
       This document summarizes changes since BIND 9.11.0:
     </para>
     <para>
+      BIND 9.11.0-P4 addresses the security issue described in
+      CVE-2017-3136, and updates the built in trusted keys for
+      the root zone.
+    </para>
+    <para>
       BIND 9.11.0-P3 addresses the security issue described in
       CVE-2017-3135, and fixes a regression introduced in a prior
       security release.

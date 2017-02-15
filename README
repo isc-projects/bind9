@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.11.0-P4
+
+	This version contains a fix for CVE-2017-3136, and updates
+	the built in trusted keys for the root zone.
+
 BIND 9.11.0-P3
 
 	This version contains a fix for CVE-2017-3135, and a bug fix
