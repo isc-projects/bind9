@@ -1,3 +1,6 @@
+4575.	[security]	Dns64 with break-dnssec yes; can result in a
+			assertion failure. (CVE-2017-3136) [RT #44653]
+
 4564.	[maint]		Update the built in managed keys to include the
 			upcoming root KSK. [RT #44579]
 			
