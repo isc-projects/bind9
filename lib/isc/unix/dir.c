@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /*! \file
  * \author  Principal Authors: DCL */
 
