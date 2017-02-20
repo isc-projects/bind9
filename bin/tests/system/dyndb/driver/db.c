@@ -510,24 +510,6 @@ getrrsetstats(dns_db_t *db) {
 
 }
 
-static void
-rpz_attach(dns_db_t *db, dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
-	sampledb_t *sampledb = (sampledb_t *) db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	dns_db_rpz_attach(sampledb->rbtdb, rpzs, rpz_num);
-}
-
-static isc_result_t
-rpz_ready(dns_db_t *db) {
-	sampledb_t *sampledb = (sampledb_t *) db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	return (dns_db_rpz_ready(sampledb->rbtdb));
-}
-
 static isc_result_t
 findnodeext(dns_db_t *db, const dns_name_t *name,
 	    isc_boolean_t create, dns_clientinfomethods_t *methods,
@@ -617,8 +599,8 @@ static dns_dbmethods_t sampledb_methods = {
 	resigned,
 	isdnssec,
 	getrrsetstats,
-	rpz_attach,
-	rpz_ready,
+	NULL,
+	NULL,
 	findnodeext,
 	findext,
 	setcachestats,

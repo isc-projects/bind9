@@ -15,6 +15,10 @@
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/ht.h>
+#include <isc/time.h>
+#include <isc/event.h>
+#include <isc/timer.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdata.h>
@@ -36,7 +40,6 @@ ISC_LANG_BEGINDECLS
 #define DNS_RPZ_PASSTHRU_NAME	DNS_RPZ_PREFIX"passthru"
 #define DNS_RPZ_DROP_NAME	DNS_RPZ_PREFIX"drop"
 #define DNS_RPZ_TCP_ONLY_NAME	DNS_RPZ_PREFIX"tcp-only"
-
 
 typedef isc_uint8_t		dns_rpz_prefix_t;
 
@@ -118,20 +121,38 @@ struct dns_rpz_triggers {
  * A single response policy zone.
  */
 typedef struct dns_rpz_zone dns_rpz_zone_t;
+typedef struct dns_rpz_zones dns_rpz_zones_t;
+
 struct dns_rpz_zone {
-	isc_refcount_t	refs;
-	dns_rpz_num_t	num;		/* ordinal in list of policy zones */
-	dns_name_t	origin;		/* Policy zone name */
-	dns_name_t	client_ip;	/* DNS_RPZ_CLIENT_IP_ZONE.origin. */
-	dns_name_t	ip;		/* DNS_RPZ_IP_ZONE.origin. */
-	dns_name_t	nsdname;	/* DNS_RPZ_NSDNAME_ZONE.origin */
-	dns_name_t	nsip;		/* DNS_RPZ_NSIP_ZONE.origin. */
-	dns_name_t	passthru;	/* DNS_RPZ_PASSTHRU_NAME. */
-	dns_name_t	drop;		/* DNS_RPZ_DROP_NAME. */
-	dns_name_t	tcp_only;	/* DNS_RPZ_TCP_ONLY_NAME. */
-	dns_name_t	cname;		/* override value for ..._CNAME */
-	dns_ttl_t	max_policy_ttl;
+	isc_refcount_t	 refs;
+	dns_rpz_num_t	 num;		/* ordinal in list of policy zones */
+	dns_name_t	 origin;	/* Policy zone name */
+	dns_name_t	 client_ip;	/* DNS_RPZ_CLIENT_IP_ZONE.origin. */
+	dns_name_t	 ip;		/* DNS_RPZ_IP_ZONE.origin. */
+	dns_name_t	 nsdname;	/* DNS_RPZ_NSDNAME_ZONE.origin */
+	dns_name_t	 nsip;		/* DNS_RPZ_NSIP_ZONE.origin. */
+	dns_name_t	 passthru;	/* DNS_RPZ_PASSTHRU_NAME. */
+	dns_name_t	 drop;		/* DNS_RPZ_DROP_NAME. */
+	dns_name_t	 tcp_only;	/* DNS_RPZ_TCP_ONLY_NAME. */
+	dns_name_t	 cname;		/* override value for ..._CNAME */
+	dns_ttl_t	 max_policy_ttl;
 	dns_rpz_policy_t policy;	/* DNS_RPZ_POLICY_GIVEN or override */
+
+	isc_uint32_t	 min_update_int;/* minimal interval between updates */
+	isc_ht_t	 *nodes;	/* entries in zone */
+	dns_rpz_zones_t	 *rpzs;		/* owner */
+	isc_time_t	 lastupdated;	/* last time the zone was processed */
+	isc_boolean_t	 updatepending;	/* there is an update pending/waiting */
+	isc_boolean_t	 updaterunning;	/* there is an update running */
+	dns_db_t	 *db;		/* zones database */
+	dns_dbversion_t	 *dbversion;	/* version we will be updating to */
+	dns_db_t	 *updb;		/* zones database we're working on */
+	dns_dbversion_t	 *updbversion;	/* version we're currently working on */
+	dns_dbiterator_t *updbit;	/* iterator to use when updating */
+	isc_ht_t	 *newnodes;	/* entries in zone being updated */
+	isc_boolean_t	 db_registered;	/* is the notify event registered? */
+	isc_timer_t	 *updatetimer;
+	isc_event_t	 updateevent;
 };
 
 /*
@@ -176,7 +197,6 @@ struct dns_rpz_popt {
 /*
  * Response policy zones known to a view.
  */
-typedef struct dns_rpz_zones dns_rpz_zones_t;
 struct dns_rpz_zones {
 	dns_rpz_popt_t		p;
 	dns_rpz_zone_t		*zones[DNS_RPZ_MAX_ZONES];
@@ -215,6 +235,9 @@ struct dns_rpz_zones {
 	dns_rpz_triggers_t	total_triggers;
 
 	isc_mem_t		*mctx;
+	isc_taskmgr_t		*taskmgr;
+	isc_timermgr_t		*timermgr;
+	isc_task_t		*updater;
 	isc_refcount_t		refs;
 	/*
 	 * One lock for short term read-only search that guarantees the
@@ -311,6 +334,7 @@ typedef struct {
 
 #define DNS_RPZ_TTL_DEFAULT		5
 #define DNS_RPZ_MAX_TTL_DEFAULT		DNS_RPZ_TTL_DEFAULT
+#define DNS_RPZ_MINUPDATEINT_DEF	60
 
 /*
  * So various response policy zone messages can be turned up or down.
@@ -336,7 +360,14 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx);
+dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx,
+		  isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr);
+
+isc_result_t
+dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);
+
+isc_result_t
+dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg);
 
 void
 dns_rpz_attach_rpzs(dns_rpz_zones_t *source, dns_rpz_zones_t **target);
@@ -346,11 +377,13 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
 
 isc_result_t
 dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
-		  dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num);
+		  dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num)
+	ISC_DEPRECATED;
 
 isc_result_t
 dns_rpz_ready(dns_rpz_zones_t *rpzs,
-	      dns_rpz_zones_t **load_rpzsp, dns_rpz_num_t rpz_num);
+	      dns_rpz_zones_t **load_rpzsp, dns_rpz_num_t rpz_num)
+	ISC_DEPRECATED;
 
 isc_result_t
 dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,

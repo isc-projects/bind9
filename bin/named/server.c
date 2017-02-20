@@ -1872,11 +1872,12 @@ configure_rpz_name2(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
 static isc_result_t
 configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		   isc_boolean_t recursive_only_def, dns_ttl_t ttl_def,
-		   const dns_rpz_zone_t *old, isc_boolean_t *old_rpz_okp)
+		   isc_uint32_t minupdateint_def, const dns_rpz_zone_t *old,
+		   isc_boolean_t *old_rpz_okp)
 {
 	const cfg_obj_t *rpz_obj, *obj;
 	const char *str;
-	dns_rpz_zone_t *new;
+	dns_rpz_zone_t *zone = NULL;
 	isc_result_t result;
 	dns_rpz_num_t rpz_num;
 
@@ -1891,127 +1892,118 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		return (ISC_R_FAILURE);
 	}
 
-	new = isc_mem_get(view->rpzs->mctx, sizeof(*new));
-	if (new == NULL) {
-		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
-			    "no memory for response policy zones");
-		return (ISC_R_NOMEMORY);
-	}
-
-	memset(new, 0, sizeof(*new));
-	result = isc_refcount_init(&new->refs, 1);
+	result = dns_rpz_new_zone(view->rpzs, &zone);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(view->rpzs->mctx, new, sizeof(*new));
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
+			    "Error creating new RPZ zone : %s",
+			    isc_result_totext(result));
 		return (result);
 	}
-	dns_name_init(&new->origin, NULL);
-	dns_name_init(&new->client_ip, NULL);
-	dns_name_init(&new->ip, NULL);
-	dns_name_init(&new->nsdname, NULL);
-	dns_name_init(&new->nsip, NULL);
-	dns_name_init(&new->passthru, NULL);
-	dns_name_init(&new->drop, NULL);
-	dns_name_init(&new->tcp_only, NULL);
-	dns_name_init(&new->cname, NULL);
-	new->num = view->rpzs->p.num_zones++;
-	view->rpzs->zones[new->num] = new;
 
 	obj = cfg_tuple_get(rpz_obj, "recursive-only");
 	if (cfg_obj_isvoid(obj) ? recursive_only_def : cfg_obj_asboolean(obj)) {
-		view->rpzs->p.no_rd_ok &= ~DNS_RPZ_ZBIT(new->num);
+		view->rpzs->p.no_rd_ok &= ~DNS_RPZ_ZBIT(zone->num);
 	} else {
-		view->rpzs->p.no_rd_ok |= DNS_RPZ_ZBIT(new->num);
+		view->rpzs->p.no_rd_ok |= DNS_RPZ_ZBIT(zone->num);
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "log");
 	if (!cfg_obj_isvoid(obj) && !cfg_obj_asboolean(obj)) {
-		view->rpzs->p.no_log |= DNS_RPZ_ZBIT(new->num);
+		view->rpzs->p.no_log |= DNS_RPZ_ZBIT(zone->num);
 	} else {
-		view->rpzs->p.no_log &= ~DNS_RPZ_ZBIT(new->num);
+		view->rpzs->p.no_log &= ~DNS_RPZ_ZBIT(zone->num);
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
 	if (cfg_obj_isuint32(obj)) {
-		new->max_policy_ttl = cfg_obj_asuint32(obj);
+		zone->max_policy_ttl = cfg_obj_asuint32(obj);
 	} else {
-		new->max_policy_ttl = ttl_def;
+		zone->max_policy_ttl = ttl_def;
 	}
-	if (*old_rpz_okp && new->max_policy_ttl != old->max_policy_ttl)
+
+	obj = cfg_tuple_get(rpz_obj, "min-update-interval");
+	if (cfg_obj_isuint32(obj)) {
+		zone->min_update_int = cfg_obj_asuint32(obj);
+	} else {
+		zone->min_update_int = minupdateint_def;
+	}
+
+	if (*old_rpz_okp && zone->max_policy_ttl != old->max_policy_ttl)
 		*old_rpz_okp = ISC_FALSE;
 
 	str = cfg_obj_asstring(cfg_tuple_get(rpz_obj, "zone name"));
-	result = configure_rpz_name(view, rpz_obj, &new->origin, str, "zone");
+	result = configure_rpz_name(view, rpz_obj, &zone->origin, str, "zone");
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (dns_name_equal(&new->origin, dns_rootname)) {
+	if (dns_name_equal(&zone->origin, dns_rootname)) {
 		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
 			    "invalid zone name '%s'", str);
 		return (DNS_R_EMPTYLABEL);
 	}
 	for (rpz_num = 0; rpz_num < view->rpzs->p.num_zones-1; ++rpz_num) {
 		if (dns_name_equal(&view->rpzs->zones[rpz_num]->origin,
-				   &new->origin)) {
+				   &zone->origin)) {
 			cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_ERROR_LEVEL,
 				    "duplicate '%s'", str);
 			result = DNS_R_DUPLICATE;
 			return (result);
 		}
 	}
-	if (*old_rpz_okp && !dns_name_equal(&old->origin, &new->origin))
+	if (*old_rpz_okp && !dns_name_equal(&old->origin, &zone->origin))
 		*old_rpz_okp = ISC_FALSE;
 
-	result = configure_rpz_name2(view, rpz_obj, &new->client_ip,
-				     DNS_RPZ_CLIENT_IP_ZONE, &new->origin);
+	result = configure_rpz_name2(view, rpz_obj, &zone->client_ip,
+				     DNS_RPZ_CLIENT_IP_ZONE, &zone->origin);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name2(view, rpz_obj, &new->ip,
-				     DNS_RPZ_IP_ZONE, &new->origin);
+	result = configure_rpz_name2(view, rpz_obj, &zone->ip,
+				     DNS_RPZ_IP_ZONE, &zone->origin);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name2(view, rpz_obj, &new->nsdname,
-				     DNS_RPZ_NSDNAME_ZONE, &new->origin);
+	result = configure_rpz_name2(view, rpz_obj, &zone->nsdname,
+				     DNS_RPZ_NSDNAME_ZONE, &zone->origin);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name2(view, rpz_obj, &new->nsip,
-				     DNS_RPZ_NSIP_ZONE, &new->origin);
+	result = configure_rpz_name2(view, rpz_obj, &zone->nsip,
+				     DNS_RPZ_NSIP_ZONE, &zone->origin);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name(view, rpz_obj, &new->passthru,
+	result = configure_rpz_name(view, rpz_obj, &zone->passthru,
 				    DNS_RPZ_PASSTHRU_NAME, "name");
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name(view, rpz_obj, &new->drop,
+	result = configure_rpz_name(view, rpz_obj, &zone->drop,
 				    DNS_RPZ_DROP_NAME, "name");
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = configure_rpz_name(view, rpz_obj, &new->tcp_only,
+	result = configure_rpz_name(view, rpz_obj, &zone->tcp_only,
 				    DNS_RPZ_TCP_ONLY_NAME, "name");
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	obj = cfg_tuple_get(rpz_obj, "policy");
 	if (cfg_obj_isvoid(obj)) {
-		new->policy = DNS_RPZ_POLICY_GIVEN;
+		zone->policy = DNS_RPZ_POLICY_GIVEN;
 	} else {
 		str = cfg_obj_asstring(cfg_tuple_get(obj, "policy name"));
-		new->policy = dns_rpz_str2policy(str);
-		INSIST(new->policy != DNS_RPZ_POLICY_ERROR);
-		if (new->policy == DNS_RPZ_POLICY_CNAME) {
+		zone->policy = dns_rpz_str2policy(str);
+		INSIST(zone->policy != DNS_RPZ_POLICY_ERROR);
+		if (zone->policy == DNS_RPZ_POLICY_CNAME) {
 			str = cfg_obj_asstring(cfg_tuple_get(obj, "cname"));
-			result = configure_rpz_name(view, rpz_obj, &new->cname,
+			result = configure_rpz_name(view, rpz_obj, &zone->cname,
 						    str, "cname");
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
 	}
-	if (*old_rpz_okp && (new->policy != old->policy ||
-			     !dns_name_equal(&old->cname, &new->cname)))
+	if (*old_rpz_okp && (zone->policy != old->policy ||
+			     !dns_name_equal(&old->cname, &zone->cname)))
 		*old_rpz_okp = ISC_FALSE;
 
 	return (ISC_R_SUCCESS);
@@ -2025,7 +2017,8 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	const cfg_obj_t *sub_obj;
 	isc_boolean_t recursive_only_def;
 	dns_ttl_t ttl_def;
-	dns_rpz_zones_t *new;
+	isc_uint32_t minupdateint_def;
+	dns_rpz_zones_t *zones;
 	const dns_rpz_zones_t *old;
 	dns_view_t *pview;
 	const dns_rpz_zone_t *old_zone;
@@ -2038,10 +2031,12 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	if (zone_element == NULL)
 		return (ISC_R_SUCCESS);
 
-	result = dns_rpz_new_zones(&view->rpzs, view->mctx);
+	result = dns_rpz_new_zones(&view->rpzs, view->mctx,
+				   ns_g_taskmgr, ns_g_timermgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	new = view->rpzs;
+
+	zones = view->rpzs;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "recursive-only");
 	if (!cfg_obj_isvoid(sub_obj) &&
@@ -2053,9 +2048,9 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	sub_obj = cfg_tuple_get(rpz_obj, "break-dnssec");
 	if (!cfg_obj_isvoid(sub_obj) &&
 	    cfg_obj_asboolean(sub_obj))
-		new->p.break_dnssec = ISC_TRUE;
+		zones->p.break_dnssec = ISC_TRUE;
 	else
-		new->p.break_dnssec = ISC_FALSE;
+		zones->p.break_dnssec = ISC_FALSE;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
 	if (cfg_obj_isuint32(sub_obj))
@@ -2063,23 +2058,29 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	else
 		ttl_def = DNS_RPZ_MAX_TTL_DEFAULT;
 
+	sub_obj = cfg_tuple_get(rpz_obj, "min-update-interval");
+	if (cfg_obj_isuint32(sub_obj))
+		minupdateint_def = cfg_obj_asuint32(sub_obj);
+	else
+		minupdateint_def = DNS_RPZ_MINUPDATEINT_DEF;
+
 	sub_obj = cfg_tuple_get(rpz_obj, "min-ns-dots");
 	if (cfg_obj_isuint32(sub_obj))
-		new->p.min_ns_labels = cfg_obj_asuint32(sub_obj) + 1;
+		zones->p.min_ns_labels = cfg_obj_asuint32(sub_obj) + 1;
 	else
-		new->p.min_ns_labels = 2;
+		zones->p.min_ns_labels = 2;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "qname-wait-recurse");
 	if (cfg_obj_isvoid(sub_obj) || cfg_obj_asboolean(sub_obj))
-		new->p.qname_wait_recurse = ISC_TRUE;
+		zones->p.qname_wait_recurse = ISC_TRUE;
 	else
-		new->p.qname_wait_recurse = ISC_FALSE;
+		zones->p.qname_wait_recurse = ISC_FALSE;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "nsip-wait-recurse");
 	if (cfg_obj_isvoid(sub_obj) || cfg_obj_asboolean(sub_obj))
-		new->p.nsip_wait_recurse = ISC_TRUE;
+		zones->p.nsip_wait_recurse = ISC_TRUE;
 	else
-		new->p.nsip_wait_recurse = ISC_FALSE;
+		zones->p.nsip_wait_recurse = ISC_FALSE;
 
 	pview = NULL;
 	result = dns_viewlist_find(&ns_g_server->viewlist,
@@ -2106,7 +2107,8 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 		}
 		result = configure_rpz_zone(view, zone_element,
 					    recursive_only_def, ttl_def,
-					    old_zone, old_rpz_okp);
+					    minupdateint_def, old_zone,
+					    old_rpz_okp);
 		if (result != ISC_R_SUCCESS) {
 			if (pview != NULL)
 				dns_view_detach(&pview);
@@ -2119,7 +2121,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	 * zones are unchanged, then use the same policy data.
 	 * Data for individual zones that must be reloaded will be merged.
 	 */
-	if (old != NULL && memcmp(&old->p, &new->p, sizeof(new->p)) != 0)
+	if (old != NULL && memcmp(&old->p, &zones->p, sizeof(zones->p)) != 0)
 		*old_rpz_okp = ISC_FALSE;
 	if (*old_rpz_okp) {
 		dns_rpz_detach_rpzs(&view->rpzs);

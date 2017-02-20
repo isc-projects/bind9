@@ -1048,7 +1048,7 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
  * it is dealing with a database that understands response policy zones.
  */
 void
-dns_db_rpz_attach(dns_db_t *db, dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
+dns_db_rpz_attach(dns_db_t *db, void *rpzs, isc_uint8_t rpz_num) {
 	REQUIRE(db->methods->rpz_attach != NULL);
 	(db->methods->rpz_attach)(db, rpzs, rpz_num);
 }

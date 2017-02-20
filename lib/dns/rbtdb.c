@@ -53,7 +53,6 @@
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rbt.h>
-#include <dns/rpz.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
@@ -251,8 +250,6 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define resign_insert resign_insert64
 #define resign_sooner resign_sooner64
 #define resigned resigned64
-#define rpz_attach rpz_attach64
-#define rpz_ready rpz_ready64
 #define serialize serialize64
 #define set_index set_index64
 #define set_ttl set_ttl64
@@ -678,9 +675,6 @@ struct dns_rbtdb {
 	dns_rbt_t *                     tree;
 	dns_rbt_t *			nsec;
 	dns_rbt_t *			nsec3;
-	dns_rpz_zones_t			*rpzs;
-	dns_rpz_num_t			rpz_num;
-	dns_rpz_zones_t			*load_rpzs;
 
 	/* Unlocked */
 	unsigned int                    quantum;
@@ -1295,19 +1289,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 		dns_stats_detach(&rbtdb->rrsetstats);
 	if (rbtdb->cachestats != NULL)
 		isc_stats_detach(&rbtdb->cachestats);
-
-	if (rbtdb->load_rpzs != NULL) {
-		/*
-		 * We must be cleaning up after a failed zone loading.
-		 */
-		REQUIRE(rbtdb->rpzs != NULL &&
-			rbtdb->rpz_num < rbtdb->rpzs->p.num_zones);
-		dns_rpz_detach_rpzs(&rbtdb->load_rpzs);
-	}
-	if (rbtdb->rpzs != NULL) {
-		REQUIRE(rbtdb->rpz_num < rbtdb->rpzs->p.num_zones);
-		dns_rpz_detach_rpzs(&rbtdb->rpzs);
-	}
 
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
@@ -1924,7 +1905,6 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_result_t result = ISC_R_UNEXPECTED;
-	unsigned int node_has_rpz;
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
 
@@ -1951,11 +1931,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		name = dns_fixedname_name(&fname);
 		dns_rbt_fullnamefromnode(node, name);
 
-		node_has_rpz = node->rpz;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-		if (result == ISC_R_SUCCESS &&
-		    rbtdb->rpzs != NULL && node_has_rpz)
-			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
 		break;
 	case DNS_RBT_NSEC_HAS_NSEC:
 		dns_fixedname_init(&fname);
@@ -1988,11 +1964,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 					      isc_result_totext(result));
 			}
 		}
-		node_has_rpz = node->rpz;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-		if (result == ISC_R_SUCCESS &&
-		    rbtdb->rpzs != NULL && node_has_rpz)
-			dns_rpz_delete(rbtdb->rpzs, rbtdb->rpz_num, name);
 		break;
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
@@ -3009,34 +2981,6 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 		INSIST(node->nsec == DNS_RBT_NSEC_NSEC3);
 
 	reactivate_node(rbtdb, node, locktype);
-
-	/*
-	 * Always try to add the policy zone data, because this node might
-	 * already have been implicitly created by the previous addition of
-	 * a longer domain.  A common example is adding *.example.com
-	 * (implicitly creating example.com) followed by explicitly adding
-	 * example.com.
-	 */
-	if (create && rbtdb->rpzs != NULL && tree == rbtdb->tree) {
-		dns_fixedname_t fnamef;
-		dns_name_t *fname;
-
-		dns_fixedname_init(&fnamef);
-		fname = dns_fixedname_name(&fnamef);
-		dns_rbt_fullnamefromnode(node, fname);
-		result = dns_rpz_add(rbtdb->rpzs, rbtdb->rpz_num, fname);
-		if (result == ISC_R_SUCCESS)
-			node->rpz = 1;
-		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-			/*
-			 * It is too late to give up, so merely complain.
-			 */
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-				      "dns_rpz_add(): %s",
-				      isc_result_totext(result));
-		}
-	}
 
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
@@ -4944,45 +4888,6 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	return (result);
 }
 
-/*
- * Connect this RBTDB to the response policy zone summary data for the view.
- */
-static void
-rpz_attach(dns_db_t *db, dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
-	dns_rbtdb_t * rbtdb;
-
-	rbtdb = (dns_rbtdb_t *)db;
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-	REQUIRE(rbtdb->rpzs == NULL && rbtdb->rpz_num == DNS_RPZ_INVALID_NUM);
-	dns_rpz_attach_rpzs(rpzs, &rbtdb->rpzs);
-	rbtdb->rpz_num = rpz_num;
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-}
-
-/*
- * Enable this RBTDB as a response policy zone.
- */
-static isc_result_t
-rpz_ready(dns_db_t *db) {
-	dns_rbtdb_t * rbtdb;
-	isc_result_t result;
-
-	rbtdb = (dns_rbtdb_t *)db;
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-	if (rbtdb->rpzs == NULL) {
-		INSIST(rbtdb->rpz_num == DNS_RPZ_INVALID_NUM);
-		result = ISC_R_SUCCESS;
-	} else {
-		result = dns_rpz_ready(rbtdb->rpzs, &rbtdb->load_rpzs,
-				       rbtdb->rpz_num);
-	}
-	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-	return (result);
-}
 
 static isc_result_t
 cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
@@ -7127,35 +7032,10 @@ static isc_result_t
 loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	 isc_boolean_t hasnsec)
 {
-	isc_result_t noderesult, rpzresult, nsecresult, tmpresult;
+	isc_result_t noderesult, nsecresult, tmpresult;
 	dns_rbtnode_t *nsecnode = NULL, *node = NULL;
 
 	noderesult = dns_rbt_addnode(rbtdb->tree, name, &node);
-	if (rbtdb->rpzs != NULL &&
-	    (noderesult == ISC_R_SUCCESS || noderesult == ISC_R_EXISTS)) {
-		rpzresult = dns_rpz_add(rbtdb->load_rpzs, rbtdb->rpz_num,
-					name);
-		if (rpzresult == ISC_R_SUCCESS) {
-			node->rpz = 1;
-		} else if (noderesult != ISC_R_EXISTS) {
-			/*
-			 * Remove the node we just added above.
-			 */
-			tmpresult = dns_rbt_deletenode(rbtdb->tree, node,
-						       ISC_FALSE);
-			if (tmpresult != ISC_R_SUCCESS)
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_CACHE,
-					      ISC_LOG_WARNING,
-					      "loading_addrdataset: "
-					      "dns_rbt_deletenode: %s after "
-					      "dns_rbt_addnode(NSEC): %s",
-					      isc_result_totext(tmpresult),
-					      isc_result_totext(ISC_R_SUCCESS));
-			noderesult = rpzresult;
-		}
-	}
 	if (!hasnsec)
 		goto done;
 	if (noderesult == ISC_R_EXISTS) {
@@ -7196,21 +7076,12 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	}
 
 	if (noderesult == ISC_R_SUCCESS) {
-		unsigned int node_has_rpz;
 
 		/*
 		 * Remove the node we just added above.
 		 */
-		node_has_rpz = node->rpz;
 		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
-		if (tmpresult == ISC_R_SUCCESS) {
-			/*
-			 * Clean rpz entries added above.
-			 */
-			if (rbtdb->rpzs != NULL && node_has_rpz)
-				dns_rpz_delete(rbtdb->load_rpzs,
-					       rbtdb->rpz_num, name);
-		} else {
+		if (tmpresult != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx,
 				      DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE,
@@ -7540,18 +7411,6 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 		loadctx->now = 0;
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-
-	if (rbtdb->rpzs != NULL) {
-		isc_result_t result;
-
-		result = dns_rpz_beginload(&rbtdb->load_rpzs,
-					   rbtdb->rpzs, rbtdb->rpz_num);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(rbtdb->common.mctx, loadctx,
-				    sizeof(*loadctx));
-			return (result);
-		}
-	}
 
 	REQUIRE((rbtdb->attributes & (RBTDB_ATTR_LOADED|RBTDB_ATTR_LOADING))
 		== 0);
@@ -8222,8 +8081,8 @@ static dns_dbmethods_t zone_methods = {
 	resigned,
 	isdnssec,
 	NULL,
-	rpz_attach,
-	rpz_ready,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -8545,9 +8404,6 @@ dns_rbtdb_create
 	}
 	rbtdb->attributes = 0;
 	rbtdb->task = NULL;
-	rbtdb->rpzs = NULL;
-	rbtdb->load_rpzs = NULL;
-	rbtdb->rpz_num = DNS_RPZ_INVALID_NUM;
 
 	/*
 	 * Version Initialization.

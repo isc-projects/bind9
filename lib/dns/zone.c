@@ -1752,10 +1752,15 @@ dns_zone_get_rpz_num(dns_zone_t *zone) {
  */
 void
 dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
-	if (zone->rpz_num != DNS_RPZ_INVALID_NUM) {
-		REQUIRE(zone->rpzs != NULL);
-		dns_db_rpz_attach(db, zone->rpzs, zone->rpz_num);
-	}
+	isc_result_t result;
+	if (zone->rpz_num == DNS_RPZ_INVALID_NUM)
+		return;
+	REQUIRE(zone->rpzs != NULL);
+	zone->rpzs->zones[zone->rpz_num]->db_registered = ISC_TRUE;
+	result = dns_db_updatenotify_register(db,
+					      dns_rpz_dbupdate_callback,
+					      zone->rpzs->zones[zone->rpz_num]);
+	REQUIRE(result == ISC_R_SUCCESS);
 }
 
 void
@@ -4619,9 +4624,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
-		result = dns_db_rpz_ready(db);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
 		zone_attachdb(zone, db);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
@@ -14470,10 +14472,6 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	REQUIRE(LOCKED_ZONE(zone));
 	if (inline_raw(zone))
 		REQUIRE(LOCKED_ZONE(zone->secure));
-
-	result = dns_db_rpz_ready(db);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	result = zone_get_from_db(zone, db, &nscount, &soacount,
 				  NULL, NULL, NULL, NULL, NULL, NULL);

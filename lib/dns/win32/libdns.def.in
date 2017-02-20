@@ -960,11 +960,13 @@ dns_rootns_create
 dns_rpz_add
 dns_rpz_attach_rpzs
 dns_rpz_beginload
+dns_rpz_dbupdate_callback
 dns_rpz_decode_cname
 dns_rpz_delete
 dns_rpz_detach_rpzs
 dns_rpz_find_ip
 dns_rpz_find_name
+dns_rpz_new_zone
 dns_rpz_new_zones
 dns_rpz_policy2str
 dns_rpz_ready

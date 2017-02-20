@@ -61,7 +61,9 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
 
 /*%
  * Find a node matching 'key'/'keysize' in hashtable 'ht';
- * if found, set 'value' to its value
+ * if found, set '*valuep' to its value. (If 'valuep' is NULL,
+ * then simply return SUCCESS or NOTFOUND to indicate whether the
+ * key exists in the hashtable.)
  *
  * Requires:
  * \li	'ht' is a valid hashtable

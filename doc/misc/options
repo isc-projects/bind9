@@ -302,10 +302,11 @@ options {
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ policy ( cname | disabled | drop |
-            given | no-op | nodata | nxdomain | passthru | tcp-only
-            <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
-            break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            policy ( cname | disabled | drop | given | no-op | nodata | 
+            nxdomain | passthru | tcp-only <quoted_string> ) ] [
+            recursive-only <boolean> ]; ... } [ break-dnssec <boolean> ] [
+            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
@@ -610,10 +611,11 @@ view <string> [ <class> ] {
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ policy ( cname | disabled | drop |
-            given | no-op | nodata | nxdomain | passthru | tcp-only
-            <quoted_string> ) ] [ recursive-only <boolean> ]; ... } [
-            break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
+            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            policy ( cname | disabled | drop | given | no-op | nodata |
+            nxdomain | passthru | tcp-only | <quoted_string> ) ] [
+            recursive-only <boolean> ]; ... } [ break-dnssec <boolean> ] [
+            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented

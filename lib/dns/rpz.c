@@ -18,14 +18,18 @@
 #include <isc/rwlock.h>
 #include <isc/stdlib.h>
 #include <isc/string.h>
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
+#include <dns/dbiterator.h>
+#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdatasetiter.h>
 #include <dns/result.h>
 #include <dns/rbt.h>
 #include <dns/rpz.h>
@@ -72,6 +76,22 @@
  * 5 labels all of which are numbers, and a prefix between 1 and 32.
  */
 
+/*
+ * Nodes hashtable calculation parameters
+ */
+#define DNS_RPZ_HTSIZE_MAX	24
+#define DNS_RPZ_HTSIZE_DIV	3
+
+/*
+ * Maximum number of nodes to process per quantum
+ */
+#define DNS_RPZ_QUANTUM 1024
+
+static void
+dns_rpz_update_from_db(dns_rpz_zone_t *rpz);
+
+static void
+dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event);
 
 /*
  * Use a private definition of IPv6 addresses because s6_addr32 is not
@@ -1150,7 +1170,8 @@ search(dns_rpz_zones_t *rpzs,
 					 * The node lacked relevant data,
 					 * but will have it now.
 					 */
-					cur->set.client_ip |= tgt_set->client_ip;
+					cur->set.client_ip |=
+						tgt_set->client_ip;
 					cur->set.ip |= tgt_set->ip;
 					cur->set.nsip |= tgt_set->nsip;
 					set_sum_pair(cur);
@@ -1378,54 +1399,576 @@ rpz_node_deleter(void *nm_data, void *mctx) {
  * Get ready for a new set of policy zones.
  */
 isc_result_t
-dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
-	dns_rpz_zones_t *new;
+dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx,
+		  isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr)
+{
+	dns_rpz_zones_t *zones;
 	isc_result_t result;
 
 	REQUIRE(rpzsp != NULL && *rpzsp == NULL);
 
-	*rpzsp = NULL;
-
-	new = isc_mem_get(mctx, sizeof(*new));
-	if (new == NULL)
+	zones = isc_mem_get(mctx, sizeof(*zones));
+	if (zones == NULL)
 		return (ISC_R_NOMEMORY);
-	memset(new, 0, sizeof(*new));
+	memset(zones, 0, sizeof(*zones));
 
-	result = isc_rwlock_init(&new->search_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, new, sizeof(*new));
-		return (result);
-	}
+	result = isc_rwlock_init(&zones->search_lock, 0, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_rwlock;
 
-	result = isc_mutex_init(&new->maint_lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_rwlock_destroy(&new->search_lock);
-		isc_mem_put(mctx, new, sizeof(*new));
-		return (result);
-	}
+	result = isc_mutex_init(&zones->maint_lock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_mutex;
 
-	result = isc_refcount_init(&new->refs, 1);
-	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&new->maint_lock);
-		isc_rwlock_destroy(&new->search_lock);
-		isc_mem_put(mctx, new, sizeof(*new));
-		return (result);
-	}
+	result = isc_refcount_init(&zones->refs, 1);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_refcount;
 
-	result = dns_rbt_create(mctx, rpz_node_deleter, mctx, &new->rbt);
-	if (result != ISC_R_SUCCESS) {
-		isc_refcount_decrement(&new->refs, NULL);
-		isc_refcount_destroy(&new->refs);
-		DESTROYLOCK(&new->maint_lock);
-		isc_rwlock_destroy(&new->search_lock);
-		isc_mem_put(mctx, new, sizeof(*new));
-		return (result);
-	}
+	result = dns_rbt_create(mctx, rpz_node_deleter, mctx, &zones->rbt);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_rbt;
 
-	isc_mem_attach(mctx, &new->mctx);
+	result = isc_task_create(taskmgr, 0, &zones->updater);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_task;
 
-	*rpzsp = new;
+	isc_mem_attach(mctx, &zones->mctx);
+	zones->timermgr = timermgr;
+	zones->taskmgr = taskmgr;
+
+	*rpzsp = zones;
 	return (ISC_R_SUCCESS);
+
+cleanup_task:
+	dns_rbt_destroy(&zones->rbt);
+
+cleanup_rbt:
+	isc_refcount_decrement(&zones->refs, NULL);
+	isc_refcount_destroy(&zones->refs);
+
+cleanup_refcount:
+	DESTROYLOCK(&zones->maint_lock);
+
+cleanup_mutex:
+	isc_rwlock_destroy(&zones->search_lock);
+
+cleanup_rwlock:
+	isc_mem_put(mctx, zones, sizeof(*zones));
+
+	return (result);
+}
+
+isc_result_t
+dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
+	dns_rpz_zone_t *zone;
+	isc_result_t result;
+
+	REQUIRE(rpzp != NULL && *rpzp == NULL);
+	REQUIRE(rpzs != NULL);
+	if (rpzs->p.num_zones >= DNS_RPZ_MAX_ZONES) {
+		return (ISC_R_NOSPACE);
+	}
+
+	zone = isc_mem_get(rpzs->mctx, sizeof(*zone));
+	if (zone == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	memset(zone, 0, sizeof(*zone));
+	result = isc_refcount_init(&zone->refs, 1);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_refcount;
+
+	result = isc_timer_create(rpzs->timermgr, isc_timertype_inactive,
+				  NULL, NULL, rpzs->updater,
+				  dns_rpz_update_taskaction,
+				  zone, &zone->updatetimer);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_timer;
+
+	/*
+	 * This will never be used, but costs us nothing and
+	 * simplifies update_from_db
+	 */
+
+	result = isc_ht_init(&zone->nodes, rpzs->mctx, 1);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_ht;
+
+	dns_name_init(&zone->origin, NULL);
+	dns_name_init(&zone->client_ip, NULL);
+	dns_name_init(&zone->ip, NULL);
+	dns_name_init(&zone->nsdname, NULL);
+	dns_name_init(&zone->nsip, NULL);
+	dns_name_init(&zone->passthru, NULL);
+	dns_name_init(&zone->drop, NULL);
+	dns_name_init(&zone->tcp_only, NULL);
+	dns_name_init(&zone->cname, NULL);
+
+	isc_time_settoepoch(&zone->lastupdated);
+	zone->updatepending = ISC_FALSE;
+	zone->updaterunning = ISC_FALSE;
+	zone->db = NULL;
+	zone->dbversion = NULL;
+	zone->updb = NULL;
+	zone->updbversion = NULL;
+	zone->updbit = NULL;
+	zone->rpzs = rpzs;
+	zone->db_registered = ISC_FALSE;
+
+	zone->num = rpzs->p.num_zones++;
+	rpzs->zones[zone->num] = zone;
+
+	*rpzp = zone;
+
+	return (ISC_R_SUCCESS);
+
+cleanup_ht:
+	isc_timer_detach(&zone->updatetimer);
+
+cleanup_timer:
+	isc_refcount_decrement(&zone->refs, NULL);
+	isc_refcount_destroy(&zone->refs);
+
+cleanup_refcount:
+	isc_mem_put(zone->rpzs->mctx, zone, sizeof(*zone));
+
+	return (result);
+}
+
+isc_result_t
+dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
+	dns_rpz_zone_t *zone = (dns_rpz_zone_t *) fn_arg;
+	isc_time_t now;
+	isc_uint64_t tdiff;
+	isc_result_t result = ISC_R_SUCCESS;
+	char dname[DNS_NAME_FORMATSIZE];
+
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(zone != NULL);
+
+	LOCK(&zone->rpzs->maint_lock);
+	REQUIRE(zone->db_registered);
+
+
+	/* New zone came as AXFR */
+	if (zone->db != NULL && zone->db != db) {
+		/* We need to clean up the old DB */
+		if (zone->dbversion != NULL)
+			dns_db_closeversion(zone->db, &zone->dbversion,
+					    ISC_FALSE);
+		dns_db_updatenotify_unregister(zone->db,
+					       dns_rpz_dbupdate_callback,
+					       zone);
+		dns_db_detach(&zone->db);
+	}
+
+	if (zone->db == NULL) {
+		RUNTIME_CHECK(zone->dbversion == NULL);
+		dns_db_attach(db, &zone->db);
+	}
+
+	if (!zone->updatepending && !zone->updaterunning) {
+		zone->updatepending = ISC_TRUE;
+		isc_time_now(&now);
+		tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
+		if (tdiff < zone->min_update_int) {
+			isc_uint64_t defer = zone->min_update_int - tdiff;
+			isc_interval_t interval;
+			dns_name_format(&zone->origin, dname,
+					DNS_NAME_FORMATSIZE);
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+				      "rpz: %s: new zone version came "
+				      "too soon, deferring update for "
+				      "%llu seconds", dname, defer);
+			isc_interval_set(&interval, defer, 0);
+			dns_db_currentversion(zone->db, &zone->dbversion);
+			result = isc_timer_reset(zone->updatetimer,
+						 isc_timertype_once,
+						 NULL, &interval, ISC_TRUE);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		} else {
+			isc_event_t *event;
+
+			dns_db_currentversion(zone->db, &zone->dbversion);
+			ISC_EVENT_INIT(&zone->updateevent,
+				       sizeof(zone->updateevent), 0, NULL,
+				       DNS_EVENT_RPZUPDATED,
+				       dns_rpz_update_taskaction,
+				       zone, zone, NULL, NULL);
+			event = &zone->updateevent;
+			isc_task_send(zone->rpzs->updater, &event);
+		}
+	} else {
+		zone->updatepending = ISC_TRUE;
+		dns_name_format(&zone->origin, dname, DNS_NAME_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
+			      "rpz: %s: update already queued or running", dname);
+		if (zone->dbversion != NULL)
+			dns_db_closeversion(zone->db, &zone->dbversion,
+					    ISC_FALSE);
+		dns_db_currentversion(zone->db, &zone->dbversion);
+	}
+
+  cleanup:
+	UNLOCK(&zone->rpzs->maint_lock);
+
+	return (result);
+}
+
+static void
+dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	dns_rpz_zone_t *zone;
+
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_arg != NULL);
+
+	UNUSED(task);
+	zone = (dns_rpz_zone_t *) event->ev_arg;
+	LOCK(&zone->rpzs->maint_lock);
+	zone->updatepending = ISC_FALSE;
+	zone->updaterunning = ISC_TRUE;
+	dns_rpz_update_from_db(zone);
+	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
+				 NULL, NULL, ISC_TRUE);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	result = isc_time_now(&zone->lastupdated);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	UNLOCK(&zone->rpzs->maint_lock);
+	isc_event_free(&event);
+}
+
+static isc_result_t
+setup_update(dns_rpz_zone_t *rpz) {
+	isc_result_t result;
+	char domain[DNS_NAME_FORMATSIZE];
+	unsigned int nodecount;
+	uint32_t hashsize;
+
+	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+		      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+		      "rpz: %s: reload start", domain);
+
+	nodecount = dns_db_nodecount(rpz->updb);
+	hashsize = 1;
+	while (nodecount != 0 &&
+	       hashsize <= (DNS_RPZ_HTSIZE_MAX + DNS_RPZ_HTSIZE_DIV))
+	{
+		hashsize++;
+		nodecount >>=1;
+	}
+
+	if (hashsize > DNS_RPZ_HTSIZE_DIV)
+		hashsize -= DNS_RPZ_HTSIZE_DIV;
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "rpz: %s: using hashtable size %d",
+			      domain, hashsize);
+
+	result = isc_ht_init(&rpz->newnodes, rpz->rpzs->mctx, hashsize);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "rpz: %s: failed to initialize hashtable - %s",
+			      domain, isc_result_totext(result));
+		goto cleanup;
+	}
+
+	result = dns_db_createiterator(rpz->updb, DNS_DB_NONSEC3, &rpz->updbit);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "rpz: %s: failed to create DB iterator - %s",
+			      domain, isc_result_totext(result));
+		goto cleanup;
+	}
+
+	result = dns_dbiterator_first(rpz->updbit);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "rpz: %s: failed to get db iterator - %s",
+			      domain, isc_result_totext(result));
+		goto cleanup;
+	}
+
+ cleanup:
+	if (result != ISC_R_SUCCESS) {
+		if (rpz->updbit != NULL)
+			dns_dbiterator_destroy(&rpz->updbit);
+		if (rpz->newnodes != NULL)
+			isc_ht_destroy(&rpz->newnodes);
+		dns_db_closeversion(rpz->updb, &rpz->updbversion, ISC_FALSE);
+	}
+
+	return (result);
+}
+
+static void
+finish_update(dns_rpz_zone_t *rpz) {
+	isc_result_t result;
+	isc_ht_t *tmpht = NULL;
+	isc_ht_iter_t *iter = NULL;
+	dns_fixedname_t fname;
+	char dname[DNS_NAME_FORMATSIZE];
+	dns_name_t *name;
+
+	/*
+	 * Iterate over old ht with existing nodes deleted to delete
+	 * deleted nodes from RPZ
+	 */
+	result = isc_ht_iter_create(rpz->nodes, &iter);
+	if (result != ISC_R_SUCCESS) {
+		char domain[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "rpz: %s: failed to create HT iterator - %s",
+			      domain, isc_result_totext(result));
+		goto cleanup;
+	}
+
+	dns_fixedname_init(&fname);
+	name = dns_fixedname_name(&fname);
+
+	for (result = isc_ht_iter_first(iter);
+	     result == ISC_R_SUCCESS;
+	     result = isc_ht_iter_delcurrent_next(iter))
+	{
+		isc_region_t region;
+		unsigned char *key;
+		size_t keysize;
+
+		isc_ht_iter_currentkey(iter, &key, &keysize);
+		region.base = key;
+		region.length = keysize;
+		dns_name_fromregion(name, &region);
+		dns_rpz_delete(rpz->rpzs, rpz->num, name);
+	}
+
+	tmpht = rpz->nodes;
+	rpz->nodes = rpz->newnodes;
+	rpz->newnodes = tmpht;
+
+	LOCK(&rpz->rpzs->maint_lock);
+	rpz->updaterunning = ISC_FALSE;
+	/*
+	 * If there's an update pending schedule it
+	 */
+	if (rpz->updatepending == ISC_TRUE) {
+		isc_uint64_t defer = rpz->min_update_int;
+		isc_interval_t interval;
+		dns_name_format(&rpz->origin, dname,
+				DNS_NAME_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "rpz: %s: new zone version came "
+			      "too soon, deferring update for "
+			      "%llu seconds", dname, defer);
+		isc_interval_set(&interval, defer, 0);
+		result = isc_timer_reset(rpz->updatetimer,
+					 isc_timertype_once,
+					 NULL, &interval, ISC_TRUE);
+	}
+	UNLOCK(&rpz->rpzs->maint_lock);
+
+cleanup:
+	if (iter != NULL)
+		isc_ht_iter_destroy(&iter);
+}
+
+static void
+update_quantum(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dbnode_t *node = NULL;
+	dns_rpz_zone_t *rpz;
+	char domain[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixname;
+	dns_name_t *name;
+	int count = 0;
+
+	UNUSED(task);
+
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_arg != NULL);
+
+	rpz = (dns_rpz_zone_t *) event->ev_arg;
+	isc_event_free(&event);
+
+	REQUIRE(rpz->updbit != NULL);
+	REQUIRE(rpz->newnodes != NULL);
+
+	dns_fixedname_init(&fixname);
+	name = dns_fixedname_name(&fixname);
+
+	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
+
+	while (result == ISC_R_SUCCESS && count++ < DNS_RPZ_QUANTUM) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_rdatasetiter_t *rdsiter = NULL;
+
+		result = dns_dbiterator_current(rpz->updbit, &node, name);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      "rpz: %s: failed to get dbiterator - %s",
+				      domain, isc_result_totext(result));
+			dns_db_detachnode(rpz->updb, &node);
+			break;
+		}
+
+		result = dns_db_allrdatasets(rpz->updb, node, rpz->updbversion, 0,
+					     &rdsiter);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      "rpz: %s: failed to fetch "
+				      "rrdatasets - %s",
+				      domain, isc_result_totext(result));
+			dns_db_detachnode(rpz->updb, &node);
+			break;
+		}
+
+		result = dns_rdatasetiter_first(rdsiter);
+		dns_rdatasetiter_destroy(&rdsiter);
+		if (result != ISC_R_SUCCESS) { /* empty non-terminal */
+			if (result != ISC_R_NOMORE)
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      "rpz: %s: error %s while creating "
+				      "rdatasetiter",
+				      domain, isc_result_totext(result));
+			dns_db_detachnode(rpz->updb, &node);
+			result = dns_dbiterator_next(rpz->updbit);
+			continue;
+		}
+
+		result = isc_ht_add(rpz->newnodes, name->ndata,
+				    name->length, rpz);
+		if (result != ISC_R_SUCCESS) {
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      "rpz: %s, adding node %s to HT error %s",
+				      domain, namebuf,
+				      isc_result_totext(result));
+			dns_db_detachnode(rpz->updb, &node);
+			result = dns_dbiterator_next(rpz->updbit);
+			continue;
+		}
+
+		result = isc_ht_find(rpz->nodes, name->ndata,
+				     name->length, NULL);
+		if (result == ISC_R_SUCCESS) {
+			isc_ht_delete(rpz->nodes, name->ndata, name->length);
+		} else { /* not found */
+			result = dns_rpz_add(rpz->rpzs, rpz->num, name);
+			if (result != ISC_R_SUCCESS) {
+				dns_name_format(name, namebuf, sizeof(namebuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_ERROR,
+					      "rpz: %s: adding node %s "
+					      "to RPZ error %s",
+					      domain, namebuf,
+					      isc_result_totext(result));
+			} else {
+				dns_name_format(name, namebuf, sizeof(namebuf));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_MASTER,
+					      ISC_LOG_DEBUG(3),
+					      "rpz: %s: adding node %s",
+					      domain, namebuf);
+			}
+		}
+
+		dns_db_detachnode(rpz->updb, &node);
+		result = dns_dbiterator_next(rpz->updbit);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		isc_event_t *nevent;
+		/*
+		 * Pause the iterator so that the DB is not locked
+		 */
+		dns_dbiterator_pause(rpz->updbit);
+		/*
+		 * We finished a quantum; trigger the next one and return
+		 */
+		ISC_EVENT_INIT(&rpz->updateevent,
+			       sizeof(rpz->updateevent), 0, NULL,
+			       DNS_EVENT_RPZUPDATED,
+			       update_quantum,
+			       rpz, rpz, NULL, NULL);
+		nevent = &rpz->updateevent;
+		isc_task_send(rpz->rpzs->updater, &nevent);
+		return;
+	} else if (result == ISC_R_NOMORE) {
+		/*
+		 * All done.
+		 */
+		finish_update(rpz);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "rpz: %s: reload done", domain);
+	}
+
+	/*
+	 * If we're here, we've either finished or something went wrong,
+	 * so clean up.
+	 */
+	if (rpz->updbit != NULL)
+		dns_dbiterator_destroy(&rpz->updbit);
+	if (rpz->newnodes != NULL)
+		isc_ht_destroy(&rpz->newnodes);
+	dns_db_closeversion(rpz->updb, &rpz->updbversion, ISC_FALSE);
+	dns_db_detach(&rpz->updb);
+}
+
+static void
+dns_rpz_update_from_db(dns_rpz_zone_t *rpz) {
+	isc_result_t result;
+	isc_event_t *event;
+
+	REQUIRE(rpz != NULL);
+	REQUIRE(DNS_DB_VALID(rpz->db));
+	REQUIRE(rpz->updb == NULL);
+	REQUIRE(rpz->updbversion == NULL);
+	REQUIRE(rpz->updbit == NULL);
+	REQUIRE(rpz->newnodes == NULL);
+
+	dns_db_attach(rpz->db, &rpz->updb);
+	rpz->updbversion = rpz->dbversion;
+	rpz->dbversion = NULL;
+
+	result = setup_update(rpz);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	event = &rpz->updateevent;
+	ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent),
+		       0, NULL, DNS_EVENT_RPZUPDATED,
+		       update_quantum, rpz, rpz, NULL, NULL);
+	isc_task_send(rpz->rpzs->updater, &event);
+	return;
+
+ cleanup:
+	if (rpz->updbit != NULL)
+		dns_dbiterator_destroy(&rpz->updbit);
+	if (rpz->newnodes != NULL)
+		isc_ht_destroy(&rpz->newnodes);
+	dns_db_closeversion(rpz->updb, &rpz->updbversion, ISC_FALSE);
+	dns_db_detach(&rpz->updb);
 }
 
 /*
@@ -1494,6 +2037,16 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 		dns_name_free(&rpz->tcp_only, rpzs->mctx);
 	if (dns_name_dynamic(&rpz->cname))
 		dns_name_free(&rpz->cname, rpzs->mctx);
+	if (rpz->db_registered)
+		dns_db_updatenotify_unregister(rpz->db,
+					       dns_rpz_dbupdate_callback, rpz);
+	if (rpz->dbversion != NULL)
+		dns_db_closeversion(rpz->db, &rpz->dbversion,
+				    ISC_FALSE);
+	if (rpz->db)
+		dns_db_detach(&rpz->db);
+	isc_ht_destroy(&rpz->nodes);
+	isc_timer_detach(&rpz->updatetimer);
 
 	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 }
@@ -1538,345 +2091,37 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		DESTROYLOCK(&rpzs->maint_lock);
 		isc_rwlock_destroy(&rpzs->search_lock);
 		isc_refcount_destroy(&rpzs->refs);
+		isc_task_destroy(&rpzs->updater);
 		isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 	}
 }
 
 /*
- * Create empty summary database to load one zone.
- * The RBTDB write tree lock must be held.
+ * Deprecated and removed.
  */
 isc_result_t
 dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 		  dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num)
 {
-	dns_rpz_zones_t *load_rpzs;
-	dns_rpz_zone_t *rpz;
-	dns_rpz_zbits_t tgt;
-	isc_result_t result;
+	UNUSED(load_rpzsp);
+	UNUSED(rpzs);
+	UNUSED(rpz_num);
 
-	REQUIRE(rpz_num < rpzs->p.num_zones);
-	rpz = rpzs->zones[rpz_num];
-	REQUIRE(rpz != NULL);
-
-	/*
-	 * When reloading a zone, there are usually records among the summary
-	 * data for the zone.  Some of those records might be deleted by the
-	 * reloaded zone data.  To deal with that case:
-	 *    reload the new zone data into a new blank summary database
-	 *    if the reload fails, discard the new summary database
-	 *    if the new zone data is acceptable, copy the records for the
-	 *	other zones into the new summary CIDR and RBT databases
-	 *	and replace the old summary databases with the new, and
-	 *	correct the triggers and have values for the updated
-	 *	zone.
-	 *
-	 * At the first attempt to load a zone, there is no summary data
-	 * for the zone and so no records that need to be deleted.
-	 * This is also the most common case of policy zone loading.
-	 * Most policy zone maintenance should be by incremental changes
-	 * and so by the addition and deletion of individual records.
-	 * Detect that case and load records the first time into the
-	 * operational summary database
-	 */
-	tgt = DNS_RPZ_ZBIT(rpz_num);
-	LOCK(&rpzs->maint_lock);
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-	if ((rpzs->load_begun & tgt) == 0) {
-		/*
-		 * There is no existing version of the target zone.
-		 */
-		rpzs->load_begun |= tgt;
-		dns_rpz_attach_rpzs(rpzs, load_rpzsp);
-	} else {
-		/*
-		 * Setup the new RPZ struct with empty summary trees.
-		 */
-		result = dns_rpz_new_zones(load_rpzsp, rpzs->mctx);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		load_rpzs = *load_rpzsp;
-		/*
-		 * Initialize some members so that dns_rpz_add() works.
-		 */
-		load_rpzs->p.num_zones = rpzs->p.num_zones;
-		memset(&load_rpzs->triggers, 0, sizeof(load_rpzs->triggers));
-		load_rpzs->zones[rpz_num] = rpz;
-		isc_refcount_increment(&rpz->refs, NULL);
-	}
-
-	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-	UNLOCK(&rpzs->maint_lock);
-
-	return (ISC_R_SUCCESS);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /*
- * This function updates "have" bits and also the qname_skip_recurse
- * mask. It must be called when holding a write lock on rpzs->search_lock.
- */
-static void
-fix_triggers(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num) {
-	dns_rpz_num_t n;
-	dns_rpz_triggers_t old_totals;
-	dns_rpz_zbits_t zbit;
-	char namebuf[DNS_NAME_FORMATSIZE];
-
-	/*
-	 * rpzs->total_triggers is only used to log a message below.
-	 */
-
-	memmove(&old_totals, &rpzs->total_triggers, sizeof(old_totals));
-	memset(&rpzs->total_triggers, 0, sizeof(rpzs->total_triggers));
-
-#define SET_TRIG(n, zbit, type)						\
-	if (rpzs->triggers[n].type == 0U) {				\
-		rpzs->have.type &= ~zbit;				\
-	} else {							\
-		rpzs->total_triggers.type += rpzs->triggers[n].type;	\
-		rpzs->have.type |= zbit;				\
-	}
-
-	for (n = 0; n < rpzs->p.num_zones; ++n) {
-		zbit = DNS_RPZ_ZBIT(n);
-		SET_TRIG(n, zbit, client_ipv4);
-		SET_TRIG(n, zbit, client_ipv6);
-		SET_TRIG(n, zbit, qname);
-		SET_TRIG(n, zbit, ipv4);
-		SET_TRIG(n, zbit, ipv6);
-		SET_TRIG(n, zbit, nsdname);
-		SET_TRIG(n, zbit, nsipv4);
-		SET_TRIG(n, zbit, nsipv6);
-	}
-
-#undef SET_TRIG
-
-	fix_qname_skip_recurse(rpzs);
-
-	dns_name_format(&rpzs->zones[rpz_num]->origin,
-			namebuf, sizeof(namebuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-		      DNS_LOGMODULE_RBTDB, DNS_RPZ_INFO_LEVEL,
-		      "(re)loading policy zone '%s' changed from"
-		      " %lu to %lu qname, %lu to %lu nsdname,"
-		      " %lu to %lu IP, %lu to %lu NSIP,"
-		      " %lu to %lu CLIENTIP entries",
-		      namebuf,
-		      (unsigned long) old_totals.qname,
-		      (unsigned long) rpzs->total_triggers.qname,
-		      (unsigned long) old_totals.nsdname,
-		      (unsigned long) rpzs->total_triggers.nsdname,
-		      (unsigned long) old_totals.ipv4 + old_totals.ipv6,
-		      (unsigned long) (rpzs->total_triggers.ipv4 +
-				       rpzs->total_triggers.ipv6),
-		      (unsigned long) old_totals.nsipv4 + old_totals.nsipv6,
-		      (unsigned long) (rpzs->total_triggers.nsipv4 +
-				       rpzs->total_triggers.nsipv6),
-		      (unsigned long) old_totals.client_ipv4 +
-				      old_totals.client_ipv6,
-		      (unsigned long) (rpzs->total_triggers.client_ipv4 +
-				       rpzs->total_triggers.client_ipv6));
-}
-
-/*
- * Finish loading one zone. This function is called during a commit when
- * a RPZ zone loading is complete.  The RBTDB write tree lock must be
- * held.
- *
- * Here, rpzs is a pointer to the view's common rpzs
- * structure. *load_rpzsp is a rpzs structure that is local to the
- * RBTDB, which is used during a single zone's load.
- *
- * During the zone load, i.e., between dns_rpz_beginload() and
- * dns_rpz_ready(), only the zone that is being loaded updates
- * *load_rpzsp. These updates in the summary databases inside load_rpzsp
- * are made only for the rpz_num (and corresponding bit) of that
- * zone. Nothing else reads or writes *load_rpzsp. The view's common
- * rpzs is used during this time for queries.
- *
- * When zone loading is complete and we arrive here, the parts of the
- * summary databases (CIDR and nsdname+qname RBT trees) from the view's
- * common rpzs struct have to be merged into the summary databases of
- * *load_rpzsp, as the summary databases of the view's common rpzs
- * struct may have changed during the time the zone was being loaded.
- *
- * The function below carries out the merge. During the merge, it holds
- * the maint_lock of the view's common rpzs struct so that it is not
- * updated while the merging is taking place.
- *
- * After the merging is carried out, *load_rpzsp contains the most
- * current state of the rpzs structure, i.e., the summary trees contain
- * data for the new zone that was just loaded, as well as all other
- * zones.
- *
- * Pointers to the summary databases of *load_rpzsp (CIDR and
- * nsdname+qname RBT trees) are then swapped into the view's common rpz
- * struct, so that the query path can continue using it. During the
- * swap, the search_lock of the view's common rpz struct is acquired so
- * that queries are paused while this swap occurs.
- *
- * The trigger counts for the new zone are also copied into the view's
- * common rpz struct, and some other summary counts and masks are
- * updated.
+ * Deprecated and removed.
  */
 isc_result_t
 dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	      dns_rpz_zones_t **load_rpzsp, dns_rpz_num_t rpz_num)
 {
-	dns_rpz_zones_t *load_rpzs;
-	const dns_rpz_cidr_node_t *cnode, *next_cnode, *parent_cnode;
-	dns_rpz_cidr_node_t *found;
-	dns_rpz_zbits_t new_bit;
-	dns_rpz_addr_zbits_t new_ip;
-	dns_rbt_t *rbt;
-	dns_rbtnodechain_t chain;
-	dns_rbtnode_t *nmnode;
-	dns_rpz_nm_data_t *nm_data, new_data;
-	dns_fixedname_t labelf, originf, namef;
-	dns_name_t *label, *origin, *name;
-	isc_result_t result;
+	UNUSED(rpzs);
+	UNUSED(load_rpzsp);
+	UNUSED(rpz_num);
 
-	INSIST(rpzs != NULL);
-	LOCK(&rpzs->maint_lock);
-	load_rpzs = *load_rpzsp;
-	INSIST(load_rpzs != NULL);
-
-	if (load_rpzs == rpzs) {
-		/*
-		 * This is a successful initial zone loading, perhaps
-		 * for a new instance of a view.
-		 */
-		RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-		fix_triggers(rpzs, rpz_num);
-		RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-		UNLOCK(&rpzs->maint_lock);
-		dns_rpz_detach_rpzs(load_rpzsp);
-		return (ISC_R_SUCCESS);
-	}
-
-	LOCK(&load_rpzs->maint_lock);
-	RWLOCK(&load_rpzs->search_lock, isc_rwlocktype_write);
-
-	/*
-	 * Unless there is only one policy zone, copy the other policy zones
-	 * from the old policy structure to the new summary databases.
-	 */
-	if (rpzs->p.num_zones > 1) {
-		new_bit = ~DNS_RPZ_ZBIT(rpz_num);
-
-		/*
-		 * Copy to the radix tree.
-		 */
-		for (cnode = rpzs->cidr; cnode != NULL; cnode = next_cnode) {
-			new_ip.ip = cnode->set.ip & new_bit;
-			new_ip.client_ip = cnode->set.client_ip & new_bit;
-			new_ip.nsip = cnode->set.nsip & new_bit;
-			if (new_ip.client_ip != 0 ||
-			    new_ip.ip != 0 ||
-			    new_ip.nsip != 0) {
-				result = search(load_rpzs,
-						&cnode->ip, cnode->prefix,
-						&new_ip, ISC_TRUE, &found);
-				if (result == ISC_R_NOMEMORY)
-					goto unlock_and_detach;
-				INSIST(result == ISC_R_SUCCESS);
-			}
-			/*
-			 * Do down and to the left as far as possible.
-			 */
-			next_cnode = cnode->child[0];
-			if (next_cnode != NULL)
-				continue;
-			/*
-			 * Go up until we find a branch to the right where
-			 * we previously took the branch to the left.
-			 */
-			for (;;) {
-				parent_cnode = cnode->parent;
-				if (parent_cnode == NULL)
-					break;
-				if (parent_cnode->child[0] == cnode) {
-					next_cnode = parent_cnode->child[1];
-					if (next_cnode != NULL)
-					    break;
-				}
-				cnode = parent_cnode;
-			}
-		}
-
-		/*
-		 * Copy to the summary RBT.
-		 */
-		dns_fixedname_init(&namef);
-		name = dns_fixedname_name(&namef);
-		dns_fixedname_init(&labelf);
-		label = dns_fixedname_name(&labelf);
-		dns_fixedname_init(&originf);
-		origin = dns_fixedname_name(&originf);
-		dns_rbtnodechain_init(&chain, NULL);
-		result = dns_rbtnodechain_first(&chain, rpzs->rbt, NULL, NULL);
-		while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-			result = dns_rbtnodechain_current(&chain, label, origin,
-							&nmnode);
-			INSIST(result == ISC_R_SUCCESS);
-			nm_data = nmnode->data;
-			if (nm_data != NULL) {
-				new_data.set.qname = (nm_data->set.qname &
-						      new_bit);
-				new_data.set.ns = nm_data->set.ns & new_bit;
-				new_data.wild.qname = (nm_data->wild.qname &
-						       new_bit);
-				new_data.wild.ns = nm_data->wild.ns & new_bit;
-				if (new_data.set.qname != 0 ||
-				    new_data.set.ns != 0 ||
-				    new_data.wild.qname != 0 ||
-				    new_data.wild.ns != 0) {
-					result = dns_name_concatenate(label,
-							origin, name, NULL);
-					INSIST(result == ISC_R_SUCCESS);
-					result = add_nm(load_rpzs, name,
-							&new_data);
-					if (result != ISC_R_SUCCESS)
-						goto unlock_and_detach;
-				}
-			}
-			result = dns_rbtnodechain_next(&chain, NULL, NULL);
-		}
-		if (result != ISC_R_NOMORE && result != ISC_R_NOTFOUND) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
-				      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
-				      "dns_rpz_ready(): unexpected %s",
-				      isc_result_totext(result));
-			goto unlock_and_detach;
-		}
-	}
-
-	/*
-	 * Exchange the summary databases.
-	 */
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-
-	rpzs->triggers[rpz_num] = load_rpzs->triggers[rpz_num];
-	fix_triggers(rpzs, rpz_num);
-
-	found = rpzs->cidr;
-	rpzs->cidr = load_rpzs->cidr;
-	load_rpzs->cidr = found;
-
-	rbt = rpzs->rbt;
-	rpzs->rbt = load_rpzs->rbt;
-	load_rpzs->rbt = rbt;
-
-	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-
-	result = ISC_R_SUCCESS;
-
- unlock_and_detach:
-	UNLOCK(&rpzs->maint_lock);
-	RWUNLOCK(&load_rpzs->search_lock, isc_rwlocktype_write);
-	UNLOCK(&load_rpzs->maint_lock);
-	dns_rpz_detach_rpzs(load_rpzsp);
-	return (result);
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /*
@@ -1893,11 +2138,10 @@ dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	REQUIRE(rpzs != NULL && rpz_num < rpzs->p.num_zones);
 	rpz = rpzs->zones[rpz_num];
 	REQUIRE(rpz != NULL);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	rpz_type = type_from_name(rpz, src_name);
 
-	LOCK(&rpzs->maint_lock);
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
@@ -1912,9 +2156,8 @@ dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	case DNS_RPZ_TYPE_BAD:
 		break;
 	}
-
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-	UNLOCK(&rpzs->maint_lock);
+
 	return (result);
 }
 
@@ -1966,7 +2209,8 @@ del_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	tgt->set.nsip &= ~tgt_set.nsip;
 	set_sum_pair(tgt);
 
-	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix, ISC_FALSE);
+	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix,
+			ISC_FALSE);
 
 	/*
 	 * We might need to delete 2 nodes.
@@ -2071,7 +2315,8 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		result = dns_rbt_deletenode(rpzs->rbt, nmnode, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			/*
-			 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
+			 * bin/tests/system/rpz/tests.sh looks for
+			 * "rpz.*failed".
 			 */
 			dns_name_format(src_name, namebuf, sizeof(namebuf));
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
@@ -2098,10 +2343,9 @@ dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	rpz = rpzs->zones[rpz_num];
 	REQUIRE(rpz != NULL);
 
-	rpz_type = type_from_name(rpz, src_name);
-
-	LOCK(&rpzs->maint_lock);
 	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
+
+	rpz_type = type_from_name(rpz, src_name);
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
@@ -2118,7 +2362,6 @@ dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	}
 
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-	UNLOCK(&rpzs->maint_lock);
 }
 
 /*
@@ -2142,9 +2385,9 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	dns_rpz_have_t have;
 	int i;
 
-	LOCK(&rpzs->maint_lock);
+	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	have = rpzs->have;
-	UNLOCK(&rpzs->maint_lock);
+	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
 	/*
 	 * Convert IP address to CIDR tree key.
