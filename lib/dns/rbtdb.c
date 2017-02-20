@@ -6659,8 +6659,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 		if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 			newheader->attributes |= RDATASET_ATTR_RESIGN;
-			newheader->resign =
-				    dns_time64_from32(rdataset->resign) >> 1;
+			newheader->resign = (isc_stdtime_t)
+				(dns_time64_from32(rdataset->resign) >> 1);
 			newheader->resign_lsb = rdataset->resign & 0x1;
 		} else {
 			newheader->resign = 0;
@@ -6848,7 +6848,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->node = rbtnode;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		newheader->attributes |= RDATASET_ATTR_RESIGN;
-		newheader->resign = dns_time64_from32(rdataset->resign) >> 1;
+		newheader->resign = (isc_stdtime_t)
+			(dns_time64_from32(rdataset->resign) >> 1);
 		newheader->resign_lsb = rdataset->resign & 0x1;
 	} else {
 		newheader->resign = 0;
@@ -7269,7 +7270,8 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->node = node;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 		newheader->attributes |= RDATASET_ATTR_RESIGN;
-		newheader->resign = dns_time64_from32(rdataset->resign) >> 1;
+		newheader->resign = (isc_stdtime_t)
+			(dns_time64_from32(rdataset->resign) >> 1);
 		newheader->resign_lsb = rdataset->resign & 0x1;
 	} else {
 		newheader->resign = 0;
@@ -7968,7 +7970,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		  isc_rwlocktype_write);
 
 	oldresign = header->resign;
-	header->resign = dns_time64_from32(resign) >> 1;
+	header->resign = (isc_stdtime_t)(dns_time64_from32(resign) >> 1);
 	header->resign_lsb = resign & 0x1;
 	if (header->heap_index != 0) {
 		INSIST(RESIGN(header));
