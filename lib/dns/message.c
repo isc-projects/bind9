@@ -3285,9 +3285,10 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 #define INDENT(sp) \
 	do { \
-		unsigned int __i, __flags = dns_master_styleflags(sp); \
-		if ((__flags & DNS_STYLEFLAG_INDENT) == 0 && \
-		    (__flags & DNS_STYLEFLAG_YAML) == 0) \
+		unsigned int __i; \
+		dns_masterstyle_flags_t  __flags = dns_master_styleflags(sp); \
+		if ((__flags & DNS_STYLEFLAG_INDENT) == 0ULL && \
+		    (__flags & DNS_STYLEFLAG_YAML) == 0ULL) \
 			break; \
 		for (__i = 0; __i < dns_master_indent; __i++) { \
 			ADD_STRING(target, dns_master_indentstr); \
