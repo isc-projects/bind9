@@ -586,6 +586,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 			RETERR(dns_rdata_tofmttext(&rdata,
 						   ctx->origin,
+						   (unsigned int)
 						   ctx->style.flags,
 						   ctx->style.line_length -
 						       ctx->style.rdata_column,
