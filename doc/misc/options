@@ -303,7 +303,7 @@ options {
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
             max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
-            policy ( cname | disabled | drop | given | no-op | nodata | 
+            policy ( cname | disabled | drop | given | no-op | nodata |
             nxdomain | passthru | tcp-only <quoted_string> ) ] [
             recursive-only <boolean> ]; ... } [ break-dnssec <boolean> ] [
             max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
@@ -613,7 +613,7 @@ view <string> [ <class> ] {
         response-policy { zone <quoted_string> [ log <boolean> ] [
             max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
             policy ( cname | disabled | drop | given | no-op | nodata |
-            nxdomain | passthru | tcp-only | <quoted_string> ) ] [
+            nxdomain | passthru | tcp-only <quoted_string> ) ] [
             recursive-only <boolean> ]; ... } [ break-dnssec <boolean> ] [
             max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [

@@ -241,6 +241,19 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  The Response Policy Zone (RPZ) implementation has been
+	  substantially refactored: updates to the RPZ summary
+	  database are no longer directly performed by the zone
+	  database but by a separate function that is called when
+	  a policy zone is updated.  This improves both performance
+	  and reliability when policy zones receive frequent updates.
+	  Summary database updates can be rate-limited by using the
+	  <span class="command"><strong>min-update-interval</strong></span> option in a
+	  <span class="command"><strong>response-policy</strong></span> statement. [RT #43449]
+	</p>
+      </li>
+<li class="listitem">
+        <p>
 	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
 	  addresses for all messages, instead of only the remote address.
 	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
