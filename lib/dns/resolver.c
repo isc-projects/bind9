@@ -8677,7 +8677,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 no_response, ISC_FALSE);
 
 #ifdef ENABLE_AFL
-	if (fuzzing_resolver && (keep_trying || resend)) {
+	if (fuzzing_resolver && (keep_trying || resend || nextitem)) {
+		if (nextitem) {
+			fctx_cancelquery(&query, &devent, finish,
+					 no_response, ISC_FALSE);
+		}
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		return;
 	} else

@@ -1,3 +1,6 @@
+4577.	[func]		Make qtype of resolver fuzzing packet configurable
+			via command line. [RT #43540]
+
 4576.	[func]		The RPZ implementation has been substantially
 			refactored for improved performance and reliability.
 			[RT #43449]

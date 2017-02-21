@@ -136,7 +136,7 @@ fuzz_main_client(void *arg) {
 
 static void *
 fuzz_main_resolver(void *arg) {
-	char *shost, *sport, *rhost, *rport;
+	char *sqtype, *shost, *sport, *rhost, *rport;
 	/* Query for A? aaaaaaaaaa.example. */
 	char respacket[] =
 		 "\0\0\1 \0\1\0\0\0\0\0\0\naaaaaaaaaa\7example\0\0\1\0\1";
@@ -144,17 +144,21 @@ fuzz_main_resolver(void *arg) {
 	int sockfd;
 	int listenfd;
 	int loop;
+	isc_uint16_t qtype;
 	char *buf, *rbuf;
 
 	UNUSED(arg);
 
 	/*
-	 * Parse named -A argument in the "laddress:sport:raddress:rport"
+	 * Parse named -A argument in the "qtype:laddress:sport:raddress:rport"
 	 * syntax.  Due to the syntax used, this only supports IPv4 addresses.
 	 */
-
-	shost = strdup(ns_g_fuzz_named_addr);
+	sqtype = strdup(ns_g_fuzz_named_addr);
+	RUNTIME_CHECK(sqtype != NULL);
+	shost = strchr(sqtype, ':');
 	RUNTIME_CHECK(shost != NULL);
+	*shost = 0;
+	shost++;
 	sport = strchr(shost, ':');
 	RUNTIME_CHECK(sport != NULL);
 	*sport = 0;
@@ -168,6 +172,10 @@ fuzz_main_resolver(void *arg) {
 	*rport = 0;
 	rport++;
 
+	qtype = atoi(sqtype);
+	respacket[32] = (qtype >> 8) & 0xff;
+	respacket[33] = qtype & 0xff;
+
 	memset(&servaddr, 0, sizeof (servaddr));
 	servaddr.sin_family = AF_INET;
 	RUNTIME_CHECK(inet_pton(AF_INET, shost, &servaddr.sin_addr) == 1);
@@ -178,7 +186,7 @@ fuzz_main_resolver(void *arg) {
 	RUNTIME_CHECK(inet_pton(AF_INET, rhost, &recaddr.sin_addr) == 1);
 	recaddr.sin_port = htons(atoi(rport));
 
-	free(shost);
+	free(sqtype);
 
 	/* Wait for named to start */
 	while (!ns_g_run_done) {
@@ -251,6 +259,14 @@ fuzz_main_resolver(void *arg) {
 		buf[0] = rbuf[0];
 		buf[1] = rbuf[1];
 		buf[2] |= 0x80;
+
+		/*
+		 * A hack - set QTYPE to the one from query so that we can easily
+		 * share packets between instances. If we write over something else
+		 * we'll get FORMERR anyway.
+		 */
+		buf[32] = (qtype >> 8) & 0xff;
+		buf[33] = qtype & 0xff;
 
 		sent = sendto(listenfd, buf, length, 0,
 			      (struct sockaddr *) &recvaddr, sizeof(recvaddr));
