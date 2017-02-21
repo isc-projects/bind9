@@ -1647,7 +1647,7 @@ setup_update(dns_rpz_zone_t *rpz) {
 	isc_result_t result;
 	char domain[DNS_NAME_FORMATSIZE];
 	unsigned int nodecount;
-	uint32_t hashsize;
+	isc_uint32_t hashsize;
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
