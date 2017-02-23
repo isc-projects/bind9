@@ -53,8 +53,8 @@ BIND 9
 
 BIND 9.11.0-P4
 
-	This version contains a fix for CVE-2017-3136, and updates
-	the built in trusted keys for the root zone.
+	This version contains fixes for CVE-2017-3136 and CVE-2017-3137,
+	and updates the built in trusted keys for the root zone.
 
 BIND 9.11.0-P3
 
@@ -88,9 +88,9 @@ BIND 9.11.0
 	  from an external database, developed by Red Hat for the FreeIPA
 	  project.
 	- "fetchlimit" quotas are now compiled in by default.  These
-          are for the use of recursive resolvers that are are under
-          high query load for domains whose authoritative servers are
-          nonresponsive or are experiencing a denial of service attack:
+	  are for the use of recursive resolvers that are are under
+	  high query load for domains whose authoritative servers are
+	  nonresponsive or are experiencing a denial of service attack:
 	  + "fetches-per-server" limits the number of simultaneous queries
 	    that can be sent to any single authoritative server.  The
 	    configured value is a starting point; it is automatically
