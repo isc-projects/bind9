@@ -1,3 +1,7 @@
+4578.	[security]	Some chaining (CNAME or DNAME) responses to upstream
+			queries could trigger assertion failures.
+			(CVE-2017-3137) [RT #44734]
+
 4577.	[func]		Make qtype of resolver fuzzing packet configurable
 			via command line. [RT #43540]
 
