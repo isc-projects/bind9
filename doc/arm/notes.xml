@@ -71,9 +71,16 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
+	  queries could trigger assertion failures. This flaw is disclosed
+	  in CVE-2017-3137. [RT #44734]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>dns64</command> with <command>break-dnssec yes;</command>
 	  can result in an assertion failure. This flaw is disclosed in
-	  CVE-2017-3136.[RT #44653]
+	  CVE-2017-3136. [RT #44653]
 	</para>
       </listitem>
       <listitem>
