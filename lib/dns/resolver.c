@@ -6661,15 +6661,15 @@ answer_response(fetchctx_t *fctx) {
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_answer;
-					if (chaining == 0) {
+					if (external) {
 						/*
-						 * This data is "the" answer
-						 * to our question only if
-						 * we're not chaining (i.e.
-						 * if we haven't followed
-						 * a CNAME or DNAME).
+						 * This data is outside of
+						 * our query domain, and
+						 * may not be cached.
 						 */
-						INSIST(!external);
+						rdataset->attributes |=
+						    DNS_RDATASETATTR_EXTERNAL;
+					} else if (chaining == 0) {
 						/*
 						 * Don't use found_cname here
 						 * as we have just set it
@@ -6691,14 +6691,6 @@ answer_response(fetchctx_t *fctx) {
 						if (aa)
 							rdataset->trust =
 							  dns_trust_authanswer;
-					} else if (external) {
-						/*
-						 * This data is outside of
-						 * our query domain, and
-						 * may not be cached.
-						 */
-						rdataset->attributes |=
-						    DNS_RDATASETATTR_EXTERNAL;
 					}
 
 					/*
@@ -6873,15 +6865,12 @@ answer_response(fetchctx_t *fctx) {
 				 * If we are not chaining or the first CNAME
 				 * is a synthesised CNAME before the DNAME.
 				 */
-				if ((chaining == 0) ||
-				    (chaining == 1U && synthcname))
+				if (external) {
+					rdataset->attributes |=
+					    DNS_RDATASETATTR_EXTERNAL;
+				} else if ((chaining == 0) ||
+					   (chaining == 1U && synthcname))
 				{
-					/*
-					 * This data is "the" answer to
-					 * our question only if we're
-					 * not chaining.
-					 */
-					INSIST(!external);
 					if (aflag == DNS_RDATASETATTR_ANSWER) {
 						have_answer = ISC_TRUE;
 						found_dname = ISC_TRUE;
@@ -6898,9 +6887,6 @@ answer_response(fetchctx_t *fctx) {
 					if (aa)
 						rdataset->trust =
 						  dns_trust_authanswer;
-				} else if (external) {
-					rdataset->attributes |=
-					    DNS_RDATASETATTR_EXTERNAL;
 				}
 			}
 
