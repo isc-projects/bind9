@@ -1,5 +1,9 @@
 	--- 9.10.4-P7 released ---
 
+4578.	[security]	Some chaining (CNAME or DNAME) responses to upstream
+			queries could trigger assertion failures.
+			(CVE-2017-3137) [RT #44734]
+
 4575.	[security]	DNS64 with "break-dnssec yes;" can result in an
 			assertion failure. (CVE-2017-3136) [RT #44653]
 
