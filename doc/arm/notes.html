@@ -107,9 +107,14 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
+	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
+	  queries could trigger assertion failures. This flaw is disclosed
+	  in CVE-2017-3137. [RT #44734]
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dns64</strong></span> with <span class="command"><strong>break-dnssec yes;</strong></span>
 	  can result in an assertion failure. This flaw is disclosed in
-	  CVE-2017-3136.[RT #44653]
+	  CVE-2017-3136. [RT #44653]
 	</p></li>
 <li class="listitem"><p>
 	  If a server is configured with a response policy zone (RPZ)
