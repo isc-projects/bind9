@@ -2373,7 +2373,7 @@
 ./bin/tools/isc-hmac-fixup.html			HTML	DOCBOOK
 ./bin/tools/named-journalprint.8		MAN	DOCBOOK
 ./bin/tools/named-journalprint.c		C	2000,2001,2004,2005,2006,2007,2008,2009,2015
-./bin/tools/named-journalprint.docbook		SGML	2009,2014,2015,2016
+./bin/tools/named-journalprint.docbook		SGML	2009,2014,2015,2016,2017
 ./bin/tools/named-journalprint.html		HTML	DOCBOOK
 ./bin/tools/named-rrchecker.1			MAN	DOCBOOK
 ./bin/tools/named-rrchecker.c			C	2013,2015,2016
