@@ -461,12 +461,15 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: checking that dom6.example is served by slave ($n)"
-for try in 0 1 2 3 4 5 6 7 8 9; do
+try=0
+while test $try -lt 150
+do
     $DIG soa dom6.example @10.53.0.2 -p 5300 > dig.out.test$n
     ret=0
     grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
     [ $ret -eq 0 ] && break
     sleep 1
+    try=`expr $try + 1`
 done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
