@@ -3638,7 +3638,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
   [ <command>channel</command> <replaceable>channel_name</replaceable> <command>{</command>
     ( ( <command>file</command> <replaceable>path_name</replaceable>
           [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
-          [ <command>size</command> <replaceable>size_spec</replaceable> ] 
+          [ <command>size</command> <replaceable>size_spec</replaceable> ]
           [ <command>suffix</command> ( <option>increment</option> | <option>timestamp</option> ) )
       | <command>syslog</command> <replaceable>syslog_facility</replaceable>
       | <command>stderr</command>
@@ -3752,7 +3752,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    are rolled as described below.  If there is no
 	    <command>versions</command> option, no more data will
 	    be written to the log until some out-of-band mechanism
-	    removes or truncates the log to less than the maximum size. 
+	    removes or truncates the log to less than the maximum size.
 	    The default behavior is not to limit the size of the file.
 	  </para>
 	  <para>
@@ -4695,7 +4695,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                  tcp-only | nxdomain | nodata | cname <replaceable>domain</replaceable> ) ]
       [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>log</command> <replaceable>yes_or_no</replaceable> ]
-      [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ] 
+      [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
       [ <command>min-update-interval</command> <replaceable>number</replaceable> ] ;
          ...
     <command>}</command> [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
