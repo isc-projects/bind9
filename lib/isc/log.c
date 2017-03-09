@@ -241,6 +241,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 #define FILE_NAME(channel)	 (channel->destination.file.name)
 #define FILE_STREAM(channel)	 (channel->destination.file.stream)
 #define FILE_VERSIONS(channel)	 (channel->destination.file.versions)
+#define FILE_SUFFIX(channel)	 (channel->destination.file.suffix)
 #define FILE_MAXSIZE(channel)	 (channel->destination.file.maximum_size)
 #define FILE_MAXREACHED(channel) (channel->destination.file.maximum_reached)
 
@@ -365,6 +366,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		destination.file.stream = stderr;
 		destination.file.name = NULL;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.suffix = isc_log_rollsuffix_increment;
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_stderr",
 					       ISC_LOG_TOFILEDESC,
@@ -384,6 +386,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		destination.file.stream = stderr;
 		destination.file.name = NULL;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.suffix = isc_log_rollsuffix_increment;
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_debug",
 					       ISC_LOG_TOFILEDESC,
@@ -742,6 +745,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 			isc_mem_strdup(mctx, destination->file.name);
 		FILE_STREAM(channel) = NULL;
 		FILE_VERSIONS(channel) = destination->file.versions;
+		FILE_SUFFIX(channel) = destination->file.suffix;
 		FILE_MAXSIZE(channel) = destination->file.maximum_size;
 		FILE_MAXREACHED(channel) = ISC_FALSE;
 		break;
@@ -751,6 +755,7 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		FILE_STREAM(channel) = destination->file.stream;
 		FILE_MAXSIZE(channel) = 0;
 		FILE_VERSIONS(channel) = ISC_LOG_ROLLNEVER;
+		FILE_SUFFIX(channel) = isc_log_rollsuffix_increment;
 		break;
 
 	case ISC_LOG_TONULL:
@@ -1210,23 +1215,134 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-isc_logfile_roll(isc_logfile_t *file) {
-	int i, n, greatest;
-	char current[PATH_MAX + 1];
-	char new[PATH_MAX + 1];
-	const char *path;
+static isc_result_t
+remove_old_tsversions(isc_logfile_t *file, int versions) {
 	isc_result_t result;
+	char *bname, *digit_end;
+	const char *dirname;
+	isc_int64_t version, last = ISC_INT64_MAX;
+	isc_int64_t to_keep[ISC_LOG_MAX_VERSIONS];
+	size_t bnamelen;
+	isc_dir_t dir;
+	char sep = '/';
+#ifdef _WIN32
+	char *bname2;
+#endif
+	/*
+	 * It is safe to DE_CONST the file.name because it was copied
+	 * with isc_mem_strdup().
+	 */
+	bname = strrchr(file->name, sep);
+#ifdef _WIN32
+	bname2 = strrchr(file->name, '\\');
+	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
+	    (bname == NULL && bname2 != NULL)) {
+		bname = bname2;
+		sep = '\\';
+	}
+#endif
+	if (bname != NULL) {
+		*bname++ = '\0';
+		dirname = file->name;
+	} else {
+		DE_CONST(file->name, bname);
+		dirname = ".";
+	}
+	bnamelen = strlen(bname);
 
-	REQUIRE(file != NULL);
+	isc_dir_init(&dir);
+	result = isc_dir_open(&dir, dirname);
 
 	/*
-	 * Do nothing (not even excess version trimming) if ISC_LOG_ROLLNEVER
-	 * is specified.  Apparently complete external control over the log
-	 * files is desired.
+	 * Replace the file separator if it was taken out.
 	 */
-	if (file->versions == ISC_LOG_ROLLNEVER)
-		return (ISC_R_SUCCESS);
+	if (bname != file->name) {
+		*(bname - 1) = sep;
+	}
+
+	/*
+	 * Return if the directory open failed.
+	 */
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	if (versions > 0) {
+		/*
+		 * First we fill 'to_keep' structure using insertion sort
+		 */
+		memset(to_keep, 0, versions * sizeof(long long));
+		while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+			if (dir.entry.length > bnamelen &&
+			    strncmp(dir.entry.name, bname, bnamelen) == 0 &&
+			    dir.entry.name[bnamelen] == '.')
+			{
+				version = strtoll(&dir.entry.name[bnamelen + 1],
+						 &digit_end, 10);
+				if (*digit_end == '\0') {
+					int i = 0;
+					while (version < to_keep[i] &&
+					       i < versions)
+					{
+						i++;
+					}
+					if (i < versions) {
+						memmove(&to_keep[i + 1],
+							&to_keep[i],
+							sizeof(long long) *
+							versions - i - 1);
+						to_keep[i] = version;
+					}
+				}
+			}
+		}
+
+		/*
+		 * to_keep[versions - 1] is the last one we want to keep
+		 */
+		last = to_keep[versions - 1];
+		isc_dir_reset(&dir);
+	}
+
+	/*
+	 * Then we remove all files that we don't want to_keep
+	 */
+	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
+		if (dir.entry.length > bnamelen &&
+		    strncmp(dir.entry.name, bname, bnamelen) == 0 &&
+		    dir.entry.name[bnamelen] == '.')
+		{
+			version = strtoll(&dir.entry.name[bnamelen + 1],
+					  &digit_end, 10);
+			/*
+			 * Remove any backup files that exceed versions.
+			 */
+			if (*digit_end == '\0' && version < last) {
+				result = isc_file_remove(dir.entry.name);
+				if (result != ISC_R_SUCCESS &&
+				    result != ISC_R_FILENOTFOUND)
+					syslog(LOG_ERR, "unable to remove "
+					       "log file '%s': %s",
+					       dir.entry.name,
+					       isc_result_totext(result));
+			}
+		}
+	}
+
+	isc_dir_close(&dir);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+roll_increment(isc_logfile_t *file) {
+	int i, n, greatest;
+	char current[PATH_MAX + 1];
+	char newpath[PATH_MAX + 1];
+	const char *path;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(file != NULL);
+	REQUIRE(file->versions != 0);
 
 	path = file->name;
 
@@ -1237,10 +1353,11 @@ isc_logfile_roll(isc_logfile_t *file) {
 		for (greatest = 0; greatest < INT_MAX; greatest++) {
 			n = snprintf(current, sizeof(current),
 				     "%s.%u", path, greatest) ;
-			if (n >= (int)sizeof(current) || n < 0)
+			if (n >= (int)sizeof(current) || n < 0 ||
+			    !isc_file_exists(current))
+			{
 				break;
-			if (!isc_file_exists(current))
-				break;
+			}
 		}
 	} else {
 		/*
@@ -1248,56 +1365,129 @@ isc_logfile_roll(isc_logfile_t *file) {
 		 * version greater than the permitted version.
 		 */
 		result = greatest_version(file, file->versions, &greatest);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 
 		/*
 		 * Increment if greatest is not the actual maximum value.
 		 */
-		if (greatest < file->versions - 1)
+		if (greatest < file->versions - 1) {
 			greatest++;
+		}
 	}
 
 	for (i = greatest; i > 0; i--) {
 		result = ISC_R_SUCCESS;
 		n = snprintf(current, sizeof(current), "%s.%u", path, i - 1);
-		if (n >= (int)sizeof(current) || n < 0)
+		if (n >= (int)sizeof(current) || n < 0) {
 			result = ISC_R_NOSPACE;
-		if (result == ISC_R_SUCCESS) {
-			n = snprintf(new, sizeof(new), "%s.%u", path, i);
-			if (n >= (int)sizeof(new) || n < 0)
-				result = ISC_R_NOSPACE;
 		}
-		if (result == ISC_R_SUCCESS)
-			result = isc_file_rename(current, new);
-		if (result != ISC_R_SUCCESS &&
-		    result != ISC_R_FILENOTFOUND)
+		if (result == ISC_R_SUCCESS) {
+			n = snprintf(newpath, sizeof(newpath), "%s.%u",
+				     path, i);
+			if (n >= (int)sizeof(newpath) || n < 0) {
+				result = ISC_R_NOSPACE;
+			}
+		}
+		if (result == ISC_R_SUCCESS) {
+			result = isc_file_rename(current, newpath);
+		}
+		if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 			syslog(LOG_ERR,
 			       "unable to rename log file '%s.%u' to "
 			       "'%s.%u': %s", path, i - 1, path, i,
 			       isc_result_totext(result));
+		}
 	}
 
-	if (file->versions != 0) {
-		n = snprintf(new, sizeof(new), "%s.0", path);
-		if (n >= (int)sizeof(new) || n < 0)
-			result = ISC_R_NOSPACE;
-		else
-			result = isc_file_rename(path, new);
-		if (result != ISC_R_SUCCESS &&
-		    result != ISC_R_FILENOTFOUND)
-			syslog(LOG_ERR,
-			       "unable to rename log file '%s' to '%s.0': %s",
-			       path, path, isc_result_totext(result));
+	n = snprintf(newpath, sizeof(newpath), "%s.0", path);
+	if (n >= (int)sizeof(newpath) || n < 0) {
+		result = ISC_R_NOSPACE;
 	} else {
-		result = isc_file_remove(path);
-		if (result != ISC_R_SUCCESS &&
-		    result != ISC_R_FILENOTFOUND)
-			syslog(LOG_ERR, "unable to remove log file '%s': %s",
-			       path, isc_result_totext(result));
+		result = isc_file_rename(path, newpath);
+	}
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		syslog(LOG_ERR,
+		       "unable to rename log file '%s' to '%s.0': %s",
+		       path, path, isc_result_totext(result));
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+roll_timestamp(isc_logfile_t *file) {
+	int n;
+	char newts[PATH_MAX + 1];
+	char newpath[PATH_MAX + 1];
+	const char *path;
+	isc_time_t now;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(file != NULL);
+	REQUIRE(file->versions != 0);
+
+	path = file->name;
+
+	/*
+	 * First find all the logfiles and remove the oldest ones
+	 * Save one fewer than file->versions because we'll be renaming
+	 * the existing file to a timestamped version after this.
+	 */
+	if (file->versions != ISC_LOG_ROLLINFINITE) {
+		remove_old_tsversions(file, file->versions - 1);
+	}
+
+	/* Then just rename the current logfile */
+	isc_time_now(&now);
+	isc_time_formatshorttimestamp(&now, newts, PATH_MAX + 1);
+	n = snprintf(newpath, sizeof(newpath), "%s.%s", path, newts);
+	if (n >= (int)sizeof(newpath) || n < 0) {
+		result = ISC_R_NOSPACE;
+	} else {
+		result = isc_file_rename(path, newpath);
+	}
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		syslog(LOG_ERR,
+		       "unable to rename log file '%s' to '%s.0': %s",
+		       path, path, isc_result_totext(result));
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+isc_logfile_roll(isc_logfile_t *file) {
+	isc_result_t result;
+
+	REQUIRE(file != NULL);
+
+	/*
+	 * Do nothing (not even excess version trimming) if ISC_LOG_ROLLNEVER
+	 * is specified.  Apparently complete external control over the log
+	 * files is desired.
+	 */
+	if (file->versions == ISC_LOG_ROLLNEVER) {
+		return (ISC_R_SUCCESS);
+	} else if (file->versions == 0) {
+		result = isc_file_remove(file->name);
+		if (result != ISC_R_SUCCESS &&
+		    result != ISC_R_FILENOTFOUND)
+			syslog(LOG_ERR, "unable to remove log file '%s': %s",
+			       file->name, isc_result_totext(result));
+		return (ISC_R_SUCCESS);
+	}
+
+	switch (file->suffix) {
+	case isc_log_rollsuffix_increment:
+		return (roll_increment(file));
+	case isc_log_rollsuffix_timestamp:
+		return (roll_timestamp(file));
+	default:
+		return (ISC_R_UNEXPECTED);
+	}
 }
 
 static isc_result_t

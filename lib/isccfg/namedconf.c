@@ -107,6 +107,7 @@ static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
 static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
+static cfg_type_t cfg_type_logsuffix;
 static cfg_type_t cfg_type_logversions;
 static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_masterselement;
@@ -1327,6 +1328,11 @@ parse_dtout(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			{
 				CHECK(cfg_parse_obj(pctx, fields[3].type,
 						    &obj->value.tuple[3]));
+			} else if (strcasecmp(TOKEN_STRING(pctx),
+					      "suffix") == 0 &&
+				   obj->value.tuple[4] == NULL) {
+				CHECK(cfg_parse_obj(pctx, fields[4].type,
+					    &obj->value.tuple[4]));
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
 						 "unexpected token");
@@ -1343,6 +1349,8 @@ parse_dtout(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[2]));
 	if (obj->value.tuple[3] == NULL)
 		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[3]));
+	if (obj->value.tuple[4] == NULL)
+		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[4]));
 
 	*ret = obj;
 	return (ISC_R_SUCCESS);
@@ -1364,6 +1372,10 @@ print_dtout(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		cfg_print_cstr(pctx, " versions ");
 		cfg_print_obj(pctx, obj->value.tuple[3]);
 	}
+	if (obj->value.tuple[4]->type->print != cfg_print_void) {
+		cfg_print_cstr(pctx, " suffix ");
+		cfg_print_obj(pctx, obj->value.tuple[4]);
+	}
 }
 
 
@@ -1375,6 +1387,8 @@ doc_dtout(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "[ size ( unlimited | <size> ) ]");
 	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ versions ( unlimited | <integer> ) ]");
+	cfg_print_cstr(pctx, " ");
+	cfg_print_cstr(pctx, "[ suffix ( increment | timestamp ) ]");
 }
 
 static const char *dtoutmode_enums[] = { "file", "unix", NULL };
@@ -1388,6 +1402,7 @@ static cfg_tuplefielddef_t dtout_fields[] = {
 	{ "path", &cfg_type_qstring, 0 },
 	{ "size", &cfg_type_sizenodefault, 0 },
 	{ "versions", &cfg_type_logversions, 0 },
+	{ "suffix", &cfg_type_logsuffix, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -3393,10 +3408,17 @@ static cfg_type_t cfg_type_logversions = {
 	&cfg_rep_string, logversions_enums
 };
 
+static const char *logsuffix_enums[] = { "increment", "timestamp", NULL };
+static cfg_type_t cfg_type_logsuffix = {
+	"logsuffix", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &logsuffix_enums
+};
+
 static cfg_tuplefielddef_t logfile_fields[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "versions", &cfg_type_logversions, 0 },
 	{ "size", &cfg_type_size, 0 },
+	{ "suffix", &cfg_type_logsuffix, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -3426,6 +3448,11 @@ parse_logfile(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 				   obj->value.tuple[2] == NULL) {
 				CHECK(cfg_parse_obj(pctx, fields[2].type,
 					    &obj->value.tuple[2]));
+			} else if (strcasecmp(TOKEN_STRING(pctx),
+					      "suffix") == 0 &&
+				   obj->value.tuple[3] == NULL) {
+				CHECK(cfg_parse_obj(pctx, fields[3].type,
+					    &obj->value.tuple[3]));
 			} else {
 				break;
 			}
@@ -3439,6 +3466,8 @@ parse_logfile(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[1]));
 	if (obj->value.tuple[2] == NULL)
 		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[2]));
+	if (obj->value.tuple[3] == NULL)
+		CHECK(cfg_parse_void(pctx, NULL, &obj->value.tuple[3]));
 
 	*ret = obj;
 	return (ISC_R_SUCCESS);
@@ -3459,6 +3488,10 @@ print_logfile(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		cfg_print_cstr(pctx, " size ");
 		cfg_print_obj(pctx, obj->value.tuple[2]);
 	}
+	if (obj->value.tuple[3]->type->print != cfg_print_void) {
+		cfg_print_cstr(pctx, " suffix ");
+		cfg_print_obj(pctx, obj->value.tuple[3]);
+	}
 }
 
 
@@ -3467,9 +3500,11 @@ doc_logfile(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_cstr(pctx, "<quoted_string>");
 	cfg_print_cstr(pctx, " ");
-	cfg_print_cstr(pctx, "[ versions ( \"unlimited\" | <integer> ) ]");
+	cfg_print_cstr(pctx, "[ versions ( unlimited | <integer> ) ]");
 	cfg_print_cstr(pctx, " ");
 	cfg_print_cstr(pctx, "[ size <size> ]");
+	cfg_print_cstr(pctx, " ");
+	cfg_print_cstr(pctx, "[ suffix ( increment | timestamp ) ]");
 }
 
 static cfg_type_t cfg_type_logfile = {

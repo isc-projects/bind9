@@ -3638,7 +3638,8 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
   [ <command>channel</command> <replaceable>channel_name</replaceable> <command>{</command>
     ( ( <command>file</command> <replaceable>path_name</replaceable>
           [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
-          [ <command>size</command> <replaceable>size_spec</replaceable> ] )
+          [ <command>size</command> <replaceable>size_spec</replaceable> ] 
+          [ <command>suffix</command> ( <option>increment</option> | <option>timestamp</option> ) )
       | <command>syslog</command> <replaceable>syslog_facility</replaceable>
       | <command>stderr</command>
       | <command>null</command> ) <command>;</command>
@@ -3733,61 +3734,68 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
 	  <para>
 	    The <command>file</command> destination clause directs
-	    the channel
-	    to a disk file.  It can include limitations
-	    both on how large the file is allowed to become, and how many
-	    versions
-	    of the file will be saved each time the file is opened.
+	    the channel to a disk file.  It can include additional
+	    arguments to specify how large the file is allowed to
+	    become before it is rolled to a backup file
+	    (<command>size</command>), how many backup versions of
+	    the file will be saved each time this happens
+	    (<command>versions</command>), and the format to use
+	    for naming backup versions (<command>suffix</command>).
 	  </para>
 
 	  <para>
-	    If you use the <command>versions</command> log file
-	    option, then
-	    <command>named</command> will retain that many backup
-	    versions of the file by
-	    renaming them when opening.  For example, if you choose to keep
-	    three old versions
-	    of the file <filename>lamers.log</filename>, then just
-	    before it is opened
-	    <filename>lamers.log.1</filename> is renamed to
-	    <filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is renamed
-	    to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename> is
-	    renamed to <filename>lamers.log.0</filename>.
-	    You can say <command>versions unlimited</command> to
-	    not limit
-	    the number of versions.
-	    If a <command>size</command> option is associated with
-	    the log file,
-	    then renaming is only done when the file being opened exceeds the
-	    indicated size.  No backup versions are kept by default; any
-	    existing
-	    log file is simply appended.
-	  </para>
-
-	  <para>
-	    The <command>size</command> option for files is used
-	    to limit log
-	    growth. If the file ever exceeds the size, then <command>named</command> will
-	    stop writing to the file unless it has a <command>versions</command> option
-	    associated with it.  If backup versions are kept, the files are
-	    rolled as
-	    described above and a new one begun.  If there is no
+	    The <command>size</command> option is used to limit
+	    log file growth. If the file ever exceeds the specified
+	    size, then <command>named</command> will stop writing to the
+	    file unless it has a <command>versions</command> option
+	    associated with it. If backup versions are kept, the files
+	    are rolled as described below.  If there is no
 	    <command>versions</command> option, no more data will
-	    be written to the log
-	    until some out-of-band mechanism removes or truncates the log to
-	    less than the
-	    maximum size.  The default behavior is not to limit the size of
-	    the
-	    file.
+	    be written to the log until some out-of-band mechanism
+	    removes or truncates the log to less than the maximum size. 
+	    The default behavior is not to limit the size of the file.
+	  </para>
+	  <para>
+	    File rolling only occurs when the file exceeds the size
+	    specified with the <command>size</command> option. No
+	    backup versions are kept by default; any existing
+	    log file is simply appended.  The
+	    <command>versions</command> option specifies
+	    how many backup versions of the file should be kept.
+	    If set to <literal>unlimited</literal>, there is no limit.
+	  </para>
+	  <para>
+	    The <command>suffix</command> option can be set to
+	    either <literal>increment</literal> or
+	    <literal>timestamp</literal>.  If set to
+	    <literal>timestamp</literal>, then when a log file is
+	    rolled, it is saved with the current timestamp as a
+	    file suffix. If set to <literal>increment</literal>,
+	    then backup files are saved with incrementing numbers
+	    as suffixes; older files are renamed when rolling.
+	    For example, if <command>versions</command>
+	    is set to 3 and <command>suffix</command> to
+	    <literal>increment</literal>, then when
+	    <filename>filename.log</filename> reaches the size
+	    specified by <command>size</command>,
+	    <filename>filename.log.1</filename> is renamed to
+	    <filename>filename.log.2</filename>,
+	    <filename>filename.log.0</filename> is renamed
+	    to <filename>filename.log.1</filename>,
+	    and <filename>filename.log</filename> is
+	    renamed to <filename>filename.log.0</filename>,
+	    whereupon a new <filename>filename.log</filename> is
+	    opened.
 	  </para>
 
 	  <para>
-	    Example usage of the <command>size</command> and
-	    <command>versions</command> options:
+	    Example usage of the <command>size</command>,
+	    <command>versions</command>, and <command>suffix</command>
+	    options:
 	  </para>
 
 <programlisting>channel an_example_channel {
-    file "example.log" versions 3 size 20m;
+    file "example.log" versions 3 size 20m suffix increment;
     print-time yes;
     print-category yes;
 };
@@ -5004,16 +5012,20 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      </para>
 	      <para>
 		If the first argument is <literal>file</literal>, then
-		two additional options can be added:
+		up to three additional options can be added:
 		<command>size</command> indicates the size to which a
 		<command>dnstap</command> log file can grow before being
-		rolled to a new file, and <command>versions</command>
-		specifies the number of rolled log files to retain. These
-		are similar to the <command>size</command> and
-		<command>versions</command> options in a
-		<command>logging</command> channel.  The default
-		is to allow <command>dnstap</command> log files to grow to
-		any size without rolling.
+		rolled to a new file; <command>versions</command>
+		specifies the number of rolled log files to retain; and
+		<command>suffix</command> indicates whether to retain
+		rolled log files with an incrementing counter as the
+		suffix (<literal>increment</literal>) or with the
+		current timestamp (<literal>timestamp</literal>).
+		These are similar to the <command>size</command>,
+		<command>versions</command>, and <command>suffix</command>
+		options in a <command>logging</comamnd> channel.
+		The default is to allow <command>dnstap</command> log
+		files to grow to any size without rolling.
 	      </para>
 	      <para>
 		<command>dnstap-output</command> can only be set globally

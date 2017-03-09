@@ -28,6 +28,7 @@
 struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
 
+#include <isc/log.h>
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
@@ -153,13 +154,16 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  */
 
 isc_result_t
-dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls);
+dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls,
+		 isc_log_rollsuffix_t suffix);
 /*%<
  * Sets up the dnstap logfile limits.
  *
  * 'max_size' is the size a log file may grow before it is rolled
  *
  * 'rolls' is the number of rolled files to retain.
+ *
+ * 'suffix' is the logfile suffix setting, increment or timestamp.
  *
  * Requires:
  *

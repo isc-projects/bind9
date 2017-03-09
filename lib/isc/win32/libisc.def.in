@@ -710,6 +710,7 @@ isc_time_compare
 isc_time_formatISO8601
 isc_time_formatISO8601ms
 isc_time_formathttptimestamp
+isc_time_formatshorttimestamp
 isc_time_formattimestamp
 isc_time_isepoch
 isc_time_microdiff

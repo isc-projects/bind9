@@ -50,6 +50,7 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -104,8 +105,9 @@ struct dns_dtenv {
 	isc_region_t version;
 	char *path;
 	dns_dtmode_t mode;
-	isc_uint64_t max_size;
-	isc_uint32_t rolls;
+	isc_offset_t max_size;
+	int rolls;
+	isc_log_rollsuffix_t suffix;
 	isc_stats_t *stats;
 };
 
@@ -185,7 +187,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	REQUIRE(path != NULL);
 	REQUIRE(envp != NULL && *envp == NULL);
-	REQUIRE(foptp!= NULL && *foptp != NULL);
+	REQUIRE(foptp != NULL && *foptp != NULL);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 		      DNS_LOGMODULE_DNSTAP, ISC_LOG_INFO,
@@ -244,7 +246,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	}
 	env->mode = mode;
 	env->max_size = 0;
-	env->rolls = ISC_LOG_ROLLNEVER;
+	env->rolls = ISC_LOG_ROLLINFINITE;
 	env->fopt = *foptp;
 	*foptp = NULL;
 
@@ -279,17 +281,28 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 }
 
 isc_result_t
-dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls) {
+dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls,
+		 isc_log_rollsuffix_t suffix)
+{
 	REQUIRE(VALID_DTENV(env));
 
-	if (max_size != 0 && rolls != ISC_LOG_ROLLNEVER &&
-	    env->mode != dns_dtmode_file)
-	{
-		return (ISC_R_INVALIDFILE);
+	/*
+	 * If we're using unix domain socket mode, then any
+	 * change from the default values is invalid.
+	 */
+	if (env->mode == dns_dtmode_unix) {
+		if (max_size == 0 && rolls == ISC_LOG_ROLLINFINITE &&
+		    suffix == isc_log_rollsuffix_increment)
+		{
+			return (ISC_R_SUCCESS);
+		} else {
+			return (ISC_R_INVALIDFILE);
+		}
 	}
 
 	env->max_size = max_size;
 	env->rolls = rolls;
+	env->suffix = suffix;
 
 	return (ISC_R_SUCCESS);
 }
@@ -310,14 +323,16 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	 * Check that we can create a new fw object.
 	 */
 	fwopt = fstrm_writer_options_init();
-	if (fwopt == NULL)
+	if (fwopt == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	res = fstrm_writer_options_add_content_type(fwopt,
 					    DNSTAP_CONTENT_TYPE,
 					    sizeof(DNSTAP_CONTENT_TYPE) - 1);
-	if (res != fstrm_res_success)
+	if (res != fstrm_res_success) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	if (env->mode == dns_dtmode_file) {
 		ffwopt = fstrm_file_options_init();
@@ -332,11 +347,13 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 								  env->path);
 			fw = fstrm_unix_writer_init(fuwopt, fwopt);
 		}
-	} else
+	} else {
 		CHECK(ISC_R_NOTIMPLEMENTED);
+	}
 
-	if (fw == NULL)
+	if (fw == NULL) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	/*
 	 * We are committed here.
@@ -349,10 +366,15 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 
 	generation++;
 
-	if (env->iothr != NULL)
+	if (env->iothr != NULL) {
 		fstrm_iothr_destroy(&env->iothr);
+	}
 
-	if (env->mode == dns_dtmode_file && roll >= 0) {
+	if (roll != 0) {
+		roll = env->rolls;
+	}
+
+	if (env->mode == dns_dtmode_file && roll != 0) {
 		/*
 		 * Create a temporary isc_logfile_t structure so we can
 		 * take advantage of the logfile rolling facility.
@@ -360,9 +382,10 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		char *filename = isc_mem_strdup(env->mctx, env->path);
 		file.name = filename;
 		file.stream = NULL;
-		file.versions = roll != 0 ? roll : ISC_LOG_ROLLINFINITE;
+		file.versions = roll != 0 ? roll : env->rolls;
 		file.maximum_size = 0;
 		file.maximum_reached = ISC_FALSE;
+		file.suffix = env->suffix;
 		result = isc_logfile_roll(&file);
 		isc_mem_free(env->mctx, filename);
 		CHECK(result);
@@ -714,7 +737,8 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	if (view->dtenv->max_size != 0) {
 		struct stat statbuf;
 		if (stat(view->dtenv->path, &statbuf) >= 0 &&
-		    (size_t) statbuf.st_size > view->dtenv->max_size) {
+		    statbuf.st_size > view->dtenv->max_size)
+		{
 			dns_dt_reopen(view->dtenv, view->dtenv->rolls);
 		}
 	}

@@ -1,3 +1,10 @@
+4579.	[func]		Logging channels and dnstap output files can now
+			be configured with a "suffix" option, set to
+			either "increment" or "timestamp", indicating
+			whether to use incrementing numbers or timestamps
+			as the file suffix when rolling over a log file.
+			[RT #42838]
+
 4578.	[security]	Some chaining (CNAME or DNAME) responses to upstream
 			queries could trigger assertion failures.
 			(CVE-2017-3137) [RT #44734]

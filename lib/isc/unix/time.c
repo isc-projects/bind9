@@ -480,3 +480,21 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 			 t->nanoseconds / NS_PER_MS);
 	}
 }
+
+void
+isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
+{
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y%m%d%H%M%S", gmtime(&now));
+	INSIST(flen < len);
+	if (flen > 0U && len - flen >= 5) {
+		flen -= 1; /* rewind one character (Z) */
+		snprintf(buf + flen, len - flen, "%03u",
+			 t->nanoseconds / NS_PER_MS);
+	}
+}

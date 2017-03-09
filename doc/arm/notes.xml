@@ -154,12 +154,25 @@
 	  <command>dnstap</command> logfiles can now be configured to
 	  automatically roll when they reach a specified size. If
 	  <command>dnstap-output</command> is configured with mode
-	  <literal>file</literal>, then it can take optional
+	  <literal>file</command>, then it can take optional
 	  <command>size</command> and <command>versions</command>
 	  key-value arguments to set the logfile rolling parameters.
 	  (These have the same semantics as the corresponding
 	  options in a <command>logging</command> channel statement.)
 	  [RT #44502]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Logging channels and <command>dnstap-output</command> files can
+	  now be configured with a <command>suffix</command> option,
+	  set to either <literal>increment</literal> or
+	  <literal>timestamp</literal>, indicating whether log files
+	  should be given incrementing suffixes when they roll
+	  over (e.g., <filename>logfile.0</filename>,
+	  <filename>.1</filename>, <filename>.2</filename>, etc)
+	  or suffixes indicating the time of the roll. The default
+	  is <literal>increment</literal>.  [RT #42838]
 	</para>
       </listitem>
       <listitem>

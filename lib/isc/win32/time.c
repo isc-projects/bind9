@@ -413,3 +413,26 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 		buf[0] = 0;
 	}
 }
+
+void
+isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
+{
+	SYSTEMTIME st;
+	char DateBuf[50];
+	char TimeBuf[50];
+
+	/* strtime() format: "%Y%m%d%H%M%SSSS" */
+
+	REQUIRE(len > 0);
+	if (FileTimeToSystemTime(&t->absolute, &st)) {
+		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyyMMdd",
+			      DateBuf, 50);
+		GetTimeFormat(LOCALE_NEUTRAL,
+			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
+			      &st, "hhmmss", TimeBuf, 50);
+		snprintf(buf, len, "%s%s%03u", DateBuf, TimeBuf,
+			 st.wMilliseconds);
+	} else {
+		buf[0] = 0;
+	}
+}

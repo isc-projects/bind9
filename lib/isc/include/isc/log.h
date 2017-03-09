@@ -78,6 +78,17 @@
  */
 #define ISC_LOG_ROLLINFINITE	(-1)
 #define ISC_LOG_ROLLNEVER	(-2)
+#define ISC_LOG_MAX_VERSIONS	256
+/*@}*/
+
+/*@{*/
+/*!
+ * \brief Type of suffix used on rolled log files.
+ */
+typedef enum {
+	isc_log_rollsuffix_increment,
+	isc_log_rollsuffix_timestamp
+} isc_log_rollsuffix_t;
 /*@}*/
 
 /*!
@@ -115,6 +126,7 @@ typedef struct isc_logfile {
 	FILE *stream;		/*%< Initialized to NULL for #ISC_LOG_TOFILE. */
 	const char *name;	/*%< NULL for #ISC_LOG_TOFILEDESC. */
 	int versions;	/* >= 0, #ISC_LOG_ROLLNEVER, #ISC_LOG_ROLLINFINITE. */
+	isc_log_rollsuffix_t suffix;
 	/*%
 	 * stdio's ftell is standardized to return a long, which may well not
 	 * be big enough for the largest file supportable by the operating

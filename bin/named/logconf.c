@@ -132,7 +132,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
 		const cfg_obj_t *versionsobj =
 				 cfg_tuple_get(fileobj, "versions");
+		const cfg_obj_t *suffixobj =
+				 cfg_tuple_get(fileobj, "suffix");
 		isc_int32_t versions = ISC_LOG_ROLLNEVER;
+		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
 		isc_offset_t size = 0;
 		isc_uint64_t maxoffset;
 
@@ -155,16 +158,21 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 
 		if (versionsobj != NULL && cfg_obj_isuint32(versionsobj))
 			versions = cfg_obj_asuint32(versionsobj);
-		if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
+		else if (versionsobj != NULL && cfg_obj_isstring(versionsobj) &&
 		    strcasecmp(cfg_obj_asstring(versionsobj), "unlimited") == 0)
 			versions = ISC_LOG_ROLLINFINITE;
 		if (sizeobj != NULL &&
 		    cfg_obj_isuint64(sizeobj) &&
 		    cfg_obj_asuint64(sizeobj) < maxoffset)
 			size = (isc_offset_t)cfg_obj_asuint64(sizeobj);
+		if (suffixobj != NULL && cfg_obj_isstring(suffixobj) &&
+		    strcasecmp(cfg_obj_asstring(suffixobj), "timestamp") == 0)
+			suffix = isc_log_rollsuffix_timestamp;
+
 		dest.file.stream = NULL;
 		dest.file.name = cfg_obj_asstring(pathobj);
 		dest.file.versions = versions;
+		dest.file.suffix = suffix;
 		dest.file.maximum_size = size;
 	} else if (syslogobj != NULL) {
 		int facility = LOG_DAEMON;
@@ -182,6 +190,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		dest.file.stream = stderr;
 		dest.file.name = NULL;
 		dest.file.versions = ISC_LOG_ROLLNEVER;
+		dest.file.suffix = isc_log_rollsuffix_increment;
 		dest.file.maximum_size = 0;
 	}
 

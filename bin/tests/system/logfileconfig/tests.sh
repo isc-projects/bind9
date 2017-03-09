@@ -19,6 +19,7 @@ PLAINCONF="${THISDIR}/${CONFDIR}/named.plainconf"
 ISOCONF="${THISDIR}/${CONFDIR}/named.iso8601"
 ISOCONFUTC="${THISDIR}/${CONFDIR}/named.iso8601-utc"
 VERSCONF="${THISDIR}/${CONFDIR}/named.versconf"
+TSCONF="${THISDIR}/${CONFDIR}/named.tsconf"
 UNLIMITEDCONF="${THISDIR}/${CONFDIR}/named.unlimited"
 PLAINFILE="named_log"
 DIRFILE="named_dir"
@@ -28,6 +29,7 @@ DLFILE="named_deflog"
 ISOFILE="named_iso8601"
 ISOUTCFILE="named_iso8601_utc"
 VERSFILE="named_vers"
+TSFILE="named_ts"
 UNLIMITEDFILE="named_unlimited"
 PIDFILE="${THISDIR}/${CONFDIR}/named.pid"
 myRNDC="$RNDC -c ${THISDIR}/${CONFDIR}/rndc.conf"
@@ -332,6 +334,32 @@ fi
 if test ! -f $VERSFILE.4
 then
 	echo "I: testing explict versions failed $VERSFILE.4 does not exist"
+	status=`expr $status + 1`
+fi
+
+n=`expr $n + 1`
+echo "I: testing timestamped versions ($n)"
+cp $TSCONF named.conf
+# a seconds since epoch version number
+touch $TSFILE.2015010112000012
+t1=`$PERL -e 'print time()."\n";'`
+$myRNDC reconfig > rndc.out.test$n 2>&1
+$DIG version.bind txt ch @10.53.0.1 -p 5300 > dig.out.test$n
+t2=`$PERL -e 'print time()."\n";'`
+t=`expr ${t2:-0} - ${t1:-0}`
+if test ${t:-1000} -gt 5
+then
+        echo "I:  testing timestamped versions failed cleanup of old entries took too long ($t secs)"
+	status=`expr $status + 1`
+fi 
+if ! grep "status: NOERROR" dig.out.test$n > /dev/null
+then
+	echo "I:  testing timestamped versions failed DiG lookup failed"
+	status=`expr $status + 1`
+fi
+if test -f $TSFILE.1480039317
+then
+	echo "I:  testing timestamped versions failed $TSFILE.1480039317 not removed"
 	status=`expr $status + 1`
 fi
 

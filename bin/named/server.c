@@ -3090,6 +3090,8 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		dns_dtmode_t dmode;
 		isc_uint64_t max_size = 0;
 		isc_uint32_t rolls = 0;
+		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
+
 		obj = NULL;
 		CHECKM(ns_config_get(maps, "dnstap-output", &obj),
 		       "'dnstap-output' must be set if 'dnstap' is set");
@@ -3126,12 +3128,15 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		obj2 = cfg_tuple_get(obj, "versions");
 		if (obj2 != NULL && cfg_obj_isuint32(obj2)) {
 			rolls = cfg_obj_asuint32(obj2);
-		} else if (obj2 != NULL && cfg_obj_isstring(obj2) &&
-			 strcasecmp(cfg_obj_asstring(obj2), "unlimited") == 0)
-		{
-			rolls = ISC_LOG_ROLLINFINITE;
 		} else {
-			rolls = ISC_LOG_ROLLNEVER;
+			rolls = ISC_LOG_ROLLINFINITE;
+		}
+
+		obj2 = cfg_tuple_get(obj, "suffix");
+		if (obj2 != NULL && cfg_obj_isstring(obj2) &&
+		    strcasecmp(cfg_obj_asstring(obj2), "timestamp") == 0)
+		{
+			suffix = isc_log_rollsuffix_timestamp;
 		}
 
 		fopt = fstrm_iothr_options_init();
@@ -3202,7 +3207,8 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 				     &fopt, &ns_g_server->dtenv),
 		       "unable to create dnstap environment");
 
-		CHECKM(dns_dt_setupfile(ns_g_server->dtenv, max_size, rolls),
+		CHECKM(dns_dt_setupfile(ns_g_server->dtenv,
+					max_size, rolls, suffix),
 		       "unable to set up dnstap logfile");
 	}
 
@@ -13730,9 +13736,12 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 			n = sscanf(ptr, "%u", &backups);
 			if (n != 1U)
 				return (ISC_R_BADNUMBER);
+		} else {
+			backups = ISC_LOG_ROLLINFINITE;
 		}
-	} else
+	} else {
 		return (DNS_R_SYNTAX);
+	}
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
