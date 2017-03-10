@@ -5023,7 +5023,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		current timestamp (<literal>timestamp</literal>).
 		These are similar to the <command>size</command>,
 		<command>versions</command>, and <command>suffix</command>
-		options in a <command>logging</comamnd> channel.
+		options in a <command>logging</command> channel.
 		The default is to allow <command>dnstap</command> log
 		files to grow to any size without rolling.
 	      </para>
