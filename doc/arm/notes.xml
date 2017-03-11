@@ -154,7 +154,7 @@
 	  <command>dnstap</command> logfiles can now be configured to
 	  automatically roll when they reach a specified size. If
 	  <command>dnstap-output</command> is configured with mode
-	  <literal>file</command>, then it can take optional
+	  <literal>file</literal>, then it can take optional
 	  <command>size</command> and <command>versions</command>
 	  key-value arguments to set the logfile rolling parameters.
 	  (These have the same semantics as the corresponding
