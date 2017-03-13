@@ -212,6 +212,19 @@
       </li>
 <li class="listitem">
 	<p>
+	  Logging channels and <span class="command"><strong>dnstap-output</strong></span> files can
+	  now be configured with a <span class="command"><strong>suffix</strong></span> option,
+	  set to either <code class="literal">increment</code> or
+	  <code class="literal">timestamp</code>, indicating whether log files
+	  should be given incrementing suffixes when they roll
+	  over (e.g., <code class="filename">logfile.0</code>,
+	  <code class="filename">.1</code>, <code class="filename">.2</code>, etc)
+	  or suffixes indicating the time of the roll. The default
+	  is <code class="literal">increment</code>.  [RT #42838]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
 	  for EDNS options in addition to numeric values. For example,
 	  an EDNS Client-Subnet option could be sent using

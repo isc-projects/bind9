@@ -1258,7 +1258,8 @@
   [ <span class="command"><strong>channel</strong></span> <em class="replaceable"><code>channel_name</code></em> <span class="command"><strong>{</strong></span>
     ( ( <span class="command"><strong>file</strong></span> <em class="replaceable"><code>path_name</code></em>
           [ <span class="command"><strong>versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <code class="option">unlimited</code> ) ]
-          [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ] )
+          [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ]
+          [ <span class="command"><strong>suffix</strong></span> ( <code class="option">increment</code> | <code class="option">timestamp</code> ) )
       | <span class="command"><strong>syslog</strong></span> <em class="replaceable"><code>syslog_facility</code></em>
       | <span class="command"><strong>stderr</strong></span>
       | <span class="command"><strong>null</strong></span> ) <span class="command"><strong>;</strong></span>
@@ -1357,61 +1358,68 @@
 
           <p>
             The <span class="command"><strong>file</strong></span> destination clause directs
-            the channel
-            to a disk file.  It can include limitations
-            both on how large the file is allowed to become, and how many
-            versions
-            of the file will be saved each time the file is opened.
+            the channel to a disk file.  It can include additional
+            arguments to specify how large the file is allowed to
+            become before it is rolled to a backup file
+            (<span class="command"><strong>size</strong></span>), how many backup versions of
+            the file will be saved each time this happens
+            (<span class="command"><strong>versions</strong></span>), and the format to use
+            for naming backup versions (<span class="command"><strong>suffix</strong></span>).
           </p>
 
           <p>
-            If you use the <span class="command"><strong>versions</strong></span> log file
-            option, then
-            <span class="command"><strong>named</strong></span> will retain that many backup
-            versions of the file by
-            renaming them when opening.  For example, if you choose to keep
-            three old versions
-            of the file <code class="filename">lamers.log</code>, then just
-            before it is opened
-            <code class="filename">lamers.log.1</code> is renamed to
-            <code class="filename">lamers.log.2</code>, <code class="filename">lamers.log.0</code> is renamed
-            to <code class="filename">lamers.log.1</code>, and <code class="filename">lamers.log</code> is
-            renamed to <code class="filename">lamers.log.0</code>.
-            You can say <span class="command"><strong>versions unlimited</strong></span> to
-            not limit
-            the number of versions.
-            If a <span class="command"><strong>size</strong></span> option is associated with
-            the log file,
-            then renaming is only done when the file being opened exceeds the
-            indicated size.  No backup versions are kept by default; any
-            existing
-            log file is simply appended.
-          </p>
-
-          <p>
-            The <span class="command"><strong>size</strong></span> option for files is used
-            to limit log
-            growth. If the file ever exceeds the size, then <span class="command"><strong>named</strong></span> will
-            stop writing to the file unless it has a <span class="command"><strong>versions</strong></span> option
-            associated with it.  If backup versions are kept, the files are
-            rolled as
-            described above and a new one begun.  If there is no
+            The <span class="command"><strong>size</strong></span> option is used to limit
+            log file growth. If the file ever exceeds the specified
+            size, then <span class="command"><strong>named</strong></span> will stop writing to the
+            file unless it has a <span class="command"><strong>versions</strong></span> option
+            associated with it. If backup versions are kept, the files
+            are rolled as described below.  If there is no
             <span class="command"><strong>versions</strong></span> option, no more data will
-            be written to the log
-            until some out-of-band mechanism removes or truncates the log to
-            less than the
-            maximum size.  The default behavior is not to limit the size of
-            the
-            file.
+            be written to the log until some out-of-band mechanism
+            removes or truncates the log to less than the maximum size.
+            The default behavior is not to limit the size of the file.
+          </p>
+          <p>
+            File rolling only occurs when the file exceeds the size
+            specified with the <span class="command"><strong>size</strong></span> option. No
+            backup versions are kept by default; any existing
+            log file is simply appended.  The
+            <span class="command"><strong>versions</strong></span> option specifies
+            how many backup versions of the file should be kept.
+            If set to <code class="literal">unlimited</code>, there is no limit.
+          </p>
+          <p>
+            The <span class="command"><strong>suffix</strong></span> option can be set to
+            either <code class="literal">increment</code> or
+            <code class="literal">timestamp</code>.  If set to
+            <code class="literal">timestamp</code>, then when a log file is
+            rolled, it is saved with the current timestamp as a
+            file suffix. If set to <code class="literal">increment</code>,
+            then backup files are saved with incrementing numbers
+            as suffixes; older files are renamed when rolling.
+            For example, if <span class="command"><strong>versions</strong></span>
+            is set to 3 and <span class="command"><strong>suffix</strong></span> to
+            <code class="literal">increment</code>, then when
+            <code class="filename">filename.log</code> reaches the size
+            specified by <span class="command"><strong>size</strong></span>,
+            <code class="filename">filename.log.1</code> is renamed to
+            <code class="filename">filename.log.2</code>,
+            <code class="filename">filename.log.0</code> is renamed
+            to <code class="filename">filename.log.1</code>,
+            and <code class="filename">filename.log</code> is
+            renamed to <code class="filename">filename.log.0</code>,
+            whereupon a new <code class="filename">filename.log</code> is
+            opened.
           </p>
 
           <p>
-            Example usage of the <span class="command"><strong>size</strong></span> and
-            <span class="command"><strong>versions</strong></span> options:
+            Example usage of the <span class="command"><strong>size</strong></span>,
+            <span class="command"><strong>versions</strong></span>, and <span class="command"><strong>suffix</strong></span>
+            options:
           </p>
 
 <pre class="programlisting">channel an_example_channel {
-    file "example.log" versions 3 size 20m;
+    file "example.log" versions 3 size 20m suffix increment;
     print-time yes;
     print-category yes;
 };
@@ -2427,306 +2435,307 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           statement in the <code class="filename">named.conf</code> file:
         </p>
 
-<pre class="programlisting"><span class="command"><strong>options</strong></span> {
-    [<span class="optional"> attach-cache <em class="replaceable"><code>cache_name</code></em>; </span>]
-    [<span class="optional"> version <em class="replaceable"><code>version_string</code></em>; </span>]
-    [<span class="optional"> hostname <em class="replaceable"><code>hostname_string</code></em>; </span>]
-    [<span class="optional"> server-id <em class="replaceable"><code>server_id_string</code></em>; </span>]
-    [<span class="optional"> directory <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> dnstap { <em class="replaceable"><code>message_type</code></em>; ... }; </span>]
-    [<span class="optional"> dnstap-output ( <code class="literal">file</code> | <code class="literal">unix</code> ) <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> dnstap-identity ( <em class="replaceable"><code>string</code></em> | <code class="literal">hostname</code> | <code class="literal">none</code> ); </span>]
-    [<span class="optional"> dnstap-version ( <em class="replaceable"><code>string</code></em> | <code class="literal">none</code> ); </span>]
-    [<span class="optional"> fstrm-set-buffer-hint <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fstrm-set-flush-timeout <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fstrm-set-input-queue-size <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fstrm-set-output-notify-threshold <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fstrm-set-output-queue-model ( <em class="replaceable"><code>mpsc</code></em> |
-                        <em class="replaceable"><code>spsc</code></em> ) ; </span>]
-    [<span class="optional"> fstrm-set-output-queue-size <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fstrm-set-reopen-interval <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> geoip-directory <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> key-directory <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> managed-keys-directory <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> named-xfer <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> tkey-gssapi-keytab <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> tkey-gssapi-credential <em class="replaceable"><code>principal</code></em>; </span>]
-    [<span class="optional"> tkey-domain <em class="replaceable"><code>domainname</code></em>; </span>]
-    [<span class="optional"> tkey-dhkey <em class="replaceable"><code>key_name</code></em> <em class="replaceable"><code>key_tag</code></em>; </span>]
-    [<span class="optional"> cache-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> dump-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> bindkeys-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> lock-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> secroots-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> session-keyfile <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> session-keyname <em class="replaceable"><code>key_name</code></em>; </span>]
-    [<span class="optional"> session-keyalg <em class="replaceable"><code>algorithm_id</code></em>; </span>]
-    [<span class="optional"> memstatistics <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> memstatistics-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> pid-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> recursing-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> statistics-file <em class="replaceable"><code>path_name</code></em>; </span>]
-    [<span class="optional"> zone-statistics <em class="replaceable"><code>full</code></em> | <em class="replaceable"><code>terse</code></em> | <em class="replaceable"><code>none</code></em>; </span>]
-    [<span class="optional"> auth-nxdomain <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> nxdomain-redirect <em class="replaceable"><code>string</code></em>; </span>]
-    [<span class="optional"> deallocate-on-exit <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> dialup <em class="replaceable"><code>dialup_option</code></em>; </span>]
-    [<span class="optional"> fake-iquery <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> fetch-glue <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> flush-zones-on-shutdown <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> has-old-clients <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> host-statistics <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> host-statistics-max <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> minimal-any <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> minimal-responses (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">no-auth</code> | <code class="constant">no-auth-recursive</code>); </span>]
-    [<span class="optional"> multiple-cnames <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> notify <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>explicit</code></em> | <em class="replaceable"><code>master-only</code></em>; </span>]
-    [<span class="optional"> recursion <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> send-cookie <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> require-server-cookie <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> cookie-algorithm <em class="replaceable"><code>algorithm_id</code></em>; </span>]
-    [<span class="optional"> cookie-secret <em class="replaceable"><code>secret_string</code></em>; </span>]
-    [<span class="optional"> nocookie-udp-size <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> request-nsid <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> rfc2308-type1 <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> use-id-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> maintain-ixfr-base <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> ixfr-from-differences (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">master</code> | <code class="constant">slave</code>); </span>]
-    [<span class="optional"> auto-dnssec <code class="constant">allow</code>|<code class="constant">maintain</code>|<code class="constant">off</code>; </span>]
-    [<span class="optional"> dnssec-enable <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> dnssec-validation (<em class="replaceable"><code>yes_or_no</code></em> | <code class="constant">auto</code>); </span>]
-    [<span class="optional"> dnssec-lookaside ( <em class="replaceable"><code>auto</code></em> |
-                        <em class="replaceable"><code>no</code></em> |
-                        <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> ); </span>]
-    [<span class="optional"> dnssec-must-be-secure <em class="replaceable"><code>domain yes_or_no</code></em>; </span>]
-    [<span class="optional"> dnssec-accept-expired <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> forward ( <em class="replaceable"><code>only</code></em> | <em class="replaceable"><code>first</code></em> ); </span>]
-    [<span class="optional"> forwarders { [<span class="optional"> <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; ... </span>] }; </span>]
-    [<span class="optional"> dual-stack-servers [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] {
-        ( <em class="replaceable"><code>domain_name</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] |
-          <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]) ;
-        ... }; </span>]
-    [<span class="optional"> check-names ( <em class="replaceable"><code>master</code></em> | <em class="replaceable"><code>slave</code></em> | <em class="replaceable"><code>response</code></em> )
-        ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>fail</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> check-dup-records ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>fail</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> check-mx ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>fail</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> check-wildcard <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> check-integrity <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> check-mx-cname ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>fail</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> check-srv-cname ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>fail</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> check-sibling <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> check-spf ( <em class="replaceable"><code>warn</code></em> | <em class="replaceable"><code>ignore</code></em> ); </span>]
-    [<span class="optional"> allow-new-zones { <em class="replaceable"><code>yes_or_no</code></em> }; </span>]
-    [<span class="optional"> allow-notify { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-query { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-query-on { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-query-cache { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-query-cache-on { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-transfer { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-recursion { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-recursion-on { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-update { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> allow-update-forwarding { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> automatic-interface-scan { <em class="replaceable"><code>yes_or_no</code></em> }; </span>]
-    [<span class="optional"> geoip-use-ecs <em class="replaceable"><code>yes_or_no</code></em>;</span>]
-    [<span class="optional"> update-check-ksk <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> dnssec-update-mode ( <em class="replaceable"><code>maintain</code></em> | <em class="replaceable"><code>no-resign</code></em> ); </span>]
-    [<span class="optional"> dnssec-dnskey-kskonly <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> dnssec-loadkeys-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> dnssec-secure-to-insecure <em class="replaceable"><code>yes_or_no</code></em> ;</span>]
-    [<span class="optional"> try-tcp-refresh <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> allow-v6-synthesis { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> blackhole { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> keep-response-order { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> no-case-compress { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> message-compression <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> use-v4-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
-    [<span class="optional"> avoid-v4-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
-    [<span class="optional"> use-v6-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
-    [<span class="optional"> avoid-v6-udp-ports { <em class="replaceable"><code>port_list</code></em> }; </span>]
-    [<span class="optional"> listen-on [<span class="optional"> port <em class="replaceable"><code>ip_port</code></em> </span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> listen-on-v6 [<span class="optional"> port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]
-{ <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> query-source ( ( <em class="replaceable"><code>ip4_addr</code></em> | <em class="replaceable"><code>*</code></em> )
-        [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>]
-        [<span class="optional"> dscp <em class="replaceable"><code>ip_dscp</code></em></span>] |
-        [<span class="optional"> address ( <em class="replaceable"><code>ip4_addr</code></em> | <em class="replaceable"><code>*</code></em> ) </span>]
-        [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>] )
-        [<span class="optional"> dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> query-source-v6 ( ( <em class="replaceable"><code>ip6_addr</code></em> | <em class="replaceable"><code>*</code></em> )
-        [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>]
-        [<span class="optional"> dscp <em class="replaceable"><code>ip_dscp</code></em></span>] |
-        [<span class="optional"> address ( <em class="replaceable"><code>ip6_addr</code></em> | <em class="replaceable"><code>*</code></em> ) </span>]
-        [<span class="optional"> port ( <em class="replaceable"><code>ip_port</code></em> | <em class="replaceable"><code>*</code></em> ) </span>] )
-        [<span class="optional"> dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> use-queryport-pool <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> queryport-pool-ports <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> queryport-pool-updateinterval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-transfer-time-in <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-transfer-time-out <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-transfer-idle-in <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-transfer-idle-out <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> reserved-sockets <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> recursive-clients <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> tcp-clients <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> max-clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> fetches-per-server <em class="replaceable"><code>number</code></em> [<span class="optional"><em class="replaceable"><code>(drop | fail)</code></em></span>]; </span>]
-    [<span class="optional"> fetch-quota-params <em class="replaceable"><code>number fixedpoint fixedpoint fixedpoint</code></em> ; </span>]
-    [<span class="optional"> fetches-per-zone <em class="replaceable"><code>number</code></em> [<span class="optional"><em class="replaceable"><code>(drop | fail)</code></em></span>]; </span>]
-    [<span class="optional"> notify-rate <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> startup-notify-rate <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> serial-query-rate <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> serial-queries <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> tcp-listen-queue <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> transfer-format <em class="replaceable"><code>( one-answer | many-answers )</code></em>; </span>]
-    [<span class="optional"> transfer-message-size  <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> transfers-in  <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> transfers-out <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> transfers-per-ns <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> transfer-source (<em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> transfer-source-v6 (<em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> alt-transfer-source (<em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> alt-transfer-source-v6 (<em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> use-alt-transfer-source <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> notify-delay <em class="replaceable"><code>seconds</code></em> ; </span>]
-    [<span class="optional"> notify-source (<em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> notify-source-v6 (<em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code>) [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ; </span>]
-    [<span class="optional"> notify-to-soa <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> also-notify [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ip_addr</code></em>
-                    [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] ) [<span class="optional">key <em class="replaceable"><code>keyname</code></em></span>] ; ... }; </span>]
-    [<span class="optional"> max-ixfr-log-size <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-journal-size <em class="replaceable"><code>size_spec</code></em>; </span>]
-    [<span class="optional"> coresize <em class="replaceable"><code>size_spec</code></em> ; </span>]
-    [<span class="optional"> datasize <em class="replaceable"><code>size_spec</code></em> ; </span>]
-    [<span class="optional"> files <em class="replaceable"><code>size_spec</code></em> ; </span>]
-    [<span class="optional"> stacksize <em class="replaceable"><code>size_spec</code></em> ; </span>]
-    [<span class="optional"> cleaning-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> heartbeat-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> interface-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> statistics-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> topology { <em class="replaceable"><code>address_match_list</code></em> }</span>];
-    [<span class="optional"> sortlist { <em class="replaceable"><code>address_match_list</code></em> }</span>];
-    [<span class="optional"> rrset-order { <em class="replaceable"><code>order_spec</code></em> ; [<span class="optional"> <em class="replaceable"><code>order_spec</code></em> ; ... </span>] </span>] };
-    [<span class="optional"> lame-ttl <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-ncache-ttl <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-cache-ttl <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-zone-ttl ( <code class="constant">unlimited</code> | <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> serial-update-method <code class="constant">increment</code>|<code class="constant">unixtime</code>|<code class="constant">date</code>; </span>]
-    [<span class="optional"> servfail-ttl <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> sig-validity-interval <em class="replaceable"><code>number</code></em> [<span class="optional"><em class="replaceable"><code>number</code></em></span>] ; </span>]
-    [<span class="optional"> sig-signing-nodes <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> sig-signing-signatures <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> sig-signing-type <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> min-roots <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> use-ixfr <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> provide-ixfr <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> request-ixfr <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> request-expire <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> treat-cr-as-space <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> min-refresh-time <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> max-refresh-time <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> min-retry-time <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> max-retry-time <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> nta-lifetime <em class="replaceable"><code>duration</code></em> ; </span>]
-    [<span class="optional"> nta-recheck <em class="replaceable"><code>duration</code></em> ; </span>]
-    [<span class="optional"> port <em class="replaceable"><code>ip_port</code></em>; </span>]
-    [<span class="optional"> dscp <em class="replaceable"><code>ip_dscp</code></em></span>] ;
-    [<span class="optional"> additional-from-auth <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> additional-from-cache <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> random-device <em class="replaceable"><code>path_name</code></em> ; </span>]
-    [<span class="optional"> max-cache-size <em class="replaceable"><code>size_or_percent</code></em> ; </span>]
-    [<span class="optional"> match-mapped-addresses <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    [<span class="optional"> filter-aaaa-on-v4 ( <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>break-dnssec</code></em> ); </span>]
-    [<span class="optional"> filter-aaaa-on-v6 ( <em class="replaceable"><code>yes_or_no</code></em> | <em class="replaceable"><code>break-dnssec</code></em> ); </span>]
-    [<span class="optional"> filter-aaaa { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-    [<span class="optional"> dns64 <em class="replaceable"><code>ipv6-prefix</code></em> {
-        [<span class="optional"> clients { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-        [<span class="optional"> mapped { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-        [<span class="optional"> exclude { <em class="replaceable"><code>address_match_list</code></em> }; </span>]
-        [<span class="optional"> suffix <em class="replaceable"><code>IPv6-address</code></em>; </span>]
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-        [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em>; </span>]
-    }; </span>];
-    [<span class="optional"> dns64-server <em class="replaceable"><code>name</code></em> </span>]
-    [<span class="optional"> dns64-contact <em class="replaceable"><code>name</code></em> </span>]
-    [<span class="optional"> preferred-glue ( <em class="replaceable"><code>A</code></em> | <em class="replaceable"><code>AAAA</code></em> | <em class="replaceable"><code>NONE</code></em> ); </span>]
-    [<span class="optional"> edns-udp-size <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-udp-size <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-rsa-exponent-size <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>namelist</code></em> } </span>] ; </span>]
-    [<span class="optional"> querylog <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> disable-algorithms <em class="replaceable"><code>domain</code></em> { <em class="replaceable"><code>algorithm</code></em>;
-                                [<span class="optional"> <em class="replaceable"><code>algorithm</code></em>; </span>] }; </span>]
-    [<span class="optional"> disable-ds-digests <em class="replaceable"><code>domain</code></em> { <em class="replaceable"><code>digest_type</code></em>;
-                                [<span class="optional"> <em class="replaceable"><code>digest_type</code></em>; </span>] }; </span>]
-    [<span class="optional"> acache-enable <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> acache-cleaning-interval <em class="replaceable"><code>number</code></em>; </span>]
-    [<span class="optional"> max-acache-size <em class="replaceable"><code>size_spec</code></em> ; </span>]
-    [<span class="optional"> max-recursion-depth <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> max-recursion-queries <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> masterfile-format
-            (<code class="constant">text</code>|<code class="constant">raw</code>|<code class="constant">map</code>) ; </span>]
-    [<span class="optional"> masterfile-style
-            (<code class="constant">relative</code>|<code class="constant">full</code>) ; </span>]
-    [<span class="optional"> empty-server <em class="replaceable"><code>name</code></em> ; </span>]
-    [<span class="optional"> empty-contact <em class="replaceable"><code>name</code></em> ; </span>]
-    [<span class="optional"> empty-zones-enable <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> disable-empty-zone <em class="replaceable"><code>zone_name</code></em> ; </span>]
-    [<span class="optional"> zero-no-soa-ttl <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> zero-no-soa-ttl-cache <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-    [<span class="optional"> resolver-query-timeout <em class="replaceable"><code>number</code></em> ; </span>]
-    [<span class="optional"> deny-answer-addresses { <em class="replaceable"><code>address_match_list</code></em> } [<span class="optional"> except-from { <em class="replaceable"><code>namelist</code></em> } </span>];</span>]
-    [<span class="optional"> deny-answer-aliases { <em class="replaceable"><code>namelist</code></em> } [<span class="optional"> except-from { <em class="replaceable"><code>namelist</code></em> } </span>];</span>]
-    [<span class="optional"> prefetch <em class="replaceable"><code>number</code></em> [<span class="optional"><em class="replaceable"><code>number</code></em></span>] ; </span>]
-
-    [<span class="optional"> rate-limit {
-        [<span class="optional"> responses-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> referrals-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> nodata-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> nxdomains-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> errors-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> all-per-second <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> window <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> log-only <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
-        [<span class="optional"> qps-scale <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> ipv4-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> ipv6-prefix-length <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> slip <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> exempt-clients  { <em class="replaceable"><code>address_match_list</code></em> } ; </span>]
-        [<span class="optional"> max-table-size <em class="replaceable"><code>number</code></em> ; </span>]
-        [<span class="optional"> min-table-size <em class="replaceable"><code>number</code></em> ; </span>]
-    } ; </span>]
-    [<span class="optional"> response-policy {
-        zone <em class="replaceable"><code>zone_name</code></em>
-        [<span class="optional"> policy <em class="replaceable"><code>(given | disabled | passthru | drop |
-                  tcp-only | nxdomain | nodata | cname domain</code></em>) </span>]
-        [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
-        [<span class="optional"> log <em class="replaceable"><code>yes_or_no</code></em> </span>]
-        [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
-        [<span class="optional"> min-update-interval <em class="replaceable"><code>number</code></em> </span>]
-        ; [<span class="optional">...</span>]
-    } [<span class="optional"> recursive-only <em class="replaceable"><code>yes_or_no</code></em> </span>]
-      [<span class="optional"> max-policy-ttl <em class="replaceable"><code>number</code></em> </span>]
-      [<span class="optional"> min-update-interval <em class="replaceable"><code>number</code></em> </span>]
-      [<span class="optional"> break-dnssec <em class="replaceable"><code>yes_or_no</code></em> </span>]
-      [<span class="optional"> min-ns-dots <em class="replaceable"><code>number</code></em> </span>]
-      [<span class="optional"> nsip-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
-      [<span class="optional"> qname-wait-recurse <em class="replaceable"><code>yes_or_no</code></em> </span>]
-      [<span class="optional"> automatic-interface-scan <em class="replaceable"><code>yes_or_no</code></em> </span>]
-    ; </span>]
-    [<span class="optional"> catalog-zones {
-        zone <em class="replaceable"><code>quoted_string</code></em>
-            [<span class="optional"> default-masters
-                [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>]
-                [<span class="optional">dscp <em class="replaceable"><code>ip_dscp</code></em></span>]
-                { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] }</span>]
-          [<span class="optional">in-memory <em class="replaceable"><code>yes_or_no</code></em></span>]
-          [<span class="optional">min-update-interval <em class="replaceable"><code>interval</code></em></span>]
-        ; [<span class="optional">...</span>] };
-    ; </span>]
-    [<span class="optional">v6-bias <em class="replaceable"><code>number</code></em> ; </span>]
-};
+<pre class="programlisting"><span class="command"><strong>options {</strong></span>
+  [ <span class="command"><strong>attach-cache</strong></span> <em class="replaceable"><code>cache_name</code></em> ; ]
+  [ <span class="command"><strong>version</strong></span> <em class="replaceable"><code>version_string</code></em> ; ]
+  [ <span class="command"><strong>hostname</strong></span> <em class="replaceable"><code>hostname_string</code></em> ; ]
+  [ <span class="command"><strong>server-id</strong></span> <em class="replaceable"><code>server_id_string</code></em> ; ]
+  [ <span class="command"><strong>directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>dnstap {</strong></span> <em class="replaceable"><code>message_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>dnstap-output</strong></span> ( <code class="option">file</code> | <code class="option">unix</code> ) <em class="replaceable"><code>path_name</code></em> [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ] [ <span class="command"><strong>versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <code class="option">unlimited</code> ) ] ; ]
+  [ <span class="command"><strong>dnstap-identity</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">hostname</code> | <code class="option">none</code> ) ; ]
+  [ <span class="command"><strong>dnstap-version</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">none</code> ) ; ]
+  [ <span class="command"><strong>fstrm-set-buffer-hint</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fstrm-set-flush-timeout</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fstrm-set-input-queue-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fstrm-set-output-notify-threshold</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fstrm-set-output-queue-model</strong></span> ( <code class="option">mpsc</code> | <code class="option">spsc</code> ) ; ]
+  [ <span class="command"><strong>fstrm-set-output-queue-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>geoip-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>managed-keys-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>named-xfer</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>tkey-gssapi-keytab</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>tkey-gssapi-credential</strong></span> <em class="replaceable"><code>principal</code></em> ; ]
+  [ <span class="command"><strong>tkey-domain</strong></span> <em class="replaceable"><code>domain_name</code></em> ; ]
+  [ <span class="command"><strong>tkey-dhkey</strong></span> <em class="replaceable"><code>key_name</code></em> <em class="replaceable"><code>key_tag</code></em> ; ]
+  [ <span class="command"><strong>cache-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>dump-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>bindkeys-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>lock-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>secroots-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>session-keyfile</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>session-keyname</strong></span> <em class="replaceable"><code>key_name</code></em> ; ]
+  [ <span class="command"><strong>session-keyalg</strong></span> <em class="replaceable"><code>algorithm_id</code></em> ; ]
+  [ <span class="command"><strong>memstatistics</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>memstatistics-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>pid-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>recursing-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>statistics-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
+  [ <span class="command"><strong>auth-nxdomain</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>nxdomain-redirect</strong></span> <em class="replaceable"><code>string</code></em> ; ]
+  [ <span class="command"><strong>deallocate-on-exit</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>dialup</strong></span> <em class="replaceable"><code>dialup_option</code></em> ; ]
+  [ <span class="command"><strong>fake-iquery</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>fetch-glue</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>flush-zones-on-shutdown</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>has-old-clients</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>host-statistics</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>host-statistics-max</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>minimal-responses</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">no-auth</code> | <code class="option">no-auth-recursive</code> ) ; ]
+  [ <span class="command"><strong>multiple-cnames</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>notify</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">explicit</code> | <code class="option">master-only</code> ) ; ]
+  [ <span class="command"><strong>recursion</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>send-cookie</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>require-server-cookie</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>cookie-algorithm</strong></span> <em class="replaceable"><code>algorithm_id</code></em> ; ]
+  [ <span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>secret_string</code></em> ; ]
+  [ <span class="command"><strong>nocookie-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>request-nsid</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>rfc2308-type1</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>use-id-pool</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>maintain-ixfr-base</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>ixfr-from-differences</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">master</code> | <code class="option">slave</code> ) ; ]
+  [ <span class="command"><strong>auto-dnssec</strong></span> ( <code class="option">allow</code> | <code class="option">maintain</code> | <code class="option">off</code> ) ; ]
+  [ <span class="command"><strong>dnssec-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>dnssec-validation</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">auto</code> ) ; ]
+  [ <span class="command"><strong>dnssec-lookaside</strong></span> ( <code class="option">auto</code> | <code class="option">no</code> | <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> ) ; ]
+  [ <span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>domain yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
+  [ <span class="command"><strong>forwarders {</strong></span>
+      ( <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; )
+        ...
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>dual-stack-servers</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
+      ( ( <em class="replaceable"><code>domain_name</code></em> | <em class="replaceable"><code>ip_addr</code></em> ) [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; )
+        ...
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">master</code> | <code class="option">slave</code> | <code class="option">response</code> )
+                ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>check-dup-records</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>check-mx</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>check-mx-cname</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>check-srv-cname</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>check-sibling</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>check-spf</strong></span> ( <code class="option">warn</code> | <code class="option">ignore</code> ) ; ]
+  [ <span class="command"><strong>allow-new-zones</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>allow-notify {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-query {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-query-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-query-cache {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-query-cache-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-transfer {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-recursion {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-recursion-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>allow-update {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ]
+  [ <span class="command"><strong>allow-update-forwarding {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>automatic-interface-scan</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>geoip-use-ecs</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>dnssec-update-mode</strong></span> ( <code class="option">maintain</code> | <code class="option">no-resign</code> ) ; ]
+  [ <span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>allow-v6-synthesis {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>blackhole {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>keep-response-order {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>no-case-compress {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>message-compression</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>use-v4-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>avoid-v4-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>use-v6-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>avoid-v6-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>listen-on</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>listen-on-v6</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>query-source</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> ) )
+      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="option">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ] ;
+  [ <span class="command"><strong>query-source-v6</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> ) )
+      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="option">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ] ;
+  [ <span class="command"><strong>use-queryport-pool</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>queryport-pool-ports</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>queryport-pool-updateinterval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>reserved-sockets</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>recursive-clients</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>tcp-clients</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-clients-per-query</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>fetches-per-server</strong></span> <em class="replaceable"><code>number</code></em> [ ( <code class="option">drop</code> | <code class="option">fail</code> ) ] ; ]
+  [ <span class="command"><strong>fetches-per-zone</strong></span> <em class="replaceable"><code>number</code></em> [ ( <code class="option">drop</code> | <code class="option">fail</code> ) ] ; ]
+  [ <span class="command"><strong>fetch-quota-params</strong></span> <em class="replaceable"><code>number fixedpoint fixedpoint fixedpoint</code></em> ; ]
+  [ <span class="command"><strong>notify-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>startup-notify-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>serial-query-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>serial-queries</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>tcp-listen-queue</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>tcp-initial-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
+  [ <span class="command"><strong>tcp-idle-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
+  [ <span class="command"><strong>tcp-keepalive-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
+  [ <span class="command"><strong>tcp-advertised-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
+  [ <span class="command"><strong>transfer-format</strong></span> ( <code class="option">one-answer</code> | <code class="option">many-answers</code> ) ; ]
+  [ <span class="command"><strong>transfer-message-size</strong></span>  <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>transfers-in</strong></span>  <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>transfers-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>transfers-per-ns</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>seconds</code></em> ; ]
+  [ <span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
+      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
+  [ <span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>also-notify</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em>] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em>] <span class="command"><strong>{</strong></span>
+      ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
+        ...
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>max-ixfr-log-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-journal-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>coresize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>datasize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>files</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>stacksize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>cleaning-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>heartbeat-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>statistics-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>topology {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>sortlist {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>rrset-order {</strong></span> <em class="replaceable"><code>order_spec</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-zone-ttl</strong></span> ( <code class="option">unlimited</code> | <em class="replaceable"><code>number</code></em> ) ; ]
+  [ <span class="command"><strong>serial-update-method</strong></span> ( <code class="option">increment</code> | <code class="option">unixtime</code> | <code class="option">date</code> ) ; ]
+  [ <span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>number</code></em> [<em class="replaceable"><code>number</code></em>] ; ]
+  [ <span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>min-roots</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>use-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>treat-cr-as-space</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>nta-lifetime</strong></span> <em class="replaceable"><code>duration</code></em> ; ]
+  [ <span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>duration</code></em> ; ]
+  [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ; ]
+  [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ; ]
+  [ <span class="command"><strong>additional-from-auth</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>additional-from-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>random-device</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>max-cache-size</strong></span> <em class="replaceable"><code>size_or_percent</code></em> ; ]
+  [ <span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>filter-aaaa-on-v4</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">break-dnssec</code> ) ; ]
+  [ <span class="command"><strong>filter-aaaa-on-v6</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">break-dnssec</code> ) ; ]
+  [ <span class="command"><strong>filter-aaaa {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>dns64</strong></span> <em class="replaceable"><code>ipv6-prefix</code></em> <span class="command"><strong>{</strong></span>
+      [ <span class="command"><strong>clients {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+      [ <span class="command"><strong>mapped {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+      [ <span class="command"><strong>exclude {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+      [ <span class="command"><strong>suffix</strong></span> <em class="replaceable"><code>ip6-address</code></em> ; ]
+      [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+      [ <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>dns64-server</strong></span> <em class="replaceable"><code>name</code></em> ]
+  [ <span class="command"><strong>dns64-contact</strong></span> <em class="replaceable"><code>name</code></em> ]
+  [ <span class="command"><strong>preferred-glue</strong></span> ( <code class="option">A</code> | <code class="option">AAAA</code> | <code class="option">none</code> ); ]
+  [ <span class="command"><strong>edns-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_list</code></em> } block-size <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-rsa-exponent-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>root-delegation-only</strong></span> [ <span class="command"><strong>exclude {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
+  [ <span class="command"><strong>querylog</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>disable-algorithms</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>algorithm</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>disable-ds-digests</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>digest_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>acache-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>acache-cleaning-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-acache-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
+  [ <span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
+  [ <span class="command"><strong>masterfile-style</strong></span> ( <code class="option">relative</code> | <code class="option">full</code> ) ; ]
+  [ <span class="command"><strong>empty-server</strong></span> <em class="replaceable"><code>name</code></em> ; ]
+  [ <span class="command"><strong>empty-contact</strong></span> <em class="replaceable"><code>name</code></em> ; ]
+  [ <span class="command"><strong>empty-zones-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>disable-empty-zone</strong></span> <em class="replaceable"><code>zone_name</code></em> ; ]
+  [ <span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>zero-no-soa-ttl-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>resolver-query-timeout</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>deny-answer-addresses {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span>
+      [ <span class="command"><strong>except-from {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
+  [ <span class="command"><strong>deny-answer-aliases {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span>
+      [ <span class="command"><strong>except-from {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
+  [ <span class="command"><strong>prefetch</strong></span> <em class="replaceable"><code>number</code></em> [ <em class="replaceable"><code>number</code></em> ] ; ]
+  [ <span class="command"><strong>rate-limit {</strong></span>
+      [ <span class="command"><strong>responses-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>referrals-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>nodata-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>nxdomains-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>errors-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>all-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>window</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>log-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+      [ <span class="command"><strong>qps-scale</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>ipv4-prefix-length</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>ipv6-prefix-length</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>slip</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>exempt-clients {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
+      [ <span class="command"><strong>max-table-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+      [ <span class="command"><strong>min-table-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>response-policy {</strong></span>
+        <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em>
+      [ <span class="command"><strong>policy</strong></span> ( given | disabled | passthru | drop |
+                 tcp-only | nxdomain | nodata | cname <em class="replaceable"><code>domain</code></em> ) ]
+      [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+      [ <span class="command"><strong>log</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+      [ <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>number</code></em> ]
+      [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>number</code></em> ] ;
+         ...
+    <span class="command"><strong>}</strong></span> [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+      [ <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>number</code></em> ]
+      [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>number</code></em> ]
+      [ <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+      [ <span class="command"><strong>min-ns-dots</strong></span> <em class="replaceable"><code>number</code></em> ]
+      [ <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+      [ <span class="command"><strong>qname-wait-recurse</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ] ; ]
+  [ <span class="command"><strong>catalog-zones {</strong></span>
+        <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>quoted_string</code></em>
+          [ <code class="option">default-masters</code> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
+              ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em>] [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em>] ) ;
+                ...
+            <span class="command"><strong>}</strong></span> ]
+          [ <span class="command"><strong>zone-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ]
+          [ <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
+          [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>interval</code></em> ] ;
+        ...
+    <span class="command"><strong>}</strong></span> ; ]
+  [ <span class="command"><strong>v6-bias</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+<span class="command"><strong>}</strong></span> ; ]
 </pre>
 
       </div>
@@ -3013,16 +3022,20 @@ badresp:1,adberr:0,findfail:0,valfail:0]
               </p>
               <p>
                 If the first argument is <code class="literal">file</code>, then
-                two additional options can be added:
+                up to three additional options can be added:
                 <span class="command"><strong>size</strong></span> indicates the size to which a
                 <span class="command"><strong>dnstap</strong></span> log file can grow before being
-                rolled to a new file, and <span class="command"><strong>versions</strong></span>
-                specifies the number of rolled log files to retain. These
-                are similar to the <span class="command"><strong>size</strong></span> and
-                <span class="command"><strong>versions</strong></span> options in a
-                <span class="command"><strong>logging</strong></span> channel.  The default
-                is to allow <span class="command"><strong>dnstap</strong></span> log files to grow to
-                any size without rolling.
+                rolled to a new file; <span class="command"><strong>versions</strong></span>
+                specifies the number of rolled log files to retain; and
+                <span class="command"><strong>suffix</strong></span> indicates whether to retain
+                rolled log files with an incrementing counter as the
+                suffix (<code class="literal">increment</code>) or with the
+                current timestamp (<code class="literal">timestamp</code>).
+                These are similar to the <span class="command"><strong>size</strong></span>,
+                <span class="command"><strong>versions</strong></span>, and <span class="command"><strong>suffix</strong></span>
+                options in a <span class="command"><strong>logging</strong></span> channel.
+                The default is to allow <span class="command"><strong>dnstap</strong></span> log
+                files to grow to any size without rolling.
               </p>
               <p>
                 <span class="command"><strong>dnstap-output</strong></span> can only be set globally
