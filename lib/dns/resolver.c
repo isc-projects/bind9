@@ -6227,7 +6227,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 
 static isc_boolean_t
 is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
-			dns_rdataset_t *rdataset)
+			dns_rdataset_t *rdataset, isc_boolean_t *chainingp)
 {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
@@ -6248,8 +6248,11 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	REQUIRE(rdataset->type == dns_rdatatype_cname ||
 		rdataset->type == dns_rdatatype_dname);
 
-	/* By default, we allow any target name. */
-	if (view->denyanswernames == NULL)
+	/*
+	 * By default, we allow any target name.
+	 * If newqname != NULL we also need to extract the newqname.
+	 */
+	if (chainingp == NULL && view->denyanswernames == NULL)
 		return (ISC_TRUE);
 
 	result = dns_rdataset_first(rdataset);
@@ -6272,13 +6275,19 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		dns_name_split(qname, nlabels, &prefix, NULL);
 		result = dns_name_concatenate(&prefix, &dname.dname, tname,
 					      NULL);
-		if (result == ISC_R_NOSPACE)
+		if (result == DNS_R_NAMETOOLONG)
 			return (ISC_TRUE);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		break;
 	default:
 		INSIST(0);
 	}
+
+	if (chainingp != NULL)
+		*chainingp = ISC_TRUE;
+
+	if (view->denyanswernames == NULL)
+		return (ISC_TRUE);
 
 	/*
 	 * If the owner name matches one in the exclusion list, either exactly
@@ -6965,7 +6974,7 @@ answer_response(fetchctx_t *fctx) {
 			if ((rdataset->type == dns_rdatatype_cname ||
 			     rdataset->type == dns_rdatatype_dname) &&
 			     !is_answertarget_allowed(fctx, qname, aname,
-						      rdataset))
+						      rdataset, NULL))
 			{
 				return (DNS_R_SERVFAIL);
 			}
@@ -6988,7 +6997,9 @@ answer_response(fetchctx_t *fctx) {
 		}
 		if ((ardataset->type == dns_rdatatype_cname ||
 		     ardataset->type == dns_rdatatype_dname) &&
-		     !is_answertarget_allowed(fctx, qname, aname, ardataset)) {
+		     !is_answertarget_allowed(fctx, qname, aname, ardataset,
+					      NULL))
+		{
 			return (DNS_R_SERVFAIL);
 		}
 		aname->attributes |= DNS_NAMEATTR_CACHE;
@@ -7023,7 +7034,9 @@ answer_response(fetchctx_t *fctx) {
 			log_formerr(fctx, "CNAME response for %s RR", buf);
 			return (DNS_R_FORMERR);
 		}
-		if (!is_answertarget_allowed(fctx, qname, cname, crdataset)) {
+		if (!is_answertarget_allowed(fctx, qname, cname, crdataset,
+					     NULL))
+		{
 			return (DNS_R_SERVFAIL);
 		}
 		cname->attributes |= DNS_NAMEATTR_CACHE;
@@ -7055,7 +7068,8 @@ answer_response(fetchctx_t *fctx) {
 		if (!validinanswer(drdataset, fctx)) {
 			return (DNS_R_FORMERR);
 		}
-		if (!is_answertarget_allowed(fctx, qname, dname, drdataset)) {
+		if (!is_answertarget_allowed(fctx, qname, dname, drdataset,
+					     &chaining)) {
 			return (DNS_R_SERVFAIL);
 		}
 		dname->attributes |= DNS_NAMEATTR_CACHE;
@@ -7082,7 +7096,6 @@ answer_response(fetchctx_t *fctx) {
 			sigrdataset->trust = trust;
 			break;
 		}
-		chaining = ISC_TRUE;
 	} else {
 		log_formerr(fctx, "reply has no answer");
 		return (DNS_R_FORMERR);
@@ -7097,13 +7110,7 @@ answer_response(fetchctx_t *fctx) {
 	 * Did chaining end before we got the final answer?
 	 */
 	if (chaining) {
-		/*
-		 * Yes.  This may be a negative reply, so hand off
-		 * authority section processing to the noanswer code.
-		 * If it isn't a noanswer response, no harm will be
-		 * done.
-		 */
-		return (noanswer_response(fctx, qname, 0));
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
