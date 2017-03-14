@@ -1,3 +1,8 @@
+	--- 9.11.0-P5 released ---
+
+4580.	[bug]		4578 introduced a regression when handling CNAME to
+			referral below the current domain. [RT #44850]
+
 	--- 9.11.0-P4 released ---
 
 4578.	[security]	Some chaining (CNAME or DNAME) responses to upstream
