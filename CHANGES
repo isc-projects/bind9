@@ -1,3 +1,6 @@
+4580.	[bug]		4578 introduced a regression when handling CNAME to
+			referral below the current domain. [RT #44850]
+
 4579.	[func]		Logging channels and dnstap output files can now
 			be configured with a "suffix" option, set to
 			either "increment" or "timestamp", indicating
