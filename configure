@@ -11467,6 +11467,17 @@ esac
 
 
 #libseccomp sandboxing
+for ac_func in getrandom
+do :
+  ac_fn_c_check_func "$LINENO" "getrandom" "ac_cv_func_getrandom"
+if test "x$ac_cv_func_getrandom" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETRANDOM 1
+_ACEOF
+
+fi
+done
+
 # Check whether --enable-seccomp was given.
 if test "${enable_seccomp+set}" = set; then :
   enableval=$enable_seccomp;

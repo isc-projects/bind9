@@ -102,6 +102,7 @@ esac
 AC_SUBST(XTARGETS)
 
 #libseccomp sandboxing
+AC_CHECK_FUNCS(getrandom)
 AC_ARG_ENABLE(seccomp,
 	AS_HELP_STRING([--enable-seccomp],[enable support for libseccomp system call filtering [default=no]]))
 case "$enable_seccomp" in

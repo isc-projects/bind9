@@ -1,5 +1,8 @@
 	--- 9.10.5rc3 released ---
 
+4581.	[port]		Linux: Add getpid and getrandom to the list of system
+		        calls named uses for seccomp. [RT #44883]
+
 4580.	[bug]		4578 introduced a regression when handling CNAME to
 			referral below the current domain. [RT #44850]
 

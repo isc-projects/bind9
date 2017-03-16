@@ -58,6 +58,10 @@ int scmp_syscalls[] = {
 	SCMP_SYS(fstat),
 	SCMP_SYS(epoll_ctl),
 	SCMP_SYS(gettimeofday),
+	SCMP_SYS(getpid),
+#ifdef HAVE_GETRANDOM
+	SCMP_SYS(getrandom),
+#endif
 	SCMP_SYS(unlink),
 	SCMP_SYS(socket),
 	SCMP_SYS(sendto),
@@ -121,6 +125,10 @@ const char *scmp_syscall_names[] = {
 	"fstat",
 	"epoll_ctl",
 	"gettimeofday",
+	"getpid",
+#ifdef HAVE_GETRANDOM
+	"getrandom",
+#endif
 	"unlink",
 	"socket",
 	"sendto",
@@ -190,6 +198,10 @@ int scmp_syscalls[] = {
 	SCMP_SYS(fstat64),
 	SCMP_SYS(epoll_ctl),
 	SCMP_SYS(gettimeofday),
+	SCMP_SYS(getpid),
+#ifdef HAVE_GETRANDOM
+	SCMP_SYS(getrandom),
+#endif
 	SCMP_SYS(unlink),
 #ifndef ISC_PLATFORM_USETHREADS
 	SCMP_SYS(fcntl64),
@@ -226,6 +238,10 @@ const char *scmp_syscall_names[] = {
 	"fstat64",
 	"epoll_ctl",
 	"gettimeofday",
+	"getpid",
+#ifdef HAVE_GETRANDOM
+	"getrandom",
+#endif
 	"unlink",
 #ifndef ISC_PLATFORM_USETHREADS
 	"fcntl64",
