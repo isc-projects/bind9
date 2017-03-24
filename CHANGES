@@ -1,5 +1,8 @@
 	--- 9.9.9-P8 released ---
 
+4582.	[security]	'rndc ""' could trigger a assertion failure in named.
+			(CVE-2017-3138) [RT #44924]
+
 4580.	[bug]		4578 introduced a regression when handling CNAME to
 			referral below the current domain. [RT #44850]
 
