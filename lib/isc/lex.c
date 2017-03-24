@@ -86,9 +86,10 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	/*
 	 * Create a lexer.
 	 */
-
 	REQUIRE(lexp != NULL && *lexp == NULL);
-	REQUIRE(max_token > 0U);
+
+	if (max_token == 0U)
+		max_token = 1;
 
 	lex = isc_mem_get(mctx, sizeof(*lex));
 	if (lex == NULL)
