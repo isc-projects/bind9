@@ -145,8 +145,6 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
  * Requires:
  *\li	'*lexp' is a valid lexer.
  *
- *\li	max_token > 0.
- *
  * Ensures:
  *\li	On success, *lexp is attached to the newly created lexer.
  *

@@ -1,3 +1,6 @@
+4582.	[security]	'rndc ""' could trigger a assertion failure in named.
+			(CVE-2017-3138) [RT #44924]
+
 4581.	[port]		Linux: Add getpid and getrandom to the list of system
 			calls named uses for seccomp. [RT #44883]
 
