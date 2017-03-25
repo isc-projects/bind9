@@ -1008,8 +1008,9 @@
 	  <term><option>+[no]sigchase</option></term>
 	  <listitem>
 	    <para>
-	      Chase DNSSEC signature chains.  Requires dig be
-	      compiled with -DDIG_SIGCHASE.
+	      Chase DNSSEC signature chains. Requires dig be compiled
+	      with -DDIG_SIGCHASE. This feature is deprecated.
+	      Use <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1095,6 +1096,7 @@
 	    <para>
 	      When chasing DNSSEC signature chains perform a top-down
 	      validation.  Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1148,6 +1150,7 @@
 	      directory.
 	    </para> <para>
 	      Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1287,6 +1290,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
   <refsection><info><title>SEE ALSO</title></info>
 
     <para><citerefentry>
+	<refentrytitle>delv</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
 	<refentrytitle>host</refentrytitle><manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>
