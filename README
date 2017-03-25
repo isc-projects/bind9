@@ -275,6 +275,7 @@ Building
 		Change the default syslog facility of named/lwresd.
 		  -DISC_FACILITY=LOG_LOCAL0
 		Enable DNSSEC signature chasing support in dig.
+		  (This feature is deprecated. Use `delv` instead.)
 		  -DDIG_SIGCHASE=1 (sets -DDIG_SIGCHASE_TD=1 and
 				    -DDIG_SIGCHASE_BU=1)
 		Disable dropping queries from particular well known ports.
