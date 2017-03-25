@@ -48,6 +48,7 @@ static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 static isc_boolean_t default_lookups = ISC_TRUE;
 static int seen_error = -1;
 static isc_boolean_t list_addresses = ISC_TRUE;
+static isc_boolean_t list_almost_all = ISC_FALSE;
 static dns_rdatatype_t list_type = dns_rdatatype_a;
 static isc_boolean_t printed_server = ISC_FALSE;
 static isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
@@ -140,6 +141,7 @@ show_usage(void) {
 "Usage: host [-aCdilrTvVw] [-c class] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] [-m flag] hostname [server]\n"
 "       -a is equivalent to -v -t ANY\n"
+"       -A is like -a but omits RRSIG, NSEC, NSEC3\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
@@ -287,6 +289,11 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 				rdataset->type == dns_rdatatype_aaaa ||
 				rdataset->type == dns_rdatatype_ns ||
 				rdataset->type == dns_rdatatype_ptr))))
+				continue;
+			if (list_almost_all &&
+			       (rdataset->type == dns_rdatatype_rrsig ||
+				rdataset->type == dns_rdatatype_nsec ||
+				rdataset->type == dns_rdatatype_nsec3))
 				continue;
 			if (!short_form) {
 				result = dns_rdataset_totext(rdataset,
@@ -595,7 +602,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
-static const char * optstring = "46ac:dilnm:rst:vVwCDN:R:TW:";
+static const char * optstring = "46aAc:dilnm:rst:vVwCDN:R:TW:";
 
 /*% version */
 static void
@@ -632,6 +639,7 @@ pre_parse_args(int argc, char **argv) {
 			ipv6only = ISC_TRUE;
 			break;
 		case 'a': break;
+		case 'A': break;
 		case 'c': break;
 		case 'd': break;
 		case 'i': break;
@@ -763,6 +771,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			}
 			default_lookups = ISC_FALSE;
 			break;
+		case 'A':
+			list_almost_all = ISC_TRUE;
+			/* FALL THROUGH */
 		case 'a':
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr)

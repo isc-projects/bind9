@@ -1,3 +1,7 @@
+4593.	[func]		"host -A" returns most records for a name but
+			omits RRSIG, NSEC and NSEC3. (Thanks to Tony Finch.)
+			[RT #43032]
+
 4582.	[security]	'rndc ""' could trigger a assertion failure in named.
 			(CVE-2017-3138) [RT #44924]
 

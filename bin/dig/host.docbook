@@ -49,7 +49,7 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>host</command>
-      <arg choice="opt" rep="norepeat"><option>-aCdlnrsTwv</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-aACdlnrsTwv</option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-N <replaceable class="parameter">ndots</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">number</replaceable></option></arg>
@@ -123,6 +123,17 @@
 	    to <option>-v -t <literal>ANY</literal></option>.
 	    It also affects the behaviour of the <option>-l</option>
 	    list zone option.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-A</term>
+	<listitem>
+	  <para>
+	    "Almost all". The <option>-A</option> option is equivalent
+	    to <option>-a</option> except RRSIG, NSEC, and NSEC3
+	    records are omitted from the output.
 	  </para>
 	</listitem>
       </varlistentry>

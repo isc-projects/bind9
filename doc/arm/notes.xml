@@ -144,6 +144,12 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The <command>host -A</command> option returns most
+	  records for a name, but omits types RRSIG, NSEC and NSEC3.
+	</para>
+      </listitem>
+      <listitem>
+        <para>
 	  Query logic has been substantially refactored (e.g. query_find
 	  function has been split into smaller functions) for improved
 	  readability, maintainability and testability. [RT #43929]
