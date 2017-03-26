@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -745,8 +745,9 @@
 <dt><span class="term"><code class="option">+[no]sigchase</code></span></dt>
 <dd>
 	    <p>
-	      Chase DNSSEC signature chains.  Requires dig be
-	      compiled with -DDIG_SIGCHASE.
+	      Chase DNSSEC signature chains. Requires dig be compiled
+	      with -DDIG_SIGCHASE. This feature is deprecated.
+	      Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
@@ -824,6 +825,7 @@
 	    <p>
 	      When chasing DNSSEC signature chains perform a top-down
 	      validation.  Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]trace</code></span></dt>
@@ -868,6 +870,7 @@
 	      directory.
 	    </p> <p>
 	      Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]ttlid</code></span></dt>
@@ -973,6 +976,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
 <a name="id-1.14"></a><h2>SEE ALSO</h2>
 
     <p><span class="citerefentry">
+	<span class="refentrytitle">delv</span>(1)
+      </span>,
+      <span class="citerefentry">
 	<span class="refentrytitle">host</span>(1)
       </span>,
       <span class="citerefentry">
