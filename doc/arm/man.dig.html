@@ -798,8 +798,9 @@
 <dt><span class="term"><code class="option">+[no]sigchase</code></span></dt>
 <dd>
 	    <p>
-	      Chase DNSSEC signature chains.  Requires dig be
-	      compiled with -DDIG_SIGCHASE.
+	      Chase DNSSEC signature chains. Requires dig be compiled
+	      with -DDIG_SIGCHASE. This feature is deprecated.
+	      Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+split=W</code></span></dt>
@@ -867,6 +868,7 @@
 	    <p>
 	      When chasing DNSSEC signature chains perform a top-down
 	      validation.  Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]trace</code></span></dt>
@@ -911,6 +913,7 @@
 	      directory.
 	    </p> <p>
 	      Requires dig be compiled with -DDIG_SIGCHASE.
+	      This feature is deprecated. Use <span class="command"><strong>delv</strong></span> instead.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]ttlid</code></span></dt>
@@ -1039,6 +1042,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
 <a name="id-1.14.2.14"></a><h2>SEE ALSO</h2>
 
     <p><span class="citerefentry">
+	<span class="refentrytitle">delv</span>(1)
+      </span>,
+      <span class="citerefentry">
 	<span class="refentrytitle">host</span>(1)
       </span>,
       <span class="citerefentry">

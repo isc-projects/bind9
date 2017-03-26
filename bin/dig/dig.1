@@ -1,4 +1,4 @@
-.\" Copyright (C) 2000-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2000-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -588,7 +588,9 @@ Perform [do not perform] a search showing intermediate results\&.
 .PP
 \fB+[no]sigchase\fR
 .RS 4
-Chase DNSSEC signature chains\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
+Chase DNSSEC signature chains\&. Requires dig be compiled with \-DDIG_SIGCHASE\&. This feature is deprecated\&. Use
+\fBdelv\fR
+instead\&.
 .RE
 .PP
 \fB+split=W\fR
@@ -638,7 +640,9 @@ to less than 1 will result in a query timeout of 1 second being applied\&.
 .PP
 \fB+[no]topdown\fR
 .RS 4
-When chasing DNSSEC signature chains perform a top\-down validation\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
+When chasing DNSSEC signature chains perform a top\-down validation\&. Requires dig be compiled with \-DDIG_SIGCHASE\&. This feature is deprecated\&. Use
+\fBdelv\fR
+instead\&.
 .RE
 .PP
 \fB+[no]trace\fR
@@ -675,7 +679,9 @@ then
 trusted\-key\&.key
 in the current directory\&.
 .sp
-Requires dig be compiled with \-DDIG_SIGCHASE\&.
+Requires dig be compiled with \-DDIG_SIGCHASE\&. This feature is deprecated\&. Use
+\fBdelv\fR
+instead\&.
 .RE
 .PP
 \fB+[no]ttlid\fR
@@ -762,6 +768,7 @@ runs\&.
 ${HOME}/\&.digrc
 .SH "SEE ALSO"
 .PP
+\fBdelv\fR(1),
 \fBhost\fR(1),
 \fBnamed\fR(8),
 \fBdnssec-keygen\fR(8),
@@ -774,5 +781,5 @@ There are probably too many query options\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2000-2011, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2000-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .br
