@@ -155,6 +155,12 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
         <p>
+	  The <span class="command"><strong>host -A</strong></span> option returns most
+	  records for a name, but omits types RRSIG, NSEC and NSEC3.
+	</p>
+      </li>
+<li class="listitem">
+        <p>
 	  Query logic has been substantially refactored (e.g. query_find
 	  function has been split into smaller functions) for improved
 	  readability, maintainability and testability. [RT #43929]

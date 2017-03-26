@@ -51,7 +51,7 @@
 <h2>Synopsis</h2>
     <div class="cmdsynopsis"><p>
       <code class="command">host</code> 
-       [<code class="option">-aCdlnrsTwv</code>]
+       [<code class="option">-aACdlnrsTwv</code>]
        [<code class="option">-c <em class="replaceable"><code>class</code></em></code>]
        [<code class="option">-N <em class="replaceable"><code>ndots</code></em></code>]
        [<code class="option">-R <em class="replaceable"><code>number</code></em></code>]
@@ -119,6 +119,14 @@
 	    to <code class="option">-v -t <code class="literal">ANY</code></code>.
 	    It also affects the behaviour of the <code class="option">-l</code>
 	    list zone option.
+	  </p>
+	</dd>
+<dt><span class="term">-A</span></dt>
+<dd>
+	  <p>
+	    "Almost all". The <code class="option">-A</code> option is equivalent
+	    to <code class="option">-a</code> except RRSIG, NSEC, and NSEC3
+	    records are omitted from the output.
 	  </p>
 	</dd>
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>

@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2002, 2004, 2005, 2007-2009, 2014-2016 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2002, 2004, 2005, 2007-2009, 2014-2017 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,7 @@
 <h2>Synopsis</h2>
     <div class="cmdsynopsis"><p>
       <code class="command">host</code> 
-       [<code class="option">-aCdlnrsTwv</code>]
+       [<code class="option">-aACdlnrsTwv</code>]
        [<code class="option">-c <em class="replaceable"><code>class</code></em></code>]
        [<code class="option">-N <em class="replaceable"><code>ndots</code></em></code>]
        [<code class="option">-R <em class="replaceable"><code>number</code></em></code>]
@@ -101,6 +101,14 @@
 	    to <code class="option">-v -t <code class="literal">ANY</code></code>.
 	    It also affects the behaviour of the <code class="option">-l</code>
 	    list zone option.
+	  </p>
+	</dd>
+<dt><span class="term">-A</span></dt>
+<dd>
+	  <p>
+	    "Almost all". The <code class="option">-A</code> option is equivalent
+	    to <code class="option">-a</code> except RRSIG, NSEC, and NSEC3
+	    records are omitted from the output.
 	  </p>
 	</dd>
 <dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
