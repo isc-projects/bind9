@@ -1,4 +1,4 @@
-4593.	[func]		"host -A" returns most records for a name but
+4583.	[func]		"host -A" returns most records for a name but
 			omits RRSIG, NSEC and NSEC3. (Thanks to Tony Finch.)
 			[RT #43032]
 
