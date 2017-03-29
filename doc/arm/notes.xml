@@ -100,6 +100,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  'rndc ""' could trigger a assertion failure in named. This flaw
+	  is disclosed in (CVE-2017-3138). [RT #44924]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
 	  queries could trigger assertion failures. This flaw is disclosed
 	  in CVE-2017-3137. [RT #44734]
