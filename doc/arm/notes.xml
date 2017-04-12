@@ -102,8 +102,9 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  'rndc ""' could trigger a assertion failure in named. This flaw
-	  is disclosed in (CVE-2017-3138). [RT #44924]
+	  <command>rndc ""</command> could trigger an assertion failure
+	  in <command>named</command>. This flaw is disclosed in
+	  (CVE-2017-3138). [RT #44924]
 	</para>
       </listitem>
       <listitem>
