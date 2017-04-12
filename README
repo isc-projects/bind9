@@ -51,10 +51,13 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
-BIND 9.10.4-P7
+BIND 9.10.4-P8
 
-	This version contains fixes for CVE-2017-3136 and CVE-2017-3137,
-	and updates the built in trusted keys for the root zone.
+	This version contains fixes for CVE-2017-3136, CVE-2017-3137,
+	and CVE-2017-3138, and updates the built in trusted keys
+	for the root zone.
+
+BIND 9.10.4-P7 was withdrawn prior to publication.
 
 BIND 9.10.4-P6
 
