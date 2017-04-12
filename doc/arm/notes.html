@@ -29,9 +29,12 @@
       This document summarizes changes since BIND 9.9.9:
     </p>
 <p>
-      BIND 9.9.9-P7 addresses the security issue described in
-      CVE-2017-3136, and updates the built in trusted keys for
-      the root zone.
+      BIND 9.9.9-P8 addresses the security issues described in
+      CVE-2017-3136, CVE-2017-3137, and CVE-2017-3138, and updates
+      the built-in trusted keys for the root zone.
+    </p>
+<p>
+      BIND 9.9.9-P7 was withdrawn prior to publication.
     </p>
 <p>
       BIND 9.9.9-P6 addresses the security issue described in
@@ -105,8 +108,9 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p>
-	  'rndc ""' could trigger a assertion failure in named. This flaw
-	  is disclosed in (CVE-2017-3138). [RT #44924]
+	  <span class="command"><strong>rndc ""</strong></span> could trigger an assertion failure
+	  in <span class="command"><strong>named</strong></span>. This flaw is disclosed in
+	  (CVE-2017-3138). [RT #44924]
 	</p></li>
 <li class="listitem"><p>
 	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
