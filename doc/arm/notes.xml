@@ -16,9 +16,12 @@
       This document summarizes changes since BIND 9.11.0:
     </para>
     <para>
-      BIND 9.11.0-P4 addresses the security issue described in
-      CVE-2017-3136, and updates the built in trusted keys for
-      the root zone.
+      BIND 9.11.0-P5 addresses the security issues described in
+      CVE-2017-3136, CVE-2017-3137, and CVE-2017-3138, and updates
+      the built-in trusted keys for the root zone.
+    </para>
+    <para>
+      BIND 9.11.0-P4 was withdrawn prior to publication.
     </para>
     <para>
       BIND 9.11.0-P3 addresses the security issue described in
