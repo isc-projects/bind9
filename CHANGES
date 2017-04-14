@@ -1,3 +1,5 @@
+	--- 9.10.5 released ---
+
 	--- 9.10.5rc3 released ---
 
 4582.	[security]	'rndc ""' could trigger a assertion failure in named.
