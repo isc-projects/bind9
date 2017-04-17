@@ -3626,7 +3626,7 @@
 ./lib/irs/include/irs/version.h			C	2009
 ./lib/irs/resconf.c				C	2009,2011,2012,2014,2015,2016
 ./lib/irs/tests/Atffile				X	2016
-./lib/irs/tests/Makefile.in			MAKE	2016
+./lib/irs/tests/Makefile.in			MAKE	2016,2017
 ./lib/irs/tests/resconf_test.c			C	2016
 ./lib/irs/tests/testdata/domain.conf		CONF-SH	2016
 ./lib/irs/tests/testdata/nameserver-v4.conf	CONF-SH	2016
