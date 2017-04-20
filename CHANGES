@@ -1,3 +1,7 @@
+4588.	[bug]		nsupdate could send queries for TKEY to the wrong
+			server when using GSSAPI. Thanks to Tomas Hozza.
+			[RT #39893]
+
 4587.	[bug]		named-checkzone failed to handle occulted data below
 			DNAMEs correctly. [RT #44877]
 
