@@ -2702,10 +2702,24 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	dns_rdataset_init(&a);
 	dns_rdataset_init(&aaaa);
 
+	/*
+	 * Perform a regular lookup to catch DNAME records then look
+	 * for glue.
+	 */
 	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
-			     DNS_DBFIND_GLUEOK, 0, NULL,
-			     foundname, &a, NULL);
-
+			     0, 0, NULL, foundname, &a, NULL);
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_DNAME:
+	case DNS_R_CNAME:
+		break;
+	default:
+		if (dns_rdataset_isassociated(&a))
+			dns_rdataset_disassociate(&a);
+		result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+				     DNS_DBFIND_GLUEOK, 0, NULL,
+				     foundname, &a, NULL);
+	}
 	if (result == ISC_R_SUCCESS) {
 		dns_rdataset_disassociate(&a);
 		return (ISC_TRUE);
@@ -2723,7 +2737,7 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 			dns_rdataset_disassociate(&aaaa);
 			return (ISC_TRUE);
 		}
-		if (tresult == DNS_R_DELEGATION)
+		if (tresult == DNS_R_DELEGATION || tresult == DNS_R_DNAME)
 			dns_rdataset_disassociate(&aaaa);
 		if (result == DNS_R_GLUE || tresult == DNS_R_GLUE) {
 			/*
