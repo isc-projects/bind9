@@ -1,3 +1,6 @@
+4584.	[bug]		A number of memory usage statistics were not properly
+			reported when they exceeded 4G.  [RT #44750]
+
 4583.	[func]		"host -A" returns most records for a name but
 			omits RRSIG, NSEC and NSEC3. (Thanks to Tony Finch.)
 			[RT #43032]
