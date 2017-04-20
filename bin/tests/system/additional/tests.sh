@@ -236,9 +236,27 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig 2>&1 | sed 's/^/I:ns1
 sleep 2
 
 n=`expr $n + 1`
-echo "I:testing with 'minimal-any yes;' ($n)"
+echo "I:testing with 'minimal-any yes;' over UDP ($n)"
 ret=0
-$DIG -t ANY www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+$DIG -t ANY +notcp www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+n=`expr $n + 1`
+
+echo "I:testing with 'minimal-any yes;' over TCP ($n)"
+ret=0
+$DIG -t ANY +tcp www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
+grep "ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
+if [ $ret -eq 1 ] ; then
+    echo "I: failed"; status=1
+fi
+
+n=`expr $n + 1`
+echo "I:testing with 'minimal-any yes;' over UDP ($n)"
+ret=0
+$DIG -t ANY +notcp www.rt.example @10.53.0.1 -p 5300 > dig.out.$n || ret=1
 grep "ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" dig.out.$n > /dev/null || ret=1
 if [ $ret -eq 1 ] ; then
     echo "I: failed"; status=1
