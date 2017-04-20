@@ -1,3 +1,6 @@
+4587.	[bug]		named-checkzone failed to handle occulted data below
+			DNAMEs correctly. [RT #44877]
+
 4586.	[func]		dig, host and nslookup now use TCP for ANY queries.
 			[RT #44687]
 
