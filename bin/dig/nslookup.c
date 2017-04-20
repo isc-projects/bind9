@@ -51,7 +51,7 @@
 #endif
 
 static isc_boolean_t short_form = ISC_TRUE,
-	tcpmode = ISC_FALSE,
+	tcpmode = ISC_FALSE, tcpmode_set = ISC_FALSE,
 	identify = ISC_FALSE, stats = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
@@ -718,8 +718,10 @@ setoption(char *opt) {
 		usesearch = ISC_FALSE;
 	} else if (strncasecmp(opt, "vc", 3) == 0) {
 		tcpmode = ISC_TRUE;
+		tcpmode_set = ISC_TRUE;
 	} else if (strncasecmp(opt, "novc", 5) == 0) {
 		tcpmode = ISC_FALSE;
+		tcpmode_set = ISC_TRUE;
 	} else if (strncasecmp(opt, "deb", 3) == 0) {
 		short_form = ISC_FALSE;
 		showsearch = ISC_TRUE;
@@ -796,7 +798,10 @@ addlookup(char *opt) {
 	lookup->retries = tries;
 	lookup->udpsize = 0;
 	lookup->comments = comments;
-	lookup->tcp_mode = tcpmode;
+	if (lookup->rdtype == dns_rdatatype_any && !tcpmode_set)
+		lookup->tcp_mode = ISC_TRUE;
+	else
+		lookup->tcp_mode = tcpmode;
 	lookup->stats = stats;
 	lookup->section_question = section_question;
 	lookup->section_answer = section_answer;

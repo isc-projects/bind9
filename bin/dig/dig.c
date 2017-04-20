@@ -1670,6 +1670,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				if (rdtype == dns_rdatatype_axfr) {
 					(*lookup)->section_question = plusquest;
 					(*lookup)->comments = pluscomm;
+				} else if (rdtype == dns_rdatatype_any) {
+					if (!(*lookup)->tcp_mode_set)
+						(*lookup)->tcp_mode = ISC_TRUE;
 				}
 				(*lookup)->ixfr_serial = ISC_FALSE;
 			}
@@ -1980,6 +1983,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 								plusquest;
 						    lookup->comments = pluscomm;
 						}
+						if (rdtype ==
+						    dns_rdatatype_any &&
+						    !lookup->tcp_mode_set)
+							lookup->tcp_mode = ISC_TRUE;
 						lookup->ixfr_serial = ISC_FALSE;
 					}
 					continue;

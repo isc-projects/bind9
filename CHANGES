@@ -1,3 +1,6 @@
+4586.	[func]		dig, host and nslookup now use TCP for ANY queries.
+			[RT #44687]
+
 4585.	[port]		win32: Set CompileAS value. [RT #42474]
 
 4584.	[bug]		A number of memory usage statistics were not properly

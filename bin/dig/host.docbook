@@ -49,7 +49,7 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>host</command>
-      <arg choice="opt" rep="norepeat"><option>-aCdlnrsTwv</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-aCdlnrsTUwv</option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-N <replaceable class="parameter">ndots</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">number</replaceable></option></arg>
@@ -279,14 +279,16 @@
 
       <varlistentry>
 	<term>-T</term>
+	<term>-U</term>
 	<listitem>
 	  <para>
-	    TCP:
+	    TCP/UDP:
 	    By default, <command>host</command> uses UDP when making
 	    queries. The <option>-T</option> option makes it use a TCP
 	    connection when querying the name server. TCP will be
 	    automatically selected for queries that require it, such
-	    as zone transfer (AXFR) requests.
+	    as zone transfer (AXFR) requests.  Type ANY queries default
+	    to TCP but can be forced to UDP initially using <option>-U</option>.
 	  </para>
 	</listitem>
       </varlistentry>
