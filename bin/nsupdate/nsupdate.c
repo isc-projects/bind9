@@ -2057,10 +2057,10 @@ do_next_command(char *cmdline) {
 "oldgsstsig                (use Microsoft's GSS_TSIG to sign the request)\n"
 "zone name                 (set the zone to be updated)\n"
 "class CLASS               (set the zone's DNS class, e.g. IN (default), CH)\n"
-"[prereq] nxdomain name    (does this name not exist)\n"
-"[prereq] yxdomain name    (does this name exist)\n"
-"[prereq] nxrrset ....     (does this RRset exist)\n"
-"[prereq] yxrrset ....     (does this RRset not exist)\n"
+"[prereq] nxdomain name    (require that this name does not exist)\n"
+"[prereq] yxdomain name    (require that this name exists)\n"
+"[prereq] nxrrset ....     (require that this RRset does not exist)\n"
+"[prereq] yxrrset ....     (require that this RRset exists)\n"
 "[update] add ....         (add the given record to the zone)\n"
 "[update] del[ete] ....    (remove the given record(s) from the zone)\n");
 		return (STATUS_MORE);
