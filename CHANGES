@@ -1,3 +1,6 @@
+4584.	[bug]		A number of memory usage statistics were not properly
+			reported when they exceeded 4G.  [RT #44750]
+
 	--- 9.11.1 released ---
 
 	--- 9.11.1rc3 released ---
