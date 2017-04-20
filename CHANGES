@@ -1,3 +1,5 @@
+4589.	[cleanup]	"configure -q" is now silent. [RT #44829]
+
 4588.	[bug]		nsupdate could send queries for TKEY to the wrong
 			server when using GSSAPI. Thanks to Tomas Hozza.
 			[RT #39893]
