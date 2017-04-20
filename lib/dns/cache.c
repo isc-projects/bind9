@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2009, 2011-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2009, 2011-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1412,7 +1412,7 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 		"cache database hash buckets");
 
 	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-	        (isc_uint64_t) isc_mem_total(cache->mctx),
+		(isc_uint64_t) isc_mem_total(cache->mctx),
 		"cache tree memory total");
 	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_inuse(cache->mctx),
