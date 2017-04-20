@@ -955,6 +955,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1110,6 +1111,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1362,6 +1364,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1499,7 +1510,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1652,6 +1663,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -25713,7 +25725,12 @@ case "$make_clean" in
 yes)
 	if test "$no_create" != "yes"
 	then
-		make clean
+		if test "$silent" = "yes"
+		then
+                        make clean > /dev/null
+                else
+                        make clean
+		fi
 	fi
 	;;
 esac
@@ -25724,139 +25741,145 @@ if test "${enable_full_report+set}" = set; then :
 fi
 
 
-echo "==============================================================================="
-echo "Configuration summary:"
-echo "-------------------------------------------------------------------------------"
-echo "Optional features enabled:"
-if $use_threads; then
-    echo "    Multiprocessing support (--enable-threads)"
-    if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-        echo "        Mutex lock type: $locktype"
-    fi
-fi
-test "large" = "large" && echo "    Large-system tuning (--with-tuning)"
-test "no" = "$use_dnstap" || \
-        echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
-test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
-if test "yes" = "$enable_full_report" -o "$with_cc_alg" != "aes"; then
-    echo "        Algorithm: $with_cc_alg"
-fi
-
-# these lines are only printed if run with --enable-full-report
-if test "yes" = "$enable_full_report"; then
-    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-	echo "    IPv6 support (--enable-ipv6)"
-    test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
-	    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-    test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-    test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
-    test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
-    test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
-    test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-fi
-
-if test "$use_pkcs11" != "no"; then
-    if test "yes" = "$want_native_pkcs11"; then
-	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-    else
-	echo "    PKCS#11/Cryptoki support using OpenSSL (--with-pkcs11)"
-    fi
-    echo "        Provider library: $PKCS11_PROVIDER"
-fi
-if test "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST"; then
-    echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
-fi
-test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
-    echo "    ECDSA algorithm support (--with-ecdsa)"
-test "yes" = "$enable_fixed" && \
-    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-test "yes" = "$enable_filter" && \
-    echo "    AAAA filtering (--enable-filter-aaaa)"
-test "yes" = "$enable_seccomp" && \
-    echo "    Use libseccomp system call filtering (--enable-seccomp)"
-test "yes" = "$want_backtrace" && \
-    echo "    Print backtrace on crash (--enable-backtrace)"
-test "minimal" = "$want_symtable" && \
-    echo "    Use symbol table for backtrace, named only (--enable-symtable)"
-test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
-    echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
-test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-test "yes" = "$want_querytrace" && \
-    echo "    Very verbose query trace logging (--enable-querytrace)"
-test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
-
-echo "    Dynamically loadable zone (DLZ) drivers:"
-test "no" = "$use_dlz_bdb" || \
-    echo "        Berkeley DB (--with-dlz-bdb)"
-test "no" = "$use_dlz_ldap" || \
-    echo "        LDAP (--with-dlz-ldap)"
-test "no" = "$use_dlz_mysql" || \
-    echo "        MySQL (--with-dlz-mysql)"
-test "no" = "$use_dlz_odbc" || \
-    echo "        ODBC (--with-dlz-odbc)"
-test "no" = "$use_dlz_postgres" || \
-    echo "        Postgres (--with-dlz-postgres)"
-test "no" = "$use_dlz_filesystem" || \
-    echo "        Filesystem (--with-dlz-filesystem)"
-test "no" = "$use_dlz_stub" || \
-    echo "        Stub (--with-dlz-stub)"
-test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
-echo
-
-echo "Features disabled or unavailable on this platform:"
-$use_threads || echo "    Multiprocessing support (--enable-threads)"
-test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-	echo "    IPv6 support (--enable-ipv6)"
-test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
-
-test "no" = "$use_dnstap" && \
-        echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
-test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
-
-test "yes" = "$enable_fixed" || \
-    echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-
-if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
-then
-    echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-elif test "no" = "$use_pkcs11"; then
-    echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-fi
-test "yes" = "$want_native_pkcs11" ||
-    echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST" || \
-    echo "    GOST algorithm support (--with-gost)"
-test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
-    echo "    ECDSA algorithm support (--with-ecdsa)"
-
-test "yess" = "$enable_seccomp" || \
-    echo "    Use libseccomp system call filtering (--enable-seccomp)"
-test "yes" = "$want_backtrace" || \
-    echo "    Print backtrace on crash (--enable-backtrace)"
-test "yes" = "$want_querytrace" || \
-    echo "    Very verbose query trace logging (--enable-querytrace)"
-
-test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
-
-test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
-test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
-test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
-test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
-test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-
-if test "X$ac_unrecognized_opts" != "X"; then
-    echo
-    echo "Unrecognized options:"
-    echo "    $ac_unrecognized_opts"
-fi
-if test "$enable_full_report" != "yes"; then
+report() {
+    echo "==============================================================================="
+    echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
-    echo "For more detail, use --enable-full-report."
+    echo "Optional features enabled:"
+    if $use_threads; then
+        echo "    Multiprocessing support (--enable-threads)"
+        if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
+            echo "        Mutex lock type: $locktype"
+        fi
+    fi
+    test "large" = "large" && echo "    Large-system tuning (--with-tuning)"
+    test "no" = "$use_dnstap" || \
+            echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
+    test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
+    test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
+    if test "yes" = "$enable_full_report" -o "$with_cc_alg" != "aes"; then
+        echo "        Algorithm: $with_cc_alg"
+    fi
+
+    # these lines are only printed if run with --enable-full-report
+    if test "yes" = "$enable_full_report"; then
+        test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
+            echo "    IPv6 support (--enable-ipv6)"
+        test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
+                echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+        test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
+        test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
+        test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
+        test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+        test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+    fi
+
+    if test "$use_pkcs11" != "no"; then
+        if test "yes" = "$want_native_pkcs11"; then
+            echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
+        else
+            echo "    PKCS#11/Cryptoki support using OpenSSL (--with-pkcs11)"
+        fi
+        echo "        Provider library: $PKCS11_PROVIDER"
+    fi
+    if test "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST"; then
+        echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
+    fi
+    test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
+        echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "yes" = "$enable_fixed" && \
+        echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+    test "yes" = "$enable_filter" && \
+        echo "    AAAA filtering (--enable-filter-aaaa)"
+    test "yes" = "$enable_seccomp" && \
+        echo "    Use libseccomp system call filtering (--enable-seccomp)"
+    test "yes" = "$want_backtrace" && \
+        echo "    Print backtrace on crash (--enable-backtrace)"
+    test "minimal" = "$want_symtable" && \
+        echo "    Use symbol table for backtrace, named only (--enable-symtable)"
+    test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
+        echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+    test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
+    test "yes" = "$want_querytrace" && \
+        echo "    Very verbose query trace logging (--enable-querytrace)"
+    test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
+
+    echo "    Dynamically loadable zone (DLZ) drivers:"
+    test "no" = "$use_dlz_bdb" || \
+        echo "        Berkeley DB (--with-dlz-bdb)"
+    test "no" = "$use_dlz_ldap" || \
+        echo "        LDAP (--with-dlz-ldap)"
+    test "no" = "$use_dlz_mysql" || \
+        echo "        MySQL (--with-dlz-mysql)"
+    test "no" = "$use_dlz_odbc" || \
+        echo "        ODBC (--with-dlz-odbc)"
+    test "no" = "$use_dlz_postgres" || \
+        echo "        Postgres (--with-dlz-postgres)"
+    test "no" = "$use_dlz_filesystem" || \
+        echo "        Filesystem (--with-dlz-filesystem)"
+    test "no" = "$use_dlz_stub" || \
+        echo "        Stub (--with-dlz-stub)"
+    test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
+    echo
+
+    echo "Features disabled or unavailable on this platform:"
+    $use_threads || echo "    Multiprocessing support (--enable-threads)"
+    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
+            echo "    IPv6 support (--enable-ipv6)"
+    test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
+
+    test "no" = "$use_dnstap" && \
+            echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
+    test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
+    test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
+
+    test "yes" = "$enable_fixed" || \
+        echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+
+    if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
+    then
+        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+    elif test "no" = "$use_pkcs11"; then
+        echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+    fi
+    test "yes" = "$want_native_pkcs11" ||
+        echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
+    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST" || \
+        echo "    GOST algorithm support (--with-gost)"
+    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
+        echo "    ECDSA algorithm support (--with-ecdsa)"
+
+    test "yess" = "$enable_seccomp" || \
+        echo "    Use libseccomp system call filtering (--enable-seccomp)"
+    test "yes" = "$want_backtrace" || \
+        echo "    Print backtrace on crash (--enable-backtrace)"
+    test "yes" = "$want_querytrace" || \
+        echo "    Very verbose query trace logging (--enable-querytrace)"
+
+    test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
+    test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
+
+    test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
+    test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
+    test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
+    test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
+    test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+
+    if test "X$ac_unrecognized_opts" != "X"; then
+        echo
+        echo "Unrecognized options:"
+        echo "    $ac_unrecognized_opts"
+    fi
+    if test "$enable_full_report" != "yes"; then
+        echo "-------------------------------------------------------------------------------"
+        echo "For more detail, use --enable-full-report."
+    fi
+    echo "==============================================================================="
+}
+
+if test "$silent" != "yes"; then
+        report
 fi
-echo "==============================================================================="
 
 if test "X$CRYPTO" = "X"; then
 cat << \EOF
