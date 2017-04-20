@@ -170,5 +170,21 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking that nameserver below DNAME is reported even with occulted address record present ($n)"
+ret=0
+$CHECKZONE example.com zones/ns-address-below-dname.db > test.out.$n 2>&1 && ret=1
+grep "is below a DNAME" test.out.$n >/dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that delegating nameserver below DNAME is reported even with occulted address record present ($n)"
+ret=0
+$CHECKZONE example.com zones/delegating-ns-address-below-dname.db > test.out.$n 2>&1 || ret=1
+grep "is below a DNAME" test.out.$n >/dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
