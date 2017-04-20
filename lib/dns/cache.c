@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2011-2013, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2011-2013, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1419,7 +1419,7 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 		"cache database hash buckets");
 
 	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-	        (isc_uint64_t) isc_mem_total(cache->mctx),
+		(isc_uint64_t) isc_mem_total(cache->mctx),
 		"cache tree memory total");
 	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_inuse(cache->mctx),
