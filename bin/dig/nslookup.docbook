@@ -308,8 +308,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>debug</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>debug</constant></term>
                 <listitem>
                   <para>
 		    Turn on or off the display of the full response packet and
@@ -322,8 +321,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>d2</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>d2</constant></term>
                 <listitem>
                   <para>
                     Turn debugging mode on or off.  This displays more about
@@ -345,8 +343,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>search</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>search</constant></term>
                 <listitem>
                   <para>
                     If the lookup request contains at least one period but
@@ -392,8 +389,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>recurse</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>recurse</constant></term>
                 <listitem>
                   <para>
                     Tell the name server to query other servers if it does not
@@ -437,8 +433,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>vc</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>vc</constant></term>
                 <listitem>
                   <para>
                     Always use a virtual circuit when sending requests to the
@@ -451,8 +446,7 @@ nslookup -query=hinfo  -timeout=10
               </varlistentry>
 
               <varlistentry>
-                <term><constant>
-                    <replaceable><optional>no</optional></replaceable>fail</constant></term>
+                <term><constant><replaceable><optional>no</optional></replaceable>fail</constant></term>
                 <listitem>
                   <para>
 		    Try the next nameserver if a nameserver responds with

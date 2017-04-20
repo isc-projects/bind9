@@ -602,7 +602,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
-static const char * optstring = "46aAc:dilnm:rst:vVwCDN:R:TW:";
+static const char * optstring = "46aAc:dilnm:rst:vVwCDN:R:TUW:";
 
 /*% version */
 static void
@@ -743,6 +743,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->ixfr_serial = serial;
 				lookup->tcp_mode = ISC_TRUE;
 				list_type = rdtype;
+			} else if (rdtype == dns_rdatatype_any) {
+				if (!lookup->tcp_mode_set)
+					lookup->tcp_mode = ISC_TRUE;
 #ifdef WITH_IDN
 			} else if (rdtype == dns_rdatatype_a ||
 				   rdtype == dns_rdatatype_aaaa ||
@@ -815,6 +818,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		case 'T':
 			lookup->tcp_mode = ISC_TRUE;
+			lookup->tcp_mode_set = ISC_TRUE;
+			break;
+		case 'U':
+			lookup->tcp_mode = ISC_FALSE;
+			lookup->tcp_mode_set = ISC_TRUE;
 			break;
 		case 'C':
 			debug("showing all SOAs");

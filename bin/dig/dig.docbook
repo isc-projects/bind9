@@ -1067,10 +1067,10 @@
 	  <listitem>
 	    <para>
 	      Use [do not use] TCP when querying name servers. The
-	      default behavior is to use UDP unless an
-	      <literal>ixfr=N</literal> query is requested, in which
-	      case the default is TCP.  AXFR queries always use
-	      TCP.
+	      default behavior is to use UDP unless a type
+	      <literal>any</literal> or <literal>ixfr=N</literal>
+	      query is requested, in which case the default is TCP.
+	      AXFR queries always use TCP.
 	    </para>
 	  </listitem>
 	</varlistentry>
