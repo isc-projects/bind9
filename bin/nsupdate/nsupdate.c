@@ -2710,10 +2710,8 @@ start_gssrequest(dns_name_t *master) {
 		if (kserver == NULL)
 			fatal("out of memory");
 	}
-	if (servers == NULL)
-		get_addresses(namestr, dnsport, kserver, 1);
-	else
-		memmove(kserver, &servers[ns_inuse], sizeof(isc_sockaddr_t));
+
+	memmove(kserver, &master_servers[master_inuse], sizeof(isc_sockaddr_t));
 
 	dns_fixedname_init(&fname);
 	servname = dns_fixedname_name(&fname);
@@ -2858,11 +2856,11 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (eresult != ISC_R_SUCCESS) {
-		next_server("recvgss", addr, eresult);
+		next_master("recvgss", addr, eresult);
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(tsigquery);
-		sendrequest(&servers[ns_inuse], tsigquery, &request);
+		sendrequest(&master_servers[master_inuse], tsigquery, &request);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
 		isc_event_free(&event);
 		return;
