@@ -1,3 +1,6 @@
+4587.	[bug]		named-checkzone failed to handle occulted data below
+			DNAMEs correctly. [RT #44877]
+
 4585.	[port]		win32: Set CompileAS value. [RT #42474]
 
 	--- 9.9.10 released ---
