@@ -58,6 +58,12 @@ isc_thread_setconcurrency(unsigned int level) {
 	 */
 }
 
+void
+isc_thread_setname(isc_thread_t thread, const char *name) {
+	UNUSED(thread);
+	UNUSED(name);
+}
+
 void *
 isc_thread_key_getspecific(isc_thread_key_t key) {
 	return(TlsGetValue(key));

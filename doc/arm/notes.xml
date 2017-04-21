@@ -268,6 +268,16 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Threads in <command>named</command> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <command>ps</command> and
+	  <command>top</command>, but not the main thread. [RT #43234]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The Response Policy Zone (RPZ) implementation has been
 	  substantially refactored: updates to the RPZ summary
 	  database are no longer directly performed by the zone
@@ -313,55 +323,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  A synthesized CNAME record appearing in a response before the
-	  associated DNAME could be cached, when it should not have been.
-	  This was a regression introduced while addressing CVE-2016-8864.
-	  [RT #44318]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could deadlock if multiple changes
-	  to NSEC/NSEC3 parameters for the same zone were being processed
-	  at the same time. [RT #42770]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could trigger an assertion when
-	  sending NOTIFY messages. [RT #44019]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Referencing a nonexistent zone in a <command>response-policy</command>
-	  statement could cause an assertion failure during configuration.
-	  [RT #43787]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc addzone</command> could cause a crash
-	  when attempting to add a zone with a type other than
-	  <command>master</command> or <command>slave</command>.
-	  Such zones are now rejected. [RT #43665]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could hang when encountering log
-	  file names with large apparent gaps in version number (for
-	  example, when files exist called "logfile.0", "logfile.1",
-	  and "logfile.1482954169").  This is now handled correctly.
-	  [RT #38688]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  If a zone was updated while <command>named</command> was
-	  processing a query for nonexistent data, it could return
-	  out-of-sync NSEC3 records causing potential DNSSEC validation
-	  failure. [RT #43247]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
