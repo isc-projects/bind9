@@ -1,4 +1,4 @@
-4952.	[bug]		A race condition on shutdown could trigger an
+4592.	[bug]		A race condition on shutdown could trigger an
 			assertion failure in dispatch.c. [RT #43822]
 
 4591.	[port]		Addressed some python 3 compatibility issues.
