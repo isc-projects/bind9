@@ -100,16 +100,18 @@ BIND 9.12.0 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.11 and earlier releases.  New features
 include:
 
+* `dnstap-read -x` prints a hex dump of the wire format of each logged
+  DNS message.
 * The query handling code has been substantially refactored for improved
-  readability, maintainability and testability 
+  readability, maintainability and testability .
 * `dnstap` output files can now be configured to roll automatically when
-  reaching a given size
+  reaching a given size.
 * Log file timestamps can now also be formatted in ISO 8601 (local) or ISO
-  8601 (UTC) formats
+  8601 (UTC) formats.
 * Logging channels and `dnstap` output files can now be configured to use a
-  timestamp as the suffix when rolling to a new file
-* `named-checkconf -l` lists zones found in `named.conf`
-* Added support for the EDNS Padding and Keepalive options
+  timestamp as the suffix when rolling to a new file.
+* `named-checkconf -l` lists zones found in `named.conf`.
+* Added support for the EDNS Padding and Keepalive options.
 
 ### <a name="build"/> Building BIND
 

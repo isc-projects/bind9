@@ -151,6 +151,13 @@
     <itemizedlist>
       <listitem>
         <para>
+	  The <command>dnstap-read -x</command> option prints a hex
+	  dump of the wire format DNS message encapsulated in each
+	  <command>dnstap</command> log entry. [RT #44816]
+	</para>
+      </listitem>
+      <listitem>
+        <para>
 	  The <command>host -A</command> option returns most
 	  records for a name, but omits types RRSIG, NSEC and NSEC3.
 	</para>

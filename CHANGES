@@ -1,3 +1,6 @@
+4594.	[func]		"dnstap-read -x" prints a hex dump of the wire
+			format of each logged DNS message. [RT #44816]
+
 4593.	[doc]		Update README using markdown, remove outdated FAQ
 			file in favor of the knowledge base.
 

@@ -55,6 +55,7 @@ MDIG=$TOP/bin/tools/mdig
 NZD2NZF=$TOP/bin/tools/named-nzd2nzf
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
 FEATURETEST=$TOP/bin/tests/system/feature-test
+WIRETEST=$TOP/bin/tests/wire_test
 
 RANDFILE=$TOP/bin/tests/system/random.data
 
@@ -172,3 +173,4 @@ export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
+export WIRETEST

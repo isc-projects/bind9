@@ -30,6 +30,7 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -45,6 +46,7 @@
 isc_mem_t *mctx = NULL;
 isc_boolean_t memrecord = ISC_FALSE;
 isc_boolean_t printmessage = ISC_FALSE;
+isc_boolean_t hexmessage = ISC_FALSE;
 isc_boolean_t yaml = ISC_FALSE;
 
 const char *program = "dnstap-read";
@@ -76,9 +78,10 @@ fatal(const char *format, ...) {
 
 static void
 usage(void) {
-	fprintf(stderr, "dnstap-read [-mp] [filename]\n");
+	fprintf(stderr, "dnstap-read [-mpxy] [filename]\n");
 	fprintf(stderr, "\t-m\ttrace memory allocations\n");
 	fprintf(stderr, "\t-p\tprint the full DNS message\n");
+	fprintf(stderr, "\t-x\tuse hex format to print DNS message\n");
 	fprintf(stderr, "\t-y\tprint YAML format (implies -p)\n");
 }
 
@@ -92,6 +95,33 @@ print_dtdata(dns_dtdata_t *dt) {
 		fatal("out of memory");
 
 	CHECKM(dns_dt_datatotext(dt, &b), "dns_dt_datatotext");
+	printf("%.*s\n", (int) isc_buffer_usedlength(b),
+	       (char *) isc_buffer_base(b));
+
+ cleanup:
+	if (b != NULL)
+		isc_buffer_free(&b);
+}
+
+static void
+print_hex(dns_dtdata_t *dt) {
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+	size_t textlen;
+
+	if (dt->msg == NULL) {
+		return;
+	}
+
+	textlen = (dt->msgdata.length * 2) + 1;
+	isc_buffer_allocate(mctx, &b, textlen);
+	if (b == NULL) {
+		fatal("out of memory");
+	}
+
+	result = isc_hex_totext(&dt->msgdata, 0, "", b);
+	CHECKM(result, "isc_hex_totext");
+
 	printf("%.*s\n", (int) isc_buffer_usedlength(b),
 	       (char *) isc_buffer_base(b));
 
@@ -277,7 +307,7 @@ main(int argc, char *argv[]) {
 	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "mpy")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "mpxy")) != -1) {
 		switch (ch) {
 			case 'm':
 				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
@@ -285,6 +315,9 @@ main(int argc, char *argv[]) {
 				break;
 			case 'p':
 				printmessage = ISC_TRUE;
+				break;
+			case 'x':
+				hexmessage = ISC_TRUE;
 				break;
 			case 'y':
 				yaml = ISC_TRUE;
@@ -338,6 +371,9 @@ main(int argc, char *argv[]) {
 
 		if (yaml) {
 			print_yaml(dt);
+		} else if (hexmessage) {
+			print_dtdata(dt);
+			print_hex(dt);
 		} else if (printmessage) {
 			print_dtdata(dt);
 			print_packet(dt, &dns_master_style_debug);

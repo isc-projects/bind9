@@ -357,6 +357,14 @@ if [ $HAS_PYYAML -ne 0 ] ; then
 	status=`expr $status + $ret`
 fi
 
+echo "I:checking dnstap-read hex output"
+hex=`$DNSTAPREAD -x ns3/dnstap.out | tail -1`
+echo $hex | $WIRETEST > dnstap.hex
+grep 'status: NOERROR' dnstap.hex > /dev/null 2>&1 || ret=1
+grep 'ANSWER: 3, AUTHORITY: 1' dnstap.hex > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
 if [ -n "$FSTRM_CAPTURE" ] ; then
 	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
 

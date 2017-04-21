@@ -40,6 +40,7 @@
       <command>dnstap-read</command>
       <arg choice="opt" rep="norepeat"><option>-m</option></arg>
       <arg choice="opt" rep="norepeat"><option>-p</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-x</option></arg>
       <arg choice="opt" rep="norepeat"><option>-y</option></arg>
       <arg choice="req" rep="norepeat"><replaceable class="parameter">file</replaceable></arg>
     </cmdsynopsis>
@@ -77,6 +78,17 @@
             After printing the <command>dnstap</command> data, print
             the text form of the DNS message that was encapsulated in the
             <command>dnstap</command> frame.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-x</term>
+        <listitem>
+          <para>
+            After printing the <command>dnstap</command> data, print
+            a hex dump of the wire form of the DNS message that was
+            encapsulated in the <command>dnstap</command> frame.
           </para>
         </listitem>
       </varlistentry>
