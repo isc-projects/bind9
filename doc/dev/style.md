@@ -390,7 +390,7 @@ be ambiguous.
 #### Clear Success or Failure
 
 A function should report success or failure, and do so accurately.  It
-should never fail silently.  Use of [design by contract](dev.html#dbc)
+should never fail silently.  Use of [design by contract](dev.md#dbc)
 can help here.
 
 When a function is designed to return results to the caller by assigning
@@ -400,8 +400,8 @@ fails.  A `REQUIRE()` statement should be used to ensure that the pointer
 is in a sane state when the function is called.
 
 The `isc_result_t` is provided for use by result codes.  See the
-[results](dev.html#results) section of the [developer
-information](dev.html) page for more details.
+[results](dev.md#results) section of the [developer
+information](dev.md) page for more details.
 
 #### Testing Bits
 
@@ -668,7 +668,7 @@ from a source with a BSD-compatible license).
 
 BIND provides portable internal versions of many common library calls.
 Some are designed to ensure that library calls have standardized
-[ISC result codes](dev.html#results) instead of using potentially
+[ISC result codes](dev.md#results) instead of using potentially
 nonwportable `errno` values; these include the file operations
 in `isc_file` and `isc_stdio`.  Others, such as `isc_tm_strptime()`,
 are needed to ensure consistent cross-platform behavior.
@@ -688,7 +688,7 @@ in separate files, such as `lib/isc/unix/file.c` and `lib/isc/win32/file.c`.
 #### Log messages
 
 Error and warning messages should be logged through the [logging
-system](dev.html#logging).  Debugging `printf`s may be used during
+system](dev.md#logging).  Debugging `printf`s may be used during
 development, but must be removed when the debugging is finished.
 
 Log messages do not start with a capital letter, nor do they end in a
