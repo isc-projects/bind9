@@ -533,6 +533,9 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
  * shared between dispatchers and clients.  If the dispatcher fails to copy
  * or send the event, nothing happens.
  *
+ * If the attribute DNS_DISPATCHATTR_NOLISTEN is not set, then
+ * the dispatch is already handling a recv; return immediately.
+ *
  * Requires:
  *\li 	disp is valid, and the attribute DNS_DISPATCHATTR_NOLISTEN is set.
  * 	event != NULL

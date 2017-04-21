@@ -3720,9 +3720,12 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	REQUIRE((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0);
 	REQUIRE(event != NULL);
 
-	sevent = (isc_socketevent_t *)event;
+	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0)
+		return;
 
+	sevent = (isc_socketevent_t *)event;
 	INSIST(sevent->n <= disp->mgr->buffersize);
+
 	newsevent = (isc_socketevent_t *)
 		    isc_event_allocate(disp->mgr->mctx, NULL,
 				      DNS_EVENT_IMPORTRECVDONE, udp_shrecv,
