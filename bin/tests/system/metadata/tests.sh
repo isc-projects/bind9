@@ -28,7 +28,7 @@ rolling=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < rolling.key`
 standby=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < standby.key`
 zsk=`sed 's/^K'${czone}'.+005+0*\([0-9]\)/\1/' < zsk.key`
 
-$GENRANDOM 400 $RANDFILE
+$GENRANDOM 800 $RANDFILE
 
 echo "I:signing zones"
 $SIGNER -Sg -o $czone $cfile > /dev/null 2>&1

@@ -9,6 +9,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 $DDNSCONFGEN -q -r $RANDFILE -z example.nil > ns1/ddns.key

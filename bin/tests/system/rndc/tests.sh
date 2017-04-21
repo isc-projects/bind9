@@ -569,8 +569,8 @@ fi
 n=`expr $n + 1`
 echo "I:check 'rndc \"\"' is handled ($n)"
 ret=0
-$RNDCCMD "" > rndc.out.test$n 2>&1 && ret=1
-grep "rndc: '' failed: failure" rndc.out.test$n > /dev/null
+$RNDCCMD "" > rndc.output.test$n 2>&1 && ret=1
+grep "rndc: '' failed: failure" rndc.output.test$n > /dev/null
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

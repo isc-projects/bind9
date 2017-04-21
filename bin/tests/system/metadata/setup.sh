@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 $SHELL ./clean.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 pzone=parent.nil
 czone=child.parent.nil

@@ -13,7 +13,7 @@ zone=dlv.isc.org
 infile=dlv.isc.org.db.in
 zonefile=dlv.isc.org.db
 
-dlvkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+dlvkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 cat $infile $dlvkey.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
@@ -21,7 +21,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-rootkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+rootkey=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 cat $infile $rootkey.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 

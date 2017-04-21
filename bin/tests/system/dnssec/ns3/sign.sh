@@ -13,9 +13,9 @@ zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
 
-cnameandkey=`$KEYGEN -T KEY -q -r $RANDFILE -a RSASHA1 -b 768 -n host cnameandkey.$zone`
-dnameandkey=`$KEYGEN -T KEY -q -r $RANDFILE -a RSASHA1 -b 768 -n host dnameandkey.$zone`
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+cnameandkey=`$KEYGEN -T KEY -q -r $RANDFILE -a RSASHA1 -b 1024 -n host cnameandkey.$zone`
+dnameandkey=`$KEYGEN -T KEY -q -r $RANDFILE -a RSASHA1 -b 1024 -n host dnameandkey.$zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $cnameandkey.key $dnameandkey.key $keyname.key >$zonefile
 
@@ -25,7 +25,7 @@ zone=bogus.example.
 infile=bogus.example.db.in
 zonefile=bogus.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -35,7 +35,7 @@ zone=dynamic.example.
 infile=dynamic.example.db.in
 zonefile=dynamic.example.db
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 keyname2=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone -f KSK $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
@@ -46,7 +46,7 @@ zone=keyless.example.
 infile=generic.example.db.in
 zonefile=keyless.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -66,7 +66,7 @@ zone=secure.nsec3.example.
 infile=secure.nsec3.example.db.in
 zonefile=secure.nsec3.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -79,7 +79,7 @@ zone=nsec3.nsec3.example.
 infile=nsec3.nsec3.example.db.in
 zonefile=nsec3.nsec3.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -92,7 +92,7 @@ zone=optout.nsec3.example.
 infile=optout.nsec3.example.db.in
 zonefile=optout.nsec3.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -105,7 +105,7 @@ zone=nsec3.example.
 infile=nsec3.example.db.in
 zonefile=nsec3.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -118,7 +118,7 @@ zone=secure.optout.example.
 infile=secure.optout.example.db.in
 zonefile=secure.optout.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -131,7 +131,7 @@ zone=nsec3.optout.example.
 infile=nsec3.optout.example.db.in
 zonefile=nsec3.optout.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -144,7 +144,7 @@ zone=optout.optout.example.
 infile=optout.optout.example.db.in
 zonefile=optout.optout.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -157,7 +157,7 @@ zone=optout.example.
 infile=optout.example.db.in
 zonefile=optout.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -170,7 +170,7 @@ zone=nsec3-unknown.example.
 infile=nsec3-unknown.example.db.in
 zonefile=nsec3-unknown.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -183,7 +183,7 @@ zone=optout-unknown.example.
 infile=optout-unknown.example.db.in
 zonefile=optout-unknown.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -197,7 +197,7 @@ zone=dnskey-unknown.example.
 infile=dnskey-unknown.example.db.in
 zonefile=dnskey-unknown.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -216,7 +216,7 @@ zone=dnskey-nsec3-unknown.example.
 infile=dnskey-nsec3-unknown.example.db.in
 zonefile=dnskey-nsec3-unknown.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -234,7 +234,7 @@ zone=multiple.example.
 infile=multiple.example.db.in
 zonefile=multiple.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -257,7 +257,7 @@ zone=rsasha256.example.
 infile=rsasha256.example.db.in
 zonefile=rsasha256.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -362,7 +362,7 @@ zonefile=ttlpatch.example.db
 signedfile=ttlpatch.example.db.signed
 patchedfile=ttlpatch.example.db.patched
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 
 $SIGNER -P -r $RANDFILE -f $signedfile -o $zone $zonefile > /dev/null 2>&1
@@ -377,7 +377,7 @@ infile=split-dnssec.example.db.in
 zonefile=split-dnssec.example.db
 signedfile=split-dnssec.example.db.signed
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cat $infile $keyname.key >$zonefile
 echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
 : > $signedfile
@@ -391,7 +391,7 @@ infile=split-smart.example.db.in
 zonefile=split-smart.example.db
 signedfile=split-smart.example.db.signed
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cp $infile $zonefile
 echo '$INCLUDE "'"$signedfile"'"' >> $zonefile
 : > $signedfile
@@ -495,7 +495,7 @@ zone=badds.example.
 infile=bogus.example.db.in
 zonefile=badds.example.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 

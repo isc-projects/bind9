@@ -26,11 +26,11 @@ for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wild
 done
 
 # sign the root and a zone in ns2
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 # $1=directory, $2=domain name, $3=input zone file, $4=output file
 signzone () {
-    KEYNAME=`$KEYGEN -q -r $RANDFILE -b 512 -K $1 $2`
+    KEYNAME=`$KEYGEN -q -r $RANDFILE -b 1024 -K $1 $2`
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
     $SIGNER -Pp -K $1 -o $2 -f $1/$4 $1/tmp >/dev/null
     sed -n -e 's/\(.*\) IN DNSKEY \([0-9]\{1,\} [0-9]\{1,\} [0-9]\{1,\}\) \(.*\)/trusted-keys {"\1" \2 "\3";};/p' $1/$KEYNAME.key >>trusted.conf

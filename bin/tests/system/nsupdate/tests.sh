@@ -160,7 +160,7 @@ grep ns6.other.nil dig.out.ns1 > /dev/null 2>&1 || ret=1
 
 ret=0
 echo "I:check SIG(0) key is accepted"
-key=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 512 -T KEY -n ENTITY xxx`
+key=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -T KEY -n ENTITY xxx`
 echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 

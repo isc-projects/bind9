@@ -2938,16 +2938,23 @@ until test $alg = 256
 do
 	size=
 	case $alg in
-	1) size="-b 512";;
+	1) # RSA/MD5
+	   size="-b 1024";;
 	2) # Diffie Helman
 	   alg=`expr $alg + 1`
 	   continue;;
-	3) size="-b 512";;
-	5) size="-b 512";;
-	6) size="-b 512";;
-	7) size="-b 512";;
-	8) size="-b 512";;
-	10) size="-b 1024";;
+	3) # DSA/SHA1
+	   size="-b 512";;
+	5) # RSA/SHA-1
+	   size="-b 1024";;
+	6) # DSA-NSEC3-SHA1
+	   size="-b 512";;
+	7) # RSASHA1-NSEC3-SHA1
+	   size="-b 1024";;
+	8) # RSA/SHA-256
+	   size="-b 1024";;
+	10) # RSA/SHA-512
+	   size="-b 1024";;
 	157|160|161|162|163|164|165) # private - non standard
 	   alg=`expr $alg + 1`
 	   continue;;

@@ -1,3 +1,7 @@
+4595.	[func]		dnssec-keygen will no longer generate RSA keys
+			less than 1024 bits in length. dnssec-keymgr
+			was similarly updated. [RT #36895]
+
 4594.	[func]		"dnstap-read -x" prints a hex dump of the wire
 			format of each logged DNS message. [RT #44816]
 

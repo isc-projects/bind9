@@ -131,11 +131,11 @@ class Policy:
     directory = None
     valid_key_sz_per_algo = {'DSA': [512, 1024],
                              'NSEC3DSA': [512, 1024],
-                             'RSAMD5': [512, 4096],
-                             'RSASHA1': [512, 4096],
+                             'RSAMD5': [1024, 4096],
+                             'RSASHA1': [1024, 4096],
                              'NSEC3RSASHA1': [512, 4096],
-                             'RSASHA256': [512, 4096],
-                             'RSASHA512': [512, 4096],
+                             'RSASHA256': [1024, 4096],
+                             'RSASHA512': [1024, 4096],
                              'ECCGOST': None,
                              'ECDSAP256SHA256': None,
                              'ECDSAP384SHA384': None}

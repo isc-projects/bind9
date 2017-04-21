@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 $SHELL ../genzone.sh 1 > ns1/master.db
 $SHELL ../genzone.sh 1 > ns1/duplicate.db

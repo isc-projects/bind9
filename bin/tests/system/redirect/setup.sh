@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 cp ns2/redirect.db.in ns2/redirect.db
 cp ns2/example.db.in ns2/example.db

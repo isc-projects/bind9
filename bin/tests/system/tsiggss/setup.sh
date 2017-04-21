@@ -9,7 +9,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 rm -f ns1/*.jnl ns1/K*.key ns1/K*.private ns1/_default.tsigkeys
 

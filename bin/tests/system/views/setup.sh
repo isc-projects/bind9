@@ -19,7 +19,7 @@ rm -f ns2/internal/inline.db.signed.jnl
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 #
 # We remove k1 and k2 as KEYGEN is deterministic when given the

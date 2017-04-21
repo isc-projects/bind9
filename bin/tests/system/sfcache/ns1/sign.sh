@@ -17,7 +17,7 @@ zonefile=root.db
 
 cp ../ns2/dsset-example$TP .
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 

@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 cp ns1/named1.conf ns1/named.conf
 cp ns2/named1.conf ns2/named.conf
