@@ -73,90 +73,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>rndc ""</command> could trigger an assertion failure
-	  in <command>named</command>. This flaw is disclosed in
-	  (CVE-2017-3138). [RT #44924]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
-	  queries could trigger assertion failures. This flaw is disclosed
-	  in CVE-2017-3137. [RT #44734]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>dns64</command> with <command>break-dnssec yes;</command>
-	  can result in an assertion failure. This flaw is disclosed in
-	  CVE-2017-3136. [RT #44653]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  If a server is configured with a response policy zone (RPZ)
-	  that rewrites an answer with local data, and is also configured
-	  for DNS64 address mapping, a NULL pointer can be read
-	  triggering a server crash.  This flaw is disclosed in
-	  CVE-2017-3135. [RT #44434]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could mishandle authority sections
-	  with missing RRSIGs, triggering an assertion failure. This
-	  flaw is disclosed in CVE-2016-9444. [RT #43632]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> mishandled some responses where
-	  covering RRSIG records were returned without the requested
-	  data, resulting in an assertion failure. This flaw is
-	  disclosed in CVE-2016-9147. [RT #43548]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> incorrectly tried to cache TKEY
-	  records which could trigger an assertion failure when there was
-	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
-	  [RT #43522]
-        </para>
-      </listitem>
-      <listitem>
-	<para>
-	  It was possible to trigger assertions when processing
-	  responses containing answers of type DNAME. This flaw is
-	  disclosed in CVE-2016-8864. [RT #43465]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Added the ability to specify the maximum number of records
-	  permitted in a zone (<option>max-records #;</option>).
-	  This provides a mechanism to block overly large zone
-	  transfers, which is a potential risk with slave zones from
-	  other parties, as described in CVE-2016-6170.
-	  [RT #42143]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  It was possible to trigger an assertion when rendering a
-	  message using a specially crafted request. This flaw is
-	  disclosed in CVE-2016-2776. [RT #43139]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Calling <command>getrrsetbyname()</command> with a non-
-	  absolute name could trigger an infinite recursion bug in
-	  <command>lwresd</command> or <command>named</command> with
-	  <command>lwres</command> configured if, when combined with
-	  a search list entry from <filename>resolv.conf</filename>,
-	  the resulting name is too long.  This flaw is disclosed in
-	  CVE-2016-2775. [RT #42694]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -166,20 +83,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
-	  to be disabled in 2017.  A warning is now logged when
-	  <command>named</command> is configured to use this service,
-	  either explicitly or via <option>dnssec-lookaside auto;</option>.
-	  [RT #42207]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  If an ACL is specified with an address prefix in which the
-	  prefix length is longer than the address portion (for example,
-	  192.0.2.1/8), <command>named</command> will now log a warning.
-	  In future releases this will be a fatal configuration error.
-	  [RT #43367]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -189,121 +93,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  A synthesized CNAME record appearing in a response before the
-	  associated DNAME could be cached, when it should not have been.
-	  This was a regression introduced while addressing CVE-2016-8864.
-	  [RT #44318]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could deadlock if multiple changes
-	  to NSEC/NSEC3 parameters for the same zone were being processed
-	  at the same time. [RT #42770]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could trigger an assertion when
-	  sending NOTIFY messages. [RT #44019]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Windows installs were failing due to triggering UAC without
-	  the installation binary being signed.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A change in the internal binary representation of the RBT database
-	  node structure enabled a race condition to occur (especially when
-	  BIND was built with certain compilers or optimizer settings),
-	  leading to inconsistent database state which caused random
-	  assertion failures. [RT #42380]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Referencing a nonexistent zone in a <command>response-policy</command>
-	  statement could cause an assertion failure during configuration.
-	  [RT #43787]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc addzone</command> could cause a crash
-	  when attempting to add a zone with a type other than
-	  <command>master</command> or <command>slave</command>.
-	  Such zones are now rejected. [RT #43665]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could hang when encountering log
-	  file names with large apparent gaps in version number (for
-	  example, when files exist called "logfile.0", "logfile.1",
-	  and "logfile.1482954169").  This is now handled correctly.
-	  [RT #38688]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  If a zone was updated while <command>named</command> was
-	  processing a query for nonexistent data, it could return
-	  out-of-sync NSEC3 records causing potential DNSSEC validation
-	  failure. [RT #43247]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash when loading a zone
-	  which had RRISG records whose expiry fields were far enough
-	  apart to cause an integer overflow when comparing them.
-	  [RT #40571]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The <command>arpaname</command> command was not installed into
-	  the correct <command>prefix</command><filename>/bin</filename>
-	  directory. [RT #42910]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When receiving a response from an authoritative server with
-	  a TTL value of zero, <command>named></command> will now only use
-	  that response once, to answer the currently active clients that
-	  were waiting for it. Previously, such response could be cached
-	  and reused for up to one second. [RT #42142]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Corrected a bug in the <command>rndc</command> control channel
-	  that could allow a read past the end of a buffer, crashing
-	  <command>named</command>. Thanks to Lian Yihan for reporting
-	  this error.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Reverted a change to the query logging format that was
-	  inadvertently backported from the 9.11 branch. [RT #43238]
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes_maint"><info><title>Maintenance</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  The built-in root hints have been updated to include
-	  IPv6 addresses for B.ROOT-SERVERS.NET (2001:500:84::b),
-	  E.ROOT-SERVERS.NET (2001:500:a8::e) and
-	  G.ROOT-SERVERS.NET (2001:500:12::d0d).
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
