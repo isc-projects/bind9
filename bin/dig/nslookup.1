@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2007, 2010, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2007, 2010, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -189,7 +189,7 @@ The class specifies the protocol group of the information\&.
 (Default = IN; abbreviation = cl)
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBdebug\fR
+\fB\fI[no]\fR\fR\fBdebug\fR
 .RS 4
 Turn on or off the display of the full response packet and any intermediate response packets when searching\&.
 .sp
@@ -197,7 +197,7 @@ Turn on or off the display of the full response packet and any intermediate resp
 [no]deb)
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBd2\fR
+\fB\fI[no]\fR\fR\fBd2\fR
 .RS 4
 Turn debugging mode on or off\&. This displays more about what nslookup is doing\&.
 .sp
@@ -210,7 +210,7 @@ Sets the search list to
 \fIname\fR\&.
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBsearch\fR
+\fB\fI[no]\fR\fR\fBsearch\fR
 .RS 4
 If the lookup request contains at least one period but doesn\*(Aqt end with a trailing period, append the domain names in the domain search list to the request until an answer is received\&.
 .sp
@@ -236,7 +236,7 @@ Change the type of the information query\&.
 (Default = A; abbreviations = q, ty)
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBrecurse\fR
+\fB\fI[no]\fR\fR\fBrecurse\fR
 .RS 4
 Tell the name server to query other servers if it does not have the information\&.
 .sp
@@ -258,14 +258,14 @@ Set the number of retries to number\&.
 Change the initial timeout interval for waiting for a reply to number seconds\&.
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBvc\fR
+\fB\fI[no]\fR\fR\fBvc\fR
 .RS 4
 Always use a virtual circuit when sending requests to the server\&.
 .sp
 (Default = novc)
 .RE
 .PP
-\fB \fR\fB\fI[no]\fR\fR\fBfail\fR
+\fB\fI[no]\fR\fR\fBfail\fR
 .RS 4
 Try the next nameserver if a nameserver responds with SERVFAIL or a referral (nofail) or terminate query (fail) on such a response\&.
 .sp
@@ -290,5 +290,5 @@ returns with an exit status of 1 if any query failed, and 0 otherwise\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2007, 2010, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2007, 2010, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .br

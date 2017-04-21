@@ -624,7 +624,9 @@ be used when resolving this query\&.
 .PP
 \fB+[no]tcp\fR
 .RS 4
-Use [do not use] TCP when querying name servers\&. The default behavior is to use UDP unless an
+Use [do not use] TCP when querying name servers\&. The default behavior is to use UDP unless a type
+any
+or
 ixfr=N
 query is requested, in which case the default is TCP\&. AXFR queries always use TCP\&.
 .RE
