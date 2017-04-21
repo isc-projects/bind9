@@ -24,6 +24,10 @@
 
 #include <pthread.h>
 
+#if defined(HAVE_PTHREAD_NP_H)
+#include <pthread_np.h>
+#endif
+
 #include <isc/lang.h>
 #include <isc/result.h>
 
@@ -43,6 +47,9 @@ isc_thread_setconcurrency(unsigned int level);
 
 void
 isc_thread_yield(void);
+
+void
+isc_thread_setname(isc_thread_t, const char *);
 
 /* XXX We could do fancier error handling... */
 

@@ -28,6 +28,9 @@ ISC_LANG_BEGINDECLS
 void
 isc_thread_setconcurrency(unsigned int level);
 
+void
+isc_thread_setname(isc_thread_t, const char *);
+
 #define isc_thread_self() ((unsigned long)0)
 #define isc_thread_yield() ((void)0)
 

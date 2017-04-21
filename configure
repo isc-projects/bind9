@@ -15722,6 +15722,32 @@ fi
 			;;
 	esac
 
+	# Look for functions relating to thread naming
+	for ac_func in pthread_setname_np pthread_set_name_np
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+	for ac_header in pthread_np.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "pthread_np.h" "ac_cv_header_pthread_np_h" "$ac_includes_default"
+if test "x$ac_cv_header_pthread_np_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_NP_H 1
+_ACEOF
+
+fi
+
+done
+
+
 	#
 	# Look for sysconf to allow detection of the number of processors.
 	#
