@@ -1,3 +1,6 @@
+4591.	[port]		Addressed some python 3 compatibility issues.
+			Thanks to Ville Skytta. [RT #44955] [RT #44956]
+
 4590.	[bug]		Support for PTHREAD_MUTEX_ADAPTIVE_NP was not being
 			properly detected. [RT #44871]
 
