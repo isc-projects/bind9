@@ -1821,10 +1821,10 @@ dlv_validatezonekey(dns_validator_t *val) {
 	supported_algorithm = ISC_FALSE;
 
 	/*
-	 * If DNS_DSDIGEST_SHA256 is present we are required to prefer
-	 * it over DNS_DSDIGEST_SHA1.  This in practice means that we
-	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
-	 * is present.
+	 * If DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present we
+	 * are required to prefer it over DNS_DSDIGEST_SHA1.  This in
+	 * practice means that we need to ignore DNS_DSDIGEST_SHA1 if a
+	 * DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present.
 	 */
 	memset(digest_types, 1, sizeof(digest_types));
 	for (result = dns_rdataset_first(&val->dlv);
@@ -1840,8 +1840,11 @@ dlv_validatezonekey(dns_validator_t *val) {
 						      dlv.algorithm))
 			continue;
 
-		if (dlv.digest_type == DNS_DSDIGEST_SHA256 &&
-		    dlv.length == ISC_SHA256_DIGESTLENGTH) {
+		if ((dlv.digest_type == DNS_DSDIGEST_SHA256 &&
+		     dlv.length == ISC_SHA256_DIGESTLENGTH) ||
+		    (dlv.digest_type == DNS_DSDIGEST_SHA384 &&
+		     dlv.length == ISC_SHA384_DIGESTLENGTH))
+		{
 			digest_types[DNS_DSDIGEST_SHA1] = 0;
 			break;
 		}
@@ -2172,10 +2175,10 @@ validatezonekey(dns_validator_t *val) {
 	supported_algorithm = ISC_FALSE;
 
 	/*
-	 * If DNS_DSDIGEST_SHA256 is present we are required to prefer
-	 * it over DNS_DSDIGEST_SHA1.  This in practice means that we
-	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
-	 * is present.
+	 * If DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present we
+	 * are required to prefer it over DNS_DSDIGEST_SHA1.  This in
+	 * practice means that we need to ignore DNS_DSDIGEST_SHA1 if a
+	 * DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present.
 	 */
 	memset(digest_types, 1, sizeof(digest_types));
 	for (result = dns_rdataset_first(val->dsset);
@@ -2191,8 +2194,11 @@ validatezonekey(dns_validator_t *val) {
 						      ds.algorithm))
 			continue;
 
-		if (ds.digest_type == DNS_DSDIGEST_SHA256 &&
-		    ds.length == ISC_SHA256_DIGESTLENGTH) {
+		if ((ds.digest_type == DNS_DSDIGEST_SHA256 &&
+		     ds.length == ISC_SHA256_DIGESTLENGTH) ||
+		    (ds.digest_type == DNS_DSDIGEST_SHA384 &&
+		     ds.length == ISC_SHA384_DIGESTLENGTH))
+		{
 			digest_types[DNS_DSDIGEST_SHA1] = 0;
 			break;
 		}
