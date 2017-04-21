@@ -1,3 +1,7 @@
+4602.	[func]		Threads are now set to human-readable
+			names to assist debugging, when supported by
+			the OS. [RT #43234]
+
 4601.	[bug]		Reject incorrect RSA key lengths during key
 			generation and and sign/verify context
 			creation. [RT #45043]

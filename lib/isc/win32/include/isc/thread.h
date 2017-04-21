@@ -74,6 +74,9 @@ isc_thread_join(isc_thread_t, isc_threadresult_t *);
 void
 isc_thread_setconcurrency(unsigned int level);
 
+void
+isc_thread_setname(isc_thread_t, const char *);
+
 int
 isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *));
 

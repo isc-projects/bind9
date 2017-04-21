@@ -71,6 +71,22 @@ isc_thread_setconcurrency(unsigned int level) {
 }
 
 void
+isc_thread_setname(isc_thread_t thread, const char *name) {
+#if defined(HAVE_PTHREAD_SETNAME_NP) && defined(_GNU_SOURCE)
+	/*
+	 * macOS has pthread_setname_np but only works on the
+	 * current thread so it's not used here
+	*/
+	(void)pthread_setname_np(thread, name);
+#elif defined(HAVE_PTHREAD_SET_NAME_NP)
+	(void)pthread_set_name_np(thread, name);
+#else
+	UNUSED(thread);
+	UNUSED(name);
+#endif
+}
+
+void
 isc_thread_yield(void) {
 #if defined(HAVE_SCHED_YIELD)
 	sched_yield();
