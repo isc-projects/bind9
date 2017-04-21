@@ -1,3 +1,7 @@
+4603.	[doc]		Automatically generate named.conf(5) man page
+			from doc/misc/options. Thanks to Tony Finch.
+			[RT #43525]
+
 4602.	[func]		Threads are now set to human-readable
 			names to assist debugging, when supported by
 			the OS. [RT #43234]
