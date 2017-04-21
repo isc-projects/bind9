@@ -1,3 +1,11 @@
+4598.	[func]		Update fuzzing code to (1) reply to a DNSKEY
+			query from named with appropriate DNSKEY used in
+			fuzzing; (2) patch the QTYPE correctly in
+			resolver fuzzing; (3) comment things so the rest
+			of us are able to understand how fuzzing is
+			implemented in named; (4) Coding style changes,
+			cleanup, etc. [RT #44787]
+
 4597.	[bug]		The validator now ignores SHA-1 DS digest type
 			when a DS record with SHA-384 digest type is
 			present and is a supported digest type.
