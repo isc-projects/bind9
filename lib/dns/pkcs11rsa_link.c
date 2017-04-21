@@ -90,6 +90,33 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 		key->key_alg == DST_ALG_RSASHA512);
 #endif
 
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (dctx->key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (dctx->key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 512) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 1024) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
+
 	rsa = key->keydata.pkey;
 
 	pk11_ctx = (pk11_context_t *) isc_mem_get(dctx->mctx,
@@ -298,6 +325,33 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
 #endif
+
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (dctx->key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (dctx->key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 512) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 1024) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
 
 	rsa = key->keydata.pkey;
 
@@ -547,6 +601,33 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 #endif
 	REQUIRE(rsa != NULL);
 
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (dctx->key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (dctx->key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 512) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 1024) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
+
 	switch (key->key_alg) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
@@ -675,6 +756,33 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		key->key_alg == DST_ALG_RSASHA512);
 #endif
 	REQUIRE(rsa != NULL);
+
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (dctx->key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (dctx->key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 512) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 1024) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
 
 	switch (key->key_alg) {
 #ifndef PK11_MD5_DISABLE
@@ -1091,6 +1199,33 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	unsigned int i;
 
 	UNUSED(callback);
+
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((key->key_size < 512) ||
+		    (key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((key->key_size < 1024) ||
+		    (key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
 
 	pk11_ctx = (pk11_context_t *) isc_mem_get(key->mctx,
 						  sizeof(*pk11_ctx));
