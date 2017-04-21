@@ -1,3 +1,8 @@
+4599.	[bug]		Fix inconsistencies in inline signing time
+			comparison that were introduced with the
+			introduction of rdatasetheader->resign_lsb.
+			[RT #42112]
+
 4598.	[func]		Update fuzzing code to (1) reply to a DNSKEY
 			query from named with appropriate DNSKEY used in
 			fuzzing; (2) patch the QTYPE correctly in
