@@ -81,7 +81,12 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  Threads in <command>named</command> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <command>ps</command> and
+	  <command>top</command>, but not the main thread. [RT #43234]
 	</para>
       </listitem>
     </itemizedlist>

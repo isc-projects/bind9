@@ -923,6 +923,7 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
+	isc_thread_setname(manager->thread, "isc-timer");
 #endif
 #ifdef USE_SHARED_MANAGER
 	manager->refs = 1;

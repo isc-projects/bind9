@@ -1344,6 +1344,10 @@ then
 			;;
 	esac
 
+	# Look for functions relating to thread naming
+	AC_CHECK_FUNCS(pthread_setname_np pthread_set_name_np)
+	AC_CHECK_HEADERS(pthread_np.h)
+
 	#
 	# Look for sysconf to allow detection of the number of processors.
 	#

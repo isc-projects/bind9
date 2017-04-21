@@ -1438,6 +1438,10 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		if (isc_thread_create(run, manager,
 				      &manager->threads[manager->workers]) ==
 		    ISC_R_SUCCESS) {
+			char name[16];	/* thread name limit on Linux */
+			snprintf(name, sizeof(name), "isc-worker%04d", i);
+			isc_thread_setname(manager->threads[manager->workers],
+					   name);
 			manager->workers++;
 			started++;
 		}

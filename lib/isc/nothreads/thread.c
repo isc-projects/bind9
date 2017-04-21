@@ -26,3 +26,8 @@ void
 isc_thread_setconcurrency(unsigned int level) {
 	UNUSED(level);
 }
+
+void isc_thread_setname(isc_thread_t thread, const char *name) {
+	UNUSED(thread);
+	UNUSED(name);
+}
