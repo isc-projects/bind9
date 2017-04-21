@@ -51,7 +51,7 @@
 <h2>Synopsis</h2>
     <div class="cmdsynopsis"><p>
       <code class="command">host</code> 
-       [<code class="option">-aACdlnrsTwv</code>]
+       [<code class="option">-aACdlnrsTUwv</code>]
        [<code class="option">-c <em class="replaceable"><code>class</code></em></code>]
        [<code class="option">-N <em class="replaceable"><code>ndots</code></em></code>]
        [<code class="option">-R <em class="replaceable"><code>number</code></em></code>]
@@ -249,15 +249,18 @@
 	    (like <code class="option">-t <code class="literal">IXFR=12345678</code></code>).
 	  </p>
 	</dd>
-<dt><span class="term">-T</span></dt>
+<dt>
+<span class="term">-T, </span><span class="term">-U</span>
+</dt>
 <dd>
 	  <p>
-	    TCP:
+	    TCP/UDP:
 	    By default, <span class="command"><strong>host</strong></span> uses UDP when making
 	    queries. The <code class="option">-T</code> option makes it use a TCP
 	    connection when querying the name server. TCP will be
 	    automatically selected for queries that require it, such
-	    as zone transfer (AXFR) requests.
+	    as zone transfer (AXFR) requests.  Type ANY queries default
+	    to TCP but can be forced to UDP initially using <code class="option">-U</code>.
 	  </p>
 	</dd>
 <dt><span class="term">-m <em class="replaceable"><code>flag</code></em></span></dt>

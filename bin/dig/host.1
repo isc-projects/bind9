@@ -39,7 +39,7 @@
 host \- DNS lookup utility
 .SH "SYNOPSIS"
 .HP \w'\fBhost\fR\ 'u
-\fBhost\fR [\fB\-aACdlnrsTwv\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-N\ \fR\fB\fIndots\fR\fR] [\fB\-R\ \fR\fB\fInumber\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-W\ \fR\fB\fIwait\fR\fR] [\fB\-m\ \fR\fB\fIflag\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [\fB\-v\fR] [\fB\-V\fR] {name} [server]
+\fBhost\fR [\fB\-aACdlnrsTUwv\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-N\ \fR\fB\fIndots\fR\fR] [\fB\-R\ \fR\fB\fInumber\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-W\ \fR\fB\fIwait\fR\fR] [\fB\-m\ \fR\fB\fIflag\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [\fB\-v\fR] [\fB\-V\fR] {name} [server]
 .SH "DESCRIPTION"
 .PP
 \fBhost\fR
@@ -190,13 +190,14 @@ If a query type of IXFR is chosen the starting serial number can be specified by
 \fB\-t \fR\fBIXFR=12345678\fR)\&.
 .RE
 .PP
-\-T
+\-T, \-U
 .RS 4
-TCP: By default,
+TCP/UDP: By default,
 \fBhost\fR
 uses UDP when making queries\&. The
 \fB\-T\fR
-option makes it use a TCP connection when querying the name server\&. TCP will be automatically selected for queries that require it, such as zone transfer (AXFR) requests\&.
+option makes it use a TCP connection when querying the name server\&. TCP will be automatically selected for queries that require it, such as zone transfer (AXFR) requests\&. Type ANY queries default to TCP but can be forced to UDP initially using
+\fB\-U\fR\&.
 .RE
 .PP
 \-m \fIflag\fR
