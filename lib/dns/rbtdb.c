@@ -1948,7 +1948,13 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		name = dns_fixedname_name(&fname);
 		dns_rbt_fullnamefromnode(node, name);
 
+		/*
+		 * dns_rbt_deletenode() may keep the node if it has a
+		 * down pointer, but we mustn't call dns_rpz_delete() on
+		 * it again.
+		 */
 		node_has_rpz = node->rpz;
+		node->rpz = 0;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		if (result == ISC_R_SUCCESS &&
 		    rbtdb->rpzs != NULL && node_has_rpz)
@@ -1985,7 +1991,13 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 					      isc_result_totext(result));
 			}
 		}
+		/*
+		 * dns_rbt_deletenode() may keep the node if it has a
+		 * down pointer, but we mustn't call dns_rpz_delete() on
+		 * it again.
+		 */
 		node_has_rpz = node->rpz;
+		node->rpz = 0;
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		if (result == ISC_R_SUCCESS &&
 		    rbtdb->rpzs != NULL && node_has_rpz)
@@ -7196,8 +7208,12 @@ loadnode(dns_rbtdb_t *rbtdb, dns_name_t *name, dns_rbtnode_t **nodep,
 
 		/*
 		 * Remove the node we just added above.
+		 * dns_rbt_deletenode() may keep the node if it has a
+		 * down pointer, but we mustn't call dns_rpz_delete() on
+		 * it again.
 		 */
 		node_has_rpz = node->rpz;
+		node->rpz = 0;
 		tmpresult = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		if (tmpresult == ISC_R_SUCCESS) {
 			/*
