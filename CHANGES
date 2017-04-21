@@ -1,3 +1,8 @@
+4596.	[bug]		Validate glue before adding it to the additional
+			section. This also fixes incorrect TTL capping
+			when the RRSIG expired earlier than the TTL.
+			[RT #45062]
+
 4593.	[doc]		Update README using markdown, remove outdated FAQ
 			file in favor of the knowledge base.
 
