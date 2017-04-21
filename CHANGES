@@ -1,3 +1,8 @@
+4596.	[bug]		Validate glue before adding it to the additional
+			section. This also fixes incorrect TTL capping
+			when the RRSIG expired earlier than the TTL.
+			[RT #45062]
+
 4595.	[func]		dnssec-keygen will no longer generate RSA keys
 			less than 1024 bits in length. dnssec-keymgr
 			was similarly updated. [RT #36895]
