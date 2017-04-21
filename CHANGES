@@ -1,3 +1,8 @@
+4597.	[bug]		The validator now ignores SHA-1 DS digest type
+			when a DS record with SHA-384 digest type is
+			present and is a supported digest type.
+			[RT #45017]
+
 4596.	[bug]		Validate glue before adding it to the additional
 			section. This also fixes incorrect TTL capping
 			when the RRSIG expired earlier than the TTL.
