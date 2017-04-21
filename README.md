@@ -337,28 +337,13 @@ least one of the following: libxml2
 installed at a nonstandard location, specify the prefix using
 `--with-libxml2=/prefix` or `--with-libjson=/prefix`.
 
-To support compression on the HTTP statistics channel, the server must be
-linked against libzlib.  If this is installed in a nonstandard location,
-specify the prefix using `--with-zlib=/prefix`.
-
-To support storing configuration data for runtime-added zones in an LMDB
-database, the server must be linked with liblmdb. If this is installed in a
-nonstandard location, specify the prefix using "with-lmdb=/prefix".
-
 To support GeoIP location-based ACLs, the server must be linked with
 libGeoIP. This is not turned on by default; BIND must be configured with
 "--with-geoip". If the library is installed in a nonstandard location, use
 specify the prefix using "--with-geoip=/prefix".
 
-For DNSTAP packet logging, you must have libfstrm
-[https://github.com/farsightsec/fstrm](https://github.com/farsightsec/fstrm)
-and libprotobuf-c
-[https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
-and BIND must be configured with "--enable-dnstap".
-
-Python requires the 'argparse' and 'ply' modules to be available.
+Python requires the 'argparse' module to be available.
 'argparse' is a standard module as of Python 2.7 and Python 3.2.
-'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
 On some platforms it is necessary to explicitly request large file support
 to handle files bigger than 2GB.  This can be done by using
