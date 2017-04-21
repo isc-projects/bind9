@@ -9,7 +9,7 @@
 try:
     import yaml
 except:
-    print "I: No python yaml module, skipping"
+    print("I: No python yaml module, skipping")
     exit(1)
 
 import subprocess

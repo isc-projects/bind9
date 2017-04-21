@@ -73,7 +73,7 @@ def parse_time(s):
         pass
 
     # try to parse as a number with a suffix indicating unit of time
-    r = re.compile('([0-9][0-9]*)\s*([A-Za-z]*)')
+    r = re.compile(r'([0-9][0-9]*)\s*([A-Za-z]*)')
     m = r.match(s)
     if not m:
         raise ValueError("Cannot parse %s" % s)
