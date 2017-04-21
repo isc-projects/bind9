@@ -1,3 +1,7 @@
+4601.	[bug]		Reject incorrect RSA key lengths during key
+			generation and and sign/verify context
+			creation. [RT #45043]
+
 4600.	[bug]		Adjust RPZ trigger counts only when the entry
 			being deleted exists. [RT #43386]
 

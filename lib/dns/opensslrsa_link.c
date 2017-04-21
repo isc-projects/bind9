@@ -269,6 +269,33 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		dctx->key->key_alg == DST_ALG_RSASHA512);
 #endif
 
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (dctx->key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (dctx->key->key_size > 4096)
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 512) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((dctx->key->key_size < 1024) ||
+		    (dctx->key->key_size > 4096))
+			return (ISC_R_FAILURE);
+		break;
+	default:
+		INSIST(0);
+	}
+
 #if USE_EVP
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL)
@@ -965,6 +992,33 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if USE_EVP
 	EVP_PKEY *pkey = EVP_PKEY_new();
 #endif
+
+	/*
+	 * Reject incorrect RSA key lengths.
+	 */
+	switch (key->key_alg) {
+	case DST_ALG_RSAMD5:
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+		/* From RFC 3110 */
+		if (key->key_size > 4096)
+			goto err;
+		break;
+	case DST_ALG_RSASHA256:
+		/* From RFC 5702 */
+		if ((key->key_size < 512) ||
+		    (key->key_size > 4096))
+			goto err;
+		break;
+	case DST_ALG_RSASHA512:
+		/* From RFC 5702 */
+		if ((key->key_size < 1024) ||
+		    (key->key_size > 4096))
+			goto err;
+		break;
+	default:
+		INSIST(0);
+	}
 
 	if (rsa == NULL || e == NULL || cb == NULL)
 		goto err;
