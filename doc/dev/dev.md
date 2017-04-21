@@ -27,7 +27,7 @@
     * [Adding a new RR type](#rrtype)
     * [Task and timer model](#tasks)
 
-### <a name="reviews"</a>The code review process
+### <a name="reviews"></a>The code review process
 
 Every line of code comitted to BIND has been reviewed by ISC engineers
 first.
@@ -334,8 +334,8 @@ creating a memory context.  Similar functions `dns_test_begin()` and
 
 #### Namespace
 
-See the [namespace](style.html#public_namespace) discussion in the
-[BIND coding style](style.html) document.
+See the [namespace](style.md#public_namespace) discussion in the
+[BIND coding style](style.md) document.
 
 #### <a name="dbc"></a>Design by contract
 
@@ -520,17 +520,17 @@ as part of the 'used' subregion:
 Several functions are provided for both reading and writing
 to the buffer:
 
-* `isc_buffer_getuint8`: Read and return an 8-bit unsigned integer
-* `isc_buffer_putuint8`: Write an 8-bit unsigned integer to a buffer
+* `isc_buffer_getuint8()`: Read and return an 8-bit unsigned integer
+* `isc_buffer_putuint8()`: Write an 8-bit unsigned integer to a buffer
 
-* `isc_buffer_getuint16`: Read a 16-bit unsigned integer in
+* `isc_buffer_getuint16()`: Read a 16-bit unsigned integer in
   network byte order, convert to host byte order, and return it
-* `isc_buffer_putuint16`: Convert an unsigned 16-bit integer from
+* `isc_buffer_putuint16()`: Convert an unsigned 16-bit integer from
   host to network byte order and write it to a buffer.
 
-* `isc_buffer_getuint32`: Read a 32-bit unsigned integer in
+* `isc_buffer_getuint32()`: Read a 32-bit unsigned integer in
   network byte order, convert to host byte order, and return it
-* `isc_buffer_putuint32`: Convert an unsigned 32-bit integer from
+* `isc_buffer_putuint32()`: Convert an unsigned 32-bit integer from
   host to network byte order and write it to a buffer.
 
 * `isc_buffer_putstr()`: Copy a null-terminated string into a buffer

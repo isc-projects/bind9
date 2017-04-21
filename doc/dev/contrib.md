@@ -6,7 +6,7 @@
  - file, You can obtain one at http://mozilla.org/MPL/2.0/.
 --->
 ## BIND Source Access and Contributor Guidelines
-*May 8, 2014*
+*Apr 14, 2017*
 
 ### Contents
 
@@ -81,8 +81,8 @@ Suggested changes or requests for new features can be emailed to
 `bind-suggest@isc.org`.  Both bugs and suggestions are stored in the
 ticketing system used by the software engineering team at ISC.
 
-All submissions to the ticketing system receive an automatic response.
-Any followup email sent to the ticketing system should use the same subject
+All submissions to the ticketing system receive an automatic response.  Any
+followup email sent to the ticketing system should use the same subject
 header, so that it will be routed to the same ticket.
 
 Due to a large ticket backlog and an even larger quantity of incoming spam,
@@ -90,14 +90,15 @@ we are sometimes slow to respond, especially if a bug is cosmetic or if a
 feature request is vague or low in priority, but we will try at least to
 acknowledge legitimate bug reports within a week.
 
-The bug database is not publicly readable. Information about your
-system that you submit in bug reports will not be divulged outside ISC.
+Currently, ISC's ticketing system is not publicly readable. However, ISC
+may open it in the future. Please do not include information you consider
+to be confidential.
 
 ### <a name="bugs"></a>Contributing code
 
 BIND's [open source
 license](http://www.isc.org/downloads/software-support-policy/isc-license/)
-does not require changes to be contributed back to ISC, but this page
+not require changes to be contributed back to ISC, but this page
 includes some guidelines for those who would like to do so.
 
 We accept two different types of code contribution:  Code intended for
@@ -116,39 +117,40 @@ your patch introduces a new feature in BIND, please submit it to
 ISC does not require an explicit copyright assignment for patch
 contributions.  However, by submitting a patch to ISC, you implicitly
 certify that you are the author of the code, that you intend to reliquish
-exclusive copyright, and that you grant permission to publish your
-work under the
-[ISC license](http://www.isc.org/downloads/software-support-policy/isc-license/).
+exclusive copyright, and that you grant permission to publish your work
+under the
+[Mozilla Public License 2.0](http://www.isc.org/downloads/software-support-policy/isc-license/)
+for BIND 9.11 and higher, and the
+[ISC License](http://www.isc.org/downloads/software-support-policy/isc-license/)
+for BIND 9.10 and earlier.
 
 Patches should be submitted as diffs against a specific version of BIND --
 preferably the current top of the `master` branch.  Diffs may be
 generated using either `git format-patch` or `git diff`.
 
-Those wanting to write code for BIND may be interested
-in the [developer information](dev.html) page, which includes
-information about BIND design and coding practices, including
-discussion of internal APIs and overall system architecture.
-(This is a work in progress, and still quite preliminary.)
+Those wanting to write code for BIND may be interested in the [developer
+information](dev.md) page, which includes information about BIND design and
+coding practices, including discussion of internal APIs and overall system
+architecture.  (This is a work in progress, and still quite preliminary.)
 
-Every patch submitted will be reviewed by ISC engineers following
-our [code review process](dev.html#reviews) before it is merged.
+Every patch submitted will be reviewed by ISC engineers following our [code
+review process](dev.md#reviews) before it is merged.
 
-It may take considerable time to review patch submissions, especially
-if they don't meet ISC style and quality guidelines.  If the patch
-is a good idea, we can and will do additional work to bring them up
-to par, but if we're busy with other work, it may take us a long
-time to get to it.
+It may take considerable time to review patch submissions, especially if
+they don't meet ISC style and quality guidelines.  If the patch is a good
+idea, we can and will do additional work to bring them up to par, but if
+we're busy with other work, it may take us a long time to get to it.
 
 To ensure your patch is acted on as promptly as possible, please:
 
-* Try to adhere to the [BIND 9 coding style](style.html).
+* Try to adhere to the [BIND 9 coding style](style.md).
 * Run `make` `check` to ensure your change hasn't caused any
   functional regressions.
 * Document your work, both in the patch itself and in the
   accompanying email.
 * In patches that make non-trivial functional changes, include system
   tests if possible; when introducing or substantially altering a
-  library API, include unit tests. See [Testing](dev.html#testing)
+  library API, include unit tests. See [Testing](dev.md#testing)
   for more information.
 
 ##### Changes to `configure`
@@ -195,5 +197,5 @@ testers including `queryperf` and `perftcpdns`; and drivers and modules for
 DLZ.
 
 If you have code with a BSD-compatible license that you would like us to
-includ in `contrib`, please send it to `bind-suggest@isc.org`, with
+include in `contrib`, please send it to `bind-suggest@isc.org`, with
 "`[CONTRIB]`" in the subject header.
