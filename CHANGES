@@ -1,3 +1,8 @@
+4599.	[bug]		Fix inconsistencies in inline signing time
+			comparison that were introduced with the
+			introduction of rdatasetheader->resign_lsb.
+			[RT #42112]
+
 4597.	[bug]		The validator now ignores SHA-1 DS digest type
 			when a DS record with SHA-384 digest type is
 			present and is a supported digest type.
