@@ -3538,6 +3538,13 @@ AC_PATH_PROGS(W3M, w3m, w3m)
 AC_SUBST(W3M)
 
 #
+# Look for pandoc
+#
+AC_PATH_PROG(PANDOC, pandoc, pandoc)
+AC_SUBST(PANDOC)
+
+
+#
 # Look for xsltproc (libxslt)
 #
 

@@ -1,3 +1,6 @@
+4593.	[doc]		Update README using markdown, remove outdated FAQ
+			file in favor of the knowledge base.
+
 4592.	[bug]		A race condition on shutdown could trigger an
 			assertion failure in dispatch.c. [RT #43822]
 
@@ -11424,7 +11427,7 @@
 
  586.	[bug]		multiple views with the same name were fatal. [RT #516]
 
- 585.	[func]		dns_db_addrdataset() and and dns_rdataslab_merge()
+ 585.	[func]		dns_db_addrdataset() and dns_rdataslab_merge()
 			now support 'exact' additions in a similar manner to
 			dns_db_subtractrdataset() and dns_rdataslab_subtract().
 
