@@ -1,3 +1,6 @@
+4591.	[port]		Addressed some python 3 compatibility issues.
+			Thanks to Ville Skytta. [RT #44955] [RT #44956]
+
 4589.	[cleanup]	"configure -q" is now silent. [RT #44829]
 
 4588.	[bug]		nsupdate could send queries for TKEY to the wrong
