@@ -270,14 +270,12 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>dumpdb <optional>-all|-cache|-zone|-adb|-bad</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
+	<term><userinput>dumpdb <optional>-all|-cache|-zones|-adb|-bad</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
 	<listitem>
 	  <para>
 	    Dump the server's caches (default) and/or zones to
-	    the
-	    dump file for the specified views.  If no view is
-	    specified, all
-	    views are dumped.
+	    the dump file for the specified views.  If no view
+            is specified, all views are dumped.
 	    (See the <command>dump-file</command> option in
 	    the BIND 9 Administrator Reference Manual.)
 	  </para>
