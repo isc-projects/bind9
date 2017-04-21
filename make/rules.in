@@ -307,6 +307,7 @@ LATEX =			@LATEX@
 PDFLATEX =		@PDFLATEX@
 DBLATEX =		@DBLATEX@
 W3M =			@W3M@
+PANDOC =		@PANDOC@
 
 ###
 ### Script language program used to create internal symbol tables

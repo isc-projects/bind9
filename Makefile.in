@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: Makefile.in,v 1.62 2011/09/06 04:06:37 marka Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -20,7 +18,7 @@ MANPAGES =	isc-config.sh.1
 
 HTMLPAGES =	isc-config.sh.html
 
-MANOBJS =	${MANPAGES} ${HTMLPAGES}
+MANOBJS =	README HISTORY OPTIONS ${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
@@ -91,13 +89,19 @@ test-force:
 	(test -f unit/unittest.sh && $(SHELL) unit/unittest.sh) || status=1; \
 	exit $$status
 
-FAQ: FAQ.xml
-	${XSLTPROC} doc/xsl/isc-docbook-text.xsl FAQ.xml | \
-	LC_ALL=C ${W3M} -T text/html -dump -cols 72 >$@.tmp
-	mv $@.tmp $@
+README: README.md
+	${PANDOC} --email-obfuscation=none -s -t html $< | \
+		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+
+HISTORY: HISTORY.md
+	${PANDOC} --email-obfuscation=none -s -t html $< | \
+		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+
+OPTIONS: OPTIONS.md
+	${PANDOC} --email-obfuscation=none -s -t html $< | \
+		${W3M} -dump -cols 75 -O ascii -T text/html > $@
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh
 
 clean::
-	rm -f FAQ.tmp
