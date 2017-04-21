@@ -1,3 +1,6 @@
+4590.	[bug]		Support for PTHREAD_MUTEX_ADAPTIVE_NP was not being
+			properly detected. [RT #44871]
+
 4589.	[cleanup]	"configure -q" is now silent. [RT #44829]
 
 4588.	[bug]		nsupdate could send queries for TKEY to the wrong
