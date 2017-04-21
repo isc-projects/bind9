@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: Makefile.in,v 1.9 2009/07/10 23:47:58 tbox Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -39,3 +37,6 @@ options: FORCE
 	else \
 		rm -f $@.new $@.raw $@.sorted ; \
 	fi
+
+docbook: options
+	${PERL} docbook-options.pl options > ${top_srcdir}/bin/named/named.conf.docbook
