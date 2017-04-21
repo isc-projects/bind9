@@ -1,3 +1,7 @@
+4601.	[bug]		Reject incorrect RSA key lengths during key
+			generation and and sign/verify context
+			creation. [RT #45043]
+
 4599.	[bug]		Fix inconsistencies in inline signing time
 			comparison that were introduced with the
 			introduction of rdatasetheader->resign_lsb.
