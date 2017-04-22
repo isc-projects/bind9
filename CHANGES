@@ -1,3 +1,6 @@
+4604.	[bug]		Don't use ERR_load_crypto_strings() when building
+			with OpenSSL 1.1.0. [RT #45117]
+
 4603.	[doc]		Automatically generate named.conf(5) man page
 			from doc/misc/options. Thanks to Tony Finch.
 			[RT #43525]
