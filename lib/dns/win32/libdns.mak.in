@@ -120,7 +120,6 @@ CLEAN :"libisc - @PLATFORM@ ReleaseCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
-	-@erase "$(INTDIR)\acache.obj"
 	-@erase "$(INTDIR)\acl.obj"
 	-@erase "$(INTDIR)\adb.obj"
 	-@erase "$(INTDIR)\badcache.obj"
@@ -282,7 +281,6 @@ LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Releas
 DEF_FILE= \
 	".\libdns.def"
 LINK32_OBJS= \
-	"$(INTDIR)\acache.obj" \
 	"$(INTDIR)\acl.obj" \
 	"$(INTDIR)\adb.obj" \
 	"$(INTDIR)\badcache.obj" \
@@ -422,8 +420,6 @@ CLEAN :"libisc - @PLATFORM@ DebugCLEAN"
 !ELSE 
 CLEAN :
 !ENDIF 
-	-@erase "$(INTDIR)\acache.obj"
-	-@erase "$(INTDIR)\acache.sbr"
 	-@erase "$(INTDIR)\acl.obj"
 	-@erase "$(INTDIR)\acl.sbr"
 	-@erase "$(INTDIR)\adb.obj"
@@ -687,7 +683,6 @@ RSC=rc.exe
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libdns.bsc" 
 BSC32_SBRS= \
-	"$(INTDIR)\acache.sbr" \
 	"$(INTDIR)\acl.sbr" \
 	"$(INTDIR)\adb.sbr" \
 	"$(INTDIR)\badcache.sbr" \
@@ -807,7 +802,6 @@ LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib $(LIBXML) ../../isc/win32/Debug/
 DEF_FILE= \
 	".\libdns.def"
 LINK32_OBJS= \
-	"$(INTDIR)\acache.obj" \
 	"$(INTDIR)\acl.obj" \
 	"$(INTDIR)\adb.obj" \
 	"$(INTDIR)\badcache.obj" \
@@ -937,24 +931,6 @@ LINK32_OBJS= \
 
 
 !IF "$(CFG)" == "libdns - @PLATFORM@ Release" || "$(CFG)" == "libdns - @PLATFORM@ Debug"
-SOURCE=..\acache.c
-
-!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
-
-
-"$(INTDIR)\acache.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
-
-
-"$(INTDIR)\acache.obj"	"$(INTDIR)\acache.sbr" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-!ENDIF 
-
 SOURCE=..\acl.c
 
 !IF  "$(CFG)" == "libdns - @PLATFORM@ Release"

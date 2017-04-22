@@ -30,7 +30,6 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#include <dns/acache.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/callbacks.h>
@@ -302,7 +301,6 @@ struct dns_zone {
 	isc_uint32_t		sigvalidityinterval;
 	isc_uint32_t		sigresigninginterval;
 	dns_view_t		*view;
-	dns_acache_t		*acache;
 	dns_checkmxfunc_t	checkmx;
 	dns_checksrvfunc_t	checksrv;
 	dns_checknsfunc_t	checkns;
@@ -1016,7 +1014,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->sigresigninginterval = 7 * 24 * 3600;
 	zone->view = NULL;
-	zone->acache = NULL;
 	zone->checkmx = NULL;
 	zone->checksrv = NULL;
 	zone->checkns = NULL;
@@ -1170,8 +1167,6 @@ zone_free(dns_zone_t *zone) {
 		dns_stats_detach(&zone->rcvquerystats);
 	if (zone->db != NULL)
 		zone_detachdb(zone);
-	if (zone->acache != NULL)
-		dns_acache_detach(&zone->acache);
 	if (zone->rpzs != NULL) {
 		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
 		dns_rpz_detach_rpzs(&zone->rpzs);
@@ -1516,36 +1511,6 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 		result = dns_zone_setorigin(zone->raw, origin);
 	UNLOCK_ZONE(zone);
 	return (result);
-}
-
-void
-dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(acache != NULL);
-
-	LOCK_ZONE(zone);
-	if (zone->acache != NULL)
-		dns_acache_detach(&zone->acache);
-	dns_acache_attach(acache, &zone->acache);
-	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	if (zone->db != NULL) {
-		isc_result_t result;
-
-		/*
-		 * If the zone reuses an existing DB, the DB needs to be
-		 * set in the acache explicitly.  We can safely ignore the
-		 * case where the DB is already set.  If other error happens,
-		 * the acache will not work effectively.
-		 */
-		result = dns_acache_setdb(acache, zone->db);
-		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "dns_acache_setdb() failed: %s",
-					 isc_result_totext(result));
-		}
-	}
-	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-	UNLOCK_ZONE(zone);
 }
 
 static isc_result_t
@@ -14662,15 +14627,6 @@ zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
 	REQUIRE(zone->db == NULL && db != NULL);
 
 	dns_db_attach(db, &zone->db);
-	if (zone->acache != NULL) {
-		isc_result_t result;
-		result = dns_acache_setdb(zone->acache, db);
-		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "dns_acache_setdb() failed: %s",
-					 isc_result_totext(result));
-		}
-	}
 }
 
 /* The caller must hold the dblock as a writer. */
@@ -14678,8 +14634,6 @@ static inline void
 zone_detachdb(dns_zone_t *zone) {
 	REQUIRE(zone->db != NULL);
 
-	if (zone->acache != NULL)
-		(void)dns_acache_putdb(zone->acache, zone->db);
 	dns_db_detach(&zone->db);
 }
 

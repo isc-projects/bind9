@@ -108,8 +108,6 @@ struct ns_server {
 	unsigned int		dispatchgen;
 	ns_dispatchlist_t	dispatches;
 
-	dns_acache_t		*acache;
-
 	ns_statschannellist_t	statschannels;
 
 	dns_tsigkey_t		*sessionkey;

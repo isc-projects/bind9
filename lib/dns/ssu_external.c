@@ -124,7 +124,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 	int fd;
 	const char *sock_path;
 	unsigned int req_len;
-	isc_region_t token_region;
+	isc_region_t token_region = {NULL, 0};
 	unsigned char *data;
 	isc_buffer_t buf;
 	isc_uint32_t token_len = 0;

@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf.in,v 1.10 2011/11/03 23:46:26 tbox Exp $ */
-
 controls { /* empty */ };
 
 options {

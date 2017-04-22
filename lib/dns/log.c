@@ -71,7 +71,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/sdb",		0 },
 	{ "dns/diff",		0 },
 	{ "dns/hints",		0 },
-	{ "dns/acache",		0 },
+	{ "dns/unused1",	0 },
 	{ "dns/dlz",		0 },
 	{ "dns/dnssec",		0 },
 	{ "dns/crypto",		0 },

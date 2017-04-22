@@ -13,6 +13,7 @@
 #include <isc/region.h>
 
 #include <dns/types.h>
+#include <dns/name.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -37,19 +38,23 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_CASESENSITIVE	0x02	/*%< case sensitive compression. */
 #define DNS_COMPRESS_ENABLED		0x04
 
-#define DNS_COMPRESS_READY		0x80000000
-
-#define DNS_COMPRESS_TABLESIZE 64
+/*
+ * DNS_COMPRESS_TABLESIZE must be a power of 2. The compress code
+ * utilizes this assumption.
+ */
+#define DNS_COMPRESS_TABLEBITS 6
+#define DNS_COMPRESS_TABLESIZE (1U << DNS_COMPRESS_TABLEBITS)
+#define DNS_COMPRESS_TABLEMASK (DNS_COMPRESS_TABLESIZE - 1)
 #define DNS_COMPRESS_INITIALNODES 16
 
 typedef struct dns_compressnode dns_compressnode_t;
 
 struct dns_compressnode {
-	isc_region_t		r;
+	dns_compressnode_t	*next;
 	isc_uint16_t		offset;
 	isc_uint16_t		count;
-	isc_uint8_t		labels;
-	dns_compressnode_t	*next;
+	isc_region_t            r;
+	dns_name_t              name;
 };
 
 struct dns_compress {

@@ -438,7 +438,7 @@ echo "I: Random selection return $match of 24 possible orders in 36 samples"
 if [ $match -lt 8 ]; then echo ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 
-echo "I: Checking default order no match in rrset-order (random)"
+echo "I: Checking default order no match in rrset-order (no shuffling)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
@@ -447,11 +447,11 @@ done
 for i in a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 9
 do
 $DIG +nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short \
-	-p 5300 @10.53.0.4 random.example > dig.out.random|| ret=1
+	-p 5300 @10.53.0.4 nomatch.example > dig.out.nomatch|| ret=1
 	match=0
 	for j in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 	do
-		eval "$DIFF dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+		eval "$DIFF dig.out.nomatch dig.out.random.good$j >/dev/null && match$j=1 match=1"
 		if [ $match -eq 1 ]; then break; fi
 	done
 	if [ $match -eq 0 ]; then ret=1; fi
@@ -461,8 +461,8 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
 eval "match=\`expr \$match + \$match$i\`"
 done
-echo "I: Random selection return $match of 24 possible orders in 36 samples"
-if [ $match -lt 8 ]; then echo ret=1; fi
+echo "I: Consistent selection return $match of 24 possible orders in 36 samples"
+if [ $match -ne 1 ]; then echo ret=1; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 
 status=`expr $status + $ret`

@@ -3,21 +3,6 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
-dns_acache_attach
-dns_acache_attachentry
-dns_acache_cancelentry
-dns_acache_countquerymiss
-dns_acache_create
-dns_acache_createentry
-dns_acache_detach
-dns_acache_detachentry
-dns_acache_getentry
-dns_acache_putdb
-dns_acache_setcachesize
-dns_acache_setcleaninginterval
-dns_acache_setdb
-dns_acache_setentry
-dns_acache_shutdown
 dns_acl_any
 dns_acl_attach
 dns_acl_create
@@ -818,6 +803,7 @@ dns_rdatalist_fromrdataset
 dns_rdatalist_init
 dns_rdatalist_tordataset
 dns_rdataset_addclosest
+dns_rdataset_addglue
 dns_rdataset_additionaldata
 dns_rdataset_addnoqname
 dns_rdataset_clearprefetch
@@ -827,7 +813,6 @@ dns_rdataset_current
 dns_rdataset_disassociate
 dns_rdataset_expire
 dns_rdataset_first
-dns_rdataset_getadditional
 dns_rdataset_getclosest
 dns_rdataset_getnoqname
 dns_rdataset_getownercase
@@ -836,8 +821,6 @@ dns_rdataset_invalidate
 dns_rdataset_isassociated
 dns_rdataset_makequestion
 dns_rdataset_next
-dns_rdataset_putadditional
-dns_rdataset_setadditional
 dns_rdataset_setownercase
 dns_rdataset_settrust
 dns_rdataset_totext
@@ -1266,7 +1249,6 @@ dns_zone_replacedb
 dns_zone_rpz_enable
 dns_zone_rpz_enable_db
 dns_zone_set_parentcatz
-dns_zone_setacache
 dns_zone_setadded
 dns_zone_setalsonotify
 dns_zone_setalsonotifydscpkeys

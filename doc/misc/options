@@ -64,10 +64,10 @@ masters <string> [ port <integer> ] [ dscp
     <integer> ] ) [ key <string> ]; ... }; // may occur multiple times
 
 options {
-        acache-cleaning-interval <integer>;
-        acache-enable <boolean>;
-        additional-from-auth <boolean>;
-        additional-from-cache <boolean>;
+        acache-cleaning-interval <integer>; // obsolete
+        acache-enable <boolean>; // obsolete
+        additional-from-auth <boolean>; // obsolete
+        additional-from-cache <boolean>; // obsolete
         allow-new-zones <boolean>;
         allow-notify { <address_match_element>; ... };
         allow-query { <address_match_element>; ... };
@@ -213,7 +213,7 @@ options {
         masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         match-mapped-addresses <boolean>;
-        max-acache-size ( unlimited | <sizeval> );
+        max-acache-size ( unlimited | <sizeval> ); // obsolete
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
@@ -418,10 +418,10 @@ trusted-keys { <string> <integer> <integer>
     <integer> <quoted_string>; ... }; // may occur multiple times
 
 view <string> [ <class> ] {
-        acache-cleaning-interval <integer>;
-        acache-enable <boolean>;
-        additional-from-auth <boolean>;
-        additional-from-cache <boolean>;
+        acache-cleaning-interval <integer>; // obsolete
+        acache-enable <boolean>; // obsolete
+        additional-from-auth <boolean>; // obsolete
+        additional-from-cache <boolean>; // obsolete
         allow-new-zones <boolean>;
         allow-notify { <address_match_element>; ... };
         allow-query { <address_match_element>; ... };
@@ -535,7 +535,7 @@ view <string> [ <class> ] {
         match-clients { <address_match_element>; ... };
         match-destinations { <address_match_element>; ... };
         match-recursive-only <boolean>;
-        max-acache-size ( unlimited | <sizeval> );
+        max-acache-size ( unlimited | <sizeval> ); // obsolete
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;

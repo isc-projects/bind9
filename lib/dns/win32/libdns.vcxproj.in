@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|@PLATFORM@">
@@ -109,7 +109,6 @@
     <None Include="libdns.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\acache.c" />
     <ClCompile Include="..\acl.c" />
     <ClCompile Include="..\adb.c" />
     <ClCompile Include="..\badcache.c" />
@@ -231,7 +230,6 @@
 @IF PKCS11
     <ClInclude Include="..\dst_pkcs11.h" />
 @END PKCS11
-    <ClInclude Include="..\include\dns\acache.h" />
     <ClInclude Include="..\include\dns\acl.h" />
     <ClInclude Include="..\include\dns\adb.h" />
     <ClInclude Include="..\include\dns\badcache.h" />

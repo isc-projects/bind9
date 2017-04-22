@@ -397,6 +397,7 @@ isc__hash_setvec(const isc_uint16_t *vec) {
 
 static isc_uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
+static isc_boolean_t fnv_initialized = ISC_FALSE;
 
 static void
 fnv_initialize(void) {
@@ -408,11 +409,14 @@ fnv_initialize(void) {
 	while (fnv_offset_basis == 0) {
 		isc_random_get(&fnv_offset_basis);
 	}
+
+	fnv_initialized = ISC_TRUE;
 }
 
 const void *
 isc_hash_get_initializer(void) {
-	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+	if (ISC_UNLIKELY(!fnv_initialized))
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	return (&fnv_offset_basis);
 }
@@ -425,7 +429,8 @@ isc_hash_set_initializer(const void *initializer) {
 	 * Ensure that fnv_initialize() is not called after
 	 * isc_hash_set_initializer() is called.
 	 */
-	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+	if (ISC_UNLIKELY(!fnv_initialized))
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	fnv_offset_basis = *((const unsigned int *) initializer);
 }
@@ -440,7 +445,9 @@ isc_hash_function(const void *data, size_t length,
 	const unsigned char *be;
 
 	REQUIRE(length == 0 || data != NULL);
-	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+
+	if (ISC_UNLIKELY(!fnv_initialized))
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
 		*previous_hashp : fnv_offset_basis;
@@ -461,35 +468,35 @@ isc_hash_function(const void *data, size_t length,
 	 */
 
 	if (case_sensitive) {
-		while (bp < be - 4) {
-			hval ^= (isc_uint32_t) bp[0];
+		while (bp <= be - 4) {
+			hval ^= bp[0];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) bp[1];
+			hval ^= bp[1];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) bp[2];
+			hval ^= bp[2];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) bp[3];
+			hval ^= bp[3];
 			hval *= 16777619;
 			bp += 4;
 		}
 		while (bp < be) {
-			hval ^= (isc_uint32_t) *bp++;
+			hval ^= *bp++;
 			hval *= 16777619;
 		}
 	} else {
-		while (bp < be - 4) {
-			hval ^= (isc_uint32_t) maptolower[bp[0]];
+		while (bp <= be - 4) {
+			hval ^= maptolower[bp[0]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[bp[1]];
+			hval ^= maptolower[bp[1]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[bp[2]];
+			hval ^= maptolower[bp[2]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[bp[3]];
+			hval ^= maptolower[bp[3]];
 			hval *= 16777619;
 			bp += 4;
 		}
 		while (bp < be) {
-			hval ^= (isc_uint32_t) maptolower[*bp++];
+			hval ^= maptolower[*bp++];
 			hval *= 16777619;
 		}
 	}
@@ -507,7 +514,9 @@ isc_hash_function_reverse(const void *data, size_t length,
 	const unsigned char *be;
 
 	REQUIRE(length == 0 || data != NULL);
-	RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+
+	if (ISC_UNLIKELY(!fnv_initialized))
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
 		*previous_hashp : fnv_offset_basis;
@@ -530,33 +539,33 @@ isc_hash_function_reverse(const void *data, size_t length,
 	if (case_sensitive) {
 		while (be >= bp + 4) {
 			be -= 4;
-			hval ^= (isc_uint32_t) be[3];
+			hval ^= be[3];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) be[2];
+			hval ^= be[2];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) be[1];
+			hval ^= be[1];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) be[0];
+			hval ^= be[0];
 			hval *= 16777619;
 		}
 		while (--be >= bp) {
-			hval ^= (isc_uint32_t) *be;
+			hval ^= *be;
 			hval *= 16777619;
 		}
 	} else {
 		while (be >= bp + 4) {
 			be -= 4;
-			hval ^= (isc_uint32_t) maptolower[be[3]];
+			hval ^= maptolower[be[3]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[be[2]];
+			hval ^= maptolower[be[2]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[be[1]];
+			hval ^= maptolower[be[1]];
 			hval *= 16777619;
-			hval ^= (isc_uint32_t) maptolower[be[0]];
+			hval ^= maptolower[be[0]];
 			hval *= 16777619;
 		}
 		while (--be >= bp) {
-			hval ^= (isc_uint32_t) maptolower[*be];
+			hval ^= maptolower[*be];
 			hval *= 16777619;
 		}
 	}

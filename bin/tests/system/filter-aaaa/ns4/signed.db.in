@@ -4,12 +4,14 @@
 ; License, v. 2.0. If a copy of the MPL was not distributed with this
 ; file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-; $Id: signed.db.in,v 1.4 2012/01/31 23:47:32 tbox Exp $
-
 $TTL	120
-@		SOA	ns.utld.  hostmaster.ns.utld. ( 1 3600 1200 604800 60 )
-@		NS	ns.utld.
+@		SOA	ns.signed.  hostmaster.ns.signed. ( 1 3600 1200 604800 60 )
+@		NS	ns
 @               MX      10 mx
+
+ns		A	10.53.0.4
+		AAAA	fd92:7065:b8e:ffff::4
+
 a-only		NS	1.0.0.1
 aaaa-only	AAAA	2001:db8::2
 dual		A	1.0.0.3

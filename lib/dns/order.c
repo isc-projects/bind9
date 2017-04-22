@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: order.c,v 1.10 2007/06/19 23:47:16 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -80,7 +78,7 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 	REQUIRE(DNS_ORDER_VALID(order));
 	REQUIRE(mode == DNS_RDATASETATTR_RANDOMIZE ||
 		mode == DNS_RDATASETATTR_FIXEDORDER ||
-		mode == 0 /* DNS_RDATASETATTR_CYCLIC */ );
+		mode == DNS_RDATASETATTR_CYCLIC);
 
 	ent = isc_mem_get(order->mctx, sizeof(*ent));
 	if (ent == NULL)
@@ -123,7 +121,7 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 		if (match(name, dns_fixedname_name(&ent->name)))
 			return (ent->mode);
 	}
-	return (DNS_RDATASETATTR_RANDOMIZE);
+	return (DNS_RDATASETATTR_NONE);
 }
 
 void

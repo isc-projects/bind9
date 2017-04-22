@@ -24,7 +24,6 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
-#include <dns/acache.h>
 #include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/badcache.h>
@@ -137,7 +136,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_zt;
 	}
 
-	view->acache = NULL;
 	view->cache = NULL;
 	view->cachedb = NULL;
 	ISC_LIST_INIT(view->dlz_searched);
@@ -180,8 +178,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	 */
 	view->recursion = ISC_TRUE;
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
-	view->additionalfromcache = ISC_TRUE;
-	view->additionalfromauth = ISC_TRUE;
 	view->enablednssec = ISC_TRUE;
 	view->enablevalidation = ISC_TRUE;
 	view->acceptexpired = ISC_FALSE;
@@ -380,11 +376,6 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
-	if (view->acache != NULL) {
-		if (view->cachedb != NULL)
-			dns_acache_putdb(view->acache, view->cachedb);
-		dns_acache_detach(&view->acache);
-	}
 	dns_rrl_view_destroy(view);
 	if (view->rpzs != NULL)
 		dns_rpz_detach_rpzs(&view->rpzs);
@@ -585,8 +576,6 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-		if (view->acache != NULL)
-			dns_acache_shutdown(view->acache);
 		if (view->zonetable != NULL) {
 			if (view->flush)
 				dns_zt_flushanddetach(&view->zonetable);
@@ -851,17 +840,12 @@ dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 
 	view->cacheshared = shared;
 	if (view->cache != NULL) {
-		if (view->acache != NULL)
-			dns_acache_putdb(view->acache, view->cachedb);
 		dns_db_detach(&view->cachedb);
 		dns_cache_detach(&view->cache);
 	}
 	dns_cache_attach(cache, &view->cache);
 	dns_cache_attachdb(cache, &view->cachedb);
 	INSIST(DNS_DB_VALID(view->cachedb));
-
-	if (view->acache != NULL)
-		dns_acache_setdb(view->acache, view->cachedb);
 }
 
 isc_boolean_t
@@ -1637,12 +1621,8 @@ dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	if (view->acache != NULL)
-		dns_acache_putdb(view->acache, view->cachedb);
 	dns_db_detach(&view->cachedb);
 	dns_cache_attachdb(view->cache, &view->cachedb);
-	if (view->acache != NULL)
-		dns_acache_setdb(view->acache, view->cachedb);
 	if (view->resolver != NULL)
 		dns_resolver_flushbadcache(view->resolver, NULL);
 	if (view->failcache != NULL)

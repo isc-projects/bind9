@@ -1471,16 +1471,14 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	isc__rdatalist_count,
 	isc__rdatalist_addnoqname,
 	isc__rdatalist_getnoqname,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	NULL, /* addclosest */
+	NULL, /* getclosest */
+	NULL, /* settrust */
+	NULL, /* expire */
+	NULL, /* clearprefetch */
+	NULL, /* setownercase */
+	NULL, /* getownercase */
+	NULL  /* addglue */
 };
 
 static void

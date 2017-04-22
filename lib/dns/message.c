@@ -96,11 +96,11 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
  * XXXMLG These should come from a config setting.
  */
 #define SCRATCHPAD_SIZE		512
-#define NAME_COUNT		  8
+#define NAME_COUNT		 64
 #define OFFSET_COUNT		  4
 #define RDATA_COUNT		  8
 #define RDATALIST_COUNT		  8
-#define RDATASET_COUNT		 RDATALIST_COUNT
+#define RDATASET_COUNT	         64
 
 /*%
  * Text representation of the different items, for message_totext
@@ -742,6 +742,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	result = isc_mempool_create(m->mctx, sizeof(dns_name_t), &m->namepool);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
 	isc_mempool_setname(m->namepool, "msg:names");
 
@@ -749,7 +750,8 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 				    &m->rdspool);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	isc_mempool_setfreemax(m->rdspool, NAME_COUNT);
+	isc_mempool_setfillcount(m->rdspool, RDATASET_COUNT);
+	isc_mempool_setfreemax(m->rdspool, RDATASET_COUNT);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	dynbuf = NULL;

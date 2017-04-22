@@ -55,7 +55,7 @@ GEOIPLINKOBJS = geoip.@O@
 DNSTAPOBJS = dnstap.@O@ dnstap.pb-c.@O@
 
 # Alphabetically
-DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
+DNSOBJS =	acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		cache.@O@ callbacks.@O@ catz.@O@ clientinfo.@O@ compress.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dlz.@O@ dns64.@O@ dnssec.@O@ ds.@O@ dyndb.@O@ ecs.@O@ \
@@ -95,7 +95,7 @@ GEOIPLINKSRCS = geoip.c
 
 DNSTAPSRCS = dnstap.c dnstap.pb-c.c
 
-DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
+DNSSRCS =	acl.c adb.c badcache. byaddr.c \
 		cache.c callbacks.c clientinfo.c compress.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dlz.c dns64.c dnssec.c ds.c dyndb.c ecs.c forward.c \

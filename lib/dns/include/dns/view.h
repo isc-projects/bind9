@@ -83,7 +83,6 @@ struct dns_view {
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
 	dns_requestmgr_t *		requestmgr;
-	dns_acache_t *			acache;
 	dns_cache_t *			cache;
 	dns_db_t *			cachedb;
 	dns_db_t *			hints;
@@ -114,8 +113,6 @@ struct dns_view {
 	dns_fwdtable_t *		fwdtable;
 	isc_boolean_t			recursion;
 	isc_boolean_t			auth_nxdomain;
-	isc_boolean_t			additionalfromcache;
-	isc_boolean_t			additionalfromauth;
 	isc_boolean_t			minimal_any;
 	dns_minimaltype_t		minimalresponses;
 	isc_boolean_t			enablednssec;

@@ -133,7 +133,8 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 			    "compilation time");
 #endif
 	} else if (strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
-		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {
+		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0 &&
+		   strcasecmp(cfg_obj_asstring(obj), "none") != 0) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "rrset-order: invalid order '%s'",
 			    cfg_obj_asstring(obj));

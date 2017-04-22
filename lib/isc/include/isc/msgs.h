@@ -121,6 +121,7 @@
 #define ISC_MSG_POSTLOCK       1207 /*%< "postlock" */
 #define ISC_MSG_PREUNLOCK      1208 /*%< "preunlock" */
 #define ISC_MSG_POSTUNLOCK     1209 /*%< "postunlock" */
+#define ISC_MSG_PRINTLOCK2     1210 /*%< "rwlock %p thread %lu ..." w/ atomic */
 
 #define ISC_MSG_UNKNOWNFAMILY  1301 /*%< "unknown address family: %d" */
 

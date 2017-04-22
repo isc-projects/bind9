@@ -52,7 +52,6 @@
 
 #include <bind9/check.h>
 
-#include <dns/acache.h>
 #include <dns/adb.h>
 #include <dns/badcache.h>
 #include <dns/cache.h>
@@ -1279,12 +1278,14 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 #if DNS_RDATASET_FIXED
 		mode = DNS_RDATASETATTR_FIXEDORDER;
 #else
-		mode = 0;
+		mode = DNS_RDATASETATTR_CYCLIC;
 #endif /* DNS_RDATASET_FIXED */
 	else if (!strcasecmp(str, "random"))
 		mode = DNS_RDATASETATTR_RANDOMIZE;
 	else if (!strcasecmp(str, "cyclic"))
-		mode = 0;
+		mode = DNS_RDATASETATTR_CYCLIC;
+	else if (!strcasecmp(str, "none"))
+		mode = DNS_RDATASETATTR_NONE;
 	else
 		INSIST(0);
 
@@ -2517,8 +2518,6 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 
 			dns_zone_setview(dnszone, view);
-			if (view->acache != NULL)
-				dns_zone_setacache(dnszone, view->acache);
 			dns_view_addzone(view, dnszone);
 		}
 
@@ -3310,7 +3309,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	unsigned int cleaning_interval;
 	size_t max_cache_size;
 	isc_uint32_t max_cache_size_percent = 0;
-	size_t max_acache_size;
 	size_t max_adb_size;
 	isc_uint32_t lame_ttl, fail_ttl;
 	dns_tsig_keyring_t *ring = NULL;
@@ -3376,53 +3374,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 */
 	CHECKM(ns_config_getport(config, &port), "port");
 	dns_view_setdstport(view, port);
-
-	/*
-	 * Create additional cache for this view and zones under the view
-	 * if explicitly enabled.
-	 * XXX950 default to on.
-	 */
-	obj = NULL;
-	(void)ns_config_get(maps, "acache-enable", &obj);
-	if (obj != NULL && cfg_obj_asboolean(obj)) {
-		cmctx = NULL;
-		CHECK(isc_mem_create(0, 0, &cmctx));
-		CHECK(dns_acache_create(&view->acache, cmctx, ns_g_taskmgr,
-					ns_g_timermgr));
-		isc_mem_setname(cmctx, "acache", NULL);
-		isc_mem_detach(&cmctx);
-	}
-	if (view->acache != NULL) {
-		obj = NULL;
-		result = ns_config_get(maps, "acache-cleaning-interval", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_acache_setcleaninginterval(view->acache,
-					       cfg_obj_asuint32(obj) * 60);
-
-		obj = NULL;
-		result = ns_config_get(maps, "max-acache-size", &obj);
-		INSIST(result == ISC_R_SUCCESS);
-		if (cfg_obj_isstring(obj)) {
-			str = cfg_obj_asstring(obj);
-			INSIST(strcasecmp(str, "unlimited") == 0);
-			max_acache_size = 0;
-		} else {
-			isc_resourcevalue_t value;
-			value = cfg_obj_asuint64(obj);
-			if (value > SIZE_MAX) {
-				cfg_obj_log(obj, ns_g_lctx,
-					    ISC_LOG_WARNING,
-					    "'max-acache-size "
-					    "%" ISC_PRINT_QUADFORMAT "u' "
-					    "is too large for this "
-					    "system; reducing to %lu",
-					    value, (unsigned long)SIZE_MAX);
-				value = SIZE_MAX;
-			}
-			max_acache_size = (size_t) value;
-		}
-		dns_acache_setcachesize(view->acache, max_acache_size);
-	}
 
 	CHECK(configure_view_acl(vconfig, config, "allow-query", NULL, actx,
 				 ns_g_mctx, &view->queryacl));
@@ -4304,32 +4255,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ns_config_get(maps, "trust-anchor-telemetry", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->trust_anchor_telemetry = cfg_obj_asboolean(obj);
-
-	/*
-	 * Set sources where additional data and CNAME/DNAME
-	 * targets for authoritative answers may be found.
-	 */
-	obj = NULL;
-	result = ns_config_get(maps, "additional-from-auth", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->additionalfromauth = cfg_obj_asboolean(obj);
-	if (view->recursion && ! view->additionalfromauth) {
-		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
-			    "'additional-from-auth no' is only supported "
-			    "with 'recursion no'");
-		view->additionalfromauth = ISC_TRUE;
-	}
-
-	obj = NULL;
-	result = ns_config_get(maps, "additional-from-cache", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->additionalfromcache = cfg_obj_asboolean(obj);
-	if (view->recursion && ! view->additionalfromcache) {
-		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
-			    "'additional-from-cache no' is only supported "
-			    "with 'recursion no'");
-		view->additionalfromcache = ISC_TRUE;
-	}
 
 	/*
 	 * Set "allow-query-cache", "allow-query-cache-on",
@@ -5600,8 +5525,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		 * new view.
 		 */
 		dns_zone_setview(zone, view);
-		if (view->acache != NULL)
-			dns_zone_setacache(zone, view->acache);
 	} else {
 		/*
 		 * We cannot reuse an existing zone, we have
@@ -5610,8 +5533,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		CHECK(dns_zonemgr_createzone(ns_g_server->zonemgr, &zone));
 		CHECK(dns_zone_setorigin(zone, origin));
 		dns_zone_setview(zone, view);
-		if (view->acache != NULL)
-			dns_zone_setacache(zone, view->acache);
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 		dns_zone_setstats(zone, ns_g_server->zonestats);
 	}
@@ -5670,8 +5591,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			CHECK(dns_zone_create(&raw, mctx));
 			CHECK(dns_zone_setorigin(raw, origin));
 			dns_zone_setview(raw, view);
-			if (view->acache != NULL)
-				dns_zone_setacache(raw, view->acache);
 			dns_zone_setstats(raw, ns_g_server->zonestats);
 			CHECK(dns_zone_link(zone, raw));
 		}
@@ -5767,9 +5686,6 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setclass(zone, view->rdclass);
 
 	CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
-
-	if (view->acache != NULL)
-		dns_zone_setacache(zone, view->acache);
 
 	CHECK(dns_acl_none(mctx, &none));
 	dns_zone_setqueryacl(zone, none);

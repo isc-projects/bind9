@@ -22,9 +22,6 @@
 
 #include <isc/types.h>
 
-typedef struct dns_acache			dns_acache_t;
-typedef struct dns_acacheentry			dns_acacheentry_t;
-typedef struct dns_acachestats			dns_acachestats_t;
 typedef struct dns_acl 				dns_acl_t;
 typedef struct dns_aclelement 			dns_aclelement_t;
 typedef struct dns_aclenv			dns_aclenv_t;

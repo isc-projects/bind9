@@ -2041,19 +2041,6 @@ dns_zone_checknames(dns_zone_t *zone, const dns_name_t *name,
  */
 
 void
-dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache);
-/*%<
- *	Associate the zone with an additional cache.
- *
- * Require:
- *	'zone' to be a valid zone.
- *	'acache' to be a non NULL pointer.
- *
- * Ensures:
- *	'zone' will have a reference to 'acache'
- */
-
-void
 dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx);
 /*%<
  *	Set the post load integrity callback function 'checkmx'.

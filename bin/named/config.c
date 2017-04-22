@@ -94,7 +94,6 @@ options {\n\
 "\
 	recursive-clients 1000;\n\
 	resolver-query-timeout 10;\n\
-	rrset-order { order random; };\n\
 #	serial-queries <obsolete>;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
@@ -140,15 +139,13 @@ options {\n\
 #	topology <none>\n\
 	auth-nxdomain false;\n\
 	minimal-any false;\n\
-	minimal-responses false;\n\
+	minimal-responses true;\n\
 	recursion true;\n\
 	provide-ixfr true;\n\
 	request-ixfr true;\n\
 	request-expire true;\n\
 #	fetch-glue <obsolete>;\n\
 #	rfc2308-type1 <obsolete>;\n\
-	additional-from-auth true;\n\
-	additional-from-cache true;\n\
 	query-source address *;\n\
 	query-source-v6 address *;\n\
 	notify-source *;\n\
@@ -167,9 +164,6 @@ options {\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
 	check-spf warn;\n\
-	acache-enable no;\n\
-	acache-cleaning-interval 60;\n\
-	max-acache-size 16M;\n\
 	dnssec-enable yes;\n\
 	dnssec-validation yes; \n\
 	dnssec-accept-expired no;\n\

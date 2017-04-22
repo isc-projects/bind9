@@ -1816,10 +1816,14 @@ static cfg_type_t cfg_type_dns64 = {
 
 static cfg_clausedef_t
 view_clauses[] = {
-	{ "acache-cleaning-interval", &cfg_type_uint32, 0 },
-	{ "acache-enable", &cfg_type_boolean, 0 },
-	{ "additional-from-auth", &cfg_type_boolean, 0 },
-	{ "additional-from-cache", &cfg_type_boolean, 0 },
+	{ "acache-cleaning-interval", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "acache-enable", &cfg_type_boolean,
+	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "additional-from-auth", &cfg_type_boolean,
+	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "additional-from-cache", &cfg_type_boolean,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "allow-new-zones", &cfg_type_boolean, 0 },
 	{ "allow-query-cache", &cfg_type_bracketed_aml, 0 },
 	{ "allow-query-cache-on", &cfg_type_bracketed_aml, 0 },
@@ -1880,7 +1884,8 @@ view_clauses[] = {
 	{ "lame-ttl", &cfg_type_ttlval, 0 },
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
 	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
+	{ "max-acache-size", &cfg_type_sizenodefault,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },

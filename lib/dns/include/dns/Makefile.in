@@ -10,7 +10,7 @@ top_srcdir =	@top_srcdir@
 
 VERSION=@BIND9_VERSION@
 
-HEADERS =	acache.h acl.h adb.h badcache.h bit.h byaddr.h \
+HEADERS =	acl.h adb.h badcache.h bit.h byaddr.h \
 		cache.h callbacks.h catz.h cert.h \
 		client.h clientinfo.h compress.h \
 		db.h dbiterator.h dbtable.h diff.h dispatch.h \

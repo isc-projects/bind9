@@ -55,13 +55,3 @@ NISC.JVNC.NET.          172800  IN      A       128.121.50.7
 NS.EU.NET.              172800  IN      A       192.16.202.11
 SPARKY.ARL.MIL.         172800  IN      A       128.63.58.18
 SUNIC.SUNET.SE.         172800  IN      A       192.36.125.2
-
-;
-; A hypothetical ccTLD where we are authoritative for the NS glue.
-;
-xx.			172800  IN      NS      b.root-servers.nil.
-
-;
-; A hypothetical ccTLD where we have cached NS glue.
-;
-yy.			172800  IN      NS      ns.zz.

@@ -484,18 +484,16 @@ static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_current,
 	rdataset_clone,
 	rdataset_count,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	rdataset_settrust,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	NULL,			/* addnoqname */
+	NULL,			/* getnoqname */
+	NULL,			/* addclosest */
+	NULL,			/* getclosest */
+	rdataset_settrust,	/* settrust */
+	NULL,			/* expire */
+	NULL,			/* clearprefetch */
+	NULL,			/* setownercase */
+	NULL,			/* getownercase */
+	NULL			/* addglue */
 };
 
 isc_result_t

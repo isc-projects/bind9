@@ -1187,11 +1187,9 @@ status=`expr $status + $ret`
 
 echo "I:checking privately secure to nxdomain works ($n)"
 ret=0
-$DIG $DIGOPTS +noauth private2secure-nxdomain.private.secure.example. SOA @10.53.0.2 \
-	> dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth private2secure-nxdomain.private.secure.example. SOA @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`
@@ -1200,11 +1198,9 @@ status=`expr $status + $ret`
 
 echo "I:checking privately secure wildcard to nxdomain works ($n)"
 ret=0
-$DIG $DIGOPTS +noauth a.wild.private.secure.example. SOA @10.53.0.2 \
-	> dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth a.wild.private.secure.example. SOA @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=`expr $n + 1`

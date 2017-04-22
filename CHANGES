@@ -1,3 +1,15 @@
+4605.	[performance]	Improve performance for delegation heavy answers
+			and also general query performance. Removes the
+			acache feature that didn't significantly improve
+			performance. Adds a glue cache. Removes
+			additional-from-cache and additional-from-auth
+			features. Enables minimal-responses by
+			default. Improves performance of compression
+			code, owner case restoration, hash function,
+			etc. Uses inline buffer implementation by
+			default. Many other performance changes and fixes.
+			[RT #44029]
+
 4604.	[bug]		Don't use ERR_load_crypto_strings() when building
 			with OpenSSL 1.1.0. [RT #45117]
 
