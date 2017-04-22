@@ -204,9 +204,9 @@ dst__openssl_init(const char *engine) {
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
-#endif
 
 	ERR_load_crypto_strings();
+#endif
 
 	rm = mem_alloc(sizeof(RAND_METHOD) FILELINE);
 	if (rm == NULL) {
