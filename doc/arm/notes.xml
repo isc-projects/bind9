@@ -151,6 +151,51 @@
     <itemizedlist>
       <listitem>
         <para>
+	  Many aspects of <command>named</command> have been modified
+	  to improve query performance, and in particular, performance
+	  for delegation-heavy zones:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      The additional cache ("acache") was found not to
+	      significantly improve performance and has been removed;
+	      the <command>acache-enable</command> and
+	      <command>acache-cleaning-interval</command> options are now
+	      deprecated.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      In place of the acache, <command>named</command> now uses
+	      a glue cache to speed up retrieval of glue records when sending
+	      delegation responses.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      The <command>additional-from-cache</command>
+	      and <command>additional-from-auth</command> options have been
+	      deprecated.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      <command>minimal-responses</command> is now set
+	      to <literal>yes</literal> by default.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Several functions have been refactored to improve
+	      performance, including name compression, owner name
+	      case restoration, hashing, and buffers.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+      </listitem>
+      <listitem>
+        <para>
 	  The <command>dnstap-read -x</command> option prints a hex
 	  dump of the wire format DNS message encapsulated in each
 	  <command>dnstap</command> log entry. [RT #44816]

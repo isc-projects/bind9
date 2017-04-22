@@ -9,172 +9,180 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title></title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
 </head>
-<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article">
-
-  <div class="section">
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article"><div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="id-1.2"></a>Release Notes for BIND Version 9.12.0-pre-alpha</h2></div></div></div>
-  
-  <div class="section">
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
-    <p>
+<p>
       BIND 9.12.0 is a new feature release of BIND, still under development.
       This document summarizes new features and functional changes that
       have been introduced on this branch.  With each development
       release leading up to the final BIND 9.12.0 release, this document
       will be updated with additional features added and bugs fixed.
     </p>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_download"></a>Download</h3></div></div></div>
-    <p>
+<p>
       The latest versions of BIND 9 software can always be found at
       <a class="link" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
       There you will find additional information about each release,
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </p>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_license"></a>License Change</h3></div></div></div>
-    <p>
+<p>
       With the release of BIND 9.11.0, ISC changed to the open
       source license for BIND from the ISC license to the Mozilla
       Public License (MPL 2.0).
     </p>
-    <p>
+<p>
       The MPL-2.0 license requires that if you make changes to
       licensed software (e.g. BIND) and distribute them outside
       your organization, that you publish those changes under that
       same license. It does not require that you publish or disclose
       anything other than the changes you made to our software.
     </p>
-    <p>
+<p>
       This new requirement will not affect anyone who is using BIND
       without redistributing it, nor anyone redistributing it without
       changes, therefore this change will be without consequence
       for most individuals and organizations who are using BIND.
     </p>
-    <p>
+<p>
       Those unsure whether or not the license change affects their
       use of BIND, or who wish to discuss how to comply with the
       license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
       https://www.isc.org/mission/contact/</a>.
     </p>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
 	  <span class="command"><strong>rndc ""</strong></span> could trigger an assertion failure
 	  in <span class="command"><strong>named</strong></span>. This flaw is disclosed in
 	  (CVE-2017-3138). [RT #44924]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
 	  queries could trigger assertion failures. This flaw is disclosed
 	  in CVE-2017-3137. [RT #44734]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dns64</strong></span> with <span class="command"><strong>break-dnssec yes;</strong></span>
 	  can result in an assertion failure. This flaw is disclosed in
 	  CVE-2017-3136. [RT #44653]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  If a server is configured with a response policy zone (RPZ)
 	  that rewrites an answer with local data, and is also configured
 	  for DNS64 address mapping, a NULL pointer can be read
 	  triggering a server crash.  This flaw is disclosed in
 	  CVE-2017-3135. [RT #44434]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  A coding error in the <code class="option">nxdomain-redirect</code>
 	  feature could lead to an assertion failure if the redirection
 	  namespace was served from a local authoritative data source
 	  such as a local zone or a DLZ instead of via recursive
 	  lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>named</strong></span> could mishandle authority sections
 	  with missing RRSIGs, triggering an assertion failure. This
 	  flaw is disclosed in CVE-2016-9444. [RT #43632]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>named</strong></span> mishandled some responses where
 	  covering RRSIG records were returned without the requested
 	  data, resulting in an assertion failure. This flaw is
 	  disclosed in CVE-2016-9147. [RT #43548]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>named</strong></span> incorrectly tried to cache TKEY
 	  records which could trigger an assertion failure when there was
 	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
 	  [RT #43522]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  It was possible to trigger assertions when processing
 	  responses containing answers of type DNAME. This flaw is
 	  disclosed in CVE-2016-8864. [RT #43465]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Added the ability to specify the maximum number of records
 	  permitted in a zone (<code class="option">max-records #;</code>).
 	  This provides a mechanism to block overly large zone
 	  transfers, which is a potential risk with slave zones from
 	  other parties, as described in CVE-2016-6170.
 	  [RT #42143]
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-        <p>
+<p>
+	  Many aspects of <span class="command"><strong>named</strong></span> have been modified
+	  to improve query performance, and in particular, performance
+	  for delegation-heavy zones:
+	</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem"><p>
+	      The additional cache ("acache") was found not to
+	      significantly improve performance and has been removed;
+	      the <span class="command"><strong>acache-enable</strong></span> and
+	      <span class="command"><strong>acache-cleaning-interval</strong></span> options are now
+	      deprecated.
+	    </p></li>
+<li class="listitem"><p>
+	      In place of the acache, <span class="command"><strong>named</strong></span> now uses
+	      a glue cache to speed up retrieval of glue records when sending
+	      delegation responses.
+	    </p></li>
+<li class="listitem"><p>
+	      The <span class="command"><strong>additional-from-cache</strong></span>
+	      and <span class="command"><strong>additional-from-auth</strong></span> options have been
+	      deprecated.
+	    </p></li>
+<li class="listitem"><p>
+	      <span class="command"><strong>minimal-responses</strong></span> is now set
+	      to <code class="literal">yes</code> by default.
+	    </p></li>
+<li class="listitem"><p>
+	      Several functions have been refactored to improve
+	      performance, including name compression, owner name
+	      case restoration, hashing, and buffers.
+	    </p></li>
+</ul></div>
+</li>
+<li class="listitem"><p>
+	  The <span class="command"><strong>dnstap-read -x</strong></span> option prints a hex
+	  dump of the wire format DNS message encapsulated in each
+	  <span class="command"><strong>dnstap</strong></span> log entry. [RT #44816]
+	</p></li>
+<li class="listitem"><p>
 	  The <span class="command"><strong>host -A</strong></span> option returns most
 	  records for a name, but omits types RRSIG, NSEC and NSEC3.
-	</p>
-      </li>
-<li class="listitem">
-        <p>
+	</p></li>
+<li class="listitem"><p>
 	  Query logic has been substantially refactored (e.g. query_find
 	  function has been split into smaller functions) for improved
 	  readability, maintainability and testability. [RT #43929]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dnstap</strong></span> logfiles can now be configured to
 	  automatically roll when they reach a specified size. If
 	  <span class="command"><strong>dnstap-output</strong></span> is configured with mode
@@ -184,10 +192,8 @@
 	  (These have the same semantics as the corresponding
 	  options in a <span class="command"><strong>logging</strong></span> channel statement.)
 	  [RT #44502]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Logging channels and <span class="command"><strong>dnstap-output</strong></span> files can
 	  now be configured with a <span class="command"><strong>suffix</strong></span> option,
 	  set to either <code class="literal">increment</code> or
@@ -197,34 +203,26 @@
 	  <code class="filename">.1</code>, <code class="filename">.2</code>, etc)
 	  or suffixes indicating the time of the roll. The default
 	  is <code class="literal">increment</code>.  [RT #42838]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
 	  for EDNS options in addition to numeric values. For example,
 	  an EDNS Client-Subnet option could be sent using
 	  <span class="command"><strong>dig +ednsopt=ecs:...</strong></span>. Thanks to
 	  John Worley of Secure64 for the contribution. [RT #44461]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Added support for the EDNS TCP Keepalive option (RFC 7828);
 	  this allows negotiation of longer-lived TCP sessions
 	  to reduce the overhead of setting up TCP for individual
 	  queries. [RT #42126]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Added support for the EDNS Padding option (RFC 7830),
 	  which obfuscates packet size analysis when DNS queries
 	  are sent over an encrypted channel. [RT #42094]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  The <code class="option">print-time</code> option in the
 	  <code class="option">logging</code> configuration can now take arguments
 	  <strong class="userinput"><code>local</code></strong>, <strong class="userinput"><code>iso8601</code></strong> or
@@ -232,48 +230,49 @@
 	  which the date and time should be logged. For backward
 	  compatibility, <strong class="userinput"><code>yes</code></strong> is a synonym for
 	  <strong class="userinput"><code>local</code></strong>.  [RT #42585]
-	</p>
-      </li>
+	</p></li>
 <li class="listitem">
-	<p>
+<p>
 	  <span class="command"><strong>rndc</strong></span> commands which refer to zone names
 	  can now reference a zone of type <span class="command"><strong>redirect</strong></span>
 	  by using the special zone name "-redirect". (Previously this
 	  was not possible because <span class="command"><strong>redirect</strong></span> zones
 	  always have the name ".", which can be ambiguous.)
 	</p>
-	<p>
+<p>
 	  In the event you need to manipulate a zone actually
 	  called "-redirect", use a trailing dot: "-redirect."
 	</p>
-	<p>
+<p>
 	  Note: This change does not appply to the
 	  <span class="command"><strong>rndc addzone</strong></span> or
 	  <span class="command"><strong>rndc modzone</strong></span> commands.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
+</li>
+<li class="listitem"><p>
 	  <span class="command"><strong>named-checkconf -l</strong></span> lists the zones found
 	  in <code class="filename">named.conf</code>. [RT #43154]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Query logging now includes the ECS option, if one was
 	  present in the query, in the format
 	  "[ECS <em class="replaceable"><code>address/source/scope</code></em>]".
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>
+	  Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <span class="command"><strong>ps</strong></span> and
+	  <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
+	</p></li>
+<li class="listitem"><p>
 	  The Response Policy Zone (RPZ) implementation has been
 	  substantially refactored: updates to the RPZ summary
 	  database are no longer directly performed by the zone
@@ -283,10 +282,8 @@
 	  Summary database updates can be rate-limited by using the
 	  <span class="command"><strong>min-update-interval</strong></span> option in a
 	  <span class="command"><strong>response-policy</strong></span> statement. [RT #43449]
-	</p>
-      </li>
-<li class="listitem">
-        <p>
+	</p></li>
+<li class="listitem"><p>
 	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
 	  addresses for all messages, instead of only the remote address.
 	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
@@ -294,107 +291,46 @@
 	  address first and the responding address second, separated by
 	  "-%gt;" or "%lt;-" to indicate in which direction the message
 	  was sent. [RT #43595]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  Expanded and improved the YAML output from
 	  <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
 	  size and a detailed breakdown of message contents.
 	  [RT #43622] [RT #43642]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
+	</p></li>
+<li class="listitem"><p>
 	  If an ACL is specified with an address prefix in which the
 	  prefix length is longer than the address portion (for example,
 	  192.0.2.1/8), it will now be treated as a fatal error during
 	  configuration. [RT #43367]
-	</p>
-      </li>
+	</p></li>
 </ul></div>
-  </div>
-
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  A synthesized CNAME record appearing in a response before the
-	  associated DNAME could be cached, when it should not have been.
-	  This was a regression introduced while addressing CVE-2016-8864.
-	  [RT #44318]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could deadlock if multiple changes
-	  to NSEC/NSEC3 parameters for the same zone were being processed
-	  at the same time. [RT #42770]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could trigger an assertion when
-	  sending NOTIFY messages. [RT #44019]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
-	  statement could cause an assertion failure during configuration.
-	  [RT #43787]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>rndc addzone</strong></span> could cause a crash
-	  when attempting to add a zone with a type other than
-	  <span class="command"><strong>master</strong></span> or <span class="command"><strong>slave</strong></span>.
-	  Such zones are now rejected. [RT #43665]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could hang when encountering log
-	  file names with large apparent gaps in version number (for
-	  example, when files exist called "logfile.0", "logfile.1",
-	  and "logfile.1482954169").  This is now handled correctly.
-	  [RT #38688]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  If a zone was updated while <span class="command"><strong>named</strong></span> was
-	  processing a query for nonexistent data, it could return
-	  out-of-sync NSEC3 records causing potential DNSSEC validation
-	  failure. [RT #43247]
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+	  None.
+	</p></li></ul></div>
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="end_of_life"></a>End of Life</h3></div></div></div>
-    <p>
+<p>
       The end of life for BIND 9.12 is yet to be determined but
       will not be before BIND 9.14.0 has been released for 6 months.
       <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
     </p>
-  </div>
-  <div class="section">
+</div>
+<div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
-
-    <p>
+<p>
       Thank you to everyone who assisted us in making this release possible.
       If you would like to contribute to ISC to assist us in continuing to
       make quality open source software, please visit our donations page at
       <a class="link" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
     </p>
-  </div>
 </div>
-</div></body>
+</div></div></body>
 </html>
