@@ -9783,12 +9783,12 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	node_aaaa = NULL;
 
 	dns_fixedname_init(&fixedname_a);
-        name_a = dns_fixedname_name(&fixedname_a);
+	name_a = dns_fixedname_name(&fixedname_a);
 	dns_rdataset_init(&rdataset_a);
 	dns_rdataset_init(&sigrdataset_a);
 
 	dns_fixedname_init(&fixedname_aaaa);
-        name_aaaa = dns_fixedname_name(&fixedname_aaaa);
+	name_aaaa = dns_fixedname_name(&fixedname_aaaa);
 	dns_rdataset_init(&rdataset_aaaa);
 	dns_rdataset_init(&sigrdataset_aaaa);
 
@@ -9985,7 +9985,7 @@ restart:
 			if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 				if (rdataset_a != NULL) {
 					dns_message_puttemprdataset(msg,
-							          &rdataset_a);
+								  &rdataset_a);
 				}
 				dns_message_puttempname(msg, &name);
 				isc_buffer_free(&buffer);
@@ -9997,7 +9997,7 @@ restart:
 		{
 			if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
 				result = dns_message_gettemprdataset(msg,
-						            &rdataset_aaaa);
+							    &rdataset_aaaa);
 				if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 					dns_message_puttempname(msg, &name);
 					isc_buffer_free(&buffer);

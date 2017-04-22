@@ -209,7 +209,7 @@ struct isc__mempool {
 	} while (0)
 #define DELETE_TRACE(a, b, c, d, e)					\
 	do {								\
-	        if ((isc_mem_debugging & TRACE_OR_RECORD) != 0 &&	\
+		if ((isc_mem_debugging & TRACE_OR_RECORD) != 0 &&	\
 		    b != NULL)						\
 			delete_trace_entry(a, b, c, d, e);		\
 	} while(0)
