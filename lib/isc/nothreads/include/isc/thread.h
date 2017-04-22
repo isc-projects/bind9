@@ -29,7 +29,7 @@ void
 isc_thread_setconcurrency(unsigned int level);
 
 void
-isc_thread_setname(isc_thread_t, const char *);
+isc_thread_setname(isc_thread_t thread, const char *name);
 
 #define isc_thread_self() ((unsigned long)0)
 #define isc_thread_yield() ((void)0)
