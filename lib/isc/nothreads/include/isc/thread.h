@@ -16,6 +16,14 @@
 
 ISC_LANG_BEGINDECLS
 
+/* Placeholder types (they are not accessed) */
+
+typedef void * isc_thread_t;
+typedef void * isc_threadresult_t;
+typedef void * isc_threadarg_t;
+typedef void * isc_threadfunc_t;
+typedef void * isc_thread_key_t;
+
 void
 isc_thread_setconcurrency(unsigned int level);
 
