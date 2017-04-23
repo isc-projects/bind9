@@ -35,6 +35,7 @@
       <code class="command">dnstap-read</code> 
        [<code class="option">-m</code>]
        [<code class="option">-p</code>]
+       [<code class="option">-x</code>]
        [<code class="option">-y</code>]
        {<em class="replaceable"><code>file</code></em>}
     </p></div>
@@ -70,6 +71,14 @@
             After printing the <span class="command"><strong>dnstap</strong></span> data, print
             the text form of the DNS message that was encapsulated in the
             <span class="command"><strong>dnstap</strong></span> frame.
+          </p>
+        </dd>
+<dt><span class="term">-x</span></dt>
+<dd>
+          <p>
+            After printing the <span class="command"><strong>dnstap</strong></span> data, print
+            a hex dump of the wire form of the DNS message that was
+            encapsulated in the <span class="command"><strong>dnstap</strong></span> frame.
           </p>
         </dd>
 <dt><span class="term">-y</span></dt>

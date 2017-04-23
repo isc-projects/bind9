@@ -2644,8 +2644,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>duration</code></em> ; ]
   [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ; ]
   [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ; ]
-  [ <span class="command"><strong>additional-from-auth</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>additional-from-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>random-device</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>max-cache-size</strong></span> <em class="replaceable"><code>size_or_percent</code></em> ; ]
   [ <span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
@@ -2671,9 +2669,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>querylog</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>disable-algorithms</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>algorithm</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>disable-ds-digests</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>digest_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>acache-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>acache-cleaning-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-acache-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
   [ <span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
@@ -4197,7 +4192,7 @@ options {
                   both authoritative and recursive queries.
                 </p>
                 <p>
-                  The default is <strong class="userinput"><code>no</code></strong>.
+                  The default is <strong class="userinput"><code>yes</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>minimal-any</strong></span></span></dt>
@@ -4526,92 +4521,6 @@ options {
                   are always accepted,
                   and the option is ignored.
                 </p>
-              </dd>
-<dt>
-<span class="term"><span class="command"><strong>additional-from-auth</strong></span>, </span><span class="term"><span class="command"><strong>additional-from-cache</strong></span></span>
-</dt>
-<dd>
-
-                <p>
-                  These options control the behavior of an authoritative
-                  server when
-                  answering queries which have additional data, or when
-                  following CNAME
-                  and DNAME chains.
-                </p>
-
-                <p>
-                  When both of these options are set to <strong class="userinput"><code>yes</code></strong>
-                  (the default) and a
-                  query is being answered from authoritative data (a zone
-                  configured into the server), the additional data section of
-                  the
-                  reply will be filled in using data from other authoritative
-                  zones
-                  and from the cache.  In some situations this is undesirable,
-                  such
-                  as when there is concern over the correctness of the cache,
-                  or
-                  in servers where slave zones may be added and modified by
-                  untrusted third parties.  Also, avoiding
-                  the search for this additional data will speed up server
-                  operations
-                  at the possible expense of additional queries to resolve
-                  what would
-                  otherwise be provided in the additional section.
-                </p>
-
-                <p>
-                  For example, if a query asks for an MX record for host <code class="literal">foo.example.com</code>,
-                  and the record found is "<code class="literal">MX 10 mail.example.net</code>", normally the address
-                  records (A and AAAA) for <code class="literal">mail.example.net</code> will be provided as well,
-                  if known, even though they are not in the example.com zone.
-                  Setting these options to <span class="command"><strong>no</strong></span>
-                  disables this behavior and makes
-                  the server only search for additional data in the zone it
-                  answers from.
-                </p>
-
-                <p>
-                  These options are intended for use in authoritative-only
-                  servers, or in authoritative-only views.  Attempts to set
-                  them to <span class="command"><strong>no</strong></span> without also
-                  specifying
-                  <span class="command"><strong>recursion no</strong></span> will cause the
-                  server to
-                  ignore the options and log a warning message.
-                </p>
-
-                <p>
-                  Specifying <span class="command"><strong>additional-from-cache no</strong></span> actually
-                  disables the use of the cache not only for additional data
-                  lookups
-                  but also when looking up the answer.  This is usually the
-                  desired
-                  behavior in an authoritative-only server where the
-                  correctness of
-                  the cached data is an issue.
-                </p>
-
-                <p>
-                  When a name server is non-recursively queried for a name
-                  that is not
-                  below the apex of any served zone, it normally answers with
-                  an
-                  "upwards referral" to the root servers or the servers of
-                  some other
-                  known parent of the query name.  Since the data in an
-                  upwards referral
-                  comes from the cache, the server will not be able to provide
-                  upwards
-                  referrals when <span class="command"><strong>additional-from-cache no</strong></span>
-                  has been specified.  Instead, it will respond to such
-                  queries
-                  with REFUSED.  This should not cause any problems since
-                  upwards referrals are not required for the resolution
-                  process.
-                </p>
-
               </dd>
 <dt><span class="term"><span class="command"><strong>match-mapped-addresses</strong></span></span></dt>
 <dd>
@@ -6612,7 +6521,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
           <p>
             The response to a DNS query may consist of multiple resource
-            records (RRs) forming a resource records set (RRset).
+            records (RRs) forming a resource record set (RRset).
             The name server will normally return the
             RRs within the RRset in an indeterminate order
             (but see the <span class="command"><strong>rrset-order</strong></span>
@@ -6728,17 +6637,14 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
           <p>
             When multiple records are returned in an answer it may be
             useful to configure the order of the records placed into the
-            response.
-            The <span class="command"><strong>rrset-order</strong></span> statement permits
-            configuration
-            of the ordering of the records in a multiple record response.
+            response.  The <span class="command"><strong>rrset-order</strong></span> statement permits
+            configuration of the ordering of the records in a
+            multiple-record response.
             See also the <span class="command"><strong>sortlist</strong></span> statement,
             <a class="xref" href="Bv9ARM.ch06.html#the_sortlist_statement" title="The sortlist Statement">the section called &#8220;The <span class="command"><strong>sortlist</strong></span> Statement&#8221;</a>.
           </p>
-
           <p>
-            An <span class="command"><strong>order_spec</strong></span> is defined as
-            follows:
+            An <span class="command"><strong>order_spec</strong></span> is defined as follows:
           </p>
           <p>
             [<span class="optional">class <em class="replaceable"><code>class_name</code></em></span>]
@@ -6768,7 +6674,10 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <td>
                     <p>
                       Records are returned in the order they
-                      are defined in the zone file.
+                      are defined in the zone file. This option
+                      is only available if <acronym class="acronym">BIND</acronym>
+                      is configured with "--enable-fixed-rrset" at
+                      compile time.
                     </p>
                   </td>
 </tr>
@@ -6788,13 +6697,29 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   </td>
 <td>
                     <p>
-                      Records are returned in a cyclic round-robin order.
+                      Records are returned in a cyclic round-robin order,
+                      rotating by one record per query.
                     </p>
                     <p>
-                      If <acronym class="acronym">BIND</acronym> is configured with the
-                      "--enable-fixed-rrset" option at compile time, then
+                      If <acronym class="acronym">BIND</acronym> is configured with
+                      "--enable-fixed-rrset" at compile time, then
                       the initial ordering of the RRset will match the
-                      one specified in the zone file.
+                      one specified in the zone file; otherwise the
+                      initial ordering is indeterminate.
+                    </p>
+                  </td>
+</tr>
+<tr>
+<td>
+                    <p><span class="command"><strong>none</strong></span></p>
+                  </td>
+<td>
+                    <p>
+                      Records are returned in whatever order they were
+                      retrieved from the database.  This order is
+                      indeterminate, but will be consistent as long as the
+                      database is not modified. When no ordering is
+                      specified, this is the default.
                     </p>
                   </td>
 </tr>
@@ -6802,15 +6727,15 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 </table>
           </div>
           <p>
+          </p>
+          <p>
             For example:
           </p>
-
 <pre class="programlisting">rrset-order {
    class IN type A name "host.example.com" order random;
    order cyclic;
 };
 </pre>
-
           <p>
             will cause any responses for type A records in class IN that
             have "<code class="literal">host.example.com</code>" as a
@@ -6822,7 +6747,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             appear, they are not combined &#8212; the last one applies.
           </p>
           <p>
-            By default, all records are returned in random order.
+            By default, records are returned in indeterminate but
+            consistent order (see <span class="command"><strong>none</strong></span> above).
           </p>
 
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -7516,113 +7442,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 </p>
               </dd>
 </dl></div>
-        </div>
-
-        <div class="section">
-<div class="titlepage"><div><div><h4 class="title">
-<a name="acache"></a>Additional Section Caching</h4></div></div></div>
-
-
-          <p>
-            The additional section cache, also called <span class="command"><strong>acache</strong></span>,
-            is an internal cache to improve the response performance of BIND 9.
-            When additional section caching is enabled, BIND 9 will
-            cache an internal short-cut to the additional section content for
-            each answer RR.
-            Note that <span class="command"><strong>acache</strong></span> is an internal caching
-            mechanism of BIND 9, and is not related to the DNS caching
-            server function.
-          </p>
-
-          <p>
-            Additional section caching does not change the
-            response content (except the RRsets ordering of the additional
-            section, see below), but can improve the response performance
-            significantly.
-            It is particularly effective when BIND 9 acts as an authoritative
-            server for a zone that has many delegations with many glue RRs.
-          </p>
-
-          <p>
-            In order to obtain the maximum performance improvement
-            from additional section caching, setting
-            <span class="command"><strong>additional-from-cache</strong></span>
-            to <span class="command"><strong>no</strong></span> is recommended, since the current
-            implementation of <span class="command"><strong>acache</strong></span>
-            does not short-cut of additional section information from the
-            DNS cache data.
-          </p>
-
-          <p>
-            One obvious disadvantage of <span class="command"><strong>acache</strong></span> is
-            that it requires much more
-            memory for the internal cached data.
-            Thus, if the response performance does not matter and memory
-            consumption is much more critical, the
-            <span class="command"><strong>acache</strong></span> mechanism can be
-            disabled by setting <span class="command"><strong>acache-enable</strong></span> to
-            <span class="command"><strong>no</strong></span>.
-            It is also possible to specify the upper limit of memory
-            consumption
-            for acache by using <span class="command"><strong>max-acache-size</strong></span>.
-          </p>
-
-          <p>
-            Additional section caching also has a minor effect on the
-            RRset ordering in the additional section.
-            Without <span class="command"><strong>acache</strong></span>,
-            <span class="command"><strong>cyclic</strong></span> order is effective for the additional
-            section as well as the answer and authority sections.
-            However, additional section caching fixes the ordering when it
-            first caches an RRset for the additional section, and the same
-            ordering will be kept in succeeding responses, regardless of the
-            setting of <span class="command"><strong>rrset-order</strong></span>.
-            The effect of this should be minor, however, since an
-            RRset in the additional section
-            typically only contains a small number of RRs (and in many cases
-            it only contains a single RR), in which case the
-            ordering does not matter much.
-          </p>
-
-          <p>
-            The following is a summary of options related to
-            <span class="command"><strong>acache</strong></span>.
-          </p>
-
-          <div class="variablelist"><dl class="variablelist">
-<dt><span class="term"><span class="command"><strong>acache-enable</strong></span></span></dt>
-<dd>
-                <p>
-                  If <span class="command"><strong>yes</strong></span>, additional section caching is
-                  enabled.  The default value is <span class="command"><strong>no</strong></span>.
-                </p>
-              </dd>
-<dt><span class="term"><span class="command"><strong>acache-cleaning-interval</strong></span></span></dt>
-<dd>
-                <p>
-                  The server will remove stale cache entries, based on an LRU
-                  based
-                  algorithm, every <span class="command"><strong>acache-cleaning-interval</strong></span> minutes.
-                  The default is 60 minutes.
-                  If set to 0, no periodic cleaning will occur.
-                </p>
-              </dd>
-<dt><span class="term"><span class="command"><strong>max-acache-size</strong></span></span></dt>
-<dd>
-                <p>
-                  The maximum amount of memory in bytes to use for the server's acache.
-                  When the amount of data in the acache reaches this limit,
-                  the server
-                  will clean more aggressively so that the limit is not
-                  exceeded.
-                  In a server with multiple views, the limit applies
-                  separately to the
-                  acache of each view.
-                  The default is <code class="literal">16M</code>.
-                </p>
-              </dd>
-</dl></div>
-
         </div>
 
         <div class="section">

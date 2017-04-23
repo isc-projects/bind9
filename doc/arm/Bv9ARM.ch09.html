@@ -199,6 +199,58 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
         <p>
+	  Many aspects of <span class="command"><strong>named</strong></span> have been modified
+	  to improve query performance, and in particular, performance
+	  for delegation-heavy zones:
+	</p>
+	<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem">
+	    <p>
+	      The additional cache ("acache") was found not to
+	      significantly improve performance and has been removed;
+	      the <span class="command"><strong>acache-enable</strong></span> and
+	      <span class="command"><strong>acache-cleaning-interval</strong></span> options are now
+	      deprecated.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      In place of the acache, <span class="command"><strong>named</strong></span> now uses
+	      a glue cache to speed up retrieval of glue records when sending
+	      delegation responses.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      The <span class="command"><strong>additional-from-cache</strong></span>
+	      and <span class="command"><strong>additional-from-auth</strong></span> options have been
+	      deprecated.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      <span class="command"><strong>minimal-responses</strong></span> is now set
+	      to <code class="literal">yes</code> by default.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      Several functions have been refactored to improve
+	      performance, including name compression, owner name
+	      case restoration, hashing, and buffers.
+	    </p>
+	  </li>
+</ul></div>
+      </li>
+<li class="listitem">
+        <p>
+	  The <span class="command"><strong>dnstap-read -x</strong></span> option prints a hex
+	  dump of the wire format DNS message encapsulated in each
+	  <span class="command"><strong>dnstap</strong></span> log entry. [RT #44816]
+	</p>
+      </li>
+<li class="listitem">
+        <p>
 	  The <span class="command"><strong>host -A</strong></span> option returns most
 	  records for a name, but omits types RRSIG, NSEC and NSEC3.
 	</p>
@@ -311,6 +363,16 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <span class="command"><strong>ps</strong></span> and
+	  <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  The Response Policy Zone (RPZ) implementation has been
 	  substantially refactored: updates to the RPZ summary
 	  database are no longer directly performed by the zone
@@ -355,61 +417,11 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  A synthesized CNAME record appearing in a response before the
-	  associated DNAME could be cached, when it should not have been.
-	  This was a regression introduced while addressing CVE-2016-8864.
-	  [RT #44318]
+	  None.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could deadlock if multiple changes
-	  to NSEC/NSEC3 parameters for the same zone were being processed
-	  at the same time. [RT #42770]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could trigger an assertion when
-	  sending NOTIFY messages. [RT #44019]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
-	  statement could cause an assertion failure during configuration.
-	  [RT #43787]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>rndc addzone</strong></span> could cause a crash
-	  when attempting to add a zone with a type other than
-	  <span class="command"><strong>master</strong></span> or <span class="command"><strong>slave</strong></span>.
-	  Such zones are now rejected. [RT #43665]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could hang when encountering log
-	  file names with large apparent gaps in version number (for
-	  example, when files exist called "logfile.0", "logfile.1",
-	  and "logfile.1482954169").  This is now handled correctly.
-	  [RT #38688]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  If a zone was updated while <span class="command"><strong>named</strong></span> was
-	  processing a query for nonexistent data, it could return
-	  out-of-sync NSEC3 records causing potential DNSSEC validation
-	  failure. [RT #43247]
-	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">

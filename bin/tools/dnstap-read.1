@@ -39,7 +39,7 @@
 dnstap-read \- print dnstap data in human\-readable form
 .SH "SYNOPSIS"
 .HP \w'\fBdnstap\-read\fR\ 'u
-\fBdnstap\-read\fR [\fB\-m\fR] [\fB\-p\fR] [\fB\-y\fR] {\fIfile\fR}
+\fBdnstap\-read\fR [\fB\-m\fR] [\fB\-p\fR] [\fB\-x\fR] [\fB\-y\fR] {\fIfile\fR}
 .SH "DESCRIPTION"
 .PP
 \fBdnstap\-read\fR
@@ -62,6 +62,15 @@ Trace memory allocations; used for debugging memory leaks\&.
 After printing the
 \fBdnstap\fR
 data, print the text form of the DNS message that was encapsulated in the
+\fBdnstap\fR
+frame\&.
+.RE
+.PP
+\-x
+.RS 4
+After printing the
+\fBdnstap\fR
+data, print a hex dump of the wire form of the DNS message that was encapsulated in the
 \fBdnstap\fR
 frame\&.
 .RE
