@@ -5,9 +5,13 @@
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014,2015,2016
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2013,2014,2015,2016,2017
-./HISTORY					X	2010,2013
-./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
+./HISTORY					X	2010,2013,2017
+./HISTORY.md					X	2017
+./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
+./OPTIONS					X	2017
+./OPTIONS.md					X	2017
 ./README					X	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./README.md					X	2017
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2014,2016
 ./aclocal.m4					X	1999,2000,2001,2012,2014
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014
@@ -275,7 +279,7 @@
 ./bin/named/main.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/named/named.8				MAN	DOCBOOK
 ./bin/named/named.conf.5			MAN	DOCBOOK
-./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/named.conf.docbook			SGML	2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/named.conf.html			HTML	DOCBOOK
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006,2007,2008,2009,2011,2013,2014,2015,2016
 ./bin/named/named.html				HTML	DOCBOOK
@@ -377,7 +381,7 @@
 ./bin/python/isc/Makefile.in			MAKE	2016
 ./bin/python/isc/__init__.py.in			PYTHON	2016
 ./bin/python/isc/checkds.py.in			PYTHON	2012,2013,2014,2015,2016
-./bin/python/isc/coverage.py.in			PYTHON	2013,2014,2015,2016
+./bin/python/isc/coverage.py.in			PYTHON	2013,2014,2015,2016,2017
 ./bin/python/isc/dnskey.py.in			PYTHON	2013,2014,2015,2016
 ./bin/python/isc/eventlist.py.in		PYTHON	2015,2016
 ./bin/python/isc/keydict.py.in			PYTHON	2016
@@ -399,7 +403,7 @@
 ./bin/rndc/rndc.conf.5				MAN	DOCBOOK
 ./bin/rndc/rndc.conf.docbook			SGML	2000,2001,2004,2005,2007,2013,2014,2015,2016
 ./bin/rndc/rndc.conf.html			HTML	DOCBOOK
-./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014,2015,2016
+./bin/rndc/rndc.docbook				SGML	2000,2001,2004,2005,2007,2013,2014,2015,2016,2017
 ./bin/rndc/rndc.html				HTML	DOCBOOK
 ./bin/rndc/util.c				C	2000,2001,2004,2005,2007,2015
 ./bin/rndc/util.h				C	2000,2001,2004,2005,2007,2009
@@ -1260,7 +1264,8 @@
 ./bin/tests/system/dnssec/ns4/named1.conf	CONF-C	2011,2013
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2011,2013
 ./bin/tests/system/dnssec/ns4/named3.conf	CONF-C	2012,2013
-./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013
+./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013,2017
+./bin/tests/system/dnssec/ns4/named5.conf	CONF-C	2017
 ./bin/tests/system/dnssec/ns5/.gitignore	X	2015
 ./bin/tests/system/dnssec/ns5/named1.conf	CONF-C	2000,2001,2004,2006,2007,2015
 ./bin/tests/system/dnssec/ns5/named2.conf	CONF-C	2000,2001,2004,2006,2007,2015
@@ -3098,9 +3103,10 @@
 ./doc/markdown/dev.mkd				MKD	2014,2015
 ./doc/markdown/howto.mkd			MKD	2014
 ./doc/markdown/style.mkd			MKD	2014
-./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012
+./doc/misc/Makefile.in				MAKE	2001,2004,2007,2009,2012,2017
 ./doc/misc/SIT					TXT.BRIEF	2014
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
+./doc/misc/docbook-options.pl			PERL	2017
 ./doc/misc/format-options.pl			PERL	2001,2004,2007,2012
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004,2007,2008
@@ -3224,7 +3230,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006,2007,2016
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2010,2013
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2017
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006,2007,2009,2010,2011,2012,2013
 ./lib/dns/include/dns/dlz_dlopen.h		C	2011,2012,2013
 ./lib/dns/include/dns/dns64.h			C	2010,2014
@@ -3505,7 +3511,7 @@
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2013,2015,2016
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2010,2012,2013,2014,2015,2016
-./lib/dns/rpz.c					C	2011,2012,2013,2014,2015,2016
+./lib/dns/rpz.c					C	2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/rriterator.c				C	2009,2011,2012
 ./lib/dns/rrl.c					C	2012,2013,2014,2015
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -3587,7 +3593,7 @@
 ./lib/dns/tsig.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/ttl.c					C	1999,2000,2001,2004,2005,2007,2011,2012,2013,2014
 ./lib/dns/update.c				C	2011,2012,2013,2015
-./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015
+./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2017
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005,2007,2012,2013
 ./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/win32/DLLMain.c			C	2001,2004,2007
@@ -3821,9 +3827,9 @@
 ./lib/isc/nothreads/include/isc/condition.h	C	2000,2001,2004,2007
 ./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004,2007,2015
 ./lib/isc/nothreads/include/isc/once.h		C	2000,2001,2004,2007
-./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007,2013
+./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007,2013,2017
 ./lib/isc/nothreads/mutex.c			C	2000,2001,2004,2006,2007
-./lib/isc/nothreads/thread.c			C	2000,2001,2004,2007
+./lib/isc/nothreads/thread.c			C	2000,2001,2004,2007,2017
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005,2007
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005,2007,2012
 ./lib/isc/pk11.c				C	2014,2015,2016,2017
@@ -3842,9 +3848,9 @@
 ./lib/isc/pthreads/include/isc/condition.h	C	1998,1999,2000,2001,2004,2005,2007
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/pthreads/include/isc/once.h		C	1999,2000,2001,2004,2005,2007
-./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2013
+./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2013,2017
 ./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007,2008,2011,2012,2014,2015
-./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013
+./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013,2017
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007
 ./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014,2016
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014,2016
@@ -3895,7 +3901,7 @@
 ./lib/isc/tests/task_test.c			C	2011,2012
 ./lib/isc/tests/taskpool_test.c			C	2011,2012
 ./lib/isc/tests/time_test.c			C	2014,2015
-./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015
+./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015,2017
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005,2007,2009
 ./lib/isc/tm.c					C	2014
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2014,2016
@@ -3932,7 +3938,7 @@
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005,2007
 ./lib/isc/unix/pk11_api.c			C	2014,2016
 ./lib/isc/unix/resource.c			C	2000,2001,2004,2007,2008,2009
-./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004,2005,2007,2008,2009
 ./lib/isc/unix/stdio.c				C	2000,2001,2004,2007,2011,2012,2013,2014,2016
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005,2007
@@ -3973,7 +3979,7 @@
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005,2007,2011,2012
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004,2007
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004,2007
-./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009,2013
+./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2009,2013,2017
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004,2006,2007,2008,2009,2012,2014,2015
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004,2007,2009,2015
 ./lib/isc/win32/include/pkcs11/Makefile.in	MAKE	2014
@@ -3983,7 +3989,7 @@
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004,2007
 ./lib/isc/win32/libgen.h			C	2009
 ./lib/isc/win32/libisc.def.exclude		X	2015
-./lib/isc/win32/libisc.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/isc/win32/libisc.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/isc/win32/libisc.dsp.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2013,2014,2016
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2013,2014,2016
@@ -4004,7 +4010,7 @@
 ./lib/isc/win32/strerror.c			C	2001,2002,2004,2007
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004,2007,2014
 ./lib/isc/win32/syslog.h			C	2001,2002,2004,2007
-./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005,2007
+./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005,2007,2017
 ./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004,2006,2007,2008,2009,2012,2013,2014
 ./lib/isc/win32/unistd.h			C	2000,2001,2004,2007,2008,2009
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004,2007
@@ -4280,7 +4286,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012,2014
 ./make/mkdep.in					X	1999,2000,2001,2006,2011,2014
-./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./mkinstalldirs					X	1996
 ./unit/.gitignore				X	2012,2014
 ./unit/Makefile.in				X	2011,2012
