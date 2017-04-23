@@ -166,6 +166,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define closeversion closeversion64
 #define createiterator createiterator64
 #define currentversion currentversion64
+#define allocate_version allocate_tversion64
 #define dbiterator_current dbiterator_current64
 #define dbiterator_destroy dbiterator_destroy64
 #define dbiterator_first dbiterator_first64
