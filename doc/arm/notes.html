@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.2b1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -102,209 +102,34 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>rndc ""</strong></span> could trigger an assertion failure
-	  in <span class="command"><strong>named</strong></span>. This flaw is disclosed in
-	  (CVE-2017-3138). [RT #44924]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
-	  queries could trigger assertion failures. This flaw is disclosed
-	  in CVE-2017-3137. [RT #44734]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>dns64</strong></span> with <span class="command"><strong>break-dnssec yes;</strong></span>
-	  can result in an assertion failure. This flaw is disclosed in
-	  CVE-2017-3136. [RT #44653]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  If a server is configured with a response policy zone (RPZ)
-	  that rewrites an answer with local data, and is also configured
-	  for DNS64 address mapping, a NULL pointer can be read
-	  triggering a server crash.  This flaw is disclosed in
-	  CVE-2017-3135. [RT #44434]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  A coding error in the <code class="option">nxdomain-redirect</code>
-	  feature could lead to an assertion failure if the redirection
-	  namespace was served from a local authoritative data source
-	  such as a local zone or a DLZ instead of via recursive
-	  lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could mishandle authority sections
-	  with missing RRSIGs, triggering an assertion failure. This
-	  flaw is disclosed in CVE-2016-9444. [RT #43632]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> mishandled some responses where
-	  covering RRSIG records were returned without the requested
-	  data, resulting in an assertion failure. This flaw is
-	  disclosed in CVE-2016-9147. [RT #43548]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> incorrectly tried to cache TKEY
-	  records which could trigger an assertion failure when there was
-	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
-	  [RT #43522]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  It was possible to trigger assertions when processing
-	  responses containing answers of type DNAME. This flaw is
-	  disclosed in CVE-2016-8864. [RT #43465]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Added the ability to specify the maximum number of records
-	  permitted in a zone (<code class="option">max-records #;</code>).
-	  This provides a mechanism to block overly large zone
-	  transfers, which is a potential risk with slave zones from
-	  other parties, as described in CVE-2016-6170.
-	  [RT #42143]
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
-	  addresses for all messages, instead of only the remote address.
-	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
-	  been updated to include these addresses, with the initiating
-	  address first and the responding address second, separated by
-	  "-%gt;" or "%lt;-" to indicate in which direction the message
-	  was sent. [RT #43595]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Expanded and improved the YAML output from
-	  <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
-	  size and a detailed breakdown of message contents.
-	  [RT #43622] [RT #43642]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  If an ACL is specified with an address prefix in which the
-	  prefix length is longer than the address portion (for example,
-	  192.0.2.1/8), <span class="command"><strong>named</strong></span> will now log a warning.
-	  In future releases this will be a fatal configuration error.
-	  [RT #43367]
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  A synthesized CNAME record appearing in a response before the
-	  associated DNAME could be cached, when it should not have been.
-	  This was a regression introduced while addressing CVE-2016-8864.
-	  [RT #44318]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could deadlock if multiple changes
-	  to NSEC/NSEC3 parameters for the same zone were being processed
-	  at the same time. [RT #42770]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could trigger an assertion when
-	  sending NOTIFY messages. [RT #44019]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Referencing a nonexistent zone in a <span class="command"><strong>response-policy</strong></span>
-	  statement could cause an assertion failure during configuration.
-	  [RT #43787]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>rndc addzone</strong></span> could cause a crash
-	  when attempting to add a zone with a type other than
-	  <span class="command"><strong>master</strong></span> or <span class="command"><strong>slave</strong></span>.
-	  Such zones are now rejected. [RT #43665]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could hang when encountering log
-	  file names with large apparent gaps in version number (for
-	  example, when files exist called "logfile.0", "logfile.1",
-	  and "logfile.1482954169").  This is now handled correctly.
-	  [RT #38688]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  If a zone was updated while <span class="command"><strong>named</strong></span> was
-	  processing a query for nonexistent data, it could return
-	  out-of-sync NSEC3 records causing potential DNSSEC validation
-	  failure. [RT #43247]
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_maint"></a>Maintenance</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  The built-in root hints have been updated to include an
-	  IPv6 address (2001:500:12::d0d) for G.ROOT-SERVERS.NET.
+	  None.
 	</p>
       </li></ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_misc"></a>Miscellaneous Notes</h3></div></div></div>
+<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  Authoritative server support for the EDNS Client Subnet option
-	  (ECS), introduced in BIND 9.11.0, was based on an early version
-	  of the specification, and is now known to have incompatibilities
-	  with other ECS implementations. It is also inefficient, requiring
-	  a separate view for each answer, and is unable to correct for
-	  overlapping subnets in the configuration.  It is intended for
-	  testing purposes but is not recommended for for production use.
-	  This was not made sufficiently clear in the documentation at
-	  the time of release.
+	  Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <span class="command"><strong>ps</strong></span> and
+	  <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
+	</p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  None.
 	</p>
       </li></ul></div>
   </div>
