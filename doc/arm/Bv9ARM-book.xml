@@ -5947,7 +5947,7 @@ options {
 		  is saved in a file called
 		  <filename><replaceable>viewname</replaceable>.nzf</filename>
 		  (or, if <command>named</command> is compiled with
-		  liblmdb, in an LMDB database file called 
+		  liblmdb, in an LMDB database file called
 		  <filename><replaceable>viewname</replaceable>.nzd</filename>).
 		  <replaceable>viewname</replaceable> is the name of the
 		  view, unless the view name contains characters that are

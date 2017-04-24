@@ -244,7 +244,7 @@
 	    The configuration is saved in a file called
 	    <filename><replaceable>viewname</replaceable>.nzf</filename>
 	    (or, if <command>named</command> is compiled with
-	    liblmdb, an LMDB database file called 
+	    liblmdb, an LMDB database file called
 	    <filename><replaceable>viewname</replaceable>.nzd</filename>).
 	    <replaceable>viewname</replaceable> is the
 	    name of the view, unless the view name contains characters
