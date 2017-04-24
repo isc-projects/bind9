@@ -1,3 +1,6 @@
+4608.	[func]		DiG now warns about .local queries which are reserved
+			for Multicast DNS. [RT #44783]
+
 4604.	[bug]		Don't use ERR_load_crypto_strings() when building
 			with OpenSSL 1.1.0. [RT #45117]
 
