@@ -1084,6 +1084,7 @@ dns_view_freezezones
 dns_view_getadbstats
 dns_view_getdynamickeyring
 dns_view_getfailttl
+dns_view_getnewzonedir
 dns_view_getntatable
 dns_view_getpeertsig
 dns_view_getresquerystats
@@ -1111,6 +1112,7 @@ dns_view_setdynamickeyring
 dns_view_setfailttl
 dns_view_sethints
 dns_view_setkeyring
+dns_view_setnewzonedir
 dns_view_setnewzones
 dns_view_setresquerystats
 dns_view_setresstats
