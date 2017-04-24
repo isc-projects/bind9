@@ -465,6 +465,32 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 }
 #endif
 
+static isc_boolean_t
+isdotlocal(dns_message_t *msg) {
+	isc_result_t result;
+	static unsigned char local_ndata[] = { "\005local\0" };
+	static unsigned char local_offsets[] = { 0, 6 };
+	static dns_name_t local = {
+		DNS_NAME_MAGIC,
+		local_ndata, 7, 2,
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+		local_offsets, NULL,
+		{(void *)-1, (void *)-1},
+		{NULL, NULL}
+	};
+
+	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
+	{
+		dns_name_t *name = NULL;
+		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
+		if (dns_name_issubdomain(name, &local))
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
 /*
  * Callback from dighost.c to print the reply from a server
  */
@@ -552,6 +578,12 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			printf(";; Got answer:\n");
 
 		if (headers) {
+			if (isdotlocal(msg)) {
+				printf(";; WARNING: .local is reserved for "
+				       "Multicast DNS\n;; You are currently "
+				       "testing what happens when an mDNS "
+				       "query is leaked to DNS\n");
+			}
 			printf(";; ->>HEADER<<- opcode: %s, status: %s, "
 			       "id: %u\n",
 			       opcodetext[msg->opcode],

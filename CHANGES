@@ -1,3 +1,6 @@
+4608.	[func]		DiG now warns about .local queries which are reserved
+			for Multicast DNS. [RT #44783]
+
 4607.	[bug]		The memory context's malloced and maxmalloced counters
 			were being updated without the appropriate lock being
 			held.  [RT #44869]
