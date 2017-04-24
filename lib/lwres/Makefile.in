@@ -74,6 +74,8 @@ liblwres.la: ${OBJS} version.@O@
 timestamp: liblwres.@A@
 	touch timestamp
 
+testdirs: liblwres.@A@
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 

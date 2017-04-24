@@ -262,9 +262,6 @@ To build on a UNIX or Linux system, use:
 		$ ./configure
 		$ make
 
-(NOTE: Using multiple processors in `make` is not reliable and is not
-advised.)
-
 If you're planning on making changes to the BIND 9 source, you should run
 `make depend`.  If you're using Emacs, you might find `make tags` helpful.
 

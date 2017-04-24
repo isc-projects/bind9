@@ -71,6 +71,8 @@ libirs.la: ${OBJS} version.@O@
 timestamp: libirs.@A@
 	touch timestamp
 
+testdirs: libirs.@A@
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
