@@ -14,18 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 # Find the list of files that have been touched in the Git repository
 # during the current calendar year.  This is done by walking backwards
 # through the output of "git whatchanged" until a year other than the
 # current one is seen.  Used by merge_copyrights.
 
 thisyear=`date +%Y`
-git whatchanged --pretty="date %ai" --date=iso8601 | awk -v re="${thisyear}-" '
+when="`expr $thisyear - 1`-12-31"
+git whatchanged --since="$when" --pretty="" | awk '
     BEGIN { change=0 }
-    $1 == "date" && $2 !~ re { exit(0); }
-    $1 == "date" { next; }
     NF == 0 { next; }
     $(NF-1) ~ /[AM]/ { print "./" $NF; change=1 }
     END { if (change) print "./COPYRIGHT" } ' | sort | uniq
