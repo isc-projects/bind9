@@ -810,11 +810,6 @@ mem_get(isc__mem_t *ctx, size_t size) {
 		ret[size-1] = 0xbe;
 #  endif
 #endif
-	if (ret != NULL) {
-		ctx->malloced += size;
-		if (ctx->malloced > ctx->maxmalloced)
-			ctx->maxmalloced = ctx->malloced;
-	}
 
 	return (ret);
 }
@@ -827,15 +822,12 @@ static inline void
 mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
 	INSIST(((unsigned char *)mem)[size] == 0xbe);
+	size += 1;
 #endif
 #if ISC_MEM_FILL
 	memset(mem, 0xde, size); /* Mnemonic for "dead". */
 #endif
 	(ctx->memfree)(ctx->arg, mem);
-#if ISC_MEM_CHECKOVERRUN
-	size += 1;
-#endif
-	ctx->malloced -= size;
 }
 
 /*!
@@ -853,6 +845,13 @@ mem_getstats(isc__mem_t *ctx, size_t size) {
 		ctx->stats[size].gets++;
 		ctx->stats[size].totalgets++;
 	}
+
+#if ISC_MEM_CHECKOVERRUN
+	size += 1;
+#endif
+	ctx->malloced += size;
+	if (ctx->malloced > ctx->maxmalloced)
+		ctx->maxmalloced = ctx->malloced;
 }
 
 /*!
@@ -872,6 +871,10 @@ mem_putstats(isc__mem_t *ctx, void *ptr, size_t size) {
 		INSIST(ctx->stats[size].gets > 0U);
 		ctx->stats[size].gets--;
 	}
+#if ISC_MEM_CHECKOVERRUN
+	size += 1;
+#endif
+	ctx->malloced -= size;
 }
 
 /*
