@@ -1,3 +1,6 @@
+4608.	[func]		DiG now warns about .local queries which are reserved
+			for Multicast DNS. [RT #44783]
+
 4606.	[port]		Stop using experimental "Experimental keys on scalar"
 			feature of perl as it has been removed. [RT #45012]
 

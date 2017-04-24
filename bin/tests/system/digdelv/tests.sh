@@ -264,6 +264,13 @@ if [ -x ${DIG} ] ; then
     echo "I:skipping 'dig +idnout' as IDN support is not enabled ($n)"
   fi
 
+  echo "I:checking that dig warns about .local queries ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 local soa > dig.out.test$n 2>&1 || ret=1
+  grep ";; WARNING: .local is reserved for Multicast DNS" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo "$DIG is needed, so skipping these dig tests"
 fi
