@@ -324,6 +324,9 @@ isc_file_template(const char *path, const char *templet, char *buf,
 	REQUIRE(templet != NULL);
 	REQUIRE(buf != NULL);
 
+	if (path == NULL)
+		path = "";
+
 	s = strrchr(templet, '\\');
 	if (s != NULL)
 		templet = s + 1;

@@ -242,12 +242,14 @@
 	  </para>
 	  <para>
 	    The configuration is saved in a file called
-	    <filename><replaceable>name</replaceable>.nzf</filename>,
-	    where <replaceable>name</replaceable> is the
-	    name of the view, or if it contains characters
-	    that are incompatible with use as a file name, a
-	    cryptographic hash generated from the name
-	    of the view.
+	    <filename><replaceable>viewname</replaceable>.nzf</filename>
+	    (or, if <command>named</command> is compiled with
+	    liblmdb, an LMDB database file called 
+	    <filename><replaceable>viewname</replaceable>.nzd</filename>).
+	    <replaceable>viewname</replaceable> is the
+	    name of the view, unless the view name contains characters
+	    that are incompatible with use as a file name, in which case
+	    a cryptographic hash of the view name is used instead.
 	    When <command>named</command> is
 	    restarted, the file will be loaded into the view
 	    configuration, so that zones that were added

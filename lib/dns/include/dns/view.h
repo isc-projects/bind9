@@ -208,8 +208,9 @@ struct dns_view {
 	 * XXX: This should be a pointer to an opaque type that
 	 * named implements.
 	 */
+	char *				new_zone_dir;
 	char *				new_zone_file;
-	char *			        new_zone_db;
+	char *				new_zone_db;
 	void *				new_zone_dbenv;
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
@@ -1236,6 +1237,19 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
  * Returns:
  * \li ISC_R_SUCCESS
  * \li ISC_R_NOSPACE
+ */
+
+void
+dns_view_setnewzonedir(dns_view_t *view, const char *dir);
+const char *
+dns_view_getnewzonedir(dns_view_t *view);
+/*%<
+ * Set/get the path to the directory in which NZF or NZD files should
+ * be stored. If the path was previously set to a non-NULL value,
+ * the previous value is freed.
+ *
+ * Requires:
+ * \li 'view' is valid.
  */
 
 void

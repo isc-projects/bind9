@@ -1,7 +1,9 @@
 <!DOCTYPE book [
 <!ENTITY Scaron "&#x160;">
+<!ENTITY scaron "&#x161;">
 <!ENTITY ccaron "&#x10D;">
 <!ENTITY aacute "&#x0E1;">
+<!ENTITY iacute "&#x0ED;">
 <!ENTITY mdash "&#8212;">
 <!ENTITY ouml "&#xf6;">]>
 <!--
@@ -149,6 +151,16 @@
 
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
+      <listitem>
+        <para>
+	  The <command>new-zones-directory</command> option allows
+	  <command>named</command> to store configuration parameters
+	  for zones added via <command>rndc addzone</command> in a
+	  location other than the working directory. Thanks to Petr
+	  Men&scaron;&iacute;k of Red Hat for the contribution.
+	  [RT #44853]
+	</para>
+      </listitem>
       <listitem>
         <para>
 	  Many aspects of <command>named</command> have been modified

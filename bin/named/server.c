@@ -5642,7 +5642,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 /*
  * Configure built-in zone for storing managed-key data.
  */
-
 static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	isc_result_t result;
@@ -6630,6 +6629,8 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *options = NULL, *voptions = NULL;
 	const cfg_obj_t *nz = NULL;
+	const cfg_obj_t *nzdir = NULL;
+	const char *dir = NULL;
 	int i = 0;
 
 	REQUIRE (config != NULL);
@@ -6647,6 +6648,22 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "allow-new-zones", &nz);
 	if (result == ISC_R_SUCCESS)
 		allow = cfg_obj_asboolean(nz);
+	result = ns_config_get(maps, "new-zones-directory", &nzdir);
+	if (result == ISC_R_SUCCESS) {
+		dir = cfg_obj_asstring(nzdir);
+		if (dir != NULL) {
+			result = isc_file_isdirectory(dir);
+		}
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "invalid new-zones-directory %s: %s",
+				      dir, isc_result_totext(result));
+			return (result);
+		}
+
+		dns_view_setnewzonedir(view, dir);
+	}
 
 	/*
 	 * A non-empty catalog-zones statement implies allow-new-zones
@@ -6677,7 +6694,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	memset(nzcfg, 0, sizeof(*nzcfg));
 
-	result = dns_view_setnewzones(view, allow, nzcfg,
+	result = dns_view_setnewzones(view, ISC_TRUE, nzcfg,
 				      newzone_cfgctx_destroy);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(view->mctx, nzcfg);
@@ -11038,7 +11055,8 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 	char tmp[1024];
 	isc_result_t result;
 
-	result = isc_file_template("", "nzf-XXXXXXXX", tmp, sizeof(tmp));
+	result = isc_file_template(view->new_zone_file, "nzf-XXXXXXXX",
+				   tmp, sizeof(tmp));
 	if (result == ISC_R_SUCCESS)
 		result = isc_file_openunique(tmp, &fp);
 	if (result != ISC_R_SUCCESS)

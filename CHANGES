@@ -1,3 +1,8 @@
+4610.	[func]		The "new-zones-directory" option specifies the
+			location of NZF or NZD files for storing 
+			configuration of zones added by "rndc addzone".
+			Thanks to Petr Menšík. [RT #44853]
+
 4609.	[cleanup]	Rearrange makefiles to enable parallel execution
 			(i.e. "make -j"). [RT #45078]
 

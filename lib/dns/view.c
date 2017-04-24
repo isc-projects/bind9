@@ -232,6 +232,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->sendcookie = ISC_TRUE;
 	view->requireservercookie = ISC_FALSE;
 	view->trust_anchor_telemetry = ISC_TRUE;
+	view->new_zone_dir = NULL;
 	view->new_zone_file = NULL;
 	view->new_zone_db = NULL;
 	view->new_zone_dbenv = NULL;
@@ -506,6 +507,10 @@ destroy(dns_view_t *view) {
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
 		view->new_zone_file = NULL;
+	}
+	if (view->new_zone_dir != NULL) {
+		isc_mem_free(view->mctx, view->new_zone_dir);
+		view->new_zone_dir = NULL;
 	}
 #ifdef HAVE_LMDB
 	if (view->new_zone_dbenv != NULL)
@@ -1974,6 +1979,56 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 	dst_key_free(&key);
 }
 
+/*
+ * Create path to a directory and a filename contructed from viewname.
+ * This is a front-end to isc_file_sanitize(), allowing backward
+ * compatibility to older versions when a file couldn't be expected
+ * to be in the specified directory but might be in the current working
+ * directory instead.
+ *
+ * It first tests for the existence of a file <viewname>.<suffix> in
+ * 'directory'. If the file does not exist, it checks again in the
+ * current working directory. If it does not exist there either,
+ * return the path inside the directory.
+ *
+ * Returns ISC_R_SUCCESS if a path to an existing file is found or
+ * a new path is created; returns ISC_R_NOSPACE if the path won't
+ * fit in 'buflen'.
+ */
+static isc_result_t
+nz_legacy(const char *directory, const char *viewname,
+	  const char *suffix, char *buffer, size_t buflen)
+{
+	isc_result_t result;
+	char newbuf[PATH_MAX];
+
+	result = isc_file_sanitize(directory, viewname, suffix,
+				   buffer, buflen);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	} else if (directory == NULL || isc_file_exists(buffer)) {
+		return (ISC_R_SUCCESS);
+	} else {
+		/* Save buffer */
+		strlcpy(newbuf, buffer, sizeof(newbuf));
+	}
+
+	/*
+	 * It isn't in the specified directory; check CWD.
+	 */
+	result = isc_file_sanitize(NULL, viewname, suffix, buffer, buflen);
+	if (result != ISC_R_SUCCESS || isc_file_exists(buffer)) {
+		return (result);
+	}
+
+	/*
+	 * File does not exist in either 'directory' or CWD,
+	 * so use the path in 'directory'.
+	 */
+	strlcpy(buffer, newbuf, buflen);
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		     void (*cfg_destroy)(void **))
@@ -2010,18 +2065,19 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		view->cfg_destroy = NULL;
 	}
 
-	if (!allow)
+	if (!allow) {
 		return (ISC_R_SUCCESS);
+	}
 
-	result = isc_file_sanitize(NULL, view->name, "nzf",
-				   buffer, sizeof(buffer));
+	result = nz_legacy(view->new_zone_dir, view->name, "nzf",
+			   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
 
 #ifdef HAVE_LMDB
-	result = isc_file_sanitize(NULL, view->name, "nzd",
-				   buffer, sizeof(buffer));
+	result = nz_legacy(view->new_zone_dir, view->name, "nzd",
+			   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	view->new_zone_db = isc_mem_strdup(view->mctx, buffer);
@@ -2066,6 +2122,29 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	}
 
 	return (result);
+}
+
+void
+dns_view_setnewzonedir(dns_view_t *view, const char *dir) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	if (view->new_zone_dir != NULL) {
+		isc_mem_free(view->mctx, view->new_zone_dir);
+		view->new_zone_dir = NULL;
+	}
+
+	if (dir == NULL) {
+		return;
+	}
+
+	view->new_zone_dir = isc_mem_strdup(view->mctx, dir);
+}
+
+const char *
+dns_view_getnewzonedir(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	return (view->new_zone_dir);
 }
 
 isc_result_t

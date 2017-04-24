@@ -551,6 +551,87 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:adding new zone again to external view ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'added.example in external { type master; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
+$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.int.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.int.$n > /dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a > dig.out.ns2.ext.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.ext.$n > /dev/null || ret=1
+grep '^a.added.example' dig.out.ns2.ext.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:reconfiguring server with multiple views and new-zones-directory"
+rm -f ns2/named.conf
+cp -f ns2/named3.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig 2>&1 | sed 's/^/I:ns2 /'
+sleep 5
+
+echo "I:checking new zone is still loaded after dir change ($n)"
+ret=0
+$DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a > dig.out.ns2.ext.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.ext.$n > /dev/null || ret=1
+grep '^a.added.example' dig.out.ns2.ext.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:deleting newly added zone from external ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone 'added.example in external' 2>&1 | sed 's/^/I:ns2 /'
+$DIG $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a > dig.out.ns2.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep '^a.added.example' dig.out.ns2.$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:adding new zone to directory view ($n)"
+ret=0
+$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.intpre.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.intpre.$n > /dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a > dig.out.ns2.extpre.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.extpre.$n > /dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.5 -b 10.53.0.5 a.added.example a > dig.out.ns2.dirpre.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.dirpre.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone 'added.example in directory { type master; file "added.db"; };' 2>&1 | sed 's/^/I:ns2 /'
+$DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.int.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.int.$n > /dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.4 -b 10.53.0.4 a.added.example a > dig.out.ns2.ext.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.ext.$n > /dev/null || ret=1
+$DIG +norec $DIGOPTS @10.53.0.5 -b 10.53.0.5 a.added.example a > dig.out.ns2.dir.$n || ret=1
+grep 'status: NOERROR' dig.out.ns2.dir.$n > /dev/null || ret=1
+grep '^a.added.example' dig.out.ns2.dir.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+if [ -n "$NZD" ]; then
+    echo "I:checking NZD file was created in new-zones-directory ($n)"
+    expect=ns2/new-zones/directory.nzd
+else
+    echo "I:checking NZF file was created in new-zones-directory ($n)"
+    expect=ns2/new-zones/directory.nzf
+fi
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 sync 'added.example IN directory' 2>&1 | sed 's/^/I:ns2 /'
+sleep 2
+[ -e "$expect" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:deleting newly added zone from directory ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone 'added.example in directory' 2>&1 | sed 's/^/I:ns2 /'
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.5 a.added.example a > dig.out.ns2.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep '^a.added.example' dig.out.ns2.$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:ensure the configuration context is cleaned up correctly ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > /dev/null 2>&1 || ret=1

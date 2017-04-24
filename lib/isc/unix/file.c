@@ -221,9 +221,11 @@ isc_file_template(const char *path, const char *templet, char *buf,
 {
 	const char *s;
 
-	REQUIRE(path != NULL);
 	REQUIRE(templet != NULL);
 	REQUIRE(buf != NULL);
+
+	if (path == NULL)
+		path = "";
 
 	s = strrchr(templet, '/');
 	if (s != NULL)
