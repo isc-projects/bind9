@@ -1,3 +1,6 @@
+4609.	[cleanup]	Rearrange makefiles to enable parallel execution
+			(i.e. "make -j"). [RT #45078]
+
 4608.	[func]		DiG now warns about .local queries which are reserved
 			for Multicast DNS. [RT #44783]
 

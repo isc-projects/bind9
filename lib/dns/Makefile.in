@@ -119,8 +119,7 @@ PORTDNSSRCS =	client.c ecdb.c
 SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @GEOIPLINKSRCS@
 
 SUBDIRS =	include
-TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
-		include/dns/rdatastruct.h timestamp
+TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 
 DEPENDEXTRA =	./gen -F include/dns/rdatastruct.h \
@@ -148,31 +147,11 @@ libdns.la: ${OBJS}
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
 		${OBJS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${LIBS}
 
-timestamp: libdns.@A@
-	touch timestamp
-
-installdirs:
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
-
-install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libdns.@A@ ${DESTDIR}${libdir}
-
-uninstall::
-	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libdns.@A@
-
-clean distclean::
-	rm -f libdns.@A@ timestamp
-	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
-	rm -f include/dns/rdatastruct.h
-
-newrr::
-	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
-	rm -f include/dns/rdatastruct.h
-
-include: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h
-
-rdata.@O@: code.h
+include: gen
+	${MAKE} include/dns/enumtype.h
+	${MAKE} include/dns/enumclass.h
+	${MAKE} include/dns/rdatastruct.h
+	${MAKE} code.h
 
 include/dns/enumtype.h: gen
 	./gen -s ${srcdir} -t > $@ || { rm -f $@ ; exit 1; }
@@ -195,13 +174,38 @@ gen: gen.c
 	${BUILD_CC} ${BUILD_CFLAGS} -I${top_srcdir}/lib/isc/include \
 	${BUILD_CPPFLAGS} ${BUILD_LDFLAGS} -o $@ ${srcdir}/gen.c ${BUILD_LIBS}
 
+timestamp: include libdns.@A@
+	touch timestamp
+
+testdirs: libdns.@A@
+
+installdirs:
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
+
+install:: timestamp installdirs
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libdns.@A@ ${DESTDIR}${libdir}
+
+uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libdns.@A@
+
+clean distclean::
+	rm -f libdns.@A@ timestamp
+	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
+	rm -f include/dns/rdatastruct.h
+
+newrr::
+	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
+	rm -f include/dns/rdatastruct.h
+
+include: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h
+
+rdata.@O@: include
+
 rbtdb64.@O@: rbtdb64.c rbtdb.c
 
-depend: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h code.h
-subdirs: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h code.h
-${OBJS}: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h
+depend: include
+subdirs: include
+${OBJS}: include
 
 spnego.@O@: spnego_asn1.c spnego.h

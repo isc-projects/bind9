@@ -133,6 +133,8 @@ libisc-nosymtbl.la: ${OBJS}
 timestamp: libisc.@A@ libisc-nosymtbl.@A@
 	touch timestamp
 
+testdirs: libisc.@A@ libisc-nosymtbl.@A@
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
