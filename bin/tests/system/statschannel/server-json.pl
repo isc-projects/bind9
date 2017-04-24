@@ -16,15 +16,15 @@ my $text = do{local$/;<INPUT>};
 close(INPUT);
 
 my $ref = decode_json($text);
-foreach $key (keys $ref->{opcodes}) {
+foreach $key (keys %{$ref->{opcodes}}) {
     print "opcode " . $key . ": " . $ref->{opcodes}->{$key} . "\n";
 }
-foreach $key (keys $ref->{rcodes}) {
+foreach $key (keys %{$ref->{rcodes}}) {
     print "rcode " . $key . ": " . $ref->{rcodes}->{$key} . "\n";
 }
-foreach $key (keys $ref->{qtypes}) {
+foreach $key (keys %{$ref->{qtypes}}) {
     print "qtype " . $key . ": " . $ref->{qtypes}->{$key} . "\n";
 }
-foreach $key (keys $ref->{nsstats}) {
+foreach $key (keys %{$ref->{nsstats}}) {
     print "nsstat " . $key . ": " . $ref->{nsstats}->{$key} . "\n";
 }
