@@ -22,7 +22,7 @@ use XML::Simple;
 my $ref = XMLin("xml.stats");
 my $counters = $ref->{server}->{counters};
 foreach $group (@$counters) {
-    foreach $key (keys $group->{counter}) {
+    foreach $key (keys %{$group->{counter}}) {
         print $group->{type} . " " . $key . ": ". $group->{counter}->{$key}->{content} . "\n";
     }
 }

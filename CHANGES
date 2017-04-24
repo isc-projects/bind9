@@ -1,3 +1,6 @@
+4606.	[port]		Stop using experimental "Experimental keys on scalar"
+			feature of perl as it has been removed. [RT #45012]
+
 4604.	[bug]		Don't use ERR_load_crypto_strings() when building
 			with OpenSSL 1.1.0. [RT #45117]
 
