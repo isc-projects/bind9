@@ -65,6 +65,8 @@ libisccfg.la: ${OBJS}
 timestamp: libisccfg.@A@
 	touch timestamp
 
+testdirs: libisccfg.@A@
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
