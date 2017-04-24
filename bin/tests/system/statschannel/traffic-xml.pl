@@ -22,7 +22,7 @@ foreach $group (@$udp) {
     if (exists $group->{counter}->{name}) {
         print $type . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
     } else {
-        foreach $key (keys $group->{counter}) {
+        foreach $key (keys %{$group->{counter}}) {
             print $type . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
         }
     }
@@ -34,7 +34,7 @@ foreach $group (@$tcp) {
     if (exists $group->{counter}->{name}) {
         print $type . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
     } else {
-        foreach $key (keys $group->{counter}) {
+        foreach $key (keys %{$group->{counter}}) {
             print $type . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
         }
     }

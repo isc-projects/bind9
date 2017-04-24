@@ -1,3 +1,6 @@
+4606.	[port]		Stop using experimental "Experimental keys on scalar"
+			feature of perl as it has been removed. [RT #45012]
+
 4605.	[performance]	Improve performance for delegation heavy answers
 			and also general query performance. Removes the
 			acache feature that didn't significantly improve
