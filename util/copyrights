@@ -2249,11 +2249,11 @@
 ./bin/tests/system/statschannel/ns2/example.db	ZONE	2015,2016
 ./bin/tests/system/statschannel/ns2/named.conf	CONF-C	2015,2016
 ./bin/tests/system/statschannel/prereq.sh	SH	2015,2016
-./bin/tests/system/statschannel/server-json.pl	PERL	2015,2016
-./bin/tests/system/statschannel/server-xml.pl	PERL	2015,2016
+./bin/tests/system/statschannel/server-json.pl	PERL	2015,2016,2017
+./bin/tests/system/statschannel/server-xml.pl	PERL	2015,2016,2017
 ./bin/tests/system/statschannel/tests.sh	SH	2015,2016
-./bin/tests/system/statschannel/traffic-json.pl	PERL	2015,2016
-./bin/tests/system/statschannel/traffic-xml.pl	PERL	2015,2016
+./bin/tests/system/statschannel/traffic-json.pl	PERL	2015,2016,2017
+./bin/tests/system/statschannel/traffic-xml.pl	PERL	2015,2016,2017
 ./bin/tests/system/statschannel/traffic.expect.1	X	2015
 ./bin/tests/system/statschannel/traffic.expect.2	X	2015
 ./bin/tests/system/statschannel/traffic.expect.4	X	2015
@@ -3473,7 +3473,7 @@
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007,2016
 ./lib/dns/.gitignore				X	2012,2013,2016
 ./lib/dns/Atffile				X	2011
-./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/acache.c				C	2004,2005,2006,2007,2008,2012,2013,2015,2016
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2013,2014,2016
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -3936,7 +3936,7 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007,2016
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014,2015,2016
 ./lib/irs/Atffile				X	2016
-./lib/irs/Makefile.in				MAKE	2009,2012,2014,2015,2016
+./lib/irs/Makefile.in				MAKE	2009,2012,2014,2015,2016,2017
 ./lib/irs/api					X	2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/irs/context.c				C	2009,2014,2016
 ./lib/irs/dnsconf.c				C	2009,2012,2016
@@ -3988,7 +3988,7 @@
 ./lib/irs/win32/version.c			C	2014,2016
 ./lib/isc/.gitignore				X	2014
 ./lib/isc/Atffile				X	2011
-./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/isc/aes.c					C	2014,2016
 ./lib/isc/alpha/Makefile.in			MAKE	2007,2012,2016
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012,2016
@@ -4391,7 +4391,7 @@
 ./lib/isccc/win32/libisccc.vcxproj.user		X	2013
 ./lib/isccc/win32/version.c			C	2001,2004,2007,2016
 ./lib/isccfg/Atffile				X	2016
-./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2013,2014,2015,2016
+./lib/isccfg/Makefile.in			MAKE	2001,2002,2003,2004,2005,2007,2009,2011,2012,2013,2014,2015,2016,2017
 ./lib/isccfg/aclconf.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./lib/isccfg/api				X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/isccfg/dnsconf.c				C	2009,2016
@@ -4421,7 +4421,7 @@
 ./lib/isccfg/win32/libisccfg.vcxproj.user	X	2013
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004,2007,2016
 ./lib/lwres/Atffile				X	2014
-./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012,2014,2015,2016
+./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005,2007,2012,2014,2015,2016,2017
 ./lib/lwres/api					X	2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015,2017
 ./lib/lwres/assert_p.h				C	2000,2001,2004,2005,2007,2011,2012,2016
 ./lib/lwres/compat.c				C	2003,2004,2005,2007,2014,2016
