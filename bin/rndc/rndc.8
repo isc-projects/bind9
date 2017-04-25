@@ -156,9 +156,13 @@ string specified on the command line is the zone configuration text that would o
 named\&.conf\&.
 .sp
 The configuration is saved in a file called
-\fIname\fR\&.nzf, where
-\fIname\fR
-is the name of the view, or if it contains characters that are incompatible with use as a file name, a cryptographic hash generated from the name of the view\&. When
+\fIviewname\fR\&.nzf
+(or, if
+\fBnamed\fR
+is compiled with liblmdb, an LMDB database file called
+\fIviewname\fR\&.nzd)\&.
+\fIviewname\fR
+is the name of the view, unless the view name contains characters that are incompatible with use as a file name, in which case a cryptographic hash of the view name is used instead\&. When
 \fBnamed\fR
 is restarted, the file will be loaded into the view configuration, so that zones that were added can persist after a restart\&.
 .sp

@@ -199,6 +199,16 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
         <p>
+	  The <span class="command"><strong>new-zones-directory</strong></span> option allows
+	  <span class="command"><strong>named</strong></span> to store configuration parameters
+	  for zones added via <span class="command"><strong>rndc addzone</strong></span> in a
+	  location other than the working directory. Thanks to Petr
+	  Men&#353;ík of Red Hat for the contribution.
+	  [RT #44853]
+	</p>
+      </li>
+<li class="listitem">
+        <p>
 	  Many aspects of <span class="command"><strong>named</strong></span> have been modified
 	  to improve query performance, and in particular, performance
 	  for delegation-heavy zones:

@@ -243,6 +243,7 @@ options {
         multi-master <boolean>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
+        new-zones-directory <quoted_string>;
         no-case-compress { <address_match_element>; ... };
         nocookie-udp-size <integer>;
         nosit-udp-size <integer>; // obsolete
@@ -560,6 +561,7 @@ view <string> [ <class> ] {
         minimal-any <boolean>;
         minimal-responses ( no-auth | no-auth-recursive | <boolean> );
         multi-master <boolean>;
+        new-zones-directory <quoted_string>;
         no-case-compress { <address_match_element>; ... };
         nocookie-udp-size <integer>;
         nosit-udp-size <integer>; // obsolete

@@ -2455,6 +2455,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>geoip-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>managed-keys-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
+  [ <span class="command"><strong>new-zones-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>named-xfer</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>tkey-gssapi-keytab</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
   [ <span class="command"><strong>tkey-gssapi-credential</strong></span> <em class="replaceable"><code>principal</code></em> ; ]
@@ -3110,6 +3111,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 compatibility after upgrade, if a file using the old
                 name format is found to exist, it will be used instead
                 of the new format.)
+              </p>
+            </dd>
+<dt><span class="term"><span class="command"><strong>new-zones-directory</strong></span></span></dt>
+<dd>
+              <p>
+                Specifies the directory in which to store the configuration
+                parameters for zones added via <span class="command"><strong>rndc addzone</strong></span>.
+                By default, this is the working directory.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>named-xfer</strong></span></span></dt>
@@ -3823,6 +3832,20 @@ options {
                   If <strong class="userinput"><code>yes</code></strong>, then zones can be
                   added at runtime via <span class="command"><strong>rndc addzone</strong></span>.
                   The default is <strong class="userinput"><code>no</code></strong>.
+                </p>
+                <p>
+                  Newly added zones' configuration parameters
+                  are stored so that they can persist after the
+                  server is restarted.  The configuration information
+                  is saved in a file called
+                  <code class="filename"><em class="replaceable"><code>viewname</code></em>.nzf</code>
+                  (or, if <span class="command"><strong>named</strong></span> is compiled with
+                  liblmdb, in an LMDB database file called
+                  <code class="filename"><em class="replaceable"><code>viewname</code></em>.nzd</code>).
+                  <em class="replaceable"><code>viewname</code></em> is the name of the
+                  view, unless the view name contains characters that are
+                  incompatible with use as a file name, in which case a
+                  cryptographic hash of the view name is used instead.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>auth-nxdomain</strong></span></span></dt>
