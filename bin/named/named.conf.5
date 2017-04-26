@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2016-12-02
+.\"      Date: 2017-04-25
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2016\-12\-02" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2017\-04\-25" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -333,6 +333,7 @@ options {
 	listen\-on\-v6 [ port \fIinteger\fR ] [ dscp
 	    \fIinteger\fR ] {
 	    \fIaddress_match_element\fR; \&.\&.\&. };
+	lmdb\-mapsize \fIsizeval\fR;
 	lock\-file ( \fIquoted_string\fR | none );
 	managed\-keys\-directory \fIquoted_string\fR;
 	masterfile\-format ( map | raw | text );
@@ -656,6 +657,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	};
 	key\-directory \fIquoted_string\fR;
 	lame\-ttl \fIttlval\fR;
+	lmdb\-mapsize \fIsizeval\fR;
 	managed\-keys { \fIstring\fR \fIstring\fR
 	    \fIinteger\fR \fIinteger\fR \fIinteger\fR
 	    \fIquoted_string\fR; \&.\&.\&. };
