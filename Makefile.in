@@ -94,15 +94,15 @@ test-force:
 	exit $$status
 
 README: README.md
-	${PANDOC} --email-obfuscation=none -s -t html $< | \
+	${PANDOC} --email-obfuscation=none -s -t html README.md | \
 		${W3M} -dump -cols 75 -O ascii -T text/html > $@
 
 HISTORY: HISTORY.md
-	${PANDOC} --email-obfuscation=none -s -t html $< | \
+	${PANDOC} --email-obfuscation=none -s -t html HISTORY.md | \
 		${W3M} -dump -cols 75 -O ascii -T text/html > $@
 
 OPTIONS: OPTIONS.md
-	${PANDOC} --email-obfuscation=none -s -t html $< | \
+	${PANDOC} --email-obfuscation=none -s -t html OPTIONS.md | \
 		${W3M} -dump -cols 75 -O ascii -T text/html > $@
 
 unit::
