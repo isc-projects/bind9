@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2017 Internet Systems Consortium, Inc. ("ISC")
  -
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2016-12-02</date>
+    <date>2017-04-25</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -317,6 +317,7 @@ options {
 	listen-on-v6 <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp
 	    <replaceable>integer</replaceable> </optional> {
 	    <replaceable>address_match_element</replaceable>; ... };
+	lmdb-mapsize <replaceable>sizeval</replaceable>;
 	lock-file ( <replaceable>quoted_string</replaceable> | none );
 	managed-keys-directory <replaceable>quoted_string</replaceable>;
 	masterfile-format ( map | raw | text );
@@ -624,6 +625,7 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	};
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
+	lmdb-mapsize <replaceable>sizeval</replaceable>;
 	managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>quoted_string</replaceable>; ... };

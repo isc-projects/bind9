@@ -131,6 +131,7 @@ static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_size;
 static cfg_type_t cfg_type_sizenodefault;
 static cfg_type_t cfg_type_sizeorpercent;
+static cfg_type_t cfg_type_sizeval;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
@@ -1755,6 +1756,11 @@ view_clauses[] = {
 #endif
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_ttlval, 0 },
+#ifdef HAVE_LMDB
+	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
+#else
+	{ "lmdb-mapsize", &cfg_type_sizeval, CFG_CLAUSEFLAG_NOOP },
+#endif
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
 	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },

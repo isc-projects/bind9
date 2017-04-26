@@ -1212,7 +1212,7 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
-		     void (*cfg_destroy)(void **));
+		     void (*cfg_destroy)(void **), isc_uint64_t mapsize);
 /*%<
  * Set whether or not to allow zones to be created or deleted at runtime.
  *

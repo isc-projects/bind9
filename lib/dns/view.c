@@ -507,7 +507,7 @@ destroy(dns_view_t *view) {
 	if (view->dtenv != NULL)
 		dns_dt_detach(&view->dtenv);
 #endif /* HAVE_DNSTAP */
-	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
 		view->new_zone_file = NULL;
@@ -1986,7 +1986,7 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
-		     void (*cfg_destroy)(void **))
+		     void (*cfg_destroy)(void **), isc_uint64_t mapsize)
 {
 	isc_result_t result;
 	char buffer[1024];
@@ -2040,6 +2040,14 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	if (status != 0) {
 		result = ISC_R_FAILURE;
 		goto out;
+	}
+
+	if (mapsize != 0ULL) {
+		status = mdb_env_set_mapsize(env, mapsize);
+		if (status != 0) {
+			result = ISC_R_FAILURE;
+			goto out;
+		}
 	}
 
 	status = mdb_env_open(env, view->new_zone_db,

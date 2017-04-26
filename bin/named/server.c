@@ -6634,7 +6634,9 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *options = NULL, *voptions = NULL;
 	const cfg_obj_t *nz = NULL;
+	const cfg_obj_t *obj = NULL;
 	int i = 0;
+	isc_uint64_t mapsize = 0ULL;
 
 	REQUIRE (config != NULL);
 
@@ -6652,6 +6654,32 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS)
 		allow = cfg_obj_asboolean(nz);
 
+#ifdef HAVE_LMDB
+	result = ns_config_get(maps, "lmdb-mapsize", &obj);
+	if (result == ISC_R_SUCCESS && obj != NULL) {
+		mapsize = cfg_obj_asuint64(obj);
+		if (mapsize < (1ULL << 20)) { /* 1 megabyte */
+			cfg_obj_log(obj, ns_g_lctx,
+				    ISC_LOG_ERROR,
+				    "'lmdb-mapsize "
+				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "is too small",
+				    mapsize);
+			return (ISC_R_FAILURE);
+		} else if (mapsize > (1ULL << 40)) { /* 1 terabyte */
+			cfg_obj_log(obj, ns_g_lctx,
+				    ISC_LOG_ERROR,
+				    "'lmdb-mapsize "
+				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "is too large",
+				    mapsize);
+			return (ISC_R_FAILURE);
+		}
+	}
+#else
+	UNUSED(obj);
+#endif /* HAVE_LMDB */
+
 	/*
 	 * A non-empty catalog-zones statement implies allow-new-zones
 	 */
@@ -6667,7 +6695,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	if (!allow) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		if (num_zones != NULL)
 			*num_zones = 0;
 		return (ISC_R_SUCCESS);
@@ -6675,14 +6703,14 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	nzcfg = isc_mem_get(view->mctx, sizeof(*nzcfg));
 	if (nzcfg == NULL) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		return (ISC_R_NOMEMORY);
 	}
 
 	memset(nzcfg, 0, sizeof(*nzcfg));
 
 	result = dns_view_setnewzones(view, allow, nzcfg,
-				      newzone_cfgctx_destroy);
+				      newzone_cfgctx_destroy, mapsize);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(view->mctx, nzcfg);
 		return (result);
@@ -11032,11 +11060,25 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		const cfg_obj_t *zoptions;
 
 		result = isc_buffer_allocate(view->mctx, &text, 256);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx,
+				      NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "Unable to allocate buffer in "
+				      "nzd_save(): %s",
+				      isc_result_totext(result));
 			goto cleanup;
+		}
 
 		zoptions = cfg_tuple_get(zconfig, "options");
 		if (zoptions == NULL) {
+			isc_log_write(ns_g_lctx,
+				      NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "Unable to get options from config in "
+				      "nzd_save()");
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
@@ -11069,8 +11111,16 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		(void) mdb_txn_abort(*txnp);
 	else {
 		status = mdb_txn_commit(*txnp);
-		if (status != 0)
+		if (status != 0) {
+			isc_log_write(ns_g_lctx,
+				      NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "Error committing "
+				      "NZD database: %s",
+				      mdb_strerror(status));
 			result = ISC_R_FAILURE;
+		}
 	}
 	*txnp = NULL;
 
@@ -11573,7 +11623,16 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(view->zonetable, name, 0, NULL, &zone));
+	result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_ERROR,
+			      "added new zone was not found: %s",
+			      isc_result_totext(result));
+		goto cleanup;
+	}
 
 #ifndef HAVE_LMDB
 	/*
