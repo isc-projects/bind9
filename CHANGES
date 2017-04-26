@@ -1,3 +1,10 @@
+4611.	[bug]		The default LMDB mapsize was too low and caused
+			errors after few thousand zones were added using
+			rndc addzone. A new config option "lmdb-mapsize"
+			has been introduced to configure the LMDB
+			mapsize depending on operational needs.
+			[RT #44954]
+
 4610.	[func]		The "new-zones-directory" option specifies the
 			location of NZF or NZD files for storing
 			configuration of zones added by "rndc addzone".

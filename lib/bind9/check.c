@@ -22,6 +22,7 @@
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/platform.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sha1.h>
@@ -1489,6 +1490,30 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 	}
 #endif
+
+	obj = NULL;
+	(void)cfg_map_get(options, "lmdb-mapsize", &obj);
+	if (obj != NULL) {
+		isc_uint64_t mapsize = cfg_obj_asuint64(obj);
+
+		if (mapsize < (1ULL << 20)) { /* 1 megabyte */
+			cfg_obj_log(obj, logctx,
+				    ISC_LOG_ERROR,
+				    "'lmdb-mapsize "
+				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "is too small",
+				    mapsize);
+			return (ISC_R_RANGE);
+		} else if (mapsize > (1ULL << 40)) { /* 1 terabyte */
+			cfg_obj_log(obj, logctx,
+				    ISC_LOG_ERROR,
+				    "'lmdb-mapsize "
+				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "is too large",
+				    mapsize);
+			return (ISC_R_RANGE);
+		}
+	}
 
 	return (result);
 }

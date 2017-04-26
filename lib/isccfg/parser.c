@@ -1717,6 +1717,12 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 			cfg_parser_warning(pctx, 0, "option '%s' is "
 				       "not implemented", clause->name);
 
+		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
+			cfg_parser_warning(pctx, 0, "option '%s' was not "
+					   "enabled at compile time "
+					   "(ignored)", clause->name);
+		}
+
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' was not "
 					   "enabled at compile time",
@@ -1973,6 +1979,7 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
 	{ CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
 	{ CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
+	{ CFG_CLAUSEFLAG_NOOP, "non-operational" },
 	{ 0, NULL }
 };
 

@@ -48,6 +48,9 @@
 #define CFG_CLAUSEFLAG_NOTCONFIGURED	0x00000080
 /*% A option for a experimental feature. */
 #define CFG_CLAUSEFLAG_EXPERIMENTAL	0x00000100
+/*% A configuration option that is ineffective due to
+ * compile time options, but is harmless. */
+#define CFG_CLAUSEFLAG_NOOP		0x00000200
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
