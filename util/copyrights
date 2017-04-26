@@ -946,6 +946,10 @@
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013,2016
 ./bin/tests/system/checkconf/bad-keep-response-order.conf	CONF-C	2015,2016
 ./bin/tests/system/checkconf/bad-lifetime.conf	CONF-C	2014,2016
+./bin/tests/system/checkconf/bad-lmdb-mapsize-bogus.conf	CONF-C	2017
+./bin/tests/system/checkconf/bad-lmdb-mapsize-toolarge.conf	CONF-C	2017
+./bin/tests/system/checkconf/bad-lmdb-mapsize-toosmall.conf	CONF-C	2017
+./bin/tests/system/checkconf/bad-lmdb-mapsize-unlimited.conf	CONF-C	2017
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012,2015,2016
 ./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014,2016
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014,2016
@@ -989,6 +993,8 @@
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011,2016
 ./bin/tests/system/checkconf/good-acl.conf	CONF-C	2016
 ./bin/tests/system/checkconf/good-class.conf	CONF-C	2015,2016
+./bin/tests/system/checkconf/good-lmdb-mapsize-largest.conf	CONF-C	2017
+./bin/tests/system/checkconf/good-lmdb-mapsize-smallest.conf	CONF-C	2017
 ./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015,2016
 ./bin/tests/system/checkconf/good-options-also-notify.conf	CONF-C	2016
 ./bin/tests/system/checkconf/good-printtime.conf	CONF-C	2016
@@ -4437,13 +4443,13 @@
 ./lib/isccfg/include/isccfg/aclconf.h		C	1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2016
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001,2002,2004,2005,2006,2007,2010,2013,2014,2015,2016
 ./lib/isccfg/include/isccfg/dnsconf.h		C	2009,2016
-./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015,2016
+./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015,2016,2017
 ./lib/isccfg/include/isccfg/log.h		C	2001,2004,2005,2006,2007,2009,2016
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006,2007,2009,2010,2014,2016
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005,2006,2007,2016
 ./lib/isccfg/log.c				C	2001,2004,2005,2006,2007,2016
 ./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/isccfg/tests/Atffile			X	2016
 ./lib/isccfg/tests/Makefile.in			MAKE	2016
 ./lib/isccfg/tests/parser_test.c		C	2016
