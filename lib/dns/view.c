@@ -2040,6 +2040,10 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	int status;
 #endif
 
+#ifndef HAVE_LMDB
+	UNUSED(mapsize);
+#endif
+
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE((cfgctx != NULL && cfg_destroy != NULL) || !allow);
 
