@@ -214,6 +214,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define iszonesecure iszonesecure64
 #define loading_addrdataset loading_addrdataset64
 #define loadnode loadnode64
+#define mark_stale_header mark_stale_header64
 #define matchparams matchparams64
 #define maybe_free_rbtdb maybe_free_rbtdb64
 #define new_reference new_reference64
