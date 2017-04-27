@@ -331,6 +331,7 @@ options {<br>
 	listen-on-v6 [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] [<span class="optional"> dscp<br>
 	    <em class="replaceable"><code>integer</code></em> </span>] {<br>
 	    <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	lmdb-mapsize <em class="replaceable"><code>sizeval</code></em>;<br>
 	lock-file ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	managed-keys-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	masterfile-format ( map | raw | text );<br>
@@ -651,6 +652,7 @@ view <em class="replaceable"><code>string</code></em> [<span class="optional"> <
 	};<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
+	lmdb-mapsize <em class="replaceable"><code>sizeval</code></em>;<br>
 	managed-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em><br>
 	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>quoted_string</code></em>; ... };<br>

@@ -3087,6 +3087,28 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 <code class="filename">session.key</code>.)
               </p>
             </dd>
+<dt><span class="term"><span class="command"><strong>lmdb-mapsize</strong></span></span></dt>
+<dd>
+              <p>
+                When <span class="command"><strong>named</strong></span> is built with liblmdb,
+                this option sets a maximum size for the memory map of
+                the new-zone database (NZD) in LMDB database format.
+                This database is used to store configuration information
+                for zones added using <span class="command"><strong>rndc addzone</strong></span>.
+                Note that this is not the NZD database file size, but
+                the largest size that the database may grow to.
+              </p>
+              <p>
+                Because the database file is memory mapped, its size is
+                limited by the address space of the named process.  The
+                default of 32 megabytes was chosen to be usable with
+                32-bit <span class="command"><strong>named</strong></span> builds.  The largest
+                permitted value is 1 terabyte. Given typical zone
+                configurations without elaborate ACLs, a 32 MB NZD file
+                ought to be able to hold configurations of about 100,000
+                zones.
+              </p>
+            </dd>
 <dt><span class="term"><span class="command"><strong>managed-keys-directory</strong></span></span></dt>
 <dd>
               <p>
@@ -3846,6 +3868,15 @@ options {
                   view, unless the view name contains characters that are
                   incompatible with use as a file name, in which case a
                   cryptographic hash of the view name is used instead.
+                </p>
+                <p>
+                  Zones added at runtime will have their configuration
+                  stored either in a new-zone file (NZF) or a new-zone
+                  database (NZD) depending on whether
+                  <span class="command"><strong>named</strong></span> was linked with
+                  liblmdb at compile time.
+                  See <a class="xref" href="man.rndc.html" title="rndc"><span class="refentrytitle"><span class="application">rndc</span></span>(8)</a> for further details
+                  about <span class="command"><strong>rndc addzone</strong></span>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>auth-nxdomain</strong></span></span></dt>
