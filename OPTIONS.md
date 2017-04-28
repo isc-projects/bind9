@@ -1,4 +1,4 @@
-<!---
+<!--
  - Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
@@ -12,7 +12,7 @@
  - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
---->
+-->
 Setting the `STD_CDEFINES` environment variable before running `configure`
 can be used to enable certain compile-time options that are not explicitly
 defined in `configure`.
