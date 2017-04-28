@@ -220,9 +220,9 @@ foreach $file (keys %file_types) {
                 $end_comment = "-->\n";
         } elsif ($type eq "MKD") {
                 $mkd_comment = 1;
-                $start_comment = "<!---\n";
+                $start_comment = "<!--\n";
                 $prefix = " - ";
-                $end_comment = "--->";
+                $end_comment = "-->";
         } elsif ($type eq "TXT") {
                 $prefix = "";
         } else {
