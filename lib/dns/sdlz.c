@@ -1774,7 +1774,7 @@ dns_sdlzssumatch(dns_name_t *signer, dns_name_t *name, isc_netaddr_t *tcpaddr,
 	char b_type[DNS_RDATATYPE_FORMATSIZE];
 	char b_key[DST_KEY_FORMATSIZE];
 	isc_buffer_t *tkey_token = NULL;
-	isc_region_t token_region;
+	isc_region_t token_region = { NULL, 0 };
 	isc_uint32_t token_len = 0;
 	isc_boolean_t ret;
 
