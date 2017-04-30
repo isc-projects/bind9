@@ -372,14 +372,14 @@ foreach $file (keys %file_types) {
         } elsif ($mkd_comment) {
 		$before_copyright = "";
                 if (/^<!/) {
-                        $_ = <SOURCE> if $_ eq "<!---\n";
+                        $_ = <SOURCE> if $_ eq "<!--\n";
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
                                 close(SOURCE);
                                 next;
                         }
                         while (defined($_)) {
-                                last if s/.*--->//;
+                                last if s/.*-->//;
                                 $_ = <SOURCE>;
                         }
                         print "$file: unterminated comment\n"
