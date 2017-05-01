@@ -1,3 +1,7 @@
+4612.	[bug]		Silence 'may be use uninitalised' warning and simplify
+			the code in lwres/getaddinfo:process_answer.
+			[RT #45158]
+
 4611.	[bug]		The default LMDB mapsize was too low and caused
 			errors after few thousand zones were added using
 			rndc addzone. A new config option "lmdb-mapsize"
