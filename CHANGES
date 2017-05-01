@@ -1,3 +1,7 @@
+4612.	[bug]		Silence 'may be use uninitalised' warning and simplify
+			the code in lwres/getaddinfo:process_answer.
+			[RT #45158]
+
 4609.	[cleanup]	Rearrange makefiles to enable parallel execution
 			(i.e. "make -j"). [RT #45078]
 
