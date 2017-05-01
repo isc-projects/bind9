@@ -6,13 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: thread.c,v 1.24 2007/06/19 23:47:19 tbox Exp $ */
-
 #include <config.h>
 
 #include <process.h>
 
 #include <isc/thread.h>
+#include <isc/util.h>
 
 isc_result_t
 isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
