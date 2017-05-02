@@ -1597,7 +1597,7 @@ update_newheader(rdatasetheader_t *new, rdatasetheader_t *old) {
 		new->node = (dns_rbtnode_t *)p;
 	}
 	if (CASESET(old)) {
-		uint16_t attr;
+		isc_uint16_t attr;
 
 		memmove(new->upper, old->upper, sizeof(old->upper));
 		attr = old->attributes & (RDATASET_ATTR_CASESET |
@@ -9697,12 +9697,11 @@ free_gluetable(rbtdb_version_t *version) {
 
 static isc_boolean_t
 rehash_gluetable(rbtdb_version_t *version) {
-	size_t oldsize;
+	size_t oldsize, i;
 	rbtdb_glue_table_node_t **oldtable;
 	rbtdb_glue_table_node_t *gluenode;
 	rbtdb_glue_table_node_t *nextgluenode;
-	uint32_t hash;
-	size_t i;
+	isc_uint32_t hash;
 
 	if (ISC_LIKELY(version->glue_table_nodecount <
 		       (version->glue_table_size * 3U)))

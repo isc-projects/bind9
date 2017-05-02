@@ -1995,6 +1995,11 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
  * a new path is created; returns ISC_R_NOSPACE if the path won't
  * fit in 'buflen'.
  */
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
+
 static isc_result_t
 nz_legacy(const char *directory, const char *viewname,
 	  const char *suffix, char *buffer, size_t buflen)
