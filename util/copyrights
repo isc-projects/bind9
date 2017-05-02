@@ -309,7 +309,7 @@
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013,2014,2015,2016
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
-./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/nsupdate/.gitignore			X	2012
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014,2015,2016
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
@@ -1851,14 +1851,15 @@
 ./bin/tests/system/nslookup/ns1/named.conf	CONF-C	2014,2016
 ./bin/tests/system/nslookup/setup.sh		SH	2014,2016
 ./bin/tests/system/nslookup/tests.sh		SH	2014,2016
-./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2015,2016
+./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/tests/system/nsupdate/commandlist		X	2012
 ./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/ns1/example1.db	ZONE	2000,2001,2002,2004,2007,2009,2016
-./bin/tests/system/nsupdate/ns1/many.test.db.in	ZONE	2014,2016
+./bin/tests/system/nsupdate/ns1/many.test.db.in	ZONE	2014,2016,2017
 ./bin/tests/system/nsupdate/ns1/max-ttl.db	ZONE	2014,2016
+./bin/tests/system/nsupdate/ns1/maxjournal.db.in	ZONE	2017
 ./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005,2007,2009,2011,2012,2013,2014,2016,2017
 ./bin/tests/system/nsupdate/ns1/sample.db.in	ZONE	2016
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004,2007,2011,2013,2016,2017
@@ -2005,7 +2006,7 @@
 ./bin/tests/system/resolver/ns6/delegation-only.db	ZONE	2015,2016
 ./bin/tests/system/resolver/ns6/ds.example.net.db.in	ZONE	2016
 ./bin/tests/system/resolver/ns6/example.net.db.in	ZONE	2010,2014,2016
-./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016
+./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016,2017
 ./bin/tests/system/resolver/ns6/moves.db	ZONE	2011,2016
 ./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012,2013,2014,2015,2016
 ./bin/tests/system/resolver/ns6/no-edns-version.tld.db	ZONE	2014,2016
@@ -2020,7 +2021,7 @@
 ./bin/tests/system/resolver/ns7/server.db.in	ZONE	2011,2016
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007,2012,2014,2016
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012,2013,2014,2016,2017
-./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/rndc/.gitignore		X	2014
 ./bin/tests/system/rndc/Makefile.in		MAKE	2014,2015,2016
 ./bin/tests/system/rndc/clean.sh		SH	2011,2012,2013,2014,2015,2016
@@ -3595,7 +3596,7 @@
 ./lib/dns/include/dns/geoip.h			C	2013,2014,2016
 ./lib/dns/include/dns/ipkeylist.h		C	2016
 ./lib/dns/include/dns/iptable.h			C	2007,2012,2014,2016
-./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011,2013,2016
+./lib/dns/include/dns/journal.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2009,2011,2013,2016,2017
 ./lib/dns/include/dns/keydata.h			C	2009,2016
 ./lib/dns/include/dns/keyflags.h		C	1999,2000,2001,2004,2005,2006,2007,2016
 ./lib/dns/include/dns/keytable.h		C	2000,2001,2004,2005,2007,2009,2010,2014,2015,2016
@@ -3662,7 +3663,7 @@
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004,2005,2006,2007,2008,2012,2014,2016
 ./lib/dns/ipkeylist.c				C	2016
 ./lib/dns/iptable.c				C	2007,2008,2009,2013,2014,2016
-./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011,2013,2014,2015,2016
+./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2010,2011,2013,2014,2015,2016,2017
 ./lib/dns/key.c					C	2001,2004,2005,2006,2007,2011,2016
 ./lib/dns/keydata.c				C	2009,2014,2016
 ./lib/dns/keytable.c				C	2000,2001,2004,2005,2007,2009,2010,2013,2014,2015,2016
@@ -4267,7 +4268,7 @@
 ./lib/isc/tests/regex_test.c			C	2013,2015,2016
 ./lib/isc/tests/result_test.c			C	2015,2016
 ./lib/isc/tests/safe_test.c			C	2013,2015,2016
-./lib/isc/tests/sockaddr_test.c			C	2012,2015,2016
+./lib/isc/tests/sockaddr_test.c			C	2012,2015,2016,2017
 ./lib/isc/tests/socket_test.c			C	2011,2012,2013,2014,2015,2016
 ./lib/isc/tests/symtab_test.c			C	2011,2012,2013,2016
 ./lib/isc/tests/task_test.c			C	2011,2012,2016
