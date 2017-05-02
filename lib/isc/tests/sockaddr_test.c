@@ -110,18 +110,18 @@ ATF_TC_BODY(sockaddr_isnetzero, tc) {
 	UNUSED(tc);
 
 	for (i = 0; i < sizeof(data4)/sizeof(data4[0]); i++) {
-		in.s_addr = inet_addr(data4[0].string);
+		in.s_addr = inet_addr(data4[i].string);
 		isc_sockaddr_fromin(&addr, &in, 1);
 		r = isc_sockaddr_isnetzero(&addr);
-		ATF_CHECK_EQ(r, data4[0].expect);
+		ATF_CHECK_EQ_MSG(r, data4[i].expect, "%s", data4[i].string);
 	}
 
 	for (i = 0; i < sizeof(data6)/sizeof(data6[0]); i++) {
-		ret = inet_pton(AF_INET6, "::ffff:127.0.0.1", &in6);
+		ret = inet_pton(AF_INET6, data6[i].string, &in6);
 		ATF_CHECK_EQ(ret, 1);
 		isc_sockaddr_fromin6(&addr, &in6, 1);
 		r = isc_sockaddr_isnetzero(&addr);
-		ATF_CHECK_EQ(r, data6[0].expect);
+		ATF_CHECK_EQ_MSG(r, data6[i].expect, "%s", data6[i].string);
 	}
 }
 
