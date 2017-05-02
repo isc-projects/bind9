@@ -1970,7 +1970,7 @@
 ./bin/tests/system/resolver/ns6/delegation-only.db	ZONE	2015,2016
 ./bin/tests/system/resolver/ns6/ds.example.net.db.in	ZONE	2016
 ./bin/tests/system/resolver/ns6/example.net.db.in	ZONE	2010,2014,2016
-./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016
+./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016,2017
 ./bin/tests/system/resolver/ns6/moves.db	ZONE	2011,2016
 ./bin/tests/system/resolver/ns6/named.conf	CONF-C	2010,2012,2013,2014,2015,2016
 ./bin/tests/system/resolver/ns6/no-edns-version.tld.db	ZONE	2014,2016
@@ -1985,7 +1985,7 @@
 ./bin/tests/system/resolver/ns7/server.db.in	ZONE	2011,2016
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007,2012,2014,2016
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012,2013,2014,2016
-./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/rndc/.gitignore		X	2014
 ./bin/tests/system/rndc/Makefile.in		MAKE	2014,2015,2016
 ./bin/tests/system/rndc/clean.sh		SH	2011,2012,2013,2014,2015,2016
@@ -4230,7 +4230,7 @@
 ./lib/isc/tests/regex_test.c			C	2013,2015,2016
 ./lib/isc/tests/result_test.c			C	2015,2016
 ./lib/isc/tests/safe_test.c			C	2013,2015,2016
-./lib/isc/tests/sockaddr_test.c			C	2012,2015,2016
+./lib/isc/tests/sockaddr_test.c			C	2012,2015,2016,2017
 ./lib/isc/tests/socket_test.c			C	2011,2012,2013,2014,2015,2016
 ./lib/isc/tests/symtab_test.c			C	2011,2012,2013,2016
 ./lib/isc/tests/task_test.c			C	2011,2012,2016
