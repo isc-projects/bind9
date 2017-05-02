@@ -1962,6 +1962,15 @@ renderset(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	return (result);
 }
 
+static void
+maybe_clear_ad(dns_message_t *msg, dns_section_t sectionid) {
+	if (msg->counts[sectionid] == 0 &&
+	    (sectionid == DNS_SECTION_ANSWER ||
+	     (sectionid == DNS_SECTION_AUTHORITY &&
+	      msg->counts[DNS_SECTION_ANSWER] == 0)))
+		msg->flags &= ~DNS_MESSAGEFLAG_AD;
+}
+
 isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int options)
@@ -2159,6 +2168,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 					*(msg->buffer) = st;  /* rollback */
 					msg->buffer->length += msg->reserved;
 					msg->counts[sectionid] += total;
+					maybe_clear_ad(msg, sectionid);
 					return (result);
 				}
 
