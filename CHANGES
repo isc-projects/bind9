@@ -1,3 +1,5 @@
+4614.	[test]		Fixed an error in the sockaddr unit test. [RT #45146]
+
 4613.	[func]		By default, the maximum size of a zone journal file
 			is now twice the size of the zone's contents (there
 			is little benefit to a journal larger than this).
