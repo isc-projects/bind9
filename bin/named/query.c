@@ -1864,12 +1864,14 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
-				result = ISC_R_NOTFOUND;
+				/* treat as if not found */
 			} else if (!query_isduplicate(client, fname,
-					       dns_rdatatype_a, &mname)) {
+					       dns_rdatatype_a, &mname))
+			{
 				if (mname != fname) {
 					if (mname != NULL) {
-						query_releasename(client, &fname);
+						query_releasename(client,
+								  &fname);
 						fname = mname;
 					} else
 						need_addname = ISC_TRUE;
@@ -1932,12 +1934,14 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
-				result = ISC_R_NOTFOUND;
+				/* treat as if not found */
 			} else if (!query_isduplicate(client, fname,
-					       dns_rdatatype_aaaa, &mname)) {
+					       dns_rdatatype_aaaa, &mname))
+			{
 				if (mname != fname) {
 					if (mname != NULL) {
-						query_releasename(client, &fname);
+						query_releasename(client,
+								  &fname);
 						fname = mname;
 					} else
 						need_addname = ISC_TRUE;
