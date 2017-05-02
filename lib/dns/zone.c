@@ -4385,11 +4385,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
 		isc_uint32_t jserial;
 		dns_journal_t *journal = NULL;
+		isc_boolean_t empty = ISC_FALSE;
 
 		result = dns_journal_open(zone->mctx, zone->journal,
 					  DNS_JOURNAL_READ, &journal);
 		if (result == ISC_R_SUCCESS) {
 			jserial = dns_journal_last_serial(journal);
+			empty = dns_journal_empty(journal);
 			dns_journal_destroy(&journal);
 		} else {
 			jserial = serial;
@@ -4397,9 +4399,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		if (jserial != serial) {
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "journal file is out of date: "
-				     "removing journal file");
+			if (!empty)
+				dns_zone_log(zone, ISC_LOG_INFO,
+					     "journal file is out of date: "
+					     "removing journal file");
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
 				isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -9756,6 +9759,52 @@ dns_zone_refresh(dns_zone_t *zone) {
 	UNLOCK_ZONE(zone);
 }
 
+static void
+zone_journal_compact(dns_zone_t *zone, dns_db_t *db, isc_uint32_t serial) {
+	isc_result_t result;
+	isc_int32_t journalsize;
+	dns_dbversion_t *ver = NULL;
+	isc_uint64_t dbsize;
+
+	INSIST(LOCKED_ZONE(zone));
+	if (inline_raw(zone))
+		INSIST(LOCKED_ZONE(zone->secure));
+
+	journalsize = zone->journalsize;
+	if (journalsize == -1) {
+		journalsize = DNS_JOURNAL_SIZE_MAX;
+		dns_db_currentversion(db, &ver);
+		result = dns_db_getsize(db, ver, NULL, &dbsize);
+		dns_db_closeversion(db, &ver, ISC_FALSE);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "zone_journal_compact: "
+				     "could not get zone size: %s",
+				     isc_result_totext(result));
+		} else if (dbsize < DNS_JOURNAL_SIZE_MAX / 2) {
+			journalsize = (isc_int32_t)dbsize * 2;
+		}
+	}
+	zone_debuglog(zone, "zone_journal_compact", 1,
+		      "target journal size %d", journalsize);
+	result = dns_journal_compact(zone->mctx, zone->journal,
+				     serial, journalsize);
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case ISC_R_NOSPACE:
+	case ISC_R_NOTFOUND:
+		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			     "dns_journal_compact: %s",
+			     dns_result_totext(result));
+		break;
+	default:
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_journal_compact failed: %s",
+			     dns_result_totext(result));
+		break;
+	}
+}
+
 isc_result_t
 dns_zone_flush(dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -9773,7 +9822,7 @@ dns_zone_flush(dns_zone_t *zone) {
 		dumping = ISC_TRUE;
 	UNLOCK_ZONE(zone);
 	if (!dumping)
-		result = zone_dump(zone, ISC_FALSE);	/* Unknown task. */
+		result = zone_dump(zone, ISC_TRUE);	/* Unknown task. */
 	return (result);
 }
 
@@ -9841,8 +9890,7 @@ dump_done(void *arg, isc_result_t result) {
 
 	ENTER;
 
-	if (result == ISC_R_SUCCESS && zone->journal != NULL &&
-	    zone->journalsize != -1) {
+	if (result == ISC_R_SUCCESS && zone->journal != NULL) {
 		/*
 		 * We don't own these, zone->dctx must stay valid.
 		 */
@@ -9887,37 +9935,19 @@ dump_done(void *arg, isc_result_t result) {
 			}
 			ZONEDB_UNLOCK(&secure->dblock, isc_rwlocktype_read);
 		}
-		if (secure != NULL)
-			UNLOCK_ZONE(secure);
-		UNLOCK_ZONE(zone);
-
-		/*
-		 * Note: we are task locked here so we can test
-		 * zone->xfr safely.
-		 */
 		if (tresult == ISC_R_SUCCESS && zone->xfr == NULL) {
-			tresult = dns_journal_compact(zone->mctx,
-						      zone->journal,
-						      serial,
-						      zone->journalsize);
-			switch (tresult) {
-			case ISC_R_SUCCESS:
-			case ISC_R_NOSPACE:
-			case ISC_R_NOTFOUND:
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "dns_journal_compact: %s",
-					     dns_result_totext(tresult));
-				break;
-			default:
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "dns_journal_compact failed: %s",
-					     dns_result_totext(tresult));
-				break;
+			dns_db_t *zdb = NULL;
+			if (dns_zone_getdb(zone, &zdb) == ISC_R_SUCCESS) {
+				zone_journal_compact(zone, zdb, serial);
+				dns_db_detach(&db);
 			}
 		} else if (tresult == ISC_R_SUCCESS) {
 			compact = ISC_TRUE;
 			zone->compact_serial = serial;
 		}
+		if (secure != NULL)
+			UNLOCK_ZONE(secure);
+		UNLOCK_ZONE(zone);
 	}
 
 	LOCK_ZONE(zone);
@@ -13112,7 +13142,6 @@ dns_zone_setzeronosoattl(dns_zone_t *zone, isc_boolean_t state) {
 
 void
 dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	zone->check_names = severity;
@@ -13120,7 +13149,6 @@ dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity) {
 
 dns_severity_t
 dns_zone_getchecknames(dns_zone_t *zone) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->check_names);
@@ -13128,7 +13156,6 @@ dns_zone_getchecknames(dns_zone_t *zone) {
 
 void
 dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	zone->journalsize = size;
@@ -13136,7 +13163,6 @@ dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size) {
 
 isc_int32_t
 dns_zone_getjournalsize(dns_zone_t *zone) {
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->journalsize);
@@ -14445,7 +14471,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	unsigned int nscount = 0;
 
 	/*
-	 * 'zone' and 'zonedb' locked by caller.
+	 * 'zone' and 'zone->db' locked by caller.
 	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
@@ -14530,24 +14556,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			goto fail;
 		if (dump)
 			zone_needdump(zone, DNS_DUMP_DELAY);
-		else if (zone->journalsize != -1) {
-			result = dns_journal_compact(zone->mctx, zone->journal,
-						     serial, zone->journalsize);
-			switch (result) {
-			case ISC_R_SUCCESS:
-			case ISC_R_NOSPACE:
-			case ISC_R_NOTFOUND:
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "dns_journal_compact: %s",
-					     dns_result_totext(result));
-				break;
-			default:
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "dns_journal_compact failed: %s",
-					     dns_result_totext(result));
-				break;
-			}
-		}
+		else
+			zone_journal_compact(zone, zone->db, serial);
 		if (zone->type == dns_zone_master && inline_raw(zone))
 			zone_send_secureserial(zone, serial);
 	} else {
@@ -14860,24 +14870,12 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 * Handle any deferred journal compaction.
 	 */
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDCOMPACT)) {
-		result = dns_journal_compact(zone->mctx, zone->journal,
-					     zone->compact_serial,
-					     zone->journalsize);
-		switch (result) {
-		case ISC_R_SUCCESS:
-		case ISC_R_NOSPACE:
-		case ISC_R_NOTFOUND:
-			dns_zone_log(zone, ISC_LOG_DEBUG(3),
-				     "dns_journal_compact: %s",
-				     dns_result_totext(result));
-			break;
-		default:
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "dns_journal_compact failed: %s",
-				     dns_result_totext(result));
-			break;
+		dns_db_t *db = NULL;
+		if (dns_zone_getdb(zone, &db) == ISC_R_SUCCESS) {
+			zone_journal_compact(zone, db, zone->compact_serial);
+			dns_db_detach(&db);
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 		}
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 	}
 
 	if (secure != NULL)

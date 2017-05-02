@@ -13,4 +13,3 @@ $TTL 300	; 5 minutes
 				3600       ; minimum (1 hour)
 				)
 @		NS	ns1.example.nil.
-		NS	ns2.example.nil.

@@ -233,7 +233,7 @@ options {\n\
 	sig-signing-type 65534;\n\
 	inline-signing no;\n\
 	zone-statistics terse;\n\
-	max-journal-size unlimited;\n\
+	max-journal-size default;\n\
 	ixfr-from-differences false;\n\
 	check-wildcard yes;\n\
 	check-sibling yes;\n\

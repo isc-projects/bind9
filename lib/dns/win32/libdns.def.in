@@ -405,6 +405,7 @@ dns_journal_commit
 dns_journal_compact
 dns_journal_current_rr
 dns_journal_destroy
+dns_journal_empty
 dns_journal_first_rr
 dns_journal_first_serial
 dns_journal_get_sourceserial

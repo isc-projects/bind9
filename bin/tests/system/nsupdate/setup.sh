@@ -61,3 +61,6 @@ rm -f ns1/many.test.db.jnl
 
 cp ns1/sample.db.in ns1/sample.db
 cp ns2/sample.db.in ns2/sample.db
+
+cp -f ns1/maxjournal.db.in ns1/maxjournal.db
+rm -f ns1/maxjournal.db.jnl

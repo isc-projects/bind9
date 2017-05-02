@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: tests.sh,v 1.42 2011/12/16 23:01:17 each Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -583,6 +581,7 @@ if [ $ret -ne 0 ]; then
 fi
 
 n=`expr $n + 1`
+ret=0
 echo "I:check that yyyymmddvv serial number is correctly generated ($n)"
 oldserial=`$DIG +short yyyymmddvv.nil. soa @10.53.0.1 -p 5300 | awk '{print $3}'` || ret=1
 $NSUPDATE <<END > /dev/null 2>&1 || ret=1
@@ -629,6 +628,46 @@ lines=`awk '$4 == "A" { l++ } END { print l }' dig.out.test$n`
 test ${lines:-0} -eq 64 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 fi
+
+n=`expr $n + 1`
+echo "I:check max-journal-size limits ($n)"
+ret=0
+rm -f nsupdate.out1-$n
+# add one record
+$NSUPDATE << EOF >> nsupdate.out1-$n 2>&1
+server 10.53.0.1 5300
+zone maxjournal.test
+update add z.maxjournal.test 300 IN A 10.20.30.40
+send
+EOF
+for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    # repeatedly add and remove the same set of records to fill up
+    # the journal file without changing the zone content
+    $NSUPDATE << EOF >> nsupdate.out1-$n 2>&1
+server 10.53.0.1 5300
+zone maxjournal.test
+update add a.maxjournal.test 300 IN A 1.2.3.4
+update add b.maxjournal.test 300 IN A 1.2.3.4
+update add c.maxjournal.test 300 IN A 1.2.3.4
+update add d.maxjournal.test 300 IN A 1.2.3.4
+send
+update del a.maxjournal.test
+update del b.maxjournal.test
+update del c.maxjournal.test
+update del d.maxjournal.test
+send
+EOF
+done
+# check that the journal is big enough to require truncation.
+size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
+[ "$size" -gt 6000 ] || ret=1
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sync maxjournal.test
+sleep 1
+
+size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
+[ "$size" -lt 5000 ] || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`
 echo "I:check check-names processing ($n)"

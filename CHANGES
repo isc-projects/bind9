@@ -1,3 +1,10 @@
+4613.	[func]		By default, the maximum size of a zone journal file
+			is now twice the size of the zone's contents (there
+			is little benefit to a journal larger than this).
+			This can be overridden by setting "max-journal-size"
+			to "unlimited" or to an explicit value up to 2G.
+			Thanks to Tony Finch. [RT #38324]
+
 4612.	[bug]		Silence 'may be use uninitalised' warning and simplify
 			the code in lwres/getaddinfo:process_answer.
 			[RT #45158]

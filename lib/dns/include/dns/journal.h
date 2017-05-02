@@ -41,6 +41,9 @@
 #define DNS_JOURNAL_CREATE	0x00000001	/* ISC_TRUE */
 #define DNS_JOURNAL_WRITE	0x00000002
 
+#define DNS_JOURNAL_SIZE_MAX	ISC_INT32_MAX
+#define DNS_JOURNAL_SIZE_MIN	4096
+
 /***
  *** Types
  ***/
@@ -167,6 +170,12 @@ dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
 /**************************************************************************/
 /*
  * Reading transactions from journals.
+ */
+
+isc_boolean_t
+dns_journal_empty(dns_journal_t *j);
+/*<
+ * Find out if a journal is empty.
  */
 
 isc_uint32_t

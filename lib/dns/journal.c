@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: journal.c,v 1.120 2011/12/22 07:32:41 each Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -1536,6 +1534,11 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 /*
  * Miscellaneous accessors.
  */
+isc_boolean_t
+dns_journal_empty(dns_journal_t *j) {
+	return (JOURNAL_EMPTY(&j->header));
+}
+
 isc_uint32_t
 dns_journal_first_serial(dns_journal_t *j) {
 	return (j->header.begin.serial);
@@ -2139,6 +2142,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
 	 */
 	indexend = sizeof(journal_rawheader_t) +
 		   j->header.index_size * sizeof(journal_rawpos_t);
+	if (target_size < DNS_JOURNAL_SIZE_MIN)
+		target_size = DNS_JOURNAL_SIZE_MIN;
 	if (target_size < indexend * 2)
 		target_size = target_size/2 + indexend;
 
