@@ -1,3 +1,7 @@
+4615.	[bug]		AD could be set on truncated answer with no records
+			present in the answer and authority sections.
+			[RT #45140]
+
 4614.	[test]		Fixed an error in the sockaddr unit test. [RT #45146]
 
 4613.	[func]		By default, the maximum size of a zone journal file
