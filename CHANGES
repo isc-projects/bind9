@@ -1,3 +1,5 @@
+4614.	[test]		Fixed an error in the sockaddr unit test. [RT #45146]
+
 4612.	[bug]		Silence 'may be use uninitalised' warning and simplify
 			the code in lwres/getaddinfo:process_answer.
 			[RT #45158]
