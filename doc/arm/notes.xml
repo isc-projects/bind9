@@ -154,7 +154,7 @@
       <listitem>
 	<para>
 	  Setting <command>max-journal-size</command> to
-	  <literal>default</command> limits journal sizes to twice the
+	  <literal>default</literal> limits journal sizes to twice the
 	  size of the zone contents.  This can be overridden by setting
 	  <command>max-journal-size</command> to <literal>unlimited</literal>
 	  or to an explicit value up to 2G. Thanks to Tony Finch for
