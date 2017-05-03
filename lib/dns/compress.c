@@ -232,7 +232,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 {
 	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
-	unsigned int labels, index, n;
+	unsigned int labels, i, n;
 	unsigned int numlabels;
 	unsigned char *p;
 
@@ -266,11 +266,11 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		 * character in the first label of the suffix name.
 		 */
 		ch = p[1];
-		index = tableindex[ch];
+		i = tableindex[ch];
 		if (ISC_LIKELY((cctx->allowed &
 				DNS_COMPRESS_CASESENSITIVE) != 0))
 		{
-			for (node = cctx->table[index];
+			for (node = cctx->table[i];
 			     node != NULL;
 			     node = node->next)
 			{
@@ -282,7 +282,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 					goto found;
 			}
 		} else {
-			for (node = cctx->table[index];
+			for (node = cctx->table[i];
 			     node != NULL;
 			     node = node->next)
 			{
@@ -375,7 +375,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	unsigned int start;
 	unsigned int n;
 	unsigned int count;
-	unsigned int index;
+	unsigned int i;
 	dns_compressnode_t *node;
 	unsigned int length;
 	unsigned int tlength;
@@ -425,7 +425,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		 * character in the first label of tname.
 		 */
 		ch = tname.ndata[1];
-		index = tableindex[ch];
+		i = tableindex[ch];
 		tlength = name_length(&tname);
 		toffset = (isc_uint16_t)(offset + (length - tlength));
 		if (toffset >= 0x4000)
@@ -455,8 +455,8 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		node->name.ndata = node->r.base;
 		node->name.labels = tname.labels;
 		node->name.attributes = DNS_NAMEATTR_ABSOLUTE;
-		node->next = cctx->table[index];
-		cctx->table[index] = node;
+		node->next = cctx->table[i];
+		cctx->table[i] = node;
 		start++;
 		n--;
 		count--;
