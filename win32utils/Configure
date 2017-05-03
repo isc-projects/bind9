@@ -3430,6 +3430,7 @@ exit 0;
 #  --with-cc-alg supported
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
+#  --with-lmdb no supported on WIN32 (port is not reliable)
 #  --with-libxml2 supported
 #  --with-libjson not supported on WIN32 (package not available on WIN32)
 #  --with-zlib supported
