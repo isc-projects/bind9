@@ -1,3 +1,7 @@
+4616.	[bug]		When using LMDB, zones deleted using "rndc delzone"
+			were not correctly removed from the new-zone
+			database. [RT #45185]
+
 4615.	[bug]		AD could be set on truncated answer with no records
 			present in the answer and authority sections.
 			[RT #45140]

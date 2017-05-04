@@ -390,7 +390,12 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  Due to some incorrectly deleted code, when BIND was
+	  built with LMDB, zones that were deleted via
+	  <command>rndc delzone</command> were removed from the
+	  running server but were not removed from the new zone
+	  database, so that deletion did not persist after a
+	  server restart. This has been corrected. [RT #45185]
 	</para>
       </listitem>
     </itemizedlist>
