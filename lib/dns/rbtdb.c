@@ -9890,7 +9890,7 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
 	rbtdb_version_t *rbtversion = version;
-	isc_uint32_t index;
+	isc_uint32_t idx;
 	rbtdb_glue_table_node_t *cur;
 	isc_boolean_t found;
 	isc_boolean_t restarted;
@@ -9918,7 +9918,7 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	 * the node pointer is a fixed value that won't change for a DB
 	 * version and can be compared directly.
 	 */
-	index = isc_hash_function(&node, sizeof(node), ISC_TRUE, NULL) %
+	idx = isc_hash_function(&node, sizeof(node), ISC_TRUE, NULL) %
 		rbtversion->glue_table_size;
 
 restart:
@@ -9928,7 +9928,7 @@ restart:
 	 */
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
 
-	for (cur = rbtversion->glue_table[index]; cur != NULL; cur = cur->next)
+	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next)
 		if (cur->node == node)
 			break;
 
@@ -10092,8 +10092,8 @@ no_glue:
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
 	if (ISC_UNLIKELY(rehash_gluetable(rbtversion))) {
-		index = isc_hash_function(&node, sizeof(node),
-					  ISC_TRUE, NULL) %
+		idx = isc_hash_function(&node, sizeof(node),
+					ISC_TRUE, NULL) %
 			rbtversion->glue_table_size;
 	}
 
@@ -10122,8 +10122,8 @@ no_glue:
 		cur->glue_list = ctx.glue_list;
 	}
 
-	cur->next = rbtversion->glue_table[index];
-	rbtversion->glue_table[index] = cur;
+	cur->next = rbtversion->glue_table[idx];
+	rbtversion->glue_table[idx] = cur;
 	rbtversion->glue_table_nodecount++;
 
 	result = ISC_R_SUCCESS;
