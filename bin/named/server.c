@@ -12020,6 +12020,10 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 	dns_db_t *dbp = NULL;
 	isc_boolean_t added;
 	isc_result_t result;
+#ifdef HAVE_LMDB
+	MDB_txn *txn = NULL;
+	MDB_dbi dbi;
+#endif
 
 	REQUIRE(dz != NULL);
 
@@ -12039,8 +12043,28 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 	/* Remove the zone from configuration (and NZF file if applicable) */
 	added = dns_zone_getadded(zone);
 
-#ifndef HAVE_LMDB
 	if (added && cfg != NULL) {
+#ifdef HAVE_LMDB
+		/* Make sure we can open the NZD database */
+		result = nzd_open(view, 0, &txn, &dbi);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "unable to open NZD database for '%s'",
+				      view->new_zone_db);
+		} else {
+			result = nzd_save(&txn, dbi, zone, NULL);
+		}
+
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR, "unable to "
+				      "delete zone configuration: %s",
+				      isc_result_totext(result));
+		}
+#else
 		result = delete_zoneconf(view, cfg->add_parser,
 					 cfg->nzf_config,
 					 dns_zone_getorigin(zone),
@@ -12048,12 +12072,12 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER,
-				      ISC_LOG_WARNING, "unable to "
+				      ISC_LOG_ERROR, "unable to "
 				      "delete zone configuration: %s",
 				      isc_result_totext(result));
 		}
-	}
 #endif /* HAVE_LMDB */
+	}
 
 	if (!added && cfg != NULL) {
 		if (cfg->vconfig != NULL) {
@@ -12072,7 +12096,7 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS){
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER,
-				      ISC_LOG_WARNING, "unable to "
+				      ISC_LOG_ERROR, "unable to "
 				      "delete zone configuration: %s",
 				      isc_result_totext(result));
 		}
@@ -12132,6 +12156,10 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+#ifdef HAVE_LMDB
+	if (txn != NULL)
+		(void) nzd_close(&txn, ISC_FALSE);
+#endif
 	if (raw != NULL)
 		dns_zone_detach(&raw);
 	dns_zone_detach(&zone);
@@ -12156,9 +12184,6 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	ns_dzctx_t *dz = NULL;
 	isc_event_t *dzevent = NULL;
 	isc_task_t *task = NULL;
-#ifdef HAVE_LMDB
-	MDB_txn *txn = NULL;
-#endif /* HAVE_LMDB */
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
@@ -12276,10 +12301,6 @@ ns_server_delzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		dns_zone_detach(&dz->zone);
 		isc_mem_put(ns_g_mctx, dz, sizeof(*dz));
 	}
-#ifdef HAVE_LMDB
-	if (txn != NULL)
-		(void) nzd_close(&txn, ISC_FALSE);
-#endif /* HAVE_LMDB */
 
 	return (result);
 }

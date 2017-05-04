@@ -119,6 +119,14 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+if [ -n "$NZD" ]; then
+    echo "I:checking zone is present in NZD ($n)"
+    ret=0
+    $NZD2NZF ns2/_default.nzd | grep previous.example > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
+
 echo "I:deleting previously added zone ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 delzone previous.example 2>&1 | sed 's/^/I:ns2 /'
@@ -128,6 +136,18 @@ grep '^a.previous.example' dig.out.ns2.$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
+
+if [ -n "$NZD" ]; then
+    echo "I:checking zone was deleted from NZD ($n)"
+    for i in 0 1 2 3 4 5 6 7 8 9; do
+        ret=0
+        $NZD2NZF ns2/_default.nzd | grep previous.example > /dev/null && ret=1
+        [ $ret = 0 ] && break
+        sleep 1
+    done
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
 
 if [ -z "$NZD" ]; then
     echo "I:checking NZF file now has comment ($n)"
