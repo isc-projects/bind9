@@ -795,7 +795,7 @@
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010,2016
 ./bin/tests/system/addzone/ns2/redirect.db	ZONE	2016
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014,2016
-./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/allow_query/clean.sh		SH	2010,2012,2014,2015,2016
 ./bin/tests/system/allow_query/ns2/aclallow.db	ZONE	2010,2016
 ./bin/tests/system/allow_query/ns2/acldisallow.db	ZONE	2010,2016
