@@ -219,7 +219,7 @@ options {
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
-        max-journal-size ( unlimited | <sizeval> );
+        max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-records <integer>;
         max-recursion-depth <integer>;
@@ -543,7 +543,7 @@ view <string> [ <class> ] {
         max-cache-ttl <integer>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
-        max-journal-size ( unlimited | <sizeval> );
+        max-journal-size ( default | unlimited | <sizeval> );
         max-ncache-ttl <integer>;
         max-records <integer>;
         max-recursion-depth <integer>;
@@ -743,7 +743,7 @@ view <string> [ <class> ] {
                     port <integer> ] ) [ key <string> ]; ... };
                 max-ixfr-log-size ( default | unlimited |
                     <sizeval> ); // obsolete
-                max-journal-size ( unlimited | <sizeval> );
+                max-journal-size ( default | unlimited | <sizeval> );
                 max-records <integer>;
                 max-refresh-time <integer>;
                 max-retry-time <integer>;
@@ -847,7 +847,7 @@ zone <string> [ <class> ] {
             <ipv4_address> [ port <integer> ] | <ipv6_address> [ port
             <integer> ] ) [ key <string> ]; ... };
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
-        max-journal-size ( unlimited | <sizeval> );
+        max-journal-size ( default | unlimited | <sizeval> );
         max-records <integer>;
         max-refresh-time <integer>;
         max-retry-time <integer>;

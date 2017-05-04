@@ -6096,16 +6096,24 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dt><span class="term"><span class="command"><strong>max-journal-size</strong></span></span></dt>
 <dd>
                 <p>
-                  Sets a maximum size for each journal file
-                  (see <a class="xref" href="Bv9ARM.ch04.html#journal" title="The journal file">the section called &#8220;The journal file&#8221;</a>).  When the journal file
-                  approaches
-                  the specified size, some of the oldest transactions in the
-                  journal
-                  will be automatically removed.  The largest permitted
-                  value is 2 gigabytes. The default is
-                  <code class="literal">unlimited</code>, which also
-                  means 2 gigabytes.
-                  This may also be set on a per-zone basis.
+                  Sets a maximum size for each journal file (see
+                  <a class="xref" href="Bv9ARM.ch04.html#journal" title="The journal file">the section called &#8220;The journal file&#8221;</a>), expressed in bytes
+                  or, if followed by an optional unit suffix ('k',
+                  'm', or 'g'), in kilobytes, megabytes, or gigabytes.
+                  When the journal file approaches the specified size,
+                  some of the oldest transactions in the journal
+                  will be automatically removed. The largest
+                  permitted value is 2 gigabytes.  Very small
+                  values are rounded up to 4096 bytes.  You
+                  can specify <code class="literal">unlimited</code>, which
+                  also means 2 gigabytes. If you set the limit to
+                  <code class="literal">default</code> or leave it unset, the
+                  journal is allowed to grow up to twice as large as
+                  the zone. (There is little benefit in storing
+                  larger journals.)
+                </p>
+                <p>
+                  This option may also be set on a per-zone basis.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>max-records</strong></span></span></dt>

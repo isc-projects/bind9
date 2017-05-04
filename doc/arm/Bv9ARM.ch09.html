@@ -198,6 +198,16 @@
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
+	<p>
+	  Setting <span class="command"><strong>max-journal-size</strong></span> to
+	  <code class="literal">default</code> limits journal sizes to twice the
+	  size of the zone contents.  This can be overridden by setting
+	  <span class="command"><strong>max-journal-size</strong></span> to <code class="literal">unlimited</code>
+	  or to an explicit value up to 2G. Thanks to Tony Finch for
+	  the contribution. [RT #38324]
+	</p>
+      </li>
+<li class="listitem">
         <p>
 	  The <span class="command"><strong>new-zones-directory</strong></span> option allows
 	  <span class="command"><strong>named</strong></span> to store configuration parameters
