@@ -1,3 +1,6 @@
+4617.	[test]		Update rndc system test to be more delay tolerant.
+			[RT #45177]
+
 4615.	[bug]		AD could be set on truncated answer with no records
 			present in the answer and authority sections.
 			[RT #45140]
