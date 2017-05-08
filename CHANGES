@@ -1,3 +1,6 @@
+4617.	[test]		Update rndc system test to be more delay tolerant.
+			[RT #45177]
+
 4616.	[bug]		When using LMDB, zones deleted using "rndc delzone"
 			were not correctly removed from the new-zone
 			database. [RT #45185]
