@@ -344,15 +344,15 @@ echo "I:testing rndc with querylog command ($n)"
 ret=0
 # first enable it with querylog on option
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf querylog on >/dev/null 2>&1 || ret=1
+grep "query logging is now on" ns3/named.run > /dev/null || ret=1
 # query for builtin and check if query was logged
 $DIG @10.53.0.3 -p 5300 -c ch -t txt foo12345.bind > /dev/null || ret 1
-grep "query logging is now on" ns3/named.run > /dev/null || ret=1
 grep "query: foo12345.bind CH TXT" ns3/named.run > /dev/null || ret=1
 # toggle query logging and check again
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf querylog >/dev/null 2>&1 || ret=1
+grep "query logging is now off" ns3/named.run > /dev/null || ret=1
 # query for another builtin zone and check if query was logged
 $DIG @10.53.0.3 -p 5300 -c ch -t txt foo9876.bind > /dev/null || ret 1
-grep "query logging is now off" ns3/named.run > /dev/null || ret=1
 grep "query: foo9876.bind CH TXT" ns3/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
