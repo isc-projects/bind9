@@ -313,7 +313,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:test using second key($n)"
+echo "I:test using second key ($n)"
 ret=0
 $RNDC -s 10.53.0.2 -p 9953 -c ns2/secondkey.conf status > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
