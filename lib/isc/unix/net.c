@@ -130,6 +130,9 @@ try_proto(int domain) {
 #ifdef EAFNOSUPPORT
 		case EAFNOSUPPORT:
 #endif
+#ifdef EPFNOSUPPORT
+		case EPFNOSUPPORT:
+#endif
 #ifdef EPROTONOSUPPORT
 		case EPROTONOSUPPORT:
 #endif
