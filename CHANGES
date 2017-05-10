@@ -1,3 +1,6 @@
+4621.	[port]		Force alignment of oid arrays to silence loader
+			warnings. [RT #45131]
+
 4620.	[port]		Handle EPFNOSUPPORT being returned when probing
 			to see if a socket type is supported. [RT #45214]
 
