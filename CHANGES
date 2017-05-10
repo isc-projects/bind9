@@ -1,3 +1,6 @@
+4620.	[port]		Handle EPFNOSUPPORT being returned when probing
+			to see if a socket type is supported. [RT #45214]
+
 4617.	[test]		Update rndc system test to be more delay tolerant.
 			[RT #45177]
 
