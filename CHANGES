@@ -1,3 +1,6 @@
+4618.	[bug]		Check isc_mem_strdup results in dns_view_setnewzones.
+			Add logging for lmdb call failures. [RT #45204]
+
 4617.	[test]		Update rndc system test to be more delay tolerant.
 			[RT #45177]
 

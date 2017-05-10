@@ -2082,17 +2082,31 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 			   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto out;
+
 	view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
+	if (view->new_zone_file == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto out;
+	}
 
 #ifdef HAVE_LMDB
 	result = nz_legacy(view->new_zone_dir, view->name, "nzd",
 			   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto out;
+
 	view->new_zone_db = isc_mem_strdup(view->mctx, buffer);
+	if (view->new_zone_db == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto out;
+	}
 
 	status = mdb_env_create(&env);
 	if (status != 0) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+			      "mdb_env_create failed: %s",
+			      mdb_strerror(status));
 		result = ISC_R_FAILURE;
 		goto out;
 	}
@@ -2100,6 +2114,10 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	if (mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, mapsize);
 		if (status != 0) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+				      "mdb_env_set_mapsize failed: %s",
+				      mdb_strerror(status));
 			result = ISC_R_FAILURE;
 			goto out;
 		}
@@ -2108,6 +2126,10 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	status = mdb_env_open(env, view->new_zone_db,
 			      MDB_NOSUBDIR|MDB_CREATE, 0600);
 	if (status != 0) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+			      "mdb_env_open of '%s' failed: %s",
+			      view->new_zone_db, mdb_strerror(status));
 		result = ISC_R_FAILURE;
 		goto out;
 	}
