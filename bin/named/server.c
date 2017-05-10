@@ -6712,7 +6712,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = dns_view_setnewzones(view, allow, nzcfg,
 				      newzone_cfgctx_destroy, mapsize);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_free(view->mctx, nzcfg);
+		isc_mem_put(view->mctx, nzcfg, sizeof(*nzcfg));
 		return (result);
 	}
 
