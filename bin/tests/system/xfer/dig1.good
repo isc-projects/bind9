@@ -10,7 +10,7 @@ a601.example.		3600	IN	A6	128  .
 afsdb01.example.	3600	IN	AFSDB	0 hostname.example.
 afsdb02.example.	3600	IN	AFSDB	65535 .
 avc.example.		3600	IN	AVC	"foo:bar"
-caa01.example.		3600	IN	CAA	0 issue "ca.example.net\; policy=ev"
+caa01.example.		3600	IN	CAA	0 issue "ca.example.net; policy=ev"
 caa02.example.		3600	IN	CAA	128 tbs "Unknown"
 caa03.example.		3600	IN	CAA	128 tbs ""
 cdnskey01.example.	3600	IN	CDNSKEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
