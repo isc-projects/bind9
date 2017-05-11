@@ -5639,19 +5639,25 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		allow = cfg_obj_asboolean(nz);
 
 	if (!allow) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
-		return (ISC_R_SUCCESS);
+		return (dns_view_setnewzones(view, ISC_FALSE, NULL, NULL));
 	}
 
 	nzcfg = isc_mem_get(view->mctx, sizeof(*nzcfg));
 	if (nzcfg == NULL) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+		result = dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		return (ISC_R_NOMEMORY);
 	}
 
-	dns_view_setnewzones(view, allow, nzcfg, newzone_cfgctx_destroy);
-
 	memset(nzcfg, 0, sizeof(*nzcfg));
+
+	result = dns_view_setnewzones(view, allow, nzcfg,
+				      newzone_cfgctx_destroy);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(view->mctx, nzcfg, sizeof(*nzcfg));
+		return (ISC_R_NOMEMORY);
+	}
+
 	isc_mem_attach(view->mctx, &nzcfg->mctx);
 	cfg_obj_attach(config, &nzcfg->config);
 	cfg_parser_attach(parser, &nzcfg->parser);
