@@ -1,3 +1,6 @@
+4622.	[bug]		Remove unnecessary escaping of semicolon in CAA and
+			URI records. [RT #45216]
+
 4621.	[port]		Force alignment of oid arrays to silence loader
 			warnings. [RT #45131]
 
