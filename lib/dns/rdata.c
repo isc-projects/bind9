@@ -1594,8 +1594,8 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target) {
 				tl -= 4;
 				continue;
 			}
-			/* double quote, semi-colon, backslash */
-			if (*sp == 0x22 || *sp == 0x3b || *sp == 0x5c) {
+			/* double quote, backslash */
+			if (*sp == 0x22 || *sp == 0x5c) {
 				if (tl < 2)
 					return (ISC_R_NOSPACE);
 				*tp++ = '\\';
