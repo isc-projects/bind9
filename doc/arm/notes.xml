@@ -101,6 +101,14 @@
 	  None.
 	</para>
       </listitem>
+
+      <listitem>
+	<para>
+	  Semicolons are no longer escaped when printing CAA and
+	  URI records.  This may break applications that depend on the
+	  presence of the backslash before the semicolon. [RT #45216]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
