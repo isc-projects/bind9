@@ -1,4 +1,4 @@
-4624.	[bug] 		Check isc_mem_strdup results in dns_view_setnewzones.
+4624.	[bug]		Check isc_mem_strdup results in dns_view_setnewzones.
 			[RT #45210]
 
 4622.	[bug]		Remove unnecessary escaping of semicolon in CAA and
