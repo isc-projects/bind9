@@ -276,6 +276,7 @@ destroy(dns_view_t *view) {
 #ifdef BIND9
 	dns_dns64_t *dns64;
 #endif
+	isc_result_t result;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
 	REQUIRE(isc_refcount_current(&view->references) == 0);
@@ -292,7 +293,6 @@ destroy(dns_view_t *view) {
 		dns_peerlist_detach(&view->peers);
 
 	if (view->dynamickeys != NULL) {
-		isc_result_t result;
 		char template[20];
 		char keyfile[20];
 		FILE *fp = NULL;
@@ -448,7 +448,8 @@ destroy(dns_view_t *view) {
 		dns_zone_detach(&view->managed_keys);
 	if (view->redirect != NULL)
 		dns_zone_detach(&view->redirect);
-	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+	result = dns_view_setnewzones(view, ISC_FALSE, NULL, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 #endif
 	dns_fwdtable_destroy(&view->fwdtable);
 	dns_aclenv_destroy(&view->aclenv);
@@ -1874,7 +1875,7 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
 
 #define NZF ".nzf"
 
-void
+isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		     void (*cfg_destroy)(void **))
 {
@@ -1898,6 +1899,8 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		/* Truncate the hash at 16 chars; full length is overkill */
 		isc_string_printf(buffer + 16, sizeof(NZF), "%s", NZF);
 		view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
+		if (view->new_zone_file == NULL)
+			return (ISC_R_NOMEMORY);
 		view->new_zone_config = cfgctx;
 		view->cfg_destroy = cfg_destroy;
 	}
@@ -1906,4 +1909,5 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	UNUSED(cfgctx);
 	UNUSED(cfg_destroy);
 #endif
+	return (ISC_R_SUCCESS);
 }

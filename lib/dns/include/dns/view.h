@@ -1095,7 +1095,7 @@ dns_view_untrust(dns_view_t *view, dns_name_t *keyname,
  * \li	'dnskey' is valid.
  */
 
-void
+isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 		     void (*cfg_destroy)(void **));
 /*%<
@@ -1114,6 +1114,10 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
  *
  * Requires:
  * \li 'view' is valid.
+ *
+ * Returns:
+ * \li ISC_R_SUCCESS
+ * \li ISC_R_NOMEMORY
  */
 
 void
