@@ -1,3 +1,6 @@
+4623.	[bug]		Use --with-protobuf-c and --with-libfstrm to find
+			protoc-c and fstrm_capture. [RT #45187]
+
 4622.	[bug]		Remove unnecessary escaping of semicolon in CAA and
 			URI records. [RT #45216]
 

@@ -4313,7 +4313,6 @@ esac
 #
 # Activate dnstap?
 #
-AC_PATH_PROG(FSTRM_CAPTURE, fstrm_capture)
 AC_ARG_ENABLE(dnstap,
 	[  --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)],
                         use_dnstap=$enableval,
@@ -4328,10 +4327,6 @@ if test "x$use_dnstap" != "xno"; then
 	if ! $use_threads; then
 		AC_MSG_ERROR([Dnstap requires threads.])
 	fi
-	AC_PATH_PROG([PROTOC_C], [protoc-c])
-	if test -z "$PROTOC_C"; then
-		AC_MSG_ERROR([The protoc-c program was not found.])
-	fi
 	AC_ARG_WITH([protobuf-c],
 		    AC_HELP_STRING([--with-protobuf-c=path],
 				   [Path where protobuf-c is installed, for dnstap]), [
@@ -4344,6 +4339,8 @@ if test "x$use_dnstap" != "xno"; then
 		CFLAGS="$CFLAGS -I$withval/include"
 	    fi
 	    LDFLAGS="$LDFLAGS -L$withval/lib"
+	    AC_PATH_PROG([PROTOC_C], [protoc-c], [],
+			 [$PATH$PATH_SEPARATOR$withval/bin])
 	], [
 	    # workaround for protobuf-c includes at old dir
 	    # before protobuf-c-1.0.0
@@ -4357,11 +4354,18 @@ if test "x$use_dnstap" != "xno"; then
 		    LDFLAGS="$LDFLAGS -L/usr/local/lib"
 		fi
 	    fi
+	    AC_PATH_PROG([PROTOC_C],[protoc-c])
 	])
+	if test -z "$PROTOC_C"; then
+		AC_MSG_ERROR([The protoc-c program was not found.])
+	fi
 	AC_ARG_WITH([libfstrm], AC_HELP_STRING([--with-libfstrm=path],
 		    [Path where libfstrm is installed, for dnstap]), [
 	    CFLAGS="$CFLAGS -I$withval/include"
 	    LDFLAGS="$LDFLAGS -L$withval/lib"
+	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture], [], [$PATH$PATH_SEPARATOR$withval/bin])
+	],[
+	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
 	])
 
 	AC_SEARCH_LIBS([fstrm_iothr_init], [fstrm], [],
