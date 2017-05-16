@@ -82,7 +82,7 @@
       <listitem>
 	<para>
 	  <command>dig +ednsopt</command> now accepts the names
-	  for EDNS options in addition to numeric values. For example, 
+	  for EDNS options in addition to numeric values. For example,
 	  an EDNS Client-Subnet option could be sent using
 	  <command>dig +ednsopt=ecs:...</command>. Thanks to
 	  John Worley of Secure64 for the contribution. [RT #44461]
