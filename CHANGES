@@ -1,3 +1,7 @@
+4625.	[bug]		Running "rndc addzone" and "rndc delzone" at close
+			to the same time could trigger a deadlock if using
+			LMDB. [RT #45209]
+
 4623.	[bug]		Use --with-protobuf-c and --with-libfstrm to find
 			protoc-c and fstrm_capture. [RT #45187]
 
