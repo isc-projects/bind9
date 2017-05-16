@@ -248,6 +248,22 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo "I:checking dig +ednsopt with option number ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep 'NSID: .* ("ns3")' dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +ednsopt with option name ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=nsid a.example > dig.out.test$n 2>&1 || ret=1
+  grep 'NSID: .* ("ns3")' dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   if $FEATURETEST --with-idn
   then
     echo "I:checking dig +idnout ($n)"

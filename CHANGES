@@ -94,6 +94,9 @@
 4574.	[bug]		Dig leaked memory with multiple +subnet options.
 			[RT #44683]
 
+4555.	[func]		dig +ednsopt: EDNS options can now be specified by
+			name in addition to numeric value. [RT #44461]
+
 	--- 9.10.5 released ---
 
 	--- 9.10.5rc3 released ---

@@ -1539,18 +1539,52 @@ setup_libs(void) {
 static dns_ednsopt_t ednsopts[EDNSOPTS];
 static unsigned char ednsoptscnt = 0;
 
+typedef struct dig_ednsoptname {
+	isc_uint32_t code;
+	const char  *name;
+} dig_ednsoptname_t;
+
+dig_ednsoptname_t optnames[] = {
+	{ 3, "NSID" },		/* RFC 5001 */
+	{ 5, "DAU" },		/* RFC 6975 */
+	{ 6, "DHU" },		/* RFC 6975 */
+	{ 7, "N3U" },		/* RFC 6975 */
+	{ 8, "ECS" },		/* RFC 7871 */
+	{ 9, "EXPIRE" },	/* RFC 7314 */
+	{ 10, "COOKIE" },	/* RFC 7873 */
+	{ 11, "KEEPALIVE" },	/* RFC 7828 */
+	{ 12, "PADDING" },	/* RFC 7830 */
+	{ 12, "PAD" },		/* shorthand */
+	{ 13, "CHAIN" },	/* RFC 7901 */
+	{ 26946, "DEVICEID" },	/* Brian Hartvigsen */
+};
+
+#define N_EDNS_OPTNAMES  (sizeof(optnames) / sizeof(optnames[0]))
+
 void
 save_opt(dig_lookup_t *lookup, char *code, char *value) {
+	isc_result_t result;
 	isc_uint32_t num;
 	isc_buffer_t b;
-	isc_result_t result;
+	isc_boolean_t found = ISC_FALSE;
+	unsigned int i;
 
 	if (ednsoptscnt == EDNSOPTS)
 		fatal("too many ednsopts");
 
-	result = parse_uint(&num, code, 65535, "ednsopt");
-	if (result != ISC_R_SUCCESS)
-		fatal("bad edns code point: %s", code);
+	for (i = 0; i < N_EDNS_OPTNAMES; i++) {
+		if (strcasecmp(code, optnames[i].name) == 0) {
+			num = optnames[i].code;
+			found = ISC_TRUE;
+			break;
+		}
+	}
+
+	if (!found) {
+		result = parse_uint(&num, code, 65535, "ednsopt");
+		if (result != ISC_R_SUCCESS)
+			fatal("bad edns code point: %s", code);
+	}
 
 	ednsopts[ednsoptscnt].code = num;
 	ednsopts[ednsoptscnt].length = 0;
