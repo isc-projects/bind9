@@ -479,6 +479,9 @@ static isc_result_t
 migrate_nzf(dns_view_t *view);
 
 static isc_result_t
+nzd_writable(dns_view_t *view);
+
+static isc_result_t
 nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi);
 
 static isc_result_t
@@ -11240,6 +11243,37 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 }
 
 static isc_result_t
+nzd_writable(dns_view_t *view) {
+	isc_result_t result = ISC_R_SUCCESS;
+	int status;
+	MDB_dbi dbi;
+	MDB_txn *txn = NULL;
+
+	REQUIRE(view != NULL);
+
+	status = mdb_txn_begin((MDB_env *) view->new_zone_dbenv, 0, 0, &txn);
+	if (status != 0) {
+		isc_log_write(ns_g_lctx,
+			      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING, "mdb_txn_begin: %s",
+			      mdb_strerror(status));
+		return (ISC_R_FAILURE);
+	}
+
+	status = mdb_dbi_open(txn, NULL, 0, &dbi);
+	if (status != 0) {
+		isc_log_write(ns_g_lctx,
+		      NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING, "mdb_dbi_open: %s",
+			      mdb_strerror(status));
+		result = ISC_R_FAILURE;
+	}
+
+	mdb_txn_abort(txn);
+	return (result);
+}
+
+static isc_result_t
 nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	int status;
 	MDB_txn *txn = NULL;
@@ -11711,7 +11745,7 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	fp = NULL;
 #else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
-	result = nzd_open(view, 0, &txn, &dbi);
+	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
 		TCHECK(putstr(text, "unable to open NZD database for '"));
 		TCHECK(putstr(text, view->new_zone_db));
@@ -11802,12 +11836,13 @@ do_addzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Flag the zone as having been added at runtime */
 	dns_zone_setadded(zone, ISC_TRUE);
 
-#ifndef HAVE_LMDB
+#ifdef HAVE_LMDB
+	/* Save the new zone configuration into the NZD */
+	CHECK(nzd_open(view, 0, &txn, &dbi));
+	CHECK(nzd_save(&txn, dbi, zone, zoneobj));
+#else
 	/* Append the zone configuration to the NZF */
 	result = nzf_append(view, zoneobj);
-#else /* HAVE_LMDB */
-	/* Save the new zone configuration into the NZD */
-	result = nzd_save(&txn, dbi, zone, zoneobj);
 #endif /* HAVE_LMDB */
 
  cleanup:
@@ -11884,7 +11919,7 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	fp = NULL;
 #else /* HAVE_LMDB */
 	/* Make sure we can open the NZD database */
-	result = nzd_open(view, 0, &txn, &dbi);
+	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
 		TCHECK(putstr(text, "unable to open NZD database for '"));
 		TCHECK(putstr(text, view->new_zone_db));
@@ -12001,15 +12036,16 @@ do_modzone(ns_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #endif /* HAVE_LMDB */
 
 	if (added) {
-#ifndef HAVE_LMDB
+#ifdef HAVE_LMDB
+		CHECK(nzd_open(view, 0, &txn, &dbi));
+		CHECK(nzd_save(&txn, dbi, zone, zoneobj));
+#else
 		result = nzf_append(view, zoneobj);
 		if (result != ISC_R_SUCCESS) {
 			TCHECK(putstr(text, "\nNew zone config not saved: "));
 			TCHECK(putstr(text, isc_result_totext(result)));
 			goto cleanup;
 		}
-#else /* HAVE_LMDB */
-		nzd_save(&txn, dbi, zone, zoneobj);
 #endif /* HAVE_LMDB */
 
 		TCHECK(putstr(text, "zone '"));
