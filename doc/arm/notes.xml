@@ -105,6 +105,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>dig +ednsopt</command> now accepts the names
+	  for EDNS options in addition to numeric values. For example, 
+	  an EDNS Client-Subnet option could be sent using
+	  <command>dig +ednsopt=ecs:...</command>. Thanks to
+	  John Worley of Secure64 for the contribution. [RT #44461]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Threads in <command>named</command> are now set to human-readable
 	  names to assist debugging on operating systems that support that.
 	  Threads will have names such as "isc-timer", "isc-sockmgr",

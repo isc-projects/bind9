@@ -708,7 +708,10 @@
 	    <para>
 	      Specify EDNS option with code point <option>code</option>
 	      and optionally payload of <option>value</option> as a
-	      hexadecimal string.  <option>+noednsopt</option>
+	      hexadecimal string.  <option>code</option> can be 
+	      either an EDNS option name (for example,
+	      <literal>NSID</literal> or <literal>ECS</literal>),
+	      or an arbitrary numeric value.  <option>+noednsopt</option>
 	      clears the EDNS options to be sent.
 	    </para>
 	  </listitem>
