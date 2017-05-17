@@ -956,11 +956,17 @@
 	  <term><option>+[no]sit<optional>=####</optional></option></term>
 	  <listitem>
 	    <para>
-	      Send a Source Identity Token EDNS option, with optional
-	      value.  Replaying a SIT from a previous response will
+	      Send a DNS COOKIE option, with optional value.
+	      Replaying a DNS COOKIE from a previous response will
 	      allow the server to identify a previous client.  The
-	      default is <option>+nosit</option>.  Currently using
-	      experimental value 65001 for the option code.
+	      default is <option>+nosit</option>.
+	    </para>
+	    <para>
+	      This option is <option>+[no]cookie</option> from
+	      BIND 9.11.0 onwards.  BIND 9.10.0 through BIND 9.10.2
+	      sent the experimental option code 65001.  This was
+	      changed to 10 in BIND 9.10.3 when the DNS COOKIE
+	      option was allocated.
 	    </para>
 	  </listitem>
 	</varlistentry>
