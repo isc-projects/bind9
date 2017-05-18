@@ -242,11 +242,8 @@
 	  <emphasis>resolver</emphasis> library, which sends queries to one or
 	  more <emphasis>name servers</emphasis> and interprets the responses.
 	  The <acronym>BIND</acronym> 9 software distribution
-	  contains a
-	  name server, <command>named</command>, and a resolver
-	  library, <command>liblwres</command>.  The older
-	  <command>libbind</command> resolver library is also available
-	  from ISC as a separate download.
+	  contains a name server, <command>named</command>, and a
+	  resolver library, <command>liblwres</command>.
 	</para>
 
 	</section>
