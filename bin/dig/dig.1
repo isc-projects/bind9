@@ -579,8 +579,12 @@ instead\&.
 .PP
 \fB+[no]sit\fR\fB[=####]\fR
 .RS 4
-Send a Source Identity Token EDNS option, with optional value\&. Replaying a SIT from a previous response will allow the server to identify a previous client\&. The default is
-\fB+nosit\fR\&. Currently using experimental value 65001 for the option code\&.
+Send a DNS COOKIE option, with optional value\&. Replaying a DNS COOKIE from a previous response will allow the server to identify a previous client\&. The default is
+\fB+nosit\fR\&.
+.sp
+This option is
+\fB+[no]cookie\fR
+from BIND 9\&.11\&.0 onwards\&. BIND 9\&.10\&.0 through BIND 9\&.10\&.2 sent the experimental option code 65001\&. This was changed to 10 in BIND 9\&.10\&.3 when the DNS COOKIE option was allocated\&.
 .RE
 .PP
 \fB+split=W\fR

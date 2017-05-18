@@ -756,11 +756,17 @@
 <dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
 <dd>
 	    <p>
-	      Send a Source Identity Token EDNS option, with optional
-	      value.  Replaying a SIT from a previous response will
+	      Send a DNS COOKIE option, with optional value.
+	      Replaying a DNS COOKIE from a previous response will
 	      allow the server to identify a previous client.  The
-	      default is <code class="option">+nosit</code>.  Currently using
-	      experimental value 65001 for the option code.
+	      default is <code class="option">+nosit</code>.
+	    </p>
+	    <p>
+	      This option is <code class="option">+[no]cookie</code> from
+	      BIND 9.11.0 onwards.  BIND 9.10.0 through BIND 9.10.2
+	      sent the experimental option code 65001.  This was
+	      changed to 10 in BIND 9.10.3 when the DNS COOKIE
+	      option was allocated.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+split=W</code></span></dt>
