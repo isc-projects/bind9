@@ -3519,7 +3519,7 @@
 ./lib/isc/tests/counter_test.c			C	2014
 ./lib/isc/tests/errno_test.c			C	2016
 ./lib/isc/tests/hash_test.c			C	2011,2012,2014,2015,2016
-./lib/isc/tests/isctest.c			C	2011,2012,2014
+./lib/isc/tests/isctest.c			C	2011,2012,2014,2017
 ./lib/isc/tests/isctest.h			C	2011,2012
 ./lib/isc/tests/lex_test.c			C	2013
 ./lib/isc/tests/netaddr_test.c			C	2016
