@@ -4216,7 +4216,7 @@
 ./lib/isc/tests/file_test.c			C	2014,2016
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016
 ./lib/isc/tests/ht_test.c			C	2016
-./lib/isc/tests/isctest.c			C	2011,2012,2013,2014,2016
+./lib/isc/tests/isctest.c			C	2011,2012,2013,2014,2016,2017
 ./lib/isc/tests/isctest.h			C	2011,2012,2016
 ./lib/isc/tests/lex_test.c			C	2013,2016
 ./lib/isc/tests/mem_test.c			C	2015,2016
