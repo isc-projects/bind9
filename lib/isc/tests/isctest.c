@@ -148,8 +148,6 @@ isc_test_end(void) {
 		isc_task_detach(&maintask);
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
-	if (lctx != NULL)
-		isc_log_destroy(&lctx);
 	if (hash_active) {
 		isc_hash_destroy();
 		hash_active = ISC_FALSE;
@@ -159,6 +157,8 @@ isc_test_end(void) {
 
 	cleanup_managers();
 
+	if (lctx != NULL)
+		isc_log_destroy(&lctx);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 }
