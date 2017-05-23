@@ -1,4 +1,3 @@
-#!/usr/bin/python
 ############################################################################
 # Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
 #
