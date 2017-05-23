@@ -74,9 +74,9 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
-	 cacheclean case checkconf @CHECKDS@ checknames checkzone
+	 cacheclean case chain checkconf @CHECKDS@ checknames checkzone
 	 @COVERAGE@ database delv digdelv dlv dlvauto dlz dlzexternal
-	 dlzredir dname dns64 dnssec dsdigest dscp ecdsa ednscompliance
+	 dlzredir dns64 dnssec dsdigest dscp ecdsa ednscompliance
 	 emptyzones fetchlimit filter-aaaa formerr forward geoip
 	 glue gost ixfr inline integrity legacy limits logfileconfig
 	 lwresd masterfile masterformat metadata notify nslookup
