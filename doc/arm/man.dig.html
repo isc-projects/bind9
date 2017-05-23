@@ -500,6 +500,33 @@
 	      The default is to print comments.
 	    </p>
 	  </dd>
+<dt><span class="term"><code class="option">+[no]cookie[<span class="optional">=####</span>]</code></span></dt>
+<dd>
+	    <p>
+	      Send an COOKIE EDNS option, containing an optional
+	      <em class="replaceable"><code>value</code></em>.  Replaying a COOKIE
+	      from a previous response will allow the server to
+	      identify a previous client.  The default is
+	      <code class="option">+nocookie</code>.
+	    </p>
+	    <p>
+	      <span class="command"><strong>+cookie</strong></span> is automatically set when +trace
+	      is in use, to better emulate the default queries from a
+	      nameserver.
+	    </p>
+	    <p>
+	      This option was formerly called <code class="option">+[no]sit</code>
+              (Server Identity Token). In BIND 9.10.0 through BIND 9.10.2,
+              it sent the experimental option code 65001.  This was
+              changed to option code 10 in BIND 9.10.3 when the DNS
+              COOKIE option was allocated.
+	    </p>
+	    <p>
+	      The <code class="option">+[no]sit</code> is now deprecated, but has
+              been retained as a synonym for <code class="option">+[no]cookie</code>
+              for backward compatibility within the BIND 9.10 branch.
+	    </p>
+	  </dd>
 <dt><span class="term"><code class="option">+[no]crypto</code></span></dt>
 <dd>
 	    <p>
@@ -774,17 +801,10 @@
 <dt><span class="term"><code class="option">+[no]sit[<span class="optional">=####</span>]</code></span></dt>
 <dd>
 	    <p>
-	      Send a DNS COOKIE option, with optional value.
-	      Replaying a DNS COOKIE from a previous response will
-	      allow the server to identify a previous client.  The
-	      default is <code class="option">+nosit</code>.
+	      This option is a synonym for <code class="option">+[no]cookie</code>.
 	    </p>
 	    <p>
-	      This option is <code class="option">+[no]cookie</code> from
-	      BIND 9.11.0 onwards.  BIND 9.10.0 through BIND 9.10.2
-	      sent the experimental option code 65001.  This was
-	      changed to 10 in BIND 9.10.3 when the DNS COOKIE
-	      option was allocated.
+	      The <code class="option">+[no]sit</code> is deprecated.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+split=W</code></span></dt>

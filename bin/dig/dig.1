@@ -367,6 +367,26 @@ and the query options that have been applied\&. This comment is printed by defau
 Toggle the display of comment lines in the output\&. The default is to print comments\&.
 .RE
 .PP
+\fB+[no]cookie\fR\fB[=####]\fR
+.RS 4
+Send an COOKIE EDNS option, containing an optional
+\fIvalue\fR\&. Replaying a COOKIE from a previous response will allow the server to identify a previous client\&. The default is
+\fB+nocookie\fR\&.
+.sp
+\fB+cookie\fR
+is automatically set when +trace is in use, to better emulate the default queries from a nameserver\&.
+.sp
+This option was formerly called
+\fB+[no]sit\fR
+(Server Identity Token)\&. In BIND 9\&.10\&.0 through BIND 9\&.10\&.2, it sent the experimental option code 65001\&. This was changed to option code 10 in BIND 9\&.10\&.3 when the DNS COOKIE option was allocated\&.
+.sp
+The
+\fB+[no]sit\fR
+is now deprecated, but has been retained as a synonym for
+\fB+[no]cookie\fR
+for backward compatibility within the BIND 9\&.10 branch\&.
+.RE
+.PP
 \fB+[no]crypto\fR
 .RS 4
 Toggle the display of cryptographic fields in DNSSEC records\&. The contents of these field are unnecessary to debug most DNSSEC validation failures and removing them makes it easier to see the common failures\&. The default is to display the fields\&. When omitted they are replaced by the string "[omitted]" or in the DNSKEY case the key id is displayed as the replacement, e\&.g\&. "[ key id = value ]"\&.
@@ -579,12 +599,12 @@ instead\&.
 .PP
 \fB+[no]sit\fR\fB[=####]\fR
 .RS 4
-Send a DNS COOKIE option, with optional value\&. Replaying a DNS COOKIE from a previous response will allow the server to identify a previous client\&. The default is
-\fB+nosit\fR\&.
+This option is a synonym for
+\fB+[no]cookie\fR\&.
 .sp
-This option is
-\fB+[no]cookie\fR
-from BIND 9\&.11\&.0 onwards\&. BIND 9\&.10\&.0 through BIND 9\&.10\&.2 sent the experimental option code 65001\&. This was changed to 10 in BIND 9\&.10\&.3 when the DNS COOKIE option was allocated\&.
+The
+\fB+[no]sit\fR
+is deprecated\&.
 .RE
 .PP
 \fB+split=W\fR
