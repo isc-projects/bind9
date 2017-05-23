@@ -65,9 +65,9 @@ SAMPLEUPDATE=$TOP/lib/export/samples/sample-update
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional allow_query addzone autosign builtin
-	 cacheclean case checkconf @CHECKDS@ checknames checkzone
+	 cacheclean case chain checkconf @CHECKDS@ checknames checkzone
 	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
-	 dname dns64 dnssec ecdsa emptyzones fetchlimit filter-aaaa
+	 dns64 dnssec ecdsa emptyzones fetchlimit filter-aaaa
 	 formerr forward glue gost inline integrity ixfr legacy
 	 limits logfileconfig lwresd masterfile masterformat metadata
 	 notify nslookup nsupdate pending pkcs11 reclimit redirect
@@ -86,6 +86,10 @@ XMLLINT=@XMLLINT@
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
+
+# PYTHON will be an empty string if no python interpreter was found.
+PYTHON=@PYTHON@
+
 if test -n "$PERL"
 then
 	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null

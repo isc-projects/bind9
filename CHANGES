@@ -1,3 +1,6 @@
+4626.	[test]		Added more tests for handling of different record
+			ordering in CNAME and DNAME responses. [QA #430]
+
 4624.	[bug]		Check isc_mem_strdup results in dns_view_setnewzones.
 			[RT #45210]
 
