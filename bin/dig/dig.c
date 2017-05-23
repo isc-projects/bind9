@@ -197,6 +197,9 @@ help(void) {
 "                 +[no]cl             (Control display of class in records)\n"
 "                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
+#ifdef ISC_PLATFORM_USESIT
+"                 +[no]cookie         (Add a COOKIE option to the request)\n"
+#endif
 "                 +[no]crypto         (Control display of cryptographic "
 				       "fields in records)\n"
 "                 +[no]defname        (Use search list (+[no]search))\n"
@@ -234,7 +237,7 @@ help(void) {
 "                 +[no]sigchase       (Chase DNSSEC signatures)\n"
 #endif
 #ifdef ISC_PLATFORM_USESIT
-"                 +[no]sit            (Request a Source Identity Token)\n"
+"                 +[no]sit            (A synonym for +[no]cookie)\n"
 #endif
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
 "                 +[no]stats          (Control display of statistics)\n"
@@ -927,10 +930,23 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			printcmd = state;
 			break;
 		case 'o': /* comments */
-			FULLCHECK("comments");
-			lookup->comments = state;
-			if (lookup == default_lookup)
-				pluscomm = state;
+#ifdef ISC_PLATFORM_USESIT
+			switch (cmd[2]) {
+			case 'o':
+				FULLCHECK("cookie");
+				goto sit;
+			case 'm':
+#endif
+				FULLCHECK("comments");
+				lookup->comments = state;
+				if (lookup == default_lookup)
+					pluscomm = state;
+#ifdef ISC_PLATFORM_USESIT
+				break;
+			default:
+				goto invalid_option;
+			}
+#endif
 			break;
 		case 'r':
 			FULLCHECK("crypto");
@@ -1273,6 +1289,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 #ifdef ISC_PLATFORM_USESIT
 			case 't': /* sit */
 				FULLCHECK("sit");
+ sit:
 				if (state && lookup->edns == -1)
 					lookup->edns = 0;
 				lookup->sit = state;

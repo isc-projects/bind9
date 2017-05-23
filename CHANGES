@@ -1,3 +1,6 @@
+4627.	[func]		Deprecate 'dig +sit', it is replaced by 'dig +cookie'.
+			[RT #45245]
+
 4626.	[test]		Added more tests for handling of different record
 			ordering in CNAME and DNAME responses. [QA #430]
 

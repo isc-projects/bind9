@@ -592,6 +592,36 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]cookie<optional>=####</optional></option></term>
+	  <listitem>
+	    <para>
+	      Send an COOKIE EDNS option, containing an optional
+	      <replaceable>value</replaceable>.  Replaying a COOKIE
+	      from a previous response will allow the server to
+	      identify a previous client.  The default is
+	      <option>+nocookie</option>.
+	    </para>
+	    <para>
+	      <command>+cookie</command> is automatically set when +trace
+	      is in use, to better emulate the default queries from a
+	      nameserver.
+	    </para>
+	    <para>
+	      This option was formerly called <option>+[no]sit</option>
+              (Server Identity Token). In BIND 9.10.0 through BIND 9.10.2,
+              it sent the experimental option code 65001.  This was
+              changed to option code 10 in BIND 9.10.3 when the DNS
+              COOKIE option was allocated.
+	    </para>
+	    <para>
+	      The <option>+[no]sit</option> is now deprecated, but has
+              been retained as a synonym for <option>+[no]cookie</option>
+              for backward compatibility within the BIND 9.10 branch.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]crypto</option></term>
 	  <listitem>
 	    <para>
@@ -956,17 +986,10 @@
 	  <term><option>+[no]sit<optional>=####</optional></option></term>
 	  <listitem>
 	    <para>
-	      Send a DNS COOKIE option, with optional value.
-	      Replaying a DNS COOKIE from a previous response will
-	      allow the server to identify a previous client.  The
-	      default is <option>+nosit</option>.
+	      This option is a synonym for <option>+[no]cookie</option>.
 	    </para>
 	    <para>
-	      This option is <option>+[no]cookie</option> from
-	      BIND 9.11.0 onwards.  BIND 9.10.0 through BIND 9.10.2
-	      sent the experimental option code 65001.  This was
-	      changed to 10 in BIND 9.10.3 when the DNS COOKIE
-	      option was allocated.
+	      The <option>+[no]sit</option> is deprecated.
 	    </para>
 	  </listitem>
 	</varlistentry>
