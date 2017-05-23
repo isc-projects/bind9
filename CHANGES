@@ -1,3 +1,6 @@
+4626.	[test]		Added more tests for handling of different record
+			ordering in CNAME and DNAME responses. [QA #430]
+
 4625.	[bug]		Running "rndc addzone" and "rndc delzone" at close
 			to the same time could trigger a deadlock if using
 			LMDB. [RT #45209]
