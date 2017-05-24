@@ -146,7 +146,7 @@ grep "ANSWER: 2" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-t=`expr $t + 1`
+n=`expr $n + 1`
 echo "I:checking CNAME to signed external delgation is handled ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.7 -p 5300 c.example > dig.out.$n
@@ -154,7 +154,7 @@ grep "status: NOERROR" dig.out.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
-t=`expr $t + 1`
+n=`expr $n + 1`
 echo "I:checking CNAME to signed internal delgation is handled ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.7 -p 5300 d.example > dig.out.$n
