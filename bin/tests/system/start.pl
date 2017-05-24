@@ -226,7 +226,7 @@ sub start_server {
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
                 if (-e "$testdir/$server/ans.py") {
-                        $command = "$PYTHON ans.py 10.53.0.$' 5300";
+                        $command = "$PYTHON -u ans.py 10.53.0.$' 5300";
                 } elsif (-e "$testdir/$server/ans.pl") {
                         $command = "$PERL ans.pl";
                 } else {
