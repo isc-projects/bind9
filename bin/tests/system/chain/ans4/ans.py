@@ -25,6 +25,7 @@ import signal
 import socket
 import select
 from datetime import datetime, timedelta
+import functools
 
 import dns, dns.message, dns.query
 from dns.rdatatype import *
@@ -79,12 +80,12 @@ def ctl_channel(msg):
     msg = msg.splitlines().pop(0)
     print ('received control message: %s' % msg)
 
-    msg = msg.split('|')
+    msg = msg.split(b'|')
     if len(msg) == 0:
         return
 
-    actions = [x.strip() for x in msg[0].split(',')]
-    n = reduce(lambda n,act: (n + (2 if act == 'dname' else 1)), [0] + actions)
+    actions = [x.strip() for x in msg[0].split(b',')]
+    n = functools.reduce(lambda n, act: (n + (2 if act == b'dname' else 1)), [0] + actions)
 
     if len(msg) == 1:
         rrs = []
@@ -93,10 +94,10 @@ def ctl_channel(msg):
                 rrs.append((i, b))
         return
 
-    rlist = [x.strip() for x in msg[1].split(',')]
+    rlist = [x.strip() for x in msg[1].split(b',')]
     rrs = []
     for item in rlist:
-        if item[0] == 's':
+        if item[0] == b's'[0]:
             i = int(item[1:].strip()) - 1
             if i > n:
                 print ('invalid index %d' + (i + 1))
@@ -169,9 +170,9 @@ def create_response(msg):
     i = 0
 
     for action in actions:
-        if name <> 'test':
+        if name != 'test':
             continue
-        if action == 'xname':
+        if action == b'xname':
             owner = curname + '.' + curdom
             newname = 'cname%d' % i
             i += 1
@@ -188,7 +189,7 @@ def create_response(msg):
             curdom = newdom
             continue
 
-        if action == 'cname':
+        if action == b'cname':
             owner = curname + '.' + curdom
             newname = 'cname%d' % i
             target = newname + '.' + curdom
@@ -202,7 +203,7 @@ def create_response(msg):
             curname = newname
             continue
 
-        if action == 'dname':
+        if action == b'dname':
             owner = curdom
             newdom = 'domain%d.%s' % (i, tld)
             i += 1
@@ -233,7 +234,7 @@ def create_response(msg):
     # prepare the response and convert to wire format
     r = dns.message.make_response(m)
 
-    if name <> 'test':
+    if name != 'test':
         r.answer.append(answers[-1])
         if wantsigs:
             r.answer.append(sigs[-1])
@@ -262,6 +263,7 @@ def sigterm(signum, frame):
     print ("Shutting down now...")
     os.remove('ans.pid')
     running = 0
+    sys.exit(0)
 
 ############################################################################
 # Main
@@ -284,9 +286,6 @@ ctrl_socket.bind((ip4, sock + 1))
 ctrl_socket.listen(5)
 
 signal.signal(signal.SIGTERM, sigterm)
-
-# Unbuffered ouput ensures we can always check current status in ans.run.
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 f = open('ans.pid', 'w')
 pid = os.getpid()
