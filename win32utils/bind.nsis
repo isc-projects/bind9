@@ -1,0 +1,207 @@
+!include WinVer.nsh
+
+!ifdef WINDOWS64
+!include x64.nsh
+!endif
+
+!define MY_APP "BIND"
+!define MY_APP_WITH_VERSION "BIND 9.12.0"
+!define MY_COMPANY "ISC"
+!define MY_COMPANY_LONG "Internet Systems Consortium"
+!define MY_WEBSITE "https://www.isc.org/downloads/bind/"
+
+; Icon bind.ico
+; UninstallIcon bind.ico
+BrandingText "${MY_APP_WITH_VERSION} Install System"
+
+VIProductVersion "9.12.0.0"
+VIAddVersionKey Comments "${MY_APP_WITH_VERSION} (x64) Installer"
+VIAddVersionKey CompanyName "${MY_COMPANY_LONG}"
+VIAddVersionKey FileDescription "${MY_APP_WITH_VERSION} (x64) Installer"
+VIAddVersionKey FileVersion "9.12.0.0"
+VIAddVersionKey InternalName "BIND"
+VIAddVersionKey LegalCopyright "Copyright (C) 1996-2017 Internet Systems Consortium"
+VIAddVersionKey OriginalFilename "bind-9.12.0-release-installer-x64.exe"
+VIAddVersionKey ProductName "${MY_APP_WITH_VERSION} (x64) Installer"
+VIAddVersionKey ProductVersion "9.12.0.0"
+
+!ifdef WINDOWS64
+!define INSTDIR_COMPANY "$PROGRAMFILES64\${MY_COMPANY}"
+!else
+!define INSTDIR_COMPANY "$PROGRAMFILES\${MY_COMPANY}"
+!endif
+
+!if "${PASS}" == "1"
+
+Name "${MY_APP_WITH_VERSION} (x64)"
+OutFile "bind-9.12.0-release-installer-x64-tmp.exe"
+SetCompress off
+InstallDir "."
+
+!else
+
+Name "${MY_APP_WITH_VERSION} (x64)"
+OutFile "bind-9.12.0-release-installer-x64.exe"
+SetCompressor /SOLID lzma
+RequestExecutionLevel admin
+
+InstallDir "${INSTDIR_COMPANY}\${MY_APP_WITH_VERSION}"
+LicenseData "LICENSE.txt"
+Page license
+Page directory
+Page instfiles
+
+!endif
+
+!if "${PASS}" != "2"
+UninstPage uninstConfirm
+UninstPage instfiles
+!endif
+
+!define REGISTRY_UNINSTALL "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MY_COMPANY} ${MY_APP} 9.12"
+!define REGISTRY_COMPANY   "Software\${MY_COMPANY}"
+!define REGISTRY_APP       "${REGISTRY_COMPANY}\${MY_APP} 9.12"
+
+Function .onInit
+!if "${PASS}" == "1"
+  ; In the first pass, just write the uninstaller out so it can be
+  ; signed externally.
+  WriteUninstaller "uninstall.exe"
+  Quit
+!endif
+!ifdef WINDOWS64
+  SetRegView 32
+!endif
+  ReadRegDWORD $R0 HKLM "${REGISTRY_APP}" "Installed"
+  IfErrors NotInstalled +1
+  MessageBox MB_OK|MB_ICONSTOP "A version of ${MY_APP} 9.12 appears to be installed on this machine already. Only one instance of ${MY_APP} 9.12 can be installed at a time. If you want to install 9.12.0 (x64), please uninstall the existing version and re-run this installer."
+  Quit
+NotInstalled:
+
+${IfNot} ${AtLeastWin7}
+  MessageBox MB_OK|MB_ICONSTOP "Windows 7 or above is needed to run ${MY_APP_WITH_VERSION}. This installation cannot continue."
+  Quit
+${EndIf}
+
+!ifdef WINDOWS64
+${IfNot} ${RunningX64}
+  MessageBox MB_OK|MB_ICONSTOP "This is an installer for the 64-bit (x86_64) build of ${MY_APP_WITH_VERSION}. It cannot be run on a 32-bit (i686) Windows operating system. Please use the 32-bit (i686) build of ${MY_APP_WITH_VERSION}. This installation cannot continue."
+  Quit
+${EndIf}
+!endif
+
+FunctionEnd
+
+Section "install"
+!ifdef WINDOWS64
+  SetRegView 64
+!endif
+  SetShellVarContext all
+
+  SetOutPath $INSTDIR
+  File LICENSE.txt
+!if "${PASS}" == "2"
+  File "uninstall.exe"
+!endif
+
+  SetOutPath $INSTDIR\bin
+  File "../Build/Release/arpaname.exe"
+  File "../Build/Release/ddns-confgen.exe"
+  File "../Build/Release/delv.exe"
+  File "../Build/Release/dig.exe"
+  File "../Build/Release/dnssec-dsfromkey.exe"
+  File "../Build/Release/dnssec-importkey.exe"
+  File "../Build/Release/dnssec-keyfromlabel.exe"
+  File "../Build/Release/dnssec-keygen.exe"
+  File "../Build/Release/dnssec-revoke.exe"
+  File "../Build/Release/dnssec-settime.exe"
+  File "../Build/Release/dnssec-signzone.exe"
+  File "../Build/Release/dnssec-verify.exe"
+  File "../Build/Release/genrandom.exe"
+  File "../Build/Release/host.exe"
+  File "../Build/Release/isc-hmac-fixup.exe"
+  File "../Build/Release/mdig.exe"
+  File "../Build/Release/named-checkconf.exe"
+  File "../Build/Release/named-checkzone.exe"
+  File "../Build/Release/named-compilezone.exe"
+  File "../Build/Release/named.exe"
+  File "../Build/Release/named-journalprint.exe"
+  File "../Build/Release/named-rrchecker.exe"
+  File "../Build/Release/nsec3hash.exe"
+  File "../Build/Release/nslookup.exe"
+  File "../Build/Release/nsupdate.exe"
+  File "../Build/Release/rndc-confgen.exe"
+  File "../Build/Release/rndc.exe"
+  File "../Build/Release/tsig-keygen.exe"
+  File "../Build/Release/vcredist_x64.exe"
+  File "../Build/Release/bindevt.dll"
+  File "../Build/Release/libbind9.dll"
+  File "../Build/Release/libdns.dll"
+  File "../Build/Release/libeay32.dll"
+  File "../Build/Release/libirs.dll"
+  File "../Build/Release/libisccc.dll"
+  File "../Build/Release/libisccfg.dll"
+  File "../Build/Release/libisc.dll"
+  File "../Build/Release/liblwres.dll"
+  File "../Build/Release/libxml2.dll"
+
+  SetOutPath "$INSTDIR\etc"
+
+  ExecWait "$INSTDIR\bin\vcredist_x64.exe /quiet"
+  Delete "$INSTDIR\bin\vcredist_x64.exe"
+
+!ifndef PASS
+  WriteUninstaller "$INSTDIR\uninstall.exe"
+!endif
+
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "DisplayName" "${MY_APP_WITH_VERSION} (x64)"
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "DisplayVersion" "9.12.0"
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "InstallLocation" "$INSTDIR"
+  WriteRegDWORD HKLM "${REGISTRY_UNINSTALL}" "NoModify" 1
+  WriteRegDWORD HKLM "${REGISTRY_UNINSTALL}" "NoRepair" 1
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "Publisher" "${MY_COMPANY_LONG}"
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "URLInfoAbout" "${MY_WEBSITE}"
+  WriteRegStr HKLM "${REGISTRY_UNINSTALL}" "UninstallString" "$INSTDIR\uninstall.exe"
+
+!ifdef WINDOWS64
+  SetRegView 32
+!endif
+  WriteRegDWORD HKLM "${REGISTRY_APP}" "Installed" 1
+!ifdef WINDOWS64
+  SetRegView 64
+!endif
+SectionEnd
+
+!if "${PASS}" != "2"
+Section "uninstall"
+!ifdef WINDOWS64
+  SetRegView 64
+!endif
+  SetShellVarContext all
+
+  DeleteRegKey HKLM "${REGISTRY_UNINSTALL}"
+!ifdef WINDOWS64
+  SetRegView 32
+!endif
+  DeleteRegKey HKLM "${REGISTRY_APP}"
+  DeleteRegKey /ifempty HKLM ${REGISTRY_COMPANY}"
+!ifdef WINDOWS64
+  SetRegView 64
+!endif
+
+  Delete "$INSTDIR\LICENSE.txt"
+
+# Don't delete etc recursively as config may live there
+  RMDir /r "$INSTDIR\bin"
+  RMDir "$INSTDIR\etc"
+
+# Don't force-delete recursively (in case there are plug-ins, or if the
+# user has saved something there.)
+  Delete "$INSTDIR\uninstall.exe"
+
+# Don't force-delete recursively
+  RMDir "$INSTDIR"
+  RMDir "${INSTDIR_COMPANY}"
+
+SectionEnd
+!endif
