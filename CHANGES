@@ -1,3 +1,6 @@
+4628.	[bug]		Fixed a potential reference leak in query_getdb().
+			[RT #45247]
+
 4627.	[func]		Deprecate 'dig +sit', it is replaced by 'dig +cookie'.
 			[RT #45245]
 
