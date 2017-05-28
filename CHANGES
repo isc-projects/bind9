@@ -1,3 +1,6 @@
+4628.	[bug]		Fixed a potential reference leak in query_getdb().
+			[RT #45247]
+
 4627.	[placeholder]
 
 4626.	[test]		Added more tests for handling of different record
