@@ -690,8 +690,7 @@ ns_query_init(ns_client_t *client) {
 }
 
 static inline ns_dbversion_t *
-query_findversion(ns_client_t *client, dns_db_t *db)
-{
+query_findversion(ns_client_t *client, dns_db_t *db) {
 	ns_dbversion_t *dbversion;
 
 	/*%
@@ -1156,6 +1155,8 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 					  zonelabels, &tdbp);
 		 /* If we successful, we found a better match. */
 		if (tresult == ISC_R_SUCCESS) {
+			ns_dbversion_t *dbversion;
+
 			/*
 			 * If the previous search returned a zone, detach it.
 			 */
@@ -1174,15 +1175,16 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 			 */
 			*versionp = NULL;
 
-			/*
-			 * Get our database version.
-			 */
-			dns_db_currentversion(tdbp, versionp);
-
-			/*
-			 * Be sure to return our database.
-			 */
-			*dbp = tdbp;
+			dbversion = query_findversion(client, tdbp);
+			if (dbversion == NULL) {
+				result = ISC_R_NOMEMORY;
+			} else {
+				/*
+				 * Be sure to return our database.
+				 */
+				*dbp = tdbp;
+				*versionp = dbversion->version;
+			}
 
 			/*
 			 * We return a null zone, No stats for DLZ zones.
