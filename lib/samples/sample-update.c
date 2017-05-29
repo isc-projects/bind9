@@ -81,6 +81,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 static void
 usage(void) {
 	fprintf(stderr, "sample-update "
+		"-s "
 		"[-a auth_server] "
 		"[-k keyfile] "
 		"[-p prerequisite] "
@@ -132,7 +133,7 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t sa_auth[10], sa_recursive[10];
 	unsigned int nsa_auth = 0, nsa_recursive = 0;
 	isc_sockaddrlist_t rec_servers;
-	isc_sockaddrlist_t auth_servers;
+	isc_sockaddrlist_t auth_servers, *auth_serversp = &auth_servers;
 	isc_result_t result;
 	isc_boolean_t isdelete;
 	isc_buffer_t b, *buf;
@@ -144,11 +145,12 @@ main(int argc, char *argv[]) {
 	dns_rdata_t *rdata;
 	dns_namelist_t updatelist, prereqlist, *prereqlistp = NULL;
 	isc_mem_t *umctx = NULL;
+	isc_boolean_t sendtwice;
 
 	ISC_LIST_INIT(auth_servers);
 	ISC_LIST_INIT(rec_servers);
 
-	while ((ch = isc_commandline_parse(argc, argv, "a:k:p:P:r:z:")) != EOF) {
+	while ((ch = isc_commandline_parse(argc, argv, "a:k:p:P:r:sz:")) != EOF) {
 		switch (ch) {
 		case 'k':
 			keyfilename = isc_commandline_argument;
@@ -171,6 +173,9 @@ main(int argc, char *argv[]) {
 			    addserver(isc_commandline_argument, &rec_servers,
 				      &sa_recursive[nsa_recursive]))
 				nsa_recursive++;
+			break;
+		case 's':
+			sendtwice = ISC_TRUE;
 			break;
 		case 'z':
 			zonenamestr = isc_commandline_argument;
@@ -258,17 +263,32 @@ main(int argc, char *argv[]) {
 	if (keyfilename != NULL)
 		setup_tsec(keyfilename, umctx);
 
+	if (ISC_LIST_HEAD(auth_servers) == NULL)
+		auth_serversp = NULL;
+
 	/* Perform update */
 	result = dns_client_update(client,
 				   default_rdataclass, /* XXX: fixed */
 				   zname, prereqlistp, &updatelist,
-				   (ISC_LIST_HEAD(auth_servers) == NULL) ?
-				    NULL : &auth_servers, tsec, 0);
+				   auth_serversp, tsec, 0);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr,
 			"update failed: %s\n", dns_result_totext(result));
 	} else
 		fprintf(stderr, "update succeeded\n");
+
+	if (sendtwice) {
+		/* Perform 2nd update */
+		result = dns_client_update(client,
+					   default_rdataclass, /* XXX: fixed */
+					   zname, prereqlistp, &updatelist,
+					   auth_serversp, tsec, 0);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "2nd update failed: %s\n",
+				dns_result_totext(result));
+		} else
+			fprintf(stderr, "2nd update succeeded\n");
+	}
 
 	/* Cleanup */
 	while ((pname = ISC_LIST_HEAD(prereqlist)) != NULL) {
