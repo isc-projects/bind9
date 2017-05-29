@@ -642,7 +642,7 @@ then
 
     n=`expr $n + 1`
     echo "I:check that dns_client_update handles prerequisite YXRRSET failure ($n)"
-    $SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "yxrrset no-txt.sample TXT" \
+    $SAMPLEUPDATE -s -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "yxrrset no-txt.sample TXT" \
 	add "yxrrset-nxrrset.sample 0 in a 1.2.3.4" > update.out.test$n 2>&1
     $SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "yxrrset no-txt.sample TXT" \
 	add "check-yxrrset-nxrrset.sample 0 in a 1.2.3.4" > update.out.check$n 2>&1
@@ -654,6 +654,7 @@ then
     grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
     grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
     grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
+    grep "2nd update failed: NXRRSET" update.out.test$n > /dev/null || ret=1
     [ $ret = 0 ] || { echo I:failed; status=1; }
 fi
 #
