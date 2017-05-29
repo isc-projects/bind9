@@ -416,6 +416,7 @@ isc__app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
 	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
+		isc_task_detach(&cloned_task);
 		result = ISC_R_NOMEMORY;
 		goto unlock;
 	}

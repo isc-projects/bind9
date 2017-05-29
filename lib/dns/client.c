@@ -2975,6 +2975,17 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	*transp = (dns_clientupdatetrans_t *)uctx;
 	result = isc_app_ctxonrun(client->actx, client->mctx, client->task,
 				  startupdate, uctx);
+	if (result == ISC_R_ALREADYRUNNING) {
+		isc_event_t *event;
+		event = isc_event_allocate(client->mctx, dns_client_startupdate,
+					   DNS_EVENT_STARTUPDATE, startupdate,
+					   uctx, sizeof(*event));
+		if (event != NULL) {
+			result = ISC_R_SUCCESS;
+			isc_task_send(task, &event);
+		} else
+			result = ISC_R_NOMEMORY;
+	}
 	if (result == ISC_R_SUCCESS)
 		return (result);
 	*transp = NULL;
