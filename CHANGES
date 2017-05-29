@@ -1,3 +1,6 @@
+4629.	[bug]		dns_client_startupdate could not be called with a
+			running client. [RT #45277]
+
 4628.	[bug]		Fixed a potential reference leak in query_getdb().
 			[RT #45247]
 
