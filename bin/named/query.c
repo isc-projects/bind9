@@ -6428,7 +6428,7 @@ query_respond(query_ctx_t *qctx) {
 	/*
 	 * If we have a zero ttl from the cache, refetch.
 	 */
-	if (!qctx->is_zone && qctx->event == NULL &&
+	if (!qctx->is_zone && !qctx->resuming &&
 	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
 	{
 		qctx_clean(qctx);
@@ -7895,7 +7895,7 @@ query_cname(query_ctx_t *qctx) {
 	/*
 	 * If we have a zero ttl from the cache refetch it.
 	 */
-	if (!qctx->is_zone && qctx->event == NULL &&
+	if (!qctx->is_zone && !qctx->resuming &&
 	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
 	{
 		qctx_clean(qctx);
