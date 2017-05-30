@@ -1,5 +1,5 @@
 4532.	[security]	The BIND installer on Windows used an unquoted
-                        service path, which can enable privilege escalation.
+			service path, which can enable privilege escalation.
 			(CVE-2017-3141) [RT #45229]
 
 4531.	[security]	Some RPZ configurations could go into an infinite
