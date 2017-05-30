@@ -2988,6 +2988,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *keys = NULL;
+#ifndef HAVE_DLOPEN
+	const cfg_obj_t *dyndb = NULL;
+#endif
 	const cfg_listelt_t *element, *element2;
 	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -3040,6 +3043,20 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+
+#ifndef HAVE_DLOPEN
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "dyndb", &dyndb);
+	else
+		(void)cfg_map_get(config, "dyndb", &dyndb);
+
+	if (dyndb != NULL) {
+		cfg_obj_log(dyndb, logctx, ISC_LOG_ERROR,
+			    "dynamic loading of databases is not supported");
+		if (tresult != ISC_R_SUCCESS)
+			result = ISC_R_NOTIMPLEMENTED;
+	}
+#endif
 
 	/*
 	 * Check that the response-policy and catalog-zones options
