@@ -7004,7 +7004,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * If we have a zero ttl from the cache refetch it.
 		 */
-		if (!is_zone && event == NULL && rdataset->ttl == 0 &&
+		if (!is_zone && !resuming && rdataset->ttl == 0 &&
 		    RECURSIONOK(client))
 		{
 			if (dns_rdataset_isassociated(rdataset))
@@ -7426,7 +7426,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * If we have a zero ttl from the cache refetch it.
 		 */
-		if (!is_zone && event == NULL && rdataset->ttl == 0 &&
+		if (!is_zone && !resuming && rdataset->ttl == 0 &&
 		    RECURSIONOK(client))
 		{
 			if (dns_rdataset_isassociated(rdataset))

@@ -51,6 +51,11 @@ BIND 9
 	For up-to-date release notes and errata, see
 	http://www.isc.org/software/bind9/releasenotes
 
+BIND 9.9.10-P1
+
+        This version contains a fix for the security flaw
+        disclosed in CVE-2017-3140.
+
 BIND 9.9.10
 	
 	BIND 9.9.10 is a maintenance release and addresses the security
