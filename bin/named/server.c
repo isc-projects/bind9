@@ -1476,6 +1476,7 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	return (result);
 }
 
+#ifdef HAVE_DLOPEN
 static isc_result_t
 configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 		const dns_dyndbctx_t *dctx)
@@ -1501,6 +1502,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 			      name, isc_result_totext(result));
 	return (result);
 }
+#endif
 
 
 static isc_result_t
@@ -4666,6 +4668,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	else
 		(void)cfg_map_get(config, "dyndb", &dyndb_list);
 
+#ifdef HAVE_DLOPEN
 	for (element = cfg_list_first(dyndb_list);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -4683,6 +4686,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}
+#endif
 
 	/*
 	 * Setup automatic empty zones.  If recursion is off then
