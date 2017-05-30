@@ -71,7 +71,10 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  With certain RPZ configurations, a response with TTL 0
+	  could cause <command>named</command> to go into an infinite
+	  query loop. This flaw is disclosed in CVE-2017-3140.
+	  [RT #45181]
 	</para>
       </listitem>
     </itemizedlist>
