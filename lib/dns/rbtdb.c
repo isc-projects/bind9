@@ -202,10 +202,10 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define free_rbtdb_callback free_rbtdb_callback64
 #define free_rdataset free_rdataset64
 #define getnsec3parameters getnsec3parameters64
-#define getsize getsize64
 #define getoriginnode getoriginnode64
 #define getrrsetstats getrrsetstats64
 #define getsigningtime getsigningtime64
+#define getsize getsize64
 #define hashsize hashsize64
 #define init_file_version init_file_version64
 #define isdnssec isdnssec64
@@ -214,6 +214,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define iszonesecure iszonesecure64
 #define loading_addrdataset loading_addrdataset64
 #define loadnode loadnode64
+#define mark_stale_header mark_stale_header64
 #define matchparams matchparams64
 #define maybe_free_rbtdb maybe_free_rbtdb64
 #define new_reference new_reference64
@@ -226,6 +227,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define prune_tree prune_tree64
 #define rbt_datafixer rbt_datafixer64
 #define rbt_datawriter rbt_datawriter64
+#define rbtdb_zero_header rbtdb_zero_header64
 #define rdataset_clearprefetch rdataset_clearprefetch64
 #define rdataset_clone rdataset_clone64
 #define rdataset_count rdataset_count64
