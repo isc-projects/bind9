@@ -19,8 +19,8 @@
       This document summarizes changes since BIND 9.11.1:
     </para>
     <para>
-      BIND 9.11.1-P1 addresses the security issue described in
-      CVE-2017-3140.
+      BIND 9.11.1-P1 addresses the security issues described in
+      CVE-2017-3140 and CVE-2017-3141.
     </para>
   </section>
 
@@ -95,6 +95,13 @@
 
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  The BIND installer on Windows used an unquoted service path,
+	  which can enable privilege escalation. This flaw is disclosed
+	  in CVE-2017-3141. [RT #45229]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  With certain RPZ configurations, a response with TTL 0
