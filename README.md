@@ -246,6 +246,11 @@ flaws disclosed in CVE-2016-2775, CVE-2016-2776, CVE-2016-6170,
 CVE-2016-8864, CVE-2016-9131, CVE-2016-9147, CVE-2016-9444,
 CVE-2017-3135, CVE-2017-3136, CVE-2017-3137, and CVE-2017-3138.
 
+#### BIND 9.9.11
+
+BIND 9.9.11 is a maintenance release, and addresses the security flaw
+disclosed in CVE-2017-3140.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
