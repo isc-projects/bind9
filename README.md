@@ -277,8 +277,8 @@ CVE-2017-3137, and CVE-2017-3138.
 
 #### BIND 9.10.6
 
-BIND 9.10.6 is a maintenance release, and addresses the security flaw
-disclosed in CVE-2017-3140.
+BIND 9.10.6 is a maintenance release, and addresses the security flaws
+disclosed in CVE-2017-3140 and CVE-2017-3141.
 
 ### <a name="build"/> Building BIND
 
