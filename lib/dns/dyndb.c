@@ -80,7 +80,7 @@ impfind(const char *name) {
 	return (NULL);
 }
 
-#if HAVE_DLFCN_H
+#if HAVE_DLFCN_H && HAVE_DLOPEN
 static isc_result_t
 load_symbol(void *handle, const char *filename,
 	    const char *symbol_name, void **symbolp)

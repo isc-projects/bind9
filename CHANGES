@@ -1,3 +1,6 @@
+4530.	[bug]		"dyndb" is dependent on dlopen existing / being
+			enabled. [RT #45291]
+
 4629.	[bug]		dns_client_startupdate could not be called with a
 			running client. [RT #45277]
 
