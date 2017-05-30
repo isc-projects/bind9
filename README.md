@@ -236,10 +236,10 @@ CVE-2017-3136, CVE-2017-3137 and CVE-2017-3138.
 
 #### BIND 9.11.2
 
-BIND 9.11.1 is a maintenance release, and addresses the security flaw
-disclosed in CVE-2017-3140. It also addresses several bugs related to
-the use of an LMDB database to store data related to zones added via
-`rndc addzone` or catalog zones.
+BIND 9.11.1 is a maintenance release, and addresses the security flaws
+disclosed in CVE-2017-3140 and CVE-2017-3141. It also addresses several
+bugs related to the use of an LMDB database to store data related to
+zones added via `rndc addzone` or catalog zones.
 
 ### <a name="build"/> Building BIND
 
