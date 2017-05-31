@@ -76,6 +76,21 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  The BIND installer on Windows used an unquoted service path,
+	  which can enable privilege escalation. This flaw is disclosed
+	  in CVE-2017-3141. [RT #45229]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  With certain RPZ configurations, a response with TTL 0
+	  could cause <span class="command"><strong>named</strong></span> to go into an infinite
+	  query loop. This flaw is disclosed in CVE-2017-3140.
+	  [RT #45181]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>rndc ""</strong></span> could trigger an assertion failure
 	  in <span class="command"><strong>named</strong></span>. This flaw is disclosed in
 	  (CVE-2017-3138). [RT #44924]
