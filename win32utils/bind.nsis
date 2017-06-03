@@ -148,7 +148,6 @@ Section "install"
   SetOutPath "$INSTDIR\etc"
 
   ExecWait "$INSTDIR\bin\vcredist_x64.exe /quiet"
-  Delete "$INSTDIR\bin\vcredist_x64.exe"
 
 !ifndef PASS
   WriteUninstaller "$INSTDIR\uninstall.exe"
@@ -170,6 +169,9 @@ Section "install"
 !ifdef WINDOWS64
   SetRegView 64
 !endif
+
+  Delete "$INSTDIR\bin\vcredist_x64.exe"
+
 SectionEnd
 
 !if "${PASS}" != "2"
