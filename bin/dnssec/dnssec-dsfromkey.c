@@ -187,7 +187,7 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 	result = dst_key_fromnamedfile(filename, NULL, DST_TYPE_PUBLIC,
 				       mctx, &key);
 	if (result != ISC_R_SUCCESS)
-		fatal("invalid keyfile name %s: %s",
+		fatal("can't load %s.key: %s",
 		      filename, isc_result_totext(result));
 
 	if (verbose > 2) {
