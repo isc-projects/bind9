@@ -2544,6 +2544,18 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+# Intentionally strip ".key" from keyfile name to ensure the error message
+# includes it anyway to avoid confusion (RT #21731)
+echo "I:check dnssec-dsfromkey error message when keyfile is not found ($n)"
+ret=0
+key=`$KEYGEN -q -r $RANDFILE example.` || ret=1
+mv $key.key $key
+$DSFROMKEY $key > dsfromkey.out.$n 2>&1 && ret=1
+grep "$key.key: file not found" dsfromkey.out.$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:testing soon-to-expire RRSIGs without a replacement private key ($n)"
 ret=0
 $DIG +noall +answer +dnssec +nottlid -p 5300 expiring.example ns @10.53.0.3 | grep RRSIG > dig.out.ns3.test$n 2>&1

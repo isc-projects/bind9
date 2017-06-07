@@ -1,3 +1,6 @@
+4663.	[cleanup]	Clarify error message printed by dnssec-dsfromkey.
+			[RT #21731]
+
 4662.	[performance]	Improve cache memory cleanup of zero TTL records
 			by putting them at the tail of LRU header lists.
 			[RT #45274]
