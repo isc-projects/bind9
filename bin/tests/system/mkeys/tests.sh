@@ -61,7 +61,9 @@ standby1=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
 sleep 5
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # there should be two keys listed now
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -84,6 +86,7 @@ ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys refresh | sed 's/^/I: ns3 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys sync | sed 's/^/I: ns3 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # there should be one key listed now
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -126,6 +129,7 @@ sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -155,7 +159,9 @@ echo "I: refresh managed-keys, ensure same result ($n)"
 t1=$t2
 sleep 2
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -192,6 +198,7 @@ sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
+sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -224,7 +231,6 @@ n=`expr $n + 1`
 echo "I: check that standby key is now trusted ($n)"
 ret=0
 sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -247,7 +253,6 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # three keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -317,7 +322,6 @@ ret=0
 sleep 30
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -344,7 +348,6 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -412,7 +415,6 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
