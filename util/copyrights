@@ -1836,7 +1836,7 @@
 ./bin/tests/system/mkeys/ns3/named.conf		CONF-C	2015,2016
 ./bin/tests/system/mkeys/prereq.sh		SH	2015,2016
 ./bin/tests/system/mkeys/setup.sh		SH	2015,2016,2017
-./bin/tests/system/mkeys/tests.sh		SH	2015,2016
+./bin/tests/system/mkeys/tests.sh		SH	2015,2016,2017
 ./bin/tests/system/names/clean.sh		SH	2015,2016
 ./bin/tests/system/names/ns1/example.db		ZONE	2015,2016
 ./bin/tests/system/names/ns1/named.conf		CONF-C	2015,2016
