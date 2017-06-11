@@ -1,3 +1,6 @@
+4634.	[contrib]	check5011.pl needs to handle optional space before
+			semi-colon in +multi-line output. [RT #45352]
+
 4633.	[maint]		Updated AAAA (2001:500:200::b) for B.ROOT-SERVERS.NET.
 
 4632.	[security]	The BIND installer on Windows used an unquoted
