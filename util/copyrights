@@ -2194,7 +2194,7 @@
 ./contrib/.gitignore				X	2012
 ./contrib/README				X	2014,2015,2016
 ./contrib/check-secure-delegation.pl.in		PERL	2010,2012
-./contrib/check5011.pl				X	2013
+./contrib/check5011.pl				X	2013,2017
 ./contrib/dane/mkdane.sh			X	2012
 ./contrib/dane/tlsa6698.pem			X	2012
 ./contrib/dlz/.gitignore			X	2014
