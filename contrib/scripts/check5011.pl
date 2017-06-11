@@ -27,7 +27,7 @@ sub getkey ($$) {
 		last if m{^[)]};
 		$data .= $_;
 	}
-	m{ alg = (\S+); key id = (\d+)};
+	m{ alg = (\S+)\s*; key id = (\d+)};
 	$k->{alg}  = $1;
 	$k->{id}   = $2;
 	$k->{data} = $data;
