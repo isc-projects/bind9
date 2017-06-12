@@ -1,3 +1,6 @@
+4635.	[bug]		Fix RPZ NSDNAME logging that was logging
+			failures as NSIP. [RT #45052]
+
 4634.	[contrib]	check5011.pl needs to handle optional space before
 			semi-colon in +multi-line output. [RT #45352]
 
