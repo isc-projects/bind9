@@ -456,8 +456,10 @@ reset_system(void) {
 	}
 }
 
-static isc_uint16_t
-parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
+static isc_boolean_t
+parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
+	   isc_uint16_t *digestbitsp)
+{
 	isc_uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
@@ -465,8 +467,10 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 	REQUIRE(hmac != NULL && *hmac == NULL);
 	REQUIRE(hmacstr != NULL);
 
-	if (len >= sizeof(buf))
-		fatal("unknown key type '%.*s'", (int)(len), hmacstr);
+	if (len >= sizeof(buf)) {
+		error("unknown key type '%.*s'", (int)(len), hmacstr);
+		return (ISC_FALSE);
+	}
 
 	strncpy(buf, hmacstr, len);
 	buf[len] = 0;
@@ -476,52 +480,66 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len) {
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 128)
-			fatal("digest-bits out of range [0..128]");
-		digestbits = (digestbits +7) & ~0x7U;
+		if (result != ISC_R_SUCCESS || digestbits > 128) {
+			error("digest-bits out of range [0..128]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[10], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 160)
-			fatal("digest-bits out of range [0..160]");
-		digestbits = (digestbits +7) & ~0x7U;
+		if (result != ISC_R_SUCCESS || digestbits > 160) {
+			error("digest-bits out of range [0..160]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
 		*hmac = DNS_TSIG_HMACSHA224_NAME;
 	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
 		*hmac = DNS_TSIG_HMACSHA224_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 224)
-			fatal("digest-bits out of range [0..224]");
-		digestbits = (digestbits +7) & ~0x7U;
+		if (result != ISC_R_SUCCESS || digestbits > 224) {
+			error("digest-bits out of range [0..224]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
 		*hmac = DNS_TSIG_HMACSHA256_NAME;
 	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
 		*hmac = DNS_TSIG_HMACSHA256_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 256)
-			fatal("digest-bits out of range [0..256]");
-		digestbits = (digestbits +7) & ~0x7U;
+		if (result != ISC_R_SUCCESS || digestbits > 256) {
+			error("digest-bits out of range [0..256]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
 		*hmac = DNS_TSIG_HMACSHA384_NAME;
 	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
 		*hmac = DNS_TSIG_HMACSHA384_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 384)
-			fatal("digest-bits out of range [0..384]");
-		digestbits = (digestbits +7) & ~0x7U;
+		if (result != ISC_R_SUCCESS || digestbits > 384) {
+			error("digest-bits out of range [0..384]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
 		*hmac = DNS_TSIG_HMACSHA512_NAME;
 	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
 		*hmac = DNS_TSIG_HMACSHA512_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
-		if (result != ISC_R_SUCCESS || digestbits > 512)
-			fatal("digest-bits out of range [0..512]");
-		digestbits = (digestbits +7) & ~0x7U;
-	} else
-		fatal("unknown key type '%s'", buf);
-	return (digestbits);
+		if (result != ISC_R_SUCCESS || digestbits > 512) {
+			error("digest-bits out of range [0..512]");
+			return (ISC_FALSE);
+		}
+		*digestbitsp = (digestbits + 7) & ~0x7U;
+	} else {
+		error("unknown key type '%s'", buf);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 static int
@@ -567,7 +585,9 @@ setup_keystr(void) {
 			fatal("key option must specify [hmac:]keyname:secret");
 		name = secretstr;
 		secretstr = n + 1;
-		digestbits = parse_hmac(&hmacname, keystr, s - keystr);
+		if (!parse_hmac(&hmacname, keystr, s - keystr, &digestbits)) {
+			exit(1);
+		}
 	} else {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		name = keystr;
@@ -994,14 +1014,14 @@ static int
 get_addresses(char *host, in_port_t port,
 	      isc_sockaddr_t *sockaddr, int naddrs)
 {
-	int count;
+	int count = 0;
 	isc_result_t result;
 
 	isc_app_block();
 	result = bind9_getaddresses(host, port, sockaddr, naddrs, &count);
 	isc_app_unblock();
 	if (result != ISC_R_SUCCESS)
-		fatal("couldn't get address for '%s': %s",
+		error("couldn't get address for '%s': %s",
 		      host, isc_result_totext(result));
 	return (count);
 }
@@ -1011,7 +1031,7 @@ version(void) {
 	fputs("nsupdate " VERSION "\n", stderr);
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R::t:u:V"
+#define PARSE_ARGS_FMT "dDML:y:ghilovk:p:r:R::t:u:V"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -1032,7 +1052,7 @@ pre_parse_args(int argc, char **argv) {
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					argv[0], isc_commandline_option);
-			fprintf(stderr, "usage: nsupdate [-dD] [-L level] [-l]"
+			fprintf(stderr, "usage: nsupdate [-dDi] [-L level] [-l]"
 				"[-g | -o | -y keyname:secret | -k keyfile] "
 				"[-v] [-V] [filename]\n");
 			exit(1);
@@ -1054,6 +1074,7 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	int ch;
 	isc_uint32_t i;
 	isc_result_t result;
+	isc_boolean_t force_interactive = ISC_FALSE;
 
 	debug("parse_args");
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
@@ -1066,6 +1087,10 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			ddebugging = ISC_TRUE;
 			break;
 		case 'M':
+			break;
+		case 'i':
+			force_interactive = ISC_TRUE;
+			interactive = ISC_TRUE;
 			break;
 		case 'l':
 			local_only = ISC_TRUE;
@@ -1179,7 +1204,9 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 				exit(1);
 			}
 		}
-		interactive = ISC_FALSE;
+		if (!force_interactive) {
+			interactive = ISC_FALSE;
+		}
 	}
 }
 
@@ -1206,7 +1233,12 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_buffer_init(&source, word, strlen(word));
 	isc_buffer_add(&source, strlen(word));
 	result = dns_name_fromtext(*namep, &source, dns_rootname, 0, NULL);
-	check_result(result, "dns_name_fromtext");
+	if (result != ISC_R_SUCCESS) {
+		error("invalid owner name: %s", isc_result_totext(result));
+		isc_buffer_invalidate(&source);
+		dns_message_puttempname(msg, namep);
+		return (STATUS_SYNTAX);
+	}
 	isc_buffer_invalidate(&source);
 	return (STATUS_MORE);
 }
@@ -1452,6 +1484,9 @@ evaluate_server(char *cmdline) {
 
 	memset(servers, 0, ns_alloc * sizeof(isc_sockaddr_t));
 	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
+	if (ns_total == 0) {
+		return (STATUS_SYNTAX);
+	}
 
 	return (STATUS_MORE);
 }
@@ -1532,7 +1567,10 @@ evaluate_key(char *cmdline) {
 
 	n = strchr(namestr, ':');
 	if (n != NULL) {
-		digestbits = parse_hmac(&hmacname, namestr, n - namestr);
+		if (!parse_hmac(&hmacname, namestr, n - namestr,
+				&digestbits)) {
+			return (STATUS_SYNTAX);
+		}
 		namestr = n + 1;
 	} else
 		hmacname = DNS_TSIG_HMACMD5_NAME;
@@ -1623,8 +1661,10 @@ evaluate_realm(char *cmdline) {
 		return (STATUS_MORE);
 
 	n = snprintf(buf, sizeof(buf), "@%s", word);
-	if (n < 0 || (size_t)n >= sizeof(buf))
-		fatal("realm is too long");
+	if (n < 0 || (size_t)n >= sizeof(buf)) {
+		error("realm is too long");
+		return (STATUS_SYNTAX);
+	}
 	realm = isc_mem_strdup(gmctx, buf);
 	if (realm == NULL)
 		fatal("out of memory");
@@ -1643,7 +1683,7 @@ evaluate_ttl(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
-		fprintf(stderr, "could not ttl\n");
+		fprintf(stderr, "could not read ttl\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -2547,6 +2587,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		memset(master_servers, 0, size);
 		master_total = get_addresses(serverstr, dnsport,
 					     master_servers, master_alloc);
+		if (master_total == 0) {
+			exit(1);
+		}
 		master_inuse = 0;
 	} else
 		master_from_servers();
