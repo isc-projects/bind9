@@ -975,12 +975,16 @@ rpz_log_rewrite(ns_client_t *client, isc_boolean_t disabled,
 }
 
 static void
-rpz_log_fail(ns_client_t *client, int level, dns_name_t *p_name,
-	     dns_rpz_type_t rpz_type, const char *str, isc_result_t result)
+rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
+		    dns_rpz_type_t rpz_type1, dns_rpz_type_t rpz_type2,
+		    const char *str, isc_result_t result)
 {
 	char qnamebuf[DNS_NAME_FORMATSIZE];
 	char p_namebuf[DNS_NAME_FORMATSIZE];
 	const char *failed;
+	const char *slash;
+	const char *rpztypestr1;
+	const char *rpztypestr2;
 
 	if (!isc_log_wouldlog(ns_g_lctx, level))
 		return;
@@ -992,14 +996,32 @@ rpz_log_fail(ns_client_t *client, int level, dns_name_t *p_name,
 		failed = "failed: ";
 	else
 		failed = ": ";
+
+	rpztypestr1 = dns_rpz_type2str(rpz_type1);
+	if (rpz_type2 != DNS_RPZ_TYPE_BAD) {
+		slash = "/";
+		rpztypestr2 = dns_rpz_type2str(rpz_type2);
+	} else {
+		slash = "";
+		rpztypestr2 = "";
+	}
+
 	dns_name_format(client->query.qname, qnamebuf, sizeof(qnamebuf));
 	dns_name_format(p_name, p_namebuf, sizeof(p_namebuf));
 	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS,
 		      NS_LOGMODULE_QUERY, level,
-		      "rpz %s rewrite %s via %s%s%s%s",
-		      dns_rpz_type2str(rpz_type),
+		      "rpz %s%s%s rewrite %s via %s%s%s%s",
+		      rpztypestr1, slash, rpztypestr2,
 		      qnamebuf, p_namebuf,
 		      str, failed, isc_result_totext(result));
+}
+
+static void
+rpz_log_fail(ns_client_t *client, int level, dns_name_t *p_name,
+	     dns_rpz_type_t rpz_type, const char *str, isc_result_t result)
+{
+	rpz_log_fail_helper(client, level, p_name,
+			    rpz_type, DNS_RPZ_TYPE_BAD, str, result);
 }
 
 /*
@@ -5097,8 +5119,9 @@ rpz_rewrite_ns_skip(ns_client_t *client, dns_name_t *nsname,
 	st = client->query.rpz_st;
 
 	if (str != NULL)
-		rpz_log_fail(client, level, nsname, DNS_RPZ_TYPE_NSIP,
-			     str, result);
+		rpz_log_fail_helper(client, level, nsname,
+				    DNS_RPZ_TYPE_NSIP, DNS_RPZ_TYPE_NSDNAME,
+				    str, result);
 	if (st->r.ns_rdataset != NULL &&
 	    dns_rdataset_isassociated(st->r.ns_rdataset))
 		dns_rdataset_disassociate(st->r.ns_rdataset);
