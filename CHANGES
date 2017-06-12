@@ -1,3 +1,6 @@
+4683.	[bug]		Prevent nsupdate from immediately exiting on invalid
+			user input in interactive mode. [RT #28194]
+
 4682.	[bug]		Don't report errors on records below a DNAME.
 			[RT #44880]
 
