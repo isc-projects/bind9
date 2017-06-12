@@ -64,6 +64,7 @@
       <command>nsupdate</command>
       <arg choice="opt" rep="norepeat"><option>-d</option></arg>
       <arg choice="opt" rep="norepeat"><option>-D</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-i</option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">level</replaceable></option></arg>
       <group choice="opt" rep="norepeat">
 	<arg choice="opt" rep="norepeat"><option>-g</option></arg>
@@ -163,6 +164,15 @@
 	<listitem>
 	  <para>
 	    Extra debug mode.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-i</term>
+	<listitem>
+	  <para>
+	    Force interactive mode, even when standard input is not a terminal.
 	  </para>
 	</listitem>
       </varlistentry>
