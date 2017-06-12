@@ -720,6 +720,63 @@ grep "; Communication with 10.53.0.4#5300 failed: timed out" nsupdate.out-$n > /
 grep "not implemented" nsupdate.out-$n > /dev/null 2>&1 && ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
+n=`expr $n + 1`
+ret=0
+echo "I:ensure bad owner name is fatal in non-interactive mode ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    update add emptylabel..nil. 600 A 10.10.10.1
+END
+grep "invalid owner name: empty label" nsupdate.out > /dev/null || ret=1
+grep "syntax error" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:ensure bad owner name is not fatal in interactive mode ($n)"
+$NSUPDATE -i <<END > nsupdate.out 2>&1 || ret=1
+    update add emptylabel..nil. 600 A 10.10.10.1
+END
+grep "invalid owner name: empty label" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:ensure invalid key type is fatal in non-interactive mode ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    key badkeytype:example abcd12345678
+END
+grep "unknown key type 'badkeytype'" nsupdate.out > /dev/null || ret=1
+grep "syntax error" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:ensure invalid key type is not fatal in interactive mode ($n)"
+$NSUPDATE -i <<END > nsupdate.out 2>&1 || ret=1
+    key badkeytype:example abcd12345678
+END
+grep "unknown key type 'badkeytype'" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:ensure unresolvable server name is fatal in non-interactive mode ($n)"
+$NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
+    server unresolvable..
+END
+grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
+grep "syntax error" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:ensure unresolvable server name is not fatal in interactive mode ($n)"
+$NSUPDATE -i <<END > nsupdate.out 2>&1 || ret=1
+    server unresolvable..
+END
+grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 #
 #  Add client library tests here
 #
