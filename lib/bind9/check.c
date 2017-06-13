@@ -2758,6 +2758,9 @@ check_rpz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	const char *forview = " for view ";
 	isc_symvalue_t value;
 	isc_result_t result, tresult;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	if (viewname == NULL) {
 		viewname = "";
@@ -2765,6 +2768,8 @@ check_rpz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	}
 	result = ISC_R_SUCCESS;
 
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
 	for (element = cfg_list_first(obj);
 	     element != NULL;
@@ -2773,7 +2778,17 @@ check_rpz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
 		zonetype = "";
-		tresult = isc_symtab_lookup(symtab, zonename, 3, &value);
+
+		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
+				   "bad domain name '%s'", zonename);
+			if (result == ISC_R_SUCCESS)
+				result = tresult;
+			continue;
+		}
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		tresult = isc_symtab_lookup(symtab, namebuf, 3, &value);
 		if (tresult == ISC_R_SUCCESS) {
 			obj = NULL;
 			zoneobj = value.as_cpointer;
@@ -2789,7 +2804,8 @@ check_rpz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
 				    "%s '%s'%s%s is not a master or slave zone",
 				    rpz_catz, zonename, forview, viewname);
-			result = ISC_R_FAILURE;
+			if (result == ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
 		}
 	}
 	return (result);
