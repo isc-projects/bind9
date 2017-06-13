@@ -485,6 +485,12 @@ static isc_result_t
 nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi);
 
 static isc_result_t
+nzd_env_reopen(dns_view_t *view);
+
+static void
+nzd_env_close(dns_view_t *view);
+
+static isc_result_t
 nzd_close(MDB_txn **txnp, isc_boolean_t commit);
 
 static isc_result_t
@@ -6727,28 +6733,27 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		return (ISC_R_NOMEMORY);
 	}
 
+	/*
+	 * We attach the parser that was used for config as well
+	 * as the one that will be used for added zones, to avoid
+	 * a shutdown race later.
+	 */
 	memset(nzcfg, 0, sizeof(*nzcfg));
+	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
+	cfg_parser_attach(ns_g_addparser, &nzcfg->add_parser);
+	isc_mem_attach(view->mctx, &nzcfg->mctx);
+	cfg_aclconfctx_attach(actx, &nzcfg->actx);
 
 	result = dns_view_setnewzones(view, ISC_TRUE, nzcfg,
 				      newzone_cfgctx_destroy, mapsize);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(view->mctx, nzcfg, sizeof(*nzcfg));
+		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		return (result);
 	}
 
 	cfg_obj_attach(config, &nzcfg->config);
 	if (vconfig != NULL)
 		cfg_obj_attach(vconfig, &nzcfg->vconfig);
-
-	/*
-	 * We attach the parser that was used for config as well
-	 * as the one that will be used for added zones, to avoid
-	 * a shutdown race later.
-	 */
-	cfg_parser_attach(conf_parser, &nzcfg->conf_parser);
-	cfg_parser_attach(ns_g_addparser, &nzcfg->add_parser);
-	isc_mem_attach(view->mctx, &nzcfg->mctx);
-	cfg_aclconfctx_attach(actx, &nzcfg->actx);
 
 	result = count_newzones(view, nzcfg, num_zones);
 	return (result);
@@ -7937,6 +7942,21 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
+	 * If we're using LMDB, we may have created newzones databases
+	 * as root, making it impossible to reopen them later after
+	 * switching to a new userid. We close them now, and reopen
+	 * after relinquishing privileges them.
+	 */
+	if (first_time) {
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			nzd_env_close(view);
+		}
+	}
+
+	/*
 	 * Relinquish root privileges.
 	 */
 	if (first_time)
@@ -7950,6 +7970,20 @@ load_configuration(const char *filename, ns_server_t *server,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");
 	}
+
+#ifdef HAVE_LMDB
+	/*
+	 * Reopen NZD databases.
+	 */
+	if (first_time) {
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			nzd_env_reopen(view);
+		}
+	}
+#endif /* HAVE_LMDB */
 
 	/*
 	 * Configure the logging system.
@@ -11317,6 +11351,93 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * nzd_env_close() and nzd_env_reopen are a kluge to address the
+ * problem of an NZD file possibly being created before we drop
+ * root privileges.
+ */
+static void
+nzd_env_close(dns_view_t *view) {
+	if (view->new_zone_dbenv != NULL) {
+		const char *dbpath = NULL;
+		char lockpath[PATH_MAX];
+		int ret;
+
+		if (mdb_env_get_path(view->new_zone_dbenv, &dbpath) == 0) {
+			snprintf(lockpath, sizeof(lockpath), "%s-lock",
+				 dbpath);
+		}
+
+		mdb_env_close((MDB_env *) view->new_zone_dbenv);
+		view->new_zone_dbenv = NULL;
+
+		/*
+		 * Database files must be owned by the eventual user, not
+		 * by root.
+		 */
+		ret = chown(dbpath, ns_os_uid(), -1);
+		UNUSED(ret);
+
+		 /*
+		  * Some platforms need the lockfile not to exist when we
+		  * reopen the environment.
+		 */
+		(void) isc_file_remove(lockpath);
+	}
+}
+
+static isc_result_t
+nzd_env_reopen(dns_view_t *view) {
+	isc_result_t result;
+	MDB_env *env = NULL;
+	int status;
+
+	if (view->new_zone_db == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	nzd_env_close(view);
+
+	status = mdb_env_create(&env);
+	if (status != 0) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+			      "mdb_env_create failed: %s",
+			      mdb_strerror(status));
+		CHECK(ISC_R_FAILURE);
+	}
+
+	if (view->new_zone_mapsize != 0ULL) {
+		status = mdb_env_set_mapsize(env, view->new_zone_mapsize);
+		if (status != 0) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+				      "mdb_env_set_mapsize failed: %s",
+				      mdb_strerror(status));
+			CHECK(ISC_R_FAILURE);
+		}
+	}
+
+	status = mdb_env_open(env, view->new_zone_db,
+			      MDB_NOSUBDIR|MDB_CREATE, 0600);
+	if (status != 0) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
+			      "mdb_env_open of '%s' failed: %s",
+			      view->new_zone_db, mdb_strerror(status));
+		CHECK(ISC_R_FAILURE);
+	}
+
+	view->new_zone_dbenv = env;
+	env = NULL;
+
+ cleanup:
+	if (env != NULL) {
+		mdb_env_close(env);
+	}
+	return (result);
+}
+
 static isc_result_t
 nzd_close(MDB_txn **txnp, isc_boolean_t commit) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -12659,7 +12780,6 @@ ns_server_showzone(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 static void
 newzone_cfgctx_destroy(void **cfgp) {
 	ns_cfgctx_t *cfg;
-	isc_mem_t *mctx;
 
 	REQUIRE(cfgp != NULL && *cfgp != NULL);
 
@@ -12681,8 +12801,7 @@ newzone_cfgctx_destroy(void **cfgp) {
 	if (cfg->actx != NULL)
 		cfg_aclconfctx_detach(&cfg->actx);
 
-	mctx = cfg->mctx;
-	isc_mem_putanddetach(&mctx, cfg, sizeof(*cfg));
+	isc_mem_putanddetach(&cfg->mctx, cfg, sizeof(*cfg));
 	*cfgp = NULL;
 }
 

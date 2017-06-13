@@ -32,6 +32,9 @@ ns_os_inituserinfo(const char *username);
 void
 ns_os_changeuser(void);
 
+unsigned int
+ns_os_uid(void);
+
 void
 ns_os_adjustnofile(void);
 

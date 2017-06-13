@@ -1,3 +1,6 @@
+4638.	[bug]		Reloading or reconfiguring named could fail on
+			some platforms when LMDB was in use. [RT #45203]
+
 4637.	[func]		"nsec3hash -r" option ("rdata order") takes arguments
 			in the same order as they appear in NSEC3 or
 			NSEC3PARAM records, so that NSEC3 parameters can

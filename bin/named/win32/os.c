@@ -163,6 +163,11 @@ void
 ns_os_changeuser(void) {
 }
 
+unsigned int
+ns_os_uid(void) {
+	return (0);
+}
+
 void
 ns_os_adjustnofile(void) {
 }
