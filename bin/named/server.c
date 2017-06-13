@@ -7941,6 +7941,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		}
 	}
 
+#ifdef HAVE_LMDB
 	/*
 	 * If we're using LMDB, we may have created newzones databases
 	 * as root, making it impossible to reopen them later after
@@ -7955,6 +7956,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			nzd_env_close(view);
 		}
 	}
+#endif /* HAVE_LMDB */
 
 	/*
 	 * Relinquish root privileges.
