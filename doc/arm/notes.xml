@@ -168,6 +168,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>nsec3hash -r</command> ("rdata order") takes arguments
+	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
+	  This makes it easier to generate an NSEC3 hash using values cut
+	  and pasted from an existing record. Thanks to Tony Finch for
+	  the contribution. [RT #45183]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Setting <command>max-journal-size</command> to
 	  <literal>default</literal> limits journal sizes to twice the
 	  size of the zone contents.  This can be overridden by setting

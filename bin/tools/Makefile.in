@@ -40,7 +40,7 @@ SUBDIRS =
 DNSTAPTARGETS =	dnstap-read@EXEEXT@
 NZDTARGETS =	named-nzd2nzf@EXEEXT@
 TARGETS =	arpaname@EXEEXT@ named-journalprint@EXEEXT@ \
-		named-rrchecker@EXEEXT@  nsec3hash@EXEEXT@ \
+		named-rrchecker@EXEEXT@ nsec3hash@EXEEXT@ \
 		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@ mdig@EXEEXT@ \
 		@DNSTAPTARGETS@ @NZDTARGETS@
 

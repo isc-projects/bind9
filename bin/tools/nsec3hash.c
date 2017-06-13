@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: nsec3hash.c,v 1.8 2011/11/02 23:46:24 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -15,12 +13,15 @@
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
+#include <isc/commandline.h>
+#include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/fixedname.h>
 #include <dns/name.h>
@@ -51,14 +52,21 @@ check_result(isc_result_t result, const char *message) {
 }
 
 static void
-usage(void) {
+usage() {
 	fprintf(stderr, "Usage: %s salt algorithm iterations domain\n",
+		program);
+	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",
 		program);
 	exit(1);
 }
 
-int
-main(int argc, char **argv) {
+typedef void nsec3printer(unsigned algo, unsigned flags, unsigned iters,
+			  char *saltstr, char *domain, char *digest);
+
+static void
+nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
+	  char *iterstr, char *saltstr, char *domain)
+{
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	isc_buffer_t buffer;
@@ -68,35 +76,36 @@ main(int argc, char **argv) {
 	unsigned char salt[DNS_NSEC3_SALTSIZE];
 	unsigned char text[1024];
 	unsigned int hash_alg;
+	unsigned int flags;
 	unsigned int length;
 	unsigned int iterations;
 	unsigned int salt_length;
 
-	if (argc != 5)
-		usage();
-
-	if (strcmp(argv[1], "-") == 0) {
+	if (strcmp(saltstr, "-") == 0) {
 		salt_length = 0;
 		salt[0] = 0;
 	} else {
 		isc_buffer_init(&buffer, salt, sizeof(salt));
-		result = isc_hex_decodestring(argv[1], &buffer);
+		result = isc_hex_decodestring(saltstr, &buffer);
 		check_result(result, "isc_hex_decodestring(salt)");
 		salt_length = isc_buffer_usedlength(&buffer);
 		if (salt_length > DNS_NSEC3_SALTSIZE)
 			fatal("salt too long");
 	}
-	hash_alg = atoi(argv[2]);
+	hash_alg = atoi(algostr);
 	if (hash_alg > 255U)
 		fatal("hash algorithm too large");
-	iterations = atoi(argv[3]);
+	flags = flagstr == NULL ? 0 : atoi(flagstr);
+	if (flags > 255U)
+		fatal("flags too large");
+	iterations = atoi(iterstr);
 	if (iterations > 0xffffU)
 		fatal("iterations to large");
 
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
-	isc_buffer_init(&buffer, argv[4], strlen(argv[4]));
-	isc_buffer_add(&buffer, strlen(argv[4]));
+	isc_buffer_init(&buffer, domain, strlen(domain));
+	isc_buffer_add(&buffer, strlen(domain));
 	result = dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext() failed");
 
@@ -109,7 +118,60 @@ main(int argc, char **argv) {
 	region.length = length;
 	isc_buffer_init(&buffer, text, sizeof(text));
 	isc_base32hexnp_totext(&region, 1, "", &buffer);
-	fprintf(stdout, "%.*s (salt=%s, hash=%u, iterations=%u)\n",
-		(int)isc_buffer_usedlength(&buffer), text, argv[1], hash_alg, iterations);
+	isc_buffer_putuint8(&buffer, '\0');
+
+	nsec3print(hash_alg, flags, iterations, saltstr, domain, (char *)text);
+}
+
+static void
+nsec3hash_print(unsigned algo, unsigned flags, unsigned iters,
+		char *saltstr, char *domain, char *digest)
+{
+	UNUSED(flags);
+	UNUSED(domain);
+
+	fprintf(stdout, "%s (salt=%s, hash=%u, iterations=%u)\n",
+		digest, saltstr, algo, iters);
+}
+
+static void
+nsec3hash_rdata_print(unsigned algo, unsigned flags, unsigned iters,
+		      char *saltstr, char *domain, char *digest)
+{
+	fprintf(stdout, "%s NSEC3 %u %u %u %s %s\n",
+		domain, algo, flags, iters, saltstr, digest);
+}
+
+int
+main(int argc, char *argv[]) {
+	isc_boolean_t rdata_format = ISC_FALSE;
+	int ch;
+
+	while ((ch = isc_commandline_parse(argc, argv, "r")) != -1) {
+		switch (ch) {
+		case 'r':
+			rdata_format = ISC_TRUE;
+			break;
+		default:
+			break;
+		}
+	}
+
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+
+	if (rdata_format) {
+		if (argc != 5) {
+			usage();
+		}
+		nsec3hash(nsec3hash_rdata_print,
+			  argv[0], argv[1], argv[2], argv[3], argv[4]);
+	} else {
+		if (argc != 4) {
+			usage();
+		}
+		nsec3hash(nsec3hash_print,
+			  argv[1], NULL, argv[2], argv[0], argv[3]);
+	}
 	return(0);
 }

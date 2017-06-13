@@ -45,6 +45,14 @@
       <arg choice="req" rep="norepeat"><replaceable class="parameter">iterations</replaceable></arg>
       <arg choice="req" rep="norepeat"><replaceable class="parameter">domain</replaceable></arg>
     </cmdsynopsis>
+    <cmdsynopsis sepchar=" ">
+      <command>nsec3hash -r</command>
+      <arg choice="req" rep="norepeat"><replaceable class="parameter">algorithm</replaceable></arg>
+      <arg choice="req" rep="norepeat"><replaceable class="parameter">flags</replaceable></arg>
+      <arg choice="req" rep="norepeat"><replaceable class="parameter">iterations</replaceable></arg>
+      <arg choice="req" rep="norepeat"><replaceable class="parameter">salt</replaceable></arg>
+      <arg choice="req" rep="norepeat"><replaceable class="parameter">domain</replaceable></arg>
+    </cmdsynopsis>
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
@@ -54,6 +62,16 @@
       a set of NSEC3 parameters.  This can be used to check the validity
       of NSEC3 records in a signed zone.
     </para>
+
+    <para>
+      If this command is invoked as <command>nsec3hash -r</command>,
+      it takes arguments in an order matching the first four fields
+      of an NSEC3 record, followed by the domain name: algorithm, flags,
+      iterations, salt, domain.  This makes it convenient to copy and
+      paste a portion of an NSEC3 or NSEC3PARAM record into a command
+      line to confirm the correctness of an NSEC3 hash.
+    </para>
+
   </refsection>
 
   <refsection><info><title>ARGUMENTS</title></info>
@@ -76,6 +94,16 @@
             only supported hash algorithm for NSEC3 is SHA-1, which is
             indicated by the number 1; consequently "1" is the only
             useful value for this argument.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>flags</term>
+        <listitem>
+          <para>
+            Provided for compatibility with NSEC3 record presentation
+            format, but ignored since the flags do not affect the hash.
           </para>
         </listitem>
       </varlistentry>

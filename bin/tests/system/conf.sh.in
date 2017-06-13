@@ -49,6 +49,7 @@ ARPANAME=$TOP/bin/tools/arpaname
 RESOLVE=$TOP/lib/samples/resolve
 RRCHECKER=$TOP/bin/tools/named-rrchecker
 GENRANDOM=$TOP/bin/tools/genrandom
+NSEC3HASH=$TOP/bin/tools/nsec3hash
 NSLOOKUP=$TOP/bin/dig/nslookup
 DNSTAPREAD=$TOP/bin/tools/dnstap-read
 MDIG=$TOP/bin/tools/mdig
@@ -83,7 +84,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
 	 runtime sfcache smartsign sortlist spf staticstub statistics
-	 statschannel stub tcp tkey tsig tsiggss unknown upforwd
+	 statschannel stub tcp tkey tools tsig tsiggss unknown upforwd
 	 verify views wildcard xfer xferquota zero zonechecks"
 
 # Things that are different on Windows
@@ -157,6 +158,7 @@ export LWTEST
 export MAKEJOURNAL
 export MDIG
 export NAMED
+export NSEC3HASH
 export NSLOOKUP
 export NSUPDATE
 export NZD2NZF
