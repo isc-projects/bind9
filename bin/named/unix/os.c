@@ -601,6 +601,13 @@ ns_os_changeuser(void) {
 #endif
 }
 
+uid_t
+ns_os_uid(void) {
+	if (runas_pw == NULL)
+		return (0);
+	return (runas_pw->pw_uid);
+}
+
 void
 ns_os_adjustnofile(void) {
 #ifdef HAVE_LINUXTHREADS

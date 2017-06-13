@@ -11,6 +11,8 @@
 
 /*! \file */
 
+#include <pwd.h>
+
 #include <isc/types.h>
 
 void
@@ -33,6 +35,9 @@ ns_os_inituserinfo(const char *username);
 
 void
 ns_os_changeuser(void);
+
+uid_t
+ns_os_uid(void);
 
 void
 ns_os_adjustnofile(void);

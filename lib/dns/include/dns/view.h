@@ -212,6 +212,7 @@ struct dns_view {
 	char *				new_zone_file;
 	char *			        new_zone_db;
 	void *				new_zone_dbenv;
+	isc_uint64_t			new_zone_mapsize;
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
 	isc_mutex_t			new_zone_lock;

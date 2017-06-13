@@ -139,6 +139,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Reloading or reconfiguring <command>named</command> could
+	  fail on some platforms when LMDB was in use. [RT #45203]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Due to some incorrectly deleted code, when BIND was
 	  built with LMDB, zones that were deleted via
 	  <command>rndc delzone</command> were removed from the
@@ -147,7 +153,6 @@
 	  server restart. This has been corrected. [RT #45185]
 	</para>
       </listitem>
-
       <listitem>
 	<para>
 	  Semicolons are no longer escaped when printing CAA and

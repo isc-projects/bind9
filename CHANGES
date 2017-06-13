@@ -1,3 +1,6 @@
+4638.	[bug]		Reloading or reconfiguring named could fail on
+			some platforms when LMDB was in use. [RT #45203]
+
 4636.	[bug]		Normalize rpz policy zone names when checking for
 			existence. [RT #45358]
 
