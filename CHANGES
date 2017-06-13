@@ -1,3 +1,6 @@
+4636.	[bug]		Normalize rpz policy zone names when checking for
+			existence. [RT #45358]
+
 4634.	[contrib]	check5011.pl needs to handle optional space before
 			semi-colon in +multi-line output. [RT #45352]
 
