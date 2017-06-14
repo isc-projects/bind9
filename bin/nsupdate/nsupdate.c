@@ -2950,11 +2950,17 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (eresult != ISC_R_SUCCESS) {
-		next_master("recvgss", addr, eresult);
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
-		dns_message_renderreset(tsigquery);
-		sendrequest(&master_servers[master_inuse], tsigquery, &request);
+		if (!next_master("recvgss", addr, eresult)) {
+			dns_message_destroy(&tsigquery);
+			failed_gssrequest();
+		} else {
+			dns_message_renderreset(tsigquery);
+			memmove(kserver, &master_servers[master_inuse],
+				sizeof(isc_sockaddr_t));
+			send_gssrequest(kserver, tsigquery, &request, context);
+		}
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
 		isc_event_free(&event);
 		return;
