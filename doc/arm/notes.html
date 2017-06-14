@@ -153,6 +153,12 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Reloading or reconfiguring <span class="command"><strong>named</strong></span> could
+	  fail on some platforms when LMDB was in use. [RT #45203]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Due to some incorrectly deleted code, when BIND was
 	  built with LMDB, zones that were deleted via
 	  <span class="command"><strong>rndc delzone</strong></span> were removed from the
