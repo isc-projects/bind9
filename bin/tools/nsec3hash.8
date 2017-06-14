@@ -1,4 +1,4 @@
-.\" Copyright (C) 2009, 2014-2016 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2009, 2014-2017 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,10 +40,15 @@ nsec3hash \- generate NSEC3 hash
 .SH "SYNOPSIS"
 .HP \w'\fBnsec3hash\fR\ 'u
 \fBnsec3hash\fR {\fIsalt\fR} {\fIalgorithm\fR} {\fIiterations\fR} {\fIdomain\fR}
+.HP \w'\fBnsec3hash\ \-r\fR\ 'u
+\fBnsec3hash \-r\fR {\fIalgorithm\fR} {\fIflags\fR} {\fIiterations\fR} {\fIsalt\fR} {\fIdomain\fR}
 .SH "DESCRIPTION"
 .PP
 \fBnsec3hash\fR
 generates an NSEC3 hash based on a set of NSEC3 parameters\&. This can be used to check the validity of NSEC3 records in a signed zone\&.
+.PP
+If this command is invoked as
+\fBnsec3hash \-r\fR, it takes arguments in an order matching the first four fields of an NSEC3 record, followed by the domain name: algorithm, flags, iterations, salt, domain\&. This makes it convenient to copy and paste a portion of an NSEC3 or NSEC3PARAM record into a command line to confirm the correctness of an NSEC3 hash\&.
 .SH "ARGUMENTS"
 .PP
 salt
@@ -54,6 +59,11 @@ The salt provided to the hash algorithm\&.
 algorithm
 .RS 4
 A number indicating the hash algorithm\&. Currently the only supported hash algorithm for NSEC3 is SHA\-1, which is indicated by the number 1; consequently "1" is the only useful value for this argument\&.
+.RE
+.PP
+flags
+.RS 4
+Provided for compatibility with NSEC3 record presentation format, but ignored since the flags do not affect the hash\&.
 .RE
 .PP
 iterations
@@ -74,5 +84,5 @@ RFC 5155\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2009, 2014-2016 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2009, 2014-2017 Internet Systems Consortium, Inc. ("ISC")
 .br
