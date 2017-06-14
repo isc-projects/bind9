@@ -1,3 +1,6 @@
+4680.	[bug]		Fix failing over to another master server address when
+			nsupdate is used with GSS-API. [RT #45380]
+
 4679.	[cleanup]	Suggest using -o when dnssec-verify finds a SOA record
 			not at top of zone and -o is not used. [RT #45519]
 
