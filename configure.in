@@ -5316,7 +5316,7 @@ report() {
             echo "        Mutex lock type: $locktype"
         fi
     fi
-    test "large" = "large" && echo "    Large-system tuning (--with-tuning)"
+    test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
             echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
