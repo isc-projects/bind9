@@ -1,3 +1,6 @@
+4639.	[bug]		Fix a regression in --with-tuning reporting introduced
+			by change 4488. [RT #45396]
+
 4638.	[bug]		Reloading or reconfiguring named could fail on
 			some platforms when LMDB was in use. [RT #45203]
 
