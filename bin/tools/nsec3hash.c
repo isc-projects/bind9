@@ -61,11 +61,12 @@ usage() {
 }
 
 typedef void nsec3printer(unsigned algo, unsigned flags, unsigned iters,
-			  char *saltstr, char *domain, char *digest);
+			  const char *saltstr, const char *domain,
+			  const char *digest);
 
 static void
 nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
-	  char *iterstr, char *saltstr, char *domain)
+	  const char *iterstr, const char *saltstr, const char *domain)
 {
 	dns_fixedname_t fixed;
 	dns_name_t *name;
@@ -80,6 +81,7 @@ nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
 	unsigned int length;
 	unsigned int iterations;
 	unsigned int salt_length;
+	const char dash[] = "-";
 
 	if (strcmp(saltstr, "-") == 0) {
 		salt_length = 0;
@@ -91,6 +93,8 @@ nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
 		salt_length = isc_buffer_usedlength(&buffer);
 		if (salt_length > DNS_NSEC3_SALTSIZE)
 			fatal("salt too long");
+		if (salt_length == 0)
+			saltstr = dash;
 	}
 	hash_alg = atoi(algostr);
 	if (hash_alg > 255U)
@@ -104,7 +108,7 @@ nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
 
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
-	isc_buffer_init(&buffer, domain, strlen(domain));
+	isc_buffer_constinit(&buffer, domain, strlen(domain));
 	isc_buffer_add(&buffer, strlen(domain));
 	result = dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext() failed");
@@ -125,7 +129,7 @@ nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
 
 static void
 nsec3hash_print(unsigned algo, unsigned flags, unsigned iters,
-		char *saltstr, char *domain, char *digest)
+		const char *saltstr, const char *domain, const char *digest)
 {
 	UNUSED(flags);
 	UNUSED(domain);
@@ -136,7 +140,8 @@ nsec3hash_print(unsigned algo, unsigned flags, unsigned iters,
 
 static void
 nsec3hash_rdata_print(unsigned algo, unsigned flags, unsigned iters,
-		      char *saltstr, char *domain, char *digest)
+		      const char *saltstr, const char *domain,
+		      const char *digest)
 {
 	fprintf(stdout, "%s NSEC3 %u %u %u %s %s\n",
 		domain, algo, flags, iters, saltstr, digest);
@@ -147,16 +152,20 @@ main(int argc, char *argv[]) {
 	isc_boolean_t rdata_format = ISC_FALSE;
 	int ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "r")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "-r")) != -1) {
 		switch (ch) {
 		case 'r':
 			rdata_format = ISC_TRUE;
 			break;
+		case '-':
+			isc_commandline_index -= 1;
+			goto skip;
 		default:
 			break;
 		}
 	}
 
+ skip:
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
