@@ -65,7 +65,7 @@ typedef void nsec3printer(unsigned algo, unsigned flags, unsigned iters,
 			  const char *digest);
 
 static void
-nsec3hash(nsec3printer *nsec3print, char *algostr, char *flagstr,
+nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	  const char *iterstr, const char *saltstr, const char *domain)
 {
 	dns_fixedname_t fixed;
