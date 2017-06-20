@@ -154,7 +154,7 @@ LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
 #define DNS_NAME_INITABSOLUTE(A,B) { \
 	DNS_NAME_MAGIC, \
 	A, sizeof(A), sizeof(B), \
-	DNS_NAMEATTR_READONLY | DNS_NAME_ABSOLUTE, \
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
 	B, NULL, { (void *)-1, (void *)-1}, \
 	{NULL, NULL} \
 }
