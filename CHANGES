@@ -1,3 +1,7 @@
+4640.	[bug]		If query_findversion failed in query_getdb due to
+			memory failure the error status was incorrectly
+			discarded. [RT #45331]
+
 4636.	[bug]		Normalize rpz policy zone names when checking for
 			existence. [RT #45358]
 
