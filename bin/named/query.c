@@ -1520,7 +1520,7 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 
 			dbversion = query_findversion(client, tdbp);
 			if (dbversion == NULL) {
-				result = ISC_R_NOMEMORY;
+				tresult = ISC_R_NOMEMORY;
 			} else {
 				/*
 				 * Be sure to return our database.
