@@ -1,101 +1,116 @@
-4639.   [bug]           Fix a regression in --with-tuning reporting introduced
-                        by change 4488. [RT #45396]
+4639.	[bug]		Fix a regression in --with-tuning reporting introduced
+			by change 4488. [RT #45396]
 
-4638.   [bug]           Reloading or reconfiguring named could fail on
-                        some platforms when LMDB was in use. [RT #45203]
+4638.	[bug]		Reloading or reconfiguring named could fail on
+			some platforms when LMDB was in use. [RT #45203]
 
-4630.   [bug]           "dyndb" is dependent on dlopen existing / being
-                        enabled. [RT #45291]
+4630.	[bug]		"dyndb" is dependent on dlopen existing / being
+			enabled. [RT #45291]
 
-4625.   [bug]           Running "rndc addzone" and "rndc delzone" at close
-                        to the same time could trigger a deadlock if using
-                        LMDB. [RT #45209]
+4625.	[bug]		Running "rndc addzone" and "rndc delzone" at close
+			to the same time could trigger a deadlock if using
+			LMDB. [RT #45209]
 
-4520.   [cleanup]       Alphabetize more of the grammar when printing it
-                        out. Fix unbalanced indenting. [RT #43755]
+4619.	[bug]		Call isc_mem_put instead of isc_mem_free in
+			bin/named/server.c:setup_newzones. [RT #45202]
 
-4471.   [cleanup]       Render client/query logging format consistent for
-                        ease of log file parsing. (Note that this affects
-                        "querylog" format: there is now an additional field
-                        indicating the client object address.) [RT #43238]
+4618.	[bug]		Check isc_mem_strdup results in dns_view_setnewzones.
+			Add logging for lmdb call failures. [RT #45204]
 
-4425.   [bug]           arpaname, dnstap-read and named-rrchecker were not
-                        being installed into ${prefix}/bin.  Tidy up
-                        installation issues with CHANGE 4421. [RT #42910]
+4540.	[bug]		Correctly handle ecs entries in dns_acl_isinsecure.
+			[RT #43601]
 
-4348.   [func]          dnssec-keymgr: A new python-based DNSSEC key
-                        management utility, which reads a policy definition
-                        file and can create or update DNSSEC keys as needed
-                        to ensure that a zone's keys match policy, roll over
-                        correctly on schedule, etc.  Thanks to Sebastian
-                        Castro for assistance in development. [RT #39211]
+4531.	[security]	'is_zone' was not being properly updated by redirect2
+			and subsequently preserved leading to an assertion
+			failure. (CVE-2016-9778) [RT #43837]
 
-4307.   [bug]           "dig +subnet" and "mdig +subnet" could send
-                        incorrectly-formatted Client Subnet options
-                        if the prefix length was not divisible by 8.
-                        Also fixed a memory leak in "mdig". [RT #45178]
+4520.	[cleanup]	Alphabetize more of the grammar when printing it
+			out. Fix unbalanced indenting. [RT #43755]
 
-4303.   [bug]           "dig +subnet" was unable to send a prefix length of
-                        zero, as it was incorrectly changed to 32 for v4
-                        prefixes or 128 for v6 prefixes. In addition to
-                        fixing this, "dig +subnet=0" has been added as a
-                        short form for 0.0.0.0/0. The same changes have
-                        also been made in "mdig". [RT #41553]
+4471.	[cleanup]	Render client/query logging format consistent for
+			ease of log file parsing. (Note that this affects
+			"querylog" format: there is now an additional field
+			indicating the client object address.) [RT #43238]
 
-4300.   [bug]           A flag could be set in the wrong field when setting
-                        up non-recursive queries; this could cause the
-                        SERVFAIL cache to cache responses it shouldn't.
-                        New querytrace logging has been added which
-                        identified this error. [RT #41155]
+4425.	[bug]		arpaname, dnstap-read and named-rrchecker were not
+			being installed into ${prefix}/bin.  Tidy up
+			installation issues with CHANGE 4421. [RT #42910]
 
-4161.   [test]          Add JSON test for traffic size stats; also test
-                        for consistency between "rndc stats" and the XML
-                        and JSON statistics channel contents. [RT #38700]
+4348.	[func]		dnssec-keymgr: A new python-based DNSSEC key
+			management utility, which reads a policy definition
+			file and can create or update DNSSEC keys as needed
+			to ensure that a zone's keys match policy, roll over
+			correctly on schedule, etc.  Thanks to Sebastian
+			Castro for assistance in development. [RT #39211]
 
-4056.   [bug]           Expanded automatic testing of trust anchor
-                        management and fixed several small bugs including
-                        a memory leak and a possible loss of key state
-                        information. [RT #38458]
+4307.	[bug]		"dig +subnet" and "mdig +subnet" could send
+			incorrectly-formatted Client Subnet options
+			if the prefix length was not divisible by 8.
+			Also fixed a memory leak in "mdig". [RT #45178]
 
-3949.   [experimental]  Experimental support for draft-andrews-edns1 by sending
-                        EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
-                        building).  Add support for limiting the EDNS version
-                        advertised to servers: server { edns-version 0; };
-                        Log the EDNS version received in the query log.
-                        [RT #35864]
+4303.	[bug]		"dig +subnet" was unable to send a prefix length of
+			zero, as it was incorrectly changed to 32 for v4
+			prefixes or 128 for v6 prefixes. In addition to
+			fixing this, "dig +subnet=0" has been added as a
+			short form for 0.0.0.0/0. The same changes have
+			also been made in "mdig". [RT #41553]
 
-3938.   [func]          Added quotas to be used in recursive resolvers
-                        that are under high query load for names in zones
-                        whose authoritative servers are nonresponsive or
-                        are experiencing a denial of service attack.
+4300.	[bug]		A flag could be set in the wrong field when setting
+			up non-recursive queries; this could cause the
+			SERVFAIL cache to cache responses it shouldn't.
+			New querytrace logging has been added which
+			identified this error. [RT #41155]
 
-                        - "fetches-per-server" limits the number of
-                          simultaneous queries that can be sent to any
-                          single authoritative server.  The configured
-                          value is a starting point; it is automatically
-                          adjusted downward if the server is partially or
-                          completely non-responsive. The algorithm used to
-                          adjust the quota can be configured via the
-                          "fetch-quota-params" option.
-                        - "fetches-per-zone" limits the number of
-                          simultaneous queries that can be sent for names
-                          within a single domain.  (Note: Unlike
-                          "fetches-per-server", this value is not
-                          self-tuning.)
-                        - New stats counters have been added to count
-                          queries spilled due to these quotas.
+4161.	[test]		Add JSON test for traffic size stats; also test
+			for consistency between "rndc stats" and the XML
+			and JSON statistics channel contents. [RT #38700]
 
-                        See the ARM for details of these options. [RT #37125]
+4135.	[cleanup]	Log expired NTA at startup. [RT #39680]
 
-3930.   [bug]           "rndc nta -r" could cause a server hang if the
-                        NTA was not found. [RT #36909]
+4056.	[bug]		Expanded automatic testing of trust anchor
+			management and fixed several small bugs including
+			a memory leak and a possible loss of key state
+			information. [RT #38458]
 
-3920.   [doc]           Added doc for masterfile-style. [RT #36823]
+3949.	[experimental]	Experimental support for draft-andrews-edns1 by sending
+			EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
+			building).  Add support for limiting the EDNS version
+			advertised to servers: server { edns-version 0; };
+			Log the EDNS version received in the query log.
+			[RT #35864]
 
-3875.   [cleanup]       Clarify log message when unable to read private
-                        key files. [RT #24702]
+3938.	[func]		Added quotas to be used in recursive resolvers
+			that are under high query load for names in zones
+			whose authoritative servers are nonresponsive or
+			are experiencing a denial of service attack.
 
-3821.   [contrib]       Added a new "mysqldyn" DLZ module with dynamic
-                        update and transaction support. Thanks to Marty
-                        Lee for the contribution. [RT #35656]
+			- "fetches-per-server" limits the number of
+			  simultaneous queries that can be sent to any
+			  single authoritative server.  The configured
+			  value is a starting point; it is automatically
+			  adjusted downward if the server is partially or
+			  completely non-responsive. The algorithm used to
+			  adjust the quota can be configured via the
+			  "fetch-quota-params" option.
+			- "fetches-per-zone" limits the number of
+			  simultaneous queries that can be sent for names
+			  within a single domain.  (Note: Unlike
+			  "fetches-per-server", this value is not
+			  self-tuning.)
+			- New stats counters have been added to count
+			  queries spilled due to these quotas.
+
+			See the ARM for details of these options. [RT #37125]
+
+3930.	[bug]		"rndc nta -r" could cause a server hang if the
+			NTA was not found. [RT #36909]
+
+3920.	[doc]		Added doc for masterfile-style. [RT #36823]
+
+3875.	[cleanup]	Clarify log message when unable to read private
+			key files. [RT #24702]
+
+3821.	[contrib]	Added a new "mysqldyn" DLZ module with dynamic
+			update and transaction support. Thanks to Marty
+			Lee for the contribution. [RT #35656]
 
