@@ -1401,7 +1401,7 @@
 			conditions causing SERVFAILs when resolving.
 			[RT #35538]
 
-3812.	[func]		Dig now supports sending arbitary EDNS options from
+3812.	[func]		Dig now supports sending arbitrary EDNS options from
 			the command line (+ednsopt=code[:value]). [RT #35584]
 
 	--- 9.10.2 released ---
@@ -1539,7 +1539,7 @@
 			not being properly set leading to a potentially
 			spurious 'inherited owner' warning. [RT #37919]
 
-4012.	[bug]		Check returned status of OpenSSL digest and HMAC
+4012.	[cleanup]	Check returned status of OpenSSL digest and HMAC
 			functions when they return one. Note this applies
 			only to FIPS capable OpenSSL libraries put in
 			FIPS mode and MD5. [RT #37944]
@@ -1547,8 +1547,8 @@
 4011.	[bug]		master's list port and dscp inheritance was not
 			properly implemented. [RT #37792]
 
-4010.	[cleanup]	Clear the prefetchable state when initiating a prefetch.
-			[RT #37399]
+4010.	[cleanup]	Clear the prefetchable state when initiating a
+			prefetch. [RT #37399]
 
 4008.	[contrib]	Updated zkt to latest version (1.1.3). [RT #37886]
 
@@ -1604,7 +1604,7 @@
 
 3989.	[cleanup]	Remove redundant dns_db_resigned calls. [RT #35748]
 
-3987.	[func]		Handle future Visual Studio 14 incompatible changes.
+3987.	[port]		Handle future Visual Studio 14 incompatible changes.
 			[RT #37380]
 
 3986.	[doc]		Add the BIND version number to page footers
@@ -1912,7 +1912,7 @@
 			to be made. [RT #36020]
 
 3856.	[bug]		Configuring libjson without also configuring libxml
-			resulting in a REQUIRE assertion when retrieving
+			resulted in a REQUIRE assertion when retrieving
 			statistics using json. [RT #36009]
 
 3855.	[bug]		Limit smoothed round trip time aging to no more than
@@ -1926,8 +1926,8 @@
 
 3851.	[func]		Allow libseccomp based system-call filtering
 			on Linux; use "configure --enable-seccomp" to
-			turn it on.  Thanks to Loganaden Velvindron for
-			the contribution. [RT #35347]
+			turn it on.  Thanks to Loganaden Velvindron
+			of AFRINIC for the contribution. [RT #35347]
 
 3850.	[bug]		Disabling forwarding could trigger a REQUIRE assertion.
 			[RT #35979]
@@ -3369,7 +3369,7 @@
 3414.	[bug]		Address locking issues found by Coverity. [RT #31626]
 
 3413.	[func]		Record the number of DNS64 AAAA RRsets that have been
-			synthesized. [RT #27636]
+			synthesised. [RT #27636]
 
 3412.	[bug]		Copy timeval structure from control message data.
 			[RT #31548]
@@ -10612,7 +10612,7 @@
 1137.	[func]		It is now possible to flush a given name from the
 			ADB by calling the new function dns_adb_flushname().
 
-1136.	[bug]		CNAME records synthesized from DNAMEs did not
+1136.	[bug]		CNAME records synthesised from DNAMEs did not
 			have a TTL of zero as required by RFC2672.
 			[RT #2129]
 
