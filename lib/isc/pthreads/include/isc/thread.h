@@ -40,7 +40,7 @@ typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 typedef pthread_key_t isc_thread_key_t;
 
 isc_result_t
-isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *name);
+isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
 
 void
 isc_thread_setconcurrency(unsigned int level);
@@ -49,7 +49,7 @@ void
 isc_thread_yield(void);
 
 void
-isc_thread_setname(isc_thread_t thread, const char *);
+isc_thread_setname(isc_thread_t thread, const char *name);
 
 /* XXX We could do fancier error handling... */
 
