@@ -72,6 +72,17 @@
 			a memory leak and a possible loss of key state
 			information. [RT #38458]
 
+3983.	[bug]		Change #3940 was incomplete: negative trust anchors
+			could be set to last up to a week, but the
+			"nta-lifetime" and "nta-recheck" options were
+			still limited to one day. [RT #37522]
+
+3979.	[bug]		Negative trust anchor fetches were not properly
+			managed. [RT #37488]
+
+3977.	[cleanup]	"rndc secroots" reported a "not found" error when
+			there were no negative trust anchors set. [RT #37506]
+
 3949.	[experimental]	Experimental support for draft-andrews-edns1 by sending
 			EDNS(1) queries (define DRAFT_ANDREWS_EDNS1 when
 			building).  Add support for limiting the EDNS version
@@ -106,6 +117,9 @@
 			NTA was not found. [RT #36909]
 
 3920.	[doc]		Added doc for masterfile-style. [RT #36823]
+
+3876.	[bug]		Improve efficiency of DLZ redirect zones by
+			suppressing unnecessary database lookups. [RT #35835]
 
 3875.	[cleanup]	Clarify log message when unable to read private
 			key files. [RT #24702]
