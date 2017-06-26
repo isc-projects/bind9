@@ -3886,7 +3886,7 @@
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2014,2015,2016,2017
 ./mkinstalldirs					X	1996
 ./unit/.gitignore				X	2012,2014
-./unit/Makefile.in				MAKE	2011,2012
+./unit/Makefile.in				MAKE	2011,2012,2017
 ./unit/README					X	2011,2013
 ./unit/atf-src/AUTHORS				X	2011,2013
 ./unit/atf-src/Atffile				X	2011,2013
