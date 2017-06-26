@@ -1,3 +1,5 @@
+	--- 9.11.2b1 released ---
+
 4641.	[cleanup]	Parallel builds (make -j) could fail with --with-atf /
 			--enable-developer. [RT #45373]
 
