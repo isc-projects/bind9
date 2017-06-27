@@ -71,6 +71,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  An error in TSIG handling could permit unauthorized zone
+	  transfers or zone updates. These flaws are disclosed in
+	  CVE-2017-3142 and CVE-2017-3143. [RT #45383]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The BIND installer on Windows used an unquoted service path,
 	  which can enable privilege escalation. This flaw is disclosed
 	  in CVE-2017-3141. [RT #45229]
