@@ -1,5 +1,9 @@
 	--- 9.10.6b1 released ---
 
+4642.	[cleanup]	Add more logging of RFC 5011 events affecting the
+			status of managed keys: newly observed keys,
+			deletion of revoked keys, etc. [RT #45354]
+
 4641.	[cleanup]	Parallel builds (make -j) could fail with --with-atf /
 			--enable-developer. [RT #45373]
 
