@@ -976,6 +976,8 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	mctx = msg->mctx;
 
 	msg->verify_attempted = 1;
+	msg->verified_sig = 0;
+	msg->sig0status = dns_tsigerror_badsig;
 
 	if (is_response(msg)) {
 		if (msg->query.base == NULL)
@@ -1070,6 +1072,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	msg->verified_sig = 1;
+	msg->sig0status = dns_rcode_noerror;
 
 	dst_context_destroy(&ctx);
 	dns_rdata_freestruct(&sig);

@@ -1,3 +1,9 @@
+	--- 9.9.10-P2 released ---
+
+4643.	[security]	An error in TSIG handling could permit unauthorized
+			zone transfers or zone updates. (CVE-2017-3142)
+			(CVE-2017-3143) [RT #45383]
+
 4633.	[maint]		Updated AAAA (2001:500:200::b) for B.ROOT-SERVERS.NET.
 
 	--- 9.9.10-P1 released ---
