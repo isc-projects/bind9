@@ -8292,7 +8292,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dst_key_t *dstkey;
 	isc_stdtime_t now;
 	int pending = 0;
-	isc_boolean_t secure;
+	isc_boolean_t secure = ISC_FALSE;
 	isc_boolean_t free_needed;
 
 	UNUSED(task);
@@ -8334,6 +8334,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	if (alldone)
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
+
+	dns_zone_log(zone, ISC_LOG_DEBUG(3),
+		     "Returned from key fetch in keyfetch_done() for "
+		     "'%s': %s", namebuf, dns_result_totext(eresult));
 
 	/* Fetch failed */
 	if (eresult != ISC_R_SUCCESS ||
@@ -8415,15 +8419,22 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		if (keynode != NULL)
 			dns_keytable_detachkeynode(secroots, &keynode);
 
-		if (kfetch->dnskeyset.trust == dns_trust_secure)
+		if (kfetch->dnskeyset.trust == dns_trust_secure) {
+			secure = ISC_TRUE;
 			break;
+		}
 	}
 
 	/*
 	 * If we were not able to verify the answer using the current
 	 * trusted keys then all we can do is look at any revoked keys.
 	 */
-	secure = ISC_TF(kfetch->dnskeyset.trust == dns_trust_secure);
+
+	if (!secure) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(3),
+			     "DNSKEY set for zone '%s' could not be verified "
+			     "with current keys", namebuf);
+	}
 
 	/*
 	 * First scan keydataset to find keys that are not in dnskeyset
@@ -8441,10 +8452,17 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	initializing = ISC_TRUE;
 	for (result = dns_rdataset_first(&kfetch->keydataset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->keydataset)) {
+	     result = dns_rdataset_next(&kfetch->keydataset))
+	{
+		dns_keytag_t keytag;
+
 		dns_rdata_reset(&keydatarr);
 		dns_rdataset_current(&kfetch->keydataset, &keydatarr);
 		result = dns_rdata_tostruct(&keydatarr, &keydata, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		dns_keydata_todnskey(&keydata, &dnskey, NULL);
+		result = compute_tag(keyname, &dnskey, mctx, &keytag);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/*
@@ -8460,27 +8478,35 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 			if (!secure) {
 				if (keydata.removehd != 0 &&
-				    keydata.removehd <= now)
+				    keydata.removehd <= now) {
 					deletekey = ISC_TRUE;
+				}
 			} else if (keydata.addhd == 0) {
 				deletekey = ISC_TRUE;
 			} else if (keydata.addhd > now) {
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "Pending key unexpectedly missing "
-					     "from %s; restarting acceptance "
-					     "timer", namebuf);
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "Pending key %d for zone %s "
+					     "unexpectedly missing "
+					     "restarting 30-day acceptance "
+					     "timer", keytag, namebuf);
 				if (keydata.addhd < now + dns_zone_mkey_month)
 					keydata.addhd =
 						now + dns_zone_mkey_month;
 				keydata.refresh = refresh_time(kfetch,
 							       ISC_FALSE);
 			} else if (keydata.removehd == 0) {
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "Active key unexpectedly missing "
-					     "from %s", namebuf);
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "Active key %d for zone %s "
+					     "unexpectedly missing",
+					     keytag, namebuf);
 				keydata.refresh = now + dns_zone_mkey_hour;
 			} else if (keydata.removehd <= now) {
 				deletekey = ISC_TRUE;
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "Revoked key %d for zone %s "
+					     "missing: deleting from "
+					     "managed keys database",
+					     keytag, namebuf);
 			} else {
 				keydata.refresh = refresh_time(kfetch,
 							       ISC_FALSE);
@@ -8536,6 +8562,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		isc_boolean_t updatekey = ISC_FALSE;
 		isc_boolean_t deletekey = ISC_FALSE;
 		isc_boolean_t trustkey = ISC_FALSE;
+		dns_keytag_t keytag;
 
 		dns_rdata_reset(&dnskeyrr);
 		dns_rdataset_current(&kfetch->dnskeyset, &dnskeyrr);
@@ -8545,6 +8572,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		/* Skip ZSK's */
 		if (!ISC_TF(dnskey.flags & DNS_KEYFLAG_KSK))
 			continue;
+
+		result = compute_tag(keyname, &dnskey, mctx, &keytag);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		revoked = ISC_TF(dnskey.flags & DNS_KEYFLAG_REVOKE);
 
@@ -8561,6 +8591,13 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * it's been revoked?  Just remove it
 					 */
 					deletekey = ISC_TRUE;
+					dns_zone_log(zone, ISC_LOG_DEBUG(3),
+						     "Pending key %d "
+						     "for zone %s is now "
+						     "revoked: "
+						     "deleting from the "
+						     "managed keys database",
+						     keytag, namebuf);
 				} else if (keydata.removehd == 0) {
 					/*
 					 * Remove key from secroots.
@@ -8577,16 +8614,30 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 						keydata.flags |=
 							DNS_KEYFLAG_REVOKE;
 					}
+
+					dns_zone_log(zone, ISC_LOG_INFO,
+						     "Trusted key %d "
+						     "for zone %s is now "
+						     "revoked",
+						     keytag, namebuf);
 				} else if (keydata.removehd < now) {
 					/* Scheduled for removal */
 					deletekey = ISC_TRUE;
+
+					dns_zone_log(zone, ISC_LOG_INFO,
+						     "Revoked key %d "
+						     "for zone %s removal "
+						     "timer complete: "
+						     "deleting from the "
+						     "managed keys database",
+						     keytag, namebuf);
 				}
 			} else if (revoked && keydata.removehd == 0) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "Active key for zone "
-					     "'%s' is revoked but "
+					     "Active key %d for zone "
+					     "%s is revoked but "
 					     "did not self-sign; "
-					     "ignoring.", namebuf);
+					     "ignoring", keytag, namebuf);
 					continue;
 			} else if (secure) {
 				if (keydata.removehd != 0) {
@@ -8595,20 +8646,34 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * seems it used to be.
 					 * Remove it now and add it
 					 * back as if it were a fresh key,
-					 * with a 30 day acceptance timer.
+					 * with a 30-day acceptance timer.
 					 */
 					deletekey = ISC_TRUE;
 					newkey = ISC_TRUE;
 					keydata.removehd = 0;
 					keydata.addhd =
 						now + dns_zone_mkey_month;
+
+					dns_zone_log(zone, ISC_LOG_DEBUG(3),
+						     "Revoked key %d "
+						     "for zone %s "
+						     "has returned: starting "
+						     "30-day acceptance timer",
+						     keytag, namebuf);
 				} else if (keydata.addhd > now)
 					pending++;
 				else if (keydata.addhd == 0)
 					keydata.addhd = now;
 
-				if (keydata.addhd <= now)
+				if (keydata.addhd <= now) {
 					trustkey = ISC_TRUE;
+					dns_zone_log(zone, ISC_LOG_INFO,
+						     "Key %d for zone %s "
+						     "acceptance timer "
+						     "complete: "
+						     "key now trusted",
+						     keytag, namebuf);
+				}
 			} else if (keydata.addhd > now) {
 				/*
 				 * Not secure, and key is pending:
@@ -8616,6 +8681,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				 */
 				pending++;
 				keydata.addhd = now + dns_zone_mkey_month;
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "Pending key %d "
+					     "for zone %s was "
+					     "not validated: restarting "
+					     "30-day acceptance timer",
+					     keytag, namebuf);
 			}
 
 			if (!deletekey && !newkey)
@@ -8632,17 +8703,21 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			newkey = ISC_TRUE;
 
 			if (initializing) {
-				dns_keytag_t tag = 0;
-				CHECK(compute_tag(keyname, &dnskey,
-						  mctx, &tag));
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "Initializing automatic trust "
 					     "anchor management for zone '%s'; "
 					     "DNSKEY ID %d is now trusted, "
 					     "waiving the normal 30-day "
 					     "waiting period.",
-					     namebuf, tag);
+					     namebuf, keytag);
 				trustkey = ISC_TRUE;
+			} else {
+				dns_zone_log(zone, ISC_LOG_INFO,
+					     "New key %d observed "
+					     "for zone '%s': "
+					     "starting 30-day "
+					     "acceptance timer",
+					     keytag, namebuf);
 			}
 		} else {
 			/*
@@ -8872,6 +8947,16 @@ zone_refreshkeys(dns_zone_t *zone) {
 		kfetch->db = NULL;
 		dns_db_attach(db, &kfetch->db);
 		kfetch->fetch = NULL;
+
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(kname, namebuf,
+					sizeof(namebuf));
+			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+				     "Creating key fetch in "
+				     "zone_refreshkeys() for '%s'",
+				     namebuf);
+		}
 
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
