@@ -379,7 +379,7 @@ $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 cp ns1/named2.conf ns1/named.conf
-rm ns1/root.db.signed.jnl
+rm -f ns1/root.db.signed.jnl
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig
 
 echo "I: reinitialize trust anchors"
@@ -521,7 +521,7 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: restore root server, check validation succeeds again ($n)"
-rm ns1/root.db.signed.jnl
+rm -f ns1/root.db.signed.jnl
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
 sleep 3
