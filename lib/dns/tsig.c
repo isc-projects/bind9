@@ -967,10 +967,19 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_putuint48(&otherbuf, tsig.timesigned);
 	}
 
-	if (key->key != NULL && tsig.error != dns_tsigerror_badsig) {
+	if ((key->key != NULL) &&
+	    (tsig.error != dns_tsigerror_badsig) &&
+	    (tsig.error != dns_tsigerror_badkey))
+	{
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
 		isc_uint16_t digestbits;
+
+		/*
+		 * If it is a response, we assume that the request MAC
+		 * has validated at this point. This is why we include a
+		 * MAC length > 0 in the reply.
+		 */
 
 		ret = dst_context_create3(key->key, mctx,
 					  DNS_LOGCATEGORY_DNSSEC,
@@ -979,10 +988,9 @@ dns_tsig_sign(dns_message_t *msg) {
 			return (ret);
 
 		/*
-		 * If this is a response and the query's signature
-		 * validated, digest the query signature.
+		 * If this is a response, digest the request's MAC.
 		 */
-		if (response && (tsig.error == dns_rcode_noerror)) {
+		if (response) {
 			dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
 
 			ret = dns_rdataset_first(msg->querytsig);
@@ -1110,6 +1118,17 @@ dns_tsig_sign(dns_message_t *msg) {
 		dst_context_destroy(&ctx);
 		digestbits = dst_key_getbits(key->key);
 		if (digestbits != 0) {
+			/*
+			 * XXXRAY: Is this correct? What is the
+			 * expected behavior when digestbits is not an
+			 * integral multiple of 8? It looks like bytes
+			 * should either be (digestbits/8) or
+			 * (digestbits+7)/8.
+			 *
+			 * In any case, for current algorithms,
+			 * digestbits are an integral multiple of 8, so
+			 * it has the same effect as (digestbits/8).
+			 */
 			unsigned int bytes = (digestbits + 1) / 8;
 			if (response && bytes < querytsig.siglen)
 				bytes = querytsig.siglen;
@@ -1319,19 +1338,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	key = tsigkey->key;
 
 	/*
-	 * Is the time ok?
-	 */
-	if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
-		msg->tsigstatus = dns_tsigerror_badtime;
-		tsig_log(msg->tsigkey, 2, "signature has expired");
-		return (DNS_R_CLOCKSKEW);
-	} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge) {
-		msg->tsigstatus = dns_tsigerror_badtime;
-		tsig_log(msg->tsigkey, 2, "signature is in the future");
-		return (DNS_R_CLOCKSKEW);
-	}
-
-	/*
 	 * Check digest length.
 	 */
 	alg = dst_key_alg(key);
@@ -1346,7 +1352,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
 	    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
 	{
-		isc_uint16_t digestbits = dst_key_getbits(key);
 		if (tsig.siglen > siglen) {
 			tsig_log(msg->tsigkey, 2, "signature length too big");
 			return (DNS_R_FORMERR);
@@ -1357,21 +1362,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			tsig_log(msg->tsigkey, 2,
 				 "signature length below minimum");
 			return (DNS_R_FORMERR);
-		}
-		if (tsig.siglen > 0 && digestbits != 0 &&
-		    tsig.siglen < ((digestbits + 1) / 8))
-		{
-			msg->tsigstatus = dns_tsigerror_badtrunc;
-			tsig_log(msg->tsigkey, 2,
-				 "truncated signature length too small");
-			return (DNS_R_TSIGVERIFYFAILURE);
-		}
-		if (tsig.siglen > 0 && digestbits == 0 &&
-		    tsig.siglen < siglen)
-		{
-			msg->tsigstatus = dns_tsigerror_badtrunc;
-			tsig_log(msg->tsigkey, 2, "signature length too small");
-			return (DNS_R_TSIGVERIFYFAILURE);
 		}
 	}
 
@@ -1387,7 +1377,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
-		if (response && (tsig.error == dns_rcode_noerror)) {
+		if (response) {
 			isc_buffer_init(&databuf, data, sizeof(data));
 			isc_buffer_putuint16(&databuf, querytsig.siglen);
 			isc_buffer_usedregion(&databuf, &r);
@@ -1487,7 +1477,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 		ret = dst_context_verify(ctx, &sig_r);
 		if (ret == DST_R_VERIFYFAILURE) {
-			msg->tsigstatus = dns_tsigerror_badsig;
 			ret = DNS_R_TSIGVERIFYFAILURE;
 			tsig_log(msg->tsigkey, 2,
 				 "signature failed to verify(1)");
@@ -1497,9 +1486,69 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 	} else if (tsig.error != dns_tsigerror_badsig &&
 		   tsig.error != dns_tsigerror_badkey) {
-		msg->tsigstatus = dns_tsigerror_badsig;
 		tsig_log(msg->tsigkey, 2, "signature was empty");
 		return (DNS_R_TSIGVERIFYFAILURE);
+	}
+
+	/*
+	 * Here at this point, the MAC has been verified. Even if any of
+	 * the following code returns a TSIG error, the reply will be
+	 * signed and WILL always include the request MAC in the digest
+	 * computation.
+	 */
+
+	/*
+	 * Is the time ok?
+	 */
+	if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
+		msg->tsigstatus = dns_tsigerror_badtime;
+		tsig_log(msg->tsigkey, 2, "signature has expired");
+		ret = DNS_R_CLOCKSKEW;
+		goto cleanup_context;
+	} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge) {
+		msg->tsigstatus = dns_tsigerror_badtime;
+		tsig_log(msg->tsigkey, 2, "signature is in the future");
+		ret = DNS_R_CLOCKSKEW;
+		goto cleanup_context;
+	}
+
+	if (
+#ifndef PK11_MD5_DISABLE
+	    alg == DST_ALG_HMACMD5 ||
+#endif
+	    alg == DST_ALG_HMACSHA1 ||
+	    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
+	    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
+	{
+		isc_uint16_t digestbits = dst_key_getbits(key);
+
+		/*
+		 * XXXRAY: Is this correct? What is the expected
+		 * behavior when digestbits is not an integral multiple
+		 * of 8? It looks like bytes should either be
+		 * (digestbits/8) or (digestbits+7)/8.
+		 *
+		 * In any case, for current algorithms, digestbits are
+		 * an integral multiple of 8, so it has the same effect
+		 * as (digestbits/8).
+		 */
+		if (tsig.siglen > 0 && digestbits != 0 &&
+		    tsig.siglen < ((digestbits + 1) / 8))
+		{
+			msg->tsigstatus = dns_tsigerror_badtrunc;
+			tsig_log(msg->tsigkey, 2,
+				 "truncated signature length too small");
+			ret = DNS_R_TSIGVERIFYFAILURE;
+			goto cleanup_context;
+		}
+		if (tsig.siglen > 0 && digestbits == 0 &&
+		    tsig.siglen < siglen)
+		{
+			msg->tsigstatus = dns_tsigerror_badtrunc;
+			tsig_log(msg->tsigkey, 2, "signature length too small");
+			ret = DNS_R_TSIGVERIFYFAILURE;
+			goto cleanup_context;
+		}
 	}
 
 	if (tsig.error != dns_rcode_noerror) {
@@ -1538,6 +1587,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	isc_uint16_t addcount, id;
 	isc_boolean_t has_tsig = ISC_FALSE;
 	isc_mem_t *mctx;
+	unsigned int siglen;
+	unsigned int alg;
 
 	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
@@ -1554,6 +1605,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	mctx = msg->mctx;
 
 	tsigkey = dns_message_gettsigkey(msg);
+	key = tsigkey->key;
 
 	/*
 	 * Extract and parse the previous TSIG
@@ -1596,27 +1648,39 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		}
 
 		/*
-		 * Is the time ok?
+		 * Check digest length.
 		 */
-		isc_stdtime_get(&now);
-
-		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
-			msg->tsigstatus = dns_tsigerror_badtime;
-			tsig_log(msg->tsigkey, 2, "signature has expired");
-			ret = DNS_R_CLOCKSKEW;
+		alg = dst_key_alg(key);
+		ret = dst_key_sigsize(key, &siglen);
+		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
-		} else if (now + msg->timeadjust <
-			   tsig.timesigned - tsig.fudge)
+		if (
+#ifndef PK11_MD5_DISABLE
+			alg == DST_ALG_HMACMD5 ||
+#endif
+			alg == DST_ALG_HMACSHA1 ||
+			alg == DST_ALG_HMACSHA224 ||
+			alg == DST_ALG_HMACSHA256 ||
+			alg == DST_ALG_HMACSHA384 ||
+			alg == DST_ALG_HMACSHA512)
 		{
-			msg->tsigstatus = dns_tsigerror_badtime;
-			tsig_log(msg->tsigkey, 2,
-				 "signature is in the future");
-			ret = DNS_R_CLOCKSKEW;
-			goto cleanup_querystruct;
+			if (tsig.siglen > siglen) {
+				tsig_log(tsigkey, 2,
+					 "signature length too big");
+				ret = DNS_R_FORMERR;
+				goto cleanup_querystruct;
+			}
+			if (tsig.siglen > 0 &&
+			    (tsig.siglen < 10 ||
+			     tsig.siglen < ((siglen + 1) / 2)))
+			{
+				tsig_log(tsigkey, 2,
+					 "signature length below minimum");
+				ret = DNS_R_FORMERR;
+				goto cleanup_querystruct;
+			}
 		}
 	}
-
-	key = tsigkey->key;
 
 	if (msg->tsigctx == NULL) {
 		ret = dst_context_create3(key, mctx,
@@ -1729,13 +1793,87 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 		ret = dst_context_verify(msg->tsigctx, &sig_r);
 		if (ret == DST_R_VERIFYFAILURE) {
-			msg->tsigstatus = dns_tsigerror_badsig;
 			tsig_log(msg->tsigkey, 2,
 				 "signature failed to verify(2)");
 			ret = DNS_R_TSIGVERIFYFAILURE;
 			goto cleanup_context;
 		} else if (ret != ISC_R_SUCCESS) {
 			goto cleanup_context;
+		}
+
+		/*
+		 * Here at this point, the MAC has been verified. Even
+		 * if any of the following code returns a TSIG error,
+		 * the reply will be signed and WILL always include the
+		 * request MAC in the digest computation.
+		 */
+
+		/*
+		 * Is the time ok?
+		 */
+		isc_stdtime_get(&now);
+
+		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
+			msg->tsigstatus = dns_tsigerror_badtime;
+			tsig_log(msg->tsigkey, 2, "signature has expired");
+			ret = DNS_R_CLOCKSKEW;
+			goto cleanup_context;
+		} else if (now + msg->timeadjust <
+			   tsig.timesigned - tsig.fudge)
+		{
+			msg->tsigstatus = dns_tsigerror_badtime;
+			tsig_log(msg->tsigkey, 2,
+				 "signature is in the future");
+			ret = DNS_R_CLOCKSKEW;
+			goto cleanup_context;
+		}
+
+		alg = dst_key_alg(key);
+		ret = dst_key_sigsize(key, &siglen);
+		if (ret != ISC_R_SUCCESS)
+			goto cleanup_context;
+		if (
+#ifndef PK11_MD5_DISABLE
+			alg == DST_ALG_HMACMD5 ||
+#endif
+			alg == DST_ALG_HMACSHA1 ||
+			alg == DST_ALG_HMACSHA224 ||
+			alg == DST_ALG_HMACSHA256 ||
+			alg == DST_ALG_HMACSHA384 ||
+			alg == DST_ALG_HMACSHA512)
+		{
+			isc_uint16_t digestbits = dst_key_getbits(key);
+
+			/*
+			 * XXXRAY: Is this correct? What is the
+			 * expected behavior when digestbits is not an
+			 * integral multiple of 8? It looks like bytes
+			 * should either be (digestbits/8) or
+			 * (digestbits+7)/8.
+			 *
+			 * In any case, for current algorithms,
+			 * digestbits are an integral multiple of 8, so
+			 * it has the same effect as (digestbits/8).
+			 */
+			if (tsig.siglen > 0 && digestbits != 0 &&
+			    tsig.siglen < ((digestbits + 1) / 8))
+			{
+				msg->tsigstatus = dns_tsigerror_badtrunc;
+				tsig_log(msg->tsigkey, 2,
+					 "truncated signature length "
+					 "too small");
+				ret = DNS_R_TSIGVERIFYFAILURE;
+				goto cleanup_context;
+			}
+			if (tsig.siglen > 0 && digestbits == 0 &&
+			    tsig.siglen < siglen)
+			{
+				msg->tsigstatus = dns_tsigerror_badtrunc;
+				tsig_log(msg->tsigkey, 2,
+					 "signature length too small");
+				ret = DNS_R_TSIGVERIFYFAILURE;
+				goto cleanup_context;
+			}
 		}
 
 		if (tsig.error != dns_rcode_noerror) {
