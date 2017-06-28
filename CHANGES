@@ -1,4 +1,4 @@
-	--- 9.11.1-P2 released ---
+	--- 9.10.5-P2 released ---
 
 4643.	[security]	An error in TSIG handling could permit unauthorized
 			zone transfers or zone updates. (CVE-2017-3142)
