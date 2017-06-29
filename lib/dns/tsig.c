@@ -1484,10 +1484,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	if (
-#ifndef PK11_MD5_DISABLE
-	    alg == DST_ALG_HMACMD5 ||
-#endif
-	    alg == DST_ALG_HMACSHA1 ||
+	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_HMACSHA1 ||
 	    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
 	    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
 	{
@@ -1625,15 +1622,9 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		ret = dst_key_sigsize(key, &siglen);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
-		if (
-#ifndef PK11_MD5_DISABLE
-			alg == DST_ALG_HMACMD5 ||
-#endif
-			alg == DST_ALG_HMACSHA1 ||
-			alg == DST_ALG_HMACSHA224 ||
-			alg == DST_ALG_HMACSHA256 ||
-			alg == DST_ALG_HMACSHA384 ||
-			alg == DST_ALG_HMACSHA512)
+		if (alg == DST_ALG_HMACMD5 || alg == DST_ALG_HMACSHA1 ||
+		    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
+		    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
 		{
 			if (tsig.siglen > siglen) {
 				tsig_log(tsigkey, 2,
@@ -1803,15 +1794,9 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		ret = dst_key_sigsize(key, &siglen);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
-		if (
-#ifndef PK11_MD5_DISABLE
-			alg == DST_ALG_HMACMD5 ||
-#endif
-			alg == DST_ALG_HMACSHA1 ||
-			alg == DST_ALG_HMACSHA224 ||
-			alg == DST_ALG_HMACSHA256 ||
-			alg == DST_ALG_HMACSHA384 ||
-			alg == DST_ALG_HMACSHA512)
+		if (alg == DST_ALG_HMACMD5 || alg == DST_ALG_HMACSHA1 ||
+		    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
+		    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
 		{
 			isc_uint16_t digestbits = dst_key_getbits(key);
 
