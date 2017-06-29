@@ -1,3 +1,6 @@
+4645.	[bug]		Fix PKCS#11 RSA parsing when MD5 is disabled.
+			[RT #45300]
+
 	--- 9.11.2b1 released ---
 
 4643.	[security]	An error in TSIG handling could permit unauthorized
