@@ -605,7 +605,12 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		goto fail;
 	}
 
+#ifdef PK11_MD5_DISABLE
+	check = check_data(priv, alg == DST_ALG_RSA ? DST_ALG_RSASHA1 : alg,
+			   ISC_TRUE, external);
+#else
 	check = check_data(priv, alg, ISC_TRUE, external);
+#endif
 	if (check < 0) {
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;
