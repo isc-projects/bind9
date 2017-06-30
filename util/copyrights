@@ -1941,12 +1941,12 @@
 ./bin/tests/system/pipelined/refb		X	2014,2015
 ./bin/tests/system/pipelined/setup.sh		SH	2014,2015,2016,2017
 ./bin/tests/system/pipelined/tests.sh		SH	2014,2015,2016
-./bin/tests/system/pkcs11/clean.sh		SH	2010,2012,2014,2016
+./bin/tests/system/pkcs11/clean.sh		SH	2010,2012,2014,2016,2017
 ./bin/tests/system/pkcs11/ns1/example.db.in	ZONE	2010,2016
 ./bin/tests/system/pkcs11/ns1/named.conf	CONF-C	2010,2013,2014,2016
 ./bin/tests/system/pkcs11/prereq.sh		SH	2010,2012,2014,2016
 ./bin/tests/system/pkcs11/setup.sh		SH	2010,2012,2013,2014,2016
-./bin/tests/system/pkcs11/tests.sh		SH	2010,2012,2014,2016
+./bin/tests/system/pkcs11/tests.sh		SH	2010,2012,2014,2016,2017
 ./bin/tests/system/pkcs11/usepkcs11		X	2010
 ./bin/tests/system/pkcs11ssl/clean.sh		SH	2014,2016
 ./bin/tests/system/pkcs11ssl/ns1/example.db.in	ZONE	2014,2016
@@ -3560,7 +3560,7 @@
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2016
 ./lib/dns/dst_lib.c				C	1999,2000,2001,2004,2005,2007,2016
 ./lib/dns/dst_openssl.h				C	2002,2004,2005,2007,2008,2009,2011,2012,2015,2016
-./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./lib/dns/dst_parse.c				C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2012,2014,2016
 ./lib/dns/dst_pkcs11.h				C	2014,2016
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004,2005,2007,2008,2012,2013,2014,2015,2016
