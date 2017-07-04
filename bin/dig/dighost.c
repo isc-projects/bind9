@@ -446,7 +446,7 @@ hex_dump(isc_buffer_t *b) {
  * ISC_R_NOSPACE if that would advance p past 'end'.
  */
 static isc_result_t
-append(const char *text, int len, char **p, char *end) {
+append(const char *text, size_t len, char **p, char *end) {
 	if (len > end - *p)
 		return (ISC_R_NOSPACE);
 	memmove(*p, text, len);
@@ -457,7 +457,7 @@ append(const char *text, int len, char **p, char *end) {
 static isc_result_t
 reverse_octets(const char *in, char **p, char *end) {
 	const char *dot = strchr(in, '.');
-	int len;
+	size_t len;
 	if (dot != NULL) {
 		isc_result_t result;
 		result = reverse_octets(dot + 1, p, end);
