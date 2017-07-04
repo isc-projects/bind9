@@ -459,7 +459,7 @@ hex_dump(isc_buffer_t *b) {
  */
 static isc_result_t
 append(const char *text, size_t len, char **p, char *end) {
-	if (len > end - *p)
+	if (*p + len > end)
 		return (ISC_R_NOSPACE);
 	memmove(*p, text, len);
 	*p += len;
