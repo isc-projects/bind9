@@ -2841,9 +2841,18 @@ status=`expr $status + $ret`
 echo "I:check KEYDATA records are printed in human readable form in key zone ($n)"
 # force the managed-keys zone to be written out
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 managed-keys sync 2>&1 | sed 's/^/I:ns4 /'
-ret=0
-grep KEYDATA ns4/managed-keys.bind > /dev/null || ret=1
-grep "next refresh:" ns4/managed-keys.bind > /dev/null || ret=1
+for i in 1 2 3 4 5 6 7 8 9
+do
+    ret=0
+    if test -f ns4/managed-keys.bind
+    then
+	grep KEYDATA ns4/managed-keys.bind > /dev/null &&
+	grep "next refresh:" ns4/managed-keys.bind > /dev/null &&
+	break
+    fi
+    ret=1
+    sleep 1
+done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
