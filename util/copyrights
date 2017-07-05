@@ -3261,14 +3261,14 @@
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2014,2016
 ./lib/export/Makefile.in			MAKE	2009,2012
 ./lib/export/dns/.gitignore			X	2012,2013
-./lib/export/dns/Makefile.in			MAKE	2009,2010,2011,2012,2013,2015,2016
+./lib/export/dns/Makefile.in			MAKE	2009,2010,2011,2012,2013,2015,2016,2017
 ./lib/export/dns/include/Makefile.in		MAKE	2009,2012
 ./lib/export/dns/include/dns/Makefile.in	MAKE	2009,2012,2015,2016
 ./lib/export/dns/include/dst/Makefile.in	MAKE	2009,2012,2015,2016
-./lib/export/irs/Makefile.in			MAKE	2009,2011,2012,2013,2015,2016
+./lib/export/irs/Makefile.in			MAKE	2009,2011,2012,2013,2015,2016,2017
 ./lib/export/irs/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/irs/include/irs/Makefile.in	MAKE	2009,2012,2015,2016
-./lib/export/isc/Makefile.in			MAKE	2009,2010,2012,2013,2014,2015,2016
+./lib/export/isc/Makefile.in			MAKE	2009,2010,2012,2013,2014,2015,2016,2017
 ./lib/export/isc/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/isc/include/isc/Makefile.in	MAKE	2009,2012,2013,2015,2016
 ./lib/export/isc/include/isc/bind9.h		C	2009
@@ -3282,7 +3282,7 @@
 ./lib/export/isc/unix/Makefile.in		MAKE	2009,2012,2014
 ./lib/export/isc/unix/include/Makefile.in	MAKE	2009,2011,2012
 ./lib/export/isc/unix/include/isc/Makefile.in	MAKE	2009,2012,2015,2016
-./lib/export/isccfg/Makefile.in			MAKE	2009,2011,2012,2013,2015,2016
+./lib/export/isccfg/Makefile.in			MAKE	2009,2011,2012,2013,2015,2016,2017
 ./lib/export/isccfg/include/Makefile.in		MAKE	2009,2011,2012
 ./lib/export/isccfg/include/isccfg/Makefile.in	MAKE	2009,2012,2015,2016
 ./lib/export/samples/.gitignore			X	2012
