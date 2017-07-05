@@ -74,7 +74,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${export_libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisccfg.@A@ \
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libisccfg.@A@ \
 	${DESTDIR}${export_libdir}/
 
 uninstall::

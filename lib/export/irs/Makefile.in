@@ -78,7 +78,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${export_libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libirs.@A@ \
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libirs.@A@ \
 	${DESTDIR}${export_libdir}/
 
 uninstall::

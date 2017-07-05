@@ -1,3 +1,6 @@
+4646.	[bug]		Install lib/export libraries with ${INSTALL_LIBRARY}.
+			[RT #45497]
+
 	--- 9.9.11b1 released ---
 
 4643.	[security]	An error in TSIG handling could permit unauthorized

@@ -134,7 +134,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${export_libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisc.@A@ \
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libisc.@A@ \
 	${DESTDIR}${export_libdir}
 
 uninstall::

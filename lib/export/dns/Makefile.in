@@ -132,7 +132,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${export_libdir}
 
 install:: timestamp installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libdns.@A@ \
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} libdns.@A@ \
 	${DESTDIR}${export_libdir}/
 
 uninstall::
