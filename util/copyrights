@@ -3900,7 +3900,7 @@
 ./lib/dns/tests/Atffile				X	2011
 ./lib/dns/tests/Kdh.+002+18602.key		X	2014
 ./lib/dns/tests/Krsa.+005+29235.key		X	2016
-./lib/dns/tests/Makefile.in			MAKE	2011,2012,2013,2014,2015,2016
+./lib/dns/tests/Makefile.in			MAKE	2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/tests/acl_test.c			C	2016
 ./lib/dns/tests/db_test.c			C	2013,2015,2016
 ./lib/dns/tests/dbdiff_test.c			C	2011,2012,2016
@@ -3962,6 +3962,7 @@
 ./lib/dns/tests/testdata/nsec3/min-2048.db	ZONE	2012,2016
 ./lib/dns/tests/testdata/zt/zone1.db		ZONE	2011,2012,2016
 ./lib/dns/tests/time_test.c			C	2011,2012,2016
+./lib/dns/tests/tsig_test.c			C	2017
 ./lib/dns/tests/update_test.c			C	2011,2012,2014,2016
 ./lib/dns/tests/zonemgr_test.c			C	2011,2012,2013,2015,2016
 ./lib/dns/tests/zt_test.c			C	2011,2012,2016
