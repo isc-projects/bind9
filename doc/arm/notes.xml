@@ -32,8 +32,10 @@
       CVE-2017-3142 and CVE-2017-3143. It also includes an update
       to the address of the B root server.
     </para>
+    <para>
+      BIND 9.10.5-P3 addresses a TSIG regression introduced in 9.10.5-P2.
+    </para>
   </section>
-
 
   <section xml:id="relnotes_download"><info><title>Download</title></info>
     <para>
