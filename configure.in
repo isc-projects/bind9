@@ -3962,7 +3962,7 @@ case "$enable_atomic" in
 		case "$host" in
 		powerpc-ibm-aix*)
 			if test "X$GCC" = "Xyes"; then
-				AC_MSG_CHECKING([if asm("isc"); works])
+				AC_MSG_CHECKING([if asm("ics"); works])
 				AC_TRY_COMPILE(,[
 				main() { asm("ics"); exit(0); }
 				],
