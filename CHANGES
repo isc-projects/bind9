@@ -1,3 +1,8 @@
+4647.	[bug]		Change 4643 broke verification of TSIG signed TCP
+			message sequences where not all the messages contain
+			TSIG records.  These may be used in AXFR and IXFR
+			responses. [RT #45509]
+
 	--- 9.10.5-P2 released ---
 
 4643.	[security]	An error in TSIG handling could permit unauthorized
