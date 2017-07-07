@@ -1,3 +1,5 @@
+	--- 9.9.10-P3 released ---
+
 4647.	[bug]		Change 4643 broke verification of TSIG signed TCP
 			message sequences where not all the messages contain
 			TSIG records.  These may be used in AXFR and IXFR
