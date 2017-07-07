@@ -1555,7 +1555,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	msg->verified_sig = 1;
 	ret = ISC_R_SUCCESS;
 
-cleanup_context:
+ cleanup_context:
 	if (ctx != NULL)
 		dst_context_destroy(&ctx);
 
@@ -1882,8 +1882,14 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	ret = ISC_R_SUCCESS;
 
  cleanup_context:
-	if (msg->tsigctx != NULL)
+	/*
+	 * Except in error conditions, don't destroy the DST context
+	 * for unsigned messages; it is a running sum till the next
+	 * TSIG signed message.
+	 */
+	if ((ret != ISC_R_SUCCESS || has_tsig) && msg->tsigctx != NULL) {
 		dst_context_destroy(&msg->tsigctx);
+	}
 
  cleanup_querystruct:
 	dns_rdata_freestruct(&querytsig);
