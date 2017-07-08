@@ -20148,8 +20148,8 @@ case "$enable_atomic" in
 		case "$host" in
 		powerpc-ibm-aix*)
 			if test "X$GCC" = "Xyes"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"isc\"); works" >&5
-$as_echo_n "checking if asm(\"isc\"); works... " >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"ics\"); works" >&5
+$as_echo_n "checking if asm(\"ics\"); works... " >&6; }
 				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
