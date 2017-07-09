@@ -663,7 +663,7 @@ dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
 		  dns_catz_zone_t **zonep)
 {
 	dns_catz_zone_t *new_zone = NULL;
-	isc_result_t result;
+	isc_result_t result, tresult;
 	char zname[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(catzs != NULL);
@@ -689,9 +689,9 @@ dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
 	}
 
 	if (result == ISC_R_EXISTS) {
-		result = isc_ht_find(catzs->zones, name->ndata,
+		tresult = isc_ht_find(catzs->zones, name->ndata,
 				     name->length, (void **) &new_zone);
-		INSIST(result == ISC_R_SUCCESS && !new_zone->active);
+		INSIST(tresult == ISC_R_SUCCESS && !new_zone->active);
 		new_zone->active = ISC_TRUE;
 	}
 
