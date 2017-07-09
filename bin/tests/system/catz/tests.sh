@@ -1276,6 +1276,14 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I: checking that dom7.example is still served by slave after reconfiguration ($n)"
+ret=0
+$DIG soa dom7.example -b 10.53.0.1 @10.53.0.2 -p 5300 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo "I: checking that dom12.example is served by slave ($n)"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     $DIG soa dom12.example @10.53.0.2 -p 5300 > dig.out.test$n

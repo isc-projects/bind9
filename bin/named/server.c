@@ -2530,6 +2530,15 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 
 			dns_zone_setview(dnszone, view);
 			dns_view_addzone(view, dnszone);
+
+			/*
+			 * The dns_view_findzone() call above increments the
+			 * zone's reference count, which we need to decrement
+			 * back.  However, as dns_zone_detach() sets the
+			 * supplied pointer to NULL, calling it is deferred
+			 * until the dnszone variable is no longer used.
+			 */
+			dns_zone_detach(&dnszone);
 		}
 
 		isc_ht_iter_destroy(&it);
