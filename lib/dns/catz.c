@@ -487,6 +487,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	{
 		dns_catz_entry_t *entry;
 		isc_ht_iter_current(iteradd, (void **) &entry);
+
+		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = addzone(entry, target, target->catzs->view,
 			      target->catzs->taskmgr,
 			      target->catzs->zmm->udata);
