@@ -1,3 +1,5 @@
+	--- 9.11.2rc1 released ---
+
 4649.	[bug]		The wrong zone was logged when a catalog zone is added.
 			[RT #45520]
 
