@@ -64,16 +64,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom1.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom1.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -205,16 +208,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom4.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom4.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -263,22 +269,27 @@ try=0
 while test $try -lt 45
 do
     sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom2.example' from catalog 'catalog1.example'" > /dev/null &&
     sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom3.example' from catalog 'catalog1.example'" > /dev/null && {
 	ret=0
 	break
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom3.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom2.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null &&
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom3.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -354,17 +365,19 @@ do
     }
     try=`expr $try + 1`
 done
-
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom5.example/IN' from 10.53.0.3#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom5.example/IN' from 10.53.0.3#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -445,17 +458,19 @@ do
     }
     try=`expr $try + 1`
 done
-
-try=0
-while test $try -lt 120
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom6.example/IN' from " > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 120
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom6.example/IN' from " > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -571,16 +586,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom7.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom7.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -776,16 +794,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom9.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom9.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -887,16 +908,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'this.is.a.very.very.long.long.long.domain.that.will.cause.catalog.zones.to.generate.hash.instead.of.using.regular.filename.dom10.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1010,16 +1034,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom11.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom11.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1086,16 +1113,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'subdomain.of.dom11.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'subdomain.of.dom11.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1262,16 +1292,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom12.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom12.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -1396,16 +1429,19 @@ do
     }
     try=`expr $try + 1`
 done
-try=0
-while test $try -lt 45
-do
-    sleep 1
-    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom13.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
-	ret=0
-	break
-    }
-    try=`expr $try + 1`
-done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom13.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 

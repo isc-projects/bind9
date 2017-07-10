@@ -1,3 +1,6 @@
+4649.	[bug]		The wrong zone was logged when a catalog zone is added.
+			[RT #45520]
+
 4648.	[bug]		"rndc reconfig" on a slave no longer causes all member
 			zones of configured catalog zones to be removed from
 			configuration. [RT #45310]
