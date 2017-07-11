@@ -414,6 +414,12 @@
 	  configuration. [RT #43367]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  DiG now warns about .local queries which are reserved for
+	  Multicast DNS.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
