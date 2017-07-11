@@ -139,6 +139,12 @@
 	  <command>top</command>, but not the main thread. [RT #43234]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  DiG now warns about .local queries which are reserved for
+	  Multicast DNS.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
