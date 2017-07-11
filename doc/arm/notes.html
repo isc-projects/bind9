@@ -151,6 +151,12 @@
 	  <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  DiG now warns about .local queries which are reserved for
+	  Multicast DNS. [RT #44783]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -179,6 +185,12 @@
 	  Semicolons are no longer escaped when printing CAA and
 	  URI records.  This may break applications that depend on the
 	  presence of the backslash before the semicolon. [RT #45216]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  AD could be set on truncated answer with no records present
+	  in the answer and authority sections. [RT #45140]
 	</p>
       </li>
 </ul></div>
