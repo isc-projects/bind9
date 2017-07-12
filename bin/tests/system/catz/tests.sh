@@ -214,7 +214,7 @@ if [ $ret = 0 ]; then
 	while test $try -lt 45
 	do
 	    sleep 1
-	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom4.example/IN' from 10.53.0.1#5300: Transfer status: success" > /dev/null && {
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom4.example/IN' from 10.53.0.1#5301: Transfer status: success" > /dev/null && {
 		ret=0
 		break
 	    }

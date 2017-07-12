@@ -1505,7 +1505,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 * We have to generate a text buffer with regular zone config:
 	 * zone foo.bar {
 	 * 	type slave;
-	 * 	masters { ip1 port1; ip2 port2; };
+	 * 	masters [ dscp X ] { ip1 port port1; ip2 port port2; };
 	 * }
 	 */
 	isc_buffer_t *buffer = NULL;
@@ -1513,6 +1513,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_result_t result;
 	isc_uint32_t i;
 	isc_netaddr_t netaddr;
+	char pbuf[sizeof("65535")]; /* used both for port number and DSCP */
 
 	REQUIRE(zone != NULL);
 	REQUIRE(entry != NULL);
@@ -1520,7 +1521,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	/*
 	 * The buffer will be reallocated if something won't fit,
-	 * ISC_BUFFER_INC seems like a good start.
+	 * ISC_BUFFER_INCR seems like a good start.
 	 */
 	result = isc_buffer_allocate(zone->catzs->mctx, &buffer,
 				     ISC_BUFFER_INCR);
@@ -1531,14 +1532,33 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_setautorealloc(buffer, ISC_TRUE);
 	isc_buffer_putstr(buffer, "zone ");
 	dns_name_totext(&entry->name, ISC_TRUE, buffer);
-	isc_buffer_putstr(buffer, " { type slave; masters { ");
+	isc_buffer_putstr(buffer, " { type slave; masters");
+
+	/*
+	 * DSCP value has no default, but when it is specified, it is identical
+	 * for all masters and cannot be overriden for a specific master IP, so
+	 * use the DSCP value set for the first master
+	 */
+	if (entry->opts.masters.count > 0 &&
+	    entry->opts.masters.dscps[0] != -1) {
+		isc_buffer_putstr(buffer, " dscp ");
+		snprintf(pbuf, sizeof(pbuf), "%u",
+			 entry->opts.masters.dscps[0]);
+		isc_buffer_putstr(buffer, pbuf);
+	}
+
+	isc_buffer_putstr(buffer, " { ");
 	for (i = 0; i < entry->opts.masters.count; i++) {
-		/* TODO port and DSCP */
 		isc_netaddr_fromsockaddr(&netaddr,
 					 &entry->opts.masters.addrs[i]);
 		isc_buffer_reserve(&buffer, INET6_ADDRSTRLEN);
 		result = isc_netaddr_totext(&netaddr, buffer);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		isc_buffer_putstr(buffer, " port ");
+		snprintf(pbuf, sizeof(pbuf), "%u",
+			 isc_sockaddr_getport(&entry->opts.masters.addrs[i]));
+		isc_buffer_putstr(buffer, pbuf);
 
 		if (entry->opts.masters.keys[i] != NULL) {
 			isc_buffer_putstr(buffer, " key ");
