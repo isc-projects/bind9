@@ -29,7 +29,7 @@ options {
 			in-memory no
 			zone-directory "zonedir";
 		zone "catalog2.example"
-			default-masters { 10.53.0.1; }
+			default-masters { 10.53.0.1 port 5301; }
 			in-memory yes;
 		zone "catalog3.example"
 			default-masters { 10.53.0.1; }

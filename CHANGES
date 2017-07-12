@@ -1,3 +1,7 @@
+4656.	[bug]		Apply "port" and "dscp" values specified in catalog
+			zone's "default-masters" option to the generated
+			configuration of its member zones. [RT #45545]
+
 4655.	[bug]		Lack of seccomp could be falsely reported. [RT #45599]
 
 4654.	[cleanup]	Don't use C++ keywords delete, new and namespace.
