@@ -203,6 +203,15 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Fixed a bug that was introduced in an earlier development
+	  release which caused multi-packet AXFR and IXFR messages to fail
+	  validation if not all packets contained TSIG records; this
+	  caused interoperability problems with some other DNS
+	  implementations. [RT #45509]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Reloading or reconfiguring <span class="command"><strong>named</strong></span> could
 	  fail on some platforms when LMDB was in use. [RT #45203]
 	</p>
