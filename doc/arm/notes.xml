@@ -40,16 +40,15 @@
       trust anchors, with somewhat different behaviors. If the root
       key is configured using the <command>managed-keys</command>
       statement, or if the pre-configured root key is enabled by using
-      <command>dnssec-validation auto</command>, then BIND can keep
-      keys up to date automatically. Servers configured in this way
-      will roll seamlessly to the new key when it is published in
-      the root zone. However, keys configured using the
+      <command>dnssec-validation auto</command>, then BIND can keep keys up
+      to date automatically. Servers configured in this way should have
+      begun the process of rolling to the new key when it was published in
+      the root zone in July 2017. However, keys configured using the
       <command>trusted-keys</command> statement are not automatically
-      maintained. If your server is performing DNSSEC validation
-      and is configured using <command>trusted-keys</command>, you are
-      advised to change your configuration before the root zone begins
-      signing with the new KSK. This is currently scheduled for
-      October 11, 2017.
+      maintained. If your server is performing DNSSEC validation and is
+      configured using <command>trusted-keys</command>, you are advised to
+      change your configuration before the root zone begins signing with
+      the new KSK. This is currently scheduled for October 11, 2017.
     </para>
     <para>
       This release includes an updated version of the
@@ -88,6 +87,14 @@
       xmlns:xlink="http://www.w3.org/1999/xlink"
       xlink:href="https://www.isc.org/mission/contact/">
       https://www.isc.org/mission/contact/</link>.
+    </para>
+  </section>
+
+  <section xml:id="win_support"><info><title>Windows XP No Longer Supported</title></info>
+    <para>
+      As of BIND 9.11.2, Windows XP is no longer a supported platform for
+      BIND, and Windows XP binaries are no longer available for download
+      from ISC.
     </para>
   </section>
 
