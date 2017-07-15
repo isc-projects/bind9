@@ -138,6 +138,15 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Fixed a bug that was introduced in an earlier development
+	  release which caused multi-packet AXFR and IXFR messages to fail
+	  validation if not all packets contained TSIG records; this
+	  caused interoperability problems with some other DNS
+	  implementations. [RT #45509]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Semicolons are no longer escaped when printing CAA and
 	  URI records.  This may break applications that depend on the
 	  presence of the backslash before the semicolon. [RT #45216]
