@@ -1,3 +1,5 @@
+	--- 9.10.6 released ---
+
 	--- 9.10.6rc1 released ---
 
 4647.	[bug]		Change 4643 broke verification of TSIG signed TCP
