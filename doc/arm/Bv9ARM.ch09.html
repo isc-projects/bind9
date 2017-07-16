@@ -50,6 +50,7 @@
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#root_key">New DNSSEC Root Key</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#win_support">Windows XP No Longer Supported</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
@@ -96,16 +97,15 @@
       trust anchors, with somewhat different behaviors. If the root
       key is configured using the <span class="command"><strong>managed-keys</strong></span>
       statement, or if the pre-configured root key is enabled by using
-      <span class="command"><strong>dnssec-validation auto</strong></span>, then BIND can keep
-      keys up to date automatically. Servers configured in this way
-      will roll seamlessly to the new key when it is published in
-      the root zone. However, keys configured using the
+      <span class="command"><strong>dnssec-validation auto</strong></span>, then BIND can keep keys up
+      to date automatically. Servers configured in this way should have
+      begun the process of rolling to the new key when it was published in
+      the root zone in July 2017. However, keys configured using the
       <span class="command"><strong>trusted-keys</strong></span> statement are not automatically
-      maintained. If your server is performing DNSSEC validation
-      and is configured using <span class="command"><strong>trusted-keys</strong></span>, you are
-      advised to change your configuration before the root zone begins
-      signing with the new KSK. This is currently scheduled for
-      October 11, 2017.
+      maintained. If your server is performing DNSSEC validation and is
+      configured using <span class="command"><strong>trusted-keys</strong></span>, you are advised to
+      change your configuration before the root zone begins signing with
+      the new KSK. This is currently scheduled for October 11, 2017.
     </p>
     <p>
       This release includes an updated version of the
@@ -114,6 +114,16 @@
       <a class="link" href="https://www.isc.org/bind-keys" target="_top">
 	https://www.isc.org/bind-keys
       </a>.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="win_support"></a>Windows XP No Longer Supported</h3></div></div></div>
+    <p>
+      As of BIND 9.9.11, Windows XP is no longer a supported platform for
+      BIND, and Windows XP binaries are no longer available for download
+      from ISC.
     </p>
   </div>
 
