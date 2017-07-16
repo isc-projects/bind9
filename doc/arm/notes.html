@@ -49,16 +49,15 @@
       trust anchors, with somewhat different behaviors. If the root
       key is configured using the <span class="command"><strong>managed-keys</strong></span>
       statement, or if the pre-configured root key is enabled by using
-      <span class="command"><strong>dnssec-validation auto</strong></span>, then BIND can keep
-      keys up to date automatically. Servers configured in this way
-      will roll seamlessly to the new key when it is published in
-      the root zone. However, keys configured using the
+      <span class="command"><strong>dnssec-validation auto</strong></span>, then BIND can keep keys up
+      to date automatically. Servers configured in this way should have
+      begun the process of rolling to the new key when it was published in
+      the root zone in July 2017. However, keys configured using the
       <span class="command"><strong>trusted-keys</strong></span> statement are not automatically
-      maintained. If your server is performing DNSSEC validation
-      and is configured using <span class="command"><strong>trusted-keys</strong></span>, you are
-      advised to change your configuration before the root zone begins
-      signing with the new KSK. This is currently scheduled for
-      October 11, 2017.
+      maintained. If your server is performing DNSSEC validation and is
+      configured using <span class="command"><strong>trusted-keys</strong></span>, you are advised to
+      change your configuration before the root zone begins signing with
+      the new KSK. This is currently scheduled for October 11, 2017.
     </p>
     <p>
       This release includes an updated version of the
@@ -96,6 +95,16 @@
       use of BIND, or who wish to discuss how to comply with the
       license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
       https://www.isc.org/mission/contact/</a>.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="win_support"></a>Windows XP No Longer Supported</h3></div></div></div>
+    <p>
+      As of BIND 9.11.2, Windows XP is no longer a supported platform for
+      BIND, and Windows XP binaries are no longer available for download
+      from ISC.
     </p>
   </div>
 
