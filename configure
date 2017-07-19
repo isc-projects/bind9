@@ -16280,7 +16280,7 @@ $as_echo "no" >&6; }
 		PURIFY=""
 		;;
 	*)
-		if test -f $purify_path || test $purify_path = purify; then
+		if test -f "$purify_path" || test purify = "$purify_path"; then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $purify_path" >&5
 $as_echo "$purify_path" >&6; }
 			PURIFYFLAGS="`echo $PURIFYOPTIONS`"
@@ -16434,12 +16434,12 @@ $as_echo "$as_me: WARNING: Internal symbol table does not work with libtool.  Di
 		case $host_os in
 		freebsd*|netbsd*|openbsd*|linux*|solaris*|darwin*)
 			MKSYMTBL_PROGRAM="$PERL"
-			if test $want_symtable = all; then
+			if test "all" = "$want_symtable"; then
 				ALWAYS_MAKE_SYMTABLE="yes"
 			fi
 			;;
 		*)
-			if test $want_symtable = yes -o $want_symtable = all
+			if test "yes" = "$want_symtable" -o "all" = "$want_symtable"
 			then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: this system is not known to generate internal symbol table safely; disabling it" >&5
 $as_echo "$as_me: WARNING: this system is not known to generate internal symbol table safely; disabling it" >&2;}
@@ -17787,7 +17787,7 @@ done
 			break
 		fi
 	done
-	if test "$use_readline" != "auto" &&
+	if test "auto" != "$use_readline" &&
 	   test "X$READLINE_LIB" = "X"
 	then
 		as_fn_error $? "The readline library was not found." "$LINENO" 5
@@ -17795,7 +17795,7 @@ done
 	LIBS="$saved_LIBS"
 	;;
 esac
-if test yes = "$ac_cv_func_readline"
+if test "yes" = "$ac_cv_func_readline"
 then
 	case "$READLINE_LIB" in
 	*edit*)
@@ -18893,11 +18893,11 @@ $as_echo_n "checking compiler support for inline assembly code... " >&6; }
 	if test "X$GCC" = "Xyes"; then
 		# GCC's ASM extension always works
 		compiler=gcc
-		if test $arch = "x86_64"; then
+		if test "x86_64" = "$arch"; then
 			# We can share the same code for gcc with x86_32
 			arch=x86_32
 		fi
-		if test $arch = "powerpc"; then
+		if test "powerpc" = "$arch"; then
 			#
 			# The MacOS (and maybe others) uses "r0" for register
 			# zero. Under linux/ibm it is "0" for register 0.
@@ -20047,12 +20047,12 @@ if test "yes" = "$idnlib"; then
 fi
 
 IDNLIBS=
-if test "$use_idn" != no; then
+if test "no" != "$use_idn"; then
 
 $as_echo "#define WITH_IDN 1" >>confdefs.h
 
 	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
-	if test "$idnlib" != no; then
+	if test "no" != "$idnlib"; then
 		IDNLIBS="$idnlib $iconvlib"
 	else
 		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
@@ -20071,7 +20071,7 @@ else
   atf="no"
 fi
 
-if test yes = "$atf"; then
+if test "yes" = "$atf"; then
 	atf=`pwd`/unit/atf
 	ATFBUILD=atf-src
 
@@ -20082,7 +20082,7 @@ $as_echo "building ATF from bind9/unit/atf-src" >&6; }
 fi
 
 ATFLIBS=
-if test "$atf" != no; then
+if test "no" != "$atf"; then
 
 $as_echo "#define ATF_TEST 1" >>confdefs.h
 
@@ -23829,9 +23829,9 @@ fi
 
 case "$make_clean" in
 yes)
-	if test "$no_create" != "yes"
+	if test "yes" != "$no_create"
 	then
-		if test "$silent" = "yes"
+		if test "yes" = "$silent"
 		then
                         make clean > /dev/null
                 else
@@ -23882,9 +23882,9 @@ report() {
             echo "    IPv6 support (--enable-ipv6)"
         test "X$USE_OPENSSL" = "X" || \
                 echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-        test "$OPENSSL_GOST" != "yes" || \
+        test "yes" != "$OPENSSL_GOST" || \
                 echo "    GOST algorithm support (--with-gost)"
-        test "$OPENSSL_ECDSA" != "yes" || \
+        test "yes" != "$OPENSSL_ECDSA" || \
                 echo "    ECDSA algorithm support (--with-ecdsa)"
         test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
         test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
@@ -23940,14 +23940,14 @@ report() {
         echo "Unrecognized options:"
         echo "    $ac_unrecognized_opts"
     fi
-    if test "$enable_full_report" != "yes"; then
+    if test "yes" != "$enable_full_report"; then
         echo "------------------------------------------------------------------------"
         echo "For more detail, use --enable-full-report."
     fi
     echo "========================================================================"
 }
 
-if test "$silent" != "yes"; then
+if test "yes" != "$silent"; then
         report
 fi
 
