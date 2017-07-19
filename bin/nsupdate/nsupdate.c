@@ -165,7 +165,9 @@ static isc_boolean_t default_servers = ISC_TRUE;
 static int ns_inuse = 0;
 static int master_inuse = 0;
 static int ns_total = 0;
+static int ns_alloc = 0;
 static int master_total = 0;
+static int master_alloc = 0;
 static isc_sockaddr_t *localaddr4 = NULL;
 static isc_sockaddr_t *localaddr6 = NULL;
 static const char *keyfile = NULL;
@@ -306,9 +308,10 @@ master_from_servers(void) {
 
 	if (master_servers != NULL && master_servers != servers)
 		isc_mem_put(gmctx, master_servers,
-			    master_total * sizeof(isc_sockaddr_t));
+			    master_alloc * sizeof(isc_sockaddr_t));
 	master_servers = servers;
 	master_total = ns_total;
+	master_alloc = ns_alloc;
 	master_inuse = ns_inuse;
 }
 
@@ -750,10 +753,10 @@ doshutdown(void) {
 	 */
 	if (master_servers != NULL && master_servers != servers)
 		isc_mem_put(gmctx, master_servers,
-			    master_total * sizeof(isc_sockaddr_t));
+			    master_alloc * sizeof(isc_sockaddr_t));
 
 	if (servers != NULL)
-		isc_mem_put(gmctx, servers, ns_total * sizeof(isc_sockaddr_t));
+		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 
 	if (localaddr4 != NULL)
 		isc_mem_put(gmctx, localaddr4, sizeof(isc_sockaddr_t));
@@ -868,7 +871,7 @@ setup_system(void) {
 	if (servers != NULL) {
 		if (master_servers == servers)
 			master_servers = NULL;
-		isc_mem_put(gmctx, servers, ns_total * sizeof(isc_sockaddr_t));
+		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 	}
 
 	ns_inuse = 0;
@@ -881,8 +884,8 @@ setup_system(void) {
 
 		default_servers = !local_only;
 
-		ns_total = (have_ipv4 ? 1 : 0) + (have_ipv6 ? 1 : 0);
-		servers = isc_mem_get(gmctx, ns_total * sizeof(isc_sockaddr_t));
+		ns_total = ns_alloc = (have_ipv4 ? 1 : 0) + (have_ipv6 ? 1 : 0);
+		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
 		if (servers == NULL)
 			fatal("out of memory");
 
@@ -897,8 +900,8 @@ setup_system(void) {
 					     &in6, dnsport);
 		}
 	} else {
-		ns_total = lwconf->nsnext;
-		servers = isc_mem_get(gmctx, ns_total * sizeof(isc_sockaddr_t));
+		ns_total = ns_alloc = lwconf->nsnext;
+		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
 		if (servers == NULL)
 			fatal("out of memory");
 		for (i = 0; i < ns_total; i++) {
@@ -990,7 +993,7 @@ setup_system(void) {
 		setup_keyfile(gmctx, glctx);
 }
 
-static void
+static int
 get_addresses(char *host, in_port_t port,
 	      isc_sockaddr_t *sockaddr, int naddrs)
 {
@@ -1003,6 +1006,7 @@ get_addresses(char *host, in_port_t port,
 	if (result != ISC_R_SUCCESS)
 		fatal("couldn't get address for '%s': %s",
 		      host, isc_result_totext(result));
+	return (count);
 }
 
 static void
@@ -1465,19 +1469,19 @@ evaluate_server(char *cmdline) {
 	if (servers != NULL) {
 		if (master_servers == servers)
 			master_servers = NULL;
-		isc_mem_put(gmctx, servers, ns_total * sizeof(isc_sockaddr_t));
+		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 	}
 
 	default_servers = ISC_FALSE;
 
-	ns_total = MAX_SERVERADDRS;
+	ns_alloc = MAX_SERVERADDRS;
 	ns_inuse = 0;
-	servers = isc_mem_get(gmctx, ns_total * sizeof(isc_sockaddr_t));
+	servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
 	if (servers == NULL)
 		fatal("out of memory");
 
-	memset(servers, 0, ns_total * sizeof(isc_sockaddr_t));
-	get_addresses(server, (in_port_t)port, servers, ns_total);
+	memset(servers, 0, ns_alloc * sizeof(isc_sockaddr_t));
+	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
 
 	return (STATUS_MORE);
 }
@@ -2508,7 +2512,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 						FIND_TIMEOUT, 3,
 						global_task, recvsoa, reqinfo,
 						&request);
-		check_result(result, "dns_request_createvia");
+		check_result(result, "dns_request_createvia3");
 		requests++;
 		return;
 	}
@@ -2622,15 +2626,16 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 
 		if (master_servers != NULL && master_servers != servers)
 			isc_mem_put(gmctx, master_servers,
-				    master_total * sizeof(isc_sockaddr_t));
-		master_total = MAX_SERVERADDRS;
-		size = master_total * sizeof(isc_sockaddr_t);
+				    master_alloc * sizeof(isc_sockaddr_t));
+		master_alloc = MAX_SERVERADDRS;
+		size = master_alloc * sizeof(isc_sockaddr_t);
 		master_servers = isc_mem_get(gmctx, size);
 		if (master_servers == NULL)
 			fatal("out of memory");
 
 		memset(master_servers, 0, size);
-		get_addresses(serverstr, dnsport, master_servers, master_total);
+		master_total = get_addresses(serverstr, dnsport,
+					     master_servers, master_alloc);
 		master_inuse = 0;
 	} else
 		master_from_servers();
@@ -2701,7 +2706,7 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 					default_servers ? NULL : tsigkey,
 					FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
 					global_task, recvsoa, reqinfo, request);
-	check_result(result, "dns_request_createvia");
+	check_result(result, "dns_request_createvia3");
 	requests++;
 }
 
