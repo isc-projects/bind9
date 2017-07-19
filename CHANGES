@@ -1,3 +1,5 @@
+4650.	[test]		Silence coverity warnings in tsig_test.c. [RT #45528]
+
 	--- 9.9.11 released ---
 
 	--- 9.9.11rc1 released ---
