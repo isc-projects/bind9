@@ -1,3 +1,6 @@
+4651.	[bug]		Nsupdate could attempt to use a zeroed address on
+			server timeout. [RT #45417]
+
 4650.	[test]		Silence coverity warnings in tsig_test.c. [RT #45528]
 
 	--- 9.11.2 released ---
