@@ -1,3 +1,5 @@
+4650.	[test]		Silence coverity warnings in tsig_test.c. [RT #45528]
+
 4649.	[bug]		The wrong zone was logged when a catalog zone is added.
 			[RT #45520]
 
