@@ -15850,20 +15850,20 @@ case $with_cc_alg in
 		with_cc_alg="sha256"
 		;;
 	auto)
-		if test "$with_aes" != "no"
+		if test "no" != "$with_aes"
 		then
 			with_aes="yes"
 		fi
 		;;
 	*)
 		with_cc_alg="aes"
-		if test "$with_aes" != "no"
+		if test "no" != "$with_aes"
 		then
 			with_aes="yes"
 		fi
 		;;
 esac
-if test "with_aes" = "checkcc"
+if test "checkcc" = "with_aes"
 then
 	with_aes="no"
 fi
@@ -16503,7 +16503,7 @@ $as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
 	aes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: aes" >&5
 $as_echo "aes" >&6; }
-		if test "$with_aes" != "yes"
+		if test "yes" != "$with_aes"
 		then
 			as_fn_error $? "\"Client Cookie wants to use unavailable AES\"" "$LINENO" 5;
 		fi
@@ -16848,7 +16848,7 @@ fi
 
 fi
 
-if test "$have_clock_gt" != "no"; then
+if test "no" != "$have_clock_gt"; then
 
 $as_echo "#define HAVE_CLOCK_GETTIME 1" >>confdefs.h
 
@@ -17789,7 +17789,7 @@ $as_echo "no" >&6; }
 		PURIFY=""
 		;;
 	*)
-		if test -f $purify_path || test $purify_path = purify; then
+		if test -f "$purify_path" || test purify = "$purify_path"; then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $purify_path" >&5
 $as_echo "$purify_path" >&6; }
 			PURIFYFLAGS="`echo $PURIFYOPTIONS`"
@@ -17900,12 +17900,12 @@ $as_echo "$as_me: WARNING: Internal symbol table does not work with libtool.  Di
 		case $host_os in
 		freebsd*|netbsd*|openbsd*|linux*|solaris*|darwin*)
 			MKSYMTBL_PROGRAM="$PERL"
-			if test $want_symtable = all; then
+			if test "all" = "$want_symtable"; then
 				ALWAYS_MAKE_SYMTABLE="yes"
 			fi
 			;;
 		*)
-			if test $want_symtable = yes -o $want_symtable = all
+			if test "yes" = "$want_symtable" -o "all" = "$want_symtable"
 			then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: this system is not known to generate internal symbol table safely; disabling it" >&5
 $as_echo "$as_me: WARNING: this system is not known to generate internal symbol table safely; disabling it" >&2;}
@@ -19234,7 +19234,7 @@ done
 			break
 		fi
 	done
-	if test "$use_readline" != "auto" &&
+	if test "auto" != "$use_readline" &&
 	   test "X$READLINE_LIB" = "X"
 	then
 		as_fn_error $? "The readline library was not found." "$LINENO" 5
@@ -19242,7 +19242,7 @@ done
 	LIBS="$saved_LIBS"
 	;;
 esac
-if test yes = "$ac_cv_func_readline"
+if test "yes" = "$ac_cv_func_readline"
 then
 	case "$READLINE_LIB" in
 	*edit*)
@@ -21978,12 +21978,12 @@ if test "yes" = "$idnlib"; then
 fi
 
 IDNLIBS=
-if test "$use_idn" != no; then
+if test "no" != "$use_idn"; then
 
 $as_echo "#define WITH_IDN 1" >>confdefs.h
 
 	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
-	if test "$idnlib" != no; then
+	if test "no" != "$idnlib"; then
 		IDNLIBS="$idnlib $iconvlib"
 	else
 		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
@@ -22002,7 +22002,7 @@ else
   atf="no"
 fi
 
-if test yes = "$atf"; then
+if test "yes" = "$atf"; then
 	atf=`pwd`/unit/atf
 	ATFBUILD=atf-src
 
@@ -22013,7 +22013,7 @@ $as_echo "building ATF from bind9/unit/atf-src" >&6; }
 fi
 
 ATFLIBS=
-if test "$atf" != no; then
+if test "no" != "$atf"; then
 
 $as_echo "#define ATF_TEST 1" >>confdefs.h
 
@@ -25870,9 +25870,9 @@ fi
 
 case "$make_clean" in
 yes)
-	if test "$no_create" != "yes"
+	if test "yes" != "$no_create"
 	then
-		if test "$silent" = "yes"
+		if test "yes" = "$silent"
 		then
                         make clean > /dev/null
                 else
@@ -25904,7 +25904,7 @@ report() {
             echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
-    if test "yes" = "$enable_full_report" -o "$with_cc_alg" != "aes"; then
+    if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
         echo "        Algorithm: $with_cc_alg"
     fi
 
@@ -25921,7 +25921,7 @@ report() {
         test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
     fi
 
-    if test "$use_pkcs11" != "no"; then
+    if test "no" != "$use_pkcs11"; then
         if test "yes" = "$want_native_pkcs11"; then
             echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
         else
@@ -26017,14 +26017,14 @@ report() {
         echo "Unrecognized options:"
         echo "    $ac_unrecognized_opts"
     fi
-    if test "$enable_full_report" != "yes"; then
+    if test "yes" != "$enable_full_report"; then
         echo "-------------------------------------------------------------------------------"
         echo "For more detail, use --enable-full-report."
     fi
     echo "==============================================================================="
 }
 
-if test "$silent" != "yes"; then
+if test "yes" != "$silent"; then
         report
 fi
 
