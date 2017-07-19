@@ -1,3 +1,6 @@
+4653.	[bug]		Reorder includes in bin/nsupdate/Makefile.in.
+			[RT #45581]
+
 	--- 9.9.11 released ---
 
 	--- 9.9.11rc1 released ---
