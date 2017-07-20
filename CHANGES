@@ -1,4 +1,5 @@
-4653.	[bug]		Reorder includes in bin/nsupdate/Makefile.in.
+4653.	[bug]		Reorder includes to move @DST_OPENSSL_INC@ and
+			@ISC_OPENSSL_INC@ after shipped include directories.
 			[RT #45581]
 
 4652.	[bug]		Nsupdate could attempt to use a zeroed address on
