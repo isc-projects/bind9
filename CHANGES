@@ -1,8 +1,8 @@
+	--- 9.10.6rc2 released ---
+
 4653.	[bug]		Reorder includes to move @DST_OPENSSL_INC@ and
 			@ISC_OPENSSL_INC@ after shipped include directories.
 			[RT #45581]
-
-	--- 9.10.6 released ---
 
 	--- 9.10.6rc1 released ---
 
