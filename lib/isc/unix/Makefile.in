@@ -20,8 +20,8 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../@ISC_THREAD_DIR@/include \
 		-I../include \
-		-I${srcdir}/../include @ISC_OPENSSL_INC@ \
-		-I${srcdir}/..
+		-I${srcdir}/../include \
+		-I${srcdir}/.. @ISC_OPENSSL_INC@
 
 CDEFINES =	@CRYPTO@
 CWARNINGS =
