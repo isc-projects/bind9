@@ -20,7 +20,7 @@ CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
 		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
-		-I${srcdir}/include @ISC_OPENSSL_INC@ ${DNS_INCLUDES}
+		-I${srcdir}/include ${DNS_INCLUDES} @ISC_OPENSSL_INC@
 CDEFINES =	@CRYPTO@ -DPK11_LIB_LOCATION=\"${PROVIDER}\"
 CWARNINGS =
 
