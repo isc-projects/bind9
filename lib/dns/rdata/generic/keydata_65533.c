@@ -90,7 +90,7 @@ totext_keydata(ARGS_TOTEXT) {
 	char buf[sizeof("64000")];
 	unsigned int flags;
 	unsigned char algorithm;
-	unsigned long refresh, add, delete;
+	unsigned long refresh, add, deltime;
 	char algbuf[DNS_NAME_FORMATSIZE];
 	const char *keyinfo;
 
@@ -114,9 +114,9 @@ totext_keydata(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	/* remove hold-down */
-	delete = uint32_fromregion(&sr);
+	deltime = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
-	RETERR(dns_time32_totext(delete, target));
+	RETERR(dns_time32_totext(deltime, target));
 	RETERR(str_totext(" ", target));
 
 	/* flags */
@@ -216,11 +216,11 @@ totext_keydata(ARGS_TOTEXT) {
 				RETERR(str_totext(abuf, target));
 			}
 
-			if (delete != 0U) {
+			if (deltime != 0U) {
 				RETERR(str_totext(tctx->linebreak, target));
 				RETERR(str_totext("; removal pending: ",
 						  target));
-				isc_time_set(&t, delete, 0);
+				isc_time_set(&t, deltime, 0);
 				isc_time_formathttptimestamp(&t, dbuf,
 							     sizeof(dbuf));
 				RETERR(str_totext(dbuf, target));

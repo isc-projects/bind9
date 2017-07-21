@@ -318,10 +318,10 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 	isc_boolean_t shuffle = ISC_FALSE, sort = ISC_FALSE;
-	dns_rdata_t orig_fixed[MAX_SHUFFLE];
-	dns_rdata_t *orig = orig_fixed;
-	struct towire_sort new_fixed[MAX_SHUFFLE];
-	struct towire_sort *new = new_fixed;
+	dns_rdata_t in_fixed[MAX_SHUFFLE];
+	dns_rdata_t *in = in_fixed;
+	struct towire_sort out_fixed[MAX_SHUFFLE];
+	struct towire_sort *out = out_fixed;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 
@@ -374,9 +374,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if ((shuffle || sort) && count > MAX_SHUFFLE) {
-		orig = isc_mem_get(cctx->mctx, count * sizeof(*orig));
-		new = isc_mem_get(cctx->mctx, count * sizeof(*new));
-		if (orig == NULL || new == NULL)
+		in = isc_mem_get(cctx->mctx, count * sizeof(*in));
+		out = isc_mem_get(cctx->mctx, count * sizeof(*out));
+		if (in == NULL || out == NULL)
 			shuffle = sort = ISC_FALSE;
 	}
 
@@ -387,8 +387,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		i = 0;
 		do {
 			INSIST(i < count);
-			dns_rdata_init(&orig[i]);
-			dns_rdataset_current(rdataset, &orig[i]);
+			dns_rdata_init(&in[i]);
+			dns_rdataset_current(rdataset, &in[i]);
 			i++;
 			result = dns_rdataset_next(rdataset);
 		} while (result == ISC_R_SUCCESS);
@@ -407,15 +407,15 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 				isc_random_get(&val);
 				choice = i + (val % (count - i));
-				rdata = orig[i];
-				orig[i] = orig[choice];
-				orig[choice] = rdata;
+				rdata = in[i];
+				in[i] = in[choice];
+				in[choice] = rdata;
 				if (order != NULL)
-					new[i].key = (*order)(&orig[i],
+					out[i].key = (*order)(&in[i],
 								 order_arg);
 				else
-					new[i].key = 0; /* Unused */
-				new[i].rdata = &orig[i];
+					out[i].key = 0; /* Unused */
+				out[i].rdata = &in[i];
 			}
 		} else if (WANT_CYCLIC(rdataset)) {
 			/*
@@ -430,11 +430,11 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			j = val % count;
 			for (i = 0; i < count; i++) {
 				if (order != NULL)
-					new[i].key = (*order)(&orig[j],
+					out[i].key = (*order)(&in[j],
 								 order_arg);
 				else
-					new[i].key = 0; /* Unused */
-				new[i].rdata = &orig[j];
+					out[i].key = 0; /* Unused */
+				out[i].rdata = &in[j];
 				j++;
 				if (j == count)
 					j = 0; /* Wrap around. */
@@ -443,10 +443,10 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	} else if (sort) {
 		for (i = 0; i < count; i++) {
 			if (order != NULL)
-				new[i].key = (*order)(&orig[i], order_arg);
+				out[i].key = (*order)(&in[i], order_arg);
 			else
-				new[i].key = 0; /* Unused */
-			new[i].rdata = &orig[i];
+				out[i].key = 0; /* Unused */
+			out[i].rdata = &in[i];
 		}
 	}
 
@@ -454,7 +454,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	 * Sortlist order.
 	 */
 	if (sort) {
-		qsort(new, count, sizeof(new[0]), towire_compare);
+		qsort(out, count, sizeof(out[0]), towire_compare);
 	}
 
 	savedbuffer = *target;
@@ -500,7 +500,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			 * Copy out the rdata
 			 */
 			if (shuffle || sort) {
-				rdata = *(new[i].rdata);
+				rdata = *(out[i].rdata);
 			} else {
 				dns_rdata_reset(&rdata);
 				dns_rdataset_current(rdataset, &rdata);
@@ -549,10 +549,10 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	*target = savedbuffer;
 
  cleanup:
-	if (new != NULL && new != new_fixed)
-		isc_mem_put(cctx->mctx, new, count * sizeof(*new));
-	if (orig != NULL && orig != orig_fixed)
-		isc_mem_put(cctx->mctx, orig, count * sizeof(*orig));
+	if (out != NULL && out != out_fixed)
+		isc_mem_put(cctx->mctx, out, count * sizeof(*out));
+	if (in != NULL && in != in_fixed)
+		isc_mem_put(cctx->mctx, in, count * sizeof(*in));
 	return (result);
 }
 

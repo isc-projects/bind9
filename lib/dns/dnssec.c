@@ -604,7 +604,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 isc_boolean_t
 dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_stdtime_t publish, active, revoke, inactive, delete;
+	isc_stdtime_t publish, active, revoke, inactive, deltime;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
 	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
@@ -637,11 +637,11 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	if (result == ISC_R_SUCCESS)
 		inactset = ISC_TRUE;
 
-	result = dst_key_gettime(key, DST_TIME_DELETE, &delete);
+	result = dst_key_gettime(key, DST_TIME_DELETE, &deltime);
 	if (result == ISC_R_SUCCESS)
 		delset = ISC_TRUE;
 
-	if ((inactset && inactive <= now) || (delset && delete <= now))
+	if ((inactset && inactive <= now) || (delset && deltime <= now))
 		return (ISC_FALSE);
 
 	if (revset && revoke <= now && pubset && publish <= now)
@@ -1309,7 +1309,7 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp) {
 static void
 get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_stdtime_t publish, active, revoke, inactive, delete;
+	isc_stdtime_t publish, active, revoke, inactive, deltime;
 	isc_boolean_t pubset = ISC_FALSE, actset = ISC_FALSE;
 	isc_boolean_t revset = ISC_FALSE, inactset = ISC_FALSE;
 	isc_boolean_t delset = ISC_FALSE;
@@ -1332,7 +1332,7 @@ get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	if (result == ISC_R_SUCCESS)
 		inactset = ISC_TRUE;
 
-	result = dst_key_gettime(key->key, DST_TIME_DELETE, &delete);
+	result = dst_key_gettime(key->key, DST_TIME_DELETE, &deltime);
 	if (result == ISC_R_SUCCESS)
 		delset = ISC_TRUE;
 
@@ -1392,7 +1392,7 @@ get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	/*
 	 * Metadata says delete, so don't publish this key or sign with it.
 	 */
-	if (delset && delete <= now) {
+	if (delset && deltime <= now) {
 		key->hint_publish = ISC_FALSE;
 		key->hint_sign = ISC_FALSE;
 		key->hint_remove = ISC_TRUE;
@@ -1839,8 +1839,8 @@ publish(dns_rdata_t *rdata, dns_diff_t *diff, dns_name_t *origin,
 }
 
 static isc_result_t
-delete(dns_rdata_t *rdata, dns_diff_t *diff, dns_name_t *origin,
-	dns_ttl_t ttl, isc_mem_t *mctx)
+delrdata(dns_rdata_t *rdata, dns_diff_t *diff, dns_name_t *origin,
+	 dns_ttl_t ttl, isc_mem_t *mctx)
 {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
@@ -2002,18 +2002,18 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		if (dns_rdataset_isassociated(cds) &&
 		    syncdelete(key->key, now)) {
 			if (exists(cds, &cdsrdata1))
-				RETERR(delete(&cdsrdata1, diff, origin,
-					      cds->ttl, mctx));
+				RETERR(delrdata(&cdsrdata1, diff, origin,
+					        cds->ttl, mctx));
 			if (exists(cds, &cdsrdata2))
-				RETERR(delete(&cdsrdata2, diff, origin,
-					      cds->ttl, mctx));
+				RETERR(delrdata(&cdsrdata2, diff, origin,
+					        cds->ttl, mctx));
 		}
 
 		if (dns_rdataset_isassociated(cdnskey) &&
 		    syncdelete(key->key, now)) {
 			if (exists(cdnskey, &cdnskeyrdata))
-				RETERR(delete(&cdnskeyrdata, diff, origin,
-					      cdnskey->ttl, mctx));
+				RETERR(delrdata(&cdnskeyrdata, diff, origin,
+					        cdnskey->ttl, mctx));
 		}
 	}
 
@@ -2043,17 +2043,17 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 						 DNS_DSDIGEST_SHA256, dsbuf2,
 						 &cdsrdata2));
 			if (exists(cds, &cdsrdata1))
-				RETERR(delete(&cdsrdata1, diff, origin,
-					      cds->ttl, mctx));
+				RETERR(delrdata(&cdsrdata1, diff, origin,
+					        cds->ttl, mctx));
 			if (exists(cds, &cdsrdata2))
-				RETERR(delete(&cdsrdata2, diff, origin,
-					      cds->ttl, mctx));
+				RETERR(delrdata(&cdsrdata2, diff, origin,
+					        cds->ttl, mctx));
 		}
 
 		if (dns_rdataset_isassociated(cdnskey)) {
 			if (exists(cdnskey, &cdnskeyrdata))
-				RETERR(delete(&cdnskeyrdata, diff, origin,
-					      cdnskey->ttl, mctx));
+				RETERR(delrdata(&cdnskeyrdata, diff, origin,
+					        cdnskey->ttl, mctx));
 		}
 	}
 

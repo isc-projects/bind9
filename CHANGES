@@ -1,3 +1,6 @@
+4654.	[cleanup]	Don't use C++ keywords delete, new and namespace.
+			[RT #45538]
+
 4653.	[bug]		Reorder includes to move @DST_OPENSSL_INC@ and
 			@ISC_OPENSSL_INC@ after shipped include directories.
 			[RT #45581]
