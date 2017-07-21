@@ -2003,17 +2003,17 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		    syncdelete(key->key, now)) {
 			if (exists(cds, &cdsrdata1))
 				RETERR(delrdata(&cdsrdata1, diff, origin,
-					        cds->ttl, mctx));
+						cds->ttl, mctx));
 			if (exists(cds, &cdsrdata2))
 				RETERR(delrdata(&cdsrdata2, diff, origin,
-					        cds->ttl, mctx));
+						cds->ttl, mctx));
 		}
 
 		if (dns_rdataset_isassociated(cdnskey) &&
 		    syncdelete(key->key, now)) {
 			if (exists(cdnskey, &cdnskeyrdata))
 				RETERR(delrdata(&cdnskeyrdata, diff, origin,
-					        cdnskey->ttl, mctx));
+						cdnskey->ttl, mctx));
 		}
 	}
 
@@ -2044,16 +2044,16 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 						 &cdsrdata2));
 			if (exists(cds, &cdsrdata1))
 				RETERR(delrdata(&cdsrdata1, diff, origin,
-					        cds->ttl, mctx));
+						cds->ttl, mctx));
 			if (exists(cds, &cdsrdata2))
 				RETERR(delrdata(&cdsrdata2, diff, origin,
-					        cds->ttl, mctx));
+						cds->ttl, mctx));
 		}
 
 		if (dns_rdataset_isassociated(cdnskey)) {
 			if (exists(cdnskey, &cdnskeyrdata))
 				RETERR(delrdata(&cdnskeyrdata, diff, origin,
-					        cdnskey->ttl, mctx));
+						cdnskey->ttl, mctx));
 		}
 	}
 
