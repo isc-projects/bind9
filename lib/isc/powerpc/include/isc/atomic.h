@@ -70,7 +70,7 @@ static inline int
 #else
 static int
 #endif
-isc_atomic_cmpxchg(atomic_p p, int old, int new) {
+isc_atomic_cmpxchg(atomic_p p, int old, int replacement) {
 	int orig = old;
 
 #ifdef __GNUC__
@@ -78,7 +78,7 @@ isc_atomic_cmpxchg(atomic_p p, int old, int new) {
 #else
 	 __isync();
 #endif
-	if (compare_and_swap(p, &orig, new))
+	if (compare_and_swap(p, &orig, replacement))
 		orig = old;
 
 #ifdef __GNUC__

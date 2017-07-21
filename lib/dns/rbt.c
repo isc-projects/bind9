@@ -443,7 +443,7 @@ addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 	   dns_rbtnode_t **rootp);
 
 static void
-deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
+deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp);
 
 static isc_result_t
 treefix(dns_rbt_t *rbt, void *base, size_t size,
@@ -2552,25 +2552,25 @@ addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
  * true red/black tree on a single level.
  */
 static void
-deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
+deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child, *sibling, *parent;
 	dns_rbtnode_t *successor;
 
-	REQUIRE(delete != NULL);
+	REQUIRE(item != NULL);
 
 	/*
 	 * Verify that the parent history is (apparently) correct.
 	 */
-	INSIST((IS_ROOT(delete) && *rootp == delete) ||
-	       (! IS_ROOT(delete) &&
-		(LEFT(PARENT(delete)) == delete ||
-		 RIGHT(PARENT(delete)) == delete)));
+	INSIST((IS_ROOT(item) && *rootp == item) ||
+	       (! IS_ROOT(item) &&
+		(LEFT(PARENT(item)) == item ||
+		 RIGHT(PARENT(item)) == item)));
 
 	child = NULL;
 
-	if (LEFT(delete) == NULL) {
-		if (RIGHT(delete) == NULL) {
-			if (IS_ROOT(delete)) {
+	if (LEFT(item) == NULL) {
+		if (RIGHT(item) == NULL) {
+			if (IS_ROOT(item)) {
 				/*
 				 * This is the only item in the tree.
 				 */
@@ -2581,13 +2581,13 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 			/*
 			 * This node has one child, on the right.
 			 */
-			child = RIGHT(delete);
+			child = RIGHT(item);
 
-	} else if (RIGHT(delete) == NULL)
+	} else if (RIGHT(item) == NULL)
 		/*
 		 * This node has one child, on the left.
 		 */
-		child = LEFT(delete);
+		child = LEFT(item);
 	else {
 		dns_rbtnode_t holder, *tmp = &holder;
 
@@ -2597,7 +2597,7 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 * move it to this location, then do the deletion at the
 		 * old site of the successor.
 		 */
-		successor = RIGHT(delete);
+		successor = RIGHT(item);
 		while (LEFT(successor) != NULL)
 			successor = LEFT(successor);
 
@@ -2625,21 +2625,21 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 */
 		memmove(tmp, successor, sizeof(dns_rbtnode_t));
 
-		if (IS_ROOT(delete)) {
+		if (IS_ROOT(item)) {
 			*rootp = successor;
 			successor->is_root = ISC_TRUE;
-			delete->is_root = ISC_FALSE;
+			item->is_root = ISC_FALSE;
 
 		} else
-			if (LEFT(PARENT(delete)) == delete)
-				LEFT(PARENT(delete)) = successor;
+			if (LEFT(PARENT(item)) == item)
+				LEFT(PARENT(item)) = successor;
 			else
-				RIGHT(PARENT(delete)) = successor;
+				RIGHT(PARENT(item)) = successor;
 
-		PARENT(successor) = PARENT(delete);
-		LEFT(successor)   = LEFT(delete);
-		RIGHT(successor)  = RIGHT(delete);
-		COLOR(successor)  = COLOR(delete);
+		PARENT(successor) = PARENT(item);
+		LEFT(successor)   = LEFT(item);
+		RIGHT(successor)  = RIGHT(item);
+		COLOR(successor)  = COLOR(item);
 
 		if (LEFT(successor) != NULL)
 			PARENT(LEFT(successor)) = successor;
@@ -2651,39 +2651,39 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 * successor's previous tree location.  PARENT(tmp)
 		 * is the successor's original parent.
 		 */
-		INSIST(! IS_ROOT(delete));
+		INSIST(! IS_ROOT(item));
 
-		if (PARENT(tmp) == delete) {
+		if (PARENT(tmp) == item) {
 			/*
 			 * Node being deleted was successor's parent.
 			 */
-			RIGHT(successor) = delete;
-			PARENT(delete) = successor;
+			RIGHT(successor) = item;
+			PARENT(item) = successor;
 
 		} else {
-			LEFT(PARENT(tmp)) = delete;
-			PARENT(delete) = PARENT(tmp);
+			LEFT(PARENT(tmp)) = item;
+			PARENT(item) = PARENT(tmp);
 		}
 
 		/*
 		 * Original location of successor node has no left.
 		 */
-		LEFT(delete)   = NULL;
-		RIGHT(delete)  = RIGHT(tmp);
-		COLOR(delete)  = COLOR(tmp);
+		LEFT(item)   = NULL;
+		RIGHT(item)  = RIGHT(tmp);
+		COLOR(item)  = COLOR(tmp);
 	}
 
 	/*
 	 * Remove the node by removing the links from its parent.
 	 */
-	if (! IS_ROOT(delete)) {
-		if (LEFT(PARENT(delete)) == delete)
-			LEFT(PARENT(delete)) = child;
+	if (! IS_ROOT(item)) {
+		if (LEFT(PARENT(item)) == item)
+			LEFT(PARENT(item)) = child;
 		else
-			RIGHT(PARENT(delete)) = child;
+			RIGHT(PARENT(item)) = child;
 
 		if (child != NULL)
-			PARENT(child) = PARENT(delete);
+			PARENT(child) = PARENT(item);
 
 	} else {
 		/*
@@ -2692,14 +2692,14 @@ deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		 */
 		*rootp = child;
 		child->is_root = 1;
-		PARENT(child) = PARENT(delete);
+		PARENT(child) = PARENT(item);
 	}
 
 	/*
 	 * Fix color violations.
 	 */
-	if (IS_BLACK(delete)) {
-		parent = PARENT(delete);
+	if (IS_BLACK(item)) {
+		parent = PARENT(item);
 
 		while (child != *rootp && IS_BLACK(child)) {
 			INSIST(child == NULL || ! IS_ROOT(child));

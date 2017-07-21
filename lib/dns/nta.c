@@ -391,7 +391,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, dns_name_t *name,
  * Caller must hold a write lock on rwlock.
  */
 static isc_result_t
-delete(dns_ntatable_t *ntatable, dns_name_t *name) {
+deletenode(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
@@ -417,7 +417,7 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, dns_name_t *name) {
 	isc_result_t result;
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-	result = delete(ntatable, name);
+	result = deletenode(ntatable, name);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
 	return (result);
@@ -481,7 +481,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 			isc_timer_detach(&nta->timer);
 		}
 
-		result = delete(ntatable, foundname);
+		result = deletenode(ntatable, foundname);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_NTA, ISC_LOG_INFO,

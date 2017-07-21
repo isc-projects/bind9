@@ -1558,23 +1558,23 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		}
 		/* Grow stack? */
 		if (stackcount == pushed) {
-			void * new;
+			void * newstack;
 			isc_uint32_t newlen = stackcount + 16;
 			size_t newsize, oldsize;
 
 			newsize = newlen * sizeof(*stack);
 			oldsize = stackcount * sizeof(*stack);
-			new = isc_mem_get(mctx, newsize);
-			if (new == NULL)
+			newstack = isc_mem_get(mctx, newsize);
+			if (newstack == NULL)
 				goto cleanup;
 			if (stackcount != 0) {
 				void *ptr;
 
 				DE_CONST(stack, ptr);
-				memmove(new, stack, oldsize);
+				memmove(newstack, stack, oldsize);
 				isc_mem_put(mctx, ptr, oldsize);
 			}
-			stack = new;
+			stack = newstack;
 			stackcount = newlen;
 		}
 		stack[pushed++] = cfg_list_next(element);

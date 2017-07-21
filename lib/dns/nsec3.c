@@ -375,8 +375,8 @@ match_nsec3param(const dns_rdata_nsec3_t *nsec3,
  * change in "diff".
  */
 static isc_result_t
-delete(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
-       const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
+delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
+         const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
 {
 	dns_dbnode_t *node = NULL ;
 	dns_difftuple_t *tuple = NULL;
@@ -669,7 +669,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		/*
 		 * Delete the old previous NSEC3.
 		 */
-		CHECK(delete(db, version, prev, nsec3param, diff));
+		CHECK(delnsec3(db, version, prev, nsec3param, diff));
 
 		/*
 		 * Fixup the previous NSEC3.
@@ -705,7 +705,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	/*
 	 * Delete the old NSEC3 and record the change.
 	 */
-	CHECK(delete(db, version, hashname, nsec3param, diff));
+	CHECK(delnsec3(db, version, hashname, nsec3param, diff));
 	/*
 	 * Add the new NSEC3 and record the change.
 	 */
@@ -788,7 +788,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 			/*
 			 * Delete the old previous NSEC3.
 			 */
-			CHECK(delete(db, version, prev, nsec3param, diff));
+			CHECK(delnsec3(db, version, prev, nsec3param, diff));
 
 			/*
 			 * Fixup the previous NSEC3.
@@ -825,7 +825,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		/*
 		 * Delete the old NSEC3 and record the change.
 		 */
-		CHECK(delete(db, version, hashname, nsec3param, diff));
+		CHECK(delnsec3(db, version, hashname, nsec3param, diff));
 
 		/*
 		 * Add the new NSEC3 and record the change.
@@ -1391,7 +1391,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		/*
 		 * Delete the old previous NSEC3.
 		 */
-		CHECK(delete(db, version, prev, nsec3param, diff));
+		CHECK(delnsec3(db, version, prev, nsec3param, diff));
 
 		/*
 		 * Fixup the previous NSEC3.
@@ -1415,7 +1415,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	/*
 	 * Delete the old NSEC3 and record the change.
 	 */
-	CHECK(delete(db, version, hashname, nsec3param, diff));
+	CHECK(delnsec3(db, version, hashname, nsec3param, diff));
 
 	/*
 	 *  Delete NSEC3 records for now non active nodes.
@@ -1491,7 +1491,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			/*
 			 * Delete the old previous NSEC3.
 			 */
-			CHECK(delete(db, version, prev, nsec3param, diff));
+			CHECK(delnsec3(db, version, prev, nsec3param, diff));
 
 			/*
 			 * Fixup the previous NSEC3.
@@ -1517,7 +1517,7 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		/*
 		 * Delete the old NSEC3 and record the change.
 		 */
-		CHECK(delete(db, version, hashname, nsec3param, diff));
+		CHECK(delnsec3(db, version, hashname, nsec3param, diff));
 	} while (1);
 
  success:
