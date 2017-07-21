@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2008-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2008-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -377,7 +377,7 @@ match_nsec3param(const dns_rdata_nsec3_t *nsec3,
  */
 static isc_result_t
 delnsec3(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
-         const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
+	 const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
 {
 	dns_dbnode_t *node = NULL ;
 	dns_difftuple_t *tuple = NULL;
