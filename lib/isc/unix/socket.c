@@ -2658,20 +2658,20 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	 */
 	if (manager->reserved != 0 && sock->type == isc_sockettype_udp &&
 	    sock->fd >= 0 && sock->fd < manager->reserved) {
-		int new, tmp;
-		new = fcntl(sock->fd, F_DUPFD, manager->reserved);
+		int newfd, tmp;
+		newfd = fcntl(sock->fd, F_DUPFD, manager->reserved);
 		tmp = errno;
 		(void)close(sock->fd);
 		errno = tmp;
-		sock->fd = new;
+		sock->fd = newfd;
 		err = "isc_socket_create: fcntl/reserved";
 	} else if (sock->fd >= 0 && sock->fd < 20) {
-		int new, tmp;
-		new = fcntl(sock->fd, F_DUPFD, 20);
+		int newfd, tmp;
+		newfd = fcntl(sock->fd, F_DUPFD, 20);
 		tmp = errno;
 		(void)close(sock->fd);
 		errno = tmp;
-		sock->fd = new;
+		sock->fd = newfd;
 		err = "isc_socket_create: fcntl";
 	}
 #endif
@@ -3565,12 +3565,12 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * Leave a space for stdio to work in.
 	 */
 	if (fd >= 0 && fd < 20) {
-		int new, tmp;
-		new = fcntl(fd, F_DUPFD, 20);
+		int newfd, tmp;
+		newfd = fcntl(fd, F_DUPFD, 20);
 		tmp = errno;
 		(void)close(fd);
 		errno = tmp;
-		fd = new;
+		fd = newfd;
 		err = "accept/fcntl";
 	}
 #endif

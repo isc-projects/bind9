@@ -619,33 +619,33 @@ new_node(dns_rpz_zones_t *rpzs,
 	 const dns_rpz_cidr_key_t *ip, dns_rpz_prefix_t prefix,
 	 const dns_rpz_cidr_node_t *child)
 {
-	dns_rpz_cidr_node_t *new;
+	dns_rpz_cidr_node_t *node;
 	int i, words, wlen;
 
-	new = isc_mem_get(rpzs->mctx, sizeof(*new));
-	if (new == NULL)
+	node = isc_mem_get(rpzs->mctx, sizeof(*node));
+	if (node == NULL)
 		return (NULL);
-	memset(new, 0, sizeof(*new));
+	memset(node, 0, sizeof(*node));
 
 	if (child != NULL)
-		new->sum = child->sum;
+		node->sum = child->sum;
 
-	new->prefix = prefix;
+	node->prefix = prefix;
 	words = prefix / DNS_RPZ_CIDR_WORD_BITS;
 	wlen = prefix % DNS_RPZ_CIDR_WORD_BITS;
 	i = 0;
 	while (i < words) {
-		new->ip.w[i] = ip->w[i];
+		node->ip.w[i] = ip->w[i];
 		++i;
 	}
 	if (wlen != 0) {
-		new->ip.w[i] = ip->w[i] & DNS_RPZ_WORD_MASK(wlen);
+		node->ip.w[i] = ip->w[i] & DNS_RPZ_WORD_MASK(wlen);
 		++i;
 	}
 	while (i < DNS_RPZ_CIDR_WORDS)
-		new->ip.w[i++] = 0;
+		node->ip.w[i++] = 0;
 
-	return (new);
+	return (node);
 }
 
 static void

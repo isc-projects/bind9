@@ -635,7 +635,7 @@ struct dns_signing {
 	dns_dbiterator_t	*dbiterator;
 	dns_secalg_t		algorithm;
 	isc_uint16_t		keyid;
-	isc_boolean_t		delete;
+	isc_boolean_t		deleteit;
 	isc_boolean_t		done;
 	ISC_LINK(dns_signing_t)	link;
 };
@@ -799,7 +799,7 @@ static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
 static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-				     isc_uint16_t keyid, isc_boolean_t delete);
+				     isc_uint16_t keyid, isc_boolean_t deleteit);
 static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_dbnode_t *node, dns_name_t *name,
 				dns_diff_t *diff);
@@ -1378,9 +1378,10 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, const char * const *dbargv) {
+		   unsigned int dbargc, const char * const *dbargv)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	char **new = NULL;
+	char **argv = NULL;
 	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1390,14 +1391,14 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	LOCK_ZONE(zone);
 
 	/* Set up a new database argument list. */
-	new = isc_mem_get(zone->mctx, dbargc * sizeof(*new));
-	if (new == NULL)
+	argv = isc_mem_get(zone->mctx, dbargc * sizeof(*argv));
+	if (argv == NULL)
 		goto nomem;
 	for (i = 0; i < dbargc; i++)
-		new[i] = NULL;
+		argv[i] = NULL;
 	for (i = 0; i < dbargc; i++) {
-		new[i] = isc_mem_strdup(zone->mctx, dbargv[i]);
-		if (new[i] == NULL)
+		argv[i] = isc_mem_strdup(zone->mctx, dbargv[i]);
+		if (argv[i] == NULL)
 			goto nomem;
 	}
 
@@ -1405,16 +1406,16 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	zone_freedbargs(zone);
 
 	zone->db_argc = dbargc;
-	zone->db_argv = new;
+	zone->db_argv = argv;
 	result = ISC_R_SUCCESS;
 	goto unlock;
 
  nomem:
-	if (new != NULL) {
+	if (argv != NULL) {
 		for (i = 0; i < dbargc; i++)
-			if (new[i] != NULL)
-				isc_mem_free(zone->mctx, new[i]);
-		isc_mem_put(zone->mctx, new, dbargc * sizeof(*new));
+			if (argv[i] != NULL)
+				isc_mem_free(zone->mctx, argv[i]);
+		isc_mem_put(zone->mctx, argv, dbargc * sizeof(*argv));
 	}
 	result = ISC_R_NOMEMORY;
 
@@ -5388,31 +5389,33 @@ dns_zone_getnotifysrc6(dns_zone_t *zone) {
 }
 
 static isc_boolean_t
-same_addrs(const isc_sockaddr_t *old, const isc_sockaddr_t *new,
-	     isc_uint32_t count)
+same_addrs(isc_sockaddr_t const *oldlist, isc_sockaddr_t const *newlist,
+	   isc_uint32_t count)
 {
 	unsigned int i;
 
 	for (i = 0; i < count; i++)
-		if (!isc_sockaddr_equal(&old[i], &new[i]))
+		if (!isc_sockaddr_equal(&oldlist[i], &newlist[i]))
 			return (ISC_FALSE);
 	return (ISC_TRUE);
 }
 
 static isc_boolean_t
-same_keynames(dns_name_t **old, dns_name_t **new, isc_uint32_t count) {
+same_keynames(dns_name_t * const *oldlist, dns_name_t * const *newlist,
+	      isc_uint32_t count)
+{
 	unsigned int i;
 
-	if (old == NULL && new == NULL)
+	if (oldlist == NULL && newlist == NULL)
 		return (ISC_TRUE);
-	if (old == NULL || new == NULL)
+	if (oldlist == NULL || newlist == NULL)
 		return (ISC_FALSE);
 
 	for (i = 0; i < count; i++) {
-		if (old[i] == NULL && new[i] == NULL)
+		if (oldlist[i] == NULL && newlist[i] == NULL)
 			continue;
-		if (old[i] == NULL || new[i] == NULL ||
-		     !dns_name_equal(old[i], new[i]))
+		if (oldlist[i] == NULL || newlist[i] == NULL ||
+		    !dns_name_equal(oldlist[i], newlist[i]))
 			return (ISC_FALSE);
 	}
 	return (ISC_TRUE);
@@ -6699,17 +6702,17 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 			continue;
 		}
 		/*
-		 * We have a match.  If we were signing (!signing->delete)
+		 * We have a match.  If we were signing (!signing->deleteit)
 		 * and we already have a record indicating that we have
 		 * finished signing (rdata.data[4] != 0) then keep it.
 		 * Otherwise it needs to be deleted as we have removed all
-		 * the signatures (signing->delete), so any record indicating
+		 * the signatures (signing->deleteit), so any record indicating
 		 * completion is now out of date, or we have finished signing
 		 * with the new record so we no longer need to remember that
 		 * we need to sign the zone with the matching key across a
 		 * nameserver re-start.
 		 */
-		if (!signing->delete && rdata.data[4] != 0) {
+		if (!signing->deleteit && rdata.data[4] != 0) {
 			seen_done = ISC_TRUE;
 			have_rr = ISC_TRUE;
 		} else
@@ -6720,7 +6723,7 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	if (!signing->delete && !seen_done) {
+	if (!signing->deleteit && !seen_done) {
 		/*
 		 * If we were signing then we need to indicate that we have
 		 * finished signing the zone with this key.  If it is already
@@ -8087,7 +8090,7 @@ zone_sign(dns_zone_t *zone) {
 
 		delegation = ISC_FALSE;
 
-		if (first && signing->delete) {
+		if (first && signing->deleteit) {
 			/*
 			 * Remove the key we are deleting from consideration.
 			 */
@@ -8110,7 +8113,7 @@ zone_sign(dns_zone_t *zone) {
 
 		dns_dbiterator_current(signing->dbiterator, &node, name);
 
-		if (signing->delete) {
+		if (signing->deleteit) {
 			dns_dbiterator_pause(signing->dbiterator);
 			CHECK(del_sig(db, version, name, node, nkeys,
 				      signing->algorithm, signing->keyid,
@@ -8159,7 +8162,7 @@ zone_sign(dns_zone_t *zone) {
 			/*
 			 * When adding look for the specific key.
 			 */
-			if (!signing->delete &&
+			if (!signing->deleteit &&
 			    (dst_key_alg(zone_keys[i]) != signing->algorithm ||
 			     dst_key_id(zone_keys[i]) != signing->keyid))
 				continue;
@@ -8168,7 +8171,7 @@ zone_sign(dns_zone_t *zone) {
 			 * When deleting make sure we are properly signed
 			 * with the algorithm that was being removed.
 			 */
-			if (signing->delete &&
+			if (signing->deleteit &&
 			    ALG(zone_keys[i]) != signing->algorithm)
 				continue;
 
@@ -8215,7 +8218,7 @@ zone_sign(dns_zone_t *zone) {
 			 * If we are adding we are done.  Look for other keys
 			 * of the same algorithm if deleting.
 			 */
-			if (!signing->delete)
+			if (!signing->deleteit)
 				break;
 		}
 
@@ -10632,7 +10635,7 @@ notify_send(dns_notify_t *notify) {
 	dns_adbaddrinfo_t *ai;
 	isc_sockaddr_t dst;
 	isc_result_t result;
-	dns_notify_t *new = NULL;
+	dns_notify_t *newnotify = NULL;
 	unsigned int flags;
 	isc_boolean_t startup;
 
@@ -10654,24 +10657,24 @@ notify_send(dns_notify_t *notify) {
 			continue;
 		if (notify_isself(notify->zone, &dst))
 			continue;
-		new = NULL;
+		newnotify = NULL;
 		flags = notify->flags & DNS_NOTIFY_NOSOA;
-		result = notify_create(notify->mctx, flags, &new);
+		result = notify_create(notify->mctx, flags, &newnotify);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		zone_iattach(notify->zone, &new->zone);
-		ISC_LIST_APPEND(new->zone->notifies, new, link);
-		new->dst = dst;
+		zone_iattach(notify->zone, &newnotify->zone);
+		ISC_LIST_APPEND(newnotify->zone->notifies, newnotify, link);
+		newnotify->dst = dst;
 		startup = ISC_TF((notify->flags & DNS_NOTIFY_STARTUP) != 0);
-		result = notify_send_queue(new, startup);
+		result = notify_send_queue(newnotify, startup);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		new = NULL;
+		newnotify = NULL;
 	}
 
  cleanup:
-	if (new != NULL)
-		notify_destroy(new, ISC_TRUE);
+	if (newnotify != NULL)
+		notify_destroy(newnotify, ISC_TRUE);
 }
 
 void
@@ -16728,7 +16731,7 @@ dns_zone_getnotifydelay(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-		     isc_uint16_t keyid, isc_boolean_t delete)
+		     isc_uint16_t keyid, isc_boolean_t deleteit)
 {
 	isc_result_t result;
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -16737,7 +16740,7 @@ dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 		     "dns_zone_signwithkey(algorithm=%u, keyid=%u)",
 		     algorithm, keyid);
 	LOCK_ZONE(zone);
-	result = zone_signwithkey(zone, algorithm, keyid, delete);
+	result = zone_signwithkey(zone, algorithm, keyid, deleteit);
 	UNLOCK_ZONE(zone);
 
 	return (result);
@@ -16817,7 +16820,7 @@ dns_zone_getprivatetype(dns_zone_t *zone) {
 
 static isc_result_t
 zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, isc_uint16_t keyid,
-		 isc_boolean_t delete)
+		 isc_boolean_t deleteit)
 {
 	dns_signing_t *signing;
 	dns_signing_t *current;
@@ -16834,7 +16837,7 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, isc_uint16_t keyid,
 	signing->dbiterator = NULL;
 	signing->algorithm = algorithm;
 	signing->keyid = keyid;
-	signing->delete = delete;
+	signing->deleteit = deleteit;
 	signing->done = ISC_FALSE;
 
 	TIME_NOW(&now);
@@ -16857,7 +16860,7 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, isc_uint16_t keyid,
 		if (current->db == signing->db &&
 		    current->algorithm == signing->algorithm &&
 		    current->keyid == signing->keyid) {
-			if (current->delete != signing->delete)
+			if (current->deleteit != signing->deleteit)
 				current->done = ISC_TRUE;
 			else
 				goto cleanup;

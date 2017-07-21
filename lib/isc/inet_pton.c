@@ -91,14 +91,14 @@ inet_pton4(const char *src, unsigned char *dst) {
 		const char *pch;
 
 		if ((pch = strchr(digits, ch)) != NULL) {
-			unsigned int new = *tp * 10;
+			unsigned int byte = *tp * 10;
 
-			new += (int)(pch - digits);
+			byte += (int)(pch - digits);
 			if (saw_digit && *tp == 0)
 				return (0);
-			if (new > 255)
+			if (byte > 255)
 				return (0);
-			*tp = new;
+			*tp = byte;
 			if (!saw_digit) {
 				if (++octets > 4)
 					return (0);

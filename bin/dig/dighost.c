@@ -2272,10 +2272,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_message_gettempname");
 	dns_name_init(lookup->name, NULL);
 
-	isc_buffer_init(&lookup->namebuf, lookup->namespace,
-			sizeof(lookup->namespace));
-	isc_buffer_init(&lookup->onamebuf, lookup->onamespace,
-			sizeof(lookup->onamespace));
+	isc_buffer_init(&lookup->namebuf, lookup->name_space,
+			sizeof(lookup->name_space));
+	isc_buffer_init(&lookup->onamebuf, lookup->oname_space,
+			sizeof(lookup->oname_space));
 
 #ifdef WITH_IDN
 	/*
