@@ -527,7 +527,7 @@ quantize(size_t size) {
 
 static inline isc_boolean_t
 more_basic_blocks(isc__mem_t *ctx) {
-	void *new;
+	void *tmp;
 	unsigned char *curr, *next;
 	unsigned char *first, *last;
 	unsigned char **table;
@@ -563,16 +563,16 @@ more_basic_blocks(isc__mem_t *ctx) {
 		ctx->basic_table_size = table_size;
 	}
 
-	new = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
-	if (new == NULL) {
+	tmp = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
+	if (tmp == NULL) {
 		ctx->memalloc_failures++;
 		return (ISC_FALSE);
 	}
 	ctx->total += increment;
-	ctx->basic_table[ctx->basic_table_count] = new;
+	ctx->basic_table[ctx->basic_table_count] = tmp;
 	ctx->basic_table_count++;
 
-	curr = new;
+	curr = tmp;
 	next = curr + ctx->mem_target;
 	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
 		((element *)curr)->next = (element *)next;
@@ -584,13 +584,13 @@ more_basic_blocks(isc__mem_t *ctx) {
 	 * array.
 	 */
 	((element *)curr)->next = NULL;
-	first = new;
+	first = tmp;
 	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
 	if (first < ctx->lowest || ctx->lowest == NULL)
 		ctx->lowest = first;
 	if (last > ctx->highest)
 		ctx->highest = last;
-	ctx->basic_blocks = new;
+	ctx->basic_blocks = tmp;
 
 	return (ISC_TRUE);
 }
@@ -599,7 +599,7 @@ static inline isc_boolean_t
 more_frags(isc__mem_t *ctx, size_t new_size) {
 	int i, frags;
 	size_t total_size;
-	void *new;
+	void *tmp;
 	unsigned char *curr, *next;
 
 	/*!
@@ -620,7 +620,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	}
 
 	total_size = ctx->mem_target;
-	new = ctx->basic_blocks;
+	tmp = ctx->basic_blocks;
 	ctx->basic_blocks = ctx->basic_blocks->next;
 	frags = (int)(total_size / new_size);
 	ctx->stats[new_size].blocks++;
@@ -629,7 +629,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	 * Set up a linked-list of blocks of size
 	 * "new_size".
 	 */
-	curr = new;
+	curr = tmp;
 	next = curr + new_size;
 	total_size -= new_size;
 	for (i = 0; i < (frags - 1); i++) {
@@ -652,7 +652,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	 * array.
 	 */
 	((element *)curr)->next = NULL;
-	ctx->freelists[new_size] = new;
+	ctx->freelists[new_size] = tmp;
 
 	return (ISC_TRUE);
 }

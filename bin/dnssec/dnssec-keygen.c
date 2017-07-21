@@ -233,7 +233,7 @@ main(int argc, char **argv) {
 	dns_ttl_t	ttl = 0;
 	isc_boolean_t	use_default = ISC_FALSE, use_nsec3 = ISC_FALSE;
 	isc_stdtime_t	publish = 0, activate = 0, revokekey = 0;
-	isc_stdtime_t	inactive = 0, delete = 0;
+	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
 	int		prepub = -1;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
@@ -433,8 +433,8 @@ main(int argc, char **argv) {
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
-			delete = strtotime(isc_commandline_argument,
-					   now, now, &setdel);
+			deltime = strtotime(isc_commandline_argument,
+					    now, now, &setdel);
 			unsetdel = !setdel;
 			break;
 		case 'S':
@@ -954,13 +954,13 @@ main(int argc, char **argv) {
 						inactive);
 
 			if (setdel) {
-				if (setinact && delete < inactive)
+				if (setinact && deltime < inactive)
 					fprintf(stderr, "%s: warning: Key is "
 						"scheduled to be deleted "
 						"before it is scheduled to be "
 						"made inactive.\n",
 						program);
-				dst_key_settime(key, DST_TIME_DELETE, delete);
+				dst_key_settime(key, DST_TIME_DELETE, deltime);
 			}
 		} else {
 			if (setpub || setact || setrev || setinact ||

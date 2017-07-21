@@ -576,20 +576,20 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 			/* Grow lists? */
 			if (listcount == l) {
-				void * new;
+				void * tmp;
 				isc_uint32_t newlen = listcount + 16;
 				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*lists);
 				oldsize = listcount * sizeof(*lists);
-				new = isc_mem_get(mctx, newsize);
-				if (new == NULL)
+				tmp = isc_mem_get(mctx, newsize);
+				if (tmp == NULL)
 					goto cleanup;
 				if (listcount != 0) {
-					memmove(new, lists, oldsize);
+					memmove(tmp, lists, oldsize);
 					isc_mem_put(mctx, lists, oldsize);
 				}
-				lists = new;
+				lists = tmp;
 				listcount = newlen;
 			}
 			/* Seen? */
@@ -611,20 +611,20 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			lists[l++].name = listname;
 			/* Grow stack? */
 			if (stackcount == pushed) {
-				void * new;
+				void * tmp;
 				isc_uint32_t newlen = stackcount + 16;
 				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*stack);
 				oldsize = stackcount * sizeof(*stack);
-				new = isc_mem_get(mctx, newsize);
-				if (new == NULL)
+				tmp = isc_mem_get(mctx, newsize);
+				if (tmp == NULL)
 					goto cleanup;
 				if (stackcount != 0) {
-					memmove(new, stack, oldsize);
+					memmove(tmp, stack, oldsize);
 					isc_mem_put(mctx, stack, oldsize);
 				}
-				stack = new;
+				stack = tmp;
 				stackcount = newlen;
 			}
 			/*
@@ -638,32 +638,32 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		}
 
 		if (i == addrcount) {
-			void * new;
+			void * tmp;
 			isc_uint32_t newlen = addrcount + 16;
 			size_t newsize, oldsize;
 
 			newsize = newlen * sizeof(isc_sockaddr_t);
 			oldsize = addrcount * sizeof(isc_sockaddr_t);
-			new = isc_mem_get(mctx, newsize);
-			if (new == NULL)
+			tmp = isc_mem_get(mctx, newsize);
+			if (tmp == NULL)
 				goto cleanup;
 			if (addrcount != 0) {
-				memmove(new, addrs, oldsize);
+				memmove(tmp, addrs, oldsize);
 				isc_mem_put(mctx, addrs, oldsize);
 			}
-			addrs = new;
+			addrs = tmp;
 			addrcount = newlen;
 
 			newsize = newlen * sizeof(dns_name_t *);
 			oldsize = keycount * sizeof(dns_name_t *);
-			new = isc_mem_get(mctx, newsize);
-			if (new == NULL)
+			tmp = isc_mem_get(mctx, newsize);
+			if (tmp == NULL)
 				goto cleanup;
 			if (keycount != 0) {
-				memmove(new, keys, oldsize);
+				memmove(tmp, keys, oldsize);
 				isc_mem_put(mctx, keys, oldsize);
 			}
-			keys = new;
+			keys = tmp;
 			keycount = newlen;
 		}
 
@@ -699,33 +699,33 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 		goto resume;
 	}
 	if (i < addrcount) {
-		void * new;
+		void * tmp;
 		size_t newsize, oldsize;
 
 		newsize = i * sizeof(isc_sockaddr_t);
 		oldsize = addrcount * sizeof(isc_sockaddr_t);
 		if (i != 0) {
-			new = isc_mem_get(mctx, newsize);
-			if (new == NULL)
+			tmp = isc_mem_get(mctx, newsize);
+			if (tmp == NULL)
 				goto cleanup;
-			memmove(new, addrs, newsize);
+			memmove(tmp, addrs, newsize);
 		} else
-			new = NULL;
+			tmp = NULL;
 		isc_mem_put(mctx, addrs, oldsize);
-		addrs = new;
+		addrs = tmp;
 		addrcount = i;
 
 		newsize = i * sizeof(dns_name_t *);
 		oldsize = keycount * sizeof(dns_name_t *);
 		if (i != 0) {
-			new = isc_mem_get(mctx, newsize);
-			if (new == NULL)
+			tmp = isc_mem_get(mctx, newsize);
+			if (tmp == NULL)
 				goto cleanup;
-			memmove(new, keys,  newsize);
+			memmove(tmp, keys,  newsize);
 		} else
-			new = NULL;
+			tmp = NULL;
 		isc_mem_put(mctx, keys, oldsize);
-		keys = new;
+		keys = tmp;
 		keycount = i;
 	}
 

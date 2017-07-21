@@ -148,7 +148,7 @@ main(int argc, char **argv) {
 	char		*label = NULL;
 	dns_ttl_t	ttl = 0;
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
-	isc_stdtime_t	inactive = 0, delete = 0;
+	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
 	int		prepub = -1;
 	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
@@ -278,8 +278,8 @@ main(int argc, char **argv) {
 			if (setdel || unsetdel)
 				fatal("-D specified more than once");
 
-			delete = strtotime(isc_commandline_argument,
-					   now, now, &setdel);
+			deltime = strtotime(isc_commandline_argument,
+					    now, now, &setdel);
 			unsetdel = !setdel;
 			break;
 		case 'S':
@@ -608,7 +608,7 @@ main(int argc, char **argv) {
 			dst_key_settime(key, DST_TIME_INACTIVE, inactive);
 
 		if (setdel)
-			dst_key_settime(key, DST_TIME_DELETE, delete);
+			dst_key_settime(key, DST_TIME_DELETE, deltime);
 	} else {
 		if (setpub || setact || setrev || setinact ||
 		    setdel || unsetpub || unsetact ||

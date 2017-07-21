@@ -2044,7 +2044,7 @@ static isc_result_t
 pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	isc_result_t result;
 	dns_incctx_t *ictx;
-	dns_incctx_t *new = NULL;
+	dns_incctx_t *newctx = NULL;
 	isc_region_t r;
 	int new_in_use;
 
@@ -2054,40 +2054,40 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	ictx = lctx->inc;
 	lctx->seen_include = ISC_TRUE;
 
-	result = incctx_create(lctx->mctx, origin, &new);
+	result = incctx_create(lctx->mctx, origin, &newctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
 	 * Push origin_changed.
 	 */
-	new->origin_changed = ictx->origin_changed;
+	newctx->origin_changed = ictx->origin_changed;
 
 	/* Set current domain. */
 	if (ictx->glue != NULL || ictx->current != NULL) {
 		for (new_in_use = 0; new_in_use < NBUFS; new_in_use++)
-			if (!new->in_use[new_in_use])
+			if (!newctx->in_use[new_in_use])
 				break;
 		INSIST(new_in_use < NBUFS);
-		new->current_in_use = new_in_use;
-		new->current =
-			dns_fixedname_name(&new->fixed[new->current_in_use]);
-		new->in_use[new->current_in_use] = ISC_TRUE;
+		newctx->current_in_use = new_in_use;
+		newctx->current =
+			dns_fixedname_name(&newctx->fixed[newctx->current_in_use]);
+		newctx->in_use[newctx->current_in_use] = ISC_TRUE;
 		dns_name_toregion((ictx->glue != NULL) ?
 				   ictx->glue : ictx->current, &r);
-		dns_name_fromregion(new->current, &r);
-		new->drop = ictx->drop;
+		dns_name_fromregion(newctx->current, &r);
+		newctx->drop = ictx->drop;
 	}
 
 	result = (lctx->openfile)(lctx, master_file);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	new->parent = ictx;
-	lctx->inc = new;
+	newctx->parent = ictx;
+	lctx->inc = newctx;
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	incctx_destroy(lctx->mctx, new);
+	incctx_destroy(lctx->mctx, newctx);
 	return (result);
 }
 
@@ -2761,17 +2761,17 @@ dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top,
  * Re-link glue and current list.
  */
 static dns_rdatalist_t *
-grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
+grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	       rdatalist_head_t *current, rdatalist_head_t *glue,
 	       isc_mem_t *mctx)
 {
-	dns_rdatalist_t *new;
+	dns_rdatalist_t *newlist;
 	int rdlcount = 0;
 	ISC_LIST(dns_rdatalist_t) save;
 	dns_rdatalist_t *this;
 
-	new = isc_mem_get(mctx, new_len * sizeof(*new));
-	if (new == NULL)
+	newlist = isc_mem_get(mctx, new_len * sizeof(*newlist));
+	if (newlist == NULL)
 		return (NULL);
 
 	ISC_LIST_INIT(save);
@@ -2782,8 +2782,8 @@ grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
 	while ((this = ISC_LIST_HEAD(save)) != NULL) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
-		new[rdlcount] = *this;
-		ISC_LIST_APPEND(*current, &new[rdlcount], link);
+		newlist[rdlcount] = *this;
+		ISC_LIST_APPEND(*current, &newlist[rdlcount], link);
 		rdlcount++;
 	}
 
@@ -2795,15 +2795,15 @@ grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
 	while ((this = ISC_LIST_HEAD(save)) != NULL) {
 		ISC_LIST_UNLINK(save, this, link);
 		INSIST(rdlcount < new_len);
-		new[rdlcount] = *this;
-		ISC_LIST_APPEND(*glue, &new[rdlcount], link);
+		newlist[rdlcount] = *this;
+		ISC_LIST_APPEND(*glue, &newlist[rdlcount], link);
 		rdlcount++;
 	}
 
 	INSIST(rdlcount == old_len);
-	if (old != NULL)
-		isc_mem_put(mctx, old, old_len * sizeof(*old));
-	return (new);
+	if (oldlist != NULL)
+		isc_mem_put(mctx, oldlist, old_len * sizeof(*oldlist));
+	return (newlist);
 }
 
 /*
@@ -2811,20 +2811,20 @@ grow_rdatalist(int new_len, dns_rdatalist_t *old, int old_len,
  * Re-link the current and glue chains.
  */
 static dns_rdata_t *
-grow_rdata(int new_len, dns_rdata_t *old, int old_len,
+grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	   rdatalist_head_t *current, rdatalist_head_t *glue,
 	   isc_mem_t *mctx)
 {
-	dns_rdata_t *new;
+	dns_rdata_t *newlist;
 	int rdcount = 0;
 	ISC_LIST(dns_rdata_t) save;
 	dns_rdatalist_t *this;
 	dns_rdata_t *rdata;
 
-	new = isc_mem_get(mctx, new_len * sizeof(*new));
-	if (new == NULL)
+	newlist = isc_mem_get(mctx, new_len * sizeof(*newlist));
+	if (newlist == NULL)
 		return (NULL);
-	memset(new, 0, new_len * sizeof(*new));
+	memset(newlist, 0, new_len * sizeof(*newlist));
 
 	/*
 	 * Copy current relinking.
@@ -2839,8 +2839,8 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 		while ((rdata = ISC_LIST_HEAD(save)) != NULL) {
 			ISC_LIST_UNLINK(save, rdata, link);
 			INSIST(rdcount < new_len);
-			new[rdcount] = *rdata;
-			ISC_LIST_APPEND(this->rdata, &new[rdcount], link);
+			newlist[rdcount] = *rdata;
+			ISC_LIST_APPEND(this->rdata, &newlist[rdcount], link);
 			rdcount++;
 		}
 		this = ISC_LIST_NEXT(this, link);
@@ -2859,16 +2859,16 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 		while ((rdata = ISC_LIST_HEAD(save)) != NULL) {
 			ISC_LIST_UNLINK(save, rdata, link);
 			INSIST(rdcount < new_len);
-			new[rdcount] = *rdata;
-			ISC_LIST_APPEND(this->rdata, &new[rdcount], link);
+			newlist[rdcount] = *rdata;
+			ISC_LIST_APPEND(this->rdata, &newlist[rdcount], link);
 			rdcount++;
 		}
 		this = ISC_LIST_NEXT(this, link);
 	}
 	INSIST(rdcount == old_len || rdcount == 0);
-	if (old != NULL)
-		isc_mem_put(mctx, old, old_len * sizeof(*old));
-	return (new);
+	if (oldlist != NULL)
+		isc_mem_put(mctx, oldlist, old_len * sizeof(*oldlist));
+	return (newlist);
 }
 
 static isc_uint32_t

@@ -765,7 +765,7 @@ typedef struct rbtdb_dbiterator {
 	dns_rbtnodechain_t		*current;
 	dns_rbtnode_t                   *node;
 	dns_rbtnode_t                   *deletions[DELETION_BATCH_MAX];
-	int                             delete;
+	int                             delcnt;
 	isc_boolean_t			nsec3only;
 	isc_boolean_t			nonsec3;
 } rbtdb_dbiterator_t;
@@ -946,7 +946,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	unsigned int interval;
 	isc_uint64_t usecs;
 	isc_time_t end;
-	unsigned int new;
+	unsigned int nodes;
 
 	if (pps < 100)
 		pps = 100;
@@ -966,20 +966,20 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 			old = 1000;
 		return (old);
 	}
-	new = old * interval;
-	new /= (unsigned int)usecs;
-	if (new == 0)
-		new = 1;
-	else if (new > 1000)
-		new = 1000;
+	nodes = old * interval;
+	nodes /= (unsigned int)usecs;
+	if (nodes == 0)
+		nodes = 1;
+	else if (nodes > 1000)
+		nodes = 1000;
 
 	/* Smooth */
-	new = (new + old * 3) / 4;
+	nodes = (nodes + old * 3) / 4;
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "adjust_quantum -> %d", new);
+		      ISC_LOG_DEBUG(1), "adjust_quantum -> %d", nodes);
 
-	return (new);
+	return (nodes);
 }
 
 static void
@@ -5727,7 +5727,7 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	dns_fixedname_init(&rbtdbiter->name);
 	dns_fixedname_init(&rbtdbiter->origin);
 	rbtdbiter->node = NULL;
-	rbtdbiter->delete = 0;
+	rbtdbiter->delcnt = 0;
 	rbtdbiter->nsec3only = ISC_TF((options & DNS_DB_NSEC3ONLY) != 0);
 	rbtdbiter->nonsec3 = ISC_TF((options & DNS_DB_NONSEC3) != 0);
 	memset(rbtdbiter->deletions, 0, sizeof(rbtdbiter->deletions));
@@ -8693,7 +8693,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 	nodelock_t *lock;
 	int i;
 
-	if (rbtdbiter->delete != 0) {
+	if (rbtdbiter->delcnt != 0) {
 		/*
 		 * Note that "%d node of %d in tree" can report things like
 		 * "flush_deletions: 59 nodes of 41 in tree".  This means
@@ -8703,7 +8703,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 			      "flush_deletions: %d nodes of %d in tree",
-			      rbtdbiter->delete,
+			      rbtdbiter->delcnt,
 			      dns_rbt_nodecount(rbtdb->tree));
 
 		if (rbtdbiter->tree_locked == isc_rwlocktype_read) {
@@ -8713,7 +8713,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 		RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 		rbtdbiter->tree_locked = isc_rwlocktype_write;
 
-		for (i = 0; i < rbtdbiter->delete; i++) {
+		for (i = 0; i < rbtdbiter->delcnt; i++) {
 			node = rbtdbiter->deletions[i];
 			lock = &rbtdb->node_locks[node->locknum].lock;
 
@@ -8724,7 +8724,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 			NODE_UNLOCK(lock, isc_rwlocktype_read);
 		}
 
-		rbtdbiter->delete = 0;
+		rbtdbiter->delcnt = 0;
 
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 		if (was_read_locked) {
@@ -9093,7 +9093,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		 * to expire the current node.  The current node can't
 		 * fully deleted while the iteration cursor is still on it.
 		 */
-		if (rbtdbiter->delete == DELETION_BATCH_MAX)
+		if (rbtdbiter->delcnt == DELETION_BATCH_MAX)
 			flush_deletions(rbtdbiter);
 
 		expire_result = expirenode(iterator->db, *nodep, 0);
@@ -9104,7 +9104,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		if (expire_result == ISC_R_SUCCESS && node->down == NULL) {
 			unsigned int refs;
 
-			rbtdbiter->deletions[rbtdbiter->delete++] = node;
+			rbtdbiter->deletions[rbtdbiter->delcnt++] = node;
 			NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
 			dns_rbtnode_refincrement(node, &refs);
 			INSIST(refs != 0);

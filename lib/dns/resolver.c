@@ -9425,7 +9425,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 			       unsigned int alg)
 {
 	unsigned int len, mask;
-	unsigned char *new;
+	unsigned char *tmp;
 	unsigned char *algorithms;
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
@@ -9468,18 +9468,18 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, dns_name_t *name,
 			 * bitfield and copy the old (smaller) bitfield
 			 * into it if one exists.
 			 */
-			new = isc_mem_get(resolver->mctx, len);
-			if (new == NULL) {
+			tmp = isc_mem_get(resolver->mctx, len);
+			if (tmp == NULL) {
 				result = ISC_R_NOMEMORY;
 				goto cleanup;
 			}
-			memset(new, 0, len);
+			memset(tmp, 0, len);
 			if (algorithms != NULL)
-				memmove(new, algorithms, *algorithms);
-			new[len-1] |= mask;
-			/* new[0] should contain the length of new. */
-			*new = len;
-			node->data = new;
+				memmove(tmp, algorithms, *algorithms);
+			tmp[len-1] |= mask;
+			/* 'tmp[0]' should contain the length of 'tmp'. */
+			*tmp = len;
+			node->data = tmp;
 			/* Free the older bitfield. */
 			if (algorithms != NULL)
 				isc_mem_put(resolver->mctx, algorithms,
