@@ -5177,8 +5177,8 @@ report() {
         echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
         echo "    ECDSA algorithm support (--with-ecdsa)"
-    
-    test "yess" = "$enable_seccomp" || \
+
+    test "yes" = "$enable_seccomp" || \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" || \
         echo "    Print backtrace on crash (--enable-backtrace)"
