@@ -1,3 +1,6 @@
+4657.	[bug]		rrchecker system test result could be improperly
+			determined. [RT #45602]
+
 4656.	[bug]		Apply "port" and "dscp" values specified in catalog
 			zone's "default-masters" option to the generated
 			configuration of its member zones. [RT #45545]
