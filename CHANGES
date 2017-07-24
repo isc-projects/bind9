@@ -8,6 +8,8 @@
 
 4651.	[test]		Silence coverity warnings in tsig_test.c. [RT #45528]
 
+	--- 9.11.2 released ---
+
 	--- 9.11.2rc2 released ---
 
 4653.	[bug]		Reorder includes to move @DST_OPENSSL_INC@ and
