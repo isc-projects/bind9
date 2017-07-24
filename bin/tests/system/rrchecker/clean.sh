@@ -12,4 +12,4 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f classlist.out privatelist.out typelist.out tempzone checker.out
+rm -f classlist.out privatelist.out typelist.out tempzone checkzone.out* checker.out

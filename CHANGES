@@ -1,3 +1,6 @@
+4657.	[bug]		rrchecker system test result could be improperly
+			determined. [RT #45602]
+
 4655.	[bug]		Lack of seccomp could be falsely reported. [RT #45599]
 
 4654.	[cleanup]	Don't use C++ keywords delete, new and namespace.
