@@ -10,17 +10,20 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
-t=0
+n=0
 
-echo "I:class list"
+n=`expr $n + 1`
+echo "I:class list ($n)"
 $RRCHECKER -C > classlist.out
 $DIFF classlist.out classlist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
-echo "I:type list"
+n=`expr $n + 1`
+echo "I:type list ($n)"
 $RRCHECKER -T > typelist.out
 $DIFF typelist.out typelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
-echo "I:private type list"
+n=`expr $n + 1`
+echo "I:private type list ($n)"
 $RRCHECKER -P > privatelist.out
 $DIFF privatelist.out privatelist.good || { echo "I:failed"; status=`expr $status + 1`; }
 
@@ -30,11 +33,12 @@ $*
 EOF
 }
 
-echo "I:check conversions to canonical format"
+n=`expr $n + 1`
+echo "I:check conversions to canonical format ($n)"
 ret=0
 $SHELL ../genzone.sh 0 > tempzone
-$CHECKZONE -Dq . tempzone | sed '/^;/d' |
-while read -r n tt cl ty rest
+$CHECKZONE -Dq . tempzone | sed '/^;/d' > checkzone.out$n
+while read -r name tt cl ty rest
 do
 	myecho "$cl $ty $rest" | $RRCHECKER -p > checker.out || {
 		ret=1
@@ -45,13 +49,14 @@ do
 		ret=1
 		echo "I: '$cl $ty $rest' != '$cl0 $ty0 $rest0'"
 	}
-done
+done < checkzone.out$n
 test $ret -eq 0 || { echo "I:failed"; status=`expr $status + 1`; }
 
-echo "I:check conversions to and from unknown record format"
+n=`expr $n + 1`
+echo "I:check conversions to and from unknown record format ($n)"
 ret=0
-$CHECKZONE -Dq . tempzone | sed '/^;/d' |
-while read -r n tt cl ty rest
+$CHECKZONE -Dq . tempzone | sed '/^;/d' > checkzone.out$n
+while read -r name tt cl ty rest
 do
 	myecho "$cl $ty $rest" | $RRCHECKER -u > checker.out || {
 		ret=1
@@ -67,7 +72,7 @@ do
 		ret=1
 		echo "I: '$cl $ty $rest' != '$cl0 $ty0 $rest0'"
 	}
-done
+done < checkzone.out$n
 test $ret -eq 0 || { echo "I:failed"; status=`expr $status + 1`; }
 
 echo "I:exit status: $status"
