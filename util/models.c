@@ -91,3 +91,7 @@ void isc__mempool_put(void *mem, void *ptr FLARG) {
 	if (!mem) __coverity_panic__();
 	__coverity_free__(ptr);
 }
+
+void atf_tc_fail_requirement(const char *, const size_t, const char *, ...) {
+	__coverity_panic__();
+}
