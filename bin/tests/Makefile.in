@@ -71,7 +71,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		nsecify@EXEEXT@ \
 		ratelimiter_test@EXEEXT@ \
 		rbt_test@EXEEXT@ \
-		rdata_test@EXEEXT@ \
 		rwlock_test@EXEEXT@ \
 		serial_test@EXEEXT@ \
 		shutdown_test@EXEEXT@ \
@@ -110,7 +109,6 @@ XSRCS =		adb_test.c \
 		nsecify.c \
 		ratelimiter_test.c \
 		rbt_test.c \
-		rdata_test.c \
 		rwlock_test.c \
 		serial_test.c \
 		shutdown_test.c \
@@ -226,10 +224,6 @@ ratelimiter_test@EXEEXT@: ratelimiter_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 rbt_test@EXEEXT@: rbt_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rbt_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-rdata_test@EXEEXT@: rdata_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ rdata_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 rwlock_test@EXEEXT@: rwlock_test.@O@ ${ISCDEPLIBS}

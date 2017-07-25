@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -79,3 +77,6 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 isc_result_t
 dns_test_getdata(const char *file, unsigned char *buf,
 		 size_t bufsiz, size_t *sizep);
+
+char *
+dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
