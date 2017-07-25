@@ -1,3 +1,5 @@
+4667.	[cleanup]	Refactor RDATA unit tests. [RT #45610]
+
 4665.	[protocol]	Added support for ED25519 and ED448 DNSSEC signing
 			algorithms (RFC 8080). (Note: these algorithms
 			depend on code currently in the development branch

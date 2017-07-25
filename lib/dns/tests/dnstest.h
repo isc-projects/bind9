@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -80,3 +78,6 @@ dns_test_nap(isc_uint32_t usec);
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		const char *testfile);
+
+char *
+dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
