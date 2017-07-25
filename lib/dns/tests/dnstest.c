@@ -10,6 +10,8 @@
 
 #include <config.h>
 
+#include <atf-c.h>
+
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -19,6 +21,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/print.h>
@@ -351,6 +354,29 @@ fromhex(char c) {
 	printf("bad input format: %02x\n", c);
 	exit(3);
 	/* NOTREACHED */
+}
+
+/*
+ * Format contents of given memory region as a hex string, using the buffer
+ * of length 'buflen' pointed to by 'buf'. 'buflen' must be at least three
+ * times 'len'. Always returns 'buf'.
+ */
+char *
+dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen)
+{
+	isc_constregion_t source = {
+		.base = data,
+		.length = len
+	};
+	isc_buffer_t target;
+	isc_result_t result;
+
+	memset(buf, 0, buflen);
+	isc_buffer_init(&target, buf, buflen);
+	result = isc_hex_totext((isc_region_t *)&source, 1, " ", &target);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	return (buf);
 }
 
 isc_result_t

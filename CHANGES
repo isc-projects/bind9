@@ -1,3 +1,5 @@
+4667.	[cleanup]	Refactor RDATA unit tests. [RT #45610]
+
 4666.	[bug]		dnssec-keymgr: Domain names beginning with digits (0-9)
 			could cause a parser error when reading the policy
 			file. This now works correctly so long as the domain
