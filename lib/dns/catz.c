@@ -13,6 +13,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/sha2.h>
 #include <isc/task.h>
