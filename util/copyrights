@@ -1877,9 +1877,9 @@
 ./bin/tests/system/rpzrecurse/testgen.pl	PERL	2015
 ./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016
 ./bin/tests/system/rrchecker/classlist.good	X	2013
-./bin/tests/system/rrchecker/clean.sh		SH	2013
+./bin/tests/system/rrchecker/clean.sh		SH	2013,2017
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
-./bin/tests/system/rrchecker/tests.sh		SH	2013,2014,2015,2016
+./bin/tests/system/rrchecker/tests.sh		SH	2013,2014,2015,2016,2017
 ./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015,2016
 ./bin/tests/system/rrl/.gitignore		X	2013,2014
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013,2016
