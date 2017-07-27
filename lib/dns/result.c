@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -165,7 +163,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"bad EUI",			       /*%< 109 DNS_R_BADEUI */
 
 	"covered by negative trust anchor",    /*%< 110 DNS_R_NTACOVERED */
-	"bad CDS",			       /*%< 111 DNS_R_BADCSD */
+	"bad CDS",			       /*%< 111 DNS_R_BADCDS */
 	"bad CDNSKEY",			       /*%< 112 DNS_R_BADCDNSKEY */
 	"malformed OPT option",		       /*%< 113 DNS_R_OPTERR */
 	"malformed DNSTAP data",	       /*%< 114 DNS_R_BADDNSTAP */
