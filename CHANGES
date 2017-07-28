@@ -1,3 +1,7 @@
+4659.   [bug]           Remove spurious log message about lmdb-mapsize
+			not being supported when parsing builtin
+			configuration file. [RT #45618]
+
 4658.	[bug]		Clean up build directory created by "setup.py install"
 			immediately.  [RT #45628]
 
