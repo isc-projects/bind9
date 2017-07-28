@@ -6438,7 +6438,7 @@ zone_resigninc(dns_zone_t *zone) {
 	for (i = 0; i < nkeys; i++)
 		dst_key_free(&zone_keys[i]);
 	if (version != NULL) {
-		dns_db_closeversion(zone->db, &version, ISC_FALSE);
+		dns_db_closeversion(db, &version, ISC_FALSE);
 		dns_db_detach(&db);
 	} else if (db != NULL)
 		dns_db_detach(&db);
