@@ -1,3 +1,7 @@
+4661.	[bug]		A race condition could occur if a zone was reloaded
+			while resigning, triggering a crash in
+			rbtdb.c:closeversion(). [RT #45276]
+
 4660.	[bug]		Remove spurious "peer" from Windows socket log
 			messages. [RT #45617]
 
