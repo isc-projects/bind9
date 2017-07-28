@@ -1,3 +1,6 @@
+4658.	[bug]		Clean up build directory created by "setup.py install"
+			immediately.  [RT #45628]
+
 4654.	[cleanup]	Don't use C++ keywords delete, new and namespace.
 			[RT #45538]
 
