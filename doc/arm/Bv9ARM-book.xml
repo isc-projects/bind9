@@ -904,7 +904,7 @@ zone "eng.example.com" {
 	      <term xml:id="dig"><command>dig</command></term>
 	      <listitem>
 		<para>
-		  The domain information groper (<command>dig</command>)
+		  <command>dig</command>
 		  is the most versatile and complete of these lookup tools.
 		  It has two modes: simple interactive
 		  mode for a single query, and batch mode which executes a
@@ -3664,8 +3664,8 @@ geoip org "Internet Systems Consortium";
 <programlisting><command>logging {</command>
   [ <command>channel</command> <replaceable>channel_name</replaceable> <command>{</command>
     ( ( <command>file</command> <replaceable>path_name</replaceable>
-          [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
-          [ <command>size</command> <replaceable>size_spec</replaceable> ] )
+	  [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
+	  [ <command>size</command> <replaceable>size_spec</replaceable> ] )
       | <command>syslog</command> <replaceable>syslog_facility</replaceable>
       | <command>stderr</command>
       | <command>null</command> ) <command>;</command>
@@ -4410,14 +4410,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>forward</command> ( <option>only</option> | <option>first</option> ) ; ]
   [ <command>forwarders {</command>
       ( <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; )
-        ...
+	...
     <command>}</command> ; ]
   [ <command>dual-stack-servers</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( ( <replaceable>domain_name</replaceable> | <replaceable>ip_addr</replaceable> ) [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; )
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>master</option> | <option>slave</option> | <option>response</option> )
-	        ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
+		( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-dup-records</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-mx</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-wildcard</command> <replaceable>yes_or_no</replaceable> ; ]
@@ -4497,7 +4497,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>notify-to-soa</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable>] [ <command>dscp</command> <replaceable>ip_dscp</replaceable>] <command>{</command>
       ( <replaceable>masters</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-ixfr-log-size</command> <replaceable>number</replaceable> ; ]
   [ <command>max-journal-size</command> <replaceable>size_spec</replaceable> ; ]
@@ -4594,12 +4594,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>min-table-size</command> <replaceable>number</replaceable> ; ]
     <command>}</command> ; ]
   [ <command>response-policy {</command>
-        <command>zone</command> <replaceable>zone_name</replaceable>
+	<command>zone</command> <replaceable>zone_name</replaceable>
       [ <command>policy</command> ( given | disabled | passthru | drop |
-                 tcp-only | nxdomain | nodata | cname <replaceable>domain</replaceable> ) ]
+		 tcp-only | nxdomain | nodata | cname <replaceable>domain</replaceable> ) ]
       [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ] ;
-         ...
+	 ...
     <command>}</command>
       [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
@@ -6372,7 +6372,7 @@ options {
 	    <varlistentry>
 	      <term><command>auto-dnssec</command></term>
 	      <listitem>
-	        <para>
+		<para>
 		  Zones configured for dynamic DNS may use this
 		  option to allow varying levels of automatic DNSSEC key
 		  management. There are three possible settings:
@@ -7892,7 +7892,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  The maximum number of records permitted in a zone.
 		  The default is zero which means unlimited.
-	 	</para>
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -7928,16 +7928,16 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  will not be accepted, and for each incoming request
 		  a previous pending request will also be dropped.
 		</para>
-                <para>
-                  A "soft quota" is also set.  When this lower
+		<para>
+		  A "soft quota" is also set.  When this lower
 		  quota is exceeded, incoming requests are accepted, but
 		  for each one, a pending request will be dropped.
-                  If <option>recursive-clients</option> is greater than
-                  1000, the soft quota is set to
-                  <option>recursive-clients</option> minus 100;
-                  otherwise it is set to 90% of
-                  <option>recursive-clients</option>.
-                </para>
+		  If <option>recursive-clients</option> is greater than
+		  1000, the soft quota is set to
+		  <option>recursive-clients</option> minus 100;
+		  otherwise it is set to 90% of
+		  <option>recursive-clients</option>.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
@@ -8050,13 +8050,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  The maximum number of simultaneous iterative
-                  queries that the server will allow to be sent to
-                  a single upstream name server before blocking
-                  additional queries.
+		  queries that the server will allow to be sent to
+		  a single upstream name server before blocking
+		  additional queries.
 		  This value should reflect how many fetches would
 		  normally be sent to any one server in the time it
 		  would take to resolve them.  It should be smaller
-                  than <option>recursive-clients</option>.
+		  than <option>recursive-clients</option>.
 		</para>
 		<para>
 		  Optionally, this value may be followed by the keyword
@@ -10887,7 +10887,7 @@ view "external" {
   [ <command>update-policy</command> <option>local</option> | <command>{</command> <replaceable>update_policy_rule</replaceable> ; ...  <command>}</command> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-mx</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
@@ -10949,7 +10949,7 @@ view "external" {
   [ <command>try-tcp-refresh</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>dialup</command> <replaceable>dialup_option</replaceable> ; ]
@@ -10966,7 +10966,7 @@ view "external" {
   [ <command>maintain-ixfr-base</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-ixfr-log-size</command> <replaceable>number</replaceable> ; ]
   [ <command>max-transfer-idle-in</command> <replaceable>number</replaceable> ; ]
@@ -11027,7 +11027,7 @@ view "external" {
   [ <command>forwarders</command> <command>{</command> [ <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; ... ] <command>}</command> ; ]
   [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-transfer-idle-in</command> <replaceable>number</replaceable> ; ]
   [ <command>max-transfer-time-in</command> <replaceable>number</replaceable> ; ]
