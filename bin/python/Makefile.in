@@ -59,7 +59,7 @@ install:: ${TARGETS} installdirs
 		else \
 			${PYTHON} ${srcdir}/setup.py install --prefix=${prefix} ; \
 		fi ; \
-		rm -rf build \
+		rm -rf build ; \
 	fi
 
 uninstall::
