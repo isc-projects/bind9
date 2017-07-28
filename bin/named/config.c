@@ -176,7 +176,13 @@ options {\n\
 	zero-no-soa-ttl-cache no;\n\
 	nsec3-test-zone no;\n\
 	allow-new-zones no;\n\
+"
+#ifdef HAVE_LMDB
+"\
 	lmdb-mapsize 32M;\n\
+"
+#endif
+"\
 	fetches-per-server 0;\n\
 	require-server-cookie no;\n\
 	v6-bias 50;\n\
