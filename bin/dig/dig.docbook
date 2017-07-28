@@ -98,8 +98,7 @@
 
   <refsection><info><title>DESCRIPTION</title></info>
 
-    <para><command>dig</command>
-      (domain information groper) is a flexible tool
+    <para><command>dig</command> is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
       displays the answers that are returned from the name server(s) that
       were queried.  Most DNS administrators use <command>dig</command> to
