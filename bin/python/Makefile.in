@@ -56,7 +56,8 @@ install:: ${TARGETS} installdirs
 			${PYTHON} ${srcdir}/setup.py install --root=${DESTDIR} --prefix=${prefix} ; \
 		else \
 			${PYTHON} ${srcdir}/setup.py install --prefix=${prefix} ; \
-		fi \
+		fi ; \
+		rm -rf build \
 	fi
 
 uninstall::
