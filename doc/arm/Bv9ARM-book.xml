@@ -887,7 +887,7 @@ zone "eng.example.com" {
 	      <term xml:id="dig"><command>dig</command></term>
 	      <listitem>
 		<para>
-		  The domain information groper (<command>dig</command>)
+		  <command>dig</command>
 		  is the most versatile and complete of these lookup tools.
 		  It has two modes: simple interactive
 		  mode for a single query, and batch mode which executes a
@@ -3629,9 +3629,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 <programlisting><command>logging {</command>
   [ <command>channel</command> <replaceable>channel_name</replaceable> <command>{</command>
     ( ( <command>file</command> <replaceable>path_name</replaceable>
-          [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
-          [ <command>size</command> <replaceable>size_spec</replaceable> ]
-          [ <command>suffix</command> ( <option>increment</option> | <option>timestamp</option> ) )
+	  [ <command>versions</command> ( <replaceable>number</replaceable> | <option>unlimited</option> ) ]
+	  [ <command>size</command> <replaceable>size_spec</replaceable> ]
+	  [ <command>suffix</command> ( <option>increment</option> | <option>timestamp</option> ) )
       | <command>syslog</command> <replaceable>syslog_facility</replaceable>
       | <command>stderr</command>
       | <command>null</command> ) <command>;</command>
@@ -4483,14 +4483,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>forward</command> ( <option>only</option> | <option>first</option> ) ; ]
   [ <command>forwarders {</command>
       ( <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; )
-        ...
+	...
     <command>}</command> ; ]
   [ <command>dual-stack-servers</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( ( <replaceable>domain_name</replaceable> | <replaceable>ip_addr</replaceable> ) [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; )
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>master</option> | <option>slave</option> | <option>response</option> )
-	        ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
+		( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-dup-records</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-mx</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-wildcard</command> <replaceable>yes_or_no</replaceable> ; ]
@@ -4580,7 +4580,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>notify-to-soa</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable>] [ <command>dscp</command> <replaceable>ip_dscp</replaceable>] <command>{</command>
       ( <replaceable>masters</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-ixfr-log-size</command> <replaceable>number</replaceable> ; ]
   [ <command>max-journal-size</command> <replaceable>size_spec</replaceable> ; ]
@@ -4678,14 +4678,14 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>min-table-size</command> <replaceable>number</replaceable> ; ]
     <command>}</command> ; ]
   [ <command>response-policy {</command>
-        <command>zone</command> <replaceable>zone_name</replaceable>
+	<command>zone</command> <replaceable>zone_name</replaceable>
       [ <command>policy</command> ( given | disabled | passthru | drop |
-                 tcp-only | nxdomain | nodata | cname <replaceable>domain</replaceable> ) ]
+		 tcp-only | nxdomain | nodata | cname <replaceable>domain</replaceable> ) ]
       [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>log</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
       [ <command>min-update-interval</command> <replaceable>number</replaceable> ] ;
-         ...
+	 ...
     <command>}</command> [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
       [ <command>min-update-interval</command> <replaceable>number</replaceable> ]
@@ -4694,15 +4694,15 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>nsip-wait-recurse</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>qname-wait-recurse</command> <replaceable>yes_or_no</replaceable> ] ; ]
   [ <command>catalog-zones {</command>
-        <command>zone</command> <replaceable>quoted_string</replaceable>
-          [ <option>default-masters</option> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
-              ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [<command>port</command> <replaceable>ip_port</replaceable>] [ <command>key</command> <replaceable>key_name</replaceable>] ) ;
-                ...
-            <command>}</command> ]
-          [ <command>zone-directory</command> <replaceable>path_name</replaceable> ]
-          [ <command>in-memory</command> <replaceable>yes_or_no</replaceable> ]
-          [ <command>min-update-interval</command> <replaceable>interval</replaceable> ] ;
-        ...
+	<command>zone</command> <replaceable>quoted_string</replaceable>
+	  [ <option>default-masters</option> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
+	      ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [<command>port</command> <replaceable>ip_port</replaceable>] [ <command>key</command> <replaceable>key_name</replaceable>] ) ;
+		...
+	    <command>}</command> ]
+	  [ <command>zone-directory</command> <replaceable>path_name</replaceable> ]
+	  [ <command>in-memory</command> <replaceable>yes_or_no</replaceable> ]
+	  [ <command>min-update-interval</command> <replaceable>interval</replaceable> ] ;
+	...
     <command>}</command> ; ]
   [ <command>v6-bias</command> <replaceable>number</replaceable> ; ]
 <command>}</command> ; ]
@@ -11697,7 +11697,7 @@ view "external" {
   [ <command>update-policy</command> <option>local</option> | <command>{</command> <replaceable>update_policy_rule</replaceable> ; ...  <command>}</command> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>check-mx</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
@@ -11759,7 +11759,7 @@ view "external" {
   [ <command>try-tcp-refresh</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>also-notify</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>check-names</command> ( <option>warn</option> | <option>fail</option> | <option>ignore</option> ) ; ]
   [ <command>dialup</command> <replaceable>dialup_option</replaceable> ; ]
@@ -11776,7 +11776,7 @@ view "external" {
   [ <command>maintain-ixfr-base</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-ixfr-log-size</command> <replaceable>number</replaceable> ; ]
   [ <command>max-transfer-idle-in</command> <replaceable>number</replaceable> ; ]
@@ -11837,7 +11837,7 @@ view "external" {
   [ <command>forwarders</command> <command>{</command> [ <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] ; ... ] <command>}</command> ; ]
   [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>max-transfer-idle-in</command> <replaceable>number</replaceable> ; ]
   [ <command>max-transfer-time-in</command> <replaceable>number</replaceable> ; ]
@@ -11880,7 +11880,7 @@ view "external" {
   [ <command>file</command> <replaceable>string</replaceable> ; ]
   [ <command>masters</command> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
       ( <replaceable>masters_list</replaceable> | <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] ) [ <command>key</command> <replaceable>key_name</replaceable> ] ;
-        ...
+	...
     <command>}</command> ; ]
   [ <command>masterfile-format</command> ( <option>text</option> | <option>raw</option> | <option>map</option> ) ; ]
   [ <command>allow-query</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]

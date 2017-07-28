@@ -80,7 +80,7 @@
   <refsection><info><title>DESCRIPTION</title></info>
 
     <para><command>delv</command>
-      (Domain Entity Lookup &amp; Validation) is a tool for sending
+      is a tool for sending
       DNS queries and validating the results, using the same internal
       resolver and validator logic as <command>named</command>.
     </para>
