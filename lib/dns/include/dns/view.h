@@ -113,6 +113,7 @@ struct dns_view {
 	dns_fwdtable_t *		fwdtable;
 	isc_boolean_t			recursion;
 	isc_boolean_t			auth_nxdomain;
+	isc_boolean_t			use_glue_cache;
 	isc_boolean_t			minimal_any;
 	dns_minimaltype_t		minimalresponses;
 	isc_boolean_t			enablednssec;

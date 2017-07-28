@@ -190,6 +190,7 @@ options {
         fstrm-set-reopen-interval <integer>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
         geoip-use-ecs ( <quoted_string> | none ); // not configured
+        glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
         host-statistics <boolean>; // not implemented
@@ -207,7 +208,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
@@ -520,6 +521,7 @@ view <string> [ <class> ] {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
+        glue-cache <boolean>;
         inline-signing <boolean>;
         ixfr-from-differences ( master | slave | <boolean> );
         key <string> {
@@ -528,7 +530,7 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string>
             <integer> <integer> <integer>

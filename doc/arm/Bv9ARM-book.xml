@@ -4459,6 +4459,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>has-old-clients</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>host-statistics</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>host-statistics-max</command> <replaceable>number</replaceable> ; ]
+  [ <command>glue-cache</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>minimal-any</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>minimal-responses</command> ( <replaceable>yes_or_no</replaceable> | <option>no-auth</option> | <option>no-auth-recursive</option> ) ; ]
   [ <command>multiple-cnames</command> <replaceable>yes_or_no</replaceable> ; ]
@@ -6395,6 +6396,31 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>glue-cache</command></term>
+	      <listitem>
+		<para>
+		  When set to <userinput>yes</userinput>, a cache is
+		  used to improve query performance when adding
+		  address-type (A and AAAA) glue records to the
+		  additional section of DNS response messages that
+		  delegate to a child zone.
+		</para>
+		<para>
+		  The glue cache uses memory proportional to the
+		  number of delegations in the zone. The default
+		  setting is <userinput>no</userinput>. Setting it to
+		  <userinput>yes</userinput> will improve performance
+		  at the cost of increased memory usage for the zone.
+		</para>
+		<para>
+		  The glue cache is only used when
+		  <userinput>minimal-responses</userinput> is also set
+		  to <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>minimal-any</command></term>
 	      <listitem>
 		<para>
@@ -6415,8 +6441,8 @@ options {
 		  will be added to the authority or additional sections.
 		  The default is <userinput>no</userinput>.
 		</para>
-	    </listitem>
-	  </varlistentry>
+	      </listitem>
+	    </varlistentry>
 
 	    <varlistentry>
 	      <term><command>multiple-cnames</command></term>

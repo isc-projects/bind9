@@ -1881,6 +1881,7 @@ view_clauses[] = {
 	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
 	   CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
+	{ "glue-cache", &cfg_type_boolean, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_ttlval, 0 },
 #ifdef HAVE_LMDB

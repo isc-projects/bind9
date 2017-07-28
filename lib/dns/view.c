@@ -181,6 +181,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->enablednssec = ISC_TRUE;
 	view->enablevalidation = ISC_TRUE;
 	view->acceptexpired = ISC_FALSE;
+	view->use_glue_cache = ISC_FALSE;
 	view->minimal_any = ISC_FALSE;
 	view->minimalresponses = dns_minimal_no;
 	view->transfer_format = dns_one_answer;

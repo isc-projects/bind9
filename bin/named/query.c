@@ -2066,7 +2066,8 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	/*
 	 * Try to process glue directly.
 	 */
-	if ((client->view->minimalresponses == dns_minimal_yes) &&
+	if (client->view->use_glue_cache &&
+	    (client->view->minimalresponses == dns_minimal_yes) &&
 	    (rdataset->type == dns_rdatatype_ns) &&
 	    (client->query.gluedb != NULL) &&
 	    dns_db_iszone(client->query.gluedb))
