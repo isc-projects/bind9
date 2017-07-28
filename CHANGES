@@ -1,3 +1,6 @@
+4658.	[bug]		Clean up build directory created by "setup.py install"
+			immediately.  [RT #45628]
+
 4657.	[bug]		rrchecker system test result could be improperly
 			determined. [RT #45602]
 
