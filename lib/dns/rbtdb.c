@@ -6292,8 +6292,12 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
-				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-						 newheader, link);
+				if (ZEROTTL(newheader))
+					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
+							newheader, link);
+				else
+					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+							 newheader, link);
 				INSIST(rbtdb->heaps != NULL);
 				(void)isc_heap_insert(rbtdb->heaps[idx],
 						      newheader);
@@ -6318,8 +6322,12 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			}
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
-				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-						 newheader, link);
+				if (ZEROTTL(newheader))
+					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
+							newheader, link);
+				else
+					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+							 newheader, link);
 				/*
 				 * XXXMLG We don't check the return value
 				 * here.  If it fails, we will not do TTL
@@ -6393,8 +6401,12 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 		idx = newheader->node->locknum;
 		if (IS_CACHE(rbtdb)) {
-			ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-					 newheader, link);
+			if (ZEROTTL(newheader))
+				ISC_LIST_APPEND(rbtdb->rdatasets[idx],
+						newheader, link);
+			else
+				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+						 newheader, link);
 			isc_heap_insert(rbtdb->heaps[idx], newheader);
 		} else if (RESIGN(newheader)) {
 			resign_delete(rbtdb, rbtversion, header);
@@ -10162,7 +10174,9 @@ no_glue:
 static inline isc_boolean_t
 need_headerupdate(rdatasetheader_t *header, isc_stdtime_t now) {
 	if ((header->attributes &
-	     (RDATASET_ATTR_NONEXISTENT|RDATASET_ATTR_STALE)) != 0)
+	     (RDATASET_ATTR_NONEXISTENT |
+	      RDATASET_ATTR_STALE |
+	      RDATASET_ATTR_ZEROTTL)) != 0)
 		return (ISC_FALSE);
 
 #if DNS_RBTDB_LIMITLRUUPDATE
