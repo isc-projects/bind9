@@ -881,7 +881,7 @@ socket_log(int lineno, isc_socket_t *sock, isc_sockaddr_t *address,
 		isc_sockaddr_format(address, peerbuf, sizeof(peerbuf));
 		isc_log_iwrite(isc_lctx, category, module, level,
 			       msgcat, msgset, message,
-				   "socket %p line %d peer %s: %s", sock, lineno,
+				   "socket %p line %d %s: %s", sock, lineno,
 				   peerbuf, msgbuf);
 	}
 

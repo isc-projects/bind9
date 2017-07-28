@@ -1,3 +1,6 @@
+4660.	[bug]		Remove spurious "peer" from Windows socket log
+			messages. [RT #45617]
+
 4659.   [bug]           Remove spurious log message about lmdb-mapsize
 			not being supported when parsing builtin
 			configuration file. [RT #45618]
