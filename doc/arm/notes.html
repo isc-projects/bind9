@@ -212,7 +212,7 @@
 	</p>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  The <span class="command"><strong>new-zones-directory</strong></span> option allows
 	  <span class="command"><strong>named</strong></span> to store configuration parameters
 	  for zones added via <span class="command"><strong>rndc addzone</strong></span> in a
@@ -222,7 +222,7 @@
 	</p>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  Many aspects of <span class="command"><strong>named</strong></span> have been modified
 	  to improve query performance, and in particular, performance
 	  for delegation-heavy zones:
@@ -239,9 +239,12 @@
 	  </li>
 <li class="listitem">
 	    <p>
-	      In place of the acache, <span class="command"><strong>named</strong></span> now uses
+	      In place of the acache, <span class="command"><strong>named</strong></span> can now use
 	      a glue cache to speed up retrieval of glue records when sending
-	      delegation responses.
+	      delegation responses. Use <span class="command"><strong>glue-cache yes;</strong></span>
+	      to enable this feature. Because it increases memory usage,
+	      the glue cache is disabled by default, but it can signifiantly
+	      increase performance when serving delegation-heavy zones.
 	    </p>
 	  </li>
 <li class="listitem">
@@ -267,20 +270,20 @@
 </ul></div>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  The <span class="command"><strong>dnstap-read -x</strong></span> option prints a hex
 	  dump of the wire format DNS message encapsulated in each
 	  <span class="command"><strong>dnstap</strong></span> log entry. [RT #44816]
 	</p>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  The <span class="command"><strong>host -A</strong></span> option returns most
 	  records for a name, but omits types RRSIG, NSEC and NSEC3.
 	</p>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  Query logic has been substantially refactored (e.g. query_find
 	  function has been split into smaller functions) for improved
 	  readability, maintainability and testability. [RT #43929]
@@ -409,7 +412,7 @@
 	</p>
       </li>
 <li class="listitem">
-        <p>
+	<p>
 	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
 	  addresses for all messages, instead of only the remote address.
 	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has

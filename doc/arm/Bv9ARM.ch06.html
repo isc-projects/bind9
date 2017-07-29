@@ -2485,6 +2485,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>has-old-clients</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>host-statistics</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>host-statistics-max</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>glue-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>minimal-responses</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">no-auth</code> | <code class="option">no-auth-recursive</code> ) ; ]
   [ <span class="command"><strong>multiple-cnames</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
@@ -4249,6 +4250,28 @@ options {
                   The default is <strong class="userinput"><code>yes</code></strong>.
                 </p>
               </dd>
+<dt><span class="term"><span class="command"><strong>glue-cache</strong></span></span></dt>
+<dd>
+                <p>
+                  When set to <strong class="userinput"><code>yes</code></strong>, a cache is
+                  used to improve query performance when adding
+                  address-type (A and AAAA) glue records to the
+                  additional section of DNS response messages that
+                  delegate to a child zone.
+                </p>
+                <p>
+                  The glue cache uses memory proportional to the
+                  number of delegations in the zone. The default
+                  setting is <strong class="userinput"><code>no</code></strong>. Setting it to
+                  <strong class="userinput"><code>yes</code></strong> will improve performance
+                  at the cost of increased memory usage for the zone.
+                </p>
+                <p>
+                  The glue cache is only used when
+                  <strong class="userinput"><code>minimal-responses</code></strong> is also set
+                  to <strong class="userinput"><code>yes</code></strong>.
+                </p>
+              </dd>
 <dt><span class="term"><span class="command"><strong>minimal-any</strong></span></span></dt>
 <dd>
                 <p>
@@ -4269,7 +4292,7 @@ options {
                   will be added to the authority or additional sections.
                   The default is <strong class="userinput"><code>no</code></strong>.
                 </p>
-            </dd>
+              </dd>
 <dt><span class="term"><span class="command"><strong>multiple-cnames</strong></span></span></dt>
 <dd>
                 <p>
