@@ -69,6 +69,7 @@ MDIG=$TOP/Build/$VSCONF/mdig@EXEEXT@
 NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
 FEATURETEST=$TOP/Build/$VSCONF/feature-test@EXEEXT@
+# to port WIRETEST=$TOP/Build/$VSCONF/wire_test@EXEEXT@
 
 # this is given as argument to native WIN32 executables
 RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
@@ -85,7 +86,7 @@ MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 SUBDIRS="acl additional addzone allow_query autosign builtin cacheclean case
 	 catz checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
 	 database digdelv dlv dlvauto dlz dlzexternal dname dns64 dnssec
-	 @DNSTAP@ dscp dsdigest dyndb ecdsa ednscompliance emptyzones
+	 @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa ednscompliance emptyzones
 	 fetchlimit filter-aaaa formerr forward geoip glue gost inline ixfr
 	 @KEYMGR@ legacy limits logfileconfig lwresd masterfile masterformat
 	 metadata mkeys names notify nslookup nsupdate nzd2nzf pending

@@ -38,6 +38,7 @@
 
 #include <pkcs11/cryptoki.h>
 #include <pkcs11/pkcs11.h>
+#include <pkcs11/eddsa.h>
 
 /* was 32 octets, Petr Spacek suggested 1024, SoftHSMv2 uses 256... */
 #ifndef PINLEN
@@ -879,12 +880,33 @@ scan_slots(void) {
 			PK11_TRACEM(CKM_GOSTR3410_WITH_GOSTR3411);
 		}
 		if (bad)
-			goto try_aes;
+			goto try_eddsa;
 		token->operations |= 1 << OP_GOST;
 		if (best_gost_token == NULL)
 			best_gost_token = token;
 
+	try_eddsa:
+#if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
+		bad = ISC_FALSE;
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA_KEY_PAIR_GEN,
+					     &mechInfo);
+		if ((rv != CKR_OK) ||
+		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_EDDSA_KEY_PAIR_GEN);
+		}
+		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA, &mechInfo);
+		if ((rv != CKR_OK) ||
+		    ((mechInfo.flags & CKF_SIGN) == 0) ||
+		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+			bad = ISC_TRUE;
+			PK11_TRACEM(CKM_EDDSA);
+		}
+		if (bad)
+			goto try_aes;
+
 	try_aes:
+#endif
 		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_AES_ECB, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0)) {

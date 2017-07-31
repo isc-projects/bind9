@@ -1,3 +1,5 @@
+4665.	[func]		Add Ed25519 support (RFC 8080). [RT #25519]
+
 4663.	[cleanup]	Clarify error message printed by dnssec-dsfromkey.
 			[RT #21731]
 

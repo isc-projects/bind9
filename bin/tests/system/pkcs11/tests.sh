@@ -24,13 +24,19 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 status=0
 ret=0
 
-supported=`cat supported`
-case $supported in
-    rsaonly) algs="rsa" ;;
-    ecconly) algs="ecc" ;;
-    both) algs="rsa ecc" ;;
-esac
-
+algs=""
+have_rsa=`grep rsa supported`
+if [ "x$have_rsa" != "x" ]; then
+    algs="rsa "
+fi
+have_ecc=`grep ecc supported`
+if [ "x$have_ecc" != "x" ]; then
+    algs=$algs"ecc "
+fi
+have_ecx=`grep ecc supported`
+if [ "x$have_ecx" != "x" ]; then
+    algs=$algs"ecx "
+fi
 
 for alg in $algs; do
     zonefile=ns1/$alg.example.db 
@@ -74,6 +80,7 @@ END
     case $alg in
         rsa) id=02 ;;
         ecc) id=04 ;;
+	ecx) id=06 ;;
     esac
     $PK11DEL -i $id -w0 > /dev/null 2>&1 || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi

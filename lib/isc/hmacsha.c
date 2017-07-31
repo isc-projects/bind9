@@ -273,8 +273,19 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_SHA1_DIGESTLENGTH];
 
+	if (len < ISC_SHA1_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_SHA1_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_SHA1_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
@@ -432,8 +443,19 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_SHA224_DIGESTLENGTH];
 
+	if (len < ISC_SHA224_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_SHA224_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_SHA224_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
@@ -591,8 +613,19 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_SHA256_DIGESTLENGTH];
 
+	if (len < ISC_SHA256_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_SHA256_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_SHA256_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
@@ -750,8 +783,19 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_SHA384_DIGESTLENGTH];
 
+	if (len < ISC_SHA384_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_SHA384_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_SHA384_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
@@ -909,8 +953,19 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_SHA512_DIGESTLENGTH];
 
+	if (len < ISC_SHA512_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_SHA512_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_SHA512_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;

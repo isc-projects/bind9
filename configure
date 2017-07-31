@@ -814,6 +814,7 @@ MKDEPCC
 JSONSTATS
 XMLSTATS
 PKCS11_TEST
+PKCS11_ED25519
 PKCS11_GOST
 PKCS11_ECDSA
 CRYPTO
@@ -836,11 +837,14 @@ ISC_OPENSSL_INC
 ISC_PLATFORM_OPENSSLHASH
 ISC_PLATFORM_WANTAES
 OPENSSL_GOST
+OPENSSL_ED25519
 OPENSSL_ECDSA
 OPENSSLLINKSRCS
 OPENSSLLINKOBJS
 OPENSSLGOSTLINKSRCS
 OPENSSLGOSTLINKOBJS
+OPENSSLEDDSALINKSRCS
+OPENSSLEDDSALINKOBJS
 DST_OPENSSL_INC
 HAVE_SIT
 ISC_PLATFORM_USESIT
@@ -1009,6 +1013,7 @@ with_openssl
 with_pkcs11
 with_ecdsa
 with_gost
+with_eddsa
 with_aes
 enable_openssl_hash
 enable_sit
@@ -1738,6 +1743,7 @@ Optional Packages:
 			  (PATH is for the PKCS11 provider)
   --with-ecdsa            Crypto ECDSA
   --with-gost             Crypto GOST yes|no|raw|asn1.
+  --with-eddsa            Crypto EDDSA yes|all|no.
   --with-aes              Crypto AES
   --with-sit-alg=ALG      choose the algorithm for SIT [aes|sha1|sha256]
   --with-libxml2=PATH     build with libxml2 library yes|no|path
@@ -15738,7 +15744,7 @@ fi
 
 
 #
-# were --with-ecdsa, --with-gost, --with-aes specified
+# were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
 #
 
 # Check whether --with-ecdsa was given.
@@ -15754,6 +15760,14 @@ if test "${with_gost+set}" = set; then :
   withval=$with_gost; with_gost="$withval"
 else
   with_gost="auto"
+fi
+
+
+# Check whether --with-eddsa was given.
+if test "${with_eddsa+set}" = set; then :
+  withval=$with_eddsa; with_eddsa="$withval"
+else
+  with_eddsa="auto"
 fi
 
 
@@ -15874,6 +15888,7 @@ then
 fi
 OPENSSL_ECDSA=""
 OPENSSL_GOST=""
+OPENSSL_ED25519=""
 gosttype="raw"
 case "$with_gost" in
 	raw)
@@ -15899,6 +15914,8 @@ case "$use_openssl" in
 $as_echo "disabled because of native PKCS11" >&6; }
 		DST_OPENSSL_INC=""
 		CRYPTO="-DPKCS11CRYPTO"
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -15909,6 +15926,8 @@ $as_echo "disabled because of native PKCS11" >&6; }
 $as_echo "no" >&6; }
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -15917,6 +15936,8 @@ $as_echo "no" >&6; }
 	auto)
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -16330,6 +16351,120 @@ $as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
 		;;
 	esac
 
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL Ed25519 support" >&5
+$as_echo_n "checking for OpenSSL Ed25519 support... " >&6; }
+	have_ed25519=""
+	have_ed448=""
+	if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-eddsa" >&5
+$as_echo "using --with-eddsa" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_ed25519="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_ed25519="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+	case "$with_eddsa" in
+	yes|all)
+	    case "$have_ed25519" in
+	    no)  as_fn_error $? "eddsa not supported" "$LINENO" 5 ;;
+	    *)  have_ed25519=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ed25519=no ;;
+	*)
+	    case "$have_ed25519" in
+	    yes|no) ;;
+	    *) as_fn_error $? "need --with-eddsa=[yes, all or no]" "$LINENO" 5 ;;
+	    esac
+	    ;;
+	esac
+	case $have_ed25519 in
+	yes)
+		OPENSSL_ED25519="yes"
+		OPENSSLEDDSALINKOBJS='${OPENSSLEDDSALINKOBJS}'
+		OPENSSLEDDSALINKSRCS='${OPENSSLEDDSALINKSRCS}'
+
+$as_echo "#define HAVE_OPENSSL_ED25519 1" >>confdefs.h
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL Ed448 support" >&5
+$as_echo_n "checking for OpenSSL Ed448 support... " >&6; }
+		if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-eddsa" >&5
+$as_echo "using --with-eddsa" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		have_ed448="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		have_ed448="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+		case $with_eddsa in
+		all)
+			have_ed448=yes ;;
+		*)
+			;;
+		esac
+		case $have_ed448 in
+		yes)
+
+$as_echo "#define HAVE_OPENSSL_ED448 1" >>confdefs.h
+],
+			;;
+		*)
+			;;
+		esac
+		;;
+	*)
+		;;
+	esac
+
 	have_aes="no"
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL AES support" >&5
 $as_echo_n "checking for OpenSSL AES support... " >&6; }
@@ -16413,6 +16548,9 @@ esac
 # This would include the system openssl path (and linker options to use
 # it as needed) if it is found.
 #
+
+
+
 
 
 
@@ -16691,6 +16829,7 @@ esac
 
 PKCS11_ECDSA=""
 PKCS11_GOST=""
+PKCS11_ED25519=""
 set_pk11_flavor="no"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for native PKCS11" >&5
 $as_echo_n "checking for native PKCS11... " >&6; }
@@ -16728,6 +16867,37 @@ $as_echo "enabled" >&6; }
 
 $as_echo "#define HAVE_PKCS11_GOST 1" >>confdefs.h
 
+			;;
+		*)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+			;;
+		esac
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 Ed25519" >&5
+$as_echo_n "checking for PKCS11 Ed25519... " >&6; }
+		case "$with_eddsa" in
+		yes|all)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+$as_echo "enabled" >&6; }
+			PKCS11_ED25519="yes"
+
+$as_echo "#define HAVE_PKCS11_ED25519 1" >>confdefs.h
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 Ed448" >&5
+$as_echo_n "checking for PKCS11 Ed448... " >&6; }
+			case "$with_eddsa" in
+			all)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
+$as_echo "enabled" >&6; }
+
+$as_echo "#define HAVE_PKCS11_ED448 1" >>confdefs.h
+
+				;;
+			*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+				;;
+			esac
 			;;
 		*)
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
@@ -16786,6 +16956,7 @@ $as_echo "unknown provider: tweaks are in lib/isc/include/pk11/site.h" >&6; }
 $as_echo "disabled" >&6; }
 		;;
 esac
+
 
 
 
@@ -25137,6 +25308,8 @@ report() {
     fi
     test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
+        echo "    EDDSA algorithm support (--with-eddsa)"
     test "yes" = "$enable_fixed" && \
         echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_filter" && \
@@ -25199,6 +25372,8 @@ report() {
         echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
+        echo "    EDDSA algorithm support (--with-eddsa)"
 
     test "yes" = "$enable_seccomp" || \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"

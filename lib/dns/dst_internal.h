@@ -265,8 +265,14 @@ isc_result_t dst__gssapi_init(struct dst_func **funcp);
 #ifdef HAVE_OPENSSL_ECDSA
 isc_result_t dst__opensslecdsa_init(struct dst_func **funcp);
 #endif
+#if defined(HAVE_OPENSSL_ED25519) || defined(HAVE_OPENSSL_ED448)
+isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
+#endif
 #ifdef HAVE_PKCS11_ECDSA
 isc_result_t dst__pkcs11ecdsa_init(struct dst_func **funcp);
+#endif
+#if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
+isc_result_t dst__pkcs11eddsa_init(struct dst_func **funcp);
 #endif
 #ifdef HAVE_OPENSSL_GOST
 isc_result_t dst__opensslgost_init(struct dst_func **funcp);
