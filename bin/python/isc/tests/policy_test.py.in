@@ -78,5 +78,12 @@ class PolicyTest(unittest.TestCase):
                                  '(5184000/5184000) combined exceed '
                                  'rollover period 7776000'))
 
+    def test_numeric_zone(self):
+        pol = policy.dnssec_policy()
+        pol.load('test-policies/05-numeric-zone.pol')
+
+        p = pol.policy('99example.test', novalidate=True)
+        self.assertEqual(p.validate(), (True, ""))
+
 if __name__ == "__main__":
     unittest.main()
