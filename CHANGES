@@ -1,3 +1,8 @@
+4666.	[bug]		dnssec-keymgr: Domain names beginning with digits (0-9)
+			could cause a parser error when reading the policy
+			file. This now works correctly so long as the domain
+			name is quoted. [RT #45641]
+
 4665.	[protocol]	Added support for ED25519 and ED448 DNSSEC signing
 			algorithms (RFC 8080). (Note: these algorithms
 			depend on code currently in the development branch

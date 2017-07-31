@@ -538,6 +538,16 @@ class dnssec_policy:
         p[0] = p[1]
         pass
 
+    def p_domain(self, p):
+        '''domain : STR
+                  | QSTRING
+                  | KEYTYPE
+                  | DATESUFFIX'''
+        p[0] = p[1].strip()
+        if not re.match(r'^[\w.-][\w.-]*$', p[0]):
+            raise PolicyException('invalid domain')
+        pass
+
     def p_new_policy(self, p):
         "new_policy :"
         self.current = Policy()
@@ -550,7 +560,7 @@ class dnssec_policy:
         pass
 
     def p_zone_policy(self, p):
-        "zone_policy : ZONE name new_policy policy_option_group SEMI"
+        "zone_policy : ZONE domain new_policy policy_option_group SEMI"
         self.current.name = p[2].rstrip('.')
         self.current.is_zone = True
         self.zone_policy[p[2].rstrip('.').lower()] = self.current

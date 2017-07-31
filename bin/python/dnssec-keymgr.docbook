@@ -103,125 +103,125 @@
   <refsection><info><title>OPTIONS</title></info>
     <variablelist>
       <varlistentry>
-        <term>-c <replaceable class="parameter">file</replaceable></term>
-        <listitem>
-          <para>
-            If <option>-c</option> is specified, then the DNSSEC
-            policy is read from <option>file</option>.  (If not
-            specified, then the policy is read from
-            <filename>/etc/dnssec-policy.conf</filename>; if that file
-            doesn't exist, a built-in global default policy is used.)
-          </para>
-        </listitem>
+	<term>-c <replaceable class="parameter">file</replaceable></term>
+	<listitem>
+	  <para>
+	    If <option>-c</option> is specified, then the DNSSEC
+	    policy is read from <option>file</option>.  (If not
+	    specified, then the policy is read from
+	    <filename>/etc/dnssec-policy.conf</filename>; if that file
+	    doesn't exist, a built-in global default policy is used.)
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-f</term>
-        <listitem>
-          <para>
-            Force: allow updating of key events even if they are
-            already in the past. This is not recommended for use with
-            zones in which keys have already been published. However,
-            if a set of keys has been generated all of which have
-            publication and activation dates in the past, but the
-            keys have not been published in a zone as yet, then this
-            option can be used to clean them up and turn them into a
-            proper series of keys with appropriate rollover intervals.
-          </para>
-        </listitem>
+	<term>-f</term>
+	<listitem>
+	  <para>
+	    Force: allow updating of key events even if they are
+	    already in the past. This is not recommended for use with
+	    zones in which keys have already been published. However,
+	    if a set of keys has been generated all of which have
+	    publication and activation dates in the past, but the
+	    keys have not been published in a zone as yet, then this
+	    option can be used to clean them up and turn them into a
+	    proper series of keys with appropriate rollover intervals.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-g <replaceable class="parameter">keygen-path</replaceable></term>
-        <listitem>
-          <para>
-            Specifies a path to a <command>dnssec-keygen</command> binary.
-            Used for testing.
-            See also the <option>-s</option> option.
-          </para>
-        </listitem>
+	<term>-g <replaceable class="parameter">keygen-path</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies a path to a <command>dnssec-keygen</command> binary.
+	    Used for testing.
+	    See also the <option>-s</option> option.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-h</term>
-        <listitem>
-          <para>
-            Print the <command>dnssec-keymgr</command> help summary
-            and exit.
-          </para>
-        </listitem>
+	<term>-h</term>
+	<listitem>
+	  <para>
+	    Print the <command>dnssec-keymgr</command> help summary
+	    and exit.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-K <replaceable class="parameter">directory</replaceable></term>
-        <listitem>
-          <para>
-            Sets the directory in which keys can be found.  Defaults to the
-            current working directory.
-          </para>
-        </listitem>
+	<term>-K <replaceable class="parameter">directory</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the directory in which keys can be found.  Defaults to the
+	    current working directory.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-k</term>
-        <listitem>
-          <para>
-            Only apply policies to KSK keys.
-            See also the <option>-z</option> option.
-          </para>
-        </listitem>
+	<term>-k</term>
+	<listitem>
+	  <para>
+	    Only apply policies to KSK keys.
+	    See also the <option>-z</option> option.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-q</term>
-        <listitem>
-          <para>
-            Quiet: suppress printing of <command>dnssec-keygen</command>
-            and <command>dnssec-settime</command>.
-          </para>
-        </listitem>
+	<term>-q</term>
+	<listitem>
+	  <para>
+	    Quiet: suppress printing of <command>dnssec-keygen</command>
+	    and <command>dnssec-settime</command>.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-r <replaceable class="parameter">randomdev</replaceable></term>
-        <listitem>
-          <para>
-            Specifies a path to a file containing random data.
-            This is passed to the <command>dnssec-keygen</command> binary
-            using its <option>-r</option> option.
+	<term>-r <replaceable class="parameter">randomdev</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies a path to a file containing random data.
+	    This is passed to the <command>dnssec-keygen</command> binary
+	    using its <option>-r</option> option.
 <!-- TODO: what to do about "-r keyboard"? -->
-          </para>
-        </listitem>
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-s <replaceable class="parameter">settime-path</replaceable></term>
-        <listitem>
-          <para>
-            Specifies a path to a <command>dnssec-settime</command> binary.
-            Used for testing.
-            See also the <option>-g</option> option.
-          </para>
-        </listitem>
+	<term>-s <replaceable class="parameter">settime-path</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies a path to a <command>dnssec-settime</command> binary.
+	    Used for testing.
+	    See also the <option>-g</option> option.
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-v</term>
-        <listitem>
-          <para>
+	<term>-v</term>
+	<listitem>
+	  <para>
 	    Print the <command>dnssec-keymgr</command> version and exit.
-          </para>
-        </listitem>
+	  </para>
+	</listitem>
       </varlistentry>
 
       <varlistentry>
-        <term>-z</term>
-        <listitem>
-          <para>
-            Only apply policies to ZSK keys.
-            See also the <option>-k</option> option.
-          </para>
-        </listitem>
+	<term>-z</term>
+	<listitem>
+	  <para>
+	    Only apply policies to ZSK keys.
+	    See also the <option>-k</option> option.
+	  </para>
+	</listitem>
       </varlistentry>
     </variablelist>
   </refsection>
@@ -260,6 +260,7 @@
 	  (<option>zone <replaceable>name</replaceable> { ... };</option> )
 	  set policy for a single zone by name. A zone policy can inherit
 	  a policy class by including a <option>policy</option> option.
+	  Zone names beginning with digits (i.e., 0-9) must be quoted.
 	</para>
       </listitem>
     </itemizedlist>
@@ -272,7 +273,7 @@
 	<listitem>
 	  <para>
 	    The key algorithm. If no policy is defined, the default is
-            RSASHA256.
+	    RSASHA256.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -281,21 +282,21 @@
 	<listitem>
 	  <para>
 	    The length of time to ensure that keys will be correct; no action
-            will be taken to create new keys to be activated after this time.
-            This can be represented as a number of seconds, or as a duration using
+	    will be taken to create new keys to be activated after this time.
+	    This can be represented as a number of seconds, or as a duration using
 	    human-readable units (examples: "1y" or "6 months").
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.
-            If no policy is configured, the default is six months.
+	    If no policy is configured, the default is six months.
 	  </para>
 	</listitem>
       </varlistentry>
       <varlistentry>
 	<term><command>directory</command></term>
 	<listitem>
-          <para>
+	  <para>
 	    Specifies the directory in which keys should be stored.
-          </para>
+	  </para>
 	</listitem>
       </varlistentry>
       <varlistentry>
@@ -306,8 +307,8 @@
 	    Takes two arguments: keytype (eihter "zsk" or "ksk") and size.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies. If no policy is
-            configured, the default is 1024 bits for DSA keys and 2048 for
-            RSA.
+	    configured, the default is 1024 bits for DSA keys and 2048 for
+	    RSA.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -337,11 +338,11 @@
 	<listitem>
 	  <para>
 	    How long before activation a key should be published.  Note: If
-            <option>roll-period</option> is not set, this value is ignored.
+	    <option>roll-period</option> is not set, this value is ignored.
 	    Takes two arguments: keytype (either "zsk" or "ksk") and a duration.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.  The default is
-            one month.
+	    one month.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -353,8 +354,8 @@
 	    Takes two arguments: keytype (eihter "zsk" or "ksk") and a duration.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.  If no policy is
-            configured, the default is one year for ZSK's. KSK's do not
-            roll over by default.
+	    configured, the default is one year for ZSK's. KSK's do not
+	    roll over by default.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -373,18 +374,18 @@
   <itemizedlist>
     <listitem>
       <para>
-        Enable scheduling of KSK rollovers using the <option>-P sync</option>
-        and <option>-D sync</option> options to
-        <command>dnssec-keygen</command> and
-        <command>dnssec-settime</command>.  Check the parent zone
-        (as in <command>dnssec-checkds</command>) to determine when it's
-        safe for the key to roll.
+	Enable scheduling of KSK rollovers using the <option>-P sync</option>
+	and <option>-D sync</option> options to
+	<command>dnssec-keygen</command> and
+	<command>dnssec-settime</command>.  Check the parent zone
+	(as in <command>dnssec-checkds</command>) to determine when it's
+	safe for the key to roll.
       </para>
     </listitem>
     <listitem>
       <para>
-        Allow configuration of standby keys and use of the REVOKE bit,
-        for keys that use RFC 5011 semantics.
+	Allow configuration of standby keys and use of the REVOKE bit,
+	for keys that use RFC 5011 semantics.
       </para>
     </listitem>
   </itemizedlist>

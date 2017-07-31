@@ -46,3 +46,10 @@ zone example.com {
 	coverage 5 mon;
 	algorithm nsec3rsasha1;
 };
+
+/*
+ * This confirms that zones starting with digits are accepted.
+ */
+zone "99example.com" {
+	policy global;
+};
