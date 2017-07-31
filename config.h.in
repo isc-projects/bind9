@@ -368,6 +368,12 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if your OpenSSL version supports ECDSA. */
 #undef HAVE_OPENSSL_ECDSA
 
+/* Define if your OpenSSL version supports Ed25519. */
+#undef HAVE_OPENSSL_ED25519
+
+/* Define if your OpenSSL version supports Ed448. */
+#undef HAVE_OPENSSL_ED448
+
 /* Define if your OpenSSL version supports EVP AES */
 #undef HAVE_OPENSSL_EVP_AES
 
@@ -376,6 +382,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if your PKCS11 provider supports ECDSA. */
 #undef HAVE_PKCS11_ECDSA
+
+/* Define if your PKCS11 provider supports Ed25519. */
+#undef HAVE_PKCS11_ED25519
+
+/* Define if your PKCS11 provider supports Ed448. */
+#undef HAVE_PKCS11_ED448
 
 /* Define if your PKCS11 provider supports GOST. */
 #undef HAVE_PKCS11_GOST

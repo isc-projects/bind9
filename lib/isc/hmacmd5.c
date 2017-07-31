@@ -95,8 +95,19 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
 		{ CKA_VALUE, NULL, (CK_ULONG) len }
 	};
+#ifdef PK11_PAD_HMAC_KEYS
+	CK_BYTE keypad[ISC_MD5_DIGESTLENGTH];
 
+	if (len < ISC_MD5_DIGESTLENGTH) {
+		memset(keypad, 0, ISC_MD5_DIGESTLENGTH);
+		memmove(keypad, key, len);
+		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].ulValueLen = ISC_MD5_DIGESTLENGTH;
+	} else
+		DE_CONST(key, keyTemplate[5].pValue);
+#else
 	DE_CONST(key, keyTemplate[5].pValue);
+#endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
 				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;

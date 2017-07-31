@@ -39,6 +39,11 @@ while test "$#" -gt 0; do
                 msg1="ECDSA cryptography"
                 msg2="--with-ecdsa"
                 ;;
+	eddsa|EDDSA)
+		alg="-a ED25519"
+		msg1="EDDSA cryptography"
+		msg2="--with-eddsa"
+		;;
         *)
                 echo "${prog}: unknown argument"
                 exit 1
