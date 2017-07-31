@@ -326,6 +326,12 @@ typedef __int64 off_t;
 /* Define if OpenSSL includes ECDSA support */
 @HAVE_OPENSSL_ECDSA@
 
+/* Define if OpenSSL includes Ed25519 support */
+@HAVE_OPENSSL_ED25519@
+
+/* Define if OpenSSL includes Ed448 support */
+@HAVE_OPENSSL_ED448@
+
 /* Define if your OpenSSL version supports GOST. */
 @HAVE_OPENSSL_GOST@
 

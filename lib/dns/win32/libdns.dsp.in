@@ -818,6 +818,10 @@ SOURCE=..\opensslecdsa_link.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\openssleddsa_link.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\opensslgost_link.c
 # End Source File
 # Begin Source File

@@ -111,6 +111,8 @@ static struct parse_map map[] = {
 
 	{TAG_ECDSA_PRIVATEKEY, "PrivateKey:"},
 
+	{TAG_EDDSA_PRIVATEKEY, "PrivateKey:"},
+
 	{TAG_HMACMD5_KEY, "Key:"},
 	{TAG_HMACMD5_BITS, "Bits:"},
 
@@ -282,6 +284,19 @@ check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 }
 
 static int
+check_eddsa(const dst_private_t *priv, isc_boolean_t external) {
+
+	if (external)
+		return ((priv->nelements == 0) ? 0 : -1);
+
+	if (priv->nelements != EDDSA_NTAGS)
+		return (-1);
+	if (priv->elements[0].tag != TAG(DST_ALG_ED25519, 0))
+		return (-1);
+	return (0);
+}
+
+static int
 check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 	int i, j;
 
@@ -347,6 +362,9 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 		return (check_ecdsa(priv, external));
+	case DST_ALG_ED25519:
+	case DST_ALG_ED448:
+		return (check_eddsa(priv, external));
 	case DST_ALG_HMACMD5:
 		return (check_hmac_md5(priv, old));
 	case DST_ALG_HMACSHA1:
@@ -681,6 +699,12 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_ECDSA384:
 		fprintf(fp, "(ECDSAP384SHA384)\n");
+		break;
+	case DST_ALG_ED25519:
+		fprintf(fp, "(ED25519)\n");
+		break;
+	case DST_ALG_ED448:
+		fprintf(fp, "(ED448)\n");
 		break;
 	case DST_ALG_HMACMD5:
 		fprintf(fp, "(HMAC_MD5)\n");

@@ -218,6 +218,12 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
 #endif
+#ifdef HAVE_OPENSSL_ED25519
+	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED25519]));
+#endif
+#ifdef HAVE_OPENSSL_ED448
+	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448]));
+#endif
 #endif /* OPENSSL */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
@@ -1180,6 +1186,12 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_ECDSA384:
 		*n = DNS_SIG_ECDSA384SIZE;
 		break;
+	case DST_ALG_ED25519:
+		*n = DNS_SIG_ED25519SIZE;
+		break;
+	case DST_ALG_ED448:
+		*n = DNS_SIG_ED448SIZE;
+		break;
 	case DST_ALG_HMACMD5:
 		*n = 16;
 		break;
@@ -1508,6 +1520,8 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_ECCGOST:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
+	case DST_ALG_ED25519:
+	case DST_ALG_ED448:
 		return (ISC_FALSE);
 	case DST_ALG_HMACMD5:
 	case DST_ALG_HMACSHA1:
@@ -1792,7 +1806,8 @@ algorithm_status(unsigned int alg) {
 	    alg == DST_ALG_NSEC3RSASHA1 ||
 	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512 ||
 	    alg == DST_ALG_ECCGOST ||
-	    alg == DST_ALG_ECDSA256 || alg == DST_ALG_ECDSA384)
+	    alg == DST_ALG_ECDSA256 || alg == DST_ALG_ECDSA384 ||
+	    alg == DST_ALG_ED25519 || alg == DST_ALG_ED448)
 		return (DST_R_NOCRYPTO);
 #endif
 	return (DST_R_UNSUPPORTEDALG);

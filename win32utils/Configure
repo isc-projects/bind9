@@ -327,6 +327,8 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "HAVE_LIBXML2",
                  "HAVE_OPENSSL_DSA",
                  "HAVE_OPENSSL_ECDSA",
+                 "HAVE_OPENSSL_ED25519",
+                 "HAVE_OPENSSL_ED448",
                  "HAVE_OPENSSL_GOST",
                  "HAVE_READLINE",
                  "ISC_LIST_CHECKINIT",
@@ -455,6 +457,7 @@ my @enablelist = ("developer",
 
 my @withlist = ("cross-compile",
                 "ecdsa",
+                "eddsa",
                 "extra-tests",
                 "gssapi",
                 "geoip",
@@ -508,6 +511,7 @@ my @help = (
 "  with-openssl[=PATH]   build with OpenSSL yes|no|path\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
 "  with-ecdsa            crypto ECDSA\n",
+"  with-eddsa            crypto EDDSA yes|all|no\n",
 "  with-gost             crypto GOST\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
@@ -545,6 +549,8 @@ my $openssl_path = "..\\..\\";
 my $use_pkcs11 = "no";
 my $pkcs11_path = "unknown";
 my $use_ecdsa = "auto";
+my $use_eddsa = "auto";
+my $use_ed448 = "auto";
 my $use_gost = "auto";
 my $use_gssapi = "no";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
@@ -619,19 +625,19 @@ if ($legacy_only && ($want_x64 ne "yes")) {
 }
 
 if ($want_checkfiles eq "yes") {
-	foreach (@filelist) {
-		next if -r $_ . ".in";
-		s/\\/\//g;
-		next if -r $_ . ".in";
-		print "missing $_.in from filelist\n";
-	}
-	foreach (@projectlist) {
-		next if -r $_ . ".in";
-		s/\\/\//g;
-		next if -r $_ . ".in";
-		print "missing $_.in from projectlist\n";
-	}
-	exit(0);
+        foreach (@filelist) {
+                next if -r $_ . ".in";
+                s/\\/\//g;
+                next if -r $_ . ".in";
+                print "missing $_.in from filelist\n";
+        }
+        foreach (@projectlist) {
+                next if -r $_ . ".in";
+                s/\\/\//g;
+                next if -r $_ . ".in";
+                print "missing $_.in from projectlist\n";
+        }
+        exit(0);
 }
 
 # configure the platform
@@ -810,10 +816,19 @@ sub mywith {
         } elsif ($val =~ /^yes$/i) {
             $use_ecdsa = "yes";
         }
+    } elsif ($key =~ /^eddsa$/i) {
+        if ($val =~ /^no$/i) {
+            $use_eddsa = "no";
+        } elsif ($val !~ /^no$/i) {
+            $use_eddsa = "yes";
+            if ($val =~ /^all$/i) {
+                $use_ed448 = "yes";
+            }
+        }
     } elsif ($key =~ /^gost$/i) {
         if ($val =~ /^no$/i) {
             $use_gost = "no";
-        } elsif ($val =~ /^yes$/i) {
+        } elsif ($val !~ /^no$/i) {
             $use_gost = "yes";
         }
     } elsif ($key =~ /^gssapi$/i) {
@@ -996,6 +1011,16 @@ if ($verbose) {
         print "ecdsa: disabled\n";
     } else {
         print "ecdsa: enabled\n";
+    }
+    if ($use_eddsa eq "no") {
+        print "eddsa: disabled\n";
+    } else {
+        print "ed25519: enabled\n";
+        if ($use_ed448 eq "no") {
+            print "ed448: disabled\n";
+        } else {
+            print "ed448: enabled\n";
+        }
     }
     if ($use_gost eq "no") {
         print "gost: disabled\n";
@@ -1526,6 +1551,7 @@ EOF
             if ($verbose) {
                 print "EVP_sha512 test failed: disabling EVP_sha512\n";
             }
+            $use_eddsa = "no";
         } else {
             $configdefh{"HAVE_EVP_SHA512"} = 1;
         }
@@ -1534,6 +1560,7 @@ EOF
             print "can't compile EVP_sha512 test: $compret\n";
             print "disabling EVP_sha512\n";
         }
+        $use_eddsa = "no";
     }
 }
 
@@ -1586,6 +1613,104 @@ EOF
 if ($use_ecdsa ne "no") {
     $use_ecdsa = "yes";
     $configdefh{"HAVE_OPENSSL_ECDSA"} = 1;
+}
+
+# with-eddsa
+if ($use_openssl eq "no") {
+    $use_eddsa = "no";
+}
+if ($use_eddsa eq "auto") {
+    if ($verbose) {
+        print "checking for OpenSSL ED25519 support\n";
+    }
+    open F, ">tested25519.c" || die $!;
+    print F << 'EOF';
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+
+int
+main(void)
+{
+        EVP_PKEY_CTX *ctx;
+
+        ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
+        if (ctx == NULL)
+                return (2);
+        return (0);
+}
+EOF
+    close F;
+    my $include = $configinc{"OPENSSL_INC"};
+    my $library = $configlib{"OPENSSL_LIB"};
+    $compret = `cl /nologo /MD /I "$include" tested25519.c "$library"`;
+    if (grep { -f and -x } ".\\tested25519.exe") {
+        `.\\tested25519.exe`;
+        if ($? != 0) {
+            if ($verbose) {
+                print "EDDSA test failed: disabling EDDSA\n";
+            }
+            $use_eddsa = "no";
+        }
+    } else {
+        if ($verbose) {
+            print "can't compile EDDSA test: $compret\n";
+            print "disabling EDDSA\n";
+        }
+    $use_eddsa = "no";
+    }
+}
+
+if ($use_eddsa ne "no") {
+    $use_eddsa = "yes";
+    $configdefh{"HAVE_OPENSSL_ED25519"} = 1;
+} else {
+    $use_ed448 = "no";
+}
+
+if ($use_ed448 eq "auto") {
+    if ($verbose) {
+        print "checking for OpenSSL ED448 support\n";
+    }
+    open F, ">tested448.c" || die $!;
+    print F << 'EOF';
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+
+int
+main(void)
+{
+        EVP_PKEY_CTX *ctx;
+
+        ctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);
+        if (ctx == NULL)
+                return (2);
+        return (0);
+}
+EOF
+    close F;
+    my $include = $configinc{"OPENSSL_INC"};
+    my $library = $configlib{"OPENSSL_LIB"};
+    $compret = `cl /nologo /MD /I "$include" tested448.c "$library"`;
+    if (grep { -f and -x } ".\\tested448.exe") {
+        `.\\tested448.exe`;
+        if ($? != 0) {
+            if ($verbose) {
+                print "ED448 test failed: disabling ED448\n";
+            }
+            $use_ed448 = "no";
+        }
+    } else {
+        if ($verbose) {
+            print "can't compile ED448 test: $compret\n";
+            print "disabling ED448\n";
+        }
+    $use_ed448 = "no";
+    }
+}
+
+if ($use_ed448 ne "no") {
+    $use_ed448 = "yes";
+    $configdefh{"HAVE_OPENSSL_ED448"} = 1;
 }
 
 # with-gost
@@ -2839,6 +2964,7 @@ exit 0;
 #  --with-openssl supported
 #  --with-pkcs11 supported
 #  --with-ecdsa supported
+#  --with-eddsa supported
 #  --with-gost supported
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows

@@ -723,6 +723,7 @@ then
 	done
 fi
 OPENSSL_ECDSA=""
+OPENSSL_ED25519=""
 OPENSSL_GOST=""
 case "$use_openssl" in
 	no)
@@ -731,6 +732,8 @@ case "$use_openssl" in
 		USE_OPENSSL=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
@@ -739,6 +742,8 @@ case "$use_openssl" in
 		USE_OPENSSL=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		AC_MSG_ERROR(
@@ -1025,6 +1030,57 @@ int main() {
 	*)
 		;;
 	esac
+
+	AC_MSG_CHECKING(for OpenSSL Ed25519 support)
+	have_ed25519=""
+	have_ed448=""
+	AC_TRY_RUN([
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+],
+	[AC_MSG_RESULT(yes)
+	have_ed25519="yes"],
+	[AC_MSG_RESULT(no)
+	have_ed25519="no"],
+	[AC_MSG_RESULT(using --with-eddsa)])
+	AC_ARG_WITH(eddsa, [  --with-eddsa            OpenSSL EDDSA],
+		    with_eddsa="$withval", with_eddsa="auto")
+	case "$with_eddsa" in
+	yes)
+	    case "$have_ed25519" in
+	    no)  AC_MSG_ERROR([eddsa not supported]) ;;
+	    *)  have_ed25519=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ed25519=no ;;
+	*)
+	    case "$have_ed25519" in
+	    yes|no) ;;
+	    *) AC_MSG_ERROR([need --with-eddsa=[[yes or no]]]) ;;
+	    esac
+	    ;;
+	esac
+	case $have_ed25519 in
+	yes)
+		OPENSSL_ED25519="yes"
+		OPENSSLEDDSALINKOBJS='${OPENSSLEDDSALINKOBJS}'
+		OPENSSLEDDSALINKSRCS='${OPENSSLEDDSALINKSRCS}'
+		AC_DEFINE(HAVE_OPENSSL_ED25519, 1,
+			  [Define if your OpenSSL version supports Ed25519.])
+		;;
+	*)
+		;;
+	esac
+
 	CFLAGS="$saved_cflags"
 	LIBS="$saved_libs"
 	OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
@@ -1040,11 +1096,14 @@ esac
 
 AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(OPENSSLEDDSALINKOBJS)
+AC_SUBST(OPENSSLEDDSALINKSRCS)
 AC_SUBST(OPENSSLGOSTLINKOBJS)
 AC_SUBST(OPENSSLGOSTLINKSRCS)
 AC_SUBST(OPENSSLLINKOBJS)
 AC_SUBST(OPENSSLLINKSRCS)
 AC_SUBST(OPENSSL_ECDSA)
+AC_SUBST(OPENSSL_ED25519)
 AC_SUBST(OPENSSL_GOST)
 
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
@@ -4387,6 +4446,8 @@ report() {
                 echo "    GOST algorithm support (--with-gost)"
         test "yes" != "$OPENSSL_ECDSA" || \
                 echo "    ECDSA algorithm support (--with-ecdsa)"
+        test "yes" != "$OPENSSL_ED25519." || \
+                echo "    EDDSA algorithm support (--with-eddsa)"
         test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
         test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
     fi
@@ -4433,6 +4494,8 @@ report() {
         echo "    GOST algorithm support (--with-gost)"
     test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ED25519" != "yes" && \
+        echo "    EDDSA algorithm support (--with-eddsa)"
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 

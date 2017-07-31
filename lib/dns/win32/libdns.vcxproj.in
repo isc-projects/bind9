@@ -155,6 +155,7 @@
     <ClCompile Include="..\openssldh_link.c" />
     <ClCompile Include="..\openssldsa_link.c" />
     <ClCompile Include="..\opensslecdsa_link.c" />
+    <ClCompile Include="..\openssleddsa_link.c" />
     <ClCompile Include="..\opensslgost_link.c" />
     <ClCompile Include="..\opensslrsa_link.c" />
     <ClCompile Include="..\openssl_link.c" />

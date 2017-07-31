@@ -67,7 +67,7 @@ SAMPLEUPDATE=$TOP/lib/export/samples/sample-update
 SUBDIRS="acl additional allow_query addzone autosign builtin
 	 cacheclean case chain checkconf @CHECKDS@ checknames checkzone
 	 @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
-	 dns64 dnssec ecdsa emptyzones fetchlimit filter-aaaa
+	 dns64 dnssec ecdsa eddsa emptyzones fetchlimit filter-aaaa
 	 formerr forward glue gost inline integrity ixfr legacy
 	 limits logfileconfig lwresd masterfile masterformat metadata
 	 notify nslookup nsupdate pending pkcs11 reclimit redirect

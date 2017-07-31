@@ -165,6 +165,7 @@ CLEAN :
 	-@erase "$(INTDIR)\openssldh_link.obj"
 	-@erase "$(INTDIR)\openssldsa_link.obj"
 	-@erase "$(INTDIR)\opensslecdsa_link.obj"
+	-@erase "$(INTDIR)\openssleddsa_link.obj"
 	-@erase "$(INTDIR)\opensslgost_link.obj"
 	-@erase "$(INTDIR)\opensslrsa_link.obj"
 	-@erase "$(INTDIR)\order.obj"
@@ -347,6 +348,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\openssldh_link.obj" \
 	"$(INTDIR)\openssldsa_link.obj" \
 	"$(INTDIR)\opensslecdsa_link.obj" \
+	"$(INTDIR)\openssleddsa_link.obj" \
 	"$(INTDIR)\opensslgost_link.obj" \
 	"$(INTDIR)\opensslrsa_link.obj" \
 	"..\..\isc\win32\Release\libisc.lib"
@@ -472,6 +474,8 @@ CLEAN :
 	-@erase "$(INTDIR)\openssldsa_link.sbr"
 	-@erase "$(INTDIR)\opensslecdsa_link.obj"
 	-@erase "$(INTDIR)\opensslecdsa_link.sbr"
+	-@erase "$(INTDIR)\openssleddsa_link.obj"
+	-@erase "$(INTDIR)\openssleddsa_link.sbr"
 	-@erase "$(INTDIR)\opensslgost_link.obj"
 	-@erase "$(INTDIR)\opensslgost_link.sbr"
 	-@erase "$(INTDIR)\opensslrsa_link.obj"
@@ -695,6 +699,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\openssldh_link.sbr" \
 	"$(INTDIR)\openssldsa_link.sbr" \
 	"$(INTDIR)\opensslecdsa_link.sbr" \
+	"$(INTDIR)\openssleddsa_link.sbr" \
 	"$(INTDIR)\opensslgost_link.sbr" \
 	"$(INTDIR)\opensslrsa_link.sbr"
 
@@ -794,6 +799,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\openssldh_link.obj" \
 	"$(INTDIR)\openssldsa_link.obj" \
 	"$(INTDIR)\opensslecdsa_link.obj" \
+	"$(INTDIR)\openssleddsa_link.obj" \
 	"$(INTDIR)\opensslgost_link.obj" \
 	"$(INTDIR)\opensslrsa_link.obj" \
 	"..\..\isc\win32\Debug\libisc.lib"
@@ -2362,6 +2368,24 @@ SOURCE=..\opensslecdsa_link.c
 
 
 "$(INTDIR)\opensslecdsa_link.obj"	"$(INTDIR)\opensslecdsa_link.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\openssleddsa_link.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\openssleddsa_link.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\openssleddsa_link.obj"	"$(INTDIR)\openssleddsa_link.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

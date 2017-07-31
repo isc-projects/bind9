@@ -835,11 +835,14 @@ USE_PKCS11
 ISC_OPENSSL_INC
 ISC_PLATFORM_OPENSSLHASH
 OPENSSL_GOST
+OPENSSL_ED25519
 OPENSSL_ECDSA
 OPENSSLLINKSRCS
 OPENSSLLINKOBJS
 OPENSSLGOSTLINKSRCS
 OPENSSLGOSTLINKOBJS
+OPENSSLEDDSALINKSRCS
+OPENSSLEDDSALINKOBJS
 DST_OPENSSL_INC
 USE_OPENSSL
 LWRES_PLATFORM_NEEDSYSSELECTH
@@ -984,6 +987,7 @@ with_openssl
 enable_openssl_version_check
 with_ecdsa
 with_gost
+with_eddsa
 enable_openssl_hash
 with_pkcs11
 with_gssapi
@@ -1710,6 +1714,7 @@ Optional Packages:
 			  (Required for DNSSEC)
   --with-ecdsa            OpenSSL ECDSA
   --with-gost             OpenSSL GOST
+  --with-eddsa            OpenSSL EDDSA
   --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
 			  (PATH is for the PKCS11 provider)
   --with-gssapi=[PATH|[/path/]krb5-config]      Specify path for system-supplied GSSAPI [default=yes]
@@ -13685,6 +13690,7 @@ then
 	done
 fi
 OPENSSL_ECDSA=""
+OPENSSL_ED25519=""
 OPENSSL_GOST=""
 case "$use_openssl" in
 	no)
@@ -13694,6 +13700,8 @@ $as_echo "no" >&6; }
 		USE_OPENSSL=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
@@ -13702,6 +13710,8 @@ $as_echo "no" >&6; }
 		USE_OPENSSL=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
@@ -14113,6 +14123,80 @@ $as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
 	*)
 		;;
 	esac
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL Ed25519 support" >&5
+$as_echo_n "checking for OpenSSL Ed25519 support... " >&6; }
+	have_ed25519=""
+	have_ed448=""
+	if test "$cross_compiling" = yes; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-eddsa" >&5
+$as_echo "using --with-eddsa" >&6; }
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_ed25519="yes"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_ed25519="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+# Check whether --with-eddsa was given.
+if test "${with_eddsa+set}" = set; then :
+  withval=$with_eddsa; with_eddsa="$withval"
+else
+  with_eddsa="auto"
+fi
+
+	case "$with_eddsa" in
+	yes)
+	    case "$have_ed25519" in
+	    no)  as_fn_error $? "eddsa not supported" "$LINENO" 5 ;;
+	    *)  have_ed25519=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ed25519=no ;;
+	*)
+	    case "$have_ed25519" in
+	    yes|no) ;;
+	    *) as_fn_error $? "need --with-eddsa=[yes or no]" "$LINENO" 5 ;;
+	    esac
+	    ;;
+	esac
+	case $have_ed25519 in
+	yes)
+		OPENSSL_ED25519="yes"
+		OPENSSLEDDSALINKOBJS='${OPENSSLEDDSALINKOBJS}'
+		OPENSSLEDDSALINKSRCS='${OPENSSLEDDSALINKSRCS}'
+
+$as_echo "#define HAVE_OPENSSL_ED25519 1" >>confdefs.h
+
+		;;
+	*)
+		;;
+	esac
+
 	CFLAGS="$saved_cflags"
 	LIBS="$saved_libs"
 	OPENSSLLINKOBJS='${OPENSSLLINKOBJS}'
@@ -14125,6 +14209,9 @@ esac
 # This would include the system openssl path (and linker options to use
 # it as needed) if it is found.
 #
+
+
+
 
 
 
@@ -23886,6 +23973,8 @@ report() {
                 echo "    GOST algorithm support (--with-gost)"
         test "yes" != "$OPENSSL_ECDSA" || \
                 echo "    ECDSA algorithm support (--with-ecdsa)"
+        test "yes" != "$OPENSSL_ED25519." || \
+                echo "    EDDSA algorithm support (--with-eddsa)"
         test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
         test "X$libxml2_libs" = "X" || echo "    XML statistics (--with-libxml2)"
     fi
@@ -23932,6 +24021,8 @@ report() {
         echo "    GOST algorithm support (--with-gost)"
     test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ECDSA" != "yes" && \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "X$USE_OPENSSL" != "X" -a "$OPENSSL_ED25519" != "yes" && \
+        echo "    EDDSA algorithm support (--with-eddsa)"
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$libxml2_libs" = "X" && echo "    XML statistics (--with-libxml2)"
 
