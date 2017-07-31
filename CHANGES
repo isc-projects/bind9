@@ -1,3 +1,5 @@
+4665.	[func]		Add Ed25519 support (RFC 8080). [RT #25519]
+
 4664.	[func]		Add a "glue-cache" option to enable or disable the
 			glue cache. The default is "no" to reduce memory
 			usage, but enabling this option will improve

@@ -76,7 +76,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 cacheclean case catz chain
          checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
          database digdelv dlv dlvauto dlz dlzexternal
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa
+	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
 	 emptyzones fetchlimit filter-aaaa formerr geoip glue gost
 	 inline integrity ixfr keepalive @KEYMGR@ legacy limits
 	 logfileconfig lwresd masterfile masterformat metadata mkeys

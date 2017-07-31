@@ -68,7 +68,7 @@ class PolicyLex:
         return t
 
     def t_ALGNAME(self, t):
-        r'(?i)\b(RSAMD5|DH|DSA|NSEC3DSA|ECC|RSASHA1|NSEC3RSASHA1|RSASHA256|RSASHA512|ECCGOST|ECDSAP256SHA256|ECDSAP384SHA384)\b'
+        r'(?i)\b(RSAMD5|DH|DSA|NSEC3DSA|ECC|RSASHA1|NSEC3RSASHA1|RSASHA256|RSASHA512|ECCGOST|ECDSAP256SHA256|ECDSAP384SHA384|ED25519|ED448)\b'
         t.value = t.value.upper()
         return t
 
@@ -138,7 +138,9 @@ class Policy:
                              'RSASHA512': [1024, 4096],
                              'ECCGOST': None,
                              'ECDSAP256SHA256': None,
-                             'ECDSAP384SHA384': None}
+                             'ECDSAP384SHA384': None,
+                             'ED25519': None,
+                             'ED448': None}
 
     def __init__(self, name=None, algorithm=None, parent=None):
         self.name = name
@@ -275,7 +277,9 @@ class Policy:
 
             if self.algorithm in ['ECCGOST', \
                                   'ECDSAP256SHA256', \
-                                  'ECDSAP384SHA384']:
+                                  'ECDSAP384SHA384', \
+                                  'ED25519', \
+                                  'ED448']:
                 self.ksk_keysize = None
                 self.zsk_keysize = None
 
@@ -377,6 +381,18 @@ class dnssec_policy:
         self.alg_policy['ECDSAP384SHA384'].name = "ECDSAP384SHA384"
         self.alg_policy['ECDSAP384SHA384'].ksk_keysize = None;
         self.alg_policy['ECDSAP384SHA384'].zsk_keysize = None;
+
+        self.alg_policy['ED25519'] = copy(p)
+        self.alg_policy['ED25519'].algorithm = "ED25519"
+        self.alg_policy['ED25519'].name = "ED25519"
+        self.alg_policy['ED25519'].ksk_keysize = None;
+        self.alg_policy['ED25519'].zsk_keysize = None;
+
+        self.alg_policy['ED448'] = copy(p)
+        self.alg_policy['ED448'].algorithm = "ED448"
+        self.alg_policy['ED448'].name = "ED448"
+        self.alg_policy['ED448'].ksk_keysize = None;
+        self.alg_policy['ED448'].zsk_keysize = None;
 
         if filename:
             self.load(filename)

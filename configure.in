@@ -1443,12 +1443,14 @@ AC_ARG_WITH(pkcs11,
    use_pkcs11="$withval", use_pkcs11="auto")
 
 #
-# were --with-ecdsa, --with-gost, --with-aes specified
+# were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
 #
 AC_ARG_WITH(ecdsa, [  --with-ecdsa            Crypto ECDSA],
 	    with_ecdsa="$withval", with_ecdsa="auto")
 AC_ARG_WITH(gost, [  --with-gost             Crypto GOST [yes|no|raw|asn1].],
 	    with_gost="$withval", with_gost="auto")
+AC_ARG_WITH(eddsa, [  --with-eddsa            Crypto EDDSA [yes|all|no].],
+            with_eddsa="$withval", with_eddsa="auto")
 AC_ARG_WITH(aes, [  --with-aes              Crypto AES],
 	    with_aes="$withval", with_aes="checkcc")
 
@@ -1514,6 +1516,7 @@ then
 fi
 OPENSSL_ECDSA=""
 OPENSSL_GOST=""
+OPENSSL_ED25519=""
 gosttype="raw"
 case "$with_gost" in
 	raw)
@@ -1537,6 +1540,8 @@ case "$use_openssl" in
 		AC_MSG_RESULT(disabled because of native PKCS11)
 		DST_OPENSSL_INC=""
 		CRYPTO="-DPKCS11CRYPTO"
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -1546,6 +1551,8 @@ case "$use_openssl" in
 		AC_MSG_RESULT(no)
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -1554,6 +1561,8 @@ case "$use_openssl" in
 	auto)
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		OPENSSLEDDSALINKOBJS=""
+		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
 		OPENSSLGOSTLINKSRS=""
 		OPENSSLLINKOBJS=""
@@ -1853,6 +1862,86 @@ int main() {
 		;;
 	esac
 
+	AC_MSG_CHECKING(for OpenSSL Ed25519 support)
+	have_ed25519=""
+	have_ed448=""
+	AC_TRY_RUN([
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED25519, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+],
+	[AC_MSG_RESULT(yes)
+	have_ed25519="yes"],
+	[AC_MSG_RESULT(no)
+	have_ed25519="no"],
+	[AC_MSG_RESULT(using --with-eddsa)])
+	case "$with_eddsa" in
+	yes|all)
+	    case "$have_ed25519" in
+	    no)  AC_MSG_ERROR([eddsa not supported]) ;;
+	    *)  have_ed25519=yes ;;
+	    esac
+	    ;;
+	no)
+	    have_ed25519=no ;;
+	*)
+	    case "$have_ed25519" in
+	    yes|no) ;;
+	    *) AC_MSG_ERROR([need --with-eddsa=[[yes, all or no]]]) ;;
+	    esac
+	    ;;
+	esac
+	case $have_ed25519 in
+	yes)
+		OPENSSL_ED25519="yes"
+		OPENSSLEDDSALINKOBJS='${OPENSSLEDDSALINKOBJS}'
+		OPENSSLEDDSALINKSRCS='${OPENSSLEDDSALINKSRCS}'
+		AC_DEFINE(HAVE_OPENSSL_ED25519, 1,
+			  [Define if your OpenSSL version supports Ed25519.])
+		AC_MSG_CHECKING(for OpenSSL Ed448 support)
+		AC_TRY_RUN([
+#include <openssl/evp.h>
+#include <openssl/objects.h>
+int main() {
+	EVP_PKEY_CTX *ctx;
+
+	ctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);
+	if (ctx == NULL)
+		return (2);
+	return (0);
+}
+],
+		[AC_MSG_RESULT(yes)
+		have_ed448="yes"],
+		[AC_MSG_RESULT(no)
+		have_ed448="no"],
+		[AC_MSG_RESULT(using --with-eddsa)])
+		case $with_eddsa in
+		all)
+			have_ed448=yes ;;
+		*)
+			;;
+		esac
+		case $have_ed448 in
+		yes)
+			AC_DEFINE(HAVE_OPENSSL_ED448, 1,
+				  [Define if your OpenSSL version supports Ed448.])],
+			;;	   
+		*)
+			;;
+		esac
+		;;
+	*)
+		;;
+	esac
+
 	have_aes="no"
 	AC_MSG_CHECKING(for OpenSSL AES support)
 	AC_TRY_RUN([
@@ -1915,11 +2004,14 @@ esac
 #
 
 AC_SUBST(DST_OPENSSL_INC)
+AC_SUBST(OPENSSLEDDSALINKOBJS)
+AC_SUBST(OPENSSLEDDSALINKSRCS)
 AC_SUBST(OPENSSLGOSTLINKOBJS)
 AC_SUBST(OPENSSLGOSTLINKSRCS)
 AC_SUBST(OPENSSLLINKOBJS)
 AC_SUBST(OPENSSLLINKSRCS)
 AC_SUBST(OPENSSL_ECDSA)
+AC_SUBST(OPENSSL_ED25519)
 AC_SUBST(OPENSSL_GOST)
 
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
@@ -2138,6 +2230,7 @@ AC_SUBST(PKCS11_PROVIDER)
 
 PKCS11_ECDSA=""
 PKCS11_GOST=""
+PKCS11_ED25519=""
 set_pk11_flavor="no"
 AC_MSG_CHECKING(for native PKCS11)
 
@@ -2166,6 +2259,29 @@ case "$want_native_pkcs11" in
 			PKCS11_GOST="yes"
 			AC_DEFINE(HAVE_PKCS11_GOST, 1,
 				  [Define if your PKCS11 provider supports GOST.])
+			;;
+		*)
+			AC_MSG_RESULT(disabled)
+			;;
+		esac
+		AC_MSG_CHECKING(for PKCS11 Ed25519)
+		case "$with_eddsa" in
+		yes|all)
+			AC_MSG_RESULT(enabled)
+			PKCS11_ED25519="yes"
+			AC_DEFINE(HAVE_PKCS11_ED25519, 1,
+				  [Define if your PKCS11 provider supports Ed25519.])
+			AC_MSG_CHECKING(for PKCS11 Ed448)
+			case "$with_eddsa" in
+			all)
+				AC_MSG_RESULT(enabled)
+				AC_DEFINE(HAVE_PKCS11_ED448, 1,
+					  [Define if your PKCS11 provider supports Ed448.])
+				;;
+			*)
+				AC_MSG_RESULT(disabled)
+				;;
+			esac
 			;;
 		*)
 			AC_MSG_RESULT(disabled)
@@ -2220,6 +2336,7 @@ AC_SUBST(PKCS11LINKSRCS)
 AC_SUBST(CRYPTO)
 AC_SUBST(PKCS11_ECDSA)
 AC_SUBST(PKCS11_GOST)
+AC_SUBST(PKCS11_ED25519)
 AC_SUBST(PKCS11_TEST)
 
 # for PKCS11 benchmarks
@@ -5351,6 +5468,8 @@ report() {
     fi
     test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
+        echo "    EDDSA algorithm support (--with-eddsa)"
     test "yes" = "$enable_fixed" && \
         echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_filter" && \
@@ -5412,6 +5531,8 @@ report() {
         echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
         echo "    ECDSA algorithm support (--with-ecdsa)"
+    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
+        echo "    EDDSA algorithm support (--with-eddsa)"
 
     test "yes" = "$enable_seccomp" || \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"

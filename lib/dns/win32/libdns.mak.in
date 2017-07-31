@@ -175,6 +175,7 @@ CLEAN :
 	-@erase "$(INTDIR)\openssldh_link.obj"
 	-@erase "$(INTDIR)\openssldsa_link.obj"
 	-@erase "$(INTDIR)\opensslecdsa_link.obj"
+	-@erase "$(INTDIR)\openssleddsa_link.obj"
 	-@erase "$(INTDIR)\opensslgost_link.obj"
 	-@erase "$(INTDIR)\opensslrsa_link.obj"
 @END OPENSSL
@@ -185,6 +186,7 @@ CLEAN :
 	-@erase "$(INTDIR)\pkcs11dh_link.obj"
 	-@erase "$(INTDIR)\pkcs11dsa_link.obj"
 	-@erase "$(INTDIR)\pkcs11ecdsa_link.obj"
+	-@erase "$(INTDIR)\pkcs11eddsa_link.obj"
 	-@erase "$(INTDIR)\pkcs11gost_link.obj"
 	-@erase "$(INTDIR)\pkcs11rsa_link.obj"
 @END PKCS11
@@ -378,6 +380,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\openssldh_link.obj" \
 	"$(INTDIR)\openssldsa_link.obj" \
 	"$(INTDIR)\opensslecdsa_link.obj" \
+	"$(INTDIR)\openssleddsa_link.obj" \
 	"$(INTDIR)\opensslgost_link.obj" \
 	"$(INTDIR)\opensslrsa_link.obj" \
 @END OPENSSL
@@ -386,6 +389,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\pkcs11dh_link.obj" \
 	"$(INTDIR)\pkcs11dsa_link.obj" \
 	"$(INTDIR)\pkcs11ecdsa_link.obj" \
+	"$(INTDIR)\pkcs11eddsa_link.obj" \
 	"$(INTDIR)\pkcs11gost_link.obj" \
 	"$(INTDIR)\pkcs11rsa_link.obj" \
 @END PKCS11
@@ -529,6 +533,8 @@ CLEAN :
 	-@erase "$(INTDIR)\openssldsa_link.sbr"
 	-@erase "$(INTDIR)\opensslecdsa_link.obj"
 	-@erase "$(INTDIR)\opensslecdsa_link.sbr"
+	-@erase "$(INTDIR)\openssleddsa_link.obj"
+	-@erase "$(INTDIR)\openssleddsa_link.sbr"
 	-@erase "$(INTDIR)\opensslgost_link.obj"
 	-@erase "$(INTDIR)\opensslgost_link.sbr"
 	-@erase "$(INTDIR)\opensslrsa_link.obj"
@@ -547,6 +553,8 @@ CLEAN :
 	-@erase "$(INTDIR)\pkcs11dsa_link.sbr"
 	-@erase "$(INTDIR)\pkcs11ecdsa_link.obj"
 	-@erase "$(INTDIR)\pkcs11ecdsa_link.sbr"
+	-@erase "$(INTDIR)\pkcs11eddsa_link.obj"
+	-@erase "$(INTDIR)\pkcs11eddsa_link.sbr"
 	-@erase "$(INTDIR)\pkcs11gost_link.obj"
 	-@erase "$(INTDIR)\pkcs11gost_link.sbr"
 	-@erase "$(INTDIR)\pkcs11rsa_link.obj"
@@ -780,6 +788,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\openssldh_link.sbr" \
 	"$(INTDIR)\openssldsa_link.sbr" \
 	"$(INTDIR)\opensslecdsa_link.sbr" \
+	"$(INTDIR)\openssleddsa_link.sbr" \
 	"$(INTDIR)\opensslgost_link.sbr" \
 	"$(INTDIR)\opensslrsa_link.sbr" \
 @END OPENSSL
@@ -788,6 +797,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\pkcs11dh_link.sbr" \
 	"$(INTDIR)\pkcs11dsa_link.sbr" \
 	"$(INTDIR)\pkcs11ecdsa_link.sbr" \
+	"$(INTDIR)\pkcs11eddsa_link.sbr" \
 	"$(INTDIR)\pkcs11gost_link.sbr" \
 	"$(INTDIR)\pkcs11rsa_link.sbr"
 @END PKCS11
@@ -899,6 +909,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\openssldh_link.obj" \
 	"$(INTDIR)\openssldsa_link.obj" \
 	"$(INTDIR)\opensslecdsa_link.obj" \
+	"$(INTDIR)\openssleddsa_link.obj" \
 	"$(INTDIR)\opensslgost_link.obj" \
 	"$(INTDIR)\opensslrsa_link.obj" \
 @END OPENSSL
@@ -907,6 +918,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\pkcs11dh_link.obj" \
 	"$(INTDIR)\pkcs11dsa_link.obj" \
 	"$(INTDIR)\pkcs11ecdsa_link.obj" \
+	"$(INTDIR)\pkcs11eddsa_link.obj" \
 	"$(INTDIR)\pkcs11gost_link.obj" \
 	"$(INTDIR)\pkcs11rsa_link.obj" \
 @END PKCS11
@@ -2646,6 +2658,24 @@ SOURCE=..\opensslecdsa_link.c
 
 !ENDIF 
 
+SOURCE=..\openssleddsa_link.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\openssleddsa_link.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\openssleddsa_link.obj"	"$(INTDIR)\openssleddsa_link.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\opensslgost_link.c
 
 !IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
@@ -2751,6 +2781,24 @@ SOURCE=..\pkcs11ecdsa_link.c
 
 
 "$(INTDIR)\pkcs11ecdsa_link.obj"	"$(INTDIR)\pkcs11ecdsa_link.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\pkcs11eddsa_link.c
+
+!IF  "$(CFG)" == "libdns - @PLATFORM@ Release"
+
+
+"$(INTDIR)\pkcs11eddsa_link.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - @PLATFORM@ Debug"
+
+
+"$(INTDIR)\pkcs11eddsa_link.obj"	"$(INTDIR)\pkcs11eddsa_link.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
