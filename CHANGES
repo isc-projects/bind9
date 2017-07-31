@@ -1,4 +1,8 @@
-4665.	[func]		Add Ed25519 support (RFC 8080). [RT #25519]
+4665.	[protocol]	Added support for ED25519 and ED448 DNSSEC signing
+			algorithms (RFC 8080). (Note: these algorithms
+			depend on code currently in the development branch
+			of OpenSSL which has not yet been released.)
+			[RT #44696]
 
 4664.	[func]		Add a "glue-cache" option to enable or disable the
 			glue cache. The default is "no" to reduce memory
