@@ -138,12 +138,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if OpenSSL includes ECDSA support */
 #undef HAVE_OPENSSL_ECDSA
 
-/* Define if your OpenSSL version supports Ed25519. */
-#undef HAVE_OPENSSL_ED25519
-
-/* Define if your OpenSSL version supports Ed448. */
-#undef HAVE_OPENSSL_ED448
-
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
 
@@ -335,11 +329,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if your OpenSSL version supports ECDSA. */
 #undef HAVE_OPENSSL_ECDSA
 
-/* Define if your PKCS11 provider supports Ed25519. */
-#undef HAVE_PKCS11_ED25519
-
-/* Define if your PKCS11 provider supports Ed448. */
-#undef HAVE_PKCS11_ED448
+/* Define if your OpenSSL version supports Ed25519. */
+#undef HAVE_OPENSSL_ED25519
 
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST
