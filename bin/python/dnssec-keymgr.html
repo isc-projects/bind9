@@ -103,93 +103,93 @@
     <div class="variablelist"><dl class="variablelist">
 <dt><span class="term">-c <em class="replaceable"><code>file</code></em></span></dt>
 <dd>
-          <p>
-            If <code class="option">-c</code> is specified, then the DNSSEC
-            policy is read from <code class="option">file</code>.  (If not
-            specified, then the policy is read from
-            <code class="filename">/etc/dnssec-policy.conf</code>; if that file
-            doesn't exist, a built-in global default policy is used.)
-          </p>
-        </dd>
+	  <p>
+	    If <code class="option">-c</code> is specified, then the DNSSEC
+	    policy is read from <code class="option">file</code>.  (If not
+	    specified, then the policy is read from
+	    <code class="filename">/etc/dnssec-policy.conf</code>; if that file
+	    doesn't exist, a built-in global default policy is used.)
+	  </p>
+	</dd>
 <dt><span class="term">-f</span></dt>
 <dd>
-          <p>
-            Force: allow updating of key events even if they are
-            already in the past. This is not recommended for use with
-            zones in which keys have already been published. However,
-            if a set of keys has been generated all of which have
-            publication and activation dates in the past, but the
-            keys have not been published in a zone as yet, then this
-            option can be used to clean them up and turn them into a
-            proper series of keys with appropriate rollover intervals.
-          </p>
-        </dd>
+	  <p>
+	    Force: allow updating of key events even if they are
+	    already in the past. This is not recommended for use with
+	    zones in which keys have already been published. However,
+	    if a set of keys has been generated all of which have
+	    publication and activation dates in the past, but the
+	    keys have not been published in a zone as yet, then this
+	    option can be used to clean them up and turn them into a
+	    proper series of keys with appropriate rollover intervals.
+	  </p>
+	</dd>
 <dt><span class="term">-g <em class="replaceable"><code>keygen-path</code></em></span></dt>
 <dd>
-          <p>
-            Specifies a path to a <span class="command"><strong>dnssec-keygen</strong></span> binary.
-            Used for testing.
-            See also the <code class="option">-s</code> option.
-          </p>
-        </dd>
+	  <p>
+	    Specifies a path to a <span class="command"><strong>dnssec-keygen</strong></span> binary.
+	    Used for testing.
+	    See also the <code class="option">-s</code> option.
+	  </p>
+	</dd>
 <dt><span class="term">-h</span></dt>
 <dd>
-          <p>
-            Print the <span class="command"><strong>dnssec-keymgr</strong></span> help summary
-            and exit.
-          </p>
-        </dd>
+	  <p>
+	    Print the <span class="command"><strong>dnssec-keymgr</strong></span> help summary
+	    and exit.
+	  </p>
+	</dd>
 <dt><span class="term">-K <em class="replaceable"><code>directory</code></em></span></dt>
 <dd>
-          <p>
-            Sets the directory in which keys can be found.  Defaults to the
-            current working directory.
-          </p>
-        </dd>
+	  <p>
+	    Sets the directory in which keys can be found.  Defaults to the
+	    current working directory.
+	  </p>
+	</dd>
 <dt><span class="term">-k</span></dt>
 <dd>
-          <p>
-            Only apply policies to KSK keys.
-            See also the <code class="option">-z</code> option.
-          </p>
-        </dd>
+	  <p>
+	    Only apply policies to KSK keys.
+	    See also the <code class="option">-z</code> option.
+	  </p>
+	</dd>
 <dt><span class="term">-q</span></dt>
 <dd>
-          <p>
-            Quiet: suppress printing of <span class="command"><strong>dnssec-keygen</strong></span>
-            and <span class="command"><strong>dnssec-settime</strong></span>.
-          </p>
-        </dd>
+	  <p>
+	    Quiet: suppress printing of <span class="command"><strong>dnssec-keygen</strong></span>
+	    and <span class="command"><strong>dnssec-settime</strong></span>.
+	  </p>
+	</dd>
 <dt><span class="term">-r <em class="replaceable"><code>randomdev</code></em></span></dt>
 <dd>
-          <p>
-            Specifies a path to a file containing random data.
-            This is passed to the <span class="command"><strong>dnssec-keygen</strong></span> binary
-            using its <code class="option">-r</code> option.
+	  <p>
+	    Specifies a path to a file containing random data.
+	    This is passed to the <span class="command"><strong>dnssec-keygen</strong></span> binary
+	    using its <code class="option">-r</code> option.
 
-          </p>
-        </dd>
+	  </p>
+	</dd>
 <dt><span class="term">-s <em class="replaceable"><code>settime-path</code></em></span></dt>
 <dd>
-          <p>
-            Specifies a path to a <span class="command"><strong>dnssec-settime</strong></span> binary.
-            Used for testing.
-            See also the <code class="option">-g</code> option.
-          </p>
-        </dd>
+	  <p>
+	    Specifies a path to a <span class="command"><strong>dnssec-settime</strong></span> binary.
+	    Used for testing.
+	    See also the <code class="option">-g</code> option.
+	  </p>
+	</dd>
 <dt><span class="term">-v</span></dt>
 <dd>
-          <p>
+	  <p>
 	    Print the <span class="command"><strong>dnssec-keymgr</strong></span> version and exit.
-          </p>
-        </dd>
+	  </p>
+	</dd>
 <dt><span class="term">-z</span></dt>
 <dd>
-          <p>
-            Only apply policies to ZSK keys.
-            See also the <code class="option">-k</code> option.
-          </p>
-        </dd>
+	  <p>
+	    Only apply policies to ZSK keys.
+	    See also the <code class="option">-k</code> option.
+	  </p>
+	</dd>
 </dl></div>
   </div>
 
@@ -228,6 +228,7 @@
 	  (<code class="option">zone <em class="replaceable"><code>name</code></em> { ... };</code> )
 	  set policy for a single zone by name. A zone policy can inherit
 	  a policy class by including a <code class="option">policy</code> option.
+	  Zone names beginning with digits (i.e., 0-9) must be quoted.
 	</p>
       </li>
 </ul></div>
@@ -239,26 +240,26 @@
 <dd>
 	  <p>
 	    The key algorithm. If no policy is defined, the default is
-            RSASHA256.
+	    RSASHA256.
 	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>coverage</strong></span></span></dt>
 <dd>
 	  <p>
 	    The length of time to ensure that keys will be correct; no action
-            will be taken to create new keys to be activated after this time.
-            This can be represented as a number of seconds, or as a duration using
+	    will be taken to create new keys to be activated after this time.
+	    This can be represented as a number of seconds, or as a duration using
 	    human-readable units (examples: "1y" or "6 months").
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.
-            If no policy is configured, the default is six months.
+	    If no policy is configured, the default is six months.
 	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>directory</strong></span></span></dt>
 <dd>
-          <p>
+	  <p>
 	    Specifies the directory in which keys should be stored.
-          </p>
+	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>key-size</strong></span></span></dt>
 <dd>
@@ -267,8 +268,8 @@
 	    Takes two arguments: keytype (eihter "zsk" or "ksk") and size.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies. If no policy is
-            configured, the default is 1024 bits for DSA keys and 2048 for
-            RSA.
+	    configured, the default is 1024 bits for DSA keys and 2048 for
+	    RSA.
 	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>keyttl</strong></span></span></dt>
@@ -292,11 +293,11 @@
 <dd>
 	  <p>
 	    How long before activation a key should be published.  Note: If
-            <code class="option">roll-period</code> is not set, this value is ignored.
+	    <code class="option">roll-period</code> is not set, this value is ignored.
 	    Takes two arguments: keytype (either "zsk" or "ksk") and a duration.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.  The default is
-            one month.
+	    one month.
 	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>roll-period</strong></span></span></dt>
@@ -306,8 +307,8 @@
 	    Takes two arguments: keytype (eihter "zsk" or "ksk") and a duration.
 	    A default value for this option can be set in algorithm policies
 	    as well as in policy classes or zone policies.  If no policy is
-            configured, the default is one year for ZSK's. KSK's do not
-            roll over by default.
+	    configured, the default is one year for ZSK's. KSK's do not
+	    roll over by default.
 	  </p>
 	</dd>
 <dt><span class="term"><span class="command"><strong>standby</strong></span></span></dt>
@@ -324,18 +325,18 @@
   <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
       <p>
-        Enable scheduling of KSK rollovers using the <code class="option">-P sync</code>
-        and <code class="option">-D sync</code> options to
-        <span class="command"><strong>dnssec-keygen</strong></span> and
-        <span class="command"><strong>dnssec-settime</strong></span>.  Check the parent zone
-        (as in <span class="command"><strong>dnssec-checkds</strong></span>) to determine when it's
-        safe for the key to roll.
+	Enable scheduling of KSK rollovers using the <code class="option">-P sync</code>
+	and <code class="option">-D sync</code> options to
+	<span class="command"><strong>dnssec-keygen</strong></span> and
+	<span class="command"><strong>dnssec-settime</strong></span>.  Check the parent zone
+	(as in <span class="command"><strong>dnssec-checkds</strong></span>) to determine when it's
+	safe for the key to roll.
       </p>
     </li>
 <li class="listitem">
       <p>
-        Allow configuration of standby keys and use of the REVOKE bit,
-        for keys that use RFC 5011 semantics.
+	Allow configuration of standby keys and use of the REVOKE bit,
+	for keys that use RFC 5011 semantics.
       </p>
     </li>
 </ul></div>
