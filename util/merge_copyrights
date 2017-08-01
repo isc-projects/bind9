@@ -113,6 +113,8 @@ while (<CHANGES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.bat$/i) {
 	    $file_types{$_} = "BAT";
+	} elsif ($base =~ /\.(key|private)$/i) {
+	    $file_types{$_} = "X";
 	} elsif ($base =~ /\/named\.args$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\/named\.port$/i) {
