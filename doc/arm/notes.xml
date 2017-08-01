@@ -103,6 +103,22 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="proto_changes"><info><title>Protocol Changes</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  BIND can now use the Ed25519 and Ed448 Edwards Curve DNSSEC
+	  signing algorithms described in RFC 8080. Note, however, that
+	  these algorithms must be supported in OpenSSL;
+	  currently they are only available in the development branch
+	  of OpenSSL at
+	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/openssl/openssl">https://github.com/openssl/openssl</link>.
+	  [RT #44696]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
