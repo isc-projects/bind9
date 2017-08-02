@@ -30,6 +30,7 @@
 
 #include <isc/boolean.h>
 #include <isc/commandline.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/mem.h>
@@ -596,9 +597,16 @@ t_getdate(char *buf, size_t buflen) {
 	size_t		n;
 	time_t		t;
 	struct tm	*p;
+#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+	struct tm	tm;
+#endif
 
 	t = time(NULL);
+#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+	p = localtime_r(&t, &tm);
+#else
 	p = localtime(&t);
+#endif
 	n = strftime(buf, buflen - 1, "%A %d %B %H:%M:%S %Y\n", p);
 	return(n != 0U ? buf : NULL);
 }

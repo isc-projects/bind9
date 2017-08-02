@@ -14,6 +14,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
@@ -2023,7 +2024,13 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 static isc_stdtime_t
 epoch_to_yyyymmdd(time_t when) {
 	struct tm *tm;
+
+#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+	struct tm tm0;
+	tm = localtime_r(&when, &tm0);
+#else
 	tm = localtime(&when);
+#endif
 	return (((tm->tm_year + 1900) * 10000) +
 		((tm->tm_mon + 1) * 100) + tm->tm_mday);
 }
