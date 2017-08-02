@@ -27,6 +27,7 @@
 #include <isc/app.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -263,7 +264,12 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
 		printf(";; SERVER: %s(%s)\n", fromtext, query->servname);
 		time(&tnow);
+#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+		(void)localtime_r(&tnow, &tmnow);
+#else
 		tmnow  = *localtime(&tnow);
+#endif
+
 		if (strftime(time_str, sizeof(time_str),
 			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
 			printf(";; WHEN: %s\n", time_str);

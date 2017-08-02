@@ -1,3 +1,6 @@
+4668.	[bug]		Use localtime_r and gmtime_r for thread safety.
+			[RT #45664]
+
 4667.	[cleanup]	Refactor RDATA unit tests. [RT #45610]
 
 4665.	[protocol]	Added support for ED25519 and ED448 DNSSEC signing

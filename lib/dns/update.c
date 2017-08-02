@@ -22,6 +22,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
@@ -2027,6 +2028,23 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	return (result);
 }
 
+<<<<<<< HEAD
+=======
+static isc_stdtime_t
+epoch_to_yyyymmdd(time_t when) {
+	struct tm *tm;
+
+#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+	struct tm tm0;
+	tm = localtime_r(&when, &tm0);
+#else
+	tm = localtime(&when);
+#endif
+	return (((tm->tm_year + 1900) * 10000) +
+		((tm->tm_mon + 1) * 100) + tm->tm_mday);
+}
+
+>>>>>>> 4162d3b36d... 4668.   [bug]           Use localtime_r and gmtime_r for thread safety.
 isc_uint32_t
 dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method) {
 	isc_stdtime_t now;
