@@ -114,9 +114,26 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load2(*db, file, inputformat);
-	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
+	switch (result) {
+	case DNS_R_SEENINCLUDE:
+	case ISC_R_SUCCESS:
+		break;
+	case DNS_R_NOTZONETOP:
+		/*
+		 * Comparing pointers (vs. using strcmp()) is intentional: we
+		 * want to check whether -o was supplied on the command line,
+		 * not whether origin and file contain the same string.
+		 */
+		if (origin == file) {
+			fatal("failed loading zone '%s' from file '%s': "
+			      "use -o to specify a different zone origin",
+			      origin, file);
+		}
+		/* FALLTHROUGH */
+	default:
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));
+	}
 }
 
 ISC_PLATFORM_NORETURN_PRE static void
