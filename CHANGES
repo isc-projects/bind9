@@ -1,3 +1,6 @@
+4679.	[cleanup]	Suggest using -o when dnssec-verify finds a SOA record
+			not at top of zone and -o is not used. [RT #45519]
+
 4678.	[bug]		geoip-use-ecs has the wrong type when geoip support
 			is disabled at configure time. [RT #45763]
  
