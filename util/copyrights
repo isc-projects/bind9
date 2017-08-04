@@ -1399,7 +1399,7 @@
 ./bin/tests/system/dnstap/ns1/root.db		ZONE	2015,2016
 ./bin/tests/system/dnstap/ns2/example.db	ZONE	2015,2016
 ./bin/tests/system/dnstap/ns2/named.conf	CONF-C	2015,2016,2017
-./bin/tests/system/dnstap/ns3/named.conf	CONF-C	2015,2016
+./bin/tests/system/dnstap/ns3/named.conf	CONF-C	2015,2016,2017
 ./bin/tests/system/dnstap/ns4/named.conf	CONF-C	2016
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017
