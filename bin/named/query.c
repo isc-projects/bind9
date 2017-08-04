@@ -232,7 +232,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
 /*%
- * The structure and functions define below implement the query logic
+ * The structure and functions defined below implement the query logic
  * that previously lived in the single very complex function query_find().
  * The query_ctx_t structure maintains state from function to function.
  * The call flow for the general query processing algorithm is described

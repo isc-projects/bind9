@@ -358,6 +358,7 @@ if [ $HAS_PYYAML -ne 0 ] ; then
 fi
 
 echo "I:checking dnstap-read hex output"
+ret=0
 hex=`$DNSTAPREAD -x ns3/dnstap.out | tail -1`
 echo $hex | $WIRETEST > dnstap.hex
 grep 'status: NOERROR' dnstap.hex > /dev/null 2>&1 || ret=1

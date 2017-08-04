@@ -273,10 +273,31 @@
       </listitem>
       <listitem>
 	<para>
-	  Query logic has been substantially refactored (e.g. query_find
-	  function has been split into smaller functions) for improved
-	  readability, maintainability and testability. [RT #43929]
 	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Several areas of code have been refactored for improved
+	  readability, maintainability, and testability:
+	</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      The <command>named</command> query logic implemented in
+	      <command>query_find()</command> has been split into
+	      smaller functions with a context structure to maintain state
+	      between them, and extensive comments have been added.
+	      [RT #43929]
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      Similarly the iterative query logic implemented in
+	      <command>resquery_response()</command> function has been
+	      split into smaller functions and comments added. [RT #45362]
+	    </para>
+	  </listitem>
+	</itemizedlist>
       </listitem>
       <listitem>
 	<para>

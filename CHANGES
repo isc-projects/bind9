@@ -1,3 +1,8 @@
+4669.	[func]		Iterative query logic in resolver.c has been
+			refactored into smaller functions and commented,
+			for improved readability, maintainability and
+			testability. [RT #45362]
+
 4668.	[bug]		Use localtime_r and gmtime_r for thread safety.
 			[RT #45664]
 
