@@ -284,10 +284,31 @@
       </li>
 <li class="listitem">
 	<p>
-	  Query logic has been substantially refactored (e.g. query_find
-	  function has been split into smaller functions) for improved
-	  readability, maintainability and testability. [RT #43929]
 	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Several areas of code have been refactored for improved
+	  readability, maintainability, and testability:
+	</p>
+	<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem">
+	    <p>
+	      The <span class="command"><strong>named</strong></span> query logic implemented in
+	      <span class="command"><strong>query_find()</strong></span> has been split into
+	      smaller functions with a context structure to maintain state
+	      between them, and extensive comments have been added.
+	      [RT #43929]
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      Similarly the iterative query logic implemented in
+	      <span class="command"><strong>resquery_response()</strong></span> function has been
+	      split into smaller functions and comments added. [RT #45362]
+	    </p>
+	  </li>
+</ul></div>
       </li>
 <li class="listitem">
 	<p>
