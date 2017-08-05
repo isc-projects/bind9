@@ -1349,7 +1349,6 @@
 ./bin/tests/system/dnssec/ns4/named2.conf	CONF-C	2011,2013,2016,2017
 ./bin/tests/system/dnssec/ns4/named3.conf	CONF-C	2012,2013,2016,2017
 ./bin/tests/system/dnssec/ns4/named4.conf	CONF-C	2013,2016,2017
-./bin/tests/system/dnssec/ns4/named5.conf	CONF-C	2017
 ./bin/tests/system/dnssec/ns5/.gitignore	X	2015
 ./bin/tests/system/dnssec/ns5/named1.conf	CONF-C	2000,2001,2004,2006,2007,2015,2016,2017
 ./bin/tests/system/dnssec/ns5/named2.conf	CONF-C	2000,2001,2004,2006,2007,2015,2016
