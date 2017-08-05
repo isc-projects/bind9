@@ -8939,7 +8939,6 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
  */
 static void
 rctx_next(respctx_t *rctx) {
-	fetchctx_t *fctx = rctx->fctx;
 	isc_result_t result;
 
 	FCTXTRACE("nextitem");
