@@ -1,5 +1,3 @@
-4672.	[placeholder]
-
 4671.	[bug]		Fix a race condition that could cause the
 			resolver to crash with assertion failure when
 			chasing DS in specific conditions with a very
