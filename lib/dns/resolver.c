@@ -3383,6 +3383,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 				dns_resolver_addbadcache(res, &fctx->name,
 							 fctx->type, &expire);
 
+			result = ISC_R_FAILURE;
+
 #ifdef ENABLE_FETCHLIMIT
 			/*
 			 * If all of the addresses found were over the
@@ -3392,8 +3394,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 			if (all_spilled) {
 				result = res->quotaresp[dns_quotatype_server];
 				inc_stats(res, dns_resstatscounter_serverquota);
-			} else
-				result = ISC_R_FAILURE;
+			}
 #endif /* ENABLE_FETCHLIMIT */
 		}
 	} else {
@@ -3642,11 +3643,12 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 		return;
 	}
 
+	addrinfo = fctx_nextaddress(fctx);
+
 #ifdef ENABLE_FETCHLIMIT
 	/* Try to find an address that isn't over quota */
-	while ((addrinfo = fctx_nextaddress(fctx)) != NULL)
-		if (! dns_adbentry_overquota(addrinfo->entry))
-			break;
+	while ((addrinfo != NULL) && dns_adbentry_overquota(addrinfo->entry))
+		addrinfo = fctx_nextaddress(fctx);
 #endif /* ENABLE_FETCHLIMIT */
 
 	if (addrinfo == NULL) {
@@ -3672,14 +3674,14 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 			return;
 		}
 
-#ifdef ENABLE_FETCHLIMIT
-		while ((addrinfo = fctx_nextaddress(fctx)) != NULL) {
-			if (! dns_adbentry_overquota(addrinfo->entry))
-				break;
-		}
-#else
 		addrinfo = fctx_nextaddress(fctx);
-#endif /* !ENABLE_FETCHLIMIT */
+
+#ifdef ENABLE_FETCHLIMIT
+		/* Try to find an address that isn't over quota */
+		while ((addrinfo != NULL) &&
+		       dns_adbentry_overquota(addrinfo->entry))
+			addrinfo = fctx_nextaddress(fctx);
+#endif /* ENABLE_FETCHLIMIT */
 
 		/*
 		 * While we may have addresses from the ADB, they
