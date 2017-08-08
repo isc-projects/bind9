@@ -1,3 +1,11 @@
+4672.	[bug]		Fix a regression introduced by change 3938 (when
+			--enable-fetchlimit is NOT in use), where named
+			as resolver would, upon fetch timeout, repeat
+			fetching from the same nameserver address. This
+			also broke "forward first;" configurations (as
+			forwarders are also treated as nameservers when
+			fetching). [RT #45321]
+
 4671.	[bug]		Fix a race condition that could cause the
 			resolver to crash with assertion failure when
 			chasing DS in specific conditions with a very
