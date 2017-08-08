@@ -7261,6 +7261,14 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_init(&nameservers);
 
 	bucketnum = fctx->bucketnum;
+
+	/*
+	 * Note: fevent->rdataset must be disassociated and
+	 * isc_event_free(&event) be called before resuming
+	 * processing of the 'fctx' to prevent use-after-free.
+	 * 'fevent' is set to NULL so as to not have a dangling
+	 * pointer.
+	 */
 	if (fevent->result == ISC_R_CANCELED) {
 		if (dns_rdataset_isassociated(fevent->rdataset)) {
 			dns_rdataset_disassociate(fevent->rdataset);
