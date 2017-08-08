@@ -3647,7 +3647,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 
 #ifdef ENABLE_FETCHLIMIT
 	/* Try to find an address that isn't over quota */
-	while ((addrinfo != NULL) && dns_adbentry_overquota(addrinfo->entry))
+	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry))
 		addrinfo = fctx_nextaddress(fctx);
 #endif /* ENABLE_FETCHLIMIT */
 
@@ -3678,7 +3678,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 
 #ifdef ENABLE_FETCHLIMIT
 		/* Try to find an address that isn't over quota */
-		while ((addrinfo != NULL) &&
+		while (addrinfo != NULL &&
 		       dns_adbentry_overquota(addrinfo->entry))
 			addrinfo = fctx_nextaddress(fctx);
 #endif /* ENABLE_FETCHLIMIT */
