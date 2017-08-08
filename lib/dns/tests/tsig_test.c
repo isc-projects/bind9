@@ -186,6 +186,13 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 	msg->rcode = dns_rcode_noerror;
 	msg->flags = flags;
 
+	/*
+	 * XXXMPA: this hack needs to be replaced with use of
+	 * dns_message_reply() at some point.
+	 */
+	if ((flags & DNS_MESSAGEFLAG_QR) != 0)
+		msg->verified_sig = 1;
+
 	if (tsigin == tsigout)
 		msg->tcp_continuation = 1;
 
@@ -392,7 +399,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
 			 "dns_tsig_verify: %s",
 			 dns_result_totext(result));
-	ATF_CHECK_EQ(msg->verified_sig, 1);
+	ATF_CHECK_EQ(msg->verified_sig, 0);
 	ATF_CHECK_EQ(msg->tsigstatus, dns_rcode_noerror);
 
 	/*
