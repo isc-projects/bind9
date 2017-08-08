@@ -6922,6 +6922,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 
 	(void)isc_timer_touch(fctx->timer);
 
+	rctx_respinit(task, devent, query, fctx, &rctx);
+
 	if (fctx->res->exiting) {
 		result = ISC_R_SHUTTINGDOWN;
 		FCTXTRACE("resolver shutting down");
@@ -6932,8 +6934,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	fctx->timeouts = 0;
 	fctx->timeout = ISC_FALSE;
 	fctx->addrinfo = query->addrinfo;
-
-	rctx_respinit(task, devent, query, fctx, &rctx);
 
 	/*
 	 * Check whether the dispatcher has failed; if so we're done
