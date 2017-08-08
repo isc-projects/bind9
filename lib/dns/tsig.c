@@ -968,6 +968,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		if (response) {
 			dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
 
+			INSIST(msg->verified_sig);
+
 			ret = dns_rdataset_first(msg->querytsig);
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_context;
@@ -1455,6 +1457,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		} else if (ret != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
+		msg->verified_sig = 1;
 	} else if (tsig.error != dns_tsigerror_badsig &&
 		   tsig.error != dns_tsigerror_badkey) {
 		tsig_log(msg->tsigkey, 2, "signature was empty");
@@ -1529,7 +1532,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	msg->tsigstatus = dns_rcode_noerror;
-	msg->verified_sig = 1;
 	ret = ISC_R_SUCCESS;
 
  cleanup_context:
@@ -1762,6 +1764,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		} else if (ret != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
+		msg->verified_sig = 1;
 
 		/*
 		 * Here at this point, the MAC has been verified. Even
@@ -1843,7 +1846,6 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	}
 
 	msg->tsigstatus = dns_rcode_noerror;
-	msg->verified_sig = 1;
 	ret = ISC_R_SUCCESS;
 
  cleanup_context:
