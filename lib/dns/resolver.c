@@ -1556,7 +1556,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 		if (!HAVE_ANSWER(fctx))
 			event->result = result;
 
-		INSIST(result != ISC_R_SUCCESS ||
+		INSIST(event->result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_rrsig ||
@@ -6651,6 +6651,12 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 	bucketnum = fctx->bucketnum;
 	if (fevent->result == ISC_R_CANCELED) {
+
+		if (dns_rdataset_isassociated(fevent->rdataset))
+			dns_rdataset_disassociate(fevent->rdataset);
+		fevent = NULL;
+		isc_event_free(&event);
+
 		dns_resolver_destroyfetch(&fctx->nsfetch);
 		fctx_done(fctx, ISC_R_CANCELED, __LINE__);
 	} else if (fevent->result == ISC_R_SUCCESS) {
@@ -6664,6 +6670,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		fctx->ns_ttl = fctx->nameservers.ttl;
 		fctx->ns_ttl_ok = ISC_TRUE;
 		log_ns_ttl(fctx, "resume_dslookup");
+
+		if (dns_rdataset_isassociated(fevent->rdataset))
+			dns_rdataset_disassociate(fevent->rdataset);
+		fevent = NULL;
+		isc_event_free(&event);
 
 		fcount_decr(fctx);
 		dns_name_free(&fctx->domain, fctx->mctx);
@@ -6693,6 +6704,12 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		domain = dns_fixedname_name(&fixed);
 		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
 		if (dns_name_equal(&fctx->nsname, domain)) {
+
+			if (dns_rdataset_isassociated(fevent->rdataset))
+				dns_rdataset_disassociate(fevent->rdataset);
+			fevent = NULL;
+			isc_event_free(&event);
+
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 			dns_resolver_destroyfetch(&fctx->nsfetch);
 			goto cleanup;
@@ -6712,7 +6729,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		if (dns_rdataset_isassociated(fevent->rdataset))
 			dns_rdataset_disassociate(fevent->rdataset);
+		fevent = NULL;
+		isc_event_free(&event);
+
 		FCTXTRACE("continuing to look for parent's NS records");
+
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
 						  nsrdataset, NULL,
@@ -6720,6 +6741,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
+		/*
+		 * fevent->rdataset (a.k.a. fctx->nsrrset) must not be
+		 * accessed below this point to prevent races with
+		 * another thread concurrently processing the fetch.
+		 */
 		if (result != ISC_R_SUCCESS)
 			fctx_done(fctx, result, __LINE__);
 		else {
@@ -6730,12 +6756,10 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	}
 
  cleanup:
+	INSIST(event == NULL);
+	INSIST(fevent == NULL);
 	if (dns_rdataset_isassociated(&nameservers))
 		dns_rdataset_disassociate(&nameservers);
-	if (dns_rdataset_isassociated(fevent->rdataset))
-		dns_rdataset_disassociate(fevent->rdataset);
-	INSIST(fevent->sigrdataset == NULL);
-	isc_event_free(&event);
 	if (!locked)
 		LOCK(&res->buckets[bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);

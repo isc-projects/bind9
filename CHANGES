@@ -1,3 +1,8 @@
+4671.	[bug]		Fix a race condition that could cause the
+			resolver to crash with assertion failure when
+			chasing DS in specific conditions with a very
+			short RTT to the upstream nameserver. [RT #45168]
+
 4670.	[cleanup]	Ensure that a request MAC is never sent back
 			in an XFR response unless the signature was
                         verified. [RT #45494]
