@@ -7888,6 +7888,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	case dns_rcode_formerr:
 		if (message->counts[DNS_SECTION_QUESTION] == 0)
 			break;
+		/* FALLTHROUGH */
 	case dns_rcode_nxrrset:	/* Not expected. */
 	case dns_rcode_badcookie:
 	case dns_rcode_noerror:
