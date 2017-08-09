@@ -19,7 +19,4 @@ Setting                   Description
                           named-checkzone
 -DNS_RUN_PID_DIR=0        Create default PID files in ${localstatedir}/run
                           rather than ${localstatedir}/run/{named,lwresd}/
-                          Enable DNSSEC signature chasing support in dig.
--DDIG_SIGCHASE=1          (Note: This feature is deprecated. Use delv
-                          instead.)
 

@@ -464,8 +464,17 @@
       </listitem>
       <listitem>
 	<para>
-	  DiG now warns about .local queries which are reserved for
-	  Multicast DNS. [RT #44783]
+	  <command>dig</command> now warns about .local queries which are
+	  reserved for Multicast DNS. [RT #44783]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig +sigchase</command> and related options
+	  <command>+trusted-keys</command> and <command>+topdown</command>
+	  have been removed. <command>delv</command> is now the recommended
+	  command for looking up records with DNSSEC validation.
+	  [RT #42793]
 	</para>
       </listitem>
     </itemizedlist>
