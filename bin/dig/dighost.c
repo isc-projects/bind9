@@ -252,13 +252,13 @@ isc_result_t	  prove_nx_domain(dns_message_t * msg,
 				  dns_rdataset_t ** sigrdataset);
 isc_result_t	  prove_nx_type(dns_message_t * msg, dns_name_t *name,
 				dns_rdataset_t *nsec,
-				dns_rdataclass_t class,
+				dns_rdataclass_t rdclass,
 				dns_rdatatype_t type,
 				dns_name_t * rdata_name,
 				dns_rdataset_t ** rdataset,
 				dns_rdataset_t ** sigrdataset);
 isc_result_t	  prove_nx(dns_message_t * msg, dns_name_t * name,
-			   dns_rdataclass_t class,
+			   dns_rdataclass_t rdclass,
 			   dns_rdatatype_t type,
 			   dns_name_t * rdata_name,
 			   dns_rdataset_t ** rdataset,
@@ -6265,7 +6265,7 @@ prove_nx_domain(dns_message_t *msg,
  */
 isc_result_t
 prove_nx_type(dns_message_t *msg, dns_name_t *name, dns_rdataset_t *nsecset,
-	      dns_rdataclass_t class, dns_rdatatype_t type,
+	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      dns_name_t *rdata_name, dns_rdataset_t **rdataset,
 	      dns_rdataset_t **sigrdataset)
 {
@@ -6273,7 +6273,7 @@ prove_nx_type(dns_message_t *msg, dns_name_t *name, dns_rdataset_t *nsecset,
 	dns_rdataset_t *signsecset;
 	dns_rdata_t nsec = DNS_RDATA_INIT;
 
-	UNUSED(class);
+	UNUSED(rdclass);
 
 	ret = dns_rdataset_first(nsecset);
 	check_result(ret,"dns_rdataset_first");
@@ -6306,7 +6306,7 @@ prove_nx_type(dns_message_t *msg, dns_name_t *name, dns_rdataset_t *nsecset,
  *
  */
 isc_result_t
-prove_nx(dns_message_t *msg, dns_name_t *name, dns_rdataclass_t class,
+prove_nx(dns_message_t *msg, dns_name_t *name, dns_rdataclass_t rdclass,
 	 dns_rdatatype_t type, dns_name_t *rdata_name,
 	 dns_rdataset_t **rdataset, dns_rdataset_t **sigrdataset)
 {
@@ -6328,7 +6328,7 @@ prove_nx(dns_message_t *msg, dns_name_t *name, dns_rdataclass_t class,
 					 DNS_SECTION_AUTHORITY);
 	if (nsecset != NULL) {
 		printf("We have a NSEC for this zone :OK\n");
-		ret = prove_nx_type(msg, name, nsecset, class,
+		ret = prove_nx_type(msg, name, nsecset, rdclass,
 				    type, rdata_name, rdataset,
 				    sigrdataset);
 		if (ret != ISC_R_SUCCESS) {

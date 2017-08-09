@@ -4584,14 +4584,15 @@ same_question(fetchctx_t *fctx) {
 	    fctx->res->rdclass != rdataset->rdclass ||
 	    !dns_name_equal(&fctx->name, name)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-		char class[DNS_RDATACLASS_FORMATSIZE];
-		char type[DNS_RDATATYPE_FORMATSIZE];
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		dns_rdataclass_format(rdataset->rdclass, class, sizeof(class));
-		dns_rdatatype_format(rdataset->type, type, sizeof(type));
+		dns_rdataclass_format(rdataset->rdclass, classbuf,
+				      sizeof(classbuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		log_formerr(fctx, "question section mismatch: got %s/%s/%s",
-			    namebuf, class, type);
+			    namebuf, classbuf, typebuf);
 		return (DNS_R_FORMERR);
 	}
 

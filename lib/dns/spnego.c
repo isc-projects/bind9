@@ -250,16 +250,16 @@ der_get_oid(const unsigned char *p, size_t len,
 	    oid * data, size_t * size);
 static int
 der_get_tag(const unsigned char *p, size_t len,
-	    Der_class * class, Der_type * type,
+	    Der_class * xclass, Der_type * type,
 	    int *tag, size_t * size);
 
 static int
 der_match_tag(const unsigned char *p, size_t len,
-	      Der_class class, Der_type type,
+	      Der_class xclass, Der_type type,
 	      int tag, size_t * size);
 static int
 der_match_tag_and_length(const unsigned char *p, size_t len,
-			 Der_class class, Der_type type, int tag,
+			 Der_class xclass, Der_type type, int tag,
 			 size_t * length_ret, size_t * size);
 
 static int
@@ -285,7 +285,7 @@ static int
 der_put_oid(unsigned char *p, size_t len,
 	    const oid * data, size_t * size);
 static int
-der_put_tag(unsigned char *p, size_t len, Der_class class, Der_type type,
+der_put_tag(unsigned char *p, size_t len, Der_class xclass, Der_type type,
 	    int tag, size_t *);
 static int
 der_put_length_and_tag(unsigned char *, size_t, size_t,
@@ -909,12 +909,12 @@ der_get_oid(const unsigned char *p, size_t len,
 
 static int
 der_get_tag(const unsigned char *p, size_t len,
-	    Der_class *class, Der_type *type,
+	    Der_class *xclass, Der_type *type,
 	    int *tag, size_t *size)
 {
 	if (len < 1U)
 		return (ASN1_OVERRUN);
-	*class = (Der_class) (((*p) >> 6) & 0x03);
+	*xclass = (Der_class) (((*p) >> 6) & 0x03);
 	*type = (Der_type) (((*p) >> 5) & 0x01);
 	*tag = (*p) & 0x1F;
 	if (size)
@@ -924,7 +924,7 @@ der_get_tag(const unsigned char *p, size_t len,
 
 static int
 der_match_tag(const unsigned char *p, size_t len,
-	      Der_class class, Der_type type,
+	      Der_class xclass, Der_type type,
 	      int tag, size_t *size)
 {
 	size_t l;
@@ -936,7 +936,7 @@ der_match_tag(const unsigned char *p, size_t len,
 	e = der_get_tag(p, len, &thisclass, &thistype, &thistag, &l);
 	if (e)
 		return (e);
-	if (class != thisclass || type != thistype)
+	if (xclass != thisclass || type != thistype)
 		return (ASN1_BAD_ID);
 	if (tag > thistag)
 		return (ASN1_MISPLACED_FIELD);
@@ -949,13 +949,13 @@ der_match_tag(const unsigned char *p, size_t len,
 
 static int
 der_match_tag_and_length(const unsigned char *p, size_t len,
-			 Der_class class, Der_type type, int tag,
+			 Der_class xclass, Der_type type, int tag,
 			 size_t *length_ret, size_t *size)
 {
 	size_t l, ret = 0;
 	int e;
 
-	e = der_match_tag(p, len, class, type, tag, &l);
+	e = der_match_tag(p, len, xclass, type, tag, &l);
 	if (e)
 		return (e);
 	p += l;
@@ -1258,19 +1258,19 @@ der_put_oid(unsigned char *p, size_t len,
 }
 
 static int
-der_put_tag(unsigned char *p, size_t len, Der_class class, Der_type type,
+der_put_tag(unsigned char *p, size_t len, Der_class xclass, Der_type type,
 	    int tag, size_t *size)
 {
 	if (len < 1U)
 		return (ASN1_OVERFLOW);
-	*p = (class << 6) | (type << 5) | tag;	/* XXX */
+	*p = (xclass << 6) | (type << 5) | tag;	/* XXX */
 	*size = 1;
 	return (0);
 }
 
 static int
 der_put_length_and_tag(unsigned char *p, size_t len, size_t len_val,
-		       Der_class class, Der_type type, int tag, size_t *size)
+		       Der_class xclass, Der_type type, int tag, size_t *size)
 {
 	size_t ret = 0;
 	size_t l;
@@ -1282,7 +1282,7 @@ der_put_length_and_tag(unsigned char *p, size_t len, size_t len_val,
 	p -= l;
 	len -= l;
 	ret += l;
-	e = der_put_tag(p, len, class, type, tag, &l);
+	e = der_put_tag(p, len, xclass, type, tag, &l);
 	if (e)
 		return (e);
 	p -= l;

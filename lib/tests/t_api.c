@@ -368,11 +368,11 @@ t_main(int argc, char **argv)
 }
 
 void
-t_assert(const char *component, int anum, int class, const char *what, ...) {
+t_assert(const char *component, int anum, int tclass, const char *what, ...) {
 	va_list	args;
 	char buf[T_BIGBUF];
 
-	(void)printf("T:%s:%d:%s\n", component, anum, class == T_REQUIRED ?
+	(void)printf("T:%s:%d:%s\n", component, anum, tclass == T_REQUIRED ?
 		     "A" : "C");
 
 	/*

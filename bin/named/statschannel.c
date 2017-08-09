@@ -1427,7 +1427,7 @@ wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
 }
 
 static json_object *
-addzone(char *name, char *class, isc_uint32_t serial,
+addzone(char *name, char *classname, isc_uint32_t serial,
 	isc_boolean_t add_serial)
 {
 	json_object *node = json_object_new_object();
@@ -1436,7 +1436,8 @@ addzone(char *name, char *class, isc_uint32_t serial,
 		return (NULL);
 
 	json_object_object_add(node, "name", json_object_new_string(name));
-	json_object_object_add(node, "class", json_object_new_string(class));
+	json_object_object_add(node, "class",
+			       json_object_new_string(classname));
 	if (add_serial)
 		json_object_object_add(node, "serial",
 				       json_object_new_int64(serial));
@@ -1447,7 +1448,7 @@ static isc_result_t
 zone_jsonrender(dns_zone_t *zone, void *arg) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char buf[1024 + 32];	/* sufficiently large for zone name and class */
-	char class[1024 + 32];	/* sufficiently large for zone name and class */
+	char classbuf[64];	/* sufficiently large for class */
 	char *zone_name_only = NULL;
 	char *class_only = NULL;
 	dns_rdataclass_t rdclass;
@@ -1467,8 +1468,8 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	zone_name_only = buf;
 
 	rdclass = dns_zone_getclass(zone);
-	dns_rdataclass_format(rdclass, class, sizeof(class));
-	class_only = class;
+	dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
+	class_only = classbuf;
 
 	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
 		zoneobj = addzone(zone_name_only, class_only, 0, ISC_FALSE);
