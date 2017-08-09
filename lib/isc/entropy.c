@@ -331,9 +331,11 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		case 3:
 			val = *buf++;
 			len--;
+			/* FALLTHROUGH */
 		case 2:
 			val = val << 8 | *buf++;
 			len--;
+			/* FALLTHROUGH */
 		case 1:
 			val = val << 8 | *buf++;
 			len--;
@@ -354,8 +356,10 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		switch (len) {
 		case 3:
 			val = *buf++;
+			/* FALLTHROUGH */
 		case 2:
 			val = val << 8 | *buf++;
+			/* FALLTHROUGH */
 		case 1:
 			val = val << 8 | *buf++;
 		}

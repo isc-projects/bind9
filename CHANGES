@@ -1,3 +1,5 @@
+4673.	[port]		Silence GCC 7 warnings. [RT #45592]
+
 4672.	[bug]		Fix a regression introduced by change 3938 (when
 			--enable-fetchlimit is NOT in use), where named
 			as resolver would, upon fetch timeout, repeat

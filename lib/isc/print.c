@@ -639,7 +639,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 #else
 			assert("long doubles are not supported" == NULL);
 #endif
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'e':
 		case 'E':
 		case 'f':
