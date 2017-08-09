@@ -13,7 +13,7 @@
 
 4670.	[cleanup]	Ensure that a request MAC is never sent back
 			in an XFR response unless the signature was
-                        verified. [RT #45494]
+			verified. [RT #45494]
 
 4668.	[bug]		Use localtime_r and gmtime_r for thread safety.
 			[RT #45664]
