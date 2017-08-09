@@ -7,7 +7,7 @@
 
 4670.	[cleanup]	Ensure that a request MAC is never sent back
 			in an XFR response unless the signature was
-                        verified. [RT #45494]
+			verified. [RT #45494]
 
 4669.	[func]		Iterative query logic in resolver.c has been
 			refactored into smaller functions and commented,
