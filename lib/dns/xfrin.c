@@ -621,6 +621,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 	case XFRST_IXFR_END:
 		FAIL(DNS_R_EXTRADATA);
 		/* NOTREACHED */
+		/* FALLTHROUGH */
 	default:
 		INSIST(0);
 		break;

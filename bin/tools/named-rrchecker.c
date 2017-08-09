@@ -38,6 +38,9 @@ static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
 usage(void) {
 	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
@@ -49,6 +52,7 @@ usage(void) {
 	fprintf(stderr, "\t-P: list the supported private type names\n");
 	fprintf(stderr, "\t-T: list the supported standard type names\n");
 	fprintf(stderr, "\t-u: print the record in unknown record format\n");
+	exit(0);
 }
 
 int
@@ -81,8 +85,8 @@ main(int argc, char *argv[]) {
 			    isc_commandline_option != 'h')
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					argv[0], isc_commandline_option);
+			/* Does not return. */
 			usage();
-			exit(1);
 
 		case 'o':
 			origin = isc_commandline_argument;

@@ -45,8 +45,8 @@ check_result(isc_result_t result, const char *message);
 void
 vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
-void
-version(const char *program);
+ISC_PLATFORM_NORETURN_PRE void
+version(const char *program) ISC_PLATFORM_NORETURN_POST;
 
 void
 type_format(const dns_rdatatype_t type, char *cp, unsigned int size);

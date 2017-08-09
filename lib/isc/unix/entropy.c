@@ -160,7 +160,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			INSIST(n == 2);
 			source->sources.usocket.status =
 						isc_usocketsource_wrote;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 
 		case isc_usocketsource_wrote:
 			if (recvfrom(fd, buf, 1, 0, NULL, NULL) != 1) {
@@ -198,7 +198,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			source->sources.usocket.sz_to_recv = sz_to_recv;
 			if (sz_to_recv > sizeof(buf))
 				goto err;
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 
 		case isc_usocketsource_reading:
 			if (sz_to_recv != 0U) {
