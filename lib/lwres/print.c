@@ -497,7 +497,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 #else
 			INSIST("long doubles are not supported" == NULL);
 #endif
-			/*FALLTHROUGH*/
+			/* FALLTHROUGH */
 		case 'e':
 		case 'E':
 		case 'f':

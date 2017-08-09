@@ -30,6 +30,9 @@ static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
 
+ISC_PLATFORM_NORETURN_PRE static void
+usage(void) ISC_PLATFORM_NORETURN_POST;
+
 static void
 usage(void) {
 	fprintf(stderr, "usage: named-rrchecker [-o origin] [-hpCPTu]\n");
