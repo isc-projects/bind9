@@ -306,7 +306,7 @@
 ./bin/named/win32/named.vcxproj.user		X	2013
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013,2014,2015
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016
-./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/nsupdate/.gitignore			X	2012
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014,2015,2016,2017
@@ -1350,6 +1350,20 @@
 ./bin/tests/system/ecdsa/prereq.sh		SH	2012,2014
 ./bin/tests/system/ecdsa/setup.sh		SH	2012,2014
 ./bin/tests/system/ecdsa/tests.sh		SH	2012,2013,2015,2016
+./bin/tests/system/eddsa/clean.sh		SH	2017
+./bin/tests/system/eddsa/ns1/named.conf		CONF-C	2017
+./bin/tests/system/eddsa/ns1/root.db.in		ZONE	2017
+./bin/tests/system/eddsa/ns1/sign.sh		SH	2017
+./bin/tests/system/eddsa/ns2/Xexample.com.+015+03613.key	X	2017
+./bin/tests/system/eddsa/ns2/Xexample.com.+015+03613.private	X	2017
+./bin/tests/system/eddsa/ns2/Xexample.com.+015+35217.key	X	2017
+./bin/tests/system/eddsa/ns2/Xexample.com.+015+35217.private	X	2017
+./bin/tests/system/eddsa/ns2/example.com.db	ZONE	2017
+./bin/tests/system/eddsa/ns2/named.conf		CONF-C	2017
+./bin/tests/system/eddsa/ns2/sign.sh		SH	2017
+./bin/tests/system/eddsa/prereq.sh		SH	2017
+./bin/tests/system/eddsa/setup.sh		SH	2017
+./bin/tests/system/eddsa/tests.sh		SH	2017
 ./bin/tests/system/ednscompliance/clean.sh	SH	2015
 ./bin/tests/system/ednscompliance/tests.sh	SH	2015,2016
 ./bin/tests/system/emptyzones/clean.sh		SH	2014,2015
@@ -3338,6 +3352,7 @@
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/opensslecdsa_link.c			C	2012,2013,2014,2015,2016
+./lib/dns/openssleddsa_link.c			C	2017
 ./lib/dns/opensslgost_link.c			C	2010,2011,2012,2013,2014,2015,2016
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/order.c				C	2002,2004,2005,2007,2015
@@ -3346,6 +3361,7 @@
 ./lib/dns/pkcs11dh_link.c			C	2014,2015,2016,2017
 ./lib/dns/pkcs11dsa_link.c			C	2014,2015,2016,2017
 ./lib/dns/pkcs11ecdsa_link.c			C	2014,2015,2016,2017
+./lib/dns/pkcs11eddsa_link.c			C	2017
 ./lib/dns/pkcs11gost_link.c			C	2014,2015,2016,2017
 ./lib/dns/pkcs11rsa_link.c			C	2014,2015,2016,2017
 ./lib/dns/portlist.c				C	2003,2004,2005,2006,2007,2014
