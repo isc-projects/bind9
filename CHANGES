@@ -1,3 +1,5 @@
+4675.	[cleanup]	Don't use C++ keyword class. [RT #45726]
+
 4673.	[port]		Silence GCC 7 warnings. [RT #45592]
 
 4672.	[bug]		Fix a regression introduced by change 3938 (when
