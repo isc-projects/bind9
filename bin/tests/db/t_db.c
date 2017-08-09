@@ -31,7 +31,7 @@
 #include <tests/t_api.h>
 
 static isc_result_t
-t_create(const char *db_type, const char *origin, const char *class,
+t_create(const char *db_type, const char *origin, const char *classname,
 	 const char *model, isc_mem_t *mctx, dns_db_t **db)
 {
 	int			len;
@@ -59,8 +59,8 @@ t_create(const char *db_type, const char *origin, const char *class,
 		return(dns_result);
 	}
 
-	DE_CONST(class, region.base);
-	region.length = strlen(class);
+	DE_CONST(classname, region.base);
+	region.length = strlen(classname);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &region);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -85,7 +85,7 @@ t_dns_db_load(char **av) {
 	char			*db_type;
 	char			*origin;
 	char			*model;
-	char			*class;
+	char			*db_class;
 	char			*expected_load_result;
 	char			*findname;
 	char			*find_type;
@@ -116,7 +116,7 @@ t_dns_db_load(char **av) {
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
 	model = T_ARG(3);
-	class = T_ARG(4);
+	db_class = T_ARG(4);
 	expected_load_result = T_ARG(5);
 	findname = T_ARG(6);
 	find_type = T_ARG(7);
@@ -151,7 +151,7 @@ t_dns_db_load(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -266,7 +266,7 @@ static const char *a2 =
 	"dns_db_iscache(db) returns ISC_TRUE.";
 
 static int
-t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
+t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *db_class,
 	      dns_dbtype_t dbtype, isc_boolean_t(*cf)(dns_db_t *),
 	      isc_boolean_t exp_result)
 {
@@ -300,8 +300,8 @@ t_dns_db_zc_x(char *filename, char *db_type, char *origin, char *class,
 		return(T_UNRESOLVED);
 	}
 
-	textregion.base = class;
-	textregion.length = strlen(class);
+	textregion.base = db_class;
+	textregion.length = strlen(db_class);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -622,7 +622,7 @@ static int
 t_dns_db_class(char **av) {
 
 	char			*filename;
-	char			*class;
+	char			*db_class;
 
 	int			result;
 	isc_result_t		dns_result;
@@ -635,16 +635,16 @@ t_dns_db_class(char **av) {
 	isc_textregion_t	textregion;
 
 	filename = T_ARG(0);
-	class = T_ARG(1);
+	db_class = T_ARG(1);
 	db = NULL;
 	mctx = NULL;
 	ectx = NULL;
 
 	t_info("testing with database %s and class %s\n",
-			filename, class);
+			filename, db_class);
 
-	textregion.base = class;
-	textregion.length = strlen(class);
+	textregion.base = db_class;
+	textregion.length = strlen(db_class);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -676,7 +676,7 @@ t_dns_db_class(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create("rbt", ".", class, "isc_true", mctx, &db);
+	dns_result = t_create("rbt", ".", db_class, "isc_true", mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("t_create failed %s\n",
 			dns_result_totext(dns_result));
@@ -705,7 +705,7 @@ t_dns_db_class(char **av) {
 		dns_rdataclass_format(db_rdataclass,
 				      classbuf, sizeof(classbuf));
 		t_info("dns_db_class returned %s, expected %s\n",
-		       classbuf, class);
+		       classbuf, db_class);
 		result = T_FAIL;
 	}
 
@@ -735,7 +735,7 @@ t_dns_db_currentversion(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*model;
 	char			*findname;
 	char			*findtype;
@@ -760,7 +760,7 @@ t_dns_db_currentversion(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	findname = T_ARG(5);
 	findtype = T_ARG(6);
@@ -794,7 +794,7 @@ t_dns_db_currentversion(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -1007,7 +1007,7 @@ t_dns_db_newversion(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*model;
 	char			*newname;
 	char			*newtype;
@@ -1039,7 +1039,7 @@ t_dns_db_newversion(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	newname = T_ARG(5);
 	newtype = T_ARG(6);
@@ -1079,7 +1079,7 @@ t_dns_db_newversion(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -1151,8 +1151,8 @@ t_dns_db_newversion(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	textregion.base = class;
-	textregion.length = strlen(class);
+	textregion.base = db_class;
+	textregion.length = strlen(db_class);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -1321,7 +1321,7 @@ t_dns_db_closeversion_1(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*model;
 	char			*new_name;
 	char			*new_type;
@@ -1358,7 +1358,7 @@ t_dns_db_closeversion_1(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	new_name = T_ARG(5);
 	new_type = T_ARG(6);
@@ -1402,7 +1402,7 @@ t_dns_db_closeversion_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -1553,8 +1553,8 @@ t_dns_db_closeversion_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	textregion.base = class;
-	textregion.length = strlen(class);
+	textregion.base = db_class;
+	textregion.length = strlen(db_class);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -1730,7 +1730,7 @@ t_dns_db_closeversion_2(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*model;
 	char			*new_name;
 	char			*new_type;
@@ -1767,7 +1767,7 @@ t_dns_db_closeversion_2(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	new_name = T_ARG(5);
 	new_type = T_ARG(6);
@@ -1811,7 +1811,7 @@ t_dns_db_closeversion_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -1959,8 +1959,8 @@ t_dns_db_closeversion_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	textregion.base = class;
-	textregion.length = strlen(class);
+	textregion.base = db_class;
+	textregion.length = strlen(db_class);
 	dns_result = dns_rdataclass_fromtext(&rdataclass, &textregion);
 	if (dns_result != ISC_R_SUCCESS) {
 		t_info("dns_rdataclass_fromtext failed %s\n",
@@ -2201,7 +2201,7 @@ t_dns_db_expirenode(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*existing_name;
 	char			*node_xtime;
 	char			*find_xtime;
@@ -2227,7 +2227,7 @@ t_dns_db_expirenode(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	existing_name = T_ARG(4);
 	node_xtime = T_ARG(5);
 	find_xtime = T_ARG(6);
@@ -2285,7 +2285,7 @@ t_dns_db_expirenode(char **av) {
 	}
 
 	db = NULL;
-	dns_result = t_create(db_type, origin, class, "cache", mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, "cache", mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
@@ -2404,7 +2404,7 @@ t_dns_db_findnode_1(char **av) {
 	char		*filename;
 	char		*db_type;
 	char		*origin;
-	char		*class;
+	char		*db_class;
 	char		*model;
 	char		*find_name;
 	char		*find_type;
@@ -2429,7 +2429,7 @@ t_dns_db_findnode_1(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	find_name = T_ARG(5);
 	find_type = T_ARG(6);
@@ -2476,7 +2476,7 @@ t_dns_db_findnode_1(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -2576,7 +2576,7 @@ t_dns_db_findnode_2(char **av) {
 	char			*filename;
 	char			*db_type;
 	char			*origin;
-	char			*class;
+	char			*db_class;
 	char			*model;
 	char			*newname;
 
@@ -2599,7 +2599,7 @@ t_dns_db_findnode_2(char **av) {
 	filename = T_ARG(0);
 	db_type = T_ARG(1);
 	origin = T_ARG(2);
-	class = T_ARG(3);
+	db_class = T_ARG(3);
 	model = T_ARG(4);
 	newname = T_ARG(5);
 
@@ -2631,7 +2631,7 @@ t_dns_db_findnode_2(char **av) {
 		return(T_UNRESOLVED);
 	}
 
-	dns_result = t_create(db_type, origin, class, model, mctx, &db);
+	dns_result = t_create(db_type, origin, db_class, model, mctx, &db);
 	if (dns_result != ISC_R_SUCCESS) {
 		isc_hash_destroy();
 		isc_entropy_detach(&ectx);
