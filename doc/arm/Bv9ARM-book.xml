@@ -7609,7 +7609,8 @@ options {
 		<para>
 		  Specifies a list of addresses to which
 		  <command>filter-aaaa-on-v4</command>
-		  is applies.  The default is <userinput>any</userinput>.
+		  and <command>filter-aaaa-on-v6</command>
+		  apply.  The default is <userinput>any</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
