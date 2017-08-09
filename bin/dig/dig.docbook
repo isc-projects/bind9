@@ -1007,9 +1007,8 @@
 	  <term><option>+[no]sigchase</option></term>
 	  <listitem>
 	    <para>
-	      Chase DNSSEC signature chains. Requires dig be compiled
-	      with -DDIG_SIGCHASE. This feature is deprecated.
-	      Use <command>delv</command> instead.
+	      This feature is now obsolete and has been removed;
+              use <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1093,9 +1092,9 @@
 	  <term><option>+[no]topdown</option></term>
 	  <listitem>
 	    <para>
-	      When chasing DNSSEC signature chains perform a top-down
-	      validation.  Requires dig be compiled with -DDIG_SIGCHASE.
-	      This feature is deprecated. Use <command>delv</command> instead.
+	      This feature is related to <command>dig +sigchase</command>,
+              which is obsolete and has been removed. Use
+              <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -1139,17 +1138,10 @@
 	  <term><option>+trusted-key=####</option></term>
 	  <listitem>
 	    <para>
-	      Specifies a file containing trusted keys to be used
-	      with <option>+sigchase</option>.  Each DNSKEY record
-	      must be on its own line.
-	    </para> <para>
-	      If not specified, <command>dig</command> will look
-	      for <filename>/etc/trusted-key.key</filename> then
-	      <filename>trusted-key.key</filename> in the current
-	      directory.
-	    </para> <para>
-	      Requires dig be compiled with -DDIG_SIGCHASE.
-	      This feature is deprecated. Use <command>delv</command> instead.
+	      Formerly specified trusted keys for use with
+              <command>dig +sigchase</command>.  This feature is now
+              obsolete and has been removed; use
+              <command>delv</command> instead.
 	    </para>
 	  </listitem>
 	</varlistentry>

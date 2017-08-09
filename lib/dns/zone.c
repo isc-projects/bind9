@@ -9570,6 +9570,7 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_redirect:
 		if (zone->masters == NULL)
 			break;
+		/* FALLTHROUGH */
 	case dns_zone_slave:
 	case dns_zone_stub:
 		LOCK_ZONE(zone);
@@ -9591,6 +9592,7 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_redirect:
 		if (zone->masters == NULL)
 			break;
+		/* FALLTHROUGH */
 	case dns_zone_slave:
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
@@ -14780,7 +14782,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	switch (xfrresult) {
 	case ISC_R_SUCCESS:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
-		/*FALLTHROUGH*/
+		/* FALLTHROUGH */
 	case DNS_R_UPTODATE:
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER);
 		/*

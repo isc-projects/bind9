@@ -1822,21 +1822,22 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 							 &rdataset);
 			if (result != ISC_R_SUCCESS) {
 				char cname[DNS_NAME_FORMATSIZE];
-				char type[DNS_RDATATYPE_FORMATSIZE];
-				char class[DNS_RDATACLASS_FORMATSIZE];
+				char typebuf[DNS_RDATATYPE_FORMATSIZE];
+				char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
 				dns_name_format(name, cname,
 						DNS_NAME_FORMATSIZE);
-				dns_rdataclass_format(rdataset.rdclass, class,
-						      sizeof(class));
-				dns_rdatatype_format(rdataset.type, type,
-						     sizeof(type));
+				dns_rdataclass_format(rdataset.rdclass,
+						      classbuf,
+						      sizeof(classbuf));
+				dns_rdatatype_format(rdataset.type, typebuf,
+						     sizeof(typebuf));
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
 					      ISC_LOG_WARNING,
 					      "catz: unknown record in catalog "
 					      "zone - %s %s %s(%s) - ignoring",
-					      cname, class, type,
+					      cname, classbuf, typebuf,
 					      isc_result_totext(result));
 			}
 			dns_rdataset_disassociate(&rdataset);

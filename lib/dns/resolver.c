@@ -4884,14 +4884,15 @@ same_question(fetchctx_t *fctx) {
 	    fctx->res->rdclass != rdataset->rdclass ||
 	    !dns_name_equal(&fctx->name, name)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-		char class[DNS_RDATACLASS_FORMATSIZE];
-		char type[DNS_RDATATYPE_FORMATSIZE];
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		dns_rdataclass_format(rdataset->rdclass, class, sizeof(class));
-		dns_rdatatype_format(rdataset->type, type, sizeof(type));
+		dns_rdataclass_format(rdataset->rdclass, classbuf,
+				      sizeof(classbuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		log_formerr(fctx, "question section mismatch: got %s/%s/%s",
-			    namebuf, class, type);
+			    namebuf, classbuf, typebuf);
 		return (DNS_R_FORMERR);
 	}
 
@@ -6653,29 +6654,38 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_init(&nameservers);
 
 	bucketnum = fctx->bucketnum;
-	if (fevent->result == ISC_R_CANCELED) {
 
-		if (dns_rdataset_isassociated(fevent->rdataset))
+	/*
+	 * Note: fevent->rdataset must be disassociated and
+	 * isc_event_free(&event) be called before resuming
+	 * processing of the 'fctx' to prevent use-after-free.
+	 * 'fevent' is set to NULL so as to not have a dangling
+	 * pointer.
+	 */
+	if (fevent->result == ISC_R_CANCELED) {
+		if (dns_rdataset_isassociated(fevent->rdataset)) {
 			dns_rdataset_disassociate(fevent->rdataset);
+		}
 		fevent = NULL;
 		isc_event_free(&event);
 
 		dns_resolver_destroyfetch(&fctx->nsfetch);
 		fctx_done(fctx, ISC_R_CANCELED, __LINE__);
 	} else if (fevent->result == ISC_R_SUCCESS) {
-
 		FCTXTRACE("resuming DS lookup");
 
 		dns_resolver_destroyfetch(&fctx->nsfetch);
-		if (dns_rdataset_isassociated(&fctx->nameservers))
+		if (dns_rdataset_isassociated(&fctx->nameservers)) {
 			dns_rdataset_disassociate(&fctx->nameservers);
+		}
 		dns_rdataset_clone(fevent->rdataset, &fctx->nameservers);
 		fctx->ns_ttl = fctx->nameservers.ttl;
 		fctx->ns_ttl_ok = ISC_TRUE;
 		log_ns_ttl(fctx, "resume_dslookup");
 
-		if (dns_rdataset_isassociated(fevent->rdataset))
+		if (dns_rdataset_isassociated(fevent->rdataset)) {
 			dns_rdataset_disassociate(fevent->rdataset);
+		}
 		fevent = NULL;
 		isc_event_free(&event);
 
@@ -6707,9 +6717,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		domain = dns_fixedname_name(&fixed);
 		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
 		if (dns_name_equal(&fctx->nsname, domain)) {
-
-			if (dns_rdataset_isassociated(fevent->rdataset))
+			if (dns_rdataset_isassociated(fevent->rdataset)) {
 				dns_rdataset_disassociate(fevent->rdataset);
+			}
 			fevent = NULL;
 			isc_event_free(&event);
 
@@ -6749,9 +6759,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		 * accessed below this point to prevent races with
 		 * another thread concurrently processing the fetch.
 		 */
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
-		else {
+		} else {
 			LOCK(&res->buckets[bucketnum].lock);
 			locked = ISC_TRUE;
 			fctx->references++;
@@ -7033,6 +7043,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	case dns_rcode_formerr:
 		if (fctx->rmessage->counts[DNS_SECTION_QUESTION] == 0)
 			break;
+		/* FALLTHROUGH */
 	case dns_rcode_nxrrset:	/* Not expected. */
 	case dns_rcode_badcookie:
 	case dns_rcode_noerror:

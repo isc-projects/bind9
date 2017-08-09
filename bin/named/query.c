@@ -9283,7 +9283,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char classname[DNS_RDATACLASS_FORMATSIZE];
 	char onbuf[ISC_NETADDR_FORMATSIZE];
 	char ecsbuf[DNS_ECS_FORMATSIZE + sizeof(" [ECS ]") - 1] = { 0 };
-	char ednsbuf[sizeof("E(255)")] = { 0 };
+	char ednsbuf[sizeof("E(65535)")] = { 0 };
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_INFO;
 
@@ -9298,7 +9298,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
 	if (client->ednsversion >= 0)
-		snprintf(ednsbuf, sizeof(ednsbuf), "E(%d)",
+		snprintf(ednsbuf, sizeof(ednsbuf), "E(%hd)",
 			 client->ednsversion);
 
 	if (HAVEECS(client)) {

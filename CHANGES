@@ -1,3 +1,11 @@
+4675.	[cleanup]	Don't use C++ keyword class. [RT #45726]
+
+4674.   [func]          "dig +sigchase", and related options "+topdown" and
+                        "+trusted-keys", have been removed. Use "delv" for
+                        queries with DNSSEC validation. [RT #42793]
+
+4673.	[port]		Silence GCC 7 warnings. [RT #45592]
+
 4672.	[placeholder]
 
 4671.	[bug]		Fix a race condition that could cause the

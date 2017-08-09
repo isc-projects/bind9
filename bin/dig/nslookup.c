@@ -205,18 +205,6 @@ printaddr(dns_rdata_t *rdata) {
 	       (char *)isc_buffer_base(&b));
 }
 
-#ifdef DIG_SIGCHASE
-/* Just for compatibility : not use in host program */
-isc_result_t
-printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
-	      isc_buffer_t *target)
-{
-	UNUSED(owner_name);
-	UNUSED(rdataset);
-	UNUSED(target);
-	return(ISC_FALSE);
-}
-#endif
 static void
 printrdata(dns_rdata_t *rdata) {
 	isc_result_t result;

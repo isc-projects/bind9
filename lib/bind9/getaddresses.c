@@ -154,6 +154,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 			goto again;
 		}
 #endif
+		/* FALLTHROUGH */
 	default:
 		return (ISC_R_FAILURE);
 	}

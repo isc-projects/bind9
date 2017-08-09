@@ -60,17 +60,8 @@ static char hexcookie[81];
 
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
-#ifdef DIG_SIGCHASE
-	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE,
-	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE,
-#endif
 	ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
 static isc_uint32_t splitwidth = 0xffffffff;
-
-/*% rrcomments are neither explicitly enabled nor disabled by default */
-#ifdef DIG_SIGCHASE
-static int rrcomments = 0;
-#endif
 
 /*% opcode text */
 static const char * const opcodetext[] = {
@@ -213,21 +204,12 @@ help(void) {
 "                 +[no]short          (Display nothing except short\n"
 "                                      form of answer)\n"
 "                 +[no]showsearch     (Search with intermediate results)\n"
-#ifdef DIG_SIGCHASE
-"                 +[no]sigchase       (Chase DNSSEC signatures)\n"
-#endif
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
 "                 +[no]stats          (Control display of statistics)\n"
 "                 +subnet=addr        (Set edns-client-subnet option)\n"
 "                 +[no]tcp            (TCP mode (+[no]vc))\n"
 "                 +timeout=###        (Set query timeout) [5]\n"
-#if defined(DIG_SIGCHASE) && DIG_SIGCHASE_TD
-"                 +[no]topdown        (Do +sigchase in top-down mode)\n"
-#endif
 "                 +[no]trace          (Trace delegation down from root [+dnssec])\n"
-#ifdef DIG_SIGCHASE
-"                 +trusted-key=####   (Trusted Key to use with +sigchase)\n"
-#endif
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
 "                 +[no]ttlid          (Control display of ttls in records)\n"
 "                 +[no]ttlunits       (Display TTLs in human-readable units)\n"
@@ -325,7 +307,7 @@ static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
 	isc_uint64_t diff;
-	char store[sizeof("12345678901234567890")];
+	char store[sizeof(" in 18446744073709551616 us.")];
 	unsigned int styleflags = 0;
 
 	if (query->lookup->trace || query->lookup->ns_search_only) {
@@ -348,13 +330,14 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		return (result);
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
+
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
 		if (query->lookup->use_usec)
-			snprintf(store, 19, " in %ld us.", (long) diff);
+			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u us.", diff);
 		else
-			snprintf(store, 19, " in %ld ms.", (long) diff / 1000);
+			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u ms.", diff / 1000);
 		ADD_STRING(buf, store);
 	}
 	ADD_STRING(buf, "\n");
@@ -411,65 +394,6 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 
 	return (ISC_R_SUCCESS);
 }
-#ifdef DIG_SIGCHASE
-isc_result_t
-printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
-	      isc_buffer_t *target)
-{
-	isc_result_t result;
-	dns_master_style_t *style = NULL;
-	unsigned int styleflags = 0;
-
-	if (rdataset == NULL || owner_name == NULL || target == NULL)
-		return(ISC_FALSE);
-
-	styleflags |= DNS_STYLEFLAG_REL_OWNER;
-	if (ttlunits)
-		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
-	if (nottl)
-		styleflags |= DNS_STYLEFLAG_NO_TTL;
-	if (noclass)
-		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (nocrypto)
-		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	/* Turn on rrcomments if explicitly enabled */
-	if (rrcomments > 0)
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (multiline) {
-		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
-		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
-		styleflags |= DNS_STYLEFLAG_REL_DATA;
-		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
-		styleflags |= DNS_STYLEFLAG_TTL;
-		styleflags |= DNS_STYLEFLAG_MULTILINE;
-		styleflags |= DNS_STYLEFLAG_COMMENT;
-		/* Turn on rrcomments if not explicitly disabled */
-		if (rrcomments >= 0)
-			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	}
-
-	if (multiline || (nottl && noclass))
-		result = dns_master_stylecreate2(&style, styleflags,
-						24, 24, 24, 32, 80, 8,
-						splitwidth, mctx);
-	else if (nottl || noclass)
-		result = dns_master_stylecreate2(&style, styleflags,
-						24, 24, 32, 40, 80, 8,
-						splitwidth, mctx);
-	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						24, 32, 40, 48, 80, 8,
-						splitwidth, mctx);
-	check_result(result, "dns_master_stylecreate");
-
-	result = dns_master_rdatasettotext(owner_name, rdataset, style, target);
-
-	if (style != NULL)
-		dns_master_styledestroy(&style, mctx);
-
-	return(result);
-}
-#endif
 
 static isc_boolean_t
 isdotlocal(dns_message_t *msg) {
@@ -919,9 +843,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			/* keep +cl for backwards compatibility */
 			FULLCHECK2("cl", "class");
 			lookup->noclass = ISC_TF(!state);
-#ifdef DIG_SIGCHASE
-			noclass = ISC_TF(!state);
-#endif
 			break;
 		case 'm': /* cmd */
 			FULLCHECK("cmd");
@@ -956,9 +877,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		case 'r':
 			FULLCHECK("crypto");
 			lookup->nocrypto = ISC_TF(!state);
-#ifdef DIG_SIGCHASE
-			nocrypto = ISC_TF(!state);
-#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1164,9 +1082,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		case 'u':
 			FULLCHECK("multiline");
 			lookup->multiline = state;
-#ifdef DIG_SIGCHASE
-			multiline = state;
-#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1209,9 +1124,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->rdtypeset = ISC_TRUE;
 					short_form = ISC_TRUE;
 					lookup->rrcomments = 0;
-#ifdef DIG_SIGCHASE
-					rrcomments = 0;
-#endif
 				}
 				break;
 			default:
@@ -1313,9 +1225,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		case 'r': /* rrcomments */
 			FULLCHECK("rrcomments");
 			lookup->rrcomments = state ? 1 : -1;
-#ifdef DIG_SIGCHASE
-			rrcomments = state ? 1 : -1;
-#endif
 			break;
 		default:
 			goto invalid_option;
@@ -1345,9 +1254,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->comments = ISC_FALSE;
 					lookup->stats = ISC_FALSE;
 					lookup->rrcomments = -1;
-#ifdef DIG_SIGCHASE
-					rrcomments = -1;
-#endif
 				}
 				break;
 			case 'w': /* showsearch */
@@ -1361,14 +1267,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			}
 			break;
-#ifdef DIG_SIGCHASE
 		case 'i': /* sigchase */
 			FULLCHECK("sigchase");
-			lookup->sigchase = state;
-			if (lookup->sigchase)
-				lookup->dnssec = ISC_TRUE;
+			fprintf(stderr, ";; +sigchase option is deprecated");
 			break;
-#endif
 		case 'p': /* split */
 			FULLCHECK("split");
 			if (value != NULL && !state)
@@ -1450,12 +1352,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			if (timeout == 0)
 				timeout = 1;
 			break;
-#if DIG_SIGCHASE_TD
-		case 'o': /* topdown */
+		case 'o':
 			FULLCHECK("topdown");
-			lookup->do_topdown = state;
+			fprintf(stderr, ";; +topdown option is deprecated");
 			break;
-#endif
 		case 'r':
 			switch (cmd[2]) {
 			case 'a': /* trace */
@@ -1467,9 +1367,6 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					lookup->identify = ISC_TRUE;
 					lookup->comments = ISC_FALSE;
 					lookup->rrcomments = 0;
-#ifdef DIG_SIGCHASE
-					rrcomments = 0;
-#endif
 					lookup->stats = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
@@ -1492,19 +1389,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				if (lookup->retries == 0)
 					lookup->retries = 1;
 				break;
-#ifdef DIG_SIGCHASE
 			case 'u': /* trusted-key */
 				FULLCHECK("trusted-key");
-				if (value == NULL)
-					goto need_value;
-				if (!state)
-					goto invalid_option;
-				n = strlcpy(trustedkey, ptr,
-					    sizeof(trustedkey));
-				if (n >= sizeof(trustedkey))
-					fatal("trusted key too large");
+				fprintf(stderr, ";; +trusted-key option is "
+					"deprecated");
 				break;
-#endif
 			default:
 				goto invalid_option;
 			}
@@ -1517,18 +1406,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				case 'i': /* ttlid */
 					FULLCHECK2("ttl", "ttlid");
 					lookup->nottl = ISC_TF(!state);
-#ifdef DIG_SIGCHASE
-					nottl = ISC_TF(!state);
-#endif
 					break;
 				case 'u': /* ttlunits */
 					FULLCHECK("ttlunits");
 					lookup->nottl = ISC_FALSE;
 					lookup->ttlunits = ISC_TF(state);
-#ifdef DIG_SIGCHASE
-					nottl = ISC_FALSE;
-					ttlunits = ISC_TF(state);
-#endif
 					break;
 				default:
 					goto invalid_option;
@@ -2288,9 +2170,6 @@ main(int argc, char **argv) {
 			fclose(batchfp);
 		batchname = NULL;
 	}
-#ifdef DIG_SIGCHASE
-	clean_trustedkey();
-#endif
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();
