@@ -6408,10 +6408,9 @@ options {
 		<para>
 		  The glue cache uses memory proportional to the number
 		  of delegations in the zone. The default setting is
-		  <userinput>yes</userinput> which improves performance
+		  <userinput>yes</userinput>, which improves performance
 		  at the cost of increased memory usage for the zone. If
-		  you don't want this, please set it to
-		  <userinput>no</userinput>.
+		  you don't want this, set it to <userinput>no</userinput>.
 		</para>
 		<para>
 		  The glue cache is only used when

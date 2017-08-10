@@ -42,9 +42,7 @@
 			[RT #44696]
 
 4664.	[func]		Add a "glue-cache" option to enable or disable the
-			glue cache. The default is "no" to reduce memory
-			usage, but enabling this option will improve
-			performance in delegation-heavy zones. [RT #45125]
+			glue cache. The default is "yes". [RT #45125]
 
 4663.	[cleanup]	Clarify error message printed by dnssec-dsfromkey.
 			[RT #21731]
