@@ -1,3 +1,6 @@
+4676.	[cleanup]	Allow BIND to be built using OpenSSL 1.0.X with
+			deprecated functions removed. [RT #45706]
+
 4675.	[cleanup]	Don't use C++ keyword class. [RT #45726]
 
 4673.	[port]		Silence GCC 7 warnings. [RT #45592]
