@@ -6406,11 +6406,12 @@ options {
 		  delegate to a child zone.
 		</para>
 		<para>
-		  The glue cache uses memory proportional to the
-		  number of delegations in the zone. The default
-		  setting is <userinput>no</userinput>. Setting it to
-		  <userinput>yes</userinput> will improve performance
-		  at the cost of increased memory usage for the zone.
+		  The glue cache uses memory proportional to the number
+		  of delegations in the zone. The default setting is
+		  <userinput>yes</userinput> which improves performance
+		  at the cost of increased memory usage for the zone. If
+		  you don't want this, please set it to
+		  <userinput>no</userinput>.
 		</para>
 		<para>
 		  The glue cache is only used when

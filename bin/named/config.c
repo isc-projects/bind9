@@ -138,7 +138,7 @@ options {\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
 	auth-nxdomain false;\n\
-	glue-cache no;\n\
+	glue-cache yes;\n\
 	minimal-any false;\n\
 	minimal-responses true;\n\
 	recursion true;\n\
