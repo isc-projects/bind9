@@ -366,7 +366,7 @@ struct_tk_list tk_list = { {NULL, NULL, NULL, NULL, NULL}, 0};
 #ifdef DIG_SIGCHASE
 isc_result_t
 (*dighost_printrdataset)(dns_name_t *owner_name, dns_rdataset_t *rdataset,
-          isc_buffer_t *target);
+	  isc_buffer_t *target);
 #endif
 
 isc_result_t
