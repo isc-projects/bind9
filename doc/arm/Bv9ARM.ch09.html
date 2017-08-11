@@ -280,10 +280,8 @@
 	    <p>
 	      In place of the acache, <span class="command"><strong>named</strong></span> can now use
 	      a glue cache to speed up retrieval of glue records when sending
-	      delegation responses. Use <span class="command"><strong>glue-cache yes;</strong></span>
-	      to enable this feature. Because it increases memory usage,
-	      the glue cache is disabled by default, but it can signifiantly
-	      increase performance when serving delegation-heavy zones.
+	      delegation responses.  Unlike acache, this feature is on by
+	      default; use <span class="command"><strong>glue-cache no;</strong></span> to disable it.
 	    </p>
 	  </li>
 <li class="listitem">
