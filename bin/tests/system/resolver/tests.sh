@@ -44,7 +44,7 @@ if [ -x ${RESOLVE} ] ; then
    echo "I:checking that local bound address can be set (Can't query from a denied address) ($n)"
    ret=0
    ${RESOLVE} -b 10.53.0.8 -p 5300 -t a -s 10.53.0.1 www.example.org 2> resolve.out.ns1.test${n} || ret=1
-   grep "resolution failed: SERVFAIL" resolve.out.ns1.test${n} > /dev/null || ret=1
+   grep -E "resolution failed: (SERVFAIL|failure)" resolve.out.ns1.test${n} > /dev/null || ret=1
    if [ $ret != 0 ]; then echo "I:failed"; fi
    status=`expr $status + $ret`
 
@@ -85,7 +85,7 @@ if [ -x ${RESOLVE} ] ; then
     echo "I:checking handling of bogus referrals using dns_client ($n)"
     ret=0
     ${RESOLVE} -p 5300 -t a -s 10.53.0.1 www.example.com 2> resolve.out.ns1.test${n} || ret=1
-    grep "resolution failed: SERVFAIL" resolve.out.ns1.test${n} > /dev/null || ret=1
+    grep -E "resolution failed: (SERVFAIL|failure)" resolve.out.ns1.test${n} > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi
