@@ -267,7 +267,7 @@ help(void) {
 /*%
  * Callback from dighost.c to print the received message.
  */
-void
+static void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	time_t tnow;
@@ -335,7 +335,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
  * Not used in dig.
  * XXX print_trying
  */
-void
+static void
 trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(frm);
 	UNUSED(lookup);
@@ -434,7 +434,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	return (ISC_R_SUCCESS);
 }
 #ifdef DIG_SIGCHASE
-isc_result_t
+static isc_result_t
 printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 	      isc_buffer_t *target)
 {
@@ -520,7 +520,7 @@ isdotlocal(dns_message_t *msg) {
 /*
  * Callback from dighost.c to print the reply from a server
  */
-isc_result_t
+static isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_result_t result;
 	dns_messagetextflag_t flags;
@@ -2093,8 +2093,8 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
  * Here, we're possibly reading from a batch file, then shutting down
  * for real if there's nothing in the batch file to read.
  */
-void
-dighost_shutdown(void) {
+static void
+query_finished(void) {
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
@@ -2140,41 +2140,92 @@ dighost_shutdown(void) {
 	}
 }
 
-/*% Main processing routine for dig */
-int
-main(int argc, char **argv) {
+void dig_setup(int argc, char **argv)
+{
 	isc_result_t result;
 
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
-	debug("main()");
-	preparse_args(argc, argv);
+	debug("dig_setup()");
+
+	/* setup dighost callbacks */
+#ifdef DIG_SIGCHASE
+	dighost_printrdataset = printrdataset;
+#endif
+	dighost_printmessage = printmessage;
+	dighost_received = received;
+	dighost_trying = trying;
+	dighost_shutdown = query_finished;
+
 	progname = argv[0];
+	preparse_args(argc, argv);
+
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
+
 	setup_libs();
-	parse_args(ISC_FALSE, ISC_FALSE, argc, argv);
 	setup_system();
+}
+
+void dig_query_setup(isc_boolean_t is_batchfile, isc_boolean_t config_only,
+		int argc, char **argv)
+{
+	debug("dig_query_setup");
+
+	parse_args(is_batchfile, config_only, argc, argv);
+	if (keyfile[0] != 0)
+		setup_file_key();
+	else if (keysecret[0] != 0)
+		setup_text_key();
 	if (domainopt[0] != '\0') {
 		set_search_domain(domainopt);
 		usesearch = ISC_TRUE;
 	}
+}
+
+void dig_startup() {
+	isc_result_t result;
+
+	debug("dig_startup()");
+
 	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
 	check_result(result, "isc_app_onrun");
 	isc_app_run();
+}
+
+void dig_query_start()
+{
+	start_lookup();
+}
+
+void
+dig_shutdown() {
 	destroy_lookup(default_lookup);
 	if (batchname != NULL) {
 		if (batchfp != stdin)
 			fclose(batchfp);
 		batchname = NULL;
 	}
+
 #ifdef DIG_SIGCHASE
 	clean_trustedkey();
 #endif
+
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();
+}
+
+/*% Main processing routine for dig */
+int
+main(int argc, char **argv) {
+
+	dig_setup(argc, argv);
+	dig_query_setup(ISC_FALSE, ISC_FALSE, argc, argv);
+	dig_startup();
+	dig_shutdown();
+
 	return (exitcode);
 }

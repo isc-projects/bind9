@@ -361,6 +361,29 @@ struct_tk_list tk_list = { {NULL, NULL, NULL, NULL, NULL}, 0};
 		     "isc_mutex_unlock");\
 }
 
+/* dynamic callbacks */
+
+#ifdef DIG_SIGCHASE
+isc_result_t
+(*dighost_printrdataset)(dns_name_t *owner_name, dns_rdataset_t *rdataset,
+          isc_buffer_t *target);
+#endif
+
+isc_result_t
+(*dighost_printmessage)(dig_query_t *query, dns_message_t *msg,
+	isc_boolean_t headers);
+
+void
+(*dighost_received)(int bytes, isc_sockaddr_t *from, dig_query_t *query);
+
+void
+(*dighost_trying)(char *frm, dig_lookup_t *lookup);
+
+void
+(*dighost_shutdown)(void);
+
+/* forward declarations */
+
 static void
 cancel_lookup(dig_lookup_t *lookup);
 
@@ -975,8 +998,7 @@ requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	return (looknew);
 }
 
-
-static void
+void
 setup_text_key(void) {
 	isc_result_t result;
 	dns_name_t keyname;
@@ -1254,7 +1276,7 @@ read_confkey(void) {
 	return (result);
 }
 
-static void
+void
 setup_file_key(void) {
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;
@@ -2419,7 +2441,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		}
 	}
 	dns_name_format(lookup->name, store, sizeof(store));
-	trying(store, lookup);
+	dighost_trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
 	isc_random_get(&id);
@@ -2719,7 +2741,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	/* XXX qrflag, print_query, etc... */
 	if (!ISC_LIST_EMPTY(lookup->q) && qr) {
 		extrabytes = 0;
-		printmessage(ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
+		dighost_printmessage(ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
 			     ISC_TRUE);
 	}
 	return (ISC_TRUE);
@@ -3491,7 +3513,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	launch_next_query(query, ISC_FALSE);
 	return (ISC_FALSE);
  doexit:
-	received(sevent->n, &sevent->address, query);
+	dighost_received(sevent->n, &sevent->address, query);
 	return (ISC_TRUE);
 }
 
@@ -3998,21 +4020,21 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (msg->rcode == dns_rcode_nxdomain &&
 		    (l->origin != NULL || l->need_search)) {
 			if (!next_origin(query->lookup) || showsearch) {
-				printmessage(query, msg, ISC_TRUE);
-				received(b->used, &sevent->address, query);
+				dighost_printmessage(query, msg, ISC_TRUE);
+				dighost_received(b->used, &sevent->address, query);
 			}
 		} else if (!l->trace && !l->ns_search_only) {
 #ifdef DIG_SIGCHASE
 			if (!do_sigchase)
 #endif
-				printmessage(query, msg, ISC_TRUE);
+				dighost_printmessage(query, msg, ISC_TRUE);
 		} else if (l->trace) {
 			int nl = 0;
 			int count = msg->counts[DNS_SECTION_ANSWER];
 
 			debug("in TRACE code");
 			if (!l->ns_search_only)
-				printmessage(query, msg, ISC_TRUE);
+				dighost_printmessage(query, msg, ISC_TRUE);
 
 			l->rdtype = l->qrdtype;
 			if (l->trace_root || (l->ns_search_only && count > 0)) {
@@ -4046,7 +4068,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 #ifdef DIG_SIGCHASE
 				if (!do_sigchase)
 #endif
-				printmessage(query, msg, ISC_TRUE);
+				dighost_printmessage(query, msg, ISC_TRUE);
 		}
 #ifdef DIG_SIGCHASE
 		if (do_sigchase) {
@@ -4120,7 +4142,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 #ifdef DIG_SIGCHASE
 			if (!l->sigchase)
 #endif
-				received(b->used, &sevent->address, query);
+				dighost_received(b->used, &sevent->address, query);
 		}
 
 		if (!query->lookup->ns_search_only)
@@ -5128,7 +5150,7 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset)
 	result = isc_buffer_allocate(mctx, &b, 9000);
 	check_result(result, "isc_buffer_allocate");
 
-	printrdataset(name, rdataset, b);
+	dighost_printrdataset(name, rdataset, b);
 
 	isc_buffer_usedregion(b, &r);
 	r.base[r.length] = '\0';
