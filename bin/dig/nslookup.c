@@ -156,8 +156,8 @@ rcode_totext(dns_rcode_t rcode)
 	return totext.deconsttext;
 }
 
-void
-dighost_shutdown(void) {
+static void
+query_finished(void) {
 	isc_event_t *event = global_event;
 
 	flush_lookup_list();
@@ -207,7 +207,7 @@ printaddr(dns_rdata_t *rdata) {
 
 #ifdef DIG_SIGCHASE
 /* Just for compatibility : not use in host program */
-isc_result_t
+static isc_result_t
 printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 	      isc_buffer_t *target)
 {
@@ -398,7 +398,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	return (ISC_R_SUCCESS);
 }
 
-void
+static void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
 {
 	UNUSED(bytes);
@@ -406,11 +406,10 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
 	UNUSED(query);
 }
 
-void
+static void
 trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(frm);
 	UNUSED(lookup);
-
 }
 
 static void
@@ -438,7 +437,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 	}
 }
 
-isc_result_t
+static isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	char servtext[ISC_SOCKADDR_FORMATSIZE];
 
@@ -984,6 +983,15 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	check_ra = ISC_TRUE;
+
+	/* setup dighost callbacks */
+#ifdef DIG_SIGCHASE
+	dighost_printrdataset = printrdataset;
+#endif
+	dighost_printmessage = printmessage;
+	dighost_received = received;
+	dighost_trying = trying;
+	dighost_shutdown = query_finished;
 
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
