@@ -163,12 +163,12 @@ show_usage(void) {
 	exit(1);
 }
 
-void
-dighost_shutdown(void) {
-	isc_app_shutdown();
+static void
+host_shutdown(void) {
+	(void) isc_app_shutdown();
 }
 
-void
+static void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_time_t now;
 	int diff;
@@ -183,7 +183,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	}
 }
 
-void
+static void
 trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 
@@ -403,7 +403,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 	}
 }
 
-isc_result_t
+static isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
 	dns_rdataset_t *opt, *tsig = NULL;
@@ -889,6 +889,12 @@ main(int argc, char **argv) {
 #ifdef WITH_IDN
 	idnoptions = IDN_ASCCHECK;
 #endif
+
+	/* setup dighost callbacks */
+	dighost_printmessage = printmessage;
+	dighost_received = received;
+	dighost_trying = trying;
+	dighost_shutdown = host_shutdown;
 
 	debug("main()");
 	progname = argv[0];

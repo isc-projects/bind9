@@ -1,3 +1,6 @@
+4677.	[port]		Split up the main function in dig to better support
+			the iOS app version. [RT #45508]
+
 4676.	[cleanup]	Allow BIND to be built using OpenSSL 1.0.X with
 			deprecated functions removed. [RT #45706]
 
