@@ -1888,7 +1888,6 @@ server_clauses[] = {
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
-	{ "tcp-only", &cfg_type_boolean, 0 },
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
@@ -1903,6 +1902,7 @@ server_clauses[] = {
 	  CFG_CLAUSEFLAG_EXPERIMENTAL | CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "tcp-only", &cfg_type_boolean, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
