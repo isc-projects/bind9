@@ -183,7 +183,7 @@ mem_realloc(void *ptr, size_t size FLARG) {
 static void
 _set_thread_id(CRYPTO_THREADID *id)
 {
-	CRYPTO_THREADID_set_numeric(id, (unsigned long)pthread_self());
+	CRYPTO_THREADID_set_numeric(id, (unsigned long)isc_thread_self());
 }
 #endif
 
