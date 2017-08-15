@@ -189,7 +189,7 @@ options {
         fstrm-set-output-queue-size <integer>; // not configured
         fstrm-set-reopen-interval <integer>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
-        geoip-use-ecs ( <quoted_string> | none ); // not configured
+        geoip-use-ecs <boolean>; // not configured
         glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
