@@ -16,7 +16,7 @@
 #include <locale.h>
 #endif
 
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 #include <idn/result.h>
 #include <idn/log.h>
 #include <idn/resconf.h>
