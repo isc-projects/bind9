@@ -22,7 +22,7 @@ SYSTEMTESTTOP=..
 pzone=parent.nil pfile=parent.db
 czone=child.parent.nil cfile=child.db
 status=0
-n=0
+n=1
 
 echo "I:setting key timers"
 $SETTIME -A now+15s `cat rolling.key` > /dev/null
@@ -145,16 +145,21 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking warning about permissions change on key with dnssec-settime ($n)"
-ret=0
-# settime should print a warning about changing the permissions
-chmod 644 `cat oldstyle.key`.private
-$SETTIME -P none `cat oldstyle.key` > tmp.out 2>&1 || ret=1
-grep "warning" tmp.out > /dev/null 2>&1 || ret=1
-$SETTIME -P none `cat oldstyle.key` > tmp.out 2>&1 || ret=1
-grep "warning" tmp.out > /dev/null 2>&1 && ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+uname=`uname -o 2> /dev/null`
+if [ Cygwin == "$uname"  ]; then
+	echo "I: Cygwin detected, skipping"
+else
+	ret=0
+	# settime should print a warning about changing the permissions
+	chmod 644 `cat oldstyle.key`.private
+	$SETTIME -P none `cat oldstyle.key` > settime1.test$n 2>&1 || ret=1
+	grep "warning: Permissions on the file.*have changed" settime1.test$n > /dev/null 2>&1 || ret=1
+	$SETTIME -P none `cat oldstyle.key` > settime2.test$n 2>&1 || ret=1
+	grep "warning: Permissions on the file.*have changed" settime2.test$n > /dev/null 2>&1 && ret=1
+	n=`expr $n + 1`
+	if [ $ret != 0 ]; then echo "I:failed"; fi
+	status=`expr $status + $ret`
+fi
 
 echo "I:checking warning about delete date < inactive date with dnssec-settime ($n)"
 ret=0
