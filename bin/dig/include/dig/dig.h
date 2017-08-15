@@ -126,6 +126,7 @@ struct dig_lookup {
 		use_usec,
 		nocrypto,
 		ttlunits,
+		idnin,
 		idnout,
 		qr;
 	char textname[MXNAME]; /*% Name we're going to be looking up */
@@ -265,7 +266,7 @@ extern char *progname;
 extern int tries;
 extern int fatalexit;
 extern isc_boolean_t verbose;
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 extern int idnoptions;
 #endif
 
