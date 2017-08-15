@@ -110,8 +110,6 @@ struct dns_client {
 
 #define DNS_CLIENTATTR_OWNCTX			0x01
 
-#define DNS_CLIENTVIEW_NAME			"dnsclient"
-
 /*%
  * Internal state for a single name resolution procedure
  */

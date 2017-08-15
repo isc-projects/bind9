@@ -475,6 +475,12 @@
 	  [RT #42793]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The view associated with the query is now logged unless it
+	  it is "_default/IN" or "_dnsclient/IN".
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

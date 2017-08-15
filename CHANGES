@@ -1,3 +1,7 @@
+4681.	[bug]		Log messages from the validator now include the
+			associated view unless the view is "_default/IN"
+			or "_dnsclient/IN". [RT #45770]
+
 4680.	[bug]		Fix failing over to another master server address when
 			nsupdate is used with GSS-API. [RT #45380]
 

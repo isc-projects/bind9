@@ -97,6 +97,11 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTUPDOPT_TCP		0x02
 
 /*%
+ * View name used in dns_client.
+ */
+#define DNS_CLIENTVIEW_NAME			"_dnsclient"
+
+/*%
  * A dns_clientresevent_t is sent when name resolution performed by a client
  * completes.  'result' stores the result code of the entire resolution
  * procedure.  'vresult' specifically stores the result code of DNSSEC
