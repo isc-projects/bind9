@@ -1835,7 +1835,7 @@
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2013,2014,2016,2017
 ./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2013,2014,2016
 ./bin/tests/system/metadata/child.db		ZONE	2009,2016
-./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014,2016
+./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014,2016,2017
 ./bin/tests/system/metadata/parent.db		ZONE	2009,2016
 ./bin/tests/system/metadata/prereq.sh		SH	2009,2012,2014,2016
 ./bin/tests/system/metadata/setup.sh		SH	2009,2011,2012,2014,2016,2017
