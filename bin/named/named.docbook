@@ -62,8 +62,10 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>named</command>
-      <arg choice="opt" rep="norepeat"><option>-4</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      <group choice="opt" rep="norepeat">
+	<arg choice="opt" rep="norepeat"><option>-4</option></arg>
+	<arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      </group>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-d <replaceable class="parameter">debug-level</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-E <replaceable class="parameter">engine-name</replaceable></option></arg>
