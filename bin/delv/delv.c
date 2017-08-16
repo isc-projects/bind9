@@ -1367,6 +1367,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
  */
 static void
 preparse_args(int argc, char **argv) {
+	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
 	char *option;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
@@ -1374,10 +1375,23 @@ preparse_args(int argc, char **argv) {
 			continue;
 		option = &argv[0][1];
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
-			if (option[0] == 'm') {
+			switch (option[0]) {
+			case 'm':
 				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 					ISC_MEM_DEBUGRECORD;
-				return;
+				break;
+			case '4':
+				if (ipv6only) {
+					fatal("only one of -4 and -6 allowed");
+				}
+				ipv4only = ISC_TRUE;
+				break;
+			case '6':
+				if (ipv4only) {
+					fatal("only one of -4 and -6 allowed");
+				}
+				ipv6only = ISC_TRUE;
+				break;
 			}
 			option = &option[1];
 		}
@@ -1565,8 +1579,8 @@ main(int argc, char *argv[]) {
 	struct sigaction sa;
 #endif
 
-	preparse_args(argc, argv);
 	progname = argv[0];
+	preparse_args(argc, argv);
 
 	argc--;
 	argv++;
