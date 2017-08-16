@@ -850,24 +850,13 @@ setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
 	lwres_result_t lwresult;
-	unsigned int attrs, attrmask;
+	unsigned int attrs, attrmask, flags;
 	int i;
 	isc_logconfig_t *logconfig = NULL;
 
 	ddebug("setup_system()");
 
 	dns_result_register();
-
-	result = isc_net_probeipv4();
-	if (result == ISC_R_SUCCESS)
-		have_ipv4 = ISC_TRUE;
-
-	result = isc_net_probeipv6();
-	if (result == ISC_R_SUCCESS)
-		have_ipv6 = ISC_TRUE;
-
-	if (!have_ipv4 && !have_ipv6)
-		fatal("could not find either IPv4 or IPv6");
 
 	result = isc_log_create(gmctx, &glctx, &logconfig);
 	check_result(result, "isc_log_create");
@@ -881,7 +870,16 @@ setup_system(void) {
 
 	isc_log_setdebuglevel(glctx, logdebuglevel);
 
-	lwresult = lwres_context_create(&lwctx, gmctx, mem_alloc, mem_free, 1);
+	flags = LWRES_CONTEXT_SERVERMODE;
+	if (have_ipv4) {
+		flags |= LWRES_CONTEXT_USEIPV4;
+	}
+	if (have_ipv6) {
+		flags |= LWRES_CONTEXT_USEIPV6;
+	}
+
+	lwresult = lwres_context_create(&lwctx, gmctx, mem_alloc, mem_free,
+					flags);
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
@@ -909,15 +907,15 @@ setup_system(void) {
 		if (servers == NULL)
 			fatal("out of memory");
 
-		if (have_ipv4) {
-			in.s_addr = htonl(INADDR_LOOPBACK);
-			isc_sockaddr_fromin(&servers[0], &in, dnsport);
-		}
 		if (have_ipv6) {
 			memset(&in6, 0, sizeof(in6));
 			in6.s6_addr[15] = 1;
-			isc_sockaddr_fromin6(&servers[(have_ipv4 ? 1 : 0)],
-					     &in6, dnsport);
+			isc_sockaddr_fromin6(&servers[0], &in6, dnsport);
+		}
+		if (have_ipv4) {
+			in.s_addr = htonl(INADDR_LOOPBACK);
+			isc_sockaddr_fromin(&servers[(have_ipv6 ? 1 : 0)],
+					    &in, dnsport);
 		}
 	} else {
 		ns_total = ns_alloc = lwconf->nsnext;
@@ -1034,7 +1032,7 @@ version(void) {
 	fputs("nsupdate " VERSION "\n", stderr);
 }
 
-#define PARSE_ARGS_FMT "dDML:y:ghilovk:p:Pr:R::t:Tu:V"
+#define PARSE_ARGS_FMT "46dDML:y:ghilovk:p:Pr:R::t:Tu:V"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -1042,6 +1040,7 @@ pre_parse_args(int argc, char **argv) {
 	int ch;
 	char buf[100];
 	isc_boolean_t doexit = ISC_FALSE;
+	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
 
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
@@ -1053,6 +1052,20 @@ pre_parse_args(int argc, char **argv) {
 					    ISC_MEM_DEBUGRECORD;
 			break;
 
+		case '4':
+			if (ipv6only) {
+				fatal("only one of -4 and -6 allowed");
+			}
+			ipv4only = ISC_TRUE;
+			break;
+
+		case '6':
+			if (ipv4only) {
+				fatal("only one of -4 and -6 allowed");
+			}
+			ipv6only = ISC_TRUE;
+			break;
+
 		case '?':
 		case 'h':
 			if (isc_commandline_option != '?')
@@ -1060,7 +1073,7 @@ pre_parse_args(int argc, char **argv) {
 					argv[0], isc_commandline_option);
 			fprintf(stderr, "usage: nsupdate [-dDi] [-L level] [-l]"
 				"[-g | -o | -y keyname:secret | -k keyfile] "
-				"[-v] [-V] [-P] [-T] [filename]\n");
+				"[-v] [-V] [-P] [-T] [-4 | -6] [filename]\n");
 			exit(1);
 
 		case 'P':
@@ -1110,6 +1123,22 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	debug("parse_args");
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
+		case '4':
+			if (have_ipv4) {
+				isc_net_disableipv6();
+				have_ipv6 = ISC_FALSE;
+			} else {
+				fatal("can't find IPv4 networking");
+			}
+			break;
+		case '6':
+			if (have_ipv6) {
+				isc_net_disableipv4();
+				have_ipv4 = ISC_FALSE;
+			} else {
+				fatal("can't find IPv6 networking");
+			}
+			break;
 		case 'd':
 			debugging = ISC_TRUE;
 			break;
@@ -3288,6 +3317,16 @@ main(int argc, char **argv) {
 	interactive = ISC_TF(isatty(0));
 
 	isc_app_start();
+
+	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
+		have_ipv4 = ISC_TRUE;
+	}
+	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+		have_ipv6 = ISC_TRUE;
+	}
+	if (!have_ipv4 && !have_ipv6) {
+		fatal("could not find either IPv4 or IPv6");
+	}
 
 	pre_parse_args(argc, argv);
 

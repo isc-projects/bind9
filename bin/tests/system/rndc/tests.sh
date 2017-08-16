@@ -639,5 +639,21 @@ grep "rndc: '' failed: failure" rndc.out.1.test$n > /dev/null
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:check rndc -4 -6 ($n)"
+ret=0
+$RNDCCMD -4 -6 status > rndc.out.1.test$n 2>&1 && ret=1
+grep "only one of -4 and -6 allowed" rndc.out.1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I:check rndc -4 with an IPv6 server address ($n)"
+ret=0
+$RNDCCMD -4 -s fd92:7065:b8e:ffff::2 status > rndc.out.1.test$n 2>&1 && ret=1
+grep "address family not supported" rndc.out.1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -183,6 +183,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>nsupdate</command> and <command>rndc</command> now accept
+	  command line options <command>-4</command> and <command>-6</command>
+	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>nsec3hash -r</command> ("rdata order") takes arguments
 	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
 	  This makes it easier to generate an NSEC3 hash using values cut

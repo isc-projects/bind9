@@ -55,6 +55,10 @@
       <arg choice="opt" rep="norepeat"><option>-r</option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
       <arg choice="opt" rep="norepeat"><option>-y <replaceable class="parameter">key_id</replaceable></option></arg>
+      <group choice="opt" rep="norepeat">
+	<arg choice="opt" rep="norepeat"><option>-4</option></arg>
+	<arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      </group>
       <arg choice="req" rep="norepeat">command</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -95,6 +99,24 @@
 
 
     <variablelist>
+      <varlistentry>
+	<term>-4</term>
+	<listitem>
+	  <para>
+	    Use IPv4 only.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-6</term>
+	<listitem>
+	  <para>
+	    Use IPv6 only.
+	  </para>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
 	<term>-b <replaceable class="parameter">source-address</replaceable></term>
 	<listitem>

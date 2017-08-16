@@ -1,3 +1,6 @@
+4691.	[func]		Add -4/-6 command line options to nsupdate and rndc.
+			[RT #45632]
+
 4690.	[bug]		Command line options -4/-6 were handled inconsistently
 			between tools. [RT #45632]
 

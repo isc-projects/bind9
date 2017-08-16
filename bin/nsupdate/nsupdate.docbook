@@ -71,6 +71,10 @@
       <arg choice="opt" rep="norepeat"><option>-T</option></arg>
       <arg choice="opt" rep="norepeat"><option>-P</option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
+      <group choice="opt" rep="norepeat">
+	<arg choice="opt" rep="norepeat"><option>-4</option></arg>
+	<arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      </group>
       <arg choice="opt" rep="norepeat">filename</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -138,6 +142,24 @@
 
 
     <variablelist>
+      <varlistentry>
+	<term>-4</term>
+	<listitem>
+	  <para>
+	    Use IPv4 only.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-6</term>
+	<listitem>
+	  <para>
+	    Use IPv6 only.
+	  </para>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
 	<term>-d</term>
 	<listitem>

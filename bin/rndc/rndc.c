@@ -92,7 +92,7 @@ static void
 usage(int status) {
 	fprintf(stderr, "\
 Usage: %s [-b address] [-c config] [-s server] [-p port]\n\
-	[-k key-file ] [-y key] [-r] [-V] command\n\
+	[-k key-file ] [-y key] [-r] [-V] [-4 | -6] command\n\
 \n\
 command is one of the following:\n\
 \n\
@@ -209,6 +209,36 @@ Version: %s\n",
 		progname, version);
 
 	exit(status);
+}
+
+#define CMDLINE_FLAGS "46b:c:hk:Mmp:qrs:Vy:"
+
+static void
+preparse_args(int argc, char **argv) {
+	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
+	int ch;
+
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+		switch (ch) {
+		case '4':
+			if (ipv6only) {
+				fatal("only one of -4 and -6 allowed");
+			}
+			ipv4only = ISC_TRUE;
+			break;
+		case '6':
+			if (ipv4only) {
+				fatal("only one of -4 and -6 allowed");
+			}
+			ipv6only = ISC_TRUE;
+			break;
+		default:
+			break;
+		}
+	}
+
+	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_index = 1;
 }
 
 static void
@@ -802,9 +832,22 @@ main(int argc, char **argv) {
 
 	isc_commandline_errprint = ISC_FALSE;
 
-	while ((ch = isc_commandline_parse(argc, argv, "b:c:hk:Mmp:qrs:Vy:"))
-	       != -1) {
+	preparse_args(argc, argv);
+
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
+		case '4':
+			if (isc_net_probeipv4() != ISC_R_SUCCESS) {
+				fatal("can't find IPv4 networking");
+			}
+			isc_net_disableipv6();
+			break;
+		case '6':
+			if (isc_net_probeipv6() != ISC_R_SUCCESS) {
+				fatal("can't find IPv6 networking");
+			}
+			isc_net_disableipv4();
+			break;
 		case 'b':
 			if (inet_pton(AF_INET, isc_commandline_argument,
 				      &in) == 1) {

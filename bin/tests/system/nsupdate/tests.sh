@@ -90,7 +90,7 @@ pre=`$DIG +short new.other.nil. @10.53.0.1 a -p 5300` || ret=1
 ret=0
 echo "I:updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE -l -p 5300 -k ns1/session.key > /dev/null <<END || ret=1
+$NSUPDATE -4 -l -p 5300 -k ns1/session.key > /dev/null <<END || ret=1
 zone other.nil.
 update add new.other.nil. 600 IN A 10.10.10.1
 send
@@ -114,13 +114,13 @@ $PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || ret=1
 ret=0
 echo "I:testing zone consistency checks"
 # inserting an NS record without a corresponding A or AAAA record should fail
-$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END && ret=1
+$NSUPDATE -4 -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END && ret=1
 update add other.nil. 600 in ns ns3.other.nil.
 send
 END
 grep REFUSED nsupdate.out > /dev/null 2>&1 || ret=1
 # ...but should work if an A record is inserted first:
-$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
+$NSUPDATE -4 -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
 update add ns4.other.nil 600 in a 10.53.0.1
 send
 update add other.nil. 600 in ns ns4.other.nil.
@@ -128,7 +128,7 @@ send
 END
 grep REFUSED nsupdate.out > /dev/null 2>&1 && ret=1
 # ...or if an AAAA record does:
-$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
+$NSUPDATE -4 -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
 update add ns5.other.nil 600 in aaaa 2001:db8::1
 send
 update add other.nil. 600 in ns ns5.other.nil.
@@ -136,7 +136,7 @@ send
 END
 grep REFUSED nsupdate.out > /dev/null 2>&1 && ret=1
 # ...or if the NS and A/AAAA are inserted together:
-$NSUPDATE -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
+$NSUPDATE -4 -l -p 5300 -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
 update add other.nil. 600 in ns ns6.other.nil.
 update add ns6.other.nil 600 in a 10.53.0.1
 send
@@ -457,7 +457,7 @@ $PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || ret=1
 
 ret=0
 echo "I:check that 'nsupdate -l' with a missing keyfile reports the missing file"
-$NSUPDATE -l -p 5300 -k ns1/nonexistant.key 2> nsupdate.out < /dev/null
+$NSUPDATE -4 -l -p 5300 -k ns1/nonexistant.key 2> nsupdate.out < /dev/null
 grep ns1/nonexistant.key nsupdate.out > /dev/null || ret=1
 if test $ret -ne 0
 then
@@ -814,6 +814,32 @@ $NSUPDATE -i <<END > nsupdate.out 2>&1 || ret=1
     server unresolvable..
 END
 grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:check nsupdate -4 -6 ($n)"
+$NSUPDATE -4 -6 <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 5300
+zone delegation.test.
+update del child.delegation.test. 3600 NS foo.example.net.
+update del child.delegation.test. 3600 NS bar.example.net.
+send
+END
+grep "only one of -4 and -6 allowed" nsupdate.out-$n > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo "I:check nsupdate -4 with an IPv6 server address ($n)"
+$NSUPDATE -4 <<END > nsupdate.out-$n 2>&1 && ret=1
+server fd92:7065:b8e:ffff::2 5300
+zone delegation.test.
+update del child.delegation.test. 3600 NS foo.example.net.
+update del child.delegation.test. 3600 NS bar.example.net.
+send
+END
+grep "address family not supported" nsupdate.out-$n > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
 #
