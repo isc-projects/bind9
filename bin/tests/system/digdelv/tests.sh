@@ -491,6 +491,14 @@ if [ -x ${DELV} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo "I:checking delv -4 -6 ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -4 -6 A a.example > delv.out.test$n 2>&1 && ret=1
+  grep "only one of -4 and -6 allowed" < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   echo "I:checking delv with IPv6 on IPv4 does not work ($n)"
   if $TESTSOCK6 fd92:7065:b8e:ffff::3 2>/dev/null
   then
