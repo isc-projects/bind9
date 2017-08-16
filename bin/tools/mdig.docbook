@@ -43,8 +43,10 @@
       <arg choice="opt" rep="norepeat"><option>-f <replaceable class="parameter">filename</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-4</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      <group choice="opt" rep="norepeat">
+	<arg choice="opt" rep="norepeat"><option>-4</option></arg>
+	<arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      </group>
       <arg choice="opt" rep="norepeat"><option>-m</option></arg>
       <arg choice="opt" rep="norepeat"><option>-b <replaceable class="parameter">address</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-p <replaceable class="parameter">port#</replaceable></option></arg>

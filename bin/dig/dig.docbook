@@ -67,8 +67,10 @@
       <arg choice="opt" rep="norepeat"><option>-v</option></arg>
       <arg choice="opt" rep="norepeat"><option>-x <replaceable class="parameter">addr</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-y <replaceable class="parameter"><optional>hmac:</optional>name:key</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-4</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      <group choice="opt" rep="norepeat">
+	<arg choice="opt" rep="norepeat"><option>-4</option></arg>
+	<arg choice="opt" rep="norepeat"><option>-6</option></arg>
+      </group>
       <arg choice="opt" rep="norepeat">name</arg>
       <arg choice="opt" rep="norepeat">type</arg>
       <arg choice="opt" rep="norepeat">class</arg>
