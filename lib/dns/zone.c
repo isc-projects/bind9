@@ -2949,14 +2949,14 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 * Don't check the NS records at the origin.
 		 */
 		if (dns_name_equal(name, &zone->origin))
-			goto checkmx;
+			goto checkfordname;
 
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ns,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS)
-			goto checkmx;
+			goto checkfordname;
 		/*
-		 * Remember bottom of zone.
+		 * Remember bottom of zone due to NS.
 		 */
 		dns_name_copy(name, bottom, NULL);
 
@@ -2973,7 +2973,18 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		dns_rdataset_disassociate(&rdataset);
 		goto next;
 
- checkmx:
+ checkfordname:
+		result = dns_db_findrdataset(db, node, NULL,
+					     dns_rdatatype_dname, 0, 0,
+					     &rdataset, NULL);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * Remember bottom of zone due to DNAME.
+			 */
+			dns_name_copy(name, bottom, NULL);
+			dns_rdataset_disassociate(&rdataset);
+		}
+
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_mx,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS)
