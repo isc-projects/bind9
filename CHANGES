@@ -1,3 +1,6 @@
+4682.	[bug]		Don't report errors on records below a DNAME.
+			[RT #44880]
+
 4680.	[bug]		Fix failing over to another master server address when
 			nsupdate is used with GSS-API. [RT #45380]
 
