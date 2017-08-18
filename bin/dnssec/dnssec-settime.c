@@ -475,7 +475,7 @@ main(int argc, char **argv) {
 			     &prevdel) == ISC_R_SUCCESS &&
 	     setinact && !setdel && !unsetdel && prevdel < inact) ||
 	    (!setdel && !unsetdel && !setinact && !unsetinact &&
-	     prevdel < previnact))
+	     prevdel != 0 && prevdel < previnact))
 		fprintf(stderr, "%s: warning: Key is scheduled to "
 				"be deleted before it is\n\t"
 				"scheduled to be inactive.\n",
