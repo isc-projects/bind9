@@ -1,3 +1,8 @@
+4686.	[bug]		dnssec-settime -p could print a bogus warning about
+			key deletion scheduled before its inactivation when a
+			key had an inactivation date set but no deletion date
+			set. [RT #45807]
+
 4685.	[bug]		dnssec-settime incorrectly calculated publication and
 			activation dates for a successor key. [RT #45806]
 
