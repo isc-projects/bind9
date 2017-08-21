@@ -1,3 +1,6 @@
+4685.	[bug]		dnssec-settime incorrectly calculated publication and
+			activation dates for a successor key. [RT #45806]
+
 4684.	[bug]		delv could send bogus DNS queries when an explicit
 			server address was specified on the command line along
 			with -4/-6. [RT #45804]

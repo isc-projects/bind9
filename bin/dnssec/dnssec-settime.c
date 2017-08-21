@@ -86,6 +86,11 @@ usage(void) {
 						     "inactivation date\n");
 	fprintf(stderr, "    -D date/[+-]offset/none: set/unset key "
 						     "deletion date\n");
+	fprintf(stderr, "    -S <key>: generate a successor to an existing "
+				      "key\n");
+	fprintf(stderr, "    -i <interval>: prepublication interval for "
+					   "successor key "
+					   "(default: 30 days)\n");
 	fprintf(stderr, "Printing options:\n");
 	fprintf(stderr, "    -p C/P/A/R/I/D/all: print a particular time "
 						"value or values\n");
@@ -388,13 +393,16 @@ main(int argc, char **argv) {
 			      "You must set one before\n\t"
 			      "generating a successor.");
 
-		pub = prevact - prepub;
-		if (pub < now && prepub != 0)
-			fatal("Predecessor will become inactive before the\n\t"
-			      "prepublication period ends.  Either change "
-			      "its inactivation date,\n\t"
-			      "or use the -i option to set a shorter "
-			      "prepublication interval.");
+		pub = previnact - prepub;
+		act = previnact;
+
+		if ((previnact - prepub) < now && prepub != 0)
+			fatal("Time until predecessor inactivation is\n\t"
+			      "shorter than the prepublication interval.  "
+			      "Either change\n\t"
+			      "predecessor inactivation date, or use the -i "
+			      "option to set\n\t"
+			      "a shorter prepublication interval.");
 
 		result = dst_key_gettime(prevkey, DST_TIME_DELETE, &prevdel);
 		if (result != ISC_R_SUCCESS)
