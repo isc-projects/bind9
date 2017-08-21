@@ -789,14 +789,20 @@ addserver(dns_client_t *client) {
 
 	ISC_LIST_INIT(servers);
 
-	if (use_ipv4 && inet_pton(AF_INET, server, &in4) == 1) {
+	if (inet_pton(AF_INET, server, &in4) == 1) {
+		if (!use_ipv4) {
+			fatal("Use of IPv4 disabled by -6");
+		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
 		if (sa == NULL)
 			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin(sa, &in4, destport);
 		ISC_LIST_APPEND(servers, sa, link);
-	} else if (use_ipv6 && inet_pton(AF_INET6, server, &in6) == 1) {
+	} else if (inet_pton(AF_INET6, server, &in6) == 1) {
+		if (!use_ipv6) {
+			fatal("Use of IPv6 disabled by -4");
+		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
 		if (sa == NULL)
 			return (ISC_R_NOMEMORY);
