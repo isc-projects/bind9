@@ -470,15 +470,31 @@ if [ -x ${DELV} ] ; then
   then
     ret=0
     # following should fail because @IPv4 overrides earlier @IPv6 above
-    # and -6 forces IPv6 so this should fail, such as:
-    # ;; getaddrinfo failed: hostname nor servname provided, or not known
-    # ;; resolution failed: not found
-    # note that delv returns success even on lookup failure
-    $DELV $DELVOPTS @fd92:7065:b8e:ffff::3 @10.53.0.3 -6 -t txt foo.example > delv.out.test$n 2>&1 || ret=1
+    # and -6 forces IPv6 so this should fail, with a message
+    # "Use of IPv4 disabled by -6"
+    $DELV $DELVOPTS @fd92:7065:b8e:ffff::3 @10.53.0.3 -6 -t txt foo.example > delv.out.test$n 2>&1
     # it should have no results but error output
     grep "testing" < delv.out.test$n > /dev/null && ret=1
-    grep "getaddrinfo failed:" < delv.out.test$n > /dev/null || ret=1
+    grep "Use of IPv4 disabled by -6" delv.out.test$n > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi 
+    status=`expr $status + $ret`
+  else
+    echo "I:IPv6 unavailable; skipping"
+  fi
+
+  n=`expr $n + 1`
+  echo "I:checking delv with IPv4 on IPv6 does not work ($n)"
+  if $TESTSOCK6 fd92:7065:b8e:ffff::3 2>/dev/null
+  then
+    ret=0
+    # following should fail because @IPv6 overrides earlier @IPv4 above
+    # and -4 forces IPv4 so this should fail, with a message
+    # "Use of IPv6 disabled by -4"
+    $DELV $DELVOPTS @10.53.0.3 @fd92:7065:b8e:ffff::3 -4 -t txt foo.example > delv.out.test$n 2>&1
+    # it should have no results but error output
+    grep "testing" delv.out.test$n > /dev/null && ret=1
+    grep "Use of IPv6 disabled by -4" delv.out.test$n > /dev/null || ret=1
+    if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
   else
     echo "I:IPv6 unavailable; skipping"
