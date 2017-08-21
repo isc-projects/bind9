@@ -196,5 +196,16 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking calculation of dates for a successor key ($n)"
+ret=0
+oldkey=`$KEYGEN -q -r $RANDFILE $czone`
+newkey=`$KEYGEN -q -r $RANDFILE $czone`
+$SETTIME -A -2d -I +2d $oldkey > settime1.test$n 2>&1 || ret=1
+$SETTIME -i 1d -S $oldkey $newkey > settime2.test$n 2>&1 || ret=1
+$SETTIME -pA $newkey | grep "1970" > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

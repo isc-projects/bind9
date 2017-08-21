@@ -58,6 +58,8 @@
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-S <replaceable class="parameter">key</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-h</option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>

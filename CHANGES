@@ -1,3 +1,6 @@
+4685.	[bug]		dnssec-settime incorrectly calculated publication and
+			activation dates for a successor key. [RT #45806]
+
 4683.	[bug]		Prevent nsupdate from immediately exiting on invalid
 			user input in interactive mode. [RT #28194]
 
