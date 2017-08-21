@@ -1,3 +1,7 @@
+4684.	[bug]		delv could send bogus DNS queries when an explicit
+			server address was specified on the command line along
+			with -4/-6. [RT #45804]
+
 4683.	[bug]		Prevent nsupdate from immediately exiting on invalid
 			user input in interactive mode. [RT #28194]
 
