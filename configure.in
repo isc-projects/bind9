@@ -212,6 +212,10 @@ AC_SUBST(PERL)
 AC_ARG_WITH(python,
 [  --with-python=PATH      specify path to python interpreter],
     use_python="$withval", use_python="unspec")
+AC_ARG_WITH(python-install-dir,
+	    AC_HELP_STRING([--with-python-install-dir=PATH],
+			   [installation directory for Python modules]),
+	    use_python_install_dir="$withval", use_python_install_dir="unspec")
 
 python="python python3 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
@@ -268,8 +272,19 @@ case "$use_python" in
                                         unset PYTHON
 				fi
 			done
-			if test "X$PYTHON" = "X"
+			if test "X$PYTHON" != "X"
 			then
+				case "$use_python_install_dir" in
+				unspec)
+					PYTHON_INSTALL_DIR=""
+					PYTHON_INSTALL_LIB=""
+					;;
+				*)
+					PYTHON_INSTALL_DIR="$use_python_install_dir"
+					PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
+					;;
+				esac
+			else
 				AC_MSG_CHECKING([for python support])
 				case "$use_python" in
 				unspec)
@@ -327,6 +342,8 @@ AC_SUBST(CHECKDS)
 AC_SUBST(COVERAGE)
 AC_SUBST(KEYMGR)
 AC_SUBST(PYTHON_TOOLS)
+AC_SUBST(PYTHON_INSTALL_DIR)
+AC_SUBST(PYTHON_INSTALL_LIB)
 
 #
 # Special processing of paths depending on whether --prefix,
