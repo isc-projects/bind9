@@ -55,9 +55,9 @@ install:: ${TARGETS} installdirs
 	${INSTALL_DATA} ${srcdir}/dnssec-coverage.8 ${DESTDIR}${mandir}/man8
 	if test -n "${PYTHON}" ; then \
 		if test -n "${DESTDIR}" ; then \
-			${PYTHON} ${srcdir}/setup.py install --root=${DESTDIR} --prefix=${prefix} ; \
+			${PYTHON} ${srcdir}/setup.py install --root=${DESTDIR} --prefix=${prefix} @PYTHON_INSTALL_LIB@ ; \
 		else \
-			${PYTHON} ${srcdir}/setup.py install --prefix=${prefix} ; \
+			${PYTHON} ${srcdir}/setup.py install --prefix=${prefix} @PYTHON_INSTALL_LIB@ ; \
 		fi ; \
 		rm -rf build ; \
 	fi

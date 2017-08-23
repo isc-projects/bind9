@@ -1,3 +1,7 @@
+4698.	[port]		Add --with-python-install-dir configure option to allow
+			specifying a nonstandard installation directory for
+			Python modules. [RT #45407]
+
 4696.	[port]		Enable filter-aaaa support by default on Windows
 			builds. [RT #45883]
 
