@@ -271,10 +271,6 @@
       </listitem>
       <listitem>
 	<para>
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  Several areas of code have been refactored for improved
 	  readability, maintainability, and testability:
 	</para>
@@ -403,6 +399,11 @@
 	  of OpenSSL at
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/openssl/openssl">https://github.com/openssl/openssl</link>.
 	  [RT #44696]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  EDNS KEY TAG options are verified and printed.
 	</para>
       </listitem>
     </itemizedlist>

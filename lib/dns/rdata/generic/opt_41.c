@@ -176,6 +176,11 @@ fromwire_opt(ARGS_FROMWIRE) {
 				return (DNS_R_OPTERR);
 			isc_region_consume(&sregion, length);
 			break;
+		case DNS_OPT_KEY_TAG:
+			if (length == 0 || (length % 2) != 0)
+				return (DNS_R_OPTERR);
+			isc_region_consume(&sregion, length);
+			break;
 		default:
 			isc_region_consume(&sregion, length);
 			break;

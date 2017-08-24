@@ -1,3 +1,6 @@
+4688.	[protocol]	Check and display EDNS KEY TAG options (RFC 8145) in
+			messages. [RT #44804]
+
 4687.	[func]		Refactor tracklines code. [RT #45126]
 
 4686.	[bug]		dnssec-settime -p could print a bogus warning about
