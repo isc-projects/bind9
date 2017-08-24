@@ -3407,6 +3407,22 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; EXPIRE");
 			} else if (optcode == DNS_OPT_PAD) {
 				ADD_STRING(target, "; PAD");
+			} else if (optcode == DNS_OPT_KEY_TAG) {
+				ADD_STRING(target, "; KEY-TAG");
+				if (optlen > 0U && (optlen % 2U) == 0U) {
+					const char *sep = ": ";
+					isc_uint16_t id;
+					while (optlen > 0U) {
+					    id = isc_buffer_getuint16(&optbuf);
+					    snprintf(buf, sizeof(buf), "%s%u",
+						     sep, id);
+					    ADD_STRING(target, buf);
+					    sep = ", ";
+					    optlen -= 2;
+					}
+					ADD_STRING(target, "\n");
+					continue;
+				}
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);
