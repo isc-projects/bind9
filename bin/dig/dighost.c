@@ -1578,6 +1578,7 @@ dig_ednsoptname_t optnames[] = {
 	{ 12, "PADDING" },	/* RFC 7830 */
 	{ 12, "PAD" },		/* shorthand */
 	{ 13, "CHAIN" },	/* RFC 7901 */
+	{ 14, "KEY-TAG" },	/* RFC 8145 */
 	{ 26946, "DEVICEID" },	/* Brian Hartvigsen */
 };
 

@@ -107,6 +107,7 @@
 #define DNS_OPT_EXPIRE		9		/*%< EXPIRE opt code */
 #define DNS_OPT_COOKIE		10		/*%< COOKIE opt code */
 #define DNS_OPT_PAD		12		/*%< PAD opt code */
+#define DNS_OPT_KEY_TAG		14		/*%< Key tag opt code */
 
 /*%< The number of EDNS options we know about. */
 #define DNS_EDNSOPTIONS	4

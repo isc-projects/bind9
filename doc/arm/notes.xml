@@ -114,6 +114,11 @@
 	  [RT #44696]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  EDNS KEY TAG options are verified and printed.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
