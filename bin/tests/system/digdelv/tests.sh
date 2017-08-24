@@ -407,10 +407,36 @@ if [ -x ${DIG} ] ; then
     echo "I:skipping 'dig +idnout' as IDN support is not enabled ($n)"
   fi
 
+  n=`expr $n + 1`
   echo "I:checking that dig warns about .local queries ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 local soa > dig.out.test$n 2>&1 || ret=1
   grep ";; WARNING: .local is reserved for Multicast DNS" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:check that dig processes +ednsopt=key-tag and FORMERR is returned ($n)"
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; KEY-TAG$" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:check that dig processes +ednsopt=key-tag:<value-list> ($n)"
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:00010002 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; KEY-TAG: 1, 2$" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:check that dig processes +ednsopt=key-tag:<malformed-value-list> and FORMERR is returned ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:0001000201 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; KEY-TAG: 00 01 00 02 01" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
