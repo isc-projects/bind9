@@ -745,6 +745,15 @@ isc__mem_register(void);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
+void
+isc__mem_printactive(isc_mem_t *mctx, FILE *file);
+void
+isc__mem_printallactive(FILE *file);
+/*%<
+ * For internal use by the isc module and its unit tests, these functions
+ * print lists of active memory blocks for a single memory context or for
+ * all contexts.
+ */
 
 ISC_LANG_ENDDECLS
 

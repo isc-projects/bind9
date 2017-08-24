@@ -15,9 +15,11 @@
 
 #include "isctest.h"
 
+#include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/stdio.h>
 
 static void *
 default_memalloc(void *arg, size_t size) {
@@ -141,12 +143,160 @@ ATF_TC_BODY(isc_mem_inuse, tc) {
 	isc_test_end();
 }
 
+#if ISC_MEM_TRACKLINES
+ATF_TC(isc_mem_noflags);
+ATF_TC_HEAD(isc_mem_noflags, tc) {
+	atf_tc_set_md_var(tc, "descr", "test mem with no flags");
+}
+
+ATF_TC_BODY(isc_mem_noflags, tc) {
+	isc_result_t result;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p, *q;
+	FILE *f;
+	void *ptr;
+	size_t size;
+
+	result = isc_stdio_open("mem.output", "w", &f);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_test_begin(NULL, ISC_TRUE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+				  NULL, &mctx2, 0);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	isc_mem_debugging = 0;
+	ptr = isc_mem_get(mctx2, 2048);
+	ATF_CHECK(ptr != NULL);
+	isc__mem_printactive(mctx2, f);
+	isc_mem_put(mctx2, ptr, 2048);
+	isc_mem_destroy(&mctx2);
+	isc_stdio_close(f);
+
+	result = isc_stdio_open("mem.output", "r", &f);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	isc_stdio_close(f);
+	isc_file_remove("mem.output");
+
+	p = strchr(buf, '\n');
+	p += 2;
+	q = strchr(p, '\n');
+	*q = '\0';
+	ATF_CHECK_STREQ(p, "None.");
+
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+	isc_test_end();
+
+}
+
+ATF_TC(isc_mem_recordflag);
+ATF_TC_HEAD(isc_mem_recordflag, tc) {
+	atf_tc_set_md_var(tc, "descr", "test mem with record flag");
+}
+
+ATF_TC_BODY(isc_mem_recordflag, tc) {
+	isc_result_t result;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p;
+	FILE *f;
+	void *ptr;
+	size_t size;
+
+	result = isc_stdio_open("mem.output", "w", &f);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_test_begin(NULL, ISC_FALSE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+				  NULL, &mctx2, 0);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ptr = isc_mem_get(mctx2, 2048);
+	ATF_CHECK(ptr != NULL);
+	isc__mem_printactive(mctx2, f);
+	isc_mem_put(mctx2, ptr, 2048);
+	isc_mem_destroy(&mctx2);
+	isc_stdio_close(f);
+
+	result = isc_stdio_open("mem.output", "r", &f);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	isc_stdio_close(f);
+	isc_file_remove("mem.output");
+
+	p = strchr(buf, '\n');
+	ATF_CHECK(strncmp(p + 2, "ptr ", 4) == 0);
+	p = strchr(p + 1, '\n');
+	ATF_CHECK(strlen(p) == 1);
+
+	isc_test_end();
+}
+
+ATF_TC(isc_mem_traceflag);
+ATF_TC_HEAD(isc_mem_traceflag, tc) {
+	atf_tc_set_md_var(tc, "descr", "test mem with trace flag");
+}
+
+ATF_TC_BODY(isc_mem_traceflag, tc) {
+	isc_result_t result;
+	isc_mem_t *mctx2 = NULL;
+	char buf[4096], *p;
+	FILE *f;
+	void *ptr;
+	size_t size;
+
+	/* redirect stderr so we can check trace output */
+	f = freopen("mem.output", "w", stderr);
+	ATF_REQUIRE(f != NULL);
+
+	result = isc_test_begin(NULL, ISC_TRUE);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+				  NULL, &mctx2, 0);
+	isc_mem_debugging = ISC_MEM_DEBUGTRACE;
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ptr = isc_mem_get(mctx2, 2048);
+	ATF_CHECK(ptr != NULL);
+	isc__mem_printactive(mctx2, f);
+	isc_mem_put(mctx2, ptr, 2048);
+	isc_mem_destroy(&mctx2);
+	isc_stdio_close(f);
+
+	result = isc_stdio_open("mem.output", "r", &f);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	isc_stdio_close(f);
+	isc_file_remove("mem.output");
+
+	/* return stderr to TTY so we can see errors */
+	f = freopen("/dev/tty", "w", stderr);
+
+	ATF_CHECK(strncmp(buf, "add ", 4) == 0);
+	p = strchr(buf, '\n');
+	p = strchr(p + 1, '\n');
+	ATF_CHECK(strncmp(p + 2, "ptr ", 4) == 0);
+	p = strchr(p + 1, '\n');
+	ATF_CHECK(strncmp(p + 1, "del ", 4) == 0);
+
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+	isc_test_end();
+}
+#endif
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_mem_total);
 	ATF_TP_ADD_TC(tp, isc_mem_inuse);
+#if ISC_MEM_TRACKLINES
+	ATF_TP_ADD_TC(tp, isc_mem_noflags);
+	ATF_TP_ADD_TC(tp, isc_mem_recordflag);
+	ATF_TP_ADD_TC(tp, isc_mem_traceflag);
+#endif
 
 	return (atf_no_error());
 }

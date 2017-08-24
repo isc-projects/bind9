@@ -1,3 +1,5 @@
+4687.	[func]		Refactor tracklines code. [RT #45126]
+
 4686.	[bug]		dnssec-settime -p could print a bogus warning about
 			key deletion scheduled before its inactivation when a
 			key had an inactivation date set but no deletion date
