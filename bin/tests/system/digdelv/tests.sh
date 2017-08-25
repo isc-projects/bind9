@@ -236,30 +236,30 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
-  n=`expr $n + 1`
-  echo "I:check that dig processes +ednsopt=key-tag and FORMERR is returned ($n)"
-  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag a.example +qr > dig.out.test$n 2>&1 || ret=1
-  grep "; KEY-TAG$" dig.out.test$n > /dev/null || ret=1
-  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+  #n=`expr $n + 1`
+  #echo "I:check that dig processes +ednsopt=14 (key tag) and FORMERR is returned ($n)"
+  #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  #grep "; KEY-TAG$" dig.out.test$n > /dev/null || ret=1
+  #grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #status=`expr $status + $ret`
 
-  n=`expr $n + 1`
-  echo "I:check that dig processes +ednsopt=key-tag:<value-list> ($n)"
-  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:00010002 a.example +qr > dig.out.test$n 2>&1 || ret=1
-  grep "; KEY-TAG: 1, 2$" dig.out.test$n > /dev/null || ret=1
-  grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+  #n=`expr $n + 1`
+  #echo "I:check that dig processes +ednsopt=14:<value-list> (keytag) ($n)"
+  #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14:00010002 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  #grep "; KEY-TAG: 1, 2$" dig.out.test$n > /dev/null || ret=1
+  #grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
+  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #status=`expr $status + $ret`
 
-  n=`expr $n + 1`
-  echo "I:check that dig processes +ednsopt=key-tag:<malformed-value-list> and FORMERR is returned ($n)"
-  ret=0
-  $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:0001000201 a.example +qr > dig.out.test$n 2>&1 || ret=1
-  grep "; KEY-TAG: 00 01 00 02 01" dig.out.test$n > /dev/null || ret=1
-  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
+  #n=`expr $n + 1`
+  #echo "I:check that dig processes +ednsopt=14:<malformed-value-list> (keytag) and FORMERR is returned ($n)"
+  #ret=0
+  #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14:0001000201 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  #grep "; KEY-TAG: 00 01 00 02 01" dig.out.test$n > /dev/null || ret=1
+  #grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #status=`expr $status + $ret`
 
 else
   echo "$DIG is needed, so skipping these dig tests"
