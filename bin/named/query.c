@@ -9208,11 +9208,14 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	/*
-	 * Turn on minimal response for DNSKEY and DS queries.
+	 * Turn on minimal response for (C)DNSKEY and (C)DS queries.
 	 */
-	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds)
+	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds ||
+	    qtype == dns_rdatatype_cdnskey || qtype == dns_rdatatype_cds)
+	{
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
+	}
 
 	/*
 	 * Maybe turn on minimal responses for ANY queries.
