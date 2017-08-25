@@ -1,3 +1,7 @@
+4678.	[cleanup]	Turn on minimal responses for CDNSKEY and CDS in
+			addition to DNSKEY and DS. Thanks to Tony Finch.
+			[RT #45690]
+
 4688.	[protocol]	Check and display EDNS KEY TAG options (RFC 8145) in
 			messages. [RT #44804]
 
