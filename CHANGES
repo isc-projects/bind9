@@ -1,4 +1,4 @@
-4678.	[cleanup]	Turn on minimal responses for CDNSKEY and CDS in
+4689.	[cleanup]	Turn on minimal responses for CDNSKEY and CDS in
 			addition to DNSKEY and DS. Thanks to Tony Finch.
 			[RT #45690]
 
