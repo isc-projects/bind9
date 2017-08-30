@@ -8078,8 +8078,8 @@ query_coveringnsec(query_ctx_t *qctx) {
 	 * Look for SOA record to construct NXDOMAIN response.
 	 */
 	result = dns_db_findext(db, signer, qctx->version,
-			        dns_rdatatype_soa, dboptions,
-			        qctx->client->now, &node,
+				dns_rdatatype_soa, dboptions,
+				qctx->client->now, &node,
 				fname, &cm, &ci, soardataset,
 				sigsoardataset);
 	if (result != ISC_R_SUCCESS) {
