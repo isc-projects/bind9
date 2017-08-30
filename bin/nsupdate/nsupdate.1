@@ -39,7 +39,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH "SYNOPSIS"
 .HP \w'\fBnsupdate\fR\ 'u
-\fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [\fB\-i\fR] [\fB\-L\ \fR\fB\fIlevel\fR\fR] [[\fB\-g\fR] | [\fB\-o\fR] | [\fB\-l\fR] | [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [\fB\-T\fR] [\fB\-P\fR] [\fB\-V\fR] [filename]
+\fBnsupdate\fR [\fB\-d\fR] [\fB\-D\fR] [\fB\-i\fR] [\fB\-L\ \fR\fB\fIlevel\fR\fR] [[\fB\-g\fR] | [\fB\-o\fR] | [\fB\-l\fR] | [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] | [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-R\ \fR\fB\fIrandomdev\fR\fR] [\fB\-v\fR] [\fB\-T\fR] [\fB\-P\fR] [\fB\-V\fR] [[\fB\-4\fR] | [\fB\-6\fR]] [filename]
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -81,6 +81,16 @@ flag\&. A non\-standards\-compliant variant of GSS\-TSIG used by Windows 2000 ca
 \fB\-o\fR
 flag\&.
 .SH "OPTIONS"
+.PP
+\-4
+.RS 4
+Use IPv4 only\&.
+.RE
+.PP
+\-6
+.RS 4
+Use IPv6 only\&.
+.RE
 .PP
 \-d
 .RS 4

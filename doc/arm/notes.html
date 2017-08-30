@@ -194,6 +194,13 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  <span class="command"><strong>nsupdate</strong></span> and <span class="command"><strong>rndc</strong></span> now accept
+	  command line options <span class="command"><strong>-4</strong></span> and <span class="command"><strong>-6</strong></span>
+	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>nsec3hash -r</strong></span> ("rdata order") takes arguments
 	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
 	  This makes it easier to generate an NSEC3 hash using values cut
