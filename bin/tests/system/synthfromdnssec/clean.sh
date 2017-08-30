@@ -1,0 +1,10 @@
+rm -f dig.out.*
+rm -f ns1/K*+*+*.key
+rm -f ns1/K*+*+*.private
+rm -f ns1/dsset-*
+rm -f ns1/example.db
+rm -f ns1/example.db.signed
+rm -f ns1/root.db
+rm -f ns1/root.db.signed
+rm -f ns1/trusted.conf
+rm -f ns2/named_dump.db

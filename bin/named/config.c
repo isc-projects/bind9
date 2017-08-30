@@ -128,55 +128,40 @@ options {\n\
 	dnssec-lookaside . trust-anchor dlv.isc.org;\n\
 \n\
 	/* view */\n\
+	allow-new-zones no;\n\
 	allow-notify {none;};\n\
-	allow-update-forwarding {none;};\n\
 	allow-query-cache { localnets; localhost; };\n\
 	allow-query-cache-on { any; };\n\
 	allow-recursion { localnets; localhost; };\n\
 	allow-recursion-on { any; };\n\
+	allow-update-forwarding {none;};\n\
 #	allow-v6-synthesis <obsolete>;\n\
-#	sortlist <none>\n\
-#	topology <none>\n\
 	auth-nxdomain false;\n\
-	glue-cache yes;\n\
-	minimal-any false;\n\
-	minimal-responses true;\n\
-	recursion true;\n\
-	provide-ixfr true;\n\
-	request-ixfr true;\n\
-	request-expire true;\n\
-#	fetch-glue <obsolete>;\n\
-#	rfc2308-type1 <obsolete>;\n\
-	query-source address *;\n\
-	query-source-v6 address *;\n\
-	notify-source *;\n\
-	notify-source-v6 *;\n\
-	cleaning-interval 0;  /* now meaningless */\n\
-#	min-roots <obsolete>;\n\
-	lame-ttl 600;\n\
-	servfail-ttl 1;\n\
-	max-ncache-ttl 10800; /* 3 hours */\n\
-	max-cache-ttl 604800; /* 1 week */\n\
-	transfer-format many-answers;\n\
-	max-cache-size 90%;\n\
-	check-names master fail;\n\
-	check-names slave warn;\n\
-	check-names response ignore;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
+	check-names master fail;\n\
+	check-names response ignore;\n\
+	check-names slave warn;\n\
 	check-spf warn;\n\
+	cleaning-interval 0;  /* now meaningless */\n\
+	clients-per-query 10;\n\
+	dnssec-accept-expired no;\n\
 	dnssec-enable yes;\n\
 	dnssec-validation yes; \n\
-	dnssec-accept-expired no;\n\
-	fetches-per-zone 0;\n\
+#	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
-	clients-per-query 10;\n\
-	max-clients-per-query 100;\n\
-	max-recursion-depth 7;\n\
-	max-recursion-queries 75;\n\
-	zero-no-soa-ttl-cache no;\n\
-	nsec3-test-zone no;\n\
-	allow-new-zones no;\n\
+	fetches-per-server 0;\n\
+	fetches-per-zone 0;\n\
+"
+#ifdef ALLOW_FILTER_AAAA
+"	filter-aaaa-on-v4 no;\n\
+	filter-aaaa-on-v6 no;\n\
+	filter-aaaa { any; };\n\
+"
+#endif
+"\
+	glue-cache yes;\n\
+	lame-ttl 600;\n\
 "
 #ifdef HAVE_LMDB
 "\
@@ -184,10 +169,34 @@ options {\n\
 "
 #endif
 "\
-	fetches-per-server 0;\n\
-	require-server-cookie no;\n\
-	v6-bias 50;\n\
+	max-cache-size 90%;\n\
+	max-cache-ttl 604800; /* 1 week */\n\
+	max-clients-per-query 100;\n\
+	max-ncache-ttl 10800; /* 3 hours */\n\
+	max-recursion-depth 7;\n\
+	max-recursion-queries 75;\n\
 	message-compression yes;\n\
+#	min-roots <obsolete>;\n\
+	minimal-any false;\n\
+	minimal-responses true;\n\
+	notify-source *;\n\
+	notify-source-v6 *;\n\
+	nsec3-test-zone no;\n\
+	provide-ixfr true;\n\
+	query-source address *;\n\
+	query-source-v6 address *;\n\
+	recursion true;\n\
+	request-expire true;\n\
+	request-ixfr true;\n\
+	require-server-cookie no;\n\
+#	rfc2308-type1 <obsolete>;\n\
+	servfail-ttl 1;\n\
+#	sortlist <none>\n\
+	synth-from-dnssec yes;\n\
+#	topology <none>\n\
+	transfer-format many-answers;\n\
+	v6-bias 50;\n\
+	zero-no-soa-ttl-cache no;\n\
 "
 #ifdef HAVE_DNSTAP
 "\
@@ -197,12 +206,6 @@ options {\n\
 #ifdef HAVE_GEOIP
 "\
 	geoip-use-ecs yes;\n\
-"
-#endif
-#ifdef ALLOW_FILTER_AAAA
-"	filter-aaaa-on-v4 no;\n\
-	filter-aaaa-on-v6 no;\n\
-	filter-aaaa { any; };\n\
 "
 #endif
 

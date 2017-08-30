@@ -2629,14 +2629,19 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item) {
 }
 
 void
-dns_message_puttempname(dns_message_t *msg, dns_name_t **item) {
-	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(item != NULL && *item != NULL);
+dns_message_puttempname(dns_message_t *msg, dns_name_t **itemp) {
+	dns_name_t *item;
 
-	if (dns_name_dynamic(*item))
-		dns_name_free(*item, msg->mctx);
-	isc_mempool_put(msg->namepool, *item);
-	*item = NULL;
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(itemp != NULL && *itemp != NULL);
+	item = *itemp;
+	REQUIRE(!ISC_LINK_LINKED(item, link));
+	REQUIRE(ISC_LIST_HEAD(item->list) == NULL);
+
+	*itemp = NULL;
+	if (dns_name_dynamic(item))
+		dns_name_free(item, msg->mctx);
+	isc_mempool_put(msg->namepool, item);
 }
 
 void

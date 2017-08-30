@@ -1754,7 +1754,7 @@ ret=0
 $PERL -e 'my $delay = '$start' + 11 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check nta table
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n._11
-lines=`wc -l < rndc.out.ns4.test$n._11`
+lines=`grep " expiry " rndc.out.ns4.test$n._11 | wc -l`
 [ "$lines" -le 2 ] || ret=1
 grep "bogus.example: expiry" rndc.out.ns4.test$n._11 > /dev/null || ret=1
 grep "badds.example: expiry" rndc.out.ns4.test$n._11 > /dev/null && ret=1
@@ -1783,7 +1783,7 @@ $DIG $DIGOPTS c.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.15 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
 # check nta table has been cleaned up now
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.3
-lines=`wc -l < rndc.out.ns4.test$n.3`
+lines=`grep " expiry " rndc.out.ns4.test$n.3 | wc -l`
 [ "$lines" -eq 0 ] || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed - checking that all nta's have been lifted"; fi
@@ -1845,12 +1845,12 @@ ret=0
 n=`expr $n + 1`
 echo "I: testing NTA persistence across restarts ($n)"
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.1
-lines=`wc -l < rndc.out.ns4.test$n.1`
+lines=`grep " expiry " rndc.out.ns4.test$n.1 | wc -l`
 [ "$lines" -eq 0 ] || ret=1
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 30s bogus.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -f -l 10s badds.example 2>&1 | sed 's/^/I:ns4 /'
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n.2
-lines=`wc -l < rndc.out.ns4.test$n.2`
+lines=`grep " expiry " rndc.out.ns4.test$n.2 | wc -l`
 [ "$lines" -eq 2 ] || ret=1
 start=`$PERL -e 'print time()."\n";'`
 

@@ -33,6 +33,7 @@
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
+#include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/order.h>
 #include <dns/rdata.h>
@@ -231,6 +232,10 @@ static isc_boolean_t
 rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
+static void
+log_noexistnodata(void *val, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
+
 /*%
  * The structure and functions defined below implement the query logic
  * that previously lived in the single very complex function query_find().
@@ -320,6 +325,7 @@ typedef struct query_ctx {
 						 * restart needed */
 	isc_boolean_t need_wildcardproof;	/* wilcard proof needed */
 	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
+	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
 	dns_fixedname_t wildcardname;		/* name needing wcard proof */
 	dns_fixedname_t dsname;			/* name needing DS */
 
@@ -429,6 +435,9 @@ query_redirect(query_ctx_t *qctx);
 
 static isc_result_t
 query_ncache(query_ctx_t *qctx, isc_result_t result);
+
+static isc_result_t
+query_coveringnsec(query_ctx_t *qctx);
 
 static isc_result_t
 query_cname(query_ctx_t *qctx);
@@ -4268,7 +4277,8 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 	if (RECURSIONOK(client))
 		flags |= DNS_DNS64_RECURSIVE;
 
-	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset))
+	if (WANTDNSSEC(client) && sigrdataset != NULL &&
+	    dns_rdataset_isassociated(sigrdataset))
 		flags |= DNS_DNS64_DNSSEC;
 
 	count = dns_rdataset_count(rdataset);
@@ -4621,6 +4631,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->options = 0;
 	qctx->resuming = ISC_FALSE;
 	qctx->is_zone = ISC_FALSE;
+	qctx->findcoveringnsec = client->view->synthfromdnssec;
 	qctx->is_staticstub_zone = ISC_FALSE;
 	qctx->nxrewrite = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
@@ -4920,6 +4931,7 @@ query_lookup(query_ctx_t *qctx) {
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
+	unsigned int dboptions;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
 
@@ -4947,7 +4959,7 @@ query_lookup(query_ctx_t *qctx) {
 		return (query_done(qctx));
 	}
 
-	if (WANTDNSSEC(qctx->client) &&
+	if ((WANTDNSSEC(qctx->client) || qctx->findcoveringnsec) &&
 	    (!qctx->is_zone || dns_db_issecure(qctx->db)))
 	{
 		qctx->sigrdataset = query_newrdataset(qctx->client);
@@ -4968,10 +4980,12 @@ query_lookup(query_ctx_t *qctx) {
 		rpzqname = qctx->client->query.qname;
 	}
 
-	result = dns_db_findext(qctx->db, rpzqname,
-				qctx->version, qctx->type,
-				qctx->client->query.dboptions,
-				qctx->client->now, &qctx->node,
+	dboptions = qctx->client->query.dboptions;
+	if (!qctx->is_zone && qctx->findcoveringnsec)
+		dboptions |= DNS_DBFIND_COVERINGNSEC;
+
+	result = dns_db_findext(qctx->db, rpzqname, qctx->version, qctx->type,
+				dboptions, qctx->client->now, &qctx->node,
 				qctx->fname, &cm, &ci,
 				qctx->rdataset, qctx->sigrdataset);
 
@@ -5955,6 +5969,9 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	case DNS_R_NXDOMAIN:
 		return (query_nxdomain(qctx, ISC_FALSE));
 
+	case DNS_R_COVERINGNSEC:
+		return (query_coveringnsec(qctx));
+
 	case DNS_R_NCACHENXDOMAIN:
 		result = query_redirect(qctx);
 		if (result != ISC_R_COMPLETE)
@@ -6507,7 +6524,7 @@ query_respond(query_ctx_t *qctx) {
 		return (query_lookup(qctx));
 	}
 
-	if (qctx->sigrdataset != NULL) {
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
 		sigrdatasetp = &qctx->sigrdataset;
 	}
 
@@ -6688,7 +6705,7 @@ query_dns64(query_ctx_t *qctx) {
 	 * We use the signatures from the A lookup to set DNS_DNS64_DNSSEC
 	 * as this provides a easy way to see if the answer was signed.
 	 */
-	if (qctx->sigrdataset != NULL &&
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	    dns_rdataset_isassociated(qctx->sigrdataset))
 		flags |= DNS_DNS64_DNSSEC;
 
@@ -7098,7 +7115,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 	 */
 	qctx->client->query.attributes &=
 		~NS_QUERYATTR_NOADDITIONAL;
-	if (qctx->sigrdataset != NULL)
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL)
 		sigrdatasetp = &qctx->sigrdataset;
 	query_addrrset(qctx->client, &qctx->fname,
 		       &qctx->rdataset, sigrdatasetp,
@@ -7262,7 +7279,7 @@ query_delegation(query_ctx_t *qctx) {
 	 * delegations.
 	 */
 	qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
-	if (qctx->sigrdataset != NULL) {
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
 		sigrdatasetp = &qctx->sigrdataset;
 	}
 	query_addrrset(qctx->client, &qctx->fname,
@@ -7870,6 +7887,344 @@ query_redirect(query_ctx_t *qctx)  {
 }
 
 /*%
+ * Logging function to be passed to dns_nsec_noexistnodata.
+ */
+static void
+log_noexistnodata(void *val, int level, const char *fmt, ...) {
+	query_ctx_t *qctx = val;
+	va_list ap;
+
+	va_start(ap, fmt);
+	ns_client_logv(qctx->client, NS_LOGCATEGORY_QUERIES,
+		       NS_LOGMODULE_QUERY, level, fmt, ap);
+	va_end(ap);
+}
+
+/*%
+ * Handle covering NSEC responses.
+ *
+ * Verify the NSEC record is apropriate for the QNAME, if not
+ * redo the initial query without DNS_DBFIND_COVERINGNSEC.
+ *
+ * Compute the wildcard record and check if the wildcard name
+ * exists or not.  If we can't determine this redo the initial
+ * query without DNS_DBFIND_COVERINGNSEC.
+ *
+ * If the wildcard name does not exist compute the SOA name and look
+ * that up.  If the SOA record does not exist redo the initial query
+ * without DNS_DBFIND_COVERINGNSEC.  If the SOA record exists constructed
+ * a NXDOMAIN response from the found records.
+ *
+ * If the wildcard name does exist perform a lookup for the requested
+ * type at the wildcard name.
+ */
+static isc_result_t
+query_coveringnsec(query_ctx_t *qctx) {
+	dns_db_t *db = NULL;
+	dns_clientinfo_t ci;
+	dns_clientinfomethods_t cm;
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixed;
+	dns_fixedname_t fnowild;
+	dns_fixedname_t fsigner;
+	dns_fixedname_t fwild;
+	dns_name_t *fname = NULL;
+	dns_name_t *name = NULL;
+	dns_name_t *nowild = NULL;
+	dns_name_t *signer = NULL;
+	dns_name_t *wild = NULL;
+	dns_rdataset_t **sigsoardatasetp = NULL;
+	dns_rdataset_t *clone = NULL, *sigclone = NULL;
+	dns_rdataset_t *soardataset = NULL, *sigsoardataset = NULL;
+	dns_rdataset_t rdataset, sigrdataset;
+	dns_ttl_t ttl;
+	isc_boolean_t done = ISC_FALSE;
+	isc_boolean_t exists = ISC_TRUE, data = ISC_TRUE;
+	isc_boolean_t redirected = ISC_FALSE;
+	isc_buffer_t *dbuf = NULL, b;
+	isc_result_t result;
+	unsigned int dboptions = qctx->client->query.dboptions;
+
+	/*
+	 * If we have no signer name, stop immediately.
+	 */
+	if (!dns_rdataset_isassociated(qctx->sigrdataset)) {
+		goto cleanup;
+	}
+
+	dns_fixedname_init(&fwild);
+	wild = dns_fixedname_name(&fwild);
+	dns_fixedname_init(&fixed);
+	fname = dns_fixedname_name(&fixed);
+	dns_fixedname_init(&fsigner);
+	signer = dns_fixedname_name(&fsigner);
+	dns_fixedname_init(&fnowild);
+	nowild = dns_fixedname_name(&fnowild);
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&sigrdataset);
+
+	dns_clientinfomethods_init(&cm, ns_client_sourceip);
+	dns_clientinfo_init(&ci, qctx->client, NULL);
+
+	/*
+	 * All signer names must be the same to accept.
+	 */
+	for (result = dns_rdataset_first(qctx->sigrdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(qctx->sigrdataset))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_rrsig_t rrsig;
+
+		dns_rdataset_current(qctx->sigrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (dns_name_countlabels(signer) == 0) {
+			dns_name_copy(&rrsig.signer, signer, NULL);
+		} else if (!dns_name_equal(signer, &rrsig.signer)) {
+			goto cleanup;
+		}
+	}
+
+	/*
+	 * Check that we have the correct NOQNAME NSEC record.
+	 */
+	result = dns_nsec_noexistnodata(qctx->qtype, qctx->client->query.qname,
+					qctx->fname, qctx->rdataset,
+					&exists, &data, wild,
+					log_noexistnodata, qctx);
+
+	if (result != ISC_R_SUCCESS || exists) {
+		goto cleanup;
+	}
+
+	/*
+	 * Look up the no-wildcard proof.
+	 */
+	dns_db_attach(qctx->db, &db);
+	result = dns_db_findext(db, wild, qctx->version, qctx->type,
+				dboptions | DNS_DBFIND_COVERINGNSEC,
+				qctx->client->now, &node, nowild,
+				&cm, &ci, &rdataset, &sigrdataset);
+
+	if (rdataset.trust != dns_trust_secure ||
+	    sigrdataset.trust != dns_trust_secure)
+	{
+		goto cleanup;
+	}
+
+	switch (result) {
+	case DNS_R_COVERINGNSEC:
+		result = dns_nsec_noexistnodata(qctx->qtype, wild,
+						nowild, &rdataset,
+						&exists, &data, NULL,
+						log_noexistnodata, qctx);
+		if (result != ISC_R_SUCCESS || exists)
+			goto cleanup;
+		break;
+	case ISC_R_SUCCESS:		/* wild card match */
+	case DNS_R_CNAME:		/* wild card cname */
+	case DNS_R_NCACHENXRRSET:	/* wild card nodata */
+	case DNS_R_NCACHENXDOMAIN:	/* direct nxdomain */
+	default:
+		goto cleanup;
+	}
+
+	/*
+	 * We now have the proof that we have an NXDOMAIN.  Apply
+	 * NXDOMAIN redirection if configured.
+	 */
+	result = query_redirect(qctx);
+	if (result != ISC_R_COMPLETE) {
+		redirected = ISC_TRUE;
+		goto cleanup;
+	}
+
+	/*
+	 * All signer names must be the same to accept.
+	 */
+	if (!dns_rdataset_isassociated(&sigrdataset)) {
+		goto cleanup;
+	}
+
+	for (result = dns_rdataset_first(&sigrdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&sigrdataset)) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_rrsig_t rrsig;
+
+		dns_rdataset_current(&sigrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (dns_name_countlabels(signer) == 0) {
+			dns_name_copy(&rrsig.signer, signer, NULL);
+		} else if (!dns_name_equal(signer, &rrsig.signer)) {
+			goto cleanup;
+		}
+	}
+
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+
+	soardataset = query_newrdataset(qctx->client);
+	sigsoardataset = query_newrdataset(qctx->client);
+	if (soardataset == NULL || sigsoardataset == NULL) {
+		goto cleanup;
+	}
+
+	/*
+	 * Look for SOA record to construct NXDOMAIN response.
+	 */
+	result = dns_db_findext(db, signer, qctx->version,
+			        dns_rdatatype_soa, dboptions,
+			        qctx->client->now, &node,
+				fname, &cm, &ci, soardataset,
+				sigsoardataset);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	qctx->client->message->rcode = dns_rcode_nxdomain;
+
+	/*
+	 * Detemine the correct TTL to use for the SOA and RRSIG
+	 */
+	ttl = ISC_MIN(qctx->rdataset->ttl, qctx->sigrdataset->ttl);
+	ttl = ISC_MIN(ttl, rdataset.ttl);
+	ttl = ISC_MIN(ttl, sigrdataset.ttl);
+	ttl = ISC_MIN(ttl, soardataset->ttl);
+	ttl = ISC_MIN(ttl, sigsoardataset->ttl);
+
+	soardataset->ttl = sigsoardataset->ttl = ttl;
+
+	/*
+	 * We want the SOA record to be first, so save the
+	 * NOQNAME proof's name now or else discard it.
+	 */
+	if (WANTDNSSEC(qctx->client)) {
+		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
+	} else {
+		query_releasename(qctx->client, &qctx->fname);
+	}
+
+	dbuf = query_getnamebuf(qctx->client);
+	if (dbuf == NULL) {
+		goto cleanup;
+	}
+
+	name = query_newname(qctx->client, dbuf, &b);
+	if (name == NULL) {
+		goto cleanup;
+	}
+
+	dns_name_clone(signer, name);
+
+	/*
+	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
+	 */
+	if (WANTDNSSEC(qctx->client)) {
+		sigsoardatasetp = &sigsoardataset;
+	}
+	query_addrrset(qctx->client, &name, &soardataset, sigsoardatasetp,
+		       dbuf, DNS_SECTION_AUTHORITY);
+
+	if (WANTDNSSEC(qctx->client)) {
+		/*
+		 * Add NODATA proof.
+		 */
+		query_addrrset(qctx->client, &qctx->fname,
+			       &qctx->rdataset, &qctx->sigrdataset,
+			       NULL, DNS_SECTION_AUTHORITY);
+
+		dbuf = query_getnamebuf(qctx->client);
+		if (dbuf == NULL) {
+			goto cleanup;
+		}
+
+		name = query_newname(qctx->client, dbuf, &b);
+		if (name == NULL) {
+			goto cleanup;
+		}
+
+		dns_name_clone(nowild, name);
+
+		clone = query_newrdataset(qctx->client);
+		sigclone = query_newrdataset(qctx->client);
+		if (clone == NULL || sigclone == NULL) {
+			goto cleanup;
+		}
+
+		dns_rdataset_clone(&rdataset, clone);
+		dns_rdataset_clone(&sigrdataset, sigclone);
+
+		/*
+		 * Add NOWILDCARD proof.
+		 */
+		query_addrrset(qctx->client, &name, &clone, &sigclone,
+			       dbuf, DNS_SECTION_AUTHORITY);
+	}
+
+	inc_stats(qctx->client, dns_nsstatscounter_nxdomainsynth);
+
+	done = ISC_TRUE;
+
+ cleanup:
+	if (clone != NULL) {
+		query_putrdataset(qctx->client, &clone);
+	}
+	if (sigclone != NULL) {
+		query_putrdataset(qctx->client, &sigclone);
+	}
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (dns_rdataset_isassociated(&sigrdataset)) {
+		dns_rdataset_disassociate(&sigrdataset);
+	}
+	if (soardataset != NULL) {
+		query_putrdataset(qctx->client, &soardataset);
+	}
+	if (sigsoardataset != NULL) {
+		query_putrdataset(qctx->client, &sigsoardataset);
+	}
+	if (db != NULL) {
+		if (node != NULL) {
+			dns_db_detachnode(db, &node);
+		}
+		dns_db_detach(&db);
+	}
+	if (name != NULL) {
+		query_releasename(qctx->client, &name);
+	}
+
+	if (redirected) {
+		return (result);
+	}
+
+	if (!done) {
+		/*
+		 * No covering NSEC was found; proceed with recursion.
+		 */
+		qctx->findcoveringnsec = ISC_FALSE;
+		if (qctx->fname != NULL) {
+			query_releasename(qctx->client, &qctx->fname);
+		}
+		if (qctx->node != NULL) {
+			dns_db_detachnode(qctx->db, &qctx->node);
+		}
+		query_putrdataset(qctx->client, &qctx->rdataset);
+		if (qctx->sigrdataset != NULL) {
+			query_putrdataset(qctx->client, &qctx->sigrdataset);
+		}
+		return (query_lookup(qctx));
+	}
+
+	return (query_done(qctx));
+}
+
+/*%
  * Handle negative cache responses, DNS_R_NCACHENXRRSET or
  * DNS_R_NCACHENXDOMAIN. (Note: may also be called with result
  * set to DNS_R_NXDOMAIN when handling DNS64 lookups.)
@@ -7955,7 +8310,7 @@ query_cname(query_ctx_t *qctx) {
 	/*
 	 * Add the CNAME to the answer section.
 	 */
-	if (qctx->sigrdataset != NULL)
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL)
 		sigrdatasetp = &qctx->sigrdataset;
 
 	if (WANTDNSSEC(qctx->client) &&
@@ -8066,7 +8421,7 @@ query_dname(query_ctx_t *qctx) {
 	/*
 	 * Add the DNAME to the answer section.
 	 */
-	if (qctx->sigrdataset != NULL)
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL)
 		sigrdatasetp = &qctx->sigrdataset;
 
 	if (WANTDNSSEC(qctx->client) &&

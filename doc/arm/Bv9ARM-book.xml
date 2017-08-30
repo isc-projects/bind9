@@ -1417,7 +1417,7 @@ controls {
 	<para>
 	  Changes that result from incoming incremental zone transfers are
 	  also
-	  journalled in a similar way.
+	  journaled in a similar way.
 	</para>
 
 	<para>
@@ -2143,7 +2143,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 
 	<para>
 	  Any <filename>keyset</filename> files corresponding to
-	  secure subzones should be present.  The zone signer will
+	  secure sub-zones should be present.  The zone signer will
 	  generate <literal>NSEC</literal>, <literal>NSEC3</literal>
 	  and <literal>RRSIG</literal> records for the zone, as
 	  well as <literal>DS</literal> for the child zones if
@@ -7309,6 +7309,38 @@ options {
 		  private keys remain accessible in the key repository,
 		  then the zone will be automatically signed again the
 		  next time <command>named</command> is started.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>synth-from-dnssec</command></term>
+	      <listitem>
+		<para>
+		  Synthesize answers from cached NSEC, NSEC3 and
+		  other RRsets that have been proved to be correct
+		  using DNSSEC.  The default is <command>yes</command>.
+		</para>
+		<para>
+		  Note:
+		  <itemizedlist>
+		    <listitem>
+		      <para>
+			DNSSEC validation must be enabled for this
+			option to be effective.
+		      </para>
+		    </listitem>
+		    <listitem>
+		      <para>
+			This initial implementation only covers
+			NXDOMAIN synthesis from NSEC records.
+			Synthesis of NODATA and wildcard responses
+			is also planned, as is synthesis from NSEC3
+			records.  All of these will be controlled
+			by <command>synth-from-dnssec</command>.
+		      </para>
+		    </listitem>
+		  </itemizedlist>
 		</para>
 	      </listitem>
 	    </varlistentry>

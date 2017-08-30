@@ -435,6 +435,7 @@ options {
 	stacksize ( default | unlimited | <replaceable>sizeval</replaceable> );
 	startup-notify-rate <replaceable>integer</replaceable>;
 	statistics-file <replaceable>quoted_string</replaceable>;
+	synth-from-dnssec <replaceable>boolean</replaceable>;
 	tcp-advertised-timeout <replaceable>integer</replaceable>;
 	tcp-clients <replaceable>integer</replaceable>;
 	tcp-idle-timeout <replaceable>integer</replaceable>;
@@ -769,6 +770,7 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	sig-signing-type <replaceable>integer</replaceable>;
 	sig-validity-interval <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
+	synth-from-dnssec <replaceable>boolean</replaceable>;
 	transfer-format ( many-answers | one-answer );
 	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
 	    dscp <replaceable>integer</replaceable> </optional>;

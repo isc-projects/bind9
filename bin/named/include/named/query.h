@@ -71,7 +71,6 @@ struct ns_query {
 		isc_boolean_t		authoritative;
 		isc_boolean_t		is_zone;
 	} redirect;
-
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001

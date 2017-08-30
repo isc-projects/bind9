@@ -4830,7 +4830,8 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		foundsig = NULL;
 		empty_node = ISC_TRUE;
 		header_prev = NULL;
-		for (header = node->data; header != NULL; header = header_next) {
+		for (header = node->data; header != NULL; header = header_next)
+		{
 			header_next = header->next;
 			if (check_stale_header(node, header,
 					       &locktype, lock, search,
@@ -4842,7 +4843,15 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				header_prev = header;
 				continue;
 			}
-			empty_node = ISC_FALSE;
+			/*
+			 * Don't stop on provable noqname / RRSIG.
+			 */
+			if (header->noqname == NULL &&
+			    RBTDB_RDATATYPE_BASE(header->type)
+			     != dns_rdatatype_rrsig)
+			{
+				empty_node = ISC_FALSE;
+			}
 			if (header->type == matchtype)
 				found = header;
 			else if (header->type == sigmatchtype)
@@ -4872,7 +4881,6 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	} while (empty_node && result == ISC_R_SUCCESS);
 	return (result);
 }
-
 
 static isc_result_t
 cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,

@@ -5024,6 +5024,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t ttl;
 	unsigned options;
 	isc_uint32_t bucketnum;
+	dns_fixedname_t fwild;
+	dns_name_t *wild = NULL;
 
 	UNUSED(task); /* for now */
 
@@ -5048,8 +5050,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Destroy the validator early so that we can
-	 * destroy the fctx if necessary.
+	 * destroy the fctx if necessary.  Save the wildcard name.
 	 */
+	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
+		dns_fixedname_init(&fwild);
+		wild = dns_fixedname_name(&fwild);
+		dns_name_copy(dns_fixedname_name(&vevent->validator->wild),
+			      wild, NULL);
+	}
 	dns_validator_destroy(&vevent->validator);
 	isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
 
@@ -5324,7 +5332,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
  answer_response:
 	/*
-	 * Cache any NS/NSEC records that happened to be validated.
+	 * Cache any SOA/NS/NSEC records that happened to be validated.
 	 */
 	result = dns_message_firstname(fctx->rmessage, DNS_SECTION_AUTHORITY);
 	while (result == ISC_R_SUCCESS) {
@@ -5335,6 +5343,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			if ((rdataset->type != dns_rdatatype_ns &&
+			     rdataset->type != dns_rdatatype_soa &&
 			     rdataset->type != dns_rdatatype_nsec) ||
 			    rdataset->trust != dns_trust_secure)
 				continue;
@@ -5367,6 +5376,37 @@ validated(isc_task_t *task, isc_event_t *event) {
 		}
 		result = dns_message_nextname(fctx->rmessage,
 					      DNS_SECTION_AUTHORITY);
+	}
+
+	/*
+	 * Add the wild card entry.
+	 */
+	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL &&
+	    vevent->rdataset != NULL &&
+	    dns_rdataset_isassociated(vevent->rdataset) &&
+	    vevent->rdataset->trust == dns_trust_secure &&
+	    vevent->sigrdataset != NULL &&
+	    dns_rdataset_isassociated(vevent->sigrdataset) &&
+	    vevent->sigrdataset->trust == dns_trust_secure &&
+	    wild != NULL)
+	{
+		dns_dbnode_t *wnode = NULL;
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(wild, namebuf, sizeof(namebuf));
+
+		fprintf(stderr, "save wildcard data %s\n", namebuf);
+		result = dns_db_findnode(fctx->cache, wild, ISC_TRUE, &wnode);
+		if (result == ISC_R_SUCCESS)
+			result = dns_db_addrdataset(fctx->cache, wnode, NULL,
+						    now, vevent->rdataset, 0,
+						    NULL);
+		if (result == ISC_R_SUCCESS)
+			result = dns_db_addrdataset(fctx->cache, wnode, NULL,
+						    now, vevent->sigrdataset,
+						    0, NULL);
+		if (wnode != NULL)
+			dns_db_detachnode(fctx->cache, &wnode);
 	}
 
 	result = ISC_R_SUCCESS;

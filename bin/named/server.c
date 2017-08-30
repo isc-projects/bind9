@@ -3733,6 +3733,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	if (view->maxncachettl > 7 * 24 * 3600)
 		view->maxncachettl = 7 * 24 * 3600;
 
+	obj = NULL;
+	result = ns_config_get(maps, "synth-from-dnssec", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->synthfromdnssec = cfg_obj_asboolean(obj);
+
 	/*
 	 * Configure the view's cache.
 	 *
