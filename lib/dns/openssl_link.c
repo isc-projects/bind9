@@ -116,7 +116,7 @@ lock_callback(int mode, int type, const char *file, int line) {
 }
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x10000000L
+#if OPENSSL_VERSION_NUMBER < 0x10000000L || defined(LIBRESSL_VERSION_NUMBER)
 static unsigned long
 id_callback(void) {
 	return ((unsigned long)isc_thread_self());
@@ -213,7 +213,7 @@ dst__openssl_init(const char *engine) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
-# if OPENSSL_VERSION_NUMBER >= 0x10000000L
+# if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L
 	CRYPTO_THREADID_set_callback(_set_thread_id);
 # else
 	CRYPTO_set_id_callback(id_callback);
