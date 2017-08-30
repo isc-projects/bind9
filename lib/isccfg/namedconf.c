@@ -1558,8 +1558,8 @@ view_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
 	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },
-	{ "dns64-server", &cfg_type_astring, 0 },
 	{ "dns64-contact", &cfg_type_astring, 0 },
+	{ "dns64-server", &cfg_type_astring, 0 },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
@@ -1577,18 +1577,27 @@ view_clauses[] = {
 	{ "fetches-per-server", &cfg_type_fetchesper, 0 },
 	{ "fetches-per-zone", &cfg_type_fetchesper, 0 },
 #else
-	{ "fetch-quota-params", &cfg_type_fetchquota, CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "fetches-per-server", &cfg_type_fetchesper, CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "fetches-per-zone", &cfg_type_fetchesper, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fetch-quota-params", &cfg_type_fetchquota,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fetches-per-server", &cfg_type_fetchesper,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "fetches-per-zone", &cfg_type_fetchesper,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ENABLE_FETCHLIMIT */
+#ifdef ALLOW_FILTER_AAAA
+	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
+#else
+	{ "filter-aaaa", &cfg_type_bracketed_aml,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "lame-ttl", &cfg_type_uint32, 0 },
-#ifdef ISC_PLATFORM_USESIT
-	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_EXPERIMENTAL },
-#else
-	{ "nosit-udp-size", &cfg_type_uint32,
-	  CFG_CLAUSEFLAG_EXPERIMENTAL | CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
@@ -1599,9 +1608,15 @@ view_clauses[] = {
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "minimal-responses", &cfg_type_boolean, 0 },
-	{ "prefetch", &cfg_type_prefetch, 0 },
-	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },
+#ifdef ISC_PLATFORM_USESIT
+	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_EXPERIMENTAL },
+#else
+	{ "nosit-udp-size", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_EXPERIMENTAL | CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
+	{ "preferred-glue", &cfg_type_astring, 0 },
+	{ "prefetch", &cfg_type_prefetch, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	/*
 	 * Note that the query-source option syntax is different
@@ -1612,15 +1627,17 @@ view_clauses[] = {
 	{ "queryport-pool-ports", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "queryport-pool-updateinterval", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ "recursion", &cfg_type_boolean, 0 },
+	{ "request-nsid", &cfg_type_boolean, 0 },
 #ifdef ISC_PLATFORM_USESIT
 	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_EXPERIMENTAL },
 #else
 	{ "request-sit", &cfg_type_boolean,
 	  CFG_CLAUSEFLAG_EXPERIMENTAL | CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
-	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "resolver-query-timeout", &cfg_type_uint32, 0 },
+	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
@@ -1632,20 +1649,6 @@ view_clauses[] = {
 	  CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
-#ifdef ALLOW_FILTER_AAAA
-	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
-	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
-	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
-#else
-	{ "filter-aaaa", &cfg_type_bracketed_aml,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa,
-	   CFG_CLAUSEFLAG_NOTCONFIGURED },
-#endif
-	{ "response-policy", &cfg_type_rpz, 0 },
-	{ "rate-limit", &cfg_type_rrl, 0 },
 	{ NULL, NULL, 0 }
 };
 
