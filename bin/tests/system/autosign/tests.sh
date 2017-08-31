@@ -858,7 +858,7 @@ ret=0
 oldserial=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '$0 !~ /SOA/ {print $3}'`
 oldinception=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {print $6}' | sort -u`
 
-$KEYGEN -3 -q -r $RANDFILE -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
+$KEYGEN -a rsasha1 -3 -q -r $RANDFILE -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
 
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 sign prepub.example 2>&1 | sed 's/^/I:ns1 /'
 newserial=$oldserial

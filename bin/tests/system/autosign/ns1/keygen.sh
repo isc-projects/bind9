@@ -17,18 +17,18 @@ infile=root.db.in
 
 cat $infile ../ns2/dsset-example$TP > $zonefile
 
-zskact=`$KEYGEN -3 -q -r $RANDFILE $zone`
-zskvanish=`$KEYGEN -3 -q -r $RANDFILE $zone`
-zskdel=`$KEYGEN -3 -q -r $RANDFILE -D now $zone`
-zskinact=`$KEYGEN -3 -q -r $RANDFILE -I now $zone`
-zskunpub=`$KEYGEN -3 -q -r $RANDFILE -G $zone`
-zsksby=`$KEYGEN -3 -q -r $RANDFILE -A none $zone`
-zskactnowpub1d=`$KEYGEN -3 -q -r $RANDFILE -A now -P +1d $zone`
-zsknopriv=`$KEYGEN -3 -q -r $RANDFILE $zone`
+zskact=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE $zone`
+zskvanish=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE $zone`
+zskdel=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -D now $zone`
+zskinact=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -I now $zone`
+zskunpub=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -G $zone`
+zsksby=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -A none $zone`
+zskactnowpub1d=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -A now -P +1d $zone`
+zsknopriv=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE $zone`
 rm $zsknopriv.private
 
-ksksby=`$KEYGEN -3 -q -r $RANDFILE -P now -A now+15s -fk $zone`
-kskrev=`$KEYGEN -3 -q -r $RANDFILE -R now+15s -fk $zone`
+ksksby=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -P now -A now+15s -fk $zone`
+kskrev=`$KEYGEN -3 -a RSASHA1 -q -r $RANDFILE -R now+15s -fk $zone`
 
 cat $ksksby.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;

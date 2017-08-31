@@ -15,8 +15,8 @@ zone=ds.example.net
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zsk=`$KEYGEN -q -3 -r $RANDFILE -b 2048 $zone`
+ksk=`$KEYGEN -q -a rsasha256 -r $RANDFILE -fk $zone`
+zsk=`$KEYGEN -q -a rsasha256 -r $RANDFILE -b 2048 $zone`
 cat $ksk.key $zsk.key >> $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -24,8 +24,8 @@ zone=example.net
 zonefile="${zone}.db"
 infile="${zonefile}.in"
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+ksk=`$KEYGEN -q -a rsasha256 -r $RANDFILE -fk $zone`
+zsk=`$KEYGEN -q -a rsasha256 -r $RANDFILE $zone`
 cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 

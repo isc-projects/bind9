@@ -21,39 +21,39 @@ cfile=child.db
 
 echo "I:generating child's keys"
 # active zsk
-czsk1=`$KEYGEN -q -r $RANDFILE -L 30 $czone`
+czsk1=`$KEYGEN -q -a rsasha1 -r $RANDFILE -L 30 $czone`
 
 # not yet published or active
-czsk2=`$KEYGEN -q -r $RANDFILE -P none -A none $czone`
+czsk2=`$KEYGEN -q -a rsasha1 -r $RANDFILE -P none -A none $czone`
 
 # published but not active
-czsk3=`$KEYGEN -q -r $RANDFILE -A none $czone`
+czsk3=`$KEYGEN -q -a rsasha1 -r $RANDFILE -A none $czone`
 
 # inactive
-czsk4=`$KEYGEN -q -r $RANDFILE -P now-24h -A now-24h -I now $czone`
+czsk4=`$KEYGEN -q -a rsasha1 -r $RANDFILE -P now-24h -A now-24h -I now $czone`
 
 # active in 12 hours, inactive 12 hours after that...
-czsk5=`$KEYGEN -q -r $RANDFILE -P now+12h -A now+12h -I now+24h $czone`
+czsk5=`$KEYGEN -q -a rsasha1 -r $RANDFILE -P now+12h -A now+12h -I now+24h $czone`
 
 # explicit successor to czk5
 # (suppressing warning about lack of removal date)
 czsk6=`$KEYGEN -q -r $RANDFILE -S $czsk5 -i 6h 2>&-` 
 
 # active ksk
-cksk1=`$KEYGEN -q -r $RANDFILE -fk -L 30 $czone`
+cksk1=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk -L 30 $czone`
 
 # published but not YET active; will be active in 20 seconds
-cksk2=`$KEYGEN -q -r $RANDFILE -fk $czone`
+cksk2=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk $czone`
 # $SETTIME moved after other $KEYGENs
 
 echo I:revoking key
 # revoking key changes its ID
-cksk3=`$KEYGEN -q -r $RANDFILE -fk $czone`
+cksk3=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
 
 echo I:generating parent keys
-pzsk=`$KEYGEN -q -r $RANDFILE $pzone`
-pksk=`$KEYGEN -q -r $RANDFILE -fk $pzone`
+pzsk=`$KEYGEN -q -a rsasha1 -r $RANDFILE $pzone`
+pksk=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk $pzone`
 
 echo "I:setting child's activation time"
 # using now+30s to fix RT 24561

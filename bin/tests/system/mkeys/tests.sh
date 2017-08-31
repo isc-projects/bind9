@@ -57,7 +57,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check new trust anchor can be added ($n)"
 ret=0
-standby1=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby1=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
 sleep 5
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
@@ -241,7 +241,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: revoke original key, add new standby ($n)"
 ret=0
-standby2=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby2=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
 $SETTIME -R now -K ns1 `cat ns1/managed.key` > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
 sleep 3
@@ -276,7 +276,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: revoke standby before it is trusted ($n)"
 ret=0
-standby3=`$KEYGEN -qfk -r $RANDFILE -K ns1 .`
+standby3=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
 sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'

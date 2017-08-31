@@ -61,9 +61,6 @@
 const char *program = "dnssec-keygen";
 int verbose;
 
-#define DEFAULT_ALGORITHM "RSASHA1"
-#define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
-
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
@@ -86,8 +83,6 @@ usage(void) {
 	fprintf(stderr, "        HMAC-MD5 | HMAC-SHA1 | HMAC-SHA224 | "
 				"HMAC-SHA256 | \n");
 	fprintf(stderr, "        HMAC-SHA384 | HMAC-SHA512\n");
-	fprintf(stderr, "       (default: RSASHA1, or "
-			       "NSEC3RSASHA1 if using -3)\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -b <key size in bits>:\n");
 	fprintf(stderr, "        RSAMD5:\t[1024..%d]\n", MAX_RSA);
@@ -110,9 +105,8 @@ usage(void) {
 	fprintf(stderr, "        HMAC-SHA256:\t[1..256]\n");
 	fprintf(stderr, "        HMAC-SHA384:\t[1..384]\n");
 	fprintf(stderr, "        HMAC-SHA512:\t[1..512]\n");
-	fprintf(stderr, "        (if using the default algorithm, key size\n"
-			"        defaults to 2048 for KSK, or 1024 for all "
-			"others)\n");
+	fprintf(stderr, "        (key size defaults are set according to\n"
+			"        algorithm and usage (ZSK or KSK)\n");
 	fprintf(stderr, "    -n <nametype>: ZONE | HOST | ENTITY | "
 					    "USER | OTHER\n");
 	fprintf(stderr, "        (DNSKEY generation defaults to ZONE)\n");
@@ -240,7 +234,7 @@ main(int argc, char **argv) {
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
 	dns_ttl_t	ttl = 0;
-	isc_boolean_t	use_default = ISC_FALSE, use_nsec3 = ISC_FALSE;
+	isc_boolean_t	use_nsec3 = ISC_FALSE;
 	isc_stdtime_t	publish = 0, activate = 0, revokekey = 0;
 	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
@@ -537,17 +531,7 @@ main(int argc, char **argv) {
 			      isc_result_totext(ret));
 
 		if (algname == NULL) {
-			use_default = ISC_TRUE;
-			if (use_nsec3)
-				algname = strdup(DEFAULT_NSEC3_ALGORITHM);
-			else
-				algname = strdup(DEFAULT_ALGORITHM);
-			if (algname == NULL)
-				fatal("strdup failed");
-			freeit = algname;
-			if (verbose > 0)
-				fprintf(stderr, "no algorithm specified; "
-						"defaulting to %s\n", algname);
+			fatal("no algorithm specified");
 		}
 
 		if (strcasecmp(algname, "RSA") == 0) {
@@ -601,14 +585,28 @@ main(int argc, char **argv) {
 		if (!dst_algorithm_supported(alg))
 			fatal("unsupported algorithm: %d", alg);
 
-		if (use_nsec3 &&
-		    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
-		    alg != DST_ALG_RSASHA256 && alg!= DST_ALG_RSASHA512 &&
-		    alg != DST_ALG_ECCGOST &&
-		    alg != DST_ALG_ECDSA256 && alg != DST_ALG_ECDSA384 &&
-		    alg != DST_ALG_ED25519 && alg != DST_ALG_ED448) {
-			fatal("%s is incompatible with NSEC3; "
-			      "do not use the -3 option", algname);
+		if (use_nsec3) {
+			switch (alg) {
+			case DST_ALG_DSA:
+				alg = DST_ALG_NSEC3DSA;
+				break;
+			case DST_ALG_RSASHA1:
+				alg = DST_ALG_NSEC3RSASHA1;
+				break;
+			case DST_ALG_NSEC3DSA:
+			case DST_ALG_NSEC3RSASHA1:
+			case DST_ALG_RSASHA256:
+			case DST_ALG_RSASHA512:
+			case DST_ALG_ECCGOST:
+			case DST_ALG_ECDSA256:
+			case DST_ALG_ECDSA384:
+			case DST_ALG_ED25519:
+			case DST_ALG_ED448:
+				break;
+			default:
+				fatal("%s is incompatible with NSEC3; "
+				      "do not use the -3 option", algname);
+			}
 		}
 
 		if (type != NULL && (options & DST_TYPE_KEY) != 0) {
@@ -629,21 +627,31 @@ main(int argc, char **argv) {
 		}
 
 		if (size < 0) {
-			if (use_default) {
-				if ((kskflag & DNS_KEYFLAG_KSK) != 0)
+			switch (alg) {
+			case DST_ALG_RSASHA1:
+			case DST_ALG_NSEC3RSASHA1:
+			case DST_ALG_RSASHA256:
+			case DST_ALG_RSASHA512:
+				if ((kskflag & DNS_KEYFLAG_KSK) != 0) {
 					size = 2048;
-				else
+				} else {
 					size = 1024;
-				if (verbose > 0)
+				}
+				if (verbose > 0) {
 					fprintf(stderr, "key size not "
 							"specified; defaulting"
 							" to %d\n", size);
-			} else if (alg != DST_ALG_ECCGOST &&
-				   alg != DST_ALG_ECDSA256 &&
-				   alg != DST_ALG_ECDSA384 &&
-				   alg != DST_ALG_ED25519 &&
-				   alg != DST_ALG_ED448)
+				}
+				break;
+			case DST_ALG_ECCGOST:
+			case DST_ALG_ECDSA256:
+			case DST_ALG_ECDSA384:
+			case DST_ALG_ED25519:
+			case DST_ALG_ED448:
+				break;
+			default:
 				fatal("key size not specified (-b option)");
+			}
 		}
 
 		if (!oldstyle && prepub > 0) {

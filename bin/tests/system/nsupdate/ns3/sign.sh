@@ -35,8 +35,8 @@ zone=delegation.test.
 infile=delegation.test.db.in
 zonefile=delegation.test.db
 
-keyname1=`$KEYGEN -q -r $RANDFILE -3 -f KSK $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -3 $zone`
+keyname1=`$KEYGEN -q -a RSASHA256 -r $RANDFILE -3 -f KSK $zone`
+keyname2=`$KEYGEN -q -a RSASHA256 -r $RANDFILE -3 $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 

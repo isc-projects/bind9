@@ -26,7 +26,7 @@ while test "$#" -gt 0; do
                 quiet=1
                 ;;
         rsa|RSA)
-                alg=""
+                alg="-a RSASHA1"
                 msg1="RSA cryptography"
                 ;;
         gost|GOST)

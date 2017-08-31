@@ -23,16 +23,16 @@ zonefile="${zone}.db"
 infile="${zonefile}.in"
 cat $infile dsset-*.example$TP > $zonefile
 
-kskname=`$KEYGEN -3 -q -r $RANDFILE -fk $zone`
-$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+kskname=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone`
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > /dev/null
 $DSFROMKEY $kskname.key > dsset-${zone}$TP
 
 # Create keys for a private secure zone.
 zone=private.secure.example
 zonefile="${zone}.db"
 infile="${zonefile}.in"
-ksk=`$KEYGEN -3 -q -r $RANDFILE -fk $zone`
-$KEYGEN -3 -q -r $RANDFILE $zone > /dev/null
+ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone`
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > /dev/null
 cat $ksk.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
 local $key = join("", @rest);
@@ -55,5 +55,5 @@ for i in Xbar.+005+30676.key Xbar.+005+30804.key Xbar.+005+30676.private \
 do
 	cp $i `echo $i | sed s/X/K/`
 done
-$KEYGEN -q -r $RANDFILE $zone > /dev/null
+$KEYGEN -a RSASHA1 -q -r $RANDFILE $zone > /dev/null
 $DSFROMKEY Kbar.+005+30804.key > dsset-bar$TP

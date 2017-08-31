@@ -27,8 +27,8 @@ setup () {
 
 setup secure.example
 cp $infile $zonefile
-ksk=`$KEYGEN -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -36,8 +36,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup secure.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -45,8 +45,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup nsec3.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -54,8 +54,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup optout.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -63,8 +63,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup nsec3.example
 cat $infile dsset-*.${zone}$TP > $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -72,9 +72,9 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup autonsec3.example
 cat $infile > $zonefile
-ksk=`$KEYGEN -G -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+ksk=`$KEYGEN -G -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
 echo $ksk > ../autoksk.key
-zsk=`$KEYGEN -G -q -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -G -q -a RSASHA1 -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
 echo $zsk > ../autozsk.key
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
@@ -83,8 +83,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup secure.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -92,8 +92,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup nsec3.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -101,8 +101,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup optout.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -110,8 +110,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup optout.example
 cat $infile dsset-*.${zone}$TP > $zonefile
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -137,8 +137,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup nsec.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
@@ -147,8 +147,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup oldsigs.example
 cp $infile $zonefile
-$KEYGEN -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 
 #
@@ -164,8 +164,8 @@ $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 # keys via nsupdate
 #
 setup secure-to-insecure.example
-$KEYGEN -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 
 #
@@ -173,9 +173,9 @@ $SIGNER -S -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 # removal of keys on schedule.
 #
 setup secure-to-insecure2.example
-ksk=`$KEYGEN -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+ksk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
 echo $ksk > ../del1.key
-zsk=`$KEYGEN -q -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
 echo $zsk > ../del2.key
 $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 
@@ -184,8 +184,8 @@ $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 #
 setup prepub.example
 infile="secure-to-insecure2.example.db.in"
-$KEYGEN -3 -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 
 #
@@ -194,35 +194,35 @@ $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 
 # no default key TTL; DNSKEY should get SOA TTL
 setup ttl1.example
-$KEYGEN -3 -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 cp $infile $zonefile
 
 # default key TTL should be used
 setup ttl2.example 
-$KEYGEN -3 -q -r $RANDFILE -fk -L 60 $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE -L 60 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -L 60 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -L 60 $zone > kg.out 2>&1 || dumpit kg.out
 cp $infile $zonefile
 
 # mismatched key TTLs, should use shortest
 setup ttl3.example
-$KEYGEN -3 -q -r $RANDFILE -fk -L 30 $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE -L 60 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -L 30 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -L 60 $zone > kg.out 2>&1 || dumpit kg.out
 cp $infile $zonefile
 
 # existing DNSKEY RRset, should retain TTL
 setup ttl4.example
-$KEYGEN -3 -q -r $RANDFILE -L 30 -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -L 30 -fk $zone > kg.out 2>&1 || dumpit kg.out
 cat ${infile} K${zone}.+*.key > $zonefile
-$KEYGEN -3 -q -r $RANDFILE -L 180 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -L 180 $zone > kg.out 2>&1 || dumpit kg.out
 
 #
 # A zone with a DNSKEY RRset that is published before it's activated
 #
 setup delay.example
-ksk=`$KEYGEN -G -q -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+ksk=`$KEYGEN -G -q -a RSASHA1 -3 -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
 echo $ksk > ../delayksk.key
-zsk=`$KEYGEN -G -q -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
+zsk=`$KEYGEN -G -q -a RSASHA1 -3 -r $RANDFILE $zone 2> kg.out` || dumpit kg.out
 echo $zsk > ../delayzsk.key
 
 #
@@ -230,8 +230,8 @@ echo $zsk > ../delayzsk.key
 # is missing.
 #
 setup nozsk.example
-$KEYGEN -q -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone`
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out 2>&1 || dumpit s.out
 echo $zsk > ../missingzsk.key
 rm -f ${zsk}.private
@@ -241,8 +241,8 @@ rm -f ${zsk}.private
 # is inactive.
 #
 setup inaczsk.example
-$KEYGEN -q -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -q -3 -r $RANDFILE $zone`
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+zsk=`$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone`
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out 2>&1 || dumpit s.out
 echo $zsk > ../inactivezsk.key
 $SETTIME -I now $zsk > st.out 2>&1 || dumpit st.out
@@ -252,15 +252,15 @@ $SETTIME -I now $zsk > st.out 2>&1 || dumpit st.out
 #
 setup reconf.example
 cp secure.example.db.in $zonefile
-$KEYGEN -q -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 
 #
 # A zone which generates a CDS and CDNSEY RRsets automatically
 #
 setup sync.example
 cp $infile $zonefile
-ksk=`$KEYGEN -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 echo ns3/$ksk > ../sync.key

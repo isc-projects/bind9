@@ -615,8 +615,8 @@ grep "ANSWER: 1," dig.out.ns5.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:setup broken"; fi
 status=`expr $status + $ret`
 cp ns5/named.conf.post ns5/named.conf
-(cd ns5; $KEYGEN -q -r $RANDFILE bits) > /dev/null 2>&1
-(cd ns5; $KEYGEN -q -r $RANDFILE -f KSK bits) > /dev/null 2>&1
+(cd ns5; $KEYGEN -q -a rsasha256 -r $RANDFILE bits) > /dev/null 2>&1
+(cd ns5; $KEYGEN -q -a rsasha256 -r $RANDFILE -f KSK bits) > /dev/null 2>&1
 $RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 reload 2>&1 | sed 's/^/I:ns5 /'
 for i in 1 2 3 4 5 6 7 8 9 10
 do
@@ -870,7 +870,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:testing imported key won't overwrite a private key ($n)"
 ret=0
-key=`$KEYGEN -r $RANDFILE -q import.example`
+key=`$KEYGEN -r $RANDFILE -q -a rsasha256 import.example`
 cp ${key}.key import.key
 # import should fail
 $IMPORTKEY -f import.key import.example > /dev/null 2>&1 && ret=1

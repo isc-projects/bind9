@@ -283,8 +283,8 @@ zone=kskonly.example.
 infile=kskonly.example.db.in
 zonefile=kskonly.example.db
 
-kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -x -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -295,8 +295,8 @@ zone=expired.example.
 infile=expired.example.db.in
 zonefile=expired.example.db
 
-kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone -s -1d -e +1h $zonefile > /dev/null 2>&1
 rm -f $kskname.* $zskname.*
@@ -308,8 +308,8 @@ zone=update-nsec3.example.
 infile=update-nsec3.example.db.in
 zonefile=update-nsec3.example.db
 
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -321,10 +321,10 @@ zone=auto-nsec.example.
 infile=auto-nsec.example.db.in
 zonefile=auto-nsec.example.db
 
-kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
-kskname=`$KEYGEN -q -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -336,10 +336,10 @@ zone=auto-nsec3.example.
 infile=auto-nsec3.example.db.in
 zonefile=auto-nsec3.example.db
 
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 $zone`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -3 - -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -404,8 +404,8 @@ zone="expiring.example."
 infile="expiring.example.db.in"
 zonefile="expiring.example.db"
 signedfile="expiring.example.db.signed"
-kskname=`$KEYGEN -q -r $RANDFILE $zone`
-zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -S -r $RANDFILE -e now+1mi -o $zone $zonefile > /dev/null 2>&1
 mv -f ${zskname}.private ${zskname}.private.moved
@@ -419,8 +419,8 @@ infile="upper.example.db.in"
 zonefile="upper.example.db"
 lower="upper.example.db.lower"
 signedfile="upper.example.db.signed"
-kskname=`$KEYGEN -q -r $RANDFILE $zone`
-zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -P -S -r $RANDFILE -o $zone -f $lower $zonefile > /dev/null 2>&1
 $CHECKZONE -D upper.example $lower 2>&- | \
@@ -434,8 +434,8 @@ zone="LOWER.EXAMPLE."
 infile="lower.example.db.in"
 zonefile="lower.example.db"
 signedfile="lower.example.db.signed"
-kskname=`$KEYGEN -q -r $RANDFILE $zone`
-zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -P -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -447,8 +447,8 @@ zone="nosign.example."
 infile="nosign.example.db.in"
 zonefile="nosign.example.db"
 signedfile="nosign.example.db.signed"
-kskname=`$KEYGEN -q -r $RANDFILE $zone`
-zskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
 cp $infile $zonefile
 $SIGNER -S -r $RANDFILE -e now+1mi -o $zone $zonefile > /dev/null 2>&1
 # preserve a normalized copy of the NS RRSIG for comparison later
@@ -460,8 +460,8 @@ $CHECKZONE -D nosign.example nosign.example.db.signed 2>&- | \
 # An inline signing zone
 #
 zone=inline.example.
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 $zone`
 
 #
 # publish a new key while deactivating another key at the same time.
@@ -470,10 +470,10 @@ zone=publish-inactive.example
 infile=publish-inactive.example.db.in
 zonefile=publish-inactive.example.db
 now=`date -u +%Y%m%d%H%M%S`
-kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
-kskname=`$KEYGEN -P $now+90s -A $now+3600s -q -r $RANDFILE -f KSK $zone`
-kskname=`$KEYGEN -I $now+90s -q -r $RANDFILE -f KSK $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
+kskname=`$KEYGEN -P $now+90s -A $now+3600s -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
+kskname=`$KEYGEN -I $now+90s -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cp $infile $zonefile
 $SIGNER -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -483,8 +483,8 @@ $SIGNER -S -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 zone=siginterval.example
 infile=siginterval.example.db.in
 zonefile=siginterval.example.db
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk $zone`
-zskname=`$KEYGEN -q -3 -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 -fk $zone`
+zskname=`$KEYGEN -q -3 -r $RANDFILE -a RSASHA1 $zone`
 cp $infile $zonefile
 
 #
@@ -508,8 +508,8 @@ sed -e 's/bogus/badds/g' < dsset-bogus.example$TP > dsset-badds.example$TP
 zone=future.example
 infile=future.example.db.in
 zonefile=future.example.db
-kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 cp -f $kskname.key trusted-future.key
@@ -520,8 +520,8 @@ cp -f $kskname.key trusted-future.key
 zone=managed-future.example
 infile=managed-future.example.db.in
 zonefile=managed-future.example.db
-kskname=`$KEYGEN -q -r $RANDFILE -f KSK $zone`
-zskname=`$KEYGEN -q -r $RANDFILE $zone`
+kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -f KSK $zone`
+zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -s +3600 -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
@@ -532,10 +532,10 @@ zone=revkey.example.
 infile=generic.example.db.in
 zonefile=revkey.example.db
 
-ksk1=`$KEYGEN -q -r $RANDFILE -3fk $zone`
+ksk1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -3fk $zone`
 ksk1=`$REVOKE $ksk1`
-ksk2=`$KEYGEN -q -r $RANDFILE -3fk $zone`
-zsk1=`$KEYGEN -q -r $RANDFILE -3 $zone`
+ksk2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -3fk $zone`
+zsk1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -3 $zone`
 
 cat $infile ${ksk1}.key ${ksk2}.key ${zsk1}.key >$zonefile
 

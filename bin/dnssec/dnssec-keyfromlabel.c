@@ -46,15 +46,6 @@
 const char *program = "dnssec-keyfromlabel";
 int verbose;
 
-#define DEFAULT_ALGORITHM "RSASHA1"
-#define DEFAULT_NSEC3_ALGORITHM "NSEC3RSASHA1"
-
-static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 |"
-			  " NSEC3DSA | NSEC3RSASHA1 |"
-			  " RSASHA256 | RSASHA512 | ECCGOST |"
-			  " ECDSAP256SHA256 | ECDSAP384SHA384 |"
-			  " ED25519 | ED448";
-
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
@@ -68,9 +59,11 @@ usage(void) {
 	fprintf(stderr, "    -l label: label of the key pair\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
-	fprintf(stderr, "    -a algorithm: %s\n", algs);
-	fprintf(stderr, "       (default: RSASHA1, or "
-			       "NSEC3RSASHA1 if using -3)\n");
+	fprintf(stderr, "    -a algorithm: \n"
+			"        RSA | RSAMD5 | DH | DSA | RSASHA1 |\n"
+			"        NSEC3DSA | NSEC3RSASHA1 |\n"
+			"        RSASHA256 | RSASHA512 | ECCGOST |\n"
+			"        ECDSAP256SHA256 | ECDSAP384SHA384\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 	fprintf(stderr, "    -E <engine>:\n");
@@ -394,16 +387,7 @@ main(int argc, char **argv) {
 		}
 
 		if (algname == NULL) {
-			if (use_nsec3)
-				algname = strdup(DEFAULT_NSEC3_ALGORITHM);
-			else
-				algname = strdup(DEFAULT_ALGORITHM);
-			if (algname == NULL)
-				fatal("strdup failed");
-			freeit = algname;
-			if (verbose > 0)
-				fprintf(stderr, "no algorithm specified; "
-					"defaulting to %s\n", algname);
+			fatal("no algorithm specified");
 		}
 
 		if (strcasecmp(algname, "RSA") == 0) {
@@ -434,14 +418,28 @@ main(int argc, char **argv) {
 				options |= DST_TYPE_KEY;
 		}
 
-		if (use_nsec3 &&
-		    alg != DST_ALG_NSEC3DSA && alg != DST_ALG_NSEC3RSASHA1 &&
-		    alg != DST_ALG_RSASHA256 && alg != DST_ALG_RSASHA512 &&
-		    alg != DST_ALG_ECCGOST &&
-		    alg != DST_ALG_ECDSA256 && alg != DST_ALG_ECDSA384 &&
-		    alg != DST_ALG_ED25519 && alg != DST_ALG_ED448) {
-			fatal("%s is incompatible with NSEC3; "
-			      "do not use the -3 option", algname);
+		if (use_nsec3) {
+			switch (alg) {
+			case DST_ALG_DSA:
+				alg = DST_ALG_NSEC3DSA;
+				break;
+			case DST_ALG_RSASHA1:
+				alg = DST_ALG_NSEC3RSASHA1;
+				break;
+			case DST_ALG_NSEC3DSA:
+			case DST_ALG_NSEC3RSASHA1:
+			case DST_ALG_RSASHA256:
+			case DST_ALG_RSASHA512:
+			case DST_ALG_ECCGOST:
+			case DST_ALG_ECDSA256:
+			case DST_ALG_ECDSA384:
+			case DST_ALG_ED25519:
+			case DST_ALG_ED448:
+				break;
+			default:
+				fatal("%s is incompatible with NSEC3; "
+				      "do not use the -3 option", algname);
+			}
 		}
 
 		if (type != NULL && (options & DST_TYPE_KEY) != 0) {

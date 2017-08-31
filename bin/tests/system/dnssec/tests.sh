@@ -2209,7 +2209,7 @@ echo "I:checking that the NSEC3 record for the apex is properly signed when a DN
 ret=0
 (
 cd ns3
-kskname=`$KEYGEN -q -3 -r $RANDFILE -fk update-nsec3.example`
+kskname=`$KEYGEN -q -3 -a RSASHA1 -r $RANDFILE -fk update-nsec3.example`
 (
 echo zone update-nsec3.example
 echo server 10.53.0.3 5300
@@ -3247,8 +3247,8 @@ ret=0
 # generate signed zone with MX and AAAA records at apex.
 (
 cd signer
-$KEYGEN -q -r $RANDFILE -3 -fK remove > /dev/null
-$KEYGEN -q -r $RANDFILE -3 remove > /dev/null
+$KEYGEN -q -r $RANDFILE -a RSASHA1 -3 -fK remove > /dev/null
+$KEYGEN -q -r $RANDFILE -a RSASHA1 -33 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )

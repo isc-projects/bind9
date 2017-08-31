@@ -1,3 +1,13 @@
+4594.	[func]		dnssec-keygen no longer uses RSASHA1 by default;
+			the signing algorithm must be specified on
+			the command line with the "-a" option.  Signing
+			scripts that rely on the existing default behavior
+			will break; use "dnssec-keygen -a RSASHA1" to
+			repair them. (The goal of this change is to make
+			it easier to find scripts using RSASHA1 so they
+			can be changed in the event of that algorithm
+			being deprecated in the future.) [RT #44755]
+
 4693.	[func]		Synthesis of responses from DNSSEC-verified records.
 			Stage 1 covers NXDOMAIN synthesis from NSEC records.
 			This is controlled by synth-from-dnssec and is enabled
