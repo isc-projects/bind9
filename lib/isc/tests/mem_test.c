@@ -220,6 +220,7 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
 
+	memset(buf, 0, sizeof(buf));
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
