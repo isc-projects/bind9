@@ -7942,8 +7942,11 @@ query_coveringnsec(query_ctx_t *qctx) {
 	isc_boolean_t exists = ISC_TRUE, data = ISC_TRUE;
 	isc_boolean_t redirected = ISC_FALSE;
 	isc_buffer_t *dbuf = NULL, b;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int dboptions = qctx->client->query.dboptions;
+
+	dns_rdataset_init(&rdataset);
+	dns_rdataset_init(&sigrdataset);
 
 	/*
 	 * If we have no signer name, stop immediately.
@@ -7960,9 +7963,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 	signer = dns_fixedname_name(&fsigner);
 	dns_fixedname_init(&fnowild);
 	nowild = dns_fixedname_name(&fnowild);
-
-	dns_rdataset_init(&rdataset);
-	dns_rdataset_init(&sigrdataset);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, qctx->client, NULL);
