@@ -1,3 +1,6 @@
+4696.	[port]		Enable filter-aaaa support by default on Windows
+			builds. [RT #45883]
+
 4695.	[bug]		cookie-secrets were not being properly checked by
 			named-checkconf. [RT #45886]
 
