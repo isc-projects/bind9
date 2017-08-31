@@ -1378,24 +1378,24 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			result = tresult;
 
 		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "aes") != 0 &&
+		    strcasecmp(ccalg, "aes") == 0 &&
 		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "AES cookie-secret must be on 128 bits");
+				    "AES cookie-secret must be 128 bits");
 			result = ISC_R_RANGE;
 		}
 		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "sha1") != 0 &&
+		    strcasecmp(ccalg, "sha1") == 0 &&
 		    isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA1 cookie-secret must be on 160 bits");
+				    "SHA1 cookie-secret must be 160 bits");
 			result = ISC_R_RANGE;
 		}
 		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "sha256") != 0 &&
+		    strcasecmp(ccalg, "sha256") == 0 &&
 		    isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA256 cookie-secret must be on 256 bits");
+				    "SHA256 cookie-secret must be 256 bits");
 			result = ISC_R_RANGE;
 		}
 	}
