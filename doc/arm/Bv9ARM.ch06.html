@@ -5032,6 +5032,37 @@ options {
                   next time <span class="command"><strong>named</strong></span> is started.
                 </p>
               </dd>
+<dt><span class="term"><span class="command"><strong>synth-from-dnssec</strong></span></span></dt>
+<dd>
+                <p>
+                  Synthesize answers from cached NSEC, NSEC3 and
+                  other RRsets that have been proved to be correct
+                  using DNSSEC.  The default is <span class="command"><strong>yes</strong></span>.
+                </p>
+                <p>
+                  Note:
+                  </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                      <p>
+                        DNSSEC validation must be enabled for this
+                        option to be effective.
+                      </p>
+                    </li>
+<li class="listitem">
+                      <p>
+                        This initial implementation only covers
+                        NXDOMAIN synthesis from NSEC records.
+                        Synthesis of NODATA and wildcard responses
+                        is also planned, as is synthesis from NSEC3
+                        records.  All of these will be controlled
+                        by <span class="command"><strong>synth-from-dnssec</strong></span>.
+                      </p>
+                    </li>
+</ul></div>
+<p>
+                </p>
+              </dd>
 </dl></div>
 
         </div>

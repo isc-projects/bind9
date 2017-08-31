@@ -428,6 +428,7 @@ options {<br>
 	stacksize ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
 	startup-notify-rate <em class="replaceable"><code>integer</code></em>;<br>
 	statistics-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	synth-from-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
 	tcp-advertised-timeout <em class="replaceable"><code>integer</code></em>;<br>
 	tcp-clients <em class="replaceable"><code>integer</code></em>;<br>
 	tcp-idle-timeout <em class="replaceable"><code>integer</code></em>;<br>
@@ -766,6 +767,7 @@ view <em class="replaceable"><code>string</code></em> [<span class="optional"> <
 	sig-signing-type <em class="replaceable"><code>integer</code></em>;<br>
 	sig-validity-interval <em class="replaceable"><code>integer</code></em> [<span class="optional"> <em class="replaceable"><code>integer</code></em> </span>];<br>
 	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	synth-from-dnssec <em class="replaceable"><code>boolean</code></em>;<br>
 	transfer-format ( many-answers | one-answer );<br>
 	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>] [<span class="optional"><br>
 	    dscp <em class="replaceable"><code>integer</code></em> </span>];<br>

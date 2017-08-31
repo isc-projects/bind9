@@ -403,6 +403,21 @@
 	  "[ECS <em class="replaceable"><code>address/source/scope</code></em>]".
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> will now synthesize responses
+	  from cached DNSSEC-verified records.  This will reduce
+	  query loads on authoritative servers for signed domains:
+	  if existing cached records can be used to determine
+	  the answer then no query needs to be sent.
+	</p>
+	<p>
+	  This behavior is controlled by the new
+	  <code class="filename">named.conf</code> option
+	  <span class="command"><strong>synth-from-dnssec</strong></span>.  It is enabled by
+	  default.
+	</p>
+      </li>
 </ul></div>
   </div>
 

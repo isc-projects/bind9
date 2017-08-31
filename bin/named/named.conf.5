@@ -451,6 +451,7 @@ options {
 	stacksize ( default | unlimited | \fIsizeval\fR );
 	startup\-notify\-rate \fIinteger\fR;
 	statistics\-file \fIquoted_string\fR;
+	synth\-from\-dnssec \fIboolean\fR;
 	tcp\-advertised\-timeout \fIinteger\fR;
 	tcp\-clients \fIinteger\fR;
 	tcp\-idle\-timeout \fIinteger\fR;
@@ -801,6 +802,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	sig\-signing\-type \fIinteger\fR;
 	sig\-validity\-interval \fIinteger\fR [ \fIinteger\fR ];
 	sortlist { \fIaddress_match_element\fR; \&.\&.\&. };
+	synth\-from\-dnssec \fIboolean\fR;
 	transfer\-format ( many\-answers | one\-answer );
 	transfer\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ] [
 	    dscp \fIinteger\fR ];
