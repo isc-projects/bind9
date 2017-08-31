@@ -1113,8 +1113,12 @@
 ./bin/tests/system/conf.sh.win32		SH	2016,2017
 ./bin/tests/system/cookie/.gitignore		X	2014,2015
 ./bin/tests/system/cookie/bad-cookie-badhex.conf	CONF-C	2014,2015,2016
+./bin/tests/system/cookie/bad-cookie-badsha1.conf	CONF-C	2017
+./bin/tests/system/cookie/bad-cookie-badsha256.conf	CONF-C	2017
 ./bin/tests/system/cookie/bad-cookie-toolong.conf	CONF-C	2014,2015,2016
 ./bin/tests/system/cookie/clean.sh		SH	2014,2015,2016
+./bin/tests/system/cookie/good-cookie-sha1.conf	CONF-C	2017
+./bin/tests/system/cookie/good-cookie-sha256.conf	CONF-C	2017
 ./bin/tests/system/cookie/ns1/example.db	ZONE	2014,2015,2016
 ./bin/tests/system/cookie/ns1/named.conf	CONF-C	2014,2015,2016
 ./bin/tests/system/cookie/ns1/root.hint		ZONE	2014,2015,2016
@@ -1122,7 +1126,7 @@
 ./bin/tests/system/cookie/ns2/root.db		ZONE	2014,2015,2016
 ./bin/tests/system/cookie/ns3/named.conf	CONF-C	2015,2016
 ./bin/tests/system/cookie/ns3/root.hint		ZONE	2015,2016
-./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016
+./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016,2017
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013
 ./bin/tests/system/coverage/01-ksk-inactive/expect	X	2013
 ./bin/tests/system/coverage/02-zsk-inactive/README	X	2013
