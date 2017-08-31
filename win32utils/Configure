@@ -499,7 +499,7 @@ my @help = (
 "  enable-intrinsics     enable instrinsic/atomic functions [default=yes]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=no]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
-"  enable-filter-aaaa    enable filtering of AAAA records [default=no]\n",
+"  enable-filter-aaaa    enable filtering of AAAA records [default=yes]\n",
 "  enable-fixed-rrset    enable fixed rrset ordering [default=no]\n",
 "  enable-developer      enable developer build settings [default=no]\n",
 "  enable-querytrace     enable very verbose query trace [default=no]\n",
@@ -535,7 +535,7 @@ my $want_unknown = "no";
 my $unknown_value;
 my $enable_intrinsics = "yes";
 my $enable_openssl_hash = "no";
-my $enable_filter_aaaa = "no";
+my $enable_filter_aaaa = "yes";
 my $enable_isc_spnego = "yes";
 my $enable_fixed_rrset = "no";
 my $enable_developer = "no";
@@ -735,8 +735,8 @@ sub myenable {
             $enable_isc_spnego = "no";
         }
     } elsif ($key =~ /^filter-aaaa$/i) {
-        if ($val =~ /^yes$/i) {
-            $enable_filter_aaaa = "yes";
+        if ($val =~ /^no$/i) {
+            $enable_filter_aaaa = "no";
         }
     } elsif ($key =~ /^fixed-rrset$/i) {
         if ($val =~ /^yes$/i) {
