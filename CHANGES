@@ -1,3 +1,6 @@
+4695.	[bug]		cookie-secrets were not being properly checked by
+			named-checkconf. [RT #45886]
+
 4692.	[bug]		Fix build failures with libressl introduced in 4676.
 			[RT #45879]
 
