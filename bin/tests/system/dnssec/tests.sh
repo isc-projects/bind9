@@ -1516,18 +1516,7 @@ awk '/IN *SOA/ {if (NF != 7) exit(1)}' signer/signer.out.4 || ret=1
 israw1 signer/signer.out.5 || ret=1
 israw0 signer/signer.out.6 || ret=1
 israw1 signer/signer.out.7 || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:checking dnssec-signzone output format ($n)"
-ret=0
-(
-cd signer
-$SIGNER -O full -f - -Sxt -o example example.db > signer.out.3 2>&1
-$SIGNER -O text -f - -Sxt -o example example.db > signer.out.4 2>&1
-) || ret=1
-awk '/IN *SOA/ {if (NF != 11) exit(1)}' signer/signer.out.3 || ret=1
-awk '/IN *SOA/ {if (NF != 7) exit(1)}' signer/signer.out.4 || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -1538,6 +1527,7 @@ cd signer
 $SIGNER -O full -f signer.out.8 -S -M 30 -o example example.db > /dev/null 2>&1
 ) || ret=1
 awk '/^;/ { next; } $2 > 30 { exit 1; }' signer/signer.out.8 || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -1550,6 +1540,7 @@ $SIGNER -O full -f signer.out.9 -S -N date -o example example2.db > /dev/null 2>
 now=`$PERL -e '@lt=localtime(); printf "%.4d%0.2d%0.2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];'`
 serial=`awk '/^;/ { next; } $4 == "SOA" { print $7 }' signer/signer.out.9`
 [ "$now" -eq "$serial" ] || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -2544,7 +2535,7 @@ status=`expr $status + $ret`
 # includes it anyway to avoid confusion (RT #21731)
 echo "I:check dnssec-dsfromkey error message when keyfile is not found ($n)"
 ret=0
-key=`$KEYGEN -q -r $RANDFILE example.` || ret=1
+key=`$KEYGEN -a RSASHA1 -q -r $RANDFILE example.` || ret=1
 mv $key.key $key
 $DSFROMKEY $key > dsfromkey.out.$n 2>&1 && ret=1
 grep "$key.key: file not found" dsfromkey.out.$n > /dev/null || ret=1
@@ -2877,7 +2868,7 @@ test $sigs -eq 2 || ret=1
 if test $ret != 0 ; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that increasing the sig-validity-interval resigning triggers re-signing"
+echo "I:check that increasing the sig-validity-interval resigning triggers re-signing ($n)"
 ret=0
 before=`$DIG axfr siginterval.example -p 5300 @10.53.0.3 | grep RRSIG.SOA`
 cp ns3/siginterval2.conf ns3/siginterval.conf
