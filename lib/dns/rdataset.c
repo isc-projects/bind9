@@ -466,6 +466,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	dns_name_copy(owner_name, name, NULL);
 	dns_rdataset_getownercase(rdataset, name);
 
+	if ((owner_name->attributes & DNS_NAMEATTR_NOCOMPRESS) != 0)
+		name->attributes |= DNS_NAMEATTR_NOCOMPRESS;
+
 	do {
 		/*
 		 * Copy out the name, type, class, ttl.
