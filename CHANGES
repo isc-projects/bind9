@@ -1,3 +1,6 @@
+4697.	[bug]		Restore workaround for Microsoft Windows TSIG hash
+			computation bug. [RT #45854]
+
 4696.	[port]		Enable filter-aaaa support by default on Windows
 			builds. [RT #45883]
 
