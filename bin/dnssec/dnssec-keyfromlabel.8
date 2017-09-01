@@ -55,7 +55,7 @@ of the key is specified on the command line\&. This must match the name of the z
 .RS 4
 Selects the cryptographic algorithm\&. The value of
 \fBalgorithm\fR
-must be one of RSAMD5, RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512, ECCGOST, ECDSAP256SHA256, ECDSAP384SHA384, ED25519 or ED448\&. These values are case insensitive\&.
+must be one of RSAMD5, RSASHA1, DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512, ECCGOST, ECDSAP256SHA256, ECDSAP384SHA384, ED25519 or ED448\&.
 .sp
 If no algorithm is specified, then RSASHA1 will be used by default, unless the
 \fB\-3\fR
@@ -63,14 +63,20 @@ option is specified, in which case NSEC3RSASHA1 will be used instead\&. (If
 \fB\-3\fR
 is used and an algorithm is specified, that algorithm will be checked for compatibility with NSEC3\&.)
 .sp
-Note 1: that for DNSSEC, RSASHA1 is a mandatory to implement algorithm, and DSA is recommended\&.
+These values are case insensitive\&. In some cases, abbreviations are supported, such as ECDSA256 for ECDSAP256SHA256 and ECDSA384 for ECDSAP384SHA384\&. If RSASHA1 or DSA is specified along with the
+\fB\-3\fR
+option, then NSEC3RSASHA1 or NSEC3DSA will be used instead\&.
 .sp
-Note 2: DH automatically sets the \-k flag\&.
+As of BIND 9\&.12\&.0, this option is mandatory except when using the
+\fB\-S\fR
+option (which copies the algorithm from the predecessory key)\&. Previously, the default for newly generated keys was RSASHA1\&.
 .RE
 .PP
 \-3
 .RS 4
-Use an NSEC3\-capable algorithm to generate a DNSSEC key\&. If this option is used and no algorithm is explicitly set on the command line, NSEC3RSASHA1 will be used by default\&.
+Use an NSEC3\-capable algorithm to generate a DNSSEC key\&. If this option is used with an algorithm that has both NSEC and NSEC3 versions, then the NSEC3 version will be used; for example,
+\fBdnssec\-keygen \-3a RSASHA1\fR
+specifies the NSEC3RSASHA1 algorithm\&.
 .RE
 .PP
 \-E \fIengine\fR

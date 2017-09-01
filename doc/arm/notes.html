@@ -450,6 +450,17 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  <span class="command"><strong>dnssec-keygen</strong></span> no longer has default
+	  algorithm settings. It is necessary to explicitly specify the
+	  algorithm on the command line with the <code class="option">-a</code> option
+	  when generating keys. This may cause errors with existing signing
+	  scripts if they rely on current defaults. The intent is to
+	  reduce the long-term cost of transitioning to newer algorithms in
+	  the event of RSASHA1 being deprecated. [RT #44755]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
 	  names to assist debugging on operating systems that support that.
 	  Threads will have names such as "isc-timer", "isc-sockmgr",
