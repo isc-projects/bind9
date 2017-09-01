@@ -5391,11 +5391,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	    wild != NULL)
 	{
 		dns_dbnode_t *wnode = NULL;
-		char namebuf[DNS_NAME_FORMATSIZE];
 
-		dns_name_format(wild, namebuf, sizeof(namebuf));
-
-		fprintf(stderr, "save wildcard data %s\n", namebuf);
 		result = dns_db_findnode(fctx->cache, wild, ISC_TRUE, &wnode);
 		if (result == ISC_R_SUCCESS)
 			result = dns_db_addrdataset(fctx->cache, wnode, NULL,
