@@ -96,6 +96,10 @@
 			before all zone loading actions triggered by a previous
 			"rndc reload" command were completed. [RT #47076]
 
+4699.	[func]		Multiple cookie-secret clauses can now be specified.
+			The first one specified is used to generate new
+			server cookies.  [RT #45672]
+
 	--- 9.11.3 released ---
 	--- 9.11.3rc2 released ---
 
