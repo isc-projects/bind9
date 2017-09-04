@@ -8213,8 +8213,8 @@ load_configuration(const char *filename, ns_server_t *server,
 		unsigned int usedlength;
 
 		for (element = cfg_list_first(obj);
-                     element != NULL;
-                     element = cfg_list_next(element))
+		     element != NULL;
+		     element = cfg_list_next(element))
 		{
 			obj = cfg_listelt_value(element);
 			str = cfg_obj_asstring(obj);
