@@ -5398,9 +5398,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 						    now, vevent->rdataset, 0,
 						    NULL);
 		if (result == ISC_R_SUCCESS)
-			result = dns_db_addrdataset(fctx->cache, wnode, NULL,
-						    now, vevent->sigrdataset,
-						    0, NULL);
+			(void)dns_db_addrdataset(fctx->cache, wnode, NULL, now,
+						 vevent->sigrdataset, 0, NULL);
 		if (wnode != NULL)
 			dns_db_detachnode(fctx->cache, &wnode);
 	}
