@@ -1364,39 +1364,56 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	if (obj != NULL) {
 		unsigned char secret[32];
 
-		memset(secret, 0, sizeof(secret));
-		isc_buffer_init(&b, secret, sizeof(secret));
-		tresult = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
-		if (tresult == ISC_R_NOSPACE) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "cookie-secret: too long");
-		} else if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "cookie-secret: invalid hex string");
-		}
-		if (tresult != ISC_R_SUCCESS)
-			result = tresult;
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element)) {
+			unsigned int usedlength;
 
-		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "aes") == 0 &&
-		    isc_buffer_usedlength(&b) != ISC_AES128_KEYLENGTH) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "AES cookie-secret must be 128 bits");
-			result = ISC_R_RANGE;
-		}
-		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "sha1") == 0 &&
-		    isc_buffer_usedlength(&b) != ISC_SHA1_DIGESTLENGTH) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA1 cookie-secret must be 160 bits");
-			result = ISC_R_RANGE;
-		}
-		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(ccalg, "sha256") == 0 &&
-		    isc_buffer_usedlength(&b) != ISC_SHA256_DIGESTLENGTH) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "SHA256 cookie-secret must be 256 bits");
-			result = ISC_R_RANGE;
+			obj = cfg_listelt_value(element);
+			str = cfg_obj_asstring(obj);
+
+			memset(secret, 0, sizeof(secret));
+			isc_buffer_init(&b, secret, sizeof(secret));
+			tresult = isc_hex_decodestring(str, &b);
+			if (tresult == ISC_R_NOSPACE) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "cookie-secret: too long");
+			} else if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "cookie-secret: invalid hex "
+					    "string");
+			}
+			if (tresult != ISC_R_SUCCESS) {
+				if (result == ISC_R_SUCCESS)
+					result = tresult;
+				continue;
+			}
+
+			usedlength = isc_buffer_usedlength(&b);
+			if (strcasecmp(ccalg, "aes") == 0 &&
+			    usedlength != ISC_AES128_KEYLENGTH) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "AES cookie-secret must be "
+					    "128 bits");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_RANGE;
+			}
+			if (strcasecmp(ccalg, "sha1") == 0 &&
+			    usedlength != ISC_SHA1_DIGESTLENGTH) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "SHA1 cookie-secret must be "
+					    "160 bits");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_RANGE;
+			}
+			if (strcasecmp(ccalg, "sha256") == 0 &&
+			    usedlength != ISC_SHA256_DIGESTLENGTH) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "SHA256 cookie-secret must be "
+					    "256 bits");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_RANGE;
+			}
 		}
 	}
 

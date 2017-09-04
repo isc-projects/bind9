@@ -7147,12 +7147,15 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_uint32_t transfer_message_size;
 	ns_cache_t *nsc;
 	ns_cachelist_t cachelist, tmpcachelist;
+	ns_altsecret_t *altsecret;
+	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	unsigned int maxsocks;
 	isc_uint32_t softquota = 0;
 
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
+	ISC_LIST_INIT(altsecrets);
 
 	/* Create the ACL configuration context */
 	if (ns_g_aclconfctx != NULL)
@@ -8103,7 +8106,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		}
 	}
 
-
 	obj = NULL;
 	if (options != NULL &&
 	    cfg_map_get(options, "memstatistics", &obj) == ISC_R_SUCCESS)
@@ -8205,32 +8207,69 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	result = ns_config_get(maps, "cookie-secret", &obj);
 	if (result == ISC_R_SUCCESS) {
+		const char *str;
+		isc_boolean_t first = ISC_TRUE;
 		isc_buffer_t b;
 		unsigned int usedlength;
 
-		memset(server->secret, 0, sizeof(server->secret));
-		isc_buffer_init(&b, server->secret, sizeof(server->secret));
-		result = isc_hex_decodestring(cfg_obj_asstring(obj), &b);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
-			goto cleanup;
+		for (element = cfg_list_first(obj);
+                     element != NULL;
+                     element = cfg_list_next(element))
+		{
+			obj = cfg_listelt_value(element);
+			str = cfg_obj_asstring(obj);
 
-		usedlength = isc_buffer_usedlength(&b);
-		switch (server->cookiealg) {
-		case ns_cookiealg_aes:
-			if (usedlength != ISC_AES128_KEYLENGTH)
-				CHECKM(ISC_R_RANGE,
-				       "AES cookie-secret must be 128 bits");
-			break;
-		case ns_cookiealg_sha1:
-			if (usedlength != ISC_SHA1_DIGESTLENGTH)
-				CHECKM(ISC_R_RANGE,
-				       "SHA1 cookie-secret must be 160 bits");
-			break;
-		case ns_cookiealg_sha256:
-			if (usedlength != ISC_SHA256_DIGESTLENGTH)
-				CHECKM(ISC_R_RANGE,
-				       "SHA256 cookie-secret must be 256 bits");
-			break;
+			if (first) {
+				memset(server->secret, 0,
+				       sizeof(server->secret));
+				isc_buffer_init(&b, server->secret,
+						sizeof(server->secret));
+				result = isc_hex_decodestring(str, &b);
+				if (result != ISC_R_SUCCESS &&
+				    result != ISC_R_NOSPACE)
+					goto cleanup;
+				first = ISC_FALSE;
+			} else {
+				altsecret = isc_mem_get(server->mctx,
+							sizeof(*altsecret));
+				if (altsecret == NULL) {
+					result = ISC_R_NOMEMORY;
+					goto cleanup;
+				}
+				isc_buffer_init(&b, altsecret->secret,
+						sizeof(altsecret->secret));
+				result = isc_hex_decodestring(str, &b);
+				if (result != ISC_R_SUCCESS &&
+				    result != ISC_R_NOSPACE) {
+					isc_mem_put(server->mctx, altsecret,
+						    sizeof(*altsecret));
+					goto cleanup;
+				}
+				ISC_LIST_INITANDAPPEND(altsecrets,
+						       altsecret, link);
+			}
+
+			usedlength = isc_buffer_usedlength(&b);
+			switch (server->cookiealg) {
+			case ns_cookiealg_aes:
+				if (usedlength != ISC_AES128_KEYLENGTH)
+					CHECKM(ISC_R_RANGE,
+					       "AES cookie-secret must be "
+					       "128 bits");
+				break;
+			case ns_cookiealg_sha1:
+				if (usedlength != ISC_SHA1_DIGESTLENGTH)
+					CHECKM(ISC_R_RANGE,
+					       "SHA1 cookie-secret must be "
+					       "160 bits");
+				break;
+			case ns_cookiealg_sha256:
+				if (usedlength != ISC_SHA256_DIGESTLENGTH)
+					CHECKM(ISC_R_RANGE,
+					       "SHA256 cookie-secret must be "
+					       "256 bits");
+				break;
+			}
 		}
 	} else {
 		result = isc_entropy_getdata(ns_g_entropy,
@@ -8241,6 +8280,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	}
+
+	/*
+	 * Swap altsecrets lists.
+	 */
+	tmpaltsecrets = server->altsecrets;
+	server->altsecrets = altsecrets;
+	altsecrets = tmpaltsecrets;
 
 	(void) ns_server_loadnta(server);
 
@@ -8295,6 +8341,12 @@ load_configuration(const char *filename, ns_server_t *server,
 		ISC_LIST_UNLINK(cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
+	}
+
+	/* Same cleanup for altsecrets list. */
+	while ((altsecret = ISC_LIST_HEAD(altsecrets)) != NULL) {
+		ISC_LIST_UNLINK(altsecrets, altsecret, link);
+		isc_mem_put(server->mctx, altsecret, sizeof(*altsecret));
 	}
 
 	/*
@@ -8520,6 +8572,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 	isc_boolean_t flush = server->flushonshutdown;
 	ns_cache_t *nsc;
+	ns_altsecret_t *altsecret;
 
 	UNUSED(task);
 	INSIST(task == server->task);
@@ -8562,6 +8615,11 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);
 		dns_cache_detach(&nsc->cache);
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
+	}
+
+	while ((altsecret = ISC_LIST_HEAD(server->altsecrets)) != NULL) {
+		ISC_LIST_UNLINK(server->altsecrets, altsecret, link);
+		isc_mem_put(server->mctx, altsecret, sizeof(*altsecret));
 	}
 
 	isc_timer_detach(&server->interface_timer);
@@ -8807,6 +8865,8 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	ISC_LIST_INIT(server->statschannels);
 
 	ISC_LIST_INIT(server->cachelist);
+
+	ISC_LIST_INIT(server->altsecrets);
 
 	server->sessionkey = NULL;
 	server->session_keyfile = NULL;

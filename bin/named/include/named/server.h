@@ -117,6 +117,7 @@ struct ns_server {
 	isc_uint16_t		session_keybits;
 	isc_boolean_t		interface_auto;
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
+	ns_altsecretlist_t	altsecrets;
 	ns_cookiealg_t		cookiealg;
 
 	dns_dtenv_t		*dtenv;		/*%< Dnstap environment */
@@ -124,6 +125,11 @@ struct ns_server {
 	char *			lockfile;
 
 	isc_uint16_t		transfer_tcp_message_size;
+};
+
+struct ns_altsecret {
+	ISC_LINK(ns_altsecret_t) link;
+	unsigned char		secret[32];
 };
 
 #define NS_SERVER_MAGIC			ISC_MAGIC('S','V','E','R')

@@ -248,7 +248,8 @@ static inline isc_boolean_t
 allowed(isc_netaddr_t *addr, dns_name_t *signer, isc_netaddr_t *ecs_addr,
 	isc_uint8_t ecs_addrlen, isc_uint8_t *ecs_scope, dns_acl_t *acl);
 static void compute_cookie(ns_client_t *client, isc_uint32_t when,
-			   isc_uint32_t nonce, isc_buffer_t *buf);
+			   isc_uint32_t nonce, const unsigned char *secret,
+			   isc_buffer_t *buf);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -1623,7 +1624,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_stdtime_get(&now);
 		isc_random_get(&nonce);
 
-		compute_cookie(client, now, nonce, &buf);
+		compute_cookie(client, now, nonce, ns_g_server->secret, &buf);
 
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_COOKIE;
@@ -1830,7 +1831,7 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 
 static void
 compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
-	       isc_buffer_t *buf)
+	       const unsigned char *secret, isc_buffer_t *buf)
 {
 	switch (ns_g_server->cookiealg) {
 #if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
@@ -1847,7 +1848,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_buffer_putuint32(buf, nonce);
 		isc_buffer_putuint32(buf, when);
 		memmove(input, cp, 16);
-		isc_aes128_crypt(ns_g_server->secret, input, digest);
+		isc_aes128_crypt(secret, input, digest);
 		for (i = 0; i < 8; i++)
 			input[i] = digest[i] ^ digest[i + 8];
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
@@ -1856,12 +1857,12 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			cp = (unsigned char *)&netaddr.type.in;
 			memmove(input + 8, cp, 4);
 			memset(input + 12, 0, 4);
-			isc_aes128_crypt(ns_g_server->secret, input, digest);
+			isc_aes128_crypt(secret, input, digest);
 			break;
 		case AF_INET6:
 			cp = (unsigned char *)&netaddr.type.in6;
 			memmove(input + 8, cp, 16);
-			isc_aes128_crypt(ns_g_server->secret, input, digest);
+			isc_aes128_crypt(secret, input, digest);
 			for (i = 0; i < 8; i++)
 				input[i + 8] = digest[i] ^ digest[i + 8];
 			isc_aes128_crypt(ns_g_server->secret, input + 8,
@@ -1887,9 +1888,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_buffer_putuint32(buf, nonce);
 		isc_buffer_putuint32(buf, when);
 
-		isc_hmacsha1_init(&hmacsha1,
-				  ns_g_server->secret,
-				  ISC_SHA1_DIGESTLENGTH);
+		isc_hmacsha1_init(&hmacsha1, secret, ISC_SHA1_DIGESTLENGTH);
 		isc_hmacsha1_update(&hmacsha1, cp, 16);
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		switch (netaddr.family) {
@@ -1925,8 +1924,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_buffer_putuint32(buf, nonce);
 		isc_buffer_putuint32(buf, when);
 
-		isc_hmacsha256_init(&hmacsha256,
-				    ns_g_server->secret,
+		isc_hmacsha256_init(&hmacsha256, secret,
 				    ISC_SHA256_DIGESTLENGTH);
 		isc_hmacsha256_update(&hmacsha256, cp, 16);
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
@@ -1957,6 +1955,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 
 static void
 process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
+	ns_altsecret_t *altsecret;
 	unsigned char dbuf[COOKIE_SIZE];
 	unsigned char *old;
 	isc_stdtime_t now;
@@ -2016,17 +2015,31 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	}
 
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
-	compute_cookie(client, when, nonce, &db);
+	compute_cookie(client, when, nonce, ns_g_server->secret, &db);
 
-	if (!isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
+	if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
 		isc_stats_increment(ns_g_server->nsstats,
-				    dns_nsstatscounter_cookienomatch);
+				    dns_nsstatscounter_cookiematch);
+		client->attributes |= NS_CLIENTATTR_HAVECOOKIE;
 		return;
 	}
 
+	for (altsecret = ISC_LIST_HEAD(ns_g_server->altsecrets);
+	     altsecret != NULL;
+	     altsecret = ISC_LIST_NEXT(altsecret, link))
+	{
+		isc_buffer_init(&db, dbuf, sizeof(dbuf));
+		compute_cookie(client, when, nonce, altsecret->secret, &db);
+		if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
+			isc_stats_increment(ns_g_server->nsstats,
+					    dns_nsstatscounter_cookiematch);
+			client->attributes |= NS_CLIENTATTR_HAVECOOKIE;
+			return;
+		}
+	}
+
 	isc_stats_increment(ns_g_server->nsstats,
-			    dns_nsstatscounter_cookiematch);
-	client->attributes |= NS_CLIENTATTR_HAVECOOKIE;
+			    dns_nsstatscounter_cookienomatch);
 }
 
 static isc_result_t

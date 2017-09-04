@@ -1,3 +1,7 @@
+4699.	[func]		Multiple cookie-secret clauses can now be specified.
+			The first one specified is used to generate new
+			server cookies.  [RT #45672]
+
 4698.	[port]		Add --with-python-install-dir configure option to allow
 			specifying a nonstandard installation directory for
 			Python modules. [RT #45407]

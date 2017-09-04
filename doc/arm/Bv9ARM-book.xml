@@ -6637,6 +6637,12 @@ options {
 		  to be 128 bits for AES128, 160 bits for SHA1 and
 		  256 bits for SHA256.
 		</para>
+		<para>
+		  If there are multiple secrets specified, the first
+		  one listed in <filename>named.conf</filename> is
+		  used to generate new server cookies.  The others
+		  will only be used to verify returned cookies.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
