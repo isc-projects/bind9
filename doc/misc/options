@@ -114,7 +114,7 @@ options {
         cleaning-interval <integer>;
         clients-per-query <integer>;
         cookie-algorithm ( aes | sha1 | sha256 );
-        cookie-secret <string>;
+        cookie-secret <string>; // may occur multiple times
         coresize ( default | unlimited | <sizeval> );
         datasize ( default | unlimited | <sizeval> );
         deallocate-on-exit <boolean>; // obsolete

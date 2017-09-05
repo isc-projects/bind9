@@ -4452,6 +4452,12 @@ options {
                   to be 128 bits for AES128, 160 bits for SHA1 and
                   256 bits for SHA256.
                 </p>
+                <p>
+                  If there are multiple secrets specified, the first
+                  one listed in <code class="filename">named.conf</code> is
+                  used to generate new server cookies.  The others
+                  will only be used to verify returned cookies.
+                </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>response-padding</strong></span></span></dt>
 <dd>
