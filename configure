@@ -882,6 +882,8 @@ ISC_PLATFORM_NORETURN_PRE
 ISC_PLATFORM_HAVELONGLONG
 ISC_SOCKADDR_LEN_T
 expanded_sysconfdir
+PYTHON_INSTALL_LIB
+PYTHON_INSTALL_DIR
 PYTHON_TOOLS
 KEYMGR
 COVERAGE
@@ -1006,6 +1008,7 @@ enable_developer
 enable_afl
 enable_seccomp
 with_python
+with_python_install_dir
 enable_kqueue
 enable_epoll
 enable_devpoll
@@ -1742,6 +1745,8 @@ Optional Packages:
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
   --with-python=PATH      specify path to python interpreter
+  --with-python-install-dir=PATH
+                          installation directory for Python modules
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-gssapi=[PATH|[/path/]krb5-config]      Specify path for system-supplied GSSAPI [default=yes]
   --with-randomdev=PATH   Specify path for random device
@@ -11848,6 +11853,14 @@ else
 fi
 
 
+# Check whether --with-python-install-dir was given.
+if test "${with_python_install_dir+set}" = set; then :
+  withval=$with_python_install_dir; use_python_install_dir="$withval"
+else
+  use_python_install_dir="unspec"
+fi
+
+
 python="python python3 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
 testargparse='try: import argparse
@@ -11958,8 +11971,19 @@ $as_echo "not found" >&6; }
                                         unset PYTHON
 				fi
 			done
-			if test "X$PYTHON" = "X"
+			if test "X$PYTHON" != "X"
 			then
+				case "$use_python_install_dir" in
+				unspec)
+					PYTHON_INSTALL_DIR=""
+					PYTHON_INSTALL_LIB=""
+					;;
+				*)
+					PYTHON_INSTALL_DIR="$use_python_install_dir"
+					PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
+					;;
+				esac
+			else
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
 $as_echo_n "checking for python support... " >&6; }
 				case "$use_python" in
@@ -12065,6 +12089,8 @@ if test "X$PYTHON" != "X"; then
 	COVERAGE=coverage
 	KEYMGR=keymgr
 fi
+
+
 
 
 
