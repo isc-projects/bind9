@@ -1,0 +1,5 @@
+.		300	SOA	. . 0 0 0 0 0
+.		300	NS	ns.nil.
+ns.nil.		300	A	10.53.0.1
+example.	300	NS	ns.example.
+ns.example.	300	A	10.53.0.2

@@ -228,6 +228,7 @@ options {
         max-refresh-time <integer>;
         max-retry-time <integer>;
         max-rsa-exponent-size <integer>;
+        max-stale-ttl <ttlval>;
         max-transfer-idle-in <integer>;
         max-transfer-idle-out <integer>;
         max-transfer-time-in <integer>;
@@ -302,7 +303,9 @@ options {
         request-sit <boolean>; // obsolete
         require-server-cookie <boolean>;
         reserved-sockets <integer>;
+        resolver-nonbackoff-tries <integer>;
         resolver-query-timeout <integer>;
+        resolver-retry-interval <integer>;
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
@@ -334,6 +337,8 @@ options {
         sit-secret <string>; // obsolete
         sortlist { <address_match_element>; ... };
         stacksize ( default | unlimited | <sizeval> );
+        stale-answer-enable <boolean>;
+        stale-answer-ttl <ttlval>;
         startup-notify-rate <integer>;
         statistics-file <quoted_string>;
         statistics-interval <integer>; // not yet implemented
@@ -553,6 +558,7 @@ view <string> [ <class> ] {
         max-recursion-queries <integer>;
         max-refresh-time <integer>;
         max-retry-time <integer>;
+        max-stale-ttl <ttlval>;
         max-transfer-idle-in <integer>;
         max-transfer-idle-out <integer>;
         max-transfer-time-in <integer>;
@@ -615,7 +621,9 @@ view <string> [ <class> ] {
         request-nsid <boolean>;
         request-sit <boolean>; // obsolete
         require-server-cookie <boolean>;
+        resolver-nonbackoff-tries <integer>;
         resolver-query-timeout <integer>;
+        resolver-retry-interval <integer>;
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
@@ -674,6 +682,8 @@ view <string> [ <class> ] {
         sig-signing-type <integer>;
         sig-validity-interval <integer> [ <integer> ];
         sortlist { <address_match_element>; ... };
+        stale-answer-enable <boolean>;
+        stale-answer-ttl <ttlval>;
         suppress-initial-notify <boolean>; // not yet implemented
         synth-from-dnssec <boolean>;
         topology { <address_match_element>; ... }; // not implemented

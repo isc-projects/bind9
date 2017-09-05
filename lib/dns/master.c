@@ -1906,12 +1906,18 @@ load_text(dns_loadctx_t *lctx) {
 
 		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {
 			/*
-			 * Adjust the TTL for $DATE.  If the RR has already
-			 * expired, ignore it.
+			 * Adjust the TTL for $DATE. If the RR has
+			 * already expired, set its TTL to 0. This
+			 * should be okay even if the TTL stretching
+			 * feature is not in effect, because it will
+			 * just be quickly expired by the cache, and the
+			 * way this was written before the patch it
+			 * could potentially add 0 TTLs anyway.
 			 */
 			if (lctx->ttl < ttl_offset)
-				continue;
-			lctx->ttl -= ttl_offset;
+				lctx->ttl = 0;
+			else
+				lctx->ttl -= ttl_offset;
 		}
 
 		/*

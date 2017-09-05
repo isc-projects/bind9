@@ -535,9 +535,12 @@ dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name);
 
 
 void
-dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds);
+dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout);
 /*%<
- * Set the length of time the resolver will work on a query, in seconds.
+ * Set the length of time the resolver will work on a query, in milliseconds.
+ *
+ * 'timeout' was originally defined in seconds, and later redefined to be in
+ * milliseconds.  Values less than or equal to 300 are treated as seconds.
  *
  * If timeout is 0, the default timeout will be applied.
  *
@@ -548,7 +551,8 @@ dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds);
 unsigned int
 dns_resolver_gettimeout(dns_resolver_t *resolver);
 /*%<
- * Get the current length of time the resolver will work on a query, in seconds.
+ * Get the current length of time the resolver will work on a query,
+ * in milliseconds.
  *
  * Requires:
  * \li  resolver to be valid.
@@ -569,6 +573,39 @@ dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
 
 void
 dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
+
+unsigned int
+dns_resolver_getretryinterval(dns_resolver_t *resolver);
+
+void
+dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval);
+/*%<
+ * Sets the amount of time, in millseconds, that is waited for a reply
+ * to a server before another server is tried.  Interacts with the
+ * value of dns_resolver_getnonbackofftries() by trying that number of times
+ * at this interval, before doing exponential backoff and doubling the interval
+ * on each subsequent try, to a maximum of 10 seconds.  Defaults to 800 ms;
+ * silently capped at 2000 ms.
+ *
+ * Requires:
+ * \li	resolver to be valid.
+ * \li  interval > 0.
+ */
+
+unsigned int
+dns_resolver_getnonbackofftries(dns_resolver_t *resolver);
+
+void
+dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries);
+/*%<
+ * Sets the number of failures of getting a reply from remote servers for
+ * a query before backing off by doubling the retry interval for each
+ * subsequent request sent.  Defaults to 3.
+ *
+ * Requires:
+ * \li	resolver to be valid.
+ * \li  tries > 0.
+ */
 
 unsigned int
 dns_resolver_getoptions(dns_resolver_t *resolver);

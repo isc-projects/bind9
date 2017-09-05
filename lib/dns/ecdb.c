@@ -581,7 +581,9 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL,			/* setcachestats */
 	NULL,			/* hashsize */
 	NULL,			/* nodefullname */
-	NULL			/* getsize */
+	NULL,			/* getsize */
+	NULL,			/* setservestalettl */
+	NULL			/* getservestalettl */
 };
 
 static isc_result_t

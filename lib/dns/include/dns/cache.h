@@ -256,6 +256,27 @@ dns_cache_getcachesize(dns_cache_t *cache);
  * Get the maximum cache size.
  */
 
+void
+dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl);
+/*%<
+ * Sets the maximum length of time that cached answers may be retained
+ * past their normal TTL.  Default value for the library is 0, disabling
+ * the use of stale data.
+ *
+ * Requires:
+ *\li	'cache' to be valid.
+ */
+
+dns_ttl_t
+dns_cache_getservestalettl(dns_cache_t *cache);
+/*%<
+ * Gets the maximum length of time that cached answers may be kept past
+ * normal expiry.
+ *
+ * Requires:
+ *\li	'cache' to be valid.
+ */
+
 isc_result_t
 dns_cache_flush(dns_cache_t *cache);
 /*%<

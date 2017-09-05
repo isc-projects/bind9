@@ -1,3 +1,9 @@
+4700.	[func]		Serving of stale answers is now supported. This
+			allows named to provide stale cached answers when
+			the authoritative server is under attack.
+			See max-stale-ttl, stale-answer-enable,
+			stale-answer-ttl. [RT #44790]
+
 4699.	[func]		Multiple cookie-secret clauses can now be specified.
 			The first one specified is used to generate new
 			server cookies.  [RT #45672]

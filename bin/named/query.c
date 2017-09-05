@@ -146,9 +146,13 @@ do { \
 #define REDIRECT(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_REDIRECT) != 0)
 
-/*% No QNAME Proof? */
+/*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
 #define NOQNAME(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_NOQNAME) != 0)
+
+/*% Does the rdataset 'r' contains a stale answer? */
+#define STALE(r)		(((r)->attributes & \
+				  DNS_RDATASETATTR_STALE) != 0)
 
 #ifdef WANT_QUERYTRACE
 static inline void
@@ -326,6 +330,7 @@ typedef struct query_ctx {
 	isc_boolean_t need_wildcardproof;	/* wilcard proof needed */
 	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
 	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
+	isc_boolean_t want_stale;		/* want stale records? */
 	dns_fixedname_t wildcardname;		/* name needing wcard proof */
 	dns_fixedname_t dsname;			/* name needing DS */
 
@@ -4634,6 +4639,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->findcoveringnsec = client->view->synthfromdnssec;
 	qctx->is_staticstub_zone = ISC_FALSE;
 	qctx->nxrewrite = ISC_FALSE;
+	qctx->want_stale = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
 }
 
@@ -5009,6 +5015,35 @@ query_lookup(query_ctx_t *qctx) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
 	}
 
+	if (qctx->want_stale) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		isc_boolean_t success;
+
+		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEOK;
+		qctx->want_stale = ISC_FALSE;
+		if (dns_rdataset_isassociated(qctx->rdataset) &&
+		    dns_rdataset_count(qctx->rdataset) > 0 &&
+		    STALE(qctx->rdataset)) {
+			qctx->rdataset->ttl =
+					 qctx->client->view->staleanswerttl;
+			success = ISC_TRUE;
+		} else {
+			success = ISC_FALSE;
+		}
+
+		dns_name_format(qctx->client->query.qname,
+				namebuf, sizeof(namebuf));
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "%s resolver failure, stale answer %s",
+			      namebuf, success ? "used" : "unavailable");
+
+		if (!success) {
+			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			return (query_done(qctx));
+		}
+	}
+
 	return (query_gotanswer(qctx, result));
 }
 
@@ -5125,6 +5160,8 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
 	isc_sockaddr_t *peeraddr = NULL;
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_recurse");
 
 	if (!resuming)
 		inc_stats(client, dns_nsstatscounter_recursion);
@@ -5995,7 +6032,11 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			 "query_gotanswer: unexpected error: %s",
 			 isc_result_totext(result));
 		CCTRACE(ISC_LOG_ERROR, errmsg);
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		if (qctx->resuming) {
+			qctx->want_stale = ISC_TRUE;
+		} else {
+			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		}
 		return (query_done(qctx));
 	}
 }
@@ -6469,7 +6510,7 @@ query_respond(query_ctx_t *qctx) {
 	/*
 	 * If we have a zero ttl from the cache, refetch.
 	 */
-	if (!qctx->is_zone && !qctx->resuming &&
+	if (!qctx->is_zone && !qctx->resuming && !STALE(qctx->rdataset) &&
 	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
 	{
 		qctx_clean(qctx);
@@ -8274,7 +8315,7 @@ query_cname(query_ctx_t *qctx) {
 	/*
 	 * If we have a zero ttl from the cache refetch it.
 	 */
-	if (!qctx->is_zone && !qctx->resuming &&
+	if (!qctx->is_zone && !qctx->resuming && !STALE(qctx->rdataset) &&
 	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
 	{
 		qctx_clean(qctx);
@@ -9559,6 +9600,49 @@ query_done(query_ctx_t *qctx) {
 	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
 		qctx->client->query.restarts++;
 		return (query_start(qctx));
+	}
+
+	if (qctx->want_stale) {
+		dns_ttl_t stale_ttl = 0;
+		isc_result_t result;
+		isc_boolean_t staleanswersok = ISC_FALSE;
+
+		/*
+		 * Stale answers only make sense if stale_ttl > 0 but
+		 * we want rndc to be able to control returning stale
+		 * answers if they are configured.
+		 */
+		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
+		result = dns_db_getservestalettl(qctx->db, &stale_ttl);
+		if (result == ISC_R_SUCCESS && stale_ttl > 0)  {
+			switch (qctx->client->view->staleanswersok) {
+			case dns_stale_answer_yes:
+				staleanswersok = ISC_TRUE;
+				break;
+			case dns_stale_answer_conf:
+				staleanswersok =
+					qctx->client->view->staleanswersenable;
+				break;
+			case dns_stale_answer_no:
+				staleanswersok = ISC_FALSE;
+				break;
+			}
+		} else {
+			staleanswersok = ISC_FALSE;
+		}
+
+		if (staleanswersok) {
+			qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
+			inc_stats(qctx->client, dns_nsstatscounter_trystale);
+			if (qctx->client->query.fetch != NULL)
+				dns_resolver_destroyfetch(
+						   &qctx->client->query.fetch);
+			return (query_lookup(qctx));
+		}
+		dns_db_detach(&qctx->db);
+		qctx->want_stale = ISC_FALSE;
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		return (query_done(qctx));
 	}
 
 	if (qctx->result != ISC_R_SUCCESS &&

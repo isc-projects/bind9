@@ -4599,7 +4599,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>lame-ttl</command> <replaceable>number</replaceable> ; ]
   [ <command>max-ncache-ttl</command> <replaceable>number</replaceable> ; ]
   [ <command>max-cache-ttl</command> <replaceable>number</replaceable> ; ]
+  [ <command>max-stale-ttl</command> <replaceable>number</replaceable> ; ]
   [ <command>max-zone-ttl</command> ( <option>unlimited</option> | <replaceable>number</replaceable> ) ; ]
+  [ <command>stale-answer-enable</command> <replaceable>yes_or_no</replaceable> ; ]
+  [ <command>stale-answer-ttl</command> <replaceable>number</replaceable> ; ]
   [ <command>serial-update-method</command> ( <option>increment</option> | <option>unixtime</option> | <option>date</option> ) ; ]
   [ <command>servfail-ttl</command> <replaceable>number</replaceable> ; ]
   [ <command>sig-validity-interval</command> <replaceable>number</replaceable> [<replaceable>number</replaceable>] ; ]
@@ -4802,6 +4805,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		  <command>dnssec-validation</command>,
 		  <command>max-cache-ttl</command>,
 		  <command>max-ncache-ttl</command>,
+		  <command>max-stale-ttl</command>,
 		  <command>max-cache-size</command>, and
 		  <command>zero-no-soa-ttl</command>.
 		</para>
@@ -5826,7 +5830,6 @@ options {
 	    </listitem>
 	  </varlistentry>
 
-
 	  <varlistentry>
 	    <term><command>max-zone-ttl</command></term>
 	    <listitem>
@@ -5858,6 +5861,21 @@ options {
 		The default value is <constant>unlimited</constant>.
 		A <option>max-zone-ttl</option> of zero is treated as
 		<constant>unlimited</constant>.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>stale-answer-ttl</command></term>
+	    <listitem>
+	      <para>
+		Specifies the TTL to be returned on stale answers.
+		The default is 1 second. The minimal allowed is
+		also 1 second; a value of 0 will be updated silently
+		to 1 second.  For stale answers to be returned
+		<option>max-stale-ttl</option> must be set to a
+		non zero value and they must not have been disabled
+		by <command>rndc</command>.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -6587,6 +6605,22 @@ options {
 		  do not send a correct COOKIE option may be limited
 		  to receiving smaller responses via the
 		  <command>nocookie-udp-size</command> option.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>serve-stale-enable</command></term>
+	      <listitem>
+		<para>
+		  Enable the returning of stale answers when the
+		  nameservers for the zone are not answering.  This
+		  is off by default but can be enabled/disabled via
+		  <command>rndc server-stale on</command> and
+		  <command>rndc server-stale off</command> which
+		  override the named.conf setting.  <command>rndc
+		  server-stale reset</command> will restore control
+		  via named.conf.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7751,13 +7785,19 @@ options {
 	      <term><command>resolver-query-timeout</command></term>
 	      <listitem>
 		<para>
-		  The amount of time in seconds that the resolver
+		  The amount of time in milliseconds that the resolver
 		  will spend attempting to resolve a recursive
 		  query before failing.  The default and minimum
-		  is <literal>10</literal> and the maximum is
-		  <literal>30</literal>.  Setting it to
+		  is <literal>10000</literal> and the maximum is
+		  <literal>30000</literal>.  Setting it to
 		  <literal>0</literal> will result in the default
 		  being used.
+		</para>
+		<para>
+		  This value was originally specified in seconds.
+		  Values less than or equal to 300 will be be treated
+		  as seconds and converted to milliseconds before
+		  applying the above limits.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -9393,6 +9433,27 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  SERVFAIL, because of lost caches of intermediate
 		  RRsets (such as NS and glue AAAA/A records) in the
 		  resolution process.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>max-stale-ttl</command></term>
+	      <listitem>
+		<para>
+		  Sets the maximum time for which the server will
+		  retain records past their normal expiry to
+		  return them as stale records when the servers
+		  for those records are not reachable.  The default
+		  is to not retain the record.
+		</para>
+		<para>
+		  <command>rndc serve-stale</command> can be used
+		  to disable and re-enable the serving of stale
+		  records at runtime.  Reloading or reconfiguring
+		  <command>named</command> will not re-enable serving
+		  of stale records if they have been disabled via
+		  <command>rndc</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>

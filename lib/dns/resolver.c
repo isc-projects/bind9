@@ -140,16 +140,17 @@
 #endif /* WANT_QUERYTRACE */
 
 #define US_PER_SEC 1000000U
+#define US_PER_MSEC 1000U
 /*
  * The maximum time we will wait for a single query.
  */
-#define MAX_SINGLE_QUERY_TIMEOUT 9U
-#define MAX_SINGLE_QUERY_TIMEOUT_US (MAX_SINGLE_QUERY_TIMEOUT*US_PER_SEC)
+#define MAX_SINGLE_QUERY_TIMEOUT 9000U
+#define MAX_SINGLE_QUERY_TIMEOUT_US (MAX_SINGLE_QUERY_TIMEOUT*US_PER_MSEC)
 
 /*
  * We need to allow a individual query time to complete / timeout.
  */
-#define MINIMUM_QUERY_TIMEOUT (MAX_SINGLE_QUERY_TIMEOUT + 1U)
+#define MINIMUM_QUERY_TIMEOUT (MAX_SINGLE_QUERY_TIMEOUT + 1000U)
 
 /* The default time in seconds for the whole query to live. */
 #ifndef DEFAULT_QUERY_TIMEOUT
@@ -158,7 +159,7 @@
 
 /* The maximum time in seconds for the whole query to live. */
 #ifndef MAXIMUM_QUERY_TIMEOUT
-#define MAXIMUM_QUERY_TIMEOUT 30
+#define MAXIMUM_QUERY_TIMEOUT 30000
 #endif
 
 /* The default maximum number of recursions to follow before giving up. */
@@ -493,6 +494,10 @@ struct dns_resolver {
 	unsigned int			maxdepth;
 	unsigned int			maxqueries;
 	isc_result_t			quotaresp[2];
+
+	/* Additions for serve-stale feature. */
+	unsigned int			retryinterval; /* in milliseconds */
+	unsigned int			nonbackofftries;
 
 	/* Locked by lock. */
 	unsigned int			references;
@@ -1793,14 +1798,12 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	unsigned int seconds;
 	unsigned int us;
 
+	us = fctx->res->retryinterval * 1000;
 	/*
-	 * We retry every .8 seconds the first two times through the address
-	 * list, and then we do exponential back-off.
+	 * Exponential backoff after the first few tries.
 	 */
-	if (fctx->restarts < 3)
-		us = 800000;
-	else
-		us = (800000 << (fctx->restarts - 2));
+	if (fctx->restarts >= fctx->res->nonbackofftries)
+		us <<= (fctx->restarts - fctx->res->nonbackofftries - 1);
 
 	/*
 	 * Add a fudge factor to the expected rtt based on the current
@@ -4671,7 +4674,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, res->query_timeout, 0);
+	isc_interval_set(&interval, res->query_timeout / 1000,
+			 res->query_timeout % 1000 * 1000000);
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -9623,6 +9627,8 @@ dns_resolver_create(dns_view_t *view,
 	res->spillattimer = NULL;
 	res->zspill = 0;
 	res->zero_no_soa_ttl = ISC_FALSE;
+	res->retryinterval = 30000;
+	res->nonbackofftries = 3;
 	res->query_timeout = DEFAULT_QUERY_TIMEOUT;
 	res->maxdepth = DEFAULT_RECURSION_DEPTH;
 	res->maxqueries = DEFAULT_MAX_QUERIES;
@@ -10943,17 +10949,20 @@ dns_resolver_gettimeout(dns_resolver_t *resolver) {
 }
 
 void
-dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int seconds) {
+dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (seconds == 0)
-		seconds = DEFAULT_QUERY_TIMEOUT;
-	if (seconds > MAXIMUM_QUERY_TIMEOUT)
-		seconds = MAXIMUM_QUERY_TIMEOUT;
-	if (seconds < MINIMUM_QUERY_TIMEOUT)
-		seconds =  MINIMUM_QUERY_TIMEOUT;
+	if (timeout <= 300)
+		timeout *= 1000;
 
-	resolver->query_timeout = seconds;
+	if (timeout == 0)
+		timeout = DEFAULT_QUERY_TIMEOUT;
+	if (timeout > MAXIMUM_QUERY_TIMEOUT)
+		timeout = MAXIMUM_QUERY_TIMEOUT;
+	if (timeout < MINIMUM_QUERY_TIMEOUT)
+		timeout =  MINIMUM_QUERY_TIMEOUT;
+
+	resolver->query_timeout = timeout;
 }
 
 void
@@ -11049,4 +11058,35 @@ dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which)
 	REQUIRE(which == dns_quotatype_zone || which == dns_quotatype_server);
 
 	return (resolver->quotaresp[which]);
+}
+
+unsigned int
+dns_resolver_getretryinterval(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	return (resolver->retryinterval);
+}
+
+void
+dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval)
+{
+	REQUIRE(VALID_RESOLVER(resolver));
+	REQUIRE(interval > 0);
+
+	resolver->retryinterval = ISC_MIN(interval, 2000);
+}
+
+unsigned int
+dns_resolver_getnonbackofftries(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	return (resolver->nonbackofftries);
+}
+
+void
+dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	REQUIRE(tries > 0);
+
+	resolver->nonbackofftries = tries;
 }

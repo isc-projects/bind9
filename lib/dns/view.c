@@ -215,6 +215,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
 	view->maxudp = 0;
+	view->staleanswerttl = 1;
+	view->staleanswersok = dns_stale_answer_conf;
+	view->staleanswersenable = ISC_FALSE;
 	view->nocookieudp = 0;
 	view->padding = 0;
 	view->pad_acl = NULL;

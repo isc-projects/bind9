@@ -1737,7 +1737,8 @@ static isc_boolean_t
 cache_sharable(dns_view_t *originview, dns_view_t *view,
 	       isc_boolean_t new_zero_no_soattl,
 	       unsigned int new_cleaning_interval,
-	       isc_uint64_t new_max_cache_size)
+	       isc_uint64_t new_max_cache_size,
+	       isc_uint32_t new_stale_ttl)
 {
 	/*
 	 * If the cache cannot even reused for the same view, it cannot be
@@ -1752,6 +1753,7 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	 */
 	if (dns_cache_getcleaninginterval(originview->cache) !=
 	    new_cleaning_interval ||
+	    dns_cache_getservestalettl(originview->cache) != new_stale_ttl ||
 	    dns_cache_getcachesize(originview->cache) != new_max_cache_size) {
 		return (ISC_FALSE);
 	}
@@ -3331,6 +3333,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_uint32_t max_cache_size_percent = 0;
 	size_t max_adb_size;
 	isc_uint32_t lame_ttl, fail_ttl;
+	isc_uint32_t max_stale_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -3360,6 +3363,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_boolean_t old_rpz_ok = ISC_FALSE;
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
+	unsigned int resolver_param;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -3738,6 +3742,23 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->synthfromdnssec = cfg_obj_asboolean(obj);
 
+	result = ns_config_get(maps, "max-stale-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	max_stale_ttl = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "stale-answer-enable", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->staleanswersenable = cfg_obj_asboolean(obj);
+
+	result = dns_viewlist_find(&ns_g_server->viewlist, view->name,
+				   view->rdclass, &pview);
+	if (result == ISC_R_SUCCESS) {
+		view->staleanswersok = pview->staleanswersok;
+		dns_view_detach(&pview);
+	} else
+		view->staleanswersok = dns_stale_answer_conf;
+
 	/*
 	 * Configure the view's cache.
 	 *
@@ -3771,7 +3792,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	nsc = cachelist_find(cachelist, cachename, view->rdclass);
 	if (nsc != NULL) {
 		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
-				    cleaning_interval, max_cache_size)) {
+				    cleaning_interval, max_cache_size,
+				    max_stale_ttl)) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "views %s and %s can't share the cache "
@@ -3870,8 +3892,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	dns_cache_setcleaninginterval(cache, cleaning_interval);
 	dns_cache_setcachesize(cache, max_cache_size);
+	dns_cache_setservestalettl(cache, max_stale_ttl);
 
 	dns_cache_detach(&cache);
+
+	obj = NULL;
+	result = ns_config_get(maps, "stale-answer-ttl", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->staleanswerttl = ISC_MAX(cfg_obj_asuint32(obj), 1);
 
 	/*
 	 * Resolver.
@@ -4058,6 +4086,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	if (maxbits > 4096)
 		maxbits = 4096;
 	view->maxbits = maxbits;
+
+	/*
+	 * Set resolver retry parameters.
+	 */
+	obj = NULL;
+	CHECK(ns_config_get(maps, "resolver-retry-interval", &obj));
+	resolver_param = cfg_obj_asuint32(obj);
+	if (resolver_param > 0)
+		dns_resolver_setretryinterval(view->resolver, resolver_param);
+
+	obj = NULL;
+	CHECK(ns_config_get(maps, "resolver-nonbackoff-tries", &obj));
+	resolver_param = cfg_obj_asuint32(obj);
+	if (resolver_param > 0)
+		dns_resolver_setnonbackofftries(view->resolver, resolver_param);
 
 	/*
 	 * Set supported DNSSEC algorithms.
@@ -14085,6 +14128,135 @@ ns_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 	CHECK(putstr(text, msg));
 
  cleanup:
+	if (isc_buffer_usedlength(*text) > 0)
+		(void) putnull(text);
+
+	return (result);
+}
+
+isc_result_t
+ns_server_servestale(ns_server_t *server, isc_lex_t *lex,
+		     isc_buffer_t **text)
+{
+	char *ptr, *classtxt, *viewtxt = NULL;
+	char msg[128];
+	dns_rdataclass_t rdclass = dns_rdataclass_in;
+	dns_view_t *view;
+	isc_boolean_t found = ISC_FALSE;
+	dns_stale_answer_t staleanswersok;
+	isc_boolean_t wantstatus = ISC_FALSE;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/* Skip the command name. */
+	ptr = next_token(lex, text);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	ptr = next_token(lex, NULL);
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
+	if (strcasecmp(ptr, "on") == 0 || strcasecmp(ptr, "yes") == 0) {
+		staleanswersok = dns_stale_answer_yes;
+	} else if (strcasecmp(ptr, "off") == 0 || strcasecmp(ptr, "no") == 0) {
+		staleanswersok = dns_stale_answer_no;
+	} else if (strcasecmp(ptr, "reset") == 0) {
+		staleanswersok = dns_stale_answer_conf;
+	} else if (strcasecmp(ptr, "status") == 0) {
+		wantstatus = ISC_TRUE;
+	} else
+		return (DNS_R_SYNTAX);
+
+	/* Look for the optional class name. */
+	classtxt = next_token(lex, text);
+	if (classtxt != NULL) {
+		/* Look for the optional view name. */
+		viewtxt = next_token(lex, text);
+	}
+
+	if (classtxt != NULL) {
+		isc_textregion_t r;
+
+		r.base = classtxt;
+		r.length = strlen(classtxt);
+		result = dns_rdataclass_fromtext(&rdclass, &r);
+		if (result != ISC_R_SUCCESS) {
+			if (viewtxt == NULL) {
+				viewtxt = classtxt;
+				classtxt = NULL;
+				result = ISC_R_SUCCESS;
+			} else {
+				snprintf(msg, sizeof(msg),
+					 "unknown class '%s'", classtxt);
+				(void) putstr(text, msg);
+				goto cleanup;
+			}
+		}
+	}
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		dns_ttl_t stale_ttl = 0;
+		dns_db_t *db = NULL;
+
+		if (classtxt != NULL && rdclass != view->rdclass)
+			continue;
+
+		if (viewtxt != NULL && strcmp(view->name, viewtxt) != 0)
+			continue;
+
+		if (!wantstatus) {
+			view->staleanswersok = staleanswersok;
+			found = ISC_TRUE;
+			continue;
+		}
+
+		db = NULL;
+		dns_db_attach(view->cachedb, &db);
+		(void)dns_db_getservestalettl(db, &stale_ttl);
+		dns_db_detach(&db);
+		if (found)
+			CHECK(putstr(text, "\n"));
+		CHECK(putstr(text, view->name));
+		CHECK(putstr(text, ": "));
+		switch (view->staleanswersok) {
+		case dns_stale_answer_yes:
+			if (stale_ttl > 0)
+				CHECK(putstr(text, "on (rndc)"));
+			else
+				CHECK(putstr(text, "off (not-cached)"));
+			break;
+		case dns_stale_answer_no:
+			CHECK(putstr(text, "off (rndc)"));
+			break;
+		case dns_stale_answer_conf:
+			if (view->staleanswersenable && stale_ttl > 0)
+				CHECK(putstr(text, "on"));
+			else if (view->staleanswersenable)
+				CHECK(putstr(text, "off (not-cached)"));
+			else
+				CHECK(putstr(text, "off"));
+			break;
+		}
+		if (stale_ttl > 0) {
+			snprintf(msg, sizeof(msg),
+				 " (stale-answer-ttl=%u max-stale-ttl=%u)",
+				 view->staleanswerttl, stale_ttl);
+			CHECK(putstr(text, msg));
+		}
+		found = ISC_TRUE;
+	}
+	isc_task_endexclusive(ns_g_server->task);
+
+	if (!found)
+		result = ISC_R_NOTFOUND;
+
+cleanup:
 	if (isc_buffer_usedlength(*text) > 0)
 		(void) putnull(text);
 

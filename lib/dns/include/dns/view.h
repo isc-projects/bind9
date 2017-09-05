@@ -162,6 +162,9 @@ struct dns_view {
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	isc_uint16_t			maxudp;
+	dns_ttl_t			staleanswerttl;
+	dns_stale_answer_t		staleanswersok;		/* rndc setting */
+	isc_boolean_t			staleanswersenable;	/* named.conf setting */
 	isc_uint16_t			nocookieudp;
 	isc_uint16_t			padding;
 	dns_acl_t *			pad_acl;

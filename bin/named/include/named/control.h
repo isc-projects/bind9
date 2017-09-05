@@ -66,6 +66,7 @@
 #define NS_COMMAND_DNSTAPREOPEN	"dnstap-reopen"
 #define NS_COMMAND_DNSTAP	"dnstap"
 #define NS_COMMAND_TCPTIMEOUTS	"tcp-timeouts"
+#define NS_COMMAND_SERVESTALE	"serve-stale"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

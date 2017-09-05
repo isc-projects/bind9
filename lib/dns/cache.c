@@ -133,6 +133,7 @@ struct dns_cache {
 	int			db_argc;
 	char			**db_argv;
 	size_t			size;
+	dns_ttl_t		serve_stale_ttl;
 	isc_stats_t		*stats;
 
 	/* Locked by 'filelock'. */
@@ -162,9 +163,13 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 
 static inline isc_result_t
 cache_create_db(dns_cache_t *cache, dns_db_t **db) {
-	return (dns_db_create(cache->mctx, cache->db_type, dns_rootname,
-			      dns_dbtype_cache, cache->rdclass,
-			      cache->db_argc, cache->db_argv, db));
+	isc_result_t result;
+	result = dns_db_create(cache->mctx, cache->db_type, dns_rootname,
+			       dns_dbtype_cache, cache->rdclass,
+			       cache->db_argc, cache->db_argv, db);
+	if (result == ISC_R_SUCCESS)
+		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+	return (result);
 }
 
 isc_result_t
@@ -1085,6 +1090,32 @@ dns_cache_getcachesize(dns_cache_t *cache) {
 	UNLOCK(&cache->lock);
 
 	return (size);
+}
+
+void
+dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl) {
+	REQUIRE(VALID_CACHE(cache));
+
+	LOCK(&cache->lock);
+	cache->serve_stale_ttl = ttl;
+	UNLOCK(&cache->lock);
+
+	(void)dns_db_setservestalettl(cache->db, ttl);
+}
+
+dns_ttl_t
+dns_cache_getservestalettl(dns_cache_t *cache) {
+	dns_ttl_t ttl;
+	isc_result_t result;
+
+	REQUIRE(VALID_CACHE(cache));
+
+	/*
+	 * Could get it straight from the dns_cache_t, but use db
+	 * to confirm the value that the db is really using.
+	 */
+	result = dns_db_getservestalettl(cache->db, &ttl);
+	return result == ISC_R_SUCCESS ? ttl : 0;
 }
 
 /*

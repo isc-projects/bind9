@@ -377,6 +377,12 @@ typedef enum {
 	dns_updatemethod_date
 } dns_updatemethod_t;
 
+typedef enum {
+	dns_stale_answer_no,
+	dns_stale_answer_yes,
+	dns_stale_answer_conf
+} dns_stale_answer_t;
+
 /*
  * Functions.
  */

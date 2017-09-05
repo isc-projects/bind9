@@ -53,17 +53,18 @@ options {\n\
 #endif
 #ifndef WIN32
 "	coresize default;\n\
-	datasize default;\n\
-	files unlimited;\n\
-	stacksize default;\n"
+	datasize default;\n"
 #endif
-"#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
-	session-keyname local-ddns;\n\
-	session-keyalg hmac-sha256;\n\
+"\
 #	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
-#	fake-iquery <obsolete>;\n\
+	edns-udp-size 4096;\n\
+#	fake-iquery <obsolete>;\n"
+#ifndef WIN32
+"	files unlimited;\n"
+#endif
+"\
 #	has-old-clients <obsolete>;\n\
 	heartbeat-interval 60;\n\
 #	host-statistics <obsolete>;\n\
@@ -71,33 +72,40 @@ options {\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
+#	lock-file \"" NS_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	match-mapped-addresses no;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
+	max-udp-size 4096;\n\
 	memstatistics-file \"named.memstats\";\n\
 #	multiple-cnames <obsolete>;\n\
 #	named-xfer <obsolete>;\n\
+	nocookie-udp-size 4096;\n\
+	notify-rate 20;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
-	notify-rate 20;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
-#	lock-file \"" NS_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	port 53;\n\
-	prefetch 2 9;\n\
-	recursing-file \"named.recursing\";\n\
-	secroots-file \"named.secroots\";\n\
-"
+	prefetch 2 9;\n"
 #ifdef PATH_RANDOMDEV
-"\
-	random-device \"" PATH_RANDOMDEV "\";\n\
-"
+"	random-device \"" PATH_RANDOMDEV "\";\n"
 #endif
-"\
+"	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
+	request-nsid false;\n\
+	reserved-sockets 512;\n\
 	resolver-query-timeout 10;\n\
+	secroots-file \"named.secroots\";\n\
+	send-cookie true;\n\
 #	serial-queries <obsolete>;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
-	startup-notify-rate 20;\n\
+	session-keyalg hmac-sha256;\n\
+#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
+	session-keyname local-ddns;\n"
+#ifndef WIN32
+"	stacksize default;\n"
+#endif
+"	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 #	statistics-interval <obsolete>;\n\
 	tcp-advertised-timeout 300;\n\
@@ -107,22 +115,16 @@ options {\n\
 	tcp-keepalive-timeout 300;\n\
 	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
-#	tkey-gssapi-credential <none>\n\
 #	tkey-domain <none>\n\
+#	tkey-gssapi-credential <none>\n\
 	transfer-message-size 20480;\n\
-	transfers-per-ns 2;\n\
 	transfers-in 10;\n\
 	transfers-out 10;\n\
+	transfers-per-ns 2;\n\
 #	treat-cr-as-space <obsolete>;\n\
 	trust-anchor-telemetry yes;\n\
 #	use-id-pool <obsolete>;\n\
 #	use-ixfr <obsolete>;\n\
-	edns-udp-size 4096;\n\
-	max-udp-size 4096;\n\
-	nocookie-udp-size 4096;\n\
-	send-cookie true;\n\
-	request-nsid false;\n\
-	reserved-sockets 512;\n\
 \n\
 	/* DLV */\n\
 	dnssec-lookaside . trust-anchor dlv.isc.org;\n\
@@ -147,34 +149,35 @@ options {\n\
 	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
 	dnssec-enable yes;\n\
-	dnssec-validation yes; \n\
+	dnssec-validation yes; \n"
+#ifdef HAVE_DNSTAP
+"	dnstap-identity hostname;\n"
+#endif
+"\
 #	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
 	fetches-per-server 0;\n\
-	fetches-per-zone 0;\n\
-"
+	fetches-per-zone 0;\n"
 #ifdef ALLOW_FILTER_AAAA
 "	filter-aaaa-on-v4 no;\n\
 	filter-aaaa-on-v6 no;\n\
-	filter-aaaa { any; };\n\
-"
+	filter-aaaa { any; };\n"
 #endif
-"\
-	glue-cache yes;\n\
-	lame-ttl 600;\n\
-"
+#ifdef HAVE_GEOIP
+"	geoip-use-ecs yes;\n"
+#endif
+"	glue-cache yes;\n\
+	lame-ttl 600;\n"
 #ifdef HAVE_LMDB
-"\
-	lmdb-mapsize 32M;\n\
-"
+"	lmdb-mapsize 32M;\n"
 #endif
-"\
-	max-cache-size 90%;\n\
+"	max-cache-size 90%;\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	max-clients-per-query 100;\n\
 	max-ncache-ttl 10800; /* 3 hours */\n\
 	max-recursion-depth 7;\n\
 	max-recursion-queries 75;\n\
+	max-stale-ttl 604800; /* 1 week */\n\
 	message-compression yes;\n\
 #	min-roots <obsolete>;\n\
 	minimal-any false;\n\
@@ -189,74 +192,67 @@ options {\n\
 	request-expire true;\n\
 	request-ixfr true;\n\
 	require-server-cookie no;\n\
+	resolver-nonbackoff-tries 3;\n\
+	resolver-retry-interval 800; /* in milliseconds */\n\
 #	rfc2308-type1 <obsolete>;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
+	stale-answer-enable false;\n\
+	stale-answer-ttl 1; /* 1 second */\n\
 	synth-from-dnssec yes;\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\
 	v6-bias 50;\n\
 	zero-no-soa-ttl-cache no;\n\
-"
-#ifdef HAVE_DNSTAP
-"\
-	dnstap-identity hostname;\n\
-"
-#endif
-#ifdef HAVE_GEOIP
-"\
-	geoip-use-ecs yes;\n\
-"
-#endif
-
-"	/* zone */\n\
+\n\
+	/* zone */\n\
 	allow-query {any;};\n\
 	allow-query-on {any;};\n\
 	allow-transfer {any;};\n\
-	notify yes;\n\
 #	also-notify <none>\n\
-	notify-delay 5;\n\
-	notify-to-soa no;\n\
-	dialup no;\n\
-#	forward <none>\n\
-#	forwarders <none>\n\
-#	maintain-ixfr-base <obsolete>;\n\
-#	max-ixfr-log-size <obsolete>\n\
-	transfer-source *;\n\
-	transfer-source-v6 *;\n\
 	alt-transfer-source *;\n\
 	alt-transfer-source-v6 *;\n\
-	max-transfer-time-in 120;\n\
-	max-transfer-time-out 120;\n\
+	check-integrity yes;\n\
+	check-mx-cname warn;\n\
+	check-sibling yes;\n\
+	check-srv-cname warn;\n\
+	check-wildcard yes;\n\
+	dialup no;\n\
+	dnssec-dnskey-kskonly no;\n\
+	dnssec-loadkeys-interval 60;\n\
+	dnssec-secure-to-insecure no;\n\
+	dnssec-update-mode maintain;\n\
+#	forward <none>\n\
+#	forwarders <none>\n\
+	inline-signing no;\n\
+	ixfr-from-differences false;\n\
+#	maintain-ixfr-base <obsolete>;\n\
+#	max-ixfr-log-size <obsolete>\n\
+	max-journal-size default;\n\
+	max-records 0;\n\
+	max-refresh-time 2419200; /* 4 weeks */\n\
+	max-retry-time 1209600; /* 2 weeks */\n\
 	max-transfer-idle-in 60;\n\
 	max-transfer-idle-out 60;\n\
-	max-records 0;\n\
-	max-retry-time 1209600; /* 2 weeks */\n\
-	min-retry-time 500;\n\
-	max-refresh-time 2419200; /* 4 weeks */\n\
+	max-transfer-time-in 120;\n\
+	max-transfer-time-out 120;\n\
 	min-refresh-time 300;\n\
+	min-retry-time 500;\n\
 	multi-master no;\n\
-	dnssec-secure-to-insecure no;\n\
-	sig-validity-interval 30; /* days */\n\
+	notify yes;\n\
+	notify-delay 5;\n\
+	notify-to-soa no;\n\
+	serial-update-method increment;\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
-	inline-signing no;\n\
-	zone-statistics terse;\n\
-	max-journal-size default;\n\
-	ixfr-from-differences false;\n\
-	check-wildcard yes;\n\
-	check-sibling yes;\n\
-	check-integrity yes;\n\
-	check-mx-cname warn;\n\
-	check-srv-cname warn;\n\
-	zero-no-soa-ttl yes;\n\
-	update-check-ksk yes;\n\
-	serial-update-method increment;\n\
-	dnssec-update-mode maintain;\n\
-	dnssec-dnskey-kskonly no;\n\
-	dnssec-loadkeys-interval 60;\n\
+	sig-validity-interval 30; /* days */\n\
+	transfer-source *;\n\
+	transfer-source-v6 *;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
+	update-check-ksk yes;\n\
+	zero-no-soa-ttl yes;\n\
+	zone-statistics terse;\n\
 };\n\
 "
 

@@ -293,6 +293,12 @@ init_desc(void) {
 	SET_NSSTATDESC(nxdomainsynth, "synthesized a NXDOMAIN response", "SynthNXDOMAIN");
 	SET_NSSTATDESC(nodatasynth, "syththesized a no-data response", "SynthNODATA");
 	SET_NSSTATDESC(wildcardsynth, "synthesized a wildcard response", "SynthWILDCARD");
+	SET_NSSTATDESC(trystale,
+		       "attempts to use stale cache data after lookup failure",
+		       "QryTryStale");
+	SET_NSSTATDESC(usedstale,
+		       "successful uses of stale cache data after lookup failure",
+		       "QryUsedStale");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

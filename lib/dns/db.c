@@ -1125,3 +1125,25 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 		return (ISC_R_NOTIMPLEMENTED);
 	return ((db->methods->nodefullname)(db, node, name));
 }
+
+isc_result_t
+dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl)
+{
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+
+	if (db->methods->setservestalettl != NULL)
+		return ((db->methods->setservestalettl)(db, ttl));
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl)
+{
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
+
+	if (db->methods->getservestalettl != NULL)
+		return ((db->methods->getservestalettl)(db, ttl));
+	return (ISC_R_NOTIMPLEMENTED);
+}

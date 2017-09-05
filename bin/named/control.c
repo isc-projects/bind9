@@ -277,6 +277,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 		result = ns_server_dnstap(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_TCPTIMEOUTS)) {
 		result = ns_server_tcptimeouts(lex, text);
+	} else if (command_compare(command, NS_COMMAND_SERVESTALE)) {
+		result = ns_server_servestale(ns_g_server, lex, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,

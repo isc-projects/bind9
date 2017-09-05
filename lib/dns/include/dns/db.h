@@ -189,6 +189,8 @@ typedef struct dns_dbmethods {
 					dns_name_t *name);
 	isc_result_t	(*getsize)(dns_db_t *db, dns_dbversion_t *version,
 				   isc_uint64_t *records, isc_uint64_t *bytes);
+	isc_result_t	(*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
+	isc_result_t	(*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -247,6 +249,7 @@ struct dns_dbonupdatelistener {
 #define DNS_DBFIND_FORCENSEC3		0x0080
 #define DNS_DBFIND_ADDITIONALOK		0x0100
 #define DNS_DBFIND_NOZONECUT		0x0200
+#define DNS_DBFIND_STALEOK		0x0400
 /*@}*/
 
 /*@{*/
@@ -1687,6 +1690,38 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
  * \li	'db' is a valid database
  * \li	'node' and 'name' are not NULL
  */
+
+isc_result_t
+dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl);
+/*%<
+ * Sets the maximum length of time that cached answers may be retained
+ * past their normal TTL. Default value for the library is 0, disabling
+ * the use of stale data.
+ *
+ * Requires:
+ * \li	'db' is a valid cache database.
+ * \li	'ttl' is the number of seconds to retain data past its normal expiry.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
+isc_result_t
+dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl);
+/*%<
+ * Gets maximum length of time that cached answers may be kept past
+ * normal TTL expiration.
+ *
+ * Requires:
+ * \li	'db' is a valid cache database.
+ * \li	'ttl' is the number of seconds to retain data past its normal expiry.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DB_H */
