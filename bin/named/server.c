@@ -3742,6 +3742,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->synthfromdnssec = cfg_obj_asboolean(obj);
 
+	obj = NULL;
 	result = ns_config_get(maps, "max-stale-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	max_stale_ttl = cfg_obj_asuint32(obj);
