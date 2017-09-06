@@ -443,6 +443,15 @@ or waiting for the
 timer\&.
 .RE
 .PP
+\fBserve\-stale ( on | off | reset | status) \fR\fB[\fIclass\fR [\fIview\fR]]\fR
+.RS 4
+Enable, disable, or reset the serving of stale answers as configured in named\&.conf\&. Serving of stale answers will remain disabled across
+named\&.conf
+reloads if disabled via rndc until it is reset via rndc\&.
+.sp
+Status will report whether serving of stale answers is currently enabled, disabled or not configured for a view\&. If serving of stale records is configured then the values of stale\-answer\-ttl and max\-stale\-ttl are reported\&.
+.RE
+.PP
 \fBsecroots \fR\fB[\-]\fR\fB \fR\fB[\fIview \&.\&.\&.\fR]\fR
 .RS 4
 Dump the server\*(Aqs security roots and negative trust anchors for the specified views\&. If no view is specified, all views are dumped\&.

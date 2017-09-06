@@ -2625,7 +2625,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>max-stale-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>max-zone-ttl</strong></span> ( <code class="option">unlimited</code> | <em class="replaceable"><code>number</code></em> ) ; ]
+  [ <span class="command"><strong>stale-answer-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
+  [ <span class="command"><strong>stale-answer-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>serial-update-method</strong></span> ( <code class="option">increment</code> | <code class="option">unixtime</code> | <code class="option">date</code> ) ; ]
   [ <span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
   [ <span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>number</code></em> [<em class="replaceable"><code>number</code></em>] ; ]
@@ -2828,6 +2831,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                   <span class="command"><strong>dnssec-validation</strong></span>,
                   <span class="command"><strong>max-cache-ttl</strong></span>,
                   <span class="command"><strong>max-ncache-ttl</strong></span>,
+                  <span class="command"><strong>max-stale-ttl</strong></span>,
                   <span class="command"><strong>max-cache-size</strong></span>, and
                   <span class="command"><strong>zero-no-soa-ttl</strong></span>.
                 </p>
@@ -3763,6 +3767,18 @@ options {
                 <code class="constant">unlimited</code>.
               </p>
             </dd>
+<dt><span class="term"><span class="command"><strong>stale-answer-ttl</strong></span></span></dt>
+<dd>
+              <p>
+                Specifies the TTL to be returned on stale answers.
+                The default is 1 second. The minimal allowed is
+                also 1 second; a value of 0 will be updated silently
+                to 1 second.  For stale answers to be returned
+                <code class="option">max-stale-ttl</code> must be set to a
+                non zero value and they must not have been disabled
+                by <span class="command"><strong>rndc</strong></span>.
+              </p>
+            </dd>
 <dt><span class="term"><span class="command"><strong>serial-update-method</strong></span></span></dt>
 <dd>
               <p>
@@ -4414,6 +4430,19 @@ options {
                   do not send a correct COOKIE option may be limited
                   to receiving smaller responses via the
                   <span class="command"><strong>nocookie-udp-size</strong></span> option.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>serve-stale-enable</strong></span></span></dt>
+<dd>
+                <p>
+                  Enable the returning of stale answers when the
+                  nameservers for the zone are not answering.  This
+                  is off by default but can be enabled/disabled via
+                  <span class="command"><strong>rndc server-stale on</strong></span> and
+                  <span class="command"><strong>rndc server-stale off</strong></span> which
+                  override the named.conf setting.  <span class="command"><strong>rndc
+                  server-stale reset</strong></span> will restore control
+                  via named.conf.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>nocookie-udp-size</strong></span></span></dt>
@@ -5424,13 +5453,19 @@ options {
 <dt><span class="term"><span class="command"><strong>resolver-query-timeout</strong></span></span></dt>
 <dd>
                 <p>
-                  The amount of time in seconds that the resolver
+                  The amount of time in milliseconds that the resolver
                   will spend attempting to resolve a recursive
                   query before failing.  The default and minimum
-                  is <code class="literal">10</code> and the maximum is
-                  <code class="literal">30</code>.  Setting it to
+                  is <code class="literal">10000</code> and the maximum is
+                  <code class="literal">30000</code>.  Setting it to
                   <code class="literal">0</code> will result in the default
                   being used.
+                </p>
+                <p>
+                  This value was originally specified in seconds.
+                  Values less than or equal to 300 will be be treated
+                  as seconds and converted to milliseconds before
+                  applying the above limits.
                 </p>
               </dd>
 </dl></div>
@@ -6946,6 +6981,24 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   SERVFAIL, because of lost caches of intermediate
                   RRsets (such as NS and glue AAAA/A records) in the
                   resolution process.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>max-stale-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  Sets the maximum time for which the server will
+                  retain records past their normal expiry to
+                  return them as stale records when the servers
+                  for those records are not reachable.  The default
+                  is to not retain the record.
+                </p>
+                <p>
+                  <span class="command"><strong>rndc serve-stale</strong></span> can be used
+                  to disable and re-enable the serving of stale
+                  records at runtime.  Reloading or reconfiguring
+                  <span class="command"><strong>named</strong></span> will not re-enable serving
+                  of stale records if they have been disabled via
+                  <span class="command"><strong>rndc</strong></span>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>min-roots</strong></span></span></dt>
