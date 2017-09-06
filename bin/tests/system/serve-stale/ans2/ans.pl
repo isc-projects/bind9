@@ -52,7 +52,7 @@ sub reply_handler {
     if ($qname eq "enable" ) {
 	if ($qtype eq "TXT") {
 	    $send_response = 1;
-            my $rr = new Net::DNS::RR("$qname 0 $qclass TXT $send_response");
+            my $rr = new Net::DNS::RR("$qname 0 $qclass TXT \"$send_response\"");
             push @ans, $rr;
 	}
 	$rcode = "NOERROR";
@@ -60,7 +60,7 @@ sub reply_handler {
     } elsif ($qname eq "disable" ) {
 	if ($qtype eq "TXT") {
 	    $send_response = 0;
-            my $rr = new Net::DNS::RR("$qname 0 $qclass TXT $send_response");
+            my $rr = new Net::DNS::RR("$qname 0 $qclass TXT \"$send_response\"");
             push @ans, $rr;
 	}
 	$rcode = "NOERROR";
