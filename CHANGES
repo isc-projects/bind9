@@ -1,3 +1,7 @@
+4701.	[cleanup]	Refactored lib/dns/tsig.c to reduce code
+			duplication and simplify the disabling of MD5.
+			[RT #45490]
+
 4700.	[func]		Serving of stale answers is now supported. This
 			allows named to provide stale cached answers when
 			the authoritative server is under attack.
