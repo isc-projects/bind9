@@ -1714,7 +1714,7 @@ Optional Features:
   --enable-devpoll        use /dev/poll when available [default=yes]
   --enable-threads        enable multithreading
   --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
-  --enable-openssl-hash   use OpenSSL for hash functions [default=no]
+  --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
   --enable-openssl-version-check
                           check OpenSSL version [default=yes]
   --enable-largefile	  64-bit file support
@@ -15867,7 +15867,7 @@ fi
 if test "${enable_openssl_hash+set}" = set; then :
   enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
 else
-  want_openssl_hash="checkcc"
+  want_openssl_hash="whenossl"
 fi
 
 
@@ -16640,13 +16640,6 @@ case $with_cc_alg in
 	sha1)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha1" >&5
 $as_echo "sha1" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
 
 $as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
 
@@ -16654,13 +16647,6 @@ $as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
 	sha256)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha256" >&5
 $as_echo "sha256" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
 
 $as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
 
@@ -16668,19 +16654,11 @@ $as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
 	aes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: aes" >&5
 $as_echo "aes" >&6; }
-		if test "yes" != "$with_aes"
-		then
-			as_fn_error $? "\"Client Cookie wants to use unavailable AES\"" "$LINENO" 5;
-		fi
 
 $as_echo "#define AES_CC 1" >>confdefs.h
 
 		;;
 esac
-if test "checkcc" = "$want_openssl_hash"
-then
-	want_openssl_hash="no"
-fi
 
 #
 # Use OpenSSL for hash functions
@@ -16689,6 +16667,15 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
 $as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
+if test "whenossl" = "$want_openssl_hash"
+then
+	if test "$CRYPTO" = "-DOPENSSL"
+	then
+		want_openssl_hash="yes"
+	else
+		want_openssl_hash="no"
+	fi
+fi
 case $want_openssl_hash in
 	yes)
 		if test "$CRYPTO" != "-DOPENSSL"
