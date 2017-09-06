@@ -146,8 +146,8 @@ options {\n\
 	fetches-per-zone 0;\n"
 #endif /* ENABLE_FETCHLIMIT */
 #ifdef ALLOW_FILTER_AAAA_ON_V4
-"	filter-aaaa-on-v4 no;\n\
-	filter-aaaa { any; };\n"
+"	filter-aaaa { any; };\n\
+	filter-aaaa-on-v4 no;\n"
 #endif
 "	lame-ttl 600;\n\
 	max-acache-size 16M;\n\
