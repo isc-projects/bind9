@@ -14144,7 +14144,7 @@ ns_server_servestale(ns_server_t *server, isc_lex_t *lex,
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	dns_view_t *view;
 	isc_boolean_t found = ISC_FALSE;
-	dns_stale_answer_t staleanswersok;
+	dns_stale_answer_t staleanswersok = dns_stale_answer_conf;
 	isc_boolean_t wantstatus = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
 
