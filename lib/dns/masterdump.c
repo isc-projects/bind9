@@ -1034,11 +1034,10 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {
 			/* Omit negative cache entries */
 		} else {
+			isc_result_t result;
 			if (rds->ttl < ctx->serve_stale_ttl)
 				fprintf(f, "; stale\n");
-			isc_result_t result =
-				dump_rdataset(mctx, name, rds, ctx,
-					       buffer, f);
+			result = dump_rdataset(mctx, name, rds, ctx, buffer, f);
 			if (result != ISC_R_SUCCESS)
 				dumpresult = result;
 			if ((ctx->style.flags & DNS_STYLEFLAG_OMIT_OWNER) != 0)
