@@ -203,6 +203,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define getnsec3parameters getnsec3parameters64
 #define getoriginnode getoriginnode64
 #define getrrsetstats getrrsetstats64
+#define getservestalettl getservestalettl64
 #define getsigningtime getsigningtime64
 #define getsize getsize64
 #define glue_nsdname_cb glue_nsdname_cb64
@@ -214,6 +215,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define iszonesecure iszonesecure64
 #define loading_addrdataset loading_addrdataset64
 #define loadnode loadnode64
+#define mark_header_ancient mark_header_ancient64
 #define mark_stale_header mark_stale_header64
 #define matchparams matchparams64
 #define maybe_free_rbtdb maybe_free_rbtdb64
@@ -256,6 +258,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define set_ttl set_ttl64
 #define setcachestats setcachestats64
 #define setownercase setownercase64
+#define setservestalettl setservestalettl64
 #define setsigningtime setsigningtime64
 #define settask settask64
 #define setup_delegation setup_delegation64
