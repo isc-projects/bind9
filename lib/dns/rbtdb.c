@@ -2012,7 +2012,7 @@ clean_now_or_later(dns_rbtnode_t *node, dns_rbtdb_t *rbtdb,
 		free_rdataset(rbtdb, mctx, header);
 	} else {
 		header->attributes |= RDATASET_ATTR_STALE |
-		                      RDATASET_ATTR_ANCIENT;
+				      RDATASET_ATTR_ANCIENT;
 		node->dirty = 1;
 		*header_prevp = header;
 	}
