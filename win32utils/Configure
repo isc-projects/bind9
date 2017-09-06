@@ -518,6 +518,7 @@ my @substvar = ("BIND9_VERSION",
                 "PKCS11_TOOLS",
                 "prefix",
                 "PYTHON",
+                "PYTHON_INSTALL_DIR",
                 "VCREDIST_PATH"),
 
 # defines
