@@ -50,21 +50,21 @@
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
+	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
 #ifndef WIN32
 "	coresize default;\n\
-	datasize default;\n\
-	files unlimited;\n\
-	stacksize default;\n"
+	datasize default;\n"
 #endif
-"#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
-	session-keyname local-ddns;\n\
-	session-keyalg hmac-sha256;\n\
-	deallocate-on-exit true;\n\
+"	deallocate-on-exit true;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
-	fake-iquery no;\n\
-	has-old-clients false;\n\
+	edns-udp-size 4096;\n\
+	fake-iquery no;\n"
+#ifndef WIN32
+"	files unlimited;\n"
+#endif
+"	has-old-clients false;\n\
 	heartbeat-interval 60;\n\
 	host-statistics no;\n\
 	interface-interval 60;\n\
@@ -72,159 +72,155 @@ options {\n\
 	listen-on-v6 {none;};\n\
 	match-mapped-addresses no;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
+	max-udp-size 4096;\n\
 	memstatistics-file \"named.memstats\";\n\
 	multiple-cnames no;\n\
 #	named-xfer <obsolete>;\n\
 #	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
-	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
-	port 53;\n\
-	recursing-file \"named.recursing\";\n\
-	secroots-file \"named.secroots\";\n\
-"
+	port 53;\n"
 #ifdef PATH_RANDOMDEV
-"\
-	random-device \"" PATH_RANDOMDEV "\";\n\
-"
+"	random-device \"" PATH_RANDOMDEV "\";\n"
 #endif
-"\
+"	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
+	request-nsid false;\n\
+	reserved-sockets 512;\n\
 	resolver-query-timeout 10;\n\
 	rrset-order { order random; };\n\
+	secroots-file \"named.secroots\";\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
-	statistics-file \"named.stats\";\n\
+	session-keyalg hmac-sha256;\n\
+#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
+	session-keyname local-ddns;\n"
+#ifndef WIN32
+"	stacksize default;\n"
+#endif
+"	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
 	tcp-clients 100;\n\
 	tcp-listen-queue 10;\n\
 #	tkey-dhkey <none>\n\
-#	tkey-gssapi-credential <none>\n\
 #	tkey-domain <none>\n\
-	transfers-per-ns 2;\n\
+#	tkey-gssapi-credential <none>\n\
 	transfers-in 10;\n\
 	transfers-out 10;\n\
+	transfers-per-ns 2;\n\
 #	treat-cr-as-space <obsolete>;\n\
 #	use-id-pool <obsolete>;\n\
 #	use-ixfr <obsolete>;\n\
-	edns-udp-size 4096;\n\
-	max-udp-size 4096;\n\
-	request-nsid false;\n\
-	reserved-sockets 512;\n\
 \n\
 	/* DLV */\n\
 	dnssec-lookaside . trust-anchor dlv.isc.org;\n\
 \n\
 	/* view */\n\
+	acache-cleaning-interval 60;\n\
+	acache-enable no;\n\
+	additional-from-auth true;\n\
+	additional-from-cache true;\n\
+	allow-new-zones no;\n\
 	allow-notify {none;};\n\
-	allow-update-forwarding {none;};\n\
 	allow-query-cache { localnets; localhost; };\n\
 	allow-query-cache-on { any; };\n\
 	allow-recursion { localnets; localhost; };\n\
 	allow-recursion-on { any; };\n\
+	allow-update-forwarding {none;};\n\
 #	allow-v6-synthesis <obsolete>;\n\
-#	sortlist <none>\n\
-#	topology <none>\n\
 	auth-nxdomain false;\n\
-	minimal-responses false;\n\
-	recursion true;\n\
-	provide-ixfr true;\n\
-	request-ixfr true;\n\
-	fetch-glue no;\n\
-	rfc2308-type1 no;\n\
-	additional-from-auth true;\n\
-	additional-from-cache true;\n\
-	query-source address *;\n\
-	query-source-v6 address *;\n\
-	notify-source *;\n\
-	notify-source-v6 *;\n\
-	cleaning-interval 0;  /* now meaningless */\n\
-	min-roots 2;\n\
-	lame-ttl 600;\n\
-	max-ncache-ttl 10800; /* 3 hours */\n\
-	max-cache-ttl 604800; /* 1 week */\n\
-	transfer-format many-answers;\n\
-	max-cache-size 0;\n\
-	check-names master fail;\n\
-	check-names slave warn;\n\
-	check-names response ignore;\n\
 	check-dup-records warn;\n\
 	check-mx warn;\n\
+	check-names master fail;\n\
+	check-names response ignore;\n\
+	check-names slave warn;\n\
 	check-spf warn;\n\
-	acache-enable no;\n\
-	acache-cleaning-interval 60;\n\
-	max-acache-size 16M;\n\
-	dnssec-enable yes;\n\
-	dnssec-validation yes; \n\
+	cleaning-interval 0;  /* now meaningless */\n\
+	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
-"
+	dnssec-enable yes;\n\
+	dnssec-validation yes;\n\
+	fetch-glue no;\n"
 #ifdef ENABLE_FETCHLIMIT
-" 	fetches-per-server 0;\n\
-	fetches-per-zone 0;\n\
-	fetch-quota-params 100 0.1 0.3 0.7;\n\
-"
+"	fetch-quota-params 100 0.1 0.3 0.7;\n\
+	fetches-per-server 0;\n\
+	fetches-per-zone 0;\n"
 #endif /* ENABLE_FETCHLIMIT */
-"	clients-per-query 10;\n\
-	max-clients-per-query 100;\n\
-	max-recursion-depth 7;\n\
-	max-recursion-queries 50;\n\
-	zero-no-soa-ttl-cache no;\n\
-	nsec3-test-zone no;\n\
-	allow-new-zones no;\n\
-"
 #ifdef ALLOW_FILTER_AAAA_ON_V4
 "	filter-aaaa-on-v4 no;\n\
-	filter-aaaa { any; };\n\
-"
+	filter-aaaa { any; };\n"
 #endif
-
-"	/* zone */\n\
+"	lame-ttl 600;\n\
+	max-acache-size 16M;\n\
+	max-cache-size 0;\n\
+	max-cache-ttl 604800; /* 1 week */\n\
+	max-clients-per-query 100;\n\
+	max-ncache-ttl 10800; /* 3 hours */\n\
+	max-recursion-depth 7;\n\
+	max-recursion-queries 50;\n\
+	min-roots 2;\n\
+	minimal-responses false;\n\
+	notify-source *;\n\
+	notify-source-v6 *;\n\
+	nsec3-test-zone no;\n\
+	provide-ixfr true;\n\
+	query-source address *;\n\
+	query-source-v6 address *;\n\
+	recursion true;\n\
+	request-ixfr true;\n\
+	rfc2308-type1 no;\n\
+#	sortlist <none>\n\
+#	topology <none>\n\
+	transfer-format many-answers;\n\
+	zero-no-soa-ttl-cache no;\n\
+\n\
+	/* zone */\n\
 	allow-query {any;};\n\
 	allow-query-on {any;};\n\
 	allow-transfer {any;};\n\
-	notify yes;\n\
 #	also-notify <none>\n\
-	notify-delay 5;\n\
-	notify-to-soa no;\n\
-	dialup no;\n\
-#	forward <none>\n\
-#	forwarders <none>\n\
-	maintain-ixfr-base no;\n\
-#	max-ixfr-log-size <obsolete>\n\
-	transfer-source *;\n\
-	transfer-source-v6 *;\n\
 	alt-transfer-source *;\n\
 	alt-transfer-source-v6 *;\n\
-	max-transfer-time-in 120;\n\
-	max-transfer-time-out 120;\n\
+	check-integrity yes;\n\
+	check-mx-cname warn;\n\
+	check-sibling yes;\n\
+	check-srv-cname warn;\n\
+	check-wildcard yes;\n\
+	dialup no;\n\
+	dnssec-dnskey-kskonly no;\n\
+	dnssec-loadkeys-interval 60;\n\
+	dnssec-secure-to-insecure no;\n\
+	dnssec-update-mode maintain;\n\
+#	forward <none>\n\
+#	forwarders <none>\n\
+	inline-signing no;\n\
+	ixfr-from-differences false;\n\
+	maintain-ixfr-base no;\n\
+#	max-ixfr-log-size <obsolete>\n\
+	max-journal-size unlimited;\n\
+	max-records 0;\n\
+	max-refresh-time 2419200; /* 4 weeks */\n\
+	max-retry-time 1209600; /* 2 weeks */\n\
 	max-transfer-idle-in 60;\n\
 	max-transfer-idle-out 60;\n\
-	max-records 0;\n\
-	max-retry-time 1209600; /* 2 weeks */\n\
-	min-retry-time 500;\n\
-	max-refresh-time 2419200; /* 4 weeks */\n\
+	max-transfer-time-in 120;\n\
+	max-transfer-time-out 120;\n\
 	min-refresh-time 300;\n\
+	min-retry-time 500;\n\
 	multi-master no;\n\
-	dnssec-secure-to-insecure no;\n\
-	sig-validity-interval 30; /* days */\n\
+	notify yes;\n\
+	notify-delay 5;\n\
+	notify-to-soa no;\n\
+	serial-update-method increment;\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
-	inline-signing no;\n\
-	zone-statistics terse;\n\
-	max-journal-size unlimited;\n\
-	ixfr-from-differences false;\n\
-	check-wildcard yes;\n\
-	check-sibling yes;\n\
-	check-integrity yes;\n\
-	check-mx-cname warn;\n\
-	check-srv-cname warn;\n\
-	zero-no-soa-ttl yes;\n\
-	update-check-ksk yes;\n\
-	serial-update-method increment;\n\
-	dnssec-update-mode maintain;\n\
-	dnssec-dnskey-kskonly no;\n\
-	dnssec-loadkeys-interval 60;\n\
+	sig-validity-interval 30; /* days */\n\
+	transfer-source *;\n\
+	transfer-source-v6 *;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
+	update-check-ksk yes;\n\
+	zero-no-soa-ttl yes;\n\
+	zone-statistics terse;\n\
 };\n\
 "
 
@@ -234,16 +230,14 @@ options {\n\
 view \"_bind\" chaos {\n\
 	recursion no;\n\
 	notify no;\n\
-	allow-new-zones no;\n\
-"
+	allow-new-zones no;\n"
 #ifdef USE_RRL
 "	# Prevent use of this zone in DNS amplified reflection DoS attacks\n\
 	rate-limit {\n\
 		responses-per-second 3;\n\
 		slip 0;\n\
 		min-table-size 10;\n\
-	};\n\
-"
+	};\n"
 #endif /* USE_RRL */
 "	zone \"version.bind\" chaos {\n\
 		type master;\n\
