@@ -1,3 +1,7 @@
+4705.   [bug]		Remove some name server statistics counters that
+			were accidentally back ported to the BIND 9.9 branch
+			in change 3938. [RT #45919]
+
 4703.	[bug]		BINDInstall.exe was missing some buffer length checks.
 			[RT #45898]
 

@@ -218,21 +218,6 @@ init_desc(void) {
 		       "RPZRewrites");
 	SET_NSSTATDESC(udp, "UDP queries received", "QryUDP");
 	SET_NSSTATDESC(tcp, "TCP queries received", "QryTCP");
-	SET_NSSTATDESC(nsidopt, "NSID option received", "NSIDOpt");
-	SET_NSSTATDESC(expireopt, "Expire option received", "ExpireOpt");
-	SET_NSSTATDESC(otheropt, "Other EDNS option received", "OtherOpt");
-	SET_NSSTATDESC(sitopt, "source identity token option received",
-		       "SitOpt");
-	SET_NSSTATDESC(sitnew, "new source identity token requested",
-		       "SitNew");
-	SET_NSSTATDESC(sitbadsize, "source identity token - bad size",
-		       "SitBadSize");
-	SET_NSSTATDESC(sitbadtime, "source identity token - bad time",
-		       "SitBadTime");
-	SET_NSSTATDESC(sitnomatch, "source identity token - no match",
-		       "SitNoMatch");
-	SET_NSSTATDESC(sitmatch, "source identity token - match", "SitMatch");
-	SET_NSSTATDESC(ecsopt, "EDNS client subnet option recieved", "ECSOpt");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */
