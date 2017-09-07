@@ -95,6 +95,8 @@ protected:
 	BOOL CheckBINDService();
 	void SetCurrent(int id, ...);
 	void ProgramGroup(BOOL create = TRUE);
+	void ProgramGroupCreate(TCHAR *commonPath);
+	void ProgramGroupRemove(TCHAR *commonPath);
 
 	HICON m_hIcon;
 	CString m_defaultDir;
