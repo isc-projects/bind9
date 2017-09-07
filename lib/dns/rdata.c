@@ -116,7 +116,7 @@
  */
 typedef struct dns_rdata_textctx {
 	const dns_name_t *origin;	/*%< Current origin, or NULL. */
-	unsigned int flags;	/*%< DNS_STYLEFLAG_*  */
+	dns_masterstyle_flags_t flags;	/*%< DNS_STYLEFLAG_*  */
 	unsigned int width;	/*%< Width of rdata column. */
 	const char *linebreak;	/*%< Line break string. */
 } dns_rdata_textctx_t;
@@ -1142,7 +1142,7 @@ dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
 
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
-		    unsigned int flags, unsigned int width,
+		    dns_masterstyle_flags_t flags, unsigned int width,
 		    unsigned int split_width, const char *linebreak,
 		    isc_buffer_t *target)
 {

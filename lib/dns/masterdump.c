@@ -2090,7 +2090,8 @@ dns_master_styleflags(const dns_master_style_t *style) {
 }
 
 isc_result_t
-dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
+dns_master_stylecreate(dns_master_style_t **stylep,
+		       dns_masterstyle_flags_t flags,
 		       unsigned int ttl_column, unsigned int class_column,
 		       unsigned int type_column, unsigned int rdata_column,
 		       unsigned int line_length, unsigned int tab_width,
@@ -2103,7 +2104,8 @@ dns_master_stylecreate(dns_master_style_t **stylep, unsigned int flags,
 }
 
 isc_result_t
-dns_master_stylecreate2(dns_master_style_t **stylep, unsigned int flags,
+dns_master_stylecreate2(dns_master_style_t **stylep,
+		        dns_masterstyle_flags_t flags,
 			unsigned int ttl_column, unsigned int class_column,
 			unsigned int type_column, unsigned int rdata_column,
 			unsigned int line_length, unsigned int tab_width,

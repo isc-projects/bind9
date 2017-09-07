@@ -406,18 +406,20 @@ dns_masterstyle_flags_t
 dns_master_styleflags(const dns_master_style_t *style);
 
 isc_result_t
-dns_master_stylecreate(dns_master_style_t **style, unsigned int flags,
+dns_master_stylecreate(dns_master_style_t **style,
+		       dns_masterstyle_flags_t flags,
 		       unsigned int ttl_column, unsigned int class_column,
 		       unsigned int type_column, unsigned int rdata_column,
 		       unsigned int line_length, unsigned int tab_width,
 		       isc_mem_t *mctx);
 
 isc_result_t
-dns_master_stylecreate2(dns_master_style_t **style, unsigned int flags,
-		       unsigned int ttl_column, unsigned int class_column,
-		       unsigned int type_column, unsigned int rdata_column,
-		       unsigned int line_length, unsigned int tab_width,
-		       unsigned int split_width, isc_mem_t *mctx);
+dns_master_stylecreate2(dns_master_style_t **style,
+		        dns_masterstyle_flags_t flags,
+		        unsigned int ttl_column, unsigned int class_column,
+		        unsigned int type_column, unsigned int rdata_column,
+		        unsigned int line_length, unsigned int tab_width,
+		        unsigned int split_width, isc_mem_t *mctx);
 
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);

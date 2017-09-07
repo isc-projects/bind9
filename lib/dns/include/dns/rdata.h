@@ -435,7 +435,7 @@ dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
 
 isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
-		    unsigned int flags, unsigned int width,
+		    dns_masterstyle_flags_t flags, unsigned int width,
 		    unsigned int split_width, const char *linebreak,
 		    isc_buffer_t *target);
 /*%<

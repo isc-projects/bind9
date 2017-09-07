@@ -1,3 +1,6 @@
+4702.	[func]		Update function declarations to use
+			dns_masterstyle_flags_t for style flags. [RT #45924]
+
 4701.	[cleanup]	Refactored lib/dns/tsig.c to reduce code
 			duplication and simplify the disabling of MD5.
 			[RT #45490]
