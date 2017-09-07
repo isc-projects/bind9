@@ -38,7 +38,7 @@ dns_ecs_format(dns_ecs_t *ecs, char *buf, size_t size) {
 	REQUIRE(buf != NULL);
 	REQUIRE(size >= DNS_ECS_FORMATSIZE);
 
-	isc_netaddr_format(&ecs->addr, buf, size);
+	isc_netaddr_format(&ecs->addr, buf, (unsigned int)size);
 	len = strlen(buf);
 	INSIST(size >= len);
 	buf += len;

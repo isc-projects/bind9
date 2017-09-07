@@ -931,8 +931,8 @@ ISC_LANG_ENDDECLS
 		REQUIRE(isc_buffer_availablelength(_b) >= 2U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 2; \
-		_cp[0] = _val2 >> 8; \
-		_cp[1] = _val2; \
+		_cp[0] = (unsigned char)(_val2 >> 8); \
+		_cp[1] = (unsigned char)_val2; \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT24(_b, _val) \
@@ -948,9 +948,9 @@ ISC_LANG_ENDDECLS
 		REQUIRE(isc_buffer_availablelength(_b) >= 3U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 3; \
-		_cp[0] = _val2 >> 16; \
-		_cp[1] = _val2 >> 8; \
-		_cp[2] = _val2; \
+		_cp[0] = (unsigned char)(_val2 >> 16); \
+		_cp[1] = (unsigned char)(_val2 >> 8); \
+		_cp[2] = (unsigned char)_val2; \
 	} while (0)
 
 #define ISC__BUFFER_PUTUINT32(_b, _val) \
@@ -966,10 +966,10 @@ ISC_LANG_ENDDECLS
 		REQUIRE(isc_buffer_availablelength(_b) >= 4U); \
 		_cp = isc_buffer_used(_b); \
 		(_b)->used += 4; \
-		_cp[0] = _val2 >> 24; \
-		_cp[1] = _val2 >> 16; \
-		_cp[2] = _val2 >> 8; \
-		_cp[3] = _val2; \
+		_cp[0] = (unsigned char)(_val2 >> 24); \
+		_cp[1] = (unsigned char)(_val2 >> 16); \
+		_cp[2] = (unsigned char)(_val2 >> 8); \
+		_cp[3] = (unsigned char)_val2; \
 	} while (0)
 
 #if defined(ISC_BUFFER_USEINLINE)

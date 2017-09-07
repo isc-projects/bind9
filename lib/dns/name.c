@@ -979,7 +979,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 			l = *p;
 			p += l + 1;
 		}
-		firstoffset = p - source->ndata;
+		firstoffset = (unsigned int)(p - source->ndata);
 	}
 
 	if (ISC_LIKELY(first + n == source->labels))
@@ -989,7 +989,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 			l = *p;
 			p += l + 1;
 		}
-		endoffset = p - source->ndata;
+		endoffset = (unsigned int)(p - source->ndata);
 	}
 
 	target->ndata = &source->ndata[firstoffset];

@@ -258,7 +258,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		unsigned char ch, llen;
 		unsigned int firstoffset, length;
 
-		firstoffset = p - name->ndata;
+		firstoffset = (unsigned int)(p - name->ndata);
 		length = name->length - firstoffset;
 
 		/*

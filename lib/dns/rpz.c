@@ -1582,7 +1582,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 				      "rpz: %s: new zone version came "
 				      "too soon, deferring update for "
 				      "%llu seconds", dname, defer);
-			isc_interval_set(&interval, defer, 0);
+			isc_interval_set(&interval, (unsigned int)defer, 0);
 			dns_db_currentversion(zone->db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
 						 isc_timertype_once,
@@ -1748,7 +1748,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 
 		isc_ht_iter_currentkey(iter, &key, &keysize);
 		region.base = key;
-		region.length = keysize;
+		region.length = (unsigned int)keysize;
 		dns_name_fromregion(name, &region);
 		dns_rpz_delete(rpz->rpzs, rpz->num, name);
 	}
@@ -1772,7 +1772,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 			      "rpz: %s: new zone version came "
 			      "too soon, deferring update for "
 			      "%llu seconds", dname, defer);
-		isc_interval_set(&interval, defer, 0);
+		isc_interval_set(&interval, (unsigned int)defer, 0);
 		result = isc_timer_reset(rpz->updatetimer,
 					 isc_timertype_once,
 					 NULL, &interval, ISC_TRUE);

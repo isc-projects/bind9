@@ -1051,7 +1051,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 }
 
 static void
-set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
+set_dev_address(const isc_sockaddr_t *address, isc_socket_t *sock,
 		isc_socketevent_t *dev)
 {
 	if (sock->type == isc_sockettype_udp) {
