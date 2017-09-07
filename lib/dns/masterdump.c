@@ -2105,7 +2105,7 @@ dns_master_stylecreate(dns_master_style_t **stylep,
 
 isc_result_t
 dns_master_stylecreate2(dns_master_style_t **stylep,
-		        dns_masterstyle_flags_t flags,
+			dns_masterstyle_flags_t flags,
 			unsigned int ttl_column, unsigned int class_column,
 			unsigned int type_column, unsigned int rdata_column,
 			unsigned int line_length, unsigned int tab_width,
