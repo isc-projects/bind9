@@ -61,7 +61,7 @@ rndc.@O@: rndc.c
 
 rndc@EXEEXT@: rndc.@O@ util.@O@ ${RNDCDEPLIBS}
 	export BASEOBJS="rndc.@O@ util.@O@"; \
-	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${DNSLIBS}"; \
+	export LIBS0="${ISCCFGLIBS} ${ISCCCLIBS} ${BIND9LIBS} ${ISCLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}
