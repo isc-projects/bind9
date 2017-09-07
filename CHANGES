@@ -1,3 +1,6 @@
+4703.	[bug]		BINDInstall.exe was missing some buffer length checks.
+			[RT #45898]
+
 4702.	[func]		Update function declarations to use
 			dns_masterstyle_flags_t for style flags. [RT #45924]
 
