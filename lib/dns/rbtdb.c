@@ -4920,6 +4920,9 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	rbtdb_rdatatype_t matchtype, sigmatchtype;
 	nodelock_t *lock;
 	isc_rwlocktype_t locktype;
+	dns_rbtnodechain_t chain;
+
+	chain = search->chain;
 
 	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
 	sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
@@ -4931,8 +4934,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		name = dns_fixedname_name(&fname);
 		dns_fixedname_init(&forigin);
 		origin = dns_fixedname_name(&forigin);
-		result = dns_rbtnodechain_current(&search->chain, name,
-						  origin, &node);
+		result = dns_rbtnodechain_current(&chain, name, origin, &node);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		locktype = isc_rwlocktype_read;
@@ -4986,8 +4988,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		} else if (!empty_node) {
 			result = ISC_R_NOTFOUND;
 		} else
-			result = dns_rbtnodechain_prev(&search->chain, NULL,
-						       NULL);
+			result = dns_rbtnodechain_prev(&chain, NULL, NULL);
  unlock_node:
 		NODE_UNLOCK(lock, locktype);
 	} while (empty_node && result == ISC_R_SUCCESS);
