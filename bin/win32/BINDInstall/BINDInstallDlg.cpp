@@ -1167,7 +1167,7 @@ void CBINDInstallDlg::RegisterMessages() {
 		     (LPCTSTR)m_binDir, "bindevt.dll");
 	if (n < 0 || (size_t)n >= sizeof(pszMsgDLL))
 		throw(Exception(IDS_ERR_CREATE_KEY,
-			        "<m_binDir>\\bindevt.dll too long"));
+				"<m_binDir>\\bindevt.dll too long"));
 
 	SetCurrent(IDS_REGISTER_MESSAGES);
 	/* Create a new key for named */
