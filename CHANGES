@@ -2,7 +2,7 @@
 			[RT #45435]
 
 4708.   [cleanup]       Legacy Windows builds (i.e. for XP and earlier)
-                        are no longer supported. [RT #45186]
+			are no longer supported. [RT #45186]
 
 4707.	[func]		The lightweight resolver daemon and library (lwresd
 			and liblwres) have been removed. [RT #45186]
