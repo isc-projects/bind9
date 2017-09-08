@@ -86,7 +86,6 @@
 
 #ifndef USE_WATCHER_THREAD
 #include "socket_p.h"
-#include "../task_p.h"
 #endif /* USE_WATCHER_THREAD */
 
 #if defined(SO_BSDCOMPAT) && defined(__linux__)

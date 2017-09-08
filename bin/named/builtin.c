@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2005, 2007, 2009-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2001-2005, 2007, 2009-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -317,26 +317,26 @@ put_txt(dns_sdblookup_t *lookup, const char *text) {
 
 static isc_result_t
 do_version_lookup(dns_sdblookup_t *lookup) {
-	if (ns_g_server->version_set) {
-		if (ns_g_server->version == NULL)
+	if (named_g_server->version_set) {
+		if (named_g_server->version == NULL)
 			return (ISC_R_SUCCESS);
 		else
-			return (put_txt(lookup, ns_g_server->version));
+			return (put_txt(lookup, named_g_server->version));
 	} else {
-		return (put_txt(lookup, ns_g_version));
+		return (put_txt(lookup, named_g_version));
 	}
 }
 
 static isc_result_t
 do_hostname_lookup(dns_sdblookup_t *lookup) {
-	if (ns_g_server->hostname_set) {
-		if (ns_g_server->hostname == NULL)
+	if (named_g_server->hostname_set) {
+		if (named_g_server->hostname == NULL)
 			return (ISC_R_SUCCESS);
 		else
-			return (put_txt(lookup, ns_g_server->hostname));
+			return (put_txt(lookup, named_g_server->hostname));
 	} else {
 		char buf[256];
-		isc_result_t result = ns_os_gethostname(buf, sizeof(buf));
+		isc_result_t result = named_os_gethostname(buf, sizeof(buf));
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		return (put_txt(lookup, buf));
@@ -374,7 +374,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 	/*
 	 * If a version string is specified, disable the authors.bind zone.
 	 */
-	if (ns_g_server->version_set)
+	if (named_g_server->version_set)
 		return (ISC_R_SUCCESS);
 
 	for (p = authors; *p != NULL; p++) {
@@ -387,19 +387,18 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 
 static isc_result_t
 do_id_lookup(dns_sdblookup_t *lookup) {
-
-	if (ns_g_server->server_usehostname) {
+	if (named_g_server->sctx->gethostname != NULL) {
 		char buf[256];
-		isc_result_t result = ns_os_gethostname(buf, sizeof(buf));
+		isc_result_t result;
+
+		result = named_g_server->sctx->gethostname(buf, sizeof(buf));
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		return (put_txt(lookup, buf));
-	}
-
-	if (ns_g_server->server_id == NULL)
-		return (ISC_R_SUCCESS);
+	} else if (named_g_server->sctx->server_id != NULL)
+		return (put_txt(lookup, named_g_server->sctx->server_id));
 	else
-		return (put_txt(lookup, ns_g_server->server_id));
+		return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -478,20 +477,21 @@ builtin_create(const char *zone, int argc, char **argv,
 		 * We don't want built-in zones to fail.  Fallback to
 		 * the static configuration if memory allocation fails.
 		 */
-		empty = isc_mem_get(ns_g_mctx, sizeof(*empty));
-		server = isc_mem_strdup(ns_g_mctx, argv[1]);
-		contact = isc_mem_strdup(ns_g_mctx, argv[2]);
+		empty = isc_mem_get(named_g_mctx, sizeof(*empty));
+		server = isc_mem_strdup(named_g_mctx, argv[1]);
+		contact = isc_mem_strdup(named_g_mctx, argv[2]);
 		if (empty == NULL || server == NULL || contact == NULL) {
 			if (strcmp(argv[0], "empty") == 0)
 				*dbdata = &empty_builtin;
 			else
 				*dbdata = &dns64_builtin;
 			if (server != NULL)
-				isc_mem_free(ns_g_mctx, server);
+				isc_mem_free(named_g_mctx, server);
 			if (contact != NULL)
-				isc_mem_free(ns_g_mctx, contact);
+				isc_mem_free(named_g_mctx, contact);
 			if (empty != NULL)
-				isc_mem_put(ns_g_mctx, empty, sizeof (*empty));
+				isc_mem_put(named_g_mctx, empty,
+					    sizeof (*empty));
 		} else {
 			if (strcmp(argv[0], "empty") == 0)
 				memmove(empty, &empty_builtin,
@@ -523,9 +523,9 @@ builtin_destroy(const char *zone, void *driverdata, void **dbdata) {
 	    *dbdata == &empty_builtin || *dbdata == &dns64_builtin)
 		return;
 
-	isc_mem_free(ns_g_mctx, b->server);
-	isc_mem_free(ns_g_mctx, b->contact);
-	isc_mem_put(ns_g_mctx, b, sizeof (*b));
+	isc_mem_free(named_g_mctx, b->server);
+	isc_mem_free(named_g_mctx, b->contact);
+	isc_mem_put(named_g_mctx, b, sizeof (*b));
 }
 
 static dns_sdbmethods_t builtin_methods = {
@@ -547,23 +547,23 @@ static dns_sdbmethods_t dns64_methods = {
 };
 
 isc_result_t
-ns_builtin_init(void) {
+named_builtin_init(void) {
 	RUNTIME_CHECK(dns_sdb_register("_builtin", &builtin_methods, NULL,
 				       DNS_SDBFLAG_RELATIVEOWNER |
 				       DNS_SDBFLAG_RELATIVERDATA,
-				       ns_g_mctx, &builtin_impl)
+				       named_g_mctx, &builtin_impl)
 		      == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_sdb_register("_dns64", &dns64_methods, NULL,
 				       DNS_SDBFLAG_RELATIVEOWNER |
 				       DNS_SDBFLAG_RELATIVERDATA |
 				       DNS_SDBFLAG_DNS64,
-				       ns_g_mctx, &dns64_impl)
+				       named_g_mctx, &dns64_impl)
 		      == ISC_R_SUCCESS);
 	return (ISC_R_SUCCESS);
 }
 
 void
-ns_builtin_deinit(void) {
+named_builtin_deinit(void) {
 	dns_sdb_unregister(&builtin_impl);
 	dns_sdb_unregister(&dns64_impl);
 }

@@ -1,4 +1,4 @@
-Copyright (C) 2000, 2001, 2004, 2010, 2011, 2013, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2000, 2001, 2004, 2010, 2011, 2013, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +14,6 @@ involving a different DNS setup.  They are:
   forward/	Forwarding tests
   glue/		Glue handling tests
   limits/	Tests of handling of large data (close to server limits)
-  lwresd/	Tests of the lightweight resolver library and daemon
   notify/	More NOTIFY tests
   nsupdate/	Dynamic update and IXFR tests
   resolver/     Regression tests for resolver bugs that have been fixed
@@ -62,7 +61,7 @@ The tests can be run individually like this:
 
 To run all the tests, just type "make test".
 
-When running system tests, named and lwresd can be run under
+When running system tests, named can be run under
 Valgrind. The output from Valgrind are sent to per-process files that
 can be reviewed after the test has completed. To enable this, set the
 USE_VALGRIND environment variable to "helgrind" to run the Helgrind

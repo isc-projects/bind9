@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: logconf.c,v 1.45 2011/03/05 23:52:29 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -45,9 +43,9 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
-	category = isc_log_categorybyname(ns_g_lctx, catname);
+	category = isc_log_categorybyname(named_g_lctx, catname);
 	if (category == NULL) {
-		cfg_obj_log(ccat, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(ccat, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown logging category '%s' ignored",
 			    catname);
 		/*
@@ -72,8 +70,8 @@ category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *logconfig) {
 		result = isc_log_usechannel(logconfig, channelname, category,
 					    module);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, CFG_LOGCATEGORY_CONFIG,
-				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			isc_log_write(named_g_lctx, CFG_LOGCATEGORY_CONFIG,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
 			return (result);
@@ -119,7 +117,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		i++;
 
 	if (i != 1) {
-		cfg_obj_log(channel, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(channel, named_g_lctx, ISC_LOG_ERROR,
 			      "channel '%s': exactly one of file, syslog, "
 			      "null, and stderr must be present", channelname);
 		return (ISC_R_FAILURE);
@@ -270,7 +268,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 			 */
 			result = isc_stdio_open(dest.file.name, "a", &fp);
 			if (result != ISC_R_SUCCESS) {
-				if (logconfig != NULL && !ns_g_nosyslog)
+				if (logconfig != NULL && !named_g_nosyslog)
 					syslog(LOG_ERR,
 						"isc_stdio_open '%s' failed: "
 						"%s", dest.file.name,
@@ -283,7 +281,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 				(void)isc_stdio_close(fp);
 			goto done;
 		}
-		if (logconfig != NULL && !ns_g_nosyslog)
+		if (logconfig != NULL && !named_g_nosyslog)
 			syslog(LOG_ERR, "isc_file_isplainfile '%s' failed: %s",
 			       dest.file.name, isc_result_totext(result));
 		fprintf(stderr, "isc_file_isplainfile '%s' failed: %s\n",
@@ -295,7 +293,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 }
 
 isc_result_t
-ns_log_configure(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
+named_logconfig(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	isc_result_t result;
 	const cfg_obj_t *channels = NULL;
 	const cfg_obj_t *categories = NULL;
@@ -305,7 +303,7 @@ ns_log_configure(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	const cfg_obj_t *catname;
 
 	if (logconfig != NULL)
-		CHECK(ns_log_setdefaultchannels(logconfig));
+		CHECK(named_log_setdefaultchannels(logconfig));
 
 	(void)cfg_map_get(logstmt, "channel", &channels);
 	for (element = cfg_list_first(channels);
@@ -336,10 +334,10 @@ ns_log_configure(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	}
 
 	if (logconfig != NULL && !default_set)
-		CHECK(ns_log_setdefaultcategory(logconfig));
+		CHECK(named_log_setdefaultcategory(logconfig));
 
 	if (logconfig != NULL && !unmatched_set)
-		CHECK(ns_log_setunmatchedcategory(logconfig));
+		CHECK(named_log_setunmatchedcategory(logconfig));
 
 	return (ISC_R_SUCCESS);
 

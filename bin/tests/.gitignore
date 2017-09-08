@@ -19,7 +19,6 @@ t_resolver
 t_sockaddr
 conf.sh
 dlopen
-lwtest
 keycreate
 keydelete
 gssapi_krb

@@ -163,7 +163,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 	char *tmpPtr;
 	int i;
 
-	tmpString = isc_mem_strdup(ns_g_mctx, in);
+	tmpString = isc_mem_strdup(named_g_mctx, in);
 	if (tmpString == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -207,7 +207,7 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 		i += cd->splitcnt;
 	}
 
-	isc_mem_free(ns_g_mctx, tmpString);
+	isc_mem_free(named_g_mctx, tmpString);
 	return (ISC_R_SUCCESS);
 }
 
@@ -277,7 +277,7 @@ create_path(const char *zone, const char *host, const char *client,
 	if (cd->splitcnt > 0)
 		pathsize += len/cd->splitcnt;
 
-	tmpPath = isc_mem_allocate(ns_g_mctx , pathsize * sizeof(char));
+	tmpPath = isc_mem_allocate(named_g_mctx , pathsize * sizeof(char));
 	if (tmpPath == NULL) {
 		/* write error message */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -349,7 +349,7 @@ create_path(const char *zone, const char *host, const char *client,
 
 	/* free tmpPath memory */
 	if (tmpPath != NULL && result != ISC_R_SUCCESS)
-		isc_mem_free(ns_g_mctx, tmpPath);
+		isc_mem_free(named_g_mctx, tmpPath);
 
 	/* free tmpPath memory */
 	return (result);
@@ -487,7 +487,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 				 */
 				if (dir_list != NULL) {
 					direntry =
-					    isc_mem_get(ns_g_mctx,
+					    isc_mem_get(named_g_mctx,
 							sizeof(dir_entry_t));
 					if (direntry == NULL)
 						return (ISC_R_NOMEMORY);
@@ -616,7 +616,7 @@ fs_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 	result = ISC_R_NOTFOUND;
 
  complete_AXFR:
-	isc_mem_free(ns_g_mctx, path);
+	isc_mem_free(named_g_mctx, path);
 	return (result);
 }
 
@@ -644,7 +644,7 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 	cd = (config_data_t *) dbdata;
 
 	/* allocate memory for list */
-	dir_list = isc_mem_get(ns_g_mctx, sizeof(dlist_t));
+	dir_list = isc_mem_get(named_g_mctx, sizeof(dlist_t));
 	if (dir_list == NULL) {
 		result = ISC_R_NOTFOUND;
 		goto complete_allnds;
@@ -727,14 +727,14 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 		dir_entry = ISC_LIST_HEAD(*dir_list);
 		while (dir_entry != NULL) {
 			next_de = ISC_LIST_NEXT(dir_entry, link);
-			isc_mem_put(ns_g_mctx, dir_entry, sizeof(dir_entry_t));
+			isc_mem_put(named_g_mctx, dir_entry, sizeof(dir_entry_t));
 			dir_entry = next_de;
 		} /* end while */
-		isc_mem_put(ns_g_mctx, dir_list, sizeof(dlist_t));
+		isc_mem_put(named_g_mctx, dir_list, sizeof(dlist_t));
 	}
 
 	if (basepath != NULL)
-		isc_mem_free(ns_g_mctx, basepath);
+		isc_mem_free(named_g_mctx, basepath);
 
 	return (result);
 }
@@ -777,7 +777,7 @@ fs_findzone(void *driverarg, void *dbdata, const char *name,
 
  complete_FZ:
 
-	isc_mem_free(ns_g_mctx, path);
+	isc_mem_free(named_g_mctx, path);
 	return (result);
 }
 
@@ -852,7 +852,7 @@ fs_lookup(const char *zone, const char *name, void *driverarg,
 
  complete_lkup:
 
-	isc_mem_free(ns_g_mctx, path);
+	isc_mem_free(named_g_mctx, path);
 	return (result);
 }
 
@@ -903,7 +903,7 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 		pathsep = '/';
 
 	/* allocate memory for our config data */
-	cd = isc_mem_get(ns_g_mctx, sizeof(config_data_t));
+	cd = isc_mem_get(named_g_mctx, sizeof(config_data_t));
 	if (cd == NULL)
 		goto no_mem;
 
@@ -913,19 +913,19 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 	cd->pathsep = pathsep;
 
 	/* get and store our base directory */
-	cd->basedir = isc_mem_strdup(ns_g_mctx, argv[1]);
+	cd->basedir = isc_mem_strdup(named_g_mctx, argv[1]);
 	if (cd->basedir == NULL)
 		goto no_mem;
 	cd->basedirsize = strlen(cd->basedir);
 
 	/* get and store our data sub-dir */
-	cd->datadir = isc_mem_strdup(ns_g_mctx, argv[2]);
+	cd->datadir = isc_mem_strdup(named_g_mctx, argv[2]);
 	if (cd->datadir == NULL)
 		goto no_mem;
 	cd->datadirsize = strlen(cd->datadir);
 
 	/* get and store our zone xfr sub-dir */
-	cd->xfrdir = isc_mem_strdup(ns_g_mctx, argv[3]);
+	cd->xfrdir = isc_mem_strdup(named_g_mctx, argv[3]);
 	if (cd->xfrdir == NULL)
 		goto no_mem;
 	cd->xfrdirsize = strlen(cd->xfrdir);
@@ -943,7 +943,7 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 	cd->separator = *argv[5];
 
 	/* attach config data to memory context */
-	isc_mem_attach(ns_g_mctx, &cd->mctx);
+	isc_mem_attach(named_g_mctx, &cd->mctx);
 
 	/* pass back config data */
 	*dbdata = cd;
@@ -983,13 +983,13 @@ fs_destroy(void *driverarg, void *dbdata)
 	 * allocated
 	 */
 	if (cd->basedir != NULL)
-		isc_mem_free(ns_g_mctx, cd->basedir);
+		isc_mem_free(named_g_mctx, cd->basedir);
 
 	if (cd->datadir != NULL)
-		isc_mem_free(ns_g_mctx, cd->datadir);
+		isc_mem_free(named_g_mctx, cd->datadir);
 
 	if (cd->xfrdir != NULL)
-		isc_mem_free(ns_g_mctx, cd->xfrdir);
+		isc_mem_free(named_g_mctx, cd->xfrdir);
 
 	/* hold memory context to use later */
 	mctx = cd->mctx;
@@ -1036,7 +1036,7 @@ dlz_fs_init(void)
 	result = dns_sdlzregister("filesystem", &dlz_fs_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA,
-				  ns_g_mctx, &dlz_fs);
+				  named_g_mctx, &dlz_fs);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_sdlzregister() failed: %s",

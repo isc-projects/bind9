@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,20 +39,20 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 	}
 
 	if (! GeoIP_db_avail(edition)) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			"GeoIP %s (type %d) DB not available", name, edition);
 		goto fail;
 	}
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		"initializing GeoIP %s (type %d) DB", name, edition);
 
 	db = GeoIP_open_type(edition, method);
 	if (db == NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			"failed to initialize GeoIP %s (type %d) DB%s",
 			name, edition, fallback == 0
 			 ? "geoip matches using this database will fail" : "");
@@ -61,8 +61,8 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 
 	info = GeoIP_database_info(db);
 	if (info != NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "%s", info);
 		free(info);
 	}
@@ -77,18 +77,18 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 #endif /* HAVE_GEOIP */
 
 void
-ns_geoip_init(void) {
+named_geoip_init(void) {
 #ifndef HAVE_GEOIP
 	return;
 #else
 	GeoIP_cleanup();
-	if (ns_g_geoip == NULL)
-		ns_g_geoip = &geoip_table;
+	if (named_g_geoip == NULL)
+		named_g_geoip = &geoip_table;
 #endif
 }
 
 void
-ns_geoip_load(char *dir) {
+named_geoip_load(char *dir) {
 #ifndef HAVE_GEOIP
 
 	UNUSED(dir);
@@ -103,40 +103,40 @@ ns_geoip_load(char *dir) {
 	method = GEOIP_MMAP_CACHE;
 #endif
 
-	ns_geoip_init();
+	named_geoip_init();
 	if (dir != NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "using \"%s\" as GeoIP directory", dir);
 		GeoIP_setup_custom_directory(dir);
 	}
 
-	init_geoip_db(&ns_g_geoip->country_v4, GEOIP_COUNTRY_EDITION, 0,
+	init_geoip_db(&named_g_geoip->country_v4, GEOIP_COUNTRY_EDITION, 0,
 		      method, "Country (IPv4)");
 #ifdef HAVE_GEOIP_V6
-	init_geoip_db(&ns_g_geoip->country_v6, GEOIP_COUNTRY_EDITION_V6, 0,
+	init_geoip_db(&named_g_geoip->country_v6, GEOIP_COUNTRY_EDITION_V6, 0,
 		      method, "Country (IPv6)");
 #endif
 
-	init_geoip_db(&ns_g_geoip->city_v4, GEOIP_CITY_EDITION_REV1,
+	init_geoip_db(&named_g_geoip->city_v4, GEOIP_CITY_EDITION_REV1,
 		      GEOIP_CITY_EDITION_REV0, method, "City (IPv4)");
 #if defined(HAVE_GEOIP_V6) && defined(HAVE_GEOIP_CITY_V6)
-	init_geoip_db(&ns_g_geoip->city_v6, GEOIP_CITY_EDITION_REV1_V6,
+	init_geoip_db(&named_g_geoip->city_v6, GEOIP_CITY_EDITION_REV1_V6,
 		      GEOIP_CITY_EDITION_REV0_V6, method, "City (IPv6)");
 #endif
 
-	init_geoip_db(&ns_g_geoip->region, GEOIP_REGION_EDITION_REV1,
+	init_geoip_db(&named_g_geoip->region, GEOIP_REGION_EDITION_REV1,
 		      GEOIP_REGION_EDITION_REV0, method, "Region");
 
-	init_geoip_db(&ns_g_geoip->isp, GEOIP_ISP_EDITION, 0,
+	init_geoip_db(&named_g_geoip->isp, GEOIP_ISP_EDITION, 0,
 		      method, "ISP");
-	init_geoip_db(&ns_g_geoip->org, GEOIP_ORG_EDITION, 0,
+	init_geoip_db(&named_g_geoip->org, GEOIP_ORG_EDITION, 0,
 		      method, "Org");
-	init_geoip_db(&ns_g_geoip->as, GEOIP_ASNUM_EDITION, 0,
+	init_geoip_db(&named_g_geoip->as, GEOIP_ASNUM_EDITION, 0,
 		      method, "AS");
-	init_geoip_db(&ns_g_geoip->domain, GEOIP_DOMAIN_EDITION, 0,
+	init_geoip_db(&named_g_geoip->domain, GEOIP_DOMAIN_EDITION, 0,
 		      method, "Domain");
-	init_geoip_db(&ns_g_geoip->netspeed, GEOIP_NETSPEED_EDITION, 0,
+	init_geoip_db(&named_g_geoip->netspeed, GEOIP_NETSPEED_EDITION, 0,
 		      method, "NetSpeed");
 #endif /* HAVE_GEOIP */
 }

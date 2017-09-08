@@ -27,9 +27,6 @@
     <ClCompile Include="..\builtin.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\client.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -44,58 +41,16 @@
       <Filter>Source Files</Filter>
     </ClCompile>
 @END GEOIP
-    <ClCompile Include="..\interfacemgr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\listenlist.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\logconf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\lwaddr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwdclient.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwderror.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwdgabn.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwdgnba.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwdgrbn.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwdnoop.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwresd.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\lwsearch.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\notify.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\query.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\server.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sortlist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\statschannel.c">
@@ -105,12 +60,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\tsigconf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\update.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\xfrout.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\zoneconf.c">
@@ -127,9 +76,6 @@
     <ClInclude Include="..\include\named\builtin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\named\client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\named\config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -144,46 +90,19 @@
     <ClInclude Include="..\include\named\globals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\named\interfacemgr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\listenlist.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\named\log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\logconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\named\lwaddr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\lwdclient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\lwresd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\lwsearch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\named\main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\notify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\query.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\seccomp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\server.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\sortlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\statschannel.h">
@@ -196,12 +115,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\update.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\named\xfrout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\named\zoneconf.h">

@@ -178,7 +178,7 @@ postgres_destroy_dblist(db_list_t *dblist)
 		destroy_sqldbinstance(dbi);
 	}
 	/* release memory for the list structure */
-	isc_mem_put(ns_g_mctx, dblist, sizeof(db_list_t));
+	isc_mem_put(named_g_mctx, dblist, sizeof(db_list_t));
 }
 
 /*%
@@ -246,7 +246,7 @@ postgres_escape_string(const char *instr) {
 
 	len = strlen(instr);
 
-	outstr = isc_mem_allocate(ns_g_mctx ,(2 * len * sizeof(char)) + 1);
+	outstr = isc_mem_allocate(named_g_mctx ,(2 * len * sizeof(char)) + 1);
 	if (outstr == NULL)
 		return NULL;
 
@@ -465,19 +465,19 @@ postgres_get_resultset(const char *zone, const char *record,
 	 */
 	switch(query) {
 	case ALLNODES:
-		querystring = build_querystring(ns_g_mctx, dbi->allnodes_q);
+		querystring = build_querystring(named_g_mctx, dbi->allnodes_q);
 		break;
 	case ALLOWXFR:
-		querystring = build_querystring(ns_g_mctx, dbi->allowxfr_q);
+		querystring = build_querystring(named_g_mctx, dbi->allowxfr_q);
 		break;
 	case AUTHORITY:
-		querystring = build_querystring(ns_g_mctx, dbi->authority_q);
+		querystring = build_querystring(named_g_mctx, dbi->authority_q);
 		break;
 	case FINDZONE:
-		querystring = build_querystring(ns_g_mctx, dbi->findzone_q);
+		querystring = build_querystring(named_g_mctx, dbi->findzone_q);
 		break;
 	case LOOKUP:
-		querystring = build_querystring(ns_g_mctx, dbi->lookup_q);
+		querystring = build_querystring(named_g_mctx, dbi->lookup_q);
 		break;
 	default:
 		/*
@@ -589,15 +589,15 @@ postgres_get_resultset(const char *zone, const char *record,
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)
-		isc_mem_free(ns_g_mctx, dbi->zone);
+		isc_mem_free(named_g_mctx, dbi->zone);
 
 	/* free dbi->record string */
 	if (dbi->record != NULL)
-		isc_mem_free(ns_g_mctx, dbi->record);
+		isc_mem_free(named_g_mctx, dbi->record);
 
 	/* free dbi->client string */
 	if (dbi->client != NULL)
-		isc_mem_free(ns_g_mctx, dbi->client);
+		isc_mem_free(named_g_mctx, dbi->client);
 
 #ifdef ISC_PLATFORM_USETHREADS
 
@@ -615,7 +615,7 @@ postgres_get_resultset(const char *zone, const char *record,
 
 	/* release query string */
 	if (querystring  != NULL)
-		isc_mem_free(ns_g_mctx, querystring );
+		isc_mem_free(named_g_mctx, querystring );
 
 #if 0
 	/* temporary logging message */
@@ -696,7 +696,7 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 			 * allocate string memory, allow for NULL to
 			 * term string
 			 */
-			tmpString = isc_mem_allocate(ns_g_mctx, len + 1);
+			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			if (tmpString == NULL) {
 				/* major bummer, need more ram */
 				isc_log_write(dns_lctx,
@@ -731,7 +731,7 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 			result = dns_sdlz_putrr(lookup, PQgetvalue(rs, i, 1),
 						ttl, tmpString);
 			/* done, get rid of this thing. */
-			isc_mem_free(ns_g_mctx, tmpString);
+			isc_mem_free(named_g_mctx, tmpString);
 		}
 		/* I sure hope we were successful */
 		if (result != ISC_R_SUCCESS) {
@@ -926,7 +926,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 				len += strlen(PQgetvalue(rs, i, j)) + 1;
 			}
 			/* allocate memory, allow for NULL to term string */
-			tmpString = isc_mem_allocate(ns_g_mctx, len + 1);
+			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			if (tmpString == NULL) {	/* we need more ram. */
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_DATABASE,
@@ -949,7 +949,7 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 						     PQgetvalue(rs, i, 2),
 						     PQgetvalue(rs, i, 1),
 						     ttl, tmpString);
-			isc_mem_free(ns_g_mctx, tmpString);
+			isc_mem_free(named_g_mctx, tmpString);
 		}
 		/* if we weren't successful, log err msg */
 		if (result != ISC_R_SUCCESS) {
@@ -1118,7 +1118,7 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* allocate memory for database connection list */
-	dblist = isc_mem_get(ns_g_mctx, sizeof(db_list_t));
+	dblist = isc_mem_get(named_g_mctx, sizeof(db_list_t));
 	if (dblist == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -1136,22 +1136,22 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 		/* how many queries were passed in from config file? */
 		switch(argc) {
 		case 5:
-			result = build_sqldbinstance(ns_g_mctx, NULL, NULL,
+			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     NULL, argv[3], argv[4],
 						     NULL, &dbi);
 			break;
 		case 6:
-			result = build_sqldbinstance(ns_g_mctx, NULL, NULL,
+			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     argv[5], argv[3], argv[4],
 						     NULL, &dbi);
 			break;
 		case 7:
-			result = build_sqldbinstance(ns_g_mctx, argv[6], NULL,
+			result = build_sqldbinstance(named_g_mctx, argv[6], NULL,
 						     argv[5], argv[3], argv[4],
 						     NULL, &dbi);
 			break;
 		case 8:
-			result = build_sqldbinstance(ns_g_mctx, argv[6],
+			result = build_sqldbinstance(named_g_mctx, argv[6],
 						     argv[7], argv[5], argv[3],
 						     argv[4], NULL, &dbi);
 			break;
@@ -1347,7 +1347,7 @@ dlz_postgres_init(void) {
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA |
 				  DNS_SDLZFLAG_THREADSAFE,
-				  ns_g_mctx, &dlz_postgres);
+				  named_g_mctx, &dlz_postgres);
 	/* if we can't register the driver, there are big problems. */
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

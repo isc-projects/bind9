@@ -28,7 +28,7 @@
 
 #undef EXTERN
 #undef INIT
-#ifdef NS_MAIN
+#ifdef NAMED_MAIN
 #define EXTERN
 #define INIT(v)	= (v)
 #else
@@ -36,162 +36,132 @@
 #define INIT(v)
 #endif
 
-#ifndef NS_RUN_PID_DIR
-#define NS_RUN_PID_DIR 1
+#ifndef NAMED_RUN_PID_DIR
+#define NAMED_RUN_PID_DIR 1
 #endif
 
-EXTERN isc_mem_t *		ns_g_mctx		INIT(NULL);
-EXTERN unsigned int		ns_g_cpus		INIT(0);
-EXTERN unsigned int		ns_g_udpdisp		INIT(0);
-EXTERN isc_taskmgr_t *		ns_g_taskmgr		INIT(NULL);
-EXTERN dns_dispatchmgr_t *	ns_g_dispatchmgr	INIT(NULL);
-EXTERN isc_entropy_t *		ns_g_entropy		INIT(NULL);
-EXTERN isc_entropy_t *		ns_g_fallbackentropy	INIT(NULL);
-EXTERN unsigned int		ns_g_cpus_detected	INIT(1);
+EXTERN isc_mem_t *		named_g_mctx		INIT(NULL);
+EXTERN unsigned int		named_g_cpus		INIT(0);
+EXTERN unsigned int		named_g_udpdisp		INIT(0);
+EXTERN isc_taskmgr_t *		named_g_taskmgr		INIT(NULL);
+EXTERN dns_dispatchmgr_t *	named_g_dispatchmgr	INIT(NULL);
+EXTERN isc_entropy_t *		named_g_entropy		INIT(NULL);
+EXTERN isc_entropy_t *		named_g_fallbackentropy	INIT(NULL);
+EXTERN unsigned int		named_g_cpus_detected	INIT(1);
 
 #ifdef ENABLE_AFL
-EXTERN isc_boolean_t		ns_g_run_done		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		named_g_run_done	INIT(ISC_FALSE);
 #endif
 /*
  * XXXRTH  We're going to want multiple timer managers eventually.  One
  *         for really short timers, another for client timers, and one
  *         for zone timers.
  */
-EXTERN isc_timermgr_t *		ns_g_timermgr		INIT(NULL);
-EXTERN isc_socketmgr_t *	ns_g_socketmgr		INIT(NULL);
-EXTERN cfg_parser_t *		ns_g_parser		INIT(NULL);
-EXTERN cfg_parser_t *		ns_g_addparser		INIT(NULL);
-EXTERN const char *		ns_g_version		INIT(VERSION);
-EXTERN const char *		ns_g_product		INIT(PRODUCT);
-EXTERN const char *		ns_g_description	INIT(DESCRIPTION);
-EXTERN const char *		ns_g_srcid		INIT(SRCID);
-EXTERN const char *		ns_g_configargs		INIT(CONFIGARGS);
-EXTERN const char *		ns_g_builder		INIT(BUILDER);
-EXTERN in_port_t		ns_g_port		INIT(0);
-EXTERN isc_dscp_t		ns_g_dscp		INIT(-1);
-EXTERN in_port_t		lwresd_g_listenport	INIT(0);
+EXTERN isc_timermgr_t *		named_g_timermgr	INIT(NULL);
+EXTERN isc_socketmgr_t *	named_g_socketmgr	INIT(NULL);
+EXTERN cfg_parser_t *		named_g_parser		INIT(NULL);
+EXTERN cfg_parser_t *		named_g_addparser	INIT(NULL);
+EXTERN const char *		named_g_version		INIT(VERSION);
+EXTERN const char *		named_g_product		INIT(PRODUCT);
+EXTERN const char *		named_g_description	INIT(DESCRIPTION);
+EXTERN const char *		named_g_srcid		INIT(SRCID);
+EXTERN const char *		named_g_configargs	INIT(CONFIGARGS);
+EXTERN const char *		named_g_builder		INIT(BUILDER);
+EXTERN in_port_t		named_g_port		INIT(0);
+EXTERN isc_dscp_t		named_g_dscp		INIT(-1);
 
-EXTERN ns_server_t *		ns_g_server		INIT(NULL);
-
-EXTERN isc_boolean_t		ns_g_lwresdonly		INIT(ISC_FALSE);
+EXTERN named_server_t *		named_g_server		INIT(NULL);
 
 /*
  * Logging.
  */
-EXTERN isc_log_t *		ns_g_lctx		INIT(NULL);
-EXTERN isc_logcategory_t *	ns_g_categories		INIT(NULL);
-EXTERN isc_logmodule_t *	ns_g_modules		INIT(NULL);
-EXTERN unsigned int		ns_g_debuglevel		INIT(0);
+EXTERN isc_log_t *		named_g_lctx		INIT(NULL);
+EXTERN isc_logcategory_t *	named_g_categories	INIT(NULL);
+EXTERN isc_logmodule_t *	named_g_modules		INIT(NULL);
+EXTERN unsigned int		named_g_debuglevel	INIT(0);
 
 /*
  * Current configuration information.
  */
-EXTERN cfg_obj_t *		ns_g_config		INIT(NULL);
-EXTERN const cfg_obj_t *	ns_g_defaults		INIT(NULL);
-EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
+EXTERN cfg_obj_t *		named_g_config		INIT(NULL);
+EXTERN const cfg_obj_t *	named_g_defaults	INIT(NULL);
+EXTERN const char *		named_g_conffile	INIT(NAMED_SYSCONFDIR
 							     "/named.conf");
-EXTERN cfg_obj_t *		ns_g_bindkeys		INIT(NULL);
-EXTERN const char *		ns_g_keyfile		INIT(NS_SYSCONFDIR
+EXTERN cfg_obj_t *		named_g_bindkeys	INIT(NULL);
+EXTERN const char *		named_g_keyfile		INIT(NAMED_SYSCONFDIR
 							     "/rndc.key");
 
-EXTERN dns_tsigkey_t *		ns_g_sessionkey		INIT(NULL);
-EXTERN dns_name_t		ns_g_sessionkeyname;
-
-EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR
-							     "/lwresd.conf");
-EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
-							     "/resolv.conf");
-EXTERN isc_boolean_t		ns_g_conffileset	INIT(ISC_FALSE);
-EXTERN isc_boolean_t		lwresd_g_useresolvconf	INIT(ISC_FALSE);
-EXTERN isc_uint16_t		ns_g_udpsize		INIT(4096);
-EXTERN cfg_aclconfctx_t *	ns_g_aclconfctx		INIT(NULL);
+EXTERN dns_tsigkey_t *		named_g_sessionkey	INIT(NULL);
+EXTERN dns_name_t		named_g_sessionkeyname;
+EXTERN isc_boolean_t		named_g_conffileset	INIT(ISC_FALSE);
+EXTERN cfg_aclconfctx_t *	named_g_aclconfctx	INIT(NULL);
 
 /*
  * Initial resource limits.
  */
-EXTERN isc_resourcevalue_t	ns_g_initstacksize	INIT(0);
-EXTERN isc_resourcevalue_t	ns_g_initdatasize	INIT(0);
-EXTERN isc_resourcevalue_t	ns_g_initcoresize	INIT(0);
-EXTERN isc_resourcevalue_t	ns_g_initopenfiles	INIT(0);
+EXTERN isc_resourcevalue_t	named_g_initstacksize	INIT(0);
+EXTERN isc_resourcevalue_t	named_g_initdatasize	INIT(0);
+EXTERN isc_resourcevalue_t	named_g_initcoresize	INIT(0);
+EXTERN isc_resourcevalue_t	named_g_initopenfiles	INIT(0);
 
 /*
  * Misc.
  */
-EXTERN isc_boolean_t		ns_g_coreok		INIT(ISC_TRUE);
-EXTERN const char *		ns_g_chrootdir		INIT(NULL);
-EXTERN isc_boolean_t		ns_g_foreground		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_logstderr		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_nosyslog		INIT(ISC_FALSE);
-EXTERN const char *		ns_g_logfile		INIT(NULL);
+EXTERN isc_boolean_t		named_g_coreok		INIT(ISC_TRUE);
+EXTERN const char *		named_g_chrootdir	INIT(NULL);
+EXTERN isc_boolean_t		named_g_foreground	INIT(ISC_FALSE);
+EXTERN isc_boolean_t		named_g_logstderr	INIT(ISC_FALSE);
+EXTERN isc_boolean_t		named_g_nosyslog	INIT(ISC_FALSE);
+EXTERN const char *		named_g_logfile		INIT(NULL);
 
-EXTERN const char *		ns_g_defaultsessionkeyfile
-					INIT(NS_LOCALSTATEDIR "/run/named/"
+EXTERN const char *		named_g_defaultsessionkeyfile
+					INIT(NAMED_LOCALSTATEDIR "/run/named/"
 							      "session.key");
-EXTERN const char *		ns_g_defaultlockfile	INIT(NS_LOCALSTATEDIR
+EXTERN const char *		named_g_defaultlockfile	INIT(NAMED_LOCALSTATEDIR
 							     "/run/named/"
 							     "named.lock");
-EXTERN isc_boolean_t		ns_g_forcelock		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		named_g_forcelock	INIT(ISC_FALSE);
 
-#if NS_RUN_PID_DIR
-EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+#if NAMED_RUN_PID_DIR
+EXTERN const char *		named_g_defaultpidfile 	INIT(NAMED_LOCALSTATEDIR
 							     "/run/named/"
 							     "named.pid");
-EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
-							     "/run/lwresd/"
-							     "lwresd.pid");
 #else
-EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
+EXTERN const char *		named_g_defaultpidfile 	INIT(NAMED_LOCALSTATEDIR
 							     "/run/named.pid");
-EXTERN const char *		lwresd_g_defaultpidfile INIT(NS_LOCALSTATEDIR
-							     "/run/lwresd.pid");
 #endif
 
 #ifdef HAVE_DNSTAP
-EXTERN const char *		ns_g_defaultdnstap
-					INIT(NS_LOCALSTATEDIR "/run/named/"
+EXTERN const char *		named_g_defaultdnstap
+					INIT(NAMED_LOCALSTATEDIR "/run/named/"
 							      "dnstap.sock");
 #else
-EXTERN const char *		ns_g_defaultdnstap	INIT(NULL);
+EXTERN const char *		named_g_defaultdnstap	INIT(NULL);
 #endif /* HAVE_DNSTAP */
 
-EXTERN const char *		ns_g_username		INIT(NULL);
+EXTERN const char *		named_g_username	INIT(NULL);
 
 #if defined(USE_PKCS11)
-EXTERN const char *		ns_g_engine		INIT(PKCS11_ENGINE);
+EXTERN const char *		named_g_engine		INIT(PKCS11_ENGINE);
 #else
-EXTERN const char *		ns_g_engine		INIT(NULL);
+EXTERN const char *		named_g_engine		INIT(NULL);
 #endif
 
-EXTERN int			ns_g_listen		INIT(3);
-EXTERN isc_time_t		ns_g_boottime;
-EXTERN isc_time_t		ns_g_configtime;
-EXTERN isc_boolean_t		ns_g_memstatistics	INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_clienttest		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_dropedns		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_noedns		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_nosoa		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_noaa		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_keepstderr		INIT(ISC_FALSE);
-EXTERN unsigned int		ns_g_delay		INIT(0);
-EXTERN isc_boolean_t		ns_g_nonearest		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_notcp		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_disable6		INIT(ISC_FALSE);
-EXTERN isc_boolean_t		ns_g_disable4		INIT(ISC_FALSE);
-EXTERN unsigned int		ns_g_tat_interval	INIT(24*3600);
+EXTERN isc_time_t		named_g_boottime;
+EXTERN isc_time_t		named_g_configtime;
+EXTERN isc_boolean_t		named_g_memstatistics	INIT(ISC_FALSE);
+EXTERN isc_boolean_t		named_g_keepstderr	INIT(ISC_FALSE);
 
-EXTERN unsigned int	 	ns_g_initialtimo	INIT(300);
-EXTERN unsigned int	 	ns_g_idletimo		INIT(300);
-EXTERN unsigned int	 	ns_g_keepalivetimo	INIT(300);
-EXTERN unsigned int	 	ns_g_advertisedtimo	INIT(300);
+EXTERN unsigned int		named_g_tat_interval	INIT(24*3600);
 
 #ifdef HAVE_GEOIP
-EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
+EXTERN dns_geoip_databases_t	*named_g_geoip		INIT(NULL);
 #endif
 
-EXTERN const char *		ns_g_fuzz_named_addr	INIT(NULL);
-EXTERN ns_fuzz_t		ns_g_fuzz_type		INIT(ns_fuzz_none);
+EXTERN const char *		named_g_fuzz_addr	INIT(NULL);
+EXTERN isc_fuzztype_t		named_g_fuzz_type	INIT(isc_fuzz_none);
 
-EXTERN dns_acl_t *		ns_g_mapped		INIT(NULL);
+EXTERN dns_acl_t *		named_g_mapped		INIT(NULL);
 
 #undef EXTERN
 #undef INIT

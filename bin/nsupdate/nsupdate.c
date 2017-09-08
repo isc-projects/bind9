@@ -67,8 +67,8 @@
 
 #include <dst/dst.h>
 
-#include <lwres/lwres.h>
-#include <lwres/net.h>
+#include <irs/resconf.h>
+#include <irs/netdb.h>
 
 #ifdef GSSAPI
 #include <dst/gssapi.h>
@@ -157,8 +157,6 @@ static dns_name_t restart_master;
 static dns_tsig_keyring_t *gssring = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dst_key_t *sig0key = NULL;
-static lwres_context_t *lwctx = NULL;
-static lwres_conf_t *lwconf;
 static isc_sockaddr_t *servers = NULL;
 static isc_sockaddr_t *master_servers = NULL;
 static isc_boolean_t default_servers = ISC_TRUE;
@@ -381,16 +379,6 @@ static inline void
 check_result(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS)
 		fatal("%s: %s", msg, isc_result_totext(result));
-}
-
-static void *
-mem_alloc(void *arg, size_t size) {
-	return (isc_mem_get(arg, size));
-}
-
-static void
-mem_free(void *arg, void *mem, size_t size) {
-	isc_mem_put(arg, mem, size);
 }
 
 static char *
@@ -805,9 +793,6 @@ doshutdown(void) {
 
 	cleanup_entropy(&entropy);
 
-	lwres_conf_clear(lwctx);
-	lwres_context_destroy(&lwctx);
-
 	ddebug("Destroying request manager");
 	dns_requestmgr_detach(&requestmgr);
 
@@ -849,10 +834,10 @@ static void
 setup_system(void) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
-	lwres_result_t lwresult;
-	unsigned int attrs, attrmask, flags;
-	int i;
+	unsigned int attrs, attrmask;
+	isc_sockaddrlist_t *nslist;
 	isc_logconfig_t *logconfig = NULL;
+	irs_resconf_t *resconf = NULL;
 
 	ddebug("setup_system()");
 
@@ -870,21 +855,12 @@ setup_system(void) {
 
 	isc_log_setdebuglevel(glctx, logdebuglevel);
 
-	flags = LWRES_CONTEXT_SERVERMODE;
-	if (have_ipv4) {
-		flags |= LWRES_CONTEXT_USEIPV4;
-	}
-	if (have_ipv6) {
-		flags |= LWRES_CONTEXT_USEIPV6;
+	result = irs_resconf_load(gmctx, RESOLV_CONF, &resconf);
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
+		fatal("parse of %s failed", RESOLV_CONF);
 	}
 
-	lwresult = lwres_context_create(&lwctx, gmctx, mem_alloc, mem_free,
-					flags);
-	if (lwresult != LWRES_R_SUCCESS)
-		fatal("lwres_context_create failed");
-
-	(void)lwres_conf_parse(lwctx, RESOLV_CONF);
-	lwconf = lwres_conf_get(lwctx);
+	nslist = irs_resconf_getnameservers(resconf);
 
 	if (servers != NULL) {
 		if (master_servers == servers)
@@ -893,7 +869,7 @@ setup_system(void) {
 	}
 
 	ns_inuse = 0;
-	if (local_only || lwconf->nsnext <= 0) {
+	if (local_only || ISC_LIST_EMPTY(*nslist)) {
 		struct in_addr in;
 		struct in6_addr in6;
 
@@ -918,27 +894,67 @@ setup_system(void) {
 					    &in, dnsport);
 		}
 	} else {
-		ns_total = ns_alloc = lwconf->nsnext;
+		isc_sockaddr_t *sa;
+		int i = 0;
+
+		/*
+		 * Count the nameservers (skipping any that we can't use
+		 * because of address family restrictions) and allocate
+		 * the servers array.
+		 */
+		ns_total = ns_alloc = 0;
+		for (sa = ISC_LIST_HEAD(*nslist);
+		     sa != NULL;
+		     sa = ISC_LIST_NEXT(sa, link))
+		{
+			switch (sa->type.sa.sa_family) {
+			case AF_INET:
+				if (have_ipv4) {
+					ns_total++;
+					continue;
+				}
+				break;
+			case AF_INET6:
+				if (have_ipv6) {
+					ns_total++;
+					continue;
+				}
+				break;
+			default:
+				fatal("bad family");
+			}
+		}
+
+		ns_alloc = ns_total;
 		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
 		if (servers == NULL)
 			fatal("out of memory");
-		for (i = 0; i < ns_total; i++) {
-			if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4)
-			{
-				struct in_addr in4;
-				memmove(&in4,
-					lwconf->nameservers[i].address, 4);
-				isc_sockaddr_fromin(&servers[i],
-						    &in4, dnsport);
-			} else {
-				struct in6_addr in6;
-				memmove(&in6,
-					lwconf->nameservers[i].address, 16);
-				isc_sockaddr_fromin6(&servers[i],
-						     &in6, dnsport);
+
+		for (sa = ISC_LIST_HEAD(*nslist);
+		     sa != NULL;
+		     sa = ISC_LIST_NEXT(sa, link))
+		{
+			switch (sa->type.sa.sa_family) {
+			case AF_INET:
+				if (!have_ipv4) {
+					continue;
+				}
+				sa->type.sin.sin_port = htons(dnsport);
+				break;
+			case AF_INET6:
+				if (!have_ipv6) {
+					continue;
+				}
+				sa->type.sin6.sin6_port = htons(dnsport);
+				break;
+			default:
+				fatal("bad family");
 			}
+			servers[i++] = *sa;
 		}
 	}
+
+	irs_resconf_destroy(&resconf);
 
 	setup_entropy(gmctx, NULL, &entropy);
 

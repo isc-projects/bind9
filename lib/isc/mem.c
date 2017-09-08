@@ -2292,22 +2292,36 @@ isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
 #endif
 }
 
+
+/*
+ * Requires contextslock to be held by caller.
+ */
+static void
+print_contexts(FILE *file) {
+	isc__mem_t *ctx;
+
+	for (ctx = ISC_LIST_HEAD(contexts);
+	     ctx != NULL;
+	     ctx = ISC_LIST_NEXT(ctx, link))
+	{
+		fprintf(file, "context: %p (%s): %d references\n",
+			ctx,
+			ctx->name[0] == 0 ? "<unknown>" : ctx->name,
+			ctx->references);
+		print_active(ctx, file);
+	}
+	fflush(file);
+}
+
 void
 isc_mem_printallactive(FILE *file) {
 #if !ISC_MEM_TRACKLINES
 	UNUSED(file);
 #else
-	isc__mem_t *ctx;
-
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
 	LOCK(&contextslock);
-	for (ctx = ISC_LIST_HEAD(contexts);
-	     ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
-		fprintf(file, "context: %p\n", ctx);
-		print_active(ctx, file);
-	}
+	print_contexts(file);
 	UNLOCK(&contextslock);
 #endif
 }
@@ -2324,15 +2338,7 @@ isc_mem_checkdestroyed(FILE *file) {
 	if (!ISC_LIST_EMPTY(contexts)) {
 #if ISC_MEM_TRACKLINES
 		if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0)) {
-			isc__mem_t *ctx;
-
-			for (ctx = ISC_LIST_HEAD(contexts);
-			     ctx != NULL;
-			     ctx = ISC_LIST_NEXT(ctx, link)) {
-				fprintf(file, "context: %p\n", ctx);
-				print_active(ctx, file);
-			}
-			fflush(file);
+			print_contexts(file);
 		}
 #endif
 		INSIST(0);

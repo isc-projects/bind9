@@ -47,20 +47,17 @@ static char *version_error =
 	"named requires Windows 2000 Service Pack 2 or later to run correctly";
 
 void
-ns_paths_init(void) {
+named_paths_init(void) {
 	if (!Initialized)
 		isc_ntpaths_init();
 
-	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
-	lwresd_g_conffile = isc_ntpaths_get(LWRES_CONF_PATH);
-	lwresd_g_resolvconffile = isc_ntpaths_get(RESOLV_CONF_PATH);
-	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
-	ns_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
-	lwresd_g_defaultpidfile = isc_ntpaths_get(LWRESD_PID_PATH);
-	ns_g_defaultlockfile = isc_ntpaths_get(NAMED_LOCK_PATH);
-	ns_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
-	ns_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
-	ns_g_defaultdnstap = NULL;
+	named_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
+	named_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
+	named_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
+	named_g_defaultlockfile = isc_ntpaths_get(NAMED_LOCK_PATH);
+	named_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
+	named_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
+	named_g_defaultdnstap = NULL;
 
 	Initialized = TRUE;
 }
@@ -96,12 +93,12 @@ setup_syslog(const char *progname) {
 }
 
 void
-ns_os_init(const char *progname) {
-	ns_paths_init();
+named_os_init(const char *progname) {
+	named_paths_init();
 	setup_syslog(progname);
 	/*
 	 * XXXMPA. We may need to split ntservice_init() in two and
-	 * just mark as running in ns_os_started().  If we do that
+	 * just mark as running in named_os_started().  If we do that
 	 * this is where the first part of ntservice_init() should be
 	 * called from.
 	 *
@@ -113,7 +110,7 @@ ns_os_init(const char *progname) {
 }
 
 void
-ns_os_daemonize(void) {
+named_os_daemonize(void) {
 	/*
 	 * Try to set stdin, stdout, and stderr to /dev/null, but press
 	 * on even if it fails.
@@ -135,12 +132,12 @@ ns_os_daemonize(void) {
 }
 
 void
-ns_os_opendevnull(void) {
+named_os_opendevnull(void) {
 	devnullfd = open("NUL", O_RDWR, 0);
 }
 
 void
-ns_os_closedevnull(void) {
+named_os_closedevnull(void) {
 	if (devnullfd != _fileno(stdin) &&
 	    devnullfd != _fileno(stdout) &&
 	    devnullfd != _fileno(stderr)) {
@@ -150,17 +147,17 @@ ns_os_closedevnull(void) {
 }
 
 void
-ns_os_chroot(const char *root) {
+named_os_chroot(const char *root) {
 	if (root != NULL)
-		ns_main_earlyfatal("chroot(): isn't supported by Win32 API");
+		named_main_earlyfatal("chroot(): isn't supported by Win32 API");
 }
 
 void
-ns_os_inituserinfo(const char *username) {
+named_os_inituserinfo(const char *username) {
 }
 
 void
-ns_os_changeuser(void) {
+named_os_changeuser(void) {
 }
 
 unsigned int
@@ -169,11 +166,11 @@ ns_os_uid(void) {
 }
 
 void
-ns_os_adjustnofile(void) {
+named_os_adjustnofile(void) {
 }
 
 void
-ns_os_minprivs(void) {
+named_os_minprivs(void) {
 }
 
 static int
@@ -215,14 +212,15 @@ cleanup_lockfile(void) {
 	if (lockfile != NULL) {
 		int n = unlink(lockfile);
 		if (n == -1 && errno != ENOENT)
-			ns_main_earlywarning("unlink '%s': failed", lockfile);
+			named_main_earlywarning("unlink '%s': failed",
+						lockfile);
 		free(lockfile);
 		lockfile = NULL;
 	}
 }
 
 FILE *
-ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
+named_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 	char strbuf[ISC_STRERRORSIZE];
 	FILE *fp;
 	int fd;
@@ -231,16 +229,16 @@ ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 	fd = safe_open(filename, mode, ISC_FALSE);
 	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("could not open file '%s': %s",
-				     filename, strbuf);
+		named_main_earlywarning("could not open file '%s': %s",
+					filename, strbuf);
 		return (NULL);
 	}
 
 	fp = fdopen(fd, "w");
 	if (fp == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("could not fdopen() file '%s': %s",
-				     filename, strbuf);
+		named_main_earlywarning("could not fdopen() file '%s': %s",
+					filename, strbuf);
 		close(fd);
 	}
 
@@ -248,7 +246,7 @@ ns_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 }
 
 void
-ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
+named_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	FILE *pidlockfile;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
@@ -258,7 +256,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	 * The caller must ensure any required synchronization.
 	 */
 
-	report = first_time ? ns_main_earlyfatal : ns_main_earlywarning;
+	report = first_time ? named_main_earlyfatal : named_main_earlywarning;
 
 	cleanup_pidfile();
 
@@ -272,8 +270,9 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 
-	pidlockfile = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
-				     ISC_FALSE);
+	pidlockfile = named_os_openfile(filename,
+					S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
+					ISC_FALSE);
 	if (pidlockfile == NULL) {
 		free(pidfile);
 		pidfile = NULL;
@@ -298,7 +297,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 }
 
 isc_boolean_t
-ns_os_issingleton(const char *filename) {
+named_os_issingleton(const char *filename) {
 	char strbuf[ISC_STRERRORSIZE];
 	OVERLAPPED o;
 
@@ -311,12 +310,12 @@ ns_os_issingleton(const char *filename) {
 	lockfile = strdup(filename);
 	if (lockfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("couldn't allocate memory for '%s': %s",
-				   filename, strbuf);
+		named_main_earlyfatal("couldn't allocate memory for '%s': %s",
+				      filename, strbuf);
 	}
 
 	/*
-	 * ns_os_openfile() uses safeopen() which removes any existing
+	 * named_os_openfile() uses safeopen() which removes any existing
 	 * files. We can't use that here.
 	 */
 	lockfilefd = open(filename, O_WRONLY | O_CREAT,
@@ -340,7 +339,7 @@ ns_os_issingleton(const char *filename) {
 
 
 void
-ns_os_shutdown(void) {
+named_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 
@@ -354,7 +353,7 @@ ns_os_shutdown(void) {
 }
 
 isc_result_t
-ns_os_gethostname(char *buf, size_t len) {
+named_os_gethostname(char *buf, size_t len) {
 	int n;
 
 	n = gethostname(buf, (int)len);
@@ -362,20 +361,20 @@ ns_os_gethostname(char *buf, size_t len) {
 }
 
 void
-ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
+named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	UNUSED(command);
 	UNUSED(text);
 }
 
 void
-ns_os_tzset(void) {
+named_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
 }
 
 void
-ns_os_started(void) {
+named_os_started(void) {
 	ntservice_init();
 }
 
@@ -450,7 +449,7 @@ getuname(void) {
  * so we had to switch to the recommended way to get the Windows version.
  */
 char *
-ns_os_uname(void) {
+named_os_uname(void) {
 	if (unamep == NULL)
 		getuname();
 	return (unamep);

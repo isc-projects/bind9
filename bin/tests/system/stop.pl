@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2001, 2004-2007, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2001, 2004-2007, 2012, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -58,10 +58,9 @@ if (defined $server) {
 	closedir DIR;
 
 	my @ns = grep /^ns[0-9]*$/, @files;
-	my @lwresd = grep /^lwresd[0-9]*$/, @files;
 	my @ans = grep /^ans[0-9]*$/, @files;
 	
-	push @servers, @ns, @lwresd, @ans;
+	push @servers, @ns, @ans;
 }
 
 
@@ -98,8 +97,6 @@ sub server_pid_file {
 	my $pid_file;
 	if ($server =~ /^ns/) {
 		$pid_file = "named.pid";
-	} elsif ($server =~ /^lwresd/) {
-		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$pid_file = "ans.pid";
 	} else {

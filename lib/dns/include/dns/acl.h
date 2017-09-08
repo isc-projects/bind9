@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 1999-2002, 2004-2007, 2009, 2011, 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2002, 2004-2007, 2009, 2011, 2013, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-/* $Id: acl.h,v 1.35 2011/06/17 23:47:49 tbox Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -183,6 +181,16 @@ dns_acl_isinsecure(const dns_acl_t *a);
  * messages for suspect ACLs; it is not intended for making access
  * control decisions.  We make no guarantee that an ACL for which
  * this function returns #ISC_FALSE is safe.
+ */
+
+isc_boolean_t
+dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
+		isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
+		isc_uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t
+		*aclenv);
+/*%<
+ * Return #ISC_TRUE iff the 'addr', 'signer', or ECS values are
+ * permitted by 'acl' in environment 'aclenv'.
  */
 
 isc_result_t

@@ -1,23 +1,13 @@
 /*
- * Copyright (C) 1999-2005, 2007, 2008, 2012, 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2005, 2007, 2008, 2012, 2013, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
-
-/*
- * Also define LWRES_IPV6_H to keep it from being included if liblwres is
- * being used, or redefinition errors will occur.
- */
-#define LWRES_IPV6_H 1
-
-
 
 /*****
  ***** Module Info

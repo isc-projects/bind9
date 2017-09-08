@@ -18,9 +18,6 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 TOP=`cd $TOP && pwd`
 
 NAMED=$TOP/bin/named/named
-# We must use "named -l" instead of "lwresd" because argv[0] is lost
-# if the program is libtoolized.
-LWRESD="$TOP/bin/named/named -l"
 DIG=$TOP/bin/dig/dig
 DELV=$TOP/bin/delv/delv
 RNDC=$TOP/bin/rndc/rndc
@@ -64,7 +61,6 @@ BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
 GENCHECK=$TOP/bin/tests/system/rndc/gencheck
 KEYCREATE=$TOP/bin/tests/system/tkey/keycreate
 KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
-LWTEST=$TOP/bin/tests/system/lwresd/lwtest
 MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
 SAMPLEUPDATE=$TOP/lib/samples/sample-update
@@ -79,7 +75,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
 	 emptyzones fetchlimit filter-aaaa formerr geoip glue gost
 	 inline integrity ixfr keepalive @KEYMGR@ legacy limits
-	 logfileconfig lwresd masterfile masterformat metadata mkeys
+	 logfileconfig masterfile masterformat metadata mkeys
 	 names notify nslookup nsupdate nzd2nzf padding pending
 	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
@@ -154,8 +150,6 @@ export KEYFRLAB
 export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
-export LWRESD
-export LWTEST
 export MAKEJOURNAL
 export MDIG
 export NAMED

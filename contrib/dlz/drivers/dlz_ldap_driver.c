@@ -271,7 +271,7 @@ ldap_destroy_dblist(db_list_t *dblist) {
 		destroy_sqldbinstance(dbi);
 	}
 	/* release memory for the list structure */
-	isc_mem_put(ns_g_mctx, dblist, sizeof(db_list_t));
+	isc_mem_put(named_g_mctx, dblist, sizeof(db_list_t));
 }
 
 /*%
@@ -371,7 +371,7 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 		} /* end for (j = 0; attrs[j] != NULL, j++) loop */
 
 		/* allocate memory for data string */
-		data = isc_mem_allocate(ns_g_mctx, len + 1);
+		data = isc_mem_allocate(named_g_mctx, len + 1);
 		if (data == NULL) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -428,12 +428,12 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 				break;
 			case 1:
 				j++;
-				type = isc_mem_strdup(ns_g_mctx, vals[0]);
+				type = isc_mem_strdup(named_g_mctx, vals[0]);
 				break;
 			case 2:
 				j++;
 				if (allnodes)
-					host = isc_mem_strdup(ns_g_mctx,
+					host = isc_mem_strdup(named_g_mctx,
 							      vals[0]);
 				else
 					strcpy(data, vals[0]);
@@ -518,10 +518,10 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 		}
 
 		/* free memory for type, data and host for next loop */
-		isc_mem_free(ns_g_mctx, type);
-		isc_mem_free(ns_g_mctx, data);
+		isc_mem_free(named_g_mctx, type);
+		isc_mem_free(named_g_mctx, data);
 		if (host != NULL)
-			isc_mem_free(ns_g_mctx, host);
+			isc_mem_free(named_g_mctx, host);
 
 		/* get the next entry to process */
 		entry = ldap_next_entry(dbc, entry);
@@ -532,11 +532,11 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 	if (vals != NULL)
 		ldap_value_free(vals);
 	if (host != NULL)
-		isc_mem_free(ns_g_mctx, host);
+		isc_mem_free(named_g_mctx, host);
 	if (type != NULL)
-		isc_mem_free(ns_g_mctx, type);
+		isc_mem_free(named_g_mctx, type);
 	if (data != NULL)
-		isc_mem_free(ns_g_mctx, data);
+		isc_mem_free(named_g_mctx, data);
 
 	return (result);
 }
@@ -590,7 +590,7 @@ ldap_get_results(const char *zone, const char *record,
 
 	/* set fields */
 	if (zone != NULL) {
-		dbi->zone = isc_mem_strdup(ns_g_mctx, zone);
+		dbi->zone = isc_mem_strdup(named_g_mctx, zone);
 		if (dbi->zone == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -599,7 +599,7 @@ ldap_get_results(const char *zone, const char *record,
 		dbi->zone = NULL;
 	}
 	if (record != NULL) {
-		dbi->record = isc_mem_strdup(ns_g_mctx, record);
+		dbi->record = isc_mem_strdup(named_g_mctx, record);
 		if (dbi->record == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -608,7 +608,7 @@ ldap_get_results(const char *zone, const char *record,
 		dbi->record = NULL;
 	}
 	if (client != NULL) {
-		dbi->client = isc_mem_strdup(ns_g_mctx, client);
+		dbi->client = isc_mem_strdup(named_g_mctx, client);
 		if (dbi->client == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
@@ -630,7 +630,7 @@ ldap_get_results(const char *zone, const char *record,
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		} else {
-			querystring = build_querystring(ns_g_mctx,
+			querystring = build_querystring(named_g_mctx,
 			dbi->allnodes_q);
 		}
 		break;
@@ -640,7 +640,7 @@ ldap_get_results(const char *zone, const char *record,
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		} else {
-			querystring = build_querystring(ns_g_mctx,
+			querystring = build_querystring(named_g_mctx,
 			dbi->allowxfr_q);
 		}
 		break;
@@ -650,7 +650,7 @@ ldap_get_results(const char *zone, const char *record,
 			result = ISC_R_NOTIMPLEMENTED;
 			goto cleanup;
 		} else {
-			querystring = build_querystring(ns_g_mctx,
+			querystring = build_querystring(named_g_mctx,
 			dbi->authority_q);
 		}
 		break;
@@ -664,7 +664,7 @@ ldap_get_results(const char *zone, const char *record,
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		} else {
-			querystring = build_querystring(ns_g_mctx,
+			querystring = build_querystring(named_g_mctx,
 			dbi->findzone_q);
 		}
 		break;
@@ -678,7 +678,7 @@ ldap_get_results(const char *zone, const char *record,
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		} else {
-			querystring = build_querystring(ns_g_mctx,
+			querystring = build_querystring(named_g_mctx,
 							dbi->lookup_q);
 		}
 		break;
@@ -838,11 +838,11 @@ ldap_get_results(const char *zone, const char *record,
 
 	/* cleanup */
 	if (dbi->zone != NULL)
-		isc_mem_free(ns_g_mctx, dbi->zone);
+		isc_mem_free(named_g_mctx, dbi->zone);
 	if (dbi->record != NULL)
-		isc_mem_free(ns_g_mctx, dbi->record);
+		isc_mem_free(named_g_mctx, dbi->record);
 	if (dbi->client != NULL)
-		isc_mem_free(ns_g_mctx, dbi->client);
+		isc_mem_free(named_g_mctx, dbi->client);
 
 #ifdef ISC_PLATFORM_USETHREADS
 
@@ -853,7 +853,7 @@ ldap_get_results(const char *zone, const char *record,
 
         /* release query string */
 	if (querystring  != NULL)
-		isc_mem_free(ns_g_mctx, querystring );
+		isc_mem_free(named_g_mctx, querystring );
 
 	/* return result */
 	return (result);
@@ -1053,7 +1053,7 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* allocate memory for LDAP instance */
-	ldap_inst = isc_mem_get(ns_g_mctx, sizeof(ldap_instance_t));
+	ldap_inst = isc_mem_get(named_g_mctx, sizeof(ldap_instance_t));
 	if (ldap_inst == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(ldap_inst, 0, sizeof(ldap_instance_t));
@@ -1061,17 +1061,17 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* store info needed to automatically re-connect. */
 	ldap_inst->protocol = protocol;
 	ldap_inst->method = method;
-	ldap_inst->hosts = isc_mem_strdup(ns_g_mctx, argv[6]);
+	ldap_inst->hosts = isc_mem_strdup(named_g_mctx, argv[6]);
 	if (ldap_inst->hosts == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
-	ldap_inst->user = isc_mem_strdup(ns_g_mctx, argv[4]);
+	ldap_inst->user = isc_mem_strdup(named_g_mctx, argv[4]);
 	if (ldap_inst->user == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
-	ldap_inst->cred = isc_mem_strdup(ns_g_mctx, argv[5]);
+	ldap_inst->cred = isc_mem_strdup(named_g_mctx, argv[5]);
 	if (ldap_inst->cred == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
@@ -1079,7 +1079,7 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 
 #ifdef ISC_PLATFORM_USETHREADS
 	/* allocate memory for database connection list */
-	ldap_inst->db = isc_mem_get(ns_g_mctx, sizeof(db_list_t));
+	ldap_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
 	if (ldap_inst->db == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
@@ -1099,22 +1099,22 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 		/* how many queries were passed in from config file? */
 		switch(argc) {
 		case 9:
-			result = build_sqldbinstance(ns_g_mctx, NULL, NULL,
+			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     NULL, argv[7], argv[8],
 						     NULL, &dbi);
 			break;
 		case 10:
-			result = build_sqldbinstance(ns_g_mctx, NULL, NULL,
+			result = build_sqldbinstance(named_g_mctx, NULL, NULL,
 						     argv[9], argv[7], argv[8],
 						     NULL, &dbi);
 			break;
 		case 11:
-			result = build_sqldbinstance(ns_g_mctx, argv[10], NULL,
+			result = build_sqldbinstance(named_g_mctx, argv[10], NULL,
 						     argv[9], argv[7], argv[8],
 						     NULL, &dbi);
 			break;
 		case 12:
-			result = build_sqldbinstance(ns_g_mctx, argv[10],
+			result = build_sqldbinstance(named_g_mctx, argv[10],
 						     argv[11], argv[9],
 						     argv[7], argv[8],
 						     NULL, &dbi);
@@ -1262,18 +1262,18 @@ dlz_ldap_destroy(void *driverarg, void *dbdata) {
 #endif /* ISC_PLATFORM_USETHREADS */
 
 		if (((ldap_instance_t *)dbdata)->hosts != NULL)
-			isc_mem_free(ns_g_mctx,
+			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->hosts);
 
 		if (((ldap_instance_t *)dbdata)->user != NULL)
-			isc_mem_free(ns_g_mctx,
+			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->user);
 
 		if (((ldap_instance_t *)dbdata)->cred != NULL)
-			isc_mem_free(ns_g_mctx,
+			isc_mem_free(named_g_mctx,
 				     ((ldap_instance_t *)dbdata)->cred);
 
-		isc_mem_put(ns_g_mctx, dbdata, sizeof(ldap_instance_t));
+		isc_mem_put(named_g_mctx, dbdata, sizeof(ldap_instance_t));
 	}
 }
 
@@ -1311,7 +1311,7 @@ dlz_ldap_init(void) {
 	result = dns_sdlzregister("ldap", &dlz_ldap_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA,
-				  ns_g_mctx, &dlz_ldap);
+				  named_g_mctx, &dlz_ldap);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_sdlzregister() failed: %s",

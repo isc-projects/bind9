@@ -32,13 +32,15 @@
 #include <dns/view.h>
 #include <dns/zt.h>
 
+#include <ns/stats.h>
+
 #include <named/log.h>
 #include <named/server.h>
 #include <named/statschannel.h>
 
 #include "bind9.xsl.h"
 
-struct ns_statschannel {
+struct named_statschannel {
 	/* Unlocked */
 	isc_httpdmgr_t				*httpdmgr;
 	isc_sockaddr_t				address;
@@ -52,7 +54,7 @@ struct ns_statschannel {
 	dns_acl_t				*acl;
 
 	/* Locked by server task */
-	ISC_LINK(struct ns_statschannel)	link;
+	ISC_LINK(struct named_statschannel)	link;
 };
 
 typedef struct
@@ -113,7 +115,7 @@ user_zonetype( dns_zone_t *zone ) {
  * compile time, but we configure them run time in the init_desc() function
  * below so that they'll be less susceptible to counter name changes.
  */
-static const char *nsstats_desc[dns_nsstatscounter_max];
+static const char *nsstats_desc[ns_statscounter_max];
 static const char *resstats_desc[dns_resstatscounter_max];
 static const char *adbstats_desc[dns_adbstats_max];
 static const char *zonestats_desc[dns_zonestatscounter_max];
@@ -125,7 +127,7 @@ static const char *tcpinsizestats_desc[dns_sizecounter_in_max];
 static const char *tcpoutsizestats_desc[dns_sizecounter_out_max];
 static const char *dnstapstats_desc[dns_dnstapcounter_max];
 #if defined(EXTENDED_STATS)
-static const char *nsstats_xmldesc[dns_nsstatscounter_max];
+static const char *nsstats_xmldesc[ns_statscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
 static const char *adbstats_xmldesc[dns_adbstats_max];
 static const char *zonestats_xmldesc[dns_zonestatscounter_max];
@@ -157,7 +159,7 @@ static const char *dnstapstats_xmldesc[dns_dnstapcounter_max];
  * preference, regardless of the order of counter indices.  For example,
  * nsstats_desc[nsstats_index[0]] will be the description that is shown first.
  */
-static int nsstats_index[dns_nsstatscounter_max];
+static int nsstats_index[ns_statscounter_max];
 static int resstats_index[dns_resstatscounter_max];
 static int adbstats_index[dns_adbstats_max];
 static int zonestats_index[dns_zonestatscounter_max];
@@ -193,19 +195,19 @@ init_desc(void) {
 	int i;
 
 	/* Initialize name server statistics */
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		nsstats_desc[i] = NULL;
 #if defined(EXTENDED_STATS)
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		nsstats_xmldesc[i] = NULL;
 #endif
 
 #define SET_NSSTATDESC(counterid, desc, xmldesc) \
 	do { \
-		set_desc(dns_nsstatscounter_ ## counterid, \
-			 dns_nsstatscounter_max, \
+		set_desc(ns_statscounter_ ## counterid, \
+			 ns_statscounter_max, \
 			 desc, nsstats_desc, xmldesc, nsstats_xmldesc); \
-		nsstats_index[i++] = dns_nsstatscounter_ ## counterid; \
+		nsstats_index[i++] = ns_statscounter_ ## counterid; \
 	} while (0)
 
 	i = 0;
@@ -299,7 +301,7 @@ init_desc(void) {
 	SET_NSSTATDESC(usedstale,
 		       "successful uses of stale cache data after lookup failure",
 		       "QryUsedStale");
-	INSIST(i == dns_nsstatscounter_max);
+	INSIST(i == ns_statscounter_max);
 
 	/* Initialize resolver statistics */
 	for (i = 0; i < dns_resstatscounter_max; i++)
@@ -612,7 +614,7 @@ init_desc(void) {
 	INSIST(i == dns_dnstapcounter_max);
 
 	/* Sanity check */
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_desc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_desc[i] != NULL);
@@ -627,7 +629,7 @@ init_desc(void) {
 	for (i = 0; i < dns_dnstapcounter_max; i++)
 		INSIST(dnstapstats_desc[i] != NULL);
 #if defined(EXTENDED_STATS)
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_xmldesc[i] != NULL);
@@ -959,7 +961,7 @@ init_desc(void) {
 	INSIST(i == dns_sizecounter_out_max);
 
 	/* Sanity check */
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_desc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_desc[i] != NULL);
@@ -980,7 +982,7 @@ init_desc(void) {
 		INSIST(tcpoutsizestats_desc[i] != NULL);
 	}
 #if defined(EXTENDED_STATS)
-	for (i = 0; i < dns_nsstatscounter_max; i++)
+	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_resstatscounter_max; i++)
 		INSIST(resstats_xmldesc[i] != NULL);
@@ -1130,8 +1132,9 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	return (ISC_R_SUCCESS);
 #ifdef HAVE_LIBXML2
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed at dump_counters()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed at dump_counters()");
 	return (ISC_R_FAILURE);
 #endif
 }
@@ -1192,8 +1195,9 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	return;
 #ifdef HAVE_LIBXML2
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed at rdtypestat_dump()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed at rdtypestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif
@@ -1277,8 +1281,9 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	return;
 #ifdef HAVE_LIBXML2
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed at rdatasetstats_dump()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed at rdatasetstats_dump()");
 	dumparg->result = ISC_R_FAILURE;
 #endif
 
@@ -1333,8 +1338,9 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 
 #ifdef HAVE_LIBXML2
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed at opcodestat_dump()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed at opcodestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif
@@ -1389,8 +1395,9 @@ rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
 
 #ifdef HAVE_LIBXML2
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed at rcodestat_dump()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed at rcodestat_dump()");
 	dumparg->result = ISC_R_FAILURE;
 	return;
 #endif
@@ -1419,7 +1426,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	isc_stats_t *zonestats;
 	dns_stats_t *rcvquerystats;
 	dns_zonestat_level_t statlevel;
-	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t nsstat_values[ns_statscounter_max];
 	int xmlrc;
 	stats_dumparg_t dumparg;
 	const char *ztype;
@@ -1466,7 +1473,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 		result = dump_counters(zonestats, isc_statsformat_xml, writer,
 				       NULL, nsstats_xmldesc,
-				       dns_nsstatscounter_max, nsstats_index,
+				       ns_statscounter_max, nsstats_index,
 				       nsstat_values, ISC_STATSDUMP_VERBOSE);
 		if (result != ISC_R_SUCCESS)
 			goto error;
@@ -1493,13 +1500,14 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 
 	return (ISC_R_SUCCESS);
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "Failed at zone_xmlrender()");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "Failed at zone_xmlrender()");
 	return (ISC_R_FAILURE);
 }
 
 static isc_result_t
-generatexml(ns_server_t *server, isc_uint32_t flags,
+generatexml(named_server_t *server, isc_uint32_t flags,
 	    int *buflen, xmlChar **buf)
 {
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
@@ -1512,7 +1520,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	dns_view_t *view;
 	stats_dumparg_t dumparg;
 	dns_stats_t *cacherrstats;
-	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t nsstat_values[ns_statscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
@@ -1527,8 +1535,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	isc_result_t result;
 
 	isc_time_now(&now);
-	isc_time_formatISO8601ms(&ns_g_boottime, boottime, sizeof boottime);
-	isc_time_formatISO8601ms(&ns_g_configtime, configtime, sizeof configtime);
+	isc_time_formatISO8601ms(&named_g_boottime, boottime, sizeof boottime);
+	isc_time_formatISO8601ms(&named_g_configtime, configtime,
+				 sizeof configtime);
 	isc_time_formatISO8601ms(&now, nowstr, sizeof nowstr);
 
 	writer = xmlNewTextWriterDoc(&doc, 0);
@@ -1557,7 +1566,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR nowstr));
 	TRY0(xmlTextWriterEndElement(writer));  /* current-time */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "version"));
-	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR ns_g_version));
+	TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR named_g_version));
 	TRY0(xmlTextWriterEndElement(writer));  /* version */
 
 	if ((flags & STATS_XML_SERVER) != 0) {
@@ -1567,8 +1576,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "opcode"));
 
-		dns_opcodestats_dump(server->opcodestats, opcodestat_dump,
-				     &dumparg, ISC_STATSDUMP_VERBOSE);
+		dns_opcodestats_dump(server->sctx->opcodestats,
+				     opcodestat_dump, &dumparg,
+				     ISC_STATSDUMP_VERBOSE);
 		if (dumparg.result != ISC_R_SUCCESS)
 			goto error;
 
@@ -1578,8 +1588,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "rcode"));
 
-		dns_rcodestats_dump(server->rcodestats, rcodestat_dump,
-				    &dumparg, ISC_STATSDUMP_VERBOSE);
+		dns_rcodestats_dump(server->sctx->rcodestats,
+				    rcodestat_dump, &dumparg,
+				    ISC_STATSDUMP_VERBOSE);
 		if (dumparg.result != ISC_R_SUCCESS)
 			goto error;
 
@@ -1590,8 +1601,8 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 						 ISC_XMLCHAR "qtype"));
 
 		dumparg.result = ISC_R_SUCCESS;
-		dns_rdatatypestats_dump(server->rcvquerystats, rdtypestat_dump,
-					&dumparg, 0);
+		dns_rdatatypestats_dump(server->sctx->rcvquerystats,
+					rdtypestat_dump, &dumparg, 0);
 		if (dumparg.result != ISC_R_SUCCESS)
 			goto error;
 		TRY0(xmlTextWriterEndElement(writer)); /* counters */
@@ -1600,9 +1611,10 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "nsstat"));
 
-		result = dump_counters(server->nsstats, isc_statsformat_xml,
+		result = dump_counters(ns_stats_get(server->sctx->nsstats),
+				       isc_statsformat_xml,
 				       writer, NULL, nsstats_xmldesc,
-				       dns_nsstatscounter_max,
+				       ns_statscounter_max,
 				       nsstats_index, nsstat_values,
 				       ISC_STATSDUMP_VERBOSE);
 		if (result != ISC_R_SUCCESS)
@@ -1648,7 +1660,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			TRY0(xmlTextWriterWriteAttribute(writer,
 							 ISC_XMLCHAR "type",
 							 ISC_XMLCHAR "dnstap"));
-			dns_dt_getstats(ns_g_server->dtenv, &dnstapstats);
+			dns_dt_getstats(named_g_server->dtenv, &dnstapstats);
 			result = dump_counters(dnstapstats,
 					       isc_statsformat_xml, writer,
 					       NULL, dnstapstats_xmldesc,
@@ -1688,7 +1700,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->udpinstats4,
+		result = dump_counters(server->sctx->udpinstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, udpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1703,7 +1715,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->udpoutstats4,
+		result = dump_counters(server->sctx->udpoutstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, udpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1720,7 +1732,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->tcpinstats4,
+		result = dump_counters(server->sctx->tcpinstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1735,7 +1747,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->tcpoutstats4,
+		result = dump_counters(server->sctx->tcpoutstats4,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1754,7 +1766,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->udpinstats6,
+		result = dump_counters(server->sctx->udpinstats6,
 				       isc_statsformat_xml, writer,
 				       NULL, udpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1769,7 +1781,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->udpoutstats6,
+		result = dump_counters(server->sctx->udpoutstats6,
 				       isc_statsformat_xml, writer,
 				       NULL, udpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1786,7 +1798,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "request-size"));
 
-		result = dump_counters(server->tcpinstats6,
+		result = dump_counters(server->sctx->tcpinstats6,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpinsizestats_xmldesc,
 				       dns_sizecounter_in_max,
@@ -1801,7 +1813,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "response-size"));
 
-		result = dump_counters(server->tcpoutstats6,
+		result = dump_counters(server->sctx->tcpoutstats6,
 				       isc_statsformat_xml, writer,
 				       NULL, tcpoutsizestats_xmldesc,
 				       dns_sizecounter_out_max,
@@ -1923,13 +1935,13 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	if ((flags & STATS_XML_NET) != 0) {
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "socketmgr"));
-		TRY0(isc_socketmgr_renderxml(ns_g_socketmgr, writer));
+		TRY0(isc_socketmgr_renderxml(named_g_socketmgr, writer));
 		TRY0(xmlTextWriterEndElement(writer)); /* /socketmgr */
 	}
 
 	if ((flags & STATS_XML_TASKS) != 0) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
-		TRY0(isc_taskmgr_renderxml(ns_g_taskmgr, writer));
+		TRY0(isc_taskmgr_renderxml(named_g_taskmgr, writer));
 		TRY0(xmlTextWriterEndElement(writer)); /* /taskmgr */
 	}
 
@@ -1952,8 +1964,9 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	return (ISC_R_SUCCESS);
 
  error:
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_ERROR, "failed generating XML response");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "failed generating XML response");
 	if (writer != NULL)
 		xmlFreeTextWriter(writer);
 	if (doc != NULL)
@@ -1977,7 +1990,7 @@ render_xml(isc_uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
 {
 	unsigned char *msg = NULL;
 	int msglen;
-	ns_server_t *server = arg;
+	named_server_t *server = arg;
 	isc_result_t result;
 
 	UNUSED(url);
@@ -1996,8 +2009,8 @@ render_xml(isc_uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
 		*freecb = wrap_xmlfree;
 		*freecb_args = NULL;
 	} else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "failed at rendering XML()");
 
 	return (result);
@@ -2172,7 +2185,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	char *class_only = NULL;
 	dns_rdataclass_t rdclass;
 	isc_uint32_t serial;
-	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t nsstat_values[ns_statscounter_max];
 	isc_stats_t *zonestats;
 	dns_stats_t *rcvquerystats;
 	json_object *zonearray = (json_object *) arg;
@@ -2211,7 +2224,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 
 		result = dump_counters(zonestats, isc_statsformat_json,
 				       counters, NULL, nsstats_xmldesc,
-				       dns_nsstatscounter_max, nsstats_index,
+				       ns_statscounter_max, nsstats_index,
 				       nsstat_values, 0);
 		if (result != ISC_R_SUCCESS) {
 			json_object_put(counters);
@@ -2256,7 +2269,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 }
 
 static isc_result_t
-generatejson(ns_server_t *server, size_t *msglen,
+generatejson(named_server_t *server, size_t *msglen,
 	     const char **msg, json_object **rootp, isc_uint32_t flags)
 {
 	dns_view_t *view;
@@ -2267,7 +2280,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	json_object *tcpreq4 = NULL, *tcpresp4 = NULL;
 	json_object *udpreq6 = NULL, *udpresp6 = NULL;
 	json_object *tcpreq6 = NULL, *tcpresp6 = NULL;
-	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t nsstat_values[ns_statscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
@@ -2301,10 +2314,10 @@ generatejson(ns_server_t *server, size_t *msglen,
 	json_object_object_add(bindstats, "json-stats-version", obj);
 
 	isc_time_now(&now);
-	isc_time_formatISO8601ms(&ns_g_boottime,
-			       boottime, sizeof(boottime));
-	isc_time_formatISO8601ms(&ns_g_configtime,
-			       configtime, sizeof configtime);
+	isc_time_formatISO8601ms(&named_g_boottime,
+				 boottime, sizeof(boottime));
+	isc_time_formatISO8601ms(&named_g_configtime,
+				 configtime, sizeof configtime);
 	isc_time_formatISO8601ms(&now, nowstr, sizeof(nowstr));
 
 	obj = json_object_new_string(boottime);
@@ -2318,7 +2331,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	obj = json_object_new_string(nowstr);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "current-time", obj);
-	obj = json_object_new_string(ns_g_version);
+	obj = json_object_new_string(named_g_version);
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "version", obj);
 
@@ -2330,7 +2343,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		dumparg.type = isc_statsformat_json;
 		dumparg.arg = counters;
 
-		dns_opcodestats_dump(server->opcodestats,
+		dns_opcodestats_dump(server->sctx->opcodestats,
 				     opcodestat_dump, &dumparg,
 				     ISC_STATSDUMP_VERBOSE);
 		if (dumparg.result != ISC_R_SUCCESS) {
@@ -2349,7 +2362,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		dumparg.type = isc_statsformat_json;
 		dumparg.arg = counters;
 
-		dns_rcodestats_dump(server->rcodestats, rcodestat_dump,
+		dns_rcodestats_dump(server->sctx->rcodestats, rcodestat_dump,
 				    &dumparg, ISC_STATSDUMP_VERBOSE);
 		if (dumparg.result != ISC_R_SUCCESS) {
 			json_object_put(counters);
@@ -2367,7 +2380,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		dumparg.result = ISC_R_SUCCESS;
 		dumparg.arg = counters;
 
-		dns_rdatatypestats_dump(server->rcvquerystats,
+		dns_rdatatypestats_dump(server->sctx->rcvquerystats,
 					rdtypestat_dump, &dumparg, 0);
 		if (dumparg.result != ISC_R_SUCCESS) {
 			json_object_put(counters);
@@ -2385,10 +2398,11 @@ generatejson(ns_server_t *server, size_t *msglen,
 		dumparg.result = ISC_R_SUCCESS;
 		dumparg.arg = counters;
 
-		result = dump_counters(server->nsstats, isc_statsformat_json,
-			       counters, NULL, nsstats_xmldesc,
-			       dns_nsstatscounter_max,
-			       nsstats_index, nsstat_values, 0);
+		result = dump_counters(ns_stats_get(server->sctx->nsstats),
+				       isc_statsformat_json,
+				       counters, NULL, nsstats_xmldesc,
+				       ns_statscounter_max,
+				       nsstats_index, nsstat_values, 0);
 		if (result != ISC_R_SUCCESS) {
 			json_object_put(counters);
 			goto error;
@@ -2405,10 +2419,11 @@ generatejson(ns_server_t *server, size_t *msglen,
 		dumparg.result = ISC_R_SUCCESS;
 		dumparg.arg = counters;
 
-		result = dump_counters(server->zonestats, isc_statsformat_json,
-			       counters, NULL, zonestats_xmldesc,
-			       dns_zonestatscounter_max,
-			       zonestats_index, zonestat_values, 0);
+		result = dump_counters(server->zonestats,
+				       isc_statsformat_json,
+				       counters, NULL, zonestats_xmldesc,
+				       dns_zonestatscounter_max,
+				       zonestats_index, zonestat_values, 0);
 		if (result != ISC_R_SUCCESS) {
 			json_object_put(counters);
 			goto error;
@@ -2443,9 +2458,9 @@ generatejson(ns_server_t *server, size_t *msglen,
 
 #if HAVE_DNSTAP
 		/* dnstap stat counters */
-		if (ns_g_server->dtenv != NULL) {
+		if (named_g_server->dtenv != NULL) {
 			isc_stats_t *dnstapstats = NULL;
-			dns_dt_getstats(ns_g_server->dtenv, &dnstapstats);
+			dns_dt_getstats(named_g_server->dtenv, &dnstapstats);
 			counters = json_object_new_object();
 			dumparg.result = ISC_R_SUCCESS;
 			dumparg.arg = counters;
@@ -2639,7 +2654,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		sockets = json_object_new_object();
 		CHECKMEM(sockets);
 
-		result = isc_socketmgr_renderjson(ns_g_socketmgr, sockets);
+		result = isc_socketmgr_renderjson(named_g_socketmgr, sockets);
 		if (result != ISC_R_SUCCESS) {
 			json_object_put(sockets);
 			goto error;
@@ -2652,7 +2667,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		json_object *tasks = json_object_new_object();
 		CHECKMEM(tasks);
 
-		result = isc_taskmgr_renderjson(ns_g_taskmgr, tasks);
+		result = isc_taskmgr_renderjson(named_g_taskmgr, tasks);
 		if (result != ISC_R_SUCCESS) {
 			json_object_put(tasks);
 			goto error;
@@ -2703,56 +2718,56 @@ generatejson(ns_server_t *server, size_t *msglen,
 		tcpresp6 = json_object_new_object();
 		CHECKMEM(tcpresp6);
 
-		CHECK(dump_counters(server->udpinstats4,
+		CHECK(dump_counters(server->sctx->udpinstats4,
 				    isc_statsformat_json, udpreq4, NULL,
 				    udpinsizestats_xmldesc,
 				    dns_sizecounter_in_max,
 				    udpinsizestats_index,
 				    udpinsizestat_values, 0));
 
-		CHECK(dump_counters(server->udpoutstats4,
+		CHECK(dump_counters(server->sctx->udpoutstats4,
 				    isc_statsformat_json, udpresp4, NULL,
 				    udpoutsizestats_xmldesc,
 				    dns_sizecounter_out_max,
 				    udpoutsizestats_index,
 				    udpoutsizestat_values, 0));
 
-		CHECK(dump_counters(server->tcpinstats4,
+		CHECK(dump_counters(server->sctx->tcpinstats4,
 				    isc_statsformat_json, tcpreq4, NULL,
 				    tcpinsizestats_xmldesc,
 				    dns_sizecounter_in_max,
 				    tcpinsizestats_index,
 				    tcpinsizestat_values, 0));
 
-		CHECK(dump_counters(server->tcpoutstats4,
+		CHECK(dump_counters(server->sctx->tcpoutstats4,
 				    isc_statsformat_json, tcpresp4, NULL,
 				    tcpoutsizestats_xmldesc,
 				    dns_sizecounter_out_max,
 				    tcpoutsizestats_index,
 				    tcpoutsizestat_values, 0));
 
-		CHECK(dump_counters(server->udpinstats6,
+		CHECK(dump_counters(server->sctx->udpinstats6,
 				    isc_statsformat_json, udpreq6, NULL,
 				    udpinsizestats_xmldesc,
 				    dns_sizecounter_in_max,
 				    udpinsizestats_index,
 				    udpinsizestat_values, 0));
 
-		CHECK(dump_counters(server->udpoutstats6,
+		CHECK(dump_counters(server->sctx->udpoutstats6,
 				    isc_statsformat_json, udpresp6, NULL,
 				    udpoutsizestats_xmldesc,
 				    dns_sizecounter_out_max,
 				    udpoutsizestats_index,
 				    udpoutsizestat_values, 0));
 
-		CHECK(dump_counters(server->tcpinstats6,
+		CHECK(dump_counters(server->sctx->tcpinstats6,
 				    isc_statsformat_json, tcpreq6, NULL,
 				    tcpinsizestats_xmldesc,
 				    dns_sizecounter_in_max,
 				    tcpinsizestats_index,
 				    tcpinsizestat_values, 0));
 
-		CHECK(dump_counters(server->tcpoutstats6,
+		CHECK(dump_counters(server->sctx->tcpoutstats6,
 				    isc_statsformat_json, tcpresp6, NULL,
 				    tcpoutsizestats_xmldesc,
 				    dns_sizecounter_out_max,
@@ -2841,7 +2856,7 @@ render_json(isc_uint32_t flags,
 {
 	isc_result_t result;
 	json_object *bindstats = NULL;
-	ns_server_t *server = arg;
+	named_server_t *server = arg;
 	const char *msg = NULL;
 	size_t msglen = 0;
 	char *p;
@@ -2862,8 +2877,8 @@ render_json(isc_uint32_t flags,
 		*freecb = wrap_jsonfree;
 		*freecb_args = bindstats;
 	} else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "failed at rendering JSON()");
 
 	return (result);
@@ -3031,11 +3046,12 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 }
 
 static void
-shutdown_listener(ns_statschannel_t *listener) {
+shutdown_listener(named_statschannel_t *listener) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_NOTICE, "stopping statistics channel on %s",
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
+		      "stopping statistics channel on %s",
 		      socktext);
 
 	isc_httpdmgr_shutdown(&listener->httpdmgr);
@@ -3043,7 +3059,9 @@ shutdown_listener(ns_statschannel_t *listener) {
 
 static isc_boolean_t
 client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
-	ns_statschannel_t *listener = arg;
+	named_statschannel_t *listener = arg;
+	dns_aclenv_t *env =
+		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 	isc_netaddr_t netaddr;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	int match;
@@ -3053,16 +3071,17 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	isc_netaddr_fromsockaddr(&netaddr, fromaddr);
 
 	LOCK(&listener->lock);
-	if (dns_acl_match(&netaddr, NULL, listener->acl, &ns_g_server->aclenv,
-			  &match, NULL) == ISC_R_SUCCESS && match > 0) {
+	if (dns_acl_match(&netaddr, NULL, listener->acl, env,
+			  &match, NULL) == ISC_R_SUCCESS && match > 0)
+	{
 		UNLOCK(&listener->lock);
 		return (ISC_TRUE);
 	}
 	UNLOCK(&listener->lock);
 
 	isc_sockaddr_format(fromaddr, socktext, sizeof(socktext));
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 		      "rejected statistics connection from %s", socktext);
 
 	return (ISC_FALSE);
@@ -3070,7 +3089,7 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 
 static void
 destroy_listener(void *arg) {
-	ns_statschannel_t *listener = arg;
+	named_statschannel_t *listener = arg;
 
 	REQUIRE(listener != NULL);
 	REQUIRE(!ISC_LINK_LINKED(listener, link));
@@ -3083,13 +3102,13 @@ destroy_listener(void *arg) {
 }
 
 static isc_result_t
-add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
+add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	     const cfg_obj_t *listen_params, const cfg_obj_t *config,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 	     const char *socktext)
 {
 	isc_result_t result;
-	ns_statschannel_t *listener;
+	named_statschannel_t *listener;
 	isc_task_t *task = NULL;
 	isc_socket_t *sock = NULL;
 	const cfg_obj_t *allow;
@@ -3115,7 +3134,7 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 
 	allow = cfg_tuple_get(listen_params, "allow");
 	if (allow != NULL && cfg_obj_islist(allow)) {
-		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else
@@ -3125,12 +3144,12 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 	dns_acl_attach(new_acl, &listener->acl);
 	dns_acl_detach(&new_acl);
 
-	result = isc_task_create(ns_g_taskmgr, 0, &task);
+	result = isc_task_create(named_g_taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	isc_task_setname(task, "statchannel", NULL);
 
-	result = isc_socket_create(ns_g_socketmgr, isc_sockaddr_pf(addr),
+	result = isc_socket_create(named_g_socketmgr, isc_sockaddr_pf(addr),
 				   isc_sockettype_tcp, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -3145,8 +3164,8 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 		goto cleanup;
 
 	result = isc_httpdmgr_create(server->mctx, sock, task, client_ok,
-				     destroy_listener, listener, ns_g_timermgr,
-				     &listener->httpdmgr);
+				     destroy_listener, listener,
+				     named_g_timermgr, &listener->httpdmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -3196,8 +3215,8 @@ add_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 			     render_xsl, server);
 
 	*listenerp = listener;
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_SERVER, ISC_LOG_NOTICE,
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
 		      "statistics channel listening on %s", socktext);
 
 cleanup:
@@ -3217,12 +3236,12 @@ cleanup:
 }
 
 static void
-update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
+update_listener(named_server_t *server, named_statschannel_t **listenerp,
 		const cfg_obj_t *listen_params, const cfg_obj_t *config,
 		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 		const char *socktext)
 {
-	ns_statschannel_t *listener;
+	named_statschannel_t *listener;
 	const cfg_obj_t *allow = NULL;
 	dns_acl_t *new_acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -3243,7 +3262,7 @@ update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 	 */
 	allow = cfg_tuple_get(listen_params, "allow");
 	if (allow != NULL && cfg_obj_islist(allow)) {
-		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else
@@ -3258,7 +3277,7 @@ update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 
 		UNLOCK(&listener->lock);
 	} else {
-		cfg_obj_log(listen_params, ns_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(listen_params, named_g_lctx, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "statistics channel %s: %s",
 			    socktext, isc_result_totext(result));
@@ -3268,11 +3287,11 @@ update_listener(ns_server_t *server, ns_statschannel_t **listenerp,
 }
 
 isc_result_t
-ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
-			 cfg_aclconfctx_t *aclconfctx)
+named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
+			      cfg_aclconfctx_t *aclconfctx)
 {
-	ns_statschannel_t *listener, *listener_next;
-	ns_statschannellist_t new_listeners;
+	named_statschannel_t *listener, *listener_next;
+	named_statschannellist_t new_listeners;
 	const cfg_obj_t *statschannellist = NULL;
 	const cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
@@ -3296,20 +3315,20 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 	 */
 	if (statschannellist != NULL) {
 #ifndef EXTENDED_STATS
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels specified but not effective "
 			      "due to missing XML and/or JSON library");
 #else /* EXTENDED_STATS */
 #ifndef HAVE_LIBXML2
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels: XML library missing, "
 			      "only JSON stats will be available");
 #endif /* !HAVE_LIBXML2 */
 #ifndef HAVE_JSON
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "statistics-channels: JSON library missing, "
 			      "only XML stats will be available");
 #endif /* !HAVE_JSON */
@@ -3340,14 +3359,14 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 				addr = *cfg_obj_assockaddr(obj);
 				if (isc_sockaddr_getport(&addr) == 0)
 					isc_sockaddr_setport(&addr,
-						     NS_STATSCHANNEL_HTTPPORT);
+						   NAMED_STATSCHANNEL_HTTPPORT);
 
 				isc_sockaddr_format(&addr, socktext,
 						    sizeof(socktext));
 
-				isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_SERVER,
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_SERVER,
 					      ISC_LOG_DEBUG(9),
 					      "processing statistics "
 					      "channel %s",
@@ -3376,13 +3395,13 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 							 socktext);
 					if (r != ISC_R_SUCCESS) {
 						cfg_obj_log(listen_params,
-							    ns_g_lctx,
-							    ISC_LOG_WARNING,
-							    "couldn't allocate "
-							    "statistics channel"
-							    " %s: %s",
-							    socktext,
-							    isc_result_totext(r));
+							 named_g_lctx,
+							 ISC_LOG_WARNING,
+							 "couldn't allocate "
+							 "statistics channel"
+							 " %s: %s",
+							 socktext,
+							 isc_result_totext(r));
 					}
 				}
 
@@ -3406,8 +3425,8 @@ ns_statschannels_configure(ns_server_t *server, const cfg_obj_t *config,
 }
 
 void
-ns_statschannels_shutdown(ns_server_t *server) {
-	ns_statschannel_t *listener;
+named_statschannels_shutdown(named_server_t *server) {
+	named_statschannel_t *listener;
 
 	while ((listener = ISC_LIST_HEAD(server->statschannels)) != NULL) {
 		ISC_LIST_UNLINK(server->statschannels, listener, link);
@@ -3416,13 +3435,13 @@ ns_statschannels_shutdown(ns_server_t *server) {
 }
 
 isc_result_t
-ns_stats_dump(ns_server_t *server, FILE *fp) {
+named_stats_dump(named_server_t *server, FILE *fp) {
 	isc_stdtime_t now;
 	isc_result_t result;
 	dns_view_t *view;
 	dns_zone_t *zone, *next;
 	stats_dumparg_t dumparg;
-	isc_uint64_t nsstat_values[dns_nsstatscounter_max];
+	isc_uint64_t nsstat_values[ns_statscounter_max];
 	isc_uint64_t resstat_values[dns_resstatscounter_max];
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
@@ -3438,14 +3457,16 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 
 	fprintf(fp, "++ Incoming Requests ++\n");
-	dns_opcodestats_dump(server->opcodestats, opcodestat_dump, &dumparg, 0);
+	dns_opcodestats_dump(server->sctx->opcodestats,
+			     opcodestat_dump, &dumparg, 0);
 
 	fprintf(fp, "++ Incoming Queries ++\n");
-	dns_rdatatypestats_dump(server->rcvquerystats, rdtypestat_dump,
-				&dumparg, 0);
+	dns_rdatatypestats_dump(server->sctx->rcvquerystats,
+				rdtypestat_dump, &dumparg, 0);
 
 	fprintf(fp, "++ Outgoing Rcodes ++\n");
-	dns_rcodestats_dump(server->rcodestats, rcodestat_dump, &dumparg, 0);
+	dns_rcodestats_dump(server->sctx->rcodestats,
+			    rcodestat_dump, &dumparg, 0);
 
 	fprintf(fp, "++ Outgoing Queries ++\n");
 	for (view = ISC_LIST_HEAD(server->viewlist);
@@ -3462,8 +3483,9 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 	}
 
 	fprintf(fp, "++ Name Server Statistics ++\n");
-	(void) dump_counters(server->nsstats, isc_statsformat_file, fp, NULL,
-			     nsstats_desc, dns_nsstatscounter_max,
+	(void) dump_counters(ns_stats_get(server->sctx->nsstats),
+			     isc_statsformat_file, fp, NULL,
+			     nsstats_desc, ns_statscounter_max,
 			     nsstats_index, nsstat_values, 0);
 
 	fprintf(fp, "++ Zone Maintenance Statistics ++\n");
@@ -3576,7 +3598,7 @@ ns_stats_dump(ns_server_t *server, FILE *fp) {
 
 			(void) dump_counters(zonestats, isc_statsformat_file,
 					     fp, NULL, nsstats_desc,
-					     dns_nsstatscounter_max,
+					     ns_statscounter_max,
 					     nsstats_index, nsstat_values, 0);
 		}
 	}

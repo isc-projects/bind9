@@ -18,7 +18,6 @@ autom4te.cache/
 *-symtbl.c
 timestamp
 ans.run
-lwresd.run
 named.run
 named.memstats
 gen.dSYM/

@@ -199,7 +199,6 @@ echo Copying the standalone manual pages.
 
 copy ..\bin\named\named.html ..\Build\Release
 copy ..\bin\named\named.conf.html ..\Build\Release
-copy ..\bin\named\lwresd.html ..\Build\Release
 copy ..\bin\rndc\*.html ..\Build\Release
 copy ..\bin\confgen\*.html ..\Build\Release
 copy ..\bin\dig\*.html ..\Build\Release

@@ -182,6 +182,12 @@ typedef int dns_messagetextflag_t;
 
 typedef struct dns_msgblock dns_msgblock_t;
 
+struct dns_sortlist_arg {
+	dns_aclenv_t *env;
+	const dns_acl_t *acl;
+	const dns_aclelement_t *element;
+};
+
 struct dns_message {
 	/* public from here down */
 	unsigned int			magic;
@@ -256,7 +262,7 @@ struct dns_message {
 	isc_region_t			saved;
 
 	dns_rdatasetorderfunc_t		order;
-	const void *			order_arg;
+	dns_sortlist_arg_t		order_arg;
 };
 
 struct dns_ednsopt {
@@ -1332,17 +1338,22 @@ dns_message_getrawmessage(dns_message_t *msg);
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 const void *order_arg);
+			 dns_aclenv_t *env, const dns_acl_t *acl,
+			 const dns_aclelement_t *element);
 /*%<
  * Define the order in which RR sets get rendered by
  * dns_message_rendersection() to be the ascending order
  * defined by the integer value returned by 'order' when
- * given each RR and 'arg' as arguments.  If 'order' and
- * 'order_arg' are NULL, a default order is used.
+ * given each RR and a ns_sortlist_arg_t constructed from 'env',
+ * 'acl', and 'element' as arguments.
+ *
+ * If 'order' is NULL, a default order is used.
  *
  * Requires:
  *\li	msg be a valid message.
- *\li	order_arg is NULL if and only if order is NULL.
+ *\li	If 'env' is NULL, 'order' must be NULL.
+ *\li	If 'env' is not NULL, 'order' must not be NULL and at least one of
+ *	'acl' and 'element' must also not be NULL.
  */
 
 void

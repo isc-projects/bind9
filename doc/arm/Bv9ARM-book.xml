@@ -242,8 +242,8 @@
 	  <emphasis>resolver</emphasis> library, which sends queries to one or
 	  more <emphasis>name servers</emphasis> and interprets the responses.
 	  The <acronym>BIND</acronym> 9 software distribution
-	  contains a name server, <command>named</command>, and a
-	  resolver library, <command>liblwres</command>.
+	  contains a name server, <command>named</command>, and a set
+	  of associated tools.
 	</para>
 
 	</section>
@@ -2466,62 +2466,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	that is distinct from and simpler than the full DNS protocol.
       </para>
     </section>
-    <section xml:id="lwresd"><info><title>Running a Resolver Daemon</title></info>
-
-      <para>
-	To use the lightweight resolver interface, the system must
-	run the resolver daemon <command>lwresd</command> or a
-	local
-	name server configured with a <command>lwres</command>
-	statement.
-      </para>
-
-      <para>
-	By default, applications using the lightweight resolver library will
-	make
-	UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
-	The
-	address can be overridden by <command>lwserver</command>
-	lines in
-	<filename>/etc/resolv.conf</filename>.
-      </para>
-
-      <para>
-	The daemon currently only looks in the DNS, but in the future
-	it may use other sources such as <filename>/etc/hosts</filename>,
-	NIS, etc.
-      </para>
-
-      <para>
-	The <command>lwresd</command> daemon is essentially a
-	caching-only name server that responds to requests using the
-	lightweight
-	resolver protocol rather than the DNS protocol.  Because it needs
-	to run on each host, it is designed to require no or minimal
-	configuration.
-	Unless configured otherwise, it uses the name servers listed on
-	<command>nameserver</command> lines in <filename>/etc/resolv.conf</filename>
-	as forwarders, but is also capable of doing the resolution
-	autonomously if
-	none are specified.
-      </para>
-      <para>
-	The <command>lwresd</command> daemon may also be
-	configured with a
-	<filename>named.conf</filename> style configuration file,
-	in
-	<filename>/etc/lwresd.conf</filename> by default.  A name
-	server may also
-	be configured to act as a lightweight resolver daemon using the
-	<command>lwres</command> statement in <filename>named.conf</filename>.
-      </para>
-      <para>
-	The number of client queries that the <command>lwresd</command>
-	daemon is able to serve can be set using the
-	<option>lwres-tasks</option> and <option>lwres-clients</option>
-	statements in the configuration.
-      </para>
-    </section>
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch06"><info><title><acronym>BIND</acronym> 9 Configuration Reference</title></info>
@@ -3210,17 +3154,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<para>
 		  specifies what the server logs, and where
 		  the log messages are sent.
-		</para>
-	      </entry>
-	    </row>
-	    <row rowsep="0">
-	      <entry colname="1">
-		<para><command>lwres</command></para>
-	      </entry>
-	      <entry colname="2">
-		<para>
-		  configures <command>named</command> to
-		  also act as a light-weight resolver daemon (<command>lwresd</command>).
 		</para>
 	      </entry>
 	    </row>
@@ -4280,106 +4213,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	</section>
       </section>
 
-      <section xml:id="lwres_grammar"><info><title><command>lwres</command> Statement Grammar</title></info>
-
-	<para>
-	   This is the grammar of the <command>lwres</command>
-	  statement in the <filename>named.conf</filename> file:
-	</para>
-
-<programlisting><command>lwres {</command>
-  [ <command>listen-on {</command>
-    ( <replaceable>ip_addr</replaceable> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>;</command> )
-      ...
-    <command>};</command> ]
-  [ <command>view</command> <replaceable>view_name</replaceable><command>;</command> ]
-  [ <command>search {</command> <replaceable>domain_name</replaceable> <command>;</command> ... <command>};</command> ]
-  [ <command>ndots</command> <replaceable>number</replaceable><command>;</command> ]
-  [ <command>lwres-tasks</command> <replaceable>number</replaceable><command>;</command> ]
-  [ <command>lwres-clients</command> <replaceable>number</replaceable><command>;</command> ]
-<command>};</command>
-</programlisting>
-
-      </section>
-      <section xml:id="lwres_statement"><info><title><command>lwres</command> Statement Definition and Usage</title></info>
-
-	<para>
-	  The <command>lwres</command> statement configures the
-	  name
-	  server to also act as a lightweight resolver server. (See
-	  <xref linkend="lwresd"/>.)  There may be multiple
-	  <command>lwres</command> statements configuring
-	  lightweight resolver servers with different properties.
-	</para>
-
-	<para>
-	  The <command>listen-on</command> statement specifies a
-	  list of
-	  IPv4 addresses (and ports) that this instance of a lightweight
-	  resolver daemon
-	  should accept requests on.  If no port is specified, port 921 is
-	  used.
-	  If this statement is omitted, requests will be accepted on
-	  127.0.0.1,
-	  port 921.
-	</para>
-
-	<para>
-	  The <command>view</command> statement binds this
-	  instance of a
-	  lightweight resolver daemon to a view in the DNS namespace, so that
-	  the
-	  response will be constructed in the same manner as a normal DNS
-	  query
-	  matching this view.  If this statement is omitted, the default view
-	  is
-	  used, and if there is no default view, an error is triggered.
-	</para>
-
-	<para>
-	  The <command>search</command> statement is equivalent to
-	  the
-	  <command>search</command> statement in
-	  <filename>/etc/resolv.conf</filename>.  It provides a
-	  list of domains
-	  which are appended to relative names in queries.
-	</para>
-
-	<para>
-	  The <command>ndots</command> statement is equivalent to
-	  the
-	  <command>ndots</command> statement in
-	  <filename>/etc/resolv.conf</filename>.  It indicates the
-	  minimum
-	  number of dots in a relative domain name that should result in an
-	  exact match lookup before search path elements are appended.
-	</para>
-	<para>
-	  The <option>lwres-tasks</option> statement specifies the number
-	  of worker threads the lightweight resolver will dedicate to serving
-	  clients.  By default the number is the same as the number of CPUs on
-	  the system; this can be overridden using the <option>-n</option>
-	  command line option when starting the server.
-	</para>
-	<para>
-	  The <option>lwres-clients</option> specifies
-	  the number of client objects per thread the lightweight
-	  resolver should create to serve client queries.
-	  By default, if the lightweight resolver runs as a part
-	  of <command>named</command>, 256 client objects are
-	  created for each task; if it runs as <command>lwresd</command>,
-	  1024 client objects are created for each thread. The maximum
-	  value is 32768; higher values will be silently ignored and
-	  the maximum will be used instead.
-	  Note that setting too high a value may overconsume
-	  system resources.
-	</para>
-	<para>
-	  The maximum number of client queries that the lightweight
-	  resolver can handle at any one time equals
-	  <option>lwres-tasks</option> times <option>lwres-clients</option>.
-	</para>
-      </section>
       <section xml:id="masters_grammar"><info><title><command>masters</command> Statement Grammar</title></info>
 
 <programlisting>
@@ -18668,7 +18501,6 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-settime.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-verify.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/lwresd.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.conf.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkconf.docbook"/>

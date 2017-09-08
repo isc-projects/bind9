@@ -125,6 +125,7 @@ typedef struct dns_sdbimplementation		dns_sdbimplementation_t;
 typedef isc_uint8_t				dns_secalg_t;
 typedef isc_uint8_t				dns_secproto_t;
 typedef struct dns_signature			dns_signature_t;
+typedef struct dns_sortlist_arg			dns_sortlist_arg_t;
 typedef struct dns_ssurule			dns_ssurule_t;
 typedef struct dns_ssutable			dns_ssutable_t;
 typedef struct dns_stats			dns_stats_t;

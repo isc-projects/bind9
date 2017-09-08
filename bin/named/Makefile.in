@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2002, 2004-2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 1998-2002, 2004-2017  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,9 +36,10 @@ DLZDRIVER_INCLUDES =	@DLZ_DRIVER_INCLUDES@
 DLZDRIVER_LIBS =	@DLZ_DRIVER_LIBS@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
-		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
-		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
-		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES} @DST_OPENSSL_INC@
+		${NS_INCLUDES} ${DNS_INCLUDES} \
+		${BIND9_INCLUDES} ${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} \
+		${ISC_INCLUDES} ${DLZDRIVER_INCLUDES} \
+		${DBDRIVER_INCLUDES} @DST_OPENSSL_INC@
 
 CDEFINES =      @CONTRIB_DLZ@ @USE_PKCS11@ @PKCS11_ENGINE@ @CRYPTO@
 
@@ -49,41 +50,38 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
-LWRESLIBS =	../../lib/lwres/liblwres.@A@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
+NSLIBS =	../../lib/ns/libns.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
-LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
+NSDEPLIBS =	../../lib/ns/libns.@A@
 
-DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+DEPLIBS =	${NSDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
 		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+LIBS =		${NSLIBS} ${DNSLIBS} ${BIND9LIBS} \
 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
 		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
 
-NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+NOSYMLIBS =	${NSLIBS} ${DNSLIBS} ${BIND9LIBS} \
 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCNOSYMLIBS} \
 		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix
 
-TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
+TARGETS =	named@EXEEXT@
 
 GEOIPLINKOBJS = geoip.@O@
 
-OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
-		controlconf.@O@ fuzz.@O@ @GEOIPLINKOBJS@ interfacemgr.@O@ \
-		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
-		query.@O@ server.@O@ sortlist.@O@ statschannel.@O@ \
-		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
-		zoneconf.@O@ \
-		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
-		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
+OBJS =		builtin.@O@ config.@O@ control.@O@ \
+		controlconf.@O@ fuzz.@O@ @GEOIPLINKOBJS@ \
+		log.@O@ logconf.@O@ main.@O@ \
+		server.@O@ statschannel.@O@ \
+		tkeyconf.@O@ tsigconf.@O@ zoneconf.@O@ \
 		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
 
 UOBJS =		unix/os.@O@ unix/dlz_dlopen_driver.@O@
@@ -92,19 +90,16 @@ SYMOBJS =	symtbl.@O@
 
 GEOIPLINKSRCS = geoip.c
 
-SRCS =		builtin.c client.c config.c control.c \
-		controlconf.c fuzz.c @GEOIPLINKSRCS@ interfacemgr.c \
-		listenlist.c log.c logconf.c main.c notify.c \
-		query.c server.c sortlist.c statschannel.c \
-		tkeyconf.c tsigconf.c update.c xfrout.c \
-		zoneconf.c \
-		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
-		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
+SRCS =		builtin.c config.c control.c \
+		controlconf.c fuzz.c @GEOIPLINKSRCS@ \
+		log.c logconf.c main.c \
+		server.c statschannel.c \
+		tkeyconf.c tsigconf.c zoneconf.c \
 		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
 
-MANPAGES =	named.8 lwresd.8 named.conf.5
+MANPAGES =	named.8 named.conf.5
 
-HTMLPAGES =	named.html lwresd.html named.conf.html
+HTMLPAGES =	named.html named.conf.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
@@ -118,16 +113,16 @@ main.@O@: main.c
 		-DSRCID=\"${SRCID}\" \
 		-DCONFIGARGS="\"${CONFIGARGS}\"" \
 		-DBUILDER="\"make\"" \
-		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
-		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
+		-DNAMED_LOCALSTATEDIR=\"${localstatedir}\" \
+		-DNAMED_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
 
 config.@O@: config.c
 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
 		-DVERSION=\"${VERSION}\" \
 		-DSRCID=\"${SRCID}\" \
 		-DDYNDB_LIBDIR=\"@libdir@/bind\" \
-		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
-		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
+		-DNAMED_LOCALSTATEDIR=\"${localstatedir}\" \
+		-DNAMED_SYSCONFDIR=\"${sysconfdir}\" \
 		-c ${srcdir}/config.c
 
 server.@O@: server.c
@@ -139,10 +134,6 @@ named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
 	export MAKE_SYMTABLE="yes"; \
 	export BASEOBJS="${OBJS} ${UOBJS}"; \
 	${FINALBUILDCMD}
-
-lwresd@EXEEXT@: named@EXEEXT@
-	rm -f lwresd@EXEEXT@
-	@LN@ named@EXEEXT@ lwresd@EXEEXT@
 
 doc man:: ${MANOBJS}
 
@@ -165,18 +156,14 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
+install:: named@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
-	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
 	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
-	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 
 uninstall::
 	rm -f ${DESTDIR}${mandir}/man5/named.conf.5
-	rm -f ${DESTDIR}${mandir}/man8/lwresd.8
 	rm -f ${DESTDIR}${mandir}/man8/named.8
-	rm -f ${DESTDIR}${sbindir}/lwresd@EXEEXT@
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${sbindir}/named@EXEEXT@
 
 @DLZ_DRIVER_RULES@

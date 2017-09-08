@@ -64,7 +64,7 @@ fuzz_thread_client(void *arg) {
 	 * Parse named -A argument in the "address:port" syntax. Due to
 	 * the syntax used, this only supports IPv4 addresses.
 	 */
-	host = strdup(ns_g_fuzz_named_addr);
+	host = strdup(named_g_fuzz_named_addr);
 	RUNTIME_CHECK(host != NULL);
 
 	port = strchr(host, ':');
@@ -83,7 +83,7 @@ fuzz_thread_client(void *arg) {
 	 * Wait for named to start. This is set in run_server() in the
 	 * named thread.
 	 */
-	while (!ns_g_run_done) {
+	while (!named_g_run_done) {
 		usleep(10000);
 	}
 
@@ -118,8 +118,8 @@ fuzz_thread_client(void *arg) {
 			if (getenv("AFL_CMIN")) {
 				free(buf);
 				close(sockfd);
-				ns_server_flushonshutdown(ns_g_server,
-							  ISC_FALSE);
+				named_server_flushonshutdown(named_g_server,
+							     ISC_FALSE);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -150,7 +150,7 @@ fuzz_thread_client(void *arg) {
 	free(buf);
 	close(sockfd);
 
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, ISC_FALSE);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -197,7 +197,7 @@ fuzz_thread_resolver(void *arg) {
 	 * have to be updated. 0x8d, 0xf6 at the start is the ID field
 	 * which will be made to match the query.
 	 */
-	const isc_uint8_t dnskey_wireformat[] = {
+	const isc_uint8_t dnskey_wf[] = {
 		0x8d, 0xf6, 0x84, 0x00, 0x00, 0x01, 0x00, 0x02,
 		0x00, 0x00, 0x00, 0x01, 0x07, 0x65, 0x78, 0x61,
 		0x6d, 0x70, 0x6c, 0x65, 0x00, 0x00, 0x30, 0x00,
@@ -292,7 +292,7 @@ fuzz_thread_resolver(void *arg) {
 	 * Parse named -A argument in the "qtype:saddress:sport:raddress:rport"
 	 * syntax.  Due to the syntax used, this only supports IPv4 addresses.
 	 */
-	sqtype = strdup(ns_g_fuzz_named_addr);
+	sqtype = strdup(named_g_fuzz_named_addr);
 	RUNTIME_CHECK(sqtype != NULL);
 
 	shost = strchr(sqtype, ':');
@@ -338,7 +338,7 @@ fuzz_thread_resolver(void *arg) {
 	 * Wait for named to start. This is set in run_server() in the
 	 * named thread.
 	 */
-	while (!ns_g_run_done) {
+	while (!named_g_run_done) {
 		usleep(10000);
 	}
 
@@ -381,8 +381,8 @@ fuzz_thread_resolver(void *arg) {
 				free(rbuf);
 				close(sockfd);
 				close(listenfd);
-				ns_server_flushonshutdown(ns_g_server,
-					ISC_FALSE);
+				named_server_flushonshutdown(named_g_server,
+							     ISC_FALSE);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -552,9 +552,9 @@ fuzz_thread_resolver(void *arg) {
 					qtype = (hb << 8) | lb;
 
 					if (qtype == 48) {
-						memmove(buf + 2, dnskey_wireformat + 2,
-							sizeof (dnskey_wireformat) - 2);
-						length = sizeof (dnskey_wireformat);
+						memmove(buf + 2, dnskey_wf + 2,
+							sizeof (dnskey_wf) - 2);
+						length = sizeof (dnskey_wf);
 					}
 				}
 			}
@@ -576,7 +576,7 @@ fuzz_thread_resolver(void *arg) {
 	free(buf);
 	close(sockfd);
 	close(listenfd);
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, ISC_FALSE);
 	isc_app_shutdown();
 
 	/*
@@ -614,7 +614,7 @@ fuzz_thread_tcp(void *arg) {
 	 * Parse named -A argument in the "address:port" syntax. Due to
 	 * the syntax used, this only supports IPv4 addresses.
 	 */
-	host = strdup(ns_g_fuzz_named_addr);
+	host = strdup(named_g_fuzz_named_addr);
 	RUNTIME_CHECK(host != NULL);
 
 	port = strchr(host, ':');
@@ -633,7 +633,7 @@ fuzz_thread_tcp(void *arg) {
 	 * Wait for named to start. This is set in run_server() in the
 	 * named thread.
 	 */
-	while (!ns_g_run_done) {
+	while (!named_g_run_done) {
 		usleep(10000);
 	}
 
@@ -650,7 +650,7 @@ fuzz_thread_tcp(void *arg) {
 		int yes;
 		int r;
 
-		if (ns_g_fuzz_type == ns_fuzz_tcpclient) {
+		if (named_g_fuzz_type == isc_fuzz_tcpclient) {
 			/*
 			 * To fuzz DNS TCP client we have to put 16-bit
 			 * message length preceding the start of packet.
@@ -669,7 +669,7 @@ fuzz_thread_tcp(void *arg) {
 			usleep(1000000);
 			continue;
 		}
-		if (ns_g_fuzz_type == ns_fuzz_http) {
+		if (named_g_fuzz_type == isc_fuzz_http) {
 			/*
 			 * This guarantees that the request will be
 			 * processed.
@@ -714,7 +714,7 @@ fuzz_thread_tcp(void *arg) {
 
 	free(buf);
 	close(sockfd);
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, ISC_FALSE);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -731,7 +731,7 @@ void
 named_fuzz_notify(void) {
 #ifdef ENABLE_AFL
 	if (getenv("AFL_CMIN")) {
-		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+		named_server_flushonshutdown(named_g_server, ISC_FALSE);
 		isc_app_shutdown();
 		return;
 	}
@@ -754,18 +754,18 @@ named_fuzz_setup(void) {
 		pthread_t thread;
 		void *(fn) = NULL;
 
-		switch (ns_g_fuzz_type) {
-		case ns_fuzz_client:
+		switch (named_g_fuzz_type) {
+		case isc_fuzz_client:
 			fn = fuzz_thread_client;
 			break;
 
-		case ns_fuzz_http:
-		case ns_fuzz_tcpclient:
-		case ns_fuzz_rndc:
+		case isc_fuzz_http:
+		case isc_fuzz_tcpclient:
+		case isc_fuzz_rndc:
 			fn = fuzz_thread_tcp;
 			break;
 
-		case ns_fuzz_resolver:
+		case isc_fuzz_resolver:
 			fn = fuzz_thread_resolver;
 			break;
 

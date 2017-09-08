@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002, 2004-2009, 2011, 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2002, 2004-2009, 2011, 2013, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -670,6 +670,27 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	return (ISC_FALSE);
 }
 
+
+/*%
+ * Check whether an address/signer is allowed by a given acl/aclenv.
+ */
+isc_boolean_t
+dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
+		isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
+		isc_uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t *aclenv)
+{
+	int match;
+	isc_result_t result;
+
+	if (acl == NULL)
+		return (ISC_TRUE);
+	result = dns_acl_match2(addr, signer, ecs_addr, ecs_addrlen,
+				ecs_scope, acl, aclenv, &match, NULL);
+	if (result == ISC_R_SUCCESS && match > 0)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
 /*
  * Initialize ACL environment, setting up localhost and localnets ACLs
  */
@@ -706,12 +727,15 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 	dns_acl_attach(s->localnets, &t->localnets);
 	t->match_mapped = s->match_mapped;
 #ifdef HAVE_GEOIP
+	t->geoip = s->geoip;
 	t->geoip_use_ecs = s->geoip_use_ecs;
 #endif
 }
 
 void
 dns_aclenv_destroy(dns_aclenv_t *env) {
-	dns_acl_detach(&env->localhost);
-	dns_acl_detach(&env->localnets);
+	if (env->localhost != NULL)
+		dns_acl_detach(&env->localhost);
+	if (env->localnets != NULL)
+		dns_acl_detach(&env->localnets);
 }

@@ -1,18 +1,20 @@
 /*
- * Copyright (C) 1999-2002, 2004-2007, 2009, 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2002, 2004-2007, 2009, 2013, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: log.c,v 1.49 2009/01/07 01:46:40 jinmei Exp $ */
-
 /*! \file */
 
 #include <config.h>
 
 #include <isc/result.h>
+
+#include <dns/log.h>
+
+#include <ns/log.h>
 
 #include <isccfg/log.h>
 
@@ -29,13 +31,7 @@
  */
 static isc_logcategory_t categories[] = {
 	{ "",		 		0 },
-	{ "client",	 		0 },
-	{ "network",	 		0 },
-	{ "update",	 		0 },
-	{ "queries",	 		0 },
 	{ "unmatched",	 		0 },
-	{ "update-security",		0 },
-	{ "query-errors",		0 },
 	{ NULL, 			0 }
 };
 
@@ -45,59 +41,53 @@ static isc_logcategory_t categories[] = {
  */
 static isc_logmodule_t modules[] = {
 	{ "main",	 		0 },
-	{ "client",	 		0 },
 	{ "server",		 	0 },
-	{ "query",		 	0 },
-	{ "interfacemgr",	 	0 },
-	{ "update",	 		0 },
-	{ "xfer-in",	 		0 },
-	{ "xfer-out",	 		0 },
-	{ "notify",	 		0 },
 	{ "control",	 		0 },
-	{ "lwresd",	 		0 },
 	{ NULL, 			0 }
 };
 
 isc_result_t
-ns_log_init(isc_boolean_t safe) {
+named_log_init(isc_boolean_t safe) {
 	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
 
-	ns_g_categories = categories;
-	ns_g_modules = modules;
+	named_g_categories = categories;
+	named_g_modules = modules;
 
 	/*
 	 * Setup a logging context.
 	 */
-	result = isc_log_create(ns_g_mctx, &ns_g_lctx, &lcfg);
+	result = isc_log_create(named_g_mctx, &named_g_lctx, &lcfg);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	/*
 	 * named-checktool.c:setup_logging() needs to be kept in sync.
 	 */
-	isc_log_registercategories(ns_g_lctx, ns_g_categories);
-	isc_log_registermodules(ns_g_lctx, ns_g_modules);
-	isc_log_setcontext(ns_g_lctx);
-	dns_log_init(ns_g_lctx);
-	dns_log_setcontext(ns_g_lctx);
-	cfg_log_init(ns_g_lctx);
+	isc_log_registercategories(named_g_lctx, named_g_categories);
+	isc_log_registermodules(named_g_lctx, named_g_modules);
+	isc_log_setcontext(named_g_lctx);
+	dns_log_init(named_g_lctx);
+	dns_log_setcontext(named_g_lctx);
+	cfg_log_init(named_g_lctx);
+	ns_log_init(named_g_lctx);
+	ns_log_setcontext(named_g_lctx);
 
 	if (safe)
-		result = ns_log_setsafechannels(lcfg);
+		result = named_log_setsafechannels(lcfg);
 	else
-		result = ns_log_setdefaultchannels(lcfg);
+		result = named_log_setdefaultchannels(lcfg);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = ns_log_setdefaultcategory(lcfg);
+	result = named_log_setdefaultcategory(lcfg);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	isc_log_destroy(&ns_g_lctx);
+	isc_log_destroy(&named_g_lctx);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
 
@@ -105,7 +95,7 @@ ns_log_init(isc_boolean_t safe) {
 }
 
 isc_result_t
-ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
+named_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 
@@ -114,7 +104,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	 * stderr.  In BIND, we want to override this and log to named.run
 	 * instead, unless the -g option was given.
 	 */
-	if (! ns_g_logstderr) {
+	if (! named_g_logstderr) {
 		destination.file.stream = NULL;
 		destination.file.name = "named.run";
 		destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -129,9 +119,9 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 			goto cleanup;
 	}
 
-	if (ns_g_logfile != NULL) {
+	if (named_g_logfile != NULL) {
 		destination.file.stream = NULL;
-		destination.file.name = ns_g_logfile;
+		destination.file.name = named_g_logfile;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_logfile",
@@ -157,7 +147,7 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 	/*
 	 * Set the initial debug level.
 	 */
-	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+	isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
 
 	result = ISC_R_SUCCESS;
 
@@ -166,11 +156,11 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 }
 
 isc_result_t
-ns_log_setsafechannels(isc_logconfig_t *lcfg) {
+named_log_setsafechannels(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 
-	if (! ns_g_logstderr) {
+	if (! named_g_logstderr) {
 		result = isc_log_createchannel(lcfg, "default_debug",
 					       ISC_LOG_TONULL,
 					       ISC_LOG_DYNAMIC,
@@ -182,14 +172,14 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 		 * Setting the debug level to zero should get the output
 		 * discarded a bit faster.
 		 */
-		isc_log_setdebuglevel(ns_g_lctx, 0);
+		isc_log_setdebuglevel(named_g_lctx, 0);
 	} else {
-		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+		isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
 	}
 
-	if (ns_g_logfile != NULL) {
+	if (named_g_logfile != NULL) {
 		destination.file.stream = NULL;
-		destination.file.name = ns_g_logfile;
+		destination.file.name = named_g_logfile;
 		destination.file.versions = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		result = isc_log_createchannel(lcfg, "default_logfile",
@@ -219,7 +209,7 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 }
 
 isc_result_t
-ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
+named_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = isc_log_usechannel(lcfg, "default_debug",
@@ -227,12 +217,12 @@ ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	if (! ns_g_logstderr) {
-		if (ns_g_logfile != NULL)
+	if (! named_g_logstderr) {
+		if (named_g_logfile != NULL)
 			result = isc_log_usechannel(lcfg, "default_logfile",
 						    ISC_LOGCATEGORY_DEFAULT,
 						    NULL);
-		else if (! ns_g_nosyslog)
+		else if (! named_g_nosyslog)
 			result = isc_log_usechannel(lcfg, "default_syslog",
 						    ISC_LOGCATEGORY_DEFAULT,
 						    NULL);
@@ -243,17 +233,17 @@ ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 }
 
 isc_result_t
-ns_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
+named_log_setunmatchedcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
 	result = isc_log_usechannel(lcfg, "null",
-				    NS_LOGCATEGORY_UNMATCHED, NULL);
+				    NAMED_LOGCATEGORY_UNMATCHED, NULL);
 	return (result);
 }
 
 void
-ns_log_shutdown(void) {
-	isc_log_destroy(&ns_g_lctx);
+named_log_shutdown(void) {
+	isc_log_destroy(&named_g_lctx);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
 }

@@ -44,7 +44,7 @@
 static char defaultconf[] = "\
 options {\n\
 	automatic-interface-scan yes;\n\
-	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
+	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
 #if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 "	cookie-algorithm aes;\n"
@@ -72,7 +72,7 @@ options {\n\
 #	keep-response-order {none;};\n\
 	listen-on {any;};\n\
 	listen-on-v6 {any;};\n\
-#	lock-file \"" NS_LOCALSTATEDIR "/run/named/named.lock\";\n\
+#	lock-file \"" NAMED_LOCALSTATEDIR "/run/named/named.lock\";\n\
 	match-mapped-addresses no;\n\
 	max-rsa-exponent-size 0; /* no limit */\n\
 	max-udp-size 4096;\n\
@@ -83,7 +83,7 @@ options {\n\
 	notify-rate 20;\n\
 	nta-lifetime 3600;\n\
 	nta-recheck 300;\n\
-#	pid-file \"" NS_LOCALSTATEDIR "/run/named/named.pid\"; /* or /lwresd.pid */\n\
+#	pid-file \"" NAMED_LOCALSTATEDIR "/run/named/named.pid\"; \n\
 	port 53;\n\
 	prefetch 2 9;\n"
 #ifdef PATH_RANDOMDEV
@@ -100,7 +100,7 @@ options {\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\
 	session-keyalg hmac-sha256;\n\
-#	session-keyfile \"" NS_LOCALSTATEDIR "/run/named/session.key\";\n\
+#	session-keyfile \"" NAMED_LOCALSTATEDIR "/run/named/session.key\";\n\
 	session-keyname local-ddns;\n"
 #ifndef WIN32
 "	stacksize default;\n"
@@ -306,7 +306,7 @@ MANAGED_KEYS
 ";
 
 isc_result_t
-ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
+named_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 	isc_buffer_t b;
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
@@ -316,8 +316,8 @@ ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 }
 
 isc_result_t
-ns_config_get(cfg_obj_t const * const *maps, const char *name,
-	      const cfg_obj_t **obj)
+named_config_get(cfg_obj_t const * const *maps, const char *name,
+		 const cfg_obj_t **obj)
 {
 	int i;
 
@@ -330,8 +330,8 @@ ns_config_get(cfg_obj_t const * const *maps, const char *name,
 }
 
 isc_result_t
-ns_checknames_get(const cfg_obj_t **maps, const char *which,
-		  const cfg_obj_t **obj)
+named_checknames_get(const cfg_obj_t **maps, const char *which,
+		     const cfg_obj_t **obj)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *checknames;
@@ -369,7 +369,7 @@ ns_checknames_get(const cfg_obj_t **maps, const char *which,
 }
 
 int
-ns_config_listcount(const cfg_obj_t *list) {
+named_config_listcount(const cfg_obj_t *list) {
 	const cfg_listelt_t *e;
 	int i = 0;
 
@@ -380,8 +380,9 @@ ns_config_listcount(const cfg_obj_t *list) {
 }
 
 isc_result_t
-ns_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
-		   dns_rdataclass_t *classp) {
+named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
+		      dns_rdataclass_t *classp)
+{
 	isc_textregion_t r;
 	isc_result_t result;
 
@@ -393,14 +394,15 @@ ns_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 	r.length = strlen(r.base);
 	result = dns_rdataclass_fromtext(classp, &r);
 	if (result != ISC_R_SUCCESS)
-		cfg_obj_log(classobj, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(classobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown class '%s'", r.base);
 	return (result);
 }
 
 isc_result_t
-ns_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
-		   dns_rdatatype_t *typep) {
+named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
+		     dns_rdatatype_t *typep)
+{
 	isc_textregion_t r;
 	isc_result_t result;
 
@@ -412,13 +414,13 @@ ns_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 	r.length = strlen(r.base);
 	result = dns_rdatatype_fromtext(typep, &r);
 	if (result != ISC_R_SUCCESS)
-		cfg_obj_log(typeobj, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(typeobj, named_g_lctx, ISC_LOG_ERROR,
 			    "unknown type '%s'", r.base);
 	return (result);
 }
 
 dns_zonetype_t
-ns_config_getzonetype(const cfg_obj_t *zonetypeobj) {
+named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	dns_zonetype_t ztype = dns_zone_none;
 	const char *str;
 
@@ -439,7 +441,7 @@ ns_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 }
 
 isc_result_t
-ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
+named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		    in_port_t defport, isc_mem_t *mctx,
 		    isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 		    isc_uint32_t *countp)
@@ -458,13 +460,13 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	INSIST(countp != NULL);
 
 	addrlist = cfg_tuple_get(list, "addresses");
-	count = ns_config_listcount(addrlist);
+	count = named_config_listcount(addrlist);
 
 	portobj = cfg_tuple_get(list, "port");
 	if (cfg_obj_isuint32(portobj)) {
 		isc_uint32_t val = cfg_obj_asuint32(portobj);
 		if (val > ISC_UINT16_MAX) {
-			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			return (ISC_R_RANGE);
 		}
@@ -472,7 +474,7 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	} else if (defport != 0)
 		port = defport;
 	else {
-		result = ns_config_getport(config, &port);
+		result = named_config_getport(config, &port);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
@@ -481,7 +483,8 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		dscpobj = cfg_tuple_get(list, "dscp");
 		if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
 			if (cfg_obj_asuint32(dscpobj) > 63) {
-				cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+				cfg_obj_log(dscpobj, named_g_lctx,
+					    ISC_LOG_ERROR,
 					    "dscp value '%u' is out of range",
 					    cfg_obj_asuint32(dscpobj));
 				return (ISC_R_RANGE);
@@ -531,8 +534,8 @@ ns_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 }
 
 void
-ns_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		    isc_dscp_t **dscpsp, isc_uint32_t count)
+named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
+		       isc_dscp_t **dscpsp, isc_uint32_t count)
 {
 	INSIST(addrsp != NULL && *addrsp != NULL);
 	INSIST(dscpsp == NULL || *dscpsp != NULL);
@@ -575,7 +578,7 @@ get_masters_def(const cfg_obj_t *cctx, const char *name,
 }
 
 isc_result_t
-ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
+named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			  isc_mem_t *mctx, dns_ipkeylist_t *ipkl)
 {
 	isc_uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
@@ -610,11 +613,11 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	/*
 	 * Get system defaults.
 	 */
-	result = ns_config_getport(config, &port);
+	result = named_config_getport(config, &port);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = ns_config_getdscp(config, &dscp);
+	result = named_config_getdscp(config, &dscp);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -626,7 +629,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	if (cfg_obj_isuint32(portobj)) {
 		isc_uint32_t val = cfg_obj_asuint32(portobj);
 		if (val > ISC_UINT16_MAX) {
-			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			result = ISC_R_RANGE;
 			goto cleanup;
@@ -636,7 +639,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 	if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
 		if (cfg_obj_asuint32(dscpobj) > 63) {
-			cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+			cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
 				    "dscp value '%u' is out of range",
 				    cfg_obj_asuint32(dscpobj));
 			result = ISC_R_RANGE;
@@ -692,7 +695,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 				continue;
 			tresult = get_masters_def(config, listname, &list);
 			if (tresult == ISC_R_NOTFOUND) {
-				cfg_obj_log(addr, ns_g_lctx, ISC_LOG_ERROR,
+				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
 				    "masters \"%s\" not found", listname);
 
 				result = tresult;
@@ -889,7 +892,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 }
 
 isc_result_t
-ns_config_getport(const cfg_obj_t *config, in_port_t *portp) {
+named_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *portobj = NULL;
@@ -900,13 +903,13 @@ ns_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 	i = 0;
 	if (options != NULL)
 		maps[i++] = options;
-	maps[i++] = ns_g_defaults;
+	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
-	result = ns_config_get(maps, "port", &portobj);
+	result = named_config_get(maps, "port", &portobj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (cfg_obj_asuint32(portobj) >= ISC_UINT16_MAX) {
-		cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 			    "port '%u' out of range",
 			    cfg_obj_asuint32(portobj));
 		return (ISC_R_RANGE);
@@ -916,7 +919,7 @@ ns_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 }
 
 isc_result_t
-ns_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
+named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *dscpobj = NULL;
 	isc_result_t result;
@@ -931,7 +934,7 @@ ns_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
 		return (ISC_R_SUCCESS);
 	}
 	if (cfg_obj_asuint32(dscpobj) >= 64) {
-		cfg_obj_log(dscpobj, ns_g_lctx, ISC_LOG_ERROR,
+		cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
 			    "dscp '%u' out of range",
 			    cfg_obj_asuint32(dscpobj));
 		return (ISC_R_RANGE);
@@ -961,15 +964,15 @@ struct keyalgorithms {
 };
 
 isc_result_t
-ns_config_getkeyalgorithm(const char *str, const dns_name_t **name,
-			  isc_uint16_t *digestbits)
+named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
+			     isc_uint16_t *digestbits)
 {
-	return (ns_config_getkeyalgorithm2(str, name, NULL, digestbits));
+	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
 }
 
 isc_result_t
-ns_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
-			   unsigned int *typep, isc_uint16_t *digestbits)
+named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
+			      unsigned int *typep, isc_uint16_t *digestbits)
 {
 	int i;
 	size_t len = 0;

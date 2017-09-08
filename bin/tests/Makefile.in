@@ -21,13 +21,11 @@ DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
-LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
-LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		@LIBS@
 
@@ -54,8 +52,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		db_test@EXEEXT@ \
 		entropy_test@EXEEXT@ \
 		entropy2_test@EXEEXT@ \
-		gxba_test@EXEEXT@ \
-		gxbn_test@EXEEXT@ \
 		hash_test@EXEEXT@ \
 		fsaccess_test@EXEEXT@ \
 		inter_test@EXEEXT@ \
@@ -63,8 +59,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		lex_test@EXEEXT@ \
 		lfsr_test@EXEEXT@ \
 		log_test@EXEEXT@ \
-		lwres_test@EXEEXT@ \
-		lwresconf_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		mempool_test@EXEEXT@ \
 		name_test@EXEEXT@ \
@@ -92,8 +86,6 @@ XSRCS =		adb_test.c \
 		db_test.c \
 		entropy_test.c \
 		entropy2_test.c \
-		gxba_test.c \
-		gxbn_test.c \
 		hash_test.c \
 		fsaccess_test.c \
 		inter_test.c \
@@ -101,8 +93,6 @@ XSRCS =		adb_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
-		lwres_test.c \
-		lwresconf_test.c \
 		master_test.c \
 		mempool_test.c \
 		name_test.c \
@@ -265,22 +255,6 @@ inter_test@EXEEXT@: inter_test.@O@ ${ISCDEPLIBS}
 keyboard_test@EXEEXT@: keyboard_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ keyboard_test.@O@ \
 		${ISCLIBS} ${LIBS}
-
-lwresconf_test@EXEEXT@: lwresconf_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lwresconf_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${LIBS}
-
-lwres_test@EXEEXT@: lwres_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ lwres_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${LIBS}
-
-gxbn_test@EXEEXT@: gxbn_test.@O@ ${LWRESDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ gxbn_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${LIBS}
-
-gxba_test@EXEEXT@: gxba_test.@O@ ${LWRESDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ gxba_test.@O@ \
-		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 sig0_test@EXEEXT@: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ sig0_test.@O@ \

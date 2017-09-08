@@ -3,6 +3,7 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
+dns_acl_allowed
 dns_acl_any
 dns_acl_attach
 dns_acl_create

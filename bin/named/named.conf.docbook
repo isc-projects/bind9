@@ -147,21 +147,6 @@ logging {
 </literallayout>
   </refsection>
 
-  <refsection><info><title>LWRES</title></info>
-
-    <literallayout class="normal">
-lwres {
-	listen-on <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable>
-	    | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional>; ... };
-	lwres-clients <replaceable>integer</replaceable>;
-	lwres-tasks <replaceable>integer</replaceable>;
-	ndots <replaceable>integer</replaceable>;
-	search { <replaceable>string</replaceable>; ... };
-	view <replaceable>string</replaceable> <optional> <replaceable>class</replaceable> </optional>;
-};
-</literallayout>
-  </refsection>
-
   <refsection><info><title>MANAGED-KEYS</title></info>
 
     <literallayout class="normal">

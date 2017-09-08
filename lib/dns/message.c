@@ -412,7 +412,9 @@ msginit(dns_message_t *m) {
 	m->verified_sig = 0;
 	m->verify_attempted = 0;
 	m->order = NULL;
-	m->order_arg = NULL;
+	m->order_arg.env = NULL;
+	m->order_arg.acl = NULL;
+	m->order_arg.element = NULL;
 	m->query.base = NULL;
 	m->query.length = 0;
 	m->free_query = 0;
@@ -2028,7 +2030,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		if (rdataset != NULL &&
 		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) != 0 &&
 		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0) {
-			const void *order_arg = msg->order_arg;
+			const void *order_arg = &msg->order_arg;
 			st = *(msg->buffer);
 			count = 0;
 			if (partial)
@@ -2124,7 +2126,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 							  msg->cctx,
 							  msg->buffer,
 							  msg->order,
-							  msg->order_arg,
+							  &msg->order_arg,
 							  rd_options,
 							  &count,
 							  NULL);
@@ -2135,7 +2137,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 							  msg->cctx,
 							  msg->buffer,
 							  msg->order,
-							  msg->order_arg,
+							  &msg->order_arg,
 							  rd_options,
 							  &count);
 
@@ -4208,11 +4210,17 @@ dns_message_getrawmessage(dns_message_t *msg) {
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 const void *order_arg)
+			 dns_aclenv_t *env, const dns_acl_t *acl,
+			 const dns_aclelement_t *elem)
 {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE((order == NULL) == (env == NULL));
+	REQUIRE(env == NULL || (acl != NULL || elem != NULL));
+
 	msg->order = order;
-	msg->order_arg = order_arg;
+	msg->order_arg.env = env;
+	msg->order_arg.acl = acl;
+	msg->order_arg.element = elem;
 }
 
 void

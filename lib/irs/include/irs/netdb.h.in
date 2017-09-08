@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -125,7 +125,7 @@ struct addrinfo {
 #define AI_DEFAULT	(AI_V4MAPPED|AI_ADDRCONFIG)
 
 /*
- * Constants for lwres_getnameinfo()
+ * Constants for getnameinfo()
  */
 #undef	NI_MAXHOST
 #undef	NI_MAXSERV
@@ -134,7 +134,7 @@ struct addrinfo {
 #define	NI_MAXSERV	32
 
 /*
- * Flag values for lwres_getnameinfo()
+ * Flag values for getnameinfo()
  */
 #undef	NI_NOFQDN
 #undef	NI_NUMERICHOST

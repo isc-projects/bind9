@@ -1,4 +1,4 @@
-Copyright (C) 2000, 2001, 2004, 2016  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2000, 2001, 2004, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -115,7 +115,7 @@ Calls to dns_sdb_register() and dns_sdb_unregister() (or wrappers,
 e.g. timedb_init() and timedb_clear() for the timedb sample sdb
 driver) must be inserted into the server, in bind9/bin/named/main.c.
 Registration should be in setup(), before the call to
-ns_server_create().  Unregistration should be in cleanup(),
+named_server_create().  Unregistration should be in cleanup(),
 after the call to ns_server_destroy().  A #include should be added
 corresponding to the driver header file.
 

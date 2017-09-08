@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -75,7 +75,7 @@ main(int argc, char **argv) {
 		char hostname[MAXHOSTNAMELEN];
 		int n;
 #ifdef WIN32
-		/* From lwres InitSocket() */
+		/* From InitSocket() */
 		WORD wVersionRequested;
 		WSADATA wsaData;
 		int err;

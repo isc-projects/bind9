@@ -54,7 +54,6 @@ if ($server && !-d "$test/$server") {
 my $topdir = abs_path("$test/..");
 my $testdir = abs_path("$test");
 my $NAMED = $ENV{'NAMED'};
-my $LWRESD = $ENV{'LWRESD'};
 my $DIG = $ENV{'DIG'};
 my $PERL = $ENV{'PERL'};
 my $PYTHON = $ENV{'PYTHON'};
@@ -76,13 +75,12 @@ if ($server) {
 	closedir DIR;
 
 	my @ns = grep /^ns[0-9]*$/, @files;
-	my @lwresd = grep /^lwresd[0-9]*$/, @files;
 	my @ans = grep /^ans[0-9]*$/, @files;
 	my $name;
 
 	# Start the servers we found.
 	&check_ports();
-	foreach $name(@ns, @lwresd, @ans) {
+	foreach $name(@ns, @ans) {
 		&start_server($name);
 		&verify_server($name) if ($name =~ /^ns/);
 		
@@ -195,34 +193,6 @@ sub start_server {
 			$command .= " >named.run 2>&1 &";
 		}
 		$pid_file = "named.pid";
-	} elsif ($server =~ /^lwresd/) {
-		$cleanup_files = "{lwresd.run}";
-		if ($ENV{'USE_VALGRIND'}) {
-			$command = "valgrind -q --gen-suppressions=all --num-callers=48 --fullpath-after= --log-file=lwresd-valgrind-%p.log ";
-			if ($ENV{'USE_VALGRIND'} eq 'helgrind') {
-				$command .= "--tool=helgrind ";
-			} else {
-				$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
-			}
-			$command .= "$LWRESD -m none -M external ";
-		} else {
-			$command = "$LWRESD ";
-		}
-		if ($options) {
-			$command .= "$options";
-		} else {
-			$command .= "-X lwresd.lock ";
-			$command .= "-m record,size,mctx ";
-			$command .= "-T clienttest ";
-			$command .= "-C resolv.conf -d 99 -g -U 4 ";
-			$command .= "-i lwresd.pid -P 9210 -p 5300";
-		}
-		if ($restart) {
-			$command .= " >>lwresd.run 2>&1 &";
-		} else {
-			$command .= " >lwresd.run 2>&1 &";
-		}
-		$pid_file = "lwresd.pid";
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
                 if (-e "$testdir/$server/ans.py") {

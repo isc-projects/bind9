@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2004-2007, 2009, 2011, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2004-2007, 2009, 2011, 2012, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -81,10 +81,11 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		 * Create the algorithm.
 		 */
 		algstr = cfg_obj_asstring(algobj);
-		if (ns_config_getkeyalgorithm(algstr, &alg, &bits)
+		if (named_config_getkeyalgorithm(algstr, &alg, &bits)
 		    != ISC_R_SUCCESS) {
-			cfg_obj_log(algobj, ns_g_lctx, ISC_LOG_ERROR,
-				    "key '%s': has a unsupported algorithm '%s'",
+			cfg_obj_log(algobj, named_g_lctx, ISC_LOG_ERROR,
+				    "key '%s': has a "
+				    "unsupported algorithm '%s'",
 				    keyid, algstr);
 			ret = DNS_R_BADALG;
 			goto failure;
@@ -121,7 +122,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 	return (ISC_R_SUCCESS);
 
  failure:
-	cfg_obj_log(key, ns_g_lctx, ISC_LOG_ERROR,
+	cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 		    "configuring key '%s': %s", keyid,
 		    isc_result_totext(ret));
 
@@ -131,8 +132,8 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 }
 
 isc_result_t
-ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
-			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
+named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
+			     isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
 {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *keylist;

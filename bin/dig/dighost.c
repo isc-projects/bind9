@@ -77,8 +77,8 @@
 
 #include <isccfg/namedconf.h>
 
-#include <lwres/lwres.h>
-#include <lwres/net.h>
+#include <irs/resconf.h>
+#include <irs/netdb.h>
 
 #include <bind9/getaddresses.h>
 
@@ -95,9 +95,6 @@
 #if ! defined(NS_IN6ADDRSZ)
 #define NS_IN6ADDRSZ	16
 #endif
-
-static lwres_context_t *lwctx = NULL;
-static lwres_conf_t *lwconf;
 
 dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
@@ -236,16 +233,6 @@ check_next_lookup(dig_lookup_t *lookup);
 
 static isc_boolean_t
 next_origin(dig_lookup_t *oldlookup);
-
-static void *
-mem_alloc(void *arg, size_t size) {
-	return (isc_mem_get(arg, size));
-}
-
-static void
-mem_free(void *arg, void *mem, size_t size) {
-	isc_mem_put(arg, mem, size);
-}
 
 char *
 next_token(char **stringp, const char *delim) {
@@ -454,56 +441,47 @@ make_server(const char *servname, const char *userarg) {
 	return (srv);
 }
 
-static int
-addr2af(int lwresaddrtype)
-{
-	int af = 0;
-
-	switch (lwresaddrtype) {
-	case LWRES_ADDRTYPE_V4:
-		af = AF_INET;
-		break;
-
-	case LWRES_ADDRTYPE_V6:
-		af = AF_INET6;
-		break;
-	}
-
-	return (af);
-}
-
 /*%
- * Create a copy of the server list from the lwres configuration structure.
+ * Create a copy of the server list from the resolver configuration structure.
  * The dest list must have already had ISC_LIST_INIT applied.
  */
 static void
-copy_server_list(lwres_conf_t *confdata, dig_serverlist_t *dest) {
+get_server_list(irs_resconf_t *resconf) {
+	isc_sockaddrlist_t *servers;
+	isc_sockaddr_t *sa;
 	dig_server_t *newsrv;
 	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255") +
 		 sizeof("%4000000000")];
-	int af;
-	int i;
+	debug("get_server_list()");
+	servers = irs_resconf_getnameservers(resconf);
+	for (sa = ISC_LIST_HEAD(*servers);
+	     sa != NULL;
+	     sa = ISC_LIST_NEXT(sa, link))
+	{
+		int pf = isc_sockaddr_pf(sa);
+		isc_netaddr_t na;
+		isc_result_t result;
+		isc_buffer_t b;
 
-	debug("copy_server_list()");
-	for (i = 0; i < confdata->nsnext; i++) {
-		af = addr2af(confdata->nameservers[i].family);
-
-		if (af == AF_INET && !have_ipv4)
+		if (pf == AF_INET && !have_ipv4)
 			continue;
-		if (af == AF_INET6 && !have_ipv6)
+		if (pf == AF_INET6 && !have_ipv6)
 			continue;
 
-		lwres_net_ntop(af, confdata->nameservers[i].address,
-				   tmp, sizeof(tmp));
-		if (af == AF_INET6 && confdata->nameservers[i].zone != 0) {
+		isc_buffer_init(&b, tmp, sizeof(tmp));
+		isc_netaddr_fromsockaddr(&na, sa);
+		result = isc_netaddr_totext(&na, &b);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		isc_buffer_putuint8(&b, 0);
+		if (pf == AF_INET6 && na.zone != 0) {
 			char buf[sizeof("%4000000000")];
-			snprintf(buf, sizeof(buf), "%%%u",
-				 confdata->nameservers[i].zone);
+			snprintf(buf, sizeof(buf), "%%%u", na.zone);
 			strlcat(tmp, buf, sizeof(tmp));
 		}
 		newsrv = make_server(tmp, tmp);
 		ISC_LINK_INIT(newsrv, link);
-		ISC_LIST_ENQUEUE(*dest, newsrv, link);
+		ISC_LIST_APPEND(server_list, newsrv, link);
 	}
 }
 
@@ -549,34 +527,6 @@ set_nameserver(char *opt) {
 			fatal("memory allocation failure");
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
-}
-
-static isc_result_t
-add_nameserver(lwres_conf_t *confdata, const char *addr, int af) {
-
-	int i = confdata->nsnext;
-
-	if (confdata->nsnext >= LWRES_CONFMAXNAMESERVERS)
-		return (ISC_R_FAILURE);
-
-	switch (af) {
-	case AF_INET:
-		confdata->nameservers[i].family = LWRES_ADDRTYPE_V4;
-		confdata->nameservers[i].length = NS_INADDRSZ;
-		break;
-	case AF_INET6:
-		confdata->nameservers[i].family = LWRES_ADDRTYPE_V6;
-		confdata->nameservers[i].length = NS_IN6ADDRSZ;
-		break;
-	default:
-		return (ISC_R_FAILURE);
-	}
-
-	if (lwres_net_pton(af, addr, &confdata->nameservers[i].address) == 1) {
-		confdata->nsnext++;
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_FAILURE);
 }
 
 /*%
@@ -1200,15 +1150,20 @@ clear_searchlist(void) {
 }
 
 static void
-create_search_list(lwres_conf_t *confdata) {
-	int i;
+create_search_list(irs_resconf_t *resconf) {
+	irs_resconf_searchlist_t *list;
+	irs_resconf_search_t *entry;
 	dig_searchlist_t *search;
 
 	debug("create_search_list()");
 	clear_searchlist();
 
-	for (i = 0; i < confdata->searchnxt; i++) {
-		search = make_searchlist_entry(confdata->search[i]);
+	list = irs_resconf_getsearchlist(resconf);
+	for (entry = ISC_LIST_HEAD(*list);
+	     entry != NULL;
+	     entry = ISC_LIST_NEXT(entry, link))
+	{
+		search = make_searchlist_entry(entry->domain);
 		ISC_LIST_APPEND(search_list, search, link);
 	}
 }
@@ -1219,9 +1174,7 @@ create_search_list(lwres_conf_t *confdata) {
  */
 void
 setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
-	dig_searchlist_t *domain = NULL;
-	lwres_result_t lwresult;
-	unsigned int lwresflags;
+	irs_resconf_t *resconf = NULL;
 	isc_result_t result;
 
 	debug("setup_system()");
@@ -1244,72 +1197,23 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 		}
 	}
 
-	lwresflags = LWRES_CONTEXT_SERVERMODE;
-	if (have_ipv4)
-		lwresflags |= LWRES_CONTEXT_USEIPV4;
-	if (have_ipv6)
-		lwresflags |= LWRES_CONTEXT_USEIPV6;
-
-	lwresult = lwres_context_create(&lwctx, mctx, mem_alloc, mem_free,
-					lwresflags);
-	if (lwresult != LWRES_R_SUCCESS)
-		fatal("lwres_context_create failed");
-
-	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
-	if (lwresult != LWRES_R_SUCCESS && lwresult != LWRES_R_NOTFOUND)
+	result = irs_resconf_load(mctx, RESOLV_CONF, &resconf);
+	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 		fatal("parse of %s failed", RESOLV_CONF);
-
-	lwconf = lwres_conf_get(lwctx);
-
-	/* Make the search list */
-	if (lwconf->searchnxt > 0)
-		create_search_list(lwconf);
-	else { /* No search list. Use the domain name if any */
-		if (lwconf->domainname != NULL) {
-			domain = make_searchlist_entry(lwconf->domainname);
-			ISC_LIST_APPEND(search_list, domain, link);
-			domain  = NULL;
-		}
 	}
 
-	if (lwconf->resdebug) {
-		verbose = ISC_TRUE;
-		debug("verbose is on");
-	}
+	create_search_list(resconf);
 	if (ndots == -1) {
-		ndots = lwconf->ndots;
+		ndots = irs_resconf_getndots(resconf);
 		debug("ndots is %d.", ndots);
-	}
-	if (lwconf->attempts) {
-		tries = lwconf->attempts + 1;
-		if (tries < 2)
-			tries = 2;
-		debug("tries is %d.", tries);
-	}
-	if (lwconf->timeout) {
-		timeout = lwconf->timeout;
-		debug("timeout is %d.", timeout);
 	}
 
 	/* If user doesn't specify server use nameservers from resolv.conf. */
-	if (ISC_LIST_EMPTY(server_list))
-		copy_server_list(lwconf, &server_list);
-
-	/* If we don't find a nameserver fall back to localhost */
 	if (ISC_LIST_EMPTY(server_list)) {
-		if (have_ipv4) {
-			lwresult = add_nameserver(lwconf, "127.0.0.1", AF_INET);
-			if (lwresult != ISC_R_SUCCESS)
-				fatal("add_nameserver failed");
-		}
-		if (have_ipv6) {
-			lwresult = add_nameserver(lwconf, "::1", AF_INET6);
-			if (lwresult != ISC_R_SUCCESS)
-				fatal("add_nameserver failed");
-		}
-
-		copy_server_list(lwconf, &server_list);
+		get_server_list(resconf);
 	}
+
+	irs_resconf_destroy(&resconf);
 
 #ifdef WITH_IDN
 	initialize_idn();
@@ -4160,9 +4064,6 @@ destroy_libs(void) {
 	INSIST(!free_now);
 
 	free_now = ISC_TRUE;
-
-	lwres_conf_clear(lwctx);
-	lwres_context_destroy(&lwctx);
 
 	flush_server_list();
 

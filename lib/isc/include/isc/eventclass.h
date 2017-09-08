@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2004, 2005, 2007, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2004, 2005, 2007, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,6 +39,7 @@
 #define	ISC_EVENTCLASS_OMAPI		ISC_EVENTCLASS(6)
 #define	ISC_EVENTCLASS_RATELIMITER	ISC_EVENTCLASS(7)
 #define	ISC_EVENTCLASS_ISCCC		ISC_EVENTCLASS(8)
+#define	ISC_EVENTCLASS_NS		ISC_EVENTCLASS(9)
 /*@}*/
 
 #endif /* ISC_EVENTCLASS_H */

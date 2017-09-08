@@ -1,4 +1,4 @@
-Copyright (C) 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2013-2017  Internet Systems Consortium, Inc. ("ISC")
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,8 +42,7 @@ which is included with Visual Studio and can be downloaded from
 Microsoft.  This file must be in place prior to running Configure.
 
 6) BIND is known to run on the following versions of Windows:
-Windows XP (with Service Pack 2 or higher), Vista, 7, 8, Server 2003,
-Server 2008, Server 2008R2, and Server 2012.
+Windows 7, 8, 8.1, 10, Server 2008R2, Server 2012 and newer.
 
 Step 1: Download and build OpenSSL
 
@@ -213,20 +212,14 @@ Step 8: Configuring the BIND build
 Step 9: Building BIND
 
   To build using 'nmake' or older versions of Visual Studio (e.g.
-  VS 2005 or VS 2008), go to the legacy subdirectory:
+  VS 2005 or VS 2008) is no longer supported.
 
-    cd legacy
-
-  and follow the instructions in win32-build.txt.
-
-  Note: Only 32-bit builds are supported in this mode.
-
-  To build using the Visual Studio GUI in VS 2010 or VS 2012:
+  To build using the Visual Studio GUI in VS 2010 or newer:
   open the bind9.sln solution file; this will load the project
   files for all of the BIND 9 libraries and applications.  Select
   "Build->Batch Build", click "Select All", then click "Build".
 
-  To build using MSBuild in VS 2010 or VS 2012: call MSBuild on
+  To build using MSBuild in VS 2010 or newer: call MSBuild on
   the bind9.sln solution file:
 
     msbuild /t:Build /p:Configuration=Release bind9.sln

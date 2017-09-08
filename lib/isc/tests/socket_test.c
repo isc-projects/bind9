@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,9 +17,9 @@
 
 #include <isc/platform.h>
 #include <isc/socket.h>
+#include <isc/task.h>
 #include <isc/print.h>
 
-#include "../task_p.h"
 #include "../unix/socket_p.h"
 #include "isctest.h"
 

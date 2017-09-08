@@ -298,7 +298,7 @@ creating a memory context.  Similar functions `dns_test_begin()` and
 #### <a name="layout"></a> Source tree layout
 
 * `bind9/bin`: binaries
-    * `bind9/bin/named`: source code for `named` and `lwresd` binaries; includes server configuration, interface manager, client manger, and high-level processing logic for query, update, and xfer.
+    * `bind9/bin/named`: source code for the `named` binary; includes server configuration, interface manager, client manger, and high-level processing logic for query, update, and xfer.
     * `bind9/bin/dnssec`: DNSSEC-related tools written in C:
       `dnssec-keygen`, `dnssec-signzone`, `dnssec-settime`,
       `dnssec-revoke`, `dnssec-keyfromlabel`, `dnssec-dsfromkey`,
@@ -327,10 +327,8 @@ creating a memory context.  Similar functions `dns_test_begin()` and
       configuration parser.
     * `bind9/lib/isccc`: library implementing the control channel used
       by `rndc`
-    * `bind9/lib/lwres`: lightweight resolver library. Used very little
-      in BIND
     * `bind9/lib/irs`: provides mechanisms for reading `/etc/resolv.conf`
-      and other configuration files. Used very little in BIND
+      and other configuration files.
 
 #### Namespace
 

@@ -56,8 +56,6 @@
 #define USE_SHARED_MANAGER
 #endif	/* ISC_PLATFORM_USETHREADS */
 
-#include "task_p.h"
-
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		fprintf(stderr, "task %p thread %lu: %s\n", \
 				       task, isc_thread_self(), (m))
@@ -1587,8 +1585,16 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready((isc_taskmgr_t *)manager))
 		(void)isc__taskmgr_dispatch((isc_taskmgr_t *)manager);
-	if (!ISC_LIST_EMPTY(manager->tasks))
+	if (!ISC_LIST_EMPTY(manager->tasks)) {
+		isc__task_t *t;
 		isc_mem_printallactive(stderr);
+		for (t = ISC_LIST_HEAD(manager->tasks);
+		     t != NULL;
+		     t = ISC_LIST_NEXT(t, link))
+		{
+			fprintf(stderr, "task: %p (%s)\n", t, t->name);
+		}
+	}
 	INSIST(ISC_LIST_EMPTY(manager->tasks));
 #ifdef USE_SHARED_MANAGER
 	taskmgr = NULL;

@@ -803,7 +803,7 @@ echo "I:ensure unresolvable server name is fatal in non-interactive mode ($n)"
 $NSUPDATE <<END > nsupdate.out 2>&1 && ret=1
     server unresolvable..
 END
-grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
+grep "couldn't get address for 'unresolvable..': failure" nsupdate.out > /dev/null || ret=1
 grep "syntax error" nsupdate.out > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
@@ -813,7 +813,7 @@ echo "I:ensure unresolvable server name is not fatal in interactive mode ($n)"
 $NSUPDATE -i <<END > nsupdate.out 2>&1 || ret=1
     server unresolvable..
 END
-grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
+grep "couldn't get address for 'unresolvable..': failure" nsupdate.out > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
 n=`expr $n + 1`

@@ -1,10 +1,8 @@
-Copyright (C) 2000, 2001, 2004, 2016  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2000, 2001, 2004, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-$Id: roadmap,v 1.2 2004/03/05 05:04:54 marka Exp $
 
 Road Map to the BIND 9 Source Tree
 
@@ -33,7 +31,6 @@ lib/isccfg		Routines for reading and writing ISC-style
 			configuration files like named.conf and rndc.conf
 lib/isccc		The command channel library, used by rndc.
 lib/tests		Support code for the test suites.
-lib/lwres		The lightweight resolver library.
 doc/draft		Current internet-drafts pertaining to the DNS
 doc/rfc			RFCs pertaining to the DNS
 doc/misc		Miscellaneous documentation

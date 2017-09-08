@@ -622,7 +622,7 @@ bdb_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* allocate and zero memory for driver structure */
-	db = isc_mem_get(ns_g_mctx, sizeof(bdb_instance_t));
+	db = isc_mem_get(named_g_mctx, sizeof(bdb_instance_t));
 	if (db == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
@@ -633,7 +633,7 @@ bdb_create(const char *dlzname, unsigned int argc, char *argv[],
 	memset(db, 0, sizeof(bdb_instance_t));
 
 	/* attach to the memory context */
-	isc_mem_attach(ns_g_mctx, &db->mctx);
+	isc_mem_attach(named_g_mctx, &db->mctx);
 
 	/* create BDB environment
 	 * Basically BDB allocates and assigns memory to db->dbenv
@@ -768,7 +768,7 @@ dlz_bdb_init(void) {
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA |
 				  DNS_SDLZFLAG_THREADSAFE,
-				  ns_g_mctx, &dlz_bdb);
+				  named_g_mctx, &dlz_bdb);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_sdlzregister() failed: %s",

@@ -183,6 +183,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Code implementing name server query processing has been moved
+	  from <command>named</command> to an external library,
+	  <command>libns</command>. This will make it easier to
+	  write unit tests for the code, or to link it into new tools.
+	  [RT #45186]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>nsupdate</command> and <command>rndc</command> now accept
 	  command line options <command>-4</command> and <command>-6</command>
 	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
@@ -433,6 +442,12 @@
 
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  The lightweight resolver daemon and library (<comand>lwresd</command>
+	  and <command>liblwres</command>) have been removed. [RT #45186]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  <command>dnssec-keygen</command> no longer has default

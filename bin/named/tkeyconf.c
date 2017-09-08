@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2004-2007, 2009, 2010, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2004-2007, 2009, 2010, 2012, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,15 +35,15 @@
 
 #include<named/log.h>
 #define LOG(msg) \
-	isc_log_write(ns_g_lctx, \
-	NS_LOGCATEGORY_GENERAL, \
-	NS_LOGMODULE_SERVER, \
+	isc_log_write(named_g_lctx, \
+	NAMED_LOGCATEGORY_GENERAL, \
+	NAMED_LOGMODULE_SERVER, \
 	ISC_LOG_ERROR, \
 	"%s", msg)
 
 isc_result_t
-ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
-		      isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
+named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
+			 isc_entropy_t *ectx, dns_tkeyctx_t **tctxp)
 {
 	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;

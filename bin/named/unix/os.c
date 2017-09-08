@@ -43,7 +43,7 @@
 #include <named/main.h>
 #include <named/os.h>
 #ifdef HAVE_LIBSCF
-#include <named/ns_smf_globals.h>
+#include <named/named_smf_globals.h>
 #endif
 
 static char *pidfile = NULL;
@@ -182,10 +182,10 @@ linux_setcaps(cap_t caps) {
 	if (syscall(SYS_capset, &caphead, &cap) < 0) {
 #endif
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal(SETCAPS_FUNC "failed: %s:"
-				   " please ensure that the capset kernel"
-				   " module is loaded.  see insmod(8)",
-				   strbuf);
+		named_main_earlyfatal(SETCAPS_FUNC "failed: %s:"
+				      " please ensure that the capset kernel"
+				      " module is loaded.  see insmod(8)",
+				      strbuf);
 	}
 }
 
@@ -199,13 +199,13 @@ linux_setcaps(cap_t caps) {
 			err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \
 			if (err == -1) { \
 				isc__strerror(errno, strbuf, sizeof(strbuf)); \
-				ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
+				named_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
 			} \
 			\
 			err = cap_set_flag(caps, CAP_PERMITTED, 1, &capval, CAP_SET); \
 			if (err == -1) { \
 				isc__strerror(errno, strbuf, sizeof(strbuf)); \
-				ns_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
+				named_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
 			} \
 		} \
 	} while (0)
@@ -214,12 +214,12 @@ linux_setcaps(cap_t caps) {
 		caps = cap_init(); \
 		if (caps == NULL) { \
 			isc__strerror(errno, strbuf, sizeof(strbuf)); \
-			ns_main_earlyfatal("cap_init failed: %s", strbuf); \
+			named_main_earlyfatal("cap_init failed: %s", strbuf); \
 		} \
 		curcaps = cap_get_proc(); \
 		if (curcaps == NULL) { \
 			isc__strerror(errno, strbuf, sizeof(strbuf)); \
-			ns_main_earlyfatal("cap_get_proc failed: %s", strbuf); \
+			named_main_earlyfatal("cap_get_proc failed: %s", strbuf); \
 		} \
 	} while (0)
 #define FREE_CAP \
@@ -351,7 +351,7 @@ linux_keepcaps(void) {
 	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0) {
 		if (errno != EINVAL) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlyfatal("prctl() failed: %s", strbuf);
+			named_main_earlyfatal("prctl() failed: %s", strbuf);
 		}
 	} else {
 		non_root_caps = ISC_TRUE;
@@ -376,7 +376,7 @@ setup_syslog(const char *progname) {
 }
 
 void
-ns_os_init(const char *progname) {
+named_os_init(const char *progname) {
 	setup_syslog(progname);
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_initialprivs();
@@ -390,19 +390,19 @@ ns_os_init(const char *progname) {
 }
 
 void
-ns_os_daemonize(void) {
+named_os_daemonize(void) {
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 
 	if (pipe(dfd) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("pipe(): %s", strbuf);
+		named_main_earlyfatal("pipe(): %s", strbuf);
 	}
 
 	pid = fork();
 	if (pid == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("fork(): %s", strbuf);
+		named_main_earlyfatal("fork(): %s", strbuf);
 	}
 	if (pid != 0) {
 		int n;
@@ -432,7 +432,7 @@ ns_os_daemonize(void) {
 
 	if (setsid() == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("setsid(): %s", strbuf);
+		named_main_earlyfatal("setsid(): %s", strbuf);
 	}
 
 	/*
@@ -454,7 +454,7 @@ ns_os_daemonize(void) {
 			(void)close(STDOUT_FILENO);
 			(void)dup2(devnullfd, STDOUT_FILENO);
 		}
-		if (devnullfd != STDERR_FILENO && !ns_g_keepstderr) {
+		if (devnullfd != STDERR_FILENO && !named_g_keepstderr) {
 			(void)close(STDERR_FILENO);
 			(void)dup2(devnullfd, STDERR_FILENO);
 		}
@@ -462,7 +462,7 @@ ns_os_daemonize(void) {
 }
 
 void
-ns_os_started(void) {
+named_os_started(void) {
 	char buf = 0;
 
 	/*
@@ -470,20 +470,21 @@ ns_os_started(void) {
 	 */
 	if (dfd[0] != -1 && dfd[1] != -1) {
 		if (write(dfd[1], &buf, 1) != 1)
-			ns_main_earlyfatal("unable to signal parent that we "
-					   "otherwise started successfully.");
+			named_main_earlyfatal("unable to signal parent that we "
+					      "otherwise started "
+					      "successfully.");
 		close(dfd[1]);
 		dfd[0] = dfd[1] = -1;
 	}
 }
 
 void
-ns_os_opendevnull(void) {
+named_os_opendevnull(void) {
 	devnullfd = open("/dev/null", O_RDWR, 0);
 }
 
 void
-ns_os_closedevnull(void) {
+named_os_closedevnull(void) {
 	if (devnullfd != STDIN_FILENO &&
 	    devnullfd != STDOUT_FILENO &&
 	    devnullfd != STDERR_FILENO) {
@@ -505,33 +506,33 @@ all_digits(const char *s) {
 }
 
 void
-ns_os_chroot(const char *root) {
+named_os_chroot(const char *root) {
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef HAVE_LIBSCF
-	ns_smf_chroot = 0;
+	named_smf_chroot = 0;
 #endif
 	if (root != NULL) {
 #ifdef HAVE_CHROOT
 		if (chroot(root) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlyfatal("chroot(): %s", strbuf);
+			named_main_earlyfatal("chroot(): %s", strbuf);
 		}
 #else
-		ns_main_earlyfatal("chroot(): disabled");
+		named_main_earlyfatal("chroot(): disabled");
 #endif
 		if (chdir("/") < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlyfatal("chdir(/): %s", strbuf);
+			named_main_earlyfatal("chdir(/): %s", strbuf);
 		}
 #ifdef HAVE_LIBSCF
-		/* Set ns_smf_chroot flag on successful chroot. */
-		ns_smf_chroot = 1;
+		/* Set named_smf_chroot flag on successful chroot. */
+		named_smf_chroot = 1;
 #endif
 	}
 }
 
 void
-ns_os_inituserinfo(const char *username) {
+named_os_inituserinfo(const char *username) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (username == NULL)
 		return;
@@ -543,19 +544,19 @@ ns_os_inituserinfo(const char *username) {
 	endpwent();
 
 	if (runas_pw == NULL)
-		ns_main_earlyfatal("user '%s' unknown", username);
+		named_main_earlyfatal("user '%s' unknown", username);
 
 	if (getuid() == 0) {
 		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlyfatal("initgroups(): %s", strbuf);
+			named_main_earlyfatal("initgroups(): %s", strbuf);
 		}
 	}
 
 }
 
 void
-ns_os_changeuser(void) {
+named_os_changeuser(void) {
 	char strbuf[ISC_STRERRORSIZE];
 	if (runas_pw == NULL || done_setuid)
 		return;
@@ -565,24 +566,24 @@ ns_os_changeuser(void) {
 #ifdef HAVE_LINUXTHREADS
 #ifdef HAVE_LINUX_CAPABILITY_H
 	if (!non_root_caps)
-		ns_main_earlyfatal("-u with Linux threads not supported: "
-				   "requires kernel support for "
-				   "prctl(PR_SET_KEEPCAPS)");
+		named_main_earlyfatal("-u with Linux threads not supported: "
+				      "requires kernel support for "
+				      "prctl(PR_SET_KEEPCAPS)");
 #else
-	ns_main_earlyfatal("-u with Linux threads not supported: "
-			   "no capabilities support or capabilities "
-			   "disabled at build time");
+	named_main_earlyfatal("-u with Linux threads not supported: "
+			      "no capabilities support or capabilities "
+			      "disabled at build time");
 #endif
 #endif
 
 	if (setgid(runas_pw->pw_gid) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("setgid(): %s", strbuf);
+		named_main_earlyfatal("setgid(): %s", strbuf);
 	}
 
 	if (setuid(runas_pw->pw_uid) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("setuid(): %s", strbuf);
+		named_main_earlyfatal("setuid(): %s", strbuf);
 	}
 
 #if defined(HAVE_SYS_PRCTL_H) && defined(PR_SET_DUMPABLE)
@@ -592,8 +593,8 @@ ns_os_changeuser(void) {
 	 */
 	if (prctl(PR_SET_DUMPABLE,1,0,0,0) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("prctl(PR_SET_DUMPABLE) failed: %s",
-				     strbuf);
+		named_main_earlywarning("prctl(PR_SET_DUMPABLE) failed: %s",
+					strbuf);
 	}
 #endif
 #if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
@@ -609,7 +610,7 @@ ns_os_uid(void) {
 }
 
 void
-ns_os_adjustnofile(void) {
+named_os_adjustnofile(void) {
 #ifdef HAVE_LINUXTHREADS
 	isc_result_t result;
 	isc_resourcevalue_t newvalue;
@@ -622,18 +623,18 @@ ns_os_adjustnofile(void) {
 
 	result = isc_resource_setlimit(isc_resource_openfiles, newvalue);
 	if (result != ISC_R_SUCCESS)
-		ns_main_earlywarning("couldn't adjust limit on open files");
+		named_main_earlywarning("couldn't adjust limit on open files");
 #endif
 }
 
 void
-ns_os_minprivs(void) {
+named_os_minprivs(void) {
 #ifdef HAVE_SYS_PRCTL_H
 	linux_keepcaps();
 #endif
 
 #ifdef HAVE_LINUXTHREADS
-	ns_os_changeuser(); /* Call setuid() before threads are started */
+	named_os_changeuser(); /* Call setuid() before threads are started */
 #endif
 
 #if defined(HAVE_LINUX_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
@@ -670,7 +671,7 @@ cleanup_pidfile(void) {
 	if (pidfile != NULL) {
 		n = unlink(pidfile);
 		if (n == -1 && errno != ENOENT)
-			ns_main_earlywarning("unlink '%s': failed", pidfile);
+			named_main_earlywarning("unlink '%s': failed", pidfile);
 		free(pidfile);
 	}
 	pidfile = NULL;
@@ -686,7 +687,8 @@ cleanup_lockfile(void) {
 	if (lockfile != NULL) {
 		int n = unlink(lockfile);
 		if (n == -1 && errno != ENOENT)
-			ns_main_earlywarning("unlink '%s': failed", lockfile);
+			named_main_earlywarning("unlink '%s': failed",
+						lockfile);
 		free(lockfile);
 		lockfile = NULL;
 	}
@@ -763,15 +765,16 @@ setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEGID)
 	if (getegid() != gid && setegid(gid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("unable to set effective gid to %ld: %s",
-				     (long)gid, strbuf);
+		named_main_earlywarning("unable to set effective "
+					"gid to %ld: %s",
+					(long)gid, strbuf);
 	}
 #elif defined(HAVE_SETRESGID)
 	if (getresgid(&tmpg, &oldgid, &tmpg) == -1 || oldgid != gid) {
 		if (setresgid(-1, gid, -1) == -1) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlywarning("unable to set effective "
-					     "gid to %d: %s", gid, strbuf);
+			named_main_earlywarning("unable to set effective "
+						"gid to %d: %s", gid, strbuf);
 		}
 	}
 #endif
@@ -779,22 +782,23 @@ setperms(uid_t uid, gid_t gid) {
 #if defined(HAVE_SETEUID)
 	if (geteuid() != uid && seteuid(uid) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("unable to set effective uid to %ld: %s",
-				     (long)uid, strbuf);
+		named_main_earlywarning("unable to set effective "
+					"uid to %ld: %s",
+					(long)uid, strbuf);
 	}
 #elif defined(HAVE_SETRESUID)
 	if (getresuid(&tmpu, &olduid, &tmpu) == -1 || olduid != uid) {
 		if (setresuid(-1, uid, -1) == -1) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
-			ns_main_earlywarning("unable to set effective "
-					     "uid to %d: %s", uid, strbuf);
+			named_main_earlywarning("unable to set effective "
+						"uid to %d: %s", uid, strbuf);
 		}
 	}
 #endif
 }
 
 FILE *
-ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
+named_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 	char strbuf[ISC_STRERRORSIZE], *f;
 	FILE *fp;
 	int fd;
@@ -805,11 +809,11 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 	f = strdup(filename);
 	if (f == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("couldn't strdup() '%s': %s",
-				     filename, strbuf);
+		named_main_earlywarning("couldn't strdup() '%s': %s",
+					filename, strbuf);
 		return (NULL);
 	}
-	if (mkdirpath(f, ns_main_earlywarning) == -1) {
+	if (mkdirpath(f, named_main_earlywarning) == -1) {
 		free(f);
 		return (NULL);
 	}
@@ -833,22 +837,22 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 #ifndef HAVE_LINUXTHREADS
 			fd = safe_open(filename, mode, ISC_FALSE);
 			if (fd != -1) {
-				ns_main_earlywarning("Required root "
-						     "permissions to open "
-						     "'%s'.", filename);
+				named_main_earlywarning("Required root "
+							"permissions to open "
+							"'%s'.", filename);
 			} else {
-				ns_main_earlywarning("Could not open "
-						     "'%s'.", filename);
+				named_main_earlywarning("Could not open "
+							"'%s'.", filename);
 			}
-			ns_main_earlywarning("Please check file and "
-					     "directory permissions "
-					     "or reconfigure the filename.");
+			named_main_earlywarning("Please check file and "
+						"directory permissions "
+						"or reconfigure the filename.");
 #else /* HAVE_LINUXTHREADS */
-			ns_main_earlywarning("Could not open "
-					     "'%s'.", filename);
-			ns_main_earlywarning("Please check file and "
-					     "directory permissions "
-					     "or reconfigure the filename.");
+			named_main_earlywarning("Could not open "
+						"'%s'.", filename);
+			named_main_earlywarning("Please check file and "
+						"directory permissions "
+						"or reconfigure the filename.");
 #endif /* HAVE_LINUXTHREADS */
 		}
 	} else {
@@ -857,23 +861,23 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 
 	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("could not open file '%s': %s",
-				     filename, strbuf);
+		named_main_earlywarning("could not open file '%s': %s",
+					filename, strbuf);
 		return (NULL);
 	}
 
 	fp = fdopen(fd, "w");
 	if (fp == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlywarning("could not fdopen() file '%s': %s",
-				     filename, strbuf);
+		named_main_earlywarning("could not fdopen() file '%s': %s",
+					filename, strbuf);
 	}
 
 	return (fp);
 }
 
 void
-ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
+named_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	FILE *fh;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
@@ -883,7 +887,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	 * The caller must ensure any required synchronization.
 	 */
 
-	report = first_time ? ns_main_earlyfatal : ns_main_earlywarning;
+	report = first_time ? named_main_earlyfatal : named_main_earlywarning;
 
 	cleanup_pidfile();
 
@@ -897,8 +901,8 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 
-	fh = ns_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
-				  first_time);
+	fh = named_os_openfile(filename, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
+			       first_time);
 	if (fh == NULL) {
 		cleanup_pidfile();
 		return;
@@ -924,7 +928,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 }
 
 isc_boolean_t
-ns_os_issingleton(const char *filename) {
+named_os_issingleton(const char *filename) {
 	char strbuf[ISC_STRERRORSIZE];
 	struct flock lock;
 
@@ -940,19 +944,20 @@ ns_os_issingleton(const char *filename) {
 	lockfile = strdup(filename);
 	if (lockfile == NULL) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		ns_main_earlyfatal("couldn't allocate memory for '%s': %s",
-				   filename, strbuf);
+		named_main_earlyfatal("couldn't allocate memory for '%s': %s",
+				      filename, strbuf);
 	} else {
-		int ret = mkdirpath(lockfile, ns_main_earlywarning);
+		int ret = mkdirpath(lockfile, named_main_earlywarning);
 		if (ret == -1) {
-			ns_main_earlywarning("couldn't create '%s'", filename);
+			named_main_earlywarning("couldn't create '%s'",
+						filename);
 			cleanup_lockfile();
 			return (ISC_FALSE);
 		}
 	}
 
 	/*
-	 * ns_os_openfile() uses safeopen() which removes any existing
+	 * named_os_openfile() uses safeopen() which removes any existing
 	 * files. We can't use that here.
 	 */
 	singletonfd = open(filename, O_WRONLY | O_CREAT,
@@ -979,14 +984,14 @@ ns_os_issingleton(const char *filename) {
 }
 
 void
-ns_os_shutdown(void) {
+named_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
 	cleanup_lockfile();
 }
 
 isc_result_t
-ns_os_gethostname(char *buf, size_t len) {
+named_os_gethostname(char *buf, size_t len) {
 	int n;
 
 	n = gethostname(buf, len);
@@ -1006,7 +1011,7 @@ next_token(char **stringp, const char *delim) {
 }
 
 void
-ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
+named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	char *input, *ptr;
 	unsigned int n;
 	pid_t pid;
@@ -1040,7 +1045,7 @@ ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
 }
 
 void
-ns_os_tzset(void) {
+named_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
@@ -1070,7 +1075,7 @@ getuname(void) {
 }
 
 char *
-ns_os_uname(void) {
+named_os_uname(void) {
 	if (unamep == NULL)
 		getuname();
 	return (unamep);

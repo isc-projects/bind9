@@ -109,7 +109,6 @@ static cfg_type_t cfg_type_logging;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_logsuffix;
 static cfg_type_t cfg_type_logversions;
-static cfg_type_t cfg_type_lwres;
 static cfg_type_t cfg_type_masterselement;
 static cfg_type_t cfg_type_maxttl;
 static cfg_type_t cfg_type_minimal;
@@ -235,7 +234,7 @@ static cfg_type_t cfg_type_namesockaddrkeylist = {
 
 /*%
  * A list of socket addresses with an optional default port, as used
- * in the lwresd 'listen-on' option.  E.g., "{ 10.0.0.1; 1::2 port 69; }"
+ * in the 'listen-on' option.  E.g., "{ 10.0.0.1; 1::2 port 69; }"
  */
 static cfg_tuplefielddef_t portiplist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
@@ -977,7 +976,8 @@ namedconf_clauses[] = {
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
-	{ "lwres", &cfg_type_lwres, CFG_CLAUSEFLAG_MULTI },
+	{ "lwres", &cfg_type_bracketed_text,
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "masters", &cfg_type_masters, CFG_CLAUSEFLAG_MULTI },
 	{ "options", &cfg_type_options, 0 },
 	{ "statistics-channels", &cfg_type_statschannels,
@@ -3543,46 +3543,6 @@ static cfg_type_t cfg_type_sockaddr4wild = {
 static cfg_type_t cfg_type_sockaddr6wild = {
 	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr6wild_flags
-};
-
-/*%
- * lwres
- */
-
-static cfg_tuplefielddef_t lwres_view_fields[] = {
-	{ "name", &cfg_type_astring, 0 },
-	{ "class", &cfg_type_optional_class, 0 },
-	{ NULL, NULL, 0 }
-};
-static cfg_type_t cfg_type_lwres_view = {
-	"lwres_view", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
-	&cfg_rep_tuple, lwres_view_fields
-};
-
-static cfg_type_t cfg_type_lwres_searchlist = {
-	"lwres_searchlist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
-	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
-};
-
-static cfg_clausedef_t
-lwres_clauses[] = {
-	{ "listen-on", &cfg_type_portiplist, 0 },
-	{ "view", &cfg_type_lwres_view, 0 },
-	{ "search", &cfg_type_lwres_searchlist, 0 },
-	{ "ndots", &cfg_type_uint32, 0 },
-	{ "lwres-tasks", &cfg_type_uint32, 0},
-	{ "lwres-clients", &cfg_type_uint32, 0},
-	{ NULL, NULL, 0 }
-};
-
-static cfg_clausedef_t *
-lwres_clausesets[] = {
-	lwres_clauses,
-	NULL
-};
-static cfg_type_t cfg_type_lwres = {
-	"lwres", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map,
-	lwres_clausesets
 };
 
 /*%

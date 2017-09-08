@@ -12,8 +12,7 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} \
-		${ISCCFG_INCLUDES} ${LWRES_INCLUDES} \
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
 		${OMAPI_INCLUDES} ${BIND9_INCLUDES} @DST_OPENSSL_INC@
 
 CDEFINES =	@CRYPTO@ -DVERSION=\"${VERSION}\"
@@ -24,13 +23,11 @@ BIND9LIBS =	../../lib/bind9/libbind9.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
-LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
-LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
 LIBS =		${ISCLIBS} @LIBS@
 NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@

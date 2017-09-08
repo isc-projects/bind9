@@ -528,10 +528,6 @@
         <manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>lwresd</refentrytitle>
-        <manvolnum>8</manvolnum>
-      </citerefentry>,
-      <citerefentry>
         <refentrytitle>named.conf</refentrytitle>
         <manvolnum>5</manvolnum>
       </citerefentry>,

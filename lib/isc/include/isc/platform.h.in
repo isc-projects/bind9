@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2010, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2010, 2013-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -362,6 +362,7 @@
 #define LIBDNS_EXTERNAL_DATA
 #define LIBISCCC_EXTERNAL_DATA
 #define LIBISCCFG_EXTERNAL_DATA
+#define LIBNS_EXTERNAL_DATA
 #define LIBBIND9_EXTERNAL_DATA
 #define LIBTESTS_EXTERNAL_DATA
 #else /*! \brief ISC_PLATFORM_USEDECLSPEC */
@@ -384,6 +385,11 @@
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
 #else
 #define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBNS_EXPORTS
+#define LIBNS_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBNS_EXTERNAL_DATA __declspec(dllimport)
 #endif
 #ifdef LIBBIND9_EXPORTS
 #define LIBBIND9_EXTERNAL_DATA __declspec(dllexport)

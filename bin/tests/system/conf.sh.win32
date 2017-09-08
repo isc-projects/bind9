@@ -24,9 +24,6 @@ TOP=`cd $TOP && pwd`
 VSCONF=Debug
 
 NAMED=$TOP/Build/$VSCONF/named@EXEEXT@
-# We must use "named -l" instead of "lwresd" because argv[0] is lost
-# if the program is libtoolized.
-LWRESD="$TOP/Build/$VSCONF/named@EXEEXT@ -l"
 DIG=$TOP/Build/$VSCONF/dig@EXEEXT@
 DELV=$TOP/Build/$VSCONF/delv@EXEEXT@
 RNDC=$TOP/Build/$VSCONF/rndc@EXEEXT@
@@ -70,7 +67,6 @@ BIGKEY=$TOP/Build/$VSCONF/bigkey@EXEEXT@
 GENCHECK=$TOP/Build/$VSCONF/gencheck@EXEEXT@
 KEYCREATE=$TOP/Build/$VSCONF/keycreate@EXEEXT@
 KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
-LWTEST=$TOP/Build/$VSCONF/lwtest@EXEEXT@
 MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
 # to port SAMPLEUPDATE=$TOP/lib/samples/sample-update
@@ -85,7 +81,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
 	 ednscompliance emptyzones
 	 fetchlimit filter-aaaa formerr forward geoip glue gost inline ixfr
-	 keepalive @KEYMGR@ legacy limits logfileconfig lwresd masterfile
+	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile
 	 masterformat metadata mkeys names notify nslookup nsupdate
 	 nzd2nzf padding pending pipelined @PKCS11_TEST@ reclimit
 	 redirect resolver rndc rpz rpzrecurse rrchecker rrl
@@ -158,8 +154,6 @@ export KEYFRLAB
 export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
-export LWRESD
-export LWTEST
 export MAKEJOURNAL
 export MDIG
 export NAMED

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2002, 2004, 2006, 2007, 2009, 2011, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2002, 2004, 2006, 2007, 2009, 2011, 2013-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,7 +42,7 @@ ntservice_init(void) {
 		hServiceStatus = RegisterServiceCtrlHandler(BIND_SERVICE_NAME,
 					(LPHANDLER_FUNCTION)ServiceControl);
 		if (!hServiceStatus) {
-			ns_main_earlyfatal(
+			named_main_earlyfatal(
 				"could not register service control handler");
 			UpdateSCM(SERVICE_STOPPED);
 			exit(1);
@@ -80,7 +80,7 @@ ServiceControl(DWORD dwCtrlCode) {
 
 	case SERVICE_CONTROL_SHUTDOWN:
 	case SERVICE_CONTROL_STOP:
-		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		named_server_flushonshutdown(named_g_server, ISC_TRUE);
 		isc_app_shutdown();
 		UpdateSCM(SERVICE_STOPPED);
 		break;
@@ -132,7 +132,9 @@ int main(int argc, char *argv[])
 
 	/* Command line users should put -f in the options. */
 	isc_commandline_errprint = ISC_FALSE;
-	while ((ch = isc_commandline_parse(argc, argv, NS_MAIN_ARGS)) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv,
+					   NAMED_MAIN_ARGS)) != -1)
+	{
 		switch (ch) {
 		case 'f':
 		case 'g':

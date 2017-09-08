@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001, 2004, 2007, 2009, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2004, 2007, 2009, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,11 +24,9 @@
  */
 enum NtPaths {
 	NAMED_CONF_PATH,
-	LWRES_CONF_PATH,
 	RESOLV_CONF_PATH,
 	RNDC_CONF_PATH,
 	NAMED_PID_PATH,
-	LWRESD_PID_PATH,
 	NAMED_LOCK_PATH,
 	LOCAL_STATE_DIR,
 	SYS_CONF_DIR,
@@ -48,8 +46,8 @@ enum NtPaths {
 /*
  * Information about where the files are on disk
  */
-#define NS_LOCALSTATEDIR	"/dns/bin"
-#define NS_SYSCONFDIR		"/dns/etc"
+#define NAMED_LOCALSTATEDIR	"/dns/bin"
+#define NAMED_SYSCONFDIR	"/dns/etc"
 
 ISC_LANG_BEGINDECLS
 

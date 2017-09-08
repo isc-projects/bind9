@@ -465,6 +465,7 @@ INPUT                  = @BIND9_TOP_BUILDDIR@/lib/isc		\
 			 @BIND9_TOP_BUILDDIR@/lib/dns		\
 			 @BIND9_TOP_BUILDDIR@/lib/isccfg	\
 			 @BIND9_TOP_BUILDDIR@/lib/isccc		\
+			 @BIND9_TOP_BUILDDIR@/lib/ns		\
 			 @BIND9_TOP_BUILDDIR@/lib/bind9		\
 			 @BIND9_TOP_BUILDDIR@/bin/check		\
 			 @BIND9_TOP_BUILDDIR@/bin/dig		\

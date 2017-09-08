@@ -49,7 +49,6 @@
  */
 #ifndef ISC_PLATFORM_USETHREADS
 #include "../timer_p.h"
-#include "../task_p.h"
 #include "socket_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2011, 2012, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2011, 2012, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -559,8 +559,8 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		INSIST(ISC_LIST_EMPTY(conf->nameservers));
 
 		/* XXX: should we catch errors? */
-		(void)add_server(conf->mctx, "127.0.0.1", &conf->nameservers);
 		(void)add_server(conf->mctx, "::1", &conf->nameservers);
+		(void)add_server(conf->mctx, "127.0.0.1", &conf->nameservers);
 	}
 
 	/*

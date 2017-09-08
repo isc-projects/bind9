@@ -60,15 +60,15 @@
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>@OPENSSL_INC@@GSSAPI_INC@@GEOIP_INC@.\;..\..\..\;@LIBXML2_INC@..\win32\include;..\include;..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;..\..\..\lib\isccc\include;..\..\..\lib\lwres\win32\include;..\..\..\lib\lwres\include;..\..\..\lib\isccfg\include;..\..\..\lib\bind9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>@OPENSSL_INC@@GSSAPI_INC@@GEOIP_INC@.\;..\..\..\;@LIBXML2_INC@..\win32\include;..\include;..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;..\..\..\lib\isccc\include;..\..\..\lib\isccfg\include;..\..\..\lib\bind9\include;..\..\..\lib\ns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\lwres\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>@LIBXML2_LIB@@OPENSSL_LIB@@GSSAPI_LIB@@GEOIP_LIB@libisc.lib;libdns.lib;libisccc.lib;liblwres.lib;libisccfg.lib;libbind9.lib;version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);..\..\..\lib\ns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>@LIBXML2_LIB@@OPENSSL_LIB@@GSSAPI_LIB@@GEOIP_LIB@libisc.lib;libdns.lib;libisccc.lib;libisccfg.lib;libbind9.lib;libns.lib;version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|@PLATFORM@'">
@@ -87,7 +87,7 @@
       <AssemblerListingLocation>.\$(Configuration)\</AssemblerListingLocation>
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>@OPENSSL_INC@@GSSAPI_INC@@GEOIP_INC@.\;..\..\..\;@LIBXML2_INC@..\win32\include;..\include;..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;..\..\..\lib\isccc\include;..\..\..\lib\lwres\win32\include;..\..\..\lib\lwres\include;..\..\..\lib\isccfg\include;..\..\..\lib\bind9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>@OPENSSL_INC@@GSSAPI_INC@@GEOIP_INC@.\;..\..\..\;@LIBXML2_INC@..\win32\include;..\include;..\..\..\lib\isc\win32;..\..\..\lib\isc\win32\include;..\..\..\lib\isc\include;..\..\..\lib\dns\include;..\..\..\lib\isccc\include;..\..\..\lib\isccfg\include;..\..\..\lib\bind9\include;..\..\..\lib\ns\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -97,42 +97,25 @@
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>..\..\..\Build\$(Configuration)\$(TargetName)$(TargetExt)</OutputFile>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\lwres\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>@LIBXML2_LIB@@OPENSSL_LIB@@GSSAPI_LIB@@GEOIP_LIB@libisc.lib;libdns.lib;libisccc.lib;liblwres.lib;libisccfg.lib;libbind9.lib;version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\lib\isc\win32\$(Configuration);..\..\..\lib\dns\win32\$(Configuration);..\..\..\lib\isccc\win32\$(Configuration);..\..\..\lib\isccfg\win32\$(Configuration);..\..\..\lib\bind9\win32\$(Configuration);..\..\..\lib\ns\win32\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>@LIBXML2_LIB@@OPENSSL_LIB@@GSSAPI_LIB@@GEOIP_LIB@libisc.lib;libdns.lib;libisccc.lib;libisccfg.lib;libbind9.lib;libns.lib;version.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\builtin.c" />
-    <ClCompile Include="..\client.c" />
     <ClCompile Include="..\config.c" />
     <ClCompile Include="..\control.c" />
     <ClCompile Include="..\controlconf.c" />
 @IF GEOIP
     <ClCompile Include="..\geoip.c" />
 @END GEOIP
-    <ClCompile Include="..\interfacemgr.c" />
-    <ClCompile Include="..\listenlist.c" />
     <ClCompile Include="..\log.c" />
     <ClCompile Include="..\logconf.c" />
-    <ClCompile Include="..\lwaddr.c" />
-    <ClCompile Include="..\lwdclient.c" />
-    <ClCompile Include="..\lwderror.c" />
-    <ClCompile Include="..\lwdgabn.c" />
-    <ClCompile Include="..\lwdgnba.c" />
-    <ClCompile Include="..\lwdgrbn.c" />
-    <ClCompile Include="..\lwdnoop.c" />
-    <ClCompile Include="..\lwresd.c" />
-    <ClCompile Include="..\lwsearch.c" />
     <ClCompile Include="..\main.c" />
-    <ClCompile Include="..\notify.c" />
-    <ClCompile Include="..\query.c" />
     <ClCompile Include="..\server.c" />
-    <ClCompile Include="..\sortlist.c" />
     <ClCompile Include="..\statschannel.c" />
     <ClCompile Include="..\tkeyconf.c" />
     <ClCompile Include="..\tsigconf.c" />
-    <ClCompile Include="..\update.c" />
-    <ClCompile Include="..\xfrout.c" />
     <ClCompile Include="..\zoneconf.c" />
     <ClCompile Include="dlz_dlopen_driver.c" />
     <ClCompile Include="ntservice.c" />
@@ -140,33 +123,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\named\builtin.h" />
-    <ClInclude Include="..\include\named\client.h" />
     <ClInclude Include="..\include\named\config.h" />
     <ClInclude Include="..\include\named\control.h" />
 @IF GEOIP
     <ClInclude Include="..\include\named\geoip.h" />
 @END GEOIP
     <ClInclude Include="..\include\named\globals.h" />
-    <ClInclude Include="..\include\named\interfacemgr.h" />
-    <ClInclude Include="..\include\named\listenlist.h" />
     <ClInclude Include="..\include\named\log.h" />
     <ClInclude Include="..\include\named\logconf.h" />
-    <ClInclude Include="..\include\named\lwaddr.h" />
-    <ClInclude Include="..\include\named\lwdclient.h" />
-    <ClInclude Include="..\include\named\lwresd.h" />
-    <ClInclude Include="..\include\named\lwsearch.h" />
     <ClInclude Include="..\include\named\main.h" />
-    <ClInclude Include="..\include\named\notify.h" />
-    <ClInclude Include="..\include\named\query.h" />
     <ClInclude Include="..\include\named\seccomp.h" />
     <ClInclude Include="..\include\named\server.h" />
-    <ClInclude Include="..\include\named\sortlist.h" />
     <ClInclude Include="..\include\named\statschannel.h" />
     <ClInclude Include="..\include\named\tkeyconf.h" />
     <ClInclude Include="..\include\named\tsigconf.h" />
     <ClInclude Include="..\include\named\types.h" />
-    <ClInclude Include="..\include\named\update.h" />
-    <ClInclude Include="..\include\named\xfrout.h" />
     <ClInclude Include="..\include\named\zoneconf.h" />
     <ClInclude Include="include\named\ntservice.h" />
     <ClInclude Include="include\named\os.h" />

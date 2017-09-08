@@ -135,7 +135,6 @@ const FileData installFiles[] =
 	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"libirs.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #ifdef OPENSSL
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},

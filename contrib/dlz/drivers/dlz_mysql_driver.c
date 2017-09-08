@@ -101,7 +101,7 @@ mysqldrv_escape_string(MYSQL *mysql, const char *instr) {
 
 	len = strlen(instr);
 
-	outstr = isc_mem_allocate(ns_g_mctx ,(2 * len * sizeof(char)) + 1);
+	outstr = isc_mem_allocate(named_g_mctx ,(2 * len * sizeof(char)) + 1);
 	if (outstr == NULL)
 		return NULL;
 
@@ -267,22 +267,22 @@ mysql_get_resultset(const char *zone, const char *record,
 	 */
 	switch(query) {
 	case ALLNODES:
-		querystring = build_querystring(ns_g_mctx, dbi->allnodes_q);
+		querystring = build_querystring(named_g_mctx, dbi->allnodes_q);
 		break;
 	case ALLOWXFR:
-		querystring = build_querystring(ns_g_mctx, dbi->allowxfr_q);
+		querystring = build_querystring(named_g_mctx, dbi->allowxfr_q);
 		break;
 	case AUTHORITY:
-		querystring = build_querystring(ns_g_mctx, dbi->authority_q);
+		querystring = build_querystring(named_g_mctx, dbi->authority_q);
 		break;
 	case FINDZONE:
-		querystring = build_querystring(ns_g_mctx, dbi->findzone_q);
+		querystring = build_querystring(named_g_mctx, dbi->findzone_q);
 		break;
 	case COUNTZONE:
-		querystring = build_querystring(ns_g_mctx, dbi->countzone_q);
+		querystring = build_querystring(named_g_mctx, dbi->countzone_q);
 		break;
 	case LOOKUP:
-		querystring = build_querystring(ns_g_mctx, dbi->lookup_q);
+		querystring = build_querystring(named_g_mctx, dbi->lookup_q);
 		break;
 	default:
 		/*
@@ -340,19 +340,19 @@ mysql_get_resultset(const char *zone, const char *record,
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)
-		isc_mem_free(ns_g_mctx, dbi->zone);
+		isc_mem_free(named_g_mctx, dbi->zone);
 
 	/* free dbi->record string */
 	if (dbi->record != NULL)
-		isc_mem_free(ns_g_mctx, dbi->record);
+		isc_mem_free(named_g_mctx, dbi->record);
 
 	/* free dbi->client string */
 	if (dbi->client != NULL)
-		isc_mem_free(ns_g_mctx, dbi->client);
+		isc_mem_free(named_g_mctx, dbi->client);
 
 	/* release query string */
 	if (querystring  != NULL)
-		isc_mem_free(ns_g_mctx, querystring);
+		isc_mem_free(named_g_mctx, querystring);
 
 	/* return result */
 	return result;
@@ -427,7 +427,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 			 * allocate string memory, allow for NULL to
 			 * term string
 			 */
-			tmpString = isc_mem_allocate(ns_g_mctx, len + 1);
+			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			if (tmpString == NULL) {
 				/* major bummer, need more ram */
 				isc_log_write(dns_lctx,
@@ -464,7 +464,7 @@ mysql_process_rs(dns_sdlzlookup_t *lookup, MYSQL_RES *rs)
 			result = dns_sdlz_putrr(lookup, safeGet(row[1]),
 						ttl, tmpString);
 			/* done, get rid of this thing. */
-			isc_mem_free(ns_g_mctx, tmpString);
+			isc_mem_free(named_g_mctx, tmpString);
 		}
 		/* I sure hope we were successful */
 		if (result != ISC_R_SUCCESS) {
@@ -655,7 +655,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 				len += strlen(safeGet(row[j])) + 1;
 			}
 			/* allocate memory, allow for NULL to term string */
-			tmpString = isc_mem_allocate(ns_g_mctx, len + 1);
+			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
 			if (tmpString == NULL) {	/* we need more ram. */
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_DATABASE,
@@ -677,7 +677,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 			result = dns_sdlz_putnamedrr(allnodes, safeGet(row[2]),
 						     safeGet(row[1]),
 						     ttl, tmpString);
-			isc_mem_free(ns_g_mctx, tmpString);
+			isc_mem_free(named_g_mctx, tmpString);
 		}
 		/* if we weren't successful, log err msg */
 		if (result != ISC_R_SUCCESS) {
@@ -837,34 +837,34 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 				      "Mysql driver port "
 				      "must be a positive number.");
-			isc_mem_free(ns_g_mctx, tmp);
+			isc_mem_free(named_g_mctx, tmp);
 			result = ISC_R_FAILURE;
 			goto full_cleanup;
 		}
-		isc_mem_free(ns_g_mctx, tmp);
+		isc_mem_free(named_g_mctx, tmp);
 	}
 
 	/* how many queries were passed in from config file? */
 	switch(argc) {
 	case 4:
-		result = build_sqldbinstance(ns_g_mctx, NULL, NULL, NULL,
+		result = build_sqldbinstance(named_g_mctx, NULL, NULL, NULL,
 					     argv[2], argv[3], NULL, &dbi);
 		break;
 	case 5:
-		result = build_sqldbinstance(ns_g_mctx, NULL, NULL, argv[4],
+		result = build_sqldbinstance(named_g_mctx, NULL, NULL, argv[4],
 					     argv[2], argv[3], NULL, &dbi);
 		break;
 	case 6:
-		result = build_sqldbinstance(ns_g_mctx, argv[5], NULL, argv[4],
+		result = build_sqldbinstance(named_g_mctx, argv[5], NULL, argv[4],
 					     argv[2], argv[3], NULL, &dbi);
 		break;
 	case 7:
-		result = build_sqldbinstance(ns_g_mctx, argv[5],
+		result = build_sqldbinstance(named_g_mctx, argv[5],
 					     argv[6], argv[4],
 					     argv[2], argv[3], NULL, &dbi);
 		break;
 	case 8:
-		result = build_sqldbinstance(ns_g_mctx, argv[5],
+		result = build_sqldbinstance(named_g_mctx, argv[5],
 					     argv[6], argv[4],
 					     argv[2], argv[3], argv[7], &dbi);
 		break;
@@ -900,21 +900,21 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
 	if (tmp != NULL) {
 		if (strcasecmp(tmp, "true") == 0)
 			flags = CLIENT_COMPRESS;
-		isc_mem_free(ns_g_mctx, tmp);
+		isc_mem_free(named_g_mctx, tmp);
 	}
 
 	tmp = getParameterValue(argv[1], "ssl=");
 	if (tmp != NULL) {
 		if (strcasecmp(tmp, "true") == 0)
 			flags = flags | CLIENT_SSL;
-		isc_mem_free(ns_g_mctx, tmp);
+		isc_mem_free(named_g_mctx, tmp);
 	}
 
 	tmp = getParameterValue(argv[1], "space=");
 	if (tmp != NULL) {
 		if (strcasecmp(tmp, "ignore") == 0)
 			flags = flags | CLIENT_IGNORE_SPACE;
-		isc_mem_free(ns_g_mctx, tmp);
+		isc_mem_free(named_g_mctx, tmp);
 	}
 
 	dbc = NULL;
@@ -963,15 +963,15 @@ mysql_create(const char *dlzname, unsigned int argc, char *argv[],
  cleanup:
 
 	if (dbname != NULL)
-		isc_mem_free(ns_g_mctx, dbname);
+		isc_mem_free(named_g_mctx, dbname);
 	if (host != NULL)
-		isc_mem_free(ns_g_mctx, host);
+		isc_mem_free(named_g_mctx, host);
 	if (user != NULL)
-		isc_mem_free(ns_g_mctx, user);
+		isc_mem_free(named_g_mctx, user);
 	if (pass != NULL)
-		isc_mem_free(ns_g_mctx, pass);
+		isc_mem_free(named_g_mctx, pass);
 	if (socket != NULL)
-		isc_mem_free(ns_g_mctx, socket);
+		isc_mem_free(named_g_mctx, socket);
 
 
 	return result;
@@ -1045,7 +1045,7 @@ dlz_mysql_init(void) {
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA |
 				  DNS_SDLZFLAG_THREADSAFE,
-				  ns_g_mctx, &dlz_mysql);
+				  named_g_mctx, &dlz_mysql);
 	/* if we can't register the driver, there are big problems. */
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

@@ -1,3 +1,17 @@
+4708.   [cleanup]       Legacy Windows builds (i.e. for XP and earlier)
+                        are no longer supported. [RT #45186]
+
+4707.	[func]		The lightweight resolver daemon and library (lwresd
+			and liblwres) have been removed. [RT #45186]
+
+4706.	[func]		Code implementing name server query processing has
+			been moved from bin/named to a new library "libns".
+			Functions remaining in bin/named are now prefixed
+			with "named_" rather than "ns_".  This will make it
+			easier to write unit tests for name server code, or
+			link name server functionality into new tools.
+			[RT #45186]
+
 4705.	[placeholder]
 
 4704.	[cleanup]	Silence Visual Studio compiler warnings. [RT #45898]

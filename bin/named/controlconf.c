@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2001-2008, 2011-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2001-2008, 2011-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -79,7 +79,7 @@ struct controlconnection {
 };
 
 struct controllistener {
-	ns_controls_t *			controls;
+	named_controls_t *		controls;
 	isc_mem_t *			mctx;
 	isc_task_t *			task;
 	isc_sockaddr_t			address;
@@ -97,8 +97,8 @@ struct controllistener {
 	ISC_LINK(controllistener_t)	link;
 };
 
-struct ns_controls {
-	ns_server_t			*server;
+struct named_controls {
+	named_server_t			*server;
 	controllistenerlist_t 		listeners;
 	isc_boolean_t			shuttingdown;
 	isccc_symtab_t			*symtab;
@@ -175,7 +175,7 @@ maybe_free_connection(controlconnection_t *conn) {
 
 	ISC_LIST_UNLINK(listener->connections, conn, link);
 #ifdef ENABLE_AFL
-	if (ns_g_fuzz_type == ns_fuzz_rndc) {
+	if (named_g_fuzz_type == isc_fuzz_rndc) {
 		named_fuzz_notify();
 	}
 #endif
@@ -194,8 +194,8 @@ shutdown_listener(controllistener_t *listener) {
 
 		isc_sockaddr_format(&listener->address, socktext,
 				    sizeof(socktext));
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "stopping command channel on %s", socktext);
 		if (listener->type == isc_sockettype_unix)
 			isc_socket_cleanunix(&listener->address, ISC_TRUE);
@@ -219,14 +219,15 @@ shutdown_listener(controllistener_t *listener) {
 
 static isc_boolean_t
 address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl) {
+	dns_aclenv_t *env =
+		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 	isc_netaddr_t netaddr;
 	isc_result_t result;
 	int match;
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 
-	result = dns_acl_match(&netaddr, NULL, acl,
-			       &ns_g_server->aclenv, &match, NULL);
+	result = dns_acl_match(&netaddr, NULL, acl, env, &match, NULL);
 
 	if (result != ISC_R_SUCCESS || match <= 0)
 		return (ISC_FALSE);
@@ -288,8 +289,8 @@ control_senddone(isc_task_t *task, isc_event_t *event) {
 
 		(void)isc_socket_getpeername(sock, &peeraddr);
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "error sending command response to %s: %s",
 			      socktext, isc_result_totext(sevent->result));
 	}
@@ -311,8 +312,8 @@ log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 
 	(void)isc_socket_getpeername(ccmsg->sock, &peeraddr);
 	isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_CONTROL, ISC_LOG_ERROR,
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_CONTROL, ISC_LOG_ERROR,
 		      "invalid command from %s: %s",
 		      socktext, isc_result_totext(result));
 }
@@ -456,7 +457,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 			isc_random_get(&conn->nonce);
 		eresult = ISC_R_SUCCESS;
 	} else
-		eresult = ns_control_docommand(request, listener->readonly, &text);
+		eresult = named_control_docommand(request, listener->readonly,
+						  &text);
 
 	result = isccc_cc_createresponse(request, now, now + 60, &response);
 	if (result != ISC_R_SUCCESS)
@@ -571,7 +573,7 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	conn->buffer = NULL;
 	conn->timer = NULL;
 	isc_interval_set(&interval, 60, 0);
-	result = isc_timer_create(ns_g_timermgr, isc_timertype_once,
+	result = isc_timer_create(named_g_timermgr, isc_timertype_once,
 				  NULL, &interval, listener->task,
 				  control_timeout, conn, &conn->timer);
 	if (result != ISC_R_SUCCESS)
@@ -597,7 +599,7 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 		isc_timer_detach(&conn->timer);
 	isc_mem_put(listener->mctx, conn, sizeof(*conn));
 #ifdef ENABLE_AFL
-	if (ns_g_fuzz_type == ns_fuzz_rndc) {
+	if (named_g_fuzz_type == isc_fuzz_rndc) {
 		named_fuzz_notify();
 	}
 #endif
@@ -631,8 +633,8 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 	    !address_ok(&peeraddr, listener->acl)) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "rejected command channel message from %s",
 			      socktext);
 		isc_socket_detach(&sock);
@@ -643,8 +645,8 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "dropped command channel from %s: %s",
 			      socktext, isc_result_totext(result));
 		isc_socket_detach(&sock);
@@ -658,7 +660,7 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-controls_shutdown(ns_controls_t *controls) {
+controls_shutdown(named_controls_t *controls) {
 	controllistener_t *listener;
 	controllistener_t *next;
 
@@ -676,7 +678,7 @@ controls_shutdown(ns_controls_t *controls) {
 }
 
 void
-ns_controls_shutdown(ns_controls_t *controls) {
+named_controls_shutdown(named_controls_t *controls) {
 	controls_shutdown(controls);
 	controls->shuttingdown = ISC_TRUE;
 }
@@ -762,7 +764,7 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 
 		result = cfgkeylist_find(keylist, keyid->keyname, &keydef);
 		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 				    "couldn't find key '%s' for use with "
 				    "command channel %s",
 				    keyid->keyname, socktext);
@@ -782,10 +784,10 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			algstr = cfg_obj_asstring(algobj);
 			secretstr = cfg_obj_asstring(secretobj);
 
-			if (ns_config_getkeyalgorithm2(algstr, NULL,
-					&algtype, NULL) != ISC_R_SUCCESS)
+			if (named_config_getkeyalgorithm2(algstr, NULL,
+					  &algtype, NULL) != ISC_R_SUCCESS)
 			{
-				cfg_obj_log(control, ns_g_lctx,
+				cfg_obj_log(control, named_g_lctx,
 					    ISC_LOG_WARNING,
 					    "unsupported algorithm '%s' in "
 					    "key '%s' for use with command "
@@ -801,7 +803,8 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			result = isc_base64_decodestring(secretstr, &b);
 
 			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(keydef, ns_g_lctx, ISC_LOG_WARNING,
+				cfg_obj_log(keydef, named_g_lctx,
+					    ISC_LOG_WARNING,
 					    "secret for key '%s' on "
 					    "command channel %s: %s",
 					    keyid->keyname, socktext,
@@ -815,7 +818,8 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			keyid->secret.base = isc_mem_get(mctx,
 							 keyid->secret.length);
 			if (keyid->secret.base == NULL) {
-				cfg_obj_log(keydef, ns_g_lctx, ISC_LOG_WARNING,
+				cfg_obj_log(keydef, named_g_lctx,
+					    ISC_LOG_WARNING,
 					   "couldn't register key '%s': "
 					   "out of memory", keyid->keyname);
 				ISC_LIST_UNLINK(*keyids, keyid, link);
@@ -850,15 +854,15 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	unsigned int algtype;
 	isc_buffer_t b;
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_CONTROL, ISC_LOG_INFO,
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_CONTROL, ISC_LOG_INFO,
 		      "configuring command channel from '%s'",
-		      ns_g_keyfile);
-	if (! isc_file_exists(ns_g_keyfile))
+		      named_g_keyfile);
+	if (! isc_file_exists(named_g_keyfile))
 		return (ISC_R_FILENOTFOUND);
 
-	CHECK(cfg_parser_create(mctx, ns_g_lctx, &pctx));
-	CHECK(cfg_parse_file(pctx, ns_g_keyfile, &cfg_type_rndckey, &config));
+	CHECK(cfg_parser_create(mctx, named_g_lctx, &pctx));
+	CHECK(cfg_parse_file(pctx, named_g_keyfile, &cfg_type_rndckey, &config));
 	CHECK(cfg_map_get(config, "key", &key));
 
 	keyid = isc_mem_get(mctx, sizeof(*keyid));
@@ -873,7 +877,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	if (keyid->keyname == NULL)
 		CHECK(ISC_R_NOMEMORY);
 
-	CHECK(bind9_check_key(key, ns_g_lctx));
+	CHECK(bind9_check_key(key, named_g_lctx));
 
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);
@@ -882,9 +886,9 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	algstr = cfg_obj_asstring(algobj);
 	secretstr = cfg_obj_asstring(secretobj);
 
-	if (ns_config_getkeyalgorithm2(algstr, NULL,
-				       &algtype, NULL) != ISC_R_SUCCESS) {
-		cfg_obj_log(key, ns_g_lctx,
+	if (named_config_getkeyalgorithm2(algstr, NULL,
+					  &algtype, NULL) != ISC_R_SUCCESS) {
+		cfg_obj_log(key, named_g_lctx,
 			    ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "
 			    "key '%s' for use with command "
@@ -898,7 +902,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	result = isc_base64_decodestring(secretstr, &b);
 
 	if (result != ISC_R_SUCCESS) {
-		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "secret for key '%s' on command channel: %s",
 			    keyid->keyname, isc_result_totext(result));
 		goto cleanup;
@@ -908,7 +912,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	keyid->secret.base = isc_mem_get(mctx,
 					 keyid->secret.length);
 	if (keyid->secret.base == NULL) {
-		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			   "couldn't register key '%s': "
 			   "out of memory", keyid->keyname);
 		CHECK(ISC_R_NOMEMORY);
@@ -959,7 +963,7 @@ get_key_info(const cfg_obj_t *config, const cfg_obj_t *control,
 }
 
 static void
-update_listener(ns_controls_t *cp, controllistener_t **listenerp,
+update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		const cfg_obj_t *control, const cfg_obj_t *config,
 		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 		const char *socktext, isc_sockettype_t type)
@@ -1032,13 +1036,13 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		 * sake of avoiding this message would be too much trouble.
 		 */
 		if (control != NULL)
-			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 				    "couldn't install new keys for "
 				    "command channel %s: %s",
 				    socktext, isc_result_totext(result));
 		else
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 				      "couldn't install new keys for "
 				      "command channel %s: %s",
 				      socktext, isc_result_totext(result));
@@ -1049,7 +1053,7 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	 */
 	if (control != NULL && type == isc_sockettype_tcp) {
 		allow = cfg_tuple_get(control, "allow");
-		result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+		result = cfg_acl_fromconfig(allow, config, named_g_lctx,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else {
@@ -1070,13 +1074,13 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		dns_acl_detach(&new_acl);
 		/* XXXDCL say the old acl is still used? */
 	} else if (control != NULL)
-		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+		cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "command channel %s: %s",
 			    socktext, isc_result_totext(result));
 	else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "couldn't install new acl for "
 			      "command channel %s: %s",
 			      socktext, isc_result_totext(result));
@@ -1096,7 +1100,7 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 			listener->owner = owner;
 			listener->group = group;
 		} else if (control != NULL)
-			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 				    "couldn't update ownership/permission for "
 				    "command channel %s", socktext);
 	}
@@ -1105,7 +1109,7 @@ update_listener(ns_controls_t *cp, controllistener_t **listenerp,
 }
 
 static void
-add_listener(ns_controls_t *cp, controllistener_t **listenerp,
+add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	     const cfg_obj_t *control, const cfg_obj_t *config,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 	     const char *socktext, isc_sockettype_t type)
@@ -1146,7 +1150,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		 */
 		if (control != NULL && type == isc_sockettype_tcp) {
 			allow = cfg_tuple_get(control, "allow");
-			result = cfg_acl_fromconfig(allow, config, ns_g_lctx,
+			result = cfg_acl_fromconfig(allow, config, named_g_lctx,
 						    aclconfctx, mctx, 0,
 						    &new_acl);
 		} else {
@@ -1182,7 +1186,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 			result = get_rndckey(mctx, &listener->keys);
 
 		if (result != ISC_R_SUCCESS && control != NULL)
-			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 				    "couldn't install keys for "
 				    "command channel %s: %s",
 				    socktext, isc_result_totext(result));
@@ -1202,7 +1206,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		isc_socket_cleanunix(&listener->address, ISC_FALSE);
 
 	if (result == ISC_R_SUCCESS)
-		result = isc_socket_create(ns_g_socketmgr,
+		result = isc_socket_create(named_g_socketmgr,
 					   isc_sockaddr_pf(&listener->address),
 					   type, &listener->sock);
 	if (result == ISC_R_SUCCESS)
@@ -1234,8 +1238,8 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		result = control_accept(listener);
 
 	if (result == ISC_R_SUCCESS) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "command channel listening on %s", socktext);
 		*listenerp = listener;
 
@@ -1246,12 +1250,12 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		}
 
 		if (control != NULL)
-			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 				    "couldn't add command channel %s: %s",
 				    socktext, isc_result_totext(result));
 		else
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-				      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 				      "couldn't add command channel %s: %s",
 				      socktext, isc_result_totext(result));
 
@@ -1262,8 +1266,8 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 }
 
 isc_result_t
-ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
-		      cfg_aclconfctx_t *aclconfctx)
+named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
+			 cfg_aclconfctx_t *aclconfctx)
 {
 	controllistener_t *listener;
 	controllistenerlist_t new_listeners;
@@ -1316,14 +1320,14 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 				addr = *cfg_obj_assockaddr(obj);
 				if (isc_sockaddr_getport(&addr) == 0)
 					isc_sockaddr_setport(&addr,
-							     NS_CONTROL_PORT);
+						     NAMED_CONTROL_PORT);
 
 				isc_sockaddr_format(&addr, socktext,
 						    sizeof(socktext));
 
-				isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_CONTROL,
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_CONTROL,
 					      ISC_LOG_DEBUG(9),
 					      "processing control channel %s",
 					      socktext);
@@ -1383,9 +1387,9 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 				result = isc_sockaddr_frompath(&addr,
 						      cfg_obj_asstring(path));
 				if (result != ISC_R_SUCCESS) {
-					isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_CONTROL,
+					isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_CONTROL,
 					      ISC_LOG_DEBUG(9),
 					      "control channel '%s': %s",
 					      cfg_obj_asstring(path),
@@ -1393,9 +1397,9 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 					continue;
 				}
 
-				isc_log_write(ns_g_lctx,
-					      NS_LOGCATEGORY_GENERAL,
-					      NS_LOGMODULE_CONTROL,
+				isc_log_write(named_g_lctx,
+					      NAMED_LOGCATEGORY_GENERAL,
+					      NAMED_LOGMODULE_CONTROL,
 					      ISC_LOG_DEBUG(9),
 					      "processing control channel '%s'",
 					      cfg_obj_asstring(path));
@@ -1445,7 +1449,7 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 				isc_sockaddr_fromin6(&addr,
 						     &in6addr_loopback, 0);
 			}
-			isc_sockaddr_setport(&addr, NS_CONTROL_PORT);
+			isc_sockaddr_setport(&addr, NAMED_CONTROL_PORT);
 
 			isc_sockaddr_format(&addr, socktext, sizeof(socktext));
 
@@ -1475,7 +1479,7 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 	}
 
 	/*
-	 * ns_control_shutdown() will stop whatever is on the global
+	 * named_control_shutdown() will stop whatever is on the global
 	 * listeners list, which currently only has whatever sockaddrs
 	 * were in the previous configuration (if any) that do not
 	 * remain in the current configuration.
@@ -1492,10 +1496,10 @@ ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 }
 
 isc_result_t
-ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
+named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 	isc_mem_t *mctx = server->mctx;
 	isc_result_t result;
-	ns_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
+	named_controls_t *controls = isc_mem_get(mctx, sizeof(*controls));
 
 	if (controls == NULL)
 		return (ISC_R_NOMEMORY);
@@ -1513,8 +1517,8 @@ ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
 }
 
 void
-ns_controls_destroy(ns_controls_t **ctrlsp) {
-	ns_controls_t *controls = *ctrlsp;
+named_controls_destroy(named_controls_t **ctrlsp) {
+	named_controls_t *controls = *ctrlsp;
 
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 

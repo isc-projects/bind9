@@ -210,35 +210,35 @@ stub_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		      "Zone: %s, Name: %s IP: %s",
 		      dlzname, argv[1], argv[2], argv[3]);
 
-	cd = isc_mem_get(ns_g_mctx, sizeof(config_data_t));
+	cd = isc_mem_get(named_g_mctx, sizeof(config_data_t));
 	if ((cd) == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
 
 	memset(cd, 0, sizeof(config_data_t));
 
-	cd->myzone = isc_mem_strdup(ns_g_mctx, argv[1]);
+	cd->myzone = isc_mem_strdup(named_g_mctx, argv[1]);
 	if (cd->myzone == NULL) {
-		isc_mem_put(ns_g_mctx, cd, sizeof(config_data_t));
+		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
 		return (ISC_R_NOMEMORY);
 	}
 
-	cd->myname = isc_mem_strdup(ns_g_mctx, argv[2]);
+	cd->myname = isc_mem_strdup(named_g_mctx, argv[2]);
 	if (cd->myname == NULL) {
-		isc_mem_put(ns_g_mctx, cd, sizeof(config_data_t));
-		isc_mem_free(ns_g_mctx, cd->myzone);
+		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
+		isc_mem_free(named_g_mctx, cd->myzone);
 		return (ISC_R_NOMEMORY);
 	}
 
-	cd->myip = isc_mem_strdup(ns_g_mctx, argv[3]);
+	cd->myip = isc_mem_strdup(named_g_mctx, argv[3]);
 	if (cd->myip == NULL) {
-		isc_mem_put(ns_g_mctx, cd, sizeof(config_data_t));
-		isc_mem_free(ns_g_mctx, cd->myname);
-		isc_mem_free(ns_g_mctx, cd->myzone);
+		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
+		isc_mem_free(named_g_mctx, cd->myname);
+		isc_mem_free(named_g_mctx, cd->myzone);
 		return (ISC_R_NOMEMORY);
 	}
 
-	isc_mem_attach(ns_g_mctx, &cd->mctx);
+	isc_mem_attach(named_g_mctx, &cd->mctx);
 
 	*dbdata = cd;
 
@@ -262,9 +262,9 @@ stub_dlz_destroy(void *driverarg, void *dbdata)
 		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(2),
 		      "Unloading DLZ_stub driver.");
 
-	isc_mem_free(ns_g_mctx, cd->myzone);
-	isc_mem_free(ns_g_mctx, cd->myname);
-	isc_mem_free(ns_g_mctx, cd->myip);
+	isc_mem_free(named_g_mctx, cd->myzone);
+	isc_mem_free(named_g_mctx, cd->myname);
+	isc_mem_free(named_g_mctx, cd->myip);
 	mctx = cd->mctx;
 	isc_mem_put(mctx, cd, sizeof(config_data_t));
 	isc_mem_detach(&mctx);
@@ -304,7 +304,7 @@ dlz_stub_init(void) {
 	result = dns_sdlzregister("dlz_stub", &dlz_stub_methods, NULL,
 				  DNS_SDLZFLAG_RELATIVEOWNER |
 				  DNS_SDLZFLAG_RELATIVERDATA,
-				  ns_g_mctx, &dlz_stub);
+				  named_g_mctx, &dlz_stub);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "dns_sdlzregister() failed: %s",

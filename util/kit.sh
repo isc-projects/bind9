@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000-2004, 2007-2010, 2012-2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000-2004, 2007-2010, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -137,8 +137,8 @@ fi
 # gets accidentally resurrected.
 
 rm -rf TODO EXCLUDED conftools doc/design doc/dev doc/draft doc/expired \
-    doc/html doc/rfc doc/todo doc/private bin/lwresd doc/man doc/markdown \
-    lib/lwres/man/resolver.5 contrib/zkt/doc/rfc5011.txt \
+    doc/html doc/rfc doc/todo doc/private doc/man doc/markdown \
+    contrib/zkt/doc/rfc5011.txt \
     bin/tests/system/relay lib/cfg
 
 # Remove everything but mksymtbl.pl and bindkeys.pl from util

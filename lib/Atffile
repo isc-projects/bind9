@@ -6,4 +6,4 @@ tp: dns
 tp: irs
 tp: isc
 tp: isccfg
-tp: lwres
+tp: ns

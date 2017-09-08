@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2003-2007, 2009-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2003-2007, 2009-2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -817,6 +817,24 @@ isc__task_register(void);
  * usually do not have to care about this function: it would call
  * isc_lib_register(), which internally calls this function.
  */
+
+/*%<
+ * These functions allow unit tests to manipulate the processing
+ * of the task queue. They are not intended as part of the public API.
+ */
+#if defined(ISC_PLATFORM_USETHREADS)
+void
+isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
+
+void
+isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
+#else
+isc_boolean_t
+isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
+
+isc_result_t
+isc__taskmgr_dispatch(isc_taskmgr_t *taskmgr);
+#endif /* !ISC_PLATFORM_USETHREADS */
 
 ISC_LANG_ENDDECLS
 

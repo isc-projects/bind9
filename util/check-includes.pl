@@ -1,12 +1,10 @@
 #! /usr/bin/perl -ws
 #
-# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-# $Id$
 
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it
@@ -18,13 +16,12 @@
 # XXX many warnings should not be made unless the header will be a public file
 
 use strict;
-use vars qw($debug $isc_includes $dns_includes $lwres_includes
+use vars qw($debug $isc_includes $dns_includes
             $omapi_includes);
 
 $isc_includes =  "-Ilib/isc/include -Ilib/isc/unix/include " .
       "-Ilib/isc/pthreads/include";
 $dns_includes = "-Ilib/dns/include -Ilib/dns/sec/dst/include";
-$lwres_includes = "-Ilib/lwres/include";
 $omapi_includes = "-Ilib/omapi/include";
 
 $0 =~ s%.*/%%;
@@ -80,13 +77,12 @@ for (<>) {
   }
 
   my $nocomment = '^(?!\s+/?\*)';
-  my $lib = $file =~ /lwres/ ? "lwres" : "isc";
 
   # check use of macros without having included proper header for them.
 
-  if (/^(\U$lib\E_LANG_(BEGIN|END)DECLS)$/m &&
-      ! m%^#include <$lib/lang\.h>$%m) {
-    print "$file has $1 without <$lib/lang.h>\n";
+  if (/^(\Uisc\E_LANG_(BEGIN|END)DECLS)$/m &&
+      ! m%^#include <isc/lang\.h>$%m) {
+    print "$file has $1 without <isc/lang.h>\n";
   }
 
   if (/$nocomment.*ISC_EVENTCLASS_/m && ! m%^#include <isc/eventclass\.h>%m) {
@@ -112,7 +108,7 @@ for (<>) {
       unless $file =~ m%isc/platform.h%;
   }
 
-  if ($file !~ m%isc/magic\.h$% && $lib ne "lwres") {
+  if ($file !~ m%isc/magic\.h$%) {
     print "$file has ISC_MAGIC_VALID without <isc/magic.h>\n"
       if /$nocomment.*ISC_MAGIC_VALID/m && ! m%^#include <isc/magic.h>%m;
 
@@ -126,8 +122,8 @@ for (<>) {
   }
 
   if (/^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\([^;]*\);)/m &&
-      ! m%^#include <$lib/lang.h>%m) {
-    print "$file has declarations without <$lib/lang.h>\n";
+      ! m%^#include <isc/lang.h>%m) {
+    print "$file has declarations without <isc/lang.h>\n";
   }
 
   #
@@ -202,15 +198,15 @@ for (<>) {
       }
     }
 
-    if ($elided eq "<$lib/lang.h>") {
-      if (! /^\U$lib\E_LANG_BEGINDECLS$/m) {
-        print "$file includes <$lib/lang.h> but " .
-          	"has no \U$lib\E_LANG_BEGINDECLS\n";
-      } elsif (! /^\U$lib\E_LANG_ENDDECLS$/m) {
-        print "$file has \U$lib\E_LANG_BEGINDECLS but " .
-          	"has no \U$lib\E_LANG_ENDDECLS\n";
+    if ($elided eq "<isc/lang.h>") {
+      if (! /^\Uisc\E_LANG_BEGINDECLS$/m) {
+        print "$file includes <isc/lang.h> but " .
+          	"has no \Uisc\E_LANG_BEGINDECLS\n";
+      } elsif (! /^\Uisc\E_LANG_ENDDECLS$/m) {
+        print "$file has \Uisc\E_LANG_BEGINDECLS but " .
+          	"has no \Uisc\E_LANG_ENDDECLS\n";
       } elsif (! /^$nocomment(?!#define)[a-z].*([a-zA-Z0-9]\()/m) {
-        print "$file has <$lib/lang.h> apparently not function declarations\n";
+        print "$file has <isc/lang.h> apparently not function declarations\n";
       }
       next;
     }
@@ -289,8 +285,6 @@ compile() {
       $includes = $isc_includes;
   } elsif ($original =~ m%lib/dns/%) {
       $includes = "$isc_includes $dns_includes";
-  } elsif ($original =~ m%lib/lwres/%) {
-      $includes = $lwres_includes;
   } elsif ($original =~ m%lib/omapi/%) {
       $includes = "$isc_includes $dns_includes $omapi_includes";
   } else {
