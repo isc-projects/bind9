@@ -425,11 +425,11 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 		{
 			dns_name_init(&base, base_offsets);
 			dns_name_getlabelsequence(qname, 1, labels-1, &base);
-			key->s.qname_hash = dns_name_hashbylabel(&base,
-							ISC_FALSE);
+			key->s.qname_hash =
+				dns_name_fullhash(&base, ISC_FALSE);
 		} else {
-			key->s.qname_hash = dns_name_hashbylabel(qname,
-							ISC_FALSE);
+			key->s.qname_hash =
+				dns_name_fullhash(qname, ISC_FALSE);
 		}
 	}
 

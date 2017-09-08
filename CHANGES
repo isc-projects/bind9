@@ -1,3 +1,6 @@
+4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
+			[RT #45435]
+
 4705.   [bug]		Remove some name server statistics counters that
 			were accidentally back ported to the BIND 9.9 branch
 			in change 3938. [RT #45919]
