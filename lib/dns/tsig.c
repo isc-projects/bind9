@@ -133,16 +133,16 @@ tsigkey_free(dns_tsigkey_t *key);
 
 isc_boolean_t
 dns__tsig_algvalid(unsigned int alg) {
-	return (ISC_TF(
 #ifndef PK11_MD5_DISABLE
-		alg == DST_ALG_HMACMD5 ||
+	if (alg == DST_ALG_HMACMD5) {
+		return (ISC_TRUE);
+	}
 #endif
-		alg == DST_ALG_HMACSHA1 ||
-		alg == DST_ALG_HMACSHA224 ||
-		alg == DST_ALG_HMACSHA256 ||
-		alg == DST_ALG_HMACSHA384 ||
-		alg == DST_ALG_HMACSHA512
-	));
+	return (ISC_TF(alg == DST_ALG_HMACSHA1 ||
+		       alg == DST_ALG_HMACSHA224 ||
+		       alg == DST_ALG_HMACSHA256 ||
+		       alg == DST_ALG_HMACSHA384 ||
+		       alg == DST_ALG_HMACSHA512));
 }
 
 static void
