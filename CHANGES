@@ -1,3 +1,6 @@
+4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
+			[RT #45435]
+
 4703.	[bug]		BINDInstall.exe was missing some buffer length checks.
 			[RT #45898]
 
