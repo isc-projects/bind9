@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -22,7 +20,7 @@ CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
 		@DST_OPENSSL_INC@
 CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@
+ISCLIBS =	../../isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../libdns.@A@

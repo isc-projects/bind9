@@ -962,6 +962,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1119,6 +1120,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1371,6 +1373,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1508,7 +1519,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1661,6 +1672,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -14439,9 +14451,9 @@ done
 		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err -lresolv" \
 		    "-lgssapi" \
 		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lhx509 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lhx509 -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgss -lkrb5"
 		do
 		    # Note that this does not include $saved_libs, because
@@ -14451,9 +14463,9 @@ done
 		    # when you are trying to build with KTH in /usr/lib.
 		    if test "/usr" = "$use_gssapi"
 		    then
-			    LIBS="$TRY_LIBS"
+			    LIBS="$TRY_LIBS $ISC_OPENSSL_LIBS"
 		    else
-			    LIBS="-L$use_gssapi/lib $TRY_LIBS"
+			    LIBS="-L$use_gssapi/lib $TRY_LIBS $ISC_OPENSSL_LIBS"
 		    fi
 		    { $as_echo "$as_me:${as_lineno-$LINENO}: checking linking as $TRY_LIBS" >&5
 $as_echo_n "checking linking as $TRY_LIBS... " >&6; }
@@ -14554,7 +14566,7 @@ esac
 
 
 
-DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS $DNS_CRYPTO_LIBS"
+DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
 
 #
 # Applications linking with libdns also need to link with these libraries.

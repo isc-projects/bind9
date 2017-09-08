@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: Makefile.in,v 1.49 2009/12/05 23:31:40 each Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -22,7 +20,7 @@ CWARNINGS =
 
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
