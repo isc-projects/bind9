@@ -1,3 +1,6 @@
+4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
+			[RT #45435]
+
 4708.   [cleanup]       Legacy Windows builds (i.e. for XP and earlier)
                         are no longer supported. [RT #45186]
 
