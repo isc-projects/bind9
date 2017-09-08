@@ -2031,8 +2031,6 @@ AC_SUBST(OPENSSL_ECDSA)
 AC_SUBST(OPENSSL_ED25519)
 AC_SUBST(OPENSSL_GOST)
 
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
-
 ISC_PLATFORM_WANTAES="#undef ISC_PLATFORM_WANTAES"
 if test "yes" = "$with_aes"
 then
@@ -2087,7 +2085,7 @@ AC_MSG_CHECKING(for using OpenSSL for hash functions)
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
-	if test "$CRYPTO" = "-DOPENSSL"
+	if test "X$CRYPTO" = "X-DOPENSSL"
 	then
 		want_openssl_hash="yes"
 	else
@@ -2096,7 +2094,7 @@ then
 fi
 case $want_openssl_hash in
 	yes)
-		if test "$CRYPTO" != "-DOPENSSL"
+		if test "X$CRYPTO" != "X-DOPENSSL"
 		then
 			AC_MSG_ERROR([No OpenSSL for hash functions])
 		fi
@@ -2112,6 +2110,11 @@ esac
 AC_SUBST(ISC_PLATFORM_OPENSSLHASH)
 AC_SUBST(ISC_OPENSSL_INC)
 AC_SUBST(ISC_OPENSSL_LIBS)
+
+if test "X${ISC_OPENSSL_LIBS}" != "X${DST_OPENSSL_LIBS}"
+then
+	DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
+fi
 
 #
 # PKCS11 (aka crypto hardware) support (--with moved just after openssl)
