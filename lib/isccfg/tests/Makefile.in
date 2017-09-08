@@ -40,8 +40,8 @@ TARGETS =	parser_test@EXEEXT@
 
 parser_test@EXEEXT@: parser_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			parser_test.@O@ ${ISCCFGLIBS} ${ISCLIBS} \
-				${DNSLIBS} ${LIBS}
+			parser_test.@O@ ${ISCCFGLIBS} ${DNSLIBS} \
+		        ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

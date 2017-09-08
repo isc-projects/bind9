@@ -78,7 +78,7 @@ named-rrchecker@EXEEXT@: named-rrchecker.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="nsec3hash.@O@"; \
-	export LIBS0="${ISCLIBS} ${DNSLIBS}"; \
+	export LIBS0="${DNSLIBS} ${ISCLIBS}"; \
 	${FINALBUILDCMD}
 
 isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS}
