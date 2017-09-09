@@ -892,11 +892,14 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'n': /* dnssec */
 			FULLCHECK("dnssec");
+ dnssec:
 			if (state && lookup->edns == -1)
 				lookup->edns = 0;
 			lookup->dnssec = state;
 			break;
-		case 'o': /* domain */
+		case 'o': /* domain ... but treat "do" as synonym for dnssec */
+			if (cmd[2] == '\0')
+				goto dnssec;
 			FULLCHECK("domain");
 			if (value == NULL)
 				goto need_value;

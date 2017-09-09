@@ -444,7 +444,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The lightweight resolver daemon and library (<comand>lwresd</command>
+	  The lightweight resolver daemon and library (<command>lwresd</command>
 	  and <command>liblwres</command>) have been removed. [RT #45186]
 	</para>
       </listitem>
