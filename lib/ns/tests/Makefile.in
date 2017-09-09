@@ -20,7 +20,7 @@ CINCLUDES =	-I. -Iinclude ${NS_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
 		@DST_OPENSSL_INC@
 CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/ns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@
+ISCLIBS =	../../isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@
