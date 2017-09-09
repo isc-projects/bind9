@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: hmacmd5.c,v 1.16 2009/02/06 23:47:42 tbox Exp $ */
-
 /*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm
  * described in RFC2104.

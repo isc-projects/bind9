@@ -4,9 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -20,7 +17,6 @@ CINCLUDES =	${ISC_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-DNSLIBS =
 ISCLIBS =	../../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 DNSDEPLIBS =

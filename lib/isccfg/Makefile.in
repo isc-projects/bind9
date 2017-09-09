@@ -19,8 +19,8 @@ CINCLUDES =	-I. ${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-ISCLIBS =	../../lib/isc/libisc.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/cfg/libisccfg.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
@@ -59,8 +59,7 @@ libisccfg.la: ${OBJS}
 	 ${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libisccfg.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${DNSLIBS} ${ISCLIBS} @DNS_CRYPTO_LIBS@ \
-		${LIBS}
+		${OBJS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 timestamp: libisccfg.@A@
 	touch timestamp

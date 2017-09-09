@@ -25,8 +25,8 @@ CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 IRSLIBS =	../../lib/irs/libirs.@A@
 

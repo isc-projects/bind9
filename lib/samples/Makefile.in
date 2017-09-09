@@ -21,7 +21,7 @@ CDEFINES =	@CRYPTO@ -DVERSION=\"${VERSION}\" \
 		-DSYSCONFDIR=\"${sysconfdir}\"
 CWARNINGS =
 
-ISCLIBS =	../isc/libisc.@A@
+ISCLIBS =	../isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 DNSLIBS =	../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../isccfg/libisccfg.@A@
 IRSLIBS =	../irs/libirs.@A@

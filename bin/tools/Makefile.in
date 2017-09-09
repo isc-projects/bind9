@@ -20,8 +20,8 @@ CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ @DNS_CRYPTO_LIBS@
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
@@ -75,7 +75,7 @@ named-rrchecker@EXEEXT@: named-rrchecker.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="nsec3hash.@O@"; \
-	export LIBS0="${DNSLIBS}"; \
+	export LIBS0="${DNSLIBS} ${ISCLIBS}"; \
 	${FINALBUILDCMD}
 
 isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS}

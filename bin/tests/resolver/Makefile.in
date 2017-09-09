@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: Makefile.in,v 1.3 2011/02/03 12:18:10 tbox Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -20,7 +18,7 @@ CWARNINGS =
 
 # Note that we do not want to use libtool for libt_api
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../../lib/isc/libisc.@A@
+ISCLIBS =	../../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../../lib/isc/libisc.@A@

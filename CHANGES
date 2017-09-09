@@ -1,3 +1,6 @@
+4710.	[cleanup]	Changed the --enable-openssl-hash default to yes.
+			[RT #45019]
+
 4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
 			[RT #45435]
 

@@ -21,7 +21,7 @@ CINCLUDES =	-I. -Iinclude \
 		@DST_OPENSSL_INC@
 CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@
+ISCLIBS =	../../isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@
@@ -41,7 +41,7 @@ TARGETS =	parser_test@EXEEXT@
 parser_test@EXEEXT@: parser_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			parser_test.@O@ ${ISCCFGLIBS} ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+		        ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

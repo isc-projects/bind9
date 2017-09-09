@@ -30,7 +30,7 @@ CDEFINES =	-DUSE_MD5 @CRYPTO@ @USE_GSSAPI@ ${USE_ISC_SPNEGO}
 
 CWARNINGS =
 
-ISCLIBS =	../../lib/isc/libisc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 

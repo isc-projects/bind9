@@ -1699,7 +1699,7 @@ Optional Features:
   --enable-devpoll        use /dev/poll when available [default=yes]
   --enable-threads        enable multithreading
   --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
-  --enable-openssl-hash   use OpenSSL for hash functions [default=no]
+  --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
   --enable-openssl-version-check
                           check OpenSSL version [default=yes]
   --enable-largefile	  64-bit file support
@@ -14420,9 +14420,9 @@ done
 		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err -lresolv" \
 		    "-lgssapi" \
 		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lhx509 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lhx509 -lcrypt -lasn1 -lroken -lcom_err" \
 		    "-lgss -lkrb5"
 		do
 		    # Note that this does not include $saved_libs, because
@@ -14432,9 +14432,9 @@ done
 		    # when you are trying to build with KTH in /usr/lib.
 		    if test "/usr" = "$use_gssapi"
 		    then
-			    LIBS="$TRY_LIBS"
+			    LIBS="$TRY_LIBS $ISC_OPENSSL_LIBS"
 		    else
-			    LIBS="-L$use_gssapi/lib $TRY_LIBS"
+			    LIBS="-L$use_gssapi/lib $TRY_LIBS $ISC_OPENSSL_LIBS"
 		    fi
 		    { $as_echo "$as_me:${as_lineno-$LINENO}: checking linking as $TRY_LIBS" >&5
 $as_echo_n "checking linking as $TRY_LIBS... " >&6; }
@@ -14535,7 +14535,7 @@ esac
 
 
 
-DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS $DNS_CRYPTO_LIBS"
+DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
 
 #
 # Applications linking with libdns also need to link with these libraries.
@@ -15848,7 +15848,7 @@ fi
 if test "${enable_openssl_hash+set}" = set; then :
   enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
 else
-  want_openssl_hash="checkcc"
+  want_openssl_hash="whenossl"
 fi
 
 
@@ -16586,8 +16586,6 @@ esac
 
 
 
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
-
 ISC_PLATFORM_WANTAES="#undef ISC_PLATFORM_WANTAES"
 if test "yes" = "$with_aes"
 then
@@ -16621,13 +16619,6 @@ case $with_cc_alg in
 	sha1)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha1" >&5
 $as_echo "sha1" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
 
 $as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
 
@@ -16635,13 +16626,6 @@ $as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
 	sha256)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha256" >&5
 $as_echo "sha256" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
 
 $as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
 
@@ -16649,19 +16633,11 @@ $as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
 	aes)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: aes" >&5
 $as_echo "aes" >&6; }
-		if test "yes" != "$with_aes"
-		then
-			as_fn_error $? "\"Client Cookie wants to use unavailable AES\"" "$LINENO" 5;
-		fi
 
 $as_echo "#define AES_CC 1" >>confdefs.h
 
 		;;
 esac
-if test "checkcc" = "$want_openssl_hash"
-then
-	want_openssl_hash="no"
-fi
 
 #
 # Use OpenSSL for hash functions
@@ -16670,9 +16646,18 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
 $as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
+if test "whenossl" = "$want_openssl_hash"
+then
+	if test "X$CRYPTO" = "X-DOPENSSL"
+	then
+		want_openssl_hash="yes"
+	else
+		want_openssl_hash="no"
+	fi
+fi
 case $want_openssl_hash in
 	yes)
-		if test "$CRYPTO" != "-DOPENSSL"
+		if test "X$CRYPTO" != "X-DOPENSSL"
 		then
 			as_fn_error $? "No OpenSSL for hash functions" "$LINENO" 5
 		fi
@@ -16690,6 +16675,11 @@ esac
 
 
 
+
+if test "X${ISC_OPENSSL_LIBS}" != "X${DST_OPENSSL_LIBS}"
+then
+	DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DST_OPENSSL_LIBS"
+fi
 
 #
 # PKCS11 (aka crypto hardware) support (--with moved just after openssl)
