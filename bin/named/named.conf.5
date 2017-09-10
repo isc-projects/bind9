@@ -148,25 +148,6 @@ logging {
 .if n \{\
 .RE
 .\}
-.SH "LWRES"
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-lwres {
-	listen\-on [ port \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fIipv4_address\fR
-	    | \fIipv6_address\fR ) [ port \fIinteger\fR ] [ dscp \fIinteger\fR ]; \&.\&.\&. };
-	lwres\-clients \fIinteger\fR;
-	lwres\-tasks \fIinteger\fR;
-	ndots \fIinteger\fR;
-	search { \fIstring\fR; \&.\&.\&. };
-	view \fIstring\fR [ \fIclass\fR ];
-};
-.fi
-.if n \{\
-.RE
-.\}
 .SH "MANAGED-KEYS"
 .sp
 .if n \{\

@@ -55,8 +55,6 @@
 <dt><span class="section"><a href="Bv9ARM.ch06.html#key_statement"><span class="command"><strong>key</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch06.html#logging_grammar"><span class="command"><strong>logging</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch06.html#logging_statement"><span class="command"><strong>logging</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch06.html#lwres_grammar"><span class="command"><strong>lwres</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch06.html#lwres_statement"><span class="command"><strong>lwres</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch06.html#masters_grammar"><span class="command"><strong>masters</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch06.html#masters_statement"><span class="command"><strong>masters</strong></span> Statement Definition and
           Usage</a></span></dt>
@@ -816,17 +814,6 @@
                 <p>
                   specifies what the server logs, and where
                   the log messages are sent.
-                </p>
-              </td>
-</tr>
-<tr>
-<td>
-                <p><span class="command"><strong>lwres</strong></span></p>
-              </td>
-<td>
-                <p>
-                  configures <span class="command"><strong>named</strong></span> to
-                  also act as a light-weight resolver daemon (<span class="command"><strong>lwresd</strong></span>).
                 </p>
               </td>
 </tr>
@@ -2296,110 +2283,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         </div>
       </div>
 
-      <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="lwres_grammar"></a><span class="command"><strong>lwres</strong></span> Statement Grammar</h3></div></div></div>
-
-        <p>
-           This is the grammar of the <span class="command"><strong>lwres</strong></span>
-          statement in the <code class="filename">named.conf</code> file:
-        </p>
-
-<pre class="programlisting"><span class="command"><strong>lwres {</strong></span>
-  [ <span class="command"><strong>listen-on {</strong></span>
-    ( <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>;</strong></span> )
-      ...
-    <span class="command"><strong>};</strong></span> ]
-  [ <span class="command"><strong>view</strong></span> <em class="replaceable"><code>view_name</code></em><span class="command"><strong>;</strong></span> ]
-  [ <span class="command"><strong>search {</strong></span> <em class="replaceable"><code>domain_name</code></em> <span class="command"><strong>;</strong></span> ... <span class="command"><strong>};</strong></span> ]
-  [ <span class="command"><strong>ndots</strong></span> <em class="replaceable"><code>number</code></em><span class="command"><strong>;</strong></span> ]
-  [ <span class="command"><strong>lwres-tasks</strong></span> <em class="replaceable"><code>number</code></em><span class="command"><strong>;</strong></span> ]
-  [ <span class="command"><strong>lwres-clients</strong></span> <em class="replaceable"><code>number</code></em><span class="command"><strong>;</strong></span> ]
-<span class="command"><strong>};</strong></span>
-</pre>
-
-      </div>
-      <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="lwres_statement"></a><span class="command"><strong>lwres</strong></span> Statement Definition and Usage</h3></div></div></div>
-
-        <p>
-          The <span class="command"><strong>lwres</strong></span> statement configures the
-          name
-          server to also act as a lightweight resolver server. (See
-          <a class="xref" href="Bv9ARM.ch05.html#lwresd" title="Running a Resolver Daemon">the section called &#8220;Running a Resolver Daemon&#8221;</a>.)  There may be multiple
-          <span class="command"><strong>lwres</strong></span> statements configuring
-          lightweight resolver servers with different properties.
-        </p>
-
-        <p>
-          The <span class="command"><strong>listen-on</strong></span> statement specifies a
-          list of
-          IPv4 addresses (and ports) that this instance of a lightweight
-          resolver daemon
-          should accept requests on.  If no port is specified, port 921 is
-          used.
-          If this statement is omitted, requests will be accepted on
-          127.0.0.1,
-          port 921.
-        </p>
-
-        <p>
-          The <span class="command"><strong>view</strong></span> statement binds this
-          instance of a
-          lightweight resolver daemon to a view in the DNS namespace, so that
-          the
-          response will be constructed in the same manner as a normal DNS
-          query
-          matching this view.  If this statement is omitted, the default view
-          is
-          used, and if there is no default view, an error is triggered.
-        </p>
-
-        <p>
-          The <span class="command"><strong>search</strong></span> statement is equivalent to
-          the
-          <span class="command"><strong>search</strong></span> statement in
-          <code class="filename">/etc/resolv.conf</code>.  It provides a
-          list of domains
-          which are appended to relative names in queries.
-        </p>
-
-        <p>
-          The <span class="command"><strong>ndots</strong></span> statement is equivalent to
-          the
-          <span class="command"><strong>ndots</strong></span> statement in
-          <code class="filename">/etc/resolv.conf</code>.  It indicates the
-          minimum
-          number of dots in a relative domain name that should result in an
-          exact match lookup before search path elements are appended.
-        </p>
-        <p>
-          The <code class="option">lwres-tasks</code> statement specifies the number
-          of worker threads the lightweight resolver will dedicate to serving
-          clients.  By default the number is the same as the number of CPUs on
-          the system; this can be overridden using the <code class="option">-n</code>
-          command line option when starting the server.
-        </p>
-        <p>
-          The <code class="option">lwres-clients</code> specifies
-          the number of client objects per thread the lightweight
-          resolver should create to serve client queries.
-          By default, if the lightweight resolver runs as a part
-          of <span class="command"><strong>named</strong></span>, 256 client objects are
-          created for each task; if it runs as <span class="command"><strong>lwresd</strong></span>,
-          1024 client objects are created for each thread. The maximum
-          value is 32768; higher values will be silently ignored and
-          the maximum will be used instead.
-          Note that setting too high a value may overconsume
-          system resources.
-        </p>
-        <p>
-          The maximum number of client queries that the lightweight
-          resolver can handle at any one time equals
-          <code class="option">lwres-tasks</code> times <code class="option">lwres-clients</code>.
-        </p>
-      </div>
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="masters_grammar"></a><span class="command"><strong>masters</strong></span> Statement Grammar</h3></div></div></div>

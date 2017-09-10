@@ -35,10 +35,7 @@
 <a name="Bv9ARM.ch05"></a>Chapter 5. The <acronym class="acronym">BIND</acronym> 9 Lightweight Resolver</h1></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
-<dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch05.html#lightweight_resolver">The Lightweight Resolver Library</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#lwresd">Running a Resolver Daemon</a></span></dt>
-</dl>
+<dl class="toc"><dt><span class="section"><a href="Bv9ARM.ch05.html#lightweight_resolver">The Lightweight Resolver Library</a></span></dt></dl>
 </div>
 
     <div class="section">
@@ -64,64 +61,6 @@
         daemon process running on the local host.  These communicate using
         a simple UDP-based protocol, the "lightweight resolver protocol"
         that is distinct from and simpler than the full DNS protocol.
-      </p>
-    </div>
-    <div class="section">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="lwresd"></a>Running a Resolver Daemon</h2></div></div></div>
-
-      <p>
-        To use the lightweight resolver interface, the system must
-        run the resolver daemon <span class="command"><strong>lwresd</strong></span> or a
-        local
-        name server configured with a <span class="command"><strong>lwres</strong></span>
-        statement.
-      </p>
-
-      <p>
-        By default, applications using the lightweight resolver library will
-        make
-        UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.
-        The
-        address can be overridden by <span class="command"><strong>lwserver</strong></span>
-        lines in
-        <code class="filename">/etc/resolv.conf</code>.
-      </p>
-
-      <p>
-        The daemon currently only looks in the DNS, but in the future
-        it may use other sources such as <code class="filename">/etc/hosts</code>,
-        NIS, etc.
-      </p>
-
-      <p>
-        The <span class="command"><strong>lwresd</strong></span> daemon is essentially a
-        caching-only name server that responds to requests using the
-        lightweight
-        resolver protocol rather than the DNS protocol.  Because it needs
-        to run on each host, it is designed to require no or minimal
-        configuration.
-        Unless configured otherwise, it uses the name servers listed on
-        <span class="command"><strong>nameserver</strong></span> lines in <code class="filename">/etc/resolv.conf</code>
-        as forwarders, but is also capable of doing the resolution
-        autonomously if
-        none are specified.
-      </p>
-      <p>
-        The <span class="command"><strong>lwresd</strong></span> daemon may also be
-        configured with a
-        <code class="filename">named.conf</code> style configuration file,
-        in
-        <code class="filename">/etc/lwresd.conf</code> by default.  A name
-        server may also
-        be configured to act as a lightweight resolver daemon using the
-        <span class="command"><strong>lwres</strong></span> statement in <code class="filename">named.conf</code>.
-      </p>
-      <p>
-        The number of client queries that the <span class="command"><strong>lwresd</strong></span>
-        daemon is able to serve can be set using the
-        <code class="option">lwres-tasks</code> and <code class="option">lwres-clients</code>
-        statements in the configuration.
       </p>
     </div>
   </div>
