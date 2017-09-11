@@ -157,7 +157,10 @@ totext_nsec3(ARGS_TOTEXT) {
 	RETERR(isc_base32hexnp_totext(&sr, 1, "", target));
 	sr.length = i - j;
 
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) == 0)
+	/*
+	 * Don't leave a trailing space when there's no typemap present.
+	 */
+	if (((tctx->flags & DNS_STYLEFLAG_MULTILINE) == 0) && (sr.length > 0))
 		RETERR(str_totext(" ", target));
 
 	RETERR(typemap_totext(&sr, tctx, target));
