@@ -181,18 +181,22 @@ struct addrinfo {
 #endif
 #define gai_strerror irs_gai_strerror
 
-#endif
+int
+getaddrinfo(const char *hostname, const char *servname,
+	    const struct addrinfo *hints, struct addrinfo **res);
 
-extern int getaddrinfo (const char *name,
-			const char *service,
-			const struct addrinfo *req,
-			struct addrinfo **pai);
-extern int getnameinfo (const struct sockaddr *sa,
-			socklen_t salen, char *host,
-			socklen_t hostlen, char *serv,
-			socklen_t servlen, int flags);
-extern void freeaddrinfo (struct addrinfo *ai);
-extern const char *gai_strerror (int ecode);
+int
+getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
+	    char *host, IRS_GETNAMEINFO_BUFLEN_T hostlen,
+	    char *serv, IRS_GETNAMEINFO_BUFLEN_T servlen,
+	    IRS_GETNAMEINFO_FLAGS_T flags);
+
+void freeaddrinfo (struct addrinfo *ai);
+
+IRS_GAISTRERROR_RETURN_T
+gai_strerror(int ecode);
+
+#endif
 
 /*
  * Tell Emacs to use C mode on this file.
