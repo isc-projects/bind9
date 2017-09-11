@@ -1,3 +1,6 @@
+4711.	[test]		Some RR types were missing from genzones.sh.
+			[RT #45782]
+
 4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
 			[RT #45435]
 
