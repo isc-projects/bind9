@@ -50,7 +50,7 @@
       anything other than the changes you made to our software.
     </para>
     <para>
-      This new requirement will not affect anyone who is using BIND
+      This requirement will not affect anyone who is using BIND
       without redistributing it, nor anyone redistributing it without
       changes, therefore this change will be without consequence
       for most individuals and organizations who are using BIND.
@@ -77,103 +77,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  An error in TSIG handling could permit unauthorized zone
-	  transfers or zone updates. These flaws are disclosed in
-	  CVE-2017-3142 and CVE-2017-3143. [RT #45383]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The BIND installer on Windows used an unquoted service path,
-	  which can enable privilege escalation. This flaw is disclosed
-	  in CVE-2017-3141. [RT #45229]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  With certain RPZ configurations, a response with TTL 0
-	  could cause <command>named</command> to go into an infinite
-	  query loop. This flaw is disclosed in CVE-2017-3140.
-	  [RT #45181]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc ""</command> could trigger an assertion failure
-	  in <command>named</command>. This flaw is disclosed in
-	  (CVE-2017-3138). [RT #44924]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some chaining (i.e., type CNAME or DNAME) responses to upstream
-	  queries could trigger assertion failures. This flaw is disclosed
-	  in CVE-2017-3137. [RT #44734]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>dns64</command> with <command>break-dnssec yes;</command>
-	  can result in an assertion failure. This flaw is disclosed in
-	  CVE-2017-3136. [RT #44653]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  If a server is configured with a response policy zone (RPZ)
-	  that rewrites an answer with local data, and is also configured
-	  for DNS64 address mapping, a NULL pointer can be read
-	  triggering a server crash.  This flaw is disclosed in
-	  CVE-2017-3135. [RT #44434]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A coding error in the <option>nxdomain-redirect</option>
-	  feature could lead to an assertion failure if the redirection
-	  namespace was served from a local authoritative data source
-	  such as a local zone or a DLZ instead of via recursive
-	  lookup. This flaw is disclosed in CVE-2016-9778. [RT #43837]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could mishandle authority sections
-	  with missing RRSIGs, triggering an assertion failure. This
-	  flaw is disclosed in CVE-2016-9444. [RT #43632]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> mishandled some responses where
-	  covering RRSIG records were returned without the requested
-	  data, resulting in an assertion failure. This flaw is
-	  disclosed in CVE-2016-9147. [RT #43548]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> incorrectly tried to cache TKEY
-	  records which could trigger an assertion failure when there was
-	  a class mismatch. This flaw is disclosed in CVE-2016-9131.
-	  [RT #43522]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  It was possible to trigger assertions when processing
-	  responses containing answers of type DNAME. This flaw is
-	  disclosed in CVE-2016-8864. [RT #43465]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Added the ability to specify the maximum number of records
-	  permitted in a zone (<option>max-records #;</option>).
-	  This provides a mechanism to block overly large zone
-	  transfers, which is a potential risk with slave zones from
-	  other parties, as described in CVE-2016-6170.
-	  [RT #42143]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -181,74 +85,6 @@
 
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
-      <listitem>
-	<para>
-	  Added support for the DNS Response Policy Service (DNSRPS) API,
-	  a mechanism to allow <command>named</command> to use an external
-	  response policy provider. (One example of such a provider is
-	  "FastRPZ" from Farsight Security, Inc.) This allows the same
-	  types of policy filtering as standard RPZ, but can reduce the
-	  workload for <command>named</command>, particularly when using
-	  large and frequently-updated policy zones. It also enables
-	  <command>named</command> to share response policy providers
-	  with other DNS implementations such as Unbound.
-	</para>
-	<para>
-	  This feature is avaiable if BIND is built with
-	  <command>configure --enable-dnsrps</command>
-	  and if <command>dnsrps-enable</command> is set to "yes" in
-	  <filename>named.conf</filename>.
-	</para>
-	<para>
-	  Thanks to Vernon Schryver and Farsight Security for the
-	  contribution. [RT #43376]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Code implementing name server query processing has been moved
-	  from <command>named</command> to an external library,
-	  <command>libns</command>. This will make it easier to
-	  write unit tests for the code, or to link it into new tools.
-	  [RT #45186]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>nsupdate</command> and <command>rndc</command> now accept
-	  command line options <command>-4</command> and <command>-6</command>
-	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>nsec3hash -r</command> ("rdata order") takes arguments
-	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
-	  This makes it easier to generate an NSEC3 hash using values cut
-	  and pasted from an existing record. Thanks to Tony Finch for
-	  the contribution. [RT #45183]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Setting <command>max-journal-size</command> to
-	  <literal>default</literal> limits journal sizes to twice the
-	  size of the zone contents.  This can be overridden by setting
-	  <command>max-journal-size</command> to <literal>unlimited</literal>
-	  or to an explicit value up to 2G. Thanks to Tony Finch for
-	  the contribution. [RT #38324]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The <command>new-zones-directory</command> option allows
-	  <command>named</command> to store configuration parameters
-	  for zones added via <command>rndc addzone</command> in a
-	  location other than the working directory. Thanks to Petr
-	  Men&scaron;&iacute;k of Red Hat for the contribution.
-	  [RT #44853]
-	</para>
-      </listitem>
       <listitem>
 	<para>
 	  Many aspects of <command>named</command> have been modified
@@ -297,19 +133,6 @@
       </listitem>
       <listitem>
 	<para>
-	  The <command>dnstap-read -x</command> option prints a hex
-	  dump of the wire format DNS message encapsulated in each
-	  <command>dnstap</command> log entry. [RT #44816]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The <command>host -A</command> option returns most
-	  records for a name, but omits types RRSIG, NSEC and NSEC3.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  Several areas of code have been refactored for improved
 	  readability, maintainability, and testability:
 	</para>
@@ -331,6 +154,71 @@
 	    </para>
 	  </listitem>
 	</itemizedlist>
+      </listitem>
+      <listitem>
+	<para>
+	  Code implementing name server query processing has been moved
+	  from <command>named</command> to an external library,
+	  <command>libns</command>. This will make it easier to
+	  write unit tests for the code, or to link it into new tools.
+	  [RT #45186]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> can now synthesize NXDOMAIN responses
+	  from cached DNSSEC-verified records returned in negative or
+	  wildcard responses.  This will reduce query loads on
+	  authoritative servers for signed domains: if existing cached
+	  records can be used by the resolver to determine that a name does
+	  not exist in the authorittive domain, then no query needs to
+	  be sent.
+	</para>
+	<para>
+	  This behavior is controlled by the new
+	  <filename>named.conf</filename> option
+	  <command>synth-from-dnssec</command>.  It is enabled by
+	  default.
+	</para>
+	<para>
+	  Note: This initial implementation can only synthesize NXDOMAIN
+	  responses, from NSEC records.  Support for NODATA responses,
+	  wilcard responses, and NSEC3 records will be added soon.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The DNS Response Policy Service (DNSRPS) API, a mechanism to
+	  allow <command>named</command> to use an external response policy
+	  provider, is now supported. (One example of such a provider is
+	  "FastRPZ" from Farsight Security, Inc.) This allows the same
+	  types of policy filtering as standard RPZ, but can reduce the
+	  workload for <command>named</command>, particularly when using
+	  large and frequently-updated policy zones. It also enables
+	  <command>named</command> to share response policy providers
+	  with other DNS implementations such as Unbound.
+	</para>
+	<para>
+	  This feature is avaiable if BIND is built with
+	  <command>configure --enable-dnsrps</command>, if a DNSRPS
+	  provider is installed, and if <command>dnsrps-enable</command>
+	  is set to "yes" in <filename>named.conf</filename>. Standard
+	  built-in RPZ is used otherwise.
+	</para>
+	<para>
+	  Thanks to Vernon Schryver and Farsight Security for the
+	  contribution. [RT #43376]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Setting <command>max-journal-size</command> to
+	  <literal>default</literal> limits journal sizes to twice the
+	  size of the zone contents.  This can be overridden by setting
+	  <command>max-journal-size</command> to <literal>unlimited</literal>
+	  or to an explicit value up to 2G. Thanks to Tony Finch for
+	  the contribution. [RT #38324]
+	</para>
       </listitem>
       <listitem>
 	<para>
@@ -360,6 +248,56 @@
       </listitem>
       <listitem>
 	<para>
+	  The <option>print-time</option> option in the
+	  <option>logging</option> configuration can now take arguments
+	  <userinput>local</userinput>, <userinput>iso8601</userinput> or
+	  <userinput>iso8601-utc</userinput> to indicate the format in
+	  which the date and time should be logged. For backward
+	  compatibility, <userinput>yes</userinput> is a synonym for
+	  <userinput>local</userinput>.  [RT #42585]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>nsupdate</command> and <command>rndc</command> now accepts
+	  command line options <command>-4</command> and <command>-6</command>
+	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>nsec3hash -r</command> ("rdata order") takes arguments
+	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
+	  This makes it easier to generate an NSEC3 hash using values cut
+	  and pasted from an existing record. Thanks to Tony Finch for
+	  the contribution. [RT #45183]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>new-zones-directory</command> option allows
+	  <command>named</command> to store configuration parameters
+	  for zones added via <command>rndc addzone</command> in a
+	  location other than the working directory. Thanks to Petr
+	  Men&scaron;&iacute;k of Red Hat for the contribution.
+	  [RT #44853]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>dnstap-read -x</command> option prints a hex
+	  dump of the wire format DNS message encapsulated in each
+	  <command>dnstap</command> log entry. [RT #44816]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>host -A</command> option returns most
+	  records for a name, but omits types RRSIG, NSEC and NSEC3.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>dig +ednsopt</command> now accepts the names
 	  for EDNS options in addition to numeric values. For example,
 	  an EDNS Client-Subnet option could be sent using
@@ -380,17 +318,6 @@
 	  Added support for the EDNS Padding option (RFC 7830),
 	  which obfuscates packet size analysis when DNS queries
 	  are sent over an encrypted channel. [RT #42094]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The <option>print-time</option> option in the
-	  <option>logging</option> configuration can now take arguments
-	  <userinput>local</userinput>, <userinput>iso8601</userinput> or
-	  <userinput>iso8601-utc</userinput> to indicate the format in
-	  which the date and time should be logged. For backward
-	  compatibility, <userinput>yes</userinput> is a synonym for
-	  <userinput>local</userinput>.  [RT #42585]
 	</para>
       </listitem>
       <listitem>
@@ -422,21 +349,6 @@
 	  Query logging now includes the ECS option, if one was
 	  present in the query, in the format
 	  "[ECS <replaceable>address/source/scope</replaceable>]".
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> will now synthesize responses
-	  from cached DNSSEC-verified records.  This will reduce
-	  query loads on authoritative servers for signed domains:
-	  if existing cached records can be used to determine
-	  the answer then no query needs to be sent.
-	</para>
-	<para>
-	  This behavior is controlled by the new
-	  <filename>named.conf</filename> option
-	  <command>synth-from-dnssec</command>.  It is enabled by
-	  default.
 	</para>
       </listitem>
     </itemizedlist>
@@ -484,12 +396,11 @@
       </listitem>
       <listitem>
 	<para>
-	  Threads in <command>named</command> are now set to human-readable
-	  names to assist debugging on operating systems that support that.
-	  Threads will have names such as "isc-timer", "isc-sockmgr",
-	  "isc-worker0001", and so on. This will affect the reporting of
-	  subsidiary thread names in <command>ps</command> and
-	  <command>top</command>, but not the main thread. [RT #43234]
+	  <command>dig +sigchase</command> and related options
+	  <command>+trusted-keys</command> and <command>+topdown</command>
+	  have been removed. <command>delv</command> is now the recommended
+	  command for looking up records with DNSSEC validation.
+	  [RT #42793]
 	</para>
       </listitem>
       <listitem>
@@ -526,6 +437,16 @@
       </listitem>
       <listitem>
 	<para>
+	  Threads in <command>named</command> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <command>ps</command> and
+	  <command>top</command>, but not the main thread. [RT #43234]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  If an ACL is specified with an address prefix in which the
 	  prefix length is longer than the address portion (for example,
 	  192.0.2.1/8), it will now be treated as a fatal error during
@@ -540,15 +461,6 @@
       </listitem>
       <listitem>
 	<para>
-	  <command>dig +sigchase</command> and related options
-	  <command>+trusted-keys</command> and <command>+topdown</command>
-	  have been removed. <command>delv</command> is now the recommended
-	  command for looking up records with DNSSEC validation.
-	  [RT #42793]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  The view associated with the query is now logged unless it
 	  it is "_default/IN" or "_dnsclient/IN" when logging DNSSEC
 	  validator messages.
@@ -556,7 +468,7 @@
       </listitem>
       <listitem>
 	<para>
-	  Multiple <command>cookie-secret</command> clause are now
+	  Multiple <command>cookie-secret</command> clauses are now
 	  supported.  The first <command>cookie-secret</command> in
 	  <filename>named.conf</filename> is used to generate new
 	  server cookies.  Any others are used to accept old server
@@ -571,31 +483,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Reloading or reconfiguring <command>named</command> could
-	  fail on some platforms when LMDB was in use. [RT #45203]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Due to some incorrectly deleted code, when BIND was
-	  built with LMDB, zones that were deleted via
-	  <command>rndc delzone</command> were removed from the
-	  running server but were not removed from the new zone
-	  database, so that deletion did not persist after a
-	  server restart. This has been corrected. [RT #45185]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Semicolons are no longer escaped when printing CAA and
-	  URI records.  This may break applications that depend on the
-	  presence of the backslash before the semicolon. [RT #45216]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  AD could be set on truncated answer with no records present
-	  in the answer and authority sections. [RT #45140]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>

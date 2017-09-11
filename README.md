@@ -107,10 +107,21 @@ BIND 9.12.0 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.11 and earlier releases.  New features
 include:
 
-* `dnstap-read -x` prints a hex dump of the wire format of each logged
-  DNS message.
+* `named` and related libraries have been substantially refactored for
+  for improved query performance -- particularly on delegation heavy zones -- 
+  and for improved readability, maintainability, and testability.
+* Code implementing the name server query processing logic has been moved
+  into a new `libns` library, for easier testing and use in tools other
+  than `named`.
+* Cached, validated NSEC and other records can now be used to synthesize
+  NXDOMAIN responses.
+* The DNS Response Policy Service API (DNSRPS) is now supported.
+* Setting `max-journal-size default` now limits the size of journal files
+  to twice the size of the zone.
 * The query handling code has been substantially refactored for improved
   readability, maintainability and testability .
+* `dnstap-read -x` prints a hex dump of the wire format of each logged
+  DNS message.
 * `dnstap` output files can now be configured to roll automatically when
   reaching a given size.
 * Log file timestamps can now also be formatted in ISO 8601 (local) or ISO
@@ -119,6 +130,9 @@ include:
   timestamp as the suffix when rolling to a new file.
 * `named-checkconf -l` lists zones found in `named.conf`.
 * Added support for the EDNS Padding and Keepalive options.
+* 'new-zones-directory' option sets the location where the configuration
+  data for zones added by rndc addzone is stored
+* `named-checkconf -l` lists the zones found in `named.conf`.
 
 ### <a name="build"/> Building BIND
 
