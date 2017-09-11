@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include <isc/boolean.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #ifdef USE_DNSRPS
