@@ -27,7 +27,12 @@
 #
 # There can be any number of patterns, each associated
 # with any number of response RRs.  Each pattern is a
-# Perl regular expression.
+# Perl regular expression.  If an empty pattern ("//") is
+# received, the server will ignore all incoming queries (TCP
+# connections will still be accepted, but both UDP queries
+# and TCP queries will not be responded to).  If a non-empty
+# pattern is then received over the same control connection,
+# default behavior is restored.
 #
 # Each incoming query is converted into a string of the form
 # "qname qtype" (the printable query domain name, space,
@@ -98,6 +103,9 @@ $SIG{TERM} = \&rmpid;
 
 #my @answers = ();
 my @rules;
+my $udphandler;
+my $tcphandler;
+
 sub handleUDP {
 	my ($buf) = @_;
 	my $request;
@@ -448,8 +456,15 @@ for (;;) {
 		while (my $line = $conn->getline) {
 			chomp $line;
 			if ($line =~ m!^/(.*)/$!) {
-				$rule = { pattern => $1, answer => [] };
-				push(@rules, $rule);
+				if (length($1) == 0) {
+					$udphandler = sub { return; };
+					$tcphandler = sub { return; };
+				} else {
+					$udphandler = \&handleUDP;
+					$tcphandler = \&handleTCP;
+					$rule = { pattern => $1, answer => [] };
+					push(@rules, $rule);
+				}
 			} else {
 				push(@{$rule->{answer}},
 				     new Net::DNS::RR($line));
@@ -464,9 +479,11 @@ for (;;) {
 		printf "UDP request\n";
 		my $buf;
 		$udpsock->recv($buf, 512);
-		my $result = handleUDP($buf);
-		my $num_chars = $udpsock->send($result);
-		print "  Sent $num_chars bytes via UDP\n";	
+		my $result = &$udphandler($buf);
+		if (defined($result)) {
+			my $num_chars = $udpsock->send($result);
+			print "  Sent $num_chars bytes via UDP\n";
+		}
 	} elsif (vec($rout, fileno($tcpsock), 1)) {
 		my $conn = $tcpsock->accept;
 		my $buf;
@@ -478,12 +495,14 @@ for (;;) {
 			$n = $conn->sysread($buf, $len);
 			last unless $n == $len;
 			print "TCP request\n";
-			my $result = handleTCP($buf);
-			foreach my $response (@$result) {
-				$len = length($response);
-				$n = $conn->syswrite(pack("n", $len), 2);
-				$n = $conn->syswrite($response, $len);
-				print "    Sent: $n chars via TCP\n";
+			my $result = &$tcphandler($buf);
+			if (defined($result)) {
+				foreach my $response (@$result) {
+					$len = length($response);
+					$n = $conn->syswrite(pack("n", $len), 2);
+					$n = $conn->syswrite($response, $len);
+					print "    Sent: $n chars via TCP\n";
+				}
 			}
 		}
 		$conn->close;
