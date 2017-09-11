@@ -137,6 +137,9 @@ ATF_TC_BODY(notify_start, tc) {
 	 * handler.
 	 */
 	dns_view_attach(view, &client->view);
+	if (client->message != NULL) {
+		dns_message_destroy(&client->message);
+	}
 	client->message = nmsg;
 	nmsg = NULL;
 	client->sendcb = check_response;
