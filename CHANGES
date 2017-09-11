@@ -1,3 +1,6 @@
+4711.	[test]		Some RR types were missing from genzones.sh.
+			[RT #45782]
+
 4710.	[cleanup]	Changed the --enable-openssl-hash default to yes.
 			[RT #45019]
 
