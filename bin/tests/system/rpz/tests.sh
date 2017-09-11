@@ -1,13 +1,15 @@
+#!/bin/sh
+#
 # Copyright (C) 2011-2017  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
-
 # test response policy zones (RPZ)
+
+# touch dnsrps-off to not test with DNSRPS
+# touch dnsrps-only to not test with classic RPZ
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -22,13 +24,20 @@ ns6=$ns.6		# a forwarding server
 ns7=$ns.7		# another rewriting resolver
 
 HAVE_CORE=
+
+status=0
+
+DEBUG=
 SAVE_RESULTS=
+DNSRPS_TEST_MODE=       # "" to test with and then without DNSRPS
+ARGS=
 
-
-USAGE="$0: [-x]"
-while getopts "x" c; do
+USAGE="$0: [-xS] [-D {1,2}]"
+while getopts "xSD:" c; do
     case $c in
-	x) set -x;;
+	x) set -x; DEBUG=-x; ARGS="$ARGS -x";;
+	S) SAVE_RESULTS=-S; ARGS="$ARGS -S";;
+	D) DNSRPS_TEST_MODE="$OPTARG";;  # with or without DNSRPZ
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -48,7 +57,50 @@ comment () {
     fi
 }
 
+DNSRPSCMD=./dnsrps
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
+
+# Run the tests twice, first without DNSRPS and then with if it is available
+if [ -z "$DNSRPS_TEST_MODE" ]; then
+    if [ -e dnsrps-only ]; then
+        echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
+    else
+        echo "I:running native RPZ sub-test"
+	$SHELL ./$0 -D1 $ARGS || status=1
+    fi
+
+    if [ -e dnsrps-off ]; then
+	echo "I:'dnsrps-off' found: skipping DNSRPS sub-test"
+    else
+	echo "I:attempting to configure servers with DNSRPS..."
+	$PERL $SYSTEMTESTTOP/stop.pl .
+	$SHELL ./setup.sh -D $DEBUG
+	sed -n 's/^## /I:/p' dnsrps.conf
+	if grep '^#fail' dnsrps.conf >/dev/null; then
+	    echo "I:exit status: 1"
+	    exit 1
+	fi
+	if test -z "`grep '^#skip' dnsrps.conf`"; then
+	    echo "I:running DNSRPS sub-test"
+	    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart .
+	    $SHELL ./$0 $ARGS -D2 || status=1
+        else
+            echo "I:DNSRPS sub-test skipped"
+	fi
+    fi
+
+    echo "I:exit status: $status"
+    exit $status
+fi
+
+if test -x $DNSRPSCMD; then
+    # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
+    WAIT_CMD="$DNSRPSCMD -w 0.1"
+    TEN_SECS=100
+else
+    WAIT_CMD="sleep 1"
+    TEN_SECS=10
+fi
 
 digcmd () {
     if test "$1" = TCP; then
@@ -57,9 +109,9 @@ digcmd () {
     # Default to +noauth and @$ns3
     # Also default to -bX where X is the @value so that OS X will choose
     #	    the right IP source address.
-    digcmd_args=`echo "+noadd +time=2 +tries=1 -p 5300 $*" |	\
-	    sed -e "/@/!s/.*/& @$ns3/"				\
-		-e '/-b/!s/@\([^ ]*\)/@\1 -b\1/'		\
+    digcmd_args=`echo "+nocookie +noadd +time=2 +tries=1 -p 5300 $*" |	\
+	    sed -e "/@/!s/.*/& @$ns3/"					\
+		-e '/-b/!s/@\([^ ]*\)/@\1 -b\1/'			\
 		-e '/+n?o?auth/!s/.*/+noauth &/'`
     #echo I:dig $digcmd_args 1>&2
     $DIG $digcmd_args
@@ -69,6 +121,7 @@ digcmd () {
 GROUP_NM=
 TEST_NUM=0
 make_dignm () {
+    TEST_NUM=`expr $TEST_NUM : '\([0-9]*\).*'`	    # trim '+' characters
     TEST_NUM=`expr $TEST_NUM + 1`
     DIGNM=dig.out$GROUP_NM-$TEST_NUM
     while test -f $DIGNM; do
@@ -81,6 +134,72 @@ setret () {
     ret=1
     status=`expr $status + 1`
     echo "$*"
+}
+
+# set $SN to the SOA serial number of a zone
+# $1=domain  $2=DNS server and client IP address
+get_sn() {
+    SOA=`$DIG -p 5300 +short +norecurse soa "$1" "@$2" "-b$2"`
+    SN=`expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*'`
+    test "$SN" != "" && return
+    echo "I:no serial number from \`dig -p 5300 soa $1 @$2\` in \"$SOA\""
+    exit 1
+}
+
+get_sn_fast () {
+    RSN=`$DNSRPSCMD -n "$1"`
+    #echo "dnsrps serial for $1 is $RSN"
+    if test -z "$RSN"; then
+	echo "I:dnsrps failed to get SOA serial number for $1"
+	exit 1
+    fi
+}
+
+# check that dnsrpzd has loaded its zones
+# $1=domain  $2=DNS server IP address
+FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
+dnsrps_loaded() {
+    test "$DNSRPS_TEST_MODE" = 2 || return
+    n=0
+    for V in $FZONES; do
+	eval "$V"
+	get_sn $Z $M
+	while true; do
+	    get_sn_fast "$Z"
+	    if test "$SN" -eq "0$RSN"; then
+		#echo "$Z @$M serial=$SN"
+		break
+	    fi
+	    n=`expr $n + 1`
+	    if test "$n" -gt $TEN_SECS; then
+		echo "I:dnsrps serial for $Z is $RSN instead of $SN"
+		exit 1
+	    fi
+	    $WAIT_CMD
+	done
+    done
+}
+
+# check the serial number in an SOA to ensure that a policy zone has
+#	been (re)loaded
+# $1=serial number  $2=domain  $3=DNS server
+ck_soa() {
+    n=0
+    while true; do
+	if test "$DNSRPS_TEST_MODE" = 2; then
+	    get_sn_fast "$2"
+	    test "$RSN" -eq "$1" && return
+	else
+	    get_sn "$2" "$3"
+	    test "$SN" -eq "$1" && return
+	fi
+	n=`expr $n + 1`
+	if test "$n" -gt $TEN_SECS; then
+	    echo "I:got serial number \"$SN\" instead of \"$1\" from $2 @$3"
+	    return
+	fi
+	$WAIT_CMD
+    done
 }
 
 # (re)load the reponse policy zones with the rules in the file $TEST_FILE
@@ -118,6 +237,7 @@ restart () {
     fi
     $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns$1
     load_db
+    dnsrps_loaded
 }
 
 # $1=server and irrelevant args  $2=error message
@@ -179,6 +299,7 @@ start_group () {
     else
 	GROUP_NM=
     fi
+    dnsrps_loaded
     TEST_NUM=0
 }
 
@@ -189,6 +310,7 @@ end_group () {
 	TEST_FILE=
     fi
     ckalive $ns3 "I:failed; ns3 server crashed and restarted"
+    dnsrps_loaded
     GROUP_NM=
 }
 
@@ -257,7 +379,7 @@ addr () {
     digcmd $2 >$DIGNM
     #ckalive "$2" "I:server crashed by 'dig $2'" || return 1
     ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
-    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}	*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
+    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
     if test -z "$ADDR_TTL"; then
 	setret "I:'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
@@ -306,9 +428,6 @@ drop () {
 digcmd nonexistent @$ns2 >proto.nxdomain
 digcmd txt-only.tld2 @$ns2 >proto.nodata
 
-
-status=0
-
 start_group "QNAME rewrites" test1
 nochange .				# 1 do not crash or rewrite root
 nxdomain a0-1.tld2			# 2
@@ -353,29 +472,28 @@ ckstats $ns5 test1 ns5 1
 ckstats $ns6 test1 ns6 0
 
 start_group "NXDOMAIN/NODATA action on QNAME trigger" test1
-nxdomain a0-1.tld2 @$ns6                   # 1
-nodata a3-1.tld2 @$ns6                     # 2
-nodata a3-2.tld2 @$ns6                     # 3 nodata at DNAME itself
-nxdomain a4-2.tld2 @$ns6                   # 4 rewrite based on CNAME target
-nxdomain a4-2-cname.tld2 @$ns6             # 5
-nodata a4-3-cname.tld2 @$ns6               # 6
+nxdomain a0-1.tld2 @$ns6		   # 1
+nodata a3-1.tld2 @$ns6			   # 2
+nodata a3-2.tld2 @$ns6			   # 3 nodata at DNAME itself
+nxdomain a4-2.tld2 @$ns6		   # 4 rewrite based on CNAME target
+nxdomain a4-2-cname.tld2 @$ns6		   # 5
+nodata a4-3-cname.tld2 @$ns6		   # 6
 addr 12.12.12.12  "a4-1.sub1.tld2 @$ns6"   # 7 A replacement
 addr 12.12.12.12  "a4-1.sub2.tld2 @$ns6"   # 8 A replacement with wildcard
-addr 127.4.4.1    "a4-4.tld2 @$ns6"        # 9 prefer 1st conflicting QNAME zone
+addr 127.4.4.1    "a4-4.tld2 @$ns6"	   # 9 prefer 1st conflicting QNAME zone
 addr 12.12.12.12  "nxc1.sub1.tld2 @$ns6"   # 10 replace NXDOMAIN w/ CNAME
 addr 12.12.12.12  "nxc2.sub1.tld2 @$ns6"   # 11 replace NXDOMAIN w/ CNAME chain
-addr 127.6.2.1    "a6-2.tld2 @$ns6"        # 12
-addr 56.56.56.56  "a3-6.tld2 @$ns6"        # 13 wildcard CNAME
+addr 127.6.2.1    "a6-2.tld2 @$ns6"	   # 12
+addr 56.56.56.56  "a3-6.tld2 @$ns6"	   # 13 wildcard CNAME
 addr 57.57.57.57  "a3-7.sub1.tld2 @$ns6"   # 14 wildcard CNAME
 addr 127.0.0.16   "a4-5-cname3.tld2 @$ns6" # 15 CNAME chain
 addr 127.0.0.17   "a4-6-cname3.tld2 @$ns6" # 16 stop short in CNAME chain
-nxdomain c1.crash2.tld3 @$ns6              # 17 assert in rbtdb.c
-nxdomain a0-1.tld2 +dnssec @$ns6           # 18 simple DO=1 without sigs
+nxdomain c1.crash2.tld3 @$ns6		   # 17 assert in rbtdb.c
+nxdomain a0-1.tld2 +dnssec @$ns6	   # 18 simple DO=1 without sigs
 nxdomain a0-1s-cname.tld2s  +dnssec @$ns6  # 19
-drop a3-8.tld2 any @$ns6                   # 20 drop
-
+drop a3-8.tld2 any @$ns6		   # 20 drop
 end_group
-ckstatsrange $ns3 test1 ns3 22 28
+ckstatsrange $ns3 test1 ns3 22 30
 ckstats $ns5 test1 ns5 0
 ckstats $ns6 test1 ns6 0
 
@@ -399,25 +517,13 @@ nxdomain c2.crash2.tld3			# 16 assert in rbtdb.c
 addr 127.0.0.17 "a4-4.tld2 -b $ns1"	# 17 client-IP address trigger
 nxdomain a7-1.tld2			# 18 slave policy zone (RT34450)
 cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
-$RNDCCMD 10.53.0.2 reload bl.tld2
-goodsoa="rpz.tld2. hostmaster.ns.tld2. 2 3600 1200 604800 60"
-for i in 0 1 2 3 4 5 6 7 8 9 10
-do
-	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
-	test "$soa" = "$goodsoa" && break
-	sleep 1
-done
+$RNDCCMD $ns2 reload bl.tld2
+ck_soa 2 bl.tld2 $ns3
 nochange a7-1.tld2			# 19 PASSTHRU
-sleep 1	# ensure that a clock tick has occured so that the reload takes effect
+sleep 1	# ensure that a clock tick has occured so that named will do the reload
 cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
-goodsoa="rpz.tld2. hostmaster.ns.tld2. 3 3600 1200 604800 60"
-$RNDCCMD 10.53.0.2 reload bl.tld2
-for i in 0 1 2 3 4 5 6 7 8 9 10
-do
-	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
-	test "$soa" = "$goodsoa" && break
-	sleep 1
-done
+$RNDCCMD $ns2 reload bl.tld2
+ck_soa 3 bl.tld2 $ns3
 nxdomain a7-1.tld2			# 20 slave policy zone (RT34450)
 end_group
 ckstats $ns3 test2 ns3 12
@@ -438,47 +544,53 @@ nochange a5-1-2.tld2
 end_group
 ckstats $ns3 'radix tree deletions' ns3 0
 
-if $FEATURETEST --rpz-nsdname; then
-    # these tests assume "min-ns-dots 0"
-    start_group "NSDNAME rewrites" test3
-    nochange a3-1.tld2			# 1
-    nochange a3-1.tld2	    +dnssec	# 2 this once caused problems
-    nxdomain a3-1.sub1.tld2		# 3 NXDOMAIN *.sub1.tld2 by NSDNAME
-    nxdomain a3-1.subsub.sub1.tld2
-    nxdomain a3-1.subsub.sub1.tld2 -tany
-    addr 12.12.12.12 a4-2.subsub.sub2.tld2 # 6 walled garden for *.sub2.tld2
-    nochange a3-2.tld2.			# 7 exempt rewrite by name
-    nochange a0-1.tld2.			# 8 exempt rewrite by address block
-    addr 12.12.12.12 a4-1.tld2		# 9 prefer QNAME policy to NSDNAME
-    addr 127.0.0.1 a3-1.sub3.tld2	# 10 prefer policy for largest NSDNAME
-    addr 127.0.0.2 a3-1.subsub.sub3.tld2
-    nxdomain xxx.crash1.tld2		# 12 dns_db_detachnode() crash
-    end_group
-    ckstats $ns3 test3 ns3 7
+# these tests assume "min-ns-dots 0"
+start_group "NSDNAME rewrites" test3
+nochange a3-1.tld2			# 1
+nochange a3-1.tld2	    +dnssec	# 2 this once caused problems
+nxdomain a3-1.sub1.tld2			# 3 NXDOMAIN *.sub1.tld2 by NSDNAME
+nxdomain a3-1.subsub.sub1.tld2
+nxdomain a3-1.subsub.sub1.tld2 -tany
+addr 12.12.12.12 a4-2.subsub.sub2.tld2	# 6 walled garden for *.sub2.tld2
+nochange a3-2.tld2.			# 7 exempt rewrite by name
+nochange a0-1.tld2.			# 8 exempt rewrite by address block
+addr 12.12.12.12 a4-1.tld2		# 9 prefer QNAME policy to NSDNAME
+addr 127.0.0.1 a3-1.sub3.tld2		# 10 prefer policy for largest NSDNAME
+addr 127.0.0.2 a3-1.subsub.sub3.tld2
+nxdomain xxx.crash1.tld2		# 12 dns_db_detachnode() crash
+if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+    addr 12.12.12.12 as-ns.tld5.	# 13 qname-as-ns
+fi
+end_group
+if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+    ckstats $ns3 test3 ns3 8
 else
-    echo "I:NSDNAME not checked; named configured with --disable-rpz-nsdname"
+    ckstats $ns3 test3 ns3 7
 fi
 
-if $FEATURETEST --rpz-nsip; then
-    # these tests assume "min-ns-dots 0"
-    start_group "NSIP rewrites" test4
-    nxdomain a3-1.tld2			# 1 NXDOMAIN for all of tld2
-    nochange a3-2.tld2.			# 2 exempt rewrite by name
-    nochange a0-1.tld2.			# 3 exempt rewrite by address block
-    nochange a3-1.tld4			# 4 different NS IP address
-    end_group
+# these tests assume "min-ns-dots 0"
+start_group "NSIP rewrites" test4
+nxdomain a3-1.tld2			# 1 NXDOMAIN for all of tld2
+nochange a3-2.tld2.			# 2 exempt rewrite by name
+nochange a0-1.tld2.			# 3 exempt rewrite by address block
+nochange a3-1.tld4			# 4 different NS IP address
+if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+    addr 12.12.12.12 as-ns.tld5.	# 5 ip-as-ns
+fi
+end_group
 
-    start_group "walled garden NSIP rewrites" test4a
-    addr 41.41.41.41 a3-1.tld2		# 1 walled garden for all of tld2
-    addr 2041::41   'a3-1.tld2 AAAA'	# 2 walled garden for all of tld2
-    here a3-1.tld2 TXT <<'EOF'		# 3 text message for all of tld2
+start_group "walled garden NSIP rewrites" test4a
+addr 41.41.41.41 a3-1.tld2		# 1 walled garden for all of tld2
+addr 2041::41   'a3-1.tld2 AAAA'	# 2 walled garden for all of tld2
+here a3-1.tld2 TXT <<'EOF'		# 3 text message for all of tld2
     ;; status: NOERROR, x
     a3-1.tld2.	    x	IN	TXT   "NSIP walled garden"
 EOF
-    end_group
-    ckstats $ns3 test4 ns3 4
+end_group
+if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+    ckstats $ns3 test4 ns3 5
 else
-    echo "I:NSIP not checked; named configured with --disable-rpz-nsip"
+    ckstats $ns3 test4 ns3 4
 fi
 
 # policies in ./test5 overridden by response-policy{} in ns3/named.conf
@@ -530,7 +642,6 @@ end_group
 ckstats $ns3 bugs ns3 8
 
 
-
 # superficial test for major performance bugs
 QPERF=`sh qperf.sh`
 if test -n "$QPERF"; then
@@ -538,10 +649,10 @@ if test -n "$QPERF"; then
 	date "+I:${TS}checking performance $1"
 	# Dry run to prime everything
 	comment "before dry run $1"
+	$RNDCCMD $ns5 notrace
 	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p 5300 >/dev/null
 	comment "before real test $1"
 	PFILE="ns5/$2.perf"
-	$RNDCCMD $ns5 notrace
 	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p 5300 >$PFILE
 	comment "after test $1"
 	X=`sed -n -e 's/.*Returned *\([^ ]*:\) *\([0-9]*\) .*/\1\2/p' $PFILE \
@@ -558,7 +669,6 @@ if test -n "$QPERF"; then
     # get qps with rpz
     perf 'with RPZ' rpz 'NOERROR:2900 NXDOMAIN:100 '
     RPZ=`trim rpz`
-
     # turn off rpz and measure qps again
     echo "# RPZ off" >ns5/rpz-switch
     RNDCCMD_OUT=`$RNDCCMD $ns5 reload`
@@ -583,6 +693,27 @@ else
     echo "I:performance not checked; queryperf not available"
 fi
 
+if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+    echo "I:checking that dnsrpzd is automatically restarted"
+    OLD_PID=`cat dnsrpzd.pid`
+    $KILL "$OLD_PID"
+    n=0
+    while true; do
+	NEW_PID=`cat dnsrpzd.pid 2>/dev/null`
+	if test -n "$NEW_PID" -a "0$OLD_PID" -ne "0$NEW_PID"; then
+	    #echo "OLD_PID=$OLD_PID  NEW_PID=$NEW_PID"
+	    break;
+	fi
+	$DIG -p 5300 +short +norecurse a0-1.tld2 @$ns3 >/dev/null
+	n=`expr $n + 1`
+	if test "$n" -gt $TEN_SECS; then
+	    setret "I:dnsrpzd did not restart"
+	    break
+	fi
+	$WAIT_CMD
+    done
+fi
+
 
 # restart the main test RPZ server to see if that creates a core file
 if test -z "$HAVE_CORE"; then
@@ -604,7 +735,9 @@ $DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
 ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
 if test ${ttl:=0} -eq 0; then setret I:failed; fi
 
-echo "I:checking rpz updates/transfers with parent nodes added after children"
+
+echo "I:checking rpz updates/transfers with parent nodes added after children" \
+    | tr -d '\n'
 # regression test for RT #36272: the success condition
 # is the slave server not crashing.
 nsd() {
@@ -617,26 +750,40 @@ send
 EOF
     sleep 2
 }
-
 for i in 1 2 3 4 5; do
     nsd $ns5 add example.com.policy1. '*.example.com.policy1.'
+    echo . | tr -d '\n'
     nsd $ns5 delete example.com.policy1. '*.example.com.policy1.'
+    echo . | tr -d '\n'
 done
 for i in 1 2 3 4 5; do
     nsd $ns5 add '*.example.com.policy1.' example.com.policy1.
+    echo . | tr -d '\n'
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
+    echo . | tr -d '\n'
 done
+echo
 
-echo "I:checking that going from a empty policy zone works"
+
+echo "I:checking that going from an empty policy zone works"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
 sleep 1
 $RNDCCMD $ns7 reload policy2
 $DIG z.x.servfail -p 5300 @$ns7 > dig.out.ns7
-grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed;
+grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed
 
-echo "I:checking rpz with delegation fails correctly"
-$DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
-grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+# dnsrps does not allow NS RRs in policy zones, so this check
+# with dnsrps results in no rewriting.
+if [ "$DNSRPS_TEST_MODE" = 1 ]; then
+    echo "I:checking rpz with delegation fails correctly"
+    $DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
+    grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+fi
 
-echo "I:exit status: $status"
+[ $status -ne 0 ] && pf=fail || pf=pass
+case $DNSRPS_TEST_MODE in
+        1) echo "I:status (native RPZ sub-test): $status ($pf)";;
+        2) echo "I:status (DNSRPS sub-test): $status ($pf)";;
+    *) echo "I:invalid test mode";;
+esac
 [ $status -eq 0 ] || exit 1

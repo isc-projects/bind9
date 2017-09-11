@@ -6,6 +6,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# touch dnsrps-off to not test with DNSRPS
+
 set -e
 
 SYSTEMTESTTOP=..
@@ -13,7 +15,28 @@ SYSTEMTESTTOP=..
 
 QPERF=`$SHELL qperf.sh`
 
-$SHELL clean.sh
+USAGE="$0: [-Dx]"
+DEBUG=
+while getopts "Dx" c; do
+    case $c in
+	x) set -x; DEBUG=-x;;
+        D) TEST_DNSRPS="-D";;
+	*) echo "$USAGE" 1>&2; exit 1;;
+    esac
+done
+shift `expr $OPTIND - 1 || true`
+if test "$#" -ne 0; then
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+$SHELL clean.sh $DEBUG
+
+# decide whether to test DNSRPS
+# Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
+# and differ from dnsrpz.conf which is used by dnsrpzd.
+$SHELL ../rpz/ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
+test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
 
 # set up test policy zones.
 #   bl is the main test zone
@@ -48,9 +71,11 @@ response-policy {
 	zone "bl10"; zone "bl11"; zone "bl12"; zone "bl13"; zone "bl14";
 	zone "bl15"; zone "bl16"; zone "bl17"; zone "bl18"; zone "bl19";
     } recursive-only no
+    qname-wait-recurse no
+    nsip-enable yes
+    nsdname-enable yes
     max-policy-ttl 90
     break-dnssec yes
-    qname-wait-recurse no
     ;
 EOF
 
@@ -110,3 +135,11 @@ $PERL -e 'for ($cnt = $val = 1; $cnt <= 3000; ++$cnt) {
 cp ns2/bl.tld2.db.in ns2/bl.tld2.db
 cp ns5/empty.db.in ns5/empty.db
 cp ns5/empty.db.in ns5/policy2.db
+
+# Run dnsrpzd to get the license and prime the static policy zones
+if test -n "$TEST_DNSRPS"; then
+   DNSRPZD="`../rpz/dnsrps -p`"
+   cd ns3
+   "$DNSRPZ" -D../dnsrpzd.rpzf -S../dnsrpzd.sock -C../dnsrpzd.conf \
+             -w 0 -dddd -L stdout >./dnsrpzd.run 2>&1
+fi

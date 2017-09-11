@@ -1419,11 +1419,15 @@ static cfg_type_t cfg_type_dnstapoutput = {
  *	zone <string> [ policy (given|disabled|passthru|drop|tcp-only|
  *					nxdomain|nodata|cname <domain> ) ]
  *		      [ recursive-only yes|no ] [ log yes|no ]
- *		      [ max-policy-ttl number ] [ min-update-interval number ] ;
+ *		      [ max-policy-ttl number ]
+ *		      [ nsip-enable yes|no ] [ nsdname-enable yes|no ];
  *  } [ recursive-only yes|no ] [ max-policy-ttl number ]
  *	 [ min-update-interval number ]
  *	 [ break-dnssec yes|no ] [ min-ns-dots number ]
- *	 [ qname-wait-recurse yes|no ] ;
+ *	 [ qname-wait-recurse yes|no ]
+ *	 [ nsip-enable yes|no ] [ nsdname-enable yes|no ]
+ *	 [ dnsrps-enable yes|no ]
+ *	 [ dnsrps-options { DNSRPS configuration string } ];
  */
 
 static void
@@ -1614,6 +1618,8 @@ static cfg_tuplefielddef_t rpz_zone_fields[] = {
 	{ "min-update-interval", &cfg_type_uint32, 0 },
 	{ "policy", &cfg_type_rpz_policy, 0 },
 	{ "recursive-only", &cfg_type_boolean, 0 },
+	{ "nsip-enable", &cfg_type_boolean, 0 },
+	{ "nsdname-enable", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz_tuple = {
@@ -1635,6 +1641,16 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "nsip-wait-recurse", &cfg_type_boolean, 0 },
 	{ "qname-wait-recurse", &cfg_type_boolean, 0 },
 	{ "recursive-only", &cfg_type_boolean, 0 },
+	{ "nsip-enable", &cfg_type_boolean, 0 },
+	{ "nsdname-enable", &cfg_type_boolean, 0 },
+#ifdef USE_DNSRPS
+	{ "dnsrps-enable", &cfg_type_boolean, 0 },
+	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
+#else
+	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "dnsrps-options", &cfg_type_bracketed_text,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rpz = {
@@ -1851,6 +1867,14 @@ view_clauses[] = {
 	{ "dns64", &cfg_type_dns64, CFG_CLAUSEFLAG_MULTI },
 	{ "dns64-contact", &cfg_type_astring, 0 },
 	{ "dns64-server", &cfg_type_astring, 0 },
+#ifdef USE_DNSRPS
+	{ "dnsrps-enable", &cfg_type_boolean, 0 },
+	{ "dnsrps-options", &cfg_type_bracketed_text, 0 },
+#else
+	{ "dnsrps-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "dnsrps-options", &cfg_type_bracketed_text,
+		CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },

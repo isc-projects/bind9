@@ -25,3 +25,5 @@ example.tld5.	NS	ns
 		NS	ns1
 ns		A	10.53.0.5
 ns1		A	10.53.0.5
+
+as-ns	TXT	"rewritten with ip-as-ns and qname-as-ns"

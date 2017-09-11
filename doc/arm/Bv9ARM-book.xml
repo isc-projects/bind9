@@ -4521,7 +4521,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>log</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
-      [ <command>min-update-interval</command> <replaceable>number</replaceable> ] ;
+      [ <command>min-update-interval</command> <replaceable>number</replaceable> ]
+      [ <command>nsip-enable <replaceable>yes_or_no</replaceable> ]
+      [ <command>nsdname-enable <replaceable>yes_or_no</replaceable> ] ;
 	 ...
     <command>}</command> [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
@@ -4529,7 +4531,11 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>break-dnssec</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>min-ns-dots</command> <replaceable>number</replaceable> ]
       [ <command>nsip-wait-recurse</command> <replaceable>yes_or_no</replaceable> ]
-      [ <command>qname-wait-recurse</command> <replaceable>yes_or_no</replaceable> ] ; ]
+      [ <command>qname-wait-recurse</command> <replaceable>yes_or_no</replaceable> ]
+      [ <command>nsip-enable</command> <replaceable>yes_or_no</replaceable> ]
+      [ <command>nsdname-enable</command> <replaceable>yes_or_no</replaceable> ]
+      [ <command>dnsrps-enable</command> <replaceable>yes_or_no</replaceable> ]
+      [ <command>dnsrps-options</command> { <replaceable>parameters</replaceable> } ] ; ]
   [ <command>catalog-zones {</command>
 	<command>zone</command> <replaceable>quoted_string</replaceable>
 	  [ <option>default-masters</option> [ <command>port</command> <replaceable>ip_port</replaceable> ] [ <command>dscp</command> <replaceable>ip_dscp</replaceable> ] <command>{</command>
@@ -10212,6 +10218,9 @@ deny-answer-aliases { "example.net"; };
 		    NSIP triggers match IP addresses in A and
 		    AAAA RRsets for domains that can be checked against NSDNAME
 		    policy records.
+		    The <command>nsdname-enable</command> phrase turns NSDNAME
+		    triggers off or on for a single policy zone or all
+		    zones.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -10227,6 +10236,9 @@ deny-answer-aliases { "example.net"; };
 		    least <command>min-ns-dots</command> dots.
 		    The default value of <command>min-ns-dots</command> is
 		    1, to exclude top level domains.
+		    The <command>nsip-enable</command> phrase turns NSIP
+		    triggers off or on for a single policy zone or all
+		    zones.
 		  </para>
 		  <para>
 		    If a name server's IP address is not yet known,
@@ -10475,11 +10487,11 @@ deny-answer-aliases { "example.net"; };
 	    servers for listed names.  To prevent that information leak, by
 	    default any recursion needed for a request is done before any
 	    policy triggers are considered.  Because listed domains often
-	    have slow authoritative servers, this default behavior can cost
+	    have slow authoritative servers, this behavior can cost
 	    significant time.
-	    The <command>qname-wait-recurse no</command> option
-	    overrides that default behavior when recursion cannot
-	    change a non-error response.
+	    The <command>qname-wait-recurse yes</command> option
+	    overrides the default and enables that behavior
+	    when recursion cannot change a non-error response.
 	    The option does not affect QNAME or client-IP triggers
 	    in policy zones listed
 	    after other zones containing IP, NSIP and NSDNAME triggers, because
@@ -10491,6 +10503,42 @@ deny-answer-aliases { "example.net"; };
 	    Using this option can cause error responses such as SERVFAIL to
 	    appear to be rewritten, since no recursion is being done to
 	    discover problems at the authoritative server.
+	  </para>
+
+	  <para>
+	    The <command>dnsrps-enable yes</command> option turns on
+	    the DNS Rsponse Policy Service (DNSRPS) interface, if it has been
+	    compiled in to <command>named</command> using
+	    <command>configure --enable-dnsrps</command>.
+	  </para>
+
+	  <para>
+	    The <command>dnsrps-options</command> block provides additional
+	    RPZ configuration settings, which are passed through to the
+	    DNSRPS provider library.
+	    Multiple DNSRPS settings in an <command>dnsrps-options</command>
+	    string should be separated with semi-colons.
+	    The DNSRPS provider, librpz, is passed a configuration string
+	    consisting of the <command>dnsrps-options</command> text,
+	    concatenated with settings derived from the
+	    <command>response-policy</command> statement.
+	  </para>
+
+	  <para>
+	    Note: The <command>dnsrps-options</command> text should only include
+	    configuration settings that are specific to the DNSRPS
+	    provider.  For example, the DNSRPS provider from
+	    Farsight Security takes options such as
+	    <command>dnsrpzd-conf</command>,
+	    <command>dnsrpzd-sock</command>, and
+	    <command>dnzrpzd-args</command> (for details of these options,
+	    see the <command>librpz</command> documentation).
+	    Other RPZ configuration settings could be included in
+	    <command>dnsrps-options</command>
+	    as well, but if <command>named</command> were switched
+	    back to traditional RPZ by setting
+	    <command>dnsrps-enable</command> to "no", those options would
+	    be ignored.
 	  </para>
 
 	  <para>

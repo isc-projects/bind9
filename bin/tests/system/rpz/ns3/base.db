@@ -15,3 +15,5 @@ $TTL	300
 
 ; regression testing for some old crashes
 example.com     NS	example.org.
+
+domain.com	cname	foobar.com

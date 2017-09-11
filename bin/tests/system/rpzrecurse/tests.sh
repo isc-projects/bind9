@@ -6,11 +6,74 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# touch dnsrps-off to not test with DNSRPS
+# touch dnsrps-only to not test with classic RPZ
+
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
+
 t=0
+
+DEBUG=
+DNSRPS_TEST_MODE=	# "" to test with and then without DNSRPS
+ARGS=
+
+USAGE="$0: [-xS] [-D {1,2}]"
+while getopts "xSD:" c; do
+    case $c in
+	x) set -x; DEBUG=-x; ARGS="$ARGS -x";;
+	D) DNSRPS_TEST_MODE="$OPTARG";;		# with or without DNSRPS
+	*) echo "$USAGE" 1>&2; exit 1;;
+    esac
+done
+shift `expr $OPTIND - 1 || true`
+if test "$#" -ne 0; then
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+# really quit on control-C
+trap 'exit 1' 1 2 15
+
+
+DNSRPSCMD=../rpz/dnsrps
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
+
+# Run the tests twice, first without DNSRPS and then with if it is available
+if [ -z "$DNSRPS_TEST_MODE" ]; then
+    if [ -e dnsrps-only ]; then
+        echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
+    else
+        echo "I:running native RPZ sub-test"
+	$SHELL ./$0 -D1 $ARGS || status=1
+    fi
+
+    if [ -e dnsrps-off ]; then
+	echo "I:'dnsrps-off' found: skipping DNSRPS sub-test"
+    else
+	echo "I:attempting to configure servers with DNSRPS..."
+	$SHELL ./setup.sh -D $DEBUG
+	sed -n 's/^## /I:/p' dnsrps.conf
+	if grep '^#fail' dnsrps.conf >/dev/null; then
+	    echo "I:exit status: 1"
+	    exit 1
+	fi
+	if test -z "`grep '^#skip' dnsrps.conf`"; then
+	    $RNDCCMD 10.53.0.2 reload
+	    $RNDCCMD 10.53.0.3 reload
+	    $RNDCCMD 10.53.0.2 flush
+	    $RNDCCMD 10.53.0.3 flush
+	    echo "I:running DNSRPS sub-test"
+	    $SHELL ./$0 -D2 $ARGS || status=1
+        else
+            echo "I:DNSRPS sub-test skipped"
+	fi
+    fi
+
+    echo "I:exit status: $status"
+    exit $status
+fi
 
 # $1 = test name (such as 1a, 1b, etc. for which named.$1.conf exists)
 run_server() {
@@ -47,8 +110,8 @@ expect_norecurse() {
     t=`expr $t + 1`
     echo "I:testing $NAME doesn't recurse (${t})"
     run_query $TESTNAME $LINE || {
-        echo "I:test ${t} failed"
-        status=1
+	echo "I:test ${t} failed"
+	status=1
     }
 }
 
@@ -62,10 +125,13 @@ expect_recurse() {
     t=`expr $t + 1`
     echo "I:testing $NAME recurses (${t})"
     run_query $TESTNAME $LINE && {
-        echo "I:test ${t} failed"
-        status=1
+	echo "I:test ${t} failed"
+	status=1
     }
 }
+
+# show whether and why DNSRPS is enabled or disabled
+sed -n 's/^## /I:/p' dnsrps.conf
 
 t=`expr $t + 1`
 echo "I:testing that l1.l0 exists without RPZ (${t})"
@@ -177,6 +243,7 @@ echo "I:adding an NSDNAME policy"
 cp ns2/db.6a.00.policy.local ns2/saved.policy.local
 cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 t=`expr $t + 1`
 echo "I:running dig to follow CNAME (blocks, so runs in the background) (${t})"
@@ -185,6 +252,7 @@ sleep 1
 echo "I:removing the NSDNAME policy"
 cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 echo "I:resuming authority server"
 if [ "$CYGWIN" ]; then
@@ -198,8 +266,8 @@ for n in 1 2 3 4 5 6 7 8 9; do
     sleep 1
     [ -s dig.out.${t} ] || continue
     grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
-        echo "I:test ${t} failed"
-        status=1
+	echo "I:test ${t} failed"
+	status=1
     }
 done
 
@@ -222,6 +290,7 @@ kill -TSTP $PID
 echo "I:adding an NSDNAME policy"
 cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 t=`expr $t + 1`
 echo "I:running dig to follow CNAME (blocks, so runs in the background) (${t})"
@@ -230,6 +299,7 @@ sleep 1
 echo "I:removing the policy zone"
 cp ns2/named.default.conf ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig 2>&1 | sed 's/^/I:ns2 /'
+test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 echo "I:resuming authority server"
 if [ "$CYGWIN" ]; then
@@ -243,8 +313,8 @@ for n in 1 2 3 4 5 6 7 8 9; do
     sleep 1
     [ -s dig.out.${t} ] || continue
     grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
-        echo "I:test ${t} failed"
-        status=1
+	echo "I:test ${t} failed"
+	status=1
     }
 done
 
@@ -381,5 +451,10 @@ if test $p1 -le $p2; then ret=1; fi
 if test $ret != 0; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+[ $status -ne 0 ] && pf=fail || pf=pass
+case $DNSRPS_TEST_MODE in
+        1) echo "I:status (native RPZ sub-test): $status ($pf)";;
+        2) echo "I:status (DNSRPS sub-test): $status ($pf)";;
+    *) echo "I:invalid test mode";;
+esac
 [ $status -eq 0 ] || exit 1

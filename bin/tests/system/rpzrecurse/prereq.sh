@@ -9,13 +9,4 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-ret=0
-$FEATURETEST --rpz-nsdname || ret=1
-$FEATURETEST --rpz-nsip || ret=1
-
-if [ $ret != 0 ]; then
-    echo "I:This test requires NSIP AND NSDNAME support in RPZ." >&2
-    exit 1
-fi
-
 exec $SHELL ../testcrypto.sh

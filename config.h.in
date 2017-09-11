@@ -155,16 +155,22 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
+/* dnsrps $librpz_name */
+#undef DNSRPS_LIBRPZ_PATH
+
+/* 0=no DNSRPS 1=static link 2=dlopen() */
+#undef DNSRPS_LIB_OPEN
+
 /* Define to enable "rrset-order fixed" syntax. */
 #undef DNS_RDATASET_FIXED
 
 /* Define to enable American Fuzzy Lop test harness */
 #undef ENABLE_AFL
 
-/* Define to enable rpz-nsdname rules. */
+/* Define to enable rpz nsdname rules. */
 #undef ENABLE_RPZ_NSDNAME
 
-/* Define to enable rpz-nsip rules. */
+/* Define to enable rpz nsip rules. */
 #undef ENABLE_RPZ_NSIP
 
 /* Solaris hack to get select_large_fdset. */
@@ -530,6 +536,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN
 
+/* have __attribute__s used in librpz.h */
+#undef LIBRPZ_HAVE_ATTR
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
@@ -577,6 +586,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to use large-system tuning. */
 #undef TUNE_LARGE
+
+/* Enable DNS Response Policy Service API */
+#undef USE_DNSRPS
 
 /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
    non-blocking. */

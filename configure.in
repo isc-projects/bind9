@@ -4235,13 +4235,13 @@ esac
 # Enable response policy rewriting using NS IP addresses
 #
 AC_ARG_ENABLE(rpz-nsip,
-	[  --disable-rpz-nsip	  disable rpz-nsip rules [[default=enabled]]],
+	[  --disable-rpz-nsip	  disable rpz nsip rules [[default=enabled]]],
 			enable_nsip="$enableval",
 			enable_nsip="yes")
 case "$enable_nsip" in
 	yes)
 		AC_DEFINE(ENABLE_RPZ_NSIP, 1,
-			  [Define to enable rpz-nsip rules.])
+			  [Define to enable rpz nsip rules.])
 		;;
 	no)
 		;;
@@ -4253,19 +4253,79 @@ esac
 # Enable response policy rewriting using NS name
 #
 AC_ARG_ENABLE(rpz-nsdname,
-	[  --disable-rpz-nsdname	  disable rpz-nsdname rules [[default=enabled]]],
+	[  --disable-rpz-nsdname	  disable rpz nsdname rules [[default=enabled]]],
 			enable_nsdname="$enableval",
 			enable_nsdname="yes")
 case "$enable_nsdname" in
 	yes)
 		AC_DEFINE(ENABLE_RPZ_NSDNAME, 1,
-			  [Define to enable rpz-nsdname rules.])
+			  [Define to enable rpz nsdname rules.])
 		;;
 	no)
 		;;
 	*)
 		;;
 esac
+
+#
+# Response policy rewriting using DNS Response Policy Service (DNSRPS)
+# interface.
+#
+# DNSRPS can be compiled into BIND everywhere with a reasonably
+# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
+#
+dnsrps_avail=yes
+AC_MSG_CHECKING([for librpz __attribute__s])
+    AC_TRY_COMPILE(,[
+	extern void f(char *p __attribute__((unused)), ...)
+	__attribute__((format(printf,1,2))) __attribute__((__noreturn__));],
+    librpz_have_attr=yes
+    AC_DEFINE([LIBRPZ_HAVE_ATTR], 1, [have __attribute__s used in librpz.h])
+    AC_MSG_RESULT([yes]),
+    librpz_have_attr=no
+    AC_MSG_RESULT([no]))
+
+AC_SEARCH_LIBS(dlopen, dl)
+librpz_dl=yes
+AC_CHECK_FUNCS(dlopen dlclose dlsym,,librpz_dl=no)
+AC_ARG_ENABLE([dnsrps-dl],
+	[  --enable-dnsrps-dl	  DNS Response Policy Service delayed link [[default=$librpz_dl]]],
+	[enable_librpz_dl="$enableval"],
+	[enable_librpz_dl="$librpz_dl"])
+AC_ARG_WITH([dnsrps-libname],
+	[  --with-dnsrps-libname  DNSRPS provider library name (librpz.so)],
+        [librpz_name="$withval"], [librpz_name="librpz.so"])
+AC_ARG_WITH([dnsrps-dir],
+	[  --with-dnsrps-dir	  path to DNSRPS provider library],
+	[librpz_path="$withval/$librpz_name"], [librpz_path="$librpz_name"])
+AC_DEFINE_UNQUOTED([DNSRPS_LIBRPZ_PATH], ["$librpz_path"],
+	[dnsrps $librpz_name])
+if test "x$enable_librpz_dl" = "xyes"; then
+	dnsrps_lib_open=2
+else
+	dnsrps_lib_open=1
+	# Add librpz.so to linked libraries if we are not using dlopen()
+	AC_SEARCH_LIBS([librpz_client_create], [rpz], [],
+		[dnsrps_lib_open=0
+		 dnsrps_avail=no])
+fi
+AC_DEFINE_UNQUOTED([DNSRPS_LIB_OPEN], [$dnsrps_lib_open],
+	[0=no DNSRPS  1=static link  2=dlopen()])
+
+AC_ARG_ENABLE([dnsrps],
+	AS_HELP_STRING([--enable-dnsrps],
+		[enable DNS Response Policy Service API]),
+	[enable_dnsrps=$enableval],
+        [enable_dnsrps=no])
+if test "x$enable_dnsrps" != "xno"; then
+        if test "x$dnsrps_avail" != "xyes"; then
+                AC_MSG_ERROR([[dlopen and librpz.so needed for DNSRPS]])
+        fi
+	if test "x$dnsrps_lib_open" = "x0"; then
+		AC_MSG_ERROR([[dlopen and librpz.so needed for DNSRPS]])
+	fi
+	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
+fi
 
 #
 # Activate "filter-aaaa-on-v4/v6" or not?
@@ -5165,6 +5225,7 @@ AC_CONFIG_FILES([
 	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/pipelined/Makefile
 	bin/tests/system/rndc/Makefile
+	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
 	bin/tests/tasks/Makefile
@@ -5321,6 +5382,8 @@ report() {
         echo "    ECDSA algorithm support (--with-ecdsa)"
     test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
         echo "    EDDSA algorithm support (--with-eddsa)"
+    test "yes" = "$enable_dnsrps" && \
+        echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed" && \
         echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_filter" && \
@@ -5366,6 +5429,9 @@ report() {
             echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
+
+    test "no" = "$enable_dnsrps" && \
+        echo "    DNS Response Policy Service interface (--enable-dnsrps)"
 
     test "yes" = "$enable_fixed" || \
         echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"

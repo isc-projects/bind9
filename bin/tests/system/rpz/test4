@@ -25,4 +25,7 @@ update add  24.0.0.168.192.rpz-ip.bl	300 CNAME 24.0.0.168.192.
 ;
 ; prefer NSIP policy to NSDNAME policy
 update add  ns.tld2.rpz-nsdname.bl.	300 CNAME 10.0.0.1
+
+; ip-as-ns rewrites all of tld5
+update add  32.5.0.53.10.rpz-ip.bl.	300 A 12.12.12.12
 send

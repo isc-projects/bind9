@@ -36,4 +36,7 @@ update add  a4-1.tld2.bl.		300 A 12.12.12.12
 ; prefer policy for largest NS name
 update add  ns.sub3.tld2.rpz-nsdname.bl.	300 A	127.0.0.1
 update add  ns.subsub.sub3.tld2.rpz-nsdname.bl. 300 A	127.0.0.2
+
+; ip-as-qname rewrites all of tld5
+update add  ns.tld5.bl.			300 A 12.12.12.12
 send

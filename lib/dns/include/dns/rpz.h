@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
@@ -187,6 +185,9 @@ typedef struct dns_rpz_popt dns_rpz_popt_t;
 struct dns_rpz_popt {
 	dns_rpz_zbits_t	    no_rd_ok;
 	dns_rpz_zbits_t	    no_log;
+	dns_rpz_zbits_t	    nsip_on;
+	dns_rpz_zbits_t	    nsdname_on;
+	isc_boolean_t	    dnsrps_enabled;
 	isc_boolean_t	    break_dnssec;
 	isc_boolean_t	    qname_wait_recurse;
 	isc_boolean_t	    nsip_wait_recurse;
@@ -203,8 +204,9 @@ struct dns_rpz_zones {
 	dns_rpz_triggers_t	triggers[DNS_RPZ_MAX_ZONES];
 
 	/*
-	 * RPZ policy version number (initially 0, increases whenever
-	 * the server is reconfigured with new zones or policy)
+	 * RPZ policy version number.
+	 * It is initially 0 and it increases whenever the server is
+	 * reconfigured with new zones or policy.
 	 */
 	int			rpz_ver;
 
@@ -250,6 +252,13 @@ struct dns_rpz_zones {
 
 	dns_rpz_cidr_node_t	*cidr;
 	dns_rbt_t		*rbt;
+
+	/*
+	 * DNSRPZ librpz configuration string and handle on librpz connection
+	 */
+	char			*rps_cstr;
+	size_t			rps_cstr_size;
+	struct librpz_client	*rps_client;
 };
 
 
@@ -320,6 +329,11 @@ typedef struct {
 	int			rpz_ver;
 
 	/*
+	 * Shim db between BIND and DNRPS librpz.
+	 */
+	dns_db_t		*rpsdb;
+
+	/*
 	 * p_name: current policy owner name
 	 * r_name: recursing for this name to possible policy triggers
 	 * f_name: saved found name from before recursion
@@ -360,7 +374,8 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx,
+dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr,
+		  size_t rps_cstr_size, isc_mem_t *mctx,
 		  isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr);
 
 isc_result_t

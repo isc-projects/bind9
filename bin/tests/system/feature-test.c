@@ -35,6 +35,7 @@ usage() {
 	fprintf(stderr, "usage: feature-test <arg>\n");
 	fprintf(stderr, "args:\n");
 	fprintf(stderr, "	--edns-version\n");
+	fprintf(stderr, "	--enable-dnsrps\n");
 	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
@@ -52,6 +53,14 @@ main(int argc, char **argv) {
 	if (argc != 2) {
 		usage();
 		return (1);
+	}
+
+	if (strcmp(argv[1], "--enable-dnsrps") == 0) {
+#ifdef USE_DNSRPS
+		return (0);
+#else
+		return (1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--enable-filter-aaaa") == 0) {
