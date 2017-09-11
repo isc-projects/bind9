@@ -19,6 +19,7 @@ status=0
 n=0
 # using dig insecure mode as not testing dnssec here
 DIGOPTS="-i -p 5300"
+SENDCMD="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.4 5301"
 
 if [ -x ${DIG} ] ; then
   n=`expr $n + 1`
@@ -156,7 +157,19 @@ if [ -x ${DIG} ] ; then
 # status=`expr $status + $ret`
   
   n=`expr $n + 1`
-  echo "I:checking dig -6 -4 ($n)"
+  echo "I:checking dig preserves origin on TCP retries ($n)"
+  ret=0
+  # Ask ans4 to still accept TCP connections, but not respond to queries
+  echo "//" | $SENDCMD
+  $DIG $DIGOPTS -d +tcp @10.53.0.4 +retry=1 +time=1 +domain=bar foo > dig.out.test$n 2>&1 && ret=1
+  l=`grep "trying origin bar" dig.out.test$n | wc -l`
+  [ ${l:-0} -eq 2 ] || ret=1
+  grep "using root origin" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo "I:checking dig +ednsopt=8:00000000 (family=0, source=0, scope=0) ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 -4 -6 A a.example > dig.out.test$n 2>&1 && ret=1
   grep "only one of -4 and -6 allowed" < dig.out.test$n > /dev/null || ret=1
