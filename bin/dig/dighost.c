@@ -78,7 +78,6 @@
 #include <isccfg/namedconf.h>
 
 #include <irs/resconf.h>
-#include <irs/netdb.h>
 
 #include <bind9/getaddresses.h>
 

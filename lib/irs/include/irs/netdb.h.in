@@ -150,6 +150,51 @@ struct addrinfo {
 #define	NI_DGRAM	0x00000010
 
 /*
+ * Define to map into irs_ namespace.
+ */
+
+#define IRS_NAMESPACE
+
+#ifdef IRS_NAMESPACE
+
+/*
+ * Use our versions not the ones from the C library.
+ */
+
+#ifdef getnameinfo
+#undef getnameinfo
+#endif
+#define getnameinfo irs_getnameinfo
+
+#ifdef getaddrinfo
+#undef getaddrinfo
+#endif
+#define getaddrinfo irs_getaddrinfo
+
+#ifdef freeaddrinfo
+#undef freeaddrinfo
+#endif
+#define freeaddrinfo irs_freeaddrinfo
+
+#ifdef gai_strerror
+#undef gai_strerror
+#endif
+#define gai_strerror irs_gai_strerror
+
+#endif
+
+extern int getaddrinfo (const char *name,
+			const char *service,
+			const struct addrinfo *req,
+			struct addrinfo **pai);
+extern int getnameinfo (const struct sockaddr *sa,
+			socklen_t salen, char *host,
+			socklen_t hostlen, char *serv,
+			socklen_t servlen, int flags);
+extern void freeaddrinfo (struct addrinfo *ai);
+extern const char *gai_strerror (int ecode);
+
+/*
  * Tell Emacs to use C mode on this file.
  * Local variables:
  * mode: c

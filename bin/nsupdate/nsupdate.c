@@ -68,7 +68,6 @@
 #include <dst/dst.h>
 
 #include <irs/resconf.h>
-#include <irs/netdb.h>
 
 #ifdef GSSAPI
 #include <dst/gssapi.h>
