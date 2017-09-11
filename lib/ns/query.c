@@ -3841,7 +3841,7 @@ rpz_rewrite_ns_skip(ns_client_t *client, dns_name_t *nsname,
 }
 
 /*
- * RPZ query result types 
+ * RPZ query result types
  */
 typedef enum {
 	qresult_type_done = 0,
