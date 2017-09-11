@@ -942,6 +942,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_answer = lookold->section_answer;
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
+	looknew->origin = lookold->origin;
 	looknew->retries = lookold->retries;
 	looknew->tsigctx = NULL;
 	looknew->need_search = lookold->need_search;
@@ -3968,7 +3969,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			       newedns);
 		l->edns = newedns;
 		n = requeue_lookup(l, ISC_TRUE);
-		n->origin = query->lookup->origin;
 		if (l->trace && l->trace_root)
 			n->rdtype = l->qrdtype;
 		dns_message_destroy(&msg);
@@ -3987,7 +3987,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printf(";; Truncated, retrying in TCP mode.\n");
 		n = requeue_lookup(l, ISC_TRUE);
 		n->tcp_mode = ISC_TRUE;
-		n->origin = query->lookup->origin;
 		if (l->trace && l->trace_root)
 			n->rdtype = l->qrdtype;
 		dns_message_destroy(&msg);
@@ -4009,7 +4008,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (l->seenbadcookie)
 				n->tcp_mode = ISC_TRUE;
 			n->seenbadcookie = ISC_TRUE;
-			n->origin = query->lookup->origin;
 			if (l->trace && l->trace_root)
 				n->rdtype = l->qrdtype;
 			dns_message_destroy(&msg);

@@ -1,3 +1,6 @@
+4712.	[bug]		"dig +domain" and "dig +search" didn't retain the
+			search domain when retrying with TCP. [RT #45547]
+
 4711.	[test]		Some RR types were missing from genzones.sh.
 			[RT #45782]
 
