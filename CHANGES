@@ -16,7 +16,7 @@
 4709.	[cleanup]	Use dns_name_fullhash() to hash names for RRL.
 			[RT #45435]
 
-4708.   [cleanup]       Legacy Windows builds (i.e. for XP and earlier)
+4708.	[cleanup]	Legacy Windows builds (i.e. for XP and earlier)
 			are no longer supported. [RT #45186]
 
 4707.	[func]		The lightweight resolver daemon and library (lwresd
@@ -139,7 +139,7 @@
 
 4675.	[cleanup]	Don't use C++ keyword class. [RT #45726]
 
-4674.   [func]          "dig +sigchase", and related options "+topdown" and
+4674.	[func]		"dig +sigchase", and related options "+topdown" and
 			"+trusted-keys", have been removed. Use "delv" for
 			queries with DNSSEC validation. [RT #42793]
 
@@ -194,7 +194,7 @@
 4660.	[bug]		Remove spurious "peer" from Windows socket log
 			messages. [RT #45617]
 
-4659.   [bug]           Remove spurious log message about lmdb-mapsize
+4659.	[bug]		Remove spurious log message about lmdb-mapsize
 			not being supported when parsing builtin
 			configuration file. [RT #45618]
 
