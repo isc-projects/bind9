@@ -3177,7 +3177,7 @@
 ./doc/arm/Bv9ARM.ch13.html			X	2015,2016,2017
 ./doc/arm/Bv9ARM.conf				X	2015
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./doc/arm/Bv9ARM.pdf				X	2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007,2009,2012,2014,2015,2016
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004,2015,2016
 ./doc/arm/catz.xml				SGML	2016
@@ -3229,7 +3229,7 @@
 ./doc/arm/notes-wrapper.xml			SGML	2014,2015,2016
 ./doc/arm/notes.conf				X	2015
 ./doc/arm/notes.html				X	2014,2015,2016,2017
-./doc/arm/notes.pdf				X	2014,2015,2016
+./doc/arm/notes.pdf				X	2014,2015,2016,2017
 ./doc/arm/notes.xml				SGML	2014,2015,2016,2017
 ./doc/arm/noteversion.xml.in			SGML	2015,2016
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015,2016
