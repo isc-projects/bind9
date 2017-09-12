@@ -750,5 +750,25 @@ grep "flags: qr aa tc; QUERY: 1, ANSWER: 0, AUTHORITY: 0" dig.out.$n > /dev/null
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I: check that the resolver accepts a reply with empty question section with TC=1 and retries over TCP ($n)"
+ret=0
+$DIG @10.53.0.5 -p 5300 truncated.no-questions. a > dig.ns5.out.${n} || ret=1
+grep "status: NOERROR" dig.ns5.out.${n} > /dev/null || ret=1
+grep "ANSWER: 1," dig.ns5.out.${n} > /dev/null || ret=1
+grep "1.2.3.4" dig.ns5.out.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check that the resolver rejects a reply with empty question section with TC=0 ($n)"
+ret=0
+$DIG @10.53.0.5 -p 5300 not-truncated.no-questions. a > dig.ns5.out.${n} || ret=1
+grep "status: NOERROR" dig.ns5.out.${n} > /dev/null && ret=1
+grep "ANSWER: 1," dig.ns5.out.${n} > /dev/null && ret=1
+grep "1.2.3.4" dig.ns5.out.${n} > /dev/null && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
