@@ -649,7 +649,12 @@ version(void) {
 
 static void
 setoption(char *opt) {
-	if (strncasecmp(opt, "all", 3) == 0) {
+	size_t l = strlen(opt);
+
+#define CHECKOPT(A, N) \
+	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
+
+	if (CHECKOPT("all", 3) == 0) {
 		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
@@ -703,43 +708,43 @@ setoption(char *opt) {
 		set_timeout(&opt[8]);
 	} else if (strncasecmp(opt, "t=", 2) == 0) {
 		set_timeout(&opt[2]);
-	} else if (strncasecmp(opt, "rec", 3) == 0) {
+	} else if (CHECKOPT("recurse", 3)) {
 		recurse = ISC_TRUE;
-	} else if (strncasecmp(opt, "norec", 5) == 0) {
+	} else if (CHECKOPT("norecurse", 5)) {
 		recurse = ISC_FALSE;
 	} else if (strncasecmp(opt, "retry=", 6) == 0) {
 		set_tries(&opt[6]);
 	} else if (strncasecmp(opt, "ret=", 4) == 0) {
 		set_tries(&opt[4]);
-	} else if (strncasecmp(opt, "def", 3) == 0) {
+	} else if (CHECKOPT("defname", 3)) {
 		usesearch = ISC_TRUE;
-	} else if (strncasecmp(opt, "nodef", 5) == 0) {
+	} else if (CHECKOPT("nodefname", 5)) {
 		usesearch = ISC_FALSE;
-	} else if (strncasecmp(opt, "vc", 3) == 0) {
+	} else if (CHECKOPT("vc", 2) == 0) {
 		tcpmode = ISC_TRUE;
 		tcpmode_set = ISC_TRUE;
-	} else if (strncasecmp(opt, "novc", 5) == 0) {
+	} else if (CHECKOPT("novc", 4) == 0) {
 		tcpmode = ISC_FALSE;
 		tcpmode_set = ISC_TRUE;
-	} else if (strncasecmp(opt, "deb", 3) == 0) {
+	} else if (CHECKOPT("debug", 3) == 0) {
 		short_form = ISC_FALSE;
 		showsearch = ISC_TRUE;
-	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
+	} else if (CHECKOPT("nodebug", 5) == 0) {
 		short_form = ISC_TRUE;
 		showsearch = ISC_FALSE;
-	} else if (strncasecmp(opt, "d2", 2) == 0) {
+	} else if (CHECKOPT("d2", 2) == 0) {
 		debugging = ISC_TRUE;
-	} else if (strncasecmp(opt, "nod2", 4) == 0) {
+	} else if (CHECKOPT("nod2", 4) == 0) {
 		debugging = ISC_FALSE;
-	} else if (strncasecmp(opt, "search", 3) == 0) {
+	} else if (CHECKOPT("search", 3) == 0) {
 		usesearch = ISC_TRUE;
-	} else if (strncasecmp(opt, "nosearch", 5) == 0) {
+	} else if (CHECKOPT("nosearch", 5) == 0) {
 		usesearch = ISC_FALSE;
-	} else if (strncasecmp(opt, "sil", 3) == 0) {
+	} else if (CHECKOPT("sil", 3) == 0) {
 		/* deprecation_msg = ISC_FALSE; */
-	} else if (strncasecmp(opt, "fail", 3) == 0) {
+	} else if (CHECKOPT("fail", 3) == 0) {
 		nofail=ISC_FALSE;
-	} else if (strncasecmp(opt, "nofail", 3) == 0) {
+	} else if (CHECKOPT("nofail", 5) == 0) {
 		nofail=ISC_TRUE;
 	} else if (strncasecmp(opt, "ndots=", 6) == 0) {
 		set_ndots(&opt[6]);

@@ -1720,13 +1720,13 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		addcount_n = ntohs(addcount);
 		addcount = htons((isc_uint16_t)(addcount_n - 1));
 		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
-	}
 
-	/*
-	 * Put in the original id.
-	 */
-	/* XXX Can TCP transfers be forwarded?  How would that work? */
-	if (has_tsig) {
+		/*
+		 * Put in the original id.
+		 *
+		 * XXX Can TCP transfers be forwarded?  How would that
+		 * work?
+		 */
 		id = htons(tsig.originalid);
 		memmove(&header[0], &id, 2);
 	}

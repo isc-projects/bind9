@@ -868,6 +868,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 	file_header_t *header;
 	dns_rbt_t *rbt = NULL;
 	isc_uint64_t crc;
+	unsigned int host_big_endian;
 
 	REQUIRE(originp == NULL || *originp == NULL);
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
@@ -897,7 +898,9 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 		result = ISC_R_INVALIDFILE;
 		goto cleanup;
 	}
-	if (header->bigendian != (1 == htonl(1)) ? 1 : 0) {
+
+	host_big_endian = (1 == htonl(1));
+	if (header->bigendian != host_big_endian) {
 		result = ISC_R_INVALIDFILE;
 		goto cleanup;
 	}
