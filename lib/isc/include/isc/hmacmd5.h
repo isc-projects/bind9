@@ -33,7 +33,7 @@
 
 typedef struct {
 	HMAC_CTX *ctx;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	HMAC_CTX _ctx;
 #endif
 } isc_hmacmd5_t;

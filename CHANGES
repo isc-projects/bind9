@@ -1,3 +1,6 @@
+4714.	[port]		openbsd/libressl: add support for building with
+			--enable-openssl-hash. [RT #45982]
+
 4712.	[bug]		"dig +domain" and "dig +search" didn't retain the
 			search domain when retrying with TCP. [RT #45547]
 

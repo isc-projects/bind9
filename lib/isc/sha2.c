@@ -60,7 +60,7 @@
 #include <pk11/pk11.h>
 #endif
 
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if defined(ISC_PLATFORM_OPENSSLHASH) && !defined(LIBRESSL_VERSION_NUMBER)
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define EVP_MD_CTX_new() &(context->_ctx)
 #define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
@@ -1606,7 +1606,7 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if defined(ISC_PLATFORM_OPENSSLHASH) && !defined(LIBRESSL_VERSION_NUMBER)
 		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
@@ -1647,7 +1647,7 @@ isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if defined(ISC_PLATFORM_OPENSSLHASH) && !defined(LIBRESSL_VERSION_NUMBER)
 		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
@@ -1688,7 +1688,7 @@ isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if defined(ISC_PLATFORM_OPENSSLHASH) && !defined(LIBRESSL_VERSION_NUMBER)
 		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
@@ -1729,7 +1729,7 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 		}
 		*buffer = (char)0;
 	} else {
-#ifdef ISC_PLATFORM_OPENSSLHASH
+#if defined(ISC_PLATFORM_OPENSSLHASH) && !defined(LIBRESSL_VERSION_NUMBER)
 		EVP_MD_CTX_reset(context->ctx);
 #elif PKCS11CRYPTO
 		pk11_return_session(context);
