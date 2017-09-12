@@ -4522,8 +4522,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       [ <command>log</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
       [ <command>min-update-interval</command> <replaceable>number</replaceable> ]
-      [ <command>nsip-enable <replaceable>yes_or_no</replaceable> ]
-      [ <command>nsdname-enable <replaceable>yes_or_no</replaceable> ] ;
+      [ <command>nsip-enable</command> <replaceable>yes_or_no</replaceable> ]
+      [ <command>nsdname-enable</command> <replaceable>yes_or_no</replaceable> ] ;
 	 ...
     <command>}</command> [ <command>recursive-only</command> <replaceable>yes_or_no</replaceable> ]
       [ <command>max-policy-ttl</command> <replaceable>number</replaceable> ]
