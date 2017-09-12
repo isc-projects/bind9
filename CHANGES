@@ -1,3 +1,6 @@
+4714.	[port]		openbsd/libressl: add support for building with
+			--enable-openssl-hash. [RT #45982]
+
 	--- 9.12.0a1 released ---
 
 4713.	[func]		Added support for the DNS Response Policy Service
