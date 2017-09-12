@@ -43,7 +43,7 @@
 #include <named/main.h>
 #include <named/os.h>
 #ifdef HAVE_LIBSCF
-#include <named/named_smf_globals.h>
+#include <named/smf_globals.h>
 #endif
 
 static char *pidfile = NULL;
