@@ -1,10 +1,10 @@
+	--- 9.12.0a1 released ---
+
 4715.	[bug]		TreeMemMax was mis-identified as a second HeapMemMax
 			in the Json cache statistics. [RT #45980]
 
 4714.	[port]		openbsd/libressl: add support for building with
 			--enable-openssl-hash. [RT #45982]
-
-	--- 9.12.0a1 released ---
 
 4713.	[func]		Added support for the DNS Response Policy Service
 			(DNSRPS) API, which allows named to use an external
