@@ -1,3 +1,5 @@
+4719.	[bug]		Address PVS static analyzer warnings. [RT #45946]
+
 4717.	[bug]		Treat replies with QCOUNT=0 as truncated if TC=1,
 			FORMERR if TC=0, and log the error correctly.
 			[RT #45836]
