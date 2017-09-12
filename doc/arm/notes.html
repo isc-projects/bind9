@@ -1,0 +1,527 @@
+<!--
+ - 
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+-->
+<!-- $Id$ -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title></title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article">
+
+  <div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="id-1.2"></a>Release Notes for BIND Version 9.12.0-pre-alpha</h2></div></div></div>
+  
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_intro"></a>Introduction</h3></div></div></div>
+    <p>
+      BIND 9.12.0 is a new feature release of BIND, still under development.
+      This document summarizes new features and functional changes that
+      have been introduced on this branch.  With each development
+      release leading up to the final BIND 9.12.0 release, this document
+      will be updated with additional features added and bugs fixed.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_download"></a>Download</h3></div></div></div>
+    <p>
+      The latest versions of BIND 9 software can always be found at
+      <a class="link" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
+      There you will find additional information about each release,
+      source code, and pre-compiled versions for Microsoft Windows
+      operating systems.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_license"></a>License Change</h3></div></div></div>
+    <p>
+      With the release of BIND 9.11.0, ISC changed to the open
+      source license for BIND from the ISC license to the Mozilla
+      Public License (MPL 2.0).
+    </p>
+    <p>
+      The MPL-2.0 license requires that if you make changes to
+      licensed software (e.g. BIND) and distribute them outside
+      your organization, that you publish those changes under that
+      same license. It does not require that you publish or disclose
+      anything other than the changes you made to our software.
+    </p>
+    <p>
+      This requirement will not affect anyone who is using BIND
+      without redistributing it, nor anyone redistributing it without
+      changes, therefore this change will be without consequence
+      for most individuals and organizations who are using BIND.
+    </p>
+    <p>
+      Those unsure whether or not the license change affects their
+      use of BIND, or who wish to discuss how to comply with the
+      license may contact ISC at <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
+      https://www.isc.org/mission/contact/</a>.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="win_support"></a>Windows XP No Longer Supported</h3></div></div></div>
+    <p>
+      As of BIND 9.11.2, Windows XP is no longer a supported platform for
+      BIND, and Windows XP binaries are no longer available for download
+      from ISC.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  None.
+	</p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_features"></a>New Features</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  Many aspects of <span class="command"><strong>named</strong></span> have been modified
+	  to improve query performance, and in particular, performance
+	  for delegation-heavy zones:
+	</p>
+	<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem">
+	    <p>
+	      The additional cache ("acache") was found not to
+	      significantly improve performance and has been removed;
+	      the <span class="command"><strong>acache-enable</strong></span> and
+	      <span class="command"><strong>acache-cleaning-interval</strong></span> options are now
+	      deprecated.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      In place of the acache, <span class="command"><strong>named</strong></span> can now use
+	      a glue cache to speed up retrieval of glue records when sending
+	      delegation responses.  Unlike acache, this feature is on by
+	      default; use <span class="command"><strong>glue-cache no;</strong></span> to disable it.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      The <span class="command"><strong>additional-from-cache</strong></span>
+	      and <span class="command"><strong>additional-from-auth</strong></span> options have been
+	      deprecated.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      <span class="command"><strong>minimal-responses</strong></span> is now set
+	      to <code class="literal">yes</code> by default.
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      Several functions have been refactored to improve
+	      performance, including name compression, owner name
+	      case restoration, hashing, and buffers.
+	    </p>
+	  </li>
+</ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  Several areas of code have been refactored for improved
+	  readability, maintainability, and testability:
+	</p>
+	<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: circle; ">
+<li class="listitem">
+	    <p>
+	      The <span class="command"><strong>named</strong></span> query logic implemented in
+	      <span class="command"><strong>query_find()</strong></span> has been split into
+	      smaller functions with a context structure to maintain state
+	      between them, and extensive comments have been added.
+	      [RT #43929]
+	    </p>
+	  </li>
+<li class="listitem">
+	    <p>
+	      Similarly the iterative query logic implemented in
+	      <span class="command"><strong>resquery_response()</strong></span> function has been
+	      split into smaller functions and comments added. [RT #45362]
+	    </p>
+	  </li>
+</ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  Code implementing name server query processing has been moved
+	  from <span class="command"><strong>named</strong></span> to an external library,
+	  <span class="command"><strong>libns</strong></span>. This will make it easier to
+	  write unit tests for the code, or to link it into new tools.
+	  [RT #45186]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> can now synthesize NXDOMAIN responses
+	  from cached DNSSEC-verified records returned in negative or
+	  wildcard responses.  This will reduce query loads on
+	  authoritative servers for signed domains: if existing cached
+	  records can be used by the resolver to determine that a name does
+	  not exist in the authorittive domain, then no query needs to
+	  be sent.
+	</p>
+	<p>
+	  This behavior is controlled by the new
+	  <code class="filename">named.conf</code> option
+	  <span class="command"><strong>synth-from-dnssec</strong></span>.  It is enabled by
+	  default.
+	</p>
+	<p>
+	  Note: This initial implementation can only synthesize NXDOMAIN
+	  responses, from NSEC records.  Support for NODATA responses,
+	  wilcard responses, and NSEC3 records will be added soon.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The DNS Response Policy Service (DNSRPS) API, a mechanism to
+	  allow <span class="command"><strong>named</strong></span> to use an external response policy
+	  provider, is now supported. (One example of such a provider is
+	  "FastRPZ" from Farsight Security, Inc.) This allows the same
+	  types of policy filtering as standard RPZ, but can reduce the
+	  workload for <span class="command"><strong>named</strong></span>, particularly when using
+	  large and frequently-updated policy zones. It also enables
+	  <span class="command"><strong>named</strong></span> to share response policy providers
+	  with other DNS implementations such as Unbound.
+	</p>
+	<p>
+	  This feature is avaiable if BIND is built with
+	  <span class="command"><strong>configure --enable-dnsrps</strong></span>, if a DNSRPS
+	  provider is installed, and if <span class="command"><strong>dnsrps-enable</strong></span>
+	  is set to "yes" in <code class="filename">named.conf</code>. Standard
+	  built-in RPZ is used otherwise.
+	</p>
+	<p>
+	  Thanks to Vernon Schryver and Farsight Security for the
+	  contribution. [RT #43376]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Setting <span class="command"><strong>max-journal-size</strong></span> to
+	  <code class="literal">default</code> limits journal sizes to twice the
+	  size of the zone contents.  This can be overridden by setting
+	  <span class="command"><strong>max-journal-size</strong></span> to <code class="literal">unlimited</code>
+	  or to an explicit value up to 2G. Thanks to Tony Finch for
+	  the contribution. [RT #38324]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dnstap</strong></span> logfiles can now be configured to
+	  automatically roll when they reach a specified size. If
+	  <span class="command"><strong>dnstap-output</strong></span> is configured with mode
+	  <code class="literal">file</code>, then it can take optional
+	  <span class="command"><strong>size</strong></span> and <span class="command"><strong>versions</strong></span>
+	  key-value arguments to set the logfile rolling parameters.
+	  (These have the same semantics as the corresponding
+	  options in a <span class="command"><strong>logging</strong></span> channel statement.)
+	  [RT #44502]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Logging channels and <span class="command"><strong>dnstap-output</strong></span> files can
+	  now be configured with a <span class="command"><strong>suffix</strong></span> option,
+	  set to either <code class="literal">increment</code> or
+	  <code class="literal">timestamp</code>, indicating whether log files
+	  should be given incrementing suffixes when they roll
+	  over (e.g., <code class="filename">logfile.0</code>,
+	  <code class="filename">.1</code>, <code class="filename">.2</code>, etc)
+	  or suffixes indicating the time of the roll. The default
+	  is <code class="literal">increment</code>.  [RT #42838]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <code class="option">print-time</code> option in the
+	  <code class="option">logging</code> configuration can now take arguments
+	  <strong class="userinput"><code>local</code></strong>, <strong class="userinput"><code>iso8601</code></strong> or
+	  <strong class="userinput"><code>iso8601-utc</code></strong> to indicate the format in
+	  which the date and time should be logged. For backward
+	  compatibility, <strong class="userinput"><code>yes</code></strong> is a synonym for
+	  <strong class="userinput"><code>local</code></strong>.  [RT #42585]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>nsupdate</strong></span> and <span class="command"><strong>rndc</strong></span> now accepts
+	  command line options <span class="command"><strong>-4</strong></span> and <span class="command"><strong>-6</strong></span>
+	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>nsec3hash -r</strong></span> ("rdata order") takes arguments
+	  in the same order as they appear in NSEC3 or NSEC3PARAM records.
+	  This makes it easier to generate an NSEC3 hash using values cut
+	  and pasted from an existing record. Thanks to Tony Finch for
+	  the contribution. [RT #45183]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>new-zones-directory</strong></span> option allows
+	  <span class="command"><strong>named</strong></span> to store configuration parameters
+	  for zones added via <span class="command"><strong>rndc addzone</strong></span> in a
+	  location other than the working directory. Thanks to Petr
+	  Men&#353;ík of Red Hat for the contribution.
+	  [RT #44853]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>dnstap-read -x</strong></span> option prints a hex
+	  dump of the wire format DNS message encapsulated in each
+	  <span class="command"><strong>dnstap</strong></span> log entry. [RT #44816]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>host -A</strong></span> option returns most
+	  records for a name, but omits types RRSIG, NSEC and NSEC3.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
+	  for EDNS options in addition to numeric values. For example,
+	  an EDNS Client-Subnet option could be sent using
+	  <span class="command"><strong>dig +ednsopt=ecs:...</strong></span>. Thanks to
+	  John Worley of Secure64 for the contribution. [RT #44461]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Added support for the EDNS TCP Keepalive option (RFC 7828);
+	  this allows negotiation of longer-lived TCP sessions
+	  to reduce the overhead of setting up TCP for individual
+	  queries. [RT #42126]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Added support for the EDNS Padding option (RFC 7830),
+	  which obfuscates packet size analysis when DNS queries
+	  are sent over an encrypted channel. [RT #42094]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>rndc</strong></span> commands which refer to zone names
+	  can now reference a zone of type <span class="command"><strong>redirect</strong></span>
+	  by using the special zone name "-redirect". (Previously this
+	  was not possible because <span class="command"><strong>redirect</strong></span> zones
+	  always have the name ".", which can be ambiguous.)
+	</p>
+	<p>
+	  In the event you need to manipulate a zone actually
+	  called "-redirect", use a trailing dot: "-redirect."
+	</p>
+	<p>
+	  Note: This change does not appply to the
+	  <span class="command"><strong>rndc addzone</strong></span> or
+	  <span class="command"><strong>rndc modzone</strong></span> commands.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named-checkconf -l</strong></span> lists the zones found
+	  in <code class="filename">named.conf</code>. [RT #43154]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Query logging now includes the ECS option, if one was
+	  present in the query, in the format
+	  "[ECS <em class="replaceable"><code>address/source/scope</code></em>]".
+	</p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="proto_changes"></a>Protocol Changes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  BIND can now use the Ed25519 and Ed448 Edwards Curve DNSSEC
+	  signing algorithms described in RFC 8080. Note, however, that
+	  these algorithms must be supported in OpenSSL;
+	  currently they are only available in the development branch
+	  of OpenSSL at
+	  <a class="link" href="https://github.com/openssl/openssl" target="_top">https://github.com/openssl/openssl</a>.
+	  [RT #44696]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  EDNS KEY TAG options are verified and printed.
+	</p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  The lightweight resolver daemon and library (<span class="command"><strong>lwresd</strong></span>
+	  and <span class="command"><strong>liblwres</strong></span>) have been removed. [RT #45186]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dnssec-keygen</strong></span> no longer has default
+	  algorithm settings. It is necessary to explicitly specify the
+	  algorithm on the command line with the <code class="option">-a</code> option
+	  when generating keys. This may cause errors with existing signing
+	  scripts if they rely on current defaults. The intent is to
+	  reduce the long-term cost of transitioning to newer algorithms in
+	  the event of RSASHA1 being deprecated. [RT #44755]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig +sigchase</strong></span> and related options
+	  <span class="command"><strong>+trusted-keys</strong></span> and <span class="command"><strong>+topdown</strong></span>
+	  have been removed. <span class="command"><strong>delv</strong></span> is now the recommended
+	  command for looking up records with DNSSEC validation.
+	  [RT #42793]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The Response Policy Zone (RPZ) implementation has been
+	  substantially refactored: updates to the RPZ summary
+	  database are no longer directly performed by the zone
+	  database but by a separate function that is called when
+	  a policy zone is updated.  This improves both performance
+	  and reliability when policy zones receive frequent updates.
+	  Summary database updates can be rate-limited by using the
+	  <span class="command"><strong>min-update-interval</strong></span> option in a
+	  <span class="command"><strong>response-policy</strong></span> statement. [RT #43449]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dnstap</strong></span> now stores both the local and remote
+	  addresses for all messages, instead of only the remote address.
+	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
+	  been updated to include these addresses, with the initiating
+	  address first and the responding address second, separated by
+	  "-%gt;" or "%lt;-" to indicate in which direction the message
+	  was sent. [RT #43595]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Expanded and improved the YAML output from
+	  <span class="command"><strong>dnstap-read -y</strong></span>: it now includes packet
+	  size and a detailed breakdown of message contents.
+	  [RT #43622] [RT #43642]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Threads in <span class="command"><strong>named</strong></span> are now set to human-readable
+	  names to assist debugging on operating systems that support that.
+	  Threads will have names such as "isc-timer", "isc-sockmgr",
+	  "isc-worker0001", and so on. This will affect the reporting of
+	  subsidiary thread names in <span class="command"><strong>ps</strong></span> and
+	  <span class="command"><strong>top</strong></span>, but not the main thread. [RT #43234]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  If an ACL is specified with an address prefix in which the
+	  prefix length is longer than the address portion (for example,
+	  192.0.2.1/8), it will now be treated as a fatal error during
+	  configuration. [RT #43367]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig</strong></span> now warns about .local queries which are
+	  reserved for Multicast DNS. [RT #44783]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The view associated with the query is now logged unless it
+	  it is "_default/IN" or "_dnsclient/IN" when logging DNSSEC
+	  validator messages.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Multiple <span class="command"><strong>cookie-secret</strong></span> clauses are now
+	  supported.  The first <span class="command"><strong>cookie-secret</strong></span> in
+	  <code class="filename">named.conf</code> is used to generate new
+	  server cookies.  Any others are used to accept old server
+	  cookies or those generated by other servers using the
+	  matching <span class="command"><strong>cookie-secret</strong></span>.
+	</p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  None.
+	</p>
+      </li></ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="end_of_life"></a>End of Life</h3></div></div></div>
+    <p>
+      The end of life for BIND 9.12 is yet to be determined but
+      will not be before BIND 9.14.0 has been released for 6 months.
+      <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
+    </p>
+  </div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
+
+    <p>
+      Thank you to everyone who assisted us in making this release possible.
+      If you would like to contribute to ISC to assist us in continuing to
+      make quality open source software, please visit our donations page at
+      <a class="link" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
+    </p>
+  </div>
+</div>
+</div></body>
+</html>
