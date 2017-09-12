@@ -1987,6 +1987,7 @@
 ./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013,2014,2015,2016
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007,2009,2010,2012,2016
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007,2009,2012,2016
+./bin/tests/system/resolver/ans8/ans.pl		PERL	2017
 ./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/resolver/ns1/named.conf	CONF-C	2000,2001,2004,2007,2009,2013,2014,2015,2016
 ./bin/tests/system/resolver/ns1/root.hint	ZONE	2000,2001,2004,2007,2016
@@ -1995,7 +1996,7 @@
 ./bin/tests/system/resolver/ns4/moves.db	ZONE	2011,2016
 ./bin/tests/system/resolver/ns4/named.conf	CONF-C	2010,2011,2012,2013,2015,2016
 ./bin/tests/system/resolver/ns4/named.noaa	TXT.BRIEF	2010,2016
-./bin/tests/system/resolver/ns4/root.db		ZONE	2010,2014,2015,2016
+./bin/tests/system/resolver/ns4/root.db		ZONE	2010,2014,2015,2016,2017
 ./bin/tests/system/resolver/ns4/tld1.db		ZONE	2012,2014,2016
 ./bin/tests/system/resolver/ns4/tld2.db		ZONE	2012,2014,2016
 ./bin/tests/system/resolver/ns5/child.server.db	ZONE	2011,2016
@@ -4034,7 +4035,7 @@
 ./lib/isc/.gitignore				X	2014
 ./lib/isc/Atffile				X	2011
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./lib/isc/aes.c					C	2014,2016
+./lib/isc/aes.c					C	2014,2016,2017
 ./lib/isc/alpha/Makefile.in			MAKE	2007,2012,2016
 ./lib/isc/alpha/include/Makefile.in		MAKE	2007,2012,2016
 ./lib/isc/alpha/include/isc/Makefile.in		MAKE	2007,2012,2015,2016
@@ -4094,8 +4095,8 @@
 ./lib/isc/include/isc/hash.h			C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012,2016
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008,2016
-./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007,2009,2014,2016
-./lib/isc/include/isc/hmacsha.h			C	2005,2006,2007,2009,2014,2016
+./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006,2007,2009,2014,2016,2017
+./lib/isc/include/isc/hmacsha.h			C	2005,2006,2007,2009,2014,2016,2017
 ./lib/isc/include/isc/ht.h			C	2016
 ./lib/isc/include/isc/httpd.h			C	2006,2007,2008,2014,2016
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000,2001,2004,2005,2006,2007,2016
@@ -4109,7 +4110,7 @@
 ./lib/isc/include/isc/list.h			C	1997,1998,1999,2000,2001,2002,2004,2006,2007,2011,2012,2013,2016
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2014,2016
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006,2007,2016
-./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006,2007,2009,2010,2014,2016
+./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006,2007,2009,2010,2014,2016,2017
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2015,2016
 ./lib/isc/include/isc/meminfo.h			C	2015,2016
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007,2016
@@ -4138,8 +4139,8 @@
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007,2016
 ./lib/isc/include/isc/safe.h			C	2013,2015,2016
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2016
-./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006,2007,2009,2014,2016
-./lib/isc/include/isc/sha2.h			C	2005,2006,2007,2009,2014,2016
+./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006,2007,2009,2014,2016,2017
+./lib/isc/include/isc/sha2.h			C	2005,2006,2007,2009,2014,2016,2017
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2015,2016
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2016
 ./lib/isc/include/isc/stats.h			C	2009,2012,2016
@@ -4175,7 +4176,7 @@
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005,2007,2016
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005,2007,2009,2013,2014,2015,2016
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2009,2011,2012,2013,2014,2016,2017
-./lib/isc/md5.c					C	2000,2001,2004,2005,2007,2009,2014,2015,2016
+./lib/isc/md5.c					C	2000,2001,2004,2005,2007,2009,2014,2015,2016,2017
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2013,2014,2015,2016,2017
 ./lib/isc/mips/Makefile.in			MAKE	2007,2012,2016
 ./lib/isc/mips/include/Makefile.in		MAKE	2007,2012,2016
@@ -4232,8 +4233,8 @@
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012,2015,2016
 ./lib/isc/safe.c				C	2013,2015,2016
 ./lib/isc/serial.c				C	1999,2000,2001,2004,2005,2007,2016
-./lib/isc/sha1.c				C	2000,2001,2003,2004,2005,2007,2009,2011,2012,2014,2016
-./lib/isc/sha2.c				C	2005,2006,2007,2009,2011,2012,2014,2016
+./lib/isc/sha1.c				C	2000,2001,2003,2004,2005,2007,2009,2011,2012,2014,2016,2017
+./lib/isc/sha2.c				C	2005,2006,2007,2009,2011,2012,2014,2016,2017
 ./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2010,2011,2012,2014,2015,2016
 ./lib/isc/socket_api.c				C	2009,2011,2012,2013,2014,2015,2016
 ./lib/isc/sparc64/Makefile.in			MAKE	2007,2012,2016
