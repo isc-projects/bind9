@@ -4608,7 +4608,7 @@ log_formerr(fetchctx_t *fctx, const char *format, ...) {
 		      nsbuf, fctx->info, clmsg, clbuf, msgbuf);
 }
 
-static inline isc_result_t
+static isc_result_t
 same_question(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message = fctx->rmessage;
@@ -4622,7 +4622,32 @@ same_question(fetchctx_t *fctx) {
 	/*
 	 * XXXRTH  Currently we support only one question.
 	 */
-	if (message->counts[DNS_SECTION_QUESTION] != 1) {
+	if (ISC_UNLIKELY(message->counts[DNS_SECTION_QUESTION] == 0)) {
+		if ((message->flags & DNS_MESSAGEFLAG_TC) != 0) {
+			/*
+			 * If TC=1 and the question section is empty, we
+			 * accept the reply message as a truncated
+			 * answer, to be retried over TCP.
+			 *
+			 * It is really a FORMERR condition, but this is
+			 * a workaround to accept replies from some
+			 * implementations.
+			 *
+			 * Because the question section matching is not
+			 * performed, the worst that could happen is
+			 * that an attacker who gets past the ID and
+			 * source port checks can force the use of
+			 * TCP. This is considered an acceptable risk.
+			 */
+			log_formerr(fctx,
+				    "empty question section, "
+				    "accepting it anyway as TC=1");
+			return (ISC_R_SUCCESS);
+		} else {
+			log_formerr(fctx, "empty question section");
+			return (DNS_R_FORMERR);
+		}
+	} else if (ISC_UNLIKELY(message->counts[DNS_SECTION_QUESTION] > 1)) {
 		log_formerr(fctx, "too many questions");
 		return (DNS_R_FORMERR);
 	}
