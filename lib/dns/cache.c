@@ -1557,7 +1557,7 @@ dns_cache_renderjson(dns_cache_t *cache, json_object *cstats) {
 
 	obj = json_object_new_int64(isc_mem_maxinuse(cache->mctx));
 	CHECKMEM(obj);
-	json_object_object_add(cstats, "HeapMemMax", obj);
+	json_object_object_add(cstats, "TreeMemMax", obj);
 
 	obj = json_object_new_int64(isc_mem_total(cache->hmctx));
 	CHECKMEM(obj);
