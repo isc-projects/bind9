@@ -1,3 +1,7 @@
+4717.	[bug]		Treat replies with QCOUNT=0 as truncated if TC=1,
+			FORMERR if TC=0, and log the error correctly.
+			[RT #45836]
+
 4714.	[port]		openbsd/libressl: add support for building with
 			--enable-openssl-hash. [RT #45982]
 
