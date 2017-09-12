@@ -1,3 +1,6 @@
+4715.	[bug]		TreeMemMax was mis-identified as a second HeapMemMax
+			in the Json cache statistics. [RT #45980]
+
 4714.	[port]		openbsd/libressl: add support for building with
 			--enable-openssl-hash. [RT #45982]
 
