@@ -1,3 +1,5 @@
+	--- 9.12.0a1 released ---
+
 4713.	[func]		Added support for the DNS Response Policy Service
 			(DNSRPS) API, which allows named to use an external
 			response policy daemon when built with
