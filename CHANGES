@@ -1,3 +1,6 @@
+4718.	[func]		Avoid seaching for a owner name compression pointer
+			more than once when writing out a RRset. [RT #45802]
+
 4717.	[bug]		Treat replies with QCOUNT=0 as truncated if TC=1,
 			FORMERR if TC=0, and log the error correctly.
 			[RT #45836]

@@ -1988,6 +1988,13 @@ isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 		isc_buffer_t *target)
 {
+	return (dns_name_towire2(name, cctx, target, NULL));
+}
+
+isc_result_t
+dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
+		 isc_buffer_t *target, isc_uint16_t *comp_offsetp)
+{
 	unsigned int methods;
 	isc_uint16_t offset;
 	dns_name_t gp;	/* Global compression prefix */
@@ -2006,6 +2013,23 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	REQUIRE(ISC_BUFFER_VALID(target));
 
 	/*
+	 * If this exact name was already rendered before, and the
+	 * offset of the previously rendered name is passed to us, write
+	 * a compression pointer directly.
+	 */
+	methods = dns_compress_getmethods(cctx);
+	if (comp_offsetp != NULL && *comp_offsetp < 0x4000 &&
+	    (name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
+	    (methods & DNS_COMPRESS_GLOBAL14) != 0) {
+		if (ISC_UNLIKELY(target->length - target->used < 2))
+			return (ISC_R_NOSPACE);
+		offset = *comp_offsetp;
+		offset |= 0xc000;
+		isc_buffer_putuint16(target, offset);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
 	 * If 'name' doesn't have an offsets table, make a clone which
 	 * has one.
 	 */
@@ -2022,8 +2046,6 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 	offset = target->used;	/*XXX*/
 
-	methods = dns_compress_getmethods(cctx);
-
 	if ((name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
 	    (methods & DNS_COMPRESS_GLOBAL14) != 0)
 		gf = dns_compress_findglobal(cctx, name, &gp, &go);
@@ -2034,7 +2056,7 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 	 * If the offset is too high for 14 bit global compression, we're
 	 * out of luck.
 	 */
-	if (gf && go >= 0x4000)
+	if (gf && ISC_UNLIKELY(go >= 0x4000))
 		gf = ISC_FALSE;
 
 	/*
@@ -2044,25 +2066,32 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 		gf = ISC_FALSE;
 
 	if (gf) {
-		if (target->length - target->used < gp.length)
+		if (ISC_UNLIKELY(target->length - target->used < gp.length))
 			return (ISC_R_NOSPACE);
 		(void)memmove((unsigned char *)target->base + target->used,
 			      gp.ndata, (size_t)gp.length);
 		isc_buffer_add(target, gp.length);
-		go |= 0xc000;
-		if (target->length - target->used < 2)
+		if (ISC_UNLIKELY(target->length - target->used < 2))
 			return (ISC_R_NOSPACE);
-		isc_buffer_putuint16(target, go);
-		if (gp.length != 0)
+		isc_buffer_putuint16(target, go | 0xc000);
+		if (gp.length != 0) {
 			dns_compress_add(cctx, name, &gp, offset);
+			if (comp_offsetp != NULL)
+				*comp_offsetp = offset;
+		} else if (comp_offsetp != NULL) {
+			*comp_offsetp = go;
+		}
 	} else {
-		if (target->length - target->used < name->length)
+		if (ISC_UNLIKELY(target->length - target->used < name->length))
 			return (ISC_R_NOSPACE);
 		(void)memmove((unsigned char *)target->base + target->used,
 			      name->ndata, (size_t)name->length);
 		isc_buffer_add(target, name->length);
 		dns_compress_add(cctx, name, name, offset);
+		if (comp_offsetp != NULL)
+			*comp_offsetp = offset;
 	}
+
 	return (ISC_R_SUCCESS);
 }
 

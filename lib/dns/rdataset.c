@@ -324,6 +324,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	struct towire_sort *out = out_fixed;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
+	isc_uint16_t offset;
 
 	UNUSED(state);
 
@@ -464,6 +465,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	name = dns_fixedname_name(&fixed);
 	dns_name_copy(owner_name, name, NULL);
 	dns_rdataset_getownercase(rdataset, name);
+	offset = 0xffff;
 
 	name->attributes |= owner_name->attributes &
 		DNS_NAMEATTR_NOCOMPRESS;
@@ -475,7 +477,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		rrbuffer = *target;
 		dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
-		result = dns_name_towire(name, cctx, target);
+		result = dns_name_towire2(name, cctx, target, &offset);
 		if (result != ISC_R_SUCCESS)
 			goto rollback;
 		headlen = sizeof(dns_rdataclass_t) + sizeof(dns_rdatatype_t);
