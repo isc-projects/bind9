@@ -2172,7 +2172,7 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) {
 	isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
-		      ISC_LOG_INFO, "adb: quota %s (%d/%d): %s",
+		      ISC_LOG_INFO, "adb: quota %s (%u/%u): %s",
 		      addrbuf, entry->active, entry->quota, msgbuf);
 }
 
@@ -2847,7 +2847,7 @@ void
 dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 	isc_task_t *tclone;
 	isc_event_t *event;
-	isc_boolean_t zeroirefcnt = ISC_FALSE;
+	isc_boolean_t zeroirefcnt;
 
 	/*
 	 * Send '*eventp' to 'task' when 'adb' has shutdown.
@@ -2860,8 +2860,8 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 	*eventp = NULL;
 
 	LOCK(&adb->lock);
-
 	LOCK(&adb->reflock);
+
 	zeroirefcnt = ISC_TF(adb->irefcnt == 0);
 
 	if (adb->shutting_down && zeroirefcnt &&
@@ -3498,10 +3498,10 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 			print_namehook_list(f, "v6", adb,
 					    &name->v6, debug, now);
 
-			if (debug)
+			if (debug) {
 				print_fetch_list(f, name);
-			if (debug)
 				print_find_list(f, name);
+			}
 		}
 	}
 
@@ -3557,7 +3557,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry,
 		fprintf(f, " [ttl %d]", entry->expires - now);
 
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
-		fprintf(f, " [atr %0.2f] [quota %d]",
+		fprintf(f, " [atr %0.2f] [quota %u]",
 			entry->atr, entry->quota);
 	}
 
@@ -4232,6 +4232,8 @@ static int quota_adj[] = {
 	312, 307, 303, 298, 294, 290, 286, 282, 278
 };
 
+#define QUOTA_ADJ_SIZE (sizeof(quota_adj)/sizeof(quota_adj[0]))
+
 /*
  * Caller must hold adbentry lock
  */
@@ -4270,12 +4272,13 @@ maybe_adjust_quota(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (addr->entry->atr < adb->atr_low && addr->entry->mode > 0) {
 		addr->entry->quota = adb->quota *
 			quota_adj[--addr->entry->mode] / 10000;
-		log_quota(addr->entry, "atr %0.2f, quota increased to %d",
+		log_quota(addr->entry, "atr %0.2f, quota increased to %u",
 			  addr->entry->atr, addr->entry->quota);
-	} else if (addr->entry->atr > adb->atr_high && addr->entry->mode < 99) {
+	} else if (addr->entry->atr > adb->atr_high &&
+		   addr->entry->mode < (QUOTA_ADJ_SIZE - 1)) {
 		addr->entry->quota = adb->quota *
 			quota_adj[++addr->entry->mode] / 10000;
-		log_quota(addr->entry, "atr %0.2f, quota decreased to %d",
+		log_quota(addr->entry, "atr %0.2f, quota decreased to %u",
 			  addr->entry->atr, addr->entry->quota);
 	}
 

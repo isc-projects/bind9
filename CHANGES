@@ -1,3 +1,5 @@
+4719.	[bug]		Address PVS static analyzer warnings. [RT #45946]
+
 4718.	[func]		Avoid seaching for a owner name compression pointer
 			more than once when writing out a RRset. [RT #45802]
 
