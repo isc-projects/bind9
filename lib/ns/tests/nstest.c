@@ -146,14 +146,14 @@ cleanup_managers(void) {
 #endif
 	}
 
-	if (timermgr != NULL)
-		isc_timermgr_destroy(&timermgr);
 	if (sctx != NULL)
 		ns_server_detach(&sctx);
 	if (socketmgr != NULL)
 		isc_socketmgr_destroy(&socketmgr);
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
+	if (timermgr != NULL)
+		isc_timermgr_destroy(&timermgr);
 }
 
 static void
