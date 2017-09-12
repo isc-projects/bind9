@@ -186,7 +186,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 	char address[33];
 	char name[IF_NAMESIZE+1];
 	struct in6_addr addr6;
-	int ifindex, prefix, flag3, flag4;
+	unsigned int ifindex, prefix, flag3, flag4;
 	int res;
 	unsigned int i;
 

@@ -1839,7 +1839,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		for (i = 0; i < 256; i++) {
 			if ((ksk_algorithms[i] != 0) ||
 			    (standby_ksk[i] != 0) ||
-			    (revoked_zsk[i] != 0) ||
+			    (revoked_ksk[i] != 0) ||
 			    (zsk_algorithms[i] != 0) ||
 			    (standby_zsk[i] != 0) ||
 			    (revoked_zsk[i] != 0)) {
