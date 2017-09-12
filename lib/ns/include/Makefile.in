@@ -8,7 +8,7 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-SUBDIRS =	nserv
+SUBDIRS =	ns
 TARGETS =
 
 @BIND9_MAKE_RULES@
