@@ -845,7 +845,7 @@
 ./bin/tests/system/allow_query/ns2/previous.db	ZONE	2010,2016
 ./bin/tests/system/allow_query/setup.sh		SH	2010,2012,2016
 ./bin/tests/system/allow_query/tests.sh		SH	2010,2012,2013,2016
-./bin/tests/system/ans.pl			PERL	2011,2012,2014,2016
+./bin/tests/system/ans.pl			PERL	2011,2012,2014,2016,2017
 ./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015,2016
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011,2012,2014,2016
 ./bin/tests/system/autosign/ns1/named.conf	CONF-C	2009,2013,2016
@@ -1177,6 +1177,7 @@
 ./bin/tests/system/dialup/setup.sh		SH	2000,2001,2004,2007,2012,2016
 ./bin/tests/system/dialup/tests.sh		SH	2000,2001,2004,2007,2012,2016
 ./bin/tests/system/digcomp.pl			PERL	2000,2001,2004,2007,2012,2013,2016
+./bin/tests/system/digdelv/ans4/startme		X	2017
 ./bin/tests/system/digdelv/clean.sh		SH	2015,2016
 ./bin/tests/system/digdelv/ns1/named.conf	CONF-C	2015,2016
 ./bin/tests/system/digdelv/ns1/root.db		ZONE	2015,2016
@@ -1564,7 +1565,7 @@
 ./bin/tests/system/forward/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2016
 ./bin/tests/system/forward/ula-inherited.conf	CONF-C	2016
 ./bin/tests/system/forward/ula-notinherited.conf	CONF-C	2016
-./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015,2016
+./bin/tests/system/genzone.sh			SH	2001,2002,2003,2004,2007,2009,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/geoip/clean.sh		SH	2013,2014,2016
 ./bin/tests/system/geoip/data/GeoIP.csv		X	2013,2014
 ./bin/tests/system/geoip/data/GeoIP.dat		X	2013,2014
@@ -2539,7 +2540,7 @@
 ./bin/tests/system/zero/ns4/named.conf		CONF-C	2013,2016
 ./bin/tests/system/zero/ns4/one.tld.db		ZONE	2016
 ./bin/tests/system/zero/setup.sh		SH	2013,2014,2016
-./bin/tests/system/zero/tests.sh		SH	2013,2016
+./bin/tests/system/zero/tests.sh		SH	2013,2016,2017
 ./bin/tests/system/zonechecks/a.db		ZONE	2004,2007,2016
 ./bin/tests/system/zonechecks/aaaa.db		ZONE	2004,2007,2016
 ./bin/tests/system/zonechecks/bigserial.db	ZONE	2015,2016
@@ -3777,7 +3778,7 @@
 ./lib/dns/rdata/generic/ninfo_56.h		C	2015,2016
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004,2007,2009,2015,2016
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005,2007,2016
-./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011,2012,2014,2015,2016
+./lib/dns/rdata/generic/nsec3_50.c		C	2008,2009,2011,2012,2014,2015,2016,2017
 ./lib/dns/rdata/generic/nsec3_50.h		C	2008,2011,2012,2016
 ./lib/dns/rdata/generic/nsec3param_51.c		C	2008,2009,2015,2016
 ./lib/dns/rdata/generic/nsec3param_51.h		C	2008,2016
