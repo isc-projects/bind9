@@ -29,11 +29,11 @@ CDEFINES =
 
 CWARNINGS =
 
-ISCLIBS =	../../lib/isc/libisc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-DNSLIBS =	../../lib/dns/libdns.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 
