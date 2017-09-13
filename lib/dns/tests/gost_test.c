@@ -51,8 +51,6 @@ const char *s;
 char str[2 * ISC_GOST_DIGESTLENGTH + 1];
 int i = 0;
 
-isc_result_t
-tohexstr(unsigned char *d, unsigned int len, char *out);
 /*
  * Precondition: a hexadecimal number in *d, the length of that number in len,
  *   and a pointer to a character array to put the output (*out).
@@ -63,18 +61,16 @@ tohexstr(unsigned char *d, unsigned int len, char *out);
  *
  * Return values: ISC_R_SUCCESS if the operation is sucessful
  */
-
-isc_result_t
-tohexstr(unsigned char *d, unsigned int len, char *out) {
+static isc_result_t
+tohexstr(unsigned char *d, unsigned int len, char *out, size_t out_size) {
 	char c_ret[] = "AA";
 	unsigned int j;
-	int size = len * 2 + 1;
 
 	out[0] = '\0';
-	strlcat(out, "0x", size);
+	strlcat(out, "0x", out_size);
 	for (j = 0; j < len; j++) {
 		snprintf(c_ret, sizeof(c_ret), "%02X", d[j]);
-		strlcat(out, c_ret, size);
+		strlcat(out, c_ret, out_size);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -208,7 +204,7 @@ ATF_TC_BODY(isc_gost_md, tc) {
 		}
 		result = isc_gost_final(&gost, digest);
 		ATF_REQUIRE(result == ISC_R_SUCCESS);
-		tohexstr(digest, ISC_GOST_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_GOST_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
