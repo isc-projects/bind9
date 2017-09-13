@@ -239,12 +239,12 @@ isc_file_template(const char *path, const char *templet, char *buf,
 
 		strncpy(buf, path, s - path + 1);
 		buf[s - path + 1] = '\0';
-		strcat(buf, templet);
+		strlcat(buf, templet, buflen);
 	} else {
 		if ((strlen(templet) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
-		strcpy(buf, templet);
+		strlcpy(buf, templet, buflen);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -543,15 +543,17 @@ dir_current(char *dirname, size_t length) {
 	cwd = getcwd(dirname, length);
 
 	if (cwd == NULL) {
-		if (errno == ERANGE)
+		if (errno == ERANGE) {
 			result = ISC_R_NOSPACE;
-		else
+		} else {
 			result = isc__errno2result(errno);
+		}
 	} else {
-		if (strlen(dirname) + 1 == length)
+		if (strlen(dirname) + 1 == length) {
 			result = ISC_R_NOSPACE;
-		else if (dirname[1] != '\0')
-			strcat(dirname, "/");
+		} else if (dirname[1] != '\0') {
+			strlcat(dirname, "/", length);
+		}
 	}
 
 	return (result);
@@ -565,7 +567,7 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 		return (result);
 	if (strlen(path) + strlen(filename) + 1 > pathlen)
 		return (ISC_R_NOSPACE);
-	strcat(path, filename);
+	strlcat(path, filename, pathlen);
 	return (ISC_R_SUCCESS);
 }
 

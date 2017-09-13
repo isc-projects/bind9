@@ -1258,11 +1258,11 @@ named_main_setmemstats(const char *filename) {
 		free(memstats);
 		memstats = NULL;
 	}
+
 	if (filename == NULL)
 		return;
-	memstats = malloc(strlen(filename) + 1);
-	if (memstats)
-		strcpy(memstats, filename);
+
+	memstats = strdup(filename);
 }
 
 #ifdef HAVE_LIBSCF

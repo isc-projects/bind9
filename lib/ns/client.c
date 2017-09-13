@@ -3924,8 +3924,8 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 			dns_rdataclass_format(rdataset->rdclass, classbuf,
 					      sizeof(classbuf));
 		} else {
-			strcpy(typebuf, "-");
-			strcpy(classbuf, "-");
+			strlcpy(typebuf, "-", sizeof(typebuf));
+			strlcpy(classbuf, "-", sizeof(classbuf));
 		}
 		UNLOCK(&client->query.fetchlock);
 		fprintf(f, "; client %s%s%s: id %u '%s/%s/%s'%s%s "

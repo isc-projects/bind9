@@ -80,6 +80,8 @@ dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
 			       (bytes[1] & 0xff),
 			       (bytes[0] & 0xff));
 	} else if (address->family == AF_INET6) {
+		size_t remaining;
+
 		cp = textname;
 		for (i = 15; i >= 0; i--) {
 			*cp++ = hex_digits[bytes[i] & 0x0f];
@@ -87,10 +89,12 @@ dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
 			*cp++ = hex_digits[(bytes[i] >> 4) & 0x0f];
 			*cp++ = '.';
 		}
-		if ((options & DNS_BYADDROPT_IPV6INT) != 0)
-			strcpy(cp, "ip6.int.");
-		else
-			strcpy(cp, "ip6.arpa.");
+		remaining = sizeof(textname) - (cp - textname);
+		if ((options & DNS_BYADDROPT_IPV6INT) != 0) {
+			strlcpy(cp, "ip6.int.", remaining);
+		} else {
+			strlcpy(cp, "ip6.arpa.", remaining);
+		}
 	} else
 		return (ISC_R_NOTIMPLEMENTED);
 

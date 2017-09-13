@@ -88,8 +88,9 @@ isc_ntpaths_init(void) {
 	strcat(sys_conf_dir, "\\etc");
 
 	/* Added to avoid an assert on NULL value */
-	strcpy(resolv_confFile, namedBase);
-	strcat(resolv_confFile, "\\etc\\resolv.conf");
+	strlcpy(resolv_confFile, namedBase, sizeof(resolv_confFile));
+	strlcat(resolv_confFile, "\\etc\\resolv.conf",
+		sizeof(resolv_confFile));
 
 	Initialized = TRUE;
 }

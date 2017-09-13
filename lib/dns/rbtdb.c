@@ -1241,7 +1241,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 			dns_name_format(&rbtdb->common.origin, buf,
 					sizeof(buf));
 		else
-			strcpy(buf, "<UNKNOWN>");
+			strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 			      "done free_rbtdb(%s)", buf);
@@ -1367,7 +1367,7 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 				dns_name_format(&rbtdb->common.origin, buf,
 						sizeof(buf));
 			} else {
-				strcpy(buf, "<UNKNOWN>");
+				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			}
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
@@ -5509,7 +5509,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 				dns_name_format(&rbtdb->common.origin, buf,
 						sizeof(buf));
 			else
-				strcpy(buf, "<UNKNOWN>");
+				strlcpy(buf, "<UNKNOWN>", sizeof(buf));
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_rbtdb(%s)", buf);

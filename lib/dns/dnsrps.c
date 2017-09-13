@@ -955,7 +955,9 @@ static dns_dbmethods_t rpsdb_db_methods = {
 	NULL,			/* setcachestats */
 	NULL,			/* hashsize */
 	NULL,			/* nodefullname */
-	NULL			/* getsize */
+	NULL,			/* getsize */
+	NULL,			/* setservestalettl */
+	NULL,			/* getservestalettl */
 };
 
 static dns_rdatasetmethods_t rpsdb_rdataset_methods = {

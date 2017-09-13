@@ -1659,7 +1659,7 @@ dns_name_tofilenametext(const dns_name_t *name, isc_boolean_t omit_final_dot,
 				} else {
 					if (trem < 3)
 						return (ISC_R_NOSPACE);
-					sprintf(tdata, "%%%02X", c);
+					snprintf(tdata, trem, "%%%02X", c);
 					tdata += 3;
 					trem -= 3;
 					ndata++;
