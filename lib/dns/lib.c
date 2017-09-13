@@ -74,6 +74,7 @@ static unsigned int references = 0;
 static void
 initialize(void) {
 	isc_result_t result;
+	isc_entropy_t *ectx = NULL;
 
 	REQUIRE(initialize_done == ISC_FALSE);
 
@@ -84,11 +85,14 @@ initialize(void) {
 	result = dns_ecdb_register(dns_g_mctx, &dbimp);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mctx;
-	result = isc_hash_create(dns_g_mctx, NULL, DNS_NAME_MAXWIRE);
+	result = isc_entropy_create(dns_g_mctx, &ectx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
+	result = isc_hash_create(dns_g_mctx, NULL, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_ectx;
 
-	result = dst_lib_init(dns_g_mctx, NULL, 0);
+	result = dst_lib_init(dns_g_mctx, ectx, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_hash;
 
@@ -97,12 +101,16 @@ initialize(void) {
 		goto cleanup_dst;
 
 	isc_hash_init();
+	isc_entropy_detach(&ectx);
 
 	initialize_done = ISC_TRUE;
 	return;
 
   cleanup_dst:
 	dst_lib_destroy();
+  cleanup_ectx:
+	if (ectx != NULL)
+		isc_entropy_detach(&ectx);
   cleanup_hash:
 	isc_hash_destroy();
   cleanup_db:
