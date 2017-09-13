@@ -1674,7 +1674,8 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 			(s6[prefixlen/8] >> 4) & 0xf);
 		cp += 4;
 	}
-	strcat(cp, "ip6.arpa.");
+
+	strlcat(reverse, "ip6.arpa.", sizeof(reverse));
 
 	/*
 	 * Create the actual zone.

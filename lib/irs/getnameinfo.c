@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 /*
@@ -103,6 +101,7 @@
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
@@ -213,11 +212,11 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
 		if ((strlen(numserv) + 1) > servlen)
 			ERR(EAI_OVERFLOW);
-		strcpy(serv, numserv);
+		strlcpy(serv, numserv, servlen);
 	} else {
 		if ((strlen(sp->s_name) + 1) > servlen)
 			ERR(EAI_OVERFLOW);
-		strcpy(serv, sp->s_name);
+		strlcpy(serv, sp->s_name, servlen);
 	}
 
 #if 0
@@ -274,7 +273,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 #endif
 		if (strlen(numaddr) + 1 > hostlen)
 			ERR(EAI_OVERFLOW);
-		strcpy(host, numaddr);
+		strlcpy(host, numaddr, hostlen);
 	} else {
 		isc_netaddr_t netaddr;
 		dns_fixedname_t ptrfname;
@@ -400,7 +399,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 				ERR(EAI_SYSTEM);
 			if ((strlen(numaddr) + 1) > hostlen)
 				ERR(EAI_OVERFLOW);
-			strcpy(host, numaddr);
+			strlcpy(host, numaddr, hostlen);
 		}
 	}
 	result = SUCCESS;

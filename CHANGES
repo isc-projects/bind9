@@ -1,3 +1,6 @@
+4722.	[cleanup]	Clean up uses of strcpy() and strcat() in favor of
+			strlcpy() and strlcat() for safety. [RT #45981]
+
 4719.	[bug]		Address PVS static analyzer warnings. [RT #45946]
 
 4717.	[bug]		Treat replies with QCOUNT=0 as truncated if TC=1,

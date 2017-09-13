@@ -383,9 +383,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(dns_dbtable_create(mctx, dns_rdataclass_in, &dbtable) ==
 		      ISC_R_SUCCESS);
 
-
-
-	strcpy(dbtype, "rbt");
+	snprintf(dbtype, sizeof(dbtype), "rbt");
 	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT"))
 	       != -1) {
 		switch (ch) {

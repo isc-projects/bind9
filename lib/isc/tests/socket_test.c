@@ -190,7 +190,7 @@ ATF_TC_BODY(udp_sendto, tc) {
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -268,7 +268,7 @@ ATF_TC_BODY(udp_dup, tc) {
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -280,7 +280,7 @@ ATF_TC_BODY(udp_dup, tc) {
 	ATF_CHECK(completion.done);
 	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
 
-	strcpy(sendbuf, "World");
+	snprintf(sendbuf, sizeof(sendbuf), "World");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -372,7 +372,7 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			   isc_result_totext(result));
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -480,7 +480,7 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			 isc_result_totext(result));
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -590,7 +590,7 @@ ATF_TC_BODY(tcp_dscp_v4, tc) {
 
 	isc_socket_dscp(s2, 056);  /* EF */
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 
@@ -693,7 +693,7 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 
 	isc_socket_dscp(s2, 056);  /* EF */
 
-	strcpy(sendbuf, "Hello");
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
 	r.base = (void *) sendbuf;
 	r.length = strlen(sendbuf) + 1;
 

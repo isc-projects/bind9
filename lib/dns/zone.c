@@ -1365,7 +1365,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 		tmp2 += (zone->db_argc + 1) * sizeof(char *);
 		for (i = 0; i < zone->db_argc; i++) {
 			*tmp++ = tmp2;
-			strcpy(tmp2, zone->db_argv[i]);
+			strlcpy(tmp2, zone->db_argv[i], size);
 			tmp2 += strlen(tmp2) + 1;
 		}
 		*tmp = NULL;
@@ -1606,8 +1606,8 @@ default_journal(dns_zone_t *zone) {
 		journal = isc_mem_allocate(zone->mctx, len);
 		if (journal == NULL)
 			return (ISC_R_NOMEMORY);
-		strcpy(journal, zone->masterfile);
-		strcat(journal, ".jnl");
+		strlcpy(journal, zone->masterfile, len);
+		strlcat(journal, ".jnl", len);
 	} else {
 		journal = NULL;
 	}
@@ -16777,7 +16777,7 @@ dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		}
 		salt[j] = '\0';
 	} else
-		strcpy(salt, "-");
+		strlcpy(salt, "-", sizeof(salt));
 	dns_zone_log(zone, ISC_LOG_NOTICE,
 		     "dns_zone_addnsec3chain(hash=%u, iterations=%u, salt=%s)",
 		     nsec3param->hash, nsec3param->iterations,

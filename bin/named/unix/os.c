@@ -979,7 +979,7 @@ getuname(void) {
 
 	memset(&uts, 0, sizeof(uts));
 	if (uname(&uts) < 0) {
-		strcpy(unamebuf, "unknown architecture");
+		snprintf(unamebuf, sizeof(unamebuf), "unknown architecture");
 		return;
 	}
 
@@ -987,7 +987,7 @@ getuname(void) {
 		 "%s %s %s %s",
 		 uts.sysname, uts.machine, uts.release, uts.version);
 #else
-	strcpy(unamebuf, "unknown architecture");
+	snprintf(unamebuf, sizeof(unamebuf), "unknown architecture");
 #endif
 	unamep = unamebuf;
 }
