@@ -2810,10 +2810,10 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	result = dns_name_tofilenametext(gorigin, ISC_FALSE, &namebuf);
 	check_result(result, "dns_name_tofilenametext");
 	isc_buffer_putuint8(&namebuf, 0);
-	filenamelen = strlen(prefix) + strlen(namestr);
+	filenamelen = strlen(prefix) + strlen(namestr) + 1;
 	if (dsdir != NULL)
 		filenamelen += strlen(dsdir) + 1;
-	filename = isc_mem_get(mctx, filenamelen + 1);
+	filename = isc_mem_get(mctx, filenamelen);
 	if (filename == NULL)
 		fatal("out of memory");
 	if (dsdir != NULL)
@@ -2920,7 +2920,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	result = dns_master_dump(mctx, db, dbversion, style, filename);
 	check_result(result, "dns_master_dump");
 
-	isc_mem_put(mctx, filename, filenamelen + 1);
+	isc_mem_put(mctx, filename, filenamelen);
 
 	dns_db_closeversion(db, &dbversion, ISC_FALSE);
 	dns_db_detach(&db);
