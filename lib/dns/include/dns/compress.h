@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.42 2009/01/17 23:47:43 tbox Exp $ */
-
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
 
@@ -87,7 +85,6 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
  *
  *	Returns:
  *	\li	#ISC_R_SUCCESS
- *	\li	failures from dns_rbt_create()
  */
 
 void
