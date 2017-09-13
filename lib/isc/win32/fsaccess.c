@@ -29,6 +29,7 @@
 
 #include <isc/file.h>
 #include <isc/stat.h>
+#include <isc/string.h>
 
 #include "errno2result.h"
 

@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/xml.h>
 
 #include <dns/cache.h>
