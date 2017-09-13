@@ -38,8 +38,6 @@ const char *s;
 char str[2 * ISC_SHA512_DIGESTLENGTH + 3];
 unsigned char key[20];
 
-isc_result_t
-tohexstr(unsigned char *d, unsigned int len, char *out);
 /*
  * Precondition: a hexadecimal number in *d, the length of that number in len,
  *   and a pointer to a character array to put the output (*out).
@@ -50,18 +48,16 @@ tohexstr(unsigned char *d, unsigned int len, char *out);
  *
  * Return values: ISC_R_SUCCESS if the operation is sucessful
  */
-
-isc_result_t
-tohexstr(unsigned char *d, unsigned int len, char *out) {
+static isc_result_t
+tohexstr(unsigned char *d, unsigned int len, char *out, size_t out_size) {
 	char c_ret[] = "AA";
 	unsigned int i;
-	int size = 2 + (len * 2) + 1;
 
 	out[0] = '\0';
-	strlcat(out, "0x", size);
+	strlcat(out, "0x", out_size);
 	for (i = 0; i < len; i++) {
 		snprintf(c_ret, sizeof(c_ret), "%02X", d[i]);
-		strlcat(out, c_ret, size);
+		strlcat(out, c_ret, out_size);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -205,7 +201,7 @@ ATF_TC_BODY(isc_sha1, tc) {
 					testcase->input_len);
 		}
 		isc_sha1_final(&sha1, digest);
-		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -338,7 +334,7 @@ ATF_TC_BODY(isc_sha224, tc) {
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
-		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -470,7 +466,7 @@ ATF_TC_BODY(isc_sha256, tc) {
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
-		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -616,7 +612,7 @@ ATF_TC_BODY(isc_sha384, tc) {
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
-		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -763,7 +759,7 @@ ATF_TC_BODY(isc_sha512, tc) {
 		* functions the call should be
 		* isc_sha224_final(&sha224, digest);
 		 */
-		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -837,7 +833,7 @@ ATF_TC_BODY(isc_md5, tc) {
 				       testcase->input_len);
 		}
 		isc_md5_final(&md5, digest);
-		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -967,7 +963,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 				    (const isc_uint8_t *) testcase->input,
 				    testcase->input_len);
 		isc_hmacsha1_sign(&hmacsha1, digest, ISC_SHA1_DIGESTLENGTH);
-		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1130,7 +1126,7 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 				      (const isc_uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha224_sign(&hmacsha224, digest, ISC_SHA224_DIGESTLENGTH);
-		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1293,7 +1289,7 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 				      (const isc_uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha256_sign(&hmacsha256, digest, ISC_SHA256_DIGESTLENGTH);
-		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1462,7 +1458,7 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 				      (const isc_uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha384_sign(&hmacsha384, digest, ISC_SHA384_DIGESTLENGTH);
-		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1631,7 +1627,7 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 				      (const isc_uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha512_sign(&hmacsha512, digest, ISC_SHA512_DIGESTLENGTH);
-		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1775,7 +1771,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 				   (const isc_uint8_t *) testcase->input,
 				   testcase->input_len);
 		isc_hmacmd5_sign(&hmacmd5, digest);
-		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str);
+		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
@@ -1839,7 +1835,7 @@ ATF_TC_BODY(isc_crc64, tc) {
 				       testcase->input_len);
 		}
 		isc_crc64_final(&crc);
-		tohexstr((unsigned char *) &crc, sizeof(crc), str);
+		tohexstr((unsigned char *) &crc, sizeof(crc), str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
