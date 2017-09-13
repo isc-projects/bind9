@@ -52,7 +52,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:checking that the zone is signed on initial transfer ($n)"
 ret=0
-for i in 1 2 3 4 5 6 7 8 9 10
+for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
 	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 signing -list bits > signing.out.test$n 2>&1
