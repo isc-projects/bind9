@@ -642,7 +642,7 @@ setoption(char *opt) {
 #define CHECKOPT(A, N) \
 	((l >= N) && (l < sizeof(A)) && (strncasecmp(opt, A, l) == 0))
 
-	if (CHECKOPT("all", 3) == 0) {
+	if (CHECKOPT("all", 3)) {
 		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
