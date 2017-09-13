@@ -96,7 +96,9 @@ enum {
 	ns_statscounter_trystale = 61,
 	ns_statscounter_usedstale = 62,
 
-	ns_statscounter_max = 63
+	ns_statscounter_prefetch = 63,
+
+	ns_statscounter_max = 64
 };
 
 void

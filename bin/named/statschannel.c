@@ -301,6 +301,7 @@ init_desc(void) {
 	SET_NSSTATDESC(usedstale,
 		       "successful uses of stale cache data after lookup failure",
 		       "QryUsedStale");
+	SET_NSSTATDESC(prefetch, "queries triggered prefetch", "Prefetch");
 	INSIST(i == ns_statscounter_max);
 
 	/* Initialize resolver statistics */
@@ -1548,7 +1549,7 @@ generatexml(named_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.9"));
+					 ISC_XMLCHAR "3.10"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -2309,7 +2310,7 @@ generatejson(named_server_t *server, size_t *msglen,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.3");
+	obj = json_object_new_string("1.4");
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 

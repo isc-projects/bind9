@@ -1,3 +1,6 @@
+4720.	[func]		Added a statistics counter to track prefetch
+			queries. [RT #45847]
+
 4719.	[bug]		Address PVS static analyzer warnings. [RT #45946]
 
 4718.	[func]		Avoid seaching for a owner name compression pointer

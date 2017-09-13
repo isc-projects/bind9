@@ -476,6 +476,12 @@
 	  matching <command>cookie-secret</command>.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A new statistics counter has been added to track prefetch
+	  queries. [RT #45847]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

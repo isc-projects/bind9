@@ -2473,6 +2473,8 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 		ns_client_detach(&dummy);
 	}
 	dns_rdataset_clearprefetch(rdataset);
+	ns_stats_increment(client->sctx->nsstats,
+			   ns_statscounter_prefetch);
 }
 
 static inline void
