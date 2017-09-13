@@ -17,7 +17,7 @@
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014,2016
 ./bin/check/.gitignore				X	2012
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2014,2015,2016,2017
-./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2011,2013,2014,2016
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
 ./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016
@@ -127,14 +127,14 @@
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009,2010,2011,2014,2015,2016,2017
 ./bin/dnssec/dnssec-settime.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-verify.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-verify.c			C	2012,2014,2015,2016,2017
 ./bin/dnssec/dnssec-verify.docbook		SGML	2012,2014,2015,2016
 ./bin/dnssec/dnssec-verify.html			HTML	DOCBOOK
-./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/dnssec/win32/dnssectool.vcxproj.filters.in	X	2013,2015
 ./bin/dnssec/win32/dnssectool.vcxproj.in	X	2013,2014,2015,2016,2017
@@ -434,7 +434,7 @@
 ./bin/tests/dst/t2_data_2.in			X	1999,2000,2001,2013
 ./bin/tests/dst/t2_dsasig.in			X	1999,2000,2001,2013
 ./bin/tests/dst/t2_rsasig.in			X	1999,2000,2001,2013
-./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005,2007,2008,2009,2011,2012,2013,2014,2016
+./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005,2007,2008,2009,2011,2012,2013,2014,2016,2017
 ./bin/tests/dst/win32/REQUIRE_EXTENDED_DIR	X	2013
 ./bin/tests/dst/win32/t_dst.vcxproj.filters.in	X	2013,2015
 ./bin/tests/dst/win32/t_dst.vcxproj.in		X	2013,2015,2016,2017
@@ -443,7 +443,7 @@
 ./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007,2015,2016
 ./bin/tests/fromhex.pl				PERL	2015,2016
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007,2012,2015,2016
-./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006,2007,2014,2015,2016
+./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006,2007,2014,2015,2016,2017
 ./bin/tests/hashes/Makefile.in			MAKE	2010,2012,2014,2016,2017
 ./bin/tests/hashes/t_hashes.c			C	2010,2013,2016
 ./bin/tests/hashes/win32/t_hashes.vcxproj.filters.in	X	2013,2015
@@ -594,9 +594,9 @@
 ./bin/tests/resolver/win32/t_resolver.vcxproj.user	X	2013
 ./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005,2007,2013,2016
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004,2007,2015,2016
-./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004,2007,2011,2013,2016
+./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004,2007,2011,2013,2016,2017
 ./bin/tests/sig0_test.c				C	2000,2001,2004,2005,2007,2008,2009,2012,2015,2016
-./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004,2007,2008,2012,2013,2014,2015,2016
+./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004,2007,2008,2012,2013,2014,2015,2016,2017
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014,2016,2017
 ./bin/tests/sockaddr/t_sockaddr.c		C	1999,2000,2001,2004,2007,2013,2016
 ./bin/tests/sockaddr/win32/t_sockaddr.vcxproj.filters.in	X	2013,2015
@@ -730,7 +730,8 @@
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011,2016
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009,2016
 ./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2015,2016,2017
-./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013,2015,2016
+./bin/tests/system/autosign/ns3/kskonly.example.db.in	ZONE	2017
+./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013,2015,2016,2017
 ./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011,2016
 ./bin/tests/system/autosign/ns3/nsec.example.db.in	ZONE	2010,2016
 ./bin/tests/system/autosign/ns3/nsec3-to-nsec.example.db.in	ZONE	2010,2016
@@ -1110,7 +1111,7 @@
 ./bin/tests/system/dlz/tests.sh			SH	2010,2011,2012,2013,2015,2016
 ./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014,2015,2016
 ./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014,2015,2016
-./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014,2015,2016
+./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/dlzexternal/driver.h		C	2011,2016
 ./bin/tests/system/dlzexternal/ns1/.gitignore	X	2012
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011,2012,2013,2014,2016
@@ -3350,7 +3351,7 @@
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/badcache.c				C	2014,2015,2016
-./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013,2016
+./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2013,2016,2017
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2015,2016
 ./lib/dns/catz.c				C	2016,2017
@@ -3384,7 +3385,7 @@
 ./lib/dns/forward.c				C	2000,2001,2004,2005,2007,2009,2013,2016
 ./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005,2007,2009,2016
 ./lib/dns/gen-win32.h				C	1999,2000,2001,2004,2005,2006,2007,2009,2014,2016
-./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014,2015,2016
+./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2012,2013,2014,2015,2016,2017
 ./lib/dns/geoip.c				C	2013,2014,2015,2016
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
@@ -3729,10 +3730,10 @@
 ./lib/dns/tests/dnstap_test.c			C	2015,2016,2017
 ./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/tests/dnstest.h			C	2011,2012,2014,2015,2016,2017
-./lib/dns/tests/geoip_test.c			C	2013,2014,2015,2016
-./lib/dns/tests/gost_test.c			C	2014,2015,2016
+./lib/dns/tests/geoip_test.c			C	2013,2014,2015,2016,2017
+./lib/dns/tests/gost_test.c			C	2014,2015,2016,2017
 ./lib/dns/tests/keytable_test.c			C	2014,2015,2016
-./lib/dns/tests/master_test.c			C	2011,2012,2013,2015,2016
+./lib/dns/tests/master_test.c			C	2011,2012,2013,2015,2016,2017
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012,2016
 ./lib/dns/tests/name_test.c			C	2014,2015,2016
 ./lib/dns/tests/nsec3_test.c			C	2012,2014,2015,2016
@@ -3815,7 +3816,7 @@
 ./lib/irs/dnsconf.c				C	2009,2012,2016
 ./lib/irs/gai_strerror.c			C	2009,2014,2016
 ./lib/irs/getaddrinfo.c				C	2009,2012,2013,2014,2015,2016,2017
-./lib/irs/getnameinfo.c				C	2009,2011,2012,2013,2014,2016
+./lib/irs/getnameinfo.c				C	2009,2011,2012,2013,2014,2016,2017
 ./lib/irs/include/Makefile.in			MAKE	2009,2012,2016
 ./lib/irs/include/irs/Makefile.in		MAKE	2009,2012,2014,2016
 ./lib/irs/include/irs/context.h			C	2009,2016
@@ -3881,7 +3882,7 @@
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014,2015,2016,2017
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007,2015,2016
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014,2016
-./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007,2016
+./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007,2016,2017
 ./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016,2017
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2015,2016
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014,2015,2016
@@ -3913,7 +3914,7 @@
 ./lib/isc/include/isc/error.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2009,2016
 ./lib/isc/include/isc/event.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2014,2016,2017
 ./lib/isc/include/isc/eventclass.h		C	1998,1999,2000,2001,2004,2005,2007,2016,2017
-./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2014,2015,2016
+./lib/isc/include/isc/file.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2014,2015,2016,2017
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005,2006,2007,2016
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005,2006,2007,2009,2016
 ./lib/isc/include/isc/fuzz.h			C	2017
@@ -3994,7 +3995,7 @@
 ./lib/isc/include/pkcs11/pkcs11f.h		X	2014,2016
 ./lib/isc/include/pkcs11/pkcs11t.h		X	2014,2016
 ./lib/isc/inet_aton.c				C.PORTION	1996,1997,1998,1999,2000,2001,2004,2005,2007,2008,2012,2013,2014,2016
-./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009,2016
+./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004,2005,2007,2009,2016,2017
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2007,2013,2014,2016,2017
 ./lib/isc/iterated_hash.c			C	2006,2008,2009,2016
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005,2007,2013,2014,2015,2016,2017
@@ -4060,7 +4061,7 @@
 ./lib/isc/serial.c				C	1999,2000,2001,2004,2005,2007,2016
 ./lib/isc/sha1.c				C	2000,2001,2003,2004,2005,2007,2009,2011,2012,2014,2016,2017
 ./lib/isc/sha2.c				C	2005,2006,2007,2009,2011,2012,2014,2016,2017
-./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2010,2011,2012,2014,2015,2016
+./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2010,2011,2012,2014,2015,2016,2017
 ./lib/isc/socket_api.c				C	2009,2011,2012,2013,2014,2015,2016
 ./lib/isc/sparc64/Makefile.in			MAKE	2007,2012,2016
 ./lib/isc/sparc64/include/Makefile.in		MAKE	2007,2012,2016
@@ -4079,7 +4080,7 @@
 ./lib/isc/tests/counter_test.c			C	2014,2016
 ./lib/isc/tests/errno_test.c			C	2016
 ./lib/isc/tests/file_test.c			C	2014,2016,2017
-./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016
+./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016,2017
 ./lib/isc/tests/ht_test.c			C	2016
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014,2016,2017
 ./lib/isc/tests/isctest.h			C	2011,2012,2016
@@ -4132,7 +4133,7 @@
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2012,2014,2015,2016,2017
 ./lib/isc/unix/include/pkcs11/Makefile.in	MAKE	2014,2016
 ./lib/isc/unix/include/pkcs11/cryptoki.h	X	2014
-./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2014,2016
+./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2014,2016,2017
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2005,2006,2007,2016
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004,2007,2016
 ./lib/isc/unix/meminfo.c			C	2015,2016
@@ -4152,13 +4153,13 @@
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004,2007,2009,2012,2014,2015,2016
 ./lib/isc/win32/app.c				C	1999,2000,2001,2004,2007,2009,2013,2014,2016
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006,2007,2016
-./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007,2008,2009,2011,2012,2013,2016
+./lib/isc/win32/dir.c				C	1999,2000,2001,2004,2007,2008,2009,2011,2012,2013,2016,2017
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004,2007,2009,2013,2016
 ./lib/isc/win32/errno.c				C	2016
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004,2005,2007,2008,2013,2016
 ./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005,2007,2016
 ./lib/isc/win32/file.c				C	2000,2001,2002,2004,2007,2009,2011,2012,2013,2014,2015,2016,2017
-./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013,2016
+./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013,2016,2017
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2014,2016
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2013,2014,2015,2016
 ./lib/isc/win32/include/isc/atomic.h		C	2013,2015,2016
