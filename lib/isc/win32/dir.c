@@ -28,9 +28,11 @@
 
 #include <sys/stat.h>
 
+#include <isc/assertions.h>
 #include <isc/dir.h>
 #include <isc/magic.h>
-#include <isc/assertions.h>
+#include <isc/print.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include "errno2result.h"

@@ -22,6 +22,7 @@
  * This file contains the OS-independent functionality of the API.
  */
 #include <isc/fsaccess.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
 

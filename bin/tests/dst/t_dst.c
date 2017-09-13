@@ -35,6 +35,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
