@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include <isc/platform.h>
+#include <isc/print.h>
 #include <isc/strerror.h>
 
 #ifdef ISC_PLATFORM_NEEDSYSSELECTH
