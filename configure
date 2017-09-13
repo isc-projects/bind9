@@ -26082,6 +26082,8 @@ report() {
             echo "    IPv6 support (--enable-ipv6)"
         test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
                 echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+        test "no" = "$want_crypto_rand" || \
+                echo "    Crypto provider entropy source (--enable-crypto-rand)"
         test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
         test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
         test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -26174,6 +26176,8 @@ report() {
         echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
         echo "    EDDSA algorithm support (--with-eddsa)"
+    test "yes" = "$want_crypto_rand" || \
+        echo "    Crypto provider entropy source (--enable-crypto-rand)"
 
     test "yes" = "$enable_seccomp" || \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"

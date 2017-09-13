@@ -6,14 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: lib.c,v 1.19 2009/09/03 00:12:23 each Exp $ */
-
 /*! \file */
 
 #include <config.h>
 
 #include <stddef.h>
 
+#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/msgcat.h>
