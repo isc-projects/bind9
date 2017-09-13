@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -25,6 +23,7 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <isc/print.h>
 #include <isc/socket.h>
 
 #include "../task_p.h"
