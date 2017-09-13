@@ -1019,8 +1019,9 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	result = isc_socket_getsockname(xfr->socket, &sockaddr);
 	if (result == ISC_R_SUCCESS) {
 		isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));
-	} else
-		strcpy(sourcetext, "<UNKNOWN>");
+	} else {
+		strlcpy(sourcetext, "<UNKNOWN>", sizeof(sourcetext));
+	}
 
 	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
 		dns_name_format(dst_key_name(xfr->tsigkey->key),

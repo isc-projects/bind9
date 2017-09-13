@@ -85,7 +85,7 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 	isc_buffer_t		source;
 	isc_buffer_t		target;
 
-	strcpy(origin, TEST_ORIGIN);
+	strlcpy(origin, TEST_ORIGIN, sizeof(origin));
 	len = strlen(origin);
 	isc_buffer_init(&source, origin, len);
 	isc_buffer_add(&source, len);
@@ -555,7 +555,7 @@ ATF_TC_BODY(dumpraw, tc) {
 
 	UNUSED(tc);
 
-	strcpy(myorigin, TEST_ORIGIN);
+	strlcpy(myorigin, TEST_ORIGIN, sizeof(myorigin));
 	len = strlen(myorigin);
 	isc_buffer_init(&source, myorigin, len);
 	isc_buffer_add(&source, len);

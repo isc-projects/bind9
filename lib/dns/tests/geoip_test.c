@@ -140,7 +140,7 @@ do_lookup_string(const char *addr, isc_uint8_t *scope,
 	isc_netaddr_fromin(&na, &in4);
 
 	elt.subtype = subtype;
-	strcpy(elt.as_string, string);
+	strlcpy(elt.as_string, string, sizeof(elt.as_string));
 
 	return (dns_geoip_match(&na, scope, &geoip, &elt));
 }
@@ -157,7 +157,7 @@ do_lookup_string_v6(const char *addr, isc_uint8_t *scope,
 	isc_netaddr_fromin6(&na, &in6);
 
 	elt.subtype = subtype;
-	strcpy(elt.as_string, string);
+	strlcpy(elt.as_string, string, sizeof(elt.as_string));
 
 	return (dns_geoip_match(&na, scope, &geoip, &elt));
 }

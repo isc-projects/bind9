@@ -204,28 +204,31 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
-	if (key != NULL)
+	if (key != NULL) {
 		dns_name_format(&key->name, namestr, sizeof(namestr));
-	else
-		strcpy(namestr, "<null>");
+	} else {
+		strlcpy(namestr, "<null>", sizeof(namestr));
+	}
 
-	if (key != NULL && key->generated && key->creator)
+	if (key != NULL && key->generated && key->creator) {
 		dns_name_format(key->creator, creatorstr, sizeof(creatorstr));
-	else
-		strcpy(creatorstr, "<null>");
+	} else {
+		strlcpy(creatorstr, "<null>", sizeof(creatorstr));
+	}
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
-	if (key != NULL && key->generated)
+	if (key != NULL && key->generated) {
 		isc_log_write(dns_lctx,
 			      DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_TSIG,
 			      level, "tsig key '%s' (%s): %s",
 			      namestr, creatorstr, message);
-	else
+	} else {
 		isc_log_write(dns_lctx,
 			      DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_TSIG,
 			      level, "tsig key '%s': %s", namestr, message);
+	}
 }
 
 static void

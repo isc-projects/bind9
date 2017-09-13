@@ -724,7 +724,7 @@ genname(char *name, int it, char *buffer, size_t length) {
 				continue;
 			}
 			nibblemode = ISC_FALSE;
-			strcpy(fmt, "%d");
+			strlcpy(fmt, "%d", sizeof(fmt));
 			/* Get format specifier. */
 			if (*name == '{' ) {
 				n = sscanf(name, "{%d,%u,%1[doxXnN]}",

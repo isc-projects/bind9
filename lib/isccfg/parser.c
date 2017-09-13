@@ -2240,27 +2240,25 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 				return (ISC_R_SUCCESS);
 			}
 		}
-		if ((flags & CFG_ADDR_V4PREFIXOK) != 0 &&
-		    strlen(s) <= 15U) {
+		if ((flags & CFG_ADDR_V4PREFIXOK) != 0 && strlen(s) <= 15U) {
 			char buf[64];
 			int i;
 
-			strcpy(buf, s);
+			strlcpy(buf, s, sizeof(buf));
 			for (i = 0; i < 3; i++) {
-				strcat(buf, ".0");
+				strlcat(buf, ".0", sizeof(buf));
 				if (inet_pton(AF_INET, buf, &in4a) == 1) {
 					isc_netaddr_fromin(na, &in4a);
 					return (ISC_R_SUCCESS);
 				}
 			}
 		}
-		if ((flags & CFG_ADDR_V6OK) != 0 &&
-		    strlen(s) <= 127U) {
+		if ((flags & CFG_ADDR_V6OK) != 0 && strlen(s) <= 127U) {
 			char buf[128]; /* see lib/bind9/getaddresses.c */
 			char *d; /* zone delimiter */
 			isc_uint32_t zone = 0; /* scope zone ID */
 
-			strcpy(buf, s);
+			strlcpy(buf, s, sizeof(buf));
 			d = strchr(buf, '%');
 			if (d != NULL)
 				*d = '\0';
@@ -2914,9 +2912,10 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 
 	len = vsnprintf(message, sizeof(message), format, args);
 #define ELIPSIS " ... "
-	if (len >= sizeof(message))
+	if (len >= sizeof(message)) {
 		strcpy(message + sizeof(message) - sizeof(ELIPSIS) - 1,
 		       ELIPSIS);
+	}
 
 	if ((flags & (CFG_LOG_NEAR|CFG_LOG_BEFORE|CFG_LOG_NOPREP)) != 0) {
 		isc_region_t r;

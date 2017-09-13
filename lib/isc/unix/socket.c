@@ -51,6 +51,7 @@
 #include <isc/socket.h>
 #include <isc/stats.h>
 #include <isc/strerror.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -5501,17 +5502,19 @@ isc__socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 
 	REQUIRE(sockaddr->type.sa.sa_family == AF_UNIX);
 	INSIST(strlen(sockaddr->type.sunix.sun_path) < sizeof(path));
-	strcpy(path, sockaddr->type.sunix.sun_path);
+	strlcpy(path, sockaddr->type.sunix.sun_path, sizeof(path));
 
 #ifdef NEED_SECURE_DIRECTORY
 	slash = strrchr(path, '/');
 	if (slash != NULL) {
-		if (slash != path)
+		if (slash != path) {
 			*slash = '\0';
-		else
-			strcpy(path, "/");
-	} else
-		strcpy(path, ".");
+		} else {
+			strlcpy(path, "/", sizeof(path));
+		}
+	} else {
+		strlcpy(path, ".", sizeof(path));
+	}
 #endif
 
 	if (chmod(path, perm) < 0) {

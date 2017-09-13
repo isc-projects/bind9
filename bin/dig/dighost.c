@@ -2093,7 +2093,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				       namestr, isc_result_totext(lresult));
 				if (addresses_result == ISC_R_SUCCESS) {
 					addresses_result = lresult;
-					strcpy(bad_namestr, namestr);
+					strlcpy(bad_namestr, namestr,
+						sizeof(bad_namestr));
 				}
 			}
 			numLookups += num;
@@ -4324,7 +4325,7 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 		if (resultp == NULL)
 			fatal("couldn't get address for '%s': %s",
 			      host, isc_result_totext(result));
-		return 0;
+		return (0);
 	}
 
 	for (i = 0; i < count; i++) {
@@ -4334,7 +4335,7 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 		ISC_LIST_APPEND(lookup->my_server_list, srv, link);
 	}
 
-	return count;
+	return (count);
 }
 
 /*%
@@ -4613,7 +4614,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	 */
 	if (idn_decodename(IDN_DECODE_APP, tmp1, tmp2, MAXDLEN) != idn_success)
 		return (ISC_R_SUCCESS);
-	strcpy(tmp1, tmp2);
+	strlcpy(tmp1, tmp2, MAXDLEN);
 
 	/*
 	 * Copy the converted contents in 'tmp1' back to 'buffer'.
@@ -4640,17 +4641,17 @@ append_textname(char *name, const char *origin, size_t namesize) {
 
 	/* Already absolute? */
 	if (namelen > 0 && name[namelen - 1] == '.')
-		return idn_success;
+		return (idn_success);
 
 	/* Append dot and origin */
 
 	if (namelen + 1 + originlen >= namesize)
-		return idn_buffer_overflow;
+		return (idn_buffer_overflow);
 
 	if (*origin != '.')
 		name[namelen++] = '.';
-	(void)strcpy(name + namelen, origin);
-	return idn_success;
+	(void)strlcpy(name + namelen, origin, namesize - namelen);
+	return (idn_success);
 }
 
 static void

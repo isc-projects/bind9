@@ -66,16 +66,16 @@ tohexstr(unsigned char *d, unsigned int len, char *out);
 
 isc_result_t
 tohexstr(unsigned char *d, unsigned int len, char *out) {
-
-	out[0]='\0';
 	char c_ret[] = "AA";
 	unsigned int j;
-	strcat(out, "0x");
+	int size = len * 2 + 1;
+
+	out[0] = '\0';
+	strlcat(out, "0x", size);
 	for (j = 0; j < len; j++) {
-		sprintf(c_ret, "%02X", d[j]);
-		strcat(out, c_ret);
+		snprintf(c_ret, sizeof(c_ret), "%02X", d[j]);
+		strlcat(out, c_ret, size);
 	}
-	strcat(out, "\0");
 	return (ISC_R_SUCCESS);
 }
 
