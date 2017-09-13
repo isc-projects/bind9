@@ -56,7 +56,7 @@
 unsigned char digest[ISC_GOST_DIGESTLENGTH];
 unsigned char buffer[1024];
 const char *s;
-char str[2 * ISC_GOST_DIGESTLENGTH + 1];
+char str[2 * ISC_GOST_DIGESTLENGTH + 3];
 int i = 0;
 
 /*
