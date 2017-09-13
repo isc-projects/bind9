@@ -194,6 +194,16 @@ $DSFROMKEY -C $key1.key > $key1.cds
 cat $infile $key1.key $key2.key $key1.cds >$zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
+zone=cds-x.secure
+infile=cds.secure.db.in
+zonefile=cds-x.secure.db
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key3=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+$DSFROMKEY -C $key2.key > $key2.cds
+cat $infile $key1.key $key3.key $key2.cds >$zonefile
+$SIGNER -P -g -x -r $RANDFILE -o $zone $zonefile > /dev/null
+
 zone=cds-update.secure
 infile=cds-update.secure.db.in
 zonefile=cds-update.secure.db
@@ -218,6 +228,16 @@ key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 sed 's/DNSKEY/CDNSKEY/' $key1.key > $key1.cds
 cat $infile $key1.key $key2.key $key1.cds >$zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=cdnskey-x.secure
+infile=cdnskey.secure.db.in
+zonefile=cdnskey-x.secure.db
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key3=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+sed 's/DNSKEY/CDNSKEY/' $key1.key > $key1.cds
+cat $infile $key2.key $key3.key $key1.cds >$zonefile
+$SIGNER -P -g -x -r $RANDFILE -o $zone $zonefile > /dev/null
 
 zone=cdnskey-update.secure
 infile=cdnskey-update.secure.db.in

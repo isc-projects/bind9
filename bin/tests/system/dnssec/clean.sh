@@ -30,9 +30,10 @@ rm -f ns2/algroll.db
 rm -f ns2/badparam.db ns2/badparam.db.bad
 rm -f ns2/cdnskey-update.secure.db
 rm -f ns2/cdnskey.secure.db
+rm -f ns2/cdnskey-x.secure.db
 rm -f ns2/cds-auto.secure.db ns2/cds-auto.secure.db.jnl
 rm -f ns2/cds-update.secure.db ns2/cds-update.secure.db.jnl
-rm -f ns2/cds.secure.db
+rm -f ns2/cds.secure.db ns2/cds-x.secure.db
 rm -f ns2/dlv.db
 rm -f ns2/in-addr.arpa.db
 rm -f ns2/nsec3chain-test.db

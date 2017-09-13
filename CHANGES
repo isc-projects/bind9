@@ -1,3 +1,7 @@
+4721.	[func]		'dnssec-signzone -x' and 'dnssec-dnskey-kskonly'
+			options now apply to CDNSKEY and DS records as well
+			as DNSKEY. Thanks to Tony Finch. [RT #45689]
+
 4720.	[func]		Added a statistics counter to track prefetch
 			queries. [RT #45847]
 

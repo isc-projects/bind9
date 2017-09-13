@@ -659,7 +659,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		if (!issigningkey(key))
 			continue;
 
-		if (set->type == dns_rdatatype_dnskey &&
+		if ((set->type == dns_rdatatype_cds ||
+		     set->type == dns_rdatatype_cdnskey ||
+		     set->type == dns_rdatatype_dnskey) &&
 		     dns_name_equal(name, gorigin)) {
 			isc_boolean_t have_ksk;
 			dns_dnsseckey_t *tmpkey;
@@ -680,9 +682,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 			    (iszsk(key) && !keyset_kskonly))
 				signwithkey(name, set, key->key, ttl, add,
 					    "signing with dnskey");
-		} else if (set->type == dns_rdatatype_cds ||
-			   set->type == dns_rdatatype_cdnskey ||
-			   iszsk(key)) {
+		} else if (iszsk(key)) {
 			signwithkey(name, set, key->key, ttl, add,
 				    "signing with dnskey");
 		}

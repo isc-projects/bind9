@@ -3002,6 +3002,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that CDS records are not signed using ZSK by dnssec-signzone -x ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer @10.53.0.2 cds cds-x.secure > dig.out.test$n
+lines=`awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking that positive unknown NSEC3 hash algorithm does validate ($n)"
 ret=0
 $DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 nsec3-unknown.example SOA > dig.out.ns3.test$n
@@ -3118,6 +3127,15 @@ ret=0
 $DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey.secure > dig.out.test$n
 lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
 test ${lines:-0} -eq 2 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that CDNSKEY records are not signed using ZSK by dnssec-signzone -x ($n)"
+ret=0
+$DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey-x.secure > dig.out.test$n
+lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

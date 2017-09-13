@@ -482,6 +482,16 @@
 	  queries. [RT #45847]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>dnssec-signzone -x</command> flag and the
+	  <command>dnssec-dnskey-kskonly</command> option in
+	  <command>named.conf</command>, which suppress the use of
+	  the ZSK when signing DNSKEY records, now also apply to
+	  CDNSKEY and CDS records. Thanks to Tony Finch for the
+	  contribution. [RT #45689]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

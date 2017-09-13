@@ -248,7 +248,7 @@ echo $zsk > ../inactivezsk.key
 $SETTIME -I now $zsk > st.out 2>&1 || dumpit st.out
 
 #
-# A zone that is set to 'auto-dnssec maintain' during a recofnig
+# A zone that is set to 'auto-dnssec maintain' during a reconfig
 #
 setup reconf.example
 cp secure.example.db.in $zonefile
@@ -256,7 +256,7 @@ $KEYGEN -q -a RSASHA1 -3 -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -a RSASHA1 -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 
 #
-# A zone which generates a CDS and CDNSEY RRsets automatically
+# A zone which generates CDS and CDNSEY RRsets automatically
 #
 setup sync.example
 cp $infile $zonefile
@@ -264,3 +264,12 @@ ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || d
 $KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 echo ns3/$ksk > ../sync.key
+
+#
+# A zone that generates CDS and CDNSKEY and uses dnssec-dnskey-kskonly
+#
+setup kskonly.example
+cp $infile $zonefile
+ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+$DSFROMKEY $ksk.key > dsset-${zone}$TP

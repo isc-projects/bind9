@@ -705,8 +705,9 @@
         <term>-x</term>
         <listitem>
           <para>
-            Only sign the DNSKEY RRset with key-signing keys, and omit
-            signatures from zone-signing keys.  (This is similar to the
+            Only sign the DNSKEY, CDNSKEY, and CDS RRsets with
+            key-signing keys, and omit signatures from zone-signing
+            keys. (This is similar to the
             <command>dnssec-dnskey-kskonly yes;</command> zone option in
             <command>named</command>.)
           </para>

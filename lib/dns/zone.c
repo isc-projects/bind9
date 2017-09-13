@@ -6234,7 +6234,10 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			}
 		}
 		if (both) {
-			if (type == dns_rdatatype_dnskey) {
+			if (type == dns_rdatatype_dnskey ||
+			    type == dns_rdatatype_cdnskey ||
+			    type == dns_rdatatype_cds)
+			{
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
 			} else if (KSK(keys[i]))
@@ -6652,24 +6655,34 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (rdataset.type == dns_rdatatype_soa ||
 		    rdataset.type == dns_rdatatype_rrsig)
+		{
 			goto next_rdataset;
-		if (rdataset.type == dns_rdatatype_dnskey) {
-			if (!is_ksk && keyset_kskonly)
-				goto next_rdataset;
-		} else if (is_ksk) {
+		}
+		if (rdataset.type == dns_rdatatype_dnskey ||
+		    rdataset.type == dns_rdatatype_cdnskey ||
+		    rdataset.type == dns_rdatatype_cds)
+		{
 			/*
-			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
+			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
+			 * (RFC 7344, section 4.1 specifies that they must
+			 * be signed with a key in the current DS RRset,
+			 * which would only include KSK's.)
 			 */
-			if (rdataset.type != dns_rdatatype_cds &&
-			    rdataset.type != dns_rdatatype_cdnskey)
+			if (!is_ksk && keyset_kskonly) {
 				goto next_rdataset;
+			}
+		} else if (is_ksk) {
+			goto next_rdataset;
 		}
 		if (*delegation &&
 		    rdataset.type != dns_rdatatype_ds &&
 		    rdataset.type != dns_rdatatype_nsec)
+		{
 			goto next_rdataset;
-		if (signed_with_key(db, node, version, rdataset.type, key))
+		}
+		if (signed_with_key(db, node, version, rdataset.type, key)) {
 			goto next_rdataset;
+		}
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, key, &inception,

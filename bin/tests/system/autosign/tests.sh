@@ -1166,8 +1166,38 @@ if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:test 'dnssec-dnskey-kskonly no' affects DNSKEY/CDS/CDNSKEY ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 sync.example dnskey > dig.out.ns3.dnskeytest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey > dig.out.ns3.cdnskeytest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example cds > dig.out.ns3.cdstest$n
+lines=`awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.ns3.dnskeytest$n | wc -l`
+test ${lines:-0} -eq 2 || ret=1
+lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.ns3.cdnskeytest$n | wc -l`
+test ${lines:-0} -eq 2 || ret=1
+lines=`awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.ns3.cdstest$n | wc -l`
+test ${lines:-0} -eq 2 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:test 'dnssec-dnskey-kskonly yes' affects DNSKEY/CDS/CDNSKEY ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 kskonly.example dnskey > dig.out.ns3.dnskeytest$n
+$DIG $DIGOPTS @10.53.0.3 kskonly.example cdnskey > dig.out.ns3.cdnskeytest$n
+$DIG $DIGOPTS @10.53.0.3 kskonly.example cds > dig.out.ns3.cdstest$n
+lines=`awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.ns3.dnskeytest$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.ns3.cdnskeytest$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+lines=`awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.ns3.cdstest$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:setting CDS and CDNSKEY deletion times and calling 'rndc loadkeys'"
-$SETTIME -D sync now+2 `cat sync.key`
+$SETTIME -D sync now+2 `cat sync.key` > /dev/null
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys sync.example
 echo "I:waiting for deletion to occur"
 sleep 3
