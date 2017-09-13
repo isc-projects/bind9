@@ -63,7 +63,7 @@ isc_result_t
 tohexstr(unsigned char *d, unsigned int len, char *out) {
 	char c_ret[] = "AA";
 	unsigned int i;
-	int size = len * 2 + 1;
+	int size = 2 + len * 2 + 1;
 
 	out[0] = '\0';
 	strlcat(out, "0x", size);
