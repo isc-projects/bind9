@@ -3431,14 +3431,15 @@ main(int argc, char *argv[]) {
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
 
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create hash context");
-
 	result = dst_lib_init2(mctx, ectx, engine, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not create hash context");
+
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
@@ -3845,8 +3846,8 @@ main(int argc, char *argv[]) {
 	dns_master_styledestroy(&dsstyle, mctx);
 
 	cleanup_logging(&log);
-	dst_lib_destroy();
 	isc_hash_destroy();
+	dst_lib_destroy();
 	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)

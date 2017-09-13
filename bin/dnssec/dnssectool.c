@@ -29,6 +29,7 @@
 #include <isc/heap.h>
 #include <isc/list.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -228,7 +229,8 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	if (*ectx == NULL) {
 		result = isc_entropy_create(mctx, ectx);
 		if (result != ISC_R_SUCCESS)
-			fatal("could not create entropy object");
+			fatal("could not create entropy object: %s",
+			      isc_result_totext(result));
 		ISC_LIST_INIT(sources);
 	}
 
@@ -237,6 +239,13 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 		randomfile = NULL;
 	}
 
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (randomfile != NULL &&
+	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
+		randomfile = NULL;
+		isc_entropy_usehook(*ectx, ISC_TRUE);
+	}
+#endif
 	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
 					   usekeyboard);
 

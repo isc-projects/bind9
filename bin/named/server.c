@@ -31,6 +31,7 @@
 #include <isc/lex.h>
 #include <isc/meminfo.h>
 #include <isc/parseint.h>
+#include <isc/platform.h>
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -8293,6 +8294,10 @@ load_configuration(const char *filename, named_server_t *server,
 				      "no source of entropy found");
 		} else {
 			const char *randomdev = cfg_obj_asstring(obj);
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+			if (strcmp(randomdev, ISC_PLATFORM_CRYPTORANDOM) == 0)
+				isc_entropy_usehook(ns_g_entropy, ISC_TRUE);
+#else
 			int level = ISC_LOG_ERROR;
 			result = isc_entropy_createfilesource(named_g_entropy,
 							      randomdev);
@@ -8326,6 +8331,7 @@ load_configuration(const char *filename, named_server_t *server,
 				}
 				isc_entropy_detach(&named_g_fallbackentropy);
 			}
+#endif
 #endif
 		}
 	}

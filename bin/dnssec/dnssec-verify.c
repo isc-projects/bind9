@@ -278,14 +278,14 @@ main(int argc, char *argv[]) {
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
 
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create hash context");
-
 	result = dst_lib_init2(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not create hash context");
 
 	isc_stdtime_get(&now);
 

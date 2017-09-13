@@ -36,6 +36,7 @@ SRCS =		acl_test.c \
 		dispatch_test.c \
 		dnstap_test.c \
 		dnstest.c \
+		dstrandom_test.c \
 		geoip_test.c \
 		gost_test.c \
 		keytable_test.c \
@@ -65,6 +66,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		dh_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
 		dnstap_test@EXEEXT@ \
+		dstrandom_test@EXEEXT@ \
 		geoip_test@EXEEXT@ \
 		gost_test@EXEEXT@ \
 		keytable_test@EXEEXT@ \
@@ -230,6 +232,11 @@ zt_test@EXEEXT@: zt_test.@O@ dnstest.@O@ \
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			zt_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
+
+dstrandom_test@EXEEXT@: dstrandom_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dstrandom_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh

@@ -116,11 +116,11 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
+
+	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+	hash_active = ISC_TRUE;
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -165,13 +165,13 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 
 void
 dns_test_end(void) {
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = ISC_FALSE;
-	}
 	if (hash_active) {
 		isc_hash_destroy();
 		hash_active = ISC_FALSE;
+	}
+	if (dst_active) {
+		dst_lib_destroy();
+		dst_active = ISC_FALSE;
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);

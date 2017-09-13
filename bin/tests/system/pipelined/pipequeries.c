@@ -19,6 +19,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -196,6 +197,7 @@ sendqueries(isc_task_t *task, isc_event_t *event) {
 
 int
 main(int argc, char *argv[]) {
+	char *randomfile = NULL;
 	isc_sockaddr_t bind_any;
 	struct in_addr inaddr;
 	isc_result_t result;
@@ -211,12 +213,16 @@ main(int argc, char *argv[]) {
 	dns_dispatch_t *dispatchv4;
 	dns_view_t *view;
 
-	UNUSED(argv);
+	RUNCHECK(isc_app_start());
 
-	if (argc > 1)
+	if ((argc == 2) || (argc == 4))
 		have_src = ISC_TRUE;
 
-	RUNCHECK(isc_app_start());
+	if ((argc > 2) && (strcmp(argv[1], "-r") == 0)) {
+		randomfile = argv[2];
+		argv += 2;
+		argc -= 2;
+	}
 
 	dns_result_register();
 
@@ -241,10 +247,18 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(isc_entropy_createfilesource(ectx, "../random.data"));
-	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (randomfile != NULL &&
+	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
+		randomfile = NULL;
+		isc_entropy_usehook(ectx, ISC_TRUE);
+	}
+#endif
+	if (randomfile != NULL)
+		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
 	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -297,8 +311,8 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);
 
-	dst_lib_destroy();
 	isc_hash_destroy();
+	dst_lib_destroy();
 	isc_entropy_detach(&ectx);
 
 	isc_log_destroy(&lctx);

@@ -1463,6 +1463,13 @@ dst_lib_destroy
 dst_lib_init
 dst_lib_init2
 dst_lib_initmsgcat
+@IF PKCS11
+dst_random_getdata
+@ELSE PKCS11
+@IF OPENSSL
+dst_random_getdata
+@END OPENSSL
+@END PKCS11
 dst_region_computeid
 dst_region_computerid
 dst_result_register

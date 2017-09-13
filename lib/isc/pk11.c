@@ -318,14 +318,16 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 	ret = isc_stdio_open(randomfile, "r", &stream);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
-	ret = isc_stdio_read(seed, 1, SEEDSIZE, stream, &cc);
-	if (ret!= ISC_R_SUCCESS)
-		goto cleanup;
+	while (ret == ISC_R_SUCCESS) {
+		ret = isc_stdio_read(seed, 1, SEEDSIZE, stream, &cc);
+		if ((ret != ISC_R_SUCCESS) && (ret != ISC_R_EOF))
+			goto cleanup;
+		(void) pkcs_C_SeedRandom(ctx.session, seed, (CK_ULONG) cc);
+	} 
 	ret = isc_stdio_close(stream);
 	stream = NULL;
-	if (ret!= ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
-	(void) pkcs_C_SeedRandom(ctx.session, seed, (CK_ULONG) cc);
 
     cleanup:
 	if (stream != NULL)

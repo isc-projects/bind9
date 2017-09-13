@@ -29,6 +29,7 @@
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
+#include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
@@ -261,7 +262,8 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	if (*ectx == NULL) {
 		result = isc_entropy_create(mctx, ectx);
 		if (result != ISC_R_SUCCESS)
-			fatal("could not create entropy object");
+			fatal("could not create entropy object: %s",
+			      isc_result_totext(result));
 		ISC_LIST_INIT(sources);
 	}
 
@@ -270,6 +272,13 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 		randomfile = NULL;
 	}
 
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (randomfile != NULL &&
+	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
+		randomfile = NULL;
+		isc_entropy_usehook(*ectx, ISC_TRUE);
+	}
+#endif
 	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
 					   usekeyboard);
 
@@ -955,11 +964,11 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	setup_entropy(gmctx, NULL, &entropy);
+	if (entropy == NULL)
+		setup_entropy(gmctx, NULL, &entropy);
 
 	result = isc_hash_create(gmctx, entropy, DNS_NAME_MAXWIRE);
 	check_result(result, "isc_hash_create");
-	isc_hash_init();
 
 	result = dns_dispatchmgr_create(gmctx, entropy, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
@@ -982,6 +991,9 @@ setup_system(void) {
 	result = dst_lib_init(gmctx, entropy, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
+
+	/* moved after dst_lib_init() */
+	isc_hash_init();
 
 	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;

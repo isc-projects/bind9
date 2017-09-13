@@ -257,6 +257,7 @@ my @substdefh = ("AES_CC",
 my %configdefp;
 
 my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
+                 "ISC_PLATFORM_CRYPTORANDOM",
                  "ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVEATOMICSTOREQ",
                  "ISC_PLATFORM_HAVECMPXCHG",
@@ -385,7 +386,8 @@ my @allcond = (@substcond, "NOTYET", "NOLONGER");
 
 # enable-xxx/disable-xxx
 
-my @enablelist = ("developer",
+my @enablelist = ("crypto-rand",
+                  "developer",
                   "fixed-rrset",
                   "intrinsics",
                   "isc-spnego",
@@ -446,6 +448,7 @@ my @help = (
 "\nOptional Features:\n",
 "  enable-intrinsics     enable instrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
+"  enable-crypto-rand    use crypto provider for random [default=yes]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
 "  enable-filter-aaaa    enable filtering of AAAA records [default=yes]\n",
@@ -489,7 +492,9 @@ my $want_clean = "no";
 my $want_unknown = "no";
 my $unknown_value;
 my $enable_intrinsics = "yes";
+my $cryptolib = "";
 my $enable_native_pkcs11 = "no";
+my $enable_crypto_rand = "yes";
 my $enable_openssl_hash = "auto";
 my $enable_filter_aaaa = "yes";
 my $enable_isc_spnego = "yes";
@@ -697,6 +702,10 @@ sub myenable {
     } elsif ($key =~ /^native-pkcs11$/i) {
         if ($val =~ /^yes$/i) {
             $enable_native_pkcs11 = "yes";
+        }
+    } elsif ($key =~ /^crypto-rand$/i) {
+        if ($val =~ /^no$/i) {
+            $enable_crypto_rand = "no";
         }
     } elsif ($key =~ /^openssl-hash$/i) {
         if ($val =~ /^yes$/i) {
@@ -980,6 +989,11 @@ if ($verbose) {
         print "native-pkcs11: enabled\n";
     } else {
         print "native-pkcs11: disabled\n";
+    }
+    if ($enable_crypto_rand eq "yes") {
+        print "crypto-rand: enabled\n";
+    } else {
+        print "crypto-rand: disabled\n";
     }
     if ($enable_openssl_hash eq "yes") {
         print "openssl-hash: enabled\n";
@@ -1324,6 +1338,7 @@ if ($enable_intrinsics eq "yes") {
 
 # enable-native-pkcs11
 if ($enable_native_pkcs11 eq "yes") {
+    $cryptolib = "pkcs11";
     if ($use_openssl eq "auto") {
         $use_openssl = "no";
     }
@@ -1533,6 +1548,7 @@ if ($use_openssl eq "yes") {
         $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
     }   
 
+    $cryptolib = "openssl";
     $configcond{"OPENSSL"} = 1;
     $configdefd{"CRYPTO"} = "OPENSSL";
     $configvar{"OPENSSL_PATH"} = "$openssl_path";
@@ -2056,6 +2072,15 @@ if ($cookie_algorithm eq "sha1") {
 } elsif ($cookie_algorithm ne "aes") {
     die "Unrecognized cookie algorithm: $cookie_algorithm\n";
 }
+
+# enable-crypto-rand
+if ($enable_crypto_rand eq "yes") {
+    if (($use_openssl eq "no") && ($enable_native_pkcs11 eq "no")) {
+        die "No crypto provider for random functions\n";
+    }
+    $configdefp{"ISC_PLATFORM_CRYPTORANDOM"} = "\"$cryptolib\"";
+}
+print "Cryptographic library for DNSSEC: $cryptolib";
 
 # enable-openssl-hash
 if ($enable_openssl_hash eq "yes") {
@@ -3375,6 +3400,7 @@ exit 0;
 #  --enable-developer partially supported
 #  --enable-newstats (9.9/9.9sub only)
 #  --enable-native-pkcs11 supported
+#  --enable-crypto-rand supported
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported
 #  --enable-threads included without a way to disable it
@@ -3400,6 +3426,7 @@ exit 0;
 #  --with-gost supported
 #  --with-aes supported
 #  --with-cc-alg supported
+#  --with-randomdev not supported on WIN32 (makes no sense)
 #  --with-geoip supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-lmdb no supported on WIN32 (port is not reliable)

@@ -405,14 +405,14 @@ main(int argc, char **argv) {
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize hash");
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not initialize hash");
 	isc_entropy_stopcallbacksources(ectx);
 
 	setup_logging(mctx, &log);
@@ -456,8 +456,8 @@ main(int argc, char **argv) {
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	cleanup_logging(&log);
-	dst_lib_destroy();
 	isc_hash_destroy();
+	dst_lib_destroy();
 	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)

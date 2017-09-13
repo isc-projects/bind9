@@ -266,6 +266,12 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (dst_entropy_pool != NULL)
+		isc_entropy_sethook(dst_random_getdata);
+#endif
+#endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -285,11 +291,19 @@ dst_lib_destroy(void) {
 	for (i = 0; i < DST_MAX_ALGS; i++)
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
 			dst_t_func[i]->cleanup();
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (dst_entropy_pool != NULL) {
+		isc_entropy_usehook(dst_entropy_pool, ISC_FALSE);
+		isc_entropy_sethook(NULL);
+	}
+#endif
 #ifdef OPENSSL
 	dst__openssl_destroy();
 #elif PKCS11CRYPTO
 	(void) dst__pkcs11_destroy();
 #endif /* if OPENSSL, elif PKCS11CRYPTO */
+#endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
 	if (dst_entropy_pool != NULL)
@@ -1991,13 +2005,17 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	return (dst_random_getdata(buf, len, NULL, flags));
+#else
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
+#endif
 #endif /* PKCS11CRYPTO */
 }
 
 unsigned int
 dst__entropy_status(void) {
-#ifndef PKCS11CRYPTO
+#if !defined(PKCS11CRYPTO) && !defined(ISC_PLATFORM_CRYPTORANDOM)
 #ifdef GSSAPI
 	unsigned int flags = dst_entropy_flags;
 	isc_result_t ret;
@@ -2020,6 +2038,7 @@ dst__entropy_status(void) {
 #endif
 	return (isc_entropy_status(dst_entropy_pool));
 #else
+	/* Doesn't matter as it is not used in this case. */
 	return (0);
 #endif
 }

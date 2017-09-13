@@ -201,6 +201,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char *argv[]) {
 	char *ourkeyname;
+	char *randomfile;
 	isc_taskmgr_t *taskmgr;
 	isc_timermgr_t *timermgr;
 	isc_socketmgr_t *socketmgr;
@@ -220,9 +221,20 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(isc_app_start());
 
+	randomfile = NULL;
+
 	if (argc < 2) {
 		fprintf(stderr, "I:no DH key provided\n");
 		exit(-1);
+	}
+	if (strcmp(argv[1], "-r") == 0) {
+		if (argc < 4) {
+			fprintf(stderr, "I:no DH key provided\n");
+			exit(-1);
+		}
+		randomfile = argv[2];
+		argv += 2;
+		argc -= 2;
 	}
 	ourkeyname = argv[1];
 
@@ -237,14 +249,22 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(isc_entropy_createfilesource(ectx, "../random.data"));
-	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (randomfile != NULL &&
+	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
+		randomfile = NULL;
+		isc_entropy_usehook(ectx, ISC_TRUE);
+	}
+#endif
+	if (randomfile != NULL)
+		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
 	log = NULL;
 	logconfig = NULL;
 	RUNCHECK(isc_log_create(mctx, &log, &logconfig));
 
 	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -323,8 +343,8 @@ main(int argc, char *argv[]) {
 
 	isc_log_destroy(&log);
 
-	dst_lib_destroy();
 	isc_hash_destroy();
+	dst_lib_destroy();
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
