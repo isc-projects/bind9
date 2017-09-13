@@ -611,6 +611,7 @@ dns_name_tostring
 dns_name_totext
 dns_name_totext2
 dns_name_towire
+dns_name_towire2
 dns_ncache_add
 dns_ncache_addoptout
 dns_ncache_current
