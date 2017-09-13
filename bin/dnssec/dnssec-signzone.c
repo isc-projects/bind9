@@ -2782,8 +2782,8 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 		sprintf(filename, "%s/", dsdir);
 	else
 		filename[0] = 0;
-	strcat(filename, prefix);
-	strcat(filename, namestr);
+	strlcat(filename, prefix, filenamelen);
+	strlcat(filename, namestr, filenamelen);
 
 	dns_diff_init(mctx, &diff);
 

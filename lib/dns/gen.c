@@ -548,7 +548,7 @@ main(int argc, char **argv) {
 	for (i = 0; i < TYPENAMES; i++)
 		memset(&typenames[i], 0, sizeof(typenames[i]));
 
-	strcpy(srcdir, "");
+	srcdir[0] = '\0';
 	while ((c = isc_commandline_parse(argc, argv, "cdits:F:P:S:")) != -1)
 		switch (c) {
 		case 'c':
@@ -643,7 +643,8 @@ main(int argc, char **argv) {
 	} else
 		year[0] = 0;
 
-	if (!depend) fprintf(stdout, copyright, year);
+	if (!depend)
+		fprintf(stdout, copyright, year);
 
 	if (code) {
 		fputs("#ifndef DNS_CODE_H\n", stdout);

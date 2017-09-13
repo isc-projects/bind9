@@ -76,7 +76,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	if (strlen(dirname) + 3 > sizeof(dir->dirname))
 		/* XXXDCL ? */
 		return (ISC_R_NOSPACE);
-	strcpy(dir->dirname, dirname);
+	strlcpy(dir->dirname, dirname, sizeof(dir->dirname));
 
 	/*
 	 * Append path separator, if needed, and "*".
@@ -130,7 +130,8 @@ isc_dir_read(isc_dir_t *dir) {
 	/*
 	 * Make sure that the space for the name is long enough.
 	 */
-	strcpy(dir->entry.name, dir->entry.find_data.cFileName);
+	strlcpy(dir->entry.name, dir->entry.find_data.cFileName,
+		sizeof(dir->entry.name));
 	dir->entry.length = strlen(dir->entry.name);
 
 	return (ISC_R_SUCCESS);
@@ -213,7 +214,8 @@ start_directory(isc_dir_t *dir)
 	/*
 	 * Fill in the data for the first entry of the directory.
 	 */
-	strcpy(dir->entry.name, dir->entry.find_data.cFileName);
+	strlcpy(dir->entry.name, dir->entry.find_data.cFileName,
+		sizeof(dir->entry.name));
 	dir->entry.length = strlen(dir->entry.name);
 
 	dir->entry_filled = ISC_TRUE;

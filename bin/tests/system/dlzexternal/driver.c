@@ -239,6 +239,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	va_list ap;
 	char soa_data[200];
 	isc_result_t result;
+	size_t znsize;
 	int n;
 
 	UNUSED(dlzname);
@@ -263,15 +264,17 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* Ensure zone name is absolute */
-	state->zone_name = malloc(strlen(argv[1]) + 2);
+	znsize = strlen(argv[1]) + 2;
+	state->zone_name = malloc(znsize);
 	if (state->zone_name == NULL) {
 		free(state);
 		return (ISC_R_NOMEMORY);
 	}
-	if (argv[1][strlen(argv[1]) - 1] == '.')
-		strcpy(state->zone_name, argv[1]);
-	else
-		sprintf(state->zone_name, "%s.", argv[1]);
+	if (argv[1][strlen(argv[1]) - 1] == '.') {
+		strlcpy(state->zone_name, argv[1], znsize);
+	} else {
+		snprintf(state->zone_name, znsize, "%s.", argv[1]);
+	}
 
 	n = snprintf(soa_data, sizeof(soa_data),
 		     "%s hostmaster.%s 123 900 600 86400 3600",
@@ -362,7 +365,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 	if (strcmp(name, "source-addr") == 0) {
 		char buf[100];
-		strcpy(buf, "unknown");
+		strlcpy(buf, "unknown", sizeof(buf));
 		if (methods != NULL &&
 		    methods->version - methods->age <=
 			 DNS_CLIENTINFOMETHODS_VERSION &&

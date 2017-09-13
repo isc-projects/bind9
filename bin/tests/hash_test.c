@@ -112,7 +112,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacmd5", digest, 4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacmd5_init(&hmacmd5, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
@@ -143,7 +143,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacsha1", digest, ISC_SHA1_DIGESTLENGTH/4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacsha1_init(&hmacsha1, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacsha1_update(&hmacsha1, buffer, strlen(s));
@@ -174,7 +174,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacsha224", digest, ISC_SHA224_DIGESTLENGTH/4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacsha224_init(&hmacsha224, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacsha224_update(&hmacsha224, buffer, strlen(s));
@@ -205,7 +205,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacsha256", digest, ISC_SHA256_DIGESTLENGTH/4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacsha256_init(&hmacsha256, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacsha256_update(&hmacsha256, buffer, strlen(s));
@@ -236,7 +236,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacsha384", digest, ISC_SHA384_DIGESTLENGTH/4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacsha384_init(&hmacsha384, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacsha384_update(&hmacsha384, buffer, strlen(s));
@@ -267,7 +267,7 @@ main(int argc, char **argv) {
 	print_digest(s, "hmacsha512", digest, ISC_SHA512_DIGESTLENGTH/4);
 
 	s = "what do ya want for nothing?";
-	strcpy((char *)key, "Jefe");
+	strlcpy((char *)key, "Jefe", sizeof(key));
 	isc_hmacsha512_init(&hmacsha512, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacsha512_update(&hmacsha512, buffer, strlen(s));

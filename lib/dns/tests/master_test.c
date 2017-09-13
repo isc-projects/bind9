@@ -90,7 +90,7 @@ test_master(const char *testfile, dns_masterformat_t format,
 	unsigned char		name_buf[BUFLEN];
 	dns_rdatacallbacks_t	callbacks;
 
-	strcpy(origin, TEST_ORIGIN);
+	strlcpy(origin, TEST_ORIGIN, sizeof(origin));
 	len = strlen(origin);
 	isc_buffer_init(&source, origin, len);
 	isc_buffer_add(&source, len);
@@ -507,7 +507,7 @@ ATF_TC_BODY(dumpraw, tc) {
 
 	UNUSED(tc);
 
-	strcpy(myorigin, TEST_ORIGIN);
+	strlcpy(myorigin, TEST_ORIGIN, sizeof(myorigin));
 	len = strlen(myorigin);
 	isc_buffer_init(&source, myorigin, len);
 	isc_buffer_add(&source, len);

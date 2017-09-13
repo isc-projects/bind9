@@ -258,7 +258,6 @@ isc_file_progname(const char *filename, char *buf, size_t buflen);
  * \brief Given an operating system specific file name "filename"
  * referring to a program, return the canonical program name.
  *
- *
  * Any directory prefix or executable file name extension (if
  * used on the OS in case) is stripped.  On systems where program
  * names are case insensitive, the name is canonicalized to all
