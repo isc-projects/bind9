@@ -25,6 +25,7 @@
 #include <isc/app.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
