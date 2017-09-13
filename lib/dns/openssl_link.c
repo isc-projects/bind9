@@ -22,7 +22,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id$
  */
 #ifdef OPENSSL
 
@@ -294,8 +293,8 @@ dst__openssl_init(const char *engine) {
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
 		FATAL_ERROR(__FILE__, __LINE__,
-			    "The OpenSSL pseudo random number generator "
-			    "cannot be initialized (cf the `PRNG not "
+			    "OpenSSL pseudorandom number generator "
+			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
 

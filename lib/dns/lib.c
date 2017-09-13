@@ -96,6 +96,8 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dst;
 
+	isc_hash_init();
+
 	initialize_done = ISC_TRUE;
 	return;
 

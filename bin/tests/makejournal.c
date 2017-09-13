@@ -98,11 +98,11 @@ main(int argc, char **argv) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
+
+	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+	hash_active = ISC_TRUE;
 
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));
 	isc_log_registercategories(lctx, categories);

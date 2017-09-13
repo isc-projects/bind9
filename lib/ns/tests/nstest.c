@@ -235,11 +235,11 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
+
+	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+	hash_active = ISC_TRUE;
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
