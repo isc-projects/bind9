@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/types.h>
 
 #include <dns/geoip.h>

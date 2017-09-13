@@ -21,6 +21,7 @@ static char rcsid[] =
 
 #include <isc/net.h>
 #include <isc/print.h>
+#include <isc/string.h>
 
 #define NS_INT16SZ	 2
 #define NS_IN6ADDRSZ	16

@@ -17,8 +17,10 @@
  */
 
 #include <config.h>
+
 #include <isc/bind_registry.h>
 #include <isc/ntpaths.h>
+#include <isc/string.h>
 
 /*
  * Module Variables
