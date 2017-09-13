@@ -93,7 +93,6 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
  *
  *	Returns:
  *	\li	#ISC_R_SUCCESS
- *	\li	failures from dns_rbt_create()
  */
 
 void
