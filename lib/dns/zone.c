@@ -1305,7 +1305,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 		tmp2 = mem;
 		tmp2 += (zone->db_argc + 1) * sizeof(char *);
 		for (i = 0; i < zone->db_argc; i++) {
-			remaining = (size_t)(mem - tmp2);
+			remaining = size - (tmp2 - (char *) mem);
 			*tmp++ = tmp2;
 			strlcpy(tmp2, zone->db_argv[i], remaining);
 			tmp2 += strlen(tmp2) + 1;
