@@ -104,7 +104,7 @@ isc_ntpaths_init(void) {
 
 	strlcpy(ns_defaultpidfile, namedBase, sizeof(ns_defaultpidfile));
 	strlcat(ns_defaultpidfile, "\\etc\\named.pid",
-	        sizeof(ns_defaultpidfile));
+		sizeof(ns_defaultpidfile));
 
 	strlcpy(local_state_dir, namedBase, sizeof(local_state_dir));
 	strlcat(local_state_dir, "\\bin", sizeof(local_state_dir));
