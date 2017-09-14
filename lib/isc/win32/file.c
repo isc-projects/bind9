@@ -335,7 +335,7 @@ isc_file_template(const char *path, const char *templet, char *buf,
 
 	if (s != NULL) {
 		size_t prefixlen = s - path + 1;
-		if ((prefixlen + strlen(templet) + 1) > (ssize_t)buflen)
+		if ((prefixlen + strlen(templet) + 1) > buflen)
 			return (ISC_R_NOSPACE);
 
 		/* Copy 'prefixlen' bytes and NUL terminate. */
