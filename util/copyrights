@@ -1109,7 +1109,7 @@
 ./bin/tests/system/dlz/ns1/named.conf		CONF-C	2010,2012,2016
 ./bin/tests/system/dlz/prereq.sh.in		SH	2011,2012,2016
 ./bin/tests/system/dlz/tests.sh			SH	2010,2011,2012,2013,2015,2016
-./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014,2015,2016
+./bin/tests/system/dlzexternal/Makefile.in	MAKE	2011,2012,2014,2015,2016,2017
 ./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014,2015,2016
 ./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/dlzexternal/driver.h		C	2011,2016
@@ -3791,7 +3791,7 @@
 ./lib/dns/tsec.c				C	2009,2010,2016
 ./lib/dns/tsig.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/tsig_p.h				C	2017
-./lib/dns/ttl.c					C	1999,2000,2001,2004,2005,2007,2011,2012,2013,2014,2016
+./lib/dns/ttl.c					C	1999,2000,2001,2004,2005,2007,2011,2012,2013,2014,2016,2017
 ./lib/dns/update.c				C	2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005,2007,2012,2013,2016
