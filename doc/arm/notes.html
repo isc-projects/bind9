@@ -489,6 +489,22 @@
 	  matching <span class="command"><strong>cookie-secret</strong></span>.
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  A new statistics counter has been added to track prefetch
+	  queries. [RT #45847]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>dnssec-signzone -x</strong></span> flag and the
+	  <span class="command"><strong>dnssec-dnskey-kskonly</strong></span> option in
+	  <span class="command"><strong>named.conf</strong></span>, which suppress the use of
+	  the ZSK when signing DNSKEY records, now also apply to
+	  CDNSKEY and CDS records. Thanks to Tony Finch for the
+	  contribution. [RT #45689]
+	</p>
+      </li>
 </ul></div>
   </div>
 

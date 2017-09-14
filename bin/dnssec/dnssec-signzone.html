@@ -563,8 +563,9 @@
 <dt><span class="term">-x</span></dt>
 <dd>
           <p>
-            Only sign the DNSKEY RRset with key-signing keys, and omit
-            signatures from zone-signing keys.  (This is similar to the
+            Only sign the DNSKEY, CDNSKEY, and CDS RRsets with
+            key-signing keys, and omit signatures from zone-signing
+            keys. (This is similar to the
             <span class="command"><strong>dnssec-dnskey-kskonly yes;</strong></span> zone option in
             <span class="command"><strong>named</strong></span>.)
           </p>

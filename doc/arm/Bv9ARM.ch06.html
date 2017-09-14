@@ -4911,9 +4911,9 @@ options {
                   When this option and <span class="command"><strong>update-check-ksk</strong></span>
                   are both set to <code class="literal">yes</code>, only key-signing
                   keys (that is, keys with the KSK bit set) will be used
-                  to sign the DNSKEY RRset at the zone apex.  Zone-signing
-                  keys (keys without the KSK bit set) will be used to sign
-                  the remainder of the zone, but not the DNSKEY RRset.
+                  to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
+                  Zone-signing keys (keys without the KSK bit set) will be used
+                  to sign the remainder of the zone, but not the DNSKEY RRset.
                   This is similar to the
                   <span class="command"><strong>dnssec-signzone -x</strong></span> command line option.
                 </p>
