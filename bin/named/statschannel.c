@@ -596,7 +596,7 @@ init_desc(void) {
 	} while (0)
 	i = 0;
 	SET_DNSTAPSTATDESC(success, "dnstap messges written", "DNSTAPsuccess");
-	SET_DNSTAPSTATDESC(drop, "dnstap messages dropped", "DNSSECdropped");
+	SET_DNSTAPSTATDESC(drop, "dnstap messages dropped", "DNSTAPdropped");
 	INSIST(i == dns_dnstapcounter_max);
 
 	/* Sanity check */

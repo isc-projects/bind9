@@ -1,3 +1,6 @@
+4723.	[bug]		Statistics counter DNSTAPdropped was misidentified
+			as DNSSECdropped. [RT #46002]
+			
 4722.	[cleanup]	Clean up uses of strcpy() and strcat() in favor of
 			strlcpy() and strlcat() for safety. [RT #45981]
 
