@@ -1642,12 +1642,12 @@ isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 	REQUIRE(VALID_CONTEXT(mctx));
 	REQUIRE(s != NULL);
 
-	len = strlen(s);
+	len = strlen(s) + 1;
 
-	ns = isc__mem_allocate((isc_mem_t *)mctx, len + 1 FLARG_PASS);
+	ns = isc__mem_allocate((isc_mem_t *)mctx, len FLARG_PASS);
 
 	if (ns != NULL)
-		strncpy(ns, s, len + 1);
+		strlcpy(ns, s, len);
 
 	return (ns);
 }
@@ -1798,8 +1798,7 @@ isc_mem_setname(isc_mem_t *ctx0, const char *name, void *tag) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	LOCK(&ctx->lock);
-	memset(ctx->name, 0, sizeof(ctx->name));
-	strncpy(ctx->name, name, sizeof(ctx->name) - 1);
+	strlcpy(ctx->name, name, sizeof(ctx->name));
 	ctx->tag = tag;
 	UNLOCK(&ctx->lock);
 }
@@ -1884,8 +1883,7 @@ isc__mempool_setname(isc_mempool_t *mpctx0, const char *name) {
 	if (mpctx->lock != NULL)
 		LOCK(mpctx->lock);
 
-	strncpy(mpctx->name, name, sizeof(mpctx->name) - 1);
-	mpctx->name[sizeof(mpctx->name) - 1] = '\0';
+	strlcpy(mpctx->name, name, sizeof(mpctx->name));
 
 	if (mpctx->lock != NULL)
 		UNLOCK(mpctx->lock);

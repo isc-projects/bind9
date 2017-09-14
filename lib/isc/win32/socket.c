@@ -3947,8 +3947,7 @@ isc__socket_setname(isc_socket_t *socket, const char *name, void *tag) {
 	REQUIRE(VALID_SOCKET(socket));
 
 	LOCK(&socket->lock);
-	memset(socket->name, 0, sizeof(socket->name));
-	strncpy(socket->name, name, sizeof(socket->name) - 1);
+	strlcpy(socket->name, name, sizeof(socket->name));
 	socket->tag = tag;
 	UNLOCK(&socket->lock);
 }

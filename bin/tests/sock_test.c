@@ -106,7 +106,7 @@ my_recv(isc_task_t *task, isc_event_t *event) {
 		region.base = isc_mem_get(mctx, strlen(buf) + 1);
 		if (region.base != NULL) {
 			region.length = strlen(buf) + 1;
-			strcpy((char *)region.base, buf);  /* strcpy is safe */
+			strlcpy((char *)region.base, buf, region.length);
 		} else
 			region.length = 0;
 		isc_socket_send(sock, &region, task, my_send, event->ev_arg);
@@ -179,7 +179,7 @@ my_connect(isc_task_t *task, isc_event_t *event) {
 	region.base = isc_mem_get(mctx, strlen(buf) + 1);
 	if (region.base != NULL) {
 		region.length = strlen(buf) + 1;
-		strcpy((char *)region.base, buf);  /* This strcpy is safe. */
+		strlcpy((char *)region.base, buf, region.length);
 	} else {
 		region.length = 0;
 	}

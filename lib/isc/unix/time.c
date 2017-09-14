@@ -394,8 +394,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		snprintf(buf + flen, len - flen,
 			 ".%03u", t->nanoseconds / NS_PER_MS);
 	else {
-		strncpy(buf, "99-Bad-9999 99:99:99.999", len);
-		buf[len - 1] = 0;
+		strlcpy(buf, "99-Bad-9999 99:99:99.999", len);
 	}
 }
 
