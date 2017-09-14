@@ -238,7 +238,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 		}
 	}
 	isc_netaddr_fromin6(&iter->current.netmask, &addr6);
-	strncpy(iter->current.name, name, sizeof(iter->current.name));
+	strlcpy(iter->current.name, name, sizeof(iter->current.name));
 	return (ISC_R_SUCCESS);
 }
 #endif

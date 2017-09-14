@@ -5292,7 +5292,7 @@ isc__socket_filter(isc_socket_t *sock0, const char *filter) {
 
 #if defined(SO_ACCEPTFILTER) && defined(ENABLE_ACCEPTFILTER)
 	bzero(&afa, sizeof(afa));
-	strncpy(afa.af_name, filter, sizeof(afa.af_name));
+	strlcpy(afa.af_name, filter, sizeof(afa.af_name));
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_ACCEPTFILTER,
 			 &afa, sizeof(afa)) == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -6069,8 +6069,7 @@ isc__socket_setname(isc_socket_t *socket0, const char *name, void *tag) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	memset(sock->name, 0, sizeof(sock->name));
-	strncpy(sock->name, name, sizeof(sock->name) - 1);
+	strlcpy(sock->name, name, sizeof(sock->name));
 	sock->tag = tag;
 	UNLOCK(&sock->lock);
 }

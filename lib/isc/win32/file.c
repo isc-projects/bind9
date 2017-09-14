@@ -279,11 +279,12 @@ isc_file_template(const char *path, const char *templet, char *buf,
 	s = strrchr(path, '\\');
 
 	if (s != NULL) {
-	  if ((s - path + 1 + strlen(templet) + 1) > (ssize_t)buflen)
+		size_t prefixlen = s - path + 1;
+		if ((prefixlen + strlen(templet) + 1) > (ssize_t)buflen)
 			return (ISC_R_NOSPACE);
 
-		strncpy(buf, path, s - path + 1);
-		buf[s - path + 1] = '\0';
+		/* Copy 'prefixlen' bytes and NUL terminate. */
+		strlcpy(buf, path, ISC_MIN(prefixlen + 1, buflen));
 		strlcat(buf, templet, buflen);
 	} else {
 		if ((strlen(templet) + 1) > buflen)
@@ -543,8 +544,8 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	if (len >= namelen)
 		return (ISC_R_NOSPACE);
 
-	strlcpy(progname, s, len);
-	progname[len] = '\0';
+	/* Copy up to 'len' bytes and NUL terminate. */
+	strlcpy(progname, s, ISC_MIN(len + 1, namelen));
 	return (ISC_R_SUCCESS);
 }
 

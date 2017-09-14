@@ -398,11 +398,12 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	flen = strftime(buf, len, "%d-%b-%Y %X", localtime(&now));
 #endif
 	INSIST(flen < len);
-	if (flen != 0)
+	if (flen != 0) {
 		snprintf(buf + flen, len - flen,
 			 ".%03u", t->nanoseconds / 1000000);
-	else
-		snprintf(buf, len, "99-Bad-9999 99:99:99.999");
+	} else {
+		strlcpy(buf, "99-Bad-9999 99:99:99.999", len);
+	}
 }
 
 void
