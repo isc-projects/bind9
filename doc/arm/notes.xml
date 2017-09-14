@@ -184,6 +184,18 @@
 	  Note: This initial implementation can only synthesize NXDOMAIN
 	  responses, from NSEC records.  Support for NODATA responses,
 	  wilcard responses, and NSEC3 records will be added soon.
+	  Thanks to APNIC for sponsoring this work.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  When acting as a recursive resolver, <command>named</command>
+	  can now continue returning answers whose TTLs have expired
+	  when the authoritative server is under attack and unable to
+	  respond. This is controlled by the
+	  <command>stale-answer-enable</command>,
+	  <command>stale-answer-ttl</command> and
+	  <command>max-stale-ttl</command> options. [RT #44790]
 	</para>
       </listitem>
       <listitem>
