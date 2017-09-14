@@ -33,8 +33,13 @@ OBJS =
 CFLAGS =	@CFLAGS@ @SO_CFLAGS@
 SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
 
-driver.@SO@: ${SO_OBJS}
-	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ driver.@O@
+ISCLIBS =	../../../../lib/isc/libisc.@A@
+SO_STRIP =	@SO_STRIP@
+
+driver.@SO@: ${SO_OBJS} ${ISCLIBS}
+	CLEANED=`echo "${ISCLIBS} ${LIBS}" | ${SO_STRIP}`; \
+	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ ${SO_OBJS} \
+		$${CLEANED}
 
 clean distclean::
 	rm -f ${TARGETS}
