@@ -80,7 +80,7 @@ isc_ntpaths_init(void) {
 
 	strlcpy(ns_defaultpidfile, namedBase, sizeof(ns_defaultpidfile));
 	strlcat(ns_defaultpidfile, "\\etc\\named.pid",
-	        sizeof(ns_defaultpidfile));
+		sizeof(ns_defaultpidfile));
 
 	strlcpy(ns_lockfile, namedBase, sizeof(ns_lockfile));
 	strlcat(ns_lockfile, "\\etc\\named.lock", sizeof(ns_lockfile));
