@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2015  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -240,7 +240,6 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	char soa_data[1024];
 	const char *extra;
 	isc_result_t result;
-	size_t znsize;
 	int n;
 
 	UNUSED(dlzname);
@@ -265,17 +264,15 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* Ensure zone name is absolute */
-	znsize = strlen(argv[1]) + 2;
-	state->zone_name = malloc(znsize);
+	state->zone_name = malloc(strlen(argv[1]) + 2);
 	if (state->zone_name == NULL) {
 		free(state);
 		return (ISC_R_NOMEMORY);
 	}
-	if (argv[1][strlen(argv[1]) - 1] == '.') {
-		strlcpy(state->zone_name, argv[1], znsize);
-	} else {
-		snprintf(state->zone_name, znsize, "%s.", argv[1]);
-	}
+	if (argv[1][strlen(argv[1]) - 1] == '.')
+		strcpy(state->zone_name, argv[1]);
+	else
+		sprintf(state->zone_name, "%s.", argv[1]);
 
 	if (strcmp(state->zone_name, ".") == 0)
 		extra = ".root";
@@ -338,7 +335,7 @@ dlz_findzonedb(void *dbdata, const char *name,
 	char addrbuf[100];
 	char absolute[1024];
 
-	strlcpy(addrbuf, "unknown", sizeof(addrbuf));
+	strcpy(addrbuf, "unknown");
 	if (methods != NULL &&
 	    methods->sourceip != NULL &&
 	    methods->version - methods->age <= DNS_CLIENTINFOMETHODS_VERSION &&
@@ -427,7 +424,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
 
 	if (strcmp(name, "source-addr") == 0) {
-		strlcpy(buf, "unknown", sizeof(buf));
+		strcpy(buf, "unknown");
 		if (methods != NULL &&
 		    methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
