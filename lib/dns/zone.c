@@ -1360,12 +1360,14 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 		size += strlen(zone->db_argv[i]) + 1;
 	mem = isc_mem_allocate(mctx, size);
 	if (mem != NULL) {
+		size_t remaining;
 		tmp = mem;
 		tmp2 = mem;
 		tmp2 += (zone->db_argc + 1) * sizeof(char *);
 		for (i = 0; i < zone->db_argc; i++) {
+			remaining = (size_t)(mem - tmp2);
 			*tmp++ = tmp2;
-			strlcpy(tmp2, zone->db_argv[i], size);
+			strlcpy(tmp2, zone->db_argv[i], remaining);
 			tmp2 += strlen(tmp2) + 1;
 		}
 		*tmp = NULL;
