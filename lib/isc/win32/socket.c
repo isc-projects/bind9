@@ -59,6 +59,7 @@
 #include <isc/socket.h>
 #include <isc/stats.h>
 #include <isc/strerror.h>
+#include <isc/string.h>
 #include <isc/syslog.h>
 #include <isc/task.h>
 #include <isc/thread.h>
