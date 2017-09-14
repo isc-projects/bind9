@@ -374,8 +374,7 @@ getaddrinfo(const char *hostname, const char *servname,
 		 */
 		ntmp[0] = '\0';
 		if (strchr(hostname, '%') != NULL) {
-			strncpy(ntmp, hostname, sizeof(ntmp) - 1);
-			ntmp[sizeof(ntmp) - 1] = '\0';
+			strlcpy(ntmp, hostname, sizeof(ntmp));
 			p = strchr(ntmp, '%');
 			ep = NULL;
 

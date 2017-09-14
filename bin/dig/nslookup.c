@@ -479,9 +479,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		dns_name_format(name, namestr, sizeof(namestr));
 		lookup = clone_lookup(query->lookup, ISC_FALSE);
 		if (lookup != NULL) {
-			strncpy(lookup->textname, namestr,
+			strlcpy(lookup->textname, namestr,
 				sizeof(lookup->textname));
-			lookup->textname[sizeof(lookup->textname)-1] = 0;
 			lookup->rdtype = dns_rdatatype_aaaa;
 			lookup->rdtypeset = ISC_TRUE;
 			lookup->origin = NULL;

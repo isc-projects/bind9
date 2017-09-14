@@ -49,8 +49,8 @@ ntservice_init(void) {
 		}
 		UpdateSCM(SERVICE_RUNNING);
 	} else {
-		strcpy(ConsoleTitle, "BIND Version ");
-		strcat(ConsoleTitle, VERSION);
+		strlcpy(ConsoleTitle, "BIND Version ", sizeof(ConsoleTitle));
+		strlcat(ConsoleTitle, VERSION, sizeof(ConsoleTitle));
 		SetConsoleTitle(ConsoleTitle);
 	}
 }

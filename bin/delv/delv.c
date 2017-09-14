@@ -978,8 +978,7 @@ plus_option(char *option) {
 	char *cmd, *value, *ptr;
 	isc_boolean_t state = ISC_TRUE;
 
-	strncpy(option_store, option, sizeof(option_store));
-	option_store[sizeof(option_store)-1]=0;
+	strlcpy(option_store, option, sizeof(option_store));
 	ptr = option_store;
 	cmd = next_token(&ptr,"=");
 	if (cmd == NULL) {

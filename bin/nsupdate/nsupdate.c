@@ -453,8 +453,8 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		return (ISC_FALSE);
 	}
 
-	strncpy(buf, hmacstr, len);
-	buf[len] = 0;
+	/* Copy len bytes and NUL terminate. */
+	strlcpy(buf, hmacstr, ISC_MIN(len + 1, sizeof(buf)));
 
 #ifndef PK11_MD5_DISABLE
 	if (strcasecmp(buf, "hmac-md5") == 0) {
