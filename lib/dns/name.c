@@ -1612,7 +1612,7 @@ dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
 					trem--;
 					nlen--;
 				} else {
-					if (trem < 3)
+					if (trem < 4)
 						return (ISC_R_NOSPACE);
 					snprintf(tdata, trem, "%%%02X", c);
 					tdata += 3;
