@@ -29,6 +29,7 @@
 #include <windows.h>
 
 #include <isc/assertions.h>
+#include <isc/string.h>
 #include <isc/time.h>
 #include <isc/tm.h>
 #include <isc/util.h>
