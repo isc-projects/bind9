@@ -280,8 +280,6 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	char DateBuf[50];
 	char TimeBuf[50];
 
-	static const char badtime[] = "99-Bad-9999 99:99:99.999";
-
 	REQUIRE(len > 0);
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
 	    FileTimeToSystemTime(&localft, &st)) {
@@ -293,8 +291,9 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 		snprintf(buf, len, "%s %s.%03u", DateBuf, TimeBuf,
 			 st.wMilliseconds);
 
-	} else
-		snprintf(buf, len, badtime);
+	} else {
+		strlcpy(buf, "99-Bad-9999 99:99:99.999", len);
+	}
 }
 
 void

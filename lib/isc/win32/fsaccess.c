@@ -79,11 +79,9 @@ is_ntfs(const char * file) {
 	 */
 	if (isalpha(filename[0]) && filename[1] == ':' &&
 		(filename[2] == '\\' || filename[2] == '/')) {
-		strncpy(drive, filename, 3);
-		drive[3] = '\0';
-	}
-
-	else if ((filename[0] == '\\') && (filename[1] == '\\')) {
+		/* Copy 'c:\' or 'c:/' and NUL terminate. */
+		strlcpy(drive, filename, ISC_MIN(3 + 1, sizeof(drive)));
+	} else if ((filename[0] == '\\') && (filename[1] == '\\')) {
 		/* Find the machine and share name and rebuild the UNC */
 		strlcpy(tmpbuf, filename, sizeof(tmpbuf));
 		machinename = strtok(tmpbuf, "\\");
@@ -94,13 +92,12 @@ is_ntfs(const char * file) {
 		strlcat(drive, sharename, sizeof(drive));
 		strlcat(drive, "\\", sizeof(drive));
 
-	}
-	else /* Not determinable */
+	} else /* Not determinable */
 		return (FALSE);
 
 	GetVolumeInformation(drive, NULL, 0, NULL, 0, NULL, FSType,
 			     sizeof(FSType));
-	if(strcmp(FSType,"NTFS") == 0)
+	if (strcmp(FSType, "NTFS") == 0)
 		return (TRUE);
 	else
 		return (FALSE);

@@ -1031,8 +1031,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
-	strncpy(option_store, option, sizeof(option_store));
-	option_store[sizeof(option_store) - 1] = 0;
+	strlcpy(option_store, option, sizeof(option_store));
 	ptr = option_store;
 	cmd = next_token(&ptr, "=");
 	if (cmd == NULL) {
@@ -1618,8 +1617,7 @@ dash_option(const char *option, char *next, struct query *query,
 		return (value_from_next);
 	case 'x':
 		get_reverse(textname, sizeof(textname), value, query->ip6_int);
-		strncpy(query->textname, textname, sizeof(query->textname));
-		query->textname[sizeof(query->textname) - 1] = 0;
+		strlcpy(query->textname, textname, sizeof(query->textname));
 		query->rdtype = dns_rdatatype_ptr;
 		query->rdclass = dns_rdataclass_in;
 		*setname = ISC_TRUE;
@@ -1793,9 +1791,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			 */
 			if (query == &default_query)
 				query = clone_default_query();
-			strncpy(query->textname, rv[0],
+			strlcpy(query->textname, rv[0],
 				sizeof(query->textname));
-			query->textname[sizeof(query->textname) - 1] = 0;
 			ISC_LIST_APPEND(queries, query, link);
 
 			query = clone_default_query();

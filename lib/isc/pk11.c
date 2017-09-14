@@ -416,9 +416,13 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	/* Override the token's PIN */
 	if (logon && pin != NULL && *pin != '\0') {
 		if (strlen(pin) > PINLEN)
-			return ISC_R_RANGE;
-		memset(token->pin, 0, PINLEN + 1);
-		strncpy(token->pin, pin, PINLEN);
+			return (ISC_R_RANGE);
+		/*
+		 * We want to zero out the old pin before
+		 * overwriting with a new one.
+		 */
+		memset(token->pin, 0, sizeof(token->pin));
+		strlcpy(token->pin, pin, sizeof(token->pin));
 	}
 
 	freelist = &token->sessions;
