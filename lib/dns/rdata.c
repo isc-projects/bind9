@@ -1339,8 +1339,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 		 * source->base is not required to be NUL terminated.
 		 * Copy up to remaining bytes and NUL terminate.
 		 */
-		strlcpy(buf, source->base + 4,
-			ISC_MIN(source->length - 4 + 1, sizeof(buf)));
+		snprintf(buf, sizeof(buf), "%.*s",
+			 (int)(source->length - 4), source->base + 4);
 		val = strtoul(buf, &endp, 10);
 		if (*endp == '\0' && val <= 0xffff) {
 			*typep = (dns_rdatatype_t)val;

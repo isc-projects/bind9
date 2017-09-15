@@ -250,8 +250,8 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
 	 * isc_parse_uint32().	isc_parse_uint32() requires
 	 * null termination, so we must make a copy.
 	 */
-	strlcpy(buffer, source->base,
-		ISC_MIN(source->length + 1, sizeof(buffer)));
+	snprintf(buffer, sizeof(buffer), "%.*s",
+		 (int)source->length, source->base);
 
 	INSIST(buffer[source->length] == '\0');
 
@@ -506,8 +506,8 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 			 * source->base is not required to be NUL terminated.
 			 * Copy up to remaining bytes and NUL terminate.
 			 */
-			strlcpy(buf, source->base + 5,
-				ISC_MIN(source->length - 5 + 1, sizeof(buf)));
+			snprintf(buf, sizeof(buf), "%.*s",
+				 (int)(source->length - 5), source->base + 5);
 			val = strtoul(buf, &endp, 10);
 			if (*endp == '\0' && val <= 0xffff) {
 				*classp = (dns_rdataclass_t)val;

@@ -160,7 +160,7 @@ bind_ttl(isc_textregion_t *source, isc_uint32_t *ttl) {
 	if (source->length > sizeof(buf) - 1)
 		return (DNS_R_SYNTAX);
 	/* Copy source->length bytes and NUL terminate. */
-	strlcpy(buf, source->base, ISC_MIN(source->length + 1, sizeof(buf)));
+	snprintf(buf, sizeof(buf), "%.*s", (int)source->length, source->base);
 	s = buf;
 
 	do {
