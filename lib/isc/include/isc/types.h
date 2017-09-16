@@ -90,6 +90,8 @@ typedef struct isc_time			isc_time_t;		/*%< Time */
 typedef struct isc_timer		isc_timer_t;		/*%< Timer */
 typedef struct isc_timermgr		isc_timermgr_t;		/*%< Timer Manager */
 
+typedef isc_result_t (*isc_entropy_getdata_t)(void *, unsigned int,
+					      unsigned int *, unsigned int);
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 

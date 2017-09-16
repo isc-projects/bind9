@@ -300,6 +300,18 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
  *	isc_entropy_createcallbacksource().
  */
 
+void
+isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
+/*!<
+ * \brief Mark/unmark the given entropy structure as being hooked.
+ */
+
+void
+isc_entropy_sethook(isc_entropy_getdata_t myhook);
+/*!<
+ * \brief Set the getdata hook (e.g., for a crypto random generator).
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_ENTROPY_H */

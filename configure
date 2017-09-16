@@ -794,6 +794,7 @@ XMLSTATS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
+ISC_PLATFORM_CRYPTORANDOM
 PKCS11_TEST
 PKCS11_ED25519
 PKCS11_GOST
@@ -935,6 +936,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1001,6 +1003,7 @@ with_aes
 enable_openssl_hash
 with_cc_alg
 enable_openssl_version_check
+enable_crypto_rand
 with_lmdb
 with_libxml2
 with_libjson
@@ -1096,6 +1099,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1348,6 +1352,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1485,7 +1498,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1638,6 +1651,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1694,6 +1708,7 @@ Optional Features:
   --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
   --enable-openssl-version-check
                           check OpenSSL version [default=yes]
+  --enable-crypto-rand    use the crypto provider for random [default=yes]
   --enable-largefile	  64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
@@ -15936,6 +15951,7 @@ case "$use_openssl" in
 $as_echo "disabled because of native PKCS11" >&6; }
 		DST_OPENSSL_INC=""
 		CRYPTO="-DPKCS11CRYPTO"
+		CRYPTOLIB="pkcs11"
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
@@ -15948,6 +15964,7 @@ $as_echo "disabled because of native PKCS11" >&6; }
 $as_echo "no" >&6; }
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		CRYPTOLIB=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
@@ -15958,6 +15975,7 @@ $as_echo "no" >&6; }
 	auto)
 		DST_OPENSSL_INC=""
 		CRYPTO=""
+		CRYPTOLIB=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRS=""
 		OPENSSLGOSTLINKOBJS=""
@@ -15965,7 +15983,7 @@ $as_echo "no" >&6; }
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
-If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
+If you do not want OpenSSL, use --without-openssl" "$LINENO" 5
 		;;
 	*)
 		if test "yes" = "$want_native_pkcs11"
@@ -15996,6 +16014,7 @@ $as_echo "not found" >&6; }
 			as_fn_error $? "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
 		fi
 		CRYPTO='-DOPENSSL'
+		CRYPTOLIB="openssl"
 		if test "/usr" = "$use_openssl"
 		then
 			DST_OPENSSL_INC=""
@@ -16639,8 +16658,6 @@ esac
 # Use OpenSSL for hash functions
 #
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
-$as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
@@ -17022,6 +17039,86 @@ fi
 if test "rt" = "$have_clock_gt"; then
 	LIBS="-lrt $LIBS"
 fi
+
+#
+# Use the crypto provider (OpenSSL/PKCS#11) for random functions
+#
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for using the crypto library (vs. builtin) for random functions" >&5
+$as_echo_n "checking for using the crypto library (vs. builtin) for random functions... " >&6; }
+# Check whether --enable-crypto-rand was given.
+if test "${enable_crypto_rand+set}" = set; then :
+  enableval=$enable_crypto_rand; want_crypto_rand="$enableval"
+else
+  want_crypto_rand="auto"
+fi
+
+if test "$want_crypto_rand" = "auto"
+then
+	case "$CRYPTOLIB" in
+	"")
+		want_crypto_rand="no"
+		;;
+	pkcs11)
+		want_crypto_rand="yes"
+		;;
+	openssl)
+		saved_cflags="$CFLAGS"
+		saved_libs="$LIBS"
+		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
+		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		if test "$cross_compiling" = yes; then :
+  want_crypto_rand="yes"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <openssl/rand.h>
+
+unsigned char buf[128];
+
+int main()
+{
+	if (RAND_bytes(buf, 128) != 1)
+		return (1);
+	return (0);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  want_crypto_rand="yes"
+else
+  want_crypto_rand="no"
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+		CFLAGS="$saved_cflags"
+		LIBS="$saved_libs"
+		;;
+	*)
+		as_fn_error $? "Unknown crypto library define $CRYPTOLIB" "$LINENO" 5
+		;;
+	esac
+fi
+case $want_crypto_rand in
+	yes)
+		if test "$CRYPTOLIB" = ""
+		then
+			as_fn_error $? "No crypto library for random functions" "$LINENO" 5
+		fi
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"$CRYPTOLIB\"" >&5
+$as_echo "\"$CRYPTOLIB\"" >&6; }
+		ISC_PLATFORM_CRYPTORANDOM="#define ISC_PLATFORM_CRYPTORANDOM \"$CRYPTOLIB\""
+		;;
+	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		ISC_PLATFORM_CRYPTORANDOM="#undef ISC_PLATFORM_CRYPTORANDOM"
+		;;
+esac
+
 
 #
 # was --with-lmdb specified?
@@ -20105,12 +20202,7 @@ ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
 if test "yes" = "$use_atomic"; then
-	have_atomic=yes		# set default
-	case "$host" in
-	i[3456]86-*)
-		# XXX: some old x86 architectures actually do not support
-		#      (some of) these operations.  Do we need stricter checks?
-		# The cast to long int works around a bug in the HP C Compiler
+	# The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
 # This bug is HP SR number 8606223364.
@@ -20143,6 +20235,11 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+	have_atomic=yes		# set default
+	case "$host" in
+	i[3456]86-*)
+		# XXX: some old x86 architectures actually do not support
+		#      (some of) these operations.  Do we need stricter checks?
 		if test $ac_cv_sizeof_void_p = 8; then
 			arch=x86_64
 			have_xaddq=yes
@@ -20151,39 +20248,6 @@ _ACEOF
 		fi
 	;;
 	x86_64-*|amd64-*)
-		# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of void *" >&5
-$as_echo_n "checking size of void *... " >&6; }
-if ${ac_cv_sizeof_void_p+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (void *))" "ac_cv_sizeof_void_p"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_void_p" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (void *)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_void_p=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_void_p" >&5
-$as_echo "$ac_cv_sizeof_void_p" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_VOID_P $ac_cv_sizeof_void_p
-_ACEOF
-
-
 		if test $ac_cv_sizeof_void_p = 8; then
 			arch=x86_64
 			have_xaddq=yes
@@ -26018,6 +26082,8 @@ report() {
             echo "    IPv6 support (--enable-ipv6)"
         test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
                 echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+        test "no" = "$want_crypto_rand" || \
+                echo "    Crypto provider entropy source (--enable-crypto-rand)"
         test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
         test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
         test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -26058,6 +26124,8 @@ report() {
     test "yes" = "$want_querytrace" && \
         echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
+
+    echo "    Cryptographic library for DNSSEC: $CRYPTOLIB"
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
     test "no" = "$use_dlz_bdb" || \
@@ -26108,6 +26176,8 @@ report() {
         echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
         echo "    EDDSA algorithm support (--with-eddsa)"
+    test "yes" = "$want_crypto_rand" || \
+        echo "    Crypto provider entropy source (--enable-crypto-rand)"
 
     test "yes" = "$enable_seccomp" || \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"

@@ -22,7 +22,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id$
  */
 #ifdef OPENSSL
 
@@ -32,6 +31,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
+#include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
@@ -47,8 +47,6 @@
 #include <openssl/engine.h>
 #endif
 
-static RAND_METHOD *rm = NULL;
-
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static isc_mutex_t *locks = NULL;
 static int nlocks;
@@ -57,6 +55,9 @@ static int nlocks;
 #ifdef USE_ENGINE
 static ENGINE *e = NULL;
 #endif
+
+#ifndef ISC_PLATFORM_CRYPTORANDOM
+static RAND_METHOD *rm = NULL;
 
 static int
 entropy_get(unsigned char *buf, int num) {
@@ -103,6 +104,7 @@ entropy_add(const void *buf, int num, double entropy) {
 	return (1);
 }
 #endif
+#endif /* !ISC_PLATFORM_CRYPTORANDOM */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
@@ -191,7 +193,7 @@ _set_thread_id(CRYPTO_THREADID *id)
 isc_result_t
 dst__openssl_init(const char *engine) {
 	isc_result_t result;
-#ifdef USE_ENGINE
+#if defined(USE_ENGINE) && !defined(ISC_PLATFORM_CRYPTORANDOM)
 	ENGINE *re;
 #else
 
@@ -222,6 +224,7 @@ dst__openssl_init(const char *engine) {
 	ERR_load_crypto_strings();
 #endif
 
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	rm = mem_alloc(sizeof(RAND_METHOD) FILELINE);
 	if (rm == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -233,6 +236,7 @@ dst__openssl_init(const char *engine) {
 	rm->add = entropy_add;
 	rm->pseudorand = entropy_getpseudo;
 	rm->status = entropy_status;
+#endif
 
 #ifdef USE_ENGINE
 #if !defined(CONF_MFLAGS_DEFAULT_SECTION)
@@ -266,6 +270,7 @@ dst__openssl_init(const char *engine) {
 		}
 	}
 
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	re = ENGINE_get_default_RAND();
 	if (re == NULL) {
 		re = ENGINE_new();
@@ -278,9 +283,21 @@ dst__openssl_init(const char *engine) {
 		ENGINE_free(re);
 	} else
 		ENGINE_finish(re);
+#endif
 #else
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	RAND_set_rand_method(rm);
+#endif
 #endif /* USE_ENGINE */
+
+	/* Protect ourselves against unseeded PRNG */
+	if (RAND_status() != 1) {
+		FATAL_ERROR(__FILE__, __LINE__,
+			    "OpenSSL pseudorandom number generator "
+			    "cannot be initialized (see the `PRNG not "
+			    "seeded' message in the OpenSSL FAQ)");
+	}
+
 	return (ISC_R_SUCCESS);
 
 #ifdef USE_ENGINE
@@ -288,10 +305,14 @@ dst__openssl_init(const char *engine) {
 	if (e != NULL)
 		ENGINE_free(e);
 	e = NULL;
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	mem_free(rm FILELINE);
 	rm = NULL;
 #endif
+#endif
+#ifndef ISC_PLATFORM_CRYPTORANDOM
  cleanup_mutexinit:
+#endif
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_locking_callback(NULL);
 	DESTROYMUTEXBLOCK(locks, nlocks);
@@ -306,14 +327,17 @@ void
 dst__openssl_destroy(void) {
 #if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	OPENSSL_cleanup();
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	if (rm != NULL) {
 		mem_free(rm FILELINE);
 		rm = NULL;
 	}
+#endif
 #else
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
 	 */
+#ifndef ISC_PLATFORM_CRYPTORANDOM
 	if (rm != NULL) {
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
 		RAND_cleanup();
@@ -321,6 +345,7 @@ dst__openssl_destroy(void) {
 		mem_free(rm FILELINE);
 		rm = NULL;
 	}
+#endif
 #if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 	CONF_modules_free();
 #endif
@@ -456,11 +481,45 @@ dst__openssl_getengine(const char *engine) {
 }
 #endif
 
-#else /* OPENSSL */
+isc_result_t
+dst_random_getdata(void *data, unsigned int length,
+		   unsigned int *returned, unsigned int flags) {
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+#ifndef DONT_REQUIRE_DST_LIB_INIT
+	INSIST(dst__memory_pool != NULL);
+#endif
+	REQUIRE(data != NULL);
+	REQUIRE(length > 0);
 
-#include <isc/util.h>
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	if ((flags & ISC_ENTROPY_GOODONLY) == 0) {
+		if (RAND_pseudo_bytes((unsigned char *)data, (int)length) < 0)
+			return (dst__openssl_toresult2("RAND_pseudo_bytes",
+						       DST_R_OPENSSLFAILURE));
+	} else {
+		if (RAND_bytes((unsigned char *)data, (int)length) != 1)
+			return (dst__openssl_toresult2("RAND_bytes",
+						       DST_R_OPENSSLFAILURE));
+	}
+#else
+	UNUSED(flags);
 
-EMPTY_TRANSLATION_UNIT
+	if (RAND_bytes((unsigned char *)data, (int)length) != 1)
+		return (dst__openssl_toresult2("RAND_bytes",
+					       DST_R_OPENSSLFAILURE));
+#endif
+	if (returned != NULL)
+		*returned = length;
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(data);
+	UNUSED(length);
+	UNUSED(returned);
+	UNUSED(flags);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
 
 #endif /* OPENSSL */
 /*! \file */

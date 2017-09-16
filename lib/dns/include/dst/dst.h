@@ -154,6 +154,14 @@ dst_lib_destroy(void);
  * Releases all resources allocated by DST.
  */
 
+isc_result_t
+dst_random_getdata(void *data, unsigned int length,
+		   unsigned int *returned, unsigned int flags);
+/*%<
+ * \brief Return data from the crypto random generator.
+ * Specialization of isc_entropy_getdata().
+ */
+
 isc_boolean_t
 dst_algorithm_supported(unsigned int alg);
 /*%<

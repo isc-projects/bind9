@@ -10,12 +10,15 @@
 
 #include <config.h>
 
+#include <isc/util.h>
+
 #include <dns/log.h>
 #include <dns/result.h>
 
 #include <pk11/pk11.h>
 #include <pk11/internal.h>
 
+#include "dst_internal.h"
 #include "dst_pkcs11.h"
 
 isc_result_t
@@ -31,12 +34,47 @@ dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 	return (fallback);
 }
 
+isc_result_t
+dst_random_getdata(void *data, unsigned int length,
+		   unsigned int *returned, unsigned int flags) {
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	isc_result_t ret;
+
+#ifndef DONT_REQUIRE_DST_LIB_INIT
+	INSIST(dst__memory_pool != NULL);
+#endif
+	REQUIRE(data != NULL);
+	REQUIRE(length > 0);
+	UNUSED(flags);
+
+	ret = pk11_rand_bytes(data, (int) length);
+	if ((ret == ISC_R_SUCCESS) && (returned != NULL))
+		*returned = length;
+	return (ret);
+#else
+	UNUSED(data);
+	UNUSED(length);
+	UNUSED(returned);
+	UNUSED(flags);
+
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
 
 #else /* PKCS11CRYPTO */
 
 #include <isc/util.h>
 
-EMPTY_TRANSLATION_UNIT
+isc_result_t
+dst_random_getdata(void *data, unsigned int length,
+		   unsigned int *returned, unsigned int flags) {
+	UNUSED(data);
+	UNUSED(length);
+	UNUSED(returned);
+	UNUSED(flags);
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
 
 #endif /* PKCS11CRYPTO */
 /*! \file */

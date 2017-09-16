@@ -332,6 +332,11 @@
 @ISC_PLATFORM_HAVESTRINGSH@
 
 /*
+ * Define if the random functions are provided by crypto.
+ */
+@ISC_PLATFORM_CRYPTORANDOM@
+
+/*
  * Define if the hash functions must be provided by OpenSSL.
  */
 @ISC_PLATFORM_OPENSSLHASH@

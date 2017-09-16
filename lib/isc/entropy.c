@@ -100,10 +100,14 @@ struct isc_entropy {
 	isc_uint32_t			initialized;
 	isc_uint32_t			initcount;
 	isc_entropypool_t		pool;
+	isc_boolean_t			usehook;
 	unsigned int			nsources;
 	isc_entropysource_t	       *nextsource;
 	ISC_LIST(isc_entropysource_t)	sources;
 };
+
+/*% Global Hook */
+static isc_entropy_getdata_t hook;
 
 /*% Sample Queue */
 typedef struct {
@@ -553,6 +557,11 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 	LOCK(&ent->lock);
 
+	if (ent->usehook && (hook != NULL)) {
+		UNLOCK(&ent->lock);
+		return (hook(data, length, returned, flags));
+	}
+
 	remain = length;
 	buf = data;
 	total = 0;
@@ -704,6 +713,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	ent->refcnt = 1;
 	ent->initialized = 0;
 	ent->initcount = 0;
+	ent->usehook = ISC_FALSE;
 	ent->magic = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
@@ -1283,4 +1293,18 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 	 * defined and use_keyboard is ISC_ENTROPY_KEYBOARDNO).
 	 */
 	return (final_result);
+}
+
+void
+isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff) {
+	REQUIRE(VALID_ENTROPY(ectx));
+
+	LOCK(&ectx->lock);
+	ectx->usehook = onoff;
+	UNLOCK(&ectx->lock);
+}
+
+void
+isc_entropy_sethook(isc_entropy_getdata_t myhook) {
+	hook = myhook;
 }

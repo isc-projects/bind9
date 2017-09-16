@@ -1931,11 +1931,10 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
+	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
 	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 	RUNCHECK(isc_entropy_getdata(ectx, cookie_secret,
 				     sizeof(cookie_secret), NULL, 0));
-
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
 
 	ISC_LIST_INIT(queries);
 	parse_args(ISC_FALSE, argc, argv);
