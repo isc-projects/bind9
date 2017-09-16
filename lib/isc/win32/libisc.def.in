@@ -204,6 +204,7 @@ isc_entropy_destroysource
 isc_entropy_detach
 isc_entropy_getdata
 isc_entropy_putdata
+isc_entropy_sethook
 isc_entropy_stats
 isc_entropy_status
 isc_entropy_stopcallbacksources
