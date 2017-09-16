@@ -1,3 +1,14 @@
+4724.	[func]		Added the --enable-crypto-rand configure flag
+			(yes by default): when the random file (-r command
+			line argument) is set to "openssl" the entropy/random
+			source is the OpenSSL RAND routine. This is suitable
+			for virtual machine environment without a hardware
+			random generator but makes random generation not
+			reproducible. Note with native PKCS#11 the
+			entropy/random source will unconditionally be
+			C_GenerateRandom() i.e. the PKCS#11 random API.
+			[RT #31459]
+
 4723.	[bug]		Statistics counter DNSTAPdropped was misidentified
 			as DNSSECdropped. [RT #46002]
 
