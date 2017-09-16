@@ -208,6 +208,7 @@ isc_entropy_stats
 isc_entropy_status
 isc_entropy_stopcallbacksources
 isc_entropy_usebestsource
+isc_entropy_usehook
 isc_error_fatal
 isc_error_runtimecheck
 isc_error_setfatal
