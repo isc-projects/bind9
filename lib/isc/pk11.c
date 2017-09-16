@@ -324,7 +324,7 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 		if ((ret != ISC_R_SUCCESS) && (ret != ISC_R_EOF))
 			goto cleanup;
 		(void) pkcs_C_SeedRandom(ctx.session, seed, (CK_ULONG) cc);
-	} 
+	}
 	ret = isc_stdio_close(stream);
 	stream = NULL;
 	if (ret != ISC_R_SUCCESS)
