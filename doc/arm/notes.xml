@@ -435,7 +435,7 @@
 	  The default output format for <command>dnstap-read</command> has
 	  been updated to include these addresses, with the initiating
 	  address first and the responding address second, separated by
-	  "-%gt;" or "%lt;-" to indicate in which direction the message
+	  "-&gt;" or "&lt;-" to indicate in which direction the message
 	  was sent. [RT #43595]
 	</para>
       </listitem>
