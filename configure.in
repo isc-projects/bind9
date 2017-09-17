@@ -2382,7 +2382,7 @@ then
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		LIBS="$LIBS $DST_OPENSSL_LIBS"
 		AC_TRY_RUN([
 #include <openssl/rand.h>
 

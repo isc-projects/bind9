@@ -17054,7 +17054,7 @@ then
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
 		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DNS_OPENSSL_LIBS"
+		LIBS="$LIBS $DST_OPENSSL_LIBS"
 		if test "$cross_compiling" = yes; then :
   want_crypto_rand="yes"
 else
