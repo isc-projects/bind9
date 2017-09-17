@@ -290,6 +290,7 @@ dst__openssl_init(const char *engine) {
 #endif
 #endif /* USE_ENGINE */
 
+#ifdef ISC_PLATFORM_CRYPTORANDOM
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
 		FATAL_ERROR(__FILE__, __LINE__,
@@ -297,6 +298,7 @@ dst__openssl_init(const char *engine) {
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
+#endif
 
 	return (ISC_R_SUCCESS);
 
