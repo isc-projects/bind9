@@ -269,8 +269,8 @@
       </li>
 <li class="listitem">
 	<p>
-	  The <code class="option">print-time</code> option in the
-	  <code class="option">logging</code> configuration can now take arguments
+	  The <span class="command"><strong>print-time</strong></span> option in the
+	  <span class="command"><strong>logging</strong></span> configuration can now take arguments
 	  <strong class="userinput"><code>local</code></strong>, <strong class="userinput"><code>iso8601</code></strong> or
 	  <strong class="userinput"><code>iso8601-utc</code></strong> to indicate the format in
 	  which the date and time should be logged. For backward
@@ -372,6 +372,24 @@
 	  "[ECS <em class="replaceable"><code>address/source/scope</code></em>]".
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  When <span class="command"><strong>named</strong></span> is linked with OpenSSL, the
+	  OpenSSL RAND routine can be used as the source of entropy/
+	  randomness by specifying
+	  <span class="command"><strong>random-device openssl;</strong></span> in
+	  <code class="filename">named.conf</code>. It can also be used in tools
+	  such as <span class="command"><strong>dnssec-keygen</strong></span>,
+	  <span class="command"><strong>tsig-keygen</strong></span>,
+	  and <span class="command"><strong>nsupdate</strong></span> by specifying
+	  <span class="command"><strong>-r openssl</strong></span> on the command line.
+	  This is suitable for a virtual machine environment without
+	  a hardware random number generator.
+	  This behavior can be overridden by using
+	  <span class="command"><strong>configure --disable-crypto-rand</strong></span> or
+	  building with native PKCS#11. [RT #31459]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -412,7 +430,7 @@
 	<p>
 	  <span class="command"><strong>dnssec-keygen</strong></span> no longer has default
 	  algorithm settings. It is necessary to explicitly specify the
-	  algorithm on the command line with the <code class="option">-a</code> option
+	  algorithm on the command line with the <span class="command"><strong>-a</strong></span> option
 	  when generating keys. This may cause errors with existing signing
 	  scripts if they rely on current defaults. The intent is to
 	  reduce the long-term cost of transitioning to newer algorithms in
@@ -448,7 +466,7 @@
 	  The default output format for <span class="command"><strong>dnstap-read</strong></span> has
 	  been updated to include these addresses, with the initiating
 	  address first and the responding address second, separated by
-	  "-%gt;" or "%lt;-" to indicate in which direction the message
+	  "-&gt;" or "&lt;-" to indicate in which direction the message
 	  was sent. [RT #43595]
 	</p>
       </li>
