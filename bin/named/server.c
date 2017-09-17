@@ -8297,7 +8297,7 @@ load_configuration(const char *filename, named_server_t *server,
 			const char *randomdev = cfg_obj_asstring(obj);
 #ifdef ISC_PLATFORM_CRYPTORANDOM
 			if (strcmp(randomdev, ISC_PLATFORM_CRYPTORANDOM) == 0)
-				isc_entropy_usehook(ns_g_entropy, ISC_TRUE);
+				isc_entropy_usehook(named_g_entropy, ISC_TRUE);
 #else
 			int level = ISC_LOG_ERROR;
 			result = isc_entropy_createfilesource(named_g_entropy,
