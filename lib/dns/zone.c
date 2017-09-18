@@ -6732,8 +6732,22 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-	dns_db_attach(zone->db, &db);
+	/*
+	 * This function is called when zone timer fires, after the latter gets
+	 * set by zone_addnsec3chain().  If the action triggering the call to
+	 * zone_addnsec3chain() is closely followed by a zone deletion request,
+	 * it might turn out that the timer thread will not be woken up until
+	 * after the zone is deleted by rmzone(), which calls dns_db_detach()
+	 * for zone->db, causing the latter to become NULL.  Return immediately
+	 * if that happens.
+	 */
+	if (zone->db != NULL) {
+		dns_db_attach(zone->db, &db);
+	}
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (db == NULL) {
+		return;
+	}
 
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
@@ -13590,9 +13604,7 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 }
 
 /*
- * Walk the list of the nsec3 chains desired for the zone, converting
- * parameters to private type records using dns_nsec3param_toprivate(),
- * and insert them into the new zone db.
+ * Populate new zone db with private type records found by save_nsec3param().
  */
 static isc_result_t
 restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
@@ -13625,20 +13637,11 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 		rdata.data = nsec3p->data;
 		rdata.type = zone->privatetype;
 		rdata.rdclass = zone->rdclass;
-		CHECK(update_one_rr(db, version, &diff, DNS_DIFFOP_ADD,
-				    &zone->origin, 0, &rdata));
-	}
-
-	result = ISC_R_SUCCESS;
-
-failure:
-	for (nsec3p = ISC_LIST_HEAD(*nsec3list);
-	     nsec3p != NULL;
-	     nsec3p = next)
-	{
-		next = ISC_LIST_NEXT(nsec3p, link);
-		ISC_LIST_UNLINK(*nsec3list, nsec3p, link);
-		isc_mem_put(zone->mctx, nsec3p, sizeof(nsec3param_t));
+		result = update_one_rr(db, version, &diff, DNS_DIFFOP_ADD,
+				       &zone->origin, 0, &rdata);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
 	}
 
 	dns_diff_clear(&diff);
@@ -13762,8 +13765,12 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	 * Call restore_nsec3param() to create private-type records from
 	 * the old nsec3 parameters and insert them into db
 	 */
-	if (!ISC_LIST_EMPTY(nsec3list))
-		restore_nsec3param(zone, db, version, &nsec3list);
+	if (!ISC_LIST_EMPTY(nsec3list)) {
+		result = restore_nsec3param(zone, db, version, &nsec3list);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
+	}
 
 	dns_db_closeversion(db, &version, ISC_TRUE);
 

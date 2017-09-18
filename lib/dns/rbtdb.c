@@ -554,6 +554,7 @@ struct dns_rbtdb {
 	unsigned int                    node_lock_count;
 	rbtdb_nodelock_t *              node_locks;
 	dns_rbtnode_t *                 origin_node;
+	dns_rbtnode_t *			nsec3_origin_node;
 	dns_stats_t *			rrsetstats; /* cache DB only */
 	/* Locked by lock. */
 	unsigned int                    active;
@@ -721,6 +722,15 @@ typedef struct rbtdb_rdatasetiter {
 	rdatasetheader_t *              current;
 } rbtdb_rdatasetiter_t;
 
+/*
+ * Note that these iterators, unless created with either DNS_DB_NSEC3ONLY or
+ * DNS_DB_NONSEC3, will transparently move between the last node of the
+ * "regular" RBT ("chain" field) and the root node of the NSEC3 RBT
+ * ("nsec3chain" field) of the database in question, as if the latter was a
+ * successor to the former in lexical order.  The "current" field always holds
+ * the address of either "chain" or "nsec3chain", depending on which RBT is
+ * being traversed at given time.
+ */
 static void             dbiterator_destroy(dns_dbiterator_t **iteratorp);
 static isc_result_t     dbiterator_first(dns_dbiterator_t *iterator);
 static isc_result_t     dbiterator_last(dns_dbiterator_t *iterator);
@@ -1887,8 +1897,12 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
  * have to be protected, but we must avoid a race condition where multiple
  * threads are decreasing the reference to zero simultaneously and at least
  * one of them is going to free the node.
+ *
  * This function returns ISC_TRUE if and only if the node reference decreases
  * to zero.
+ *
+ * NOTE: Decrementing the reference count of a node to zero does not mean it
+ * will be immediately freed.
  */
 static isc_boolean_t
 decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
@@ -1906,7 +1920,8 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	nodelock = &rbtdb->node_locks[bucket];
 
 #define KEEP_NODE(n, r) \
-	((n)->data != NULL || (n)->down != NULL || (n) == (r)->origin_node)
+	((n)->data != NULL || (n)->down != NULL || \
+	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
 
 	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, rbtdb)) {
@@ -8071,8 +8086,6 @@ dns_rbtdb_create
 	 * change.
 	 */
 	if (!IS_CACHE(rbtdb)) {
-		dns_rbtnode_t *nsec3node;
-
 		rbtdb->origin_node = NULL;
 		result = dns_rbt_addnode(rbtdb->tree, &rbtdb->common.origin,
 					 &rbtdb->origin_node);
@@ -8101,25 +8114,27 @@ dns_rbtdb_create
 		 * return partial matches when there is only a single NSEC3
 		 * record in the tree.
 		 */
-		nsec3node = NULL;
+		rbtdb->nsec3_origin_node = NULL;
 		result = dns_rbt_addnode(rbtdb->nsec3, &rbtdb->common.origin,
-					 &nsec3node);
+					 &rbtdb->nsec3_origin_node);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result != ISC_R_EXISTS);
 			free_rbtdb(rbtdb, ISC_FALSE, NULL);
 			return (result);
 		}
-		nsec3node->nsec = DNS_RBT_NSEC_NSEC3;
+		rbtdb->nsec3_origin_node->nsec = DNS_RBT_NSEC_NSEC3;
 		/*
 		 * We need to give the nsec3 origin node the right locknum.
 		 */
 		dns_name_init(&name, NULL);
-		dns_rbt_namefromnode(nsec3node, &name);
+		dns_rbt_namefromnode(rbtdb->nsec3_origin_node, &name);
 #ifdef DNS_RBT_USEHASH
-		nsec3node->locknum = nsec3node->hashval %
+		rbtdb->nsec3_origin_node->locknum =
+			rbtdb->nsec3_origin_node->hashval %
 			rbtdb->node_lock_count;
 #else
-		nsec3node->locknum = dns_name_hash(&name, ISC_TRUE) %
+		rbtdb->nsec3_origin_node->locknum =
+			dns_name_hash(&name, ISC_TRUE) %
 			rbtdb->node_lock_count;
 #endif
 	}
