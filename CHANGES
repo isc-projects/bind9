@@ -1,3 +1,8 @@
+4725.	[bug]		Nsupdate: "recvsoa" was incorrectly reported for
+			failures in sending the update message.  The correct
+			location to be reported is "update_completed".
+			[RT #46014]
+
 4723.	[bug]		Statistics counter DNSTAPdropped was misidentified
 			as DNSSECdropped. [RT #46002]
 
