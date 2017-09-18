@@ -1,3 +1,8 @@
+4725.	[bug]		Nsupdate: "recvsoa" was incorrectly reported for
+			failures in sending the update message.  The correct
+			location to be reported is "update_completed".
+			[RT #46014]
+
 4724.	[func]		When the random device (i.e. the "random-device"
 			option in named.conf, or the -r command line option
 			in various tools) is set to "openssl", the OpenSSL
