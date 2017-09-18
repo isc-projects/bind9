@@ -203,6 +203,13 @@ typedef void (*dns_rbtdeleter_t)(void *, void *);
  * pointers, chains might be going away in a future release, though the
  * movement functionality would remain.
  *
+ * Chains may be used to iterate over a tree of trees.  After setting up the
+ * chain's structure using dns_rbtnodechain_init(), it needs to be initialized
+ * to point to the lexically first or lexically last node in the tree of trees
+ * using dns_rbtnodechain_first() or dns_rbtnodechain_last(), respectively.
+ * Calling dns_rbtnodechain_next() or dns_rbtnodechain_prev() then moves the
+ * chain over to the next or previous node, respectively.
+ *
  * In any event, parent information, whether via parent pointers or chains, is
  * necessary information for iterating through the tree or for basic internal
  * tree maintenance issues (ie, the rotations that are done to rebalance the

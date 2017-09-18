@@ -3502,8 +3502,22 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 				 * Reached the root without having traversed
 				 * any left pointers, so this level is done.
 				 */
-				if (chain->level_count == 0)
+				if (chain->level_count == 0) {
+					/*
+					 * If the tree we are iterating over
+					 * was modified since this chain was
+					 * initialized in a way that caused
+					 * node splits to occur, "current" may
+					 * now be pointing to a root node which
+					 * appears to be at level 0, but still
+					 * has a parent.  If that happens,
+					 * abort.  Otherwise, we are done
+					 * looking for a successor as we really
+					 * reached the root node on level 0.
+					 */
+					INSIST(PARENT(current) == NULL);
 					break;
+				}
 
 				current = chain->levels[--chain->level_count];
 				new_origin = ISC_TRUE;
@@ -3524,6 +3538,12 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 	}
 
 	if (successor != NULL) {
+		/*
+		 * If we determine that the current node is the successor to
+		 * itself, we will run into an infinite loop, so abort instead.
+		 */
+		INSIST(chain->end != successor);
+
 		chain->end = successor;
 
 		/*
