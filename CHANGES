@@ -1,3 +1,8 @@
+4725.	[bug]		Nsupdate: "recvsoa" was incorrectly reported for
+			failures in sending the update message.  The correct
+			location to be reported is "update_completed".
+			[RT #46014]
+
 4722.	[cleanup]	Clean up uses of strcpy() and strcat() in favor of
 			strlcpy() and strlcat() for safety. [RT #45981]
 

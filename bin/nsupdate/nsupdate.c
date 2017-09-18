@@ -2238,8 +2238,10 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (reqev->result != ISC_R_SUCCESS) {
-		if (!next_master("recvsoa", &master_servers[master_inuse],
-				 reqev->result)) {
+		if (!next_master("update_completed",
+				 &master_servers[master_inuse],
+				 reqev->result))
+		{
 			seenerror = ISC_TRUE;
 			goto done;
 		}
