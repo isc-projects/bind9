@@ -68,6 +68,10 @@ rm -f ns5/bits.bk
 rm -f ns5/bits.bk.jnl
 rm -f ns5/bits.bk.signed
 rm -f ns5/bits.bk.signed.jnl
+rm -f ns7/K*
+rm -f ns7/nsec3-loop.db
+rm -f ns7/nsec3-loop.db.signed
+rm -f ns7/nsec3-loop.db.signed.jnl
 rm -f */*.jbk
 rm -f dig.out.ns*
 rm -f signing.out*

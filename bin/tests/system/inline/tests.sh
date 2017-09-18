@@ -41,7 +41,7 @@ do
 done
 
 n=`expr $n + 1`
-echo "I:checking that rrsigs are replaced with ksk only"
+echo "I:checking that rrsigs are replaced with ksk only ($n)"
 ret=0
 $DIG @10.53.0.3 -p 5300 axfr nsec3. |
 	awk '/RRSIG NSEC3/ {a[$1]++} END { for (i in a) {if (a[i] != 1) exit (1)}}' || ret=1
@@ -198,8 +198,8 @@ do
 done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
+n=`expr $n + 1`
 echo "I:checking that the zone is signed on initial transfer, noixfr ($n)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
@@ -290,6 +290,7 @@ do
 	sleep 1
 done
 if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:checking removal of private type record via 'rndc signing -clear' (master) ($n)"
@@ -412,6 +413,7 @@ do
 	sleep 1
 done
 if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:checking master zone that was updated while offline is correct ($n)"
@@ -749,8 +751,8 @@ do
 done
 if [ $ans != 1 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
+n=`expr $n + 1`
 echo "I:check rndc retransfer of a inline slave zone works ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 retransfer retransfer 2>&1 || ret=1
@@ -764,10 +766,10 @@ do
 	sleep 1
 done
 [ $ans = 1 ] && ret=1
-n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo "I:check rndc retransfer of a inline nsec3 slave retains nsec3 ($n)"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -790,7 +792,53 @@ do
 	sleep 1
 done
 [ $ans = 1 ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+# NOTE: The test below should be considered fragile.  More details can be found
+# in the comment inside ns7/named.conf.
 n=`expr $n + 1`
+echo "I:check rndc retransfer of a inline nsec3 slave does not trigger an infinite loop ($n)"
+ret=0
+zone=nsec3-loop
+# Add slave zone using rndc
+$RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 addzone $zone \
+	'{ type slave; masters { 10.53.0.2; }; file "'$zone'.db"; inline-signing yes; auto-dnssec maintain; };'
+# Wait until slave zone is fully signed using NSEC
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+	ret=1
+	$RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 signing -list $zone > signing.out.test$n 2>&1
+	keys=`grep '^Done signing' signing.out.test$n | wc -l`
+	[ $keys -eq 3 ] && ret=0 && break
+	sleep 1
+done
+# Switch slave zone to NSEC3
+$RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 signing -nsec3param 1 0 2 12345678 $zone > /dev/null 2>&1
+# Wait until slave zone is fully signed using NSEC3
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+	ret=1
+	nsec3param=`$DIG +short @10.53.0.7 -p 5300 nsec3param $zone`
+	test "$nsec3param" = "1 0 2 12345678" && ret=0 && break
+	sleep 1
+done
+# Attempt to retransfer the slave zone from master
+$RNDC -c ../common/rndc.conf -s 10.53.0.7 -p 9953 retransfer $zone
+# Check whether the signer managed to fully sign the retransferred zone by
+# waiting for a specific SOA serial number to appear in the logs; if this
+# specific SOA serial number does not appear in the logs, it means the signer
+# has either ran into an infinite loop or crashed; note that we check the logs
+# instead of sending SOA queries to the signer as these may influence its
+# behavior in a way which may prevent the desired scenario from being
+# reproduced (see comment in ns7/named.conf)
+for i in 1 2 3 4 5 6 7 8 9 0
+do
+	ret=1
+	grep "ns2.$zone. . 10 20 20 1814400 3600" ns7/named.run > /dev/null 2>&1
+	[ $? -eq 0 ] && ret=0 && break
+	sleep 1
+done
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -841,6 +889,8 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone test-$zone \
 	'{ type slave; masters { 10.53.0.2; }; file "'test-$zone.bk'"; inline-signing yes; auto-dnssec maintain; allow-transfer { any; }; };'
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone test-$zone > /dev/null 2>&1
 done
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I:testing adding external keys to a inline zone ($n)"
@@ -865,6 +915,7 @@ do
    test ${dnskeys:-0} -eq 3 || { echo "I: failed $alg (dnskeys ${dnskeys:-0})"; ret=1; }
    test ${rrsigs:-0} -eq 2 || { echo "I: failed $alg (rrsigs ${rrsigs:-0})"; ret=1; }
 done
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
@@ -927,8 +978,8 @@ serial=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
 [ ${newserial:-0} -eq ${serial:-1} ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
-n=`expr $n + 1`
 
+n=`expr $n + 1`
 echo "I:testing updating dynamic serial via 'rndc signing -serial' ($n)"
 ret=0
 $DIG bits. SOA -p 5300 @10.53.0.2 > dig.out.ns2.pre.test$n

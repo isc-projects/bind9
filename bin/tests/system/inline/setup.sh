@@ -35,3 +35,4 @@ cp ns5/named.conf.pre ns5/named.conf
 
 (cd ns3; $SHELL -e sign.sh)
 (cd ns1; $SHELL -e sign.sh)
+(cd ns7; $SHELL -e sign.sh)
