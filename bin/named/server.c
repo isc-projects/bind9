@@ -12181,7 +12181,7 @@ typedef struct {
 } ns_dzctx_t;
 
 /*
- * Carry out a zone deletion scheduled by ns_server_addzone().
+ * Carry out a zone deletion scheduled by ns_server_delzone().
  */
 static void
 rmzone(isc_task_t *task, isc_event_t *event) {

@@ -1,3 +1,7 @@
+4727.	[bug]		Retransferring an inline-signed slave using NSEC3
+			around the time its NSEC3 salt was changed could result
+			in an infinite signing loop. [RT #45080]
+
 4726.	[port]		Prevent setsockopt() errors related to TCP_FASTOPEN
 			from being logged on FreeBSD if the kernel does not
 			support it.  Notify the user when the kernel does
