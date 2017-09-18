@@ -14,6 +14,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#ifdef HAVE_SYS_SYSCTL_H
+#include <sys/sysctl.h>
+#endif
 #include <sys/time.h>
 #include <sys/uio.h>
 
@@ -5650,6 +5653,69 @@ isc__socket_filter(isc_socket_t *sock0, const char *filter) {
 }
 
 /*
+ * Try enabling TCP Fast Open for a given socket if the OS supports it.
+ */
+static void
+set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
+#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+	char strbuf[ISC_STRERRORSIZE];
+
+/*
+ * FreeBSD, as of versions 10.3 and 11.0, defines TCP_FASTOPEN while also
+ * shipping a default kernel without TFO support, so we special-case it by
+ * performing an additional runtime check for TFO support using sysctl to
+ * prevent setsockopt() errors from being logged.
+ */
+#if defined(__FreeBSD__) && defined(HAVE_SYSCTLBYNAME)
+#define SYSCTL_TFO "net.inet.tcp.fastopen.enabled"
+	unsigned int enabled;
+	size_t enabledlen = sizeof(enabled);
+	static isc_boolean_t tfo_notice_logged = ISC_FALSE;
+
+	if (sysctlbyname(SYSCTL_TFO, &enabled, &enabledlen, NULL, 0) < 0) {
+		/*
+		 * This kernel does not support TCP Fast Open.  There is
+		 * nothing more we can do.
+		 */
+		return;
+	} else if (enabled == 0) {
+		/*
+		 * This kernel does support TCP Fast Open, but it is disabled
+		 * by sysctl.  Notify the user, but do not nag.
+		 */
+		if (!tfo_notice_logged) {
+			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+				      ISC_LOGMODULE_SOCKET, ISC_LOG_NOTICE,
+				      "TCP_FASTOPEN support is disabled by "
+				      "sysctl (" SYSCTL_TFO " = 0)");
+			tfo_notice_logged = ISC_TRUE;
+		}
+		return;
+	}
+#endif
+
+#ifdef __APPLE__
+	backlog = 1;
+#else
+	backlog = backlog / 2;
+	if (backlog == 0)
+		backlog = 1;
+#endif
+	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
+		       (void *)&backlog, sizeof(backlog)) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
+				 sock->fd, strbuf);
+		/* TCP_FASTOPEN is experimental so ignore failures */
+	}
+#else
+	UNUSED(sock);
+	UNUSED(backlog);
+#endif
+}
+
+/*
  * Set up to listen on a given socket.  We do this by creating an internal
  * event that will be dispatched when the socket has read activity.  The
  * watcher will send the internal event to the task when there is a new
@@ -5685,23 +5751,7 @@ isc__socket_listen(isc_socket_t *sock0, unsigned int backlog) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
-#ifdef __APPLE__
-	backlog = 1;
-#else
-	backlog = backlog / 2;
-	if (backlog == 0)
-		backlog = 1;
-#endif
-	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
-		       (void *)&backlog, sizeof(backlog)) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
-				 sock->fd, strbuf);
-		/* TCP_FASTOPEN is experimental so ignore failures */
-	}
-#endif
+	set_tcp_fastopen(sock, backlog);
 
 	sock->listener = 1;
 

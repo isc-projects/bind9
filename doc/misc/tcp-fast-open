@@ -19,6 +19,10 @@ System specific notes:
  - FreeBSD doesn't interpret the argument as a queue length but
   only as an on/off switch.
 
+ - Using TCP Fast Open on FreeBSD, as of versions 10.3 and 11.0, requires
+   compiling a custom kernel and setting the "net.inet.tcp.fastopen.enabled"
+   sysctl to 1.
+
  - Apple OS X/macOS allows only 0 or 1 so the code puts 1 for this system.
 
  - Windows 10 uses a 0/1 char flag? Note that TCP_FASTOPEN is defined

@@ -3361,10 +3361,18 @@ AC_TRY_COMPILE([
 AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
 #
-# Look for TCP_FASTOPEN
+# Allow forcibly disabling TCP Fast Open support as autodetection might yield
+# confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
+# comment in lib/isc/unix/socket.c).
 #
+
+AC_ARG_ENABLE(tcp_fastopen,
+	[  --disable-tcp-fastopen  disable TCP Fast Open support [[default=autodetect]]])
+
 AC_MSG_CHECKING(for TCP_FASTOPEN socket option)
-AC_EGREP_CPP(has_tfo, [
+case "$enable_tcp_fastopen" in
+yes|''|autodetect)
+	AC_EGREP_CPP(has_tfo, [
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/tcp.h>
@@ -3372,10 +3380,17 @@ AC_EGREP_CPP(has_tfo, [
 int has_tfo() { return (0); }
 #endif
 ],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"])
+		[AC_MSG_RESULT(yes)
+		ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"],
+		[AC_MSG_RESULT(no)
+		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"])
+
+		;;
+	no)
+		AC_MSG_RESULT(disabled)
+		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
+		;;
+esac
 AC_SUBST(ISC_PLATFORM_HAVETFO)
 
 #

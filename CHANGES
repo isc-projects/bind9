@@ -1,3 +1,10 @@
+4726.	[port]		Prevent setsockopt() errors related to TCP_FASTOPEN
+			from being logged on FreeBSD if the kernel does not
+			support it.  Notify the user when the kernel does
+			support TCP_FASTOPEN, but it is disabled by sysctl.
+			Add a new configure option, --disable-tcp-fastopen, to
+			disable use of TCP_FASTOPEN altogether. [RT #44754]
+
 4725.	[bug]		Nsupdate: "recvsoa" was incorrectly reported for
 			failures in sending the update message.  The correct
 			location to be reported is "update_completed".
