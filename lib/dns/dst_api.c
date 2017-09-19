@@ -53,6 +53,7 @@
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/random.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -1222,8 +1223,8 @@ dst_key_free(dst_key_t **keyp) {
 	if (key->key_tkeytoken) {
 		isc_buffer_free(&key->key_tkeytoken);
 	}
-	memset(key, 0, sizeof(dst_key_t));
-	isc_mem_putanddetach(&mctx, key, sizeof(dst_key_t));
+	isc_safe_memwipe(key, sizeof(*key));
+	isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	*keyp = NULL;
 }
 

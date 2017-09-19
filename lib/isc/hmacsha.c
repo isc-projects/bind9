@@ -80,7 +80,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 void
@@ -118,7 +118,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 void
@@ -156,7 +156,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 void
@@ -194,7 +194,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 void
@@ -232,7 +232,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 #elif PKCS11CRYPTO
@@ -304,7 +304,7 @@ isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -337,7 +337,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #else
 void
@@ -421,7 +421,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, newdigest, &psl));
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif
 
@@ -474,7 +474,7 @@ isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -507,7 +507,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #else
 void
@@ -591,7 +591,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, newdigest, &psl));
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif
 
@@ -644,7 +644,7 @@ isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -677,7 +677,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #else
 void
@@ -761,7 +761,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, newdigest, &psl));
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif
 
@@ -814,7 +814,7 @@ isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -847,7 +847,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #else
 void
@@ -931,7 +931,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, newdigest, &psl));
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif
 
@@ -984,7 +984,7 @@ isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -1017,7 +1017,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #else
 void
@@ -1101,7 +1101,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, newdigest, &psl));
 	pk11_return_session(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif
 
@@ -1139,7 +1139,7 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 void
 isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx) {
 	isc_sha1_invalidate(&ctx->sha1ctx);
-	memset(ctx, 0, sizeof(*ctx));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*
@@ -1175,7 +1175,7 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha1_final(&ctx->sha1ctx, newdigest);
 	isc_hmacsha1_invalidate(ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 /*
@@ -1206,7 +1206,7 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx) {
-	memset(ctx, 0, sizeof(*ctx));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*
@@ -1241,7 +1241,7 @@ isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha224_update(&ctx->sha224ctx, newdigest, ISC_SHA224_DIGESTLENGTH);
 	isc_sha224_final(newdigest, &ctx->sha224ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 /*
@@ -1272,7 +1272,7 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx) {
-	memset(ctx, 0, sizeof(*ctx));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*
@@ -1307,7 +1307,7 @@ isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha256_update(&ctx->sha256ctx, newdigest, ISC_SHA256_DIGESTLENGTH);
 	isc_sha256_final(newdigest, &ctx->sha256ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 /*
@@ -1338,7 +1338,7 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx) {
-	memset(ctx, 0, sizeof(*ctx));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*
@@ -1373,7 +1373,7 @@ isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha384_update(&ctx->sha384ctx, newdigest, ISC_SHA384_DIGESTLENGTH);
 	isc_sha384_final(newdigest, &ctx->sha384ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
 /*
@@ -1404,7 +1404,7 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx) {
-	memset(ctx, 0, sizeof(*ctx));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*
@@ -1439,7 +1439,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	isc_sha512_update(&ctx->sha512ctx, newdigest, ISC_SHA512_DIGESTLENGTH);
 	isc_sha512_final(newdigest, &ctx->sha512ctx);
 	memmove(digest, newdigest, len);
-	memset(newdigest, 0, sizeof(newdigest));
+	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 #endif /* !ISC_PLATFORM_OPENSSLHASH */
 
