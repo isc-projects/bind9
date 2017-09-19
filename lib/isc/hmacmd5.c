@@ -124,7 +124,7 @@ isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
@@ -279,7 +279,7 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 void
 isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 	isc_md5_invalidate(&ctx->md5ctx);
-	memset(ctx->key, 0, sizeof(ctx->key));
+	isc_safe_memwipe(ctx->key, sizeof(ctx->key));
 }
 
 /*!

@@ -4001,7 +4001,7 @@ yes)
 esac
 AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 
-AC_CHECK_FUNCS(nanosleep usleep)
+AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 
 #
 # Machine architecture dependent features

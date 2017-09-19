@@ -34,6 +34,7 @@
 #include <isc/assertions.h>
 #include <isc/md5.h>
 #include <isc/platform.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/types.h>
 
@@ -99,7 +100,7 @@ isc_md5_invalidate(isc_md5_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	pk11_return_session(ctx);
 }
 
@@ -154,7 +155,7 @@ isc_md5_init(isc_md5_t *ctx) {
 
 void
 isc_md5_invalidate(isc_md5_t *ctx) {
-	memset(ctx, 0, sizeof(isc_md5_t));
+	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
 /*@{*/
@@ -330,7 +331,7 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 
 	byteSwap(ctx->buf, 4);
 	memmove(digest, ctx->buf, 16);
-	memset(ctx, 0, sizeof(isc_md5_t));	/* In case it's sensitive */
+	isc_safe_memwipe(ctx, sizeof(*ctx));	/* In case it's sensitive */
 }
 #endif
 

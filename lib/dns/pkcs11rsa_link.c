@@ -264,8 +264,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 
 	for (i = 6; i <= 13; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
@@ -279,14 +279,14 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 					    pk11_ctx->object);
 	for (i = 6; i <= 13; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
 		}
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ret);
@@ -432,8 +432,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 
 	for (i = 5; i <= 6; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
@@ -447,14 +447,14 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 					    pk11_ctx->object);
 	for (i = 5; i <= 6; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
 		}
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ret);
@@ -487,7 +487,7 @@ pkcs11rsa_destroyctx(dst_context_t *dctx) {
 			(void) pkcs_C_DestroyObject(pk11_ctx->session,
 						    pk11_ctx->object);
 		pk11_return_session(pk11_ctx);
-		memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+		isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 		isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 		dctx->ctxdata.pk11_ctx = NULL;
 	}
@@ -670,7 +670,7 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
     err:
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ret);
@@ -684,9 +684,9 @@ pkcs11rsa_destroyctx(dst_context_t *dctx) {
 
 	if (pk11_ctx != NULL) {
 		(void) pkcs_C_DigestFinal(pk11_ctx->session, garbage, &len);
-		memset(garbage, 0, sizeof(garbage));
+		isc_safe_memwipe(garbage, sizeof(garbage));
 		pk11_return_session(pk11_ctx);
-		memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+		isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 		isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 		dctx->ctxdata.pk11_ctx = NULL;
 	}
@@ -953,14 +953,14 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		(void) pkcs_C_DestroyObject(pk11_ctx->session, hKey);
 	for (i = 6; i <= 13; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
 		}
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 	dctx->ctxdata.pk11_ctx = NULL;
 
@@ -1097,14 +1097,14 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		(void) pkcs_C_DestroyObject(pk11_ctx->session, hKey);
 	for (i = 5; i <= 6; i++)
 		if (keyTemplate[i].pValue != NULL) {
-			memset(keyTemplate[i].pValue, 0,
-			       keyTemplate[i].ulValueLen);
+			isc_safe_memwipe(keyTemplate[i].pValue,
+					 keyTemplate[i].ulValueLen);
 			isc_mem_put(dctx->mctx,
 				    keyTemplate[i].pValue,
 				    keyTemplate[i].ulValueLen);
 		}
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(dctx->mctx, pk11_ctx, sizeof(*pk11_ctx));
 	dctx->ctxdata.pk11_ctx = NULL;
 
@@ -1313,7 +1313,7 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	(void) pkcs_C_DestroyObject(pk11_ctx->session, priv);
 	(void) pkcs_C_DestroyObject(pk11_ctx->session, pub);
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ISC_R_SUCCESS);
@@ -1325,7 +1325,7 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	if (pub != CK_INVALID_HANDLE)
 		(void) pkcs_C_DestroyObject(pk11_ctx->session, pub);
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ret);
@@ -1367,7 +1367,8 @@ pkcs11rsa_destroy(dst_key_t *key) {
 		case CKA_EXPONENT_2:
 		case CKA_COEFFICIENT:
 			if (attr->pValue != NULL) {
-				memset(attr->pValue, 0, attr->ulValueLen);
+				isc_safe_memwipe(attr->pValue,
+						 attr->ulValueLen);
 				isc_mem_put(key->mctx,
 					    attr->pValue,
 					    attr->ulValueLen);
@@ -1375,12 +1376,12 @@ pkcs11rsa_destroy(dst_key_t *key) {
 			break;
 		}
 	if (rsa->repr != NULL) {
-		memset(rsa->repr, 0, rsa->attrcnt * sizeof(*attr));
+		isc_safe_memwipe(rsa->repr, rsa->attrcnt * sizeof(*attr));
 		isc_mem_put(key->mctx,
 			    rsa->repr,
 			    rsa->attrcnt * sizeof(*attr));
 	}
-	memset(rsa, 0, sizeof(*rsa));
+	isc_safe_memwipe(rsa, sizeof(*rsa));
 	isc_mem_put(key->mctx, rsa, sizeof(*rsa));
 	key->keydata.pkey = NULL;
 }
@@ -1464,7 +1465,7 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	if (e_bytes == 0) {
 		if (r.length < 2) {
-			memset(rsa, 0, sizeof(*rsa));
+			isc_safe_memwipe(rsa, sizeof(*rsa));
 			isc_mem_put(key->mctx, rsa, sizeof(*rsa));
 			return (DST_R_INVALIDPUBLICKEY);
 		}
@@ -1475,7 +1476,7 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 
 	if (r.length < e_bytes) {
-		memset(rsa, 0, sizeof(*rsa));
+		isc_safe_memwipe(rsa, sizeof(*rsa));
 		isc_mem_put(key->mctx, rsa, sizeof(*rsa));
 		return (DST_R_INVALIDPUBLICKEY);
 	}
@@ -1519,7 +1520,8 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		case CKA_MODULUS:
 		case CKA_PUBLIC_EXPONENT:
 			if (attr->pValue != NULL) {
-				memset(attr->pValue, 0, attr->ulValueLen);
+				isc_safe_memwipe(attr->pValue,
+						 attr->ulValueLen);
 				isc_mem_put(key->mctx,
 					    attr->pValue,
 					    attr->ulValueLen);
@@ -1527,12 +1529,13 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 			break;
 		}
 	if (rsa->repr != NULL) {
-		memset(rsa->repr, 0, rsa->attrcnt * sizeof(*attr));
+		isc_safe_memwipe(rsa->repr,
+				 rsa->attrcnt * sizeof(*attr));
 		isc_mem_put(key->mctx,
 			    rsa->repr,
 			    rsa->attrcnt * sizeof(*attr));
 	}
-	memset(rsa, 0, sizeof(*rsa));
+	isc_safe_memwipe(rsa, sizeof(*rsa));
 	isc_mem_put(key->mctx, rsa, sizeof(*rsa));
 	return (ISC_R_NOMEMORY);
 }
@@ -1686,7 +1689,7 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 	for (i = 0; i < 10; i++) {
 		if (bufs[i] == NULL)
 			break;
-		memset(bufs[i], 0, modulus->ulValueLen);
+		isc_safe_memwipe(bufs[i], modulus->ulValueLen);
 		isc_mem_put(key->mctx, bufs[i], modulus->ulValueLen);
 	}
 	return (result);
@@ -1792,7 +1795,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(ISC_R_NOMEMORY);
 
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	attr = pk11_attribute_bytype(rsa, CKA_MODULUS);
@@ -1804,7 +1807,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
     err:
 	if (pk11_ctx != NULL) {
 		pk11_return_session(pk11_ctx);
-		memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+		isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 		isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 	}
 
@@ -1900,7 +1903,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->key_size = pub->key_size;
 
 		dst__privstruct_free(&priv, mctx);
-		memset(&priv, 0, sizeof(priv));
+		isc_safe_memwipe(&priv, sizeof(priv));
 
 		return (ISC_R_SUCCESS);
 	}
@@ -1929,7 +1932,7 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (ret != ISC_R_SUCCESS)
 			goto err;
 		dst__privstruct_free(&priv, mctx);
-		memset(&priv, 0, sizeof(priv));
+		isc_safe_memwipe(&priv, sizeof(priv));
 		return (ret);
 	}
 
@@ -2034,14 +2037,14 @@ pkcs11rsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(ISC_R_RANGE);
 
 	dst__privstruct_free(&priv, mctx);
-	memset(&priv, 0, sizeof(priv));
+	isc_safe_memwipe(&priv, sizeof(priv));
 
 	return (ISC_R_SUCCESS);
 
  err:
 	pkcs11rsa_destroy(key);
 	dst__privstruct_free(&priv, mctx);
-	memset(&priv, 0, sizeof(priv));
+	isc_safe_memwipe(&priv, sizeof(priv));
 	return (ret);
 }
 
@@ -2168,7 +2171,7 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	key->key_size = pk11_numbits(attr->pValue, attr->ulValueLen);
 
 	pk11_return_session(pk11_ctx);
-	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 	isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 
 	return (ISC_R_SUCCESS);
@@ -2177,7 +2180,7 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	pkcs11rsa_destroy(key);
 	if (pk11_ctx != NULL) {
 		pk11_return_session(pk11_ctx);
-		memset(pk11_ctx, 0, sizeof(*pk11_ctx));
+		isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
 		isc_mem_put(key->mctx, pk11_ctx, sizeof(*pk11_ctx));
 	}
 
