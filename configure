@@ -1000,9 +1000,9 @@ with_ecdsa
 with_gost
 with_eddsa
 with_aes
-enable_openssl_hash
 with_cc_alg
 enable_openssl_version_check
+enable_openssl_hash
 enable_crypto_rand
 with_lmdb
 with_libxml2
@@ -1695,9 +1695,9 @@ Optional Features:
   --enable-devpoll        use /dev/poll when available [default=yes]
   --enable-threads        enable multithreading
   --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
-  --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
   --enable-openssl-version-check
                           check OpenSSL version [default=yes]
+  --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
   --enable-crypto-rand    use the crypto provider for random [default=yes]
   --enable-largefile	  64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
@@ -15844,17 +15844,6 @@ fi
 
 
 #
-# was --enable-openssl-hash specified?
-#
-# Check whether --enable-openssl-hash was given.
-if test "${enable_openssl_hash+set}" = set; then :
-  enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
-else
-  want_openssl_hash="whenossl"
-fi
-
-
-#
 # Client Cookie algorithm choice
 #
 
@@ -16610,8 +16599,8 @@ fi
 # Choose Client Cookie algorithm
 #
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the Algorithm for Client Cookie" >&5
-$as_echo_n "checking for the Algorithm for Client Cookie... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the algorithm for Client Cookie" >&5
+$as_echo_n "checking for the algorithm for Client Cookie... " >&6; }
 if test "auto" = "$with_cc_alg"
 then
 	if test "yes" = "$with_aes"
@@ -16649,6 +16638,19 @@ esac
 # Use OpenSSL for hash functions
 #
 
+#
+# was --enable-openssl-hash specified?
+#
+# Check whether --enable-openssl-hash was given.
+if test "${enable_openssl_hash+set}" = set; then :
+  enableval=$enable_openssl_hash; want_openssl_hash="$enableval"
+else
+  want_openssl_hash="whenossl"
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use OpenSSL hash functions" >&5
+$as_echo_n "checking whether to use OpenSSL hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
