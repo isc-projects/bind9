@@ -307,6 +307,12 @@
 @ISC_PLATFORM_HAVECMPXCHG@
 
 /*
+ * If <stdatomic.h> is available on this architecture,
+ * ISC_PLATFORM_HAVESTDATOMIC will be defined.
+ */
+@ISC_PLATFORM_HAVESTDATOMIC@
+
+/*
  * Define if gcc ASM extension is available
  */
 @ISC_PLATFORM_USEGCCASM@
