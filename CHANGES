@@ -1,4 +1,4 @@
-4780.	[bug]		Fix out of bounds access in DHCID totext() method.
+4730.	[bug]		Fix out of bounds access in DHCID totext() method.
 			[RT #46001]
 
 4729.	[bug]		Don't use memset() to wipe memory, as it may be
