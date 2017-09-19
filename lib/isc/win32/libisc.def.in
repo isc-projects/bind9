@@ -501,6 +501,7 @@ isc_rwlock_tryupgrade
 isc_rwlock_unlock
 isc_safe_memcompare
 isc_safe_memequal
+isc_safe_memwipe
 isc_serial_eq
 isc_serial_ge
 isc_serial_gt

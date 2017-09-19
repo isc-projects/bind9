@@ -39,6 +39,7 @@
 
 #include <isc/assertions.h>
 #include <isc/platform.h>
+#include <isc/safe.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
 #include <isc/types.h>
@@ -294,7 +295,7 @@ isc_sha1_init(isc_sha1_t *context)
 
 void
 isc_sha1_invalidate(isc_sha1_t *context) {
-	memset(context, 0, sizeof(isc_sha1_t));
+	isc_safe_memwipe(context, sizeof(*context));
 }
 
 /*!
@@ -362,6 +363,6 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 				  >> ((3 - (i & 3)) * 8)) & 255);
 	}
 
-	memset(context, 0, sizeof(isc_sha1_t));
+	isc_safe_memwipe(context, sizeof(*context));
 }
 #endif

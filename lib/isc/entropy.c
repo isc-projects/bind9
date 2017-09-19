@@ -42,6 +42,7 @@
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/safe.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -640,7 +641,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 	}
 
  partial_output:
-	memset(digest, 0, sizeof(digest));
+	isc_safe_memwipe(digest, sizeof(digest));
 
 	if (returned != NULL)
 		*returned = (length - remain);
@@ -652,8 +653,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  zeroize:
 	/* put the entropy we almost extracted back */
 	add_entropy(ent, total);
-	memset(data, 0, length);
-	memset(digest, 0, sizeof(digest));
+	isc_safe_memwipe(data, length);
+	isc_safe_memwipe(digest, sizeof(digest));
 	if (returned != NULL)
 		*returned = 0;
 
@@ -763,9 +764,8 @@ destroysource(isc_entropysource_t **sourcep) {
 		break;
 	}
 
-	memset(source, 0, sizeof(isc_entropysource_t));
-
-	isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
+	isc_safe_memwipe(source, sizeof(*source));
+	isc_mem_put(ent->mctx, source, sizeof(*source));
 }
 
 static inline isc_boolean_t
@@ -831,8 +831,8 @@ destroy(isc_entropy_t **entp) {
 
 	DESTROYLOCK(&ent->lock);
 
-	memset(ent, 0, sizeof(isc_entropy_t));
-	isc_mem_put(mctx, ent, sizeof(isc_entropy_t));
+	isc_safe_memwipe(ent, sizeof(*ent));
+	isc_mem_put(mctx, ent, sizeof(*ent));
 	isc_mem_detach(&mctx);
 }
 
