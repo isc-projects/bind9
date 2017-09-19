@@ -132,7 +132,6 @@ include:
 * Added support for the EDNS Padding and Keepalive options.
 * 'new-zones-directory' option sets the location where the configuration
   data for zones added by rndc addzone is stored
-* `named-checkconf -l` lists the zones found in `named.conf`.
 
 ### <a name="build"/> Building BIND
 
