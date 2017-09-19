@@ -1,3 +1,6 @@
+4780.	[bug]		Fix out of bounds access in DHCID totext() method.
+			[RT #46001]
+
 4729.	[bug]		Don't use memset() to wipe memory, as it may be
 			removed by compiler optimizations when the
 			memset() occurs on automatic stack allocation
