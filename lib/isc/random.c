@@ -46,6 +46,7 @@
 #include <isc/mem.h>
 #include <isc/entropy.h>
 #include <isc/random.h>
+#include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -342,13 +343,7 @@ chacha_stir(isc_rng_t *rng) {
 
 	chacha_rekey(rng, rnd.rnd, sizeof(rnd.rnd));
 
-	/*
-	 * The OpenBSD implementation explicit_bzero()s the random seed
-	 * rnd.rnd at this point, but it may not be required here. This
-	 * memset() may also be optimized away by the compiler as
-	 * rnd.rnd is not used further.
-	 */
-	memset(rnd.rnd, 0, sizeof(rnd.rnd));
+	isc_safe_memwipe(rnd.rnd, sizeof(rnd.rnd));
 
 	/* Invalidate the buffer too. */
 	rng->have = 0;

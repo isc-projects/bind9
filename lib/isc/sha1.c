@@ -30,6 +30,7 @@
 
 #include <isc/assertions.h>
 #include <isc/platform.h>
+#include <isc/safe.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
 #include <isc/types.h>
@@ -106,7 +107,7 @@ isc_sha1_invalidate(isc_sha1_t *ctx) {
 	if (ctx->handle == NULL)
 		return;
 	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
-	memset(garbage, 0, sizeof(garbage));
+	isc_safe_memwipe(garbage, sizeof(garbage));
 	pk11_return_session(ctx);
 }
 
@@ -334,7 +335,7 @@ isc_sha1_init(isc_sha1_t *context)
 
 void
 isc_sha1_invalidate(isc_sha1_t *context) {
-	memset(context, 0, sizeof(isc_sha1_t));
+	isc_safe_memwipe(context, sizeof(*context));
 }
 
 /*!
@@ -402,6 +403,6 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 				  >> ((3 - (i & 3)) * 8)) & 255);
 	}
 
-	memset(context, 0, sizeof(isc_sha1_t));
+	isc_safe_memwipe(context, sizeof(*context));
 }
 #endif
