@@ -51,7 +51,9 @@ versions 4 and 8.  Internet Systems Consortium
 corporation dedicated to providing software and services in support of the
 Internet infrastructure, developed BIND 9 and is responsible for its
 ongoing maintenance and improvement.  BIND is open source software
-licenced under the terms of the Mozilla Public License, version 2.0.
+licenced under the terms of the ISC License for all versions up to and
+including BIND 9.10, and the Mozilla Public License version 2.0 for all
+subsequent verisons.
 
 For a summary of features introduced in past major releases of BIND,
 see the file [HISTORY](HISTORY.md).
