@@ -1,3 +1,6 @@
+4782.	[func]		Change default minimal-responses setting to
+			no-auth-recursive. [RT #46016]
+
 4781.	[bug]		Fix use after free when closing an LMDB. [RT #46000]
 
 4780.	[bug]		Fix out of bounds access in DHCID totext() method.

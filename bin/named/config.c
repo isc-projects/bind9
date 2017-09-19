@@ -181,7 +181,7 @@ options {\n\
 	message-compression yes;\n\
 #	min-roots <obsolete>;\n\
 	minimal-any false;\n\
-	minimal-responses true;\n\
+	minimal-responses no-auth-recursive;\n\
 	notify-source *;\n\
 	notify-source-v6 *;\n\
 	nsec3-test-zone no;\n\

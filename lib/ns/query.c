@@ -2063,10 +2063,12 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	return (eresult);
 }
 
-static inline void
-query_addrdataset(ns_client_t *client, dns_name_t *fname,
-		  dns_rdataset_t *rdataset)
+static void
+query_addrdataset(ns_client_t *client, dns_section_t section,
+		  dns_name_t *fname, dns_rdataset_t *rdataset)
 {
+	UNUSED(section);
+
 	/*
 	 * Add 'rdataset' and any pertinent additional data to
 	 * 'fname', a name in the response message for 'client'.
@@ -2089,7 +2091,6 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	 * Try to process glue directly.
 	 */
 	if (client->view->use_glue_cache &&
-	    (client->view->minimalresponses == dns_minimal_yes) &&
 	    (rdataset->type == dns_rdatatype_ns) &&
 	    (client->query.gluedb != NULL) &&
 	    dns_db_iszone(client->query.gluedb))
@@ -2191,7 +2192,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	 * we do not need to check if the SIG rdataset is already in the
 	 * response.
 	 */
-	query_addrdataset(client, mname, rdataset);
+	query_addrdataset(client, section, mname, rdataset);
 	*rdatasetp = NULL;
 	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset)) {
 		/*
@@ -7051,6 +7052,7 @@ query_dns64(query_ctx_t *qctx) {
 	isc_netaddr_t netaddr;
 	dns_dns64_t *dns64;
 	unsigned int flags = 0;
+	const dns_section_t section = DNS_SECTION_ANSWER;
 
 	/*%
 	 * To the current response for 'qctx->client', add the answer RRset
@@ -7074,7 +7076,7 @@ query_dns64(query_ctx_t *qctx) {
 	dns64_rdata = NULL;
 	dns64_rdataset = NULL;
 	dns64_rdatalist = NULL;
-	result = dns_message_findname(client->message, DNS_SECTION_ANSWER,
+	result = dns_message_findname(client->message, section,
 				      name, dns_rdatatype_aaaa,
 				      qctx->rdataset->covers,
 				      &mname, &mrdataset);
@@ -7094,7 +7096,7 @@ query_dns64(query_ctx_t *qctx) {
 		 */
 		if (qctx->dbuf != NULL)
 			query_keepname(client, name, qctx->dbuf);
-		dns_message_addname(client->message, name, DNS_SECTION_ANSWER);
+		dns_message_addname(client->message, name, section);
 		qctx->fname = NULL;
 		mname = name;
 	} else {
@@ -7187,7 +7189,7 @@ query_dns64(query_ctx_t *qctx) {
 	dns_rdataset_setownercase(dns64_rdataset, mname);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	dns64_rdataset->trust = qctx->rdataset->trust;
-	query_addrdataset(client, mname, dns64_rdataset);
+	query_addrdataset(client, section, mname, dns64_rdataset);
 	dns64_rdataset = NULL;
 	dns64_rdatalist = NULL;
 	dns_message_takebuffer(client->message, &buffer);
@@ -7232,6 +7234,7 @@ query_filter64(query_ctx_t *qctx) {
 	isc_region_t r;
 	isc_result_t result;
 	unsigned int i;
+	const dns_section_t section = DNS_SECTION_ANSWER;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_filter64");
 
@@ -7245,7 +7248,7 @@ query_filter64(query_ctx_t *qctx) {
 	myrdata = NULL;
 	myrdataset = NULL;
 	myrdatalist = NULL;
-	result = dns_message_findname(client->message, DNS_SECTION_ANSWER,
+	result = dns_message_findname(client->message, section,
 				      name, dns_rdatatype_aaaa,
 				      qctx->rdataset->covers,
 				      &mname, &myrdataset);
@@ -7322,11 +7325,11 @@ query_filter64(query_ctx_t *qctx) {
 		if (qctx->dbuf != NULL)
 			query_keepname(client, name, qctx->dbuf);
 		dns_message_addname(client->message, name,
-				    DNS_SECTION_ANSWER);
+				    section);
 		qctx->dbuf = NULL;
 	}
 	myrdataset->trust = qctx->rdataset->trust;
-	query_addrdataset(client, mname, myrdataset);
+	query_addrdataset(client, section, mname, myrdataset);
 	myrdataset = NULL;
 	myrdatalist = NULL;
 	dns_message_takebuffer(client->message, &buffer);

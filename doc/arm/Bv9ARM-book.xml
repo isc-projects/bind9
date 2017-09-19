@@ -6239,7 +6239,9 @@ options {
 		  unless they are required, but it may still add
 		  records to the additional section.  When set to
 		  <userinput>no-auth-recursive</userinput>, this
-		  is only done if the query is recursive.  These
+		  is only done if the query is recursive.  When the
+		  query is not recursive, the effect is same as if
+		  <userinput>no</userinput> was specified. These
 		  settings are useful when answering stub clients,
 		  which usually ignore the authority section.
 		  <userinput>no-auth-recursive</userinput> is
@@ -6247,7 +6249,8 @@ options {
 		  both authoritative and recursive queries.
 		</para>
 		<para>
-		  The default is <userinput>yes</userinput>.
+		  The default is
+		  <userinput>no-auth-recursive</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6268,11 +6271,6 @@ options {
 		  <userinput>yes</userinput>, which improves performance
 		  at the cost of increased memory usage for the zone. If
 		  you don't want this, set it to <userinput>no</userinput>.
-		</para>
-		<para>
-		  The glue cache is only used when
-		  <userinput>minimal-responses</userinput> is also set
-		  to <userinput>yes</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
