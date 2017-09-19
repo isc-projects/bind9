@@ -4101,6 +4101,10 @@ AC_CHECK_FUNCS(nanosleep usleep)
 #
 # Machine architecture dependent features
 #
+AC_CHECK_HEADERS(stdatomic.h,
+		 [ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"],
+		 [ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"])
+
 AC_ARG_ENABLE(atomic,
 	[  --enable-atomic	  enable machine specific atomic operations
 			  [[default=autodetect]]],
@@ -4143,10 +4147,13 @@ case "$enable_atomic" in
 		esac
 		;;
 	no)
+		ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 		use_atomic=no
 		arch=noatomic
 		;;
 esac
+
+AC_SUBST(ISC_PLATFORM_HAVESTDATOMIC)
 
 ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
