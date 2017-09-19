@@ -11264,29 +11264,35 @@ static void
 nzd_env_close(dns_view_t *view) {
 	if (view->new_zone_dbenv != NULL) {
 		const char *dbpath = NULL;
+		isc_boolean_t have_dbpath = ISC_FALSE;
+		char dbpath_copy[PATH_MAX];
 		char lockpath[PATH_MAX];
 		int ret;
 
 		if (mdb_env_get_path(view->new_zone_dbenv, &dbpath) == 0) {
+			have_dbpath = ISC_TRUE;
 			snprintf(lockpath, sizeof(lockpath), "%s-lock",
 				 dbpath);
+			strlcpy(dbpath_copy, dbpath, sizeof(dbpath_copy));
 		}
 
 		mdb_env_close((MDB_env *) view->new_zone_dbenv);
 		view->new_zone_dbenv = NULL;
 
-		/*
-		 * Database files must be owned by the eventual user, not
-		 * by root.
-		 */
-		ret = chown(dbpath, ns_os_uid(), -1);
-		UNUSED(ret);
+		if (have_dbpath) {
+			/*
+			 * Database files must be owned by the eventual user, not
+			 * by root.
+			 */
+			ret = chown(dbpath_copy, ns_os_uid(), -1);
+			UNUSED(ret);
 
-		 /*
-		  * Some platforms need the lockfile not to exist when we
-		  * reopen the environment.
-		 */
-		(void) isc_file_remove(lockpath);
+			/*
+			 * Some platforms need the lockfile not to exist when we
+			 * reopen the environment.
+			 */
+			(void) isc_file_remove(lockpath);
+		}
 	}
 }
 

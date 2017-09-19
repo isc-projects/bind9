@@ -1,3 +1,5 @@
+4781.	[bug]		Fix use after free when closing an LMDB. [RT #46000]
+
 4780.	[bug]		Fix out of bounds access in DHCID totext() method.
 			[RT #46001]
 
