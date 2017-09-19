@@ -1,3 +1,6 @@
+4728.	[func]		Use C11's stdatomic.h instead of isc_atomic
+			where available. [RT #40668]
+
 4727.	[bug]		Retransferring an inline-signed slave using NSEC3
 			around the time its NSEC3 salt was changed could result
 			in an infinite signing loop. [RT #45080]
