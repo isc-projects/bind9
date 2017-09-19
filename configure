@@ -715,6 +715,7 @@ ISC_PLATFORM_HAVEATOMICSTORE
 ISC_PLATFORM_HAVECMPXCHG
 ISC_PLATFORM_HAVEXADDQ
 ISC_PLATFORM_HAVEXADD
+ISC_PLATFORM_HAVESTDATOMIC
 ISC_PLATFORM_HAVEIFNAMETOINDEX
 ISC_PLATFORM_HAVESTRINGSH
 ISC_PLATFORM_BRACEPTHREADONCEINIT
@@ -18804,6 +18805,21 @@ done
 #
 # Machine architecture dependent features
 #
+for ac_header in stdatomic.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdatomic_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDATOMIC_H 1
+_ACEOF
+ ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
+else
+  ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
+fi
+
+done
+
+
 # Check whether --enable-atomic was given.
 if test "${enable_atomic+set}" = set; then :
   enableval=$enable_atomic; enable_atomic="$enableval"
@@ -18879,10 +18895,13 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		esac
 		;;
 	no)
+		ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 		use_atomic=no
 		arch=noatomic
 		;;
 esac
+
+
 
 ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
