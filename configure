@@ -1039,6 +1039,7 @@ enable_backtrace
 enable_symtable
 enable_ipv6
 with_kame
+enable_tcp_fastopen
 enable_getifaddrs
 with_readline
 enable_isc_spnego
@@ -1722,6 +1723,7 @@ Optional Features:
   --enable-symtable       use internal symbol table for backtrace
 			  [all|minimal(default)|none]
   --enable-ipv6           use IPv6 default=autodetect
+  --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
@@ -18763,11 +18765,22 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
-# Look for TCP_FASTOPEN
+# Allow forcibly disabling TCP Fast Open support as autodetection might yield
+# confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
+# comment in lib/isc/unix/socket.c).
 #
+
+# Check whether --enable-tcp_fastopen was given.
+if test "${enable_tcp_fastopen+set}" = set; then :
+  enableval=$enable_tcp_fastopen;
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
 $as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+case "$enable_tcp_fastopen" in
+yes|''|autodetect)
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <sys/types.h>
@@ -18782,14 +18795,22 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "has_tfo" >/dev/null 2>&1; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"
+		ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
+		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
 fi
 rm -f conftest*
 
+
+		;;
+	no)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
+		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
+		;;
+esac
 
 
 #
