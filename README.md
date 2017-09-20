@@ -108,7 +108,7 @@ number of changes from BIND 9.11 and earlier releases.  New features
 include:
 
 * `named` and related libraries have been substantially refactored for
-  for improved query performance -- particularly on delegation heavy zones -- 
+  improved query performance -- particularly on delegation heavy zones -- 
   and for improved readability, maintainability, and testability.
 * Code implementing the name server query processing logic has been moved
   into a new `libns` library, for easier testing and use in tools other
