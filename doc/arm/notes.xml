@@ -529,7 +529,9 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  The introduction of <command>libns</command> caused a bug
+	  in which TCP client objects were not recycled after use,
+	  leading to unconstrained memory growth. [RT #46029]
 	</para>
       </listitem>
     </itemizedlist>

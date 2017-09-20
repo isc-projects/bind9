@@ -1,3 +1,7 @@
+4733.	[bug]		Change #4706 introduced a bug causing TCP clients
+			not be reused correctly, leading to unconstrained
+			memory growth. [RT #46029]
+
 4732.	[func]		Change default minimal-responses setting to
 			no-auth-recursive. [RT #46016]
 

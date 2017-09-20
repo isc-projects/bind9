@@ -3487,7 +3487,7 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) != 0)
+	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) == 0)
 		ISC_QUEUE_POP(manager->inactive, ilink, client);
 
 	if (client != NULL)
@@ -3551,7 +3551,7 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock) {
 	 * if that fails, make a new one.
 	 */
 	client = NULL;
-	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) != 0)
+	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) == 0)
 		ISC_QUEUE_POP(manager->inactive, ilink, client);
 
 	if (client != NULL)
