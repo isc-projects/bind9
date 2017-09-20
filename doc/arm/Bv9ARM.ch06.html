@@ -8256,17 +8256,6 @@ example.com                 CNAME   rpz-tcp-only.
           </p>
 
           <p>
-            The optional <span class="command"><strong>domain</strong></span> clause specifies
-            the namespace to which rate limits will apply.  It
-            is possible to use different rate limits for different names
-            by specifying multiple <span class="command"><strong>rate-limit</strong></span> blocks
-            with different <span class="command"><strong>domain</strong></span> clauses.
-            The <span class="command"><strong>rate-limit</strong></span> statement's
-            <span class="command"><strong>domain</strong></span> most closely matches the query
-            name will be the one applied to a given query.
-          </p>
-
-          <p>
             Rate limiters for different name spaces maintain
             separate counters: If, for example, there is a
             <span class="command"><strong>rate-limit</strong></span> statement for "com" and
