@@ -4144,7 +4144,9 @@ options {
                   unless they are required, but it may still add
                   records to the additional section.  When set to
                   <strong class="userinput"><code>no-auth-recursive</code></strong>, this
-                  is only done if the query is recursive.  These
+                  is only done if the query is recursive.  When the
+                  query is not recursive, the effect is same as if
+                  <strong class="userinput"><code>no</code></strong> was specified. These
                   settings are useful when answering stub clients,
                   which usually ignore the authority section.
                   <strong class="userinput"><code>no-auth-recursive</code></strong> is
@@ -4152,7 +4154,8 @@ options {
                   both authoritative and recursive queries.
                 </p>
                 <p>
-                  The default is <strong class="userinput"><code>yes</code></strong>.
+                  The default is
+                  <strong class="userinput"><code>no-auth-recursive</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>glue-cache</strong></span></span></dt>
@@ -4170,11 +4173,6 @@ options {
                   <strong class="userinput"><code>yes</code></strong>, which improves performance
                   at the cost of increased memory usage for the zone. If
                   you don't want this, set it to <strong class="userinput"><code>no</code></strong>.
-                </p>
-                <p>
-                  The glue cache is only used when
-                  <strong class="userinput"><code>minimal-responses</code></strong> is also set
-                  to <strong class="userinput"><code>yes</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>minimal-any</strong></span></span></dt>
@@ -8299,17 +8297,6 @@ example.com                 CNAME   rpz-tcp-only.
             (250/1000)*20 or 5.
             Responses sent via TCP are not limited
             but are counted to compute the query per second rate.
-          </p>
-
-          <p>
-            The optional <span class="command"><strong>domain</strong></span> clause specifies
-            the namespace to which rate limits will apply.  It
-            is possible to use different rate limits for different names
-            by specifying multiple <span class="command"><strong>rate-limit</strong></span> blocks
-            with different <span class="command"><strong>domain</strong></span> clauses.
-            The <span class="command"><strong>rate-limit</strong></span> statement's
-            <span class="command"><strong>domain</strong></span> most closely matches the query
-            name will be the one applied to a given query.
           </p>
 
           <p>
