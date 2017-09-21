@@ -337,7 +337,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 		while (1) {
 #if defined(ISC_RWLOCK_USESTDATOMIC)
-			atomic_int_fast32_t cntflag2 = 0;
+			int_fast32_t cntflag2 = 0;
 			atomic_compare_exchange_strong_explicit
 				(&rwl->cnt_and_flag, &cntflag2, WRITER_ACTIVE,
 				 memory_order_relaxed, memory_order_relaxed);
@@ -446,7 +446,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	} else {
 		/* Try locking without entering the waiting queue. */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
-		atomic_int_fast32_t zero = 0;
+		int_fast32_t zero = 0;
 		if (!atomic_compare_exchange_strong_explicit
 		    (&rwl->cnt_and_flag, &zero, WRITER_ACTIVE,
 		     memory_order_relaxed, memory_order_relaxed))
@@ -486,7 +486,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 #if defined(ISC_RWLOCK_USESTDATOMIC)
 	{
-		atomic_int_fast32_t reader_incr = READER_INCR;
+		int_fast32_t reader_incr = READER_INCR;
 
 		/* Try to acquire write access. */
 		atomic_compare_exchange_strong_explicit
