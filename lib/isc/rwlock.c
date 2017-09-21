@@ -13,6 +13,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
