@@ -582,7 +582,9 @@
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  None.
+	  The introduction of <span class="command"><strong>libns</strong></span> caused a bug
+	  in which TCP client objects were not recycled after use,
+	  leading to unconstrained memory growth. [RT #46029]
 	</p>
       </li></ul></div>
   </div>

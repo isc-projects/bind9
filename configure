@@ -16649,8 +16649,8 @@ else
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to use OpenSSL hash functions" >&5
-$as_echo_n "checking whether to use OpenSSL hash functions... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for using OpenSSL for hash functions" >&5
+$as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
