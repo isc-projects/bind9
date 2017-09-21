@@ -1,7 +1,5 @@
 Content-Type: application/X-atf-atffile; version="1"
-
 prop: test-suite = bind9
-
 tp: acl_test
 tp: db_test
 tp: dbdiff_test

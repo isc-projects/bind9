@@ -1,7 +1,5 @@
 Content-Type: application/X-atf-atffile; version="1"
-
 prop: test-suite = bind9
-
 tp: counter_test
 tp: errno_test
 tp: hash_test
@@ -12,7 +10,6 @@ tp: pool_test
 tp: print_test
 tp: queue_test
 tp: radix_test
-tp: ratelimit_test
 tp: regex_test
 tp: safe_test
 tp: sockaddr_test
