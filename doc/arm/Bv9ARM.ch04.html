@@ -2573,7 +2573,7 @@ $ <strong class="userinput"><code>dnssec-signzone -E '' -S example.net</code></s
     <p>
       Removing a member zone from a slave server requires nothing more than
       deleting the member zone's entry in the catalog zone. The change to the
-      catalog cone is propagated to the slave server using the normal AXFR/IXFR
+      catalog zone is propagated to the slave server using the normal AXFR/IXFR
       transfer mechanism.  The slave server, on processing the update, will
       notice that the member zone has been removed.  It will stop serving the
       zone and remove it from its list of configured zones.  (Removing the
