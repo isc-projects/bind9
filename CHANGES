@@ -1,3 +1,6 @@
+4734.	[contrib]	Added sample configuration for DNS-over-TLS in
+			contrib/dnspriv.
+
 4733.	[bug]		Change #4706 introduced a bug causing TCP clients
 			not be reused correctly, leading to unconstrained
 			memory growth. [RT #46029]
