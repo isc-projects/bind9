@@ -21,6 +21,11 @@ but reported bugs will be fixed as time permits.
       mkdane.sh generates TLSA records for use with DNS-based
       Authentication of Named Entities (DANE)
 
+    - dnspriv/
+
+      Sample configuration for setting up a DNS-over-TLS server
+      using BIND with Nginx as a TLS proxy
+
     - dlz/modules
 
       Dynamically linkable DLZ modules that can be configured into
