@@ -19,14 +19,11 @@
 #include <config.h>
 
 #include <isc/safe.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #ifdef WIN32
 #include <windows.h>
-#elif HAVE_EXPLICIT_BZERO
-#include <strings.h>
-#else
-#include <string.h>
 #endif
 
 #ifdef _MSC_VER
