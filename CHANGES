@@ -1,3 +1,6 @@
+4734.	[contrib]	Added sample configuration for DNS-over-TLS in
+			contrib/dnspriv.
+
 4730.	[bug]		Fix out of bounds access in DHCID totext() method.
 			[RT #46001]
 
