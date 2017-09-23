@@ -1,3 +1,5 @@
+4735.	[bug]		Add @ISC_OPENSSL_LIBS@ to isc-config. [RT #46078]
+
 4734.	[contrib]	Added sample configuration for DNS-over-TLS in
 			contrib/dnspriv.
 
