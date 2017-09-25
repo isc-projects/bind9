@@ -62,7 +62,7 @@ void
 isc_hmacsha1_update(isc_hmacsha1_t *ctx, const unsigned char *buf,
 		   unsigned int len)
 {
-	RUNTIME_CHECK(HMAC_Update(ctx, buf, (int) len) == 1);
+	RUNTIME_CHECK(HMAC_Update(ctx->ctx, buf, (int) len) == 1);
 }
 
 void
