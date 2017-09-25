@@ -903,14 +903,14 @@ setup_system(void) {
 		}
 	} else {
 		isc_sockaddr_t *sa;
-		int i = 0;
+		int i;
 
 		/*
 		 * Count the nameservers (skipping any that we can't use
 		 * because of address family restrictions) and allocate
 		 * the servers array.
 		 */
-		ns_total = ns_alloc = 0;
+		ns_total = 0;
 		for (sa = ISC_LIST_HEAD(*nslist);
 		     sa != NULL;
 		     sa = ISC_LIST_NEXT(sa, link))
@@ -919,13 +919,11 @@ setup_system(void) {
 			case AF_INET:
 				if (have_ipv4) {
 					ns_total++;
-					continue;
 				}
 				break;
 			case AF_INET6:
 				if (have_ipv6) {
 					ns_total++;
-					continue;
 				}
 				break;
 			default:
@@ -938,22 +936,21 @@ setup_system(void) {
 		if (servers == NULL)
 			fatal("out of memory");
 
+		i = 0;
 		for (sa = ISC_LIST_HEAD(*nslist);
 		     sa != NULL;
 		     sa = ISC_LIST_NEXT(sa, link))
 		{
 			switch (sa->type.sa.sa_family) {
 			case AF_INET:
-				if (!have_ipv4) {
-					continue;
+				if (have_ipv4) {
+					sa->type.sin.sin_port = htons(dnsport);
 				}
-				sa->type.sin.sin_port = htons(dnsport);
 				break;
 			case AF_INET6:
-				if (!have_ipv6) {
-					continue;
+				if (have_ipv6) {
+					sa->type.sin6.sin6_port = htons(dnsport);
 				}
-				sa->type.sin6.sin6_port = htons(dnsport);
 				break;
 			default:
 				fatal("bad family");

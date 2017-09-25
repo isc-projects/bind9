@@ -8104,14 +8104,15 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Write the PID file.
 	 */
 	obj = NULL;
-	if (named_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
+	if (named_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS) {
 		if (cfg_obj_isvoid(obj))
 			named_os_writepidfile(NULL, first_time);
 		else
 			named_os_writepidfile(cfg_obj_asstring(obj),
 					      first_time);
-	else
+	} else {
 		named_os_writepidfile(named_g_defaultpidfile, first_time);
+	}
 
 	/*
 	 * Configure the server-wide session key.  This must be done before
