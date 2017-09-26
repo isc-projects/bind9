@@ -1,3 +1,5 @@
+4737.	[cleanup]	Address Coverity warnings. [RT #46012]
+
 4736.	[cleanup]	(a) Added comments to NSEC3-related functions in
 			lib/dns/zone.c.  (b) Refactored NSEC3 salt formatting
 			code.  (c) Minor tweaks to lock and result handling.
