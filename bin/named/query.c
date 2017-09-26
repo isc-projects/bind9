@@ -983,6 +983,8 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 	char p_namebuf[DNS_NAME_FORMATSIZE];
 	const char *failed;
 	const char *slash;
+	const char *via;
+	const char *str_blank;
 	const char *rpztypestr1;
 	const char *rpztypestr2;
 
@@ -1006,13 +1008,21 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 		rpztypestr2 = "";
 	}
 
+	str_blank = (*str != ' ' && *str != '\0') ? " " : "";
 	dns_name_format(client->query.qname, qnamebuf, sizeof(qnamebuf));
-	dns_name_format(p_name, p_namebuf, sizeof(p_namebuf));
+	if (p_name != NULL) {
+		via = " via ";
+		dns_name_format(p_name, p_namebuf, sizeof(p_namebuf));
+	} else {
+		via = "";
+		p_namebuf[0] = '\0';
+	}
+
 	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS,
 		      NS_LOGMODULE_QUERY, level,
-		      "rpz %s%s%s rewrite %s via %s%s%s%s",
+		      "rpz %s%s%s rewrite %s%s%s%s%s%s : %s",
 		      rpztypestr1, slash, rpztypestr2,
-		      qnamebuf, p_namebuf,
+		      qnamebuf, via, p_namebuf, str_blank,
 		      str, failed, isc_result_totext(result));
 }
 
@@ -4354,7 +4364,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		rpz_clean(NULL, dbp, &node, rdatasetp);
 		version = NULL;
 		dns_db_attach(client->view->cachedb, dbp);
-		result = dns_db_findext(*dbp, name, version, dns_rdatatype_ns,
+		result = dns_db_findext(*dbp, name, version, type,
 					0, client->now, &node, found,
 					&cm, &ci, *rdatasetp, NULL);
 	}
@@ -4537,8 +4547,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 					     p_name, rpz_type,
 					     " rdatasetiter", result);
 				CTRACE(ISC_LOG_ERROR,
-				       "rpz_find_p: rdatasetiter_destroy "
-				       "failed");
+				       "rpz_find_p: rdatasetiter failed");
 				return (DNS_R_SERVFAIL);
 			}
 			/*
@@ -5130,6 +5139,15 @@ rpz_rewrite_ns_skip(ns_client_t *client, dns_name_t *nsname,
 }
 
 /*
+ * RPZ query result types
+ */
+typedef enum {
+	RPZ_QRESULT_TYPE_DONE,
+	RPZ_QRESULT_TYPE_RESTART,
+	RPZ_QRESULT_TYPE_RECURSE,
+} rpz_qresult_type_t;
+
+/*
  * Look for response policy zone QNAME, NSIP, and NSDNAME rewriting.
  */
 static isc_result_t
@@ -5142,7 +5160,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	dns_rdataset_t *rdataset;
 	dns_fixedname_t nsnamef;
 	dns_name_t *nsname;
-	int qresult_type;
+	rpz_qresult_type_t qresult_type;
 	dns_rpz_zbits_t zbits;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rpz_have_t have;
@@ -5204,7 +5222,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	case ISC_R_SUCCESS:
 	case DNS_R_GLUE:
 	case DNS_R_ZONECUT:
-		qresult_type = 0;
+		qresult_type = RPZ_QRESULT_TYPE_DONE;
 		break;
 	case DNS_R_EMPTYNAME:
 	case DNS_R_NXRRSET:
@@ -5214,7 +5232,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	case DNS_R_NCACHENXRRSET:
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
-		qresult_type = 1;
+		qresult_type = RPZ_QRESULT_TYPE_RESTART;
 		break;
 	case DNS_R_DELEGATION:
 	case ISC_R_NOTFOUND:
@@ -5224,9 +5242,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		 * can rewrite.
 		 */
 		if (RECURSIONOK(client))
-			qresult_type = 2;
+			qresult_type = RPZ_QRESULT_TYPE_RECURSE;
 		else
-			qresult_type = 1;
+			qresult_type = RPZ_QRESULT_TYPE_RESTART;
 		break;
 	case ISC_R_FAILURE:
 	case ISC_R_TIMEDOUT:
@@ -5250,7 +5268,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		isc_netaddr_t netaddr;
 		dns_rpz_zbits_t allowed;
 
-		if (qresult_type == 2) {
+		if (qresult_type == RPZ_QRESULT_TYPE_RECURSE) {
 			/*
 			 * This request needs recursion that has not been done.
 			 * Get bits for the policy zones that do not need
@@ -5315,7 +5333,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		 * Do not bother saving the work from this attempt,
 		 * because recusion is so slow.
 		 */
-		if (qresult_type == 2)
+		if (qresult_type == RPZ_QRESULT_TYPE_RECURSE)
 			goto cleanup;
 
 		/*
@@ -5327,12 +5345,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 
 	/*
 	 * Check known IP addresses for the query name if the database
-	 * lookup resulted in some addresses (qresult_type == 0)
-	 * and if we have not already checked them.
+	 * lookup resulted in some addresses (qresult_type ==
+	 * RPZ_QRESULT_TYPE_DONE) and if we have not already checked them.
 	 * Any recursion required for the query has already happened.
 	 * Do not check addresses that will not be in the ANSWER section.
 	 */
-	if ((st->state & DNS_RPZ_DONE_QNAME_IP) == 0 && qresult_type == 0 &&
+	if ((st->state & DNS_RPZ_DONE_QNAME_IP) == 0 &&
+	    qresult_type == RPZ_QRESULT_TYPE_DONE &&
 	    rpz_get_zbits(client, qtype, DNS_RPZ_TYPE_IP) != 0) {
 		result = rpz_rewrite_ip_rrsets(client,
 					       client->query.qname, qtype,
@@ -5415,13 +5434,13 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 			case ISC_R_FAILURE:
 				rpz_rewrite_ns_skip(client, nsname, result,
 						DNS_RPZ_DEBUG_LEVEL3,
-						" NS rpz_rrset_find() ");
+						" NS rpz_rrset_find()");
 				continue;
 			default:
 				rpz_rewrite_ns_skip(client, nsname, result,
 						DNS_RPZ_INFO_LEVEL,
 						" unrecognized NS"
-						" rpz_rrset_find() ");
+						" rpz_rrset_find()");
 				continue;
 			}
 		}
@@ -6450,7 +6469,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 */
 			if (rpz_st->rpz_ver != client->view->rpzs->rpz_ver) {
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					      NS_LOGMODULE_QUERY,
+					      DNS_RPZ_INFO_LEVEL,
 					      "query_find: RPZ settings "
 					      "out of date "
 					      "(rpz_ver %d, expected %d)",

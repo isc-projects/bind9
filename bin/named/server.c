@@ -1988,7 +1988,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	} else if (old != NULL && pview != NULL) {
 		pview->rpzs->rpz_ver += 1;
 		view->rpzs->rpz_ver = pview->rpzs->rpz_ver;
-		cfg_obj_log(rpz_obj, ns_g_lctx, ISC_LOG_DEBUG(1),
+		cfg_obj_log(rpz_obj, ns_g_lctx, DNS_RPZ_DEBUG_LEVEL1,
 			    "updated RPZ policy: version %d",
 			    view->rpzs->rpz_ver);
 	}
