@@ -377,12 +377,11 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	 * qname_wait_recurse and qname_skip_recurse are used to
 	 * implement the "qname-wait-recurse" config option.
 	 *
-	 * By default, "qname-wait-recurse" is yes, so no
-	 * processing happens without recursion. In this case,
-	 * qname_wait_recurse is true, and qname_skip_recurse
-	 * (a bit field indicating which policy zones can be
-	 * processed without recursion) is set to all 0's by
-	 * fix_qname_skip_recurse().
+	 * When "qname-wait-recurse" is yes, no processing happens
+	 * without recursion. In this case, qname_wait_recurse is true,
+	 * and qname_skip_recurse (a bitfield indicating which policy
+	 * zones can be processed without recursion) is set to all 0's
+	 * by fix_qname_skip_recurse().
 	 *
 	 * When "qname-wait-recurse" is no, qname_skip_recurse may be
 	 * set to a non-zero value by fix_qname_skip_recurse(). The mask
@@ -661,6 +660,12 @@ badname(int level, dns_name_t *name, const char *str1, const char *str2) {
  * Convert an IP address from radix tree binary (host byte order) to
  * to its canonical response policy domain name without the origin of the
  * policy zone.
+ *
+ * Generate a name for an IPv6 address that fits RFC 5952, except that
+ * our reversed format requires that when the length of the consecutive
+ * 16-bit 0 fields are equal (e.g., 1.0.0.1.0.0.db8.2001 corresponding
+ * to 2001:db8:0:0:1:0:0:1), we shorted the last instead of the first
+ * (e.g., 1.0.0.1.zz.db8.2001 corresponding to 2001:db8::1:0:0:1).
  */
 static isc_result_t
 ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
@@ -673,7 +678,7 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 	char str[1+8+1+INET6_ADDRSTRLEN+1];
 	isc_buffer_t buffer;
 	isc_result_t result;
-	isc_boolean_t zeros;
+	int best_first, best_len, cur_first, cur_len;
 	int i, n, len;
 
 	if (KEY_IS_IPV4(tgt_prefix, tgt_ip)) {
@@ -686,40 +691,47 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		if (len < 0 || len > (int)sizeof(str))
 			return (ISC_R_FAILURE);
 	} else {
+		len = snprintf(str, sizeof(str), "%d", tgt_prefix);
+		if (len == -1)
+			return (ISC_R_FAILURE);
 		for (i = 0; i < DNS_RPZ_CIDR_WORDS; i++) {
 			w[i*2+1] = ((tgt_ip->w[DNS_RPZ_CIDR_WORDS-1-i] >> 16)
 				    & 0xffff);
 			w[i*2] = tgt_ip->w[DNS_RPZ_CIDR_WORDS-1-i] & 0xffff;
 		}
-		zeros = ISC_FALSE;
-		len = snprintf(str, sizeof(str), "%d", tgt_prefix);
-		if (len == -1)
-			return (ISC_R_FAILURE);
-		i = 0;
-		while (i < DNS_RPZ_CIDR_WORDS * 2) {
-			if (w[i] != 0 || zeros ||
-			    i >= DNS_RPZ_CIDR_WORDS * 2 - 1 ||
-			    w[i+1] != 0) {
-				INSIST((size_t)len <= sizeof(str));
-				n = snprintf(&str[len], sizeof(str) - len,
-					     ".%x", w[i++]);
-				if (n < 0)
-					return (ISC_R_FAILURE);
-				len += n;
+		/*
+		 * Find the start and length of the first longest sequence
+		 * of zeros in the address.
+		 */
+		best_first = -1;
+		best_len = 0;
+		cur_first = -1;
+		cur_len = 0;
+		for (n = 0; n <=7; ++n) {
+			if (w[n] != 0) {
+				cur_len = 0;
+				cur_first = -1;
 			} else {
-				zeros = ISC_TRUE;
-				INSIST((size_t)len <= sizeof(str));
-				n = snprintf(&str[len], sizeof(str) - len,
-					     ".zz");
-				if (n < 0)
-					return (ISC_R_FAILURE);
-				len += n;
-				i += 2;
-				while (i < DNS_RPZ_CIDR_WORDS * 2 && w[i] == 0)
-					++i;
+				++cur_len;
+				if (cur_first < 0) {
+					cur_first = n;
+				} else if (cur_len >= best_len) {
+					best_first = cur_first;
+					best_len = cur_len;
+				}
 			}
-			if (len >= (int)sizeof(str))
-				return (ISC_R_FAILURE);
+		}
+
+		for (n = 0; n <= 7; ++n) {
+			INSIST(len < (int)sizeof(str));
+			if (n == best_first) {
+				len += snprintf(str + len, sizeof(str) - len,
+						".zz");
+				n += best_len - 1;
+			} else {
+				len += snprintf(str + len, sizeof(str) - len,
+						".%x", w[n]);
+			}
 		}
 	}
 
@@ -730,7 +742,7 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 }
 
 /*
- * Determine the type a of a name in a response policy zone.
+ * Determine the type of a name in a response policy zone.
  */
 static dns_rpz_type_t
 type_from_name(dns_rpz_zone_t *rpz, dns_name_t *name) {
@@ -768,6 +780,7 @@ name2ipkey(int log_level,
 {
 	dns_rpz_zone_t *rpz;
 	char ip_str[DNS_NAME_FORMATSIZE];
+	char ip2_str[DNS_NAME_FORMATSIZE];
 	dns_offsets_t ip_name_offsets;
 	dns_fixedname_t ip_name2f;
 	dns_name_t ip_name, *ip_name2;
@@ -810,7 +823,7 @@ name2ipkey(int log_level,
 			"; invalid leading prefix length", "");
 		return (ISC_R_FAILURE);
 	}
-	*cp2 = '\0';
+
 	if (prefix_num < 1U || prefix_num > 128U) {
 		badname(log_level, src_name,
 			"; invalid prefix length of ", prefix_str);
@@ -906,21 +919,27 @@ name2ipkey(int log_level,
 	}
 
 	/*
-	 * XXXMUKS: Should the following check be enabled in a
-	 * production build?  It can be expensive for large IP zones
-	 * from 3rd parties.
+	 * Complain about bad names but be generous and accept them.
 	 */
-
-	/*
-	 * Convert the address back to a canonical domain name
-	 * to ensure that the original name is in canonical form.
-	 */
-	dns_fixedname_init(&ip_name2f);
-	ip_name2 = dns_fixedname_name(&ip_name2f);
-	result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num, NULL, ip_name2);
-	if (result != ISC_R_SUCCESS || !dns_name_equal(&ip_name, ip_name2)) {
-		badname(log_level, src_name, "; not canonical", "");
-		return (ISC_R_FAILURE);
+	if (log_level < DNS_RPZ_DEBUG_QUIET &&
+	    isc_log_wouldlog(dns_lctx, log_level)) {
+		/*
+		 * Convert the address back to a canonical domain name
+		 * to ensure that the original name is in canonical form.
+		 */
+		dns_fixedname_init(&ip_name2f);
+		ip_name2 = dns_fixedname_name(&ip_name2f);
+		result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num,
+				 NULL, ip_name2);
+		if (result != ISC_R_SUCCESS ||
+		    !dns_name_equal(&ip_name, ip_name2)) {
+			dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
+				      DNS_LOGMODULE_RBTDB, log_level,
+				      "rpz IP address \"%s\""
+				      " is not the canonical \"%s\"",
+				      ip_str, ip2_str);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1375,7 +1394,7 @@ rpz_node_deleter(void *nm_data, void *mctx) {
 }
 
 /*
- * Get ready for a new set of policy zones.
+ * Get ready for a new set of policy zones for a view.
  */
 isc_result_t
 dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, isc_mem_t *mctx) {
@@ -1521,25 +1540,26 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 
 	*rpzsp = NULL;
 	isc_refcount_decrement(&rpzs->refs, &refs);
+	if (refs > 0)
+		return;
 
 	/*
-	 * Forget the last of view's rpz machinery after the last reference.
+	 * Forget the last of view's rpz machinery after the last
+	 * reference.
 	 */
-	if (refs == 0) {
-		for (rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num) {
-			rpz = rpzs->zones[rpz_num];
-			rpzs->zones[rpz_num] = NULL;
-			if (rpz != NULL)
-				rpz_detach(&rpz, rpzs);
-		}
-
-		cidr_free(rpzs);
-		dns_rbt_destroy(&rpzs->rbt);
-		DESTROYLOCK(&rpzs->maint_lock);
-		isc_rwlock_destroy(&rpzs->search_lock);
-		isc_refcount_destroy(&rpzs->refs);
-		isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
+	for (rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num) {
+		rpz = rpzs->zones[rpz_num];
+		rpzs->zones[rpz_num] = NULL;
+		if (rpz != NULL)
+			rpz_detach(&rpz, rpzs);
 	}
+
+	cidr_free(rpzs);
+	dns_rbt_destroy(&rpzs->rbt);
+	DESTROYLOCK(&rpzs->maint_lock);
+	isc_rwlock_destroy(&rpzs->search_lock);
+	isc_refcount_destroy(&rpzs->refs);
+	isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 }
 
 /*
