@@ -3146,6 +3146,56 @@ resume_signingwithkey(dns_zone_t *zone) {
 	}
 }
 
+/*
+ * Convert the salt of given NSEC3PARAM RDATA into hex-encoded, NULL-terminated
+ * text stored at "dst".
+ *
+ * Requires:
+ * 	"dst" to have enough space (as indicated by "dstlen") to hold the
+ * 	resulting text and its NULL-terminating byte.
+ */
+static isc_result_t
+nsec3param_salt_totext(dns_rdata_nsec3param_t *nsec3param, char *dst,
+		       size_t dstlen)
+{
+	isc_result_t result;
+	isc_region_t r;
+	isc_buffer_t b;
+
+	REQUIRE(nsec3param != NULL);
+	REQUIRE(dst != NULL);
+
+	if (nsec3param->salt_length == 0) {
+		if (dstlen < 2) {
+			return (ISC_R_NOSPACE);
+		}
+		strlcpy(dst, "-", dstlen);
+		return (ISC_R_SUCCESS);
+	}
+
+	r.base = nsec3param->salt;
+	r.length = nsec3param->salt_length;
+	isc_buffer_init(&b, dst, dstlen);
+
+	result = isc_hex_totext(&r, 2, "", &b);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	if (isc_buffer_availablelength(&b) < 1) {
+		return (ISC_R_NOSPACE);
+	}
+	isc_buffer_putuint8(&b, 0);
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Initiate adding/removing NSEC3 records belonging to the chain defined by the
+ * supplied NSEC3PARAM RDATA.
+ *
+ * Zone must be locked by caller.
+ */
 static isc_result_t
 zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	dns_nsec3chain_t *nsec3chain, *current;
@@ -3157,7 +3207,6 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	char saltbuf[255*2+1];
 	char flags[sizeof("INITIAL|REMOVE|CREATE|NONSEC|OPTOUT")];
 	dns_db_t *db = NULL;
-	int i;
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL)
@@ -3169,6 +3218,11 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		goto cleanup;
 	}
 
+	/*
+	 * If this zone is not NSEC3-capable, attempting to remove any NSEC3
+	 * chain from it is pointless as it would not be possible for the
+	 * latter to exist in the first place.
+	 */
 	dns_db_currentversion(db, &version);
 	result = dns_nsec_nseconly(db, version, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
@@ -3178,6 +3232,11 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		goto cleanup;
 	}
 
+	/*
+	 * Allocate and initialize structure preserving state of
+	 * adding/removing records belonging to this NSEC3 chain between
+	 * separate zone_nsec3chain() calls.
+	 */
 	nsec3chain = isc_mem_get(zone->mctx, sizeof *nsec3chain);
 	if (nsec3chain == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -3200,6 +3259,9 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	nsec3chain->delete_nsec = ISC_FALSE;
 	nsec3chain->save_delete_nsec = ISC_FALSE;
 
+	/*
+	 * Log NSEC3 parameters defined by supplied NSEC3PARAM RDATA.
+	 */
 	if (nsec3param->flags == 0)
 		strlcpy(flags, "NONE", sizeof(flags));
 	else {
@@ -3231,16 +3293,18 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 				strlcat(flags, "|OPTOUT", sizeof(flags));
 		}
 	}
-	if (nsec3param->salt_length == 0)
-		strlcpy(saltbuf, "-", sizeof(saltbuf));
-	else
-		for (i = 0; i < nsec3param->salt_length; i++)
-			sprintf(&saltbuf[i*2], "%02X", nsec3chain->salt[i]);
+	result = nsec3param_salt_totext(nsec3param, saltbuf, sizeof(saltbuf));
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_zone_log(zone, ISC_LOG_INFO,
 		     "zone_addnsec3chain(%u,%s,%u,%s)",
 		      nsec3param->hash, flags, nsec3param->iterations,
 		      saltbuf);
 
+	/*
+	 * If the NSEC3 chain defined by the supplied NSEC3PARAM RDATA is
+	 * currently being processed, interrupt its processing to avoid
+	 * simultaneously adding and removing records for the same NSEC3 chain.
+	 */
 	for (current = ISC_LIST_HEAD(zone->nsec3chain);
 	     current != NULL;
 	     current = ISC_LIST_NEXT(current, link)) {
@@ -3253,14 +3317,27 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 			current->done = ISC_TRUE;
 	}
 
+	/*
+	 * Attach zone database to the structure initialized above and create
+	 * an iterator for it with appropriate options in order to avoid
+	 * creating NSEC3 records for NSEC3 records.
+	 */
 	dns_db_attach(db, &nsec3chain->db);
 	if ((nsec3chain->nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0)
 		options = DNS_DB_NONSEC3;
 	result = dns_db_createiterator(nsec3chain->db, options,
 				       &nsec3chain->dbiterator);
 	if (result == ISC_R_SUCCESS)
-		dns_dbiterator_first(nsec3chain->dbiterator);
+		result = dns_dbiterator_first(nsec3chain->dbiterator);
 	if (result == ISC_R_SUCCESS) {
+		/*
+		 * Database iterator initialization succeeded.  We are now
+		 * ready to kick off adding/removing records belonging to this
+		 * NSEC3 chain.  Append the structure initialized above to the
+		 * "nsec3chain" list for the zone and set the appropriate zone
+		 * timer so that zone_nsec3chain() is called as soon as
+		 * possible.
+		 */
 		dns_dbiterator_pause(nsec3chain->dbiterator);
 		ISC_LIST_INITANDAPPEND(zone->nsec3chain,
 				       nsec3chain, link);
@@ -3287,6 +3364,13 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	return (result);
 }
 
+/*
+ * Find private-type records at the zone apex which signal that an NSEC3 chain
+ * should be added or removed.  For each such record, extract NSEC3PARAM RDATA
+ * and pass it to zone_addnsec3chain().
+ *
+ * Zone must be locked by caller.
+ */
 static void
 resume_addnsec3chain(dns_zone_t *zone) {
 	dns_dbnode_t *node = NULL;
@@ -3296,6 +3380,8 @@ resume_addnsec3chain(dns_zone_t *zone) {
 	dns_rdata_nsec3param_t nsec3param;
 	isc_boolean_t nseconly = ISC_FALSE, nsec3ok = ISC_FALSE;
 	dns_db_t *db = NULL;
+
+	INSIST(LOCKED_ZONE(zone));
 
 	if (zone->privatetype == 0)
 		return;
@@ -3313,9 +3399,16 @@ resume_addnsec3chain(dns_zone_t *zone) {
 
 	dns_db_currentversion(db, &version);
 
+	/*
+	 * In order to create NSEC3 chains we need the DNSKEY RRset at zone
+	 * apex to exist and contain no keys using NSEC-only algorithms.
+	 */
 	result = dns_nsec_nseconly(db, version, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
 
+	/*
+	 * Get the RRset containing all private-type records at the zone apex.
+	 */
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version,
 				     zone->privatetype, dns_rdatatype_none,
@@ -3334,6 +3427,11 @@ resume_addnsec3chain(dns_zone_t *zone) {
 		dns_rdata_t private = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &private);
+		/*
+		 * Try extracting NSEC3PARAM RDATA from this private-type
+		 * record.  Failure means this private-type record does not
+		 * represent an NSEC3PARAM record, so skip it.
+		 */
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
 						sizeof(buf)))
 			continue;
@@ -3342,6 +3440,11 @@ resume_addnsec3chain(dns_zone_t *zone) {
 		if (((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0) ||
 		    ((nsec3param.flags & DNS_NSEC3FLAG_CREATE) != 0 && nsec3ok))
 		{
+			/*
+			 * Pass the NSEC3PARAM RDATA contained in this
+			 * private-type record to zone_addnsec3chain() so that
+			 * it can kick off adding or removing NSEC3 records.
+			 */
 			result = zone_addnsec3chain(zone, &nsec3param);
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -6774,9 +6877,28 @@ updatesignwithkey(dns_zone_t *zone, dns_signing_t *signing,
 }
 
 /*
- * If 'active' is set then we are not done with the chain yet so only
- * delete the nsec3param record which indicates a full chain exists
- * (flags == 0).
+ * Called from zone_nsec3chain() in order to update zone records indicating
+ * processing status of given NSEC3 chain:
+ *
+ *   - If the supplied dns_nsec3chain_t structure has been fully processed
+ *     (which is indicated by "active" being set to ISC_FALSE):
+ *
+ *       - remove all NSEC3PARAM records matching the relevant NSEC3 chain,
+ *
+ *       - remove all private-type records containing NSEC3PARAM RDATA matching
+ *         the relevant NSEC3 chain.
+ *
+ *   - If the supplied dns_nsec3chain_t structure has not been fully processed
+ *     (which is indicated by "active" being set to ISC_TRUE), only remove the
+ *     NSEC3PARAM record which matches the relevant NSEC3 chain and has the
+ *     "flags" field set to 0.
+ *
+ *   - If given NSEC3 chain is being added, add an NSEC3PARAM record contained
+ *     in the relevant private-type record, but with the "flags" field set to
+ *     0, indicating that this NSEC3 chain is now complete for this zone.
+ *
+ * Note that this function is called at different processing stages for NSEC3
+ * chain additions vs. removals and needs to handle all cases properly.
  */
 static isc_result_t
 fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
@@ -7238,6 +7360,25 @@ zone_nsec3chain(dns_zone_t *zone) {
 		nsec3chain->save_delete_nsec = nsec3chain->delete_nsec;
 	/*
 	 * Generate new NSEC3 chains first.
+	 *
+	 * The following while loop iterates over nodes in the zone database,
+	 * updating the NSEC3 chain by calling dns_nsec3_addnsec3() for each of
+	 * them.  Once all nodes are processed, the "delete_nsec" field is
+	 * consulted to check whether we are supposed to remove NSEC records
+	 * from the zone database; if so, the database iterator is reset to
+	 * point to the first node and the loop traverses all of them again,
+	 * this time removing NSEC records.  If we hit a node which is obscured
+	 * by a delegation or a DNAME, nodes are skipped over until we find one
+	 * that is not obscured by the same obscuring name and then normal
+	 * processing is resumed.
+	 *
+	 * The above is repeated until all requested NSEC3 chain changes are
+	 * applied or when we reach the limits for this quantum, whichever
+	 * happens first.
+	 *
+	 * Note that the "signatures" variable is only used here to limit the
+	 * amount of work performed.  Actual DNSSEC signatures are only
+	 * generated by update_sigs() calls later in this function.
 	 */
 	while (nsec3chain != NULL && nodes-- > 0 && signatures > 0) {
 		LOCK_ZONE(zone);
@@ -7439,6 +7580,16 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	/*
 	 * Process removals.
+	 *
+	 * This is a counterpart of the above while loop which takes care of
+	 * removing an NSEC3 chain.  It starts with determining whether the
+	 * zone needs to switch from NSEC3 to NSEC; if so, it first builds an
+	 * NSEC chain by iterating over all nodes in the zone database and only
+	 * then goes on to remove NSEC3 records be iterating over all nodes
+	 * again and calling deletematchingnsec3() for each of them; otherwise,
+	 * it starts removing NSEC3 records immediately.  Rules for processing
+	 * obscured nodes and interrupting work are the same as for the while
+	 * loop above.
 	 */
 	LOCK_ZONE(zone);
 	nsec3chain = ISC_LIST_HEAD(zone->nsec3chain);
@@ -7484,7 +7635,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 		if (!buildnsecchain) {
 			/*
-			 * Delete the NSECPARAM record that matches this chain.
+			 * Delete the NSEC3PARAM record matching this chain.
 			 */
 			if (first) {
 				result = fixup_nsec3param(db, version,
@@ -7501,7 +7652,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			}
 
 			/*
-			 *  Delete the NSEC3 records.
+			 * Delete the NSEC3 records.
 			 */
 			result = deletematchingnsec3(db, version, node, name,
 						     &nsec3chain->nsec3param,
@@ -7581,6 +7732,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 			dns_dbiterator_pause(nsec3chain->dbiterator);
 			CHECK(add_nsec(db, version, name, node, zone->minimum,
 				       delegation, &nsec_diff));
+			signatures--;
 		}
 
  next_removenode:
@@ -8160,7 +8312,7 @@ zone_sign(dns_zone_t *zone) {
 					     DNS_DBFIND_NOWILD, 0, NULL, found,
 					     NULL, NULL);
 			if ((result == DNS_R_DELEGATION ||
-			    result == DNS_R_DNAME) &&
+			     result == DNS_R_DNAME) &&
 			    !dns_name_equal(name, found)) {
 				/*
 				 * Remember the obscuring name so that
@@ -16767,25 +16919,21 @@ dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 	return (result);
 }
 
-static const char *hex = "0123456789ABCDEF";
-
+/*
+ * Called when a dynamic update for an NSEC3PARAM record is received.
+ *
+ * If set, transform the NSEC3 salt into human-readable form so that it can be
+ * logged.  Then call zone_addnsec3chain(), passing NSEC3PARAM RDATA to it.
+ */
 isc_result_t
 dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	isc_result_t result;
 	char salt[255*2+1];
-	unsigned int i, j;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (nsec3param->salt_length != 0) {
-		INSIST((nsec3param->salt_length * 2U) < sizeof(salt));
-		for (i = 0, j = 0; i < nsec3param->salt_length; i++) {
-			salt[j++] = hex[(nsec3param->salt[i] >> 4) & 0xf];
-			salt[j++] = hex[nsec3param->salt[i] & 0xf];
-		}
-		salt[j] = '\0';
-	} else
-		strlcpy(salt, "-", sizeof(salt));
+	result = nsec3param_salt_totext(nsec3param, salt, sizeof(salt));
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_zone_log(zone, ISC_LOG_NOTICE,
 		     "dns_zone_addnsec3chain(hash=%u, iterations=%u, salt=%s)",
 		     nsec3param->hash, nsec3param->iterations,
@@ -18171,6 +18319,15 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 	return (result);
 }
 
+/*
+ * Called from the zone task's queue after the relevant event is posted by
+ * dns_zone_setnsec3param().
+ *
+ * Check whether NSEC3 chain addition or removal specified by the private-type
+ * record passed with the event was already queued (or even fully performed).
+ * If not, modify the relevant private-type records at the zone apex and call
+ * resume_addnsec3chain().
+ */
 static void
 setnsec3param(isc_task_t *task, isc_event_t *event) {
 	const char *me = "setnsec3param";
@@ -18271,7 +18428,9 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 
 
 	/*
-	 * We need to remove any existing NSEC3 chains.
+	 * We need to remove any existing NSEC3 chains if the supplied NSEC3
+	 * parameters are supposed to replace the current ones or if we are
+	 * switching to NSEC.
 	 */
 	if (!exists && np->replace && (np->length != 0 || np->nsec))
 		CHECK(dns_nsec3param_deletechains(db, newver, zone,
@@ -18279,12 +18438,14 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 
 	if (!exists && np->length != 0) {
 		/*
-		 * We're creating an NSEC3 chain.
+		 * We're creating an NSEC3 chain.  Add the private-type record
+		 * passed in the event handler's argument to the zone apex.
 		 *
-		 * If the zone is not currently capable of supporting
-		 * an NSEC3 chain, add the INITIAL flag, so these
-		 * parameters can be used later when NSEC3 becomes
-		 * available.
+		 * If the zone is not currently capable of supporting an NSEC3
+		 * chain (due to the DNSKEY RRset at the zone apex not existing
+		 * or containing at least one key using an NSEC-only
+		 * algorithm), add the INITIAL flag, so these parameters can be
+		 * used later when NSEC3 becomes available.
 		 */
 		dns_rdata_init(&rdata);
 
@@ -18301,8 +18462,13 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 				    &zone->origin, 0, &rdata));
 	}
 
+	/*
+	 * If we changed anything in the zone, write changes to journal file
+	 * and set commit to ISC_TRUE so that resume_addnsec3chain() will be
+	 * called below in order to kick off adding/removing relevant NSEC3
+	 * records.
+	 */
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
-		/* Write changes to journal file. */
 		CHECK(update_soa_serial(db, newver, &diff, zone->mctx,
 					zone->updatemethod));
 		result = dns_update_signatures(&log, zone, db,
@@ -18332,8 +18498,11 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 		dns_db_closeversion(db, &newver, commit);
 	if (db != NULL)
 		dns_db_detach(&db);
-	if (commit)
+	if (commit) {
+		LOCK_ZONE(zone);
 		resume_addnsec3chain(zone);
+		UNLOCK_ZONE(zone);
+	}
 	dns_diff_clear(&diff);
 	isc_event_free(&event);
 	dns_zone_idetach(&zone);
@@ -18342,6 +18511,25 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	INSIST(newver == NULL);
 }
 
+/*
+ * Called when an "rndc signing -nsec3param ..." command is received.
+ *
+ * Allocate and prepare an nsec3param_t structure which holds information about
+ * the NSEC3 changes requested for the zone:
+ *
+ *   - if NSEC3 is to be disabled ("-nsec3param none"), only set the "nsec"
+ *     field of the structure to ISC_TRUE and the "replace" field to the value
+ *     of the "replace" argument, leaving other fields initialized to zeros, to
+ *     signal that the zone should be signed using NSEC instead of NSEC3,
+ *
+ *   - otherwise, prepare NSEC3PARAM RDATA that will eventually be inserted at
+ *     the zone apex, convert it to a private-type record and store the latter
+ *     in the "data" field of the nsec3param_t structure.
+ *
+ * Once the nsec3param_t structure is prepared, post an event to the zone's
+ * task which will cause setnsec3param() to be called with the prepared
+ * structure passed as an argument.
+ */
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		       isc_uint16_t iter, isc_uint8_t saltlen,
