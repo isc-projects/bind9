@@ -1865,6 +1865,7 @@ cleanup:
 	return (result);
 }
 
+#ifdef USE_DNSRPS
 typedef struct conf_dnsrps_ctx conf_dnsrps_ctx_t;
 struct conf_dnsrps_ctx {
 	isc_result_t	result;
@@ -2088,6 +2089,7 @@ conf_dnsrps(dns_view_t *view, const cfg_obj_t **maps,
 	}
 	return (ctx.result);
 }
+#endif
 
 static isc_result_t
 configure_rpz_name(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
@@ -2322,23 +2324,22 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	if (!cfg_obj_isvoid(sub_obj)) {
 		dnsrps_enabled = cfg_obj_asboolean(sub_obj);
 	}
-#ifdef USE_DNSRPS
-	if (dnsrps_enabled && librpz == NULL) {
-		cfg_obj_log(rpz_obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
-			    "\"dnsrps-enable yes\" but %s",
-			    librpz_lib_open_emsg.c);
-		return (ISC_R_FAILURE);
-	}
-#else
+#ifndef USE_DNSRPS
 	if (dnsrps_enabled) {
 		cfg_obj_log(rpz_obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
 			    "\"dnsrps-enable yes\" but"
 			    " with `./configure --enable-dnsrps`");
 		return (ISC_R_FAILURE);
 	}
-#endif
-
+#else
 	if (dnsrps_enabled) {
+		if (librpz == NULL) {
+			cfg_obj_log(rpz_obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
+				    "\"dnsrps-enable yes\" but %s",
+				    librpz_lib_open_emsg.c);
+			return (ISC_R_FAILURE);
+		}
+
 		/*
 		 * Generate the DNS Response Policy Service
 		 * configuration string.
@@ -2351,6 +2352,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
+#endif
 
 	result = dns_rpz_new_zones(&view->rpzs, rps_cstr,
 				   rps_cstr_size, view->mctx,
