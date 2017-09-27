@@ -141,7 +141,7 @@ main(int argc, char *argv[]) {
 	dns_rdata_t *rdata;
 	dns_namelist_t updatelist, prereqlist, *prereqlistp = NULL;
 	isc_mem_t *umctx = NULL;
-	isc_boolean_t sendtwice;
+	isc_boolean_t sendtwice = ISC_FALSE;
 
 	ISC_LIST_INIT(auth_servers);
 	ISC_LIST_INIT(rec_servers);

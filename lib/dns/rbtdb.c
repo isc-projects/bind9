@@ -8094,6 +8094,7 @@ dns_rbtdb_create
 			free_rbtdb(rbtdb, ISC_FALSE, NULL);
 			return (result);
 		}
+		INSIST(rbtdb->origin_node != NULL);
 		rbtdb->origin_node->nsec = DNS_RBT_NSEC_NORMAL;
 		/*
 		 * We need to give the origin node the right locknum.

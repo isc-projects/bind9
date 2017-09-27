@@ -331,6 +331,8 @@ query_freefreeversions(ns_client_t *client, isc_boolean_t everything) {
 
 void
 ns_query_cancel(ns_client_t *client) {
+	REQUIRE(NS_CLIENT_VALID(client));
+
 	LOCK(&client->query.fetchlock);
 	if (client->query.fetch != NULL) {
 		dns_resolver_cancelfetch(client->query.fetch);
@@ -451,6 +453,8 @@ query_next_callback(ns_client_t *client) {
 
 void
 ns_query_free(ns_client_t *client) {
+	REQUIRE(NS_CLIENT_VALID(client));
+
 	query_reset(client, ISC_TRUE);
 }
 
@@ -650,6 +654,8 @@ query_getdbversion(ns_client_t *client) {
 isc_result_t
 ns_query_init(ns_client_t *client) {
 	isc_result_t result;
+
+	REQUIRE(NS_CLIENT_VALID(client));
 
 	ISC_LIST_INIT(client->query.namebufs);
 	ISC_LIST_INIT(client->query.activeversions);
@@ -7881,6 +7887,8 @@ ns_query_start(ns_client_t *client) {
 	dns_rdatatype_t qtype;
 	unsigned int saved_extflags = client->extflags;
 	unsigned int saved_flags = client->message->flags;
+
+	REQUIRE(NS_CLIENT_VALID(client));
 
 	CTRACE(ISC_LOG_DEBUG(3), "ns_query_start");
 
