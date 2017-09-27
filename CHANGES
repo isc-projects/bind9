@@ -1,3 +1,5 @@
+4740.	[cleanup]	Avoid triggering format-truncated warnings. [RT #46107]
+
 4739.	[cleanup]	Address clang static analysis warnings. [RT #45952]
 
 4738.	[port]		win32: strftime mishandles %Z. [RT #46039]
