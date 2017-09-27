@@ -16,6 +16,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -33,6 +34,10 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/zone.h>
+
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#include <stdatomic.h>
+#endif
 
 #define ACACHE_MAGIC			ISC_MAGIC('A', 'C', 'H', 'E')
 #define DNS_ACACHE_VALID(acache)	ISC_MAGIC_VALID(acache, ACACHE_MAGIC)
@@ -70,8 +75,13 @@
 
 #define DEFAULT_ACACHE_ENTRY_LOCK_COUNT	1009	 /*%< Should be prime. */
 
-#if defined(ISC_RWLOCK_USEATOMIC) && defined(ISC_PLATFORM_HAVEATOMICSTORE)
+#if defined(ISC_RWLOCK_USEATOMIC) &&					\
+	((defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_LONG_LOCK_FREE)) || \
+	 defined(ISC_PLATFORM_HAVEATOMICSTORE))
 #define ACACHE_USE_RWLOCK 1
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_LONG_LOCK_FREE))
+#define ACACHE_HAVESTDATOMIC 1
+#endif
 #endif
 
 #ifdef ACACHE_USE_RWLOCK
@@ -80,8 +90,15 @@
 #define ACACHE_LOCK(l, t)	RWLOCK((l), (t))
 #define ACACHE_UNLOCK(l, t)	RWUNLOCK((l), (t))
 
+#ifdef ACACHE_HAVESTDATOMIC
+#define acache_storetime(entry, t) \
+	atomic_store_explicit(&(entry)->lastused, (t), \
+			      memory_order_relaxed);
+#else
 #define acache_storetime(entry, t) \
 	(isc_atomic_store((isc_int32_t *)&(entry)->lastused, (t)))
+#endif
+
 #else
 #define ACACHE_INITLOCK(l)	isc_mutex_init(l)
 #define ACACHE_DESTROYLOCK(l)	DESTROYLOCK(l)
@@ -227,7 +244,11 @@ struct dns_acacheentry {
 	void 			*cbarg;
 
 	/* Timestamp of the last time this entry is referred to */
+#ifdef ACACHE_HAVESTDATOMIC
+	atomic_uint_fast32_t	lastused;
+#else
 	isc_stdtime32_t		lastused;
+#endif
 };
 
 /*
@@ -1367,6 +1388,7 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	dns_acacheentry_t *newentry;
 	isc_result_t result;
 	isc_uint32_t r;
+	isc_stdtime_t tmptime;
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
 	REQUIRE(entryp != NULL && *entryp == NULL);
@@ -1422,7 +1444,8 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	newentry->origdb = NULL;
 	dns_db_attach(origdb, &newentry->origdb);
 
-	isc_stdtime_get(&newentry->lastused);
+	isc_stdtime_get(&tmptime);
+	acache_storetime(newentry, tmptime);
 
 	newentry->magic = ACACHEENTRY_MAGIC;
 
