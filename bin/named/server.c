@@ -5764,7 +5764,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Parse the configuration file using the new config code.
 	 */
-	result = ISC_R_FAILURE;
 	config = NULL;
 
 	/*
