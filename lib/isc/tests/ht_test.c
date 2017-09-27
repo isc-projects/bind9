@@ -55,7 +55,7 @@ static void test_ht_full(int bits, int count) {
 		 * to ensure we are always filling the 16 byte key.
 		 */
 		unsigned char key[16];
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_add(ht, key, 16, (void *) i);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -64,7 +64,7 @@ static void test_ht_full(int bits, int count) {
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
 		void *f = NULL;
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -73,7 +73,7 @@ static void test_ht_full(int bits, int count) {
 
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_add(ht, key, 16, (void *) i);
 		ATF_REQUIRE_EQ(result, ISC_R_EXISTS);
@@ -85,7 +85,7 @@ static void test_ht_full(int bits, int count) {
 		 * Note: the key size is now strlen(key) which is bigger
 		 * then the keys added above.
 		 */
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_add(ht, (const unsigned char *) key,
 				    strlen(key), (void *) i);
@@ -98,7 +98,7 @@ static void test_ht_full(int bits, int count) {
 		/*
 		 * Note: case of KEY is now in capitals,
 		 */
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " KEY of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_NOTFOUND);
@@ -108,7 +108,7 @@ static void test_ht_full(int bits, int count) {
 	for (i = 1; i < count; i++) {
 		char key[64];
 		void *f = NULL;
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, (const unsigned char *) key,
 				     strlen(key), &f);
@@ -119,7 +119,7 @@ static void test_ht_full(int bits, int count) {
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
 		void *f = NULL;
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_delete(ht, key, 16);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -133,7 +133,7 @@ static void test_ht_full(int bits, int count) {
 		/*
 		 * Note: upper case KEY.
 		 */
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " KEY of a raw hashtable!!", sizeof(key));
 		result = isc_ht_add(ht, key, 16, (void *) i);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -142,7 +142,7 @@ static void test_ht_full(int bits, int count) {
 	for (i = 1; i < count; i++) {
 		char key[64];
 		void *f = NULL;
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_delete(ht, (const unsigned char *) key,
 				       strlen(key));
@@ -160,7 +160,7 @@ static void test_ht_full(int bits, int count) {
 		/*
 		 * Note: case of KEY is now in capitals,
 		 */
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " KEY of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -170,7 +170,7 @@ static void test_ht_full(int bits, int count) {
 	for (i = 1; i < count; i++) {
 		unsigned char key[16];
 		void *f = NULL;
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_NOTFOUND);
@@ -206,7 +206,7 @@ static void test_ht_iterator() {
 		 * Note that the string we're snprintfing is always > 16 bytes
 		 * so we are always filling the key.
 		 */
-		snprintf((char *)key, sizeof(key), "%lld", i);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_add(ht, key, 16, (void *) i);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -223,7 +223,7 @@ static void test_ht_iterator() {
 		isc_ht_iter_current(iter, (void**) &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%lld", v);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
 		walked++;
@@ -238,7 +238,7 @@ static void test_ht_iterator() {
 		isc_ht_iter_current(iter, (void**) &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%lld", v);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
 		if (v % 2 == 0) {
@@ -258,7 +258,7 @@ static void test_ht_iterator() {
 		isc_ht_iter_current(iter, (void**) &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%lld", v);
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
 		if (v % 2 == 1) {
