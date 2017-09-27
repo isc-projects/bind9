@@ -104,10 +104,12 @@ typedef struct isc_refcount {
 #endif
 } isc_refcount_t;
 
-#define isc_refcount_destroy(rp) REQUIRE((rp)->refs == 0)
-#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
-
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
+
+#define isc_refcount_current(rp)					\
+	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
+					     memory_order_relaxed)))
+#define isc_refcount_destroy(rp) REQUIRE(isc_refcount_current(rp) == 0)
 
 #define isc_refcount_increment0(rp, tp)				\
 	do {							\
@@ -142,6 +144,10 @@ typedef struct isc_refcount {
 	} while (0)
 
 #else /* ISC_REFCOUNT_HAVESTDATOMIC */
+
+#define isc_refcount_current(rp)				\
+	((unsigned int)(isc_atomic_xadd(&(rp)->refs, 0)))
+#define isc_refcount_destroy(rp) REQUIRE(isc_refcount_current(rp) == 0)
 
 #define isc_refcount_increment0(rp, tp)				\
 	do {							\
