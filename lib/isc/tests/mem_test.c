@@ -177,7 +177,7 @@ ATF_TC_BODY(isc_mem_noflags, tc) {
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
 
@@ -225,7 +225,7 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
 
@@ -271,7 +271,7 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
 
