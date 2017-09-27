@@ -1813,9 +1813,8 @@ finish_update(dns_rpz_zone_t *rpz) {
 			      "too soon, deferring update for "
 			      "%llu seconds", dname, defer);
 		isc_interval_set(&interval, (unsigned int)defer, 0);
-		result = isc_timer_reset(rpz->updatetimer,
-					 isc_timertype_once,
-					 NULL, &interval, ISC_TRUE);
+		isc_timer_reset(rpz->updatetimer, isc_timertype_once,
+				NULL, &interval, ISC_TRUE);
 	}
 	UNLOCK(&rpz->rpzs->maint_lock);
 

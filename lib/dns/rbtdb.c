@@ -8509,6 +8509,7 @@ dns_rbtdb_create
 			free_rbtdb(rbtdb, ISC_FALSE, NULL);
 			return (result);
 		}
+		INSIST(rbtdb->origin_node != NULL);
 		rbtdb->origin_node->nsec = DNS_RBT_NSEC_NORMAL;
 		/*
 		 * We need to give the origin node the right locknum.
@@ -9949,15 +9950,15 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	rbtdb_glue_additionaldata_ctx_t *ctx;
 	isc_result_t result;
 	dns_fixedname_t fixedname_a;
-	dns_name_t *name_a;
+	dns_name_t *name_a = NULL;
 	dns_rdataset_t rdataset_a, sigrdataset_a;
-	dns_rbtnode_t *node_a;
+	dns_rbtnode_t *node_a = NULL;
 	dns_fixedname_t fixedname_aaaa;
-	dns_name_t *name_aaaa;
+	dns_name_t *name_aaaa = NULL;
 	dns_rdataset_t rdataset_aaaa, sigrdataset_aaaa;
-	dns_rbtnode_t *node_aaaa;
-	rbtdb_glue_t *glue;
-	dns_name_t *gluename;
+	dns_rbtnode_t *node_aaaa = NULL;
+	rbtdb_glue_t *glue = NULL;
+	dns_name_t *gluename = NULL;
 
 	/*
 	 * NS records want addresses in additional records.
@@ -9965,10 +9966,6 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	INSIST(qtype == dns_rdatatype_a);
 
 	ctx = (rbtdb_glue_additionaldata_ctx_t *) arg;
-	result = ISC_R_FAILURE;
-	glue = NULL;
-	node_a = NULL;
-	node_aaaa = NULL;
 
 	dns_fixedname_init(&fixedname_a);
 	name_a = dns_fixedname_name(&fixedname_a);
@@ -10078,8 +10075,8 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	rbtdb_version_t *rbtversion = version;
 	isc_uint32_t idx;
 	rbtdb_glue_table_node_t *cur;
-	isc_boolean_t found;
-	isc_boolean_t restarted;
+	isc_boolean_t found = ISC_FALSE;
+	isc_boolean_t restarted = ISC_FALSE;
 	rbtdb_glue_t *ge;
 	rbtdb_glue_additionaldata_ctx_t ctx;
 	isc_result_t result;
@@ -10087,10 +10084,6 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	INSIST(rdataset->type == dns_rdatatype_ns);
 	INSIST(rbtdb == rbtversion->rbtdb);
 	INSIST(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
-
-	found = ISC_FALSE;
-	restarted = ISC_FALSE;
-	result = ISC_R_FAILURE;
 
 	/*
 	 * The glue table cache that forms a part of the DB version
@@ -10162,7 +10155,6 @@ restart:
 			result = dns_message_gettemprdataset(msg, &rdataset_a);
 			if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 				dns_message_puttempname(msg, &name);
-				isc_buffer_free(&buffer);
 				goto no_glue;
 			}
 		}
@@ -10176,7 +10168,6 @@ restart:
 								  &rdataset_a);
 				}
 				dns_message_puttempname(msg, &name);
-				isc_buffer_free(&buffer);
 				goto no_glue;
 			}
 		}
@@ -10188,7 +10179,6 @@ restart:
 							    &rdataset_aaaa);
 				if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 					dns_message_puttempname(msg, &name);
-					isc_buffer_free(&buffer);
 					if (rdataset_a != NULL) {
 						dns_message_puttemprdataset(msg,
 							    &rdataset_a);
@@ -10206,7 +10196,6 @@ restart:
 							    &sigrdataset_aaaa);
 				if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 					dns_message_puttempname(msg, &name);
-					isc_buffer_free(&buffer);
 					if (rdataset_a != NULL) {
 						dns_message_puttemprdataset(msg,
 							    &rdataset_a);
@@ -10222,25 +10211,25 @@ restart:
 			}
 		}
 
-		if (ISC_LIKELY(dns_rdataset_isassociated(&ge->rdataset_a))) {
+		if (ISC_LIKELY(rdataset_a != NULL)) {
 			dns_rdataset_clone(&ge->rdataset_a, rdataset_a);
 			ISC_LIST_APPEND(name->list, rdataset_a, link);
 		}
 
-		if (dns_rdataset_isassociated(&ge->sigrdataset_a)) {
+		if (sigrdataset_a != NULL) {
 			dns_rdataset_clone(&ge->sigrdataset_a, sigrdataset_a);
 			ISC_LIST_APPEND(name->list, sigrdataset_a, link);
 		}
 
 		if (ISC_LIKELY((options & DNS_RDATASETADDGLUE_FILTERAAAA) == 0))
 		{
-			if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
+			if (rdataset_aaaa != NULL) {
 				dns_rdataset_clone(&ge->rdataset_aaaa,
 						   rdataset_aaaa);
 				ISC_LIST_APPEND(name->list, rdataset_aaaa,
 						link);
 			}
-			if (dns_rdataset_isassociated(&ge->sigrdataset_aaaa)) {
+			if (sigrdataset_aaaa != NULL) {
 				dns_rdataset_clone(&ge->sigrdataset_aaaa,
 						   sigrdataset_aaaa);
 				ISC_LIST_APPEND(name->list, sigrdataset_aaaa,

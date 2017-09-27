@@ -78,11 +78,12 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	unsigned int sigsize;
 	isc_boolean_t invalidate_ctx = ISC_FALSE;
 
+	memset(&tsig, 0, sizeof(tsig));
+
 	CHECK(dns_compress_init(&cctx, -1, mctx));
 	invalidate_ctx = ISC_TRUE;
 
-	memset(&tsig, 0, sizeof(tsig));
-	       tsig.common.rdclass = dns_rdataclass_any;
+	tsig.common.rdclass = dns_rdataclass_any;
 	tsig.common.rdtype = dns_rdatatype_tsig;
 	ISC_LINK_INIT(&tsig.common, link);
 	dns_name_init(&tsig.algorithm, NULL);
@@ -151,10 +152,8 @@ printmessage(dns_message_t *msg) {
 
 	do {
 		buf = isc_mem_get(mctx, len);
-		if (buf == NULL) {
-			result = ISC_R_NOMEMORY;
-			break;
-		}
+		if (buf == NULL)
+			return;
 
 		isc_buffer_init(&b, buf, len);
 		result = dns_message_totext(msg, &dns_master_style_debug,
@@ -231,6 +230,9 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 
 		isc_buffer_usedregion(buf, &r);
 		result = dst_context_adddata(tsigctx, &r);
+		ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
+				 "dst_context_adddata: %s",
+				 dns_result_totext(result));
 	} else {
 		if (tsigin == tsigout && *tsigin != NULL)
 			isc_buffer_free(tsigin);

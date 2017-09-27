@@ -47,6 +47,9 @@ usage(void) {
 	exit(0);
 }
 
+ISC_PLATFORM_NORETURN_PRE static void
+fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+
 static void
 fatal(const char *format, ...) {
 	va_list args;

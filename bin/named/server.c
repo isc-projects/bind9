@@ -7570,7 +7570,6 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Parse the configuration file using the new config code.
 	 */
-	result = ISC_R_FAILURE;
 	config = NULL;
 	isc_log_write(named_g_lctx,
 		      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
@@ -11912,6 +11911,7 @@ nzd_env_reopen(dns_view_t *view) {
 
 	view->new_zone_dbenv = env;
 	env = NULL;
+	result = ISC_R_SUCCESS;
 
  cleanup:
 	if (env != NULL) {
@@ -14548,16 +14548,15 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		r.length = strlen(classtxt);
 		result = dns_rdataclass_fromtext(&rdclass, &r);
 		if (result != ISC_R_SUCCESS) {
-			if (viewtxt == NULL) {
-				viewtxt = classtxt;
-				classtxt = NULL;
-				result = ISC_R_SUCCESS;
-			} else {
+			if (viewtxt != NULL) {
 				snprintf(msg, sizeof(msg),
 					 "unknown class '%s'", classtxt);
 				(void) putstr(text, msg);
 				goto cleanup;
 			}
+
+			viewtxt = classtxt;
+			classtxt = NULL;
 		}
 	}
 

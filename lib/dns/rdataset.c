@@ -318,6 +318,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
 	isc_boolean_t shuffle = ISC_FALSE, sort = ISC_FALSE;
+	isc_boolean_t want_random, want_cyclic;
 	dns_rdata_t in_fixed[MAX_SHUFFLE];
 	dns_rdata_t *in = in_fixed;
 	struct towire_sort out_fixed[MAX_SHUFFLE];
@@ -337,6 +338,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(countp != NULL);
 	REQUIRE(cctx != NULL && cctx->mctx != NULL);
+
+	want_random = WANT_RANDOM(rdataset);
+	want_cyclic = WANT_CYCLIC(rdataset);
 
 	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0) {
 		question = ISC_TRUE;
@@ -368,7 +372,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		if (order != NULL) {
 			sort = ISC_TRUE;
 		}
-		if (WANT_RANDOM(rdataset) || WANT_CYCLIC(rdataset)) {
+		if (want_random || want_cyclic) {
 			shuffle = ISC_TRUE;
 		}
 	}
@@ -398,7 +402,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if (shuffle) {
-		if (WANT_RANDOM(rdataset)) {
+		if (want_random) {
 			/*
 			 * 'Random' order.
 			 */
@@ -417,7 +421,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 					out[i].key = 0; /* Unused */
 				out[i].rdata = &in[i];
 			}
-		} else if (WANT_CYCLIC(rdataset)) {
+		} else if (want_cyclic) {
 			/*
 			 * 'Cyclic' order.
 			 */

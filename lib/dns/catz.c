@@ -121,6 +121,7 @@ isc_result_t
 dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 		      dns_catz_options_t *dst)
 {
+	REQUIRE(src != NULL);
 	REQUIRE(dst != NULL);
 	REQUIRE(dst->masters.count == 0);
 	REQUIRE(dst->allow_query == NULL);

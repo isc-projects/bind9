@@ -899,7 +899,6 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 
 	if (strcmp(buf, "0") == 0) {
 		sa->type.sa.sa_family = AF_UNSPEC;
-		parsed = ISC_TRUE;
 		prefix_length = 0;
 		goto done;
 	}

@@ -2329,6 +2329,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t connecting = ISC_FALSE;
+	isc_boolean_t tcp = ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
@@ -2347,7 +2348,7 @@ resquery_send(resquery_t *query) {
 	task = res->buckets[fctx->bucketnum].task;
 	address = NULL;
 
-	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+	if (tcp) {
 		/*
 		 * Reserve space for the TCP message length.
 		 */
@@ -2612,8 +2613,7 @@ resquery_send(resquery_t *query) {
 			}
 
 			/* Add TCP keepalive option if appropriate */
-			if ((peer != NULL) &&
-			    (query->options & DNS_FETCHOPT_TCP) != 0)
+			if ((peer != NULL) && tcp)
 				(void) dns_peer_gettcpkeepalive(peer,
 								&tcpkeepalive);
 			if (tcpkeepalive) {
@@ -2625,8 +2625,7 @@ resquery_send(resquery_t *query) {
 			}
 
 			/* Add PAD for current peer? Require TCP for now */
-			if ((peer != NULL) &&
-			    (query->options & DNS_FETCHOPT_TCP) != 0)
+			if ((peer != NULL) && tcp)
 				(void) dns_peer_getpadding(peer, &padding);
 			if (padding != 0) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
@@ -2738,7 +2737,7 @@ resquery_send(resquery_t *query) {
 	 * If using TCP, write the length of the message at the beginning
 	 * of the buffer.
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+	if (tcp) {
 		isc_buffer_usedregion(&query->buffer, &r);
 		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
@@ -2767,7 +2766,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Send the query!
 	 */
-	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+	if (tcp) {
 		address = &query->addrinfo->sockaddr;
 		if (query->exclusivesocket) {
 			result = isc_socket_connect(sock, address, task,
@@ -2796,7 +2795,7 @@ resquery_send(resquery_t *query) {
 	} else {
 		query->sendevent.attributes |= ISC_SOCKEVENTATTR_DSCP;
 		query->sendevent.dscp = query->dscp;
-		if ((query->options & DNS_FETCHOPT_TCP) != 0)
+		if (tcp)
 			isc_socket_dscp(sock, query->dscp);
 	}
 
@@ -2834,8 +2833,7 @@ resquery_send(resquery_t *query) {
 		la = &localaddr;
 
 	dns_dt_send(fctx->res->view, dtmsgtype, la, &query->addrinfo->sockaddr,
-		    ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0),
-		    &zr, &query->start, NULL, &query->buffer);
+		    tcp, &zr, &query->start, NULL, &query->buffer);
 #endif /* HAVE_DNSTAP */
 
 	return (ISC_R_SUCCESS);
