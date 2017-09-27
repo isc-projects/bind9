@@ -2521,7 +2521,7 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Send the query!
 	 */
-	if (tcp) {
+	if (!tcp) {
 		address = &query->addrinfo->sockaddr;
 		if (query->exclusivesocket) {
 			result = isc_socket_connect(sock, address, task,
