@@ -103,7 +103,7 @@ totext_caa(ARGS_TOTEXT) {
 	 * Flags
 	 */
 	flags = uint8_consume_fromregion(&region);
-	sprintf(buf, "%u ", flags);
+	snprintf(buf, sizeof(buf), "%u ", flags);
 	RETERR(str_totext(buf, target));
 
 	/*
