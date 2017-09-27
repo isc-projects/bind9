@@ -1,3 +1,5 @@
+4739.	[cleanup]	Address clang static analysis warnings. [RT #45952]
+
 4738.	[port]		win32: strftime mishandles %Z. [RT #46039]
 
 4737.	[cleanup]	Address Coverity warnings. [RT #46012]

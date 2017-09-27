@@ -7158,7 +7158,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Parse the configuration file using the new config code.
 	 */
-	result = ISC_R_FAILURE;
 	config = NULL;
 
 	/*
@@ -11340,6 +11339,7 @@ nzd_env_reopen(dns_view_t *view) {
 
 	view->new_zone_dbenv = env;
 	env = NULL;
+	result = ISC_R_SUCCESS;
 
  cleanup:
 	if (env != NULL) {
