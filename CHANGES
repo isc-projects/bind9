@@ -1,3 +1,6 @@
+4743.	[func]		Exclude trust-anchor-telementry queries from
+			synth-from-dnssec processing. [RT #46123]
+
 4742.	[func]		Synthesis of responses from DNSSEC-verified records.
 			Stage 2 - synthesis of records from wildcard data.
 			If the dns64 or filter-aaaa* is configured then the

@@ -5371,7 +5371,8 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	dboptions = qctx->client->query.dboptions;
-	if (!qctx->is_zone && qctx->findcoveringnsec)
+	if (!qctx->is_zone && qctx->findcoveringnsec &&
+	    (qctx->type != dns_rdatatype_null || !dns_name_istat(rpzqname)))
 		dboptions |= DNS_DBFIND_COVERINGNSEC;
 
 	result = dns_db_findext(qctx->db, rpzqname, qctx->version, qctx->type,
