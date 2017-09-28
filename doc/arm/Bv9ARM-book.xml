@@ -5274,22 +5274,45 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <term><command>random-device</command></term>
 	    <listitem>
 	      <para>
-		The source of entropy to be used by the server.  Entropy is
-		primarily needed
-		for DNSSEC operations, such as TKEY transactions and dynamic
-		update of signed
-		zones.  This options specifies the device (or file) from which
-		to read
-		entropy.  If this is a file, operations requiring entropy will
-		fail when the
-		file has been exhausted.  If not specified, the default value
-		is
-		<filename>/dev/random</filename>
-		(or equivalent) when present, and none otherwise.  The
-		<command>random-device</command> option takes
-		effect during
-		the initial configuration load at server startup time and
-		is ignored on subsequent reloads.
+		Specifies a source of entropy to be used by the server.
+		This is a device or file from which to read entropy.
+		If it is a file, operations requiring entropy
+		will fail when the file has been exhausted.
+	      </para>
+	      <para>
+		Entropy is needed for cryptographic operations such as
+		TKEY transactions, dynamic update of signed zones, and
+		generation of TSIG session keys. It is also used for
+		seeding and stirring the pseudo-random number generator,
+		which is used for less critical functions requiring
+		randomness such as generation of DNS message transaction
+		ID's.
+	      </para>
+	      <para>
+		If <command>random-device</command> is not specified, or
+		if it is set to <literal>none</literal>, entropy will be
+		read from the random number generation function supplied
+		by the cryptographic library with which BIND was linked
+		(i.e.  OpenSSL or a PKCS#11 provider).
+	      </para>
+	      <para>
+		The <command>random-device</command> option takes
+		effect during the initial configuration load at server
+		startup time and is ignored on subsequent reloads.
+	      </para>
+	      <para>
+		If BIND is built with
+		<command>configure --disable-crypto-rand</command>, then
+		entropy is <emphasis>not</emphasis> sourced from the
+		cryptographic library. In this case, if
+		<command>random-device</command> is not specified, the
+		default value is the system random device,
+		<filename>/dev/random</filename> or the equivalent.
+		This default can be overridden with
+		<command>configure --with-randomdev</command>.
+		If no system random device exists, then no entropy source
+		will be configured, and <command>named</command> will only
+		be able to use pseudo-random numbers.
 	      </para>
 	    </listitem>
 	  </varlistentry>

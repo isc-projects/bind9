@@ -158,8 +158,18 @@ isc_result_t
 dst_random_getdata(void *data, unsigned int length,
 		   unsigned int *returned, unsigned int flags);
 /*%<
- * \brief Return data from the crypto random generator.
- * Specialization of isc_entropy_getdata().
+ * Gets random data from the random generator provided by the
+ * crypto library, if BIND was built with --enable-crypto-rand.
+ *
+ * See isc_entropy_getdata() for parameter usage. Normally when
+ * this function is available, it will be set up as a hook in the
+ * entropy context, so that isc_entropy_getdata() is a front-end to
+ * this function.
+ *
+ * Returns:
+ * \li	ISC_R_SUCCESS on success
+ * \li	ISC_R_NOTIMPLEMENTED if BIND is built with --disable-crypto-rand
+ * \li	DST_R_OPENSSLFAILURE, DST_R_CRYPTOFAILURE, or other codes on error
  */
 
 isc_boolean_t

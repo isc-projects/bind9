@@ -151,17 +151,15 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 
 	DO("create entropy context", isc_entropy_create(mctx, &ectx));
 
+#ifdef ISC_PLATFORM_CRYPTORANDOM
+	if (randomfile == NULL) {
+		isc_entropy_usehook(ectx, ISC_TRUE);
+	}
+#endif
 	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
 		randomfile = NULL;
 		open_keyboard = ISC_ENTROPY_KEYBOARDYES;
 	}
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (randomfile != NULL &&
-	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
-		randomfile = NULL;
-		isc_entropy_usehook(ectx, ISC_TRUE);
-	}
-#endif
 	DO("start entropy source", isc_entropy_usebestsource(ectx,
 							     &entropy_source,
 							     randomfile,

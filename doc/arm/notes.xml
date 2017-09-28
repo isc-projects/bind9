@@ -362,20 +362,28 @@
       </listitem>
       <listitem>
 	<para>
-	  When <command>named</command> is linked with OpenSSL, the
-	  OpenSSL RAND routine can be used as the source of entropy/
-	  randomness by specifying
-	  <command>random-device openssl;</command> in
-	  <filename>named.conf</filename>. It can also be used in tools
-	  such as <command>dnssec-keygen</command>,
-	  <command>tsig-keygen</command>,
-	  and <command>nsupdate</command> by specifying
-	  <command>-r openssl</command> on the command line.
-	  This is suitable for a virtual machine environment without
-	  a hardware random number generator.
-	  This behavior can be overridden by using
-	  <command>configure --disable-crypto-rand</command> or
-	  building with native PKCS#11. [RT #31459]
+	  By default, BIND now uses the random number generation functions
+	  in the cryptographic library (i.e., OpenSSL or a PKCS#11
+	  provider) as a source of high-quality randomness rather than
+	  <filename>/dev/random</filename>.  This is suitable for virtual
+	  machine environments, which may have limited entropy pools and
+	  lack hardware random number generators.
+	</para>
+	<para>
+	  This can be overridden by specifying another entropy source via
+	  the <command>random-device</command> option in
+	  <filename>named.conf</filename>, or via the <command>-r</command>
+	  command line option.  However, for functions requiring full
+	  cryptographic strength, such as DNSSEC key generation, this
+	  <emphasis>cannot</emphasis> be overridden. In particular, the
+	  <command>-r</command> command line option no longer has any
+	  effect on <command>dnssec-keygen</command>.
+	</para>
+	<para>
+	  This can be disabled by building with
+	  <command>configure --disable-crypto-rand</command>, in which
+	  case <filename>/dev/random</filename> will be the default
+	  entropy source.  [RT #31459] [RT #46047]
 	</para>
       </listitem>
     </itemizedlist>

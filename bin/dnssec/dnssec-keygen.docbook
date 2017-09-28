@@ -347,15 +347,23 @@
 	<term>-r <replaceable class="parameter">randomdev</replaceable></term>
 	<listitem>
 	  <para>
-	    Specifies the source of randomness.  If the operating
-	    system does not provide a <filename>/dev/random</filename>
-	    or equivalent device, the default source of randomness
-	    is keyboard input.  <filename>randomdev</filename>
-	    specifies
+	    Specifies a source of randomness.  Normally, when generating
+	    DNSSEC keys, this option has no effect; the random number
+	    generation function provided by the cryptographic library will
+	    be used.
+	  </para>
+	  <para>
+	    If that behavior is disabled at compile time, however,
+	    the specified file will be used as entropy source
+	    for key generation.  <filename>randomdev</filename> is
 	    the name of a character device or file containing random
-	    data to be used instead of the default.  The special value
-	    <filename>keyboard</filename> indicates that keyboard
-	    input should be used.
+	    data to be used.  The special value <filename>keyboard</filename>
+	    indicates that keyboard input should be used.
+	  </para>
+	  <para>
+	    The default is <filename>/dev/random</filename> if the
+	    operating system provides it or an equivalent device;
+	    if not, the default source of randomness is keyboard input.
 	  </para>
 	</listitem>
       </varlistentry>

@@ -320,9 +320,10 @@ log_invalid(isccc_ccmsg_t *ccmsg, isc_result_t result) {
 
 static void
 control_recvmessage(isc_task_t *task, isc_event_t *event) {
-	controlconnection_t *conn;
-	controllistener_t *listener;
-	controlkey_t *key;
+	controlconnection_t *conn = NULL;
+	controllistener_t *listener = NULL;
+	named_server_t *server = NULL;
+	controlkey_t *key = NULL;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *response = NULL;
 	isc_uint32_t algorithm;
@@ -333,16 +334,17 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *text;
 	isc_result_t result;
 	isc_result_t eresult;
-	isccc_sexpr_t *_ctrl;
+	isccc_sexpr_t *_ctrl = NULL;
 	isccc_time_t sent;
 	isccc_time_t exp;
 	isc_uint32_t nonce;
-	isccc_sexpr_t *data;
+	isccc_sexpr_t *data = NULL;
 
 	REQUIRE(event->ev_type == ISCCC_EVENT_CCMSG);
 
 	conn = event->ev_arg;
 	listener = conn->listener;
+	server = listener->controls->server;
 	algorithm = DST_ALG_UNKNOWN;
 	secret.rstart = NULL;
 	text = NULL;
@@ -453,8 +455,11 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	 * Establish nonce.
 	 */
 	if (conn->nonce == 0) {
-		while (conn->nonce == 0)
-			isc_random_get(&conn->nonce);
+		while (conn->nonce == 0) {
+			isc_uint16_t r1 = isc_rng_random(server->sctx->rngctx);
+			isc_uint16_t r2 = isc_rng_random(server->sctx->rngctx);
+			conn->nonce = (r1 << 16) | r2;
+		}
 		eresult = ISC_R_SUCCESS;
 	} else
 		eresult = named_control_docommand(request, listener->readonly,

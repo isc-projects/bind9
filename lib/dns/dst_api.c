@@ -269,8 +269,9 @@ dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
 #endif
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
 #ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (dst_entropy_pool != NULL)
+	if (dst_entropy_pool != NULL) {
 		isc_entropy_sethook(dst_random_getdata);
+	}
 #endif
 #endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
 	dst_initialized = ISC_TRUE;
@@ -2007,10 +2008,12 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
 #ifdef ISC_PLATFORM_CRYPTORANDOM
+	/* get entropy directly from crypto provider */
 	return (dst_random_getdata(buf, len, NULL, flags));
 #else
+	/* get entropy from entropy source or hook function */
 	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
-#endif
+#endif /* ISC_PLATFORM_CRYPTORANDOM */
 #endif /* PKCS11CRYPTO */
 }
 

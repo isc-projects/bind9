@@ -273,9 +273,7 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	}
 
 #ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (randomfile != NULL &&
-	    strcmp(randomfile, ISC_PLATFORM_CRYPTORANDOM) == 0) {
-		randomfile = NULL;
+	if (randomfile == NULL) {
 		isc_entropy_usehook(*ectx, ISC_TRUE);
 	}
 #endif

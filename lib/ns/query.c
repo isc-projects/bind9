@@ -15,6 +15,7 @@
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stats.h>

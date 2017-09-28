@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: entropy.h,v 1.35 2009/10/19 02:37:08 marka Exp $ */
-
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
 
@@ -187,9 +185,8 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 /*!<
  * \brief Create an entropy source that is polled via a callback.
  *
- * This would
- * be used when keyboard input is used, or a GUI input method.  It can
- * also be used to hook in any external entropy source.
+ * This would be used when keyboard input is used, or a GUI input method.
+ * It can also be used to hook in any external entropy source.
  *
  * Samples are added via isc_entropy_addcallbacksample(), below.
  * _addcallbacksample() is the only function which may be called from
@@ -230,15 +227,32 @@ isc_result_t
 isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		    unsigned int *returned, unsigned int flags);
 /*!<
- * \brief Extract data from the entropy pool.  This may load the pool from various
- * sources.
+ * \brief Get random data from entropy pool 'ent'.
  *
- * Do this by stiring the pool and returning a part of hash as randomness.
- * Note that no secrets are given away here since parts of the hash are
- * xored together before returned.
+ * If a hook has been set up using isc_entropy_sethook() and
+ * isc_entropy_usehook(), then the hook function will be called to get
+ * random data.
  *
- * Honor the request from the caller to only return good data, any data,
- * etc.
+ * Otherwise, randomness is extracted from the entropy pool set up in BIND.
+ * This may cause the pool to be loaded from various sources. Ths is done
+ * by stirring the pool and returning a part of hash as randomness.
+ * (Note that no secrets are given away here since parts of the hash are
+ * XORed together before returning.)
+ *
+ * 'flags' may contain ISC_ENTROPY_GOODONLY, ISC_ENTROPY_PARTIAL, or
+ * ISC_ENTROPY_BLOCKING. These will be honored if the hook function is
+ * not in use. If it is, the flags will be passed to the hook function
+ * but it may ignore them.
+ *
+ * Up to 'length' bytes of randomness are retrieved and copied into 'data'.
+ * (If 'returned' is not NULL, and the number of bytes copied is less than
+ * 'length' - which may happen if ISC_ENTROPY_PARTIAL was used - then the
+ * number of bytes copied will be stored in *returned.)
+ *
+ * Returns:
+ * \li	ISC_R_SUCCESS on success
+ * \li	ISC_R_NOENTROPY if entropy pool is empty
+ * \li	other error codes are possible when a hook is in use
  */
 
 void
@@ -303,13 +317,21 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 void
 isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
 /*!<
- * \brief Mark/unmark the given entropy structure as being hooked.
+ * \brief Configure entropy context 'ectx' to use the hook function
+ *
+ * Sets the entropy context to call the hook function for random number
+ * generation, if such a function has been configured via
+ * isc_entropy_sethook(), whenever isc_entropy_getdata() is called.
  */
 
 void
 isc_entropy_sethook(isc_entropy_getdata_t myhook);
 /*!<
- * \brief Set the getdata hook (e.g., for a crypto random generator).
+ * \brief Set the hook function.
+ *
+ * The hook function is a global value: only one hook function
+ * can be set in the system. Individual entropy contexts may be
+ * configured to use it, or not, by calling isc_entropy_usehook().
  */
 
 ISC_LANG_ENDDECLS

@@ -63,15 +63,26 @@
 			location to be reported is "update_completed".
 			[RT #46014]
 
-4724.	[func]		When the random device (i.e. the "random-device"
-			option in named.conf, or the -r command line option
-			in various tools) is set to "openssl", the OpenSSL
-			RAND routine is used as the source of entropy/
-			randomness. This is suitable for a virtual
-			machine environment without a hardware random
-			number generator. This behavior can be overridden
-			by using "configure --disable-crypto-rand" or
-			native PKCS#11. [RT #31459]
+4724.	[func]		By default, BIND now uses the random number
+			functions provided by the crypto library (i.e.,
+			OpenSSL or a PKCS#11 provider) as a source of
+			randomness rather than /dev/random.  This is
+			suitable for virtual machine environments
+			which have limited entropy pools and lack
+			hardware random number generators.
+
+			This can be overridden by specifying another
+			entropy source via the "random-device" option
+			in named.conf, or via the -r command line option;
+			however, for functions requiring full cryptographic
+			strength, such as DNSSEC key generation, this
+			cannot be overridden. In particular, the -r
+			command line option no longer has any effect on
+			dnssec-keygen.
+
+			This can be disabled by building with
+			"configure --disable-crypto-rand".
+			[RT #31459] [RT #46047]
 
 4723.	[bug]		Statistics counter DNSTAPdropped was misidentified
 			as DNSSECdropped. [RT #46002]

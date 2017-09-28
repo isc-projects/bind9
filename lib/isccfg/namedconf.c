@@ -1104,7 +1104,7 @@ options_clauses[] = {
 	{ "pid-file", &cfg_type_qstringornone, 0 },
 	{ "port", &cfg_type_uint32, 0 },
 	{ "querylog", &cfg_type_boolean, 0 },
-	{ "random-device", &cfg_type_qstring, 0 },
+	{ "random-device", &cfg_type_qstringornone, 0 },
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "reserved-sockets", &cfg_type_uint32, 0 },

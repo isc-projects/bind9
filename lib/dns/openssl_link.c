@@ -485,7 +485,8 @@ dst__openssl_getengine(const char *engine) {
 
 isc_result_t
 dst_random_getdata(void *data, unsigned int length,
-		   unsigned int *returned, unsigned int flags) {
+		   unsigned int *returned, unsigned int flags)
+{
 #ifdef ISC_PLATFORM_CRYPTORANDOM
 #ifndef DONT_REQUIRE_DST_LIB_INIT
 	INSIST(dst__memory_pool != NULL);

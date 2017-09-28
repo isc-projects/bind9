@@ -12,6 +12,7 @@
 
 #include <isc/interfaceiter.h>
 #include <isc/os.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>

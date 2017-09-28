@@ -8289,34 +8289,47 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Open the source of entropy.
 	 */
 	if (first_time) {
+		const char *randomdev = NULL;
+		int level = ISC_LOG_ERROR;
 		obj = NULL;
 		result = named_config_get(maps, "random-device", &obj);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "no source of entropy found");
-		} else {
-			const char *randomdev = cfg_obj_asstring(obj);
+		if (result == ISC_R_SUCCESS) {
+			if (!cfg_obj_isvoid(obj)) {
+				level = ISC_LOG_INFO;
+				randomdev = cfg_obj_asstring(obj);
+			}
+		}
+		if (randomdev == NULL) {
 #ifdef ISC_PLATFORM_CRYPTORANDOM
-			if (strcmp(randomdev, ISC_PLATFORM_CRYPTORANDOM) == 0)
-				isc_entropy_usehook(named_g_entropy, ISC_TRUE);
+			isc_entropy_usehook(named_g_entropy, ISC_TRUE);
 #else
-			int level = ISC_LOG_ERROR;
+			if ((obj != NULL) && !cfg_obj_isvoid(obj))
+				level = ISC_LOG_INFO;
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, level,
+				      "no source of entropy found");
+			if ((obj == NULL) || cfg_obj_isvoid(obj)) {
+				CHECK(ISC_R_FAILURE);
+			}
+#endif
+		} else {
 			result = isc_entropy_createfilesource(named_g_entropy,
 							      randomdev);
 #ifdef PATH_RANDOMDEV
-			if (named_g_fallbackentropy != NULL)
+			if (named_g_fallbackentropy != NULL) {
 				level = ISC_LOG_INFO;
+			}
 #endif
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				isc_log_write(named_g_lctx,
 					      NAMED_LOGCATEGORY_GENERAL,
 					      NAMED_LOGMODULE_SERVER,
 					      level,
-					      "could not open entropy source "
-					      "%s: %s",
+					      "could not open "
+					      "entropy source %s: %s",
 					      randomdev,
 					      isc_result_totext(result));
+			}
 #ifdef PATH_RANDOMDEV
 			if (named_g_fallbackentropy != NULL) {
 				if (result != ISC_R_SUCCESS) {
@@ -8334,7 +8347,6 @@ load_configuration(const char *filename, named_server_t *server,
 				}
 				isc_entropy_detach(&named_g_fallbackentropy);
 			}
-#endif
 #endif
 		}
 	}
@@ -13298,10 +13310,10 @@ newzone_cfgctx_destroy(void **cfgp) {
 
 static isc_result_t
 generate_salt(unsigned char *salt, size_t saltlen) {
-	int i, n;
+	size_t i, n;
 	union {
 		unsigned char rnd[256];
-		isc_uint32_t rnd32[64];
+		isc_uint16_t rnd16[128];
 	} rnd;
 	unsigned char text[512 + 1];
 	isc_region_t r;
@@ -13311,9 +13323,10 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	n = (int) (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
-	for (i = 0; i < n; i++)
-		isc_random_get(&rnd.rnd32[i]);
+	n = (saltlen + sizeof(isc_uint16_t) - 1) / sizeof(isc_uint16_t);
+	for (i = 0; i < n; i++) {
+		rnd.rnd16[i] = isc_rng_random(named_g_server->sctx->rngctx);
+	}
 
 	memmove(salt, rnd.rnd, saltlen);
 

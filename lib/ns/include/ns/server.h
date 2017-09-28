@@ -15,6 +15,7 @@
 #include <isc/fuzz.h>
 #include <isc/magic.h>
 #include <isc/quota.h>
+#include <isc/random.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
 
@@ -91,6 +92,7 @@ struct ns_server {
 	isc_uint16_t		transfer_tcp_message_size;
 	isc_boolean_t		interface_auto;
 	dns_tkeyctx_t *		tkeyctx;
+	isc_rng_t *		rngctx;
 
 	/*% Server id for NSID */
 	char *			server_id;
