@@ -594,6 +594,7 @@ dns_name_ishostname
 dns_name_ismailbox
 dns_name_isrfc1918
 dns_name_issubdomain
+dns_name_istat
 dns_name_isula
 dns_name_isvalid
 dns_name_iswildcard
