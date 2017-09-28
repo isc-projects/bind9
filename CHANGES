@@ -1,3 +1,8 @@
+4742.	[func]		Synthesis of responses from DNSSEC-verified records.
+			Stage 2 - synthesis of records from wildcard data.
+			If the dns64 or filter-aaaa* is configured then the
+			involved lookups are currently excluded. [RT #40138]
+
 4741.	[bug]		Make isc_refcount_current() atomically read the
 			counter value. [RT #46074]
 

@@ -7207,16 +7207,6 @@ options {
 			option to be effective.
 		      </para>
 		    </listitem>
-		    <listitem>
-		      <para>
-			This initial implementation only covers
-			NXDOMAIN synthesis from NSEC records.
-			Synthesis of NODATA and wildcard responses
-			is also planned, as is synthesis from NSEC3
-			records.  All of these will be controlled
-			by <command>synth-from-dnssec</command>.
-		      </para>
-		    </listitem>
 		  </itemizedlist>
 		</para>
 	      </listitem>

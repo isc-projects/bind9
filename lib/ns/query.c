@@ -240,7 +240,7 @@ rpz_ck_dnssec(ns_client_t *client, isc_result_t qresult,
 
 static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
-     ISC_FORMAT_PRINTF(3, 4);
+	ISC_FORMAT_PRINTF(3, 4);
 
 /*%
  * The structure and functions defined below implement the query logic
@@ -885,9 +885,8 @@ query_newrdataset(ns_client_t *client) {
 	rdataset = NULL;
 	result = dns_message_gettemprdataset(client->message, &rdataset);
 	if (result != ISC_R_SUCCESS) {
-	  CTRACE(ISC_LOG_DEBUG(3),
-		 "query_newrdataset: "
-		 "dns_message_gettemprdataset failed: done");
+		CTRACE(ISC_LOG_DEBUG(3), "query_newrdataset: "
+		       "dns_message_gettemprdataset failed: done");
 		return (NULL);
 	}
 
@@ -1952,7 +1951,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 					dns_rdataset_disassociate(sigrdataset);
 			}
 		}
-  aaaa_lookup:
+ aaaa_lookup:
 		if (query_isduplicate(client, fname, dns_rdatatype_aaaa, NULL))
 			goto addname;
 		result = dns_db_findrdataset(db, node, version,
@@ -7811,7 +7810,7 @@ query_addds(query_ctx_t *qctx) {
 	sigrdataset = NULL;
 	return;
 
-   addnsec3:
+ addnsec3:
 	if (!dns_db_iszone(qctx->db))
 		goto cleanup;
 	/*
@@ -8340,6 +8339,272 @@ log_noexistnodata(void *val, int level, const char *fmt, ...) {
 	va_end(ap);
 }
 
+/*
+ * Synthesize a wildcard answer using the contents of 'rdataset'.
+ * qctx contains the NODATA proof.
+ */
+static isc_result_t
+query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset)
+{
+	dns_name_t *name = NULL;
+	isc_buffer_t *dbuf, b;
+	isc_result_t result;
+	dns_rdataset_t *clone = NULL, *sigclone = NULL;
+	dns_rdataset_t **sigrdatasetp;
+
+	/*
+	 * We want the answer to be first, so save the
+	 * NOQNAME proof's name now or else discard it.
+	 */
+	if (WANTDNSSEC(qctx->client)) {
+		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
+	} else {
+		query_releasename(qctx->client, &qctx->fname);
+	}
+
+	dbuf = query_getnamebuf(qctx->client);
+	if (dbuf == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	name = query_newname(qctx->client, dbuf, &b);
+	if (name == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+	dns_name_clone(qctx->client->query.qname, name);
+
+	clone = query_newrdataset(qctx->client);
+	if (clone == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+	dns_rdataset_clone(rdataset, clone);
+
+	/*
+	 * Add answer RRset. Omit the RRSIG if DNSSEC was not requested.
+	 */
+	if (WANTDNSSEC(qctx->client)) {
+		sigclone = query_newrdataset(qctx->client);
+		if (sigclone == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+		dns_rdataset_clone(sigrdataset, sigclone);
+		sigrdatasetp = &sigclone;
+	} else {
+		sigrdatasetp = NULL;
+	}
+
+	query_addrrset(qctx->client, &name, &clone, sigrdatasetp,
+		       dbuf, DNS_SECTION_ANSWER);
+
+	if (WANTDNSSEC(qctx->client)) {
+		/*
+		 * Add NODATA proof.
+		 */
+		query_addrrset(qctx->client, &qctx->fname,
+			       &qctx->rdataset, &qctx->sigrdataset,
+			       NULL, DNS_SECTION_AUTHORITY);
+	}
+
+	result = ISC_R_SUCCESS;
+	inc_stats(qctx->client, ns_statscounter_wildcardsynth);
+
+cleanup:
+	if (name != NULL) {
+		query_releasename(qctx->client, &name);
+	}
+	if (clone != NULL) {
+		query_putrdataset(qctx->client, &clone);
+	}
+	if (sigclone != NULL) {
+		query_putrdataset(qctx->client, &sigclone);
+	}
+	return (result);
+}
+
+/*
+ * Add a synthesised CNAME record from the wildard RRset (rdataset)
+ * and NODATA proof by calling query_synthwildcard then setup to
+ * follow the CNAME.
+ */
+static isc_result_t
+query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_name_t *tname = NULL;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_cname_t cname;
+
+	result = query_synthwildcard(qctx, rdataset, sigrdataset);
+	qctx->client->query.attributes |= NS_QUERYATTR_PARTIALANSWER;
+
+	/*
+	 * Reset qname to be the target name of the CNAME and restart
+	 * the query.
+	 */
+	result = dns_message_gettempname(qctx->client->message, &tname);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	result = dns_rdataset_first(rdataset);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttempname(qctx->client->message, &tname);
+		return (result);
+	}
+
+	dns_rdataset_current(rdataset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	dns_rdata_reset(&rdata);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttempname(qctx->client->message, &tname);
+		return (result);
+	}
+
+	dns_name_init(tname, NULL);
+	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttempname(qctx->client->message, &tname);
+		dns_rdata_freestruct(&cname);
+		return (result);
+	}
+
+	dns_rdata_freestruct(&cname);
+	ns_client_qnamereplace(qctx->client, tname);
+	qctx->want_restart = ISC_TRUE;
+	if (!WANTRECURSION(qctx->client)) {
+		qctx->options |= DNS_GETDB_NOLOG;
+	}
+
+	return (result);
+}
+
+/*
+ * Synthesise a NXDOMAIN response from qctx (which contains the
+ * NODATA proof), nowild + rdataset + sigrdataset (which contains
+ * the NOWILDCARD proof) and signer + soardatasetp + sigsoardatasetp
+ * which contain the SOA record + RRSIG for the negative answer.
+ */
+static isc_result_t
+query_synthnxdomain(query_ctx_t *qctx,
+		    dns_name_t *nowild,
+		    dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset,
+		    dns_name_t *signer,
+		    dns_rdataset_t **soardatasetp,
+		    dns_rdataset_t **sigsoardatasetp)
+{
+	dns_name_t *name = NULL;
+	dns_ttl_t ttl;
+	isc_buffer_t *dbuf, b;
+	isc_result_t result;
+	dns_rdataset_t *clone = NULL, *sigclone = NULL;
+
+	/*
+	 * Detemine the correct TTL to use for the SOA and RRSIG
+	 */
+	ttl = ISC_MIN(qctx->rdataset->ttl, qctx->sigrdataset->ttl);
+	ttl = ISC_MIN(ttl, rdataset->ttl);
+	ttl = ISC_MIN(ttl, sigrdataset->ttl);
+	ttl = ISC_MIN(ttl, (*soardatasetp)->ttl);
+	ttl = ISC_MIN(ttl, (*sigsoardatasetp)->ttl);
+
+	(*soardatasetp)->ttl = (*sigsoardatasetp)->ttl = ttl;
+
+	/*
+	 * We want the SOA record to be first, so save the
+	 * NOQNAME proof's name now or else discard it.
+	 */
+	if (WANTDNSSEC(qctx->client)) {
+		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
+	} else {
+		query_releasename(qctx->client, &qctx->fname);
+	}
+
+	dbuf = query_getnamebuf(qctx->client);
+	if (dbuf == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	name = query_newname(qctx->client, dbuf, &b);
+	if (name == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	dns_name_clone(signer, name);
+
+	/*
+	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
+	 */
+	if (!WANTDNSSEC(qctx->client)) {
+		sigsoardatasetp = NULL;
+	}
+	query_addrrset(qctx->client, &name, soardatasetp, sigsoardatasetp,
+		       dbuf, DNS_SECTION_AUTHORITY);
+
+	if (WANTDNSSEC(qctx->client)) {
+		/*
+		 * Add NODATA proof.
+		 */
+		query_addrrset(qctx->client, &qctx->fname,
+			       &qctx->rdataset, &qctx->sigrdataset,
+			       NULL, DNS_SECTION_AUTHORITY);
+
+		dbuf = query_getnamebuf(qctx->client);
+		if (dbuf == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+
+		name = query_newname(qctx->client, dbuf, &b);
+		if (name == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+
+		dns_name_clone(nowild, name);
+
+		clone = query_newrdataset(qctx->client);
+		sigclone = query_newrdataset(qctx->client);
+		if (clone == NULL || sigclone == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+
+		dns_rdataset_clone(rdataset, clone);
+		dns_rdataset_clone(sigrdataset, sigclone);
+
+		/*
+		 * Add NOWILDCARD proof.
+		 */
+		query_addrrset(qctx->client, &name, &clone, &sigclone,
+			       dbuf, DNS_SECTION_AUTHORITY);
+	}
+
+	qctx->client->message->rcode = dns_rcode_nxdomain;
+	result = ISC_R_SUCCESS;
+	inc_stats(qctx->client, ns_statscounter_nxdomainsynth);
+
+cleanup:
+	if (name != NULL) {
+		query_releasename(qctx->client, &name);
+	}
+	if (clone != NULL) {
+		query_putrdataset(qctx->client, &clone);
+	}
+	if (sigclone != NULL) {
+		query_putrdataset(qctx->client, &sigclone);
+	}
+	return (result);
+}
+
 /*%
  * Handle covering NSEC responses.
  *
@@ -8373,15 +8638,11 @@ query_coveringnsec(query_ctx_t *qctx) {
 	dns_name_t *nowild = NULL;
 	dns_name_t *signer = NULL;
 	dns_name_t *wild = NULL;
-	dns_rdataset_t **sigsoardatasetp = NULL;
-	dns_rdataset_t *clone = NULL, *sigclone = NULL;
 	dns_rdataset_t *soardataset = NULL, *sigsoardataset = NULL;
 	dns_rdataset_t rdataset, sigrdataset;
-	dns_ttl_t ttl;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t exists = ISC_TRUE, data = ISC_TRUE;
 	isc_boolean_t redirected = ISC_FALSE;
-	isc_buffer_t *dbuf = NULL, b;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int dboptions = qctx->client->query.dboptions;
 
@@ -8454,17 +8715,61 @@ query_coveringnsec(query_ctx_t *qctx) {
 		goto cleanup;
 	}
 
+	/*
+	 * Zero TTL handling of wildcard record.
+	 *
+	 * We don't yet have code to handle synthesis and type ANY,
+	 * AAAA filtering or dns64 processing so we abort the
+	 * synthesis here if there would be a interaction.
+	 */
+	switch (result) {
+	case ISC_R_SUCCESS:
+		if (qctx->type == dns_rdatatype_any) {	/* XXX not yet */
+			goto cleanup;
+		}
+#ifdef ALLOW_FILTER_AAAA
+		if (qctx->client->filter_aaaa != dns_aaaa_ok &&
+		    (qctx->type == dns_rdatatype_a ||
+		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
+		{
+			goto cleanup;
+		}
+#endif
+		if (!ISC_LIST_EMPTY(qctx->client->view->dns64) &&
+		    (qctx->type == dns_rdatatype_a ||
+		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
+		{
+			goto cleanup;
+		}
+	case DNS_R_CNAME:
+		if (!qctx->resuming && !STALE(&rdataset) &&
+		    rdataset.ttl == 0 && RECURSIONOK(qctx->client))
+		{
+			goto cleanup;
+		}
+	default:
+		break;
+	}
+
 	switch (result) {
 	case DNS_R_COVERINGNSEC:
 		result = dns_nsec_noexistnodata(qctx->qtype, wild,
 						nowild, &rdataset,
 						&exists, &data, NULL,
 						log_noexistnodata, qctx);
-		if (result != ISC_R_SUCCESS || exists)
+		if (result != ISC_R_SUCCESS || exists) {
 			goto cleanup;
+		}
 		break;
 	case ISC_R_SUCCESS:		/* wild card match */
+		(void)query_synthwildcard(qctx, &rdataset, &sigrdataset);
+		done = ISC_TRUE;
+		goto cleanup;
 	case DNS_R_CNAME:		/* wild card cname */
+		(void)query_synthcnamewildcard(qctx, &rdataset,
+						  &sigrdataset);
+		done = ISC_TRUE;
+		goto cleanup;
 	case DNS_R_NCACHENXRRSET:	/* wild card nodata */
 	case DNS_R_NCACHENXDOMAIN:	/* direct nxdomain */
 	default:
@@ -8522,101 +8827,16 @@ query_coveringnsec(query_ctx_t *qctx) {
 				qctx->client->now, &node,
 				fname, &cm, &ci, soardataset,
 				sigsoardataset);
+
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	qctx->client->message->rcode = dns_rcode_nxdomain;
-
-	/*
-	 * Detemine the correct TTL to use for the SOA and RRSIG
-	 */
-	ttl = ISC_MIN(qctx->rdataset->ttl, qctx->sigrdataset->ttl);
-	ttl = ISC_MIN(ttl, rdataset.ttl);
-	ttl = ISC_MIN(ttl, sigrdataset.ttl);
-	ttl = ISC_MIN(ttl, soardataset->ttl);
-	ttl = ISC_MIN(ttl, sigsoardataset->ttl);
-
-	soardataset->ttl = sigsoardataset->ttl = ttl;
-
-	/*
-	 * We want the SOA record to be first, so save the
-	 * NOQNAME proof's name now or else discard it.
-	 */
-	if (WANTDNSSEC(qctx->client)) {
-		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
-	} else {
-		query_releasename(qctx->client, &qctx->fname);
-	}
-
-	dbuf = query_getnamebuf(qctx->client);
-	if (dbuf == NULL) {
-		goto cleanup;
-	}
-
-	name = query_newname(qctx->client, dbuf, &b);
-	if (name == NULL) {
-		goto cleanup;
-	}
-
-	dns_name_clone(signer, name);
-
-	/*
-	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
-	 */
-	if (WANTDNSSEC(qctx->client)) {
-		sigsoardatasetp = &sigsoardataset;
-	}
-	query_addrrset(qctx->client, &name, &soardataset, sigsoardatasetp,
-		       dbuf, DNS_SECTION_AUTHORITY);
-
-	if (WANTDNSSEC(qctx->client)) {
-		/*
-		 * Add NODATA proof.
-		 */
-		query_addrrset(qctx->client, &qctx->fname,
-			       &qctx->rdataset, &qctx->sigrdataset,
-			       NULL, DNS_SECTION_AUTHORITY);
-
-		dbuf = query_getnamebuf(qctx->client);
-		if (dbuf == NULL) {
-			goto cleanup;
-		}
-
-		name = query_newname(qctx->client, dbuf, &b);
-		if (name == NULL) {
-			goto cleanup;
-		}
-
-		dns_name_clone(nowild, name);
-
-		clone = query_newrdataset(qctx->client);
-		sigclone = query_newrdataset(qctx->client);
-		if (clone == NULL || sigclone == NULL) {
-			goto cleanup;
-		}
-
-		dns_rdataset_clone(&rdataset, clone);
-		dns_rdataset_clone(&sigrdataset, sigclone);
-
-		/*
-		 * Add NOWILDCARD proof.
-		 */
-		query_addrrset(qctx->client, &name, &clone, &sigclone,
-			       dbuf, DNS_SECTION_AUTHORITY);
-	}
-
-	inc_stats(qctx->client, ns_statscounter_nxdomainsynth);
-
+	(void)query_synthnxdomain(qctx, nowild, &rdataset, &sigrdataset,
+				  signer, &soardataset, &sigsoardataset);
 	done = ISC_TRUE;
 
  cleanup:
-	if (clone != NULL) {
-		query_putrdataset(qctx->client, &clone);
-	}
-	if (sigclone != NULL) {
-		query_putrdataset(qctx->client, &sigclone);
-	}
 	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
 	}

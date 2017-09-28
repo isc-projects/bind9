@@ -181,9 +181,6 @@
 	  default.
 	</para>
 	<para>
-	  Note: This initial implementation can only synthesize NXDOMAIN
-	  responses, from NSEC records.  Support for NODATA responses,
-	  wilcard responses, and NSEC3 records will be added soon.
 	  Thanks to APNIC for sponsoring this work.
 	</para>
       </listitem>

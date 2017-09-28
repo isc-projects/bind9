@@ -102,8 +102,8 @@ grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
 grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
 grep "b\.wild-a\.example\..*3600.IN.A" dig.out.ns2.test$n > /dev/null && ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed (ignored - to be supported in the future)"; fi
-: status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:check synthesized wildcard CNAME response ($n)"
 ret=0
@@ -111,9 +111,10 @@ $DIG $DIGOPTS b.wild-cname.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
 grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
 grep "b.wild-cname.example.*3600.IN.CNAME" dig.out.ns2.test$n > /dev/null && ret=1
+grep "ns1.example.*.IN.A" dig.out.ns2.test$n > /dev/null || ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed (ignored - to be supported in the future)"; fi
-: status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:check redirect response (+dnssec) ($n)"
 ret=0
