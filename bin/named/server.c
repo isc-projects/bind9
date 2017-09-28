@@ -6551,12 +6551,16 @@ tat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (!view->trust_anchor_telemetry)
+		if (!view->trust_anchor_telemetry ||
+		    !view->enablevalidation)
+		{
 			continue;
+		}
 
 		result = dns_view_getsecroots(view, &secroots);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			continue;
+		}
 
 		arg.view = view;
 		arg.task = task;

@@ -1,3 +1,6 @@
+4744.	[bug]		Suppress trust-anchor-telementry queries if
+			validation is disabled. [RT #46131]
+
 4743.	[func]		Exclude trust-anchor-telementry queries from
 			synth-from-dnssec processing. [RT #46123]
 
