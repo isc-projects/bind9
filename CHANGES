@@ -1,3 +1,6 @@
+4744.	[bug]		Suppress trust-anchor-telementry queries if
+			validation is disabled. [RT #46131]
+
 4741.	[bug]		Make isc_refcount_current() atomically read the
 			counter value. [RT #46074]
 
