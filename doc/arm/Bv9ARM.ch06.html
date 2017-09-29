@@ -3262,22 +3262,45 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <dt><span class="term"><span class="command"><strong>random-device</strong></span></span></dt>
 <dd>
               <p>
-                The source of entropy to be used by the server.  Entropy is
-                primarily needed
-                for DNSSEC operations, such as TKEY transactions and dynamic
-                update of signed
-                zones.  This options specifies the device (or file) from which
-                to read
-                entropy.  If this is a file, operations requiring entropy will
-                fail when the
-                file has been exhausted.  If not specified, the default value
-                is
-                <code class="filename">/dev/random</code>
-                (or equivalent) when present, and none otherwise.  The
-                <span class="command"><strong>random-device</strong></span> option takes
-                effect during
-                the initial configuration load at server startup time and
-                is ignored on subsequent reloads.
+                Specifies a source of entropy to be used by the server.
+                This is a device or file from which to read entropy.
+                If it is a file, operations requiring entropy
+                will fail when the file has been exhausted.
+              </p>
+              <p>
+                Entropy is needed for cryptographic operations such as
+                TKEY transactions, dynamic update of signed zones, and
+                generation of TSIG session keys. It is also used for
+                seeding and stirring the pseudo-random number generator,
+                which is used for less critical functions requiring
+                randomness such as generation of DNS message transaction
+                ID's.
+              </p>
+              <p>
+                If <span class="command"><strong>random-device</strong></span> is not specified, or
+                if it is set to <code class="literal">none</code>, entropy will be
+                read from the random number generation function supplied
+                by the cryptographic library with which BIND was linked
+                (i.e.  OpenSSL or a PKCS#11 provider).
+              </p>
+              <p>
+                The <span class="command"><strong>random-device</strong></span> option takes
+                effect during the initial configuration load at server
+                startup time and is ignored on subsequent reloads.
+              </p>
+              <p>
+                If BIND is built with
+                <span class="command"><strong>configure --disable-crypto-rand</strong></span>, then
+                entropy is <span class="emphasis"><em>not</em></span> sourced from the
+                cryptographic library. In this case, if
+                <span class="command"><strong>random-device</strong></span> is not specified, the
+                default value is the system random device,
+                <code class="filename">/dev/random</code> or the equivalent.
+                This default can be overridden with
+                <span class="command"><strong>configure --with-randomdev</strong></span>.
+                If no system random device exists, then no entropy source
+                will be configured, and <span class="command"><strong>named</strong></span> will only
+                be able to use pseudo-random numbers.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>preferred-glue</strong></span></span></dt>
@@ -4964,24 +4987,12 @@ options {
                 <p>
                   Note:
                   </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
                       <p>
                         DNSSEC validation must be enabled for this
                         option to be effective.
                       </p>
-                    </li>
-<li class="listitem">
-                      <p>
-                        This initial implementation only covers
-                        NXDOMAIN synthesis from NSEC records.
-                        Synthesis of NODATA and wildcard responses
-                        is also planned, as is synthesis from NSEC3
-                        records.  All of these will be controlled
-                        by <span class="command"><strong>synth-from-dnssec</strong></span>.
-                      </p>
-                    </li>
-</ul></div>
+                    </li></ul></div>
 <p>
                 </p>
               </dd>

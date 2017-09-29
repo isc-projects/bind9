@@ -190,9 +190,6 @@
 	  default.
 	</p>
 	<p>
-	  Note: This initial implementation can only synthesize NXDOMAIN
-	  responses, from NSEC records.  Support for NODATA responses,
-	  wilcard responses, and NSEC3 records will be added soon.
 	  Thanks to APNIC for sponsoring this work.
 	</p>
       </li>
@@ -374,20 +371,28 @@
       </li>
 <li class="listitem">
 	<p>
-	  When <span class="command"><strong>named</strong></span> is linked with OpenSSL, the
-	  OpenSSL RAND routine can be used as the source of entropy/
-	  randomness by specifying
-	  <span class="command"><strong>random-device openssl;</strong></span> in
-	  <code class="filename">named.conf</code>. It can also be used in tools
-	  such as <span class="command"><strong>dnssec-keygen</strong></span>,
-	  <span class="command"><strong>tsig-keygen</strong></span>,
-	  and <span class="command"><strong>nsupdate</strong></span> by specifying
-	  <span class="command"><strong>-r openssl</strong></span> on the command line.
-	  This is suitable for a virtual machine environment without
-	  a hardware random number generator.
-	  This behavior can be overridden by using
-	  <span class="command"><strong>configure --disable-crypto-rand</strong></span> or
-	  building with native PKCS#11. [RT #31459]
+	  By default, BIND now uses the random number generation functions
+	  in the cryptographic library (i.e., OpenSSL or a PKCS#11
+	  provider) as a source of high-quality randomness rather than
+	  <code class="filename">/dev/random</code>.  This is suitable for virtual
+	  machine environments, which may have limited entropy pools and
+	  lack hardware random number generators.
+	</p>
+	<p>
+	  This can be overridden by specifying another entropy source via
+	  the <span class="command"><strong>random-device</strong></span> option in
+	  <code class="filename">named.conf</code>, or via the <span class="command"><strong>-r</strong></span>
+	  command line option.  However, for functions requiring full
+	  cryptographic strength, such as DNSSEC key generation, this
+	  <span class="emphasis"><em>cannot</em></span> be overridden. In particular, the
+	  <span class="command"><strong>-r</strong></span> command line option no longer has any
+	  effect on <span class="command"><strong>dnssec-keygen</strong></span>.
+	</p>
+	<p>
+	  This can be disabled by building with
+	  <span class="command"><strong>configure --disable-crypto-rand</strong></span>, in which
+	  case <code class="filename">/dev/random</code> will be the default
+	  entropy source.  [RT #31459] [RT #46047]
 	</p>
       </li>
 </ul></div>
