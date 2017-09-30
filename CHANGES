@@ -1,3 +1,7 @@
+4745.	[test]		Add color-coded pass/fail messages to system
+			tests when running on terminals that support them.
+			[RT #45977]
+
 4741.	[bug]		Make isc_refcount_current() atomically read the
 			counter value. [RT #46074]
 
