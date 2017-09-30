@@ -1,3 +1,6 @@
+4746.	[cleanup]	Add configured prefixes to configure summary
+			output. [RT #46153]
+
 4745.	[test]		Add color-coded pass/fail messages to system
 			tests when running on terminals that support them.
 			[RT #45977]
