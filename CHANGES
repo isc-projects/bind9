@@ -1,3 +1,7 @@
+4745.	[test]		Add color-coded pass/fail messages to system
+			tests when running on terminals that support them.
+			[RT #45977]
+
 4744.	[bug]		Suppress trust-anchor-telementry queries if
 			validation is disabled. [RT #46131]
 
