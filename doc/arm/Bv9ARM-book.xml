@@ -7229,6 +7229,12 @@ options {
 			DNSSEC validation must be enabled for this
 			option to be effective.
 		      </para>
+		      <para>
+			This initial implementation only covers synthesis
+			of answers from NSEC records.  Synthesis from NSEC3
+			is planned for the future.  This will also be
+			controlled by <command>synth-from-dnssec</command>.
+		      </para>
 		    </listitem>
 		  </itemizedlist>
 		</para>

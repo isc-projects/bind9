@@ -1,3 +1,6 @@
+4747.	[func]		Synthesis of responses from DNSSEC-verified records.
+			Stage 3 - synthesize NODATA responses. [RT #40138]
+
 4746.	[cleanup]	Add configured prefixes to configure summary
 			output. [RT #46153]
 

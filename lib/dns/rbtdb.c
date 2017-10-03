@@ -5027,6 +5027,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *found, *nsheader;
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
 	rdatasetheader_t *update, *updatesig;
+	rdatasetheader_t *nsecheader, *nsecsig;
 	rbtdb_rdatatype_t sigtype, negtype;
 
 	UNUSED(version);
@@ -5108,7 +5109,9 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
 	negtype = RBTDB_RDATATYPE_VALUE(0, type);
 	nsheader = NULL;
+	nsecheader = NULL;
 	nssig = NULL;
+	nsecsig = NULL;
 	cnamesig = NULL;
 	empty_node = ISC_TRUE;
 	header_prev = NULL;
@@ -5172,6 +5175,10 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				 * need its signature.
 				 */
 				nssig = header;
+			} else if (header->type == dns_rdatatype_nsec) {
+				nsecheader = header;
+			} else if (header->type == RBTDB_RDATATYPE_SIGNSEC) {
+				nsecsig = header;
 			} else if (cname_ok &&
 				   header->type == RBTDB_RDATATYPE_SIGCNAME) {
 				/*
@@ -5205,6 +5212,32 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     ((options & DNS_DBFIND_GLUEOK) == 0)) ||
 	    (DNS_TRUST_PENDING(found->trust) &&
 	     ((options & DNS_DBFIND_PENDINGOK) == 0))) {
+
+		/*
+		 * Return covering NODATA NSEC record.
+		 */
+		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0 &&
+		    nsecheader != NULL)
+		{
+			if (nodep != NULL) {
+				new_reference(search.rbtdb, node);
+				INSIST(!ISC_LINK_LINKED(node, deadlink));
+				*nodep = node;
+			}
+			bind_rdataset(search.rbtdb, node, nsecheader,
+				      search.now, rdataset);
+			if (need_headerupdate(nsecheader, search.now))
+				update = nsecheader;
+			if (nsecsig != NULL) {
+				bind_rdataset(search.rbtdb, node, nsecsig,
+					      search.now, sigrdataset);
+				if (need_headerupdate(nsecsig, search.now))
+					updatesig = nsecsig;
+			}
+			result = DNS_R_COVERINGNSEC;
+			goto node_exit;
+		}
+
 		/*
 		 * If there is an NS rdataset at this node, then this is the
 		 * deepest zone cut.

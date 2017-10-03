@@ -92,8 +92,8 @@ grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
 grep "example.*3600.IN.SOA" dig.out.ns2.test$n > /dev/null && ret=1
 $PERL ../digcomp.pl $nodata dig.out.ns2.test$n || ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed (ignored - to be supported in the future)"; fi
-: status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 echo "I:check synthesized wildcard response ($n)"
 ret=0
