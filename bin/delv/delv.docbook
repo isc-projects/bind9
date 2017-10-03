@@ -215,7 +215,7 @@
 	    Keys that do not match the root zone name are ignored.
             An alternate key name can be specified using the
 	    <option>+root=NAME</option> options. DNSSEC Lookaside
-            Validation can also be turned on by using the 
+            Validation can also be turned on by using the
 	    <option>+dlv=NAME</option> to specify the name of a
             zone containing DLV records.
 	  </para>

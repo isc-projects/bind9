@@ -6410,7 +6410,7 @@ options {
 		  Note <command>dnssec-enable</command> also needs to be
 		  set to <userinput>yes</userinput> to be effective.
 		  If set to <userinput>no</userinput>, DNSSEC validation
-		  is disabled. 
+		  is disabled.
 		</para>
 	        <para>
 		  If set to <userinput>auto</userinput>, DNSSEC validation
