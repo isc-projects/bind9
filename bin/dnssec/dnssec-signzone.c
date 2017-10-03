@@ -2813,7 +2813,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	if (filename == NULL)
 		fatal("out of memory");
 	if (dsdir != NULL)
-		sprintf(filename, "%s/", dsdir);
+		snprintf(filename, filenamelen, "%s/", dsdir);
 	else
 		filename[0] = 0;
 	strlcat(filename, prefix, filenamelen);
@@ -3489,12 +3489,13 @@ main(int argc, char *argv[]) {
 		origin = file;
 
 	if (output == NULL) {
+		size_t size;
 		free_output = ISC_TRUE;
-		output = isc_mem_allocate(mctx,
-					  strlen(file) + strlen(".signed") + 1);
+		size = strlen(file) + strlen(".signed") + 1;
+		output = isc_mem_allocate(mctx, size);
 		if (output == NULL)
 			fatal("out of memory");
-		sprintf(output, "%s.signed", file);
+		snprintf(output, size, "%s.signed", file);
 	}
 
 	if (inputformatstr != NULL) {

@@ -174,7 +174,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", n);
+	snprintf(buf, sizeof(buf), "%u ", n);
 	RETERR(str_totext(buf, target));
 
 	/*
@@ -182,7 +182,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u", n);
+	snprintf(buf, sizeof(buf), "%u", n);
 	RETERR(str_totext(buf, target));
 
 	/*
@@ -210,7 +210,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", n);
+	snprintf(buf, sizeof(buf), "%u ", n);
 	RETERR(str_totext(buf, target));
 
 	/*
@@ -225,7 +225,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, " %u ", n);
+	snprintf(buf, sizeof(buf), " %u ", n);
 	RETERR(str_totext(buf, target));
 
 	/*

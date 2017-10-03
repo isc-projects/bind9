@@ -1,3 +1,5 @@
+4748.	[cleanup]	Sprintf to snprintf coversions. [RT #46132]
+
 4746.	[cleanup]	Add configured prefixes to configure summary
 			output. [RT #46153]
 

@@ -2531,7 +2531,7 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 	ctxobj = json_object_new_object();
 	CHECKMEM(ctxobj);
 
-	sprintf(buf, "%p", ctx);
+	snprintf(buf, sizeof(buf), "%p", ctx);
 	obj = json_object_new_string(buf);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "id", obj);

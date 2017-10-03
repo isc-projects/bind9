@@ -1253,8 +1253,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	case isc_statsformat_json:
 #ifdef HAVE_JSON
 		zoneobj = (json_object *) dumparg->arg;
-		sprintf(buf, "%s%s%s", stale ? "#" : "",
-				       nxrrset ? "!" : "", typestr);
+		snprintf(buf, sizeof(buf), "%s%s%s",
+			 stale ? "#" : "", nxrrset ? "!" : "", typestr);
 		obj = json_object_new_int64(val);
 		if (obj == NULL)
 			return;

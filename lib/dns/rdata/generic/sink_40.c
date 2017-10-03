@@ -67,7 +67,7 @@ totext_sink(ARGS_TOTEXT) {
 	isc_region_consume(&sr, 1);
 	subcoding = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
-	sprintf(buf, "%u %u %u", meaning, coding, subcoding);
+	snprintf(buf, sizeof(buf), "%u %u %u", meaning, coding, subcoding);
 	RETERR(str_totext(buf, target));
 
 	if (sr.length == 0U)

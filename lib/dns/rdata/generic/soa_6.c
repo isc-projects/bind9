@@ -128,7 +128,7 @@ totext_soa(ARGS_TOTEXT) {
 		unsigned long num;
 		num = uint32_fromregion(&dregion);
 		isc_region_consume(&dregion, 4);
-		sprintf(buf, comm ? "%-10lu ; " : "%lu", num);
+		snprintf(buf, sizeof(buf), comm ? "%-10lu ; " : "%lu", num);
 		RETERR(str_totext(buf, target));
 		if (comm) {
 			RETERR(str_totext(soa_fieldnames[i], target));

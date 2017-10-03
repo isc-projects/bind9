@@ -140,7 +140,7 @@ totext_hip(ARGS_TOTEXT) {
 	/*
 	 * Algorithm
 	 */
-	sprintf(buf, "%u ", algorithm);
+	snprintf(buf, sizeof(buf), "%u ", algorithm);
 	RETERR(str_totext(buf, target));
 
 	/*
