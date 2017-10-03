@@ -128,6 +128,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The ISC DNSSEC Lookaside Validation (DLV) service has been shut
+	  down; all DLV records in the dlv.isc.org zone have been removed.
+	  References to the service have been removed from BIND documentation.
+	  The DLV key has been removed from <filename>bind.keys</command>.
+	  [RT #46155]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Threads in <command>named</command> are now set to human-readable
 	  names to assist debugging on operating systems that support that.
 	  Threads will have names such as "isc-timer", "isc-sockmgr",
