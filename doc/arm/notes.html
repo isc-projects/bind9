@@ -175,19 +175,28 @@
       </li>
 <li class="listitem">
 	<p>
-	  <span class="command"><strong>named</strong></span> can now synthesize NXDOMAIN responses
-	  from cached DNSSEC-verified records returned in negative or
-	  wildcard responses.  This will reduce query loads on
-	  authoritative servers for signed domains: if existing cached
-	  records can be used by the resolver to determine that a name does
-	  not exist in the authorittive domain, then no query needs to
-	  be sent.
+	  <span class="command"><strong>named</strong></span> can now synthesize negative responses
+	  (NXDOMAIN, NODATA, or wildcard answers) from cached DNSSEC-verified
+	  records that were returned in negative or wildcard responses from
+	  authoritative servers.
+	</p>
+	<p>
+	  This will reduce query loads on authoritative servers for signed
+	  domains: when existing cached records can be used by the resolver
+	  to determine that a name does not exist in the authorittive domain,
+	  no query needs to be sent. Reducing the number of iterative queries
+	  should also improve resolver performance.
 	</p>
 	<p>
 	  This behavior is controlled by the new
 	  <code class="filename">named.conf</code> option
 	  <span class="command"><strong>synth-from-dnssec</strong></span>.  It is enabled by
 	  default.
+	</p>
+	<p>
+	  Note: this currently only works for zones signed using NSEC.
+	  Support for zones signed using NSEC3 (without opt-out) is
+	  planned for the future.
 	</p>
 	<p>
 	  Thanks to APNIC for sponsoring this work.
