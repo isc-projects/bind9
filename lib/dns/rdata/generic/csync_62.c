@@ -64,14 +64,14 @@ totext_csync(ARGS_TOTEXT) {
 
 	num = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
-	sprintf(buf, "%lu", num);
+	snprintf(buf, sizeof(buf), "%lu", num);
 	RETERR(str_totext(buf, target));
 
 	RETERR(str_totext(" ", target));
 
 	num = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%lu", num);
+	snprintf(buf, sizeof(buf), "%lu", num);
 	RETERR(str_totext(buf, target));
 
 	return (typemap_totext(&sr, NULL, target));

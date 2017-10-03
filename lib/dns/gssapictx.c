@@ -701,10 +701,14 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		 */
 		const char *old = getenv("KRB5_KTNAME");
 		if (old == NULL || strcmp(old, gssapi_keytab) != 0) {
-			char *kt = malloc(strlen(gssapi_keytab) + 13);
+			size_t size;
+			char *kt;
+
+			size = strlen(gssapi_keytab) + 13;
+			kt = malloc(size);
 			if (kt == NULL)
 				return (ISC_R_NOMEMORY);
-			sprintf(kt, "KRB5_KTNAME=%s", gssapi_keytab);
+			snprintf(kt, size, "KRB5_KTNAME=%s", gssapi_keytab);
 			if (putenv(kt) != 0)
 				return (ISC_R_NOMEMORY);
 		}

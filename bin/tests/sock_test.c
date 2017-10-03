@@ -111,8 +111,8 @@ my_recv(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (strcmp(event->ev_arg, "so2") != 0) {
 		region = dev->region;
-		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
-			(int)dev->n, (char *)region.base);
+		snprintf(buf, sizeof(buf), "\r\nReceived: %.*s\r\n\r\n",
+			 (int)dev->n, (char *)region.base);
 		region.base = isc_mem_get(mctx, strlen(buf) + 1);
 		if (region.base != NULL) {
 			region.length = strlen(buf) + 1;

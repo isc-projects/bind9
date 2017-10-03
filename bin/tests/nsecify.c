@@ -188,7 +188,7 @@ nsecify(char *filename) {
 	len = strlen(filename);
 	if (len + 4 + 1 > sizeof(newfilename))
 		fatal("filename too long");
-	sprintf(newfilename, "%s.new", filename);
+	snprintf(newfilename, sizeof(newfilename), "%s.new", filename);
 	result = dns_db_dump(db, NULL, newfilename);
 	check_result(result, "dns_db_dump");
 	dns_db_detach(&db);
