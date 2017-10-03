@@ -50,11 +50,11 @@
 #include <bind9/check.h>
 
 #define INITNAME(A,B) { \
-	        DNS_NAME_MAGIC, \
-	        A, sizeof(A), sizeof(B), \
-	        DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
-	        B, NULL, { (void *)-1, (void *)-1}, \
-	        {NULL, NULL} \
+		DNS_NAME_MAGIC, \
+		A, sizeof(A), sizeof(B), \
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+		B, NULL, { (void *)-1, (void *)-1}, \
+		{NULL, NULL} \
 }
 
 static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";

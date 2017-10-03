@@ -5148,8 +5148,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	maps[i] = NULL;
 
 	/*
- 	 * If bind.keys exists, load it.  If "dnssec-validation auto"
- 	 * is turned on, the root key found there will be used as a
+	 * If bind.keys exists, load it.  If "dnssec-validation auto"
+	 * is turned on, the root key found there will be used as a
 	 * default trust anchor.
 	 */
 	obj = NULL;

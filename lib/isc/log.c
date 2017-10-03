@@ -1629,7 +1629,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 					message->text = (char *)(message + 1);
 					size -= sizeof(isc_logmessage_t);
 					strlcpy(message->text, lctx->buffer,
-					        size);
+						size);
 
 					TIME_NOW(&message->time);
 
