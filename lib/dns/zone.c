@@ -4220,8 +4220,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		dns_name_t *rrname = NULL;
 		isc_uint32_t ttl;
 
-		dns_rriterator_current(&rrit, &rrname, &ttl,
-				       &rdataset, NULL);
+		dns_rriterator_current(&rrit, &rrname, &ttl, &rdataset, NULL);
 		if (!dns_rdataset_isassociated(rdataset)) {
 			dns_rriterator_destroy(&rrit);
 			goto failure;
