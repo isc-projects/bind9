@@ -548,5 +548,19 @@ grep "query '_ta-[0-9a-f]*/NULL/IN' approved" ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I: check 'rndc-managed-keys destroy' ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys destroy | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+grep "no views with managed keys" rndc.out.$n > /dev/null || ret=1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig | sed 's/^/I: ns2 /'
+sleep 1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+grep "name: \." rndc.out.$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

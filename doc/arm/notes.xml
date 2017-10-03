@@ -395,6 +395,23 @@
 	  entropy source.  [RT #31459] [RT #46047]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>rndc managed-keys destroy</command> shuts down all
+	  RFC 5011 DNSSEC trust anchor maintenance, and deletes any
+	  existing managed keys database. If immediately followed by
+	  <command>rndc reconfig</command>, this will reinitialize
+	  key maintenance just as if the server was being started for
+	  the first time.
+	</para>
+	<para>
+	  This is intended for testing purposes, but can be used -- with
+	  extreme caution -- as a brute-force repair for unrecoverable
+	  problems with a managed keys database, to jumpstart the key
+	  acquisition process if <filename>bind.keys</filename> is updated,
+	  etc. [RT #32456]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

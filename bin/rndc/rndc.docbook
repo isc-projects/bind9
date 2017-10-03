@@ -450,18 +450,68 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>managed-keys <replaceable>(status | refresh | sync)</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+	<term><userinput>managed-keys <replaceable>(status | refresh | sync | destroy)</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
 	<listitem>
 	  <para>
-	    When run with the "status" keyword, print the current
-	    status of the managed-keys database for the specified
-	    view, or for all views if none is specified.  When run
-	    with the "refresh" keyword, force an immediate refresh
-	    of all the managed-keys in the specified view, or all
-	    views.  When run with the "sync" keyword, force an
-	    immediate dump of the managed-keys database to disk (in
-	    the file <filename>managed-keys.bind</filename> or
-	    (<filename><replaceable>viewname</replaceable>.mkeys</filename>).
+            Inspect and control the "managed-keys" database which
+            handles RFC 5011 DNSSEC trust anchor maintenance. If a view
+            is specified, these commands are applied to that view;
+            otherwise they are applied to all views.
+          </para>
+          <itemizedlist>
+            <listitem>
+              <para>
+                When run with the <literal>status</literal> keyword, prints
+                the current status of the managed-keys database.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                When run with the <literal>refresh</literal> keyword,
+                forces an immediate refresh query to be sent for all
+                the managed keys, updating the managed-keys database
+                if any new keys are found, without waiting the normal
+                refresh interval.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                When run with the <literal>sync</literal> keyword, forces an
+                immediate dump of the managed-keys database to disk
+                (in the file <filename>managed-keys.bind</filename> or
+                (<filename><replaceable>viewname</replaceable>.mkeys</filename>).
+                This synchronizes the database with its journal file, so
+                that the database's current contents can be inspected
+                visually.
+              </para>
+            </listitem>
+            <listitem>
+              <para>
+                When run with the <literal>destroy</literal> keyword, the
+                managed-keys database is shut down and deleted, and all key
+                maintenance is terminated.  This command should be used only
+                with extreme caution.
+              </para>
+              <para>
+                Existing keys that are already trusted are not deleted
+                from memory; DNSSEC validation can continue after this
+                command is used. However, key maintenance operations will
+                cease until <command>named</command> is restarted or
+                reconfigured, and all existing key maintenance state
+                will be deleted.
+              </para>
+              <para>
+                Running <command>rndc reconfig>/command> or restarting
+                <command>named</command> immediately after this command
+                will cause key maintenance to be reinitialized from scratch,
+                just as if the server were being started for the first time.
+                This is primarily intended for testing, but it may also be
+                used, for example, to jumpstart the acquisition of new keys
+                in the event of a trust anchor rollover, or as a
+                brute-force repair for key maintenance problems.
+              </para>
+            </listitem>
+          </itemizedlist>
 	  </para>
 	</listitem>
       </varlistentry>

@@ -1,3 +1,9 @@
+4750.	[func]		"rndc managed-keys destroy" shuts down RFC 5011 key
+			maintenance and deletes the managed-keys database.
+			If followed by "rndc reconfig" or a server restart,
+			key maintenance is reinitialized from scratch.
+			This is primarily intended for testing. [RT #32456]
+
 4749.	[func]		The ISC DLV service has been shut down, and all
 			DLV records have been removed from dlv.isc.org.
 			- Removed references to ISC DLV in documentation

@@ -6042,18 +6042,22 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	/* See if we can re-use an existing keydata zone. */
 	result = dns_viewlist_find(&named_g_server->viewlist,
-				   view->name, view->rdclass,
-				   &pview);
-	if (result != ISC_R_NOTFOUND &&
-	    result != ISC_R_SUCCESS)
+				   view->name, view->rdclass, &pview);
+	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (pview != NULL && pview->managed_keys != NULL) {
-		dns_zone_attach(pview->managed_keys, &view->managed_keys);
-		dns_zone_setview(pview->managed_keys, view);
+	if (pview != NULL) {
+		if (pview->managed_keys != NULL) {
+			dns_zone_synckeyzone(pview->managed_keys);
+			dns_zone_attach(pview->managed_keys,
+					&view->managed_keys);
+			dns_zone_setview(pview->managed_keys, view);
+			dns_view_detach(&pview);
+			return (ISC_R_SUCCESS);
+		}
+
 		dns_view_detach(&pview);
-		dns_zone_synckeyzone(view->managed_keys);
-		return (ISC_R_SUCCESS);
 	}
 
 	/* No existing keydata zone was found; create one */
@@ -6086,8 +6090,9 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setstats(zone, named_g_server->zonestats);
 	CHECK(setquerystats(zone, mctx, dns_zonestat_none));
 
-	if (view->managed_keys != NULL)
+	if (view->managed_keys != NULL) {
 		dns_zone_detach(&view->managed_keys);
+	}
 	dns_zone_attach(zone, &view->managed_keys);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -6096,10 +6101,12 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 		      view->name, filename);
 
 cleanup:
-	if (zone != NULL)
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	if (none != NULL)
+	}
+	if (none != NULL) {
 		dns_acl_detach(&none);
+	}
 
 	return (result);
 }
@@ -8916,8 +8923,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				     &named_g_addparser),
 		   "creating additional configuration parser");
 
-	CHECKFATAL(load_configuration(named_g_conffile, server,
-				      ISC_TRUE),
+	CHECKFATAL(load_configuration(named_g_conffile, server, ISC_TRUE),
 		   "loading configuration");
 
 	isc_hash_init();
@@ -14068,6 +14074,78 @@ mkey_refresh(dns_view_t *view, isc_buffer_t **text) {
 }
 
 static isc_result_t
+mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
+	isc_result_t result;
+	char msg[DNS_NAME_FORMATSIZE + 500] = "";
+	isc_boolean_t exclusive = ISC_FALSE;
+	const char *file = NULL;
+	dns_db_t *dbp = NULL;
+	dns_zone_t *mkzone = NULL;
+	isc_boolean_t removed = ISC_FALSE;
+
+	if (view->managed_keys == NULL) {
+		CHECK(ISC_R_NOTFOUND);
+	}
+
+	snprintf(msg, sizeof(msg),
+		 "destroying managed-keys database for '%s'", view->name);
+	CHECK(putstr(text, msg));
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	exclusive = ISC_TRUE;
+
+	/* Remove and clean up managed keys zone from view */
+	mkzone = view->managed_keys;
+	view->managed_keys = NULL;
+	(void)dns_zone_flush(mkzone);
+
+	/* Unload zone database */
+	if (dns_zone_getdb(mkzone, &dbp) == ISC_R_SUCCESS) {
+		dns_db_detach(&dbp);
+		dns_zone_unload(mkzone);
+	}
+
+	/* Delete files */
+	file = dns_zone_getfile(mkzone);
+	result = isc_file_remove(file);
+	if (result == ISC_R_SUCCESS) {
+		removed = ISC_TRUE;
+	} else {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "file %s not removed: %s",
+			      file, isc_result_totext(result));
+	}
+
+	file = dns_zone_getjournal(mkzone);
+	result = isc_file_remove(file);
+	if (result == ISC_R_SUCCESS) {
+		removed = ISC_TRUE;
+	} else {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "file %s not removed: %s",
+			      file, isc_result_totext(result));
+	}
+
+	if (!removed) {
+		CHECK(putstr(text, "error: no files could be removed"));
+		CHECK(ISC_R_FAILURE);
+	}
+
+	dns_zone_detach(&mkzone);
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (exclusive) {
+		isc_task_endexclusive(server->task);
+	}
+	return (result);
+}
+
+
+static isc_result_t
 mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -14220,27 +14298,31 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
 	char msg[DNS_NAME_FORMATSIZE + 500] = "";
-	enum { NONE, STATUS, REFRESH, SYNC } opt = NONE;
+	enum { NONE, STATUS, REFRESH, SYNC, DESTROY } opt = NONE;
 	isc_boolean_t found = ISC_FALSE;
 	isc_boolean_t first = ISC_TRUE;
 
 	/* Skip rndc command name */
 	cmd = next_token(lex, text);
-	if (cmd == NULL)
+	if (cmd == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/* Get managed-keys subcommand */
 	cmd = next_token(lex, text);
-	if (cmd == NULL)
+	if (cmd == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
-	if (strcasecmp(cmd, "status") == 0)
+	if (strcasecmp(cmd, "status") == 0) {
 		opt = STATUS;
-	else if (strcasecmp(cmd, "refresh") == 0)
+	} else if (strcasecmp(cmd, "refresh") == 0) {
 		opt = REFRESH;
-	else if (strcasecmp(cmd, "sync") == 0)
+	} else if (strcasecmp(cmd, "sync") == 0) {
 		opt = SYNC;
-	else {
+	} else if (strcasecmp(cmd, "destroy") == 0) {
+		opt = DESTROY;
+	} else {
 		snprintf(msg, sizeof(msg), "unknown command '%s'", cmd);
 		(void) putstr(text, msg);
 		result = ISC_R_UNEXPECTED;
@@ -14282,7 +14364,9 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 		if (viewtxt != NULL &&
 		    (rdclass != view->rdclass ||
 		     strcmp(view->name, viewtxt) != 0))
+		{
 			continue;
+		}
 
 		if (view->managed_keys == NULL) {
 			if (viewtxt != NULL) {
@@ -14290,8 +14374,9 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 					 "view '%s': no managed keys", viewtxt);
 				CHECK(putstr(text, msg));
 				goto cleanup;
-			} else
+			} else {
 				continue;
+			}
 		}
 
 		found = ISC_TRUE;
@@ -14301,28 +14386,35 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 			CHECK(mkey_refresh(view, text));
 			break;
 		case STATUS:
-			if (!first)
+			if (!first) {
 				CHECK(putstr(text, "\n\n"));
+			}
 			CHECK(mkey_status(view, text));
 			first = ISC_FALSE;
 			break;
 		case SYNC:
 			CHECK(dns_zone_flush(view->managed_keys));
 			break;
+		case DESTROY:
+			CHECK(mkey_destroy(server, view, text));
+			break;
 		default:
 			INSIST(0);
 		}
 
-		if (viewtxt != NULL)
+		if (viewtxt != NULL) {
 			break;
+		}
 	}
 
-	if (!found)
+	if (!found) {
 		CHECK(putstr(text, "no views with managed keys"));
+	}
 
  cleanup:
-	if (isc_buffer_usedlength(*text) > 0)
+	if (isc_buffer_usedlength(*text) > 0) {
 		(void) putnull(text);
+	}
 
 	return (result);
 }
