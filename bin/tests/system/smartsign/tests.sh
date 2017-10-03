@@ -51,6 +51,9 @@ echo I:revoking key
 cksk3=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk $czone`
 cksk4=`$REVOKE $cksk3`
 
+echo I:setting up sync key
+cksk5=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk -P now+1mo -A now+1mo -Psync now $czone`
+
 echo I:generating parent keys
 pzsk=`$KEYGEN -q -a rsasha1 -r $RANDFILE $pzone`
 pksk=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk $pzone`
@@ -334,6 +337,23 @@ echo "I:checking child zone signatures again"
 ret=0
 awk '$2 == "RRSIG" && $3 == "DNSKEY" { getline; print $3 }' $cfile.signed > dnskey.sigs
 grep -w "$ckpublished" dnskey.sigs > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking sync record publication"
+ret=0
+grep CDNSKEY $cfile.signed > /dev/null || ret=1
+grep CDS $cfile.signed > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking sync record deletion"
+ret=0
+$SETTIME -P now -A now -Dsync now ${cksk5} > /dev/null
+$SIGNER -Sg -r $RANDFILE -o $czone -f $cfile.new $cfile.signed > /dev/null 2>&1
+mv $cfile.new $cfile.signed
+grep CDNSKEY $cfile.signed > /dev/null && ret=1
+grep CDS $cfile.signed > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

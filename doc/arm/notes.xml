@@ -412,6 +412,15 @@
 	  etc. [RT #32456]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>dnssec-signzone -S</command> can now add or remove
+	  synchronization records (CDS and CDNSKEY) based on key metadata
+	  set by the <command>-Psync</command> and <command>-Dsync</command>
+	  options to <command>dnssec-keygen</command>,
+	  <command>dnssec-settime</command>, etc. [RT #46149]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

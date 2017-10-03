@@ -2592,44 +2592,113 @@ report(const char *format, ...) {
 }
 
 static void
+clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
+	dns_dnsseckey_t *key;
+	while (!ISC_LIST_EMPTY(*list)) {
+		key = ISC_LIST_HEAD(*list);
+		ISC_LIST_UNLINK(*list, key, link);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+}
+
+static void
 build_final_keylist(void) {
 	isc_result_t result;
+	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_diff_t diff;
-	dns_dnsseckeylist_t matchkeys;
+	dns_dnsseckeylist_t rmkeys, matchkeys;
 	char name[DNS_NAME_FORMATSIZE];
+	dns_rdataset_t cdsset, cdnskeyset, soaset;
+	isc_stdtime_t now;
+	dns_ttl_t ttl;
+
+	ISC_LIST_INIT(rmkeys);
+	ISC_LIST_INIT(matchkeys);
+
+	dns_rdataset_init(&soaset);
+	dns_rdataset_init(&cdsset);
+	dns_rdataset_init(&cdnskeyset);
+
+	isc_stdtime_get(&now);
 
 	/*
 	 * Find keys that match this zone in the key repository.
 	 */
-	ISC_LIST_INIT(matchkeys);
 	result = dns_dnssec_findmatchingkeys(gorigin, directory,
 					     mctx, &matchkeys);
-	if (result == ISC_R_NOTFOUND)
+	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
+	}
 	check_result(result, "dns_dnssec_findmatchingkeys");
 
 	result = dns_db_newversion(gdb, &ver);
 	check_result(result, "dns_db_newversion");
+
+	result = dns_db_getoriginnode(gdb, &node);
+	check_result(result, "dns_db_getoriginnode");
+
+	/* Get the SOA record's TTL */
+	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_soa,
+				     dns_rdatatype_none, 0, &soaset, NULL);
+	check_result(result, "dns_db_findrdataset");
+	ttl = soaset.ttl;
+	dns_rdataset_disassociate(&soaset);
+
+	/* Get the CDS rdataset */
+	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_cds,
+				     dns_rdatatype_none, 0, &cdsset, NULL);
+	if (result != ISC_R_SUCCESS &&
+	    dns_rdataset_isassociated(&cdsset))
+	{
+		dns_rdataset_disassociate(&cdsset);
+	}
+
+	/* Get the CDNSKEY rdataset */
+	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_cdnskey,
+				     dns_rdatatype_none, 0, &cdnskeyset, NULL);
+	if (result != ISC_R_SUCCESS &&
+	    dns_rdataset_isassociated(&cdnskeyset))
+	{
+		dns_rdataset_disassociate(&cdnskeyset);
+	}
 
 	dns_diff_init(mctx, &diff);
 
 	/*
 	 * Update keylist with information from from the key repository.
 	 */
-	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
+	dns_dnssec_updatekeys(&keylist, &matchkeys, &rmkeys, gorigin, keyttl,
 			      &diff, ignore_kskflag, mctx, report);
+
+	/*
+	 * Update keylist with sync records.
+	 */
+	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset,
+			      now, ttl, &diff, mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 
 	result = dns_diff_applysilently(&diff, gdb, ver);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("failed to update DNSKEY RRset at node '%s': %s",
 		      name, isc_result_totext(result));
+	}
 
+	dns_db_detachnode(gdb, &node);
 	dns_db_closeversion(gdb, &ver, ISC_TRUE);
 
 	dns_diff_clear(&diff);
+
+	if (dns_rdataset_isassociated(&cdsset)) {
+		dns_rdataset_disassociate(&cdsset);
+	}
+	if (dns_rdataset_isassociated(&cdnskeyset)) {
+		dns_rdataset_disassociate(&cdnskeyset);
+	}
+
+	clear_keylist(&rmkeys, mctx);
+	clear_keylist(&matchkeys, mctx);
 }
 
 static void
@@ -3616,8 +3685,9 @@ main(int argc, char *argv[]) {
 	 *    do not have private keys associated and were
 	 *    not specified on the command line.
 	 */
-	if (argc == 0 || smartsign)
+	if (argc == 0 || smartsign) {
 		loadzonekeys(!smartsign, ISC_FALSE);
+	}
 	loadexplicitkeys(argv, argc, ISC_FALSE);
 	loadexplicitkeys(dskeyfile, ndskeys, ISC_TRUE);
 	loadzonekeys(!smartsign, ISC_TRUE);
@@ -3627,8 +3697,9 @@ main(int argc, char *argv[]) {
 	 * key files with metadata, and merge them with the keylist
 	 * we have now.
 	 */
-	if (smartsign)
+	if (smartsign) {
 		build_final_keylist();
+	}
 
 	/* Now enumerate the key list */
 	for (key = ISC_LIST_HEAD(keylist);
