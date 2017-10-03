@@ -522,7 +522,7 @@ typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
 					RETERR(dns_rdatatype_totext(t, target));
 				} else {
 					char buf[sizeof("TYPE65535")];
-					sprintf(buf, "TYPE%u", t);
+					snprintf(buf, sizeof(buf), "TYPE%u", t);
 					RETERR(str_totext(buf, target));
 				}
 			}

@@ -115,19 +115,19 @@ totext_nsec3(ARGS_TOTEXT) {
 	/* Hash */
 	hash = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
-	sprintf(buf, "%u ", hash);
+	snprintf(buf, sizeof(buf), "%u ", hash);
 	RETERR(str_totext(buf, target));
 
 	/* Flags */
 	flags = uint8_fromregion(&sr);
 	isc_region_consume(&sr, 1);
-	sprintf(buf, "%u ", flags);
+	snprintf(buf, sizeof(buf), "%u ", flags);
 	RETERR(str_totext(buf, target));
 
 	/* Iterations */
 	iterations = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", iterations);
+	snprintf(buf, sizeof(buf), "%u ", iterations);
 	RETERR(str_totext(buf, target));
 
 	/* Salt */

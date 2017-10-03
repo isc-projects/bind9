@@ -1,3 +1,5 @@
+4748.	[cleanup]	Sprintf to snprintf coversions. [RT #46132]
+
 4747.	[func]		Synthesis of responses from DNSSEC-verified records.
 			Stage 3 - synthesize NODATA responses. [RT #40138]
 

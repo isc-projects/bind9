@@ -4151,7 +4151,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats) {
 
 		LOCK(&sock->lock);
 
-		sprintf(buf, "%p", sock);
+		snprintf(buf, sizeof(buf), "%p", sock);
 		obj = json_object_new_string(buf);
 		CHECKMEM(obj);
 		json_object_object_add(entry, "id", obj);
