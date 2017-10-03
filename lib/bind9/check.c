@@ -65,6 +65,20 @@
 
 #include <bind9/check.h>
 
+#define INITNAME(A,B) { \
+	        DNS_NAME_MAGIC, \
+	        A, sizeof(A), sizeof(B), \
+	        DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+	        B, NULL, { (void *)-1, (void *)-1}, \
+	        {NULL, NULL} \
+}
+
+static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";
+static unsigned char dlviscorg_offsets[] = { 0, 4, 8, 12 };
+
+static const dns_name_t dlviscorg =
+	INITNAME(dlviscorg_ndata, dlviscorg_offsets);
+
 static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, isc_boolean_t writeable,
 	  isc_log_t *logctxlogc);
@@ -1135,9 +1149,16 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			 * is missing, skip remaining tests
 			 */
 			if (cfg_obj_isvoid(anchor)) {
-				if (!strcasecmp(dlv, "no") ||
-				    !strcasecmp(dlv, "auto"))
+				if (!strcasecmp(dlv, "no")) {
 					continue;
+				}
+				if (!strcasecmp(dlv, "auto")) {
+					cfg_obj_log(obj, logctx,
+						    ISC_LOG_WARNING,
+						    "dnssec-lookaside 'auto' "
+						    "is no longer supported");
+					continue;
+				}
 			}
 
 			tresult = dns_name_fromstring(name, dlv, 0, NULL);
@@ -1150,7 +1171,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (symtab != NULL) {
 				tresult = nameexist(obj, dlv, 1, symtab,
 						    "dnssec-lookaside '%s': "
-						    "already exists previous "
+						    "already exists; previous "
 						    "definition: %s:%u",
 						    logctx, mctx);
 				if (tresult != ISC_R_SUCCESS &&
@@ -1170,23 +1191,30 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					result = ISC_R_FAILURE;
 			}
 
-			if (!cfg_obj_isvoid(anchor)) {
-				dlv = cfg_obj_asstring(anchor);
-				tresult = check_name(dlv);
-				if (tresult != ISC_R_SUCCESS) {
-					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-						    "bad domain name '%s'",
-						    dlv);
-					if (result == ISC_R_SUCCESS)
-						result = tresult;
-				}
-			} else {
+			if (cfg_obj_isvoid(anchor)) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					"dnssec-lookaside requires "
-					"either 'auto' or 'no', or a "
-					"domain and trust anchor");
+					    "dnssec-lookaside requires "
+					    "either or 'no' or a "
+					    "domain and trust anchor");
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_FAILURE;
+				continue;
+			}
+
+			dlv = cfg_obj_asstring(anchor);
+			tresult = dns_name_fromstring(name, dlv, 0, NULL);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(anchor, logctx, ISC_LOG_ERROR,
+					    "bad domain name '%s'", dlv);
+				if (result == ISC_R_SUCCESS)
+					result = tresult;
+				continue;
+			}
+			if (dns_name_equal(&dlviscorg, name)) {
+				cfg_obj_log(anchor, logctx, ISC_LOG_WARNING,
+					    "dlv.isc.org has been shut down: "
+					    "dnssec-lookaside ignored");
+				continue;
 			}
 		}
 

@@ -575,7 +575,7 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 	isc_result_t result;
-	isc_boolean_t match_root, match_dlv;
+	isc_boolean_t match_root = ISC_FALSE, match_dlv = ISC_FALSE;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
@@ -583,8 +583,10 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	if (!root_validation && !dlv_validation)
 		return (ISC_R_SUCCESS);
 
-	match_root = dns_name_equal(keyname, anchor_name);
-	match_dlv = dns_name_equal(keyname, dlv_name);
+	if (anchor_name)
+		match_root = dns_name_equal(keyname, anchor_name);
+	if (dlv_name)
+		match_dlv = dns_name_equal(keyname, dlv_name);
 
 	if (!match_root && !match_dlv)
 		return (ISC_R_SUCCESS);
@@ -714,14 +716,10 @@ setup_dnsseckeys(dns_client_t *client) {
 			fatal("out of memory");
 	}
 
-	if (dlv_anchor == NULL) {
-		dlv_anchor = isc_mem_strdup(mctx, "dlv.isc.org");
-		if (dlv_anchor == NULL)
-			fatal("out of memory");
-	}
-
-	CHECK(convert_name(&afn, &anchor_name, trust_anchor));
-	CHECK(convert_name(&dfn, &dlv_name, dlv_anchor));
+	if (trust_anchor != NULL)
+		CHECK(convert_name(&afn, &anchor_name, trust_anchor));
+	if (dlv_anchor != NULL)
+		CHECK(convert_name(&dfn, &dlv_name, dlv_anchor));
 
 	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
 
