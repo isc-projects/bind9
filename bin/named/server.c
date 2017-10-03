@@ -14081,7 +14081,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 	const char *file = NULL;
 	dns_db_t *dbp = NULL;
 	dns_zone_t *mkzone = NULL;
-	isc_boolean_t removed = ISC_FALSE;
+	isc_boolean_t removed_a_file = ISC_FALSE;
 
 	if (view->managed_keys == NULL) {
 		CHECK(ISC_R_NOTFOUND);
@@ -14110,7 +14110,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 	file = dns_zone_getfile(mkzone);
 	result = isc_file_remove(file);
 	if (result == ISC_R_SUCCESS) {
-		removed = ISC_TRUE;
+		removed_a_file = ISC_TRUE;
 	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -14121,7 +14121,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 	file = dns_zone_getjournal(mkzone);
 	result = isc_file_remove(file);
 	if (result == ISC_R_SUCCESS) {
-		removed = ISC_TRUE;
+		removed_a_file = ISC_TRUE;
 	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -14129,7 +14129,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 			      file, isc_result_totext(result));
 	}
 
-	if (!removed) {
+	if (!removed_a_file) {
 		CHECK(putstr(text, "error: no files could be removed"));
 		CHECK(ISC_R_FAILURE);
 	}
