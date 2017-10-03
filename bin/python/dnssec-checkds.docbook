@@ -87,9 +87,6 @@
           <para>
             Check for a DLV record in the specified lookaside domain,
             instead of checking for a DS record in the zone's parent.
-            For example, to check for DLV records for "example.com"
-            in ISC's DLV zone, use:
-            <command>dnssec-checkds -l dlv.isc.org example.com</command>
           </para>
         </listitem>
       </varlistentry>

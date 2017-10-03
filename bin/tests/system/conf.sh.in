@@ -72,7 +72,7 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 # v6synth
 SUBDIRS="acl additional addzone allow_query autosign builtin
 	 cacheclean case catz chain checkconf @CHECKDS@ checknames checkzone
-	 cookie @COVERAGE@ database digdelv dlv dlvauto dlz dlzexternal
+	 cookie @COVERAGE@ database digdelv dlv dlz dlzexternal
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
 	 ednscompliance emptyzones fetchlimit filter-aaaa formerr
 	 forward geoip glue gost inline integrity ixfr @KEYMGR@

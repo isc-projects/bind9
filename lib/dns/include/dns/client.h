@@ -273,10 +273,10 @@ isc_result_t
 dns_client_setdlv(dns_client_t *client, dns_rdataclass_t rdclass,
 		  const char *dlvname);
 /*%<
- * Specify a name to use for DNSSEC lookaside validation (e.g.,
- * "dlv.isc.org"). If a trusted key has been added for that name,
- * then DLV will be used during validation.  If 'dlvname' is NULL,
- * then DLV will no longer be used for this client.
+ * Specify a name to use for DNSSEC lookaside validation.
+ * If a trusted key has been added for that name, then DLV will be
+ * used during validation.  If 'dlvname' is NULL, then DLV will no
+ * longer be used for this client.
  *
  * Requires:
  *
