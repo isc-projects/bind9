@@ -1,3 +1,13 @@
+4749.	[func]		The ISC DLV service has been shut down, and all
+			DLV records have been removed from dlv.isc.org.
+			- Removed references to ISC DLV in documentation
+			- Removed DLV key from bind.keys
+			- No longer use ISC DLV by default in delv
+			- "dnssec-lookaside auto" and configuration of
+			  "dnssec-lookaide" with dlv.isc.org as trust
+			  anchor are both now fatal errors.
+			[RT #46155]
+
 4748.	[cleanup]	Sprintf to snprintf coversions. [RT #46132]
 
 4747.	[func]		Synthesis of responses from DNSSEC-verified records.

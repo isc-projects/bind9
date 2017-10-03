@@ -128,9 +128,6 @@ options {\n\
 #	use-id-pool <obsolete>;\n\
 #	use-ixfr <obsolete>;\n\
 \n\
-	/* DLV */\n\
-	dnssec-lookaside . trust-anchor dlv.isc.org;\n\
-\n\
 	/* view */\n\
 	allow-new-zones no;\n\
 	allow-notify {none;};\n\
@@ -295,8 +292,8 @@ view \"_bind\" chaos {\n\
 };\n\
 "
 "#\n\
-#  Default trusted key(s) for builtin DLV support\n\
-#  (used if \"dnssec-lookaside auto;\" is set and\n\
+#  Default trusted key(s), used if \n\
+# \"dnssec-validation auto;\" is set and\n\
 #  sysconfdir/bind.keys doesn't exist).\n\
 #\n\
 # BEGIN MANAGED KEYS\n"

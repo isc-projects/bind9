@@ -71,7 +71,7 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 SUBDIRS="acl additional addzone allow_query autosign builtin
 	 cacheclean case catz chain
          checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
-         database digdelv dlv dlvauto dlz dlzexternal
+         database digdelv dlv dlz dlzexternal
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
 	 emptyzones fetchlimit filter-aaaa formerr geoip glue gost
 	 inline integrity ixfr keepalive @KEYMGR@ legacy limits

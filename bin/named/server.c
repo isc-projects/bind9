@@ -884,8 +884,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 static isc_result_t
 configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
-			  isc_boolean_t auto_dlv, isc_boolean_t auto_root,
-			  isc_mem_t *mctx)
+			  isc_boolean_t auto_root, isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
@@ -942,65 +941,6 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "couldn't create NTA table");
 		return (ISC_R_UNEXPECTED);
-	}
-
-	if (auto_dlv && view->rdclass == dns_rdataclass_in) {
-		const cfg_obj_t *builtin_keys = NULL;
-		const cfg_obj_t *builtin_managed_keys = NULL;
-
-		/*
-		 * If bind.keys exists and is populated, it overrides
-		 * the managed-keys clause hard-coded in named_g_config.
-		 */
-		if (bindkeys != NULL) {
-			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "obtaining DLV key for view %s "
-				      "from '%s'",
-				      view->name, named_g_server->bindkeysfile);
-
-			(void)cfg_map_get(bindkeys, "trusted-keys",
-					  &builtin_keys);
-			(void)cfg_map_get(bindkeys, "managed-keys",
-					  &builtin_managed_keys);
-			if ((builtin_keys == NULL) &&
-			    (builtin_managed_keys == NULL))
-				isc_log_write(named_g_lctx,
-					      DNS_LOGCATEGORY_SECURITY,
-					      NAMED_LOGMODULE_SERVER,
-					      ISC_LOG_WARNING,
-					      "dnssec-lookaside auto: "
-					      "WARNING: key for dlv.isc.org "
-					      "not found");
-		}
-
-		if ((builtin_keys == NULL) &&
-		    (builtin_managed_keys == NULL))
-		{
-			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "using built-in DLV key for view %s",
-				      view->name);
-
-			(void)cfg_map_get(named_g_config, "trusted-keys",
-					  &builtin_keys);
-			(void)cfg_map_get(named_g_config, "managed-keys",
-					  &builtin_managed_keys);
-		}
-
-		if (builtin_keys != NULL)
-			CHECK(load_view_keys(builtin_keys, vconfig, view,
-					     ISC_FALSE, view->dlv, mctx));
-		if (builtin_managed_keys != NULL)
-			CHECK(load_view_keys(builtin_managed_keys, vconfig,
-					     view, ISC_TRUE, view->dlv, mctx));
-		if (!keyloaded(view, view->dlv)) {
-			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-				      "DLV key not loaded");
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
 	}
 
 	if (auto_root && view->rdclass == dns_rdataclass_in) {
@@ -3692,7 +3632,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
-	isc_boolean_t auto_dlv = ISC_FALSE;
 	isc_boolean_t auto_root = ISC_FALSE;
 	named_cache_t *nsc;
 	isc_boolean_t zero_no_soattl;
@@ -4993,19 +4932,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(optionmaps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
-		/* If set to "auto", use the version from the defaults */
+		/* "auto" is deprecated, log a warning if seen */
 		const char *dom;
 		dlvobj = cfg_listelt_value(cfg_list_first(obj));
 		dom = cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain"));
 		if (cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
-			/* If "no", skip; if "auto", use global default */
-			if (!strcasecmp(dom, "no"))
+			/* If "no", skip; if "auto", log warning */
+			if (!strcasecmp(dom, "no")) {
 				result = ISC_R_NOTFOUND;
-			else if (!strcasecmp(dom, "auto")) {
-				auto_dlv = ISC_TRUE;
-				obj = NULL;
-				result = cfg_map_get(named_g_defaults,
-						     "dnssec-lookaside", &obj);
+			} else if (!strcasecmp(dom, "auto")) {
+				cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
+					    "WARNING: the DLV server at "
+					    "'dlv.isc.org' is no longer "
+					    "in service; dnssec-lookaside "
+					    "ignored");
+				result = ISC_R_NOTFOUND;
 			}
 		}
 	}
@@ -5015,6 +4956,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		dns_fixedname_t f;
 		dns_fixedname_init(&f);
 
+		/* Also log a warning if manually configured to dlv.isc.org */
 		iscdlv = dns_fixedname_name(&f);
 		CHECK(dns_name_fromstring(iscdlv, "dlv.isc.org", 0, NULL));
 
@@ -5028,27 +4970,27 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			dlv = dns_fixedname_name(&view->dlv_fixed);
 			CHECK(dns_name_fromstring(dlv, cfg_obj_asstring(obj),
 						  DNS_NAME_DOWNCASE, NULL));
-			view->dlv = dns_fixedname_name(&view->dlv_fixed);
-
-			if (dns_name_equal(view->dlv, iscdlv)) {
-				if (auto_dlv)
-					obj = dlvobj;
+			if (dns_name_equal(dlv, iscdlv)) {
 				cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
 					    "WARNING: the DLV server at "
-					    "'dlv.isc.org' is expected to "
-					    "cease operation by the end "
-					    "of January 2017");
+					    "'dlv.isc.org' is no longer "
+					    "in service; dnssec-lookaside "
+					    "ignored");
+				view->dlv = NULL;
+			} else {
+				view->dlv = dlv;
 			}
 		}
-	} else
+	} else {
 		view->dlv = NULL;
+	}
 
 	/*
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_dlv, auto_root, mctx));
+					auto_root, mctx));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -7604,8 +7546,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * If bind.keys exists, load it.  If "dnssec-validation auto"
 	 * is turned on, the root key found there will be used as a
-	 * default trust anchor, and if "dnssec-lookaside auto" is
-	 * turned on, then the DLV key found there will too.
+	 * default trust anchor.
 	 */
 	obj = NULL;
 	result = named_config_get(maps, "bindkeys-file", &obj);
