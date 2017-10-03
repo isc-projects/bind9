@@ -2610,7 +2610,6 @@ build_final_keylist(void) {
 	dns_dnsseckeylist_t rmkeys, matchkeys;
 	char name[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t cdsset, cdnskeyset, soaset;
-	dns_ttl_t ttl;
 
 	ISC_LIST_INIT(rmkeys);
 	ISC_LIST_INIT(matchkeys);
@@ -2635,13 +2634,6 @@ build_final_keylist(void) {
 	result = dns_db_getoriginnode(gdb, &node);
 	check_result(result, "dns_db_getoriginnode");
 
-	/* Get the SOA record's TTL */
-	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_soa,
-				     dns_rdatatype_none, 0, &soaset, NULL);
-	check_result(result, "dns_db_findrdataset");
-	ttl = soaset.ttl;
-	dns_rdataset_disassociate(&soaset);
-
 	/* Get the CDS rdataset */
 	result = dns_db_findrdataset(gdb, node, ver, dns_rdatatype_cds,
 				     dns_rdatatype_none, 0, &cdsset, NULL);
@@ -2665,14 +2657,14 @@ build_final_keylist(void) {
 	/*
 	 * Update keylist with information from from the key repository.
 	 */
-	dns_dnssec_updatekeys(&keylist, &matchkeys, &rmkeys, gorigin, keyttl,
+	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
 			      &diff, ignore_kskflag, mctx, report);
 
 	/*
 	 * Update keylist with sync records.
 	 */
 	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset,
-			      now, ttl, &diff, mctx);
+			      now, keyttl, &diff, mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 

@@ -256,7 +256,7 @@ sub=0
 grep -w "$czgenerated" dnskey.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo "I:found czgenerated $czgenerated (dnskey)"; ret=1; fi
 # now check other signatures first
-awk '$2 == "RRSIG" && $3 != "DNSKEY" { getline; print $3 }' $cfile.signed | sort -un > other.sigs
+awk '$2 == "RRSIG" && $3 != "DNSKEY" && $3 != "CDNSKEY" && $3 != "CDS" { getline; print $3 }' $cfile.signed | sort -un > other.sigs
 # should not be there:
 echo $ret > /dev/null
 sync
