@@ -2592,7 +2592,7 @@ report(const char *format, ...) {
 }
 
 static void
-clear_keylist(dns_dnsseckeylist_t *list, isc_mem_t *mctx) {
+clear_keylist(dns_dnsseckeylist_t *list) {
 	dns_dnsseckey_t *key;
 	while (!ISC_LIST_EMPTY(*list)) {
 		key = ISC_LIST_HEAD(*list);
@@ -2610,7 +2610,6 @@ build_final_keylist(void) {
 	dns_dnsseckeylist_t rmkeys, matchkeys;
 	char name[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t cdsset, cdnskeyset, soaset;
-	isc_stdtime_t now;
 	dns_ttl_t ttl;
 
 	ISC_LIST_INIT(rmkeys);
@@ -2619,8 +2618,6 @@ build_final_keylist(void) {
 	dns_rdataset_init(&soaset);
 	dns_rdataset_init(&cdsset);
 	dns_rdataset_init(&cdnskeyset);
-
-	isc_stdtime_get(&now);
 
 	/*
 	 * Find keys that match this zone in the key repository.
@@ -2697,8 +2694,8 @@ build_final_keylist(void) {
 		dns_rdataset_disassociate(&cdnskeyset);
 	}
 
-	clear_keylist(&rmkeys, mctx);
-	clear_keylist(&matchkeys, mctx);
+	clear_keylist(&rmkeys);
+	clear_keylist(&matchkeys);
 }
 
 static void
