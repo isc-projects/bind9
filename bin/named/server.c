@@ -1642,8 +1642,8 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	      unsigned int prefixlen, const char *server,
 	      const char *contact)
 {
-	char *cp;
-	char reverse[48+sizeof("ip6.arpa.")];
+	char reverse[48+sizeof("ip6.arpa.")] = { 0 };
+	char buf[sizeof("x.x.")];
 	const char *dns64_dbtype[4] = { "_dns64", "dns64", ".", "." };
 	const char *sep = ": view ";
 	const char *viewname = view->name;
@@ -1666,15 +1666,13 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	/*
 	 * Construct the reverse name of the zone.
 	 */
-	cp = reverse;
 	s6 = na->type.in6.s6_addr;
 	while (prefixlen > 0) {
 		prefixlen -= 8;
-		sprintf(cp, "%x.%x.", s6[prefixlen/8] & 0xf,
-			(s6[prefixlen/8] >> 4) & 0xf);
-		cp += 4;
+		snprintf(buf, sizeof(buf), "%x.%x.", s6[prefixlen/8] & 0xf,
+			 (s6[prefixlen/8] >> 4) & 0xf);
+		strlcat(reverse, buf, sizeof(reverse));
 	}
-
 	strlcat(reverse, "ip6.arpa.", sizeof(reverse));
 
 	/*

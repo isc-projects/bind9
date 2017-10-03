@@ -130,7 +130,7 @@ totext_keydata(ARGS_TOTEXT) {
 	/* flags */
 	flags = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u", flags);
+	snprintf(buf, sizeof(buf), "%u", flags);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 	if ((flags & DNS_KEYFLAG_KSK) != 0) {
@@ -142,14 +142,14 @@ totext_keydata(ARGS_TOTEXT) {
 		keyinfo = "ZSK";
 
 	/* protocol */
-	sprintf(buf, "%u", sr.base[0]);
+	snprintf(buf, sizeof(buf), "%u", sr.base[0]);
 	isc_region_consume(&sr, 1);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
 	/* algorithm */
 	algorithm = sr.base[0];
-	sprintf(buf, "%u", algorithm);
+	snprintf(buf, sizeof(buf), "%u", algorithm);
 	isc_region_consume(&sr, 1);
 	RETERR(str_totext(buf, target));
 
@@ -192,7 +192,8 @@ totext_keydata(ARGS_TOTEXT) {
 		dns_rdata_toregion(rdata, &tmpr);
 		/* Skip over refresh, addhd, and removehd */
 		isc_region_consume(&tmpr, 12);
-		sprintf(buf, "%u", dst_region_computeid(&tmpr, algorithm));
+		snprintf(buf, sizeof(buf), "%u",
+			 dst_region_computeid(&tmpr, algorithm));
 		RETERR(str_totext(buf, target));
 
 		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {

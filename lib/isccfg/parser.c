@@ -2702,8 +2702,8 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 	len = vsnprintf(message, sizeof(message), format, args);
 #define ELIPSIS " ... "
 	if (len >= sizeof(message)) {
-		strcpy(message + sizeof(message) - sizeof(ELIPSIS) - 1,
-		       ELIPSIS);
+		message[sizeof(message) - sizeof(ELIPSIS)] = 0;
+		strlcat(message, ELIPSIS, sizeof(message));
 	}
 
 	if ((flags & (CFG_LOG_NEAR|CFG_LOG_BEFORE|CFG_LOG_NOPREP)) != 0) {

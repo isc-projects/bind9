@@ -80,7 +80,7 @@ totext_uri(ARGS_TOTEXT) {
 	 */
 	priority = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
-	sprintf(buf, "%u ", priority);
+	snprintf(buf, sizeof(buf), "%u ", priority);
 	RETERR(str_totext(buf, target));
 
 	/*
@@ -88,7 +88,7 @@ totext_uri(ARGS_TOTEXT) {
 	 */
 	weight = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
-	sprintf(buf, "%u ", weight);
+	snprintf(buf, sizeof(buf), "%u ", weight);
 	RETERR(str_totext(buf, target));
 
 	/*

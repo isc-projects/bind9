@@ -1545,6 +1545,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				isc_logmessage_t *message, *next;
 				isc_time_t oldest;
 				isc_interval_t interval;
+				size_t size;
 
 				isc_interval_set(&interval,
 						 lcfg->duplicate_interval, 0);
@@ -1618,16 +1619,18 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				 * It wasn't in the duplicate interval,
 				 * so add it to the message list.
 				 */
-				message = isc_mem_get(lctx->mctx,
-						    sizeof(isc_logmessage_t) +
-						    strlen(lctx->buffer) + 1);
+				size = sizeof(isc_logmessage_t) +
+				       strlen(lctx->buffer) + 1;
+				message = isc_mem_get(lctx->mctx, size);
 				if (message != NULL) {
 					/*
 					 * Put the text immediately after
 					 * the struct.  The strcpy is safe.
 					 */
 					message->text = (char *)(message + 1);
-					strcpy(message->text, lctx->buffer);
+					size -= sizeof(isc_logmessage_t);
+					strlcpy(message->text, lctx->buffer,
+					        size);
 
 					TIME_NOW(&message->time);
 

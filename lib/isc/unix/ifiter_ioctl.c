@@ -411,7 +411,8 @@ internal_current_clusteralias(isc_interfaceiter_t *iter) {
 	memset(&iter->current, 0, sizeof(iter->current));
 	iter->current.af = iter->clua_sa.sa_family;
 	memset(iter->current.name, 0, sizeof(iter->current.name));
-	sprintf(iter->current.name, "clua%d", ci.aliasid);
+	snprintf(iter->current.name, sizeof(iter->current.name),
+		 "clua%d", ci.aliasid);
 	iter->current.flags = INTERFACE_F_UP;
 	get_inaddr(&iter->current.address, &ci.addr);
 	get_inaddr(&iter->current.netmask, &ci.netmask);
