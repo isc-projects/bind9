@@ -33,7 +33,7 @@ ISCDEPLIBS =	../libisc.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
-SRCS =          isctest.c aes_test.c counter_test.c errno_test.c \
+SRCS =		isctest.c aes_test.c counter_test.c errno_test.c \
 		hash_test.c inet_ntop_test.c lex_test.c mem_test.c \
 		netaddr_test.c parse_test.c pool_test.c print_test.c \
 		queue_test.c radix_test.c regex_test.c safe_test.c \
@@ -41,7 +41,7 @@ SRCS =          isctest.c aes_test.c counter_test.c errno_test.c \
 		symtab_test.c task_test.c taskpool_test.c time_test.c
 
 SUBDIRS =
-TARGETS =       taskpool_test@EXEEXT@ aes_test@EXEEXT@ counter_test@EXEEXT@ \
+TARGETS =	taskpool_test@EXEEXT@ aes_test@EXEEXT@ counter_test@EXEEXT@ \
 		errno_test@EXEEXT@ hash_test@EXEEXT@ inet_ntop_test@EXEEXT@ \
 		lex_test@EXEEXT@ mem_test@EXEEXT@ netaddr_test@EXEEXT@ \
 		parse_test@EXEEXT@ pool_test@EXEEXT@ print_test@EXEEXT@ \
