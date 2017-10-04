@@ -139,7 +139,7 @@ ZLIB=@ZLIB@
 #
 # Set up color-coded test output
 #
-if test -t 1 && type tput > /dev/null; then
+if test -t 1 && type tput > /dev/null 2>&1 ; then
     COLOR_FAIL=`tput setaf 1`   # red
     COLOR_WARN=`tput setaf 3`   # yellow
     COLOR_PASS=`tput setaf 2`   # green
