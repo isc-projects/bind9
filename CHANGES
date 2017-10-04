@@ -1,3 +1,5 @@
+4752.	[test]		Add unit test for isc_net_pton. [RT #46171]
+
 4751.	[func]		"dnssec-signzone -S" can now automatically add parent
 			synchronization records (CDS and CDNSKEY) according
 			to key metadata set using the -Psync and -Dsync
