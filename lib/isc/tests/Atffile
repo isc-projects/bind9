@@ -9,6 +9,7 @@ tp: errno_test
 tp: file_test
 tp: hash_test
 tp: ht_test
+tp: inet_ntop_test
 tp: lex_test
 tp: mem_test
 tp: netaddr_test
