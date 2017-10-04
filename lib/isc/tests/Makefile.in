@@ -41,14 +41,14 @@ SRCS =		isctest.c aes_test.c counter_test.c errno_test.c \
 		symtab_test.c task_test.c taskpool_test.c time_test.c
 
 SUBDIRS =
-TARGETS =	taskpool_test@EXEEXT@ aes_test@EXEEXT@ counter_test@EXEEXT@ \
-		errno_test@EXEEXT@ hash_test@EXEEXT@ inet_ntop_test@EXEEXT@ \
-		lex_test@EXEEXT@ mem_test@EXEEXT@ netaddr_test@EXEEXT@ \
-		parse_test@EXEEXT@ pool_test@EXEEXT@ print_test@EXEEXT@ \
-		queue_test@EXEEXT@ radix_test@EXEEXT@ regex_test@EXEEXT@ \
-		safe_test@EXEEXT@ sockaddr_test@EXEEXT@ socket_test@EXEEXT@ \
+TARGETS =	aes_test@EXEEXT@ counter_test@EXEEXT@ errno_test@EXEEXT@ \
+		hash_test@EXEEXT@ inet_ntop_test@EXEEXT@ lex_test@EXEEXT@ \
+		mem_test@EXEEXT@ netaddr_test@EXEEXT@ parse_test@EXEEXT@ \
+		pool_test@EXEEXT@ print_test@EXEEXT@ queue_test@EXEEXT@ \
+		radix_test@EXEEXT@ regex_test@EXEEXT@ safe_test@EXEEXT@ \
+		sockaddr_test@EXEEXT@ socket_test@EXEEXT@ \
 		socket_test@EXEEXT@ symtab_test@EXEEXT@ task_test@EXEEXT@ \
-		time_test@EXEEXT@
+		taskpool_test@EXEEXT@ time_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
