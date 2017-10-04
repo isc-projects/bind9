@@ -381,6 +381,7 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
 #ifdef ISC_PLATFORM_NEEDNTOP
 const char *
 isc_net_ntop(int af, const void *src, char *dst, size_t size);
+#undef inet_ntop
 #define inet_ntop isc_net_ntop
 #endif
 
