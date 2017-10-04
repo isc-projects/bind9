@@ -501,7 +501,7 @@
                 will be deleted.
               </para>
               <para>
-                Running <command>rndc reconfig>/command> or restarting
+                Running <command>rndc reconfig</command> or restarting
                 <command>named</command> immediately after this command
                 will cause key maintenance to be reinitialized from scratch,
                 just as if the server were being started for the first time.
@@ -512,7 +512,6 @@
               </para>
             </listitem>
           </itemizedlist>
-	  </para>
 	</listitem>
       </varlistentry>
 
