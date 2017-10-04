@@ -128,21 +128,34 @@ else
     COLOR_NONE=''
 fi
 
-echofail () {
-        printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
-}
-
-echowarn () {
-        printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
-}
-
-echopass () {
-        printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
-}
-
-echoinfo () {
-        printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
-}
+if type printf > /dev/null 2>&1
+then
+	echofail () {
+		printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
+	}
+	echowarn () {
+		printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
+	}
+	echopass () {
+		printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
+	}
+	echoinfo () {
+		printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+	}
+else
+	echofail () {
+		echo "$*"
+	}
+	echowarn () {
+		echo "$*"
+	}
+	echopass () {
+		echo "$*"
+	}
+	echoinfo () {
+		echo "$*"
+	}
+fi
 
 #
 # Export command paths
