@@ -182,7 +182,7 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 			tp += strlen(tp);
 			break;
 		}
-		INSIST((tp - tmp) < sizeof(tmp));
+		INSIST((size_t)(tp - tmp) < sizeof(tmp));
 		tp += snprintf(tp, sizeof(tmp) - (tp - tmp), "%x", words[i]);
 	}
 	/* Was it a trailing run of 0x00's? */

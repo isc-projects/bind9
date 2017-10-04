@@ -1,3 +1,5 @@
+4752.	[test]		Add unit test for isc_net_pton. [RT #46171]
+
 4749.	[func]		The ISC DLV service has been shut down, and all
 			DLV records have been removed from dlv.isc.org.
 			- Removed references to ISC DLV in documentation
