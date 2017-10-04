@@ -6977,7 +6977,7 @@ options {
 		  installed along with BIND 9, and is current as of the
 		  release date.  If the root key expires, a new copy of
 		  <filename>bind.keys</filename> can be downloaded
-		  from <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/bind-keys">https://www.isc.org/bind-keys</link>.
+		  from <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/bind-keys">https://www.isc.org/bind-keys</link>.
 		</para>
 		<para>
 		  To prevent problems if <filename>bind.keys</filename> is
