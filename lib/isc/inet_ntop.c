@@ -135,7 +135,9 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 	for (i = 0; i < NS_IN6ADDRSZ; i++)
 		words[i / 2] |= (src[i] << ((1 - (i % 2)) << 3));
 	best.base = -1;
+	best.len = 0;	/* silence compiler */
 	cur.base = -1;
+	cur.len = 0;	/* silence compiler */
 	for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
 		if (words[i] == 0) {
 			if (cur.base == -1)
