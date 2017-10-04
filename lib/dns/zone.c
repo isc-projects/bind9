@@ -3257,7 +3257,7 @@ nsec3param_salt_totext(dns_rdata_nsec3param_t *nsec3param, char *dst,
 	REQUIRE(dst != NULL);
 
 	if (nsec3param->salt_length == 0) {
-		if (dstlen < 2) {
+		if (dstlen < 2U) {
 			return (ISC_R_NOSPACE);
 		}
 		strlcpy(dst, "-", dstlen);
@@ -3266,7 +3266,7 @@ nsec3param_salt_totext(dns_rdata_nsec3param_t *nsec3param, char *dst,
 
 	r.base = nsec3param->salt;
 	r.length = nsec3param->salt_length;
-	isc_buffer_init(&b, dst, dstlen);
+	isc_buffer_init(&b, dst, (unsigned int)dstlen);
 
 	result = isc_hex_totext(&r, 2, "", &b);
 	if (result != ISC_R_SUCCESS) {
