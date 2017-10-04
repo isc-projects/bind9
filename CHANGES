@@ -1,3 +1,8 @@
+4753.	[contrib]	Software obtainable from known upstream locations
+			(i.e., zkt, nslint, query-loc) has been removed.
+			Links to these and other packages can be found at
+			https://www.isc.org/community/tools [RT #46182]
+
 4752.	[test]		Add unit test for isc_net_pton. [RT #46171]
 
 4749.	[func]		The ISC DLV service has been shut down, and all
