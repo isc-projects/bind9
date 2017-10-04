@@ -278,7 +278,7 @@ received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		 * wide-character string, which strftime() handles incorrectly.
 		 */
 		if (wcsftime(time_str, sizeof(time_str)/sizeof(time_str[0]),
-			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
+			     L"%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
 			printf(";; WHEN: %ls\n", time_str);
 #else
 		if (strftime(time_str, sizeof(time_str),
