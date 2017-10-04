@@ -4254,6 +4254,7 @@
 ./lib/isc/tests/file_test.c			C	2014,2016
 ./lib/isc/tests/hash_test.c			C	2011,2012,2013,2014,2015,2016,2017
 ./lib/isc/tests/ht_test.c			C	2016,2017
+./lib/isc/tests/inet_ntop_test.c		C	2017
 ./lib/isc/tests/isctest.c			C	2011,2012,2013,2014,2016,2017
 ./lib/isc/tests/isctest.h			C	2011,2012,2016
 ./lib/isc/tests/lex_test.c			C	2013,2016
@@ -4295,7 +4296,7 @@
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005,2007,2016
 ./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004,2005,2007,2016
 ./lib/isc/unix/include/isc/keyboard.h		C	2000,2001,2004,2005,2007,2016
-./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014,2016
+./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014,2016,2017
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004,2005,2007,2016
 ./lib/isc/unix/include/isc/offset.h		C	2000,2001,2004,2005,2007,2008,2016
 ./lib/isc/unix/include/isc/stat.h		C	2004,2007,2014,2016
@@ -4343,7 +4344,7 @@
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007,2011,2012,2016
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004,2007,2016
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007,2008,2009,2016
-./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2016
+./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2016,2017
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004,2007,2016
 ./lib/isc/win32/include/isc/ntgroups.h		C	2001,2004,2007,2016
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004,2007,2009,2015,2016
