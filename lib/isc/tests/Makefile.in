@@ -56,7 +56,7 @@ aes_test@EXEEXT@: aes_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			aes_test.@O@ ${ISCLIBS} ${LIBS}
 
-counter_test@EXEEXT@: counter_test.@O@ ${ISCDEPLIBS}
+counter_test@EXEEXT@: counter_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			counter_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
