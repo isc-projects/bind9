@@ -1298,6 +1298,27 @@ dns_view_loadnta(dns_view_t *view);
  *\li	'view' to be valid.
  */
 
+void
+dns_view_setviewcommit(dns_view_t *view);
+/*%<
+ * Commit dns_zone_setview() calls previously made for all zones in this
+ * view.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+void
+dns_view_setviewrevert(dns_view_t *view);
+/*%<
+ * Revert dns_zone_setview() calls previously made for all zones in this
+ * view.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_VIEW_H */
