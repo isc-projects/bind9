@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: clean.sh,v 1.3 2010/09/15 03:32:34 marka Exp $
-
 rm -f dig.out.*
 rm -f rndc.out*
 rm -f showzone.out*
@@ -28,8 +26,11 @@ rm -rf ns2/new-zones
 rm -f ns*/named.lock
 rm -f ns*/named.run
 rm -f ns2/nzf-*
+rm -f ns3/named.conf
+rm -f ns3/*.nzf ns3/*.nzf~
+rm -f ns3/*.nzd ns3/*.nzd-lock
+rm -f ns3/inlineslave.db
 rm -f ns1/redirect.db
 rm -f ns2/redirect.db
 rm -f ns2/redirect.bk
 rm -f ns3/redirect.db
-

@@ -476,7 +476,7 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 
 
 /*
- * Check for authority to change a name
+ * Check for authority to change a name.
  */
 static isc_boolean_t
 dlopen_dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
@@ -501,7 +501,7 @@ dlopen_dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 
 
 /*
- * Add an rdataset
+ * Add an rdataset.
  */
 static isc_result_t
 dlopen_dlz_addrdataset(const char *name, const char *rdatastr,
@@ -523,7 +523,7 @@ dlopen_dlz_addrdataset(const char *name, const char *rdatastr,
 }
 
 /*
- * Subtract an rdataset
+ * Subtract an rdataset.
  */
 static isc_result_t
 dlopen_dlz_subrdataset(const char *name, const char *rdatastr,
@@ -545,7 +545,7 @@ dlopen_dlz_subrdataset(const char *name, const char *rdatastr,
 }
 
 /*
-  delete a rdataset
+ * Delete a rdataset.
  */
 static isc_result_t
 dlopen_dlz_delrdataset(const char *name, const char *type,
