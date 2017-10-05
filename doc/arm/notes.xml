@@ -454,7 +454,7 @@
 	  References to the service have been removed from BIND documentation.
 	  Lookaside validation is no longer used by default by
 	  <command>delv</command>. The DLV key has been removed from
-	  <filename>bind.keys</command>. Setting
+	  <filename>bind.keys</filename>. Setting
 	  <command>dnssec-lookaside</command> set to
 	  <command>auto</command> or to use dlv.isc.org as a trust
 	  anchor is now a fatal configuration error. [RT #46155]
