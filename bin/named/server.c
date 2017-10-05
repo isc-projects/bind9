@@ -6908,6 +6908,7 @@ static isc_result_t
 count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
 	isc_result_t result;
 
+	/* The new zone file may not exist. That is OK. */
 	if (!isc_file_exists(view->new_zone_file)) {
 		*num_zonesp = 0;
 		return (ISC_R_SUCCESS);
@@ -6934,11 +6935,6 @@ count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
 			      view->new_zone_file, num_zones);
 		if (num_zonesp != NULL)
 			*num_zonesp = num_zones;
-	} else if (result == ISC_R_FILENOTFOUND) {
-		/* The new zone file may not exist. That is OK. */
-		result = ISC_R_SUCCESS;
-		if (num_zonesp != NULL)
-			*num_zonesp = 0;
 	} else {
 		isc_log_write(named_g_lctx,
 			      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
