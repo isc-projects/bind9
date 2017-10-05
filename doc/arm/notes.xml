@@ -131,7 +131,7 @@
 	  The ISC DNSSEC Lookaside Validation (DLV) service has been shut
 	  down; all DLV records in the dlv.isc.org zone have been removed.
 	  References to the service have been removed from BIND documentation.
-	  The DLV key has been removed from <filename>bind.keys</command>.
+	  The DLV key has been removed from <filename>bind.keys</filename>.
 	  [RT #46155]
 	</para>
       </listitem>
