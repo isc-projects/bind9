@@ -8,6 +8,9 @@
 
 set -eu
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
 status=0
 die() {
 	echo "I:failed"
@@ -196,10 +199,6 @@ ck 0 $CDS -u -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
 name='TTL from -T overrides dsset'
 out=DS.ttlong2
 ck 0 $CDS -T 7200 -s -7200 -f sig.cds.2 -d DS.ttl1 $Z
-
-name='stable DS record order (no change)'
-out=DS.1
-ck 0 $CDS -s -7200 -f sig.null -d DS.rev1 $Z
 
 name='stable DS record order (changes)'
 out=DS.1
