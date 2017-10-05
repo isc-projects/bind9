@@ -853,6 +853,7 @@ make_empty_lookup(void) {
 	looknew->ednsneg = ISC_TRUE;
 	looknew->mapped = ISC_TRUE;
 	looknew->dscp = -1;
+	looknew->eoferr = 0;
 	dns_fixedname_init(&looknew->fdomain);
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
@@ -948,6 +949,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
 	looknew->dscp = lookold->dscp;
+	looknew->eoferr = lookold->eoferr;
 
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
@@ -3094,9 +3096,12 @@ send_udp(dig_query_t *query) {
 			next = ISC_LIST_NEXT(query, link);
 			l = query->lookup;
 			clear_query(query);
-			if (next == NULL)
+			if (next == NULL) {
 				printf(";; No acceptable nameservers\n");
-			check_next_lookup(l);
+				check_next_lookup(l);
+			} else {
+				send_udp(next);
+			}
 			return;
 		}
 
@@ -3228,7 +3233,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *b = NULL;
 	isc_result_t result;
 	dig_query_t *query = NULL;
-	dig_lookup_t *l;
+	dig_lookup_t *l, *n;
 	isc_uint16_t length;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
@@ -3263,13 +3268,20 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 				    sizeof(sockstr));
 		printf(";; communications error to %s: %s\n",
 		       sockstr, isc_result_totext(sevent->result));
+		if (keep != NULL)
+			isc_socket_detach(&keep);
 		l = query->lookup;
 		isc_socket_detach(&query->sock);
 		sockcount--;
 		debug("sockcount=%d", sockcount);
 		INSIST(sockcount >= 0);
+		if (sevent->result == ISC_R_EOF && l->eoferr == 0U) {
+			n = requeue_lookup(l, ISC_TRUE);
+			n->eoferr++;
+		}
 		isc_event_free(&event);
 		clear_query(query);
+		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
@@ -3773,13 +3785,20 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		} else {
 			printf(";; communications error: %s\n",
 			       isc_result_totext(sevent->result));
+			if (keep != NULL)
+				isc_socket_detach(&keep);
 			isc_socket_detach(&query->sock);
 			sockcount--;
 			debug("sockcount=%d", sockcount);
 			INSIST(sockcount >= 0);
 		}
+		if (sevent->result == ISC_R_EOF && l->eoferr == 0U) {
+			n = requeue_lookup(l, ISC_TRUE);
+			n->eoferr++;
+		}
 		isc_event_free(&event);
 		clear_query(query);
+		cancel_lookup(l);
 		check_next_lookup(l);
 		UNLOCK_LOOKUP;
 		return;
@@ -3841,6 +3860,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (fail) {
 				isc_event_free(&event);
 				clear_query(query);
+				cancel_lookup(l);
 				check_next_lookup(l);
 				UNLOCK_LOOKUP;
 				return;
@@ -3952,6 +3972,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (l->tcp_mode) {
 				isc_event_free(&event);
 				clear_query(query);
+				cancel_lookup(l);
 				check_next_lookup(l);
 				UNLOCK_LOOKUP;
 				return;

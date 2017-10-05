@@ -190,6 +190,7 @@ isc_boolean_t	sigchase;
 	isc_dscp_t dscp;
 	unsigned int ednsflags;
 	dns_opcode_t opcode;
+	unsigned int eoferr;
 };
 
 /*% The dig_query structure */
