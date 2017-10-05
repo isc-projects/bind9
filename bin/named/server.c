@@ -6908,6 +6908,11 @@ static isc_result_t
 count_newzones(dns_view_t *view, ns_cfgctx_t *nzcfg, int *num_zonesp) {
 	isc_result_t result;
 
+	if (!isc_file_exists(view->new_zone_file)) {
+		*num_zonesp = 0;
+		return (ISC_R_SUCCESS);
+	}
+
 	/*
 	 * In the case of NZF files, we also parse the configuration in
 	 * the file at this stage.
@@ -7001,7 +7006,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	int i = 0;
 	isc_uint64_t mapsize = 0ULL;
 
-	REQUIRE (config != NULL);
+	REQUIRE(config != NULL);
 
 	if (vconfig != NULL)
 		voptions = cfg_tuple_get(vconfig, "options");
