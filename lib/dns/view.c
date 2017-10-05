@@ -1403,7 +1403,7 @@ dns_viewlist_findzone(dns_viewlist_t *list, dns_name_t *name,
 	dns_view_t *view;
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL;
-	dns_zone_t **zp = NULL;;
+	dns_zone_t **zp = NULL;
 
 	REQUIRE(list != NULL);
 	REQUIRE(zonep != NULL && *zonep == NULL);
@@ -1971,4 +1971,48 @@ dns_view_searchdlz(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
 	}
 
 	return (ISC_R_NOTFOUND);
+}
+
+void
+dns_view_setviewcommit(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	LOCK(&view->lock);
+
+	if (view->redirect != NULL) {
+		dns_zone_setviewcommit(view->redirect);
+	}
+	if (view->managed_keys != NULL) {
+		dns_zone_setviewcommit(view->managed_keys);
+	}
+	if (view->zonetable != NULL) {
+		dns_zt_setviewcommit(view->zonetable);
+	}
+
+	UNLOCK(&view->lock);
+}
+
+void
+dns_view_setviewrevert(dns_view_t *view) {
+	dns_zt_t *zonetable;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	/*
+	 * dns_zt_setviewrevert() attempts to lock this view, so we must
+	 * release the lock.
+	 */
+	LOCK(&view->lock);
+	if (view->redirect != NULL) {
+		dns_zone_setviewrevert(view->redirect);
+	}
+	if (view->managed_keys != NULL) {
+		dns_zone_setviewrevert(view->managed_keys);
+	}
+	zonetable = view->zonetable;
+	UNLOCK(&view->lock);
+
+	if (zonetable != NULL) {
+		dns_zt_setviewrevert(zonetable);
+	}
 }

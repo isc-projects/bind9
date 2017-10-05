@@ -210,6 +210,26 @@ dns_zt_loadspending(dns_zt_t *zt);
  * \li	'zt' to be valid.
  */
 
+void
+dns_zt_setviewcommit(dns_zt_t *zt);
+/*%<
+ * Commit dns_zone_setview() calls previously made for all zones in this
+ * zone table.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
+void
+dns_zt_setviewrevert(dns_zt_t *zt);
+/*%<
+ * Revert dns_zone_setview() calls previously made for all zones in this
+ * zone table.
+ *
+ * Requires:
+ *\li	'view' to be valid.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZT_H */

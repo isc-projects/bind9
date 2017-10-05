@@ -166,6 +166,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  When <command>named</command> was reconfigured, failure of some
+	  zones to load correctly could leave the system in an inconsistent
+	  state; while generally harmless, this could lead to a crash later
+	  when using <command>rndc addzone</command>.  Reconfiguration changes
+	  are now fully rolled back in the event of failure. [RT #45841]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Fixed a bug that was introduced in an earlier development
 	  release which caused multi-packet AXFR and IXFR messages to fail
 	  validation if not all packets contained TSIG records; this

@@ -26,3 +26,7 @@ rm -f ns2/inline.db.jbk
 rm -f ns2/inline.db.signed
 rm -f ns2/inlineslave.bk*
 rm -f ns*/named.run
+rm -f ns3/named.conf
+rm -f ns3/*.nzf ns3/*.nzf~
+rm -f ns3/*.nzd ns3/*.nzd-lock
+rm -f ns3/inlineslave.db

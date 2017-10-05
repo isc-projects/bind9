@@ -310,6 +310,7 @@ struct dns_zone {
 	isc_uint32_t		sigvalidityinterval;
 	isc_uint32_t		sigresigninginterval;
 	dns_view_t		*view;
+	dns_view_t		*prev_view;
 	dns_acache_t		*acache;
 	dns_checkmxfunc_t	checkmx;
 	dns_checksrvfunc_t	checksrv;
@@ -879,19 +880,22 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	TIME_NOW(&now);
 	zone = isc_mem_get(mctx, sizeof(*zone));
-	if (zone == NULL)
+	if (zone == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	zone->mctx = NULL;
 	isc_mem_attach(mctx, &zone->mctx);
 
 	result = isc_mutex_init(&zone->lock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto free_zone;
+	}
 
 	result = ZONEDB_INITLOCK(&zone->dblock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto free_mutex;
+	}
 
 	/* XXX MPA check that all elements are initialised */
 #ifdef DNS_ZONE_CHECKLOCK
@@ -901,8 +905,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
 	result = isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto free_dblock;
+	}
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->strnamerd = NULL;
@@ -998,6 +1003,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->sigresigninginterval = 7 * 24 * 3600;
 	zone->view = NULL;
+	zone->prev_view = NULL;
 	zone->acache = NULL;
 	zone->checkmx = NULL;
 	zone->checksrv = NULL;
@@ -1038,8 +1044,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto free_erefs;
+	}
 
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
@@ -1083,18 +1090,25 @@ zone_free(dns_zone_t *zone) {
 	/*
 	 * Managed objects.  Order is important.
 	 */
-	if (zone->request != NULL)
+	if (zone->request != NULL) {
 		dns_request_destroy(&zone->request); /* XXXMPA */
+	}
 	INSIST(zone->readio == NULL);
 	INSIST(zone->statelist == NULL);
 	INSIST(zone->writeio == NULL);
 
-	if (zone->task != NULL)
+	if (zone->task != NULL) {
 		isc_task_detach(&zone->task);
-	if (zone->loadtask != NULL)
+	}
+	if (zone->loadtask != NULL) {
 		isc_task_detach(&zone->loadtask);
-	if (zone->view != NULL)
+	}
+	if (zone->view != NULL) {
 		dns_view_weakdetach(&zone->view);
+	}
+	if (zone->prev_view != NULL) {
+		dns_view_weakdetach(&zone->prev_view);
+	}
 
 	/* Unmanaged objects */
 	for (signing = ISC_LIST_HEAD(zone->signing);
@@ -1127,61 +1141,80 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, include->name);
 		isc_mem_put(zone->mctx, include, sizeof *include);
 	}
-	if (zone->masterfile != NULL)
+	if (zone->masterfile != NULL) {
 		isc_mem_free(zone->mctx, zone->masterfile);
+	}
 	zone->masterfile = NULL;
-	if (zone->keydirectory != NULL)
+	if (zone->keydirectory != NULL) {
 		isc_mem_free(zone->mctx, zone->keydirectory);
+	}
 	zone->keydirectory = NULL;
 	zone->journalsize = -1;
-	if (zone->journal != NULL)
+	if (zone->journal != NULL) {
 		isc_mem_free(zone->mctx, zone->journal);
+	}
 	zone->journal = NULL;
-	if (zone->stats != NULL)
+	if (zone->stats != NULL) {
 		isc_stats_detach(&zone->stats);
-	if (zone->requeststats != NULL)
+	}
+	if (zone->requeststats != NULL) {
 		isc_stats_detach(&zone->requeststats);
-	if (zone->rcvquerystats != NULL)
+	}
+	if (zone->rcvquerystats != NULL){
 		dns_stats_detach(&zone->rcvquerystats);
-	if (zone->db != NULL)
+	}
+	if (zone->db != NULL) {
 		zone_detachdb(zone);
-	if (zone->acache != NULL)
+	}
+	if (zone->acache != NULL) {
 		dns_acache_detach(&zone->acache);
+	}
 	if (zone->rpzs != NULL) {
 		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
 		dns_rpz_detach_rpzs(&zone->rpzs);
 		zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	}
 	zone_freedbargs(zone);
-	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL, NULL, 0)
-		      == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0)
-		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_zone_setmasterswithkeys(zone, NULL,
+						  NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_zone_setalsonotify(zone, NULL, 0) == ISC_R_SUCCESS);
 	zone->check_names = dns_severity_ignore;
-	if (zone->update_acl != NULL)
+	if (zone->update_acl != NULL) {
 		dns_acl_detach(&zone->update_acl);
-	if (zone->forward_acl != NULL)
+	}
+	if (zone->forward_acl != NULL) {
 		dns_acl_detach(&zone->forward_acl);
-	if (zone->notify_acl != NULL)
+	}
+	if (zone->notify_acl != NULL) {
 		dns_acl_detach(&zone->notify_acl);
-	if (zone->query_acl != NULL)
+	}
+	if (zone->query_acl != NULL) {
 		dns_acl_detach(&zone->query_acl);
-	if (zone->queryon_acl != NULL)
+	}
+	if (zone->queryon_acl != NULL) {
 		dns_acl_detach(&zone->queryon_acl);
-	if (zone->xfr_acl != NULL)
+	}
+	if (zone->xfr_acl != NULL) {
 		dns_acl_detach(&zone->xfr_acl);
-	if (dns_name_dynamic(&zone->origin))
+	}
+	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
-	if (zone->strnamerd != NULL)
+	}
+	if (zone->strnamerd != NULL) {
 		isc_mem_free(zone->mctx, zone->strnamerd);
-	if (zone->strname != NULL)
+	}
+	if (zone->strname != NULL) {
 		isc_mem_free(zone->mctx, zone->strname);
-	if (zone->strrdclass != NULL)
+	}
+	if (zone->strrdclass != NULL) {
 		isc_mem_free(zone->mctx, zone->strrdclass);
-	if (zone->strviewname != NULL)
+	}
+	if (zone->strviewname != NULL) {
 		isc_mem_free(zone->mctx, zone->strviewname);
-	if (zone->ssutable != NULL)
+	}
+	if (zone->ssutable != NULL) {
 		dns_ssutable_detach(&zone->ssutable);
+	}
 
 	/* last stuff */
 	ZONEDB_DESTROYLOCK(&zone->dblock);
@@ -1393,10 +1426,12 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
 	/* Set up a new database argument list. */
 	argv = isc_mem_get(zone->mctx, dbargc * sizeof(*argv));
-	if (argv == NULL)
+	if (argv == NULL) {
 		goto nomem;
-	for (i = 0; i < dbargc; i++)
+	}
+	for (i = 0; i < dbargc; i++) {
 		argv[i] = NULL;
+	}
 	for (i = 0; i < dbargc; i++) {
 		argv[i] = isc_mem_strdup(zone->mctx, dbargv[i]);
 		if (argv[i] == NULL)
@@ -1413,9 +1448,11 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
  nomem:
 	if (argv != NULL) {
-		for (i = 0; i < dbargc; i++)
-			if (argv[i] != NULL)
+		for (i = 0; i < dbargc; i++) {
+			if (argv[i] != NULL) {
 				isc_mem_free(zone->mctx, argv[i]);
+			}
+		}
 		isc_mem_put(zone->mctx, argv, dbargc * sizeof(*argv));
 	}
 	result = ISC_R_NOMEMORY;
@@ -1425,30 +1462,43 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	return (result);
 }
 
-void
-dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+static void
+dns_zone_setview_helper(dns_zone_t *zone, dns_view_t *view) {
 	char namebuf[1024];
-	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
+	if (zone->prev_view == NULL && zone->view != NULL) {
+		dns_view_weakattach(zone->view, &zone->prev_view);
+	}
+
 	INSIST(zone != zone->raw);
-	if (zone->view != NULL)
+	if (zone->view != NULL) {
 		dns_view_weakdetach(&zone->view);
+	}
 	dns_view_weakattach(view, &zone->view);
 
-	if (zone->strviewname != NULL)
+	if (zone->strviewname != NULL) {
 		isc_mem_free(zone->mctx, zone->strviewname);
-	if (zone->strnamerd != NULL)
+	}
+	if (zone->strnamerd != NULL) {
 		isc_mem_free(zone->mctx, zone->strnamerd);
+	}
 
 	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
 	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
 	zone_viewname_tostr(zone, namebuf, sizeof namebuf);
 	zone->strviewname = isc_mem_strdup(zone->mctx, namebuf);
 
-	if (inline_secure(zone))
+	if (inline_secure(zone)) {
 		dns_zone_setview(zone->raw, view);
+	}
+}
 
+void
+dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	dns_zone_setview_helper(zone, view);
 	UNLOCK_ZONE(zone);
 }
 
@@ -1459,6 +1509,27 @@ dns_zone_getview(dns_zone_t *zone) {
 	return (zone->view);
 }
 
+void
+dns_zone_setviewcommit(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->prev_view != NULL)
+		dns_view_weakdetach(&zone->prev_view);
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setviewrevert(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->prev_view != NULL) {
+		dns_zone_setview_helper(zone, zone->prev_view);
+		dns_view_weakdetach(&zone->prev_view);
+	}
+	UNLOCK_ZONE(zone);
+}
 
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
