@@ -227,6 +227,26 @@ dns_zone_getview(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
+void
+dns_zone_setviewcommit(dns_zone_t *zone);
+/*%<
+ *	Commit the previous view saved internally via dns_zone_setview().
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setviewrevert(dns_zone_t *zone);
+/*%<
+ *	Revert the most recent dns_zone_setview() on this zone,
+ *	restoring the previous view.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin);
 /*%<

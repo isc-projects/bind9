@@ -430,6 +430,54 @@ freezezones(dns_zone_t *zone, void *uap) {
 	return (result);
 }
 
+void
+dns_zt_setviewcommit(dns_zt_t *zt) {
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+	isc_result_t result;
+
+	REQUIRE(VALID_ZT(zt));
+
+	dns_rbtnodechain_init(&chain, zt->mctx);
+
+	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
+	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
+		result = dns_rbtnodechain_current(&chain, NULL, NULL,
+						  &node);
+		if (result == ISC_R_SUCCESS && node->data != NULL) {
+			dns_zone_setviewcommit(node->data);
+		}
+
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	}
+
+	dns_rbtnodechain_invalidate(&chain);
+}
+
+void
+dns_zt_setviewrevert(dns_zt_t *zt) {
+	dns_rbtnode_t *node;
+	dns_rbtnodechain_t chain;
+	isc_result_t result;
+
+	REQUIRE(VALID_ZT(zt));
+
+	dns_rbtnodechain_init(&chain, zt->mctx);
+
+	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
+	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
+		result = dns_rbtnodechain_current(&chain, NULL, NULL,
+						  &node);
+		if (result == ISC_R_SUCCESS && node->data != NULL) {
+			dns_zone_setviewrevert(node->data);
+		}
+
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	}
+
+	dns_rbtnodechain_invalidate(&chain);
+}
+
 isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap)

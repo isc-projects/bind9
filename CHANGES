@@ -1,3 +1,6 @@
+4754.	[bug]		dns_zone_setview needs a two stage commit to properly
+			handle errors. [RT #45841]
+
 4753.	[contrib]	Software obtainable from known upstream locations
 			(i.e., zkt, nslint, query-loc) has been removed.
 			Links to these and other packages can be found at

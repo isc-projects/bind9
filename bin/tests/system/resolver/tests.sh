@@ -67,7 +67,7 @@ if [ -x ${SAMPLE} ] ; then
     echo "I:checking handling of bogus referrals using dns_client ($n)"
     ret=0
     ${SAMPLE} -p 5300 -t a 10.53.0.1 www.example.com 2> sample.out.ns1.test${n} || ret=1
-    grep "resolution failed: failure" sample.out.ns1.test${n} > /dev/null || ret=1
+    grep -E "resolution failed: (SERVFAIL|failure)" sample.out.ns1.test${n} > /dev/null || ret=1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi
