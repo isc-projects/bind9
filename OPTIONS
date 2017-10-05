@@ -18,5 +18,5 @@ Setting                   Description
 -DCHECK_LOCAL=0           Don't check out-of-zone addresses in
                           named-checkzone
 -DNS_RUN_PID_DIR=0        Create default PID files in ${localstatedir}/run
-                          rather than ${localstatedir}/run/{named,lwresd}/
+                          rather than ${localstatedir}/run/named/
 
