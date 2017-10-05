@@ -266,11 +266,17 @@ braces should not be on the same line as the opening or closing brace.  A
 closing brace should be the only thing on the line, unless it's part of an
 else clause.
 
-Generally speaking, when a control statement (e.g., `if`, `for` or `while`) has
-only a single action associated with it, then no bracing is used around the
-statement.  Exceptions include when the compiler would complain about an
-ambiguous else clause, or when extra bracing improves readability or
-safety.
+If a controlling statement (e.g., `if`, `while`, or `for`) or a function
+header at the start of a block of code is all on one line, then the opening
+brace should at the end of that line. If the controlling statement occupies
+multiple lines, then the opening brace should be on the next line by itself.
+
+Historically, when a controlling statement such as `if` or `else` had
+only a single action associated with it, then BIND style specified that
+no bracing was to used around that action.  This has been revised: in
+newly added code, braces are now preferred around all control statement
+code blocks.  Note that legacy code has not yet been udpated to adhere to
+this.
 
 Good:
 
@@ -279,8 +285,9 @@ Good:
                if (i > 0) {
                        printf("yes\\n");
                        i = 0;
-               } else
+               } else {
                        printf("no\\n");
+               }
        }
 
 Bad:
@@ -288,6 +295,8 @@ Bad:
        void f(int i)
          {
            if(i<0){i=0;printf("was negative\\n");}
+           if (i == 0)
+               printf("no\\n");
            if (i > 0)
              {
                printf("yes\\n");
