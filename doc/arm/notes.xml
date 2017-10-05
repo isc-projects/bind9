@@ -155,7 +155,7 @@
 	  References to the service have been removed from BIND documentation.
 	  Lookaside validation is no longer used by default by
 	  <command>delv</command>. The DLV key has been removed from
-	  <filename>bind.keys</command>. [RT #46155]
+	  <filename>bind.keys</filename>. [RT #46155]
 	</para>
       </listitem>
       <listitem>
