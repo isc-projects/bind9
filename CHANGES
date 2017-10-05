@@ -1,3 +1,6 @@
+4755.	[cleanup]	Silence unnecessary log message when NZF file doesn't
+			exist. [RT #46186]
+
 4754.	[bug]		dns_zone_setview needs a two stage commit to properly
 			handle errors. [RT #45841]
 
