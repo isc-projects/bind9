@@ -346,7 +346,7 @@ usage(void) {
 
 int
 main(int argc, char **argv) {
-	char		*algname = NULL, *classname = NULL;
+	char		*classname = NULL;
 	char		*filename = NULL, *dir = NULL, *namestr;
 	char		*lookaside = NULL;
 	char		*endp;
@@ -393,7 +393,7 @@ main(int argc, char **argv) {
 			showall = ISC_TRUE;
 			break;
 		case 'a':
-			algname = isc_commandline_argument;
+			dtype = strtodsdigest(isc_commandline_argument);
 			both = ISC_FALSE;
 			break;
 		case 'C':
@@ -430,7 +430,7 @@ main(int argc, char **argv) {
 			break;
 		case 'T':
 			emitttl = ISC_TRUE;
-			ttl = atol(isc_commandline_argument);
+			ttl = strtottl(isc_commandline_argument);
 			break;
 		case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);
@@ -458,24 +458,6 @@ main(int argc, char **argv) {
 				program, isc_commandline_option);
 			exit(1);
 		}
-	}
-
-	if (algname != NULL) {
-		if (strcasecmp(algname, "SHA1") == 0 ||
-		    strcasecmp(algname, "SHA-1") == 0)
-			dtype = DNS_DSDIGEST_SHA1;
-		else if (strcasecmp(algname, "SHA256") == 0 ||
-			 strcasecmp(algname, "SHA-256") == 0)
-			dtype = DNS_DSDIGEST_SHA256;
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-		else if (strcasecmp(algname, "GOST") == 0)
-			dtype = DNS_DSDIGEST_GOST;
-#endif
-		else if (strcasecmp(algname, "SHA384") == 0 ||
-			 strcasecmp(algname, "SHA-384") == 0)
-			dtype = DNS_DSDIGEST_SHA384;
-		else
-			fatal("unknown algorithm %s", algname);
 	}
 
 	rdclass = strtoclass(classname);

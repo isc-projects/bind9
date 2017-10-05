@@ -277,6 +277,17 @@
       </listitem>
       <listitem>
 	<para>
+	  The new <command>dnssec-cds</command> command generates a new DS
+	  set to place in a parent zone, based on the contents of a child
+	  zone's validated CDS or CDNSKEY records. It can produce a
+	  <filename>dsset</filename> file suitable for input to
+	  <command>dnssec-signzone</command>, or a series of
+	  <command>nsupdate</command> to update the parent zone via dynamic
+	  DNS. Thanks to Tony Finch for the contribution.  [RT #46090]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>nsupdate</command> and <command>rndc</command> now accepts
 	  command line options <command>-4</command> and <command>-6</command>
 	  which force using only IPv4 or only IPv6, respectively. [RT #45632]

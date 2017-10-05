@@ -1,3 +1,9 @@
+4757.	[func]		New "dnssec-cds" command creates a new parent DS
+			RRset based on CDS or CDNSKEY RRsets found in
+			a child zone, and generates either a dsset file
+			or stream of nsupdate commands to update the
+			parent. Thanks to Tony Finch. [RT #46090]
+
 4756.	[bug]		Interrupting dig could lead to an INSIST failure after
 			certain errors were encountered while querying a host
 			whose name resolved to more than one address.  Change

@@ -412,6 +412,29 @@ strtoclass(const char *str) {
 	return (rdclass);
 }
 
+unsigned int
+strtodsdigest(const char *algname) {
+	if (strcasecmp(algname, "SHA1") == 0 ||
+	    strcasecmp(algname, "SHA-1") == 0)
+	{
+		return (DNS_DSDIGEST_SHA1);
+	} else if (strcasecmp(algname, "SHA256") == 0 ||
+		   strcasecmp(algname, "SHA-256") == 0)
+	{
+		return (DNS_DSDIGEST_SHA256);
+#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
+	} else if (strcasecmp(algname, "GOST") == 0) {
+		return (DNS_DSDIGEST_GOST);
+#endif
+	} else if (strcasecmp(algname, "SHA384") == 0 ||
+		   strcasecmp(algname, "SHA-384") == 0)
+	{
+		return (DNS_DSDIGEST_SHA384);
+	} else {
+		fatal("unknown algorithm %s", algname);
+	}
+}
+
 isc_result_t
 try_dir(const char *dirname) {
 	isc_result_t result;

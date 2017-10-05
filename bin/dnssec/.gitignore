@@ -1,3 +1,4 @@
+dnssec-cds
 dnssec-dsfromkey
 dnssec-keyfromlabel
 dnssec-keygen

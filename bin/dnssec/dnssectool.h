@@ -65,6 +65,9 @@ isc_stdtime_t
 strtotime(const char *str, isc_int64_t now, isc_int64_t base,
 	  isc_boolean_t *setp);
 
+unsigned int
+strtodsdigest(const char *str);
+
 dns_rdataclass_t
 strtoclass(const char *str);
 

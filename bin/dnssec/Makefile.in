@@ -32,29 +32,36 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 NOSYMLIBS =	${DNSLIBS} ${ISCNOSYMLIBS} @LIBS@
 
 # Alphabetically
-TARGETS =	dnssec-keygen@EXEEXT@ dnssec-signzone@EXEEXT@ \
-		dnssec-keyfromlabel@EXEEXT@ dnssec-dsfromkey@EXEEXT@ \
-		dnssec-revoke@EXEEXT@ dnssec-settime@EXEEXT@ \
-		dnssec-verify@EXEEXT@ dnssec-importkey@EXEEXT@
+TARGETS =	dnssec-cds@EXEEXT@ dnssec-dsfromkey@EXEEXT@ \
+		dnssec-importkey@EXEEXT@ dnssec-keyfromlabel@EXEEXT@ \
+		dnssec-keygen@EXEEXT@ dnssec-revoke@EXEEXT@ \
+		dnssec-settime@EXEEXT@ dnssec-signzone@EXEEXT@ \
+		dnssec-verify@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
-SRCS =		dnssec-dsfromkey.c dnssec-keyfromlabel.c dnssec-keygen.c \
-		dnssec-revoke.c dnssec-settime.c dnssec-signzone.c \
-		dnssec-verify.c dnssec-importkey.c dnssectool.c
+SRCS =		dnssec-cds.c dnssec-dsfromkey.c dnssec-importkey.c \
+		dnssec-keyfromlabel.c dnssec-keygen.c dnssec-revoke.c \
+		dnssec-settime.c dnssec-signzone.c dnssec-verify.c \
+		dnssectool.c
 
-MANPAGES =	dnssec-dsfromkey.8 dnssec-keyfromlabel.8 dnssec-keygen.8 \
-		dnssec-revoke.8 dnssec-settime.8 dnssec-signzone.8 \
-		dnssec-verify.8 dnssec-importkey.8
+MANPAGES =	dnssec-cds.8 dnssec-dsfromkey.8  dnssec-importkey.8 \
+		dnssec-keyfromlabel.8 dnssec-keygen.8 dnssec-revoke.8 \
+		dnssec-settime.8 dnssec-signzone.8 dnssec-verify.8
 
-HTMLPAGES =	dnssec-dsfromkey.html dnssec-keyfromlabel.html \
+HTMLPAGES =	dnssec-cds.html dnssec-dsfromkey.html \
+		dnssec-importkey.html dnssec-keyfromlabel.html \
 		dnssec-keygen.html dnssec-revoke.html \
 		dnssec-settime.html dnssec-signzone.html \
-		dnssec-verify.html dnssec-importkey.html
+		dnssec-verify.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
+
+dnssec-cds@EXEEXT@: dnssec-cds.@O@ ${OBJS} ${DEPLIBS}
+	export BASEOBJS="dnssec-cds.@O@ ${OBJS}"; \
+	${FINALBUILDCMD}
 
 dnssec-dsfromkey@EXEEXT@: dnssec-dsfromkey.@O@ ${OBJS} ${DEPLIBS}
 	export BASEOBJS="dnssec-dsfromkey.@O@ ${OBJS}"; \
@@ -115,4 +122,3 @@ uninstall::
 
 clean distclean::
 	rm -f ${TARGETS}
-

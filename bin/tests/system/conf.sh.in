@@ -17,42 +17,43 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 # Make it absolute so that it continues to work after we cd.
 TOP=`cd $TOP && pwd`
 
-NAMED=$TOP/bin/named/named
-DIG=$TOP/bin/dig/dig
-DELV=$TOP/bin/delv/delv
-RNDC=$TOP/bin/rndc/rndc
-NSUPDATE=$TOP/bin/nsupdate/nsupdate
-DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
-TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
-RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
-KEYGEN=$TOP/bin/dnssec/dnssec-keygen
-KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
-SIGNER=$TOP/bin/dnssec/dnssec-signzone
-REVOKE=$TOP/bin/dnssec/dnssec-revoke
-SETTIME=$TOP/bin/dnssec/dnssec-settime
-DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
-IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
-CHECKDS=$TOP/bin/python/dnssec-checkds
-COVERAGE=$TOP/bin/python/dnssec-coverage
-KEYMGR=$TOP/bin/python/dnssec-keymgr
-CHECKZONE=$TOP/bin/check/named-checkzone
-CHECKCONF=$TOP/bin/check/named-checkconf
-PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
-JOURNALPRINT=$TOP/bin/tools/named-journalprint
-VERIFY=$TOP/bin/dnssec/dnssec-verify
 ARPANAME=$TOP/bin/tools/arpaname
-RESOLVE=$TOP/lib/samples/resolve
-RRCHECKER=$TOP/bin/tools/named-rrchecker
+CDS=$TOP/bin/dnssec/dnssec-cds
+CHECKCONF=$TOP/bin/check/named-checkconf
+CHECKDS=$TOP/bin/python/dnssec-checkds
+CHECKZONE=$TOP/bin/check/named-checkzone
+COVERAGE=$TOP/bin/python/dnssec-coverage
+DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
+DELV=$TOP/bin/delv/delv
+DIG=$TOP/bin/dig/dig
+DNSTAPREAD=$TOP/bin/tools/dnstap-read
+DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
+FEATURETEST=$TOP/bin/tests/system/feature-test
+FSTRM_CAPTURE=@FSTRM_CAPTURE@
 GENRANDOM=$TOP/bin/tools/genrandom
+IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
+JOURNALPRINT=$TOP/bin/tools/named-journalprint
+KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
+KEYGEN=$TOP/bin/dnssec/dnssec-keygen
+KEYMGR=$TOP/bin/python/dnssec-keymgr
+MDIG=$TOP/bin/tools/mdig
+NAMED=$TOP/bin/named/named
 NSEC3HASH=$TOP/bin/tools/nsec3hash
 NSLOOKUP=$TOP/bin/dig/nslookup
-DNSTAPREAD=$TOP/bin/tools/dnstap-read
-MDIG=$TOP/bin/tools/mdig
+NSUPDATE=$TOP/bin/nsupdate/nsupdate
 NZD2NZF=$TOP/bin/tools/named-nzd2nzf
-FSTRM_CAPTURE=@FSTRM_CAPTURE@
-FEATURETEST=$TOP/bin/tests/system/feature-test
+PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
+PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
+RESOLVE=$TOP/lib/samples/resolve
+REVOKE=$TOP/bin/dnssec/dnssec-revoke
+RNDC=$TOP/bin/rndc/rndc
+RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
+RRCHECKER=$TOP/bin/tools/named-rrchecker
+SETTIME=$TOP/bin/dnssec/dnssec-settime
+SIGNER=$TOP/bin/dnssec/dnssec-signzone
+TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
+VERIFY=$TOP/bin/dnssec/dnssec-verify
 WIRETEST=$TOP/bin/tests/wire_test
 
 RANDFILE=$TOP/bin/tests/system/random.data
@@ -69,7 +70,7 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="acl additional addzone allow_query autosign builtin
-	 cacheclean case catz chain
+	 cacheclean case catz cds chain
          checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
          database digdelv dlv dlz dlzexternal
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
@@ -187,6 +188,7 @@ fi
 #
 export ARPANAME
 export BIGKEY
+export CDS
 export CHECKZONE
 export DESCRIPTION
 export DIG

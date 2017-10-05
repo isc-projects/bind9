@@ -1,0 +1,13 @@
+CDNSKEY*
+CDS*
+DS*
+K*
+UP*
+brk.*
+db.*
+dsset-*
+err
+empty
+out
+sig.*
+vars.sh
