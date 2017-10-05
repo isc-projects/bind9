@@ -183,6 +183,7 @@ isc_boolean_t	sigchase;
 	isc_buffer_t *querysig;
 	isc_uint32_t msgcounter;
 	dns_fixedname_t fdomain;
+	unsigned int eoferr;
 };
 
 /*% The dig_query structure */

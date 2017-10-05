@@ -1,3 +1,12 @@
+4756.	[bug]		Interrupting dig could lead to an INSIST failure after
+			certain errors were encountered while querying a host
+			whose name resolved to more than one address.  Change
+			4537 increased the odds of triggering this issue by
+			causing dig to hang indefinitely when certain error
+			paths were evaluated.  dig now also retries TCP queries
+			(once) if the server gracefully closes the connection
+			before sending a response. [RT #42832, #45159]
+
 4754.	[bug]		dns_zone_setview needs a two stage commit to properly
 			handle errors. [RT #45841]
 
