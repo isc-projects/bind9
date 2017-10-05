@@ -448,9 +448,9 @@ write_parent_set(const char *path, const char *inplace,
 	fprintf(fp, "%s", (char *)r.base);
 	isc_buffer_free(&buf);
 	if (fclose(fp) == EOF) {
-		result = ISC_R_FAILURE;
+		int err = errno;
 		isc_file_remove(tmpname);
-		fatal("error writing to %s: %s", tmpname, strerror(result));
+		fatal("error writing to %s: %s", tmpname, strerror(err));
 	}
 
 	isc_time_set(&filetime, oldestsig.timesigned, 0);
