@@ -2196,7 +2196,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 					return (result);
 				}
 				isc_stats_increment(ns_g_server->nsstats,
-						   dns_statscounter_keytagopt);
+						   dns_nsstatscounter_keytagopt);
 				break;
 			default:
 				isc_stats_increment(ns_g_server->nsstats,
