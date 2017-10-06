@@ -1288,7 +1288,7 @@ static dns_dbmethods_t sdlzdb_methods = {
 	detach,
 	beginload,
 	endload,
-	NULL,
+	NULL,			/* serialize */
 	dump,
 	currentversion,
 	newversion,

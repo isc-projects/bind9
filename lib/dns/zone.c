@@ -2101,8 +2101,12 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 
 	if (zone->type == dns_zone_master || zone->type == dns_zone_slave) {
 		result = dns_db_setgluecachestats(db, zone->gluecachestats);
-		if (result != ISC_R_SUCCESS)
+		if (result == ISC_R_NOTIMPLEMENTED) {
+			result = ISC_R_SUCCESS;
+		}
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 	}
 
 	if (! dns_db_ispersistent(db)) {
@@ -14671,8 +14675,9 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 		goto failure;
 
 	result = dns_db_setgluecachestats(db, zone->gluecachestats);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		goto failure;
+	}
 
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS)

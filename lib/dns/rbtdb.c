@@ -8278,24 +8278,24 @@ static dns_dbmethods_t zone_methods = {
 	overmem,
 	settask,
 	getoriginnode,
-	NULL,
+	NULL,			/* transfernode */
 	getnsec3parameters,
 	findnsec3node,
 	setsigningtime,
 	getsigningtime,
 	resigned,
 	isdnssec,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,			/* getrrsetstats */
+	NULL,			/* rpz_attach */
+	NULL,			/* rpz_ready */
+	NULL,			/* findnodeext */
+	NULL,			/* findext */
+	NULL,			/* setcachestats */
 	hashsize,
 	nodefullname,
 	getsize,
-	NULL,
-	NULL,
+	NULL,			/* setservestalettl */
+	NULL,			/* getservestalettl */
 	setgluecachestats
 };
 
@@ -8304,7 +8304,7 @@ static dns_dbmethods_t cache_methods = {
 	detach,
 	beginload,
 	endload,
-	NULL,
+	NULL,			/* serialize */
 	dump,
 	currentversion,
 	newversion,
@@ -8329,22 +8329,22 @@ static dns_dbmethods_t cache_methods = {
 	overmem,
 	settask,
 	getoriginnode,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,			/* transfernode */
+	NULL,			/* getnsec3parameters */
+	NULL,			/* findnsec3node */
+	NULL,			/* setsigningtime */
+	NULL,			/* getsigningtime */
+	NULL,			/* resigned */
 	isdnssec,
 	getrrsetstats,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,			/* rpz_attach */
+	NULL,			/* rpz_ready */
+	NULL,			/* findnodeext */
+	NULL,			/* findext */
 	setcachestats,
 	hashsize,
 	nodefullname,
-	NULL,
+	NULL,			/* getsize */
 	setservestalettl,
 	getservestalettl,
 	NULL

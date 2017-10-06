@@ -1153,8 +1153,9 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	REQUIRE(dns_db_iszone(db));
 	REQUIRE(stats != NULL);
 
-	if (db->methods->setgluecachestats != NULL)
+	if (db->methods->setgluecachestats != NULL) {
 		return ((db->methods->setgluecachestats)(db, stats));
+	}
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

@@ -599,17 +599,17 @@ static dns_dbmethods_t sampledb_methods = {
 	resigned,
 	isdnssec,
 	getrrsetstats,
-	NULL,
-	NULL,
+	NULL,			/* rpz_attach */
+	NULL,			/* rpz_ready */
 	findnodeext,
 	findext,
 	setcachestats,
 	hashsize,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	NULL,			/* nodefullname */
+	NULL,			/* getsize */
+	NULL,			/* setservestalettl */
+	NULL,			/* getservestalettl */
+	NULL			/* setgluecachestats */
 };
 
 /* Auxiliary driver functions. */
