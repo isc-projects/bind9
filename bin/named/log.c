@@ -36,6 +36,7 @@ static isc_logcategory_t categories[] = {
 	{ "unmatched",	 		0 },
 	{ "update-security",		0 },
 	{ "query-errors",		0 },
+	{ "trust-anchor-telementry",	0 },
 	{ NULL, 			0 }
 };
 

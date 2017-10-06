@@ -277,6 +277,54 @@ ATF_TC_BODY(compression, tc) {
 	dns_test_end();
 }
 
+ATF_TC(istat);
+ATF_TC_HEAD(istat, tc) {
+	atf_tc_set_md_var(tc, "descr", "is trust-anchor-telementry test");
+}
+ATF_TC_BODY(istat, tc) {
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_result_t result;
+	size_t i;
+	struct {
+		const char *name;
+		isc_boolean_t istat;
+	} data[] = {
+		{ ".", ISC_FALSE },
+		{ "_ta-", ISC_FALSE },
+		{ "_ta-1234", ISC_TRUE },
+		{ "_TA-1234", ISC_TRUE },
+		{ "+TA-1234", ISC_FALSE },
+		{ "_fa-1234", ISC_FALSE },
+		{ "_td-1234", ISC_FALSE },
+		{ "_ta_1234", ISC_FALSE },
+		{ "_ta-g234", ISC_FALSE },
+		{ "_ta-1h34", ISC_FALSE },
+		{ "_ta-12i4", ISC_FALSE },
+		{ "_ta-123j", ISC_FALSE },
+		{ "_ta-1234-abcf", ISC_TRUE },
+		{ "_ta-1234-abcf-ED89", ISC_TRUE },
+		{ "_ta-12345-abcf-ED89", ISC_FALSE },
+		{ "_ta-.example", ISC_FALSE },
+		{ "_ta-1234.example", ISC_TRUE },
+		{ "_ta-1234-abcf.example", ISC_TRUE },
+		{ "_ta-1234-abcf-ED89.example", ISC_TRUE },
+		{ "_ta-12345-abcf-ED89.example", ISC_FALSE },
+		{ "_ta-1234-abcfe-ED89.example", ISC_FALSE },
+		{ "_ta-1234-abcf-EcD89.example", ISC_FALSE }
+	};
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+
+	for (i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
+		result = dns_name_fromstring(name, data[i].name, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		ATF_CHECK_EQ_MSG(dns_name_istat(name), data[i].istat,
+				 "testing %s - expected %u", data[i].name, data[i].istat);
+	}
+}
+
 #ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 
@@ -381,6 +429,7 @@ ATF_TC_BODY(benchmark, tc) {
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, fullcompare);
 	ATF_TP_ADD_TC(tp, compression);
+	ATF_TP_ADD_TC(tp, istat);
 #ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);
@@ -389,4 +438,3 @@ ATF_TP_ADD_TCS(tp) {
 
 	return (atf_no_error());
 }
-

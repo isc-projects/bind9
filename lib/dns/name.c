@@ -2716,3 +2716,62 @@ dns_name_isula(const dns_name_t *name) {
 			return (ISC_TRUE);
 	return (ISC_FALSE);
 }
+
+/*
+ * Use a simple table as we don't want all the locale stuff
+ * associated with ishexdigit().
+ */
+const char
+ishex[256] = {
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+     0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+isc_boolean_t
+dns_name_istat(const dns_name_t *name) {
+	unsigned char len;
+	const unsigned char *ndata;
+
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels < 1)
+		return (ISC_FALSE);
+
+	ndata = name->ndata;
+	len = ndata[0];
+	INSIST(len <= name->length);
+	ndata++;
+
+	/*
+	 * Is there at least one trust anchor reported and is the
+	 * label length consistent with a trust-anchor-telementry label.
+	 */
+	if ((len < 8) || (len - 3) % 5 != 0) {
+		return (ISC_FALSE);
+	}
+
+	if (ndata[0] != '_' ||
+	    maptolower[ndata[1]] != 't' ||
+	    maptolower[ndata[2]] != 'a') {
+		return (ISC_FALSE);
+	}
+	ndata += 3;
+	len -= 3;
+
+	while (len > 0) {
+		INSIST(len >= 5);
+		if (ndata[0] != '-' || !ishex[ndata[1]] || !ishex[ndata[2]] ||
+		    !ishex[ndata[3]] || !ishex[ndata[4]]) {
+			return (ISC_FALSE);
+		}
+		ndata += 5;
+		len -= 5;
+	}
+	return (ISC_TRUE);
+}

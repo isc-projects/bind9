@@ -205,7 +205,9 @@ enum {
 	dns_nsstatscounter_cookienew = 54,
 	dns_nsstatscounter_badcookie = 55,
 
-	dns_nsstatscounter_max = 56
+	dns_nsstatscounter_keytagopt = 56,
+
+	dns_nsstatscounter_max = 57
 };
 
 /*%

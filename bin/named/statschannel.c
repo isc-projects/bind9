@@ -287,6 +287,7 @@ init_desc(void) {
 		"resulted in a successful remote lookup",
 		"QryNXRedirRLookup");
 	SET_NSSTATDESC(badcookie, "sent badcookie response", "QryBADCOOKIE");
+	SET_NSSTATDESC(keytagopt, "Keytag option received", "KeyTagOpt");
 	INSIST(i == dns_nsstatscounter_max);
 
 	/* Initialize resolver statistics */

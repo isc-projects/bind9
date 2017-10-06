@@ -28,6 +28,7 @@
 #define NS_LOGCATEGORY_UNMATCHED	(&ns_g_categories[5])
 #define NS_LOGCATEGORY_UPDATE_SECURITY	(&ns_g_categories[6])
 #define NS_LOGCATEGORY_QUERY_ERRORS	(&ns_g_categories[7])
+#define NS_LOGCATEGORY_TAT		(&ns_g_categories[8])
 
 /*
  * Backwards compatibility.
