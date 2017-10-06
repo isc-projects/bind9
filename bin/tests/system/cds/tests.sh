@@ -16,11 +16,13 @@ die() {
 	echo "I:failed"
 	status=1
 }
+
 ck() {
 	local x=$1 die=:
 	shift
 	echo "I:$name"
-	if [ $x != $("$@" 2>err 1>out; echo $?) ]
+	result=`"$@" > out 2> err; echo $?`
+	if [ "$x" -ne "$result" ]
 	then	echo "D:exit status does not match $y"
 		die=die
 	fi
@@ -30,6 +32,7 @@ ck() {
 	rm -f err out xerr xout
 	unset name err out
 }
+
 ckerr() {
 	if	[ -n "${err:=}" ]
 	then	egrep "$err" err >/dev/null &&
@@ -41,6 +44,7 @@ ckerr() {
 	sed 's/^/D:/' err
 	die=die
 }
+
 ckout() {
 	cmp out "${out:-empty}" >/dev/null && return
 	echo "D:stdout did not match '$out'"
