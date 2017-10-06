@@ -1,3 +1,5 @@
+4761.	[protocol]	Add support for DOA. [RT #45612]
+
 4759.	[func]		Add logging channel "trust-anchor-telementry" to
 			record trust-anchor-telementry in incoming requests.
 			Both _ta-XXXX.<anchor>/NULL and EDNS KEY-TAG options
