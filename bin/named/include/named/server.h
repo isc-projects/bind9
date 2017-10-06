@@ -189,8 +189,9 @@ enum {
 	dns_nsstatscounter_sitnomatch = 49,
 	dns_nsstatscounter_sitmatch = 50,
 	dns_nsstatscounter_sitnew = 51,
+	dns_nsstatscounter_keytagopt = 52,
 
-	dns_nsstatscounter_max = 52
+	dns_nsstatscounter_max = 53
 };
 
 void
