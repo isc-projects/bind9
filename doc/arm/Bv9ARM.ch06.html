@@ -3192,9 +3192,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
               <p>
                 The pathname of a file to override the built-in trusted
                 keys provided by <span class="command"><strong>named</strong></span>.
-                See the discussion of <span class="command"><strong>dnssec-lookaside</strong></span>
-                and <span class="command"><strong>dnssec-validation</strong></span> for details.
-                If not specified, the default is
+                See the discussion of <span class="command"><strong>dnssec-validation</strong></span>
+                for details.  If not specified, the default is
                 <code class="filename">/etc/bind.keys</code>.
               </p>
             </dd>
@@ -3411,38 +3410,16 @@ options {
               </p>
               <p>
                 If <span class="command"><strong>dnssec-lookaside</strong></span> is set to
-                <strong class="userinput"><code>auto</code></strong>, then built-in default
-                values for the DLV domain and trust anchor will be
-                used, along with a built-in key for validation.
-              </p>
-              <p>
-                If <span class="command"><strong>dnssec-lookaside</strong></span> is set to
                 <strong class="userinput"><code>no</code></strong>, then dnssec-lookaside
                 is not used.
               </p>
               <p>
-                The default DLV key is stored in the file
-                <code class="filename">bind.keys</code>;
-                <span class="command"><strong>named</strong></span> will load that key at
-                startup if <span class="command"><strong>dnssec-lookaside</strong></span> is set to
-                <code class="constant">auto</code>.  A copy of the file is
-                installed along with <acronym class="acronym">BIND</acronym> 9, and is
-                current as of the release date.  If the DLV key expires, a
-                new copy of <code class="filename">bind.keys</code> can be downloaded
-                from <a class="link" href="https://www.isc.org/solutions/dlv/" target="_top">https://www.isc.org/solutions/dlv/</a>.
-              </p>
-              <p>
-                (To prevent problems if <code class="filename">bind.keys</code> is
-                not found, the current key is also compiled in to
-                <span class="command"><strong>named</strong></span>.  Relying on this is not
-                recommended, however, as it requires <span class="command"><strong>named</strong></span>
-                to be recompiled with a new key when the DLV key expires.)
-              </p>
-              <p>
-                NOTE: <span class="command"><strong>named</strong></span> only loads certain specific
-                keys from <code class="filename">bind.keys</code>:  those for the
-                DLV zone and for the DNS root zone.  The file cannot be
-                used to store keys for other zones.
+                NOTE: The ISC-provided DLV service at
+                <code class="literal">dlv.isc.org</code>, has been shut down.
+                The <span class="command"><strong>dnssec-lookaside auto;</strong></span>
+                configuration option, which set <span class="command"><strong>named</strong></span>
+                up to use ISC DLV with minimal configuration, has
+                accordingly been removed.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>dnssec-must-be-secure</strong></span></span></dt>
@@ -3456,7 +3433,7 @@ options {
                 be accepted.  The specified domain must be under a
                 <span class="command"><strong>trusted-keys</strong></span> or
                 <span class="command"><strong>managed-keys</strong></span> statement, or
-                <span class="command"><strong>dnssec-lookaside</strong></span> must be active.
+                <span class="command"><strong>dnssec-validation auto</strong></span> must be active.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>dns64</strong></span></span></dt>
@@ -4459,9 +4436,8 @@ options {
                   Causes <span class="command"><strong>named</strong></span> to send specially-formed
                   queries once per day to domains for which trust anchors
                   have been configured via <span class="command"><strong>trusted-keys</strong></span>,
-                  <span class="command"><strong>managed-keys</strong></span>,
-                  <span class="command"><strong>dnssec-validation auto</strong></span>, or
-                  <span class="command"><strong>dnssec-lookaside auto</strong></span>.
+                  <span class="command"><strong>managed-keys</strong></span>, or
+                  <span class="command"><strong>dnssec-validation auto</strong></span>.
                 </p>
                 <p>
                   The query name used for these queries has the
@@ -4725,17 +4701,45 @@ options {
                   Note <span class="command"><strong>dnssec-enable</strong></span> also needs to be
                   set to <strong class="userinput"><code>yes</code></strong> to be effective.
                   If set to <strong class="userinput"><code>no</code></strong>, DNSSEC validation
-                  is disabled.  If set to <strong class="userinput"><code>auto</code></strong>,
-                  DNSSEC validation is enabled, and a default
-                  trust-anchor for the DNS root zone is used.  If set to
-                  <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is enabled,
-                  but a trust anchor must be manually configured using
-                  a <span class="command"><strong>trusted-keys</strong></span> or
-                  <span class="command"><strong>managed-keys</strong></span> statement.  The default
+                  is disabled.
+                </p>
+                <p>
+                  If set to <strong class="userinput"><code>auto</code></strong>, DNSSEC validation
+                  is enabled, and a default trust anchor for the DNS root
+                  zone is used.  If set to <strong class="userinput"><code>yes</code></strong>,
+                  DNSSEC validation is enabled, but a trust anchor must be
+                  manually configured using a <span class="command"><strong>trusted-keys</strong></span>
+                  or <span class="command"><strong>managed-keys</strong></span> statement.  The default
                   is <strong class="userinput"><code>yes</code></strong>.
+                </p>
+                <p>
+                  The default root trust anchor is stored in the file
+                  <code class="filename">bind.keys</code>.
+                  <span class="command"><strong>named</strong></span> will load that key at
+                  startup if <span class="command"><strong>dnssec-validation</strong></span> is
+                  set to <code class="constant">auto</code>.  A copy of the file is
+                  installed along with BIND 9, and is current as of the
+                  release date.  If the root key expires, a new copy of
+                  <code class="filename">bind.keys</code> can be downloaded
+                  from <a class="link" href="https://www.isc.org/bind-keys" target="_top">https://www.isc.org/bind-keys</a>.
+                </p>
+                <p>
+                  To prevent problems if <code class="filename">bind.keys</code> is
+                  not found, the current trust anchor is also compiled in
+                  to <span class="command"><strong>named</strong></span>.  Relying on this is not
+                  recommended, however, as it requires <span class="command"><strong>named</strong></span>
+                  to be recompiled with a new key when the root key expires.)
                 </p>
                 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
+                  <p>
+                    <span class="command"><strong>named</strong></span> <span class="emphasis"><em>only</em></span>
+                    loads the root key from <code class="filename">bind.keys</code>.
+                    The file cannot be used to store keys for other zones.
+                    The root key in <code class="filename">bind.keys</code> is ignored
+                    if <span class="command"><strong>dnssec-validation auto</strong></span> is not in
+                    use.
+                  </p>
                   <p>
                     Whenever the resolver sends out queries to an
                     EDNS-compliant server, it always sets the DO bit
@@ -9072,15 +9076,13 @@ example.com                 CNAME   rpz-tcp-only.
             If the <span class="command"><strong>dnssec-validation</strong></span> option is
             set to <strong class="userinput"><code>auto</code></strong>, <span class="command"><strong>named</strong></span>
             will automatically initialize a managed key for the
-            root zone.  Similarly, if the <span class="command"><strong>dnssec-lookaside</strong></span>
-            option is set to <strong class="userinput"><code>auto</code></strong>,
-            <span class="command"><strong>named</strong></span> will automatically initialize
-            a managed key for the zone <code class="literal">dlv.isc.org</code>.
-            (Note: The ISC DLV service is expected to cease operation by
-            the end of 2017.) In both cases, the key that is used to
-            initialize the key maintenance process is built into
-            <span class="command"><strong>named</strong></span>, and can be overridden from
-            <span class="command"><strong>bindkeys-file</strong></span>.
+            root zone.  The key that is used to initialize the key
+            maintenance process is stored in <code class="filename">bind.keys</code>;
+            the location of this file can be overridden with the
+            <span class="command"><strong>bindkeys-file</strong></span> option. As a fallback
+            in the event no <code class="filename">bind.keys</code> can be
+            found, the initializing key is also compiled directly
+            into <span class="command"><strong>named</strong></span>.
           </p>
         </div>
 

@@ -282,11 +282,73 @@ zone option be set to
 maintain, and also requires the zone to be configured to allow dynamic DNS\&. (See "Dynamic Update Policies" in the Administrator Reference Manual for more details\&.)
 .RE
 .PP
-\fBmanaged\-keys \fR\fB\fI(status | refresh | sync)\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
+\fBmanaged\-keys \fR\fB\fI(status | refresh | sync | destroy)\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR
 .RS 4
-When run with the "status" keyword, print the current status of the managed\-keys database for the specified view, or for all views if none is specified\&. When run with the "refresh" keyword, force an immediate refresh of all the managed\-keys in the specified view, or all views\&. When run with the "sync" keyword, force an immediate dump of the managed\-keys database to disk (in the file
+Inspect and control the "managed\-keys" database which handles RFC 5011 DNSSEC trust anchor maintenance\&. If a view is specified, these commands are applied to that view; otherwise they are applied to all views\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When run with the
+status
+keyword, prints the current status of the managed\-keys database\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When run with the
+refresh
+keyword, forces an immediate refresh query to be sent for all the managed keys, updating the managed\-keys database if any new keys are found, without waiting the normal refresh interval\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When run with the
+sync
+keyword, forces an immediate dump of the managed\-keys database to disk (in the file
 managed\-keys\&.bind
-or (\fIviewname\fR\&.mkeys)\&.
+or (\fIviewname\fR\&.mkeys)\&. This synchronizes the database with its journal file, so that the database\*(Aqs current contents can be inspected visually\&.
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+When run with the
+destroy
+keyword, the managed\-keys database is shut down and deleted, and all key maintenance is terminated\&. This command should be used only with extreme caution\&.
+.sp
+Existing keys that are already trusted are not deleted from memory; DNSSEC validation can continue after this command is used\&. However, key maintenance operations will cease until
+\fBnamed\fR
+is restarted or reconfigured, and all existing key maintenance state will be deleted\&.
+.sp
+Running
+\fBrndc reconfig\fR
+or restarting
+\fBnamed\fR
+immediately after this command will cause key maintenance to be reinitialized from scratch, just as if the server were being started for the first time\&. This is primarily intended for testing, but it may also be used, for example, to jumpstart the acquisition of new keys in the event of a trust anchor rollover, or as a brute\-force repair for key maintenance problems\&.
+.RE
 .RE
 .PP
 \fBmodzone \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR\fB\fIconfiguration\fR\fR\fB \fR

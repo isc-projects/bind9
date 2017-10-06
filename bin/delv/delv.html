@@ -91,8 +91,7 @@
     </p>
     <p>
       By default, responses are validated using built-in DNSSEC trust
-      anchors for the root zone (".") and for the ISC DNSSEC lookaside
-      validation zone ("dlv.isc.org").  Records returned by
+      anchor for the root zone (".").  Records returned by
       <span class="command"><strong>delv</strong></span> are either fully validated or
       were not signed.  If validation fails, an explanation of
       the failure is included in the output; the validation process
@@ -189,14 +188,15 @@
 	    Specifies a file from which to read DNSSEC trust anchors.
 	    The default is <code class="filename">/etc/bind.keys</code>, which
 	    is included with <acronym class="acronym">BIND</acronym> 9 and contains
-	    trust anchors for the root zone (".") and for the ISC
-	    DNSSEC lookaside validation zone ("dlv.isc.org").
+	    one or more trust anchors for the root zone (".").
 	  </p>
 	  <p>
-	    Keys that do not match the root or DLV trust-anchor
-	    names are ignored; these key names can be overridden
-	    using the <code class="option">+dlv=NAME</code> or
-	    <code class="option">+root=NAME</code> options.
+	    Keys that do not match the root zone name are ignored.
+            An alternate key name can be specified using the
+	    <code class="option">+root=NAME</code> options. DNSSEC Lookaside
+            Validation can also be turned on by using the
+	    <code class="option">+dlv=NAME</code> to specify the name of a
+            zone containing DLV records.
 	  </p>
 	  <p>
 	    Note: When reading the trust anchor file,
@@ -538,11 +538,8 @@
 	    <p>
 	      Indicates whether to perform DNSSEC lookaside validation,
 	      and if so, specifies the name of the DLV trust anchor.
-	      The default is to perform lookaside validation using
-	      a trust anchor of "dlv.isc.org", for which there is a
-	      built-in key.  If specifying a different name, then
-	      <code class="option">-a</code> must be used to specify a file
-	      containing the DLV key.
+	      The <code class="option">-a</code> option must also be used to specify
+              a file containing the DLV key.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>

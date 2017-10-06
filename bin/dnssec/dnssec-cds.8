@@ -1,5 +1,5 @@
 .\" Copyright (C) 2017 Internet Systems Consortium, Inc. ("ISC")
-.\"
+.\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
 .\" file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -8,8 +8,8 @@
 .ad l
 '\" t
 .\"     Title: dnssec-cds
-.\"    Author:
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"    Author: 
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2017-10-02
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -38,7 +38,7 @@
 .SH "NAME"
 dnssec-cds \- change DS records for a child zone based on CDS/CDNSKEY
 .SH "SYNOPSIS"
-.HP 11
+.HP \w'\fBdnssec\-cds\fR\ 'u
 \fBdnssec\-cds\fR [\fB\-a\ \fR\fB\fIalg\fR\fR...] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-D\fR] {\fB\-d\ \fR\fB\fIdsset\-file\fR\fR} {\fB\-f\ \fR\fB\fIchild\-file\fR\fR} [\fB\-i\fR\ [\fIextension\fR]] [\fB\-s\ \fR\fB\fIstart\-time\fR\fR] [\fB\-T\ \fR\fB\fIttl\fR\fR] [\fB\-u\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] {domain}
 .SH "DESCRIPTION"
 .PP
@@ -191,8 +191,7 @@ dsset\-
 file, or with the
 \fB\-T\fR
 option, or using the
-\fBnsupdate\fR
-\fBttl\fR
+\fBnsupdate\fR\fBttl\fR
 command\&.
 .RE
 .PP

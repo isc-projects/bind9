@@ -393,19 +393,68 @@
 	    Reference Manual for more details.)
 	  </p>
 	</dd>
-<dt><span class="term"><strong class="userinput"><code>managed-keys <em class="replaceable"><code>(status | refresh | sync)</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
+<dt><span class="term"><strong class="userinput"><code>managed-keys <em class="replaceable"><code>(status | refresh | sync | destroy)</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd>
 	  <p>
-	    When run with the "status" keyword, print the current
-	    status of the managed-keys database for the specified
-	    view, or for all views if none is specified.  When run
-	    with the "refresh" keyword, force an immediate refresh
-	    of all the managed-keys in the specified view, or all
-	    views.  When run with the "sync" keyword, force an
-	    immediate dump of the managed-keys database to disk (in
-	    the file <code class="filename">managed-keys.bind</code> or
-	    (<code class="filename"><em class="replaceable"><code>viewname</code></em>.mkeys</code>).
-	  </p>
+            Inspect and control the "managed-keys" database which
+            handles RFC 5011 DNSSEC trust anchor maintenance. If a view
+            is specified, these commands are applied to that view;
+            otherwise they are applied to all views.
+          </p>
+          <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              <p>
+                When run with the <code class="literal">status</code> keyword, prints
+                the current status of the managed-keys database.
+              </p>
+            </li>
+<li class="listitem">
+              <p>
+                When run with the <code class="literal">refresh</code> keyword,
+                forces an immediate refresh query to be sent for all
+                the managed keys, updating the managed-keys database
+                if any new keys are found, without waiting the normal
+                refresh interval.
+              </p>
+            </li>
+<li class="listitem">
+              <p>
+                When run with the <code class="literal">sync</code> keyword, forces an
+                immediate dump of the managed-keys database to disk
+                (in the file <code class="filename">managed-keys.bind</code> or
+                (<code class="filename"><em class="replaceable"><code>viewname</code></em>.mkeys</code>).
+                This synchronizes the database with its journal file, so
+                that the database's current contents can be inspected
+                visually.
+              </p>
+            </li>
+<li class="listitem">
+              <p>
+                When run with the <code class="literal">destroy</code> keyword, the
+                managed-keys database is shut down and deleted, and all key
+                maintenance is terminated.  This command should be used only
+                with extreme caution.
+              </p>
+              <p>
+                Existing keys that are already trusted are not deleted
+                from memory; DNSSEC validation can continue after this
+                command is used. However, key maintenance operations will
+                cease until <span class="command"><strong>named</strong></span> is restarted or
+                reconfigured, and all existing key maintenance state
+                will be deleted.
+              </p>
+              <p>
+                Running <span class="command"><strong>rndc reconfig</strong></span> or restarting
+                <span class="command"><strong>named</strong></span> immediately after this command
+                will cause key maintenance to be reinitialized from scratch,
+                just as if the server were being started for the first time.
+                This is primarily intended for testing, but it may also be
+                used, for example, to jumpstart the acquisition of new keys
+                in the event of a trust anchor rollover, or as a
+                brute-force repair for key maintenance problems.
+              </p>
+            </li>
+</ul></div>
 	</dd>
 <dt><span class="term"><strong class="userinput"><code>modzone <em class="replaceable"><code>zone</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>] <em class="replaceable"><code>configuration</code></em> </code></strong></span></dt>
 <dd>

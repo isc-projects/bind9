@@ -286,6 +286,17 @@
       </li>
 <li class="listitem">
 	<p>
+	  The new <span class="command"><strong>dnssec-cds</strong></span> command generates a new DS
+	  set to place in a parent zone, based on the contents of a child
+	  zone's validated CDS or CDNSKEY records. It can produce a
+	  <code class="filename">dsset</code> file suitable for input to
+	  <span class="command"><strong>dnssec-signzone</strong></span>, or a series of
+	  <span class="command"><strong>nsupdate</strong></span> to update the parent zone via dynamic
+	  DNS. Thanks to Tony Finch for the contribution.  [RT #46090]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>nsupdate</strong></span> and <span class="command"><strong>rndc</strong></span> now accepts
 	  command line options <span class="command"><strong>-4</strong></span> and <span class="command"><strong>-6</strong></span>
 	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
@@ -404,6 +415,32 @@
 	  entropy source.  [RT #31459] [RT #46047]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>rndc managed-keys destroy</strong></span> shuts down all
+	  RFC 5011 DNSSEC trust anchor maintenance, and deletes any
+	  existing managed keys database. If immediately followed by
+	  <span class="command"><strong>rndc reconfig</strong></span>, this will reinitialize
+	  key maintenance just as if the server was being started for
+	  the first time.
+	</p>
+	<p>
+	  This is intended for testing purposes, but can be used -- with
+	  extreme caution -- as a brute-force repair for unrecoverable
+	  problems with a managed keys database, to jumpstart the key
+	  acquisition process if <code class="filename">bind.keys</code> is updated,
+	  etc. [RT #32456]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dnssec-signzone -S</strong></span> can now add or remove
+	  synchronization records (CDS and CDNSKEY) based on key metadata
+	  set by the <span class="command"><strong>-Psync</strong></span> and <span class="command"><strong>-Dsync</strong></span>
+	  options to <span class="command"><strong>dnssec-keygen</strong></span>,
+	  <span class="command"><strong>dnssec-settime</strong></span>, etc. [RT #46149]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -434,6 +471,19 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  The ISC DNSSEC Lookaside Validation (DLV) service has been shut
+	  down; all DLV records in the dlv.isc.org zone have been removed.
+	  References to the service have been removed from BIND documentation.
+	  Lookaside validation is no longer used by default by
+	  <span class="command"><strong>delv</strong></span>. The DLV key has been removed from
+	  <code class="filename">bind.keys</code>. Setting
+	  <span class="command"><strong>dnssec-lookaside</strong></span> set to
+	  <span class="command"><strong>auto</strong></span> or to use dlv.isc.org as a trust
+	  anchor is now a fatal configuration error. [RT #46155]
+	</p>
+      </li>
 <li class="listitem">
 	<p>
 	  The lightweight resolver daemon and library (<span class="command"><strong>lwresd</strong></span>
@@ -521,6 +571,24 @@
 	  The view associated with the query is now logged unless it
 	  it is "_default/IN" or "_dnsclient/IN" when logging DNSSEC
 	  validator messages.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  When <span class="command"><strong>named</strong></span> was reconfigured, failure of some
+	  zones to load correctly could leave the system in an inconsistent
+	  state; while generally harmless, this could lead to a crash later
+	  when using <span class="command"><strong>rndc addzone</strong></span>.  Reconfiguration changes
+	  are now fully rolled back in the event of failure. [RT #45841]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Fixed a bug that was introduced in an earlier development
+	  release which caused multi-packet AXFR and IXFR messages to fail
+	  validation if not all packets contained TSIG records; this
+	  caused interoperability problems with some other DNS
+	  implementations. [RT #45509]
 	</p>
       </li>
 <li class="listitem">
