@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: ssu.h,v 1.28 2011/01/06 23:47:00 tbox Exp $ */
-
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
 
@@ -15,26 +13,31 @@
 
 #include <isc/lang.h>
 
+#include <dns/acl.h>
 #include <dns/types.h>
 #include <dst/dst.h>
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_SSUMATCHTYPE_NAME		0
-#define DNS_SSUMATCHTYPE_SUBDOMAIN	1
-#define DNS_SSUMATCHTYPE_WILDCARD	2
-#define DNS_SSUMATCHTYPE_SELF		3
-#define DNS_SSUMATCHTYPE_SELFSUB	4
-#define DNS_SSUMATCHTYPE_SELFWILD	5
-#define DNS_SSUMATCHTYPE_SELFKRB5	6
-#define DNS_SSUMATCHTYPE_SELFMS		7
-#define DNS_SSUMATCHTYPE_SUBDOMAINMS	8
-#define DNS_SSUMATCHTYPE_SUBDOMAINKRB5	9
-#define DNS_SSUMATCHTYPE_TCPSELF	10
-#define DNS_SSUMATCHTYPE_6TO4SELF	11
-#define DNS_SSUMATCHTYPE_EXTERNAL	12
-#define DNS_SSUMATCHTYPE_DLZ		13
-#define DNS_SSUMATCHTYPE_MAX 		12  /* max value */
+typedef enum {
+	dns_ssumatchtype_name = 0,
+	dns_ssumatchtype_subdomain = 1,
+	dns_ssumatchtype_wildcard = 2,
+	dns_ssumatchtype_self	 = 3,
+	dns_ssumatchtype_selfsub = 4,
+	dns_ssumatchtype_selfwild = 5,
+	dns_ssumatchtype_selfkrb5 = 6,
+	dns_ssumatchtype_selfms	 = 7,
+	dns_ssumatchtype_subdomainms = 8,
+	dns_ssumatchtype_subdomainkrb5 = 9,
+	dns_ssumatchtype_tcpself = 10,
+	dns_ssumatchtype_6to4self = 11,
+	dns_ssumatchtype_external = 12,
+	dns_ssumatchtype_local = 13,
+	dns_ssumatchtype_max = 13,	/* max value */
+
+	dns_ssumatchtype_dlz = 14	/* intentionally higher than _max */
+} dns_ssumatchtype_t;
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
@@ -56,7 +59,7 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 		       dns_dlzdb_t *dlzdatabase);
 /*%<
  * Create an SSU table that contains a dlzdatabase pointer, and a
- * single rule with matchtype DNS_SSUMATCHTYPE_DLZ. This type of SSU
+ * single rule with matchtype dns_ssumatchtype_dlz. This type of SSU
  * table is used by writeable DLZ drivers to offload authorization for
  * updates to the driver.
  */
@@ -90,7 +93,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep);
 
 isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
-		     const dns_name_t *identity, unsigned int matchtype,
+		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
 		     dns_rdatatype_t *types);
 /*%<
@@ -123,7 +126,12 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
-			const dns_name_t *name, const isc_netaddr_t *tcpaddr,
+			const dns_name_t *name, const isc_netaddr_t *addr,
+			dns_rdatatype_t type, const dst_key_t *key);
+isc_boolean_t
+dns_ssutable_checkrules2(dns_ssutable_t *table, const dns_name_t *signer,
+			const dns_name_t *name, const isc_netaddr_t *addr,
+			isc_boolean_t tcp, const dns_aclenv_t *env,
 			dns_rdatatype_t type, const dst_key_t *key);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
@@ -131,18 +139,26 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
  *	no rules are matched, access is denied.
  *
  *	Notes:
- *		'tcpaddr' should only be set if the request received
- *		via TCP.  This provides a weak assurance that the
- *		request was not spoofed.  'tcpaddr' is to to validate
- *		DNS_SSUMATCHTYPE_TCPSELF and DNS_SSUMATCHTYPE_6TO4SELF
- *		rules.
+ *		In dns_ssutable_checkrules(), 'addr' should only be
+ *		set if the request received via TCP.  This provides a
+ *		weak assurance that the request was not spoofed.
+ *		'addr' is to to validate dns_ssumatchtype_tcpself
+ *		and dns_ssumatchtype_6to4self rules.
  *
- *		For DNS_SSUMATCHTYPE_TCPSELF the addresses are mapped to
+ *		In dns_ssutable_checkrules2(), 'addr' can also be passed for
+ *		UDP requests and TCP is specified via the 'tcp' parameter.
+ *		In addition to dns_ssumatchtype_tcpself and
+ *		tcp_ssumatchtype_6to4self  rules, the address
+ *		also be used to check dns_ssumatchtype_local rules.
+ *		If 'addr' is set then 'env' must also be set so that
+ *		requests from non-localhost addresses can be rejected.
+ *
+ *		For dns_ssumatchtype_tcpself the addresses are mapped to
  *		the standard reverse names under IN-ADDR.ARPA and IP6.ARPA.
  *		RFC 1035, Section 3.5, "IN-ADDR.ARPA domain" and RFC 3596,
  *		Section 2.5, "IP6.ARPA Domain".
  *
- *		For DNS_SSUMATCHTYPE_6TO4SELF, IPv4 address are converted
+ *		For dns_ssumatchtype_6to4self, IPv4 address are converted
  *		to a 6to4 prefix (48 bits) per the rules in RFC 3056.  Only
  *		the top	48 bits of the IPv6 address are mapped to the reverse
  *		name. This is independent of whether the most significant 16
@@ -151,8 +167,10 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
  *	Requires:
  *\li		'table' is a valid SSU table
  *\li		'signer' is NULL or a valid absolute name
- *\li		'tcpaddr' is NULL or a valid network address.
+ *\li		'addr' is NULL or a valid network address.
+ *\li		'aclenv' is NULL or a valid ACL environment.
  *\li		'name' is a valid absolute name
+ *\li		if 'addr' is not NULL, 'env' is not NULL.
  */
 
 

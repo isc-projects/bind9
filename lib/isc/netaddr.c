@@ -445,3 +445,16 @@ isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
 	memmove(&t->type.in, (char *)&src->type.in6 + 12, 4);
 	return;
 }
+
+isc_boolean_t
+isc_netaddr_isloopback(const isc_netaddr_t *na) {
+	switch (na->family) {
+	case AF_INET:
+		return (ISC_TF((ntohl(na->type.in.s_addr) & 0xff000000U) ==
+			       0x7f000000U));
+	case AF_INET6:
+		return (IN6_IS_ADDR_LOOPBACK(&na->type.in6));
+	default:
+		return (ISC_FALSE);
+	}
+}

@@ -127,6 +127,7 @@ static isc_boolean_t noaa = ISC_FALSE;
 static unsigned int delay = 0;
 static isc_boolean_t nonearest = ISC_FALSE;
 static isc_boolean_t notcp = ISC_FALSE;
+static isc_boolean_t fixedlocal = ISC_FALSE;
 
 /*
  * -4 and -6
@@ -626,14 +627,21 @@ parse_command_line(int argc, char *argv[]) {
 			} else if (!strcmp(isc_commandline_argument, "notcp"))
 				notcp = ISC_TRUE;
 			else if (!strncmp(isc_commandline_argument, "tat=", 4))
+			{
 				named_g_tat_interval =
 					   atoi(isc_commandline_argument + 4);
-			else if (!strcmp(isc_commandline_argument,
+			} else if (!strcmp(isc_commandline_argument,
 					 "keepstderr"))
+			{
 				named_g_keepstderr = ISC_TRUE;
-			else
+			} else if (!strcmp(isc_commandline_argument,
+					   "fixedlocal"))
+			{
+				fixedlocal = ISC_TRUE;
+			} else {
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
+			}
 			break;
 		case 'U':
 			named_g_udpdisp = parse_int(isc_commandline_argument,
@@ -1193,6 +1201,8 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_NONEAREST, ISC_TRUE);
 	if (notcp)
 		ns_server_setoption(sctx, NS_SERVER_NOTCP, ISC_TRUE);
+	if (fixedlocal)
+		ns_server_setoption(sctx, NS_SERVER_FIXEDLOCAL, ISC_TRUE);
 	if (disable4)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, ISC_TRUE);
 	if (disable6)

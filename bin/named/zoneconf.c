@@ -218,7 +218,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		const char *str;
 		isc_boolean_t grant = ISC_FALSE;
 		isc_boolean_t usezone = ISC_FALSE;
-		unsigned int mtype = DNS_SSUMATCHTYPE_NAME;
+		unsigned int mtype = dns_ssumatchtype_name;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
 		dns_rdatatype_t *types;
@@ -234,34 +234,34 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		str = cfg_obj_asstring(matchtype);
 		if (strcasecmp(str, "name") == 0)
-			mtype = DNS_SSUMATCHTYPE_NAME;
+			mtype = dns_ssumatchtype_name;
 		else if (strcasecmp(str, "subdomain") == 0)
-			mtype = DNS_SSUMATCHTYPE_SUBDOMAIN;
+			mtype = dns_ssumatchtype_subdomain;
 		else if (strcasecmp(str, "wildcard") == 0)
-			mtype = DNS_SSUMATCHTYPE_WILDCARD;
+			mtype = dns_ssumatchtype_wildcard;
 		else if (strcasecmp(str, "self") == 0)
-			mtype = DNS_SSUMATCHTYPE_SELF;
+			mtype = dns_ssumatchtype_self;
 		else if (strcasecmp(str, "selfsub") == 0)
-			mtype = DNS_SSUMATCHTYPE_SELFSUB;
+			mtype = dns_ssumatchtype_selfsub;
 		else if (strcasecmp(str, "selfwild") == 0)
-			mtype = DNS_SSUMATCHTYPE_SELFWILD;
+			mtype = dns_ssumatchtype_selfwild;
 		else if (strcasecmp(str, "ms-self") == 0)
-			mtype = DNS_SSUMATCHTYPE_SELFMS;
+			mtype = dns_ssumatchtype_selfms;
 		else if (strcasecmp(str, "krb5-self") == 0)
-			mtype = DNS_SSUMATCHTYPE_SELFKRB5;
+			mtype = dns_ssumatchtype_selfkrb5;
 		else if (strcasecmp(str, "ms-subdomain") == 0)
-			mtype = DNS_SSUMATCHTYPE_SUBDOMAINMS;
+			mtype = dns_ssumatchtype_subdomainms;
 		else if (strcasecmp(str, "krb5-subdomain") == 0)
-			mtype = DNS_SSUMATCHTYPE_SUBDOMAINKRB5;
+			mtype = dns_ssumatchtype_subdomainkrb5;
 		else if (strcasecmp(str, "tcp-self") == 0)
-			mtype = DNS_SSUMATCHTYPE_TCPSELF;
+			mtype = dns_ssumatchtype_tcpself;
 		else if (strcasecmp(str, "6to4-self") == 0)
-			mtype = DNS_SSUMATCHTYPE_6TO4SELF;
+			mtype = dns_ssumatchtype_6to4self;
 		else if (strcasecmp(str, "zonesub") == 0) {
-			mtype = DNS_SSUMATCHTYPE_SUBDOMAIN;
+			mtype = dns_ssumatchtype_subdomain;
 			usezone = ISC_TRUE;
 		} else if (strcasecmp(str, "external") == 0)
-			mtype = DNS_SSUMATCHTYPE_EXTERNAL;
+			mtype = dns_ssumatchtype_external;
 		else
 			INSIST(0);
 
@@ -373,7 +373,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		result = dns_ssutable_addrule(table, ISC_TRUE,
 					      named_g_server->session_keyname,
-					      DNS_SSUMATCHTYPE_SUBDOMAIN,
+					      dns_ssumatchtype_local,
 					      dns_zone_getorigin(zone),
 					      1, &any);
 

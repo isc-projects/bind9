@@ -466,6 +466,44 @@ fi
 
 n=`expr $n + 1`
 ret=0
+echo "I:check that 'update-policy local' works from localhost address ($n)"
+$NSUPDATE -p 5300 -k ns5/session.key > nsupdate.out.$n 2>&1 << END || ret=1
+server 10.53.0.5 5300
+local 127.0.0.1 5300
+update add fromlocal.local.nil. 600 A 1.2.3.4
+send
+END
+grep REFUSED nsupdate.out.$n > /dev/null 2>&1 && ret=1
+$DIG @10.53.0.5 -p 5300 \
+        +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+        fromlocal.local.nil. > dig.out.ns5.$n || ret=1
+grep fromlocal dig.out.ns5.$n > /dev/null 2>&1 || ret=1
+if test $ret -ne 0
+then
+echo "I:failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo "I:check that 'update-policy local' fails from non-localhost address ($n)"
+$NSUPDATE -p 5300 -k ns5/session.key > nsupdate.out.$n 2>&1 << END && ret=1
+server 10.53.0.5 5300
+local 10.53.0.1 5300
+update add nonlocal.local.nil. 600 A 4.3.2.1
+send
+END
+grep REFUSED nsupdate.out.$n > /dev/null 2>&1 || ret=1
+$DIG @10.53.0.5 -p 5300 \
+        +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+        nonlocal.local.nil. > dig.out.ns5.$n || ret=1
+grep nonlocal dig.out.ns5.$n > /dev/null 2>&1 && ret=1
+if test $ret -ne 0
+then
+echo "I:failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
 echo "I:check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
 $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
         @10.53.0.3 -p 5300 dnskey | \

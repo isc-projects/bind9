@@ -178,6 +178,12 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen);
  *	ISC_R_FAILURE		extra bits.
  */
 
+isc_boolean_t
+isc_netaddr_isloopback(const isc_netaddr_t *na);
+/*
+ * Test whether the netaddr 'na' is a loopback IPv4 or IPv6 address (in
+ * 127.0.0.0/8 or ::1).
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_NETADDR_H */

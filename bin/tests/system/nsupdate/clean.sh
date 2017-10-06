@@ -11,12 +11,12 @@
 #
 
 rm -f */named.memstats
-rm -f */named.run
+rm -f */named.run */ans.run
 rm -f Kxxx.*
 rm -f dig.out.*
 rm -f jp.out.ns3.*
 rm -f ns*/named.lock
-rm -f ns1/*.jnl ns2/*.jnl ns3/*.jnl
+rm -f */*.jnl
 rm -f ns1/example.db ns1/unixtime.db ns1/yyyymmddvv.db ns1/update.db ns1/other.db ns1/keytests.db
 rm -f ns1/many.test.db
 rm -f ns1/maxjournal.db
@@ -33,6 +33,7 @@ rm -f ns3/example.db
 rm -f ns3/many.test.bk
 rm -f ns3/nsec3param.test.db
 rm -f ns3/too-big.test.db
+rm -f ns5/local.db
 rm -f nsupdate.out*
 rm -f typelist.out.*
 rm -f ns1/sample.db

@@ -997,11 +997,23 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		}
 
 		if (adjusting == ISC_FALSE) {
+			/*
+			 * If running with -T fixedlocal, then we only
+			 * want 127.0.0.1 and ::1 in the localhost ACL.
+			 */
+			if (((mgr->sctx->options &
+			      NS_SERVER_FIXEDLOCAL) != 0) &&
+			    !isc_netaddr_isloopback(&interface.address))
+			{
+				goto listenon;
+			}
+
 			result = setup_locals(mgr, &interface);
 			if (result != ISC_R_SUCCESS)
 				goto ignore_interface;
 		}
 
+ listenon:
 		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
 		dolistenon = ISC_TRUE;
 		for (le = ISC_LIST_HEAD(ll->elts);

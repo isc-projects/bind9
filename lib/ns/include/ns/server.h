@@ -35,7 +35,8 @@
 #define NS_SERVER_DROPEDNS	0x00000040U	/*%< -T dropedns */
 #define NS_SERVER_NOTCP		0x00000080U	/*%< -T notcp */
 #define NS_SERVER_DISABLE4	0x00000100U	/*%< -6 */
-#define NS_SERVER_DISABLE6	0x00000100U	/*%< -4 */
+#define NS_SERVER_DISABLE6	0x00000200U	/*%< -4 */
+#define NS_SERVER_FIXEDLOCAL	0x00000400U	/*%< -T fixedlocal */
 
 /*%
  * Type for callback function to get hostname.

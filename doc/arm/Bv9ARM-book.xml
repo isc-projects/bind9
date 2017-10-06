@@ -13016,38 +13016,52 @@ example.com. NS ns2.example.net.
 	      is present, it is a configuration error for the
 	      <command>allow-update</command> statement to be
 	      present.  The <command>update-policy</command> statement
-	      only examines the signer of a message; the source
+	      (except when set to <literal>local</literal>) only
+	      examines the signer of a message; the source
 	      address is not relevant.
 	    </para>
 	    <para>
-	      There is a pre-defined <command>update-policy</command>
-	      rule which can be switched on with the command
+	      A pre-defined <command>update-policy</command> rule can be
+	      switched on with the command
 	      <command>update-policy local;</command>.
 	      Switching on this rule in a zone causes
-	      <command>named</command> to generate a TSIG session
-	      key and place it in a file, and to allow that key
-	      to update the zone.  (By default, the file is
-	      <filename>/var/run/named/session.key</filename>, the key
-	      name is "local-ddns" and the key algorithm is HMAC-SHA256,
-	      but these values are configurable with the
+	      <command>named</command> to generate a TSIG session key and
+	      place it in a file. That key will then be allowed to update
+	      the zone, if the update request is sent from localhost.
+	      By default, the session key is stored in the file
+	      <filename>/var/run/named/session.key</filename>; the key name
+	      is "local-ddns" and the key algorithm is HMAC-SHA256.
+	      These values are configurable with the
 	      <command>session-keyfile</command>,
 	      <command>session-keyname</command> and
 	      <command>session-keyalg</command> options, respectively).
 	    </para>
 	    <para>
-	      A client running on the local system, and with appropriate
-	      permissions, may read that file and use the key to sign update
-	      requests.  The zone's update policy will be set to allow that
-	      key to change any record within the zone.  Assuming the
-	      key name is "local-ddns", this policy is equivalent to:
+	      A client on the local system, if it is run with appropriate
+	      permissions, may read the session key from the key file and
+	      use the key to sign update requests.  The zone's update
+	      policy will be set to allow that key to change any record
+	      within the zone.  Assuming the key name is "local-ddns",
+	      this policy is:
 	    </para>
 
 	    <programlisting>update-policy { grant local-ddns zonesub any; };
 	    </programlisting>
 
 	    <para>
-	      The command <command>nsupdate -l</command> sends update
-	      requests to localhost, and signs them using the session key.
+	      ...with an additional restriction that only clients
+	      connecting from the local system will be permitted to send
+	      updates.
+	    </para>
+	    <para>
+	      Note that only one session key is generated; all zones
+	      configured to use <command>update-policy local</command>
+	      will accept the same key.
+	    </para>
+	    <para>
+	      The command <command>nsupdate -l</command> implements this
+	      feature, sending requests to localhost and signing them using
+	      the key retrieved from the session key file.
 	    </para>
 
 	    <para>
