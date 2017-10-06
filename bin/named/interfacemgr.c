@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: interfacemgr.c,v 1.101 2011/11/09 18:44:03 each Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -954,11 +952,22 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 		}
 
 		if (adjusting == ISC_FALSE) {
+			/*
+			 * If running with -T fixedlocal, then we only
+			 * want 127.0.0.1 and ::1 in the localhost ACL.
+			 */
+			if (ns_g_fixedlocal &&
+			    !isc_netaddr_isloopback(&interface.address))
+			{
+				goto listenon;
+			}
+
 			result = setup_locals(mgr, &interface);
 			if (result != ISC_R_SUCCESS)
 				goto ignore_interface;
 		}
 
+ listenon:
 		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
 		dolistenon = ISC_TRUE;
 		for (le = ISC_LIST_HEAD(ll->elts);

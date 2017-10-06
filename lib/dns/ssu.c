@@ -339,9 +339,20 @@ stf_from_address(dns_name_t *stfself, isc_netaddr_t *tcpaddr) {
 
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
-			dns_name_t *name, isc_netaddr_t *tcpaddr,
-			dns_rdatatype_t type,
-			const dst_key_t *key)
+			dns_name_t *name, isc_netaddr_t *addr,
+			dns_rdatatype_t type, const dst_key_t *key)
+{
+	return (dns_ssutable_checkrules2
+		(table, signer, name, addr,
+		 addr == NULL ? ISC_FALSE : ISC_TRUE,
+		 NULL, type, key));
+}
+
+isc_boolean_t
+dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
+			 dns_name_t *name, isc_netaddr_t *addr,
+			 isc_boolean_t tcp, const dns_aclenv_t *env,
+			 dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_ssurule_t *rule;
 	unsigned int i;
@@ -350,12 +361,14 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 	dns_name_t *tcpself;
 	dns_name_t *stfself;
 	isc_result_t result;
+	int match;
 
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(signer == NULL || dns_name_isabsolute(signer));
 	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(addr == NULL || env != NULL);
 
-	if (signer == NULL && tcpaddr == NULL)
+	if (signer == NULL && addr == NULL)
 		return (ISC_FALSE);
 
 	for (rule = ISC_LIST_HEAD(table->rules);
@@ -364,6 +377,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 	{
 		switch (rule->matchtype) {
 		case DNS_SSUMATCHTYPE_NAME:
+		case DNS_SSUMATCHTYPE_LOCAL:
 		case DNS_SSUMATCHTYPE_SUBDOMAIN:
 		case DNS_SSUMATCHTYPE_WILDCARD:
 		case DNS_SSUMATCHTYPE_SELF:
@@ -389,7 +403,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 			break;
 		case DNS_SSUMATCHTYPE_TCPSELF:
 		case DNS_SSUMATCHTYPE_6TO4SELF:
-			if (tcpaddr == NULL)
+			if (!tcp || addr == NULL)
 				continue;
 			break;
 		}
@@ -402,6 +416,20 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 		case DNS_SSUMATCHTYPE_SUBDOMAIN:
 			if (!dns_name_issubdomain(name, rule->name))
 				continue;
+			break;
+		case DNS_SSUMATCHTYPE_LOCAL:
+			if (addr == NULL) {
+				continue;
+			}
+			if (!dns_name_issubdomain(name, rule->name)) {
+
+				continue;
+			}
+			dns_acl_match(addr, NULL, env->localhost,
+				      NULL, &match, NULL);
+			if (match == 0) {
+				continue;
+			}
 			break;
 		case DNS_SSUMATCHTYPE_WILDCARD:
 			if (!dns_name_matcheswildcard(name, rule->name))
@@ -452,7 +480,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 		case DNS_SSUMATCHTYPE_TCPSELF:
 			dns_fixedname_init(&fixed);
 			tcpself = dns_fixedname_name(&fixed);
-			reverse_from_address(tcpself, tcpaddr);
+			reverse_from_address(tcpself, addr);
 			if (dns_name_iswildcard(rule->identity)) {
 				if (!dns_name_matcheswildcard(tcpself,
 							      rule->identity))
@@ -467,7 +495,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 		case DNS_SSUMATCHTYPE_6TO4SELF:
 			dns_fixedname_init(&fixed);
 			stfself = dns_fixedname_name(&fixed);
-			stf_from_address(stfself, tcpaddr);
+			stf_from_address(stfself, addr);
 			if (dns_name_iswildcard(rule->identity)) {
 				if (!dns_name_matcheswildcard(stfself,
 							      rule->identity))
@@ -481,13 +509,13 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 			break;
 		case DNS_SSUMATCHTYPE_EXTERNAL:
 			if (!dns_ssu_external_match(rule->identity, signer,
-						    name, tcpaddr, type, key,
+						    name, addr, type, key,
 						    table->mctx))
 				continue;
 			break;
 		case DNS_SSUMATCHTYPE_DLZ:
 			if (!dns_dlz_ssumatch(table->dlzdatabase, signer,
-					      name, tcpaddr, type, key))
+					      name, addr, type, key))
 				continue;
 			break;
 		}
