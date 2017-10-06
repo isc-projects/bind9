@@ -128,6 +128,7 @@ static isc_logcategory_t categories[] = {
 	{ "unmatched", 	     0 },
 	{ "update-security", 0 },
 	{ "query-errors",    0 },
+	{ "trust-anchor-telemetry",    0 },
 	{ NULL,		     0 }
 };
 
