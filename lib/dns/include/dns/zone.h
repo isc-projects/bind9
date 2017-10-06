@@ -2495,5 +2495,17 @@ dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial);
  */
 ISC_LANG_ENDDECLS
 
+isc_stats_t *
+dns_zone_getgluecachestats(dns_zone_t *zone);
+/*%<
+ * Get the glue cache statistics for zone.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ *
+ * Returns:
+ * \li	if present, a pointer to the statistics set installed in zone;
+ *	otherwise NULL.
+ */
 
 #endif /* DNS_ZONE_H */

@@ -126,6 +126,7 @@ static const char *udpoutsizestats_desc[dns_sizecounter_out_max];
 static const char *tcpinsizestats_desc[dns_sizecounter_in_max];
 static const char *tcpoutsizestats_desc[dns_sizecounter_out_max];
 static const char *dnstapstats_desc[dns_dnstapcounter_max];
+static const char *gluecachestats_desc[dns_gluecachestatscounter_max];
 #if defined(EXTENDED_STATS)
 static const char *nsstats_xmldesc[ns_statscounter_max];
 static const char *resstats_xmldesc[dns_resstatscounter_max];
@@ -138,6 +139,7 @@ static const char *udpoutsizestats_xmldesc[dns_sizecounter_out_max];
 static const char *tcpinsizestats_xmldesc[dns_sizecounter_in_max];
 static const char *tcpoutsizestats_xmldesc[dns_sizecounter_out_max];
 static const char *dnstapstats_xmldesc[dns_dnstapcounter_max];
+static const char *gluecachestats_xmldesc[dns_gluecachestatscounter_max];
 #else
 #define nsstats_xmldesc NULL
 #define resstats_xmldesc NULL
@@ -150,6 +152,7 @@ static const char *dnstapstats_xmldesc[dns_dnstapcounter_max];
 #define tcpinsizestats_xmldesc NULL
 #define tcpoutsizestats_xmldesc NULL
 #define dnstapstats_xmldesc NULL
+#define gluecachestats_xmldesc NULL
 #endif	/* EXTENDED_STATS */
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
@@ -170,6 +173,7 @@ static int udpoutsizestats_index[dns_sizecounter_out_max];
 static int tcpinsizestats_index[dns_sizecounter_in_max];
 static int tcpoutsizestats_index[dns_sizecounter_out_max];
 static int dnstapstats_index[dns_dnstapcounter_max];
+static int gluecachestats_index[dns_gluecachestatscounter_max];
 
 static inline void
 set_desc(int counter, int maxcounter, const char *fdesc, const char **fdescs,
@@ -615,6 +619,30 @@ init_desc(void) {
 	SET_DNSTAPSTATDESC(drop, "dnstap messages dropped", "DNSTAPdropped");
 	INSIST(i == dns_dnstapcounter_max);
 
+#define SET_GLUECACHESTATDESC(counterid, desc, xmldesc) \
+	do {							  \
+		set_desc(dns_gluecachestatscounter_ ## counterid, \
+			 dns_gluecachestatscounter_max,		  \
+			 desc, gluecachestats_desc,		  \
+			 xmldesc, gluecachestats_xmldesc);		\
+		gluecachestats_index[i++] =				\
+			dns_gluecachestatscounter_ ## counterid;	\
+	} while (0)
+	i = 0;
+	SET_GLUECACHESTATDESC(hits_present,
+			      "Hits for present glue (cached)",
+			      "GLUECACHEhitspresent");
+	SET_GLUECACHESTATDESC(hits_absent,
+			      "Hits for non-existent glue (cached)",
+			      "GLUECACHEhitsabsent");
+	SET_GLUECACHESTATDESC(inserts_present,
+			      "Miss-plus-cache-inserts for present glue",
+			      "GLUECACHEinsertspresent");
+	SET_GLUECACHESTATDESC(inserts_absent,
+			      "Miss-plus-cache-inserts for non-existent glue",
+			      "GLUECACHEinsertsabsent");
+	INSIST(i == dns_gluecachestatscounter_max);
+
 	/* Sanity check */
 	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_desc[i] != NULL);
@@ -630,6 +658,8 @@ init_desc(void) {
 		INSIST(dnssecstats_desc[i] != NULL);
 	for (i = 0; i < dns_dnstapcounter_max; i++)
 		INSIST(dnstapstats_desc[i] != NULL);
+	for (i = 0; i < dns_gluecachestatscounter_max; i++)
+		INSIST(gluecachestats_desc[i] != NULL);
 #if defined(EXTENDED_STATS)
 	for (i = 0; i < ns_statscounter_max; i++)
 		INSIST(nsstats_xmldesc[i] != NULL);
@@ -645,6 +675,8 @@ init_desc(void) {
 		INSIST(dnssecstats_xmldesc[i] != NULL);
 	for (i = 0; i < dns_dnstapcounter_max; i++)
 		INSIST(dnstapstats_xmldesc[i] != NULL);
+	for (i = 0; i < dns_gluecachestatscounter_max; i++)
+		INSIST(gluecachestats_xmldesc[i] != NULL);
 #endif
 
 	/* Initialize traffic size statistics */
@@ -1425,10 +1457,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_rdataclass_t rdclass;
 	isc_uint32_t serial;
 	xmlTextWriterPtr writer = arg;
-	isc_stats_t *zonestats;
-	dns_stats_t *rcvquerystats;
 	dns_zonestat_level_t statlevel;
-	isc_uint64_t nsstat_values[ns_statscounter_max];
 	int xmlrc;
 	stats_dumparg_t dumparg;
 	const char *ztype;
@@ -1466,36 +1495,71 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
 	TRY0(xmlTextWriterEndElement(writer)); /* serial */
 
-	zonestats = dns_zone_getrequeststats(zone);
-	rcvquerystats = dns_zone_getrcvquerystats(zone);
-	if (statlevel == dns_zonestat_full && zonestats != NULL) {
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
-		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
-						 ISC_XMLCHAR "rcode"));
+	if (statlevel == dns_zonestat_full) {
+		isc_stats_t *zonestats;
+		isc_stats_t *gluecachestats;
+		dns_stats_t *rcvquerystats;
+		isc_uint64_t nsstat_values[ns_statscounter_max];
+		isc_uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
-		result = dump_counters(zonestats, isc_statsformat_xml, writer,
-				       NULL, nsstats_xmldesc,
-				       ns_statscounter_max, nsstats_index,
-				       nsstat_values, ISC_STATSDUMP_VERBOSE);
-		if (result != ISC_R_SUCCESS)
-			goto error;
-		/* counters type="rcode"*/
-		TRY0(xmlTextWriterEndElement(writer));
-	}
+		zonestats = dns_zone_getrequeststats(zone);
+		if (zonestats != NULL) {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "counters"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR "type",
+							 ISC_XMLCHAR "rcode"));
 
-	if (statlevel == dns_zonestat_full && rcvquerystats != NULL) {
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
-		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
-						 ISC_XMLCHAR "qtype"));
+			result = dump_counters(zonestats, isc_statsformat_xml,
+					       writer, NULL, nsstats_xmldesc,
+					       ns_statscounter_max,
+					       nsstats_index, nsstat_values,
+					       ISC_STATSDUMP_VERBOSE);
+			if (result != ISC_R_SUCCESS)
+				goto error;
+			/* counters type="rcode"*/
+			TRY0(xmlTextWriterEndElement(writer));
+		}
 
-		dumparg.result = ISC_R_SUCCESS;
-		dns_rdatatypestats_dump(rcvquerystats, rdtypestat_dump,
-					&dumparg, 0);
-		if(dumparg.result != ISC_R_SUCCESS)
-			goto error;
+		gluecachestats = dns_zone_getgluecachestats(zone);
+		if (gluecachestats != NULL) {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "counters"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR "type",
+							 ISC_XMLCHAR "gluecache"));
 
-		/* counters type="qtype"*/
-		TRY0(xmlTextWriterEndElement(writer));
+			result = dump_counters(gluecachestats,
+					       isc_statsformat_xml,
+					       writer, NULL,
+					       gluecachestats_xmldesc,
+					       dns_gluecachestatscounter_max,
+					       gluecachestats_index,
+					       gluecachestats_values,
+					       ISC_STATSDUMP_VERBOSE);
+			if (result != ISC_R_SUCCESS)
+				goto error;
+			/* counters type="rcode"*/
+			TRY0(xmlTextWriterEndElement(writer));
+		}
+
+		rcvquerystats = dns_zone_getrcvquerystats(zone);
+		if (rcvquerystats != NULL) {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "counters"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+							 ISC_XMLCHAR "type",
+							 ISC_XMLCHAR "qtype"));
+
+			dumparg.result = ISC_R_SUCCESS;
+			dns_rdatatypestats_dump(rcvquerystats, rdtypestat_dump,
+						&dumparg, 0);
+			if(dumparg.result != ISC_R_SUCCESS)
+				goto error;
+
+			/* counters type="qtype"*/
+			TRY0(xmlTextWriterEndElement(writer));
+		}
 	}
 
 	TRY0(xmlTextWriterEndElement(writer)); /* zone */
@@ -2187,9 +2251,6 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	char *class_only = NULL;
 	dns_rdataclass_t rdclass;
 	isc_uint32_t serial;
-	isc_uint64_t nsstat_values[ns_statscounter_max];
-	isc_stats_t *zonestats;
-	dns_stats_t *rcvquerystats;
 	json_object *zonearray = (json_object *) arg;
 	json_object *zoneobj = NULL;
 	dns_zonestat_level_t statlevel;
@@ -2215,49 +2276,87 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	if (zoneobj == NULL)
 		return (ISC_R_NOMEMORY);
 
-	zonestats = dns_zone_getrequeststats(zone);
-	rcvquerystats = dns_zone_getrcvquerystats(zone);
-	if (statlevel == dns_zonestat_full && zonestats != NULL) {
-		json_object *counters = json_object_new_object();
-		if (counters == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
+	if (statlevel == dns_zonestat_full) {
+		isc_stats_t *zonestats;
+		isc_stats_t *gluecachestats;
+		dns_stats_t *rcvquerystats;
+		isc_uint64_t nsstat_values[ns_statscounter_max];
+		isc_uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
+
+		zonestats = dns_zone_getrequeststats(zone);
+		if (zonestats != NULL) {
+			json_object *counters = json_object_new_object();
+			if (counters == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto error;
+			}
+
+			result = dump_counters(zonestats, isc_statsformat_json,
+					       counters, NULL, nsstats_xmldesc,
+					       ns_statscounter_max,
+					       nsstats_index,
+					       nsstat_values, 0);
+			if (result != ISC_R_SUCCESS) {
+				json_object_put(counters);
+				goto error;
+			}
+
+			if (json_object_get_object(counters)->count != 0)
+				json_object_object_add(zoneobj,
+						       "rcodes", counters);
+			else
+				json_object_put(counters);
 		}
 
-		result = dump_counters(zonestats, isc_statsformat_json,
-				       counters, NULL, nsstats_xmldesc,
-				       ns_statscounter_max, nsstats_index,
-				       nsstat_values, 0);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(counters);
-			goto error;
+		gluecachestats = dns_zone_getgluecachestats(zone);
+		if (gluecachestats != NULL) {
+			json_object *counters = json_object_new_object();
+			if (counters == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto error;
+			}
+
+			result = dump_counters(gluecachestats,
+					       isc_statsformat_json,
+					       counters, NULL,
+					       gluecachestats_xmldesc,
+					       dns_gluecachestatscounter_max,
+					       gluecachestats_index,
+					       gluecachestats_values, 0);
+			if (result != ISC_R_SUCCESS) {
+				json_object_put(counters);
+				goto error;
+			}
+
+			if (json_object_get_object(counters)->count != 0)
+				json_object_object_add(zoneobj,
+						       "gluecache", counters);
+			else
+				json_object_put(counters);
 		}
 
-		if (json_object_get_object(counters)->count != 0)
-			json_object_object_add(zoneobj, "rcodes", counters);
-		else
-			json_object_put(counters);
-	}
+		rcvquerystats = dns_zone_getrcvquerystats(zone);
+		if (rcvquerystats != NULL) {
+			stats_dumparg_t dumparg;
+			json_object *counters = json_object_new_object();
+			CHECKMEM(counters);
 
-	if (statlevel == dns_zonestat_full && rcvquerystats != NULL) {
-		stats_dumparg_t dumparg;
-		json_object *counters = json_object_new_object();
-		CHECKMEM(counters);
+			dumparg.type = isc_statsformat_json;
+			dumparg.arg = counters;
+			dumparg.result = ISC_R_SUCCESS;
+			dns_rdatatypestats_dump(rcvquerystats, rdtypestat_dump,
+						&dumparg, 0);
+			if (dumparg.result != ISC_R_SUCCESS) {
+				json_object_put(counters);
+				goto error;
+			}
 
-		dumparg.type = isc_statsformat_json;
-		dumparg.arg = counters;
-		dumparg.result = ISC_R_SUCCESS;
-		dns_rdatatypestats_dump(rcvquerystats, rdtypestat_dump,
-					&dumparg, 0);
-		if (dumparg.result != ISC_R_SUCCESS) {
-			json_object_put(counters);
-			goto error;
+			if (json_object_get_object(counters)->count != 0)
+				json_object_object_add(zoneobj,
+						       "qtypes", counters);
+			else
+				json_object_put(counters);
 		}
-
-		if (json_object_get_object(counters)->count != 0)
-			json_object_object_add(zoneobj, "qtypes", counters);
-		else
-			json_object_put(counters);
 	}
 
 	json_object_array_add(zonearray, zoneobj);
@@ -3448,6 +3547,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	isc_uint64_t adbstat_values[dns_adbstats_max];
 	isc_uint64_t zonestat_values[dns_zonestatscounter_max];
 	isc_uint64_t sockstat_values[isc_sockstatscounter_max];
+	isc_uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
 	RUNTIME_CHECK(isc_once_do(&once, init_desc) == ISC_R_SUCCESS);
 
@@ -3602,6 +3702,36 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 					     fp, NULL, nsstats_desc,
 					     ns_statscounter_max,
 					     nsstats_index, nsstat_values, 0);
+		}
+	}
+
+	fprintf(fp, "++ Per Zone Glue Cache Statistics ++\n");
+	zone = NULL;
+	for (result = dns_zone_first(server->zonemgr, &zone);
+	     result == ISC_R_SUCCESS;
+	     next = NULL, result = dns_zone_next(zone, &next), zone = next)
+	{
+		isc_stats_t *gluecachestats = dns_zone_getgluecachestats(zone);
+		if (gluecachestats != NULL) {
+			char zonename[DNS_NAME_FORMATSIZE];
+
+			view = dns_zone_getview(zone);
+			if (view == NULL)
+				continue;
+
+			dns_name_format(dns_zone_getorigin(zone),
+					zonename, sizeof(zonename));
+			fprintf(fp, "[%s", zonename);
+			if (strcmp(view->name, "_default") != 0)
+				fprintf(fp, " (view: %s)", view->name);
+			fprintf(fp, "]\n");
+
+			(void) dump_counters(gluecachestats,
+					     isc_statsformat_file,
+					     fp, NULL, gluecachestats_desc,
+					     dns_gluecachestatscounter_max,
+					     gluecachestats_index,
+					     gluecachestats_values, 0);
 		}
 	}
 

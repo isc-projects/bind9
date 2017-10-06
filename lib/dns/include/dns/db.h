@@ -191,6 +191,7 @@ typedef struct dns_dbmethods {
 				   isc_uint64_t *records, isc_uint64_t *bytes);
 	isc_result_t	(*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
 	isc_result_t	(*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
+	isc_result_t	(*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1720,6 +1721,21 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl);
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
+ */
+
+isc_result_t
+dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
+/*%<
+ * Set the location in which to collect glue cache statistics.
+ * This option may not exist depending on the DB implementation.
+ *
+ * Requires:
+ *
+ * \li	'db' is a valid database (cache only).
+ *
+ * Returns:
+ * \li	when available, a pointer to a statistics object created by
+ *	dns_rdatasetstats_create(); otherwise NULL.
  */
 
 ISC_LANG_ENDDECLS

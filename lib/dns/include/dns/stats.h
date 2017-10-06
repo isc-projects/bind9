@@ -134,7 +134,17 @@ enum {
 	 */
 	dns_dnstapcounter_success = 0,
 	dns_dnstapcounter_drop =  1,
-	dns_dnstapcounter_max = 2
+	dns_dnstapcounter_max = 2,
+
+	/*
+	 * Glue cache statistics counters.
+	 */
+	dns_gluecachestatscounter_hits_present = 0,
+	dns_gluecachestatscounter_hits_absent = 1,
+	dns_gluecachestatscounter_inserts_present = 2,
+	dns_gluecachestatscounter_inserts_absent = 3,
+
+	dns_gluecachestatscounter_max = 4,
 };
 
 /*%

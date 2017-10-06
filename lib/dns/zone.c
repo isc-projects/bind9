@@ -424,6 +424,8 @@ struct dns_zone {
 	dns_zone_t		*rss_raw;
 	isc_event_t		*rss_event;
 	dns_update_state_t      *rss_state;
+
+	isc_stats_t             *gluecachestats;
 };
 
 typedef struct {
@@ -1064,6 +1066,13 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	zone->magic = ZONE_MAGIC;
 
+	zone->gluecachestats = NULL;
+	result = isc_stats_create(mctx, &zone->gluecachestats,
+				  dns_gluecachestatscounter_max);
+	if (result != ISC_R_SUCCESS) {
+		goto free_erefs;
+	}
+
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 	if (result != ISC_R_SUCCESS) {
@@ -1075,6 +1084,10 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 		       NULL, NULL);
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
+
+ free_stats:
+	if (zone->gluecachestats != NULL)
+		isc_stats_detach(&zone->gluecachestats);
 
  free_erefs:
 	isc_refcount_decrement(&zone->erefs, NULL);
@@ -1236,6 +1249,9 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (zone->ssutable != NULL) {
 		dns_ssutable_detach(&zone->ssutable);
+	}
+	if (zone->gluecachestats != NULL) {
+		isc_stats_detach(&zone->gluecachestats);
 	}
 
 	/* last stuff */
@@ -2082,6 +2098,12 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		goto cleanup;
 	}
 	dns_db_settask(db, zone->task);
+
+	if (zone->type == dns_zone_master || zone->type == dns_zone_slave) {
+		result = dns_db_setgluecachestats(db, zone->gluecachestats);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
 
 	if (! dns_db_ispersistent(db)) {
 		if (zone->masterfile != NULL) {
@@ -14648,6 +14670,10 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
+	result = dns_db_setgluecachestats(db, zone->gluecachestats);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
@@ -19166,4 +19192,11 @@ dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial) {
 		isc_event_free(&e);
 	UNLOCK_ZONE(zone);
 	return (result);
+}
+
+isc_stats_t *
+dns_zone_getgluecachestats(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->gluecachestats);
 }

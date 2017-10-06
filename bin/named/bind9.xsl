@@ -800,6 +800,39 @@
             </xsl:for-each>
           </xsl:for-each>
         </xsl:if>
+        <xsl:if test="views/view[zones/zone/counters[@type=&quot;gluecache&quot;]/counter &gt;0]">
+          <h2>Glue cache statistics</h2>
+          <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;gluecache&quot;]/counter &gt;0]">
+            <h3>View <xsl:value-of select="@name"/></h3>
+            <xsl:variable name="thisview2">
+              <xsl:value-of select="@name"/>
+            </xsl:variable>
+            <xsl:for-each select="zones/zone">
+              <xsl:if test="counters[@type=&quot;gluecache&quot;]/counter[. &gt; 0]">
+                <h4>Zone <xsl:value-of select="@name"/></h4>
+                <table class="counters">
+                  <xsl:for-each select="counters[@type=&quot;gluecache&quot;]/counter[. &gt; 0]">
+                    <xsl:sort select="."/>
+                    <xsl:variable name="css-class11">
+                      <xsl:choose>
+                        <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                        <xsl:otherwise>odd</xsl:otherwise>
+                      </xsl:choose>
+                    </xsl:variable>
+                    <tr class="{$css-class11}">
+                      <th>
+                        <xsl:value-of select="@name"/>
+                      </th>
+                      <td>
+                        <xsl:value-of select="."/>
+                      </td>
+                    </tr>
+                  </xsl:for-each>
+                </table>
+              </xsl:if>
+            </xsl:for-each>
+          </xsl:for-each>
+        </xsl:if>
         <xsl:if test="socketmgr/sockets/socket">
           <h2>Network Status</h2>
           <table class="netstat">

@@ -1330,7 +1330,8 @@ static dns_dbmethods_t sdlzdb_methods = {
 	NULL,			/* nodefullname */
 	NULL,			/* getsize */
 	NULL,			/* setservestalettl */
-	NULL			/* getservestalettl */
+	NULL,			/* getservestalettl */
+	NULL			/* setgluecachestats */
 };
 
 /*

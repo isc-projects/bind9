@@ -257,6 +257,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define set_index set_index64
 #define set_ttl set_ttl64
 #define setcachestats setcachestats64
+#define setgluecachestats setgluecachestats64
 #define setownercase setownercase64
 #define setservestalettl setservestalettl64
 #define setsigningtime setsigningtime64
@@ -644,6 +645,7 @@ struct dns_rbtdb {
 	dns_rbtnode_t *			nsec3_origin_node;
 	dns_stats_t *			rrsetstats; /* cache DB only */
 	isc_stats_t *			cachestats; /* cache DB only */
+	isc_stats_t *			gluecachestats; /* zone DB only */
 	/* Locked by lock. */
 	unsigned int                    active;
 	isc_refcount_t                  references;
@@ -1296,6 +1298,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 		dns_stats_detach(&rbtdb->rrsetstats);
 	if (rbtdb->cachestats != NULL)
 		isc_stats_detach(&rbtdb->cachestats);
+	if (rbtdb->gluecachestats != NULL)
+		isc_stats_detach(&rbtdb->gluecachestats);
 
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
@@ -8181,6 +8185,18 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_result_t
+setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
+	REQUIRE(stats != NULL);
+
+	isc_stats_attach(stats, &rbtdb->gluecachestats);
+	return (ISC_R_SUCCESS);
+}
+
 static dns_stats_t *
 getrrsetstats(dns_db_t *db) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8279,7 +8295,8 @@ static dns_dbmethods_t zone_methods = {
 	nodefullname,
 	getsize,
 	NULL,
-	NULL
+	NULL,
+	setgluecachestats
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -8329,7 +8346,8 @@ static dns_dbmethods_t cache_methods = {
 	nodefullname,
 	NULL,
 	setservestalettl,
-	getservestalettl
+	getservestalettl,
+	NULL
 };
 
 isc_result_t
@@ -8410,6 +8428,8 @@ dns_rbtdb_create
 	}
 
 	rbtdb->cachestats = NULL;
+	rbtdb->gluecachestats = NULL;
+
 	rbtdb->rrsetstats = NULL;
 	if (IS_CACHE(rbtdb)) {
 		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
@@ -10114,9 +10134,9 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	rbtdb_glue_additionaldata_ctx_t ctx;
 	isc_result_t result;
 
-	INSIST(rdataset->type == dns_rdatatype_ns);
-	INSIST(rbtdb == rbtversion->rbtdb);
-	INSIST(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
+	REQUIRE(rdataset->type == dns_rdatatype_ns);
+	REQUIRE(rbtdb == rbtversion->rbtdb);
+	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
 
 	/*
 	 * The glue table cache that forms a part of the DB version
@@ -10158,8 +10178,20 @@ restart:
 	 * (void *) -1 is a special value that means no glue is
 	 * present in the zone.
 	 */
-	if (ge == (void *) -1)
+	if (ge == (void *) -1) {
+		if (!restarted && (rbtdb->gluecachestats != NULL)) {
+			isc_stats_increment
+				(rbtdb->gluecachestats,
+				 dns_gluecachestatscounter_hits_absent);
+		}
 		goto no_glue;
+	} else {
+		if (!restarted && (rbtdb->gluecachestats != NULL)) {
+			isc_stats_increment
+				(rbtdb->gluecachestats,
+				 dns_gluecachestatscounter_hits_present);
+		}
+	}
 
 	for (; ge != NULL; ge = ge->next) {
 		isc_buffer_t *buffer = NULL;
@@ -10326,8 +10358,18 @@ no_glue:
 		 * No glue was found. Cache it so.
 		 */
 		cur->glue_list = (void *) -1;
+		if (rbtdb->gluecachestats != NULL) {
+			isc_stats_increment
+				(rbtdb->gluecachestats,
+				 dns_gluecachestatscounter_inserts_absent);
+		}
 	} else {
 		cur->glue_list = ctx.glue_list;
+		if (rbtdb->gluecachestats != NULL) {
+			isc_stats_increment
+				(rbtdb->gluecachestats,
+				 dns_gluecachestatscounter_inserts_present);
+		}
 	}
 
 	cur->next = rbtversion->glue_table[idx];

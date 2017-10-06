@@ -1147,3 +1147,14 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl)
 		return ((db->methods->getservestalettl)(db, ttl));
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+isc_result_t
+dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
+	REQUIRE(dns_db_iszone(db));
+	REQUIRE(stats != NULL);
+
+	if (db->methods->setgluecachestats != NULL)
+		return ((db->methods->setgluecachestats)(db, stats));
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
