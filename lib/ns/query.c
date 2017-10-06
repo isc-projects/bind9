@@ -4027,7 +4027,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 			zbits &= allowed;
 			if (zbits != 0) {
 				isc_netaddr_fromsockaddr(&netaddr,
-							&client->peeraddr);
+							 &client->peeraddr);
 				result = rpz_rewrite_ip(client, &netaddr, qtype,
 							DNS_RPZ_TYPE_CLIENT_IP,
 							zbits, &rdataset);
@@ -10479,6 +10479,66 @@ query_done(query_ctx_t *qctx) {
 }
 
 static inline void
+log_tat(ns_client_t *client) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char clientbuf[ISC_NETADDR_FORMATSIZE];
+	char classname[DNS_RDATACLASS_FORMATSIZE];
+	isc_netaddr_t netaddr;
+	char *tags = NULL;
+	size_t taglen = 0;
+
+	if (!isc_log_wouldlog(ns_lctx, ISC_LOG_INFO)) {
+		return;
+	}
+
+	if ((client->query.qtype != dns_rdatatype_null ||
+	     !dns_name_istat(client->query.qname)) &&
+	    (client->keytag == NULL ||
+	     client->query.qtype != dns_rdatatype_dnskey))
+	{
+		return;
+	}
+
+	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+	isc_netaddr_format(&client->destaddr, clientbuf, sizeof(clientbuf));
+	dns_rdataclass_format(client->view->rdclass, classname,
+			      sizeof(classname));
+
+	if (client->query.qtype == dns_rdatatype_dnskey) {
+		isc_uint16_t keytags = client->keytag_len / 2;
+		size_t len = taglen = sizeof("65000") * keytags + 1;
+		char *cp = tags = isc_mem_get(client->mctx, taglen);
+		int i = 0;
+
+		INSIST(client->keytag != NULL);
+		if (tags != NULL) {
+			while (keytags-- > 0U) {
+				int n;
+				isc_uint16_t keytag;
+				keytag = (client->keytag[i * 2] << 8) |
+					 client->keytag[i * 2 + 1];
+				n = snprintf(cp, len, " %u", keytag);
+				if (n > 0 && (size_t)n <= len) {
+					cp += n;
+					len -= n;
+					i++;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	isc_log_write(ns_lctx, NS_LOGCATEGORY_TAT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_INFO, "trust-anchor-telemetry '%s/%s' from %s%s",
+		      namebuf, classname, clientbuf, tags != NULL? tags : "");
+	if (tags != NULL) {
+		isc_mem_put(client->mctx, tags, taglen);
+	}
+}
+
+static inline void
 log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typename[DNS_RDATATYPE_FORMATSIZE];
@@ -10690,6 +10750,8 @@ ns_query_start(ns_client_t *client) {
 	INSIST(rdataset != NULL);
 	client->query.qtype = qtype = rdataset->type;
 	dns_rdatatypestats_increment(client->sctx->rcvquerystats, qtype);
+
+	log_tat(client);
 
 	if (dns_rdatatype_ismeta(qtype)) {
 		switch (qtype) {

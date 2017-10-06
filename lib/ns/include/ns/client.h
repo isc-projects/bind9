@@ -164,6 +164,8 @@ struct ns_client {
 	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
 	isc_uint32_t		expire;
+	unsigned char		*keytag;
+	isc_uint16_t		keytag_len;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;

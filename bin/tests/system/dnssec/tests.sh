@@ -3315,16 +3315,24 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that trust-anchor-telemetry queries are received ($n)"
+echo "I:check that _ta-XXXX trust-anchor-telemetry queries are logged ($n)"
 ret=0
-grep "query '_ta-[0-9a-f]*/NULL/IN' approved" ns1/named.run > /dev/null || ret=1
+grep "trust-anchor-telemetry '_ta-[0-9a-f]*/IN' from" ns1/named.run > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that trust-anchor-telemetry are not sent when disabled ($n)"
+echo "I:check that _ta-AAAA trust-anchor-telemetry are not sent when disabled ($n)"
 ret=0
-grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns1/named.run > /dev/null && ret=1
+grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/IN" ns1/named.run > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that KEY-TAG trust-anchor-telemetry queries are logged ($n)"
+ret=0
+$DIG $DIGOPTS . dnskey +ednsopt=KEY-TAG:ffff @10.53.0.1 > dig.out.ns4.test$n || ret=1
+grep "trust-anchor-telemetry './IN' from .* 65535" ns1/named.run > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

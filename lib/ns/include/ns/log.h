@@ -24,6 +24,7 @@ LIBNS_EXTERNAL_DATA extern isc_logmodule_t ns_modules[];
 #define NS_LOGCATEGORY_QUERIES		(&ns_categories[3])
 #define NS_LOGCATEGORY_UPDATE_SECURITY	(&ns_categories[4])
 #define NS_LOGCATEGORY_QUERY_ERRORS	(&ns_categories[5])
+#define NS_LOGCATEGORY_TAT		(&ns_categories[6])
 
 /*
  * Backwards compatibility.

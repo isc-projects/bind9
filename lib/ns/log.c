@@ -31,6 +31,7 @@ LIBNS_EXTERNAL_DATA isc_logcategory_t ns_categories[] = {
 	{ "unmatched",                  0 },
 	{ "update-security",            0 },
 	{ "query-errors",               0 },
+	{ "trust-anchor-telemetry",     0 },
 	{ NULL, 			0 }
 };
 

@@ -302,6 +302,7 @@ init_desc(void) {
 		       "successful uses of stale cache data after lookup failure",
 		       "QryUsedStale");
 	SET_NSSTATDESC(prefetch, "queries triggered prefetch", "Prefetch");
+	SET_NSSTATDESC(keytagopt, "Keytag option received", "KeyTagOpt");
 	INSIST(i == ns_statscounter_max);
 
 	/* Initialize resolver statistics */

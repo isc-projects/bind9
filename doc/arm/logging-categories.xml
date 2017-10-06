@@ -326,6 +326,16 @@
       </row>
       <row rowsep="0">
 	<entry colname="1">
+	  <para><command>trust-anchor-telemetry</command></para>
+	</entry>
+	<entry colname="2">
+	  <para>
+	    Logs trust-anchor-telemetry requests received by named.
+	  </para>
+	</entry>
+      </row>
+      <row rowsep="0">
+	<entry colname="1">
 	  <para><command>unmatched</command></para>
 	</entry>
 	<entry colname="2">

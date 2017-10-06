@@ -544,6 +544,12 @@ exit_check(ns_client_t *client) {
 		client->mortal = ISC_FALSE;
 		client->sendcb = NULL;
 
+		if (client->keytag != NULL) {
+			isc_mem_put(client->mctx, client->keytag,
+				    client->keytag_len);
+			client->keytag_len = 0;
+		}
+
 		/*
 		 * Put the client on the inactive list.  If we are aiming for
 		 * the "freed" state, it will be removed from the inactive
@@ -611,6 +617,11 @@ exit_check(ns_client_t *client) {
 			dns_rdataset_disassociate(client->opt);
 			dns_message_puttemprdataset(client->message,
 						    &client->opt);
+		}
+		if (client->keytag != NULL) {
+			isc_mem_put(client->mctx, client->keytag,
+				    client->keytag_len);
+			client->keytag_len = 0;
 		}
 
 		dns_message_destroy(&client->message);
@@ -2095,6 +2106,23 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 }
 
 static isc_result_t
+process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
+
+	if (optlen == 0 || (optlen % 2) != 0) {
+		isc_buffer_forward(buf, (unsigned int)optlen);
+		return (DNS_R_OPTERR);
+	}
+
+	client->keytag = isc_mem_get(client->mctx, optlen);
+	if (client->keytag != NULL) {
+		client->keytag_len = optlen;
+		memmove(client->keytag, isc_buffer_current(buf), optlen);
+	}
+	isc_buffer_forward(buf, (unsigned int)optlen);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
@@ -2189,6 +2217,16 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 				ns_stats_increment(client->sctx->nsstats,
 						   ns_statscounter_padopt);
 				isc_buffer_forward(&optbuf, optlen);
+				break;
+			case DNS_OPT_KEY_TAG:
+				result = process_keytag(client, &optbuf,
+							optlen);
+				if (result != ISC_R_SUCCESS) {
+					ns_client_error(client, result);
+					return (result);
+				}
+				ns_stats_increment(client->sctx->nsstats,
+						   ns_statscounter_keytagopt);
 				break;
 			default:
 				ns_stats_increment(client->sctx->nsstats,
@@ -3014,6 +3052,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ISC_LINK_INIT(client, link);
 	ISC_LINK_INIT(client, rlink);
 	ISC_QLINK_INIT(client, ilink);
+	client->keytag = NULL;
+	client->keytag_len = 0;
 
 	/*
 	 * We call the init routines for the various kinds of client here,
