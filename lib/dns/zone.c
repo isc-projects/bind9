@@ -1076,7 +1076,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 	if (result != ISC_R_SUCCESS) {
-		goto free_erefs;
+		goto free_stats;
 	}
 
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
