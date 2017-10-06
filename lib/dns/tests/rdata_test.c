@@ -31,9 +31,10 @@
  * An array of these structures is passed to check_text_ok().
  */
 struct text_ok {
-	const char *data;	/* RDATA in text format */
-	isc_boolean_t ok;	/* is this RDATA valid? */
-	int lineno;		/* source line in which RDATA is defined */
+	const char *text_in;		/* text passed to fromtext_*() */
+	const char *text_out;		/* text expected from totext_*();
+					   NULL indicates text_in is invalid */
+	int lineno;			/* source line defining this RDATA */
 };
 typedef struct text_ok text_ok_t;
 
@@ -41,10 +42,10 @@ typedef struct text_ok text_ok_t;
  * An array of these structures is passed to check_wire_ok().
  */
 struct wire_ok {
-	unsigned char data[64];	/* RDATA in wire format */
-	size_t len;		/* octets of data to parse */
-	isc_boolean_t ok;	/* is this RDATA valid? */
-	int lineno;		/* source line in which RDATA is defined */
+	unsigned char data[512];	/* RDATA in wire format */
+	size_t len;			/* octets of data to parse */
+	isc_boolean_t ok;		/* is this RDATA valid? */
+	int lineno;			/* source line defining this RDATA */
 };
 typedef struct wire_ok wire_ok_t;
 
@@ -52,8 +53,10 @@ typedef struct wire_ok wire_ok_t;
  ***** Convenience macros for creating the above structures
  *****/
 
-#define TEXT_VALID(data)	{ data, ISC_TRUE, __LINE__ }
-#define TEXT_INVALID(data)	{ data, ISC_FALSE, __LINE__ }
+#define TEXT_VALID_CHANGED(data_in, data_out) \
+				{ data_in, data_out, __LINE__ }
+#define TEXT_VALID(data)	{ data, data, __LINE__ }
+#define TEXT_INVALID(data)	{ data, NULL, __LINE__ }
 #define TEXT_SENTINEL()		TEXT_INVALID(NULL)
 
 #define VARGC(...)		(sizeof((unsigned char[]){ __VA_ARGS__ }))
@@ -130,14 +133,17 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize, int lineno) {
 }
 
 /*
- * Test whether supplied RDATA in text format is properly handled as having
- * either valid or invalid syntax for an RR of given rdclass and type.
+ * Check whether converting supplied text form RDATA into uncompressed wire
+ * form succeeds (tests fromtext_*()).  If so, try converting it back into text
+ * form and see if it results in the original text (tests totext_*()).
  */
 static void
 check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, size_t structsize) {
+		     dns_rdatatype_t type, size_t structsize)
+{
 	isc_buffer_t source, target;
-	unsigned char buf[1024];
+	unsigned char buf_fromtext[1024];
+	char buf_totext[1024] = { 0 };
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
 	dns_rdata_t rdata;
@@ -148,45 +154,76 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 */
 	result = isc_lex_create(mctx, 64, &lex);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	length = strlen(text_ok->data);
-	isc_buffer_constinit(&source, text_ok->data, length);
+	length = strlen(text_ok->text_in);
+	isc_buffer_constinit(&source, text_ok->text_in, length);
 	isc_buffer_add(&source, length);
 	result = isc_lex_openbuffer(lex, &source);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	/*
 	 * Initialize target structures.
 	 */
-	isc_buffer_init(&target, buf, sizeof(buf));
+	isc_buffer_init(&target, buf_fromtext, sizeof(buf_fromtext));
 	dns_rdata_init(&rdata);
 	/*
-	 * Try converting RDATA text into uncompressed wire form.
+	 * Try converting text form RDATA into uncompressed wire form.
 	 */
 	result = dns_rdata_fromtext(&rdata, rdclass, type, lex, dns_rootname,
 				    0, NULL, &target, NULL);
 	/*
+	 * Destroy lexer now to simplify error handling below.
+	 */
+	isc_lex_destroy(&lex);
+	/*
 	 * Check whether result is as expected.
 	 */
-	if (text_ok->ok)
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	else
-		ATF_REQUIRE(result != ISC_R_SUCCESS);
+	if (text_ok->text_out != NULL) {
+		ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS,
+				   "line %d: '%s': "
+				   "expected success, got failure",
+				   text_ok->lineno, text_ok->text_in);
+	} else {
+		ATF_REQUIRE_MSG(result != ISC_R_SUCCESS,
+				"line %d: '%s': "
+				"expected failure, got success",
+				text_ok->lineno, text_ok->text_in);
+	}
 	/*
-	 * If text was parsed correctly, perform additional two-way
-	 * rdata <-> type-specific struct conversion checks.
+	 * If text form RDATA was not parsed correctly, performing any
+	 * additional checks is pointless.
 	 */
-	if (result == ISC_R_SUCCESS)
-		check_struct_conversions(&rdata, structsize, text_ok->lineno);
-
-	isc_lex_destroy(&lex);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+	/*
+	 * Try converting uncompressed wire form RDATA back into text form and
+	 * check whether the resulting text is the same as the original one.
+	 */
+	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
+	result = dns_rdata_totext(&rdata, NULL, &target);
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS,
+			   "line %d: '%s': "
+			   "failed to convert rdata back to text form",
+			   text_ok->lineno, text_ok->text_in);
+	ATF_REQUIRE_EQ_MSG(strcmp(buf_totext, text_ok->text_out), 0,
+			   "line %d: '%s': "
+			   "converts back to '%s', expected '%s'",
+			   text_ok->lineno, text_ok->text_in, buf_totext,
+			   text_ok->text_out);
+	/*
+	 * Perform two-way conversion checks between uncompressed wire form and
+	 * type-specific struct.
+	 */
+	check_struct_conversions(&rdata, structsize, text_ok->lineno);
 }
 
 /*
- * Test whether supplied RDATA in wire format is properly handled as being
- * either valid or invalid for an RR of given rdclass and type.
+ * Test whether supplied wire form RDATA is properly handled as being either
+ * valid or invalid for an RR of given rdclass and type.
  */
 static void
 check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, size_t structsize) {
+		     dns_rdatatype_t type, size_t structsize)
+{
 	isc_buffer_t source, target;
 	unsigned char buf[1024];
 	dns_decompress_t dctx;
@@ -215,7 +252,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	/*
 	 * Check whether result is as expected.
 	 */
-	if (wire_ok->ok)
+	if (wire_ok->ok) {
 		ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS,
 				   "line %d: %s (%lu): "
 				   "expected success, got failure",
@@ -223,7 +260,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 				   dns_test_tohex(wire_ok->data, wire_ok->len,
 						  hex, sizeof(hex)),
 				   wire_ok->len);
-	else
+	} else {
 		ATF_REQUIRE_MSG(result != ISC_R_SUCCESS,
 				"line %d: %s (%lu): "
 				"expected failure, got success",
@@ -231,30 +268,34 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 				dns_test_tohex(wire_ok->data, wire_ok->len,
 					       hex, sizeof(hex)),
 				wire_ok->len);
+	}
 	/*
-	 * If data was parsed correctly, perform additional two-way
-	 * rdata <-> type-specific struct conversion checks.
+	 * If data was parsed correctly, perform two-way conversion checks
+	 * between uncompressed wire form and type-specific struct.
 	 */
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		check_struct_conversions(&rdata, structsize, wire_ok->lineno);
+	}
 }
 
 /*
- * For each text RDATA in the supplied array, check whether it is properly
- * handled as having either valid or invalid syntax for an RR of given rdclass
- * and type.  This checks whether the fromtext_*() routine for given RR class
- * and type behaves as expected.
+ * Test fromtext_*() and totext_*() routines for given RR class and type for
+ * each text form RDATA in the supplied array.  See the comment for
+ * check_text_ok_single() for an explanation of how exactly these routines are
+ * tested.
  */
 static void
 check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
-	      dns_rdatatype_t type, size_t structsize) {
+	      dns_rdatatype_t type, size_t structsize)
+{
 	size_t i;
 
 	/*
 	 * Check all entries in the supplied array.
 	 */
-	for (i = 0; text_ok[i].data != NULL; i++)
+	for (i = 0; text_ok[i].text_in != NULL; i++) {
 		check_text_ok_single(&text_ok[i], rdclass, type, structsize);
+	}
 }
 
 /*
@@ -267,15 +308,17 @@ check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 static void
 check_wire_ok(const wire_ok_t *wire_ok, isc_boolean_t empty_ok,
 	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
-	      size_t structsize) {
+	      size_t structsize)
+{
 	wire_ok_t empty_wire = WIRE_TEST(empty_ok);
 	size_t i;
 
 	/*
 	 * Check all entries in the supplied array.
 	 */
-	for (i = 0; wire_ok[i].len != 0; i++)
+	for (i = 0; wire_ok[i].len != 0; i++) {
 		check_wire_ok_single(&wire_ok[i], rdclass, type, structsize);
+	}
 
 	/*
 	 * Check empty wire data.
@@ -284,30 +327,33 @@ check_wire_ok(const wire_ok_t *wire_ok, isc_boolean_t empty_ok,
 }
 
 /*
- * Test whether supplied sets of RDATA in text and/or wire form are handled as
- * expected.  This is just a helper function which should be the only function
- * called for a test case using it, due to the use of dns_test_begin() and
- * dns_test_end().
+ * Test whether supplied sets of text form and/or wire form RDATA are handled
+ * as expected.  This is just a helper function which should be the only
+ * function called for a test case using it, due to the use of dns_test_begin()
+ * and dns_test_end().
  *
  * The empty_ok argument denotes whether an attempt to parse a zero-length wire
  * data buffer should succeed or not (it is valid for some RR types).  There is
- * no point in performing a similar check for empty text RDATA, because
+ * no point in performing a similar check for empty text form RDATA, because
  * dns_rdata_fromtext() returns ISC_R_UNEXPECTEDEND before calling fromtext_*()
  * for the given RR class and type.
  */
 static void
 check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
 	    isc_boolean_t empty_ok, dns_rdataclass_t rdclass,
-	    dns_rdatatype_t type, size_t structsize) {
+	    dns_rdatatype_t type, size_t structsize)
+{
 	isc_result_t result;
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	if (text_ok != NULL)
+	if (text_ok != NULL) {
 		check_text_ok(text_ok, rdclass, type, structsize);
-	if (wire_ok != NULL)
+	}
+	if (wire_ok != NULL) {
 		check_wire_ok(wire_ok, empty_ok, rdclass, type, structsize);
+	}
 
 	dns_test_end();
 }
@@ -445,6 +491,223 @@ ATF_TC_BODY(csync, tc) {
 
 	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
 		    dns_rdatatype_csync, sizeof(dns_rdata_csync_t));
+}
+
+/*
+ * DOA tests.
+ *
+ * draft-durand-doa-over-dns-03:
+ *
+ * 3.2.  DOA RDATA Wire Format
+ *
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *     0: |                                                               |
+ *        |                        DOA-ENTERPRISE                         |
+ *        |                                                               |
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *     4: |                                                               |
+ *        |                           DOA-TYPE                            |
+ *        |                                                               |
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *     8: |         DOA-LOCATION          |         DOA-MEDIA-TYPE        /
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *    10: /                                                               /
+ *        /                  DOA-MEDIA-TYPE (continued)                   /
+ *        /                                                               /
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *        /                                                               /
+ *        /                           DOA-DATA                            /
+ *        /                                                               /
+ *        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+ *
+ *    DOA-ENTERPRISE: a 32-bit unsigned integer in network order.
+ *
+ *    DOA-TYPE: a 32-bit unsigned integer in network order.
+ *
+ *    DOA-LOCATION: an 8-bit unsigned integer.
+ *
+ *    DOA-MEDIA-TYPE: A <character-string> (see [RFC1035]).  The first
+ *    octet of the <character-string> contains the number of characters to
+ *    follow.
+ *
+ *    DOA-DATA: A variable length blob of binary data.  The length of the
+ *    DOA-DATA is not contained within the wire format of the RR and has to
+ *    be computed from the RDLENGTH of the entire RR once other fields have
+ *    been taken into account.
+ *
+ * 3.3.  DOA RDATA Presentation Format
+ *
+ *    The DOA-ENTERPRISE field is presented as an unsigned 32-bit decimal
+ *    integer with range 0 - 4,294,967,295.
+ *
+ *    The DOA-TYPE field is presented as an unsigned 32-bit decimal integer
+ *    with range 0 - 4,294,967,295.
+ *
+ *    The DOA-LOCATION field is presented as an unsigned 8-bit decimal
+ *    integer with range 0 - 255.
+ *
+ *    The DOA-MEDIA-TYPE field is presented as a single <character-string>.
+ *
+ *    The DOA-DATA is presented as Base64 encoded data [RFC3548] unless the
+ *    DOA-DATA is empty in which case it is presented as a single dash
+ *    character ("-", ASCII 45).  White space is permitted within Base64 data.
+ */
+ATF_TC(doa);
+ATF_TC_HEAD(doa, tc) {
+	atf_tc_set_md_var(tc, "descr", "DOA RDATA manipulations");
+}
+ATF_TC_BODY(doa, tc) {
+	text_ok_t text_ok[] = {
+		/*
+		 * Valid, non-empty DOA-DATA.
+		 */
+		TEXT_VALID("0 0 1 \"text/plain\" Zm9v"),
+		/*
+		 * Valid, non-empty DOA-DATA with whitespace in between.
+		 */
+		TEXT_VALID_CHANGED("0 0 1 \"text/plain\" Zm 9v",
+				   "0 0 1 \"text/plain\" Zm9v"),
+		/*
+		 * Valid, unquoted DOA-MEDIA-TYPE, non-empty DOA-DATA.
+		 */
+		TEXT_VALID_CHANGED("0 0 1 text/plain Zm9v",
+				   "0 0 1 \"text/plain\" Zm9v"),
+		/*
+		 * Invalid, quoted non-empty DOA-DATA.
+		 */
+		TEXT_INVALID("0 0 1 \"text/plain\" \"Zm9v\""),
+		/*
+		 * Valid, empty DOA-DATA.
+		 */
+		TEXT_VALID("0 0 1 \"text/plain\" -"),
+		/*
+		 * Invalid, quoted empty DOA-DATA.
+		 */
+		TEXT_INVALID("0 0 1 \"text/plain\" \"-\""),
+		/*
+		 * Invalid, missing "-" in empty DOA-DATA.
+		 */
+		TEXT_INVALID("0 0 1 \"text/plain\""),
+		/*
+		 * Valid, undefined DOA-LOCATION.
+		 */
+		TEXT_VALID("0 0 100 \"text/plain\" Zm9v"),
+		/*
+		 * Invalid, DOA-LOCATION too big.
+		 */
+		TEXT_INVALID("0 0 256 \"text/plain\" ZM9v"),
+		/*
+		 * Valid, empty DOA-MEDIA-TYPE, non-empty DOA-DATA.
+		 */
+		TEXT_VALID("0 0 2 \"\" aHR0cHM6Ly93d3cuaXNjLm9yZy8="),
+		/*
+		 * Valid, empty DOA-MEDIA-TYPE, empty DOA-DATA.
+		 */
+		TEXT_VALID("0 0 1 \"\" -"),
+		/*
+		 * Valid, DOA-MEDIA-TYPE with a space.
+		 */
+		TEXT_VALID("0 0 1 \"plain text\" Zm9v"),
+		/*
+		 * Invalid, missing DOA-MEDIA-TYPE.
+		 */
+		TEXT_INVALID("1234567890 1234567890 1"),
+		/*
+		 * Valid, DOA-DATA over 255 octets.
+		 */
+		TEXT_VALID("1234567890 1234567890 1 \"image/gif\" "
+			   "R0lGODlhKAAZAOMCAGZmZgBmmf///zOZzMz//5nM/zNmmWbM"
+			   "/5nMzMzMzACZ/////////////////////yH5BAEKAA8ALAAA"
+			   "AAAoABkAAATH8IFJK5U2a4337F5ogRkpnoCJrly7PrCKyh8c"
+			   "3HgAhzT35MDbbtO7/IJIHbGiOiaTxVTpSVWWLqNq1UVyapNS"
+			   "1wd3OAxug0LhnCubcVhsxysQnOt4ATpvvzHlFzl1AwODhWeF"
+			   "AgRpen5/UhheAYMFdUB4SFcpGEGGdQeCAqBBLTuSk30EeXd9"
+			   "pEsAbKGxjHqDSE0Sp6ixN4N1BJmbc7lIhmsBich1awPAjkY1"
+			   "SZR8bJWrz382SGqIBQQFQd4IsUTaX+ceuudPEQA7"),
+		/*
+		 * Invalid, bad Base64 in DOA-DATA.
+		 */
+		TEXT_INVALID("1234567890 1234567890 1 \"image/gif\" R0lGODl"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Valid, empty DOA-MEDIA-TYPE, empty DOA-DATA.
+		 */
+		WIRE_VALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			   0x01, 0x00),
+		/*
+		 * Invalid, missing DOA-MEDIA-TYPE.
+		 */
+		WIRE_INVALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			     0x01),
+		/*
+		 * Invalid, malformed DOA-MEDIA-TYPE length.
+		 */
+		WIRE_INVALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			     0x01, 0xff),
+		/*
+		 * Valid, empty DOA-DATA.
+		 */
+		WIRE_VALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			   0x01, 0x03, 0x66, 0x6f, 0x6f),
+		/*
+		 * Valid, non-empty DOA-DATA.
+		 */
+		WIRE_VALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			   0x01, 0x03, 0x66, 0x6f, 0x6f, 0x62, 0x61, 0x72),
+		/*
+		 * Valid, DOA-DATA over 255 octets.
+		 */
+		WIRE_VALID(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78,
+			   0x01, 0x06, 0x62, 0x69, 0x6e, 0x61, 0x72, 0x79,
+			   0x00, 0x66, 0x99, 0xff, 0xff, 0xff, 0x33, 0x99,
+			   0xcc, 0xcc, 0xff, 0xff, 0x99, 0xcc, 0xff, 0x33,
+			   0x66, 0x99, 0x66, 0xcc, 0xff, 0x99, 0xcc, 0xcc,
+			   0xcc, 0xcc, 0xcc, 0x00, 0x99, 0xff, 0xff, 0xff,
+			   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+			   0xff, 0xff, 0xff, 0xff, 0xff, 0x21, 0xf9, 0x04,
+			   0x01, 0x0a, 0x00, 0x0f, 0x00, 0x2c, 0x00, 0x00,
+			   0x00, 0x00, 0x28, 0x00, 0x19, 0x00, 0x00, 0x04,
+			   0xc7, 0xf0, 0x81, 0x49, 0x2b, 0x95, 0x36, 0x6b,
+			   0x8d, 0xf7, 0xec, 0x5e, 0x68, 0x81, 0x19, 0x29,
+			   0x9e, 0x80, 0x89, 0xae, 0x5c, 0xbb, 0x3e, 0xb0,
+			   0x8a, 0xca, 0x1f, 0x1c, 0xdc, 0x78, 0x00, 0x87,
+			   0x34, 0xf7, 0xe4, 0xc0, 0xdb, 0x6e, 0xd3, 0xbb,
+			   0xfc, 0x82, 0x48, 0x1d, 0xb1, 0xa2, 0x3a, 0x26,
+			   0x93, 0xc5, 0x54, 0xe9, 0x49, 0x55, 0x96, 0x2e,
+			   0xa3, 0x6a, 0xd5, 0x45, 0x72, 0x6a, 0x93, 0x52,
+			   0xd7, 0x07, 0x77, 0x38, 0x0c, 0x6e, 0x83, 0x42,
+			   0xe1, 0x9c, 0x2b, 0x9b, 0x71, 0x58, 0x6c, 0xc7,
+			   0x2b, 0x10, 0x9c, 0xeb, 0x78, 0x01, 0x3a, 0x6f,
+			   0xbf, 0x31, 0xe5, 0x17, 0x39, 0x75, 0x03, 0x03,
+			   0x83, 0x85, 0x67, 0x85, 0x02, 0x04, 0x69, 0x7a,
+			   0x7e, 0x7f, 0x52, 0x18, 0x5e, 0x01, 0x83, 0x05,
+			   0x75, 0x40, 0x78, 0x48, 0x57, 0x29, 0x18, 0x41,
+			   0x86, 0x75, 0x07, 0x82, 0x02, 0xa0, 0x41, 0x2d,
+			   0x3b, 0x92, 0x93, 0x7d, 0x04, 0x79, 0x77, 0x7d,
+			   0xa4, 0x4b, 0x00, 0x6c, 0xa1, 0xb1, 0x8c, 0x7a,
+			   0x83, 0x48, 0x4d, 0x12, 0xa7, 0xa8, 0xb1, 0x37,
+			   0x83, 0x75, 0x04, 0x99, 0x9b, 0x73, 0xb9, 0x48,
+			   0x86, 0x6b, 0x01, 0x89, 0xc8, 0x75, 0x6b, 0x03,
+			   0xc0, 0x8e, 0x46, 0x35, 0x49, 0x94, 0x7c, 0x6c,
+			   0x95, 0xab, 0xcf, 0x7f, 0x36, 0x48, 0x6a, 0x88,
+			   0x05, 0x04, 0x05, 0x41, 0xde, 0x08, 0xb1, 0x44,
+			   0xda, 0x5f, 0xe7, 0x1e, 0xba, 0xe7, 0x4f, 0x11,
+			   0x00, 0x3b),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
+		    dns_rdatatype_doa, sizeof(dns_rdata_doa_t));
 }
 
 /*
@@ -925,6 +1188,7 @@ ATF_TC_BODY(wks, tc) {
 
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, csync);
+	ATF_TP_ADD_TC(tp, doa);
 	ATF_TP_ADD_TC(tp, edns_client_subnet);
 	ATF_TP_ADD_TC(tp, hip);
 	ATF_TP_ADD_TC(tp, isdn);
