@@ -66,3 +66,5 @@ $DDNSCONFGEN -q -r $RANDFILE -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/
 
 cp ns1/sample.db.in ns1/sample.db
 cp ns2/sample.db.in ns2/sample.db
+
+cp -f ns5/local.db.in ns5/local.db

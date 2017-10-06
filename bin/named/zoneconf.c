@@ -378,7 +378,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		result = dns_ssutable_addrule(table, ISC_TRUE,
 					      ns_g_server->session_keyname,
-					      DNS_SSUMATCHTYPE_SUBDOMAIN,
+					      DNS_SSUMATCHTYPE_LOCAL,
 					      dns_zone_getorigin(zone),
 					      1, &any);
 

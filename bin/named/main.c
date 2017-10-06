@@ -611,17 +611,25 @@ parse_command_line(int argc, char *argv[]) {
 				dns_zone_mkey_month = atoi(p);
 				if (dns_zone_mkey_month < dns_zone_mkey_day)
 					ns_main_earlyfatal("bad mkeytimer");
-			} else if (!strcmp(isc_commandline_argument, "notcp"))
+			} else if (!strcmp(isc_commandline_argument, "notcp")) {
 				ns_g_notcp = ISC_TRUE;
-			else if (!strncmp(isc_commandline_argument, "tat=", 4))
+			} else if (!strncmp(isc_commandline_argument,
+					    "tat=", 4))
+			{
 				ns_g_tat_interval =
 					   atoi(isc_commandline_argument + 4);
-			else if (!strcmp(isc_commandline_argument,
-					 "keepstderr"))
+			} else if (!strcmp(isc_commandline_argument,
+					   "keepstderr"))
+			{
 				ns_g_keepstderr = ISC_TRUE;
-			else
+			} else if (!strcmp(isc_commandline_argument,
+					   "fixedlocal"))
+			{
+				ns_g_fixedlocal = ISC_TRUE;
+			} else {
 				fprintf(stderr, "unknown -T flag '%s\n",
 					isc_commandline_argument);
+			}
 			break;
 		case 'U':
 			ns_g_udpdisp = parse_int(isc_commandline_argument,
