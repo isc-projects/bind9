@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.28 2011/01/06 23:47:00 tbox Exp $ */
-
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
 
@@ -24,6 +22,7 @@
 
 #include <isc/lang.h>
 
+#include <dns/acl.h>
 #include <dns/types.h>
 #include <dst/dst.h>
 
@@ -42,8 +41,10 @@ ISC_LANG_BEGINDECLS
 #define DNS_SSUMATCHTYPE_TCPSELF	10
 #define DNS_SSUMATCHTYPE_6TO4SELF	11
 #define DNS_SSUMATCHTYPE_EXTERNAL	12
-#define DNS_SSUMATCHTYPE_DLZ		13
-#define DNS_SSUMATCHTYPE_MAX 		12  /* max value */
+#define DNS_SSUMATCHTYPE_LOCAL		13
+#define DNS_SSUMATCHTYPE_MAX 		13  /* max value */
+
+#define DNS_SSUMATCHTYPE_DLZ		14  /* intentionally higher than _MAX */
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
@@ -132,7 +133,12 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
-			dns_name_t *name, isc_netaddr_t *tcpaddr,
+			dns_name_t *name, isc_netaddr_t *addr,
+			dns_rdatatype_t type, const dst_key_t *key);
+isc_boolean_t
+dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
+			dns_name_t *name, isc_netaddr_t *addr,
+			isc_boolean_t tcp, const dns_aclenv_t *env,
 			dns_rdatatype_t type, const dst_key_t *key);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
@@ -140,11 +146,19 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
  *	no rules are matched, access is denied.
  *
  *	Notes:
- *		'tcpaddr' should only be set if the request received
- *		via TCP.  This provides a weak assurance that the
- *		request was not spoofed.  'tcpaddr' is to to validate
- *		DNS_SSUMATCHTYPE_TCPSELF and DNS_SSUMATCHTYPE_6TO4SELF
- *		rules.
+ *		In dns_ssutable_checkrules(), 'addr' should only be
+ *		set if the request received via TCP.  This provides a
+ *		weak assurance that the request was not spoofed.
+ *		'addr' is to to validate DNS_SSUMATCHTYPE_TCPSELF
+ *		and DNS_SSUMATCHTYPE_6TO4SELF rules.
+ *
+ *		In dns_ssutable_checkrules2(), 'addr' can also be passed for
+ *		UDP requests and TCP is specified via the 'tcp' parameter.
+ *		In addition to DNS_SSUMATCHTYPE_TCPSELF and
+ *		tcp_ssumatchtype_6to4self  rules, the address
+ *		also be used to check DNS_SSUMATCHTYPE_LOCAL rules.
+ *		If 'addr' is set then 'env' must also be set so that
+ *		requests from non-localhost addresses can be rejected.
  *
  *		For DNS_SSUMATCHTYPE_TCPSELF the addresses are mapped to
  *		the standard reverse names under IN-ADDR.ARPA and IP6.ARPA.
@@ -160,8 +174,10 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
  *	Requires:
  *\li		'table' is a valid SSU table
  *\li		'signer' is NULL or a valid absolute name
- *\li		'tcpaddr' is NULL or a valid network address.
+ *\li		'addr' is NULL or a valid network address.
+ *\li		'aclenv' is NULL or a valid ACL environment.
  *\li		'name' is a valid absolute name
+ *\li		if 'addr' is not NULL, 'env' is not NULL.
  */
 
 

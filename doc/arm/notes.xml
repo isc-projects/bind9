@@ -137,6 +137,15 @@
       </listitem>
       <listitem>
 	<para>
+	  Previously, <command>update-policy local;</command> accepted
+	  updates from any source so long as they were signed by the
+	  locally-generated session key. This has been further restricted;
+	  updates are now only accepted from locally configured addresses.
+	  [RT #45492]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Threads in <command>named</command> are now set to human-readable
 	  names to assist debugging on operating systems that support that.
 	  Threads will have names such as "isc-timer", "isc-sockmgr",
