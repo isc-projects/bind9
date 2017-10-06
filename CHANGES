@@ -1,3 +1,5 @@
+4760.	[func]		Add glue cache statistics counters. [RT #46028]
+
 4759.	[func]		Add logging channel "trust-anchor-telementry" to
 			record trust-anchor-telementry in incoming requests.
 			Both _ta-XXXX.<anchor>/NULL and EDNS KEY-TAG options
