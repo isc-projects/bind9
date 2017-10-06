@@ -1,3 +1,6 @@
+4758.	[doc]		Remove documentation of unimplemented "topology".
+			[RT #46161]
+
 4757.	[func]		New "dnssec-cds" command creates a new parent DS
 			RRset based on CDS or CDNSKEY RRsets found in
 			a child zone, and generates either a dsset file

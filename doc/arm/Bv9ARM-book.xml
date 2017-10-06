@@ -6184,7 +6184,7 @@ options {
 	      <term><command>host-statistics</command></term>
 	      <listitem>
 		<para>
-		  In BIND 8, this enables keeping of
+		  In BIND 8, this enabled keeping of
 		  statistics for every host that the name server interacts
 		  with.
 		  Not implemented in BIND 9.
@@ -8932,123 +8932,72 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
+	      <term><command>topology</command></term>
+	      <listitem>
+		<para>
+		  In BIND 8, this option indicated network topology
+		  so that preferential treatment could be given to
+		  the topologicaly closest name servers when sending
+		  queries. It is not implemented in BIND 9.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	  </variablelist>
 
-	</section>
-
-	<section xml:id="topology"><info><title>Topology</title></info>
-
-	  <para>
-	    All other things being equal, when the server chooses a name
-	    server
-	    to query from a list of name servers, it prefers the one that is
-	    topologically closest to itself. The <command>topology</command> statement
-	    takes an <command>address_match_list</command> and
-	    interprets it
-	    in a special way. Each top-level list element is assigned a
-	    distance.
-	    Non-negated elements get a distance based on their position in the
-	    list, where the closer the match is to the start of the list, the
-	    shorter the distance is between it and the server. A negated match
-	    will be assigned the maximum distance from the server. If there
-	    is no match, the address will get a distance which is further than
-	    any non-negated list element, and closer than any negated element.
-	    For example,
-	  </para>
-
-<programlisting>topology {
-    10/8;
-    !1.2.3/24;
-    { 1.2/16; 3/8; };
-};</programlisting>
-
-	  <para>
-	    will prefer servers on network 10 the most, followed by hosts
-	    on network 1.2.0.0 (netmask 255.255.0.0) and network 3, with the
-	    exception of hosts on network 1.2.3 (netmask 255.255.255.0), which
-	    is preferred least of all.
-	  </para>
-	  <para>
-	    The default topology is
-	  </para>
-
-<programlisting>    topology { localhost; localnets; };
-</programlisting>
-
-	  <note>
-	    <simpara>
-	      The <command>topology</command> option
-	      is not implemented in <acronym>BIND</acronym> 9.
-	    </simpara>
-	  </note>
 	</section>
 
 	<section xml:id="the_sortlist_statement"><info><title>The <command>sortlist</command> Statement</title></info>
 
 	  <para>
 	    The response to a DNS query may consist of multiple resource
-	    records (RRs) forming a resource record set (RRset).
-	    The name server will normally return the
-	    RRs within the RRset in an indeterminate order
-	    (but see the <command>rrset-order</command>
-	    statement in <xref linkend="rrset_ordering"/>).
-	    The client resolver code should rearrange the RRs as appropriate,
-	    that is, using any addresses on the local net in preference to
-	    other addresses.
-	    However, not all resolvers can do this or are correctly
-	    configured.
-	    When a client is using a local server, the sorting can be performed
-	    in the server, based on the client's address. This only requires
-	    configuring the name servers, not all the clients.
+	    records (RRs) forming a resource record set (RRset).  The name
+	    server will normally return the RRs within the RRset in an
+	    indeterminate order (but see the <command>rrset-order</command>
+	    statement in <xref linkend="rrset_ordering"/>).  The client
+	    resolver code should rearrange the RRs as appropriate, that is,
+	    using any addresses on the local net in preference to other
+	    addresses.  However, not all resolvers can do this or are
+	    correctly configured.  When a client is using a local server,
+	    the sorting can be performed in the server, based on the
+	    client's address. This only requires configuring the name
+	    servers, not all the clients.
 	  </para>
 
 	  <para>
-	    The <command>sortlist</command> statement (see below)
-	    takes
-	    an <command>address_match_list</command> and
-	    interprets it even
-	    more specifically than the <command>topology</command>
-	    statement
-	    does (<xref linkend="topology"/>).
-	    Each top level statement in the <command>sortlist</command> must
-	    itself be an explicit <command>address_match_list</command> with
-	    one or two elements. The first element (which may be an IP
-	    address,
-	    an IP prefix, an ACL name or a nested <command>address_match_list</command>)
-	    of each top level list is checked against the source address of
+	    The <command>sortlist</command> statement (see below) takes an
+	    <command>address_match_list</command> and interprets it in a
+	    special way.  Each top level statement in the
+	    <command>sortlist</command> must itself be an explicit
+	    <command>address_match_list</command> with one or two elements.
+	    The first element (which may be an IP address, an IP prefix, an
+	    ACL name or a nested <command>address_match_list</command>) of
+	    each top level list is checked against the source address of
 	    the query until a match is found.
 	  </para>
 	  <para>
-	    Once the source address of the query has been matched, if
-	    the top level statement contains only one element, the actual
-	    primitive
-	    element that matched the source address is used to select the
-	    address
-	    in the response to move to the beginning of the response. If the
-	    statement is a list of two elements, then the second element is
-	    treated the same as the <command>address_match_list</command> in
-	    a <command>topology</command> statement. Each top
-	    level element
-	    is assigned a distance and the address in the response with the
-	    minimum
-	    distance is moved to the beginning of the response.
+	    Once the source address of the query has been matched, if the
+	    top level statement contains only one element, the actual
+	    primitive element that matched the source address is used to
+	    select the address in the response to move to the beginning of
+	    the response. If the statement is a list of two elements, then
+	    the second element is interpreted as a topology preference
+	    list.  Each top level element is assigned a distance and the
+	    address in the response with the minimum distance is moved to
+	    the beginning of the response.
 	  </para>
 	  <para>
-	    In the following example, any queries received from any of
-	    the addresses of the host itself will get responses preferring
-	    addresses
-	    on any of the locally connected networks. Next most preferred are
-	    addresses
-	    on the 192.168.1/24 network, and after that either the
-	    192.168.2/24
-	    or
-	    192.168.3/24 network with no preference shown between these two
-	    networks. Queries received from a host on the 192.168.1/24 network
-	    will prefer other addresses on that network to the 192.168.2/24
-	    and
-	    192.168.3/24 networks. Queries received from a host on the
-	    192.168.4/24
-	    or the 192.168.5/24 network will only prefer other addresses on
+	    In the following example, any queries received from any of the
+	    addresses of the host itself will get responses preferring
+	    addresses on any of the locally connected networks. Next most
+	    preferred are addresses on the 192.168.1/24 network, and after
+	    that either the 192.168.2/24 or 192.168.3/24 network with no
+	    preference shown between these two networks. Queries received
+	    from a host on the 192.168.1/24 network will prefer other
+	    addresses on that network to the 192.168.2/24 and 192.168.3/24
+	    networks. Queries received from a host on the 192.168.4/24 or
+	    the 192.168.5/24 network will only prefer other addresses on
 	    their directly connected networks.
 	  </para>
 
@@ -9078,15 +9027,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
 	  <para>
 	    The following example will give reasonable behavior for the
-	    local host and hosts on directly connected networks. It is similar
-	    to the behavior of the address sort in <acronym>BIND</acronym> 4.9.x. Responses sent
-	    to queries from the local host will favor any of the directly
-	    connected
+	    local host and hosts on directly connected networks. It is
+	    similar to the behavior of the address sort in
+	    <acronym>BIND</acronym> 4.9.x. Responses sent to queries from
+	    the local host will favor any of the directly connected
 	    networks. Responses sent to queries from any other hosts on a
-	    directly
-	    connected network will prefer addresses on that same network.
-	    Responses
-	    to other queries will not be sorted.
+	    directly connected network will prefer addresses on that same
+	    network.  Responses to other queries will not be sorted.
 	  </para>
 
 <programlisting>sortlist {
@@ -15537,7 +15484,7 @@ HOST-127.EXAMPLE. MX 0 .
 	    and not part of the standard zone file format.
 	  </para>
 	  <para>
-	    BIND 8 does not support the optional TTL and CLASS fields.
+	    BIND 8 did not support the optional TTL and CLASS fields.
 	  </para>
 	</section>
 
