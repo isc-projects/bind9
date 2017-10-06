@@ -429,7 +429,17 @@ caa03			CAA	128 tbs ""
 ; type 258
 avc			AVC	foo:bar
 
-; type 259 -- 32767 (unassigned)
+; type 259
+doa01			DOA	( 1234567890 1234567890 1 "image/gif"
+				  R0lGODlhKAAZAOMCAGZmZgBmmf///zOZzMz//5nM/zNmmWbM/5nMzMzMzACZ////
+				  /////////////////yH5BAEKAA8ALAAAAAAoABkAAATH8IFJK5U2a4337F5ogRkp
+				  noCJrly7PrCKyh8c3HgAhzT35MDbbtO7/IJIHbGiOiaTxVTpSVWWLqNq1UVyapNS
+				  1wd3OAxug0LhnCubcVhsxysQnOt4ATpvvzHlFzl1AwODhWeFAgRpen5/UhheAYMF
+				  dUB4SFcpGEGGdQeCAqBBLTuSk30EeXd9pEsAbKGxjHqDSE0Sp6ixN4N1BJmbc7lI
+				  hmsBich1awPAjkY1SZR8bJWrz382SGqIBQQFQd4IsUTaX+ceuudPEQA7 )
+doa02			DOA	0 1 2 "" aHR0cHM6Ly93d3cuaXNjLm9yZy8=
+
+; type 260 -- 32767 (unassigned)
 
 ; type 32768
 ta			TA	30795 1 1 (
