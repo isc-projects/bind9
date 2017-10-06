@@ -23,11 +23,13 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
+NSLIBS =	../../lib/ns/libns.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
+NSDEPENDLIBS =	../../lib/ns/libns.@A@
 
 LIBS =		${ISCLIBS} @LIBS@
 NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
@@ -59,14 +61,15 @@ named-checkzone.@O@: named-checkzone.c
 		-c ${srcdir}/named-checkzone.c
 
 named-checkconf@EXEEXT@: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} \
-		${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${BIND9DEPLIBS}
+		${NSDEPENDLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS} ${BIND9DEPLIBS}
 	export BASEOBJS="named-checkconf.@O@ check-tool.@O@"; \
-	export LIBS0="${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
+	export LIBS0="${NSLIBS} ${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
-named-checkzone@EXEEXT@: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+named-checkzone@EXEEXT@: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} \
+		${NSDEPENDLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="named-checkzone.@O@ check-tool.@O@"; \
-	export LIBS0="${ISCCFGLIBS} ${DNSLIBS}"; \
+	export LIBS0="${NSLIBS} ${ISCCFGLIBS} ${DNSLIBS}"; \
 	${FINALBUILDCMD}
 
 doc man:: ${MANOBJS}

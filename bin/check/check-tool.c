@@ -48,6 +48,8 @@
 
 #include <isccfg/log.h>
 
+#include <ns/log.h>
+
 #ifndef CHECK_SIBLING
 #define CHECK_SIBLING 1
 #endif
@@ -112,13 +114,7 @@ unsigned int zone_options2 = 0;
  */
 static isc_logcategory_t categories[] = {
 	{ "",		     0 },
-	{ "client",	     0 },
-	{ "network",	     0 },
-	{ "update",	     0 },
-	{ "queries",	     0 },
 	{ "unmatched", 	     0 },
-	{ "update-security", 0 },
-	{ "query-errors",    0 },
 	{ NULL,		     0 }
 };
 
@@ -562,6 +558,7 @@ setup_logging(isc_mem_t *mctx, FILE *errout, isc_log_t **logp) {
 	dns_log_init(log);
 	dns_log_setcontext(log);
 	cfg_log_init(log);
+	ns_log_init(log);
 
 	destination.file.stream = errout;
 	destination.file.name = NULL;
