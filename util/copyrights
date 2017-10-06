@@ -233,14 +233,14 @@
 ./bin/named/include/.gitignore			X	2012,2014
 ./bin/named/include/dlz/dlz_dlopen_driver.h	C	2011
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007
-./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014
+./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2017
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006,2007,2009,2013,2016
 ./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2014
 ./bin/named/include/named/geoip.h		C	2013
-./bin/named/include/named/globals.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2016
+./bin/named/include/named/globals.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2016,2017
 ./bin/named/include/named/interfacemgr.h	C	1999,2000,2001,2002,2004,2005,2007,2011,2013,2014
 ./bin/named/include/named/listenlist.h		C	2000,2001,2004,2005,2007,2013
-./bin/named/include/named/log.h			C	1999,2000,2001,2002,2004,2005,2007,2009,2015
+./bin/named/include/named/log.h			C	1999,2000,2001,2002,2004,2005,2007,2009,2015,2017
 ./bin/named/include/named/logconf.h		C	1999,2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/lwaddr.h		C	2000,2001,2004,2005,2007
 ./bin/named/include/named/lwdclient.h		C	2000,2001,2004,2005,2007,2009,2015
@@ -251,7 +251,7 @@
 ./bin/named/include/named/ns_smf_globals.h	C	2005,2007
 ./bin/named/include/named/query.h		C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2013,2014,2016
 ./bin/named/include/named/seccomp.h		C	2014,2017
-./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/include/named/server.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/include/named/sortlist.h		C	2000,2001,2004,2005,2006,2007
 ./bin/named/include/named/statschannel.h	C	2008
 ./bin/named/include/named/tkeyconf.h		C	1999,2000,2001,2004,2005,2006,2007
@@ -262,7 +262,7 @@
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006,2007,2010,2011
 ./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2017
 ./bin/named/listenlist.c			C	2000,2001,2004,2005,2007,2013
-./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2013
+./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2013,2017
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006,2007,2011,2013,2015,2016
 ./bin/named/lwaddr.c				C	2000,2001,2004,2005,2007,2008,2014
 ./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007,2015
@@ -294,7 +294,7 @@
 ./bin/named/unix/dlz_dlopen_driver.c		C	2011,2012,2013,2014,2017
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2016
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2016,2017
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/win32/dlz_dlopen_driver.c		C	2011,2012,2013,2014
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004,2007
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004,2007,2008,2009,2016
@@ -307,7 +307,7 @@
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004,2006,2007,2009,2011,2013,2014,2015,2017
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/nsupdate/.gitignore			X	2012
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014,2015,2016,2017
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
@@ -1684,7 +1684,7 @@
 ./bin/tests/system/nslookup/setup.sh		SH	2014
 ./bin/tests/system/nslookup/tests.sh		SH	2014,2016
 ./bin/tests/system/nsupdate/ans4/ans.pl		PERL	2017
-./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2015,2016
+./bin/tests/system/nsupdate/clean.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/tests/system/nsupdate/commandlist		X	2012
 ./bin/tests/system/nsupdate/knowngood.ns1.after	X	2000,2001,2003,2004,2009
 ./bin/tests/system/nsupdate/knowngood.ns1.afterstop	X	2001,2004
@@ -1702,8 +1702,11 @@
 ./bin/tests/system/nsupdate/ns3/nsec3param.test.db.in	ZONE	2010
 ./bin/tests/system/nsupdate/ns3/sign.sh		SH	2010,2011,2012,2014,2016
 ./bin/tests/system/nsupdate/ns3/too-big.test.db.in	ZONE	2016
+./bin/tests/system/nsupdate/ns5/local.db.in	ZONE	2017
+./bin/tests/system/nsupdate/ns5/named.args	X	2017
+./bin/tests/system/nsupdate/ns5/named.conf	CONF-C	2017
 ./bin/tests/system/nsupdate/prereq.sh		SH	2014,2015
-./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2016
+./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2014,2016,2017
 ./bin/tests/system/nsupdate/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/nsupdate/update_test.pl	PERL	2000,2001,2004,2007,2012
 ./bin/tests/system/nsupdate/verylarge		X	2013
@@ -1893,7 +1896,7 @@
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2017
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
 ./bin/tests/system/rrchecker/tests.sh		SH	2013,2014,2015,2016,2017
-./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015,2016
+./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015,2016,2017
 ./bin/tests/system/rrl/.gitignore		X	2013,2014
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013,2016
 ./bin/tests/system/rrl/ns1/named.conf		CONF-C	2012,2013
@@ -3050,7 +3053,7 @@
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
 ./doc/arm/libdns.xml				SGML	2010,2014,2015,2016
-./doc/arm/logging-categories.xml		SGML	2015,2016
+./doc/arm/logging-categories.xml		SGML	2015,2016,2017
 ./doc/arm/man.arpaname.html			X	2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.ddns-confgen.html			X	2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.delv.html				X	2014,2015,2016,2017
@@ -3312,7 +3315,7 @@
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005,2006,2007,2009
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/soa.h			C	2000,2001,2004,2005,2006,2007,2009
-./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011
+./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011,2017
 ./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005,2006,2007,2008,2009,2012,2014,2015
 ./lib/dns/include/dns/tcpmsg.h			C	1999,2000,2001,2004,2005,2006,2007
 ./lib/dns/include/dns/time.h			C	1999,2000,2001,2004,2005,2006,2007,2012
@@ -3402,6 +3405,8 @@
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004,2005,2007
 ./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005,2007,2009,2011,2012,2013,2015
 ./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004,2005,2007,2015
+./lib/dns/rdata/generic/doa_259.c		C	2017
+./lib/dns/rdata/generic/doa_259.h		C	2017
 ./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015,2017
 ./lib/dns/rdata/generic/ds_43.h			C	2002,2004,2005,2007
 ./lib/dns/rdata/generic/eui48_108.c		C	2013,2014,2015
@@ -3552,7 +3557,7 @@
 ./lib/dns/spnego.h				C	2006,2007
 ./lib/dns/spnego_asn1.c				C	2006,2007,2012,2013,2015
 ./lib/dns/spnego_asn1.pl			PERL	2006,2007,2012
-./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011,2013,2014
+./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006,2007,2008,2010,2011,2013,2014,2017
 ./lib/dns/ssu_external.c			C	2011,2012,2013,2017
 ./lib/dns/stats.c				C	2000,2001,2004,2005,2007,2008,2009,2012
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005,2006,2007,2015
@@ -3573,7 +3578,7 @@
 ./lib/dns/tests/gost_test.c			C	2014,2015,2017
 ./lib/dns/tests/master_test.c			C	2011,2012,2013,2015,2017
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012
-./lib/dns/tests/name_test.c			C	2014,2016
+./lib/dns/tests/name_test.c			C	2014,2016,2017
 ./lib/dns/tests/nsec3_test.c			C	2012,2014,2015,2016
 ./lib/dns/tests/peer_test.c			C	2014
 ./lib/dns/tests/private_test.c			C	2011,2012
@@ -3777,7 +3782,7 @@
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005,2007
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007
-./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009,2015,2016
+./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009,2015,2016,2017
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006,2007,2009
 ./lib/isc/include/isc/ondestroy.h		C	2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/os.h			C	2000,2001,2004,2005,2006,2007
