@@ -469,7 +469,7 @@ ret=0
 echo "I:check that 'update-policy local' works from localhost address ($n)"
 $NSUPDATE -p 5300 -k ns5/session.key > nsupdate.out.$n 2>&1 << END || ret=1
 server 10.53.0.5 5300
-local 127.0.0.1 5300
+local 127.0.0.1
 update add fromlocal.local.nil. 600 A 1.2.3.4
 send
 END
@@ -488,7 +488,7 @@ ret=0
 echo "I:check that 'update-policy local' fails from non-localhost address ($n)"
 $NSUPDATE -p 5300 -k ns5/session.key > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.5 5300
-local 10.53.0.1 5300
+local 10.53.0.1
 update add nonlocal.local.nil. 600 A 4.3.2.1
 send
 END
