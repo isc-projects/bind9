@@ -1,3 +1,7 @@
+4763.	[contrib]	Improve compatibility when building MySQL DLZ
+			module by using mysql_config if available.
+			[RT #45558]
+
 4762.	[func]		"update-policy local" is now restricted to updates
 			from local addresses. (Previously, other addresses
 			were allowed so long as updates were signed by the
