@@ -1993,6 +1993,16 @@ category notify { null; };
 </tr>
 <tr>
 <td>
+	  <p><span class="command"><strong>trust-anchor-telemetry</strong></span></p>
+	</td>
+<td>
+	  <p>
+	    Logs trust-anchor-telemetry requests received by named.
+	  </p>
+	</td>
+</tr>
+<tr>
+<td>
 	  <p><span class="command"><strong>unmatched</strong></span></p>
 	</td>
 <td>
@@ -4097,7 +4107,7 @@ options {
 <dt><span class="term"><span class="command"><strong>host-statistics</strong></span></span></dt>
 <dd>
                 <p>
-                  In BIND 8, this enables keeping of
+                  In BIND 8, this enabled keeping of
                   statistics for every host that the name server interacts
                   with.
                   Not implemented in BIND 9.
@@ -6527,58 +6537,17 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   </p>
                 </div>
               </dd>
+<dt><span class="term"><span class="command"><strong>topology</strong></span></span></dt>
+<dd>
+                <p>
+                  In BIND 8, this option indicated network topology
+                  so that preferential treatment could be given to
+                  the topologicaly closest name servers when sending
+                  queries. It is not implemented in BIND 9.
+                </p>
+              </dd>
 </dl></div>
 
-        </div>
-
-        <div class="section">
-<div class="titlepage"><div><div><h4 class="title">
-<a name="topology"></a>Topology</h4></div></div></div>
-
-          <p>
-            All other things being equal, when the server chooses a name
-            server
-            to query from a list of name servers, it prefers the one that is
-            topologically closest to itself. The <span class="command"><strong>topology</strong></span> statement
-            takes an <span class="command"><strong>address_match_list</strong></span> and
-            interprets it
-            in a special way. Each top-level list element is assigned a
-            distance.
-            Non-negated elements get a distance based on their position in the
-            list, where the closer the match is to the start of the list, the
-            shorter the distance is between it and the server. A negated match
-            will be assigned the maximum distance from the server. If there
-            is no match, the address will get a distance which is further than
-            any non-negated list element, and closer than any negated element.
-            For example,
-          </p>
-
-<pre class="programlisting">topology {
-    10/8;
-    !1.2.3/24;
-    { 1.2/16; 3/8; };
-};</pre>
-
-          <p>
-            will prefer servers on network 10 the most, followed by hosts
-            on network 1.2.0.0 (netmask 255.255.0.0) and network 3, with the
-            exception of hosts on network 1.2.3 (netmask 255.255.255.0), which
-            is preferred least of all.
-          </p>
-          <p>
-            The default topology is
-          </p>
-
-<pre class="programlisting">    topology { localhost; localnets; };
-</pre>
-
-          <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
-<h3 class="title">Note</h3>
-            <p>
-              The <span class="command"><strong>topology</strong></span> option
-              is not implemented in <acronym class="acronym">BIND</acronym> 9.
-            </p>
-          </div>
         </div>
 
         <div class="section">
@@ -6587,68 +6556,52 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
           <p>
             The response to a DNS query may consist of multiple resource
-            records (RRs) forming a resource record set (RRset).
-            The name server will normally return the
-            RRs within the RRset in an indeterminate order
-            (but see the <span class="command"><strong>rrset-order</strong></span>
-            statement in <a class="xref" href="Bv9ARM.ch06.html#rrset_ordering" title="RRset Ordering">the section called &#8220;RRset Ordering&#8221;</a>).
-            The client resolver code should rearrange the RRs as appropriate,
-            that is, using any addresses on the local net in preference to
-            other addresses.
-            However, not all resolvers can do this or are correctly
-            configured.
-            When a client is using a local server, the sorting can be performed
-            in the server, based on the client's address. This only requires
-            configuring the name servers, not all the clients.
+            records (RRs) forming a resource record set (RRset).  The name
+            server will normally return the RRs within the RRset in an
+            indeterminate order (but see the <span class="command"><strong>rrset-order</strong></span>
+            statement in <a class="xref" href="Bv9ARM.ch06.html#rrset_ordering" title="RRset Ordering">the section called &#8220;RRset Ordering&#8221;</a>).  The client
+            resolver code should rearrange the RRs as appropriate, that is,
+            using any addresses on the local net in preference to other
+            addresses.  However, not all resolvers can do this or are
+            correctly configured.  When a client is using a local server,
+            the sorting can be performed in the server, based on the
+            client's address. This only requires configuring the name
+            servers, not all the clients.
           </p>
 
           <p>
-            The <span class="command"><strong>sortlist</strong></span> statement (see below)
-            takes
-            an <span class="command"><strong>address_match_list</strong></span> and
-            interprets it even
-            more specifically than the <span class="command"><strong>topology</strong></span>
-            statement
-            does (<a class="xref" href="Bv9ARM.ch06.html#topology" title="Topology">the section called &#8220;Topology&#8221;</a>).
-            Each top level statement in the <span class="command"><strong>sortlist</strong></span> must
-            itself be an explicit <span class="command"><strong>address_match_list</strong></span> with
-            one or two elements. The first element (which may be an IP
-            address,
-            an IP prefix, an ACL name or a nested <span class="command"><strong>address_match_list</strong></span>)
-            of each top level list is checked against the source address of
+            The <span class="command"><strong>sortlist</strong></span> statement (see below) takes an
+            <span class="command"><strong>address_match_list</strong></span> and interprets it in a
+            special way.  Each top level statement in the
+            <span class="command"><strong>sortlist</strong></span> must itself be an explicit
+            <span class="command"><strong>address_match_list</strong></span> with one or two elements.
+            The first element (which may be an IP address, an IP prefix, an
+            ACL name or a nested <span class="command"><strong>address_match_list</strong></span>) of
+            each top level list is checked against the source address of
             the query until a match is found.
           </p>
           <p>
-            Once the source address of the query has been matched, if
-            the top level statement contains only one element, the actual
-            primitive
-            element that matched the source address is used to select the
-            address
-            in the response to move to the beginning of the response. If the
-            statement is a list of two elements, then the second element is
-            treated the same as the <span class="command"><strong>address_match_list</strong></span> in
-            a <span class="command"><strong>topology</strong></span> statement. Each top
-            level element
-            is assigned a distance and the address in the response with the
-            minimum
-            distance is moved to the beginning of the response.
+            Once the source address of the query has been matched, if the
+            top level statement contains only one element, the actual
+            primitive element that matched the source address is used to
+            select the address in the response to move to the beginning of
+            the response. If the statement is a list of two elements, then
+            the second element is interpreted as a topology preference
+            list.  Each top level element is assigned a distance and the
+            address in the response with the minimum distance is moved to
+            the beginning of the response.
           </p>
           <p>
-            In the following example, any queries received from any of
-            the addresses of the host itself will get responses preferring
-            addresses
-            on any of the locally connected networks. Next most preferred are
-            addresses
-            on the 192.168.1/24 network, and after that either the
-            192.168.2/24
-            or
-            192.168.3/24 network with no preference shown between these two
-            networks. Queries received from a host on the 192.168.1/24 network
-            will prefer other addresses on that network to the 192.168.2/24
-            and
-            192.168.3/24 networks. Queries received from a host on the
-            192.168.4/24
-            or the 192.168.5/24 network will only prefer other addresses on
+            In the following example, any queries received from any of the
+            addresses of the host itself will get responses preferring
+            addresses on any of the locally connected networks. Next most
+            preferred are addresses on the 192.168.1/24 network, and after
+            that either the 192.168.2/24 or 192.168.3/24 network with no
+            preference shown between these two networks. Queries received
+            from a host on the 192.168.1/24 network will prefer other
+            addresses on that network to the 192.168.2/24 and 192.168.3/24
+            networks. Queries received from a host on the 192.168.4/24 or
+            the 192.168.5/24 network will only prefer other addresses on
             their directly connected networks.
           </p>
 
@@ -6678,15 +6631,13 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 
           <p>
             The following example will give reasonable behavior for the
-            local host and hosts on directly connected networks. It is similar
-            to the behavior of the address sort in <acronym class="acronym">BIND</acronym> 4.9.x. Responses sent
-            to queries from the local host will favor any of the directly
-            connected
+            local host and hosts on directly connected networks. It is
+            similar to the behavior of the address sort in
+            <acronym class="acronym">BIND</acronym> 4.9.x. Responses sent to queries from
+            the local host will favor any of the directly connected
             networks. Responses sent to queries from any other hosts on a
-            directly
-            connected network will prefer addresses on that same network.
-            Responses
-            to other queries will not be sorted.
+            directly connected network will prefer addresses on that same
+            network.  Responses to other queries will not be sorted.
           </p>
 
 <pre class="programlisting">sortlist {
@@ -10431,38 +10382,52 @@ example.com. NS ns2.example.net.
               is present, it is a configuration error for the
               <span class="command"><strong>allow-update</strong></span> statement to be
               present.  The <span class="command"><strong>update-policy</strong></span> statement
-              only examines the signer of a message; the source
+              (except when set to <code class="literal">local</code>) only
+              examines the signer of a message; the source
               address is not relevant.
             </p>
             <p>
-              There is a pre-defined <span class="command"><strong>update-policy</strong></span>
-              rule which can be switched on with the command
+              A pre-defined <span class="command"><strong>update-policy</strong></span> rule can be
+              switched on with the command
               <span class="command"><strong>update-policy local;</strong></span>.
               Switching on this rule in a zone causes
-              <span class="command"><strong>named</strong></span> to generate a TSIG session
-              key and place it in a file, and to allow that key
-              to update the zone.  (By default, the file is
-              <code class="filename">/var/run/named/session.key</code>, the key
-              name is "local-ddns" and the key algorithm is HMAC-SHA256,
-              but these values are configurable with the
+              <span class="command"><strong>named</strong></span> to generate a TSIG session key and
+              place it in a file. That key will then be allowed to update
+              the zone, if the update request is sent from localhost.
+              By default, the session key is stored in the file
+              <code class="filename">/var/run/named/session.key</code>; the key name
+              is "local-ddns" and the key algorithm is HMAC-SHA256.
+              These values are configurable with the
               <span class="command"><strong>session-keyfile</strong></span>,
               <span class="command"><strong>session-keyname</strong></span> and
               <span class="command"><strong>session-keyalg</strong></span> options, respectively).
             </p>
             <p>
-              A client running on the local system, and with appropriate
-              permissions, may read that file and use the key to sign update
-              requests.  The zone's update policy will be set to allow that
-              key to change any record within the zone.  Assuming the
-              key name is "local-ddns", this policy is equivalent to:
+              A client on the local system, if it is run with appropriate
+              permissions, may read the session key from the key file and
+              use the key to sign update requests.  The zone's update
+              policy will be set to allow that key to change any record
+              within the zone.  Assuming the key name is "local-ddns",
+              this policy is:
             </p>
 
             <pre class="programlisting">update-policy { grant local-ddns zonesub any; };
             </pre>
 
             <p>
-              The command <span class="command"><strong>nsupdate -l</strong></span> sends update
-              requests to localhost, and signs them using the session key.
+              ...with an additional restriction that only clients
+              connecting from the local system will be permitted to send
+              updates.
+            </p>
+            <p>
+              Note that only one session key is generated; all zones
+              configured to use <span class="command"><strong>update-policy local</strong></span>
+              will accept the same key.
+            </p>
+            <p>
+              The command <span class="command"><strong>nsupdate -l</strong></span> implements this
+              feature, sending requests to localhost and signing them using
+              the key retrieved from the session key file.
             </p>
 
             <p>
@@ -12964,7 +12929,7 @@ HOST-127.EXAMPLE. MX 0 .
             and not part of the standard zone file format.
           </p>
           <p>
-            BIND 8 does not support the optional TTL and CLASS fields.
+            BIND 8 did not support the optional TTL and CLASS fields.
           </p>
         </div>
 

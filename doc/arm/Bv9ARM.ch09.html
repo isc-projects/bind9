@@ -525,6 +525,15 @@
       </li>
 <li class="listitem">
 	<p>
+	  Previously, <span class="command"><strong>update-policy local;</strong></span> accepted
+	  updates from any source so long as they were signed by the
+	  locally-generated session key. This has been further restricted;
+	  updates are now only accepted from locally configured addresses.
+	  [RT #45492]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  The lightweight resolver daemon and library (<span class="command"><strong>lwresd</strong></span>
 	  and <span class="command"><strong>liblwres</strong></span>) have been removed. [RT #45186]
 	</p>
