@@ -2115,7 +2115,7 @@ process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 	client->keytag = isc_mem_get(client->mctx, optlen);
 	if (client->keytag != NULL) {
-		client->keytag_len = optlen;
+		client->keytag_len = (isc_uint16_t)optlen;
 		memmove(client->keytag, isc_buffer_current(buf), optlen);
 	}
 	isc_buffer_forward(buf, (unsigned int)optlen);
