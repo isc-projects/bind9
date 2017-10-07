@@ -1011,6 +1011,7 @@ dns_ssu_external_match
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules
+dns_ssutable_checkrules2
 dns_ssutable_create
 dns_ssutable_createdlz
 dns_ssutable_detach

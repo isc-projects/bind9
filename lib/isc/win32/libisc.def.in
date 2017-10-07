@@ -478,6 +478,7 @@ isc_netaddr_fromv4mapped
 isc_netaddr_getzone
 isc_netaddr_isexperimental
 isc_netaddr_islinklocal
+isc_netaddr_isloopback
 isc_netaddr_ismulticast
 isc_netaddr_isnetzero
 isc_netaddr_issitelocal
