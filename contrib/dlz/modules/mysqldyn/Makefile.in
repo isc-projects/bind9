@@ -1,8 +1,8 @@
 prefix = /usr
 libdir = $(prefix)/lib/bind9
 
-CFLAGS=-fPIC -Wall -g -I../include
-MYSQL_LIBS=-lmysqlclient
+CFLAGS=-fPIC -Wall -g -I../include @DLZ_DRIVER_MYSQL_INCLUDES@
+MYSQL_LIBS=@DLZ_DRIVER_MYSQL_LIBS@
 
 all: dlz_mysqldyn_mod.so
 

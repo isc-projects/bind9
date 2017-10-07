@@ -38,10 +38,12 @@ AC_DEFUN(DLZ_ADD_DRIVER, [
 	if test -n "$3"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES $3"
+		DLZ_DRIVER_$1_INCLUDES="$3"
 	fi
 	if test -n "$4"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS $4"
+		DLZ_DRIVER_$1_LIBS="$4"
 	fi
 ])
 
@@ -128,38 +130,48 @@ AC_ARG_WITH(dlz_mysql,
 			       (Required to use MySQL with DLZ)],
     use_dlz_mysql="$withval", use_dlz_mysql="no")
 
+AC_CHECK_PROGS(MYSQL_CONFIG, mysql_config)
+
 mysql_include=""
 mysql_lib=""
 if test "$use_dlz_mysql" = "yes"
 then
-	# User did not specify a path - guess it
-	mysqldirs="/usr /usr/local /usr/local/mysql /usr/pkg"
-	for d in $mysqldirs
-	do
-		if test -f $d/include/mysql/mysql.h
-		then
-			use_dlz_mysql=$d
-			mysql_include=$d/include/mysql
-			if test -d $d/lib/mysql
+	if test -n "$MYSQL_CONFIG"
+	then
+		mysql_include=`${MYSQL_CONFIG} --include`
+		mysql_lib=`${MYSQL_CONFIG} --libs`
+		use_dlz_mysql="config"
+
+	else
+		# User did not specify a path - guess it
+		mysqldirs="/usr /usr/local /usr/local/mysql /usr/pkg"
+		for d in $mysqldirs
+		do
+			if test -f $d/include/mysql/mysql.h
 			then
-				mysql_lib=$d/lib/mysql
-			else
-				mysql_lib=$d/lib
-			fi
-			break
-		elif test -f $d/include/mysql.h
-		then
-			use_dlz_mysql=$d
-			mysql_include=$d/include
+				use_dlz_mysql=$d
+				mysql_include=$d/include/mysql
 			if test -d $d/lib/mysql
-			then
+				then
 				mysql_lib=$d/lib/mysql
-			else
-				mysql_lib=$d/lib
+				else
+					mysql_lib=$d/lib
+				fi
+				break
+			elif test -f $d/include/mysql.h
+			then
+				use_dlz_mysql=$d
+				mysql_include=$d/include
+				if test -d $d/lib/mysql
+				then
+					mysql_lib=$d/lib/mysql
+				else
+					mysql_lib=$d/lib
+				fi
+				break
 			fi
-			break
-		fi
-	done
+		done
+	fi
 elif test "$use_dlz_mysql" != "no"
 then
 	d=$use_dlz_mysql
@@ -194,6 +206,14 @@ fi
 case "$use_dlz_mysql" in
 	no)
 		AC_MSG_RESULT(no)
+		;;
+	config)
+		DLZ_ADD_DRIVER(MYSQL, dlz_mysql_driver,
+				[${mysql_include}],
+				[${mysql_lib}])
+
+		AC_MSG_RESULT(
+[using mysql with libs ${mysql_lib} and includes ${mysql_include}])
 		;;
 	*)
 		DLZ_ADD_DRIVER(MYSQL, dlz_mysql_driver,

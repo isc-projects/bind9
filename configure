@@ -646,12 +646,15 @@ BUILD_LDFLAGS
 BUILD_CPPFLAGS
 BUILD_CFLAGS
 BUILD_CC
+DLZ_DRIVER_MYSQL_LIBS
+DLZ_DRIVER_MYSQL_INCLUDES
 DLZ_SYSTEM_TEST
 DLZ_DRIVER_OBJS
 DLZ_DRIVER_SRCS
 DLZ_DRIVER_LIBS
 DLZ_DRIVER_INCLUDES
 CONTRIB_DLZ
+MYSQL_CONFIG
 PG_CONFIG
 SO_TARGETS
 SO_STRIP
@@ -937,6 +940,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1100,6 +1104,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1352,6 +1357,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1489,7 +1503,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1642,6 +1656,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -22475,6 +22490,8 @@ DLZ_DRIVER_LIBS=""
 DLZ_DRIVER_SRCS=""
 DLZ_DRIVER_OBJS=""
 DLZ_SYSTEM_TEST=""
+DLZ_DRIVER_MYSQL_INCLUDES=""
+DLZ_DRIVER_MYSQL_LIBS=""
 
 #
 # Configure support for building a shared library object
@@ -22851,10 +22868,12 @@ $as_echo "no" >&6; }
 	if test -n "-I$use_dlz_postgres"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES -I$use_dlz_postgres"
+		DLZ_DRIVER_POSTGRES_INCLUDES="-I$use_dlz_postgres"
 	fi
 	if test -n "-L$use_dlz_postgres_lib -lpq"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS -L$use_dlz_postgres_lib -lpq"
+		DLZ_DRIVER_POSTGRES_LIBS="-L$use_dlz_postgres_lib -lpq"
 	fi
 
 
@@ -22879,38 +22898,89 @@ else
 fi
 
 
+for ac_prog in mysql_config
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_MYSQL_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$MYSQL_CONFIG"; then
+  ac_cv_prog_MYSQL_CONFIG="$MYSQL_CONFIG" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_MYSQL_CONFIG="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+MYSQL_CONFIG=$ac_cv_prog_MYSQL_CONFIG
+if test -n "$MYSQL_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MYSQL_CONFIG" >&5
+$as_echo "$MYSQL_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$MYSQL_CONFIG" && break
+done
+
+
 mysql_include=""
 mysql_lib=""
 if test "$use_dlz_mysql" = "yes"
 then
-	# User did not specify a path - guess it
-	mysqldirs="/usr /usr/local /usr/local/mysql /usr/pkg"
-	for d in $mysqldirs
-	do
-		if test -f $d/include/mysql/mysql.h
-		then
-			use_dlz_mysql=$d
-			mysql_include=$d/include/mysql
-			if test -d $d/lib/mysql
+	if test -n "$MYSQL_CONFIG"
+	then
+		mysql_include=`${MYSQL_CONFIG} --include`
+		mysql_lib=`${MYSQL_CONFIG} --libs`
+		use_dlz_mysql="config"
+
+	else
+		# User did not specify a path - guess it
+		mysqldirs="/usr /usr/local /usr/local/mysql /usr/pkg"
+		for d in $mysqldirs
+		do
+			if test -f $d/include/mysql/mysql.h
 			then
-				mysql_lib=$d/lib/mysql
-			else
-				mysql_lib=$d/lib
-			fi
-			break
-		elif test -f $d/include/mysql.h
-		then
-			use_dlz_mysql=$d
-			mysql_include=$d/include
+				use_dlz_mysql=$d
+				mysql_include=$d/include/mysql
 			if test -d $d/lib/mysql
-			then
+				then
 				mysql_lib=$d/lib/mysql
-			else
-				mysql_lib=$d/lib
+				else
+					mysql_lib=$d/lib
+				fi
+				break
+			elif test -f $d/include/mysql.h
+			then
+				use_dlz_mysql=$d
+				mysql_include=$d/include
+				if test -d $d/lib/mysql
+				then
+					mysql_lib=$d/lib/mysql
+				else
+					mysql_lib=$d/lib
+				fi
+				break
 			fi
-			break
-		fi
-	done
+		done
+	fi
 elif test "$use_dlz_mysql" != "no"
 then
 	d=$use_dlz_mysql
@@ -22947,6 +23017,29 @@ case "$use_dlz_mysql" in
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 		;;
+	config)
+
+	CONTRIB_DLZ="$CONTRIB_DLZ -DDLZ_MYSQL"
+	for i in dlz_mysql_driver
+	do
+		DLZ_DRIVER_SRCS="$DLZ_DRIVER_SRCS $dlzdir/$i.c"
+		DLZ_DRIVER_OBJS="$DLZ_DRIVER_OBJS $i.$O"
+	done
+	if test -n "${mysql_include}"
+	then
+		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES ${mysql_include}"
+		DLZ_DRIVER_MYSQL_INCLUDES="${mysql_include}"
+	fi
+	if test -n "${mysql_lib}"
+	then
+		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS ${mysql_lib}"
+		DLZ_DRIVER_MYSQL_LIBS="${mysql_lib}"
+	fi
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using mysql with libs ${mysql_lib} and includes ${mysql_include}" >&5
+$as_echo "using mysql with libs ${mysql_lib} and includes ${mysql_include}" >&6; }
+		;;
 	*)
 
 	CONTRIB_DLZ="$CONTRIB_DLZ -DDLZ_MYSQL"
@@ -22958,10 +23051,12 @@ $as_echo "no" >&6; }
 	if test -n "-I${mysql_include}"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES -I${mysql_include}"
+		DLZ_DRIVER_MYSQL_INCLUDES="-I${mysql_include}"
 	fi
 	if test -n "-L${mysql_lib} -lmysqlclient -lz -lcrypt -lm"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS -L${mysql_lib} -lmysqlclient -lz -lcrypt -lm"
+		DLZ_DRIVER_MYSQL_LIBS="-L${mysql_lib} -lmysqlclient -lz -lcrypt -lm"
 	fi
 
 
@@ -23145,10 +23240,12 @@ $as_echo "not found" >&6; }
 	if test -n "$dlz_bdb_inc"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES $dlz_bdb_inc"
+		DLZ_DRIVER_BDB_INCLUDES="$dlz_bdb_inc"
 	fi
 	if test -n "$dlz_bdb_libs"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS $dlz_bdb_libs"
+		DLZ_DRIVER_BDB_LIBS="$dlz_bdb_libs"
 	fi
 
 
@@ -23192,10 +23289,12 @@ $as_echo "no" >&6; }
 	if test -n ""
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES "
+		DLZ_DRIVER_FILESYSTEM_INCLUDES=""
 	fi
 	if test -n ""
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS "
+		DLZ_DRIVER_FILESYSTEM_LIBS=""
 	fi
 
 		DLZ_SYSTEM_TEST=filesystem
@@ -23257,10 +23356,12 @@ $as_echo "no" >&6; }
 	if test -n "-I$use_dlz_ldap/include"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES -I$use_dlz_ldap/include"
+		DLZ_DRIVER_LDAP_INCLUDES="-I$use_dlz_ldap/include"
 	fi
 	if test -n "-L$use_dlz_ldap/lib -lldap -llber"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS -L$use_dlz_ldap/lib -lldap -llber"
+		DLZ_DRIVER_LDAP_LIBS="-L$use_dlz_ldap/lib -lldap -llber"
 	fi
 
 
@@ -23378,10 +23479,12 @@ $as_echo "not found" >&6; }
 	if test -n "$dlz_odbc_include"
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES $dlz_odbc_include"
+		DLZ_DRIVER_ODBC_INCLUDES="$dlz_odbc_include"
 	fi
 	if test -n "$dlz_odbc_libs"
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS $dlz_odbc_libs"
+		DLZ_DRIVER_ODBC_LIBS="$dlz_odbc_libs"
 	fi
 
 
@@ -23423,10 +23526,12 @@ $as_echo "no" >&6; }
 	if test -n ""
 	then
 		DLZ_DRIVER_INCLUDES="$DLZ_DRIVER_INCLUDES "
+		DLZ_DRIVER_STUB_INCLUDES=""
 	fi
 	if test -n ""
 	then
 		DLZ_DRIVER_LIBS="$DLZ_DRIVER_LIBS "
+		DLZ_DRIVER_STUB_LIBS=""
 	fi
 
 
@@ -23465,13 +23570,15 @@ then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
-	ac_config_files="$ac_config_files $DLZ_DRIVER_RULES"
+	ac_config_files="$ac_config_files $DLZ_DRIVER_RULES contrib/dlz/modules/mysql/Makefile contrib/dlz/modules/mysqldyn/Makefile"
 
 else
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	DLZ_DRIVER_RULES=/dev/null
 fi
+
+
 
 
 
@@ -24627,6 +24734,8 @@ do
     "atf-config") CONFIG_COMMANDS="$CONFIG_COMMANDS atf-config" ;;
     "contrib/dlz/bin/dlzbdb/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/bin/dlzbdb/Makefile" ;;
     "$DLZ_DRIVER_RULES") CONFIG_FILES="$CONFIG_FILES $DLZ_DRIVER_RULES" ;;
+    "contrib/dlz/modules/mysql/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/modules/mysql/Makefile" ;;
+    "contrib/dlz/modules/mysqldyn/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/modules/mysqldyn/Makefile" ;;
     "chmod") CONFIG_COMMANDS="$CONFIG_COMMANDS chmod" ;;
     "make/Makefile") CONFIG_FILES="$CONFIG_FILES make/Makefile" ;;
     "make/mkdep") CONFIG_FILES="$CONFIG_FILES make/mkdep" ;;

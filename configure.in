@@ -4944,6 +4944,8 @@ DLZ_DRIVER_LIBS=""
 DLZ_DRIVER_SRCS=""
 DLZ_DRIVER_OBJS=""
 DLZ_SYSTEM_TEST=""
+DLZ_DRIVER_MYSQL_INCLUDES=""
+DLZ_DRIVER_MYSQL_LIBS=""
 
 # 
 # Configure support for building a shared library object
@@ -5066,7 +5068,9 @@ if test -n "$CONTRIB_DLZ"
 then
 	AC_MSG_RESULT(yes)
 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
-	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
+	AC_CONFIG_FILES([$DLZ_DRIVER_RULES
+		contrib/dlz/modules/mysql/Makefile
+		contrib/dlz/modules/mysqldyn/Makefile])
 else
 	AC_MSG_RESULT(no)
 	DLZ_DRIVER_RULES=/dev/null
@@ -5078,6 +5082,8 @@ AC_SUBST(DLZ_DRIVER_LIBS)
 AC_SUBST(DLZ_DRIVER_SRCS)
 AC_SUBST(DLZ_DRIVER_OBJS)
 AC_SUBST(DLZ_SYSTEM_TEST)
+AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
+AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
 if test "yes" = "$cross_compiling"; then
