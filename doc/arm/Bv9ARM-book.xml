@@ -13810,6 +13810,19 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			DOA
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Implements the Digital Object Architecture over
+			DNS. Experimental.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			DS
 		      </para>
 		    </entry>
