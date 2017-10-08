@@ -215,6 +215,15 @@
       </li>
 <li class="listitem">
 	<p>
+	  Previously, <span class="command"><strong>update-policy local;</strong></span> accepted
+	  updates from any source so long as they were signed by the
+	  locally-generated session key. This has been further restricted;
+	  updates are now only accepted from locally configured addresses.
+	  [RT #45492]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  <span class="command"><strong>dig +ednsopt</strong></span> now accepts the names
 	  for EDNS options in addition to numeric values. For example,
 	  an EDNS Client-Subnet option could be sent using
