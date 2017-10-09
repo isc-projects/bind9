@@ -13,7 +13,7 @@ Some of these settings are:
 
 |Setting                            |Description |
 |-----------------------------------|----------------------------------------|
-|`-DISC_MEM_FILL=0`|Don't ovewrite memory when allocating or freeing it; this improves performance but makes debugging more difficult.|
+|`-DISC_MEM_DEFAULTFILL=1`|Overwrite memory with tag values when allocating or freeing it; this impairs performance but makes debugging of memory problems easier.|
 |`-DISC_MEM_TRACKLINES=0`|Don't track memory allocations by file and line number; this improves performance but makes debugging more difficult.|
 |<nobr>`-DISC_FACILITY=LOG_LOCAL0`</nobr>|Change the default syslog facility for `named`|
 |`-DNS_CLIENT_DROPPORT=0`|Disable dropping queries from particular well-known ports:|

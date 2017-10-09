@@ -657,8 +657,8 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 			ctx->maxmalloced = ctx->malloced;
 		/*
 		 * If we don't set new_size to size, then the
-		 * ISC_MEM_FILL code might write over bytes we
-		 * don't own.
+		 * ISC_MEMFLAG_FILL code might write over bytes we don't
+		 * own.
 		 */
 		new_size = size;
 		goto done;
@@ -691,16 +691,14 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	ctx->inuse += new_size;
 
  done:
-
-#if ISC_MEM_FILL
-	if (ret != NULL)
+	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0) &&
+	    ISC_LIKELY(ret != NULL))
 		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
-#endif
 
 	return (ret);
 }
 
-#if ISC_MEM_FILL && ISC_MEM_CHECKOVERRUN
+#if ISC_MEM_CHECKOVERRUN
 static inline void
 check_overrun(void *mem, size_t size, size_t new_size) {
 	unsigned char *cp;
@@ -724,9 +722,9 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 		/*
 		 * memput() called on something beyond our upper limit.
 		 */
-#if ISC_MEM_FILL
-		memset(mem, 0xde, size); /* Mnemonic for "dead". */
-#endif
+		if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0))
+			memset(mem, 0xde, size); /* Mnemonic for "dead". */
+
 		(ctx->memfree)(ctx->arg, mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0U);
 		ctx->stats[ctx->max_size].gets--;
@@ -736,12 +734,12 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 		return;
 	}
 
-#if ISC_MEM_FILL
+	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 #if ISC_MEM_CHECKOVERRUN
-	check_overrun(mem, size, new_size);
+		check_overrun(mem, size, new_size);
 #endif
-	memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
-#endif
+		memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
+	}
 
 	/*
 	 * The free list uses the "rounded-up" size "new_size".
@@ -771,19 +769,18 @@ mem_get(isc__mem_t *ctx, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
 	size += 1;
 #endif
-
 	ret = (ctx->memalloc)(ctx->arg, size);
 	if (ret == NULL)
 		ctx->memalloc_failures++;
 
-#if ISC_MEM_FILL
-	if (ret != NULL)
-		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
-#else
-#  if ISC_MEM_CHECKOVERRUN
-	if (ret != NULL)
-		ret[size-1] = 0xbe;
-#  endif
+	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
+		if (ISC_LIKELY(ret != NULL))
+			memset(ret, 0xbe, size); /* Mnemonic for "beef". */
+	} else {
+#if ISC_MEM_CHECKOVERRUN
+		if (ISC_LIKELY(ret != NULL))
+			ret[size-1] = 0xbe;
+	}
 #endif
 
 	return (ret);
@@ -799,9 +796,8 @@ mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 	INSIST(((unsigned char *)mem)[size] == 0xbe);
 	size += 1;
 #endif
-#if ISC_MEM_FILL
-	memset(mem, 0xde, size); /* Mnemonic for "dead". */
-#endif
+	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0))
+		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	(ctx->memfree)(ctx->arg, mem);
 }
 

@@ -390,14 +390,20 @@ parse_int(char *arg, const char *desc) {
 static struct flag_def {
 	const char *name;
 	unsigned int value;
+	isc_boolean_t negate;
 } mem_debug_flags[] = {
-	{ "none", 0},
-	{ "trace",  ISC_MEM_DEBUGTRACE },
-	{ "record", ISC_MEM_DEBUGRECORD },
-	{ "usage", ISC_MEM_DEBUGUSAGE },
-	{ "size", ISC_MEM_DEBUGSIZE },
-	{ "mctx", ISC_MEM_DEBUGCTX },
-	{ NULL, 0 }
+	{ "none", 0, ISC_FALSE },
+	{ "trace",  ISC_MEM_DEBUGTRACE, ISC_FALSE },
+	{ "record", ISC_MEM_DEBUGRECORD, ISC_FALSE },
+	{ "usage", ISC_MEM_DEBUGUSAGE, ISC_FALSE },
+	{ "size", ISC_MEM_DEBUGSIZE, ISC_FALSE },
+	{ "mctx", ISC_MEM_DEBUGCTX, ISC_FALSE },
+	{ NULL, 0, ISC_FALSE }
+}, mem_context_flags[] = {
+	{ "external", ISC_MEMFLAG_INTERNAL, ISC_TRUE },
+	{ "fill", ISC_MEMFLAG_FILL, ISC_FALSE },
+	{ "nofill", ISC_MEMFLAG_FILL, ISC_TRUE },
+	{ NULL, 0, ISC_FALSE }
 };
 
 static void
@@ -416,7 +422,10 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 			    memcmp(arg, def->name, arglen) == 0) {
 				if (def->value == 0)
 					clear = ISC_TRUE;
-				*ret |= def->value;
+				if (def->negate)
+					*ret &= ~(def->value);
+				else
+					*ret |= def->value;
 				goto found;
 			}
 		}
@@ -519,8 +528,8 @@ parse_command_line(int argc, char *argv[]) {
 			named_g_logfile = isc_commandline_argument;
 			break;
 		case 'M':
-			if (strcmp(isc_commandline_argument, "external") == 0)
-				isc_mem_defaultflags = 0;
+			set_flags(isc_commandline_argument, mem_context_flags,
+				  &isc_mem_defaultflags);
 			break;
 		case 'm':
 			set_flags(isc_commandline_argument, mem_debug_flags,
@@ -1380,6 +1389,15 @@ main(int argc, char *argv[]) {
 	isccc_result_register();
 #ifdef PKCS11CRYPTO
 	pk11_result_register();
+#endif
+
+#if !ISC_MEM_DEFAULTFILL
+	/*
+	 * Update the default flags to remove ISC_MEMFLAG_FILL
+	 * before we parse the command line. If disabled here,
+	 * it can be turned back on with -M fill.
+	 */
+	isc_mem_defaultflags &= ~ISC_MEMFLAG_FILL;
 #endif
 
 	parse_command_line(argc, argv);

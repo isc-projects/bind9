@@ -212,11 +212,17 @@
         <term>-M <replaceable class="parameter">option</replaceable></term>
         <listitem>
           <para>
-            Sets the default memory context options.  Currently
-            the only supported option is
+            Sets the default memory context options. If set to
             <replaceable class="parameter">external</replaceable>,
-            which causes the internal memory manager to be bypassed
+            this causes the internal memory manager to be bypassed
             in favor of system-provided memory allocation functions.
+            If set to <replaceable class="parameter">fill</replaceable>,
+            blocks of memory will be filled with tag values when allocated
+            or freed, to assist debugging of memory problems.
+            (<replaceable class="parameter">nofill</replaceable>
+            disables this behavior, and is the default unless
+            <command>named</command> has been compiled with developer
+            options.)
           </para>
         </listitem>
       </varlistentry>

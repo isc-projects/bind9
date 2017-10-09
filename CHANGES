@@ -1,3 +1,12 @@
+4768.	[func]		By default, memory is no longer filled with tag values
+			when it is allocated or freed; this improves
+			performance but makes debugging of certain memory
+			issues more difficult. "named -M fill" turns memory
+			filling back on. (Building "configure
+			--enable-developer", turns memory fill on by
+			default again; it can then be disabled with
+			"named -M nofill".) [RT #45123]
+
 4767.	[func]		Add a new function, isc_buffer_printf(), which can be
 			used to append a formatted string to the used region of
 			a buffer. [RT #46201]

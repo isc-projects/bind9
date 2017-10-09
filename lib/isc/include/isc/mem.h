@@ -53,23 +53,6 @@ typedef void (*isc_memfree_t)(void *, void *);
 #endif
 
 /*%
- * Define ISC_MEM_FILL=1 to fill each block of memory returned to the system
- * with the byte string '0xbe'.  This helps track down uninitialized pointers
- * and the like.  On freeing memory, the space is filled with '0xde' for
- * the same reasons.
- *
- * If we are performing a Coverity static analysis then ISC_MEM_FILL
- * can hide bugs that would otherwise discovered so force to zero.
- */
-#ifdef __COVERITY__
-#undef ISC_MEM_FILL
-#define ISC_MEM_FILL 0
-#endif
-#ifndef ISC_MEM_FILL
-#define ISC_MEM_FILL 1
-#endif
-
-/*%
  * Define ISC_MEMPOOL_NAMES=1 to make memory pools store a symbolic
  * name so that the leaking pool can be more readily identified in
  * case of a memory leak.
@@ -142,10 +125,12 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  */
 #define ISC_MEMFLAG_NOLOCK	0x00000001	 /* no lock is necessary */
 #define ISC_MEMFLAG_INTERNAL	0x00000002	 /* use internal malloc */
-#if ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEMFLAG_DEFAULT 	ISC_MEMFLAG_INTERNAL
-#else
+#define ISC_MEMFLAG_FILL	0x00000004	 /* fill with pattern after alloc and frees */
+
+#if !ISC_MEM_USE_INTERNAL_MALLOC
 #define ISC_MEMFLAG_DEFAULT 	0
+#else
+#define ISC_MEMFLAG_DEFAULT	ISC_MEMFLAG_INTERNAL|ISC_MEMFLAG_FILL
 #endif
 
 

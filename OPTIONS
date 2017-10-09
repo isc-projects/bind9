@@ -5,9 +5,9 @@ defined in configure.
 Some of these settings are:
 
 Setting                   Description
-                          Don't ovewrite memory when allocating or freeing
--DISC_MEM_FILL=0          it; this improves performance but makes
-                          debugging more difficult.
+                          Overwrite memory with tag values when allocating
+-DISC_MEM_DEFAULTFILL=1   or freeing it; this impairs performance but
+                          makes debugging of memory problems easier.
                           Don't track memory allocations by file and line
 -DISC_MEM_TRACKLINES=0    number; this improves performance but makes
                           debugging more difficult.

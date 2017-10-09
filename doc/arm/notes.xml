@@ -129,6 +129,18 @@
 	      case restoration, hashing, and buffers.
 	    </para>
 	  </listitem>
+	  <listitem>
+	    <para>
+	      When built with default <command>configure</command> options,
+	      <command>named</command> no longer fills memory with tag
+	      values when allocating or freeing it. This improves performance,
+	      but makes it more difficult to debug certain memory-related
+	      errors. The default is reversed if building with developer
+	      options. <command>named -M fill</command> or
+	      <command>named -M nofill</command> will set the behavior
+	      accordingly regardless of build options.
+	    </para>
+	  </listitem>
 	</itemizedlist>
       </listitem>
       <listitem>
