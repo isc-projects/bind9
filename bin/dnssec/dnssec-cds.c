@@ -360,13 +360,14 @@ load_parent_set(const char *path) {
 	free_db(&db, &node);
 }
 
+#define MAX_CDS_RDATA_TEXT_SIZE DNS_RDATA_MAXLENGTH * 2
+
 static isc_buffer_t *
 formatset(dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	isc_buffer_t *buf = NULL;
 	dns_master_style_t *style = NULL;
 	unsigned int styleflags;
-	unsigned int size;
 
 	styleflags = (rdataset->ttl == 0) ? DNS_STYLEFLAG_NO_TTL : 0;
 
@@ -378,23 +379,17 @@ formatset(dns_rdataset_t *rdataset) {
 	result = dns_master_stylecreate2(&style, styleflags,
 					 0, 0, 0, 0, 0, 1000000, 0,
 					 mctx);
+	check_result(result, "dns_master_stylecreate2 failed");
 
-	size = 256;
-	do {
-		result = isc_buffer_allocate(mctx, &buf, size);
-		check_result(result, "printing DS records");
-		result = dns_master_rdatasettotext(name, rdataset,
-						   style, buf);
-		if (result == ISC_R_NOSPACE ||
-		    isc_buffer_availablelength(buf) < 1)
-		{
-			vbprintf(20, "formatset buffer size %u\n", size);
-			isc_buffer_free(&buf);
-			size *= 2;
-		} else {
-			check_result(result, "dns_rdataset_totext()");
-		}
-	} while (result != ISC_R_SUCCESS);
+	result = isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
+	check_result(result, "printing DS records");
+	result = dns_master_rdatasettotext(name, rdataset, style, buf);
+
+	if ((result == ISC_R_SUCCESS) && isc_buffer_availablelength(buf) < 1) {
+		result = ISC_R_NOSPACE;
+	}
+
+	check_result(result, "dns_rdataset_totext()");
 
 	isc_buffer_putuint8(buf, 0);
 

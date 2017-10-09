@@ -8353,7 +8353,6 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	dns_ttl_t ttl;
 	isc_buffer_t *dbuf, b;
 	isc_result_t result;
-	dns_rdataset_t *clone = NULL, *sigclone = NULL;
 
 	/*
 	 * Detemine the correct TTL to use for the SOA and RRSIG
@@ -8412,12 +8411,6 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 cleanup:
 	if (name != NULL) {
 		query_releasename(qctx->client, &name);
-	}
-	if (clone != NULL) {
-		query_putrdataset(qctx->client, &clone);
-	}
-	if (sigclone != NULL) {
-		query_putrdataset(qctx->client, &sigclone);
 	}
 	return (result);
 }
@@ -8746,7 +8739,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 	dns_fixedname_t fsigner;
 	dns_fixedname_t fwild;
 	dns_name_t *fname = NULL;
-	dns_name_t *name = NULL;
 	dns_name_t *nowild = NULL;
 	dns_name_t *signer = NULL;
 	dns_name_t *wild = NULL;
@@ -8891,6 +8883,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 		{
 			goto cleanup;
 		}
+		/* FALLTHROUGH */
 	case DNS_R_CNAME:
 		if (!qctx->resuming && !STALE(&rdataset) &&
 		    rdataset.ttl == 0 && RECURSIONOK(qctx->client))
@@ -8996,9 +8989,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 			dns_db_detachnode(db, &node);
 		}
 		dns_db_detach(&db);
-	}
-	if (name != NULL) {
-		query_releasename(qctx->client, &name);
 	}
 
 	if (redirected) {
