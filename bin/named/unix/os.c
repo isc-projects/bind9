@@ -1036,12 +1036,7 @@ named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	pid = getpid();
 #endif
 
-	n = snprintf((char *)isc_buffer_used(text),
-		     isc_buffer_availablelength(text),
-		     "pid: %ld", (long)pid);
-	/* Only send a message if it is complete. */
-	if (n > 0 && n < isc_buffer_availablelength(text))
-		isc_buffer_add(text, n);
+	(void)isc_buffer_printf(text, "pid: %ld", (long)pid);
 }
 
 void

@@ -741,6 +741,38 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src);
  *					big enough.
  */
 
+isc_result_t
+isc_buffer_printf(isc_buffer_t *b, const char *format, ...)
+	ISC_FORMAT_PRINTF(2, 3);
+/*!<
+ * \brief Append a formatted string to the used region of 'b'.
+ *
+ * Notes:
+ *
+ *\li	The 'format' argument is a printf(3) string, with additional arguments
+ *	as necessary.
+ *
+ *\li	If 'b' has autoreallocation enabled, and the formatted string
+ *	would overrun the buffer, the buffer is reallocated.
+ *
+ * Requires:
+ *
+ *\li	'b' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *\li	The used pointer in 'b' is advanced by the number of bytes appended
+ *	(excluding the terminating NULL byte).
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS	Operation succeeded.
+ *\li	#ISC_R_NOSPACE	'b' does not allow reallocation and appending the
+ *			formatted string to it would cause it to overflow.
+ *\li	#ISC_R_NOMEMORY	Reallocation failed.
+ *\li	#ISC_R_FAILURE	Other error occurred.
+ */
+
 ISC_LANG_ENDDECLS
 
 /*

@@ -1046,13 +1046,9 @@ isc_httpd_response(isc_httpd_t *httpd) {
 			return (result);
 	}
 
-	snprintf(isc_buffer_used(&httpd->headerbuffer),
-		 (int)isc_buffer_availablelength(&httpd->headerbuffer),
-		 "%s %03u %s\r\n", httpd->protocol, httpd->retcode,
-		 httpd->retmsg);
-	isc_buffer_add(&httpd->headerbuffer, needlen);
-
-	return (ISC_R_SUCCESS);
+	return (isc_buffer_printf(&httpd->headerbuffer, "%s %03u %s\r\n",
+				   httpd->protocol, httpd->retcode,
+				   httpd->retmsg));
 }
 
 isc_result_t
@@ -1073,18 +1069,13 @@ isc_httpd_addheader(isc_httpd_t *httpd, const char *name,
 			return (result);
 	}
 
-	if (val != NULL)
-		snprintf(isc_buffer_used(&httpd->headerbuffer),
-			 isc_buffer_availablelength(&httpd->headerbuffer),
-			 "%s: %s\r\n", name, val);
-	else
-		snprintf(isc_buffer_used(&httpd->headerbuffer),
-			 isc_buffer_availablelength(&httpd->headerbuffer),
-			 "%s\r\n", name);
-
-	isc_buffer_add(&httpd->headerbuffer, needlen);
-
-	return (ISC_R_SUCCESS);
+	if (val != NULL) {
+		return (isc_buffer_printf(&httpd->headerbuffer, "%s: %s\r\n",
+					   name, val));
+	} else {
+		return (isc_buffer_printf(&httpd->headerbuffer, "%s\r\n",
+					   name));
+	}
 }
 
 isc_result_t
@@ -1097,11 +1088,7 @@ isc_httpd_endheaders(isc_httpd_t *httpd) {
 			return (result);
 	}
 
-	snprintf(isc_buffer_used(&httpd->headerbuffer),
-		 isc_buffer_availablelength(&httpd->headerbuffer), "\r\n");
-	isc_buffer_add(&httpd->headerbuffer, 2);
-
-	return (ISC_R_SUCCESS);
+	return (isc_buffer_printf(&httpd->headerbuffer, "\r\n"));
 }
 
 isc_result_t
@@ -1122,13 +1109,8 @@ isc_httpd_addheaderuint(isc_httpd_t *httpd, const char *name, int val) {
 			return (result);
 	}
 
-	snprintf(isc_buffer_used(&httpd->headerbuffer),
-		 isc_buffer_availablelength(&httpd->headerbuffer),
-		 "%s: %s\r\n", name, buf);
-
-	isc_buffer_add(&httpd->headerbuffer, needlen);
-
-	return (ISC_R_SUCCESS);
+	return (isc_buffer_printf(&httpd->headerbuffer, "%s: %s\r\n", name,
+				   buf));
 }
 
 static void

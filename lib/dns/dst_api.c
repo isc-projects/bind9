@@ -1875,15 +1875,8 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 	result = dns_name_tofilenametext(name, ISC_FALSE, out);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	len = 1 + 3 + 1 + 5 + strlen(suffix) + 1;
-	if (isc_buffer_availablelength(out) < len)
-		return (ISC_R_NOSPACE);
-	snprintf((char *) isc_buffer_used(out),
-		 (int)isc_buffer_availablelength(out),
-		 "+%03d+%05d%s", alg, id, suffix);
-	isc_buffer_add(out, len);
 
-	return (ISC_R_SUCCESS);
+	return (isc_buffer_printf(out, "+%03d+%05d%s", alg, id, suffix));
 }
 
 static isc_result_t

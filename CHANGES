@@ -1,3 +1,7 @@
+4767.	[func]		Add a new function, isc_buffer_printf(), which can be
+			used to append a formatted string to the used region of
+			a buffer. [RT #46201]
+
 4766.	[cleanup]	Addresss Coverity warnings. [RT #46150]
 
 4765.	[bug]		Address potential INSIST in dnssec-cds. [RT #46150]

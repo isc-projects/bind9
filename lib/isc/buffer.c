@@ -17,6 +17,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <stdarg.h>
+
 void
 isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	/*
@@ -632,4 +634,38 @@ isc_buffer_free(isc_buffer_t **dynbuffer) {
 	isc_mem_put(mctx, dbuf->base, dbuf->length);
 	isc_buffer_invalidate(dbuf);
 	isc_mem_put(mctx, dbuf, sizeof(isc_buffer_t));
+}
+
+isc_result_t
+isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
+	va_list ap;
+	int n;
+	isc_result_t result;
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+
+	va_start(ap, format);
+	n = vsnprintf(NULL, 0, format, ap);
+	va_end(ap);
+
+	if (n < 0) {
+		return (ISC_R_FAILURE);
+	}
+
+	result = isc_buffer_reserve(&b, n + 1);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	va_start(ap, format);
+	n = vsnprintf(isc_buffer_used(b), n + 1, format, ap);
+	va_end(ap);
+
+	if (n < 0) {
+		return (ISC_R_FAILURE);
+	}
+
+	b->used += n;
+
+	return (ISC_R_SUCCESS);
 }
