@@ -1853,7 +1853,6 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 	      const char *directory, isc_buffer_t *out)
 {
 	const char *suffix = "";
-	unsigned int len;
 	isc_result_t result;
 
 	REQUIRE(out != NULL);
