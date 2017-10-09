@@ -16,6 +16,7 @@
 #include "isctest.h"
 
 #include <isc/buffer.h>
+#include <isc/print.h>
 #include <isc/result.h>
 
 ATF_TC(isc_buffer_reserve);
