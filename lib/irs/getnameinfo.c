@@ -320,6 +320,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 		case DNS_R_NOVALIDDS:
 		case DNS_R_NOVALIDSIG:
 			ERR(EAI_INSECUREDATA);
+			/* NOTREACHED */
 		default:
 			ERR(EAI_FAIL);
 		}

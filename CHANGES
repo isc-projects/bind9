@@ -1,3 +1,5 @@
+4766.	[cleanup]	Addresss Coverity warnings. [RT #46150]
+
 4763.	[contrib]	Improve compatibility when building MySQL DLZ
 			module by using mysql_config if available.
 			[RT #45558]
