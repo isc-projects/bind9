@@ -6,7 +6,7 @@
  - file, You can obtain one at http://mozilla.org/MPL/2.0/.
 -->
 
-<refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-signzone">
+<refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-cds">
   <info>
     <date>2017-10-02</date>
   </info>

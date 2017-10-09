@@ -18515,11 +18515,11 @@ allow-query { !{ !10/8; any; }; key example; };
     </appendix>
 
     <reference xml:id="Bv9ARM.ch13"><info><title>Manual pages</title></info>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/dig.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/mdig.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/arpaname.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/confgen/ddns-confgen.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/delv/delv.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/nslookup.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/dig.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-cds.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-checkds.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/python/dnssec-coverage.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-dsfromkey.docbook"/>
@@ -18531,27 +18531,28 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-settime.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-verify.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.conf.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/dnstap-read.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/genrandom.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/isc-hmac-fixup.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/mdig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkconf.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-journalprint.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-nzd2nzf.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/named-rrchecker.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/nsupdate/nsupdate.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/rndc/rndc.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/rndc/rndc.conf.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/confgen/rndc-confgen.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/confgen/ddns-confgen.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/arpaname.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/dnstap-read.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/genrandom.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/isc-hmac-fixup.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.conf.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/named/named.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/nsec3hash.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/nslookup.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/nsupdate/nsupdate.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-destroy.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-list.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-keygen.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-list.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/pkcs11/pkcs11-tokens.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/confgen/rndc-confgen.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/rndc/rndc.conf.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/rndc/rndc.docbook"/>
     </reference>
 
   </book>
