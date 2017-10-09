@@ -1,3 +1,5 @@
+4766.	[cleanup]	Addresss Coverity warnings. [RT #46150]
+
 4762.	[func]		"update-policy local" is now restricted to updates
 			from local addresses. (Previously, other addresses
 			were allowed so long as updates were signed by the
