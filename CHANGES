@@ -1,3 +1,6 @@
+4764.	[bug]		Address portability issues in cds system test.
+			[RT #46214]
+
 4763.	[contrib]	Improve compatibility when building MySQL DLZ
 			module by using mysql_config if available.
 			[RT #45558]

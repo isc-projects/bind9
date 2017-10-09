@@ -66,8 +66,16 @@ $mangle " IN DS $id1 8 1 " <DS.1 >DS.broke1
 $mangle " IN DS $id1 8 2 " <DS.1 >DS.broke2
 $mangle " IN DS $id1 8 [12] " <DS.1 >DS.broke12
 
-sed 's/^/update add /;$a send' <DS.2 >UP.add2
-sed 's/^/update del /;$a send' <DS.1 >UP.del1
+sed 's/^/update add /
+$a\
+send
+' <DS.2 >UP.add2
+
+sed 's/^/update del /
+$a\
+send
+' <DS.1 >UP.del1
+
 cat UP.add2 UP.del1 | sed 3d >UP.swap
 
 sed 's/ add \(.*\) IN DS / add \1 3600 IN DS /' <UP.swap >UP.swapttl
