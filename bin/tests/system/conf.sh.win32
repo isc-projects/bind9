@@ -71,6 +71,9 @@ MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
 # to port SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
+# we don't want a KRB5_CONFIG setting breaking the tests
+KRB5_CONFIG=/dev/null
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -154,6 +157,7 @@ export KEYFRLAB
 export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
+export KRB5_CONFIG
 export MAKEJOURNAL
 export MDIG
 export NAMED
