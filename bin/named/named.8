@@ -125,8 +125,12 @@ by default instead of the system log\&.
 .PP
 \-M \fIoption\fR
 .RS 4
-Sets the default memory context options\&. Currently the only supported option is
-\fIexternal\fR, which causes the internal memory manager to be bypassed in favor of system\-provided memory allocation functions\&.
+Sets the default memory context options\&. If set to
+\fIexternal\fR, this causes the internal memory manager to be bypassed in favor of system\-provided memory allocation functions\&. If set to
+\fIfill\fR, blocks of memory will be filled with tag values when allocated or freed, to assist debugging of memory problems\&. (\fInofill\fR
+disables this behavior, and is the default unless
+\fBnamed\fR
+has been compiled with developer options\&.)
 .RE
 .PP
 \-m \fIflag\fR

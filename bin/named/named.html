@@ -168,11 +168,17 @@
 <dt><span class="term">-M <em class="replaceable"><code>option</code></em></span></dt>
 <dd>
           <p>
-            Sets the default memory context options.  Currently
-            the only supported option is
+            Sets the default memory context options. If set to
             <em class="replaceable"><code>external</code></em>,
-            which causes the internal memory manager to be bypassed
+            this causes the internal memory manager to be bypassed
             in favor of system-provided memory allocation functions.
+            If set to <em class="replaceable"><code>fill</code></em>,
+            blocks of memory will be filled with tag values when allocated
+            or freed, to assist debugging of memory problems.
+            (<em class="replaceable"><code>nofill</code></em>
+            disables this behavior, and is the default unless
+            <span class="command"><strong>named</strong></span> has been compiled with developer
+            options.)
           </p>
         </dd>
 <dt><span class="term">-m <em class="replaceable"><code>flag</code></em></span></dt>

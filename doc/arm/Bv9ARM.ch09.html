@@ -177,6 +177,18 @@
 	      case restoration, hashing, and buffers.
 	    </p>
 	  </li>
+<li class="listitem">
+	    <p>
+	      When built with default <span class="command"><strong>configure</strong></span> options,
+	      <span class="command"><strong>named</strong></span> no longer fills memory with tag
+	      values when allocating or freeing it. This improves performance,
+	      but makes it more difficult to debug certain memory-related
+	      errors. The default is reversed if building with developer
+	      options. <span class="command"><strong>named -M fill</strong></span> or
+	      <span class="command"><strong>named -M nofill</strong></span> will set the behavior
+	      accordingly regardless of build options.
+	    </p>
+	  </li>
 </ul></div>
       </li>
 <li class="listitem">
