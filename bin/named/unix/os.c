@@ -1013,7 +1013,6 @@ next_token(char **stringp, const char *delim) {
 void
 named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	char *input, *ptr;
-	unsigned int n;
 	pid_t pid;
 
 	input = command;
