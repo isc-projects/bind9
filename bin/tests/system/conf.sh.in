@@ -61,6 +61,9 @@ MDIG=$TOP/bin/tests/mdig
 
 SAMPLEUPDATE=$TOP/lib/export/samples/sample-update
 
+# we don't want a KRB5_CONFIG setting breaking the tests
+KRB5_CONFIG=/dev/null
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -168,6 +171,7 @@ export FEATURETEST
 export JOURNALPRINT
 export KEYFRLAB
 export KEYGEN
+export KRB5_CONFIG
 export LWRESD
 export MDIG
 export NAMED

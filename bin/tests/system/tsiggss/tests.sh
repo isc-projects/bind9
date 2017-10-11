@@ -8,10 +8,6 @@ status=0
 
 DIGOPTS="@10.53.0.1 -p 5300"
 
-# we don't want a KRB5_CONFIG setting breaking the tests
-KRB5_CONFIG=/dev/null
-export KRB5_CONFIG
-
 test_update() {
     host="$1"
     type="$2"
