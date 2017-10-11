@@ -64,7 +64,7 @@ fuzz_thread_client(void *arg) {
 	 * Parse named -A argument in the "address:port" syntax. Due to
 	 * the syntax used, this only supports IPv4 addresses.
 	 */
-	host = strdup(named_g_fuzz_named_addr);
+	host = strdup(named_g_fuzz_addr);
 	RUNTIME_CHECK(host != NULL);
 
 	port = strchr(host, ':');
@@ -292,7 +292,7 @@ fuzz_thread_resolver(void *arg) {
 	 * Parse named -A argument in the "qtype:saddress:sport:raddress:rport"
 	 * syntax.  Due to the syntax used, this only supports IPv4 addresses.
 	 */
-	sqtype = strdup(named_g_fuzz_named_addr);
+	sqtype = strdup(named_g_fuzz_addr);
 	RUNTIME_CHECK(sqtype != NULL);
 
 	shost = strchr(sqtype, ':');
@@ -614,7 +614,7 @@ fuzz_thread_tcp(void *arg) {
 	 * Parse named -A argument in the "address:port" syntax. Due to
 	 * the syntax used, this only supports IPv4 addresses.
 	 */
-	host = strdup(named_g_fuzz_named_addr);
+	host = strdup(named_g_fuzz_addr);
 	RUNTIME_CHECK(host != NULL);
 
 	port = strchr(host, ':');
