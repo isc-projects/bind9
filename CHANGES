@@ -1,3 +1,10 @@
+4770.	[bug]		Cache additional data from priming queries as glue.
+			Previously they were ignored as unsigned
+			non-answer data from a secure zone, and never
+			actually got added to the cache, causing hints
+			to be used frequently for root-server
+			addresses, which triggered re-priming. [RT #45241]
+
 4766.	[cleanup]	Addresss Coverity warnings. [RT #46150]
 
 4763.	[contrib]	Improve compatibility when building MySQL DLZ
