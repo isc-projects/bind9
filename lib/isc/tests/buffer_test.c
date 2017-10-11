@@ -196,8 +196,8 @@ ATF_TC_HEAD(isc_buffer_printf, tc) {
 }
 
 ATF_TC_BODY(isc_buffer_printf, tc) {
-	const char *bad_fmt, *empty_fmt;
 	unsigned int used, prev_used;
+	const char *empty_fmt;
 	isc_result_t result;
 	isc_buffer_t *b, sb;
 	char buf[8];
@@ -267,16 +267,6 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	empty_fmt = "";
 	result = isc_buffer_printf(b, empty_fmt, NULL);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	used = isc_buffer_usedlength(b);
-	ATF_CHECK_EQ(prev_used, used);
-
-	/*
-	 * Ensure vsnprintf() errors do not cause the buffer to be modified.
-	 */
-	prev_used = used;
-	bad_fmt = "%";
-	result = isc_buffer_printf(b, bad_fmt, NULL);
-	ATF_CHECK_EQ(result, ISC_R_FAILURE);
 	used = isc_buffer_usedlength(b);
 	ATF_CHECK_EQ(prev_used, used);
 
