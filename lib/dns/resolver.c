@@ -5863,6 +5863,11 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				{
 					options = DNS_DBADD_PREFETCH;
 				}
+				if ((fctx->options &
+				     DNS_FETCHOPT_NOCACHED) != 0)
+				{
+					options |= DNS_DBADD_FORCE;
+				}
 				addedrdataset = ardataset;
 				result = dns_db_addrdataset(fctx->cache, node,
 							    NULL, now, rdataset,
