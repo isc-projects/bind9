@@ -80,6 +80,9 @@ KEYDELETE=$TOP/Build/$VSCONF/keydelete@EXEEXT@
 LWTEST=$TOP/Build/$VSCONF/lwtest@EXEEXT@
 MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 
+# we don't want a KRB5_CONFIG setting breaking the tests
+KRB5_CONFIG=/dev/null
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
@@ -192,6 +195,7 @@ export KEYFRLAB
 export KEYGEN
 export KEYSETTOOL
 export KEYSIGNER
+export KRB5_CONFIG
 export LWRESD
 export LWTEST
 export MAKEJOURNAL
