@@ -10,3 +10,8 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $SHELL clean.sh 
+
+cp ns2/named1.conf ns2/named.conf
+
+mkdir ns2/nope
+chmod 555 ns2/nope

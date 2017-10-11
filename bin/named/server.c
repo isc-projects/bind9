@@ -1032,6 +1032,15 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			      directory, isc_result_totext(result));
 		goto cleanup;
 
+	} else if (directory != NULL) {
+		if (access(directory, W_OK|X_OK) != 0) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "managed-keys-directory '%s' "
+				      "is not writable", directory);
+			result = ISC_R_NOPERM;
+			goto cleanup;
+		}
 	}
 	CHECK(add_keydata_zone(view, directory, named_g_mctx));
 
@@ -6149,6 +6158,14 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 		cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
 			    "option 'directory' contains relative path '%s'",
 			    directory);
+
+	if (access(directory, W_OK|X_OK) != 0) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "directory '%s' is not writable",
+			      directory);
+		return (ISC_R_NOPERM);
+	}
 
 	result = isc_dir_chdir(directory);
 	if (result != ISC_R_SUCCESS) {

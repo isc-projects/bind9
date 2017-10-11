@@ -6,6 +6,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+rm -f ns2/named.conf
 rm -f */named.memstats
 rm -f */named*.run
 rm -f ns*/named.lock ns*/named*.pid ns*/other.lock
+rm -f *.pid
+rm -f rndc.out*
+[ -d ns2/nope ] && chmod 755 ns2/nope
+rm -rf ns2/nope

@@ -1,3 +1,6 @@
+4769.	[bug]		The working directory and managed-keys directory has
+			to be writeable (and seekable). [RT #46077]
+
 4768.	[func]		By default, memory is no longer filled with tag values
 			when it is allocated or freed; this improves
 			performance but makes debugging of certain memory
