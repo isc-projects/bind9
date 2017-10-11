@@ -5,7 +5,7 @@
 			to be used frequently for root-server
 			addresses, which triggered re-priming. [RT #45241]
 
-4769.	[bug]		The working directory and managed-keys directory has
+4769.	[func]		The working directory and managed-keys directory has
 			to be writeable (and seekable). [RT #46077]
 
 4768.	[func]		By default, memory is no longer filled with tag values
