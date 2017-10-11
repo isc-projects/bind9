@@ -8481,10 +8481,12 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Check that the working directory is writable.
 	 */
-	if (access(".", W_OK) != 0) {
+	if (access(".", W_OK|X_OK) != 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");
+		result = ISC_R_NOPERM;
+		goto cleanup;
 	}
 
 #ifdef HAVE_LMDB
