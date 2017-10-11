@@ -22,6 +22,7 @@
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
@@ -29,6 +30,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
 #include <dns/fixedname.h>
@@ -41,6 +43,8 @@
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
+
+#include "../hooks.h"
 
 #include "nstest.h"
 
@@ -62,6 +66,8 @@ isc_boolean_t debug_mem_record = ISC_TRUE;
 isc_boolean_t run_managers = ISC_FALSE;
 
 static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
+
+static dns_zone_t *served_zone = NULL;
 
 /*
  * Logging categories: this needs to match the list in lib/ns/log.c.
@@ -275,6 +281,8 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	if (chdir(TESTS) == -1)
 		CHECK(ISC_R_FAILURE);
 
+	ns__hook_table = NULL;
+
 	return (ISC_R_SUCCESS);
 
   cleanup:
@@ -306,15 +314,29 @@ ns_test_end(void) {
 		isc_mem_destroy(&mctx);
 }
 
-/*
- * Create a view.
- */
 isc_result_t
-ns_test_makeview(const char *name, dns_view_t **viewp) {
-	isc_result_t result;
+ns_test_makeview(const char *name, isc_boolean_t with_cache,
+		 dns_view_t **viewp)
+{
+	dns_cache_t *cache = NULL;
 	dns_view_t *view = NULL;
+	isc_result_t result;
 
 	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
+
+	if (with_cache) {
+		CHECK(dns_cache_create(mctx, taskmgr, timermgr,
+				       dns_rdataclass_in, "rbt", 0, NULL,
+				       &cache));
+		dns_view_setcache(view, cache);
+		/*
+		 * Reference count for "cache" is now at 2, so decrement it in
+		 * order for the cache to be automatically freed when "view"
+		 * gets freed.
+		 */
+		dns_cache_detach(&cache);
+	}
+
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
@@ -418,6 +440,79 @@ ns_test_closezonemgr(void) {
 }
 
 isc_result_t
+ns_test_serve_zone(const char *zonename, const char *filename,
+		   dns_view_t *view)
+{
+	isc_result_t result;
+	dns_db_t *db = NULL;
+
+	/*
+	 * Prepare zone structure for further processing.
+	 */
+	result = ns_test_makezone(zonename, &served_zone, view, ISC_TRUE);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	/*
+	 * Start zone manager.
+	 */
+	result = ns_test_setupzonemgr();
+	if (result != ISC_R_SUCCESS) {
+		goto free_zone;
+	}
+
+	/*
+	 * Add the zone to the zone manager.
+	 */
+	result = ns_test_managezone(served_zone);
+	if (result != ISC_R_SUCCESS) {
+		goto close_zonemgr;
+	}
+
+	view->nocookieudp = 512;
+
+	/*
+	 * Set path to the master file for the zone and then load it.
+	 */
+	dns_zone_setfile(served_zone, filename);
+	result = dns_zone_load(served_zone);
+	if (result != ISC_R_SUCCESS) {
+		goto release_zone;
+	}
+
+	/*
+	 * The zone should now be loaded; test it.
+	 */
+	result = dns_zone_getdb(served_zone, &db);
+	if (result != ISC_R_SUCCESS) {
+		goto release_zone;
+	}
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	return (ISC_R_SUCCESS);
+
+release_zone:
+	ns_test_releasezone(served_zone);
+close_zonemgr:
+	ns_test_closezonemgr();
+free_zone:
+	dns_zone_detach(&served_zone);
+
+	return (result);
+}
+
+void
+ns_test_cleanup_zone(void) {
+	ns_test_releasezone(served_zone);
+	ns_test_closezonemgr();
+
+	dns_zone_detach(&served_zone);
+}
+
+isc_result_t
 ns_test_getclient(ns_interface_t *ifp0, isc_boolean_t tcp,
 		  ns_client_t **clientp)
 {
@@ -433,6 +528,291 @@ ns_test_getclient(ns_interface_t *ifp0, isc_boolean_t tcp,
 
 	result = ns__clientmgr_getclient(clientmgr, ifp, tcp, clientp);
 	return (result);
+}
+
+/*%
+ * Synthesize a DNS message based on supplied QNAME, QTYPE and flags, then
+ * parse it and store the results in client->message.
+ */
+static isc_result_t
+attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
+			   dns_rdatatype_t qtype, unsigned int qflags)
+{
+	dns_rdataset_t *qrdataset = NULL;
+	dns_message_t *message = NULL;
+	unsigned char query[65536];
+	dns_name_t *qname = NULL;
+	isc_buffer_t querybuf;
+	dns_compress_t cctx;
+	isc_result_t result;
+	isc_uint32_t qid;
+
+	REQUIRE(client != NULL);
+	REQUIRE(qnamestr != NULL);
+
+	/*
+	 * Create a new DNS message holding a query.
+	 */
+	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	/*
+	 * Set query ID to a random value.
+	 */
+	isc_random_get(&qid);
+	message->id = (dns_messageid_t)(qid & 0xffff);
+
+	/*
+	 * Set query flags as requested by the caller.
+	 */
+	message->flags = qflags;
+
+	/*
+	 * Allocate structures required to construct the query.
+	 */
+	result = dns_message_gettemprdataset(message, &qrdataset);
+	if (result != ISC_R_SUCCESS) {
+		goto destroy_message;
+	}
+	result = dns_message_gettempname(message, &qname);
+	if (result != ISC_R_SUCCESS) {
+		goto put_rdataset;
+	}
+
+	/*
+	 * Convert "qnamestr" to a DNS name, create a question rdataset of
+	 * class IN and type "qtype", link the two and add the result to the
+	 * QUESTION section of the query.
+	 */
+	result = dns_name_fromstring(qname, qnamestr, 0, mctx);
+	if (result != ISC_R_SUCCESS) {
+		goto put_name;
+	}
+	dns_rdataset_makequestion(qrdataset, dns_rdataclass_in, qtype);
+	ISC_LIST_APPEND(qname->list, qrdataset, link);
+	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
+
+	/*
+	 * Render the query.
+	 */
+	dns_compress_init(&cctx, -1, mctx);
+	isc_buffer_init(&querybuf, query, sizeof(query));
+	result = dns_message_renderbegin(message, &cctx, &querybuf);
+	if (result != ISC_R_SUCCESS) {
+		goto destroy_message;
+	}
+	result = dns_message_rendersection(message, DNS_SECTION_QUESTION, 0);
+	if (result != ISC_R_SUCCESS) {
+		goto destroy_message;
+	}
+	result = dns_message_renderend(message);
+	if (result != ISC_R_SUCCESS) {
+		goto destroy_message;
+	}
+	dns_compress_invalidate(&cctx);
+
+	/*
+	 * Destroy the created message as it was rendered into "querybuf" and
+	 * the latter is all we are going to need from now on.
+	 */
+	dns_message_destroy(&message);
+
+	/*
+	 * Parse the rendered query, storing results in client->message.
+	 */
+	isc_buffer_first(&querybuf);
+	return (dns_message_parse(client->message, &querybuf, 0));
+
+put_name:
+	dns_message_puttempname(message, &qname);
+put_rdataset:
+	dns_message_puttemprdataset(message, &qrdataset);
+destroy_message:
+	dns_message_destroy(&message);
+
+	return (result);
+}
+
+/*%
+ * A hook callback which stores the query context pointed to by "hook_data" at
+ * "callback_data".  Causes execution to be interrupted at hook insertion
+ * point.
+ */
+static isc_boolean_t
+extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
+	query_ctx_t **qctxp;
+	query_ctx_t *qctx;
+
+	REQUIRE(hook_data != NULL);
+	REQUIRE(callback_data != NULL);
+	REQUIRE(resultp != NULL);
+
+	/*
+	 * qctx is a stack variable in lib/ns/query.c.  Its contents need to be
+	 * duplicated or otherwise they will become invalidated once the stack
+	 * gets unwound.
+	 */
+	qctx = isc_mem_get(mctx, sizeof(*qctx));
+	if (qctx != NULL) {
+		memmove(qctx, (query_ctx_t *)hook_data, sizeof(*qctx));
+	}
+
+	qctxp = (query_ctx_t **)callback_data;
+	/*
+	 * If memory allocation failed, the supplied pointer will simply be set
+	 * to NULL.  We rely on the user of this hook to react properly.
+	 */
+	*qctxp = qctx;
+	*resultp = ISC_R_UNSET;
+
+	return (ISC_TRUE);
+}
+
+/*%
+ * Initialize a query context for "client" and store it in "qctxp".
+ *
+ * Requires:
+ *
+ * 	\li "client->message" to hold a parsed DNS query.
+ */
+static isc_result_t
+create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
+	const ns_hook_t *saved_hook_table;
+	const ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT] = {
+		[NS_QUERY_SETUP_QCTX_INITIALIZED] = {
+			.callback = extract_qctx,
+			.callback_data = qctxp,
+		},
+	};
+
+	REQUIRE(client != NULL);
+	REQUIRE(qctxp != NULL);
+	REQUIRE(*qctxp == NULL);
+
+	/*
+	 * Call ns_query_start() to initialize a query context for given
+	 * client, but first hook into query_setup() so that we can just
+	 * extract an initialized query context, without kicking off any
+	 * further processing.  Make sure we do not overwrite any previously
+	 * set hooks.
+	 */
+	saved_hook_table = ns__hook_table;
+	ns__hook_table = query_hooks;
+	ns_query_start(client);
+	ns__hook_table = saved_hook_table;
+
+	if (*qctxp == NULL) {
+		return (ISC_R_NOMEMORY);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+isc_result_t
+ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
+		    query_ctx_t **qctxp)
+{
+	ns_client_t *client = NULL;
+	isc_result_t result;
+
+	REQUIRE(params != NULL);
+	REQUIRE(params->qname != NULL);
+	REQUIRE(qctxp != NULL);
+	REQUIRE(*qctxp == NULL);
+
+	/*
+	 * Allocate and initialize a client structure.
+	 */
+	result = ns_test_getclient(NULL, ISC_FALSE, &client);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	TIME_NOW(&client->tnow);
+
+	/*
+	 * Every client needs to belong to a view.
+	 */
+	result = ns_test_makeview("view", params->with_cache, &client->view);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_client;
+	}
+
+	/*
+	 * Synthesize a DNS query using given QNAME, QTYPE and flags, storing
+	 * it in client->message.
+	 */
+	result = attach_query_msg_to_client(client, params->qname,
+					    params->qtype, params->qflags);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_client;
+	}
+
+	/*
+	 * Allow recursion for the client.  As NS_CLIENTATTR_RA normally gets
+	 * set in ns__client_request(), i.e. earlier than the unit tests hook
+	 * into the call chain, just set it manually.
+	 */
+	client->attributes |= NS_CLIENTATTR_RA;
+
+	/*
+	 * Create a query context for a client sending the previously
+	 * synthesized query.
+	 */
+	result = create_qctx_for_client(client, qctxp);
+	if (result != ISC_R_SUCCESS) {
+		goto destroy_query;
+	}
+
+	/*
+	 * Reference count for "client" is now at 2, so decrement it in order
+	 * for it to drop to zero when "qctx" gets destroyed.
+	 */
+	ns_client_detach(&client);
+
+	return (ISC_R_SUCCESS);
+
+destroy_query:
+	dns_message_destroy(&client->message);
+detach_client:
+	ns_client_detach(&client);
+
+	return (result);
+}
+
+void
+ns_test_qctx_destroy(query_ctx_t **qctxp) {
+	query_ctx_t *qctx;
+
+	REQUIRE(qctxp != NULL);
+	REQUIRE(*qctxp != NULL);
+
+	qctx = *qctxp;
+
+	ns_client_detach(&qctx->client);
+
+	if (qctx->zone != NULL) {
+		dns_zone_detach(&qctx->zone);
+	}
+	if (qctx->db != NULL) {
+		dns_db_detach(&qctx->db);
+	}
+
+	isc_mem_put(mctx, qctx, sizeof(*qctx));
+	*qctxp = NULL;
+}
+
+isc_boolean_t
+ns_test_hook_catch_call(void *hook_data, void *callback_data,
+			isc_result_t *resultp)
+{
+	UNUSED(hook_data);
+	UNUSED(callback_data);
+
+	*resultp = ISC_R_UNSET;
+
+	return (ISC_TRUE);
 }
 
 /*

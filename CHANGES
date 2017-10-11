@@ -1,3 +1,7 @@
+4772.	[test]		Expanded unit testing framework for libns, using
+			hooks to interrupt query flow and inspect state
+			at specified locations. [RT #46173]
+
 4771.	[bug]		When sending RFC 5011 refresh queries, disregard
 			cached DNSKEY rrsets. [RT #46251]
 

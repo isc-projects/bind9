@@ -28,49 +28,6 @@
 
 #include "nstest.h"
 
-static dns_zone_t *zone = NULL;
-static dns_view_t *view = NULL;
-
-/*
- * Helper functions
- */
-static void
-setup_zone(const char *zonename, const char *filename) {
-	isc_result_t result;
-	dns_db_t *db = NULL;
-
-	result = ns_test_makezone(zonename, &zone, NULL, ISC_TRUE);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = ns_test_setupzonemgr();
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = ns_test_managezone(zone);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	view = dns_zone_getview(zone);
-	ATF_REQUIRE(view->zonetable != NULL);
-	view->nocookieudp = 512;
-
-	dns_zone_setfile(zone, filename);
-	result = dns_zone_load(zone);
-	ATF_REQUIRE(result == ISC_R_SUCCESS);
-
-	/* The zone should now be loaded; test it */
-	result = dns_zone_getdb(zone, &db);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(db != NULL);
-	if (db != NULL) {
-		dns_db_detach(&db);
-	}
-}
-
-static void
-cleanup_zone() {
-	ns_test_releasezone(zone);
-	ns_test_closezonemgr();
-
-	dns_zone_detach(&zone);
-	dns_view_detach(&view);
-}
-
 static void
 check_response(isc_buffer_t *buf) {
 	isc_result_t result;
@@ -113,7 +70,12 @@ ATF_TC_BODY(notify_start, tc) {
 	result = ns_test_getclient(NULL, ISC_FALSE, &client);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	setup_zone("example.com", "testdata/notify/zone1.db");
+	result = ns_test_makeview("view", ISC_FALSE, &client->view);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = ns_test_serve_zone("example.com", "testdata/notify/zone1.db",
+				    client->view);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
 	 * Create a NOTIFY message by parsing a file in testdata.
@@ -136,7 +98,6 @@ ATF_TC_BODY(notify_start, tc) {
 	 * Set up client object with this message and test the NOTIFY
 	 * handler.
 	 */
-	dns_view_attach(view, &client->view);
 	if (client->message != NULL) {
 		dns_message_destroy(&client->message);
 	}
@@ -148,7 +109,7 @@ ATF_TC_BODY(notify_start, tc) {
 	/*
 	 * Clean up
 	 */
-	cleanup_zone();
+	ns_test_cleanup_zone();
 
 	ns_client_detach(&client);
 

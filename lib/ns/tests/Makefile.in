@@ -32,11 +32,13 @@ LIBS =		@LIBS@ @ATFLIBS@
 OBJS =		nstest.@O@
 SRCS =		nstest.c \
 		listenlist_test.c \
-		notify_test.c
+		notify_test.c \
+		query_test.c
 
 SUBDIRS =
 TARGETS =	listenlist_test@EXEEXT@ \
-		notify_test@EXEEXT@
+		notify_test@EXEEXT@ \
+		query_test
 
 @BIND9_MAKE_RULES@
 
@@ -48,6 +50,11 @@ listenlist_test@EXEEXT@: listenlist_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIB
 notify_test@EXEEXT@: notify_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			notify_test.@O@ nstest.@O@ ${NSLIBS} ${DNSLIBS} \
+				${ISCLIBS} ${LIBS}
+
+query_test@EXEEXT@: query_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			query_test.@O@ nstest.@O@ ${NSLIBS} ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
 unit::

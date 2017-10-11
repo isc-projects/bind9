@@ -62,6 +62,8 @@
 #include <ns/stats.h>
 #include <ns/xfrout.h>
 
+#include "hooks.h"
+
 #if 0
 /*
  * It has been recommended that DNS64 be changed to return excluded
@@ -243,17 +245,32 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-/*%
- * The structure and functions defined below implement the query logic
- * that previously lived in the single very complex function query_find().
- * The query_ctx_t structure maintains state from function to function.
- * The call flow for the general query processing algorithm is described
- * below:
+#ifdef NS_HOOKS_ENABLE
+
+LIBNS_EXTERNAL_DATA const ns_hook_t *ns__hook_table = NULL;
+
+#define PROCESS_HOOK(...) \
+	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
+#define PROCESS_HOOK_VOID(...) \
+	NS_PROCESS_HOOK_VOID(ns__hook_table, __VA_ARGS__)
+
+#else
+
+#define PROCESS_HOOK(...)	do {} while (0)
+#define PROCESS_HOOK_VOID(...)	do {} while (0)
+
+#endif
+
+/*
+ * The functions defined below implement the query logic that previously lived
+ * in the single very complex function query_find().  The query_ctx_t structure
+ * defined in <ns/query.h> maintains state from function to function.  The call
+ * flow for the general query processing algorithm is described below:
  *
  * 1. Set up query context and other resources for a client
  *    query (query_setup())
  *
- * 2. Start the search (query_start())
+ * 2. Start the search (ns__query_start())
  *
  * 3. Identify authoritative data sources which may have an answer;
  *    search them (query_lookup()). If an answer is found, go to 7.
@@ -310,53 +327,6 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
  * DNS64, filter-aaaa, RPZ, RRL, and the SERVFAIL cache.)
  */
 
-typedef struct query_ctx {
-	isc_buffer_t *dbuf;			/* name buffer */
-	dns_name_t *fname;			/* found name from DB lookup */
-	dns_rdataset_t *rdataset;		/* found rdataset */
-	dns_rdataset_t *sigrdataset;		/* found sigrdataset */
-	dns_rdataset_t *noqname;		/* rdataset needing
-						 * NOQNAME proof */
-	dns_rdatatype_t qtype;
-	dns_rdatatype_t type;
-
-	unsigned int options;			/* DB lookup options */
-
-	isc_boolean_t redirected;		/* nxdomain redirected? */
-	isc_boolean_t is_zone;			/* is DB a zone DB? */
-	isc_boolean_t is_staticstub_zone;
-	isc_boolean_t resuming;			/* resumed from recursion? */
-	isc_boolean_t dns64, dns64_exclude, rpz;
-	isc_boolean_t authoritative;		/* authoritative query? */
-	isc_boolean_t want_restart;		/* CNAME chain or other
-						 * restart needed */
-	isc_boolean_t need_wildcardproof;	/* wilcard proof needed */
-	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
-	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
-	isc_boolean_t want_stale;		/* want stale records? */
-	dns_fixedname_t wildcardname;		/* name needing wcard proof */
-	dns_fixedname_t dsname;			/* name needing DS */
-
-	ns_client_t *client;			/* client object */
-	dns_fetchevent_t *event;		/* recursion event */
-
-	dns_db_t *db;				/* zone or cache database */
-	dns_dbversion_t *version;		/* DB version */
-	dns_dbnode_t *node;			/* DB node */
-
-	dns_db_t *zdb;				/* zone DB values, saved */
-	dns_name_t *zfname;			/* while searching cache */
-	dns_dbversion_t *zversion;		/* for a better answer */
-	dns_rdataset_t *zrdataset;
-	dns_rdataset_t *zsigrdataset;
-
-	dns_rpz_st_t *rpz_st;			/* RPZ state */
-	dns_zone_t *zone;			/* zone to search */
-
-	isc_result_t result;			/* query result */
-	int line;				/* line to report error */
-} query_ctx_t;
-
 static void
 query_trace(query_ctx_t *qctx);
 
@@ -366,9 +336,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 
 static isc_result_t
 query_setup(ns_client_t *client, dns_rdatatype_t qtype);
-
-static isc_result_t
-query_start(query_ctx_t *qctx);
 
 static isc_result_t
 query_lookup(query_ctx_t *qctx);
@@ -383,9 +350,6 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 static isc_result_t
 query_resume(query_ctx_t *qctx);
-
-static isc_result_t
-query_sfcache(query_ctx_t *qctx);
 
 static isc_result_t
 query_checkrrl(query_ctx_t *qctx, isc_result_t result);
@@ -5121,12 +5085,12 @@ query_trace(query_ctx_t *qctx) {
 /*
  * Set up query processing for the current query of 'client'.
  * Calls qctx_init() to initialize a query context, checks
- * the SERVFAIL cache, then hands off processing to query_start().
+ * the SERVFAIL cache, then hands off processing to ns__query_start().
  *
  * This is called only from ns_query_start(), to begin a query
  * for the first time.  Restarting an existing query (for
  * instance, to handle CNAME lookups), is done by calling
- * query_start() again with the same query context. Resuming from
+ * ns__query_start() again with the same query context. Resuming from
  * recursion is handled by query_resume().
  */
 static isc_result_t
@@ -5138,25 +5102,25 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	query_trace(&qctx);
 
 	/*
-	 * Check SERVFAIL cache
-	 */
-	result = query_sfcache(&qctx);
-	if (result != ISC_R_COMPLETE) {
-		return (result);
-	}
-
-	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
 	if (qctx.qtype == dns_rdatatype_rrsig ||
 	    qctx.qtype == dns_rdatatype_sig)
 	{
 		qctx.type = dns_rdatatype_any;
-	} else {
-		qctx.type = qctx.qtype;
 	}
 
-	return (query_start(&qctx));
+	PROCESS_HOOK(NS_QUERY_SETUP_QCTX_INITIALIZED, &qctx);
+
+	/*
+	 * Check SERVFAIL cache
+	 */
+	result = ns__query_sfcache(&qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
+	}
+
+	return (ns__query_start(&qctx));
 }
 
 /*%
@@ -5166,10 +5130,10 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
  * follow a CNAME chain.  Determines which authoritative database to
  * search, then hands off processing to query_lookup().
  */
-static isc_result_t
-query_start(query_ctx_t *qctx) {
+isc_result_t
+ns__query_start(query_ctx_t *qctx) {
 	isc_result_t result;
-	CCTRACE(ISC_LOG_DEBUG(3), "query_start");
+	CCTRACE(ISC_LOG_DEBUG(3), "ns__query_start");
 	qctx->want_restart = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
 	qctx->version = NULL;
@@ -5206,6 +5170,12 @@ query_start(query_ctx_t *qctx) {
 	if (dns_rdatatype_atparent(qctx->qtype) &&
 	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
 	{
+		/*
+		 * If authoritative data for this QTYPE is supposed to live in
+		 * the parent zone, do not look for an exact match for QNAME,
+		 * but rather for its containing zone (unless the QNAME is
+		 * root).
+		 */
 		qctx->options |= DNS_GETDB_NOEXACT;
 	}
 
@@ -5218,8 +5188,10 @@ query_start(query_ctx_t *qctx) {
 			 (qctx->options & DNS_GETDB_NOEXACT) != 0))
 	{
 		/*
-		 * If the query type is DS, look to see if we are
-		 * authoritative for the child zone.
+		 * This is a non-recursive QTYPE=DS query with QNAME whose
+		 * parent we are not authoritative for.  Check whether we are
+		 * authoritative for QNAME, because if so, we need to send a
+		 * "no data" response as required by RFC 4035, section 3.1.4.1.
 		 */
 		dns_db_t *tdb = NULL;
 		dns_zone_t *tzone = NULL;
@@ -5232,6 +5204,10 @@ query_start(query_ctx_t *qctx) {
 					  DNS_GETDB_PARTIAL,
 					  &tzone, &tdb, &tversion);
 		if (tresult == ISC_R_SUCCESS) {
+			/*
+			 * We are authoritative for QNAME.  Attach the relevant
+			 * zone to query context, set result to ISC_R_SUCCESS.
+			 */
 			qctx->options &= ~DNS_GETDB_NOEXACT;
 			query_putrdataset(qctx->client, &qctx->rdataset);
 			if (qctx->db != NULL) {
@@ -5247,6 +5223,10 @@ query_start(query_ctx_t *qctx) {
 			qctx->is_zone = ISC_TRUE;
 			result = ISC_R_SUCCESS;
 		} else {
+			/*
+			 * We are not authoritative for QNAME.  Clean up and
+			 * leave result as it was.
+			 */
 			if (tdb != NULL) {
 				dns_db_detach(&tdb);
 			}
@@ -5255,6 +5235,11 @@ query_start(query_ctx_t *qctx) {
 			}
 		}
 	}
+	/*
+	 * If we did not find a database from which we can answer the query,
+	 * respond with either REFUSED or SERVFAIL, depending on what the
+	 * result of query_getdb() was.
+	 */
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED) {
 			if (WANTRECURSION(qctx->client)) {
@@ -5269,12 +5254,17 @@ query_start(query_ctx_t *qctx) {
 			}
 		} else {
 			CCTRACE(ISC_LOG_ERROR,
-			       "query_start: query_getdb failed");
+			       "ns__query_start: query_getdb failed");
 			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 		}
 		return (query_done(qctx));
 	}
 
+	/*
+	 * We found a database from which we can answer the query.  Update
+	 * relevant query context flags if the answer is to be prepared using
+	 * authoritative data.
+	 */
 	qctx->is_staticstub_zone = ISC_FALSE;
 	if (qctx->is_zone) {
 		qctx->authoritative = ISC_TRUE;
@@ -5285,6 +5275,10 @@ query_start(query_ctx_t *qctx) {
 		}
 	}
 
+	/*
+	 * Attach to the database which will be used to prepare the answer.
+	 * Update query statistics.
+	 */
 	if (qctx->event == NULL && qctx->client->query.restarts == 0) {
 		if (qctx->is_zone) {
 			if (qctx->zone != NULL) {
@@ -5325,6 +5319,8 @@ query_lookup(query_ctx_t *qctx) {
 	unsigned int dboptions;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
+
+	PROCESS_HOOK(NS_QUERY_LOOKUP_BEGIN, qctx);
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, qctx->client, NULL);
@@ -5884,10 +5880,11 @@ query_resume(query_ctx_t *qctx) {
  * If the query is recursive, check the SERVFAIL cache to see whether
  * identical queries have failed recently.  If we find a match, and it was
  * from a query with CD=1, *or* if the current query has CD=0, then we just
- * return SERVFAIL again.
+ * return SERVFAIL again.  This prevents a validation failure from eliciting a
+ * SERVFAIL response to a CD=1 query.
  */
-static isc_result_t
-query_sfcache(query_ctx_t *qctx) {
+isc_result_t
+ns__query_sfcache(query_ctx_t *qctx) {
 	isc_boolean_t failcache;
 	isc_uint32_t flags;
 
@@ -10317,7 +10314,7 @@ query_glueanswer(query_ctx_t *qctx) {
  *
  * - Clean up
  * - If we have an answer ready (positive or negative), send it.
- * - If we need to restart for a chaining query, call query_start() again.
+ * - If we need to restart for a chaining query, call ns__query_start() again.
  * - If we've started recursion, then just clean up; things will be
  *   restarted via fetch_callback()/query_resume().
  */
@@ -10325,6 +10322,8 @@ static isc_result_t
 query_done(query_ctx_t *qctx) {
 	const dns_namelist_t *secs = qctx->client->message->sections;
 	CCTRACE(ISC_LOG_DEBUG(3), "query_done");
+
+	PROCESS_HOOK(NS_QUERY_DONE_BEGIN, qctx);
 
 	/*
 	 * General cleanup.
@@ -10352,7 +10351,7 @@ query_done(query_ctx_t *qctx) {
 	 */
 	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
 		qctx->client->query.restarts++;
-		return (query_start(qctx));
+		return (ns__query_start(qctx));
 	}
 
 	if (qctx->want_stale) {

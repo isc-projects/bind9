@@ -16,6 +16,7 @@
 #include <isc/netaddr.h>
 
 #include <dns/rdataset.h>
+#include <dns/resolver.h>
 #include <dns/rpz.h>
 #include <dns/types.h>
 
@@ -92,6 +93,55 @@ struct ns_query {
 #define NS_QUERYATTR_RRL_CHECKED	0x10000
 #define NS_QUERYATTR_REDIRECT		0x20000
 
+/* query context structure */
+
+typedef struct query_ctx {
+	isc_buffer_t *dbuf;			/* name buffer */
+	dns_name_t *fname;			/* found name from DB lookup */
+	dns_rdataset_t *rdataset;		/* found rdataset */
+	dns_rdataset_t *sigrdataset;		/* found sigrdataset */
+	dns_rdataset_t *noqname;		/* rdataset needing
+						 * NOQNAME proof */
+	dns_rdatatype_t qtype;
+	dns_rdatatype_t type;
+
+	unsigned int options;			/* DB lookup options */
+
+	isc_boolean_t redirected;		/* nxdomain redirected? */
+	isc_boolean_t is_zone;			/* is DB a zone DB? */
+	isc_boolean_t is_staticstub_zone;
+	isc_boolean_t resuming;			/* resumed from recursion? */
+	isc_boolean_t dns64, dns64_exclude, rpz;
+	isc_boolean_t authoritative;		/* authoritative query? */
+	isc_boolean_t want_restart;		/* CNAME chain or other
+						 * restart needed */
+	isc_boolean_t need_wildcardproof;	/* wilcard proof needed */
+	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
+	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
+	isc_boolean_t want_stale;		/* want stale records? */
+	dns_fixedname_t wildcardname;		/* name needing wcard proof */
+	dns_fixedname_t dsname;			/* name needing DS */
+
+	ns_client_t *client;			/* client object */
+	dns_fetchevent_t *event;		/* recursion event */
+
+	dns_db_t *db;				/* zone or cache database */
+	dns_dbversion_t *version;		/* DB version */
+	dns_dbnode_t *node;			/* DB node */
+
+	dns_db_t *zdb;				/* zone DB values, saved */
+	dns_name_t *zfname;			/* while searching cache */
+	dns_dbversion_t *zversion;		/* for a better answer */
+	dns_rdataset_t *zrdataset;
+	dns_rdataset_t *zsigrdataset;
+
+	dns_rpz_st_t *rpz_st;			/* RPZ state */
+	dns_zone_t *zone;			/* zone to search */
+
+	isc_result_t result;			/* query result */
+	int line;				/* line to report error */
+} query_ctx_t;
+
 isc_result_t
 ns_query_init(ns_client_t *client);
 
@@ -103,5 +153,17 @@ ns_query_start(ns_client_t *client);
 
 void
 ns_query_cancel(ns_client_t *client);
+
+/*%
+ * (Must not be used outside this module and its associated unit tests.)
+ */
+isc_result_t
+ns__query_sfcache(query_ctx_t *qctx);
+
+/*%
+ * (Must not be used outside this module and its associated unit tests.)
+ */
+isc_result_t
+ns__query_start(query_ctx_t *qctx);
 
 #endif /* NS_QUERY_H */
