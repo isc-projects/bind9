@@ -1,3 +1,6 @@
+4771.	[bug]		When sending RFC 5011 refresh queries, disregard
+			cached DNSKEY rrsets. [RT #46251]
+
 4770.	[bug]		Cache additional data from priming queries as glue.
 			Previously they were ignored as unsigned
 			non-answer data from a secure zone, and never

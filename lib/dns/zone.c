@@ -9747,11 +9747,21 @@ zone_refreshkeys(dns_zone_t *zone) {
 				     namebuf);
 		}
 
+		/*
+		 * Use of DNS_FETCHOPT_NOCACHED is essential here.  If it is
+		 * not set and the cache still holds a non-expired, validated
+		 * version of the RRset being queried for by the time the
+		 * response is received, the cached RRset will be passed to
+		 * keyfetch_done() instead of the one received in the response
+		 * as the latter will have a lower trust level due to not being
+		 * validated until keyfetch_done() is called.
+		 */
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
 						  NULL, NULL, NULL,
 						  DNS_FETCHOPT_NOVALIDATE|
-						  DNS_FETCHOPT_UNSHARED,
+						  DNS_FETCHOPT_UNSHARED|
+						  DNS_FETCHOPT_NOCACHED,
 						  zone->task,
 						  keyfetch_done, kfetch,
 						  &kfetch->dnskeyset,
