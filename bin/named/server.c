@@ -154,6 +154,12 @@
 #define EXCLBUFFERS 4096
 #endif /* TUNE_LARGE */
 
+#ifdef WIN32
+#define DIR_PERM_OK W_OK
+#else
+#define DIR_PERM_OK W_OK|X_OK
+#endif
+
 /*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
@@ -1033,7 +1039,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		goto cleanup;
 
 	} else if (directory != NULL) {
-		if (access(directory, W_OK|X_OK) != 0) {
+		if (access(directory, DIR_PERM_OK) != 0) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "managed-keys-directory '%s' "
@@ -6159,7 +6165,7 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 			    "option 'directory' contains relative path '%s'",
 			    directory);
 
-	if (access(directory, W_OK|X_OK) != 0) {
+	if (access(directory, DIR_PERM_OK) != 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "directory '%s' is not writable",
@@ -8481,7 +8487,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Check that the working directory is writable.
 	 */
-	if (access(".", W_OK|X_OK) != 0) {
+	if (access(".", DIR_PERM_OK) != 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");
