@@ -3934,8 +3934,7 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
  */
 static void
 trust_key(dns_zone_t *zone, dns_name_t *keyname,
-	  dns_rdata_dnskey_t *dnskey, isc_boolean_t initial,
-	  isc_mem_t *mctx)
+	  dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
 {
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -3954,7 +3953,7 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname,
 		goto failure;
 
 	CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
-	CHECK(dns_keytable_add2(sr, ISC_TRUE, initial, &dstkey));
+	CHECK(dns_keytable_add(sr, ISC_TRUE, &dstkey));
 	dns_keytable_detach(&sr);
 
   failure:
@@ -4040,8 +4039,7 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 
 		/* Add to keytables. */
 		trusted++;
-		trust_key(zone, name, &dnskey,
-			  ISC_TF(keydata.addhd == 0), mctx);
+		trust_key(zone, name, &dnskey, mctx);
 	}
 
 	if (trusted == 0 && pending != 0) {
@@ -4776,9 +4774,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 	case dns_zone_key:
 		result = sync_keyzone(zone, db);
-		if (result != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		}
 		break;
 
 	default:
@@ -4928,17 +4925,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	return (result);
 
  cleanup:
-	if (zone->type == dns_zone_key && result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "failed to initialize managed-keys (%s): "
-			     "DNSSEC validation WILL FAIL",
-			     isc_result_totext(result));
-	}
-
 	for (inc = ISC_LIST_HEAD(zone->newincludes);
 	     inc != NULL;
-	     inc = ISC_LIST_HEAD(zone->newincludes))
-	{
+	     inc = ISC_LIST_HEAD(zone->newincludes)) {
 		ISC_LIST_UNLINK(zone->newincludes, inc, link);
 		isc_mem_free(zone->mctx, inc->name);
 		isc_mem_put(zone->mctx, inc, sizeof(*inc));
@@ -9099,7 +9088,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dst_key_t *dstkey;
 	isc_stdtime_t now;
 	int pending = 0;
-	isc_boolean_t secure = ISC_FALSE, initial = ISC_FALSE;
+	isc_boolean_t secure = ISC_FALSE;
 	isc_boolean_t free_needed;
 
 	UNUSED(task);
@@ -9176,8 +9165,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeysigset))
-	{
+	     result = dns_rdataset_next(&kfetch->dnskeysigset)) {
 		dns_keynode_t *keynode = NULL;
 
 		dns_rdata_reset(&sigrr);
@@ -9196,8 +9184,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				break;
 
 			if (dst_key_alg(dstkey) == sig.algorithm &&
-			    dst_key_id(dstkey) == sig.keyid)
-			{
+			    dst_key_id(dstkey) == sig.keyid) {
 				result = dns_dnssec_verify2(keyname,
 						    &kfetch->dnskeyset,
 						    dstkey, ISC_FALSE,
@@ -9215,9 +9202,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 						dns_trust_secure;
 					kfetch->dnskeysigset.trust =
 						dns_trust_secure;
-					secure = ISC_TRUE;
-					initial = dns_keynode_initial(keynode);
-					dns_keynode_trust(keynode);
 					break;
 				}
 			}
@@ -9228,11 +9212,11 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			keynode = nextnode;
 		}
 
-		if (keynode != NULL) {
+		if (keynode != NULL)
 			dns_keytable_detachkeynode(secroots, &keynode);
-		}
 
-		if (secure) {
+		if (kfetch->dnskeyset.trust == dns_trust_secure) {
+			secure = ISC_TRUE;
 			break;
 		}
 	}
@@ -9241,6 +9225,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 * If we were not able to verify the answer using the current
 	 * trusted keys then all we can do is look at any revoked keys.
 	 */
+
 	if (!secure) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(3),
 			     "DNSKEY set for zone '%s' could not be verified "
@@ -9480,13 +9465,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					trustkey = ISC_TRUE;
 					dns_zone_log(zone, ISC_LOG_INFO,
 						     "Key %d for zone %s "
-						     "%s: key now trusted",
-						     keytag, namebuf,
-						     initial
-						      ? "initializing key "
-							"verified"
-						      : "acceptance timer "
-							"complete");
+						     "acceptance timer "
+						     "complete: "
+						     "key now trusted",
+						     keytag, namebuf);
 				}
 			} else if (keydata.addhd > now) {
 				/*
@@ -9585,7 +9567,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			/* Trust this key. */
 			result = dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			trust_key(zone, keyname, &dnskey, ISC_FALSE, mctx);
+			trust_key(zone, keyname, &dnskey, mctx);
 		}
 
 		if (secure && !deletekey) {
@@ -9607,6 +9589,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		fail_secure(zone, keyname);
 
  done:
+
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		/* Write changes to journal file. */
 		CHECK(update_soa_serial(kfetch->db, ver, &diff, mctx,
@@ -9619,12 +9602,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
  failure:
-	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "error during managed-keys processing (%s): "
-			     "DNSSEC validation may be at risk",
-			     isc_result_totext(result));
-	}
+
 	dns_diff_clear(&diff);
 	if (ver != NULL)
 		dns_db_closeversion(kfetch->db, &ver, commit);
@@ -9734,7 +9712,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 			}
 
 			/* Acceptance timer expired? */
-			if (kd.addhd < now)
+			if (kd.addhd != 0 && kd.addhd < now)
 				timer = kd.addhd;
 
 			/* Or do we just need to refresh the keyset? */

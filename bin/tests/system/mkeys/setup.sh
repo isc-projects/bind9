@@ -16,9 +16,3 @@ test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 cp ns1/named1.conf ns1/named.conf
 
 cd ns1 && $SHELL sign.sh
-
-cd ../ns4
-mkdir nope
-touch nope/managed-keys.bind
-touch nope/managed.keys.bind.jnl
-chmod 444 nope/*

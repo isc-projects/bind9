@@ -47,7 +47,6 @@ struct dns_keynode {
 	isc_refcount_t          refcount;
 	dst_key_t *             key;
 	isc_boolean_t           managed;
-	isc_boolean_t		initial;
 	struct dns_keynode *    next;
 };
 
@@ -166,7 +165,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 }
 
 static isc_result_t
-insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
+insert(dns_keytable_t *keytable, isc_boolean_t managed,
        const dns_name_t *keyname, dst_key_t **keyp)
 {
 	isc_result_t result;
@@ -181,7 +180,6 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
 		return (result);
 
 	knode->managed = managed;
-	knode->initial = initial;
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
@@ -236,20 +234,13 @@ isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 		 dst_key_t **keyp)
 {
-	return (dns_keytable_add2(keytable, managed, ISC_FALSE, keyp));
-}
-
-isc_result_t
-dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
-		  isc_boolean_t initial, dst_key_t **keyp)
-{
 	REQUIRE(keyp != NULL && *keyp != NULL);
-	return (insert(keytable, managed, initial, dst_key_name(*keyp), keyp));
+	return (insert(keytable, managed, dst_key_name(*keyp), keyp));
 }
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return (insert(keytable, ISC_TRUE, ISC_FALSE, name, NULL));
+	return (insert(keytable, ISC_TRUE, name, NULL));
 }
 
 isc_result_t
@@ -653,9 +644,8 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 			if (knode->key == NULL)
 				continue;
 			dst_key_format(knode->key, pbuf, sizeof(pbuf));
-			snprintf(obuf, sizeof(obuf), "%s ; %s%s\n", pbuf,
-				 knode->initial ? "initializing " : "",
-				 knode->managed ? "managed" : "trusted");
+			snprintf(obuf, sizeof(obuf), "%s ; %s\n", pbuf,
+				knode->managed ? "managed" : "trusted");
 			result = putstr(text, obuf);
 			if (result != ISC_R_SUCCESS)
 				break;
@@ -733,26 +723,6 @@ dns_keynode_managed(dns_keynode_t *keynode) {
 	return (keynode->managed);
 }
 
-isc_boolean_t
-dns_keynode_initial(dns_keynode_t *keynode) {
-	/*
-	 * Is this an initailizing key?
-	 */
-	REQUIRE(VALID_KEYNODE(keynode));
-
-	return (keynode->initial);
-}
-
-void
-dns_keynode_trust(dns_keynode_t *keynode) {
-	/*
-	 * This is no longer an initializing key.
-	 */
-	REQUIRE(VALID_KEYNODE(keynode));
-
-	keynode->initial = ISC_FALSE;
-}
-
 isc_result_t
 dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 	isc_result_t result;
@@ -766,7 +736,6 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 
 	knode->magic = KEYNODE_MAGIC;
 	knode->managed = ISC_FALSE;
-	knode->initial = ISC_FALSE;
 	knode->key = NULL;
 	knode->next = NULL;
 

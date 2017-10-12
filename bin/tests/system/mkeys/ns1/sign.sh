@@ -28,8 +28,6 @@ managed-keys {
 EOF
 ' > managed.conf
 cp managed.conf ../ns2/managed.conf
-cp managed.conf ../ns4/managed.conf
-cp managed.conf ../ns5/managed.conf
 
 # Configure a trusted key statement (used by delve)
 cat $keyname.key | grep -v '^; ' | $PERL -n -e '

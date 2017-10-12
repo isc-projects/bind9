@@ -1629,7 +1629,6 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			if (vresult == ISC_R_SUCCESS)
 				break;
 			if (val->keynode != NULL) {
-				dst_key_t *key = NULL;
 				dns_keynode_t *nextnode = NULL;
 				result = dns_keytable_findnextkeynode(
 							val->keytable,
@@ -1642,13 +1641,9 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					val->key = NULL;
 					break;
 				}
-				key = dns_keynode_key(val->keynode);
-				if (key == NULL)
+				val->key = dns_keynode_key(val->keynode);
+				if (val->key == NULL)
 					break;
-				if (dns_keynode_initial(val->keynode)) {
-					continue;
-				}
-				val->key = key;
 			} else {
 				if (get_dst_key(val, val->siginfo, val->keyset)
 				    != ISC_R_SUCCESS)
@@ -1665,10 +1660,10 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 					     val->view->acceptexpired);
 		}
 
-		if (val->keynode != NULL) {
+		if (val->keynode != NULL)
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);
-		} else {
+		else {
 			if (val->key != NULL)
 				dst_key_free(&val->key);
 			if (val->keyset != NULL) {
@@ -2028,15 +2023,13 @@ validatezonekey(dns_validator_t *val) {
 								&keynode);
 					break;
 				}
-				if (! dns_keynode_initial(keynode)) {
-					result = verify(val, dstkey,
-							&sigrdata, sig.keyid);
-					if (result == ISC_R_SUCCESS) {
-						dns_keytable_detachkeynode(
+				result = verify(val, dstkey, &sigrdata,
+						sig.keyid);
+				if (result == ISC_R_SUCCESS) {
+					dns_keytable_detachkeynode(
 								val->keytable,
 								&keynode);
-						break;
-					}
+					break;
 				}
 				result = dns_keytable_findnextkeynode(
 								val->keytable,
