@@ -1,3 +1,5 @@
+	--- 9.12.0b1 released ---
+
 4773.	[bug]		Keys specified in "managed-keys" statements
 			can now only be used when validating key refresh
 			queries during initialization of RFC 5011 key
