@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.12.0a1</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.12.0b1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -54,7 +54,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.12.0a1</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.12.0b1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -546,6 +546,17 @@
       </li>
 <li class="listitem">
 	<p>
+	  Initializing keys specified in a <span class="command"><strong>managed-keys</strong></span>
+	  statement or by <span class="command"><strong>dnssec-validation auto;</strong></span> are
+	  no longer treated as valid for any use other than validation of
+	  RFC 5011 initialization queries. The effect of this is that
+	  DNSSEC validation will fail if RFC 5011 key maintenance
+	  cannot be initialized: initialization problems will not be
+	  masked, but will be immediately visible. [RT #46077]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Previously, <span class="command"><strong>update-policy local;</strong></span> accepted
 	  updates from any source so long as they were signed by the
 	  locally-generated session key. This has been further restricted;
@@ -741,6 +752,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.0a1</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.0b1</p>
 </body>
 </html>

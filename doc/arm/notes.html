@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.12.0a1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.12.0b1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -503,6 +503,17 @@
 	  <span class="command"><strong>directory</strong></span> option) or the managed-keys
 	  directory (specified by <span class="command"><strong>managed-keys-directory</strong></span>
 	  are not writable by the effective user ID. [RT #46077]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Initializing keys specified in a <span class="command"><strong>managed-keys</strong></span>
+	  statement or by <span class="command"><strong>dnssec-validation auto;</strong></span> are
+	  no longer treated as valid for any use other than validation of
+	  RFC 5011 initialization queries. The effect of this is that
+	  DNSSEC validation will fail if RFC 5011 key maintenance
+	  cannot be initialized: initialization problems will not be
+	  masked, but will be immediately visible. [RT #46077]
 	</p>
       </li>
 <li class="listitem">
