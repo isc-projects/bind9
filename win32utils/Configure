@@ -2080,7 +2080,7 @@ if ($enable_crypto_rand eq "yes") {
     }
     $configdefp{"ISC_PLATFORM_CRYPTORANDOM"} = "\"$cryptolib\"";
 }
-print "Cryptographic library for DNSSEC: $cryptolib";
+print "Cryptographic library for DNSSEC: $cryptolib\n";
 
 # enable-openssl-hash
 if ($enable_openssl_hash eq "yes") {
