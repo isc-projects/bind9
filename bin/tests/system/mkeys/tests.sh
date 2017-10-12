@@ -28,6 +28,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check positive validation with valid trust anchor ($n)"
 ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns2 /'
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -390,6 +391,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 n=`expr $n + 1`
 echo "I: check positive validation ($n)"
 ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns2 /'
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -446,7 +448,6 @@ rm -f ${revoked}.key ${revoked}.private
 $SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
 sleep 1
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
@@ -454,6 +455,7 @@ sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -537,7 +539,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check that trust-anchor-telemetry queries are logged ($n)"
 ret=0
-grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns3/named.run > /dev/null || ret=1
+grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns2/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -559,6 +561,46 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 grep "name: \." rndc.out.$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check that trust-anchor-telemetry queries contain the correct key ($n)"
+ret=0
+# convert the hexadecimal key from the TAT query into decimal and
+# compare against the known key.
+tathex=`grep "query '_ta-[0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([a-f0-9][a-f0-d]*\)):/\1/'`
+tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' $tathex`
+realkey=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots - | grep '; managed' | sed 's#.*SHA256/\([0-9][0-9]*\) ; managed.*#\1#'`
+[ "$tatkey" -eq "$realkey" ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check initialization fails if managed-keys can't be created ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots | sed 's/^/I: ns4 /'
+grep '; initializing managed' ns4/named.secroots > /dev/null 2>&1 || ret=1
+grep '; managed' ns4/named.secroots > /dev/null 2>&1 && ret=1
+grep '; trusted' ns4/named.secroots > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check failure to contact root servers does not prevent key refreshes after restart ($n)"
+ret=0
+# By the time we get here, ns5 should have attempted refreshing its managed
+# keys.  These attempts should fail as ns1 is configured to REFUSE all queries
+# from ns5.  Note we do not configure ns5 with "-T mkeytimers"; this is to
+# ensure key refresh retry will be scheduled one hour in the future instead of
+# a few seconds in the future, in order to prevent races when ns5 is restarted.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns5
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
+sleep 2
+# ns5/named.run will contain logs from both the old instance and the new
+# instance.  In order for the test to pass, both must attempt a fetch.
+count=`grep -c "Creating key fetch" ns5/named.run`
+[ $count -lt 2 ] && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

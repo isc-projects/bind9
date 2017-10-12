@@ -126,7 +126,7 @@ create_tables() {
 
 	/* Add a normal key */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -185,7 +185,7 @@ ATF_TC_BODY(add, tc) {
 	 * nextkeynode() should still return NOTFOUND.
 	 */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
 						&next_keynode), ISC_R_NOTFOUND);
@@ -193,7 +193,7 @@ ATF_TC_BODY(add, tc) {
 	/* Add another key (different keydata) */
 	dns_keytable_detachkeynode(keytable, &keynode);
 	create_key(257, 3, 5, "example.com", keystr2, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("example.com"),
 					 &keynode), ISC_R_SUCCESS);
@@ -209,7 +209,7 @@ ATF_TC_BODY(add, tc) {
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("null.example"),
 					 &null_keynode), ISC_R_SUCCESS);
 	create_key(257, 3, 5, "null.example", keystr2, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("null.example"),
 					 &keynode), ISC_R_SUCCESS);
@@ -523,7 +523,7 @@ ATF_TC_BODY(nta, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	create_key(257, 3, 5, "example", keystr1, &key);
-	result = dns_keytable_add(keytable, ISC_FALSE, &key);
+	result = dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);

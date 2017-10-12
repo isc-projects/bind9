@@ -15,3 +15,4 @@ rm -f */named.memstats */named.run
 rm -f dig.out* delv.out* rndc.out* signer.out*
 rm -f ns1/named.secroots ns1/root.db.signed* ns1/root.db.tmp
 rm -f ns1/named.conf
+rm -rf ns4/nope

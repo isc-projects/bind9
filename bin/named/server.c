@@ -844,7 +844,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 				continue;
 			}
 
-			CHECK(dns_keytable_add(secroots, managed, &dstkey));
+			CHECK(dns_keytable_add2(secroots, managed,
+						managed, &dstkey));
 		}
 	}
 
@@ -1043,7 +1044,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "managed-keys-directory '%s' "
-				      "is not writable", directory);
+				      "must be writable and accessible",
+				      directory);
 			result = ISC_R_NOPERM;
 			goto cleanup;
 		}
@@ -6168,8 +6170,8 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	if (access(directory, DIR_PERM_OK) != 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "directory '%s' is not writable",
-			      directory);
+			      "working directory '%s' must be "
+			      "writable and accessible", directory);
 		return (ISC_R_NOPERM);
 	}
 
@@ -6434,7 +6436,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 
 	do {
 		dst_key_t *key = dns_keynode_key(keynode);
-		if (key != NULL) {
+		if (key != NULL && !dns_keynode_initial(keynode)) {
 			name = dst_key_name(key);
 			if (n < (sizeof(ids)/sizeof(ids[0]))) {
 				ids[n] = dst_key_id(key);
@@ -6443,16 +6445,19 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		}
 		nextnode = NULL;
 		(void)dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		if (keynode != firstnode)
+		if (keynode != firstnode) {
 			dns_keytable_detachkeynode(keytable, &keynode);
+		}
 		keynode = nextnode;
 	} while (keynode != NULL);
 
-	if (n == 0)
+	if (n == 0) {
 		return;
+	}
 
-	if (n > 1)
+	if (n > 1) {
 		qsort(ids, n, sizeof(ids[0]), cid);
+	}
 
 	/*
 	 * Encoded as "_ta-xxxx\(-xxxx\)*" where xxxx is the hex version of
@@ -6462,20 +6467,23 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	r.base = label;
 	r.length = sizeof(label);;
 	m = snprintf(r.base, r.length, "_ta");
-	if (m < 0 || (unsigned)m > r.length)
+	if (m < 0 || (unsigned)m > r.length) {
 		return;
+	}
 	isc_textregion_consume(&r, m);
 	for (i = 0; i < n; i++) {
 		m = snprintf(r.base, r.length, "-%04x", ids[i]);
-		if (m < 0 || (unsigned)m > r.length)
+		if (m < 0 || (unsigned)m > r.length) {
 			return;
+		}
 		isc_textregion_consume(&r, m);
 	}
 	dns_fixedname_init(&fixed);
 	tatname = dns_fixedname_name(&fixed);
 	result = dns_name_fromstring2(tatname, label, name, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return;
+	}
 
 	dns_name_format(tatname, namebuf, sizeof(namebuf));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -6484,8 +6492,9 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		     view->name, namebuf);
 
 	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
-	if (tat == NULL)
+	if (tat == NULL) {
 		return;
+	}
 
 	tat->mctx = NULL;
 	tat->task = NULL;
@@ -8490,7 +8499,8 @@ load_configuration(const char *filename, named_server_t *server,
 	if (access(".", DIR_PERM_OK) != 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "the working directory is not writable");
+			      "the working directory must be "
+			      "writable and accessible");
 		result = ISC_R_NOPERM;
 		goto cleanup;
 	}

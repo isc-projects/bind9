@@ -1,3 +1,12 @@
+4773.	[bug]		Keys specified in "managed-keys" statements
+			can now only be used when validating key refresh
+			queries during initialization of RFC 5011 key
+			maintenance. If initialization fails, DNSSEC
+			validation of normal queries will also fail.
+			Previously, validation of normal queries could
+			succeed using the initializing key, potentially
+			masking problems with managed-keys. [RT #46077]
+
 4772.	[test]		Expanded unit testing framework for libns, using
 			hooks to interrupt query flow and inspect state
 			at specified locations. [RT #46173]

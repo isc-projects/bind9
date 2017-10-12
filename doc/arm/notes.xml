@@ -494,6 +494,17 @@
       </listitem>
       <listitem>
 	<para>
+	  Initializing keys specified in a <command>managed-keys</command>
+	  statement or by <command>dnssec-validation auto;</command> are
+	  no longer treated as valid for any use other than validation of
+	  RFC 5011 initialization queries. The effect of this is that
+	  DNSSEC validation will fail if RFC 5011 key maintenance
+	  cannot be initialized: initialization problems will not be
+	  masked, but will be immediately visible. [RT #46077]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Previously, <command>update-policy local;</command> accepted
 	  updates from any source so long as they were signed by the
 	  locally-generated session key. This has been further restricted;
