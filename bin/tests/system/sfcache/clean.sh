@@ -9,7 +9,7 @@
 rm -f */K*.key */K*.private */*.signed */*.db */dsset-*
 rm -f */managed.conf */trusted.conf
 rm -f */named.memstats
-rm -f */named.run
+rm -f */named.run */named.run.prev
 rm -f dig.*
 rm -f sfcache.*
 rm -f ns*/named.lock
