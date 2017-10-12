@@ -56,7 +56,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:disabling server to force non-dnssec SERVFAIL"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
 awk '/SERVFAIL/ { next; out=1 } /Zone/ { out=0 } { if (out) print }' ns5/named_dump.db
 echo "I:checking SERVFAIL is cached ($n)"
 ret=0
