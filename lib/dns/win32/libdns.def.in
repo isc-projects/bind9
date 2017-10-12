@@ -431,10 +431,13 @@ dns_keynode_attach
 dns_keynode_create
 dns_keynode_detach
 dns_keynode_detachall
+dns_keynode_initial
 dns_keynode_key
 dns_keynode_managed
+dns_keynode_trust
 dns_keyring_restore
 dns_keytable_add
+dns_keytable_add2
 dns_keytable_attach
 dns_keytable_attachkeynode
 dns_keytable_create
