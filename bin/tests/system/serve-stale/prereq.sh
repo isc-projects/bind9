@@ -19,3 +19,10 @@ else
     echo "I:This test requires the Net::DNS library." >&2
     exit 1
 fi
+if $PERL -e 'use Net::DNS::Nameserver;' 2>/dev/null
+then
+	:
+else
+	echo "I:This test requires the Net::DNS::Nameserver library." >&2
+	exit 1
+fi
