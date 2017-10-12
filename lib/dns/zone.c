@@ -9484,9 +9484,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 						     keytag, namebuf,
 						     initial
 						      ? "initializing key "
-						        "verified"
+							"verified"
 						      : "acceptance timer "
-						        "complete");
+							"complete");
 				}
 			} else if (keydata.addhd > now) {
 				/*
