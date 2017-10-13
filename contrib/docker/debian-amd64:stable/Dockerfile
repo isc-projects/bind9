@@ -21,5 +21,6 @@ RUN apt-get -y install	\
 	libssl-dev	\
 	libxml2-dev	\
 	pkg-config
-RUN apt-get -y install \
-	net-tools
+RUN apt-get -y install	\
+	net-tools	\
+	procps
