@@ -13,7 +13,6 @@ stages:
   services:
     - docker:dind
   tags:
-    - shared
     - docker
   before_script:
     - docker info
@@ -26,36 +25,82 @@ stages:
     - master
     - triggers
     - tags
+    - gitlab-ci
 
-debian:latest:
+debian-amd64:oldstable:
   <<: *image
 
-debian:unstable:
+debian-i386:oldstable:
   <<: *image
 
-ubuntu:latest:
+debian-amd64:stable:
   <<: *image
 
-#centos:latest:
+debian-i386:stable:
+  <<: *image
+
+debian-amd64:unstable:
+  <<: *image
+
+debian-i386:unstable:
+  <<: *image
+
+ubuntu-amd64:latest:
+  <<: *image
+
+ubuntu-i386:latest:
+  <<: *image
+
+#centos-amd64:latest:
 #  <<: *image
 
-#fedora:latest:
+#fedora-amd64:latest:
 #  <<: *image
 
-.debian_latest: &debian_latest
-  image: "$CI_REGISTRY_IMAGE/debian:latest"
+.debian-amd64:oldstable: &debian_oldstable_amd64_image
+  image: "$CI_REGISTRY_IMAGE/debian-amd64:oldstable"
   tags:
     - linux
     - docker
 
-.debian_unstable: &debian_unstable
-  image: "$CI_REGISTRY_IMAGE/debian:unstable"
+.debian-i386:oldstable: &debian_oldstable_i386_image
+  image: "$CI_REGISTRY_IMAGE/debian-i386:oldstable"
   tags:
     - linux
     - docker
 
-.ubuntu_latest: &ubuntu_latest
-  image: "$CI_REGISTRY_IMAGE/ubuntu:latest"
+.debian-amd64:stable: &debian_stable_amd64_image
+  image: "$CI_REGISTRY_IMAGE/debian-amd64:stable"
+  tags:
+    - linux
+    - docker
+
+.debian-i386:stable: &debian_stable_i386_image
+  image: "$CI_REGISTRY_IMAGE/debian-i386:stable"
+  tags:
+    - linux
+    - docker
+
+.debian-amd64:unstable: &debian_unstable_amd64_image
+  image: "$CI_REGISTRY_IMAGE/debian-amd64:unstable"
+  tags:
+    - linux
+    - docker
+
+.debian-i386:unstable: &debian_unstable_i386_image
+  image: "$CI_REGISTRY_IMAGE/debian-i386:unstable"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-amd64:latest: &ubuntu_latest_amd64_image
+  image: "$CI_REGISTRY_IMAGE/ubuntu-amd64:latest"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-amd64:latest: &ubuntu_latest_i386_image
+  image: "$CI_REGISTRY_IMAGE/ubuntu-i386:latest"
   tags:
     - linux
     - docker
@@ -78,26 +123,72 @@ ubuntu:latest:
   script:
     - make -k check V=1
 
-build:debian:latest:
-  <<: *debian_latest
+build:debian:oldstable:amd64:
+  <<: *debian_oldstable_amd64_image
   <<: *build_job
 
-test:debian:latest:
-  <<: *debian_latest
+test:debian:oldstable:amd64:
+  <<: *debian_oldstable_amd64_image
   <<: *test_job
 
-build:debian:unstable:
-  <<: *debian_unstable
+build:debian:oldstable:i386:
+  <<: *debian_oldstable_i386_image
   <<: *build_job
 
-test:debian:unstable:
-  <<: *debian_unstable
+test:debian:oldstable:i386:
+  <<: *debian_oldstable_i386_image
   <<: *test_job
 
-build:ubuntu:latest:
-  <<: *ubuntu_latest
+####
+
+build:debian:stable:amd64:
+  <<: *debian_stable_amd64_image
   <<: *build_job
 
-test:ubuntu:latest:
-  <<: *ubuntu_latest
+test:debian:stable:amd64:
+  <<: *debian_stable_amd64_image
+  <<: *test_job
+
+build:debian:stable:i386:
+  <<: *debian_stable_i386_image
+  <<: *build_job
+
+test:debian:stable:i386:
+  <<: *debian_stable_i386_image
+  <<: *test_job
+
+####
+
+build:debian:unstable:amd64:
+  <<: *debian_unstable_amd64_image
+  <<: *build_job
+
+test:debian:unstable:amd64:
+  <<: *debian_unstable_amd64_image
+  <<: *test_job
+
+build:debian:unstable:i386:
+  <<: *debian_unstable_i386_image
+  <<: *build_job
+
+test:debian:unstable:i386:
+  <<: *debian_unstable_i386_image
+  <<: *test_job
+
+####
+
+build:ubuntu:latest:amd64:
+  <<: *ubuntu_latest_amd64_image
+  <<: *build_job
+
+test:ubuntu:latest:amd64:
+  <<: *ubuntu_latest_amd64_image
+  <<: *test_job
+
+build:ubuntu:latest:i386:
+  <<: *ubuntu_latest_i386_image
+  <<: *build_job
+
+test:ubuntu:latest:i386:
+  <<: *ubuntu_latest_i386_image
   <<: *test_job
