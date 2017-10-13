@@ -1,0 +1,96 @@
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  LC_ALL: C
+
+stages:
+  - image
+  - build
+  - test
+
+.image: &image
+  image: docker:latest
+  stage: image
+  services:
+    - docker:dind
+  tags:
+    - shared
+    - docker
+  before_script:
+    - docker info
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_BUILD_TOKEN" "$CI_REGISTRY"
+    - docker pull "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" || true
+    - docker build --cache-from "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" -t "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" "contrib/docker/$CI_JOB_NAME"
+    - docker push "$CI_REGISTRY_IMAGE/$CI_JOB_NAME"
+
+debian:latest:
+  <<: *image
+
+debian:unstable:
+  <<: *image
+
+ubuntu:latest:
+  <<: *image
+
+#centos:latest:
+#  <<: *image
+
+#fedora:latest:
+#  <<: *image
+
+.debian_latest: &debian_latest
+  image: "$CI_REGISTRY_IMAGE/debian:latest"
+  tags:
+    - linux
+    - docker
+
+.debian_unstable: &debian_unstable
+  image: "$CI_REGISTRY_IMAGE/debian:unstable"
+  tags:
+    - linux
+    - docker
+
+.ubuntu_latest: &ubuntu_latest
+  image: "$CI_REGISTRY_IMAGE/ubuntu:latest"
+  tags:
+    - linux
+    - docker
+
+.build: &build_job
+  stage: build
+  script:
+    - ./autogen.sh
+    - ./configure
+    - make -k all V=1
+  artifacts:
+    untracked: true
+    expire_in: '1 hour'
+
+.test: &test_job
+  stage: test
+  script:
+    - make -k check V=1
+
+build:debian:latest:
+  <<: *debian_latest
+  <<: *build_job
+
+test:debian:latest:
+  <<: *debian_latest
+  <<: *test_job
+
+build:debian:unstable:
+  <<: *debian_unstable
+  <<: *build_job
+
+test:debian:unstable:
+  <<: *debian_unstable
+  <<: *test_job
+
+build:ubuntu:latest:
+  <<: *ubuntu_latest
+  <<: *build_job
+
+test:ubuntu:latest:
+  <<: *ubuntu_latest
+  <<: *test_job
