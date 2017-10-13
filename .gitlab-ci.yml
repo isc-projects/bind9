@@ -62,8 +62,9 @@ ubuntu:latest:
 
 .build: &build_job
   stage: build
-  script:
+  before_script:
     - ./autogen.sh
+  script:
     - ./configure
     - make -k all V=1
   artifacts:
@@ -72,6 +73,8 @@ ubuntu:latest:
 
 .test: &test_job
   stage: test
+  before_script:
+    - bin/tests/system/ifconfig.sh up
   script:
     - make -k check V=1
 
