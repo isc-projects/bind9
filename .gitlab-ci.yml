@@ -130,6 +130,8 @@ build:debian:oldstable:amd64:
 test:debian:oldstable:amd64:
   <<: *debian_oldstable_amd64_image
   <<: *test_job
+  dependencies:
+    - build:debian:oldstable:amd64
 
 build:debian:oldstable:i386:
   <<: *debian_oldstable_i386_image
@@ -138,6 +140,8 @@ build:debian:oldstable:i386:
 test:debian:oldstable:i386:
   <<: *debian_oldstable_i386_image
   <<: *test_job
+  dependencies:
+    - build:debian:oldstable:i386
 
 ####
 
@@ -148,6 +152,8 @@ build:debian:stable:amd64:
 test:debian:stable:amd64:
   <<: *debian_stable_amd64_image
   <<: *test_job
+  dependencies:
+    - build:debian:stable:amd64
 
 build:debian:stable:i386:
   <<: *debian_stable_i386_image
@@ -156,6 +162,8 @@ build:debian:stable:i386:
 test:debian:stable:i386:
   <<: *debian_stable_i386_image
   <<: *test_job
+  dependencies:
+    - build:debian:stable:i386
 
 ####
 
@@ -166,6 +174,8 @@ build:debian:unstable:amd64:
 test:debian:unstable:amd64:
   <<: *debian_unstable_amd64_image
   <<: *test_job
+  dependencies:
+    - build:debian:unstable:amd64
 
 build:debian:unstable:i386:
   <<: *debian_unstable_i386_image
@@ -174,6 +184,8 @@ build:debian:unstable:i386:
 test:debian:unstable:i386:
   <<: *debian_unstable_i386_image
   <<: *test_job
+  dependencies:
+    - build:debian:unstable:i386
 
 ####
 
@@ -184,6 +196,8 @@ build:ubuntu:latest:amd64:
 test:ubuntu:latest:amd64:
   <<: *ubuntu_latest_amd64_image
   <<: *test_job
+  dependencies:
+    - build:ubuntu:latest:amd64
 
 build:ubuntu:latest:i386:
   <<: *ubuntu_latest_i386_image
@@ -192,3 +206,5 @@ build:ubuntu:latest:i386:
 test:ubuntu:latest:i386:
   <<: *ubuntu_latest_i386_image
   <<: *test_job
+  dependencies:
+    - build:ubuntu:latest:i386
