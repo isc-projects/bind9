@@ -119,7 +119,7 @@ ubuntu-i386:latest:
 .test: &test_job
   stage: test
   before_script:
-    - bin/tests/system/ifconfig.sh up
+    - bash bin/tests/system/ifconfig.sh up
   script:
     - make -k check V=1
 
