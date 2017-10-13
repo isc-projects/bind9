@@ -12,12 +12,14 @@
 ; OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 ; PERFORMANCE OF THIS SOFTWARE.
 
-; $Id$
-
 $TTL	120
-@		SOA	ns.utld.  hostmaster.ns.utld. ( 1 3600 1200 604800 60 )
-@		NS	ns.utld.
-@		MX	0 mx
+@		SOA	ns.signed.  hostmaster.ns.signed. ( 1 3600 1200 604800 60 )
+@		NS	ns
+@               MX      10 mx
+
+ns		A	10.53.0.1
+		AAAA	fd92:7065:b8e:ffff::1
+
 a-only		NS	1.0.0.1
 aaaa-only	AAAA	2001:db8::2
 dual		A	1.0.0.3

@@ -1,6 +1,6 @@
 ; File written on Thu May  1 12:16:00 2014
 ; dnssec_signzone version 9.8.5-P1
-signed.			120	IN SOA	ns.utld. hostmaster.ns.utld. (
+signed.			120	IN SOA	tld.utld. hostmaster.ns.utld. (
 					1          ; serial
 					3600       ; refresh (1 hour)
 					1200       ; retry (20 minutes)
@@ -11,7 +11,7 @@ signed.			120	IN SOA	ns.utld. hostmaster.ns.utld. (
 					20140501011600 12955 signed.
 					BEFlElqfz17JeL/ISbgEz7yenWy2QjhgdMUx
 					VDLBx3+Eiz1nyB1CpWw= )
-			120	NS	ns.utld.
+			120	NS	tld.utld.
 			120	RRSIG	NS 3 1 120 20820519023008 (
 					20140501011600 12955 signed.
 					BC4nYbfEyROe0CZPj/cHRl7BCIc0MbzpDBwz
