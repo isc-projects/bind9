@@ -48,7 +48,10 @@ static void test_ht_full(int bits, int count) {
 				  NULL, &mctx, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	isc_ht_init(&ht, mctx, bits);
+	result = isc_ht_init(&ht, mctx, bits);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE(ht != NULL);
+
 	for (i = 1; i < count; i++) {
 		/*
 		 * Note: snprintf() is followed with strlcat()
