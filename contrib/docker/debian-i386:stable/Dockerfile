@@ -17,10 +17,10 @@ RUN apt-get -y install	\
 	libkrb5-dev	\
 	libldap2-dev	\
 	liblmdb-dev	\
+	libnet-dns-perl	\
 	libtool		\
 	libssl-dev	\
 	libxml2-dev	\
-	pkg-config
-RUN apt-get -y install	\
 	net-tools	\
+	pkg-config	\
 	procps
