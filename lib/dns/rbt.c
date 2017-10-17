@@ -104,11 +104,11 @@ struct dns_rbt {
  * The variable length stuff stored after the node has the following
  * structure.
  *
- *	<name_data>{1..255}<oldoffsetlen>{1}<offsets>{1..128}
+ *	&lt;name_data&gt;{1..255}&lt;oldoffsetlen&gt;{1}&lt;offsets&gt;{1..128}
  *
- * <name_data> contains the name of the node when it was created.
- * <oldoffsetlen> contains the length of <offsets> when the node was created.
- * <offsets> contains the offets into name for each label when the node was
+ * &lt;name_data&gt; contains the name of the node when it was created.
+ * &lt;oldoffsetlen&gt; contains the length of &lt;offsets&gt; when the node was created.
+ * &lt;offsets&gt; contains the offets into name for each label when the node was
  * created.
  */
 
