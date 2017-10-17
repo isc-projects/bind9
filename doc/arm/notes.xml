@@ -447,7 +447,7 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes_features"><info><title>Removed Features</title></info>
+  <section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
     <itemizedlist>
       <listitem>
 	<para>
