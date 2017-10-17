@@ -87,6 +87,10 @@
  */
 #undef interface
 
+#ifndef INADDR_ANY
+#define INADDR_ANY 0x00000000UL
+#endif
+
 #ifndef INADDR_LOOPBACK
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif

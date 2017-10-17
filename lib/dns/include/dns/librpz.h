@@ -393,7 +393,7 @@ LIBDEF_F(clist_detach)
 /**
  * Create a librpz client handle.
  * @param[out] emsg: error message
- * @param: list of dnsrpzd connections
+ * @param clist: of dnsrpzd connections
  * @param cstr: string of configuration settings separated by ';' or '\n'
  * @param use_expired: true to not ignore expired zones
  * @return client handle or NULL if the handle could not be created
@@ -668,7 +668,7 @@ LIBDEF_F(db_info)
 /**
  * Start a context for listing the nodes and/or zones in the mapped file
  * @param[out] emsg: error message for false return or *rspp=NULL
- * @param[out[ rspp created context or NULL
+ * @param[out] rspp: created context or NULL
  * @param client context
  * @return false after error
  */

@@ -1958,7 +1958,7 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node,
  * any NSEC3 records which have the same parameters as the chain we
  * are building.
  *
- * XXXMPA Should we also check that it of the form <hash>.<origin>?
+ * XXXMPA Should we also check that it of the form &lt;hash&gt;.&lt;origin&gt;?
  */
 static void
 nsec3clean(dns_name_t *name, dns_dbnode_t *node,

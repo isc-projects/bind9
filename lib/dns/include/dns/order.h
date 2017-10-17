@@ -44,8 +44,8 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
  * Requires:
  * \li	'order' to be valid.
  *\li	'name' to be valid.
- *\li	'mode' to be one of #DNS_RDATASERATTR_RANDOMIZE,
- *		#DNS_RDATASERATTR_RANDOMIZE or zero (#DNS_RDATASERATTR_CYCLIC).
+ *\li	'mode' to be one of #DNS_RDATASETATTR_RANDOMIZE,
+ *		#DNS_RDATASETATTR_FIXEDORDER or zero (#DNS_RDATASETATTR_CYCLIC).
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
