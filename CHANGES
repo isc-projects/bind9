@@ -1,3 +1,7 @@
+4773.	[doc]		Fixed generating Doxygen documentation for functions
+			annotated using certain macros.  Miscellaneous
+			Doxygen-related cleanups. [RT #46276]
+
 4771.	[bug]		When sending RFC 5011 refresh queries, disregard
 			cached DNSKEY rrsets. [RT #46251]
 

@@ -184,6 +184,11 @@
 #define PF_INET6 AF_INET6
 #endif
 
+#ifndef INADDR_ANY
+/*% inaddr any */
+#define INADDR_ANY 0x00000000UL
+#endif
+
 #ifndef INADDR_LOOPBACK
 /*% inaddr loopback */
 #define INADDR_LOOPBACK 0x7f000001UL

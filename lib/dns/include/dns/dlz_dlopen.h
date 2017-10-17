@@ -16,7 +16,7 @@
 
 /* $Id$ */
 
-/*! \file dns/dlz_open.h */
+/*! \file dns/dlz_dlopen.h */
 
 #ifndef DLZ_DLOPEN_H
 #define DLZ_DLOPEN_H
