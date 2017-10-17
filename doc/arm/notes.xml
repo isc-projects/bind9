@@ -119,7 +119,7 @@
 	  <listitem>
 	    <para>
 	      <command>minimal-responses</command> is now set
-	      to <literal>yes</literal> by default.
+	      to <literal>no-auth-recursive</literal> by default.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -447,6 +447,31 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_features"><info><title>Removed Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The ISC DNSSEC Lookaside Validation (DLV) service has been shut
+	  down; all DLV records in the dlv.isc.org zone have been removed.
+	  References to the service have been removed from BIND documentation.
+	  Lookaside validation is no longer used by default by
+	  <command>delv</command>. The DLV key has been removed from
+	  <filename>bind.keys</filename>. Setting
+	  <command>dnssec-lookaside</command> to
+	  <command>auto</command> or to use dlv.isc.org as a trust
+	  anchor is now a fatal configuration error. [RT #46155]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  As noted above, <command>acache-enable</command> and
+	  <command>acache-cleaning-interval</command> are now
+	  deprecated.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="proto_changes"><info><title>Protocol Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -478,7 +503,7 @@
 	  Lookaside validation is no longer used by default by
 	  <command>delv</command>. The DLV key has been removed from
 	  <filename>bind.keys</filename>. Setting
-	  <command>dnssec-lookaside</command> set to
+	  <command>dnssec-lookaside</command> to
 	  <command>auto</command> or to use dlv.isc.org as a trust
 	  anchor is now a fatal configuration error. [RT #46155]
 	</para>
@@ -632,6 +657,14 @@
 	  the ZSK when signing DNSKEY records, now also apply to
 	  CDNSKEY and CDS records. Thanks to Tony Finch for the
 	  contribution. [RT #45689]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Trust anchor telemetry messages, as specified by
+	  RFC 8145, are now logged to the
+	  <command>trust-anchor-telemetry</command> logging
+	  catagory.
 	</para>
       </listitem>
     </itemizedlist>
