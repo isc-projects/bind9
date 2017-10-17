@@ -9,7 +9,7 @@
 #ifndef NS_LIB_H
 #define NS_LIB_H 1
 
-/*! \file ns/lib.h */
+/*! \file include/ns/lib.h */
 
 #include <isc/types.h>
 #include <isc/lang.h>

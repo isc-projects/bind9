@@ -814,8 +814,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  *\li	#DNS_R_EMPTYLABEL
  *\li	#DNS_R_LABELTOOLONG
  *\li	#DNS_R_BADESCAPE
- *\li	(#DNS_R_BADBITSTRING: should not be returned)
- *\li	(#DNS_R_BITSTRINGTOOLONG: should not be returned)
  *\li	#DNS_R_BADDOTTEDQUAD
  *\li	#ISC_R_NOSPACE
  *\li	#ISC_R_UNEXPECTEDEND

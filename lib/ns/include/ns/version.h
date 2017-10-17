@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/*! \file ns/version.h */
+/*! \file include/ns/version.h */
 
 #include <isc/platform.h>
 

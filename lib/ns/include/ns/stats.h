@@ -9,7 +9,7 @@
 #ifndef NS_STATS_H
 #define NS_STATS_H 1
 
-/*! \file ns/stats.h */
+/*! \file include/ns/stats.h */
 
 #include <ns/types.h>
 
