@@ -856,14 +856,6 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *	\li	#ISC_R_SUCCESS			The desired node and type were
  *						found.
  *
- *	\li	#DNS_R_WILDCARD			The desired node and type were
- *						found after performing
- *						wildcard matching.  This is
- *						only returned if the
- *						#DNS_DBFIND_INDICATEWILD
- *						option is set; otherwise
- *						#ISC_R_SUCCESS is returned.
- *
  *	\li	#DNS_R_GLUE			The desired node and type were
  *						found, but are glue.  This
  *						result can only occur if

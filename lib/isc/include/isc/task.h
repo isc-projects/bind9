@@ -458,7 +458,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
  *
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_TASKSHUTTINGDOWN			Task is shutting down.
+ *\li	#ISC_R_SHUTTINGDOWN			Task is shutting down.
  */
 
 void

@@ -333,7 +333,7 @@ dns_dt_open(const char *filename, dns_dtmode_t mode,
  *\li	#ISC_R_NOMEMORY if the fstrm library was unable to allocate a
  *      reader or options structure
  *\li	#ISC_R_FAILURE if 'filename' could not be opened.
- *\li	#ISC_R_BADDNSTAP if 'filename' does not contain a dnstap
+ *\li	#DNS_R_BADDNSTAP if 'filename' does not contain a dnstap
  *      framestream.
  */
 

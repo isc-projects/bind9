@@ -1236,7 +1236,7 @@ static cfg_type_t cfg_type_masterstyle = {
 
 /*%
  *  dnstap {
- *      <message type> [query | response] ;
+ *      &lt;message type&gt; [query | response] ;
  *      ...
  *  }
  *
@@ -1296,8 +1296,8 @@ static cfg_type_t cfg_type_dnstapoutput = {
 
 /*%
  *  response-policy {
- *	zone <string> [ policy (given|disabled|passthru|drop|tcp-only|
- *					nxdomain|nodata|cname <domain> ) ]
+ *	zone &lt;string&gt; [ policy (given|disabled|passthru|drop|tcp-only|
+ *					nxdomain|nodata|cname &lt;domain&gt; ) ]
  *		      [ recursive-only yes|no ] [ log yes|no ]
  *		      [ max-policy-ttl number ] ;
  *  } [ recursive-only yes|no ] [ max-policy-ttl number ]
