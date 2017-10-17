@@ -50,10 +50,11 @@
       anything other than the changes you made to our software.
     </para>
     <para>
-      This requirement will not affect anyone who is using BIND
-      without redistributing it, nor anyone redistributing it without
-      changes, therefore this change will be without consequence
-      for most individuals and organizations who are using BIND.
+      This requirement will not affect anyone who is using BIND, with
+      or without modifications, without redistributing it, nor anyone
+      redistributing it without changes. Therefore, this change will be
+      without consequence for most individuals and organizations who are
+      using BIND.
     </para>
     <para>
       Those unsure whether or not the license change affects their
@@ -65,10 +66,10 @@
     </para>
   </section>
 
-  <section xml:id="win_support"><info><title>Windows XP No Longer Supported</title></info>
+  <section xml:id="win_support"><info><title>Legacy Windows No Longer Supported</title></info>
     <para>
-      As of BIND 9.11.2, Windows XP is no longer a supported platform for
-      BIND, and Windows XP binaries are no longer available for download
+      As of BIND 9.11.2, Windows XP and Windows 2003 are no longer supported
+      platforms for BIND; "XP" binaries are no longer available for download
       from ISC.
     </para>
   </section>
@@ -294,13 +295,14 @@
 	  zone's validated CDS or CDNSKEY records. It can produce a
 	  <filename>dsset</filename> file suitable for input to
 	  <command>dnssec-signzone</command>, or a series of
-	  <command>nsupdate</command> to update the parent zone via dynamic
-	  DNS. Thanks to Tony Finch for the contribution.  [RT #46090]
+	  <command>nsupdate</command> commands to update the parent zone
+	  via dynamic DNS. Thanks to Tony Finch for the contribution.
+	  [RT #46090]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  <command>nsupdate</command> and <command>rndc</command> now accepts
+	  <command>nsupdate</command> and <command>rndc</command> now accept
 	  command line options <command>-4</command> and <command>-6</command>
 	  which force using only IPv4 or only IPv6, respectively. [RT #45632]
 	</para>
@@ -481,13 +483,18 @@
 	  these algorithms must be supported in OpenSSL;
 	  currently they are only available in the development branch
 	  of OpenSSL at
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://github.com/openssl/openssl">https://github.com/openssl/openssl</link>.
+	  <link xmlns:xlink="http://www.w3.org/1999/xlink"
+	    xlink:href="https://github.com/openssl/openssl">
+	    https://github.com/openssl/openssl</link>.
 	  [RT #44696]
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  EDNS KEY TAG options are verified and printed.
+	  When parsing DNS messages, EDNS KEY TAG options are checked
+	  for correctness. When printing messages (for example, in
+	  <command>dig</command>), EDNS KEY TAG options are printed
+	  in readable format.
 	</para>
       </listitem>
     </itemizedlist>
@@ -622,15 +629,6 @@
 	  state; while generally harmless, this could lead to a crash later
 	  when using <command>rndc addzone</command>.  Reconfiguration changes
 	  are now fully rolled back in the event of failure. [RT #45841]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Fixed a bug that was introduced in an earlier development
-	  release which caused multi-packet AXFR and IXFR messages to fail
-	  validation if not all packets contained TSIG records; this
-	  caused interoperability problems with some other DNS
-	  implementations. [RT #45509]
 	</para>
       </listitem>
       <listitem>

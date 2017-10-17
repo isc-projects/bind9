@@ -646,6 +646,26 @@
                 </para>
 	      </listitem>
             </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If key's sync publication date is set and in the past,
+		  synchronization records (type CDS and/or CDNSKEY) are
+		  created.
+                </para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+              <listitem>
+                <para>
+                  If key's sync deletion date is set and in the past,
+		  synchronization records (type CDS and/or CDNSKEY) are
+		  removed.
+                </para>
+	      </listitem>
+            </varlistentry>
 	 </variablelist>
         </listitem>
       </varlistentry>

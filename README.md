@@ -66,12 +66,12 @@ General bug reports can be sent to
 Feature requests can be sent to
 [bind-suggest@isc.org](mailto:bind-suggest@isc.org).
 
-Please note that, while ISC's ticketing system is not currently publicly
-readable, this may change in the future.  Please do not include information
-in bug reports that you consider to be confidential. For example, when
-sending the contents of your configuration file, it is advisable to obscure
-key secrets; this can be done automatically by using `named-checkconf
--px`.
+Please note that, while tickets submitted to ISC's ticketing system
+are not initially publicly readable by default, they can be made publicly
+acessible afterward.  Please do not include information in bug reports that
+you consider to be confidential. In particular, when sending the contents of
+your configuration file, it is advisable to obscure key secrets: this can
+be done automatically by using `named-checkconf -px`.
 
 Professional support and training for BIND are available from
 ISC at [https://www.isc.org/support](https://www.isc.org/support).
@@ -85,8 +85,8 @@ may also want to join the __BIND Workers__ mailing list, at
 
 ### <a name="contrib"/> Contributing to BIND
 
-A public git repository for BIND is maintained at
-[http://www.isc.org/git/](http://www.isc.org/git/), and also on Github
+ISC maintains a public git repository for BIND; details can be found
+at [http://www.isc.org/git/](http://www.isc.org/git/), and also on Github
 at [https://github.com/isc-projects](https://github.com/isc-projects).
 
 Information for BIND contributors can be found in the following files:
@@ -116,10 +116,8 @@ include:
 * Cached, validated NSEC and other records can now be used to synthesize
   NXDOMAIN responses.
 * The DNS Response Policy Service API (DNSRPS) is now supported.
-* Setting `max-journal-size default` now limits the size of journal files
+* Setting `'max-journal-size default'` now limits the size of journal files
   to twice the size of the zone.
-* The query handling code has been substantially refactored for improved
-  readability, maintainability and testability .
 * `dnstap-read -x` prints a hex dump of the wire format of each logged
   DNS message.
 * `dnstap` output files can now be configured to roll automatically when
@@ -128,7 +126,7 @@ include:
   8601 (UTC) formats.
 * Logging channels and `dnstap` output files can now be configured to use a
   timestamp as the suffix when rolling to a new file.
-* `named-checkconf -l` lists zones found in `named.conf`.
+* `'named-checkconf -l'` lists zones found in `named.conf`.
 * Added support for the EDNS Padding and Keepalive options.
 * 'new-zones-directory' option sets the location where the configuration
   data for zones added by rndc addzone is stored
@@ -195,9 +193,9 @@ performance on smaller systems.
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed.  If the
 OpenSSL library is installed in a nonstandard location, specify the prefix
-using "--with-openssl=/prefix" on the configure command line. To use a
+using "--with-openssl=&lt;PREFIX&gt;" on the configure command line. To use a
 PKCS#11 hardware service module for cryptographic operations, specify the
-path to the PKCS#11 provider library using "--with-pkcs11=/prefix", and
+path to the PKCS#11 provider library using "--with-pkcs11=&lt;PREFIX&gt;", and
 configure BIND with "--enable-native-pkcs11".
 
 To support the HTTP statistics channel, the server must be linked with at
@@ -220,13 +218,15 @@ libGeoIP. This is not turned on by default; BIND must be configured with
 "--with-geoip". If the library is installed in a nonstandard location, use
 specify the prefix using "--with-geoip=/prefix".
 
-For DNSTAP packet logging, you must have libfstrm
+For DNSTAP packet logging, you must have installed libfstrm
 [https://github.com/farsightsec/fstrm](https://github.com/farsightsec/fstrm)
 and libprotobuf-c
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
 and BIND must be configured with "--enable-dnstap".
 
-Python requires the 'argparse' and 'ply' modules to be available.
+Portions of BIND that are written in Python, including
+`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
+system tests, require the 'argparse' and 'ply' modules to be available.
 'argparse' is a standard module as of Python 2.7 and Python 3.2.
 'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
@@ -260,7 +260,7 @@ localstatedir defaults to `$prefix/var`.
 A system test suite can be run with `make test`.  The system tests require
 you to configure a set of virtual IP addresses on your system (this allows
 multiple servers to run locally and communicate with one another).  These
-IP addresses can be configured by by running the script
+IP addresses can be configured by running the command
 `bin/tests/system/ifconfig.sh up` as root.
 
 Some tests require Perl and the Net::DNS and/or IO::Socket::INET6 modules,
