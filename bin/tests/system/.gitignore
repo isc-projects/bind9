@@ -3,3 +3,9 @@ systests.output
 random.data
 named.memstats
 named.run
+dig.out*
+rndc.out*
+nsupdate.out*
+named.pid
+named.run
+named.port
