@@ -46,7 +46,8 @@ use Getopt::Long;
 my $usage = "usage: $0 [--noclean] [--restart] test-directory [server-directory [server-options]]";
 my $noclean = '';
 my $restart = '';
-GetOptions('noclean' => \$noclean, 'restart' => \$restart);
+my $defaultport = 5300;
+GetOptions('noclean' => \$noclean, 'restart' => \$restart, 'p=i' => \$defaultport);
 my $test = $ARGV[0];
 my $server = $ARGV[1];
 my $options = $ARGV[2];
@@ -105,7 +106,7 @@ if ($server) {
 sub check_ports {
 	my $server = shift;
 	my $options = "";
-	my $port = 5300;
+	my $port = $defaultport;
 	my $file = "";
 
 	$file = $testdir . "/" . $server . "/named.port" if ($server);
