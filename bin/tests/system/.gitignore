@@ -5,3 +5,6 @@ named.lock
 named.pid
 named.run
 named.port
+/feature-test
+/systests.output
+/random.data
