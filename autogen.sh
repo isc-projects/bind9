@@ -7,4 +7,4 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 # Run this script after modifying configure.in to generate configure
-autoreconf -i
+autoreconf -fi
