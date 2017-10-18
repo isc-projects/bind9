@@ -13,7 +13,7 @@
 #
 
 rm -f dig.out.*
-rm -f ns2/named.conf
+rm -f ns2/named.conf ns2/named.port ns2/controls.conf
 rm -f */named.memstats
 rm -f ns*/named.lock
 rm -f ns*/named.run
