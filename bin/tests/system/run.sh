@@ -15,20 +15,42 @@ SYSTEMTESTTOP=.
 
 stopservers=true
 clean=true
+port=5300
+controlport=9953
+dateargs="-R"
 
-case $1 in
-   --keep|-k) stopservers=false; shift ;;
-   --noclean|-n) clean=false; shift ;;
-esac
+while getopts "knp:d:c:" flag; do
+    case "$flag" in
+	k) stopservers=false ;;
+	n) clean=false ;;
+	p) port=$OPTARG ;;
+	c) controlport=$OPTARG ;;
+	d) dateargs=$OPTARG ;;
+	*) exit 1 ;;
+    esac
+done
 
-test $# -gt 0 || { echo "usage: $0 [--keep|--noclean] test-directory" >&2; exit 1; }
+if [ "$((${port}+0))" -ne "${port}" ] || [ "${port}" -le 1024 ] || [ "${port}" -gt 65535 ]; then
+    echo "Specified port '$port' must be numeric (1024,65535>" >&2; exit 1;
+fi
+
+if [ "$((${controlport}+0))" -ne "${controlport}" ] || [ "${controlport}" -le 1024 ] || [ "${controlport}" -gt 65535 ]; then
+    echo "Specified control port '$controlport' must be numeric (1024,65535>" >&2; exit 1;
+fi
+
+echo "PORT: ${port}"
+echo "CONTROLPORT: ${controlport}"
+
+shift $(($OPTIND - 1))
+
+test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
 
 test=$1
 shift
 
 test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
 
-echoinfo "S:$test:`date`" >&2
+echoinfo "S:$test:`date $dateargs`" >&2
 echoinfo "T:$test:1:A" >&2
 echoinfo "A:System test $test" >&2
 
@@ -36,20 +58,12 @@ if [ x${PERL:+set} = x ]
 then
     echowarn "I:Perl not available.  Skipping test." >&2
     echowarn "R:UNTESTED" >&2
-    echoinfo "E:$test:`date`" >&2
+    echoinfo "E:$test:`date $dateargs`" >&2
     exit 0;
 fi
 
-$PERL testsock.pl || {
-    echowarn "I:Network interface aliases not set up.  Skipping test." >&2;
-    echowarn "R:UNTESTED" >&2;
-    echoinfo "E:$test:`date`" >&2;
-    exit 0;
-}
-
-
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh "$@" )
+test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -c "$controlport" -p "$port" "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
@@ -57,9 +71,17 @@ if [ $result -eq 0 ]; then
 else
     echowarn "I:Prerequisites for $test missing, skipping test." >&2
     [ $result -eq 255 ] && echowarn "R:SKIPPED" || echowarn "R:UNTESTED"
-    echoinfo "E:$test:`date`" >&2
+    echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
 fi
+
+# Test sockets after the prerequisites has been setup
+$PERL testsock.pl -p "${port}" || {
+    echowarn "I:Network interface aliases not set up.  Skipping test." >&2;
+    echowarn "R:UNTESTED" >&2;
+    echoinfo "E:$test:`date $dateargs`" >&2;
+    exit 0;
+}
 
 # Check for PKCS#11 support
 if
@@ -69,21 +91,21 @@ then
 else
     echowarn "I:Need PKCS#11 for $test, skipping test." >&2
     echowarn "R:PKCS11ONLY" >&2
-    echoinfo "E:$test:`date`" >&2
+    echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
 fi
 
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then
-   ( cd $test && $SHELL setup.sh "$@" )
+   ( cd $test && $SHELL setup.sh -c "$controlport" -p "$port" "$@" )
 fi
 
 # Start name servers running
-$PERL start.pl $test || { echofail "R:FAIL"; echoinfo "E:$test:`date`"; exit 1; }
+$PERL start.pl -p $port $test || { echofail "R:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
-( cd $test ; $SHELL tests.sh )
+( cd $test ; $SHELL tests.sh -c "$controlport" -p "$port" "$@" )
 
 status=$?
 
@@ -108,21 +130,21 @@ else
 
     if $clean
     then
-	rm -f $SYSTEMTESTTOP/random.data
-	if test -f $test/clean.sh
-	then
-	    ( cd $test && $SHELL clean.sh "$@" )
-	fi
-	if test -d ../../../.git
-	then
-	    git status -su --ignored $test |
-	    sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-		-e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-		-e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
-	fi
+        rm -f $SYSTEMTESTTOP/random.data
+        if test -f $test/clean.sh
+        then
+			( cd $test && $SHELL clean.sh "-p" "$port" "$@" )
+        fi
+        if test -d ../../../.git
+        then
+            git status -su --ignored $test |
+            sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
+            -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
+            -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+		fi
     fi
 fi
 
-echoinfo "E:$test:`date`"
+echoinfo "E:$test:`date $dateargs`"
 
 exit $status

@@ -83,7 +83,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 names notify nslookup nsupdate nzd2nzf padding pending
 	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
 	 rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
-	 runtime serve-stale sfcache smartsign sortlist spf staticstub
+	 runtime sfcache smartsign sortlist spf staticstub
 	 statistics statschannel stub synthfromdnssec tcp tkey tools
 	 tsig tsiggss unknown upforwd verify views wildcard xfer
 	 xferquota zero zonechecks"
