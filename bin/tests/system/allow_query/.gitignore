@@ -1,8 +1,2 @@
-/dig.out*
 /ns2/named.conf
 /ns2/controls.conf
-/rndc.out*
-named.lock
-named.pid
-named.port
-named.run
