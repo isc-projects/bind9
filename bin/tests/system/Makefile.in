@@ -46,7 +46,10 @@ feature-test@EXEEXT@: feature-test.@O@
 check: test
 
 test: subdirs
-	if test -f ./runall.sh; then sh ./runall.sh; fi
+	if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
+
+server-stale:
+	$(SHELL) ./run.sh -p 5310 -c 9954 server-stale
 
 testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
@@ -63,3 +66,5 @@ installdirs:
 install::
 
 uninstall::
+
+.PHONY: server-stale
