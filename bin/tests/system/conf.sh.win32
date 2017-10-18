@@ -79,7 +79,7 @@ KRB5_CONFIG=NUL
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone allow_query autosign builtin
+SUBDIRS="acl additional addzone autosign builtin
 	 cacheclean case catz
 	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
 	 database digdelv dlv dlvauto dlz dlzexternal dname
@@ -89,7 +89,7 @@ SUBDIRS="acl additional addzone allow_query autosign builtin
 	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile
 	 masterformat metadata mkeys names notify nslookup nsupdate
 	 nzd2nzf padding pending pipelined @PKCS11_TEST@ reclimit
-	 redirect resolver rndc rpz rpzrecurse rrchecker rrl
+	 redirect resolver rndc rpz rrchecker rrl
 	 rrsetorder rsabigexponent runtime sfcache smartsign sortlist
 	 spf staticstub statistics statschannel stub tcp tkey tsig
 	 tsiggss unknown upforwd verify views wildcard xfer xferquota
