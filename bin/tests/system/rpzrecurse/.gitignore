@@ -1,2 +1,11 @@
-/rpz
-/rpz.o
+/ns1/named.conf
+/ns2/named.conf.header
+/ns2/named.conf
+/ns3/named.conf
+/ns4/named.conf
+/ans5/ans.pl
+/ans5/ans.pid
+/dnsrps-slave.conf
+/dnsrps.conf
+/dnsrpzd.conf
+session.key
