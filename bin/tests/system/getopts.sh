@@ -14,7 +14,10 @@ while getopts "p:c:" flag; do
     case "$flag" in
 	p) port=$OPTARG ;;
 	c) controlport=$OPTARG ;;
+	-) break ;;
 	*) exit 1 ;;
     esac
 done
 shift $(($OPTIND - 1))
+
+SEDPORTS="sed -e s/@PORT@/${port}/g -e s/@CONTROLPORT@/${controlport}/g"
