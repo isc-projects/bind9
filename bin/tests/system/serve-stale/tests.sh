@@ -346,7 +346,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "updating ns1/named.conf ($n)"
 ret=0
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g" < ns1/named2.conf.in > ns1/named.conf
+$SEDPORTS < ns1/named2.conf.in > ns1/named.conf
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
