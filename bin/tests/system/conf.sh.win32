@@ -88,10 +88,12 @@ KRB5_CONFIG=NUL
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone allow_query autosign builtin cacheclean case
-	 catz checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
-	 database digdelv dlv dlvauto dlz dlzexternal dname dns64 dnssec
-	 @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa ednscompliance emptyzones
+SUBDIRS="acl additional addzone autosign builtin
+	 cacheclean case
+	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
+	 database digdelv dlv dlvauto dlz dlzexternal
+	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
+	 ednscompliance emptyzones
 	 fetchlimit filter-aaaa formerr forward geoip glue gost inline ixfr
 	 @KEYMGR@ legacy limits logfileconfig lwresd masterfile masterformat
 	 metadata mkeys names notify nslookup nsupdate nzd2nzf pending

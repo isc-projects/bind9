@@ -17,5 +17,29 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-perl testgen.pl
+. ../getopts.sh
+
+USAGE="$0: [-xD]"
+DEBUG=
+while getopts "xD" c; do
+    case $c in
+	x) set -x; DEBUG=-x;;
+        D) TEST_DNSRPS="-D";;
+	N) NOCLEAN=set;;
+	*) echo "$USAGE" 1>&2; exit 1;;
+    esac
+done
+shift `expr $OPTIND - 1 || true`
+if test "$#" -ne 0; then
+    echo "$USAGE" 1>&2
+    exit 1
+fi
+
+[ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
+
+$PERL testgen.pl
+$SEDPORTS < ns1/named.conf.in > ns1/named.conf
+echo "${port}" > ns1/named.port
+$SEDPORTS < ns2/named.conf.header.in > ns2/named.conf.header
+echo "${port}" > ns2/named.port
 cp -f ns2/named.default.conf ns2/named.conf
