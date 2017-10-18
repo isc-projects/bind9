@@ -50,7 +50,7 @@
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#root_key">New DNSSEC Root Key</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#win_support">Windows XP No Longer Supported</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#win_support">Legacy Windows No Longer Supported</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#proto_changes">Protocol Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
@@ -120,10 +120,10 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="win_support"></a>Windows XP No Longer Supported</h3></div></div></div>
+<a name="win_support"></a>Legacy Windows No Longer Supported</h3></div></div></div>
     <p>
-      As of BIND 9.9.11, Windows XP is no longer a supported platform for
-      BIND, and Windows XP binaries are no longer available for download
+      As of BIND 9.9.11, Windows XP and Windows 2003 are no longer supported
+      platforms for BIND; "XP" binaries are no longer available for download
       from ISC.
     </p>
   </div>
@@ -168,13 +168,17 @@
 	  these algorithms must be supported in OpenSSL;
 	  currently they are only available in the development branch
 	  of OpenSSL at
-	  <a class="link" href="https://github.com/openssl/openssl" target="_top">https://github.com/openssl/openssl</a>.
+	  <a class="link" href="https://github.com/openssl/openssl" target="_top">
+	    https://github.com/openssl/openssl</a>.
 	  [RT #44696]
 	</p>
       </li>
 <li class="listitem">
 	<p>
-	  EDNS KEY TAG options are verified and printed.
+	  When parsing DNS messages, EDNS KEY TAG options are checked
+	  for correctness. When printing messages (for example, in
+	  <span class="command"><strong>dig</strong></span>), EDNS KEY TAG options are printed
+	  in readable format.
 	</p>
       </li>
 </ul></div>
