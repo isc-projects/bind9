@@ -33,7 +33,7 @@ EOF
 }
 
 echo "I:System test result summary:"
-grep '^R:' systests.output | sort | uniq -c | sed -e 's/^/I: /' -e 's/R://'
-grep '^R:FAIL' systests.output > /dev/null && status=1
+grep '^R:' systests.output | sed -e 's/^/I: /' -e 's/R:[^:]*//' | sort | uniq -c
+grep '^R:[^:]*:FAIL' systests.output > /dev/null && status=1
 
 exit $status
