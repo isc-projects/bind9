@@ -25,7 +25,7 @@ $SIG{TERM} = \&rmpid;
 my $send_response = 1;
 
 my $localaddr = "10.53.0.2";
-my $localport = 5300;
+my $localport = @PORT@;
 my $verbose = 0;
 
 #
