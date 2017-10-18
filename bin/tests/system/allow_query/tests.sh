@@ -63,7 +63,12 @@ SYSTEMTESTTOP=..
 . ../getopts.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${port}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${controlport}"
+
+rndc_reload() {
+    RNDCOUT=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${controlport} reload 2>&1`
+    echo_i "ns2 $RNDCOUT"
+}
+
 status=0
 n=0
 
@@ -80,7 +85,7 @@ status=`expr $status + $ret`
 # Test 2 - explicit any, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named02.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: explicit any - query allowed"
@@ -94,7 +99,7 @@ status=`expr $status + $ret`
 # Test 3 - none, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named03.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: none - query refused"
@@ -108,7 +113,7 @@ status=`expr $status + $ret`
 # Test 4 - address allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named04.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: address allowed - query allowed"
@@ -122,7 +127,7 @@ status=`expr $status + $ret`
 # Test 5 - address not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named05.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: address not allowed - query refused"
@@ -136,7 +141,7 @@ status=`expr $status + $ret`
 # Test 6 - address disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named06.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: address disallowed - query refused"
@@ -150,7 +155,7 @@ status=`expr $status + $ret`
 # Test 7 - acl allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named07.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: acl allowed - query allowed"
@@ -164,7 +169,7 @@ status=`expr $status + $ret`
 # Test 8 - acl not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named08.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: acl not allowed - query refused"
@@ -179,7 +184,7 @@ status=`expr $status + $ret`
 # Test 9 - acl disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named09.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: acl disallowed - query refused"
@@ -193,7 +198,7 @@ status=`expr $status + $ret`
 # Test 10 - key allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named10.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: key allowed - query allowed"
@@ -207,7 +212,7 @@ status=`expr $status + $ret`
 # Test 11 - key not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named11.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: key not allowed - query refused"
@@ -221,7 +226,7 @@ status=`expr $status + $ret`
 # Test 12 - key disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named12.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: key disallowed - query refused"
@@ -238,7 +243,7 @@ n=20
 # Test 21 - views default, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named21.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views default - query allowed"
@@ -252,7 +257,7 @@ status=`expr $status + $ret`
 # Test 22 - views explicit any, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named22.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views explicit any - query allowed"
@@ -266,7 +271,7 @@ status=`expr $status + $ret`
 # Test 23 - views none, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named23.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views none - query refused"
@@ -280,7 +285,7 @@ status=`expr $status + $ret`
 # Test 24 - views address allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named24.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views address allowed - query allowed"
@@ -294,7 +299,7 @@ status=`expr $status + $ret`
 # Test 25 - views address not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named25.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views address not allowed - query refused"
@@ -308,7 +313,7 @@ status=`expr $status + $ret`
 # Test 26 - views address disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named26.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views address disallowed - query refused"
@@ -322,7 +327,7 @@ status=`expr $status + $ret`
 # Test 27 - views acl allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named27.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views acl allowed - query allowed"
@@ -336,7 +341,7 @@ status=`expr $status + $ret`
 # Test 28 - views acl not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named28.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views acl not allowed - query refused"
@@ -350,7 +355,7 @@ status=`expr $status + $ret`
 # Test 29 - views acl disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named29.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views acl disallowed - query refused"
@@ -364,7 +369,7 @@ status=`expr $status + $ret`
 # Test 30 - views key allowed, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named30.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views key allowed - query allowed"
@@ -378,7 +383,7 @@ status=`expr $status + $ret`
 # Test 31 - views key not allowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named31.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views key not allowed - query refused"
@@ -392,7 +397,7 @@ status=`expr $status + $ret`
 # Test 32 - views key disallowed, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named32.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views key disallowed - query refused"
@@ -406,7 +411,7 @@ status=`expr $status + $ret`
 # Test 33 - views over options, views allow, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named33.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views over options, views allow - query allowed"
@@ -420,7 +425,7 @@ status=`expr $status + $ret`
 # Test 34 - views over options, views disallow, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named34.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views over options, views disallow - query refused"
@@ -438,7 +443,7 @@ n=40
 # Test 41 - zone default, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named40.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: zone default - query allowed"
@@ -562,7 +567,7 @@ status=`expr $status + $ret`
 # Test 53 - zones over options, zones allow, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named53.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views over options, views allow - query allowed"
@@ -576,7 +581,7 @@ status=`expr $status + $ret`
 # Test 54 - zones over options, zones disallow, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named54.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: views over options, views disallow - query refused"
@@ -590,7 +595,7 @@ status=`expr $status + $ret`
 # Test 55 - zones over views, zones allow, query allowed
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named55.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: zones over views, views allow - query allowed"
@@ -604,7 +609,7 @@ status=`expr $status + $ret`
 # Test 56 - zones over views, zones disallow, query refused
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named56.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: zones over views, views disallow - query refused"
@@ -618,7 +623,7 @@ status=`expr $status + $ret`
 # Test 57 - zones over views, zones disallow, query refused (allow-query-on)
 n=`expr $n + 1`
 sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named57.conf.in > ns2/named.conf
-$RNDCCMD reload 2>&1 | sed 's/^/I:ns2 /'
+rndc_reload
 sleep 5
 
 echo_i "test $n: zones over views, allow-query-on"
