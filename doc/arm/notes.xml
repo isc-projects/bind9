@@ -96,10 +96,12 @@
 	  <listitem>
 	    <para>
 	      The additional cache ("acache") was found not to
-	      significantly improve performance and has been removed;
-	      the <command>acache-enable</command> and
-	      <command>acache-cleaning-interval</command> options are now
-	      deprecated.
+	      significantly improve performance and has been removed.
+	      As a result, the <command>acache-enable</command> and
+	      <command>acache-cleaning-interval</command> options no longer
+	      have any effect. For backwards compatibility, BIND will
+	      accept their presence in a configuration file, but
+	      will log a warning.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -112,15 +114,16 @@
 	  </listitem>
 	  <listitem>
 	    <para>
-	      The <command>additional-from-cache</command>
-	      and <command>additional-from-auth</command> options have been
-	      deprecated.
+	      <command>minimal-responses</command> is now set
+	      to <literal>no-auth-recursive</literal> by default.
 	    </para>
 	  </listitem>
 	  <listitem>
 	    <para>
-	      <command>minimal-responses</command> is now set
-	      to <literal>no-auth-recursive</literal> by default.
+	      The <command>additional-from-cache</command>
+	      and <command>additional-from-auth</command> options no longer
+	      have any effect. <command>named</command> will log a warning
+	      if they are set.
 	    </para>
 	  </listitem>
 	  <listitem>
@@ -466,9 +469,12 @@
       </listitem>
       <listitem>
 	<para>
-	  As noted above, <command>acache-enable</command> and
-	  <command>acache-cleaning-interval</command> are now
-	  deprecated.
+	  As noted above, the <command>acache-enable</command>,
+	  <command>acache-cleaning-interval</command>,
+	  <command>additional-from-cache</command> and
+	  <command>additional-from-auth</command> options are no longer
+	  effective and <command>named</command> will log a warning if
+	  they are set.
 	</para>
       </listitem>
     </itemizedlist>
