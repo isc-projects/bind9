@@ -7,11 +7,11 @@
 
 . ../getopts.sh
 
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g" < ns1/named1.conf.in > ns1/named.conf
+$SEDPORTS < ns1/named1.conf.in > ns1/named.conf
 echo "${port}" > ns1/named.port
 
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g" < ans2/ans.pl.in > ans2/ans.pl
+$SEDPORTS < ans2/ans.pl.in > ans2/ans.pl
 echo "${port}" > ans2/named.port
 
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g" < ns3/named.conf.in > ns3/named.conf
+$SEDPORTS < ns3/named.conf.in > ns3/named.conf
 echo "${port}" > ns3/named.port
