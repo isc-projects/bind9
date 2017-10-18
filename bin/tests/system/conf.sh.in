@@ -186,6 +186,12 @@ else
 	}
 fi
 
+TESTNAME="`basename $PWD`"
+
+echo_i() {
+    echoinfo "I:$TESTNAME:$@"
+}
+
 #
 # Useful functions in test scripts
 #
