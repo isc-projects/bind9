@@ -38,9 +38,6 @@ if [ "$((${controlport}+0))" -ne "${controlport}" ] || [ "${controlport}" -le 10
     echo "Specified control port '$controlport' must be numeric (1024,65535>" >&2; exit 1;
 fi
 
-echo "PORT: ${port}"
-echo "CONTROLPORT: ${controlport}"
-
 shift $(($OPTIND - 1))
 
 test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
@@ -48,11 +45,13 @@ test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1
 test=$1
 shift
 
-test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
+test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
 
 echoinfo "S:$test:`date $dateargs`" >&2
 echoinfo "T:$test:1:A" >&2
-echoinfo "A:System test $test" >&2
+echoinfo "A:$test:System test $test" >&2
+echoinfo "I:$test:PORT:${port}" >&2
+echoinfo "I:$test:CONTROLPORT:${controlport}" >&2
 
 if [ x${PERL:+set} = x ]
 then
@@ -63,7 +62,7 @@ then
 fi
 
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -c "$controlport" -p "$port" "$@" )
+test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -c "$controlport" -p "$port" -- "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
@@ -98,14 +97,14 @@ fi
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then
-   ( cd $test && $SHELL setup.sh -c "$controlport" -p "$port" "$@" )
+   ( cd $test && $SHELL setup.sh -c "$controlport" -p "$port" -- "$@" )
 fi
 
 # Start name servers running
-$PERL start.pl -p $port $test || { echofail "R:$test:$FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl -p $port $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
-( cd $test ; $SHELL tests.sh -c "$controlport" -p "$port" "$@" )
+( cd $test ; $SHELL tests.sh -c "$controlport" -p "$port" -- "$@" )
 
 status=$?
 
@@ -132,7 +131,7 @@ else
         rm -f $SYSTEMTESTTOP/random.data
         if test -f $test/clean.sh
         then
-			( cd $test && $SHELL clean.sh "-p" "$port" "$@" )
+			( cd $test && $SHELL clean.sh "-p" "$port" -- "$@" )
         fi
         if test -d ../../../.git
         then

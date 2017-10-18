@@ -12,7 +12,7 @@ use Net::DNS;
 use Net::DNS::Packet;
 
 my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.5",
-   LocalPort => 5300, Proto => "udp") or die "$!";
+   LocalPort => @PORT@, Proto => "udp") or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

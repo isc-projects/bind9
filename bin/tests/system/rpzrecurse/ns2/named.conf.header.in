@@ -12,7 +12,7 @@ options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	session-keyfile "session.key";
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
@@ -30,6 +30,6 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 

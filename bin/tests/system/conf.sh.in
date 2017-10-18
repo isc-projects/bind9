@@ -82,7 +82,7 @@ SUBDIRS="acl additional addzone autosign builtin
 	 logfileconfig masterfile masterformat metadata mkeys
 	 names notify nslookup nsupdate nzd2nzf padding pending
 	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
-	 rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
+	 rpz rrchecker rrl rrsetorder rsabigexponent
 	 runtime sfcache smartsign sortlist spf staticstub
 	 statistics statschannel stub synthfromdnssec tcp tkey tools
 	 tsig tsiggss unknown upforwd verify views wildcard xfer

@@ -9,14 +9,14 @@
 include "../../common/rndc.key";
 
 controls {
-	inet 10.53.0.3 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
 	transfer-source 10.53.0.3;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
