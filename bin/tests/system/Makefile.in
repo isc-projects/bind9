@@ -45,16 +45,14 @@ feature-test@EXEEXT@: feature-test.@O@
 
 check: test
 
-TESTS = allow_query serve-stale
+TESTS = allow_query serve-stale rpzrecurse
 
 test: subdirs $(TESTS)
 	if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
 
-serve-stale:
-	$(SHELL) ./run.sh -p 5304 -c 9954 $@
-
-allow_query:
-	$(SHELL) ./run.sh -p 5305 -c 9955 $@
+$(TESTS):
+	PORT=$$((32767+$$RANDOM)); \
+	$(SHELL) ./run.sh -p $$(($$PORT)) -c $$(($$PORT+1)) $@
 
 testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
