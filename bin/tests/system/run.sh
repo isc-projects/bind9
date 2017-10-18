@@ -57,7 +57,7 @@ echoinfo "A:System test $test" >&2
 if [ x${PERL:+set} = x ]
 then
     echowarn "I:Perl not available.  Skipping test." >&2
-    echowarn "R:UNTESTED" >&2
+    echowarn "R:$test:UNTESTED" >&2
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0;
 fi
@@ -70,7 +70,7 @@ if [ $result -eq 0 ]; then
     : prereqs ok
 else
     echowarn "I:Prerequisites for $test missing, skipping test." >&2
-    [ $result -eq 255 ] && echowarn "R:SKIPPED" || echowarn "R:UNTESTED"
+    [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
 fi
@@ -78,7 +78,7 @@ fi
 # Test sockets after the prerequisites has been setup
 $PERL testsock.pl -p "${port}" || {
     echowarn "I:Network interface aliases not set up.  Skipping test." >&2;
-    echowarn "R:UNTESTED" >&2;
+    echowarn "R:$test:UNTESTED" >&2;
     echoinfo "E:$test:`date $dateargs`" >&2;
     exit 0;
 }
@@ -90,7 +90,7 @@ then
     : pkcs11 ok
 else
     echowarn "I:Need PKCS#11 for $test, skipping test." >&2
-    echowarn "R:PKCS11ONLY" >&2
+    echowarn "R:$test:PKCS11ONLY" >&2
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
 fi
@@ -102,7 +102,7 @@ then
 fi
 
 # Start name servers running
-$PERL start.pl -p $port $test || { echofail "R:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl -p $port $test || { echofail "R:$test:$FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
 ( cd $test ; $SHELL tests.sh -c "$controlport" -p "$port" "$@" )
@@ -122,12 +122,11 @@ $PERL stop.pl $test
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-    echofail "R:FAIL"
-    # Don't clean up - we need the evidence.
-    find . -name core -exec chmod 0644 '{}' \;
+	echofail "R:$test:$FAIL"
+	# Don't clean up - we need the evidence.
+	find . -name core -exec chmod 0644 '{}' \;
 else
-    echopass "R:PASS"
-
+	echopass "R:$test:PASS"
     if $clean
     then
         rm -f $SYSTEMTESTTOP/random.data
