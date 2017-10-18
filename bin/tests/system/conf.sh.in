@@ -72,7 +72,7 @@ KRB5_CONFIG=/dev/null
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone allow_query autosign builtin
+SUBDIRS="acl additional addzone autosign builtin
 	 cacheclean case catz cds chain
          checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
          database digdelv dlv dlz dlzexternal
