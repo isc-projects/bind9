@@ -1,11 +1,5 @@
 /ans2/ans.pid
 /ans2/ans.pl
-/dig.out*
 /ns1/named.conf
 /ns3/named.conf
 /ns3/root.bk
-/rndc.out*
-named.lock
-named.pid
-named.port
-named.run

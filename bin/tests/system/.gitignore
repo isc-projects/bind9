@@ -1,3 +1,7 @@
-feature-test
-systests.output
-random.data
+dig.out*
+rndc.out*
+nsupdate.out*
+named.lock
+named.pid
+named.run
+named.port
