@@ -4637,17 +4637,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <listitem>
 	      <para>
 		The working directory of the server.
-		Any non-absolute pathnames in the configuration file will be
-		taken
-		as relative to this directory. The default location for most
-		server
-		output files (e.g. <filename>named.run</filename>)
-		is this directory.
+		Any non-absolute pathnames in the configuration file will
+		be taken as relative to this directory. The default
+		location for most server output files
+		(e.g. <filename>named.run</filename>) is this directory.
 		If a directory is not specified, the working directory
 		defaults to `<filename>.</filename>', the directory from
-		which the server
-		was started. The directory specified should be an absolute
-		path.
+		which the server was started. The directory specified
+		should be an absolute path. It is
+		<emphasis>strongly recommended</emphasis>
+		that the directory be writable by the effective user
+		ID of the <command>named</command> process.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -4674,7 +4674,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	      <para>
 		Specifies the directory in which to store the files that
 		track managed DNSSEC keys.  By default, this is the working
-		directory.
+		directory.  The directory <emphasis>must</emphasis>
+		be writable by the effective user ID of the
+		<command>named</command> process.
 	      </para>
 	      <para>
 		If <command>named</command> is not configured to use views,

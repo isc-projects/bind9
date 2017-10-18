@@ -142,6 +142,17 @@
       </listitem>
       <listitem>
 	<para>
+	  <command>named</command> will no longer start or accept
+	  reconfiguration if <command>managed-keys</command> or
+	  <command>dnssec-validation auto</command> are in use and
+	  the managed-keys directory (specified by
+	  <command>managed-keys-directory</command>, and defaulting
+	  to the working directory if not specified),
+	  is not writable by the effective user ID. [RT #46077]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Previously, <command>update-policy local;</command> accepted
 	  updates from any source so long as they were signed by the
 	  locally-generated session key. This has been further restricted;

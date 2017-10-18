@@ -119,6 +119,12 @@
 #define SIZE_MAX ((size_t)-1)
 #endif
 
+#ifdef WIN32
+#define DIR_PERM_OK W_OK
+#else
+#define DIR_PERM_OK W_OK|X_OK
+#endif
+
 /*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
@@ -804,6 +810,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *obj = NULL;
 	const char *directory;
+	isc_boolean_t need_mkey_dir = ISC_FALSE;
 	int i = 0;
 
 	/* We don't need trust anchors for the _bind view */
@@ -920,11 +927,14 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	/*
 	 * Add key zone for managed-keys.
 	 */
+	need_mkey_dir = ISC_TF(auto_root || view_managed_keys != NULL);
+
 	obj = NULL;
 	(void)ns_config_get(maps, "managed-keys-directory", &obj);
 	directory = (obj != NULL ? cfg_obj_asstring(obj) : NULL);
-	if (directory != NULL)
+	if (directory != NULL) {
 		result = isc_file_isdirectory(directory);
+	}
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -932,7 +942,37 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			      directory, isc_result_totext(result));
 		goto cleanup;
 
+	} else if (need_mkey_dir && directory != NULL) {
+		if (access(directory, DIR_PERM_OK) != 0) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "managed-keys-directory '%s' "
+				      "is not writable", directory);
+			result = ISC_R_NOPERM;
+			goto cleanup;
+		}
+	} else if (need_mkey_dir) {
+		char cwd[PATH_MAX];
+
+		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "unable to retrieve "
+				      "current working directory");
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+
+		if (access(cwd, DIR_PERM_OK) != 0) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "working directory '%s' "
+				      "is not writable", cwd);
+			result = ISC_R_NOPERM;
+			goto cleanup;
+		}
 	}
+
 	CHECK(add_keydata_zone(view, directory, ns_g_mctx));
 
   cleanup:
@@ -5869,7 +5909,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Check that the working directory is writable.
 	 */
-	if (access(".", W_OK) != 0) {
+	if (access(".", DIR_PERM_OK) != 0) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");
