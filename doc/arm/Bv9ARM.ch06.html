@@ -1501,17 +1501,17 @@ notrace</strong></span>. All debugging messages in the server have a debug
             <span class="command"><strong>print-time</strong></span> can be set to
             <strong class="userinput"><code>yes</code></strong>, <strong class="userinput"><code>no</code></strong>,
             or a time format specifier, which may be one of
-            <code class="option">local</code>, <code class="option">iso8601</code> or
-            <code class="option">iso8601-utc</code>.  If set to
+            <strong class="userinput"><code>local</code></strong>, <strong class="userinput"><code>iso8601</code></strong> or
+            <strong class="userinput"><code>iso8601-utc</code></strong>.  If set to
             <strong class="userinput"><code>no</code></strong>, then the date and time will
             not be logged.  If set to <strong class="userinput"><code>yes</code></strong>
-            or <code class="option">local</code>, the date and time are logged
+            or <strong class="userinput"><code>local</code></strong>, the date and time are logged
             in a human readable format, using the local time zone.
-            If set to <code class="option">iso8601</code> the local time is
+            If set to <strong class="userinput"><code>iso8601</code></strong> the local time is
             logged in ISO8601 format.  If set to
-            <code class="option">iso8601-utc</code>, then the date and time
+            <strong class="userinput"><code>iso8601-utc</code></strong>, then the date and time
             are logged in ISO8601 format, with time zone set to
-            UTC. The default is <code class="option">local</code>.
+            UTC. The default is <strong class="userinput"><code>local</code></strong>.
           </p>
           <p>
             <span class="command"><strong>print-time</strong></span> may
@@ -3045,7 +3045,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
               <p>
                 Specifies the directory in which to store the configuration
                 parameters for zones added via <span class="command"><strong>rndc addzone</strong></span>.
-                By default, this is the working directory.
+                By default, this is the working directory. If set to a relative
+                path, it will be relative to the working directory.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>named-xfer</strong></span></span></dt>
@@ -3671,12 +3672,14 @@ options {
 <dd>
               <p>
                 Specifies the TTL to be returned on stale answers.
-                The default is 1 second. The minimal allowed is
+                The default is 1 second. The minimum allowed is
                 also 1 second; a value of 0 will be updated silently
-                to 1 second.  For stale answers to be returned
+                to 1 second.  For stale answers to be returned,
+                they must be enabled (either in the configuration file
+                using <span class="command"><strong>stale-answer-enable</strong></span> or via
+                <span class="command"><strong>rndc</strong></span>), and
                 <code class="option">max-stale-ttl</code> must be set to a
-                non zero value and they must not have been disabled
-                by <span class="command"><strong>rndc</strong></span>.
+                nonzero value.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>serial-update-method</strong></span></span></dt>
@@ -4330,17 +4333,21 @@ options {
                   <span class="command"><strong>nocookie-udp-size</strong></span> option.
                 </p>
               </dd>
-<dt><span class="term"><span class="command"><strong>serve-stale-enable</strong></span></span></dt>
+<dt><span class="term"><span class="command"><strong>stale-answer-enable</strong></span></span></dt>
 <dd>
                 <p>
                   Enable the returning of stale answers when the
                   nameservers for the zone are not answering.  This
-                  is off by default but can be enabled/disabled via
-                  <span class="command"><strong>rndc server-stale on</strong></span> and
-                  <span class="command"><strong>rndc server-stale off</strong></span> which
-                  override the named.conf setting.  <span class="command"><strong>rndc
-                  server-stale reset</strong></span> will restore control
-                  via named.conf.
+                  is off by default, but can be enabled/disabled via
+                  <span class="command"><strong>rndc serve-stale on</strong></span> and
+                  <span class="command"><strong>rndc serve-stale off</strong></span>, which
+                  override the <code class="filename">named.conf</code>
+                  setting.  <span class="command"><strong>rndc serve-stale reset</strong></span>
+                  restores the setting to the one specified in
+                  <code class="filename">named.conf</code>.  Note that
+                  reloading or reconfiguring <span class="command"><strong>named</strong></span>
+                  will not re-enable serving of stale records if they
+                  have been disabled via <span class="command"><strong>rndc</strong></span>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>nocookie-udp-size</strong></span></span></dt>
