@@ -178,6 +178,12 @@ echoinfo () {
         printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
 }
 
+TESTNAME="`basename $PWD`"
+
+echo_i() {
+    echoinfo "I:$TESTNAME:$@"
+}
+
 #
 # Useful functions in test scripts
 #
