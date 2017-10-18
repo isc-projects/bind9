@@ -45,9 +45,11 @@ feature-test@EXEEXT@: feature-test.@O@
 
 check: test
 
-TESTS = allow_query serve-stale rpzrecurse
+TESTS = allow_query serve-stale rpzrecurse alltests
 
 test: subdirs $(TESTS)
+
+alltests:
 	if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
 
 $(TESTS):
