@@ -85,7 +85,7 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 legacy limits logfileconfig lwresd masterfile masterformat
 	 metadata notify nslookup nsupdate pending @PKCS11_TEST@
 	 reclimit redirect resolver rndc rpz rpzrecurse rrl rrchecker
-	 rrsetorder rsabigexponent smartsign sortlist spf staticstub
+	 rrsetorder rsabigexponent runtime smartsign sortlist spf staticstub
 	 statistics statschannel stub tcp tkey tsig tsiggss unknown
 	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 

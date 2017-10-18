@@ -546,7 +546,8 @@ parse2(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 	if (result != ISC_R_SUCCESS) {
 		/* Parsing failed but no errors have been logged. */
-		cfg_parser_error(pctx, 0, "parsing failed");
+		cfg_parser_error(pctx, 0, "parsing failed: %s",
+				 isc_result_totext(result));
 		goto cleanup;
 	}
 
