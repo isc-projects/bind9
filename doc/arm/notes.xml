@@ -261,6 +261,16 @@
 	  in the answer and authority sections. [RT #45140]
 	</para>
       </listitem>
+      <item>
+	<para>
+	  Some header files included &lt;isc/util.h&gt; incorrectly as
+	  it pollutes with namespace with non ISC_ macros and this should
+	  only be done by explicitly including &lt;isc/util.h&gt;.  This
+	  has been corrected.  Some code made depend on &lt;isc/util.h&gt;
+	  being implicitly included via other header files.  Such
+	  code should explicitly include &lt;isc/util.h&gt;.
+	</para>
+      </item>
     </itemizedlist>
   </section>
 
