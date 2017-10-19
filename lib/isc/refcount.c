@@ -23,6 +23,7 @@
 #include <isc/mutex.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 isc_result_t
 isc_refcount_init(isc_refcount_t *ref, unsigned int n) {

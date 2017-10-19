@@ -28,6 +28,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/syslog.h>
+#include <isc/util.h>
 
 #include <isccfg/cfg.h>
 #include <isccfg/log.h>

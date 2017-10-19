@@ -20,6 +20,7 @@
 
 #include <isc/mem.h>
 #include <isc/radix.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
 

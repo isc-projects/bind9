@@ -20,7 +20,7 @@
 #ifndef ISC_MAGIC_H
 #define ISC_MAGIC_H 1
 
-#include <isc/util.h>
+#include <isc/likely.h>
 
 /*! \file isc/magic.h */
 

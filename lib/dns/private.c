@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include "config.h"
 
 #include <isc/base64.h>
@@ -23,6 +21,7 @@
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/nsec3.h>
 #include <dns/private.h>

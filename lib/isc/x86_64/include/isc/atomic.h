@@ -35,12 +35,11 @@
  * registers for arguments, which would not actually correspond to the
  * intended address or value in the embedded mnemonic.
  */
-#include <isc/util.h>		/* for 'UNUSED' macro */
 
 static isc_int32_t
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	UNUSED(p);
-	UNUSED(val);
+	(void)(p);
+	(void)(val);
 
 	__asm (
 		"movq %rdi, %rdx\n"
@@ -58,8 +57,8 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 #ifdef ISC_PLATFORM_HAVEXADDQ
 static isc_int64_t
 isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
-	UNUSED(p);
-	UNUSED(val);
+	(void)(p);
+	(void)(val);
 
 	__asm (
 		"movq %rdi, %rdx\n"
@@ -77,8 +76,8 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 
 static void
 isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
-	UNUSED(p);
-	UNUSED(val);
+	(void)(p);
+	(void)(val);
 
 	__asm (
 		"movq %rdi, %rax\n"
@@ -93,8 +92,8 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 #ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
 static void
 isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
-	UNUSED(p);
-	UNUSED(val);
+	(void)(p);
+	(void)(val);
 
 	__asm (
 		"movq %rdi, %rax\n"
@@ -109,9 +108,9 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
 
 static isc_int32_t
 isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
-	UNUSED(p);
-	UNUSED(cmpval);
-	UNUSED(val);
+	(void)(p);
+	(void)(cmpval);
+	(void)(val);
 
 	__asm (
 		/*

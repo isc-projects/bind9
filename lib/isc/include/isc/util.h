@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 
@@ -209,13 +207,7 @@
 /*%
  * Performance
  */
-#ifdef HAVE_BUILTIN_EXPECT
-#define ISC_LIKELY(x)            __builtin_expect(!!(x), 1)
-#define ISC_UNLIKELY(x)          __builtin_expect(!!(x), 0)
-#else
-#define ISC_LIKELY(x)            (x)
-#define ISC_UNLIKELY(x)          (x)
-#endif
+#include <isc/likely.h>
 
 /*
  * Assertions
