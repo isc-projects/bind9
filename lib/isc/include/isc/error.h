@@ -17,6 +17,7 @@
 
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
+#include <isc/likely.h>
 #include <isc/platform.h>
 
 ISC_LANG_BEGINDECLS
