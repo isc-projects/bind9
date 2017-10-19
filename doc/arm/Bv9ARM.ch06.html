@@ -2656,17 +2656,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <dd>
               <p>
                 The working directory of the server.
-                Any non-absolute pathnames in the configuration file will be
-                taken
-                as relative to this directory. The default location for most
-                server
-                output files (e.g. <code class="filename">named.run</code>)
-                is this directory.
+                Any non-absolute pathnames in the configuration file will
+                be taken as relative to this directory. The default
+                location for most server output files
+                (e.g. <code class="filename">named.run</code>) is this directory.
                 If a directory is not specified, the working directory
                 defaults to `<code class="filename">.</code>', the directory from
-                which the server
-                was started. The directory specified should be an absolute
-                path.
+                which the server was started. The directory specified
+                should be an absolute path. It is
+                <span class="emphasis"><em>strongly recommended</em></span>
+                that the directory be writable by the effective user
+                ID of the <span class="command"><strong>named</strong></span> process.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>key-directory</strong></span></span></dt>
@@ -2687,7 +2687,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
               <p>
                 Specifies the directory in which to store the files that
                 track managed DNSSEC keys.  By default, this is the working
-                directory.
+                directory.  The directory <span class="emphasis"><em>must</em></span>
+                be writable by the effective user ID of the
+                <span class="command"><strong>named</strong></span> process.
               </p>
               <p>
                 If <span class="command"><strong>named</strong></span> is not configured to use views,
