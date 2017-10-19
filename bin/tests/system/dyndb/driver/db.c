@@ -13,6 +13,7 @@
 #include <config.h>
 
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/diff.h>

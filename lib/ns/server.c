@@ -12,6 +12,7 @@
 
 #include <isc/mem.h>
 #include <isc/stats.h>
+#include <isc/util.h>
 
 #include <dns/tkey.h>
 #include <dns/stats.h>

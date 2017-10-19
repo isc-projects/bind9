@@ -16,6 +16,7 @@
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <isccfg/cfg.h>
 

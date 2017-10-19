@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 
@@ -200,13 +198,7 @@
 /*%
  * Performance
  */
-#ifdef HAVE_BUILTIN_EXPECT
-#define ISC_LIKELY(x)            __builtin_expect(!!(x), 1)
-#define ISC_UNLIKELY(x)          __builtin_expect(!!(x), 0)
-#else
-#define ISC_LIKELY(x)            (x)
-#define ISC_UNLIKELY(x)          (x)
-#endif
+#include <isc/likely.h>
 
 /*
  * Assertions
@@ -240,12 +232,8 @@
 #define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
 
 /*%
- * Misc.
+ * Misc
  */
-#ifdef __GNUC__
-#define ISC_DEPRECATED			__attribute__((deprecated))
-#else
-#define ISC_DEPRECATED			/* none */
-#endif /* __GNUC __ */
+#include <isc/deprecated.h>
 
 #endif /* ISC_UTIL_H */

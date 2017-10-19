@@ -20,6 +20,7 @@
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/util.h>
 
 #include <dns/cache.h>
 #include <dns/db.h>
