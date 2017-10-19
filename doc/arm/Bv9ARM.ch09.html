@@ -145,10 +145,12 @@
 <li class="listitem">
 	    <p>
 	      The additional cache ("acache") was found not to
-	      significantly improve performance and has been removed;
-	      the <span class="command"><strong>acache-enable</strong></span> and
-	      <span class="command"><strong>acache-cleaning-interval</strong></span> options are now
-	      deprecated.
+	      significantly improve performance and has been removed.
+	      As a result, the <span class="command"><strong>acache-enable</strong></span> and
+	      <span class="command"><strong>acache-cleaning-interval</strong></span> options no longer
+	      have any effect. For backwards compatibility, BIND will
+	      accept their presence in a configuration file, but
+	      will log a warning.
 	    </p>
 	  </li>
 <li class="listitem">
@@ -161,15 +163,16 @@
 	  </li>
 <li class="listitem">
 	    <p>
-	      The <span class="command"><strong>additional-from-cache</strong></span>
-	      and <span class="command"><strong>additional-from-auth</strong></span> options have been
-	      deprecated.
+	      <span class="command"><strong>minimal-responses</strong></span> is now set
+	      to <code class="literal">no-auth-recursive</code> by default.
 	    </p>
 	  </li>
 <li class="listitem">
 	    <p>
-	      <span class="command"><strong>minimal-responses</strong></span> is now set
-	      to <code class="literal">no-auth-recursive</code> by default.
+	      The <span class="command"><strong>additional-from-cache</strong></span>
+	      and <span class="command"><strong>additional-from-auth</strong></span> options no longer
+	      have any effect. <span class="command"><strong>named</strong></span> will log a warning
+	      if they are set.
 	    </p>
 	  </li>
 <li class="listitem">
@@ -517,9 +520,12 @@
       </li>
 <li class="listitem">
 	<p>
-	  As noted above, <span class="command"><strong>acache-enable</strong></span> and
-	  <span class="command"><strong>acache-cleaning-interval</strong></span> are now
-	  deprecated.
+	  As noted above, the <span class="command"><strong>acache-enable</strong></span>,
+	  <span class="command"><strong>acache-cleaning-interval</strong></span>,
+	  <span class="command"><strong>additional-from-cache</strong></span> and
+	  <span class="command"><strong>additional-from-auth</strong></span> options are no longer
+	  effective and <span class="command"><strong>named</strong></span> will log a warning if
+	  they are set.
 	</p>
       </li>
 </ul></div>
