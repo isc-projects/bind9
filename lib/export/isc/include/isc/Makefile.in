@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.3 2009/12/05 23:31:41 each Exp $
-
 srcdir =	@srcdir@
 top_srcdir =	@top_srcdir@
 export_srcdir =	@top_srcdir@/lib/export
@@ -26,19 +24,18 @@ VERSION=@BIND9_VERSION@
 # install target below.
 #
 HEADERS =	app.h assertions.h base64.h bitstring.h boolean.h \
-		buffer.h bufferlist.h commandline.h entropy.h error.h event.h \
+		buffer.h bufferlist.h commandline.h deprecated.h \
+		entropy.h error.h event.h \
 		eventclass.h file.h formatcheck.h fsaccess.h \
-		hash.h heap.h hex.h hmacmd5.h \
-		httpd.h \
+		hash.h heap.h hex.h hmacmd5.h httpd.h \
 		interfaceiter.h @ISC_IPV6_H@ iterated_hash.h lang.h lex.h \
-		lfsr.h lib.h list.h log.h \
+		lfsr.h lib.h likely.h list.h log.h \
 		magic.h md5.h mem.h msgcat.h msgs.h \
 		mutexblock.h namespace.h netaddr.h ondestroy.h os.h parseint.h \
 		print.h quota.h radix.h random.h ratelimiter.h \
 		refcount.h regex.h region.h resource.h \
 		result.h resultclass.h rwlock.h serial.h sha1.h sha2.h \
-		sockaddr.h socket.h stdio.h stdlib.h string.h \
-		symtab.h \
+		sockaddr.h socket.h stdio.h stdlib.h string.h symtab.h \
 	        task.h taskpool.h timer.h types.h util.h version.h \
 		xml.h
 
