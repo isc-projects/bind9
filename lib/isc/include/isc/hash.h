@@ -9,8 +9,8 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
+#include <isc/deprecated.h>
 #include <isc/types.h>
-#include <isc/util.h>
 
 /*****
  ***** Module Info

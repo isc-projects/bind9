@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 #include "config.h"
 
 #include <isc/base64.h>
@@ -15,6 +13,7 @@
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #include <dns/nsec3.h>
 #include <dns/private.h>

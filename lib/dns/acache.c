@@ -24,6 +24,7 @@
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/acache.h>
 #include <dns/db.h>

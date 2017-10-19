@@ -6,11 +6,10 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: tsec.c,v 1.7 2010/12/09 00:54:34 marka Exp $ */
-
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/util.h>
 
 #include <pk11/site.h>
 

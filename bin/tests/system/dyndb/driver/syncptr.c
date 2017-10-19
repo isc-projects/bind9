@@ -10,6 +10,7 @@
 #include <isc/eventclass.h>
 #include <isc/netaddr.h>
 #include <isc/task.h>
+#include <isc/util.h>
 
 #include <dns/byaddr.h>
 #include <dns/db.h>

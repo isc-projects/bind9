@@ -45,6 +45,7 @@
  ***** Imports
  *****/
 
+#include <isc/deprecated.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/ondestroy.h>

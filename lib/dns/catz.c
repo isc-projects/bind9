@@ -17,6 +17,7 @@
 #include <isc/result.h>
 #include <isc/sha2.h>
 #include <isc/task.h>
+#include <isc/util.h>
 
 #include <dns/catz.h>
 #include <dns/dbiterator.h>

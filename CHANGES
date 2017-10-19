@@ -1,3 +1,6 @@
+4774.	[bug]		<isc/util.h> was incorrectly included in several
+			header files. [RT #46311]
+
 4773.	[doc]		Fixed generating Doxygen documentation for functions
 			annotated using certain macros.  Miscellaneous
 			Doxygen-related cleanups. [RT #46276]
