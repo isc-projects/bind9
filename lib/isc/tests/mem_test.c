@@ -155,7 +155,6 @@ ATF_TC_BODY(isc_mem_noflags, tc) {
 	char buf[4096], *p, *q;
 	FILE *f;
 	void *ptr;
-	size_t size;
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -174,22 +173,27 @@ ATF_TC_BODY(isc_mem_noflags, tc) {
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
 
+	memset(buf, 0, sizeof(buf));
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
 
+	buf[sizeof(buf) - 1] = 0;
+
 	p = strchr(buf, '\n');
+	ATF_REQUIRE(p != NULL);
+	ATF_REQUIRE(p < buf + sizeof(buf) - 2);
 	p += 2;
 	q = strchr(p, '\n');
+	ATF_REQUIRE(q != NULL);
 	*q = '\0';
 	ATF_CHECK_STREQ(p, "None.");
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_test_end();
-
 }
 
 ATF_TC(isc_mem_recordflag);
@@ -203,7 +207,6 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
-	size_t size;
 
 	result = isc_stdio_open("mem.output", "w", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -224,14 +227,19 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	memset(buf, 0, sizeof(buf));
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
 
+	buf[sizeof(buf) - 1] = 0;
+
 	p = strchr(buf, '\n');
+	ATF_REQUIRE(p != NULL);
+	ATF_REQUIRE(p < buf + sizeof(buf) - 2);
 	ATF_CHECK(strncmp(p + 2, "ptr ", 4) == 0);
 	p = strchr(p + 1, '\n');
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK(strlen(p) == 1);
 
 	isc_test_end();
@@ -248,7 +256,6 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
-	size_t size;
 
 	/* redirect stderr so we can check trace output */
 	f = freopen("mem.output", "w", stderr);
@@ -268,9 +275,10 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
 
+	memset(buf, 0, sizeof(buf));
 	result = isc_stdio_open("mem.output", "r", &f);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = isc_stdio_read(buf, sizeof(buf), 1, f, &size);
+	result = isc_stdio_read(buf, sizeof(buf), 1, f, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_EOF);
 	isc_stdio_close(f);
 	isc_file_remove("mem.output");
@@ -278,11 +286,17 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	/* return stderr to TTY so we can see errors */
 	f = freopen("/dev/tty", "w", stderr);
 
+	buf[sizeof(buf) - 1] = 0;
+
 	ATF_CHECK(strncmp(buf, "add ", 4) == 0);
 	p = strchr(buf, '\n');
+	ATF_REQUIRE(p != NULL);
 	p = strchr(p + 1, '\n');
+	ATF_REQUIRE(p != NULL);
+	ATF_REQUIRE(p < buf + sizeof(buf) - 2);
 	ATF_CHECK(strncmp(p + 2, "ptr ", 4) == 0);
 	p = strchr(p + 1, '\n');
+	ATF_REQUIRE(p != NULL);
 	ATF_CHECK(strncmp(p + 1, "del ", 4) == 0);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;

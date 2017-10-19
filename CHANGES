@@ -1,3 +1,6 @@
+4775.	[bug]		Address Coverity warnings in ht_test.c and mem_test.c
+			[RT #46281]
+
 4774.	[bug]		<isc/util.h> was incorrectly included in several
 			header files. [RT #46311]
 
