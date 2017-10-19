@@ -181,6 +181,17 @@
       </li>
 <li class="listitem">
 	<p>
+	  <span class="command"><strong>named</strong></span> will no longer start or accept
+	  reconfiguration if <span class="command"><strong>managed-keys</strong></span> or
+	  <span class="command"><strong>dnssec-validation auto</strong></span> are in use and
+	  the managed-keys directory (specified by
+	  <span class="command"><strong>managed-keys-directory</strong></span>, and defaulting
+	  to the working directory if not specified),
+	  is not writable by the effective user ID. [RT #46077]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  Previously, <span class="command"><strong>update-policy local;</strong></span> accepted
 	  updates from any source so long as they were signed by the
 	  locally-generated session key. This has been further restricted;
