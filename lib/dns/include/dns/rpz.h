@@ -14,14 +14,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
 
 #include <isc/event.h>
-#include <isc/ht.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
