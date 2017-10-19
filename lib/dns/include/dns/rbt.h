@@ -13,6 +13,7 @@
 
 /*! \file dns/rbt.h */
 
+#include <isc/assertions.h>
 #include <isc/crc64.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -1076,7 +1077,7 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name);
 	} while (0)
 #else  /* DNS_RBT_USEISCREFCOUNT */
 #define dns_rbtnode_refinit(node, n)    ((node)->references = (n))
-#define dns_rbtnode_refdestroy(node)    REQUIRE((node)->references == 0)
+#define dns_rbtnode_refdestroy(node)    ISC_REQUIRE((node)->references == 0)
 #define dns_rbtnode_refcurrent(node)    ((node)->references)
 
 #if (__STDC_VERSION__ + 0) >= 199901L || defined __GNUC__
@@ -1089,7 +1090,7 @@ dns_rbtnode_refincrement0(dns_rbtnode_t *node, unsigned int *refs) {
 
 static inline void
 dns_rbtnode_refincrement(dns_rbtnode_t *node, unsigned int *refs) {
-	REQUIRE(node->references > 0);
+	ISC_REQUIRE(node->references > 0);
 	node->references++;
 	if (refs != NULL)
 		*refs = node->references;
@@ -1097,7 +1098,7 @@ dns_rbtnode_refincrement(dns_rbtnode_t *node, unsigned int *refs) {
 
 static inline void
 dns_rbtnode_refdecrement(dns_rbtnode_t *node, unsigned int *refs) {
-	REQUIRE(node->references > 0);
+	ISC_REQUIRE(node->references > 0);
 	node->references--;
 	if (refs != NULL)
 		*refs = node->references;
@@ -1112,14 +1113,14 @@ dns_rbtnode_refdecrement(dns_rbtnode_t *node, unsigned int *refs) {
 	} while (0)
 #define dns_rbtnode_refincrement(node, refs)                    \
 	do {                                                    \
-		REQUIRE((node)->references > 0);                \
+		ISC_REQUIRE((node)->references > 0);                \
 		(node)->references++;                           \
 		if ((refs) != NULL)                             \
 			(*refs) = (node)->references;           \
 	} while (0)
 #define dns_rbtnode_refdecrement(node, refs)                    \
 	do {                                                    \
-		REQUIRE((node)->references > 0);                \
+		ISC_REQUIRE((node)->references > 0);                \
 		(node)->references--;                           \
 		if ((refs) != NULL)                             \
 			(*refs) = (node)->references;           \
