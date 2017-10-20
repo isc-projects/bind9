@@ -23,6 +23,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <inttypes.h>
+
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
