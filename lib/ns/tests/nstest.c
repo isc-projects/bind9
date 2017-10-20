@@ -679,8 +679,8 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
  */
 static isc_result_t
 create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
-	const ns_hook_t *saved_hook_table;
-	const ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT] = {
+	ns_hook_t *saved_hook_table;
+	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT] = {
 		[NS_QUERY_SETUP_QCTX_INITIALIZED] = {
 			.callback = extract_qctx,
 			.callback_data = qctxp,

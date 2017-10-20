@@ -247,7 +247,7 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 
 #ifdef NS_HOOKS_ENABLE
 
-LIBNS_EXTERNAL_DATA const ns_hook_t *ns__hook_table = NULL;
+LIBNS_EXTERNAL_DATA ns_hook_t *ns__hook_table = NULL;
 
 #define PROCESS_HOOK(...) \
 	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)

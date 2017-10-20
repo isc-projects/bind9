@@ -57,7 +57,7 @@
  * Consider the following sample code:
  *
  * ----------------------------------------------------------------------------
- * const ns_hook_t *foo_hook_table = NULL;
+ * ns_hook_t *foo_hook_table = NULL;
  *
  * isc_result_t
  * foo_bar(void) {
@@ -81,7 +81,7 @@
  * void
  * test_foo_bar(void) {
  *     isc_boolean_t foo_bar_called = ISC_FALSE;
- *     const ns_hook_t my_hooks[FOO_HOOKS_COUNT] = {
+ *     ns_hook_t my_hooks[FOO_HOOKS_COUNT] = {
  *         [FOO_EXTRACT_VAL] = {
  *             .callback = cause_failure,
  *             .callback_data = &foo_bar_called,
@@ -136,7 +136,7 @@ typedef struct ns_hook {
 #define NS_PROCESS_HOOK_VOID(table, id, data) \
 	_NS_PROCESS_HOOK(table, id, data)
 
-LIBNS_EXTERNAL_DATA extern const ns_hook_t *ns__hook_table;
+LIBNS_EXTERNAL_DATA extern ns_hook_t *ns__hook_table;
 
 #endif /* NS_HOOKS_ENABLE */
 #endif /* NS_HOOKS_H */
