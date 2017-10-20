@@ -1,3 +1,5 @@
+4776.	[bug]		Improve portability of ht_test. [RT #46333]
+
 4775.	[bug]		Address Coverity warnings in ht_test.c [RT #46281]
 
 4774.	[bug]		<isc/util.h> was incorrectly included in several

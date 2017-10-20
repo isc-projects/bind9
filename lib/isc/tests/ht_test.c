@@ -37,12 +37,11 @@ default_memfree(void *arg, void *ptr) {
 	free(ptr);
 }
 
-
-static void test_ht_full(int bits, int count) {
+static void test_ht_full(int bits, uintptr_t count) {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
-	isc_int64_t i;
+	uintptr_t i;
 
 	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
 				  NULL, &mctx, 0);
@@ -71,7 +70,7 @@ static void test_ht_full(int bits, int count) {
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-		ATF_REQUIRE_EQ(i, (isc_int64_t) f);
+		ATF_REQUIRE_EQ(i, (uintptr_t) f);
 	}
 
 	for (i = 1; i < count; i++) {
@@ -167,7 +166,7 @@ static void test_ht_full(int bits, int count) {
 		strlcat((char *)key, " KEY of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-		ATF_REQUIRE_EQ(i, (isc_int64_t) f);
+		ATF_REQUIRE_EQ(i, (uintptr_t) f);
 	}
 
 	for (i = 1; i < count; i++) {
@@ -189,9 +188,9 @@ static void test_ht_iterator() {
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
 	isc_ht_iter_t * iter = NULL;
-	isc_int64_t i;
-	isc_int64_t v;
-	isc_uint32_t count = 10000;
+	uintptr_t i;
+	void *v;
+	uintptr_t count = 10000;
 	isc_uint32_t walked;
 	unsigned char key[16];
 	unsigned char *tkey;
@@ -223,10 +222,11 @@ static void test_ht_iterator() {
 	     result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
 	{
-		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
+		i = (uintptr_t)v;
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
 		walked++;
@@ -238,13 +238,14 @@ static void test_ht_iterator() {
 	walked = 0;
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
-		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
+		i = (uintptr_t)v;
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
-		if (v % 2 == 0) {
+		if ((uintptr_t)v % 2 == 0) {
 			result = isc_ht_iter_delcurrent_next(iter);
 		} else {
 			result = isc_ht_iter_next(iter);
@@ -258,13 +259,14 @@ static void test_ht_iterator() {
 	walked = 0;
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
-		isc_ht_iter_current(iter, (void**) &v);
+		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		ATF_REQUIRE_EQ(tksize, 16);
-		snprintf((char *)key, sizeof(key), "%u", (unsigned int)v);
+		i = (uintptr_t)v;
+		snprintf((char *)key, sizeof(key), "%u", (unsigned int)i);
 		strlcat((char *)key, "key of a raw hashtable!!", sizeof(key));
 		ATF_REQUIRE_EQ(memcmp(key, tkey, 16), 0);
-		if (v % 2 == 1) {
+		if ((uintptr_t)v % 2 == 1) {
 			result = isc_ht_iter_delcurrent_next(iter);
 		} else {
 			result = isc_ht_iter_next(iter);
