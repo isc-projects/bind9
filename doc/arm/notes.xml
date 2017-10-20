@@ -683,7 +683,7 @@
 	  leading to unconstrained memory growth. [RT #46029]
 	</para>
       </listitem>
-      <item>
+      <listitem>
 	<para>
 	  Some header files included &lt;isc/util.h&gt; incorrectly as
 	  it pollutes with namespace with non ISC_ macros and this should
@@ -692,7 +692,7 @@
 	  being implicitly included via other header files.  Such
 	  code should explicitly include &lt;isc/util.h&gt;.
 	</para>
-      </item>
+      </listitem>
     </itemizedlist>
   </section>
 
