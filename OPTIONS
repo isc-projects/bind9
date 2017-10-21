@@ -22,4 +22,7 @@ Setting                   Description
                           Enable DNSSEC signature chasing support in dig.
 -DDIG_SIGCHASE=1          (Note: This feature is deprecated. Use delv
                           instead.)
+                          Increase the maximum number of configurable
+-DNS_RPZ_MAX_ZONES=64     response policy zones from 32 to 64; this is the
+                          highest possible setting
 
