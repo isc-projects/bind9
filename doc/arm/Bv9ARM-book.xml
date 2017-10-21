@@ -1182,7 +1182,7 @@ zone "eng.example.com" {
 		  While the configuration parser will accept any string as the
 		  argument
 		  to algorithm, currently only the string "<userinput>hmac-md5</userinput>"
-		  has any meaning.  The secret is a base-64 encoded string
+		  has any meaning.  The secret is a Base64 encoded string
 		  as specified in RFC 3548.
 		</para>
 
@@ -3575,7 +3575,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	  number of required bits preceded by a dash, e.g.
 	  <literal>hmac-sha1-80</literal>.  The
 	  <replaceable>secret_string</replaceable> is the secret
-	  to be used by the algorithm, and is treated as a base-64
+	  to be used by the algorithm, and is treated as a Base64
 	  encoded string.
 	</para>
 
@@ -9950,7 +9950,7 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	  <para>
 	    The <command>trusted-keys</command> statement can contain
 	    multiple key entries, each consisting of the key's
-	    domain name, flags, protocol, algorithm, and the Base-64
+	    domain name, flags, protocol, algorithm, and the Base64
 	    representation of the key data.
 	    Spaces, tabs, newlines and carriage returns are ignored
 	    in the key data, so the configuration may be split up into
