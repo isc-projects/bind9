@@ -19,4 +19,7 @@ Setting                   Description
                           named-checkzone
 -DNS_RUN_PID_DIR=0        Create default PID files in ${localstatedir}/run
                           rather than ${localstatedir}/run/named/
+                          Increase the maximum number of configurable
+-DNS_RPZ_MAX_ZONES=64     response policy zones from 32 to 64; this is the
+                          highest possible setting
 
