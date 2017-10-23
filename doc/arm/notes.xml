@@ -477,6 +477,18 @@
 	  they are set.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The use of <command>dnssec-keygen</command> to generate
+	  HMAC keys for TSIG authentication has been deprecated in favor
+	  of <command>tsig-keygen</command>. If the algorithms HMAC-MD5,
+	  HMAC-SHA1, HMAC-SHA224, HMAC-SHA256, HMAC-SHA384, or
+	  HMAC-SHA512 are specified, <command>dnssec-keygen</command>
+	  will print a warning message. These algorithms will be
+	  removed from <command>dnssec-keygen</command> entirely in
+	  a future release. [RT #42272]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

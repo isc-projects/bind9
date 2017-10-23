@@ -582,6 +582,16 @@ main(int argc, char **argv) {
 		INSIST((alg != DNS_KEYALG_RSAMD5) && (alg != DST_ALG_HMACMD5));
 #endif
 
+
+		if (alg == DST_ALG_HMACMD5 || alg == DST_ALG_HMACSHA1 ||
+		    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
+		    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
+		{
+			fprintf(stderr,
+				"Use of dnssec-keygen for HMAC keys is "
+				"deprecated: use tsig-keygen\n");
+		}
+
 		if (!dst_algorithm_supported(alg))
 			fatal("unsupported algorithm: %d", alg);
 
