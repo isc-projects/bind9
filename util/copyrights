@@ -2247,6 +2247,10 @@
 ./bin/tests/system/synthfromdnssec/ns3/named.conf	CONF-C	2017
 ./bin/tests/system/synthfromdnssec/ns3/redirect.db	ZONE	2017
 ./bin/tests/system/synthfromdnssec/ns3/root.hints	ZONE	2017
+./bin/tests/system/synthfromdnssec/ns4/named.conf	CONF-C	2017
+./bin/tests/system/synthfromdnssec/ns4/root.hints	ZONE	2017
+./bin/tests/system/synthfromdnssec/ns5/named.conf	CONF-C	2017
+./bin/tests/system/synthfromdnssec/ns5/root.hints	ZONE	2017
 ./bin/tests/system/synthfromdnssec/prereq.sh	SH	2017
 ./bin/tests/system/synthfromdnssec/setup.sh	SH	2017
 ./bin/tests/system/synthfromdnssec/tests.sh	SH	2017
