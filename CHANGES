@@ -1,3 +1,5 @@
+4778.	[test]		Improve synth-from-dnssec testing. [RT #46352]
+
 4777.	[cleanup]	Removed a redundant call to configure_view_acl().
 			[RT #46369]
 

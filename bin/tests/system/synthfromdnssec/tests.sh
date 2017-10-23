@@ -17,49 +17,58 @@ rm -f dig.out.*
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
 DELVOPTS="-a ns1/trusted.conf -p 5300"
 
-echo "I:prime negative NXDOMAIN response ($n)"
-ret=0
-$DIG $DIGOPTS a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN," dig.out.ns2.test$n > /dev/null || ret=1
-grep "example.*3600.IN.SOA" dig.out.ns2.test$n > /dev/null || ret=1
-nxdomain=dig.out.ns2.test$n
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+for ns in 2 4 5
+do
+    case $ns in
+    2) description="<default>";;
+    4) description="no";;
+    5) description="yes";;
+    *) exit 1;;
+    esac
+    echo "I:prime negative NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    [ $ns -eq ${ns} ] && nxdomain=dig.out.ns${ns}.test$n
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:prime negative NODATA response ($n)"
-ret=0
-$DIG $DIGOPTS nodata.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "example.*3600.IN.SOA" dig.out.ns2.test$n > /dev/null || ret=1
-nodata=dig.out.ns2.test$n
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:prime negative NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS nodata.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    [ $ns -eq 2 ] && nodata=dig.out.ns${ns}.test$n
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:prime wildcard response ($n)"
-ret=0
-$DIG $DIGOPTS a.wild-a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "a.wild-a.example.*3600.IN.A" dig.out.ns2.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:prime wildcard response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS a.wild-a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "a.wild-a.example.*3600.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:prime wildcard CNAME response ($n)"
-ret=0
-$DIG $DIGOPTS a.wild-cname.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "a.wild-cname.example.*3600.IN.CNAME" dig.out.ns2.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:prime wildcard CNAME response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS a.wild-cname.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "a.wild-cname.example.*3600.IN.CNAME" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+done
 
-echo "I:prime redirect response (+nodnssec) ($n)"
+echo "I:prime redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
 ret=0
 $DIG $DIGOPTS +nodnssec a.redirect. @10.53.0.3 a > dig.out.ns2.test$n || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null && ret=1
@@ -69,54 +78,88 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#
+# ensure TTL of synthesised answers differs from direct answers.
+#
 sleep 1
 
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 dumpdb
+for ns in 2 4 5
+do
+    case $ns in
+    2) synth=yes description="<default>";;
+    4) synth=no  description="no";;
+    5) synth=yes description="yes";;
+    *) exit 1;;
+    esac
+    echo "I:check synthesized NXDOMAIN response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS b.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    if [ ${synth} = yes ]
+    then
+	grep "example.*IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null && ret=1
+    else
+	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    fi
+    $PERL ../digcomp.pl $nxdomain dig.out.ns${ns}.test$n || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:check synthesized NXDOMAIN response ($n)"
-ret=0
-$DIG $DIGOPTS b.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN," dig.out.ns2.test$n > /dev/null || ret=1
-grep "example.*3600.IN.SOA" dig.out.ns2.test$n > /dev/null && ret=1
-$PERL ../digcomp.pl $nxdomain dig.out.ns2.test$n || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:check synthesized NODATA response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS nodata.example. @10.53.0.${ns} aaaa > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    if [ ${synth} = yes ]
+    then
+	grep "example.*IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null && ret=1
+    else
+	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    fi
+    $PERL ../digcomp.pl $nodata dig.out.ns${ns}.test$n || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:check synthesized NODATA response ($n)"
-ret=0
-$DIG $DIGOPTS nodata.example. @10.53.0.2 aaaa > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "example.*3600.IN.SOA" dig.out.ns2.test$n > /dev/null && ret=1
-$PERL ../digcomp.pl $nodata dig.out.ns2.test$n || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:check synthesized wildcard response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS b.wild-a.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    if [ ${synth} = yes ]
+    then
+	    grep "b\.wild-a\.example\..*IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+	    grep "b\.wild-a\.example\..*3600.IN.A" dig.out.ns${ns}.test$n > /dev/null && ret=1
+    else
+	    grep "b\.wild-a\.example\..*3600.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    fi
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 
-echo "I:check synthesized wildcard response ($n)"
-ret=0
-$DIG $DIGOPTS b.wild-a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "b\.wild-a\.example\..*3600.IN.A" dig.out.ns2.test$n > /dev/null && ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
+    echo "I:check synthesized wildcard CNAME response (synth-from-dnssec ${description};) ($n)"
+    ret=0
+    $DIG $DIGOPTS b.wild-cname.example. @10.53.0.${ns} a > dig.out.ns${ns}.test$n || ret=1
+    grep "flags:[^;]* ad[ ;]" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    grep "status: NOERROR," dig.out.ns${ns}.test$n > /dev/null || ret=1
+    if [ ${synth} = yes ]
+    then
+	grep "b.wild-cname.example.*IN.CNAME" dig.out.ns${ns}.test$n > /dev/null || ret=1
+	grep "b.wild-cname.example.*3600.IN.CNAME" dig.out.ns${ns}.test$n > /dev/null && ret=1
+    else
+	grep "b.wild-cname.example.*3600.IN.CNAME" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    fi
+    grep "ns1.example.*.IN.A" dig.out.ns${ns}.test$n > /dev/null || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+done
 
-echo "I:check synthesized wildcard CNAME response ($n)"
-ret=0
-$DIG $DIGOPTS b.wild-cname.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR," dig.out.ns2.test$n > /dev/null || ret=1
-grep "b.wild-cname.example.*3600.IN.CNAME" dig.out.ns2.test$n > /dev/null && ret=1
-grep "ns1.example.*.IN.A" dig.out.ns2.test$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
-echo "I:check redirect response (+dnssec) ($n)"
+echo "I:check redirect response (+dnssec) (synth-from-dnssec <default>;) ($n)"
 ret=0
 $DIG $DIGOPTS b.redirect. @10.53.0.3 a > dig.out.ns2.test$n || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null || ret=1
@@ -126,7 +169,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check redirect response (+nodnssec) ($n)"
+echo "I:check redirect response (+nodnssec) (synth-from-dnssec <default>;) ($n)"
 ret=0
 $DIG $DIGOPTS +nodnssec b.redirect. @10.53.0.3 a > dig.out.ns2.test$n || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.ns2.test$n > /dev/null && ret=1

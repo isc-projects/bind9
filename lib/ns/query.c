@@ -8338,6 +8338,38 @@ log_noexistnodata(void *val, int level, const char *fmt, ...) {
 	va_end(ap);
 }
 
+static dns_ttl_t
+query_synthttl(dns_rdataset_t *soardataset, dns_rdataset_t *sigsoardataset,
+	       dns_rdataset_t *p1rdataset, dns_rdataset_t *sigp1rdataset,
+	       dns_rdataset_t *p2rdataset, dns_rdataset_t *sigp2rdataset)
+{
+	dns_rdata_soa_t soa;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_ttl_t ttl;
+	isc_result_t result;
+
+	REQUIRE(soardataset != NULL);
+	REQUIRE(sigsoardataset != NULL);
+	REQUIRE(p1rdataset != NULL);
+	REQUIRE(sigp1rdataset != NULL);
+
+	result = dns_rdataset_first(soardataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdataset_current(soardataset, &rdata);
+	dns_rdata_tostruct(&rdata, &soa, NULL);
+
+	ttl = ISC_MIN(soa.minimum, soardataset->ttl);
+	ttl = ISC_MIN(ttl, sigsoardataset->ttl);
+	ttl = ISC_MIN(ttl, p1rdataset->ttl);
+	ttl = ISC_MIN(ttl, sigp1rdataset->ttl);
+	if (p2rdataset != NULL)
+		ttl = ISC_MIN(ttl, p2rdataset->ttl);
+	if (sigp2rdataset != NULL)
+		ttl = ISC_MIN(ttl, sigp2rdataset->ttl);
+
+	return (ttl);
+}
+
 /*
  * Synthesize a NODATA response from the SOA and covering NSEC in cache.
  */
@@ -8354,10 +8386,9 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 	/*
 	 * Detemine the correct TTL to use for the SOA and RRSIG
 	 */
-	ttl = ISC_MIN(qctx->rdataset->ttl, qctx->sigrdataset->ttl);
-	ttl = ISC_MIN(ttl, (*soardatasetp)->ttl);
-	ttl = ISC_MIN(ttl, (*sigsoardatasetp)->ttl);
-
+	ttl = query_synthttl(*soardatasetp, *sigsoardatasetp,
+			     qctx->rdataset, qctx->sigrdataset,
+			     NULL, NULL);
 	(*soardatasetp)->ttl = (*sigsoardatasetp)->ttl = ttl;
 
 	/*
@@ -8559,15 +8590,15 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 
 /*
  * Synthesize a NXDOMAIN response from qctx (which contains the
- * NODATA proof), nowild + rdataset + sigrdataset (which contains
- * the NOWILDCARD proof) and signer + soardatasetp + sigsoardatasetp
+ * NODATA proof), nowild + nowildrdataset + signowildrdataset (which
+ * contains the NOWILDCARD proof) and signer + soardatasetp + sigsoardatasetp
  * which contain the SOA record + RRSIG for the negative answer.
  */
 static isc_result_t
 query_synthnxdomain(query_ctx_t *qctx,
 		    dns_name_t *nowild,
-		    dns_rdataset_t *rdataset,
-		    dns_rdataset_t *sigrdataset,
+		    dns_rdataset_t *nowildrdataset,
+		    dns_rdataset_t *signowildrdataset,
 		    dns_name_t *signer,
 		    dns_rdataset_t **soardatasetp,
 		    dns_rdataset_t **sigsoardatasetp)
@@ -8581,12 +8612,9 @@ query_synthnxdomain(query_ctx_t *qctx,
 	/*
 	 * Detemine the correct TTL to use for the SOA and RRSIG
 	 */
-	ttl = ISC_MIN(qctx->rdataset->ttl, qctx->sigrdataset->ttl);
-	ttl = ISC_MIN(ttl, rdataset->ttl);
-	ttl = ISC_MIN(ttl, sigrdataset->ttl);
-	ttl = ISC_MIN(ttl, (*soardatasetp)->ttl);
-	ttl = ISC_MIN(ttl, (*sigsoardatasetp)->ttl);
-
+	ttl = query_synthttl(*soardatasetp, *sigsoardatasetp,
+			     qctx->rdataset, qctx->sigrdataset,
+			     nowildrdataset, signowildrdataset);
 	(*soardatasetp)->ttl = (*sigsoardatasetp)->ttl = ttl;
 
 	/*
@@ -8651,8 +8679,8 @@ query_synthnxdomain(query_ctx_t *qctx,
 			goto cleanup;
 		}
 
-		dns_rdataset_clone(rdataset, clone);
-		dns_rdataset_clone(sigrdataset, sigclone);
+		dns_rdataset_clone(nowildrdataset, clone);
+		dns_rdataset_clone(signowildrdataset, sigclone);
 
 		/*
 		 * Add NOWILDCARD proof.
