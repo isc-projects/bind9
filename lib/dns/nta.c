@@ -227,7 +227,8 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
 	case DNS_R_NXRRSET:
-		nta->expiry = now;
+		if (nta->expiry > now)
+			nta->expiry = now;
 		break;
 	default:
 		break;
@@ -456,7 +457,7 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 	}
 	if (result == ISC_R_SUCCESS) {
 		nta = (dns_nta_t *) node->data;
-		answer = ISC_TF(nta->expiry >= now);
+		answer = ISC_TF(nta->expiry > now);
 	}
 
 	/* Deal with expired NTA */
@@ -549,7 +550,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 
 			snprintf(obuf, sizeof(obuf), "%s%s: %s %s",
 				 first ? "" : "\n", nbuf,
-				 n->expiry < now ? "expired" : "expiry",
+				 n->expiry <= now ? "expired" : "expiry",
 				 tbuf);
 			first = ISC_FALSE;
 			result = putstr(buf, obuf);
@@ -603,7 +604,7 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 			isc_time_set(&t, n->expiry, 0);
 			isc_time_formattimestamp(&t, tbuf, sizeof(tbuf));
 			fprintf(fp, "%s: %s %s\n", nbuf,
-				n->expiry < now ? "expired" : "expiry",
+				n->expiry <= now ? "expired" : "expiry",
 				tbuf);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
@@ -670,7 +671,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
 			dns_nta_t *n = (dns_nta_t *) node->data;
-			if (now <= n->expiry) {
+			if (n->expiry > now) {
 				isc_buffer_t b;
 				char nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
 				dns_fixedname_t fn;
