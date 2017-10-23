@@ -73,7 +73,7 @@ Usage:\n\
  %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] [-r randomfile] \
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		 generate just the key clause and write it to keyfile (%s)\n\
-  -A alg:	 algorithm (default hmac-md5)\n\
+  -A alg:	 algorithm (default hmac-md5 (deprecated and will change))\n\
   -b bits:	 from 1 through 512, default 256; total length of the secret\n\
   -c keyfile:	 specify an alternate key file (requires -a)\n\
   -k keyname:	 the name as it will be used  in named.conf and rndc.conf\n\
@@ -115,6 +115,7 @@ main(int argc, char **argv) {
 	const char *randomfile = NULL;
 	const char *serveraddr = NULL;
 	dns_secalg_t alg;
+	isc_boolean_t algset = ISC_FALSE;
 	const char *algname;
 	char *p;
 	int ch;
@@ -153,6 +154,7 @@ main(int argc, char **argv) {
 			keyonly = ISC_TRUE;
 			break;
 		case 'A':
+			algset = ISC_TRUE;
 			algname = isc_commandline_argument;
 			alg = alg_fromtext(algname);
 			if (alg == DST_ALG_UNKNOWN)
@@ -224,6 +226,19 @@ main(int argc, char **argv) {
 
 	if (argc > 0)
 		usage(1);
+
+	if (alg == DST_ALG_HMACMD5) {
+		if (algset) {
+			fprintf(stderr,
+				"warning: use of hmac-md5 for RNDC keys "
+				"is deprecated; consider hmac-sha256.\n");
+		} else {
+			fprintf(stderr,
+				"warning: the default algorithm hmac-md5 "
+				"is deprecated and will be\n"
+				"changed in a future release\n")
+		}
+	}
 
 	if (keysize < 0)
 		keysize = alg_bits(alg);
