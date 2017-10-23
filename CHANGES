@@ -1,3 +1,6 @@
+4777.	[cleanup]	Removed a redundant call to configure_view_acl().
+			[RT #46369]
+
 4774.	[bug]		<isc/util.h> was incorrectly included in several
 			header files. [RT #46311]
 
