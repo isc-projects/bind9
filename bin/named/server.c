@@ -4681,20 +4681,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * "allow-recursion" inherits from "allow-query-cache" if set,
 	 * otherwise from "allow-query" if set.
 	 */
-	if (view->cacheacl == NULL && view->recursionacl != NULL)
+	if (view->cacheacl == NULL && view->recursionacl != NULL) {
 		dns_acl_attach(view->recursionacl, &view->cacheacl);
-	/*
-	 * XXXEACH: This call to configure_view_acl() is redundant.  We
-	 * are leaving it as it is because we are making a minimal change
-	 * for a patch release.  In the future this should be changed to
-	 * dns_acl_attach(view->queryacl, &view->cacheacl).
-	 */
-	if (view->cacheacl == NULL && view->recursion)
-		CHECK(configure_view_acl(vconfig, config, "allow-query", NULL,
-					 actx, named_g_mctx, &view->cacheacl));
+	}
+
+	if (view->cacheacl == NULL && view->recursion) {
+		dns_acl_attach(view->queryacl, &view->cacheacl);
+	}
+
 	if (view->recursion &&
 	    view->recursionacl == NULL && view->cacheacl != NULL)
+	{
 		dns_acl_attach(view->cacheacl, &view->recursionacl);
+	}
 
 	/*
 	 * Set default "allow-recursion", "allow-recursion-on" and
