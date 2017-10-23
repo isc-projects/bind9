@@ -1,3 +1,7 @@
+4779.	[bug]		Expire NTA at the start of the second. Don't update
+			the expiry value if the record has already expired
+			after a successful check. [RT #46368]
+
 4778.	[test]		Improve synth-from-dnssec testing. [RT #46352]
 
 4777.	[cleanup]	Removed a redundant call to configure_view_acl().
