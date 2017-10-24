@@ -11074,6 +11074,23 @@ view "external" {
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><command>file</command></term>
+		<listitem>
+		  <para>
+		    Set the zone's filename. In <command>master</command>,
+		    <command>hint</command>, and <command>redirect</command>
+		    zones which do not have <command>masters</command>
+		    defined, zone data is loaded from this file. In
+		    <command>slave</command>, <command>stub</command>, and
+		    <command>redirect</command> zones which do have
+		    <command>masters</command> defined, zone data is
+		    retrieved from another server and saved in this file.
+		    This option is not applicable to other zone types.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><command>forward</command></term>
 		<listitem>
 		  <para>
