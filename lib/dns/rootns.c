@@ -61,7 +61,7 @@ static char root_ns[] =
 ".                       518400  IN      NS      M.ROOT-SERVERS.NET.\n"
 "A.ROOT-SERVERS.NET.     3600000 IN      A       198.41.0.4\n"
 "A.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:503:BA3E::2:30\n"
-"B.ROOT-SERVERS.NET.     3600000 IN      A       192.228.79.201\n"
+"B.ROOT-SERVERS.NET.     3600000 IN      A       199.9.14.201\n"
 "B.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:200::b\n"
 "C.ROOT-SERVERS.NET.     3600000 IN      A       192.33.4.12\n"
 "C.ROOT-SERVERS.NET.     3600000 IN      AAAA    2001:500:2::c\n"
