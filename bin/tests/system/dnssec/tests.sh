@@ -1735,7 +1735,7 @@ echo "I: waiting for NTA rechecks/expirations"
 # fakenode.secure.example should both be lifted, but badds.example
 # should still be going.
 #
-$PERL -e 'my $delay =  '$start' + 8 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+$PERL -e 'my $delay =  '$start' + 10 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 $DIG $DIGOPTS b.secure.example. a @10.53.0.4 > dig.out.ns4.test$n.8 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.8 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.8 > /dev/null || ret=1
@@ -1755,7 +1755,7 @@ ret=0
 # it should still be NTA'd, but badds.example used the default
 # lifetime of 10s, so it should revert to SERVFAIL now.
 #
-$PERL -e 'my $delay = '$start' + 11 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+$PERL -e 'my $delay = '$start' + 13 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check nta table
 $RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 nta -d > rndc.out.ns4.test$n._11
 lines=`wc -l < rndc.out.ns4.test$n._11`
