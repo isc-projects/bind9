@@ -714,7 +714,7 @@
 ./bin/tests/system/acl/ns2/named5.conf		CONF-C	2013
 ./bin/tests/system/acl/setup.sh			SH	2008,2012,2014
 ./bin/tests/system/acl/tests.sh			SH	2008,2012,2013,2014,2016
-./bin/tests/system/additional/clean.sh		SH	2013
+./bin/tests/system/additional/clean.sh		SH	2013,2017
 ./bin/tests/system/additional/ns1/named.args	X	2013
 ./bin/tests/system/additional/ns1/named1.conf	CONF-C	2013
 ./bin/tests/system/additional/ns1/named2.conf	CONF-C	2013
@@ -723,8 +723,10 @@
 ./bin/tests/system/additional/ns1/nid.db	ZONE	2013
 ./bin/tests/system/additional/ns1/rt.db		ZONE	2013
 ./bin/tests/system/additional/ns1/rt2.db	ZONE	2013
+./bin/tests/system/additional/ns3/named.conf	CONF-C	2017
+./bin/tests/system/additional/ns3/root.hint	ZONE	2017
 ./bin/tests/system/additional/setup.sh		SH	2013
-./bin/tests/system/additional/tests.sh		SH	2013,2016
+./bin/tests/system/additional/tests.sh		SH	2013,2016,2017
 ./bin/tests/system/addzone/clean.sh		SH	2010,2012,2013,2015,2017
 ./bin/tests/system/addzone/ns1/inlineslave.db	ZONE	2013
 ./bin/tests/system/addzone/ns1/named.conf	CONF-C	2013
