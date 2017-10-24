@@ -1,3 +1,15 @@
+4785.	[func]		The hmac-md5 algorithm is no longer recommended for
+			use with RNDC keys. For compatibility reasons, it
+			it is still the default algorithm in rndc-confgen,
+			but this will be changed to hmac-sha256 in a future
+			release. [RT #42272]
+
+4784.	[func]		The use of dnssec-keygen to generate HMAC keys is
+			deprecated in favor of tsig-keygen.  dnssec-keygen
+			will print a warning when used for this purpose.
+			All HMAC algorithms will be removed from
+			dnssec-keygen in a future release. [RT #42272]
+
 4783.	[test]		dnssec: 'check that NOTIFY is sent at the end of
 			NSEC3 chain generation failed' required more time
 		        on some machines for the IXFR to complete. [RT #46388]
