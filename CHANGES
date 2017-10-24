@@ -1,3 +1,7 @@
+4783.	[test]		dnssec: 'check that NOTIFY is sent at the end of
+			NSEC3 chain generation failed' required more time
+		        on some machines for the IXFR to complete. [RT #46388]
+
 4782.	[test]		dnssec: 'checking positive and negative validation
 			with negative trust anchors' required more time to
 			complete on some machines. [RT #46386]
