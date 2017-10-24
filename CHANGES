@@ -1,3 +1,7 @@
+4783.	[test]		dnssec: 'check that NOTIFY is sent at the end of
+			NSEC3 chain generation failed' required more time
+		        on some machines for the IXFR to complete. [RT #46388]
+
 4781.	[maint]		B.ROOT-SERVERS.NET is now 199.9.14.201. [RT #45889]
 
 4780.	[bug]		When answering ANY queries, don't include the NS

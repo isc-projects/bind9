@@ -2013,9 +2013,15 @@ do
 done;
 grep "ANSWER: 3," dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:nsec3 chain generation not complete"; fi
-sleep 3
 $DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
-$DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.3 > dig.out.ns3.test$n || ret=1
+s2=`awk '$4 == "SOA" { print $7}' dig.out.ns2.test$n`
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	$DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.3 > dig.out.ns3.test$n || ret=1
+	s3=`awk '$4 == "SOA" { print $7}' dig.out.ns2.test$n`
+	test "$s2" = "$s3" && break
+	sleep 1
+done
 $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
