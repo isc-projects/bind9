@@ -1,3 +1,7 @@
+4782.	[test]		dnssec: 'checking positive and negative validation
+			with negative trust anchors' required more time to
+			complete on some machines. [RT #46386]
+
 4781.	[maint]		B.ROOT-SERVERS.NET is now 199.9.14.201. [RT #45889]
 
 4780.	[bug]		When answering ANY queries, don't include the NS
