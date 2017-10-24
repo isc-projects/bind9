@@ -109,25 +109,27 @@ $PERL stop.pl $test
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-	echofail "R:FAIL"
-	# Don't clean up - we need the evidence.
-	find . -name core -exec chmod 0644 '{}' \;
+    echofail "R:FAIL"
+    # Don't clean up - we need the evidence.
+    find . -name core -exec chmod 0644 '{}' \;
 else
-	echopass "R:PASS"
+    echopass "R:PASS"
 
-	if $clean
+    if $clean
+    then
+	rm -f $SYSTEMTESTTOP/random.data
+	if test -f $test/clean.sh
 	then
-		rm -f $SYSTEMTESTTOP/random.data
-		if test -f $test/clean.sh
-		then
-			( cd $test && $SHELL clean.sh "$@" )
-		fi
-		if test -d ../../../.git
-		then
-			git status -su $test |
-			sed -n 's/^?? \(.*\)/I:file \1 not removed/p'
-		fi
+	    ( cd $test && $SHELL clean.sh "$@" )
 	fi
+	if test -d ../../../.git
+	then
+	    git status -su --ignored $test |
+	    sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
+		-e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
+		-e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+	fi
+    fi
 fi
 
 echoinfo "E:$test:`date`"
