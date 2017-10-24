@@ -1,3 +1,7 @@
+4780.	[bug]		When answering ANY queries, don't include the NS
+			RRset in the authority section if it was already
+			in the answer section. [RT #44543]
+
 4779.	[bug]		Expire NTA at the start of the second. Don't update
 			the expiry value if the record has already expired
 			after a successful check. [RT #46368]
