@@ -237,7 +237,7 @@ main(int argc, char **argv) {
 			fprintf(stderr,
 				"warning: the default algorithm hmac-md5 "
 				"is deprecated and will be\n"
-				"changed to hmac-sha256 in a future release\n")
+				"changed to hmac-sha256 in a future release\n");
 		}
 	}
 
