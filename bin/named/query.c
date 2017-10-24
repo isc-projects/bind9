@@ -6304,6 +6304,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	isc_boolean_t want_restart, is_zone, need_wildcardproof;
 	isc_boolean_t is_staticstub_zone;
 	isc_boolean_t authoritative = ISC_FALSE;
+	isc_boolean_t answer_has_ns = ISC_FALSE;
 	unsigned int n, nlabels;
 	dns_namereln_t namereln;
 	int order;
@@ -8016,6 +8017,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 					have_a = ISC_TRUE;
 			}
 #endif
+			/*
+			 * We found an NS RRset; no need to add one later.
+			 */
+			if (qtype == dns_rdatatype_any &&
+			    rdataset->type == dns_rdatatype_ns)
+			{
+				answer_has_ns = ISC_TRUE;
+			}
+
 			if (is_zone && qtype == dns_rdatatype_any &&
 			    !dns_db_issecure(db) &&
 			    dns_rdatatype_isdnssec(rdataset->type)) {
@@ -8387,14 +8397,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	 */
 	if (!want_restart && !NOAUTHORITY(client)) {
 		if (is_zone) {
-			if (!((qtype == dns_rdatatype_ns ||
-			       qtype == dns_rdatatype_any) &&
-			      dns_name_equal(client->query.qname,
-					     dns_db_origin(db))))
+			if (!answer_has_ns) {
 				(void)query_addns(client, db, version);
-		} else if (qtype != dns_rdatatype_ns) {
-			if (fname != NULL)
+			}
+		} else if (!answer_has_ns && qtype != dns_rdatatype_ns) {
+			if (fname != NULL) {
 				query_releasename(client, &fname);
+			}
 			query_addbestns(client);
 		}
 	}

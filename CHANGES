@@ -1,3 +1,7 @@
+4780.	[bug]		When answering ANY queries, don't include the NS
+			RRset in the authority section if it was already
+			in the answer section. [RT #44543]
+
 4777.	[cleanup]	Removed a redundant call to configure_view_acl().
 			[RT #46369]
 

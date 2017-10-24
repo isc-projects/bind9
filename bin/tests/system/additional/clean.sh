@@ -14,13 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2007/09/26 03:22:44 marka Exp $
-
 #
 # Clean up after tests.
 #
 
 rm -f dig.out.*
 rm -f */named.memstats
-rm -f */named.conf
+rm -f ns1/named.conf
 rm -f */named.run
