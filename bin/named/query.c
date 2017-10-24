@@ -7615,11 +7615,27 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		else
 			noqname = NULL;
 		/*
-		 * BIND 8 priming queries need the additional section.
+		 * Special case NS handling
 		 */
-		if (is_zone && qtype == dns_rdatatype_ns &&
-		    dns_name_equal(client->query.qname, dns_rootname))
-			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+		if (is_zone && qtype == dns_rdatatype_ns) {
+			/*
+			 * We've already got an NS, no need to add one in
+			 * the authority section
+			 */
+			if (dns_name_equal(client->query.qname,
+					   dns_db_origin(db)))
+			{
+				answer_has_ns = ISC_TRUE;
+			}
+
+			/*
+			 * BIND 8 priming queries need the additional section.
+			 */
+			if (dns_name_equal(client->query.qname, dns_rootname)) {
+				client->query.attributes &=
+					~NS_QUERYATTR_NOADDITIONAL;
+			}
+		}
 
 		if (dns64) {
 			qtype = type = dns_rdatatype_aaaa;
