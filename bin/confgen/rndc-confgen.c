@@ -231,12 +231,13 @@ main(int argc, char **argv) {
 		if (algset) {
 			fprintf(stderr,
 				"warning: use of hmac-md5 for RNDC keys "
-				"is deprecated; consider hmac-sha256.\n");
+				"is deprecated; hmac-sha256 is now "
+				"recommended.\n");
 		} else {
 			fprintf(stderr,
 				"warning: the default algorithm hmac-md5 "
 				"is deprecated and will be\n"
-				"changed in a future release\n")
+				"changed to hmac-sha256 in a future release\n")
 		}
 	}
 
