@@ -46,8 +46,8 @@
 ./bin/confgen/keygen.c				C	2009,2012,2013,2014,2015,2016,2017
 ./bin/confgen/keygen.h				C	2009,2016
 ./bin/confgen/rndc-confgen.8			MAN	DOCBOOK
-./bin/confgen/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008,2009,2011,2013,2014,2016
-./bin/confgen/rndc-confgen.docbook		SGML	2001,2003,2004,2005,2007,2009,2013,2014,2015,2016
+./bin/confgen/rndc-confgen.c			C	2001,2003,2004,2005,2007,2008,2009,2011,2013,2014,2016,2017
+./bin/confgen/rndc-confgen.docbook		SGML	2001,2003,2004,2005,2007,2009,2013,2014,2015,2016,2017
 ./bin/confgen/rndc-confgen.html			HTML	DOCBOOK
 ./bin/confgen/unix/Makefile.in			MAKE	2009,2012,2016
 ./bin/confgen/unix/os.c				C	2009,2016
@@ -626,7 +626,7 @@
 ./bin/tests/system/acl/ns2/named7.conf		CONF-C	2014,2016
 ./bin/tests/system/acl/setup.sh			SH	2008,2012,2014,2016
 ./bin/tests/system/acl/tests.sh			SH	2008,2012,2013,2014,2016
-./bin/tests/system/additional/clean.sh		SH	2013,2014,2016
+./bin/tests/system/additional/clean.sh		SH	2013,2014,2016,2017
 ./bin/tests/system/additional/ns1/mx.db		ZONE	2016
 ./bin/tests/system/additional/ns1/named.args	X	2013,2014
 ./bin/tests/system/additional/ns1/named1.conf	CONF-C	2013,2016,2017
@@ -639,6 +639,8 @@
 ./bin/tests/system/additional/ns1/rt.db		ZONE	2013,2016
 ./bin/tests/system/additional/ns1/rt2.db	ZONE	2013,2016
 ./bin/tests/system/additional/ns1/srv.db	ZONE	2016
+./bin/tests/system/additional/ns3/named.conf	CONF-C	2017
+./bin/tests/system/additional/ns3/root.hint	ZONE	2017
 ./bin/tests/system/additional/setup.sh		SH	2013,2016
 ./bin/tests/system/additional/tests.sh		SH	2013,2016,2017
 ./bin/tests/system/addzone/clean.sh		SH	2010,2012,2013,2014,2015,2016,2017
