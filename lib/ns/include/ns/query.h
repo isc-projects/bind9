@@ -119,6 +119,7 @@ typedef struct query_ctx {
 	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
 	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
 	isc_boolean_t want_stale;		/* want stale records? */
+	isc_boolean_t answer_has_ns;		/* NS is in answer */
 	dns_fixedname_t wildcardname;		/* name needing wcard proof */
 	dns_fixedname_t dsname;			/* name needing DS */
 

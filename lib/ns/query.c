@@ -4989,6 +4989,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->is_staticstub_zone = ISC_FALSE;
 	qctx->nxrewrite = ISC_FALSE;
 	qctx->want_stale = ISC_FALSE;
+	qctx->answer_has_ns = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
 }
 
@@ -6572,6 +6573,21 @@ query_respond_any(query_ctx_t *qctx) {
 				have_a = ISC_TRUE;
 		}
 #endif
+		/*
+		 * We found an NS RRset; no need to add one later.
+		 */
+		if (qctx->qtype == dns_rdatatype_any &&
+		    qctx->rdataset->type == dns_rdatatype_ns)
+		{
+			qctx->answer_has_ns = ISC_TRUE;
+		}
+
+		/*
+		 * Note: if we're in this function, then qctx->type
+		 * is guaranteed to be ANY, but qctx->qtype (i.e. the
+		 * original type requested) might have been RRSIG or
+		 * SIG; we need to check for that.
+		 */
 		if (qctx->is_zone && qctx->qtype == dns_rdatatype_any &&
 		    !dns_db_issecure(qctx->db) &&
 		    dns_rdatatype_isdnssec(qctx->rdataset->type))
@@ -6669,6 +6685,7 @@ query_respond_any(query_ctx_t *qctx) {
 			 */
 			dns_rdataset_disassociate(qctx->rdataset);
 		}
+
 		result = dns_rdatasetiter_next(rdsiter);
 	}
 
@@ -6971,12 +6988,26 @@ query_respond(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * BIND 8 priming queries need the additional section.
+	 * Special case NS handling
 	 */
-	if (qctx->is_zone && qctx->qtype == dns_rdatatype_ns &&
-	    dns_name_equal(qctx->client->query.qname, dns_rootname))
-	{
-		qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+	if (qctx->is_zone && qctx->qtype == dns_rdatatype_ns) {
+		/*
+		 * We've already got an NS, no need to add one in
+		 * the authority section
+		 */
+		if (dns_name_equal(qctx->client->query.qname,
+				   dns_db_origin(qctx->db)))
+		{
+			qctx->answer_has_ns = ISC_TRUE;
+		}
+
+		/*
+		 * BIND 8 priming queries need the additional section.
+		 */
+		if (dns_name_equal(qctx->client->query.qname, dns_rootname)) {
+			qctx->client->query.attributes &=
+				~NS_QUERYATTR_NOADDITIONAL;
+		}
 	}
 
 	/*
@@ -10213,14 +10244,12 @@ query_addauth(query_ctx_t *qctx) {
 	 */
 	if (!qctx->want_restart && !NOAUTHORITY(qctx->client)) {
 		if (qctx->is_zone) {
-			if (!((qctx->qtype == dns_rdatatype_ns ||
-			       qctx->qtype == dns_rdatatype_any) &&
-			      dns_name_equal(qctx->client->query.qname,
-					     dns_db_origin(qctx->db))))
-			{
+			if (!qctx->answer_has_ns) {
 				(void)query_addns(qctx);
 			}
-		} else if (qctx->qtype != dns_rdatatype_ns) {
+		} else if (!qctx->answer_has_ns &&
+			   qctx->qtype != dns_rdatatype_ns)
+		{
 			if (qctx->fname != NULL) {
 				query_releasename(qctx->client, &qctx->fname);
 			}
