@@ -3718,7 +3718,6 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 	isc_socketevent_t *sevent, *newsevent;
 
 	REQUIRE(VALID_DISPATCH(disp));
-	REQUIRE((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) != 0);
 	REQUIRE(event != NULL);
 
 	if ((disp->attributes & DNS_DISPATCHATTR_NOLISTEN) == 0)
