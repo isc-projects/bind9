@@ -88,5 +88,5 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
  */
 isc_result_t
 dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-                          dns_rdatatype_t rdtype, unsigned char *dst,
-                          size_t dstlen, const char *src);
+			  dns_rdatatype_t rdtype, unsigned char *dst,
+			  size_t dstlen, const char *src);
