@@ -431,12 +431,21 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 				continue;
 			}
 			if (!dns_name_issubdomain(name, rule->name)) {
-
 				continue;
 			}
 			dns_acl_match(addr, NULL, env->localhost,
 				      NULL, &match, NULL);
 			if (match == 0) {
+				if (signer != NULL) {
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_GENERAL,
+						      DNS_LOGMODULE_SSU,
+						      ISC_LOG_WARNING,
+						      "update-policy local: "
+						      "match on session "
+						      "key not from "
+						      "localhost");
+				}
 				continue;
 			}
 			break;
