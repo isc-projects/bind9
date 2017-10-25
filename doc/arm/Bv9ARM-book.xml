@@ -4309,6 +4309,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <command>maintain-ixfr-base</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>ixfr-from-differences</command> ( <replaceable>yes_or_no</replaceable> | <option>master</option> | <option>slave</option> ) ; ]
   [ <command>auto-dnssec</command> ( <option>allow</option> | <option>maintain</option> | <option>off</option> ) ; ]
+  [ <command>inline-signing</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>dnssec-enable</command> <replaceable>yes_or_no</replaceable> ; ]
   [ <command>dnssec-validation</command> ( <replaceable>yes_or_no</replaceable> | <option>auto</option> ) ; ]
   [ <command>dnssec-lookaside</command> ( <option>auto</option> | <option>no</option> | <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable> ) ; ]
@@ -4548,6 +4549,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	...
     <command>}</command> ; ]
   [ <command>v6-bias</command> <replaceable>number</replaceable> ; ]
+  [ <command>trust-anchor-telemetry</command> <replaceable>yes_or_no</replaceable> ; ]
 <command>}</command> ; ]
 </programlisting>
 
