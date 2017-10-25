@@ -1,3 +1,7 @@
+4788.	[cleanup]	When using "update-policy local", log a warning
+			when an update matching the session key is received
+			from a remote host. [RT #46213]
+
 4787.	[cleanup]	Turn nsec3param_salt_totext() into a public function,
 			dns_nsec3param_salttotext(), and add unit tests for it.
 			[RT #46289]
