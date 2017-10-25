@@ -1,3 +1,7 @@
+4787.	[cleanup]	Turn nsec3param_salt_totext() into a public function,
+			dns_nsec3param_salttotext(), and add unit tests for it.
+			[RT #46289]
+
 4783.	[test]		dnssec: 'check that NOTIFY is sent at the end of
 			NSEC3 chain generation failed' required more time
 			on some machines for the IXFR to complete. [RT #46388]
