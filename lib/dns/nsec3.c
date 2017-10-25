@@ -1010,6 +1010,42 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, const dns_name_t *name,
 }
 
 isc_result_t
+dns_nsec3param_salttotext(dns_rdata_nsec3param_t *nsec3param, char *dst,
+			  size_t dstlen)
+{
+	isc_result_t result;
+	isc_region_t r;
+	isc_buffer_t b;
+
+	REQUIRE(nsec3param != NULL);
+	REQUIRE(dst != NULL);
+
+	if (nsec3param->salt_length == 0) {
+		if (dstlen < 2U) {
+			return (ISC_R_NOSPACE);
+		}
+		strlcpy(dst, "-", dstlen);
+		return (ISC_R_SUCCESS);
+	}
+
+	r.base = nsec3param->salt;
+	r.length = nsec3param->salt_length;
+	isc_buffer_init(&b, dst, (unsigned int)dstlen);
+
+	result = isc_hex_totext(&r, 2, "", &b);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	if (isc_buffer_availablelength(&b) < 1) {
+		return (ISC_R_NOSPACE);
+	}
+	isc_buffer_putuint8(&b, 0);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
 dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 			    dns_zone_t *zone, isc_boolean_t nonsec,
 			    dns_diff_t *diff)
