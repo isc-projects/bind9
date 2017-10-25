@@ -1,3 +1,6 @@
+4791.	[doc]		Fixed outdated documentation about export libraries.
+			[RT #46341]
+
 4790.	[bug]		nsupdate could trigger a require when sending a
 			update to the second address of the server.
 			[RT #45731]
