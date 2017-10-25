@@ -940,6 +940,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1033,7 +1034,6 @@ enable_dnsrps_dl
 with_dnsrps_libname
 with_dnsrps_dir
 enable_dnsrps
-enable_filter_aaaa
 enable_dnstap
 with_protobuf_c
 with_libfstrm
@@ -1103,6 +1103,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1355,6 +1356,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1492,7 +1502,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1645,6 +1655,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1719,7 +1730,6 @@ Optional Features:
   --disable-rpz-nsdname	  disable rpz nsdname rules [default=enabled]
   --enable-dnsrps-dl	  DNS Response Policy Service delayed link [default=$librpz_dl]
   --enable-dnsrps         enable DNS Response Policy Service API
-  --enable-filter-aaaa    enable filtering of AAAA records [default=no]
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-full-report	  report values of all configure options
@@ -11470,7 +11480,6 @@ yes)
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
 	test "${with_atf+set}" = set || with_atf=yes
-	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
@@ -20945,28 +20954,6 @@ $as_echo "#define USE_DNSRPS 1" >>confdefs.h
 fi
 
 #
-# Activate "filter-aaaa-on-v4/v6" or not?
-#
-# Check whether --enable-filter-aaaa was given.
-if test "${enable_filter_aaaa+set}" = set; then :
-  enableval=$enable_filter_aaaa; enable_filter="$enableval"
-else
-  enable_filter="no"
-fi
-
-case "$enable_filter" in
-	yes)
-
-$as_echo "#define ALLOW_FILTER_AAAA 1" >>confdefs.h
-
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
-
-#
 # Activate dnstap?
 #
 # Check whether --enable-dnstap was given.
@@ -26238,8 +26225,6 @@ report() {
         echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed" && \
         echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-    test "yes" = "$enable_filter" && \
-        echo "    AAAA filtering (--enable-filter-aaaa)"
     test "yes" = "$enable_seccomp" && \
         echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" && \

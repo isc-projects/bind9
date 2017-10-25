@@ -4874,7 +4874,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					      dns_quotatype_zone, r);
 	}
 
-#ifdef ALLOW_FILTER_AAAA
 	obj = NULL;
 	result = named_config_get(maps, "filter-aaaa-on-v4", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -4909,7 +4908,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	CHECK(configure_view_acl(vconfig, config, "filter-aaaa", NULL,
 				 actx, named_g_mctx, &view->aaaa_acl));
-#endif
+
 	obj = NULL;
 	result = named_config_get(maps, "prefetch", &obj);
 	if (result == ISC_R_SUCCESS) {

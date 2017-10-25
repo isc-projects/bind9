@@ -1,3 +1,7 @@
+4786.	[func]		The "filter-aaaa-on-v4" and "filter-aaaa-on-v6"
+			options are no longer conditionally compiled.
+			[RT #46340]
+
 4785.	[func]		The hmac-md5 algorithm is no longer recommended for
 			use with RNDC keys. For compatibility reasons, it
 			it is still the default algorithm in rndc-confgen,

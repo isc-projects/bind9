@@ -141,10 +141,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Use AES for Client Cookie generation */
 #undef AES_CC
 
-/* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
-   */
-#undef ALLOW_FILTER_AAAA
-
 /* define if ATF unit tests are to be built. */
 #undef ATF_TEST
 

@@ -693,6 +693,13 @@
 	  catagory.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>filter-aaaa-on-v4</command> and
+	  <command>filter-aaaa-on-v6</command> options are no longer
+	  conditionally compiled in <command>named</command>. [RT #46340]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

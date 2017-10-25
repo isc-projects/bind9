@@ -1897,7 +1897,6 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	return (ISC_TRUE);
 }
 
-#ifdef ALLOW_FILTER_AAAA
 /*
  * Decide whether to not answer with an AAAA record and its RRSIG
  */
@@ -1939,7 +1938,6 @@ norender_rdataset(const dns_rdataset_t *rdataset, unsigned int options,
 
 	return (ISC_TRUE);
 }
-#endif
 
 static isc_result_t
 renderset(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
@@ -2100,13 +2098,14 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 						      preferred_glue))
 					goto next;
 
-#ifdef ALLOW_FILTER_AAAA
 				/*
 				 * Suppress AAAAs if asked and we are
 				 * not doing DNSSEC or are breaking DNSSEC.
 				 * Say so in the AD bit if we break DNSSEC.
 				 */
-				if (norender_rdataset(rdataset, options, sectionid)) {
+				if (norender_rdataset(rdataset, options,
+						      sectionid))
+				{
 					if (sectionid == DNS_SECTION_ANSWER ||
 					    sectionid == DNS_SECTION_AUTHORITY)
 					    msg->flags &= ~DNS_MESSAGEFLAG_AD;
@@ -2115,7 +2114,6 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 					goto next;
 				}
 
-#endif
 				st = *(msg->buffer);
 
 				count = 0;

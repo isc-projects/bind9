@@ -156,12 +156,10 @@ options {\n\
 #	fetch-glue <obsolete>;\n\
 	fetch-quota-params 100 0.1 0.3 0.7;\n\
 	fetches-per-server 0;\n\
-	fetches-per-zone 0;\n"
-#ifdef ALLOW_FILTER_AAAA
-"	filter-aaaa-on-v4 no;\n\
+	fetches-per-zone 0;\n\
+	filter-aaaa-on-v4 no;\n\
 	filter-aaaa-on-v6 no;\n\
 	filter-aaaa { any; };\n"
-#endif
 #ifdef HAVE_GEOIP
 "	geoip-use-ecs yes;\n"
 #endif

@@ -219,7 +219,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 my %configdefh;
 
 my @substdefh = ("AES_CC",
-                 "ALLOW_FILTER_AAAA",
                  "CONFIGARGS",
                  "DNS_RDATASET_FIXED",
                  "ENABLE_RPZ_NSDNAME",
@@ -451,7 +450,6 @@ my @help = (
 "  enable-crypto-rand    use crypto provider for random [default=yes]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
-"  enable-filter-aaaa    enable filtering of AAAA records [default=yes]\n",
 "  enable-fixed-rrset    enable fixed rrset ordering [default=no]\n",
 "  enable-developer      enable developer build settings [default=no]\n",
 "  enable-querytrace     enable very verbose query trace [default=no]\n",
@@ -496,7 +494,6 @@ my $cryptolib = "";
 my $enable_native_pkcs11 = "no";
 my $enable_crypto_rand = "yes";
 my $enable_openssl_hash = "auto";
-my $enable_filter_aaaa = "yes";
 my $enable_isc_spnego = "yes";
 my $enable_fixed_rrset = "no";
 my $enable_developer = "no";
@@ -717,10 +714,6 @@ sub myenable {
         if ($val =~ /^no$/i) {
             $enable_isc_spnego = "no";
         }
-    } elsif ($key =~ /^filter-aaaa$/i) {
-        if ($val =~ /^no$/i) {
-            $enable_filter_aaaa = "no";
-        }
     } elsif ($key =~ /^fixed-rrset$/i) {
         if ($val =~ /^yes$/i) {
             $enable_fixed_rrset = "yes";
@@ -755,7 +748,6 @@ sub myenable {
 
 if ($enable_developer eq "yes") {
     $configdefh{"ISC_LIST_CHECKINIT"} = 1;
-    $enable_filter_aaaa = "yes";
     $enable_querytrace = "yes";
     # no atf on WIN32
     $enable_fixed_rrset = "yes";
@@ -1004,11 +996,6 @@ if ($verbose) {
         print "isc-spnego: enabled\n";
     } else {
         print "isc-spnego: disabled\n";
-    }
-    if ($enable_filter_aaaa eq "yes") {
-        print "filter-aaaa: enabled\n";
-    } else {
-        print "filter-aaaa: disabled\n";
     }
     if ($enable_fixed_rrset eq "yes") {
         print "fixed-rrset: enabled\n";
@@ -1407,11 +1394,6 @@ if ($enable_native_pkcs11 eq "yes") {
         }
         $use_aes = "pkcs11";
     }
-}
-
-# enable-filter-aaaa
-if ($enable_filter_aaaa eq "yes") {
-    $configdefh{"ALLOW_FILTER_AAAA"} = 1;
 }
 
 # enable-fixed-rrset
@@ -3413,7 +3395,6 @@ exit 0;
 #  --enable-querytrace supported
 #  --disable-rpz-nsip supported
 #  --disable-rpz-nsdname supported
-#  --enable-filter-aaaa supported
 #  --enable-full-report supported by verbose
 #  --enable-dnstap not supported (requires libfstrm support on WIN32)
 #  --enable-seccomp not supported (Linux specific)

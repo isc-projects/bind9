@@ -1096,7 +1096,6 @@ client_send(ns_client_t *client) {
 			preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
 	}
 
-#ifdef ALLOW_FILTER_AAAA
 	/*
 	 * filter-aaaa-on-v4 yes or break-dnssec option to suppress
 	 * AAAA records.
@@ -1113,7 +1112,6 @@ client_send(ns_client_t *client) {
 		if (preferred_glue == DNS_MESSAGERENDER_PREFER_AAAA)
 			preferred_glue = DNS_MESSAGERENDER_PREFER_A;
 	}
-#endif
 
 	/*
 	 * Create an OPT for our reply.
@@ -3033,9 +3031,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->interface = NULL;
 	client->peeraddr_valid = ISC_FALSE;
 	dns_ecs_init(&client->ecs);
-#ifdef ALLOW_FILTER_AAAA
 	client->filter_aaaa = dns_aaaa_ok;
-#endif
 	client->needshutdown = ISC_TF((client->sctx->options &
 				       NS_SERVER_CLIENTTEST) != 0);
 

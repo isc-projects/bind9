@@ -141,9 +141,7 @@ struct ns_client {
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;
 	isc_event_t		ctlevent;
-#ifdef ALLOW_FILTER_AAAA
 	dns_aaaa_t		filter_aaaa;
-#endif
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each
@@ -180,10 +178,8 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_MULTICAST		0x00008 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x00010 /*%< include dnssec records */
 #define NS_CLIENTATTR_WANTNSID		0x00020 /*%< include nameserver ID */
-#ifdef ALLOW_FILTER_AAAA
 #define NS_CLIENTATTR_FILTER_AAAA	0x00040 /*%< suppress AAAAs */
 #define NS_CLIENTATTR_FILTER_AAAA_RC	0x00080 /*%< recursing for A against AAAA */
-#endif
 #define NS_CLIENTATTR_WANTAD		0x00100 /*%< want AD in response if possible */
 #define NS_CLIENTATTR_WANTCOOKIE	0x00200 /*%< return a COOKIE */
 #define NS_CLIENTATTR_HAVECOOKIE	0x00400 /*%< has a valid COOKIE */

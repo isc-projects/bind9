@@ -6714,10 +6714,7 @@ options {
 	      <term><command>filter-aaaa-on-v4</command></term>
 	      <listitem>
 		<para>
-		  This option is only available when
-		  <acronym>BIND</acronym> 9 is compiled with the
-		  <userinput>--enable-filter-aaaa</userinput> option on the
-		  "configure" command line.  It is intended to help the
+		  This option is intended to help the
 		  transition from IPv4 to IPv6 by not giving IPv6 addresses
 		  to DNS clients unless they have connections to the IPv6
 		  Internet.  This is not recommended unless absolutely

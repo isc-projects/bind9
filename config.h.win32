@@ -306,10 +306,6 @@ typedef __int64 off_t;
 /* Define to the sockaddr length type used by getnameinfo(3). */
 #define IRS_GETNAMEINFO_SOCKLEN_T socklen_t
 
-/* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
-   */
-@ALLOW_FILTER_AAAA@
-
 /* Define to enable "rrset-order fixed" syntax. */
 @DNS_RDATASET_FIXED@
 
