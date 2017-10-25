@@ -30,9 +30,9 @@ my $FILE = shift;
 
 my $DATE;
 if (@ARGV >= 2) {
-        $DATE = shift
+	$DATE = shift
 } else {
-        $DATE = `git log --max-count=1 --date=short --format='%cd' $FILE` or die "unable to determine last modification date of '$FILE'; specify on command line\nexiting";
+	$DATE = `git log --max-count=1 --date=short --format='%cd' $FILE` or die "unable to determine last modification date of '$FILE'; specify on command line\nexiting";
 }
 chomp $DATE;
 
@@ -123,15 +123,17 @@ while (<FH>) {
 	}
 }
 
+my $blank = 0;
 while (<FH>) {
-        if (m{// not.*implemented} || m{// obsolete}) {
-                next;
-        }
+	if (m{// not.*implemented} || m{// obsolete} || m{// test.*only}) {
+		next;
+	}
+
 	s{ // not configured}{};
 	s{ // may occur multiple times}{};
 	s{<([a-z0-9_-]+)>}{<replaceable>$1</replaceable>}g;
-	s{[[]}{<optional>}g;
-	s{[]]}{</optional>}g;
+	s{[[]}{[}g;
+	s{[]]}{]}g;
 	s{        }{\t}g;
 	if (m{^([a-z0-9-]+) }) {
 		my $HEADING = uc $1;
@@ -141,11 +143,15 @@ while (<FH>) {
     <literallayout class="normal">
 END
 	}
-	if (m{^\s*$}) {
+
+	if (m{^\s*$} && !$blank) {
+		$blank = 1;
 		print <<END;
 </literallayout>
   </refsection>
 END
+	} else {
+		$blank = 0;
 	}
 	print;
 }
