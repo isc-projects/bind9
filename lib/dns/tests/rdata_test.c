@@ -141,38 +141,18 @@ static void
 check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, size_t structsize)
 {
-	isc_buffer_t source, target;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	unsigned char buf_fromtext[1024];
 	char buf_totext[1024] = { 0 };
-	isc_lex_t *lex = NULL;
+	isc_buffer_t target;
 	isc_result_t result;
-	dns_rdata_t rdata;
-	size_t length;
 
-	/*
-	 * Set up lexer to read data.
-	 */
-	result = isc_lex_create(mctx, 64, &lex);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	length = strlen(text_ok->text_in);
-	isc_buffer_constinit(&source, text_ok->text_in, length);
-	isc_buffer_add(&source, length);
-	result = isc_lex_openbuffer(lex, &source);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	/*
-	 * Initialize target structures.
-	 */
-	isc_buffer_init(&target, buf_fromtext, sizeof(buf_fromtext));
-	dns_rdata_init(&rdata);
 	/*
 	 * Try converting text form RDATA into uncompressed wire form.
 	 */
-	result = dns_rdata_fromtext(&rdata, rdclass, type, lex, dns_rootname,
-				    0, NULL, &target, NULL);
-	/*
-	 * Destroy lexer now to simplify error handling below.
-	 */
-	isc_lex_destroy(&lex);
+	result = dns_test_rdata_fromstring(&rdata, rdclass, type, buf_fromtext,
+					   sizeof(buf_fromtext),
+					   text_ok->text_in);
 	/*
 	 * Check whether result is as expected.
 	 */

@@ -640,6 +640,7 @@ dns_nsec3_supportedhash
 dns_nsec3_typepresent
 dns_nsec3param_deletechains
 dns_nsec3param_fromprivate
+dns_nsec3param_salttotext
 dns_nsec3param_toprivate
 dns_nsec_build
 dns_nsec_buildrdata

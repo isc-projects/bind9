@@ -3309,50 +3309,6 @@ resume_signingwithkey(dns_zone_t *zone) {
 }
 
 /*
- * Convert the salt of given NSEC3PARAM RDATA into hex-encoded, NULL-terminated
- * text stored at "dst".
- *
- * Requires:
- * 	"dst" to have enough space (as indicated by "dstlen") to hold the
- * 	resulting text and its NULL-terminating byte.
- */
-static isc_result_t
-nsec3param_salt_totext(dns_rdata_nsec3param_t *nsec3param, char *dst,
-		       size_t dstlen)
-{
-	isc_result_t result;
-	isc_region_t r;
-	isc_buffer_t b;
-
-	REQUIRE(nsec3param != NULL);
-	REQUIRE(dst != NULL);
-
-	if (nsec3param->salt_length == 0) {
-		if (dstlen < 2U) {
-			return (ISC_R_NOSPACE);
-		}
-		strlcpy(dst, "-", dstlen);
-		return (ISC_R_SUCCESS);
-	}
-
-	r.base = nsec3param->salt;
-	r.length = nsec3param->salt_length;
-	isc_buffer_init(&b, dst, (unsigned int)dstlen);
-
-	result = isc_hex_totext(&r, 2, "", &b);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	if (isc_buffer_availablelength(&b) < 1) {
-		return (ISC_R_NOSPACE);
-	}
-	isc_buffer_putuint8(&b, 0);
-
-	return (ISC_R_SUCCESS);
-}
-
-/*
  * Initiate adding/removing NSEC3 records belonging to the chain defined by the
  * supplied NSEC3PARAM RDATA.
  *
@@ -3455,7 +3411,8 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 				strlcat(flags, "|OPTOUT", sizeof(flags));
 		}
 	}
-	result = nsec3param_salt_totext(nsec3param, saltbuf, sizeof(saltbuf));
+	result = dns_nsec3param_salttotext(nsec3param, saltbuf,
+					   sizeof(saltbuf));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_zone_log(zone, ISC_LOG_INFO,
 		     "zone_addnsec3chain(%u,%s,%u,%s)",
@@ -17256,7 +17213,7 @@ dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	result = nsec3param_salt_totext(nsec3param, salt, sizeof(salt));
+	result = dns_nsec3param_salttotext(nsec3param, salt, sizeof(salt));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_zone_log(zone, ISC_LOG_NOTICE,
 		     "dns_zone_addnsec3chain(hash=%u, iterations=%u, salt=%s)",
