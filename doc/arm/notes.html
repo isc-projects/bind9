@@ -488,6 +488,28 @@
 	  they are set.
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  The use of <span class="command"><strong>dnssec-keygen</strong></span> to generate
+	  HMAC keys for TSIG authentication has been deprecated in favor
+	  of <span class="command"><strong>tsig-keygen</strong></span>. If the algorithms HMAC-MD5,
+	  HMAC-SHA1, HMAC-SHA224, HMAC-SHA256, HMAC-SHA384, or
+	  HMAC-SHA512 are specified, <span class="command"><strong>dnssec-keygen</strong></span>
+	  will print a warning message. These algorithms will be
+	  removed from <span class="command"><strong>dnssec-keygen</strong></span> entirely in
+	  a future release. [RT #42272]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The use of HMAC-MD5 for RNDC keys is no longer recommended.
+	  For compatibility, this is still the default algorithm generated
+	  by <span class="command"><strong>rndc-confgen</strong></span>, but it will print a
+	  warning message. The default algorithm in
+	  <span class="command"><strong>rndc-confgen</strong></span> will be changed to HMAC-SHA256
+	  in a future release. [RT #42272]
+	</p>
+      </li>
 </ul></div>
   </div>
 

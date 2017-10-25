@@ -1,4 +1,4 @@
-.\" Copyright (C) 2001, 2003-2005, 2007, 2009, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2001, 2003-2005, 2007, 2009, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -111,7 +111,9 @@ as directed\&.
 .PP
 \-A \fIalgorithm\fR
 .RS 4
-Specifies the algorithm to use for the TSIG key\&. Available choices are: hmac\-md5, hmac\-sha1, hmac\-sha224, hmac\-sha256, hmac\-sha384 and hmac\-sha512\&. The default is hmac\-md5 or if MD5 was disabled hmac\-sha256\&.
+Specifies the algorithm to use for the TSIG key\&. Available choices are: hmac\-md5, hmac\-sha1, hmac\-sha224, hmac\-sha256, hmac\-sha384 and hmac\-sha512\&. The default is hmac\-md5, or if MD5 was disabled at compile time, hmac\-sha256\&.
+.sp
+Note: Use of hmac\-md5 is no longer recommended, and the default value will be changed to hmac\-sha256 in a future release\&.
 .RE
 .PP
 \-b \fIkeysize\fR
@@ -217,5 +219,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2001, 2003-2005, 2007, 2009, 2013-2016 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2001, 2003-2005, 2007, 2009, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
 .br
