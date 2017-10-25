@@ -8651,6 +8651,20 @@ view "external" {
                     See caveats in <a class="xref" href="Bv9ARM.ch06.html#root_delegation_only"><span class="command"><strong>root-delegation-only</strong></span></a>.
                   </p>
                 </dd>
+<dt><span class="term"><span class="command"><strong>file</strong></span></span></dt>
+<dd>
+                  <p>
+                    Set the zone's filename. In <span class="command"><strong>master</strong></span>,
+                    <span class="command"><strong>hint</strong></span>, and <span class="command"><strong>redirect</strong></span>
+                    zones which do not have <span class="command"><strong>masters</strong></span>
+                    defined, zone data is loaded from this file. In
+                    <span class="command"><strong>slave</strong></span>, <span class="command"><strong>stub</strong></span>, and
+                    <span class="command"><strong>redirect</strong></span> zones which do have
+                    <span class="command"><strong>masters</strong></span> defined, zone data is
+                    retrieved from another server and saved in this file.
+                    This option is not applicable to other zone types.
+                  </p>
+                </dd>
 <dt><span class="term"><span class="command"><strong>forward</strong></span></span></dt>
 <dd>
                   <p>
