@@ -497,6 +497,7 @@ fi
 n=`expr $n + 1`
 ret=0
 echo "I:check that 'update-policy local' fails from non-localhost address ($n)"
+grep 'match on session key not from localhost' ns5/named.run > /dev/null && ret=1
 $NSUPDATE -p 5300 -k ns5/session.key > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.5 5300
 local 10.53.0.1
@@ -504,6 +505,7 @@ update add nonlocal.local.nil. 600 A 4.3.2.1
 send
 END
 grep REFUSED nsupdate.out.$n > /dev/null 2>&1 || ret=1
+grep 'match on session key not from localhost' ns5/named.run > /dev/null || ret=1
 $DIG @10.53.0.5 -p 5300 \
         +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
         nonlocal.local.nil. > dig.out.ns5.$n || ret=1
