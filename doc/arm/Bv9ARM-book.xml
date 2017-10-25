@@ -4988,7 +4988,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		Specifies the directory in which to store the configuration
 		parameters for zones added via <command>rndc addzone</command>.
 		By default, this is the working directory. If set to a relative
-		path, it will be relative to the working directory.
+		path, it will be relative to the working directory. The
+		directory <emphasis>must</emphasis> be writable by the
+		effective user ID of the <command>named</command> process.
 	      </para>
 	    </listitem>
 	  </varlistentry>

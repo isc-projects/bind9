@@ -74,6 +74,17 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo "I: checking that named refuses to reconfigure if new-zones-directory is not writable ($n)"
+ret=0
+cp -f ns2/named-alt6.conf ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > rndc.out.$n 2>&1
+grep "failed: permission denied" rndc.out.$n > /dev/null 2>&1 || ret=1
+sleep 1
+grep "new-zones-directory './nope' is not writable" ns2/named.run > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo "I: checking that named refuses to start if working directory is not writable ($n)"
 ret=0
 cd ns2

@@ -7051,6 +7051,13 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      dir, isc_result_totext(result));
 			return (result);
 		}
+		if (access(dir, DIR_PERM_OK) != 0) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "new-zones-directory '%s' "
+				      "is not writable", dir);
+			return (ISC_R_NOPERM);
+		}
 
 		dns_view_setnewzonedir(view, dir);
 	}
