@@ -157,6 +157,7 @@ static dns_dispatch_t *dispatchv4 = NULL;
 static dns_dispatch_t *dispatchv6 = NULL;
 static dns_message_t *updatemsg = NULL;
 static dns_fixedname_t fuserzone;
+static dns_fixedname_t fzname;
 static dns_name_t *userzone = NULL;
 static dns_name_t *zname = NULL;
 static dns_name_t tmpzonename;
@@ -2250,7 +2251,6 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		dns_request_destroy(&request);
 		dns_message_renderreset(updatemsg);
 		dns_message_settsigkey(updatemsg, NULL);
-		/* XXX MPA fix zonename is freed already */
 		send_update(zname, &master_servers[master_inuse]);
 		isc_event_free(&event);
 		return;
@@ -2553,13 +2553,17 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_name_init(&master, NULL);
 	dns_name_clone(&soa.origin, &master);
 
-	/*
-	 * XXXMPA
-	 */
-	if (userzone != NULL)
+	if (userzone != NULL) {
 		zname = userzone;
-	else
-		zname = name;
+	} else {
+		/*
+		 * Save the zone name in case we need to try a second
+		 * address.
+		 */
+		dns_fixedname_init(&fzname);
+		zname = dns_fixedname_name(&fzname);
+		dns_name_copy(name, zname, NULL);
+	}
 
 	if (debugging) {
 		char namestr[DNS_NAME_FORMATSIZE];
