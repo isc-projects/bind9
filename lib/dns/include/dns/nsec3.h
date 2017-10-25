@@ -240,6 +240,19 @@ dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
  */
 
 isc_result_t
+dns_nsec3param_salttotext(dns_rdata_nsec3param_t *nsec3param, char *dst,
+			  size_t dstlen);
+/*%<
+ * Convert the salt of given NSEC3PARAM RDATA into hex-encoded, NULL-terminated
+ * text stored at "dst".
+ *
+ * Requires:
+ *
+ *\li 	"dst" to have enough space (as indicated by "dstlen") to hold the
+ * 	resulting text and its NULL-terminating byte.
+ */
+
+isc_result_t
 dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 			    dns_zone_t *zone, isc_boolean_t nonsec,
 			    dns_diff_t *diff);

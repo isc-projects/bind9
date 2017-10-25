@@ -81,3 +81,13 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 
 char *
 dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
+
+/*%
+ * Try parsing text form RDATA in "src" (of class "rdclass" and type "rdtype")
+ * into a structure representing that RDATA at "rdata", storing the
+ * uncompressed wire form of that RDATA at "dst", which is "dstlen" bytes long.
+ */
+isc_result_t
+dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+                          dns_rdatatype_t rdtype, unsigned char *dst,
+                          size_t dstlen, const char *src);
