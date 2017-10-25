@@ -1,3 +1,7 @@
+4790.	[bug]		nsupdate could trigger a require when sending a
+			update to the second address of the server.
+			[RT #45731]
+
 4788.	[cleanup]	When using "update-policy local", log a warning
 			when an update matching the session key is received
 			from a remote host. [RT #46213]
