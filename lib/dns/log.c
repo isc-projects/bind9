@@ -79,6 +79,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/nta",		0 },
 	{ "dns/dyndb",		0 },
 	{ "dns/dnstap",		0 },
+	{ "dns/ssu",		0 },
 	{ NULL, 		0 }
 };
 
