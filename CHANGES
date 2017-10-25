@@ -1,3 +1,7 @@
+4790.	[bug]		nsupdate could trigger a require when sending a
+			update to the second address of the server.
+			[RT #45731]
+
 4789.	[cleanup]	Check writability of new-zones-directory. [RT #46308]
 
 4788.	[cleanup]	When using "update-policy local", log a warning
