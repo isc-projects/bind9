@@ -104,10 +104,12 @@
 #include <isc/types.h>
 
 /*!
- * To make many functions be inline macros (via \#define) define this.
- * If it is undefined, a function will be used.
+ * To make many functions be inline macros (via \#define) define this to 1.
+ * To use continue to use them as functions define this to 0.
  */
+#ifndef ISC_BUFFER_USEINLINE
 #define ISC_BUFFER_USEINLINE 1
+#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -1007,7 +1009,7 @@ ISC_LANG_ENDDECLS
 		_cp[3] = (unsigned char)_val2; \
 	} while (0)
 
-#if defined(ISC_BUFFER_USEINLINE)
+#if ISC_BUFFER_USEINLINE
 #define isc_buffer_init			ISC__BUFFER_INIT
 #define isc_buffer_initnull		ISC__BUFFER_INITNULL
 #define isc_buffer_invalidate		ISC__BUFFER_INVALIDATE
