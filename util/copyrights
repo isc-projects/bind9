@@ -2109,6 +2109,7 @@
 ./bin/tests/system/runtime/ns2/named-alt3.conf	CONF-C	2015,2016,2017
 ./bin/tests/system/runtime/ns2/named-alt4.conf	CONF-C	2017
 ./bin/tests/system/runtime/ns2/named-alt5.conf	CONF-C	2017
+./bin/tests/system/runtime/ns2/named-alt6.conf	CONF-C	2017
 ./bin/tests/system/runtime/ns2/named1.conf	CONF-C	2017
 ./bin/tests/system/runtime/setup.sh		SH	2015,2016,2017
 ./bin/tests/system/runtime/tests.sh		SH	2014,2015,2016,2017
@@ -3048,7 +3049,7 @@
 ./doc/arm/dyndb.xml				SGML	2015,2016
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
-./doc/arm/libdns.xml				SGML	2010,2014,2015,2016
+./doc/arm/libdns.xml				SGML	2010,2014,2015,2016,2017
 ./doc/arm/logging-categories.xml		SGML	2015,2016,2017
 ./doc/arm/man.arpaname.html			X	2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.ddns-confgen.html			X	2009,2010,2011,2012,2013,2014,2015,2016,2017
@@ -3600,7 +3601,7 @@
 ./lib/dns/tests/master_test.c			C	2011,2012,2013,2015,2016,2017
 ./lib/dns/tests/mkraw.pl			PERL	2011,2012,2016
 ./lib/dns/tests/name_test.c			C	2014,2015,2016,2017
-./lib/dns/tests/nsec3_test.c			C	2012,2014,2015,2016
+./lib/dns/tests/nsec3_test.c			C	2012,2014,2015,2016,2017
 ./lib/dns/tests/peer_test.c			C	2014,2016
 ./lib/dns/tests/private_test.c			C	2011,2012,2016
 ./lib/dns/tests/rbt_serialize_test.c		C	2014,2015,2016
