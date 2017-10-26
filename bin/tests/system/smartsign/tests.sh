@@ -342,8 +342,8 @@ status=`expr $status + $ret`
 
 echo "I:checking sync record publication"
 ret=0
-grep CDNSKEY $cfile.signed > /dev/null || ret=1
-grep CDS $cfile.signed > /dev/null || ret=1
+grep -w CDNSKEY $cfile.signed > /dev/null || ret=1
+grep -w CDS $cfile.signed > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -352,8 +352,8 @@ ret=0
 $SETTIME -P now -A now -Dsync now ${cksk5} > /dev/null
 $SIGNER -Sg -r $RANDFILE -o $czone -f $cfile.new $cfile.signed > /dev/null 2>&1
 mv $cfile.new $cfile.signed
-grep CDNSKEY $cfile.signed > /dev/null && ret=1
-grep CDS $cfile.signed > /dev/null && ret=1
+grep -w CDNSKEY $cfile.signed > /dev/null && ret=1
+grep -w CDS $cfile.signed > /dev/null && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
