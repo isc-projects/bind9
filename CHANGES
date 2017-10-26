@@ -1,3 +1,6 @@
+4793.	[bug]		nsupdate -[46] could overflow the array of server
+			addresses. [RT #46402]
+
 4792.	[bug]		Fix map file header correctness check. [RT #38418]
 
 4791.	[doc]		Fixed outdated documentation about export libraries.

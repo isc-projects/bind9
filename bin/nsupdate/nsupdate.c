@@ -944,16 +944,21 @@ setup_system(void) {
 			case AF_INET:
 				if (have_ipv4) {
 					sa->type.sin.sin_port = htons(dnsport);
+				} else {
+					continue;
 				}
 				break;
 			case AF_INET6:
 				if (have_ipv6) {
 					sa->type.sin6.sin6_port = htons(dnsport);
+				} else {
+					continue;
 				}
 				break;
 			default:
 				fatal("bad family");
 			}
+			INSIST(i < ns_alloc);
 			servers[i++] = *sa;
 		}
 	}
