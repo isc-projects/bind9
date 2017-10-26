@@ -144,7 +144,6 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGETEXTFLAG_NOHEADERS	0x0002
 #define DNS_MESSAGETEXTFLAG_ONESOA	0x0004
 #define DNS_MESSAGETEXTFLAG_OMITSOA	0x0008
-#define DNS_MESSAGETEXTFLAG_COMMENTDATA	0x0010
 
 /*
  * Dynamic update names for these sections.
@@ -382,21 +381,20 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 /*%<
  * Convert all sections of message 'msg' to a cleartext representation
  *
- * Notes:
- * \li     In flags, If #DNS_MESSAGETEXTFLAG_OMITDOT is set, then the
- *      final '.' in absolute names will not be emitted.  If
- *      #DNS_MESSAGETEXTFLAG_NOCOMMENTS is cleared, lines beginning
- *      with ";;" will be emitted indicating section name.  If
- *      #DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will
- *      be emitted.
+ * Notes on flags:
+ *\li	If #DNS_MESSAGETEXTFLAG_NOCOMMENTS is cleared, lines beginning with
+ * 	";;" will be emitted indicating section name.
+ *\li	If #DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will be
+ * 	emitted.
+ *\li   If #DNS_MESSAGETEXTFLAG_ONESOA is set then only print the first
+ *	SOA record in the answer section.
+ *\li	If *#DNS_MESSAGETEXTFLAG_OMITSOA is set don't print any SOA records
+ *	in the answer section.
  *
- *	If #DNS_MESSAGETEXTFLAG_ONESOA is set then only print the
- *	first SOA record in the answer section.  If
- *	#DNS_MESSAGETEXTFLAG_OMITSOA is set don't print any SOA records
- *	in the answer section.  These are useful for suppressing the
- *	display of the second SOA record in a AXFR by setting
- *	#DNS_MESSAGETEXTFLAG_ONESOA on the first message in a AXFR stream
- *	and #DNS_MESSAGETEXTFLAG_OMITSOA on subsequent messages.
+ * The SOA flags are useful for suppressing the display of the second
+ * SOA record in an AXFR by setting #DNS_MESSAGETEXTFLAG_ONESOA on the
+ * first message in an AXFR stream and #DNS_MESSAGETEXTFLAG_OMITSOA on
+ * subsequent messages.
  *
  * Requires:
  *
