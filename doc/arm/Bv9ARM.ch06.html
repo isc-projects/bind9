@@ -2395,6 +2395,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
   [ <span class="command"><strong>maintain-ixfr-base</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>ixfr-from-differences</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">master</code> | <code class="option">slave</code> ) ; ]
   [ <span class="command"><strong>auto-dnssec</strong></span> ( <code class="option">allow</code> | <code class="option">maintain</code> | <code class="option">off</code> ) ; ]
+  [ <span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>dnssec-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
   [ <span class="command"><strong>dnssec-validation</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">auto</code> ) ; ]
   [ <span class="command"><strong>dnssec-lookaside</strong></span> ( <code class="option">auto</code> | <code class="option">no</code> | <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> ) ; ]
@@ -2634,6 +2635,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
         ...
     <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>v6-bias</strong></span> <em class="replaceable"><code>number</code></em> ; ]
+  [ <span class="command"><strong>trust-anchor-telemetry</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
 <span class="command"><strong>}</strong></span> ; ]
 </pre>
 
@@ -3046,7 +3048,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 Specifies the directory in which to store the configuration
                 parameters for zones added via <span class="command"><strong>rndc addzone</strong></span>.
                 By default, this is the working directory. If set to a relative
-                path, it will be relative to the working directory.
+                path, it will be relative to the working directory. The
+                directory <span class="emphasis"><em>must</em></span> be writable by the
+                effective user ID of the <span class="command"><strong>named</strong></span> process.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>named-xfer</strong></span></span></dt>
@@ -4558,10 +4562,7 @@ options {
 <dt><span class="term"><span class="command"><strong>filter-aaaa-on-v4</strong></span></span></dt>
 <dd>
                 <p>
-                  This option is only available when
-                  <acronym class="acronym">BIND</acronym> 9 is compiled with the
-                  <strong class="userinput"><code>--enable-filter-aaaa</code></strong> option on the
-                  "configure" command line.  It is intended to help the
+                  This option is intended to help the
                   transition from IPv4 to IPv6 by not giving IPv6 addresses
                   to DNS clients unless they have connections to the IPv6
                   Internet.  This is not recommended unless absolutely

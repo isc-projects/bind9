@@ -168,9 +168,9 @@ options {
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
         files ( default | unlimited | <sizeval> );
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
@@ -521,9 +521,9 @@ view <string> [ <class> ] {
         fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
-        filter-aaaa { <address_match_element>; ... }; // not configured
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> ); // not configured
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> ); // not configured
+        filter-aaaa { <address_match_element>; ... };
+        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
+        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
