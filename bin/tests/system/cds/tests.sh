@@ -43,7 +43,7 @@ check_stderr() {
 		[ -s err.$n ] || return 0
 	fi
 	echo "D:stderr did not match '$err'"
-	sed 's/^/D:/' err
+	sed 's/^/D:/' err.$n
 	fail
 }
 
