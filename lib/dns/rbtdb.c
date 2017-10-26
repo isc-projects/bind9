@@ -877,6 +877,8 @@ static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 static void overmem(dns_db_t *db, isc_boolean_t over);
 static void setnsec3parameters(dns_db_t *db, rbtdb_version_t *version);
 
+static isc_boolean_t match_header_version(rbtdb_file_header_t *header);
+
 /* Pad to 32 bytes */
 static char FILE_VERSION[32] = "\0";
 
@@ -7424,10 +7426,14 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 #endif
 
 	base = isc_file_mmap(NULL, filesize, protect, flags, fd, 0);
-	if (base == NULL || base == MAP_FAILED)
+	if (base == NULL || base == MAP_FAILED) {
 		return (ISC_R_FAILURE);
+	}
 
 	header = (rbtdb_file_header_t *)(base + offset);
+	if (!match_header_version(header)) {
+		return (ISC_R_FAILURE);
+	}
 
 	if (header->tree != 0) {
 		result = dns_rbt_deserialize_tree(base, filesize,
@@ -7741,6 +7747,21 @@ rbtdb_write_header(FILE *rbtfile, off_t tree_location, off_t nsec_location,
 	fflush(rbtfile);
 
 	return (result);
+}
+
+static isc_boolean_t
+match_header_version(rbtdb_file_header_t *header) {
+	RUNTIME_CHECK(isc_once_do(&once, init_file_version) == ISC_R_SUCCESS);
+
+	if (memcmp(header->version1, FILE_VERSION,
+		   sizeof(header->version1)) != 0 ||
+	    memcmp(header->version2, FILE_VERSION,
+		   sizeof(header->version1)) != 0)
+	{
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
 }
 
 static isc_result_t

@@ -1,3 +1,5 @@
+4792.	[bug]		Fix map file header correctness check. [RT #38418]
+
 4791.	[doc]		Fixed outdated documentation about export libraries.
 			[RT #46341]
 
