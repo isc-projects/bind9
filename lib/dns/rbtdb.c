@@ -7432,7 +7432,8 @@ deserialize32(void *arg, FILE *f, off_t offset) {
 
 	header = (rbtdb_file_header_t *)(base + offset);
 	if (!match_header_version(header)) {
-		return (ISC_R_FAILURE);
+		result = ISC_R_INVALIDFILE;
+		goto cleanup;
 	}
 
 	if (header->tree != 0) {
