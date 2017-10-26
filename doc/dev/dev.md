@@ -30,6 +30,7 @@
     * [Lists](#lists)
     * [Buffers and regions](#buffers)
     * [Names](#names)
+    * [Rdata Classes](#rdata)
     * [Iterators](#iterators)
     * [Logging](#logging)
     * [Adding a new RR type](#rrtype)
@@ -884,6 +885,38 @@ name.  This allows names to be stack-allocated with minimal initialization:
 `name` is now a pointer to a `dns_name` object in which a name can be
 stored for the duration of this function; there is no need to initialize,
 allocate, or free memory.
+
+#### <a name="rdata"></a>Rdata Classes
+
+##### Rdataset
+
+An rdataset (`dns_rdataset_t`) is BIND's representation of a DNS RRset,
+excluding the owner name but including the type, TTL, and the contents of
+each RR. The rdataset object does not hold the data itself: it is a view
+that refers to data held elsewhere -- for example, in a DNS message, or in
+an rbtdb (for cached or authoritative data).
+
+It is a vaguely object-oriented polymorphic data structure, with different
+implementations depending on the backing data structure that actually holds
+the records. The rdataset is explicitly associated/disassociated with the
+backing data structure so that it can maintain reference counts.
+
+One important rdataset implementation is part of the red-black tree
+database, implemented in `rdata.c`.
+
+##### Rdatalist
+
+Another backing data structure for an rdataset is the rdatalist
+(`dns_rdatalist_t`) -- a linked list of rdata structures.  An rdatalist is
+used to record the locations of records in a DNS message. It does not
+maintain reference counts.  An rdatalist can be converted to or from an
+rdataset using `dns_rdatalist_tordataset()` and
+`dns_rdatalist_fromrdataset()`.
+
+##### Rdata
+
+See the [RRATA Types](rdata.md) document for details on type-specific
+rdata conversions.
 
 #### <a name="iterators"></a>Iterators
 
