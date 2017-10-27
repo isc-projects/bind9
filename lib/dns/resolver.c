@@ -9987,6 +9987,7 @@ dns_resolver_prime(dns_resolver_t *res) {
 			res->priming = ISC_FALSE;
 			UNLOCK(&res->lock);
 		}
+		inc_stats(res, dns_resstatscounter_priming);
 	}
 }
 

@@ -64,7 +64,8 @@ enum {
 	dns_resstatscounter_zonequota = 41,
 	dns_resstatscounter_serverquota = 42,
 	dns_resstatscounter_nextitem = 43,
-	dns_resstatscounter_max = 44,
+	dns_resstatscounter_priming = 44,
+	dns_resstatscounter_max = 45,
 
 	/*
 	 * DNSSEC stats.

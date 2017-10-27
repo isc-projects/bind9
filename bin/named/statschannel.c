@@ -395,6 +395,7 @@ init_desc(void) {
 	SET_RESSTATDESC(serverquota, "spilled due to server quota",
 			"ServerQuota");
 	SET_RESSTATDESC(nextitem, "waited for next item", "NextItem");
+	SET_RESSTATDESC(priming, "priming queries", "Priming");
 
 	INSIST(i == dns_resstatscounter_max);
 
@@ -1615,7 +1616,7 @@ generatexml(named_server_t *server, isc_uint32_t flags,
 			ISC_XMLCHAR "type=\"text/xsl\" href=\"/bind9.xsl\""));
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "statistics"));
 	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "version",
-					 ISC_XMLCHAR "3.10"));
+					 ISC_XMLCHAR "3.11"));
 
 	/* Set common fields for statistics dump */
 	dumparg.type = isc_statsformat_xml;
@@ -2411,7 +2412,7 @@ generatejson(named_server_t *server, size_t *msglen,
 	/*
 	 * These statistics are included no matter which URL we use.
 	 */
-	obj = json_object_new_string("1.4");
+	obj = json_object_new_string("1.5");
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 

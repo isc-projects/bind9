@@ -1,3 +1,6 @@
+4795.	[func]		A new statistics counter has been added to track
+			priming queries. [RT #46313]
+
 4794.	[func]		"dnssec-checkds -s" specifies a file from which
 			to read a DS set rather than querying the parent.
 			[RT #44667]

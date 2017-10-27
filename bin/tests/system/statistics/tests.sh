@@ -137,5 +137,12 @@ fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+ret=0
+n=`expr $n + 1`
+echo "I:checking priming queries are counted ($n)"
+grep "1 priming queries" ns3/named.stats
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

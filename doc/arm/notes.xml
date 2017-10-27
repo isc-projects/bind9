@@ -685,6 +685,12 @@
       </listitem>
       <listitem>
 	<para>
+	  A new statistics counter has been added to track priming
+	  queries. [RT #46313]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The <command>dnssec-signzone -x</command> flag and the
 	  <command>dnssec-dnskey-kskonly</command> option in
 	  <command>named.conf</command>, which suppress the use of
