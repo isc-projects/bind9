@@ -38,21 +38,21 @@ DNSTAPTARGETS =	dnstap-read@EXEEXT@
 NZDTARGETS =	named-nzd2nzf@EXEEXT@
 TARGETS =	arpaname@EXEEXT@ named-journalprint@EXEEXT@ \
 		named-rrchecker@EXEEXT@ nsec3hash@EXEEXT@ \
-		genrandom@EXEEXT@ isc-hmac-fixup@EXEEXT@ mdig@EXEEXT@ \
+		genrandom@EXEEXT@ mdig@EXEEXT@ \
 		@DNSTAPTARGETS@ @NZDTARGETS@
 
 DNSTAPSRCS  =	dnstap-read.c
 NZDSRCS  =	named-nzd2nzf.c
 SRCS =		arpaname.c named-journalprint.c named-rrchecker.c \
-		nsec3hash.c genrandom.c isc-hmac-fixup.c mdig.c \
+		nsec3hash.c genrandom.c mdig.c \
 		@DNSTAPSRCS@ @NZDSRCS@
 
 MANPAGES =	arpaname.1 dnstap-read.1 genrandom.8 \
-		isc-hmac-fixup.8 mdig.1 named-journalprint.8 \
+		mdig.1 named-journalprint.8 \
 		named-nzd2nzf.8 named-rrchecker.1 nsec3hash.8
 
 HTMLPAGES =	arpaname.html dnstap-read.html genrandom.html \
-		isc-hmac-fixup.html mdig.html named-journalprint.html \
+		mdig.html named-journalprint.html \
 		named-nzd2nzf.html named-rrchecker.html nsec3hash.html
 
 MANOBJS =	${MANPAGES} ${HTMLPAGES}
@@ -76,11 +76,6 @@ named-rrchecker@EXEEXT@: named-rrchecker.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 nsec3hash@EXEEXT@: nsec3hash.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	export BASEOBJS="nsec3hash.@O@"; \
 	export LIBS0="${DNSLIBS} ${ISCLIBS}"; \
-	${FINALBUILDCMD}
-
-isc-hmac-fixup@EXEEXT@: isc-hmac-fixup.@O@ ${ISCDEPLIBS}
-	export BASEOBJS="isc-hmac-fixup.@O@"; \
-	export LIBS0="${ISCLIBS}"; \
 	${FINALBUILDCMD}
 
 genrandom@EXEEXT@: genrandom.@O@
@@ -134,12 +129,9 @@ install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} genrandom@EXEEXT@ \
 		${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} isc-hmac-fixup@EXEEXT@ \
-		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} mdig@EXEEXT@ \
 		${DESTDIR}${bindir}
 	${INSTALL_DATA} ${srcdir}/arpaname.1 ${DESTDIR}${mandir}/man1
-	${INSTALL_DATA} ${srcdir}/isc-hmac-fixup.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-journalprint.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named-rrchecker.1 ${DESTDIR}${mandir}/man1
 	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
@@ -152,12 +144,9 @@ uninstall::
 	rm -f ${DESTDIR}${mandir}/man8/nsec3hash.8
 	rm -f ${DESTDIR}${mandir}/man1/named-rrchecker.1
 	rm -f ${DESTDIR}${mandir}/man8/named-journalprint.8
-	rm -f ${DESTDIR}${mandir}/man8/isc-hmac-fixup.8
 	rm -f ${DESTDIR}${mandir}/man1/arpaname.1
 	${LIBTOOL_MODE_UNINSTALL} rm -f \
 		${DESTDIR}${bindir}/mdig@EXEEXT@
-	${LIBTOOL_MODE_UNINSTALL} rm -f \
-		${DESTDIR}${sbindir}/isc-hmac-fixup@EXEEXT@
 	${LIBTOOL_MODE_UNINSTALL} rm -f \
 		${DESTDIR}${sbindir}/genrandom@EXEEXT@
 	${LIBTOOL_MODE_UNINSTALL} rm -f \

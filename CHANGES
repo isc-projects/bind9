@@ -1,3 +1,7 @@
+4797.	[func]		Removed "isc-hmac-fixup", as the versions of BIND that
+			had the bug it worked around are long past end of
+			life. [RT #46411]
+
 4796.	[bug]		Increase the maximum configurable TCP keepalive
 			timeout to 65535. [RT #44710]
 

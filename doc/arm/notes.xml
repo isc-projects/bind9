@@ -507,6 +507,14 @@
 	  in a future release. [RT #42272]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>isc-hmac-fixup</command> command, which was created
+	  to address an interoperability problem in TSIG keys between
+	  early versions of BIND and other DNS implmentations, is now
+	  obsolete and has been removed. [RT #46411]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

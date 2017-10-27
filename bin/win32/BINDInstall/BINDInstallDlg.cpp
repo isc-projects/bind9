@@ -186,7 +186,6 @@ const FileData installFiles[] =
 	{"named-compilezone.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-journalprint.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"named-rrchecker.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
-	{"isc-hmac-fixup.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 #ifdef USE_PKCS11
 	{"pkcs11-destroy.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},
 	{"pkcs11-keygen.exe", FileData::BinDir, FileData::Normal, FALSE, FALSE},

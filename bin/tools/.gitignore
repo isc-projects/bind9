@@ -1,7 +1,6 @@
 arpaname
 dnstap-read
 genrandom
-isc-hmac-fixup
 mdig
 named-journalprint
 named-nzd2nzf
