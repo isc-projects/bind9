@@ -568,6 +568,16 @@
       </listitem>
       <listitem>
 	<para>
+	  Initializing keys specified in a <command>managed-keys</command>
+	  statement or by <command>dnssec-validation auto;</command> are
+	  now tagged as "initializing", until they have been updated by a
+	  key refresh query. If key maintenance fails to initialize,
+	  this will be visible when running <command>rndc secroots</command>.
+	  [RT #46267]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Previously, <command>update-policy local;</command> accepted
 	  updates from any source so long as they were signed by the
 	  locally-generated session key. This has been further restricted;

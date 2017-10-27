@@ -215,9 +215,36 @@ t2=`grep "trust pending" ns2/managed-keys.bind`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I: reinitialize trust anchors"
+echo "I: reinitialize trust anchors, add second key to bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
 rm -f ns2/managed-keys.bind*
+cat ns1/$standby1.key | grep -v '^; ' | $PERL -n -e '
+local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
+local $key = join("", @rest);
+local $originalkey = `grep initial-key ns2/managed1.conf`;
+print <<EOF
+managed-keys {
+    $originalkey
+    "$dn" initial-key $flags $proto $alg "$key";
+};
+EOF
+' > ns2/managed.conf
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
+
+n=`expr $n + 1`
+echo "I: check that no key from bind.keys is marked as an initializing key ($n)"
+ret=0
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots | sed 's/^/I: ns2 /'
+sleep 1
+grep '; initializing' ns2/named.secroots > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I: reinitialize trust anchors, revert to one key in bind.keys"
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
+rm -f ns2/managed-keys.bind*
+mv ns2/managed1.conf ns2/managed.conf
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
 n=`expr $n + 1`
@@ -446,7 +473,6 @@ rm -f ${revoked}.key ${revoked}.private
 $SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
 sleep 1
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
@@ -454,6 +480,7 @@ sleep 3
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -537,14 +564,14 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check that trust-anchor-telemetry queries are logged ($n)"
 ret=0
-grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns3/named.run > /dev/null || ret=1
+grep "sending trust-anchor-telemetry query '_ta-[0-9a-f]*/NULL" ns2/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: check that trust-anchor-telemetry queries are received ($n)"
 ret=0
-grep "query '_ta-[0-9a-f]*/NULL/IN' approved" ns1/named.run > /dev/null || ret=1
+grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -559,6 +586,83 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig | sed 's/^/I: ns2 /'
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
 grep "name: \." rndc.out.$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check that trust-anchor-telemetry queries contain the correct key ($n)"
+ret=0
+# convert the hexadecimal key from the TAT query into decimal and
+# compare against the known key.
+tathex=`grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/'`
+tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' $tathex`
+realkey=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots - | grep '; managed' | sed 's#.*SHA256/\([0-9][0-9]*\) ; managed.*#\1#'`
+[ "$tatkey" -eq "$realkey" ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check initialization fails if managed-keys can't be created ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots | sed 's/^/I: ns4 /'
+grep '; initializing managed' ns4/named.secroots > /dev/null 2>&1 || ret=1
+grep '; managed' ns4/named.secroots > /dev/null 2>&1 && ret=1
+grep '; trusted' ns4/named.secroots > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check failure to contact root servers does not prevent key refreshes after restart ($n)"
+ret=0
+# By the time we get here, ns5 should have attempted refreshing its managed
+# keys.  These attempts should fail as ns1 is configured to REFUSE all queries
+# from ns5.  Note that named1.args does not contain "-T mkeytimers"; this is to
+# ensure key refresh retry will be scheduled to one actual hour after the first
+# key refresh failure instead of just a few seconds, in order to prevent races
+# between the next scheduled key refresh time and startup time of restarted ns5.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns5
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
+sleep 2
+# ns5/named.run will contain logs from both the old instance and the new
+# instance.  In order for the test to pass, both must attempt a fetch.
+count=`grep -c "Creating key fetch" ns5/named.run`
+[ $count -lt 2 ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check key refreshes are resumed after root servers become available ($n)"
+ret=0
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns5
+# Prevent previous check from affecting this one
+rm -f ns2/managed-keys.bind*
+# named2.args adds "-T mkeytimers=2/20/40" to named1.args as we need to wait for
+# an "hour" until keys are refreshed again after initial failure
+cp ns5/named2.args ns5/named.args
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
+sleep 2
+$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 secroots | sed 's/^/I: ns4 /'
+sleep 1
+grep '; initializing managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
+# ns1 should still REFUSE queries from ns5, so resolving should be impossible
+$DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.a.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns5.a.test$n > /dev/null && ret=1
+grep "example..*.RRSIG..*TXT" dig.out.ns5.a.test$n > /dev/null && ret=1
+grep "status: SERVFAIL" dig.out.ns5.a.test$n > /dev/null || ret=1
+# Allow queries from ns5 to ns1
+cp ns1/named3.conf ns1/named.conf
+rm -f ns1/root.db.signed.jnl
+$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig
+sleep 3
+$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 secroots | sed 's/^/I: ns4 /'
+sleep 1
+grep '; managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
+# ns1 should not longer REFUSE queries from ns5, so managed keys should be
+# correctly refreshed and resolving should succeed
+$DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns5.b.test$n > /dev/null || ret=1
+grep "example..*.RRSIG..*TXT" dig.out.ns5.b.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.ns5.b.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 

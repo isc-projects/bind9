@@ -10595,8 +10595,8 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 	if (!fuzzing_resolver)
 #endif
 	{
-		(void) dns_badcache_add(resolver->badcache, name, type,
-					ISC_FALSE, 0, expire);
+		dns_badcache_add(resolver->badcache, name, type,
+				 ISC_FALSE, 0, expire);
 	}
 }
 

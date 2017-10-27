@@ -614,6 +614,12 @@ dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries);
 
 unsigned int
 dns_resolver_getoptions(dns_resolver_t *resolver);
+/*%<
+ * Get the resolver options.
+ *
+ * Requires:
+ * \li	resolver to be valid.
+ */
 
 void
 dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,

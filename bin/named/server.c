@@ -805,6 +805,11 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	return (result);
 }
 
+/*
+ * Load keys from configuration into key table. If 'keyname' is specified,
+ * only load keys matching that name. If 'managed' is true, load the key as
+ * an initializing key.
+ */
 static isc_result_t
 load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 	       dns_view_t *view, isc_boolean_t managed,
@@ -820,12 +825,14 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 
 	for (elt = cfg_list_first(keys);
 	     elt != NULL;
-	     elt = cfg_list_next(elt)) {
+	     elt = cfg_list_next(elt))
+	{
 		keylist = cfg_listelt_value(elt);
 
 		for (elt2 = cfg_list_first(keylist);
 		     elt2 != NULL;
-		     elt2 = cfg_list_next(elt2)) {
+		     elt2 = cfg_list_next(elt2))
+		{
 			key = cfg_listelt_value(elt2);
 			result = dstkey_fromconfig(vconfig, key, managed,
 						   &dstkey, mctx);
@@ -833,8 +840,9 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 				result = ISC_R_SUCCESS;
 				continue;
 			}
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
+			}
 
 			/*
 			 * If keyname was specified, we only add that key.
@@ -846,17 +854,27 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 				continue;
 			}
 
-			CHECK(dns_keytable_add(secroots, managed, &dstkey));
+			/*
+			 * This key is taken from the configuration, so
+			 * if it's a managed key then it's an
+			 * initializing key; that's why 'managed'
+			 * is duplicated below.
+			 */
+			CHECK(dns_keytable_add2(secroots, managed,
+						managed, &dstkey));
 		}
 	}
 
  cleanup:
-	if (dstkey != NULL)
+	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
-	if (secroots != NULL)
+	}
+	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
-	if (result == DST_R_NOCRYPTO)
+	}
+	if (result == DST_R_NOCRYPTO) {
 		result = ISC_R_SUCCESS;
+	}
 	return (result);
 }
 
@@ -1026,7 +1044,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	}
 
 	/*
-	 * Add key zone for managed-keys.
+	 * Add key zone for managed keys.
 	 */
 	obj = NULL;
 	(void)named_config_get(maps, "managed-keys-directory", &obj);
@@ -1050,6 +1068,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 	}
+
 	CHECK(add_keydata_zone(view, directory, named_g_mctx));
 
   cleanup:
@@ -6443,16 +6462,19 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		}
 		nextnode = NULL;
 		(void)dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		if (keynode != firstnode)
+		if (keynode != firstnode) {
 			dns_keytable_detachkeynode(keytable, &keynode);
+		}
 		keynode = nextnode;
 	} while (keynode != NULL);
 
-	if (n == 0)
+	if (n == 0) {
 		return;
+	}
 
-	if (n > 1)
+	if (n > 1) {
 		qsort(ids, n, sizeof(ids[0]), cid);
+	}
 
 	/*
 	 * Encoded as "_ta-xxxx\(-xxxx\)*" where xxxx is the hex version of
@@ -6460,22 +6482,25 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	 */
 	label[0] = 0;
 	r.base = label;
-	r.length = sizeof(label);;
+	r.length = sizeof(label);
 	m = snprintf(r.base, r.length, "_ta");
-	if (m < 0 || (unsigned)m > r.length)
+	if (m < 0 || (unsigned)m > r.length) {
 		return;
+	}
 	isc_textregion_consume(&r, m);
 	for (i = 0; i < n; i++) {
 		m = snprintf(r.base, r.length, "-%04x", ids[i]);
-		if (m < 0 || (unsigned)m > r.length)
+		if (m < 0 || (unsigned)m > r.length) {
 			return;
+		}
 		isc_textregion_consume(&r, m);
 	}
 	dns_fixedname_init(&fixed);
 	tatname = dns_fixedname_name(&fixed);
 	result = dns_name_fromstring2(tatname, label, name, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return;
+	}
 
 	dns_name_format(tatname, namebuf, sizeof(namebuf));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -6484,8 +6509,9 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		     view->name, namebuf);
 
 	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
-	if (tat == NULL)
+	if (tat == NULL) {
 		return;
+	}
 
 	tat->mctx = NULL;
 	tat->task = NULL;

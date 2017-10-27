@@ -102,10 +102,18 @@ dns_keytable_detach(dns_keytable_t **keytablep);
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
-		 dst_key_t **keyp);
+		 dst_key_t **keyp) ISC_DEPRECATED;
+isc_result_t
+dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
+		 isc_boolean_t initial, dst_key_t **keyp);
 /*%<
  * Add '*keyp' to 'keytable' (using the name in '*keyp').
- * The value of keynode->managed is set to 'managed'
+ * The value of keynode->managed is set to 'managed', and the
+ * value of keynode->initial is set to 'initial'. (Note: 'initial'
+ * should only be used when adding managed-keys from configuration.
+ * This indicates the key is in "initializing" state, and has not yet
+ * been confirmed with a key refresh query.  Once a key refresh query
+ * has validated, we update the keynode with inital == ISC_FALSE.)
  *
  * Notes:
  *
@@ -116,6 +124,8 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
  * Requires:
  *
  *\li	'keytable' points to a valid keytable.
+ *
+ *\li	if 'initial' is true then 'managed' must also be true.
  *
  *\li	keyp != NULL && *keyp is a valid dst_key_t *.
  *
@@ -400,6 +410,19 @@ isc_boolean_t
 dns_keynode_managed(dns_keynode_t *keynode);
 /*%<
  * Is this flagged as a managed key?
+ */
+
+isc_boolean_t
+dns_keynode_initial(dns_keynode_t *keynode);
+/*%<
+ * Is this flagged as an initializing key?
+ */
+
+void
+dns_keynode_trust(dns_keynode_t *keynode);
+/*%<
+ * Sets keynode->initial to ISC_FALSE in order to mark the key as
+ * trusted: no longer an initializing key.
  */
 
 isc_result_t

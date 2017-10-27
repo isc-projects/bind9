@@ -16,16 +16,8 @@ is used so it will send TAT queries once per second.
 
 ns3 is a validator with a broken key in managed-keys.
 
-Tests TODO:
+ns4 is a validator with a deliberately broken managed-keys.bind and
+managed-keys.jnl, causing RFC 5011 initialization to fail.
 
-- initial working KSK
-
-TODO: test using delv with new trusted key too
-
-- introduce a REVOKE bit
-
-- later remove a signature
-
-- corrupt a signature
-
-TODO: also same things with dlv auto updates of trust anchor
+ns5 is a validator which is prevented from getting a response from the
+root server, causing key refresh queries to fail.

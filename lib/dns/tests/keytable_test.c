@@ -126,7 +126,12 @@ create_tables() {
 
 	/* Add a normal key */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
+		       ISC_R_SUCCESS);
+
+	/* Add an initializing managed key */
+	create_key(257, 3, 5, "managed.com", keystr1, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_TRUE, &key),
 		       ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -185,7 +190,7 @@ ATF_TC_BODY(add, tc) {
 	 * nextkeynode() should still return NOTFOUND.
 	 */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
 						&next_keynode), ISC_R_NOTFOUND);
@@ -193,23 +198,129 @@ ATF_TC_BODY(add, tc) {
 	/* Add another key (different keydata) */
 	dns_keytable_detachkeynode(keytable, &keynode);
 	create_key(257, 3, 5, "example.com", keystr2, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("example.com"),
 					 &keynode), ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
 						&next_keynode), ISC_R_SUCCESS);
 	dns_keytable_detachkeynode(keytable, &next_keynode);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Get the keynode for the managed.com key.  There's no other key for
+	 * the name, so nextkeynode() should return NOTFOUND.  Ensure the
+	 * retrieved key is an initializing key, then mark it as trusted using
+	 * dns_keynode_trust() and ensure the latter works as expected.
+	 */
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("managed.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_NOTFOUND);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_TRUE);
+	dns_keynode_trust(keynode);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Add a different managed key for managed.com, marking it as an
+	 * initializing key.  Ensure nextkeynode() no longer returns
+	 * ISC_R_NOTFOUND and that the added key is an initializing key.
+	 */
+	create_key(257, 3, 5, "managed.com", keystr2, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_TRUE, &key),
+		       ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("managed.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_TRUE);
+	dns_keytable_detachkeynode(keytable, &next_keynode);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Add the same managed key again, but this time mark it as a
+	 * non-initializing key.  Ensure the previously added key is upgraded
+	 * to a non-initializing key and make sure there are still two key
+	 * nodes for managed.com, both containing non-initializing keys.
+	 */
+	create_key(257, 3, 5, "managed.com", keystr2, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_FALSE, &key),
+		       ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("managed.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_SUCCESS);
+	dns_keytable_detachkeynode(keytable, &keynode);
+	keynode = next_keynode;
+	next_keynode = NULL;
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_NOTFOUND);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Add a managed key at a new node, two.com, marking it as an
+	 * initializing key.  Ensure nextkeynode() returns ISC_R_NOTFOUND and
+	 * that the added key is an initializing key.
+	 */
+	create_key(257, 3, 5, "two.com", keystr1, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_TRUE, &key),
+		       ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("two.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_NOTFOUND);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_TRUE);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Add a different managed key for two.com, marking it as a
+	 * non-initializing key.  Ensure nextkeynode() no longer returns
+	 * ISC_R_NOTFOUND and that the added key is not an initializing key.
+	 */
+	create_key(257, 3, 5, "two.com", keystr2, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_FALSE, &key),
+		       ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("two.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	dns_keytable_detachkeynode(keytable, &next_keynode);
+	dns_keytable_detachkeynode(keytable, &keynode);
+
+	/*
+	 * Add the first managed key again, but this time mark it as a
+	 * non-initializing key.  Ensure the previously added key is upgraded
+	 * to a non-initializing key and make sure there are still two key
+	 * nodes for two.com, both containing non-initializing keys.
+	 */
+	create_key(257, 3, 5, "two.com", keystr1, &key);
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_TRUE, ISC_FALSE, &key),
+		       ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("two.com"),
+					 &keynode), ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_SUCCESS);
+	dns_keytable_detachkeynode(keytable, &keynode);
+	keynode = next_keynode;
+	next_keynode = NULL;
+	ATF_REQUIRE_EQ(dns_keynode_initial(keynode), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns_keytable_nextkeynode(keytable, keynode,
+						&next_keynode), ISC_R_NOTFOUND);
+	dns_keytable_detachkeynode(keytable, &keynode);
 
 	/*
 	 * Add a normal key to a name that has a null key.  The null key node
 	 * will be updated with the normal key.
 	 */
-	dns_keytable_detachkeynode(keytable, &keynode);
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("null.example"),
 					 &null_keynode), ISC_R_SUCCESS);
 	create_key(257, 3, 5, "null.example", keystr2, &key);
-	ATF_REQUIRE_EQ(dns_keytable_add(keytable, ISC_FALSE, &key),
+	ATF_REQUIRE_EQ(dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key),
 		       ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("null.example"),
 					 &keynode), ISC_R_SUCCESS);
@@ -523,7 +634,7 @@ ATF_TC_BODY(nta, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	create_key(257, 3, 5, "example", keystr1, &key);
-	result = dns_keytable_add(keytable, ISC_FALSE, &key);
+	result = dns_keytable_add2(keytable, ISC_FALSE, ISC_FALSE, &key);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);

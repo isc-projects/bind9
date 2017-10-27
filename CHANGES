@@ -1,3 +1,9 @@
+4798.	[func]		Keys specified in "managed-keys" statements
+			are tagged as "initializing" until they have been
+			updated by a key refresh query. If initialization
+			fails it will be visible from "rndc secroots".
+			[RT #46267]
+
 4797.	[func]		Removed "isc-hmac-fixup", as the versions of BIND that
 			had the bug it worked around are long past end of
 			life. [RT #46411]

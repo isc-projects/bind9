@@ -47,6 +47,7 @@ struct dns_keynode {
 	isc_refcount_t          refcount;
 	dst_key_t *             key;
 	isc_boolean_t           managed;
+	isc_boolean_t		initial;
 	struct dns_keynode *    next;
 };
 
@@ -164,68 +165,146 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 	*keytablep = NULL;
 }
 
+/*%
+ * Search "node" for either a null key node or a key node for the exact same
+ * key as the one supplied in "keyp" and, if found, update it accordingly.
+ */
 static isc_result_t
-insert(dns_keytable_t *keytable, isc_boolean_t managed,
-       const dns_name_t *keyname, dst_key_t **keyp)
+update_keynode(dst_key_t **keyp, dns_rbtnode_t *node, isc_boolean_t initial) {
+	dns_keynode_t *knode;
+
+	REQUIRE(keyp != NULL && *keyp != NULL);
+	REQUIRE(node != NULL);
+
+	for (knode = node->data; knode != NULL; knode = knode->next) {
+		if (knode->key == NULL) {
+			/*
+			 * Null key node found.  Attach the supplied key to it,
+			 * making it a non-null key node and transferring key
+			 * ownership to the keytable.
+			 */
+			knode->key = *keyp;
+			*keyp = NULL;
+			return (ISC_R_SUCCESS);
+		} else if (dst_key_compare(knode->key, *keyp)) {
+			/*
+			 * Key node found for the supplied key.  Free the
+			 * supplied copy of the key and update the found key
+			 * node's flags if necessary.
+			 */
+			dst_key_free(keyp);
+			if (!initial) {
+				dns_keynode_trust(knode);
+			}
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+/*%
+ * Create a key node for "keyp" (or a null key node if "keyp" is NULL), set
+ * "managed" and "initial" as requested and make the created key node the first
+ * one attached to "node" in "keytable".
+ */
+static isc_result_t
+prepend_keynode(dst_key_t **keyp, dns_rbtnode_t *node,
+		dns_keytable_t *keytable, isc_boolean_t managed,
+		isc_boolean_t initial)
 {
-	isc_result_t result;
 	dns_keynode_t *knode = NULL;
-	dns_rbtnode_t *node;
+	isc_result_t result;
 
 	REQUIRE(keyp == NULL || *keyp != NULL);
 	REQUIRE(VALID_KEYTABLE(keytable));
+	REQUIRE(!initial || managed);
 
 	result = dns_keynode_create(keytable->mctx, &knode);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
+
+	/*
+	 * If a key was supplied, transfer its ownership to the keytable.
+	 */
+	if (keyp) {
+		knode->key = *keyp;
+		*keyp = NULL;
+	}
 
 	knode->managed = managed;
+	knode->initial = initial;
+	knode->next = node->data;
+	node->data = knode;
+
+	return (ISC_R_SUCCESS);
+}
+
+/*%
+ * Add key "keyp" at "keyname" in "keytable".  If the key already exists at the
+ * requested name, update its flags.  If "keyp" is NULL, add a null key to
+ * indicate that "keyname" should be treated as a secure domain without
+ * supplying key data which would allow the domain to be validated.
+ */
+static isc_result_t
+insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
+       const dns_name_t *keyname, dst_key_t **keyp)
+{
+	dns_rbtnode_t *node = NULL;
+	isc_result_t result;
+
+	REQUIRE(VALID_KEYTABLE(keytable));
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
-	node = NULL;
 	result = dns_rbt_addnode(keytable->table, keyname, &node);
-
-	if (keyp != NULL) {
-		if (result == ISC_R_EXISTS) {
-			/* Key already in table? */
-			dns_keynode_t *k;
-			for (k = node->data; k != NULL; k = k->next) {
-				if (k->key == NULL) {
-					k->key = *keyp;
-					*keyp = NULL; /* transfer ownership */
-					break;
-				}
-				if (dst_key_compare(k->key, *keyp) == ISC_TRUE)
-					break;
-			}
-
-			if (k == NULL)
-				result = ISC_R_SUCCESS;
-			else if (*keyp != NULL)
-				dst_key_free(keyp);
-		}
-
-		if (result == ISC_R_SUCCESS) {
-			knode->key = *keyp;
-			knode->next = node->data;
-			*keyp = NULL;
-		}
-	}
-
 	if (result == ISC_R_SUCCESS) {
-		node->data = knode;
-		knode = NULL;
+		/*
+		 * There was no node for "keyname" in "keytable" yet, so one
+		 * was created.  Create a new key node for the supplied key (or
+		 * a null key node if "keyp" is NULL) and attach it to the
+		 * created node.
+		 */
+		result = prepend_keynode(keyp, node, keytable, managed,
+					 initial);
+	} else if (result == ISC_R_EXISTS) {
+		/*
+		 * A node already exists for "keyname" in "keytable".
+		 */
+		if (keyp == NULL) {
+			/*
+			 * We were told to add a null key at "keyname", which
+			 * means there is nothing left to do as there is either
+			 * a null key at this node already or there is a
+			 * non-null key node which would not be affected.
+			 * Reset result to reflect the fact that the node for
+			 * "keyname" is already marked as secure.
+			 */
+			result = ISC_R_SUCCESS;
+		} else {
+			/*
+			 * We were told to add the key supplied in "keyp" at
+			 * "keyname".  Try to find an already existing key node
+			 * we could reuse for the supplied key (i.e. a null key
+			 * node or a key node for the exact same key) and, if
+			 * found, update it accordingly.
+			 */
+			result = update_keynode(keyp, node, initial);
+			if (result == ISC_R_NOTFOUND) {
+				/*
+				 * The node for "keyname" only contains key
+				 * nodes for keys different than the supplied
+				 * one.  Create a new key node for the supplied
+				 * key and prepend it before the others.
+				 */
+				result = prepend_keynode(keyp, node, keytable,
+							 managed, initial);
+			}
+		}
 	}
-
-	/* Key was already there?  That's the same as a success */
-	if (result == ISC_R_EXISTS)
-		result = ISC_R_SUCCESS;
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
-
-	if (knode != NULL)
-		dns_keynode_detach(keytable->mctx, &knode);
 
 	return (result);
 }
@@ -234,13 +313,21 @@ isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 		 dst_key_t **keyp)
 {
+	return (dns_keytable_add2(keytable, managed, ISC_FALSE, keyp));
+}
+
+isc_result_t
+dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
+		  isc_boolean_t initial, dst_key_t **keyp)
+{
 	REQUIRE(keyp != NULL && *keyp != NULL);
-	return (insert(keytable, managed, dst_key_name(*keyp), keyp));
+	REQUIRE(!initial || managed);
+	return (insert(keytable, managed, initial, dst_key_name(*keyp), keyp));
 }
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return (insert(keytable, ISC_TRUE, name, NULL));
+	return (insert(keytable, ISC_TRUE, ISC_FALSE, name, NULL));
 }
 
 isc_result_t
@@ -644,8 +731,9 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 			if (knode->key == NULL)
 				continue;
 			dst_key_format(knode->key, pbuf, sizeof(pbuf));
-			snprintf(obuf, sizeof(obuf), "%s ; %s\n", pbuf,
-				knode->managed ? "managed" : "trusted");
+			snprintf(obuf, sizeof(obuf), "%s ; %s%s\n", pbuf,
+				 knode->initial ? "initializing " : "",
+				 knode->managed ? "managed" : "trusted");
 			result = putstr(text, obuf);
 			if (result != ISC_R_SUCCESS)
 				break;
@@ -703,11 +791,6 @@ dns_keytable_forall(dns_keytable_t *keytable,
 
 dst_key_t *
 dns_keynode_key(dns_keynode_t *keynode) {
-
-	/*
-	 * Get the DST key associated with keynode.
-	 */
-
 	REQUIRE(VALID_KEYNODE(keynode));
 
 	return (keynode->key);
@@ -715,12 +798,23 @@ dns_keynode_key(dns_keynode_t *keynode) {
 
 isc_boolean_t
 dns_keynode_managed(dns_keynode_t *keynode) {
-	/*
-	 * Is this a managed key?
-	 */
 	REQUIRE(VALID_KEYNODE(keynode));
 
 	return (keynode->managed);
+}
+
+isc_boolean_t
+dns_keynode_initial(dns_keynode_t *keynode) {
+	REQUIRE(VALID_KEYNODE(keynode));
+
+	return (keynode->initial);
+}
+
+void
+dns_keynode_trust(dns_keynode_t *keynode) {
+	REQUIRE(VALID_KEYNODE(keynode));
+
+	keynode->initial = ISC_FALSE;
 }
 
 isc_result_t
@@ -736,6 +830,7 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 
 	knode->magic = KEYNODE_MAGIC;
 	knode->managed = ISC_FALSE;
+	knode->initial = ISC_FALSE;
 	knode->key = NULL;
 	knode->next = NULL;
 
