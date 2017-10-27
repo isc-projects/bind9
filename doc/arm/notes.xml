@@ -449,6 +449,14 @@
 	  <command>dnssec-settime</command>, etc. [RT #46149]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>dnssec-checkds -s</command> specifies a file from
+	  which to read a DS set rather than querying the parent zone.
+	  This can be used to check zone correctness prior to
+	  publication. Thanks to Niall O'Reilly [RT #44667]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

@@ -171,6 +171,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:checking with prepared dsset file ($n)"
+ret=0
+$CHECKDS -f prep.example.db -s prep.example.ds.db prep.example > checkds.out.$n || ret=1
+grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
+grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 if [ $status = 0 ]; then $SHELL clean.sh; fi
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -42,20 +42,13 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>dnssec-checkds</command>
-      <arg choice="opt" rep="norepeat"><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-f <replaceable class="parameter">file</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-d <replaceable class="parameter">dig path</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">dsfromkey path</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-f <replaceable class="parameter">file</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">file</replaceable></option></arg>
       <arg choice="req" rep="norepeat">zone</arg>
     </cmdsynopsis>
-    <cmdsynopsis sepchar=" ">
-      <command>dnssec-dsfromkey</command>
-      <arg choice="opt" rep="norepeat"><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-f <replaceable class="parameter">file</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-d <replaceable class="parameter">dig path</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">dsfromkey path</replaceable></option></arg>
-      <arg choice="req" rep="norepeat">zone</arg>
-   </cmdsynopsis>
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
@@ -88,6 +81,17 @@
           <para>
             Check for a DLV record in the specified lookaside domain,
             instead of checking for a DS record in the zone's parent.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-s <replaceable class="parameter">file</replaceable></term>
+        <listitem>
+          <para>
+            Specifies a prepared dsset file, such as would be generated
+            by <command>dnssec-signzone</command>, to use as a source for
+            the DS RRset instead of querying the parent.
           </para>
         </listitem>
       </varlistentry>

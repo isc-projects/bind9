@@ -34,7 +34,11 @@ class SECRR:
         if not rrtext:
             raise Exception
 
-        fields = rrtext.decode('ascii').split()
+        # 'str' does not have decode method in python3
+        if type(rrtext) is not str:
+            fields = rrtext.decode('ascii').split()
+        else:
+            fields = rrtext.split()
         if len(fields) < 7:
             raise Exception
 
@@ -89,35 +93,39 @@ class SECRR:
 # Generate a set of expected DS/DLV records from the DNSKEY RRset,
 # and report on congruency.
 ############################################################################
-def check(zone, args, masterfile=None, lookaside=None):
+def check(zone, args):
     rrlist = []
-    cmd = [args.dig, "+noall", "+answer", "-t", "dlv" if lookaside else "ds",
-           "-q", zone + "." + lookaside if lookaside else zone]
-    fp, _ = Popen(cmd, stdout=PIPE).communicate()
+    if args.dssetfile:
+        fp = open(args.dssetfile).read()
+    else:
+        cmd = [args.dig, "+noall", "+answer", "-t",
+                "dlv" if args.lookaside else "ds", "-q",
+                zone + "." + args.lookaside if args.lookaside else zone]
+        fp, _ = Popen(cmd, stdout=PIPE).communicate()
 
     for line in fp.splitlines():
-        rrlist.append(SECRR(line, lookaside))
+        rrlist.append(SECRR(line, args.lookaside))
     rrlist = sorted(rrlist, key=lambda rr: (rr.keyid, rr.keyalg, rr.hashalg))
 
     klist = []
 
-    if masterfile:
-        cmd = [args.dsfromkey, "-f", masterfile]
-        if lookaside:
-            cmd += ["-l", lookaside]
+    if args.masterfile:
+        cmd = [args.dsfromkey, "-f", args.masterfile]
+        if args.lookaside:
+            cmd += ["-l", args.lookaside]
         cmd.append(zone)
         fp, _ = Popen(cmd, stdout=PIPE).communicate()
     else:
         intods, _ = Popen([args.dig, "+noall", "+answer", "-t", "dnskey",
                            "-q", zone], stdout=PIPE).communicate()
         cmd = [args.dsfromkey, "-f", "-"]
-        if lookaside:
-            cmd += ["-l", lookaside]
+        if args.lookaside:
+            cmd += ["-l", args.lookaside]
         cmd.append(zone)
         fp, _ = Popen(cmd, stdin=PIPE, stdout=PIPE).communicate(intods)
 
     for line in fp.splitlines():
-        klist.append(SECRR(line, lookaside))
+        klist.append(SECRR(line, args.lookaside))
 
     if len(klist) < 1:
         print("No DNSKEY records found in zone apex")
@@ -136,7 +144,8 @@ def check(zone, args, masterfile=None, lookaside=None):
                    rr.keyid, SECRR.hashalgs[rr.hashalg]))
 
     if not found:
-        print("No %s records were found for any DNSKEY" % ("DLV" if lookaside else "DS"))
+        print("No %s records were found for any DNSKEY" %
+                ("DLV" if args.lookaside else "DS"))
 
     return found
 
@@ -151,10 +160,6 @@ def parse_args():
     sbindir = 'bin' if os.name == 'nt' else 'sbin'
 
     parser.add_argument('zone', type=str, help='zone to check')
-    parser.add_argument('-f', '--file', dest='masterfile', type=str,
-                        help='zone master file')
-    parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
-                        help='DLV lookaside zone')
     parser.add_argument('-d', '--dig', dest='dig',
                         default=os.path.join(prefix(bindir), 'dig'),
                         type=str, help='path to \'dig\'')
@@ -162,6 +167,12 @@ def parse_args():
                         default=os.path.join(prefix(sbindir),
                                              'dnssec-dsfromkey'),
                         type=str, help='path to \'dig\'')
+    parser.add_argument('-f', '--file', dest='masterfile', type=str,
+                        help='zone master file')
+    parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
+                        help='DLV lookaside zone')
+    parser.add_argument('-s', '--dsset', dest='dssetfile', type=str,
+                        help='prepared DSset file')
     parser.add_argument('-v', '--version', action='version',
                         version=version)
     args = parser.parse_args()
@@ -178,5 +189,5 @@ def parse_args():
 ############################################################################
 def main():
     args = parse_args()
-    found = check(args.zone, args, args.masterfile, args.lookaside)
+    found = check(args.zone, args)
     exit(0 if found else 1)
