@@ -39,10 +39,8 @@
 			[RT #46340]
 
 4785.	[func]		The hmac-md5 algorithm is no longer recommended for
-			use with RNDC keys. For compatibility reasons, it
-			it is still the default algorithm in rndc-confgen,
-			but this will be changed to hmac-sha256 in a future
-			release. [RT #42272]
+			use with RNDC keys.  The default in rndc-confgen
+			is now hmac-sha256. [RT #42272]
 
 4784.	[func]		The use of dnssec-keygen to generate HMAC keys is
 			deprecated in favor of tsig-keygen.  dnssec-keygen
