@@ -33,20 +33,13 @@
 <h2>Synopsis</h2>
     <div class="cmdsynopsis"><p>
       <code class="command">dnssec-checkds</code> 
-       [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>]
-       [<code class="option">-f <em class="replaceable"><code>file</code></em></code>]
        [<code class="option">-d <em class="replaceable"><code>dig path</code></em></code>]
        [<code class="option">-D <em class="replaceable"><code>dsfromkey path</code></em></code>]
+       [<code class="option">-f <em class="replaceable"><code>file</code></em></code>]
+       [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>]
+       [<code class="option">-s <em class="replaceable"><code>file</code></em></code>]
        {zone}
     </p></div>
-    <div class="cmdsynopsis"><p>
-      <code class="command">dnssec-dsfromkey</code> 
-       [<code class="option">-l <em class="replaceable"><code>domain</code></em></code>]
-       [<code class="option">-f <em class="replaceable"><code>file</code></em></code>]
-       [<code class="option">-d <em class="replaceable"><code>dig path</code></em></code>]
-       [<code class="option">-D <em class="replaceable"><code>dsfromkey path</code></em></code>]
-       {zone}
-   </p></div>
   </div>
 
   <div class="refsection">
@@ -77,6 +70,14 @@
           <p>
             Check for a DLV record in the specified lookaside domain,
             instead of checking for a DS record in the zone's parent.
+          </p>
+        </dd>
+<dt><span class="term">-s <em class="replaceable"><code>file</code></em></span></dt>
+<dd>
+          <p>
+            Specifies a prepared dsset file, such as would be generated
+            by <span class="command"><strong>dnssec-signzone</strong></span>, to use as a source for
+            the DS RRset instead of querying the parent.
           </p>
         </dd>
 <dt><span class="term">-d <em class="replaceable"><code>dig path</code></em></span></dt>

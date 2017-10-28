@@ -6451,7 +6451,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   server waits on an idle TCP connection before closing
                   it when the client is using the EDNS TCP keepalive
                   option.  The default is 300 (30 seconds), the maximum
-                  is 1200 (two minutes), and the minimum is 1 (one tenth
+                  is 65535 (about 1.8 hours), and the minimum is 1 (one tenth
                   of a second). Values above the maximum or below the minimum
                   will be adjusted with a logged warning.
                   This value may be greater than
@@ -6470,7 +6470,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   keepalive option. This informs a client of the
                   amount of time it may keep the session open.
                   The default is 300 (30 seconds), the maximum is
-                  1200 (two minutes), and the minimum is 0, which
+                  65535 (about 1.8 hours), and the minimum is 0, which
                   signals that the clients must close TCP connections
                   immediately.  Ordinarily this should be set to the
                   same value as <span class="command"><strong>tcp-keepalive-timeout</strong></span>.
