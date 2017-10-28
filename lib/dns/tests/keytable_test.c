@@ -346,8 +346,7 @@ ATF_TC_BODY(find, tc) {
 
 	/*
 	 * dns_keytable_find() requires exact name match.  It matches node
-	 * that has a null key, too.  But it doesn't match a negative trust
-	 * anchor.
+	 * that has a null key, too.
 	 */
 	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("example.org"),
 					 &keynode), ISC_R_NOTFOUND);
@@ -360,12 +359,10 @@ ATF_TC_BODY(find, tc) {
 					 &keynode), ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(dns_keynode_key(keynode), NULL);
 	dns_keytable_detachkeynode(keytable, &keynode);
-	ATF_REQUIRE_EQ(dns_keytable_find(keytable, str2name("insecure.example"),
-					 &keynode), ISC_R_NOTFOUND);
 
 	/*
 	 * dns_keytable_finddeepestmatch() allows partial match.  Also match
-	 * nodes with a null key or a negative trust anchor.
+	 * nodes with a null key.
 	 */
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
@@ -389,8 +386,7 @@ ATF_TC_BODY(find, tc) {
 	/*
 	 * dns_keytable_findkeynode() requires exact name, algorithm, keytag
 	 * match.  If algorithm or keytag doesn't match, should result in
-	 * PARTIALMATCH.  Same for a node with a null key or a negative trust
-	 * anchor.
+	 * PARTIALMATCH.  Same for a node with a null key.
 	 */
 	ATF_REQUIRE_EQ(dns_keytable_findkeynode(keytable,
 						str2name("example.org"),
@@ -452,18 +448,14 @@ ATF_TC_BODY(issecuredomain, tc) {
 	}
 
 	/*
-	 * Domains that are an exact or partial match of a negative trust
-	 * anchor are considered insecure.
+	 * If the key table has no entry (not even a null one) for a domain or
+	 * any of its ancestors, that domain is considered insecure.
 	 */
 	ATF_REQUIRE_EQ(dns_keytable_issecuredomain(keytable,
-						   str2name("insecure.example"),
+						   str2name("example.org"),
 						   NULL,
 						   &issecure),
 		       ISC_R_SUCCESS);
-	ATF_REQUIRE_EQ(issecure, ISC_FALSE);
-	ATF_REQUIRE_EQ(dns_keytable_issecuredomain(
-			       keytable, str2name("sub.insecure.example"),
-			       NULL, &issecure), ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(issecure, ISC_FALSE);
 
 	destroy_tables();
@@ -564,6 +556,11 @@ ATF_TC_BODY(nta, tc) {
 	ATF_CHECK(issecure);
 
 	/* Now check deletion */
+	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
+					 now, ISC_TRUE, &issecure);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_CHECK(issecure);
+
 	result = dns_ntatable_add(ntatable, str2name("new.example"),
 				  ISC_FALSE, now, 3600);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);

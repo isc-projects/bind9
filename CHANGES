@@ -1,3 +1,5 @@
+4799.	[cleanup]	Improve clarity of keytable unit tests. [RT #46407]
+
 4792.	[bug]		Fix map file header correctness check. [RT #38418]
 
 4791.	[doc]		Fixed outdated documentation about export libraries.
