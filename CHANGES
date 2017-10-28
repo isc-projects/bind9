@@ -1,3 +1,5 @@
+4799.	[cleanup]	Improve clarity of keytable unit tests. [RT #46407]
+
 4798.	[func]		Keys specified in "managed-keys" statements
 			are tagged as "initializing" until they have been
 			updated by a key refresh query. If initialization
