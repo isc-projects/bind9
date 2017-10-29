@@ -238,7 +238,7 @@ matrix_binaryrank(isc_uint32_t *bits, ssize_t rows, ssize_t cols) {
 }
 
 static void
-random_test(pvalue_func_t *func) {
+random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_rng_t *rng;
@@ -272,8 +272,13 @@ random_test(pvalue_func_t *func) {
 		isc_uint16_t values[128000];
 		double p_value;
 
-		for (i = 0; i < 128000; i++)
-			values[i] = isc_rng_random(rng);
+		if (word_sized) {
+			for (i = 0; i < 128000; i++)
+				isc_rng_randombytes(rng, &values[i],
+						    sizeof(values[i]));
+		} else {
+			isc_rng_randombytes(rng, values, sizeof(values));
+		}
 
 		p_value = (*func)(mctx, values, 128000);
 		if (p_value >= 0.01)
@@ -596,41 +601,41 @@ binarymatrixrank(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	return (p_value);
 }
 
-ATF_TC(isc_rng_monobit);
-ATF_TC_HEAD(isc_rng_monobit, tc) {
+ATF_TC(isc_rng_monobit_16);
+ATF_TC_HEAD(isc_rng_monobit_16, tc) {
 	atf_tc_set_md_var(tc, "descr", "Monobit test for the RNG");
 }
 
-ATF_TC_BODY(isc_rng_monobit, tc) {
+ATF_TC_BODY(isc_rng_monobit_16, tc) {
 	UNUSED(tc);
 
-	random_test(monobit);
+	random_test(monobit, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_runs);
-ATF_TC_HEAD(isc_rng_runs, tc) {
+ATF_TC(isc_rng_runs_16);
+ATF_TC_HEAD(isc_rng_runs_16, tc) {
 	atf_tc_set_md_var(tc, "descr", "Runs test for the RNG");
 }
 
-ATF_TC_BODY(isc_rng_runs, tc) {
+ATF_TC_BODY(isc_rng_runs_16, tc) {
 	UNUSED(tc);
 
-	random_test(runs);
+	random_test(runs, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_blockfrequency);
-ATF_TC_HEAD(isc_rng_blockfrequency, tc) {
+ATF_TC(isc_rng_blockfrequency_16);
+ATF_TC_HEAD(isc_rng_blockfrequency_16, tc) {
 	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RNG");
 }
 
-ATF_TC_BODY(isc_rng_blockfrequency, tc) {
+ATF_TC_BODY(isc_rng_blockfrequency_16, tc) {
 	UNUSED(tc);
 
-	random_test(blockfrequency);
+	random_test(blockfrequency, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_binarymatrixrank);
-ATF_TC_HEAD(isc_rng_binarymatrixrank, tc) {
+ATF_TC(isc_rng_binarymatrixrank_16);
+ATF_TC_HEAD(isc_rng_binarymatrixrank_16, tc) {
 	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RNG");
 }
 
@@ -638,20 +643,72 @@ ATF_TC_HEAD(isc_rng_binarymatrixrank, tc) {
  * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
  * test suite.
  */
-ATF_TC_BODY(isc_rng_binarymatrixrank, tc) {
+ATF_TC_BODY(isc_rng_binarymatrixrank_16, tc) {
 	UNUSED(tc);
 
-	random_test(binarymatrixrank);
+	random_test(binarymatrixrank, ISC_TRUE);
+}
+
+ATF_TC(isc_rng_monobit_bytes);
+ATF_TC_HEAD(isc_rng_monobit_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Monobit test for the RNG");
+}
+
+ATF_TC_BODY(isc_rng_monobit_bytes, tc) {
+	UNUSED(tc);
+
+	random_test(monobit, ISC_FALSE);
+}
+
+ATF_TC(isc_rng_runs_bytes);
+ATF_TC_HEAD(isc_rng_runs_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Runs test for the RNG");
+}
+
+ATF_TC_BODY(isc_rng_runs_bytes, tc) {
+	UNUSED(tc);
+
+	random_test(runs, ISC_FALSE);
+}
+
+ATF_TC(isc_rng_blockfrequency_bytes);
+ATF_TC_HEAD(isc_rng_blockfrequency_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RNG");
+}
+
+ATF_TC_BODY(isc_rng_blockfrequency_bytes, tc) {
+	UNUSED(tc);
+
+	random_test(blockfrequency, ISC_FALSE);
+}
+
+ATF_TC(isc_rng_binarymatrixrank_bytes);
+ATF_TC_HEAD(isc_rng_binarymatrixrank_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RNG");
+}
+
+/*
+ * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
+ * test suite.
+ */
+ATF_TC_BODY(isc_rng_binarymatrixrank_bytes, tc) {
+	UNUSED(tc);
+
+	random_test(binarymatrixrank, ISC_FALSE);
 }
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_rng_monobit);
-	ATF_TP_ADD_TC(tp, isc_rng_runs);
-	ATF_TP_ADD_TC(tp, isc_rng_blockfrequency);
-	ATF_TP_ADD_TC(tp, isc_rng_binarymatrixrank);
+	ATF_TP_ADD_TC(tp, isc_rng_monobit_16);
+	ATF_TP_ADD_TC(tp, isc_rng_runs_16);
+	ATF_TP_ADD_TC(tp, isc_rng_blockfrequency_16);
+	ATF_TP_ADD_TC(tp, isc_rng_binarymatrixrank_16);
+	ATF_TP_ADD_TC(tp, isc_rng_monobit_bytes);
+	ATF_TP_ADD_TC(tp, isc_rng_runs_bytes);
+	ATF_TP_ADD_TC(tp, isc_rng_blockfrequency_bytes);
+	ATF_TP_ADD_TC(tp, isc_rng_binarymatrixrank_bytes);
 
 	return (atf_no_error());
 }

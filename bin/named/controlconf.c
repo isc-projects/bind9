@@ -456,9 +456,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (conn->nonce == 0) {
 		while (conn->nonce == 0) {
-			isc_uint16_t r1 = isc_rng_random(server->sctx->rngctx);
-			isc_uint16_t r2 = isc_rng_random(server->sctx->rngctx);
-			conn->nonce = (r1 << 16) | r2;
+			isc_rng_randombytes(server->sctx->rngctx, &conn->nonce,
+					    sizeof(conn->nonce));
 		}
 		eresult = ISC_R_SUCCESS;
 	} else

@@ -3281,7 +3281,7 @@ dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
 	if ((options & DNS_DISPATCHOPT_FIXEDID) != 0)
 		id = *idp;
 	else
-		id = (dns_messageid_t)isc_rng_random(DISP_RNGCTX(disp));
+		isc_rng_randombytes(DISP_RNGCTX(disp), &id, sizeof(id));
 	ok = ISC_FALSE;
 	i = 0;
 	do {
