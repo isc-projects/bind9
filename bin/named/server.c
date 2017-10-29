@@ -4975,11 +4975,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			if (!strcasecmp(dom, "no")) {
 				result = ISC_R_NOTFOUND;
 			} else if (!strcasecmp(dom, "auto")) {
-				cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
-					    "WARNING: the DLV server at "
-					    "'dlv.isc.org' is no longer "
-					    "in service; dnssec-lookaside "
-					    "ignored");
+				/*
+				 * Warning logged by libbind9.
+				 */
 				result = ISC_R_NOTFOUND;
 			}
 		}
@@ -5005,11 +5003,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			CHECK(dns_name_fromstring(dlv, cfg_obj_asstring(obj),
 						  DNS_NAME_DOWNCASE, NULL));
 			if (dns_name_equal(dlv, iscdlv)) {
-				cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
-					    "WARNING: the DLV server at "
-					    "'dlv.isc.org' is no longer "
-					    "in service; dnssec-lookaside "
-					    "ignored");
+				/*
+				 * Warning logged by libbind9.
+				 */
 				view->dlv = NULL;
 			} else {
 				view->dlv = dlv;

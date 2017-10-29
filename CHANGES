@@ -1,3 +1,7 @@
+4801.	[func]		'dnssec-lookaside auto;' and 'dnssec-lookaside .
+			trust-anchor dlv.isc.org;' now elicit warnings rather
+			than being fatal configuration errors. [RT #46410]
+
 4800.	[bug]		When processing delzone, write one zone config per
 			line to the NZF. [RT #46323]
 
@@ -200,7 +204,7 @@
 			- Removed DLV key from bind.keys
 			- No longer use ISC DLV by default in delv
 			- "dnssec-lookaside auto" and configuration of
-			  "dnssec-lookaide" with dlv.isc.org as trust
+			  "dnssec-lookaide" with dlv.isc.org as the trust
 			  anchor are both now fatal errors.
 			[RT #46155]
 

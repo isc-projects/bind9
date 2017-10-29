@@ -327,5 +327,29 @@ diff good.zonelist checkconf.out$n  > diff.out$n || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I: check that 'dnssec-lookaside auto;' generates a warning ($n)"
+ret=0
+$CHECKCONF warn-dlv-auto.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "dnssec-lookaside 'auto' is no longer supported" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check that 'dnssec-lookaside . trust-anchor dlv.isc.org;' generates a warning ($n)"
+ret=0
+$CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "dlv.isc.org has been shut down" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: check that 'dnssec-lookaside . trust-anchor dlv.example.com;' doesn't generates a warning ($n)"
+ret=0
+$CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

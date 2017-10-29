@@ -1183,11 +1183,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					continue;
 				}
 				if (!strcasecmp(dlv, "auto")) {
-					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
 						    "dnssec-lookaside 'auto' "
 						    "is no longer supported");
-					if (result == ISC_R_SUCCESS)
-						result = ISC_R_FAILURE;
 					continue;
 				}
 			}
@@ -1242,10 +1240,8 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				continue;
 			}
 			if (dns_name_equal(&dlviscorg, name)) {
-				cfg_obj_log(anchor, logctx, ISC_LOG_ERROR,
+				cfg_obj_log(anchor, logctx, ISC_LOG_WARNING,
 					    "dlv.isc.org has been shut down");
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_FAILURE;
 				continue;
 			}
 		}
