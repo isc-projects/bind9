@@ -1,3 +1,6 @@
+4800.	[bug]		When processing delzone, write one zone config per
+			line to the NZF. [RT #46323]
+
 4799.	[cleanup]	Improve clarity of keytable unit tests. [RT #46407]
 
 4798.	[func]		Keys specified in "managed-keys" statements
