@@ -126,6 +126,24 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  The ISC DNSSEC Lookaside Validation (DLV) service has
+	  been shut down; all DLV records in the dlv.isc.org zone
+	  have been removed.  References to the service have been
+	  removed from BIND documentation.  Lookaside validation
+	  is no longer used by default by <command>delv</command>.
+	  The DLV key has been removed from <filename>bind.keys</filename>.
+	  Setting <command>dnssec-lookaside</command> to
+	  <command>auto</command> or to use dlv.isc.org as a trust
+	  anchor results in a warning being issued.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="proto_changes"><info><title>Protocol Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -154,16 +172,6 @@
 
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
-      <listitem>
-	<para>
-	  The ISC DNSSEC Lookaside Validation (DLV) service has been shut
-	  down; all DLV records in the dlv.isc.org zone have been removed.
-	  References to the service have been removed from BIND documentation.
-	  Lookaside validation is no longer used by default by
-	  <command>delv</command>. The DLV key has been removed from
-	  <filename>bind.keys</filename>. [RT #46155]
-	</para>
-      </listitem>
       <listitem>
 	<para>
 	  <command>named</command> will no longer start or accept
