@@ -1035,6 +1035,8 @@
 ./bin/tests/system/checkconf/view-class-any2.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in1.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016
+./bin/tests/system/checkconf/warn-dlv-auto.conf	CONF-C	2017
+./bin/tests/system/checkconf/warn-dlv-dlv.isc.org.conf	CONF-C	2017
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013,2016
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014,2016
 ./bin/tests/system/checkds/dig.bat		BAT	2016
