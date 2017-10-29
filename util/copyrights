@@ -966,6 +966,7 @@
 ./bin/tests/system/checkconf/dnssec.3		CONF-C	2011,2017
 ./bin/tests/system/checkconf/good-acl.conf	CONF-C	2016
 ./bin/tests/system/checkconf/good-class.conf	CONF-C	2015
+./bin/tests/system/checkconf/good-dlv-dlv.example.com.conf	CONF-C	2017
 ./bin/tests/system/checkconf/good-options-also-notify.conf	CONF-C	2016
 ./bin/tests/system/checkconf/good-response-dot.conf	CONF-C	2017
 ./bin/tests/system/checkconf/good-view-also-notify.conf	CONF-C	2016
@@ -983,11 +984,13 @@
 ./bin/tests/system/checkconf/portrange-good.conf	CONF-C	2015
 ./bin/tests/system/checkconf/range.conf		CONF-C	2013
 ./bin/tests/system/checkconf/shared.example.db	ZONE	2015
-./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015,2016
+./bin/tests/system/checkconf/tests.sh		SH	2005,2007,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/checkconf/view-class-any1.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-any2.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in1.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016
+./bin/tests/system/checkconf/warn-dlv-auto.conf	CONF-C	2017
+./bin/tests/system/checkconf/warn-dlv-dlv.isc.org.conf	CONF-C	2017
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013
 ./bin/tests/system/checkds/dig.bat		BAT	2016
