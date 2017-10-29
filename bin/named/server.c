@@ -11174,6 +11174,10 @@ nzf_append(dns_view_t *view, const cfg_obj_t *zconfig) {
 
 static isc_result_t
 nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
+	const cfg_obj_t *zl = NULL;
+	cfg_list_t *list;
+	const cfg_listelt_t *elt;
+
 	FILE *fp = NULL;
 	char tmp[1024];
 	isc_result_t result;
@@ -11184,9 +11188,24 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+	cfg_map_get(config, "zone", &zl);
+	if (!cfg_obj_islist(zl))
+		CHECK(ISC_R_FAILURE);
+
+	DE_CONST(&zl->value.list, list);
+
 	CHECK(add_comment(fp, view->name));	/* force a comment */
 
-	cfg_printx(config, CFG_PRINTER_ONELINE, dumpzone, fp);
+	for (elt = ISC_LIST_HEAD(*list);
+	     elt != NULL;
+	     elt = ISC_LIST_NEXT(elt, link))
+	{
+		const cfg_obj_t *zconfig = cfg_listelt_value(elt);
+
+		CHECK(isc_stdio_write("zone ", 5, 1, fp, NULL));
+		cfg_printx(zconfig, CFG_PRINTER_ONELINE, dumpzone, fp);
+		CHECK(isc_stdio_write(";\n", 2, 1, fp, NULL));
+	}
 
 	CHECK(isc_stdio_flush(fp));
 	result = isc_stdio_close(fp);
