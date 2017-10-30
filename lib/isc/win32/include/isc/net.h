@@ -31,7 +31,7 @@
  *
  * It declares ntoh[sl]() and hton[sl]().
  *
- * It declares inet_aton(), inet_ntop(), and inet_pton().
+ * It declares inet_ntop(), and inet_pton().
  *
  * It ensures that INADDR_ANY, IN6ADDR_ANY_INIT, in6addr_any, and
  * in6addr_loopback are available.
@@ -406,10 +406,6 @@ int
 isc_net_pton(int af, const char *src, void *dst);
 #define inet_pton isc_net_pton
 #endif
-
-int
-isc_net_aton(const char *cp, struct in_addr *addr);
-#define inet_aton isc_net_aton
 
 ISC_LANG_ENDDECLS
 

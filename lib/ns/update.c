@@ -1738,7 +1738,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		    strlcpy(tmp, namebuf, sizeof(tmp)) < sizeof(tmp)) {
 			if (tmp[strlen(tmp) - 1] == '.')
 				tmp[strlen(tmp) - 1] = '\0';
-			if (inet_aton(tmp, &addr) == 1 ||
+			if (inet_pton(AF_INET, tmp, &addr) == 1 ||
 			    inet_pton(AF_INET6, tmp, &addr6) == 1)
 				isaddress = ISC_TRUE;
 		}

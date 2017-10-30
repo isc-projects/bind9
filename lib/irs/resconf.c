@@ -249,7 +249,7 @@ create_addr(const char *buffer, isc_netaddr_t *addr, int convert_zero) {
 	struct in_addr v4;
 	struct in6_addr v6;
 
-	if (inet_aton(buffer, &v4) == 1) {
+	if (inet_pton(AF_INET, buffer, &v4) == 1) {
 		if (convert_zero) {
 			unsigned char zeroaddress[] = {0, 0, 0, 0};
 			unsigned char loopaddress[] = {127, 0, 0, 1};
