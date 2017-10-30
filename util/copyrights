@@ -832,8 +832,6 @@
 ./bin/tests/system/checkconf/bad-acl.conf	CONF-C	2016
 ./bin/tests/system/checkconf/bad-also-notify.conf	CONF-C	2012,2013,2016
 ./bin/tests/system/checkconf/bad-catz-zone.conf	CONF-C	2016
-./bin/tests/system/checkconf/bad-dlv-auto.conf	CONF-C	2017
-./bin/tests/system/checkconf/bad-dlv-dlv.isc.org.conf	CONF-C	2017
 ./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012,2013,2016
 ./bin/tests/system/checkconf/bad-glue-cache-bogus.conf	CONF-C	2017
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014,2016
@@ -917,6 +915,8 @@
 ./bin/tests/system/checkconf/view-class-any2.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in1.conf	CONF-C	2016
 ./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016
+./bin/tests/system/checkconf/warn-dlv-auto.conf	CONF-C	2017
+./bin/tests/system/checkconf/warn-dlv-dlv.isc.org.conf	CONF-C	2017
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013,2016
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014,2016,2017
 ./bin/tests/system/checkds/dig.bat		BAT	2016
@@ -1423,7 +1423,6 @@
 ./bin/tests/system/filter-aaaa/ns4/signed.db.in	ZONE	2010,2012,2016,2017
 ./bin/tests/system/filter-aaaa/ns4/signed.db.presigned	X	2014
 ./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012,2016,2017
-./bin/tests/system/filter-aaaa/prereq.sh	SH	2010,2012,2014,2016
 ./bin/tests/system/filter-aaaa/setup.sh		SH	2010,2012,2014,2016,2017
 ./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012,2015,2016
 ./bin/tests/system/formerr/clean.sh		SH	2013,2014,2015,2016
@@ -1712,12 +1711,12 @@
 ./bin/tests/system/mkeys/ns1/named1.conf	CONF-C	2015,2016,2017
 ./bin/tests/system/mkeys/ns1/named2.conf	CONF-C	2015,2016,2017
 ./bin/tests/system/mkeys/ns1/named3.conf	CONF-C	2017
-./bin/tests/system/mkeys/ns1/root.db		ZONE	2015,2016
+./bin/tests/system/mkeys/ns1/root.db		ZONE	2015,2016,2017
 ./bin/tests/system/mkeys/ns1/sign.sh		SH	2015,2016,2017
 ./bin/tests/system/mkeys/ns2/named.args		X	2015,2016,2017
 ./bin/tests/system/mkeys/ns2/named.conf		CONF-C	2015,2016
-./bin/tests/system/mkeys/ns3/named.args		X	2015,2016
-./bin/tests/system/mkeys/ns3/named.conf		CONF-C	2015,2016
+./bin/tests/system/mkeys/ns3/named.args		X	2015,2016,2017
+./bin/tests/system/mkeys/ns3/named.conf		CONF-C	2015,2016,2017
 ./bin/tests/system/mkeys/ns4/named.conf		CONF-C	2017
 ./bin/tests/system/mkeys/ns5/named.conf		CONF-C	2017
 ./bin/tests/system/mkeys/ns5/named1.args	X	2017

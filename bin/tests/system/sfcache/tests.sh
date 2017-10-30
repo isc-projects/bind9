@@ -16,15 +16,6 @@ rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd -p 5300"
 
-# read everything that's been appended to a file since the last time
-# 'nextpart' was called.
-nextpart () {
-    [ -f $1.prev ] || echo "0" > $1.prev
-    prev=`cat $1.prev`
-    awk "FNR > $prev "'{ print }
-         END           { print NR > "/dev/stderr" }' $1 2> $1.prev
-}
-
 echo "I:checking DNSSEC SERVFAIL is cached ($n)"
 ret=0
 $DIG $DIGOPTS +dnssec foo.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1

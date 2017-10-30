@@ -386,7 +386,7 @@ getquad(const void *src, struct in_addr *dst,
 	isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
 {
 	int result;
-	struct in_addr *tmp;
+	struct in_addr tmp;
 
 	result = inet_aton(src, dst);
 	if (result == 1 && callbacks != NULL &&
