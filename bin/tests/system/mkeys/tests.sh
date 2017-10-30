@@ -9,6 +9,78 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+wait_for_log() {
+	msg=$1
+	file=$2
+	for i in 1 2 3 4 5 6 7 8 9 10; do
+		nextpart "$file" | grep "$msg" > /dev/null && return
+		sleep 1
+	done
+	echo "I: exceeded time limit waiting for '$msg' in $file"
+	ret=1
+}
+
+mkeys_reconfig_on() {
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 reconfig . | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "running" ns${nsidx}/named.run
+}
+
+mkeys_reload_on() {
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 reload . | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "loaded serial" ns${nsidx}/named.run
+}
+
+mkeys_loadkeys_on() {
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 loadkeys . | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "next key event" ns${nsidx}/named.run
+}
+
+mkeys_refresh_on() {
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 managed-keys refresh | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "Returned from key fetch in keyfetch_done()" ns${nsidx}/named.run
+}
+
+mkeys_sync_on() {
+	# No race with mkeys_refresh_on() is possible as even if the latter
+	# returns immediately after the expected log message is written, the
+	# managed-keys zone is already locked and the command below calls
+	# dns_zone_flush(), which also attempts to take that zone's lock
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 managed-keys sync | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "dump_done" ns${nsidx}/named.run
+}
+
+mkeys_status_on() {
+	# No race with mkeys_refresh_on() is possible as even if the latter
+	# returns immediately after the expected log message is written, the
+	# managed-keys zone is already locked and the command below calls
+	# mkey_status(), which in turn calls dns_zone_getrefreshkeytime(),
+	# which also attempts to take that zone's lock
+	nsidx=$1
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 managed-keys status
+}
+
+mkeys_flush_on() {
+	nsidx=$1
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 flush | sed "s/^/I: ns${nsidx} /"
+	wait_for_log "flushing caches in all views succeeded" ns${nsidx}/named.run
+}
+
+mkeys_secroots_on() {
+	nsidx=$1
+	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 secroots | sed "s/^/I: ns${nsidx} /"
+}
+
 status=0
 n=1
 
@@ -58,11 +130,14 @@ n=`expr $n + 1`
 echo "I: check new trust anchor can be added ($n)"
 ret=0
 standby1=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 5
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_loadkeys_on 1
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent the refresh from not being initiated due to all
+# acceptance timers being equal to current timestamp.
+sleep 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # there should be two keys listed now
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -81,10 +156,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check new trust anchor can't be added with bad initial key ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys refresh | sed 's/^/I: ns3 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys sync | sed 's/^/I: ns3 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_refresh_on 3
+mkeys_status_on 3 > rndc.out.$n 2>&1
 # there should be one key listed now
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
@@ -100,14 +173,17 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: remove untrusted standby key, check timer restarts ($n)"
 ret=0
-$SETTIME -D now -K ns1 $standby1 > /dev/null
+mkeys_sync_on 2
 t1=`grep "trust pending" ns2/managed-keys.bind`
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+$SETTIME -D now -K ns1 $standby1 > /dev/null
+mkeys_loadkeys_on 1
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent false negatives caused by the acceptance timer getting
+# reset to the same timestamp.
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-sleep 1
+mkeys_refresh_on 2
+mkeys_sync_on 2
 t2=`grep "trust pending" ns2/managed-keys.bind`
 # trust pending date must be different
 [ -n "$t2" ] || ret=1
@@ -121,12 +197,15 @@ echo "I: restore untrusted standby key, revoke original key ($n)"
 t1=$t2
 $SETTIME -D none -K ns1 $standby1 > /dev/null
 $SETTIME -R now -K ns1 `cat ns1/managed.key` > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+mkeys_loadkeys_on 1
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent false negatives caused by the acceptance timer getting
+# reset to the same timestamp.
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_refresh_on 2
+mkeys_sync_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -153,10 +232,14 @@ n=`expr $n + 1`
 ret=0
 echo "I: refresh managed-keys, ensure same result ($n)"
 t1=$t2
-sleep 2
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent false negatives caused by the acceptance timer getting
+# reset to the same timestamp.
+sleep 1
+mkeys_refresh_on 2
+mkeys_sync_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -184,15 +267,17 @@ ret=0
 echo "I: restore revoked key, ensure same result ($n)"
 t1=$t2
 $SETTIME -R none -D now -K ns1 `cat ns1/managed.key` > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
+mkeys_loadkeys_on 1
 $SETTIME -D none -K ns1 `cat ns1/managed.key` > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+mkeys_loadkeys_on 1
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent false negatives caused by the acceptance timer getting
+# reset to the same timestamp.
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_refresh_on 2
+mkeys_sync_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -229,14 +314,14 @@ managed-keys {
 };
 EOF
 ' > ns2/managed.conf
+nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
 n=`expr $n + 1`
 echo "I: check that no key from bind.keys is marked as an initializing key ($n)"
 ret=0
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots | sed 's/^/I: ns2 /'
-sleep 1
+wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run
+mkeys_secroots_on 2
 grep '; initializing' ns2/named.secroots > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -245,14 +330,20 @@ echo "I: reinitialize trust anchors, revert to one key in bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
 rm -f ns2/managed-keys.bind*
 mv ns2/managed1.conf ns2/managed.conf
+nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
 n=`expr $n + 1`
 echo "I: check that standby key is now trusted ($n)"
 ret=0
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure status is checked at a different
+# timestamp to prevent false negatives caused by the add hold-down time for the
+# standby key being equal to current time ("trust pending") instead of in the
+# past ("trusted since").
+sleep 1
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -270,12 +361,9 @@ echo "I: revoke original key, add new standby ($n)"
 ret=0
 standby2=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
 $SETTIME -R now -K ns1 `cat ns1/managed.key` > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_loadkeys_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # three keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 3 ] || ret=1
@@ -304,11 +392,9 @@ n=`expr $n + 1`
 echo "I: revoke standby before it is trusted ($n)"
 ret=0
 standby3=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.a.$n 2>&1
+mkeys_loadkeys_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.a.$n 2>&1
 # four keys listed
 count=`grep -c "keyid: " rndc.out.a.$n` 
 [ "$count" -eq 4 ] || { echo "keyid: count ($count) != 4"; ret=1; }
@@ -319,11 +405,9 @@ count=`grep -c "trust revoked" rndc.out.a.$n`
 count=`grep -c "trust pending" rndc.out.a.$n` 
 [ "$count" -eq 2 ] || { echo "trust pending count ($count) != 2"; ret=1; }
 $SETTIME -R now -K ns1 $standby3 > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.b.$n 2>&1
+mkeys_loadkeys_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.b.$n 2>&1
 # now three keys listed
 count=`grep -c "keyid: " rndc.out.b.$n` 
 [ "$count" -eq 3 ] || { echo "keyid: count ($count) != 3"; ret=1; }
@@ -334,18 +418,20 @@ count=`grep -c "trust revoked" rndc.out.b.$n`
 count=`grep -c "trust pending" rndc.out.b.$n` 
 [ "$count" -eq 1 ] || { echo "trust pending count ($count) != 1"; ret=1; }
 $SETTIME -D now -K ns1 $standby3 > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
+mkeys_loadkeys_on 1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: wait 30 seconds for key add/remove holddowns to expire ($n)"
+echo "I: wait 21 seconds for key add/remove holddowns to expire ($n)"
 ret=0
-sleep 30
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+# Wait for "month" plus 1 second.  If we only wait for "month" and the previous
+# two tests fit into a single second, we will get a false negative caused by
+# the add hold-down time for the second standby key being equal to current time
+# ("trust pending") instead of in the past ("trusted since").
+sleep 21
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -367,12 +453,9 @@ ret=0
 $SETTIME -D now -K ns1 `cat ns1/managed.key` > /dev/null
 $SETTIME -R now -K ns1 $standby1 > /dev/null
 $SETTIME -R now -K ns1 $standby2 > /dev/null
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 loadkeys . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_loadkeys_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 2 ] || ret=1
@@ -394,8 +477,10 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check for insecure response ($n)"
 ret=0
+mkeys_refresh_on 2
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -407,16 +492,18 @@ $SETTIME -D now -K ns1 $standby2 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
 cp ns1/named2.conf ns1/named.conf
 rm -f ns1/root.db.signed.jnl
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig
+mkeys_reconfig_on 1
 
 echo "I: reinitialize trust anchors"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
 rm -f ns2/managed-keys.bind*
+nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
 
 n=`expr $n + 1`
 echo "I: check positive validation ($n)"
 ret=0
+wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -430,17 +517,32 @@ orig=`cat ns1/managed.key`
 keyid=`cat ns1/managed.key.id`
 revoked=`$REVOKE -K ns1 $orig`
 rkeyid=`expr $revoked : 'ns1/K\.+00.+0*\([1-9]*[0-9]*[0-9]\)'`
+rm -f ns1/root.db.signed.jnl
+# We need to activate at least one valid DNSKEY to prevent dnssec-signzone from
+# failing.  Alternatively, we could use -P to disable post-sign verification,
+# but we actually do want post-sign verification to happen to ensure the zone
+# is correct before we break it on purpose.
 $SETTIME -R none -D none -K ns1 $standby1 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>&-
 cp -f ns1/root.db.signed ns1/root.db.tmp
 BADSIG="SVn2tLDzpNX2rxR4xRceiCsiTqcWNKh7NQ0EQfCrVzp9WEmLw60sQ5kP xGk4FS/xSKfh89hO2O/H20Bzp0lMdtr2tKy8IMdU/mBZxQf2PXhUWRkg V2buVBKugTiOPTJSnaqYCN3rSfV1o7NtC1VNHKKK/D5g6bpDehdn5Gaq kpBhN+MSCCh9OZP2IT20luS1ARXxLlvuSVXJ3JYuuhTsQXUbX/SQpNoB Lo6ahCE55szJnmAxZEbb2KOVnSlZRA6ZBHDhdtO0S4OkvcmTutvcVV+7 w53CbKdaXhirvHIh0mZXmYk2PbPLDY7PU9wSH40UiWPOB9f00wwn6hUe uEQ1Qg=="
-sed -e "/ $rkeyid \./s, \. .*$, . $BADSIG," signer.out.$n > ns1/root.db.signed
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+# We need to prevent two different races here:
+#
+# 1. Less than a second may have passed since ns1 was started.  If we call
+#    dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by
+#    the subsequent "rndc reload ." call on platforms which do not set the
+#    "nanoseconds" field of isc_time_t, due to zone load time being seemingly
+#    equal to master file modification time.
+#
+# 2. Less than a second may have passed since the last time ns2 received a
+#    ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+#    timestamp to prevent the refresh from not being initiated due to all
+#    acceptance timers being equal to current timestamp.
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys sync | sed 's/^/I: ns2 /'
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+sed -e "/ $rkeyid \./s, \. .*$, . $BADSIG," signer.out.$n > ns1/root.db.signed
+mkeys_reload_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || { echo "'keyid:' count ($count) != 1"; ret=1; }
@@ -461,6 +563,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check validation fails with bad DNSKEY rrset ($n)"
 ret=0
+mkeys_flush_on 2
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
@@ -470,17 +573,18 @@ n=`expr $n + 1`
 echo "I: restore DNSKEY rrset, check validation succeeds again ($n)"
 ret=0
 rm -f ${revoked}.key ${revoked}.private
+rm -f ns1/root.db.signed.jnl
 $SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
-$SETTIME -D now -K ns1 $standby2 > /dev/null
+# Less than a second may have passed since ns1 was started.  If we call
+# dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by the
+# subsequent "rndc reload ." call on platforms which do not set the
+# "nanoseconds" field of isc_time_t, due to zone load time being seemingly
+# equal to master file modification time.
 sleep 1
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 flush | sed 's/^/I: ns1 /'
+mkeys_reload_on 1
+mkeys_flush_on 2
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -489,15 +593,24 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: reset the root server with no keys, check for minimal update ($n)"
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+ret=0
+# Refresh keys first to prevent previous checks from influencing this one.
+# Note that we might still get occasional false negatives on some really slow
+# machines, when $t1 equals $t2 due to the time elapsed between "rndc
+# managed-keys status" calls being equal to the normal active refresh period
+# (as calculated per rules listed in RFC 5011 section 2.3) minus an "hour" (as
+# set using -T mkeytimers).
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 t1=`grep 'next refresh:' rndc.out.$n`
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
+nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+wait_for_log "loaded serial" ns1/named.run
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
@@ -519,14 +632,23 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: reset the root server with no signatures, check for minimal update ($n)"
-t2=$t1
+ret=0
+# Refresh keys first to prevent previous checks from influencing this one
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
+t1=`grep 'next refresh:' rndc.out.$n`
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns1
+rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
+nextpart ns1/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
+wait_for_log "loaded serial" ns1/named.run
+# Less than a second may have passed since the last time ns2 received a
+# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
+# timestamp to prevent minimal update from resetting it to the same timestamp.
 sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 # one key listed
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
@@ -548,13 +670,12 @@ status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo "I: restore root server, check validation succeeds again ($n)"
+ret=0
 rm -f ns1/root.db.signed.jnl
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload . | sed 's/^/I: ns1 /'
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys refresh | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_reload_on 1
+mkeys_refresh_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
@@ -579,12 +700,10 @@ n=`expr $n + 1`
 echo "I: check 'rndc-managed-keys destroy' ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys destroy | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_status_on 2 > rndc.out.$n 2>&1
 grep "no views with managed keys" rndc.out.$n > /dev/null || ret=1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig | sed 's/^/I: ns2 /'
-sleep 1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 managed-keys status > rndc.out.$n 2>&1
+mkeys_reconfig_on 2
+mkeys_status_on 2 > rndc.out.$n 2>&1
 grep "name: \." rndc.out.$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -604,7 +723,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I: check initialization fails if managed-keys can't be created ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.4 -p 9953 secroots | sed 's/^/I: ns4 /'
+mkeys_secroots_on 4
 grep '; initializing managed' ns4/named.secroots > /dev/null 2>&1 || ret=1
 grep '; managed' ns4/named.secroots > /dev/null 2>&1 && ret=1
 grep '; trusted' ns4/named.secroots > /dev/null 2>&1 && ret=1
@@ -621,8 +740,9 @@ ret=0
 # key refresh failure instead of just a few seconds, in order to prevent races
 # between the next scheduled key refresh time and startup time of restarted ns5.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns5
+nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
-sleep 2
+wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
 # ns5/named.run will contain logs from both the old instance and the new
 # instance.  In order for the test to pass, both must attempt a fetch.
 count=`grep -c "Creating key fetch" ns5/named.run`
@@ -635,14 +755,14 @@ echo "I: check key refreshes are resumed after root servers become available ($n
 ret=0
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns5
 # Prevent previous check from affecting this one
-rm -f ns2/managed-keys.bind*
+rm -f ns5/managed-keys.bind*
 # named2.args adds "-T mkeytimers=2/20/40" to named1.args as we need to wait for
 # an "hour" until keys are refreshed again after initial failure
 cp ns5/named2.args ns5/named.args
+nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns5
-sleep 2
-$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 secroots | sed 's/^/I: ns4 /'
-sleep 1
+wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
+mkeys_secroots_on 5
 grep '; initializing managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
 # ns1 should still REFUSE queries from ns5, so resolving should be impossible
 $DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.a.test$n || ret=1
@@ -652,10 +772,10 @@ grep "status: SERVFAIL" dig.out.ns5.a.test$n > /dev/null || ret=1
 # Allow queries from ns5 to ns1
 cp ns1/named3.conf ns1/named.conf
 rm -f ns1/root.db.signed.jnl
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reconfig
-sleep 3
-$RNDC -c ../common/rndc.conf -s 10.53.0.5 -p 9953 secroots | sed 's/^/I: ns4 /'
-sleep 1
+mkeys_reconfig_on 1
+nextpart ns5/named.run > /dev/null
+wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
+mkeys_secroots_on 5
 grep '; managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
 # correctly refreshed and resolving should succeed
