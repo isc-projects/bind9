@@ -980,7 +980,7 @@ check_ns(dns_loadctx_t *lctx, isc_token_t *token, const char *source,
 		 */
 		if (tmp[strlen(tmp) - 1] == '.')
 			tmp[strlen(tmp) - 1] = '\0';
-		if (inet_aton(tmp, &addr) == 1 ||
+		if (inet_pton(AF_INET, tmp, &addr) == 1 ||
 		    inet_pton(AF_INET6, tmp, &addr6) == 1)
 			result = DNS_R_NSISADDRESS;
 	}

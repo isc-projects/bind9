@@ -448,7 +448,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\hmacsha.c" />
     <ClCompile Include="..\ht.c" />
     <ClCompile Include="..\httpd.c" />
-    <ClCompile Include="..\inet_aton.c" />
     <ClCompile Include="..\inet_ntop.c" />
     <ClCompile Include="..\inet_pton.c" />
     <ClCompile Include="..\iterated_hash.c" />

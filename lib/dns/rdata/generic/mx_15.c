@@ -32,9 +32,10 @@ check_mx(isc_token_t *token) {
 
 	if (tmp[strlen(tmp) - 1] == '.')
 		tmp[strlen(tmp) - 1] = '\0';
-	if (inet_aton(tmp, &addr) == 1 ||
-	    inet_pton(AF_INET6, tmp, &addr6) == 1)
+	if (inet_pton(AF_INET, tmp, &addr) == 1 ||
+	    inet_pton(AF_INET6, tmp, &addr6) == 1) {
 		return (ISC_FALSE);
+	}
 
 	return (ISC_TRUE);
 }

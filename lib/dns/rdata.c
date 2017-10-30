@@ -386,11 +386,9 @@ getquad(const void *src, struct in_addr *dst,
 	isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
 {
 	int result;
-	struct in_addr *tmp;
 
-	result = inet_aton(src, dst);
-	if (result == 1 && callbacks != NULL &&
-	    inet_pton(AF_INET, src, &tmp) != 1) {
+	result = inet_pton(AF_INET, src, dst);
+	if (result != 1 && callbacks != NULL) {
 		const char *name = isc_lex_getsourcename(lexer);
 		if (name == NULL)
 			name = "UNKNOWN";
