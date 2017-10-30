@@ -546,9 +546,6 @@
     <ClCompile Include="..\httpd.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\inet_aton.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\inet_ntop.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
