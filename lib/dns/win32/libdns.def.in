@@ -218,7 +218,6 @@ dns_db_load3
 dns_db_newversion
 dns_db_nodecount
 dns_db_nodefullname
-dns_db_ondestroy
 dns_db_origin
 dns_db_overmem
 dns_db_printnode

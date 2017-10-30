@@ -763,12 +763,6 @@ static void zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
 static void zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
 static isc_result_t zone_send_secureserial(dns_zone_t *zone,
 					   isc_uint32_t serial);
-
-#if 0
-/* ondestroy example */
-static void dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event);
-#endif
-
 static void refresh_callback(isc_task_t *, isc_event_t *);
 static void stub_callback(isc_task_t *, isc_event_t *);
 static void queue_soa_query(dns_zone_t *zone);
@@ -4754,18 +4748,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	if (zone->type == dns_zone_master &&
 	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_MAINTAIN))
 		zone->refreshkeytime = now;
-
-#if 0
-	/* destroy notification example. */
-	{
-		isc_event_t *e = isc_event_allocate(zone->mctx, NULL,
-						    DNS_EVENT_DBDESTROYED,
-						    dns_zonemgr_dbdestroyed,
-						    zone,
-						    sizeof(isc_event_t));
-		dns_db_ondestroy(db, zone->task, &e);
-	}
-#endif
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	if (zone->db != NULL) {
@@ -16625,22 +16607,6 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
  cleanup:
 	isc_mem_put(zone->mctx, buf, buflen);
 }
-
-#if 0
-/* Hook for ondestroy notification from a database. */
-
-static void
-dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
-	dns_db_t *db = event->sender;
-	UNUSED(task);
-
-	isc_event_free(&event);
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-		      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
-		      "database (%p) destroyed", (void*) db);
-}
-#endif
 
 static void
 setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value) {

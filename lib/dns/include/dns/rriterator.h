@@ -26,7 +26,6 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
-#include <isc/ondestroy.h>
 #include <isc/stdtime.h>
 
 #include <dns/db.h>

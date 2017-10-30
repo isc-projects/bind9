@@ -344,15 +344,6 @@ isc_mem_destroy(isc_mem_t **);
  * Destroy a memory context.
  */
 
-isc_result_t
-isc_mem_ondestroy(isc_mem_t *ctx,
-		  isc_task_t *task,
-		  isc_event_t **event);
-/*%<
- * Request to be notified with an event when a memory context has
- * been successfully destroyed.
- */
-
 void
 isc_mem_stats(isc_mem_t *mctx, FILE *out);
 /*%<
