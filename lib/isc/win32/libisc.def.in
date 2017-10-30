@@ -419,7 +419,6 @@ isc_mem_gettag
 isc_mem_inuse
 isc_mem_isovermem
 isc_mem_maxinuse
-isc_mem_ondestroy
 isc_mem_printallactive
 isc_mem_references
 isc_mem_register
@@ -492,9 +491,6 @@ isc_netscope_pton
 isc_ntpaths_get
 isc_ntpaths_init
 isc_once_do
-isc_ondestroy_init
-isc_ondestroy_notify
-isc_ondestroy_register
 isc_os_ncpus
 isc_parse_uint16
 isc_parse_uint32

@@ -760,7 +760,6 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	isc_mem_attach(mctx, &sampledb->common.mctx);
 	dns_name_init(&sampledb->common.origin, NULL);
-	isc_ondestroy_init(&sampledb->common.ondest);
 
 	sampledb->common.magic = DNS_DB_MAGIC;
 	sampledb->common.impmagic = SAMPLEDB_MAGIC;

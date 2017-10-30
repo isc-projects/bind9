@@ -166,9 +166,6 @@
     <ClInclude Include="..\include\isc\netscope.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\ondestroy.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\os.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -586,9 +583,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\netscope.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ondestroy.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\parseint.c">
