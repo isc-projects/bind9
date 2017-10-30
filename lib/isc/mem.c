@@ -23,7 +23,6 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/once.h>
-#include <isc/ondestroy.h>
 #include <isc/string.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
@@ -117,7 +116,6 @@ static isc_uint64_t		totallost;
 
 struct isc__mem {
 	isc_mem_t		common;
-	isc_ondestroy_t		ondestroy;
 	unsigned int		flags;
 	isc_mutex_t		lock;
 	isc_memalloc_t		memalloc;
@@ -234,8 +232,6 @@ void
 isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG);
 void
 isc__mem_destroy(isc_mem_t **ctxp);
-isc_result_t
-isc__mem_ondestroy(isc_mem_t *ctx, isc_task_t *task, isc_event_t **event);
 void *
 isc___mem_get(isc_mem_t *ctx, size_t size FLARG);
 void
@@ -316,7 +312,7 @@ static struct isc__memmethods {
 	/*%
 	 * The following are defined just for avoiding unused static functions.
 	 */
-	void *createx, *create, *create2, *ondestroy, *stats,
+	void *createx, *create, *create2, *stats,
 	     *setquota, *getquota, *setname, *getname, *gettag;
 } memmethods = {
 	{
@@ -342,7 +338,6 @@ static struct isc__memmethods {
 	(void *)isc_mem_createx,
 	(void *)isc_mem_create,
 	(void *)isc_mem_create2,
-	(void *)isc_mem_ondestroy,
 	(void *)isc_mem_stats,
 	(void *)isc_mem_setquota,
 	(void *)isc_mem_getquota,
@@ -939,7 +934,6 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->common.impmagic = MEM_MAGIC;
 	ctx->common.magic = ISCAPI_MCTX_MAGIC;
 	ctx->common.methods = (isc_memmethods_t *)&memmethods;
-	isc_ondestroy_init(&ctx->ondestroy);
 	ctx->memalloc = memalloc;
 	ctx->memfree = memfree;
 	ctx->arg = arg;
@@ -1033,7 +1027,6 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 static void
 destroy(isc__mem_t *ctx) {
 	unsigned int i;
-	isc_ondestroy_t ondest;
 
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
@@ -1101,16 +1094,12 @@ destroy(isc__mem_t *ctx) {
 		}
 	}
 
-	ondest = ctx->ondestroy;
-
 	if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
 		DESTROYLOCK(&ctx->lock);
 	ctx->malloced -= sizeof(*ctx);
 	if (ctx->checkfree)
 		INSIST(ctx->malloced == 0);
 	(ctx->memfree)(ctx->arg, ctx);
-
-	isc_ondestroy_notify(&ondest, ctx);
 }
 
 void
@@ -1247,18 +1236,6 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	destroy(ctx);
 
 	*ctxp = NULL;
-}
-
-isc_result_t
-isc_mem_ondestroy(isc_mem_t *ctx0, isc_task_t *task, isc_event_t **event) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	isc_result_t res;
-
-	MCTXLOCK(ctx, &ctx->lock);
-	res = isc_ondestroy_register(&ctx->ondestroy, task, event);
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	return (res);
 }
 
 void *

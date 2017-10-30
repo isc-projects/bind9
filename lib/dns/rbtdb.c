@@ -1165,7 +1165,6 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 static void
 free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	unsigned int i;
-	isc_ondestroy_t ondest;
 	isc_result_t result;
 	char buf[DNS_NAME_FORMATSIZE];
 	dns_rbt_t **treep;
@@ -1313,7 +1312,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
-	ondest = rbtdb->common.ondest;
 	isc_mem_detach(&rbtdb->hmctx);
 
 	if (rbtdb->mmap_location != NULL)
@@ -1331,7 +1329,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	}
 
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
-	isc_ondestroy_notify(&ondest, rbtdb);
 }
 
 static inline void
@@ -8526,11 +8523,6 @@ dns_rbtdb_create
 	 */
 	isc_mem_attach(mctx, &rbtdb->common.mctx);
 	isc_mem_attach(hmctx, &rbtdb->hmctx);
-
-	/*
-	 * Must be initialized before free_rbtdb() is called.
-	 */
-	isc_ondestroy_init(&rbtdb->common.ondest);
 
 	/*
 	 * Make a copy of the origin name.
