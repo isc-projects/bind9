@@ -188,8 +188,8 @@ echoinfo () {
 nextpart () {
     [ -f $1.prev ] || echo "0" > $1.prev
     prev=`cat $1.prev`
-    awk "FNR > $prev "'{ print }
-         END           { print NR > "/dev/stderr" }' $1 2> $1.prev
+    awk "NR > $prev "'{ print }
+         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
 #
