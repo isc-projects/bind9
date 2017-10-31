@@ -387,14 +387,21 @@ getquad(const void *src, struct in_addr *dst,
 {
 	int result;
 
-	result = inet_pton(AF_INET, src, dst);
-	if (result != 1 && callbacks != NULL) {
-		const char *name = isc_lex_getsourcename(lexer);
-		if (name == NULL)
-			name = "UNKNOWN";
-		(*callbacks->warn)(callbacks, "%s:%lu: \"%s\" "
-				   "is not a decimal dotted quad", name,
-				   isc_lex_getsourceline(lexer), src);
+	if ((result = inet_pton(AF_INET, src, dst)) != 1) {
+		/* We use inet_addr() for Windows compatibility
+		 * and we don't have to care about 255.255.255.255
+		 * because that would be handled by inet_pton()
+		 */
+		if ((dst->s_addr = inet_addr(src)) != INADDR_NONE) {
+			if (callbacks != NULL) {
+				const char *name = isc_lex_getsourcename(lexer);
+				(*callbacks->warn)(callbacks, "%s:%lu: \"%s\" "
+						   "is not a decimal dotted quad", (name)?name:"UNKNOWN",
+						   isc_lex_getsourceline(lexer), src);
+			}
+			return 1;
+		}
+		return 0;
 	}
 	return (result);
 }
