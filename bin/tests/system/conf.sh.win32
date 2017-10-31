@@ -177,6 +177,19 @@ echoinfo () {
 }
 
 #
+# Useful functions in test scripts
+#
+
+# nextpart: read everything that's been appended to a file since the
+# last time 'nextpart' was called.
+nextpart () {
+    [ -f $1.prev ] || echo "0" > $1.prev
+    prev=`cat $1.prev`
+    awk "FNR > $prev "'{ print }
+         END           { print NR > "/dev/stderr" }' $1 2> $1.prev
+}
+
+#
 # Export command paths
 #
 export ARPANAME
