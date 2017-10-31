@@ -14,5 +14,6 @@ $SHELL clean.sh
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
 cp ns1/named1.conf ns1/named.conf
+cp ns5/named1.args ns5/named.args
 
-cd ns1 && $SHELL sign.sh
+( cd ns1 && $SHELL sign.sh )

@@ -1,3 +1,7 @@
+4803.   [bug]		Backport parts of RT #45293 and RT #46267, specifically
+			the fix for RT #46055 and mkeys system test
+			improvements. [RT #46430]
+
 4800.	[bug]		When processing delzone, write one zone config per
 			line to the NZF. [RT #46323]
 
