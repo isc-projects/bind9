@@ -9566,7 +9566,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 			}
 
 			/* Acceptance timer expired? */
-			if (kd.addhd != 0 && kd.addhd < now)
+			if (kd.addhd < now)
 				timer = kd.addhd;
 
 			/* Or do we just need to refresh the keyset? */

@@ -1,3 +1,5 @@
+4803.   [bug]		Backport fix for RT #46055 from RT #46267. [RT #46430]
+
 4792.	[bug]		Fix map file header correctness check. [RT #38418]
 
 4791.	[doc]		Fixed outdated documentation about export libraries.
