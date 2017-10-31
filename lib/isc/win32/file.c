@@ -908,9 +908,9 @@ isc_file_isdirwritable(const char *path) {
 
 			MapGenericMask(&genericAccessRights, &mapping);
 			if (AccessCheck(security, hImpersonatedToken,
-				        genericAccessRights, &mapping,
+					genericAccessRights, &mapping,
 					&privileges, &privilegesLength,
-				        &grantedAccess, &result))
+					&grantedAccess, &result))
 			{
 				answer = ISC_TF(result);
 			}
