@@ -1,3 +1,5 @@
+4803.   [bug]		Backport fix for RT #46055 from RT #46267. [RT #46430]
+
 4790.	[bug]		nsupdate could trigger a require when sending a
 			update to the second address of the server.
 			[RT #45731]
