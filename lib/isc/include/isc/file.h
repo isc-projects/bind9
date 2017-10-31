@@ -335,6 +335,12 @@ isc_file_getsizefd(int fd, off_t *size);
  * - ISC_R_SUCCESS on success
  */
 
+isc_boolean_t
+isc_file_isdirwritable(const char *path);
+/*%<
+ *	Return true if the path is a directory and is writable
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_FILE_H */

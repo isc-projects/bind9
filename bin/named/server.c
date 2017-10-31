@@ -119,12 +119,6 @@
 #define SIZE_MAX ((size_t)-1)
 #endif
 
-#ifdef WIN32
-#define DIR_PERM_OK W_OK
-#else
-#define DIR_PERM_OK W_OK|X_OK
-#endif
-
 /*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
@@ -943,7 +937,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		goto cleanup;
 
 	} else if (need_mkey_dir && directory != NULL) {
-		if (access(directory, DIR_PERM_OK) != 0) {
+		if (!isc_file_isdirwritable(directory)) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "managed-keys-directory '%s' "
@@ -963,7 +957,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 
-		if (access(cwd, DIR_PERM_OK) != 0) {
+		if (!isc_file_isdirwritable(directory)) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "working directory '%s' "
@@ -5904,7 +5898,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Check that the working directory is writable.
 	 */
-	if (access(".", DIR_PERM_OK) != 0) {
+	if (!isc_file_isdirwritable(".")) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");

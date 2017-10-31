@@ -620,3 +620,8 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 
 	return (ISC_R_SUCCESS);
 }
+
+isc_boolean_t
+isc_file_isdirwritable(const char *path) {
+	return (ISC_TF(access(path, W_OK|X_OK) == 0));
+}

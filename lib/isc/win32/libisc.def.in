@@ -244,6 +244,7 @@ isc_file_isabsolute
 isc_file_ischdiridempotent
 isc_file_iscurrentdir
 isc_file_isdirectory
+isc_file_isdirwritable
 isc_file_isplainfile
 isc_file_mktemplate
 isc_file_mode
