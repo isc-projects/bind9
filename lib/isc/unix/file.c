@@ -704,3 +704,8 @@ isc_file_munmap(void *addr, size_t len) {
 	return (0);
 #endif
 }
+
+isc_boolean_t
+isc_file_isdirwritable(const char *path) {
+	return (ISC_TF(access(path, W_OK|X_OK) == 0));
+}
