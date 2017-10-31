@@ -770,3 +770,8 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	strlcpy(path, buf, length);
 	return (ISC_R_SUCCESS);
 }
+
+isc_boolean_t
+isc_file_isdirwritable(const char *path) {
+	return (ISC_TF(access(path, W_OK|X_OK) == 0));
+}

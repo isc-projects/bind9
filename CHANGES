@@ -1,3 +1,7 @@
+4804.	[port]		win32: access() does not work on directories as
+			required by POSIX.  Supply a alternative in
+			isc_file_isdirwritable. [RT #46394]
+
 4803.	[placeholder]
 
 4802.	[test]		Refactor mkeys system test to make it quicker and more

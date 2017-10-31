@@ -842,3 +842,85 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	strlcpy(path, buf, length);
 	return (ISC_R_SUCCESS);
 }
+
+/*
+ * Based on http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
+ */
+isc_boolean_t
+isc_file_isdirwritable(const char *path) {
+	DWORD length = 0;
+	HANDLE hToken = NULL;
+	PSECURITY_DESCRIPTOR security = NULL;
+	isc_boolean_t answer = ISC_FALSE;
+
+	if (isc_file_isdirectory(path) != ISC_R_SUCCESS) {
+		return (answer);
+	}
+
+	/*
+	 * Figure out buffer size. GetFileSecurity() should not succeed.
+	 */
+	if (GetFileSecurity(path, OWNER_SECURITY_INFORMATION |
+				  GROUP_SECURITY_INFORMATION |
+				  DACL_SECURITY_INFORMATION,
+			    NULL, 0, &length))
+	{
+		return (answer);
+	}
+
+	if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+		return (answer);
+	}
+
+	security = malloc(length);
+	if (security == NULL) {
+		return (answer);
+	}
+
+	/*
+	 * GetFileSecurity() should succeed.
+	 */
+	if (!GetFileSecurity(path, OWNER_SECURITY_INFORMATION |
+				   GROUP_SECURITY_INFORMATION |
+				   DACL_SECURITY_INFORMATION,
+			     security, length, &length))
+	{
+		return (answer);
+	}
+
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_IMPERSONATE |
+			     TOKEN_QUERY | TOKEN_DUPLICATE |
+			     STANDARD_RIGHTS_READ, &hToken))
+	{
+		HANDLE hImpersonatedToken = NULL;
+
+		if (DuplicateToken(hToken, SecurityImpersonation,
+				   &hImpersonatedToken))
+		{
+			GENERIC_MAPPING mapping;
+			PRIVILEGE_SET privileges = { 0 };
+			DWORD grantedAccess = 0;
+			DWORD privilegesLength = sizeof(privileges);
+			BOOL result = FALSE;
+			DWORD genericAccessRights = GENERIC_WRITE;
+
+			mapping.GenericRead = FILE_GENERIC_READ;
+			mapping.GenericWrite = FILE_GENERIC_WRITE;
+			mapping.GenericExecute = FILE_GENERIC_EXECUTE;
+			mapping.GenericAll = FILE_ALL_ACCESS;
+
+			MapGenericMask(&genericAccessRights, &mapping);
+			if (AccessCheck(security, hImpersonatedToken,
+				        genericAccessRights, &mapping,
+					&privileges, &privilegesLength,
+				        &grantedAccess, &result))
+			{
+				answer = ISC_TF(result);
+			}
+			CloseHandle(hImpersonatedToken);
+		}
+		CloseHandle(hToken);
+	}
+	free(security);
+	return (answer);
+}

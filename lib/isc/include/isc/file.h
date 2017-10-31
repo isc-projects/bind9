@@ -384,6 +384,12 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
  * - ISC_R_NOSPACE if the resulting path would be longer than 'length'
  */
 
+isc_boolean_t
+isc_file_isdirwritable(const char *path);
+/*%<
+ *	Return true if the path is a directory and is writable
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_FILE_H */

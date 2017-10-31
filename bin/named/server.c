@@ -154,12 +154,6 @@
 #define EXCLBUFFERS 4096
 #endif /* TUNE_LARGE */
 
-#ifdef WIN32
-#define DIR_PERM_OK W_OK
-#else
-#define DIR_PERM_OK W_OK|X_OK
-#endif
-
 #define MAX_TCP_TIMEOUT 65535
 
 /*%
@@ -1059,7 +1053,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		goto cleanup;
 
 	} else if (directory != NULL) {
-		if (access(directory, DIR_PERM_OK) != 0) {
+		if (!isc_file_isdirwritable(directory)) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "managed-keys-directory '%s' "
@@ -6180,7 +6174,7 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 			    "option 'directory' contains relative path '%s'",
 			    directory);
 
-	if (access(directory, DIR_PERM_OK) != 0) {
+	if (!isc_file_isdirwritable(directory)) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "directory '%s' is not writable",
@@ -7075,7 +7069,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 				      dir, isc_result_totext(result));
 			return (result);
 		}
-		if (access(dir, DIR_PERM_OK) != 0) {
+		if (!isc_file_isdirwritable(dir)) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "new-zones-directory '%s' "
@@ -8516,7 +8510,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Check that the working directory is writable.
 	 */
-	if (access(".", DIR_PERM_OK) != 0) {
+	if (!isc_file_isdirwritable(".")) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "the working directory is not writable");
