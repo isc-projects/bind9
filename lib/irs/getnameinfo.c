@@ -327,8 +327,13 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 		case DNS_R_NOVALIDKEY:
 		case DNS_R_NOVALIDDS:
 		case DNS_R_NOVALIDSIG:
-			ERR(EAI_INSECUREDATA);
-			/* NOTREACHED */
+			/*
+			 * Don't use ERR as GCC 7 wants to raise a
+			 * warning with ERR about possible falling
+			 * through which is impossible.
+			 */
+			result = EAI_INSECUREDATA;
+			goto cleanup;
 		default:
 			ERR(EAI_FAIL);
 		}
