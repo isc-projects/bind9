@@ -1054,7 +1054,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 
-		if (!isc_file_isdirwritable(directory)) {
+		if (!isc_file_isdirwritable(cwd)) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "working directory '%s' "
