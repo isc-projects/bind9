@@ -774,9 +774,15 @@
 	<term><userinput>secroots <optional>-</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
 	<listitem>
 	  <para>
-	    Dump the server's security roots and negative trust anchors
-	    for the specified views.  If no view is specified, all views
-	    are dumped.
+	    Dump the security roots (i.e., trust anchors
+	    configured via <command>trusted-keys</command>,
+	    <command>managed-keys</command>, or
+	    <command>dnssec-validation auto</command>) and negative trust
+	    anchors for the specified views.  If no view is specified, all
+	    views are dumped.  Security roots will indicate whether
+	    they are configured as trusted keys, managed keys, or
+	    initializing managed keys (managed keys that have not yet
+	    been updated by a successful key refresh query).
 	  </para>
 	  <para>
 	    If the first argument is "-", then the output is
@@ -963,15 +969,15 @@
 	<listitem>
 	  <para>
 	    When called without arguments, display the current
-            values of the <command>tcp-initial-timeout</command>,
+	    values of the <command>tcp-initial-timeout</command>,
 	    <command>tcp-idle-timeout</command>,
 	    <command>tcp-keepalive-timeout</command> and
 	    <command>tcp-advertised-timeout</command> options.
-            When called with arguments, update these values. This
-            allows an administrator to make rapid adjustments when
-            under a denial of service attack.  See the descriptions of
-            these options in the BIND 9 Administrator Reference Manual
-            for details of their use.
+	    When called with arguments, update these values. This
+	    allows an administrator to make rapid adjustments when
+	    under a denial of service attack.  See the descriptions of
+	    these options in the BIND 9 Administrator Reference Manual
+	    for details of their use.
 	  </para>
 	</listitem>
       </varlistentry>
