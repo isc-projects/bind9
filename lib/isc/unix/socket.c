@@ -3725,6 +3725,12 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		 */
 		dev->address = NEWCONNSOCK(dev)->peer_address;
 
+		if (NEWCONNSOCK(dev)->active == 0) {
+			inc_stats(manager->stats,
+				  NEWCONNSOCK(dev)->statsindex[STATID_ACTIVE]);
+			NEWCONNSOCK(dev)->active = 1;
+		}
+
 		LOCK(&manager->fdlock[lockid]);
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
@@ -3750,7 +3756,6 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		UNLOCK(&manager->lock);
 
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
-		inc_stats(manager->stats, sock->statsindex[STATID_ACTIVE]);
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 		NEWCONNSOCK(dev)->references--;
