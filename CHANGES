@@ -1,3 +1,6 @@
+4805.	[bug]		TCP4Active and TCP6Active weren't being updated
+			correctly. [RT #46454]
+
 4804.	[port]		win32: access() does not work on directories as
 			required by POSIX.  Supply a alternative in
 			isc_file_isdirwritable. [RT #46394]
