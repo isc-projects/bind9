@@ -389,6 +389,16 @@
 	  </para>
 	</entry>
       </row>
+      <row rowsep="0">
+	<entry colname="1">
+	  <para><command>zoneload</command></para>
+	</entry>
+	<entry colname="2">
+	  <para>
+	    Loading of zones and creation of automatic empty zones.
+	  </para>
+	</entry>
+      </row>
     </tbody>
   </tgroup>
 </informaltable>
