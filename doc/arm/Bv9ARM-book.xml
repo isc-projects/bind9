@@ -397,14 +397,31 @@
 	  <para>
 	    The other authoritative servers, the <emphasis>slave</emphasis>
 	    servers (also known as <emphasis>secondary</emphasis> servers)
-	    load
-	    the zone contents from another server using a replication process
-	    known as a <emphasis>zone transfer</emphasis>.  Typically the data
-	    are
-	    transferred directly from the primary master, but it is also
-	    possible
-	    to transfer it from another slave.  In other words, a slave server
-	    may itself act as a master to a subordinate slave server.
+	    load the zone contents from another server using a replication
+	    process known as a <emphasis>zone transfer</emphasis>.
+	    Typically the data are transferred directly from the primary
+	    master, but it is also possible to transfer it from another
+	    slave.  In other words, a slave server may itself act as a
+	    master to a subordinate slave server.
+	  </para>
+	  <para>
+	    Periodically, the slave server must send a refresh query to
+	    determine whether the zone contents have been updated. This
+	    is done by sending a query for the zone's SOA record and
+	    checking whether the SERIAL field has been updated; if so,
+	    a new transfer request is initiated. The timing of these
+	    refresh queries is controlled by the SOA REFRESH and RETRY
+	    fields, but can be overrridden with the
+	    <command>max-refresh-time</command>,
+	    <command>min-refresh-time</command>,
+	    <command>max-retry-time</command>, and
+	    <command>min-retry-time</command> options.
+	  </para>
+	  <para>
+	    If the zone data cannot be updated within the time specified
+	    by the SOA EXPIRE option (up to a hard-coded maximum of
+	    24 weeks) then the slave zone expires and will no longer
+	    respond to queries.
 	  </para>
 	</section>
 
@@ -9383,21 +9400,18 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>
 		<para>
 		  These options control the server's behavior on refreshing a
-		  zone
-		  (querying for SOA changes) or retrying failed transfers.
-		  Usually the SOA values for the zone are used, but these
-		  values
-		  are set by the master, giving slave server administrators
-		  little
-		  control over their contents.
+		  zone (querying for SOA changes) or retrying failed
+		  transfers.  Usually the SOA values for the zone are used,
+		  up to a hard-coded maximum expiry of 24 weeks. However,
+		  these values are set by the master, giving slave server
+		  administrators little control over their contents.
 		</para>
 		<para>
 		  These options allow the administrator to set a minimum and
 		  maximum refresh and retry time in seconds per-zone,
-		  per-view, or globally.
-		  These options are valid for slave and stub zones,
-		  and clamp the SOA refresh and retry times to the specified
-		  values.
+		  per-view, or globally.  These options are valid for
+		  slave and stub zones, and clamp the SOA refresh and
+		  retry times to the specified values.
 		</para>
 		<para>
 		  The following defaults apply.
