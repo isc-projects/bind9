@@ -2693,7 +2693,7 @@
 ./bin/tools/genrandom.html			HTML	DOCBOOK
 ./bin/tools/isc-hmac-fixup.8			MAN	DOCBOOK
 ./bin/tools/isc-hmac-fixup.c			C	2010,2014,2015,2016
-./bin/tools/isc-hmac-fixup.docbook		SGML	2010,2013,2014,2015,2016
+./bin/tools/isc-hmac-fixup.docbook		SGML	2010,2013,2014,2015,2016,2017
 ./bin/tools/isc-hmac-fixup.html			HTML	DOCBOOK
 ./bin/tools/mdig.1				MAN	DOCBOOK
 ./bin/tools/mdig.c				C	2015,2016,2017
@@ -3197,7 +3197,7 @@
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004,2015,2016
 ./doc/arm/catz.xml				SGML	2016,2017
 ./doc/arm/dlz.xml				SGML	2012,2013,2014,2015,2016
-./doc/arm/dnssec.xml				SGML	2010,2011,2015,2016
+./doc/arm/dnssec.xml				SGML	2010,2011,2015,2016,2017
 ./doc/arm/dyndb.xml				SGML	2015,2016
 ./doc/arm/isc-logo.eps				X	2005,2010
 ./doc/arm/isc-logo.pdf				X	2005,2010
@@ -3241,7 +3241,7 @@
 ./doc/arm/man.rndc-confgen.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./doc/arm/managed-keys.xml			SGML	2010,2014,2015,2016
+./doc/arm/managed-keys.xml			SGML	2010,2014,2015,2016,2017
 ./doc/arm/notes-wrapper.xml			SGML	2014,2015,2016
 ./doc/arm/notes.conf				X	2015
 ./doc/arm/notes.html				X	2014,2015,2016,2017
