@@ -1,3 +1,5 @@
+	--- 9.12.0b2 released ---
+
 4806.	[func]		Log messages related to loading of zones are now
 			directed to the "zoneload" logging category.
 			[RT #41640]

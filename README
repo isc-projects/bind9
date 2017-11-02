@@ -118,6 +118,10 @@ include:
   * Added support for the EDNS Padding and Keepalive options.
   * 'new-zones-directory' option sets the location where the configuration
     data for zones added by rndc addzone is stored
+  * The default key algorithm in rndc-confgen is now hmac-sha256.
+  * filter-aaaa-on-v4 and filter-aaaa-on-v6 options are now available by
+    default without a configure option.
+  * The obsolete isc-hmac-fixup command has been removed.
 
 Building BIND
 
