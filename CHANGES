@@ -1,3 +1,7 @@
+4806.	[func]		Log messages related to loading of zones are now
+			directed to the "zoneload" logging category.
+			[RT #41640]
+
 4805.	[bug]		TCP4Active and TCP6Active weren't being updated
 			correctly. [RT #46454]
 

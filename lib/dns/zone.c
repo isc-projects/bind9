@@ -1980,9 +1980,10 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 		    !zone_touched(zone))
 		{
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "skipping load: master file "
-				     "older than last load");
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_DEBUG(1),
+				      "skipping load: master file "
+				      "older than last load");
 			result = DNS_R_UPTODATE;
 			goto cleanup;
 		}
@@ -2028,9 +2029,10 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		}
 
 		if (dlzdb == NULL) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "DLZ %s does not exist or is set "
-				     "to 'search yes;'", zone->db_argv[1]);
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
+				      "DLZ %s does not exist or is set "
+				      "to 'search yes;'", zone->db_argv[1]);
 			result = ISC_R_NOTFOUND;
 			goto cleanup;
 		}
@@ -2058,9 +2060,10 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 			result = (*dlzdb->configure_callback)(zone->view,
 							      dlzdb, zone);
 			if (result != ISC_R_SUCCESS)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "DLZ configuration callback: %s",
-					     isc_result_totext(result));
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
+					      "DLZ configuration callback: %s",
+					      isc_result_totext(result));
 		}
 		goto cleanup;
 	}
@@ -2071,7 +2074,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		if (zone->masterfile == NULL ||
 		    !isc_file_exists(zone->masterfile)) {
 			if (zone->masterfile != NULL) {
-				dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_DEBUG(1),
 					     "no master file");
 			}
 			zone->refreshtime = now;
@@ -2082,7 +2086,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		}
 	}
 
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "starting load");
+	dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+		      ISC_LOG_DEBUG(1), "starting load");
 
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, (zone->type == dns_zone_stub) ?
@@ -2092,7 +2097,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 			       &db);
 
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
 			     "loading zone: creating database: %s",
 			     isc_result_totext(result));
 		goto cleanup;
@@ -2117,13 +2122,15 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 			if (zone->type == dns_zone_master ||
 			    (zone->type == dns_zone_redirect &&
 			     zone->masters == NULL)) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
 					     "loading zone: "
 					     "no master file configured");
 				goto cleanup;
 			}
-			dns_zone_log(zone, ISC_LOG_INFO, "loading zone: "
-				     "no master file configured: continuing");
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_INFO, "loading zone: "
+				      "no master file configured: continuing");
 		}
 	}
 
@@ -4445,10 +4452,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		    (zone->type == dns_zone_redirect &&
 		     zone->masters == NULL)) {
 			if (result == ISC_R_FILENOTFOUND)
-				dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_DEBUG(1),
 					     "no master file");
 			else if (result != DNS_R_NOMASTERFILE)
-				dns_zone_log(zone, ISC_LOG_ERROR,
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
 					     "loading from master file %s "
 					     "failed: %s",
 					     zone->masterfile,
@@ -4456,7 +4465,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		} else if (zone->type == dns_zone_master &&
 			   inline_secure(zone) && result == ISC_R_FILENOTFOUND)
 		{
-			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_DEBUG(1),
 				     "no master file, requesting db");
 			maybe_send_secure(zone);
 		} else {
@@ -4464,7 +4474,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			if (zone->type == dns_zone_key &&
 			    result == ISC_R_FILENOTFOUND)
 				level = ISC_LOG_DEBUG(1);
-			dns_zone_log(zone, level,
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, level,
 				     "loading from master file %s failed: %s",
 				     zone->masterfile,
 				     dns_result_totext(result));
@@ -4475,7 +4485,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			goto cleanup;
 	}
 
-	dns_zone_log(zone, ISC_LOG_DEBUG(2),
+	dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(2),
 		     "number of nodes in database: %u",
 		     dns_db_nodecount(db));
 
@@ -4512,8 +4522,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
 		    result != DNS_R_UPTODATE && result != DNS_R_NOJOURNAL &&
-		    result != ISC_R_RANGE) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
+		    result != ISC_R_RANGE)
+		{
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
 				     "journal rollforward failed: %s",
 				     dns_result_totext(result));
 			goto cleanup;
@@ -4521,12 +4533,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 		}
 		if (result == ISC_R_NOTFOUND || result == ISC_R_RANGE) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
 				     "journal rollforward failed: "
 				     "journal out of sync with zone");
 			goto cleanup;
 		}
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
 			     "journal rollforward completed "
 			     "successfully: %s",
 			     dns_result_totext(result));
@@ -4542,7 +4555,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				  &refresh, &retry, &expire, &minimum,
 				  &errors);
 	if (result != ISC_R_SUCCESS && zone->type != dns_zone_key) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
 			     "could not find NS and/or SOA records");
 	}
 
@@ -4570,7 +4583,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 		if (jserial != serial) {
 			if (!empty)
-				dns_zone_log(zone, ISC_LOG_INFO,
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_INFO,
 					     "journal file is out of date: "
 					     "removing journal file");
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
@@ -4587,7 +4601,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 	}
 
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded; checking validity");
+	dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_DEBUG(1),
+		      "loaded; checking validity");
 
 	/*
 	 * Master / Slave / Stub zones require both NS and SOA records at
@@ -4601,12 +4616,14 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	case dns_zone_stub:
 	case dns_zone_redirect:
 		if (soacount != 1) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
 				     "has %d SOA records", soacount);
 			result = DNS_R_BADZONE;
 		}
 		if (nscount == 0) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
 				     "has no NS records");
 			result = DNS_R_BADZONE;
 		}
@@ -4656,7 +4673,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 				if (serial == oldserial &&
 				    zone_unchanged(zone->db, db, zone->mctx)) {
-					dns_zone_log(zone, ISC_LOG_INFO,
+					dns_zone_logc(zone,
+						      DNS_LOGCATEGORY_ZONELOAD,
+						      ISC_LOG_INFO,
 						     "ixfr-from-differences: "
 						     "unchanged");
 					return(ISC_R_SUCCESS);
@@ -4665,23 +4684,29 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				serialmin = (oldserial + 1) & 0xffffffffU;
 				serialmax = (oldserial + 0x7fffffffU) &
 					     0xffffffffU;
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "ixfr-from-differences: "
-					     "new serial (%u) out of range "
-					     "[%u - %u]", serial, serialmin,
-					     serialmax);
+				dns_zone_logc(zone,
+					      DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
+					      "ixfr-from-differences: "
+					      "new serial (%u) out of range "
+					      "[%u - %u]", serial, serialmin,
+					      serialmax);
 				result = DNS_R_BADZONE;
 				goto cleanup;
 			} else if (!isc_serial_ge(serial, oldserial))
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial (%u/%u) has gone "
-					     "backwards", serial, oldserial);
+				dns_zone_logc(zone,
+					      DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
+					      "zone serial (%u/%u) has gone "
+					      "backwards", serial, oldserial);
 			else if (serial == oldserial && !hasinclude &&
 				 strcmp(zone->db_argv[0], "_builtin") != 0)
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial (%u) unchanged. "
-					     "zone may fail to transfer "
-					     "to slaves.", serial);
+				dns_zone_logc(zone,
+					      DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_ERROR,
+					      "zone serial (%u) unchanged. "
+					      "zone may fail to transfer "
+					      "to slaves.", serial);
 		}
 
 		if (zone->type == dns_zone_master &&
@@ -4689,9 +4714,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		    zone->sigresigninginterval < (3 * refresh) &&
 		    dns_db_issecure(db))
 		{
-			dns_zone_log(zone, ISC_LOG_WARNING,
-				     "sig-re-signing-interval less than "
-				     "3 * refresh.");
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_WARNING,
+				      "sig-re-signing-interval less than "
+				      "3 * refresh.");
 		}
 
 		zone->refresh = RANGE(refresh,
@@ -4838,16 +4864,18 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				dns_rdatatype_format(next.covers,
 						     typebuf, sizeof(typebuf));
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "next resign: %s/%s in %d seconds",
-					     namebuf, typebuf,
-					     next.resign - timenow -
-					     zone->sigresigninginterval);
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_DEBUG(3),
+					      "next resign: %s/%s "
+					      "in %d seconds", namebuf, typebuf,
+					      next.resign - timenow -
+					       zone->sigresigninginterval);
 				dns_rdataset_disassociate(&next);
 			} else
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "signed dynamic zone has no "
-					     "resign event scheduled");
+				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+					      ISC_LOG_WARNING,
+					      "signed dynamic zone has no "
+					      "resign event scheduled");
 		}
 
 		zone_settimer(zone, &now);
@@ -4876,9 +4904,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		zone->nincludes++;
 	}
 
-	if (! dns_db_ispersistent(db))
-		dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u%s", serial,
-			     dns_db_issecure(db) ? " (DNSSEC signed)" : "");
+	if (! dns_db_ispersistent(db)) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+			      ISC_LOG_INFO, "loaded serial %u%s", serial,
+			      dns_db_issecure(db) ? " (DNSSEC signed)" : "");
+	}
 
 	zone->loadtime = loadtime;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
@@ -4921,8 +4951,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	} else if (zone->type == dns_zone_master ||
 		   zone->type == dns_zone_redirect) {
 		if (!(inline_secure(zone) && result == ISC_R_FILENOTFOUND))
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "not loaded due to errors.");
+			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
+				      ISC_LOG_ERROR,
+				      "not loaded due to errors.");
 		else if (zone->type == dns_zone_master)
 			result = ISC_R_SUCCESS;
 	}
@@ -13664,7 +13695,8 @@ notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 
 void
 dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
-	      int level, const char *fmt, ...) {
+	      int level, const char *fmt, ...)
+{
 	va_list ap;
 	char message[4096];
 

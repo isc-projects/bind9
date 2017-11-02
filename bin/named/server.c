@@ -3338,7 +3338,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		viewname = "";
 	}
 	dns_name_format(name, namebuf, sizeof(namebuf));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+	isc_log_write(named_g_lctx, DNS_LOGCATEGORY_ZONELOAD,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "automatic empty zone%s%s: %s",
 		      sep, viewname, namebuf);
