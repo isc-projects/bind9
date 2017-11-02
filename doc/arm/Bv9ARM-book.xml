@@ -2348,8 +2348,6 @@ options {
 	  <para>
 	    The logged error reads "insecurity proof failed" and
 	    "got insecure response; parent indicates it should be secure".
-	    (Prior to BIND 9.7, the logged error was "not insecure".
-	    This referred to the zone, not the response.)
 	  </para>
 	</note>
       </section>
@@ -10011,8 +10009,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
 	    A <command>managed-keys</command> statement contains a list of
 	    the keys to be managed, along with information about how the
 	    keys are to be initialized for the first time.  The only
-	    initialization method currently supported (as of
-	    <acronym>BIND</acronym> 9.7.0) is <literal>initial-key</literal>.
+	    initialization method currently supported is
+	    <literal>initial-key</literal>.
 	    This means the <command>managed-keys</command> statement must
 	    contain a copy of the initializing key.  (Future releases may
 	    allow keys to be initialized by other methods, eliminating this
