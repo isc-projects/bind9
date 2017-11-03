@@ -6022,22 +6022,18 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dd>
                 <p>
                   These options control the server's behavior on refreshing a
-                  zone
-                  (querying for SOA changes) or retrying failed transfers.
-                  Usually the SOA values for the zone are used, but these
-                  values
-                  are set by the master, giving slave server administrators
-                  little
-                  control over their contents.
+                  zone (querying for SOA changes) or retrying failed
+                  transfers.  Usually the SOA values for the zone are used,
+                  up to a hard-coded maximum expiry of 24 weeks. However,
+                  these values are set by the master, giving slave server
+                  administrators little control over their contents.
                 </p>
                 <p>
                   These options allow the administrator to set a minimum and
-                  maximum
-                  refresh and retry time either per-zone, per-view, or
-                  globally.
-                  These options are valid for slave and stub zones,
-                  and clamp the SOA refresh and retry times to the specified
-                  values.
+                  maximum refresh and retry time either per-zone,
+                  per-view, or globally.  These options are valid for
+                  slave and stub zones, and clamp the SOA refresh and
+                  retry times to the specified values.
                 </p>
                 <p>
                   The following defaults apply.
@@ -7643,8 +7639,8 @@ ns.domain.com.rpz-nsdname   CNAME   .
             A <span class="command"><strong>managed-keys</strong></span> statement contains a list of
             the keys to be managed, along with information about how the
             keys are to be initialized for the first time.  The only
-            initialization method currently supported (as of
-            <acronym class="acronym">BIND</acronym> 9.7.0) is <code class="literal">initial-key</code>.
+            initialization method currently supported is
+            <code class="literal">initial-key</code>.
             This means the <span class="command"><strong>managed-keys</strong></span> statement must
             contain a copy of the initializing key.  (Future releases may
             allow keys to be initialized by other methods, eliminating this
