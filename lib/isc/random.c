@@ -60,6 +60,13 @@
 #define CHACHA_IVSIZE 8U
 #define CHACHA_BLOCKSIZE 64
 #define CHACHA_BUFFERSIZE (16 * CHACHA_BLOCKSIZE)
+#define CHACHA_MAXHAVE (CHACHA_BUFFERSIZE - CHACHA_KEYSIZE - CHACHA_IVSIZE)
+/*
+ * Derived from OpenBSD's implementation.  The rationale is not clear,
+ * but should be conservative enough in safety, and reasonably large for
+ * efficiency.
+ */
+#define CHACHA_MAXLENGTH 1600000
 
 /* ChaCha RNG state */
 struct isc_rng {
@@ -296,26 +303,29 @@ chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen) {
 	chacha_reinit(rng, rng->buffer,
 		      CHACHA_KEYSIZE + CHACHA_IVSIZE);
 	memset(rng->buffer, 0, CHACHA_KEYSIZE + CHACHA_IVSIZE);
-	rng->have = CHACHA_BUFFERSIZE - CHACHA_KEYSIZE - CHACHA_IVSIZE;
+	rng->have = CHACHA_MAXHAVE;
 }
 
-static inline isc_uint16_t
-chacha_getuint16(isc_rng_t *rng) {
-	isc_uint16_t val;
-
+static void
+chacha_getbytes(isc_rng_t *rng, isc_uint8_t *output, size_t length) {
 	REQUIRE(VALID_RNG(rng));
 
-	if (rng->have < sizeof(val))
+	while (ISC_UNLIKELY(length > CHACHA_MAXHAVE)) {
+		chacha_rekey(rng, NULL, 0);
+		memmove(output, rng->buffer + CHACHA_BUFFERSIZE - rng->have,
+			CHACHA_MAXHAVE);
+		output += CHACHA_MAXHAVE;
+		length -= CHACHA_MAXHAVE;
+		rng->have = 0;
+	}
+
+	if (rng->have < length)
 		chacha_rekey(rng, NULL, 0);
 
-	memmove(&val, rng->buffer + CHACHA_BUFFERSIZE - rng->have,
-		sizeof(val));
+	memmove(output, rng->buffer + CHACHA_BUFFERSIZE - rng->have, length);
 	/* Clear the copied region. */
-	memset(rng->buffer + CHACHA_BUFFERSIZE - rng->have,
-	       0, sizeof(val));
-	rng->have -= sizeof(val);
-
-	return (val);
+	memset(rng->buffer + CHACHA_BUFFERSIZE - rng->have, 0, length);
+	rng->have -= length;
 }
 
 static void
@@ -354,23 +364,40 @@ chacha_stir(isc_rng_t *rng) {
 	 * but should be conservative enough in safety, and reasonably large
 	 * for efficiency.
 	 */
-	rng->count = 1600000;
+	rng->count = CHACHA_MAXLENGTH;
+}
+
+void
+isc_rng_randombytes(isc_rng_t *rng, void *output, size_t length) {
+	isc_uint8_t *ptr = output;
+
+	REQUIRE(VALID_RNG(rng));
+	REQUIRE(output != NULL && length > 0);
+
+	LOCK(&rng->lock);
+
+	while (ISC_UNLIKELY(length > CHACHA_MAXLENGTH)) {
+		chacha_stir(rng);
+		chacha_getbytes(rng, ptr, CHACHA_MAXLENGTH);
+		ptr += CHACHA_MAXLENGTH;
+		length -= CHACHA_MAXLENGTH;
+		rng->count = 0;
+	}
+
+	rng->count -= length;
+	if (rng->count <= 0)
+		chacha_stir(rng);
+
+	chacha_getbytes(rng, ptr, length);
+
+	UNLOCK(&rng->lock);
 }
 
 isc_uint16_t
 isc_rng_random(isc_rng_t *rng) {
 	isc_uint16_t result;
 
-	REQUIRE(VALID_RNG(rng));
-
-	LOCK(&rng->lock);
-
-	rng->count -= sizeof(isc_uint16_t);
-	if (rng->count <= 0)
-		chacha_stir(rng);
-	result = chacha_getuint16(rng);
-
-	UNLOCK(&rng->lock);
+	isc_rng_randombytes(rng, &result, sizeof(result));
 
 	return (result);
 }
@@ -401,7 +428,7 @@ isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound) {
 	 * to re-roll.
 	 */
 	for (;;) {
-		r = isc_rng_random(rng);
+		isc_rng_randombytes(rng, &r, sizeof(r));
 		if (r >= min)
 			break;
 	}

@@ -555,6 +555,7 @@ isc_rng_attach
 isc_rng_create
 isc_rng_detach
 isc_rng_random
+isc_rng_randombytes
 isc_rng_uniformrandom
 isc_rwlock_destroy
 isc_rwlock_downgrade

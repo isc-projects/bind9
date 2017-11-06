@@ -13484,11 +13484,6 @@ newzone_cfgctx_destroy(void **cfgp) {
 
 static isc_result_t
 generate_salt(unsigned char *salt, size_t saltlen) {
-	size_t i, n;
-	union {
-		unsigned char rnd[256];
-		isc_uint16_t rnd16[128];
-	} rnd;
 	unsigned char text[512 + 1];
 	isc_region_t r;
 	isc_buffer_t buf;
@@ -13497,14 +13492,9 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	n = (saltlen + sizeof(isc_uint16_t) - 1) / sizeof(isc_uint16_t);
-	for (i = 0; i < n; i++) {
-		rnd.rnd16[i] = isc_rng_random(named_g_server->sctx->rngctx);
-	}
+	isc_rng_randombytes(named_g_server->sctx->rngctx, salt, saltlen);
 
-	memmove(salt, rnd.rnd, saltlen);
-
-	r.base = rnd.rnd;
+	r.base = salt;
 	r.length = (unsigned int) saltlen;
 
 	isc_buffer_init(&buf, text, sizeof(text));

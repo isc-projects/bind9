@@ -1,3 +1,7 @@
+4807.	[cleanup]	isc_rng_randombytes() returns a specified number of
+			bytes from the PRNG; this is now used instead of
+			calling isc_rng_random() multiple times. [RT #46230]
+
 	--- 9.12.0b2 released ---
 
 4806.	[func]		Log messages related to loading of zones are now

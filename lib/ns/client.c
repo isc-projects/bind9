@@ -1648,8 +1648,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_init(&buf, cookie, sizeof(cookie));
 		isc_stdtime_get(&now);
 
-		nonce = ((isc_rng_random(client->sctx->rngctx) << 16) |
-			 isc_rng_random(client->sctx->rngctx));
+		isc_rng_randombytes(client->sctx->rngctx,
+				    &nonce, sizeof(nonce));
 
 		compute_cookie(client, now, nonce, client->sctx->secret, &buf);
 

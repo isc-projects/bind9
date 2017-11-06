@@ -14,6 +14,7 @@
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/deprecated.h>
 
 /*! \file isc/random.h
  * \brief Implements pseudo random number generators.
@@ -111,10 +112,19 @@ isc_rng_detach(isc_rng_t **rngp);
  * \li rngp != NULL the RNG struct to decrement reference for
  */
 
+void
+isc_rng_randombytes(isc_rng_t *rngctx, void *output, size_t length);
+/*%<
+ * Returns a pseudo random sequence of length octets in output.
+ */
+
 isc_uint16_t
-isc_rng_random(isc_rng_t *rngctx);
+isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
 /*%<
  * Returns a pseudo random 16-bit unsigned integer.
+ *
+ * This function is deprecated. You should use `isc_rng_randombytes()`
+ * instead.
  */
 
 isc_uint16_t
