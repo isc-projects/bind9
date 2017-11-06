@@ -2602,7 +2602,7 @@ case "$with_zlib" in
 		done
 		;;
 	*)
-		if test -f "${with_zlib}/zlib.h"
+		if test -f "${with_zlib}/include/zlib.h"
 		then
 			zlib_cflags="-I${with_zlib}/include"
 			LIBS="$LIBS -L${with_zlib}/lib"

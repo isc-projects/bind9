@@ -1,3 +1,5 @@
+4808.	[bug]		Properly test for zlib.h. [RT #46504]
+
 4805.	[bug]		TCP4Active and TCP6Active weren't being updated
 			correctly. [RT #46454]
 
