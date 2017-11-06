@@ -1,3 +1,5 @@
+4808.	[bug]		Properly test for zlib.h. [RT #46504]
+
 4807.	[cleanup]	isc_rng_randombytes() returns a specified number of
 			bytes from the PRNG; this is now used instead of
 			calling isc_rng_random() multiple times. [RT #46230]
