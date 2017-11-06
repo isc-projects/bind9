@@ -3960,7 +3960,7 @@
 ./lib/isc/tests/print_test.c			C	2014,2015,2016
 ./lib/isc/tests/queue_test.c			C	2011,2012,2016
 ./lib/isc/tests/radix_test.c			C	2014,2016
-./lib/isc/tests/random_test.c			C	2014,2015,2016
+./lib/isc/tests/random_test.c			C	2014,2015,2016,2017
 ./lib/isc/tests/regex_test.c			C	2013,2015,2016
 ./lib/isc/tests/result_test.c			C	2015,2016
 ./lib/isc/tests/safe_test.c			C	2013,2015,2016,2017
