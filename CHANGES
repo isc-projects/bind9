@@ -1,3 +1,6 @@
+4809.	[port]		Check at configure time whether -latomic is needed
+			for stdatomic.h. [RT #46324]
+
 4808.	[bug]		Properly test for zlib.h. [RT #46504]
 
 4805.	[bug]		TCP4Active and TCP6Active weren't being updated
