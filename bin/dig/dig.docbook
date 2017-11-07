@@ -785,6 +785,15 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]keepalive</option></term>
+	  <listitem>
+	    <para>
+	      Send [or do not send] an EDNS Keepalive option.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]keepopen</option></term>
 	  <listitem>
 	    <para>
