@@ -1,3 +1,6 @@
+4809.	[port]		Check at configure time whether -latomic is needed
+			for stdatomic.h. [RT #46324]
+
 4804.	[port]		win32: access() does not work on directories as
 			required by POSIX.  Supply a alternative in
 			isc_file_isdirwritable. [RT #46394]

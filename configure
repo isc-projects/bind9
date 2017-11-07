@@ -938,6 +938,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1086,6 +1087,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1338,6 +1340,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1475,7 +1486,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1628,6 +1639,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -18805,6 +18817,7 @@ done
 #
 # Machine architecture dependent features
 #
+have_stdatomic=no
 for ac_header in stdatomic.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
@@ -18812,9 +18825,11 @@ if test "x$ac_cv_header_stdatomic_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_STDATOMIC_H 1
 _ACEOF
- ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
+ have_stdatomic=yes
+		  ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
 else
-  ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
+  have_stdatomic=no
+		  ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 fi
 
 done
@@ -18895,11 +18910,41 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		esac
 		;;
 	no)
+	        have_stdatomic=no
 		ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 		use_atomic=no
 		arch=noatomic
 		;;
 esac
+
+if test "X$have_stdatomic" = "Xyes"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if -latomic is needed to use 64-bit stdatomic.h primitives" >&5
+$as_echo_n "checking if -latomic is needed to use 64-bit stdatomic.h primitives... " >&6; }
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdatomic.h>
+int
+main ()
+{
+atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	 ISC_ATOMIC_LIBS=""
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	 ISC_ATOMIC_LIBS="-latomic"
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    LIBS="$LIBS $ISC_ATOMIC_LIBS"
+fi
 
 
 
