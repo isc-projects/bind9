@@ -469,6 +469,11 @@ Convert [do not convert] puny code on output\&. This requires IDN SUPPORT to hav
 Ignore truncation in UDP responses instead of retrying with TCP\&. By default, TCP retries are performed\&.
 .RE
 .PP
+\fB+[no]keepalive\fR
+.RS 4
+Send [or do not send] an EDNS Keepalive option\&.
+.RE
+.PP
 \fB+[no]keepopen\fR
 .RS 4
 Keep the TCP socket open between queries and reuse it rather than creating a new TCP socket for each lookup\&. The default is
