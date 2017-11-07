@@ -1,3 +1,6 @@
+4810.	[test]		The chain system test failed if the IPv6 interfaces
+			were not configured. [RT #46508]
+
 4809.	[port]		Check at configure time whether -latomic is needed
 			for stdatomic.h. [RT #46324]
 
