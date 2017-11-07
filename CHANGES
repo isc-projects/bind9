@@ -1,3 +1,6 @@
+4810.	[test]		The chain system test failed if the IPv6 interfaces
+			were not configured. [RT #46508]
+
 	--- 9.12.0b2 released ---
 
 4809.	[port]		Check at configure time whether -latomic is needed
