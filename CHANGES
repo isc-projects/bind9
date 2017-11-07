@@ -1,3 +1,6 @@
+4809.	[port]		Check at configure time whether -latomic is needed
+			for stdatomic.h. [RT #46324]
+
 4808.	[bug]		Properly test for zlib.h. [RT #46504]
 
 4807.	[cleanup]	isc_rng_randombytes() returns a specified number of
