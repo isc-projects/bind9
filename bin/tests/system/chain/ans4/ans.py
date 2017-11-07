@@ -262,7 +262,7 @@ def create_response(msg):
 def sigterm(signum, frame):
     print ("Shutting down now...")
     os.remove('ans.pid')
-    running = 0
+    running = False
     sys.exit(0)
 
 ############################################################################
@@ -278,8 +278,17 @@ sock = 5300
 
 query4_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 query4_socket.bind((ip4, sock))
-query6_socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-query6_socket.bind((ip6, sock))
+
+havev6 = True
+try:
+    query6_socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+    try:
+        query6_socket.bind((ip6, sock))
+    except:
+        query6_socket.close()
+        havev6 = False
+except:
+    havev6 = False
 
 ctrl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ctrl_socket.bind((ip4, sock + 1))
@@ -292,14 +301,18 @@ pid = os.getpid()
 print (pid, file=f)
 f.close()
 
-running = 1
+running = True
 
 print ("Listening on %s port %d" % (ip4, sock))
-print ("Listening on %s port %d" % (ip6, sock))
+if havev6:
+    print ("Listening on %s port %d" % (ip6, sock))
 print ("Control channel on %s port %d" % (ip4, sock + 1))
 print ("Ctrl-c to quit")
 
-input = [query4_socket, query6_socket, ctrl_socket]
+if havev6:
+    input = [query4_socket, query6_socket, ctrl_socket]
+else:
+    input = [query4_socket, ctrl_socket]
 
 while running:
     try:
