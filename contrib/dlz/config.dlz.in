@@ -132,12 +132,11 @@ AC_ARG_WITH(dlz_mysql,
 			       (Required to use MySQL with DLZ)]),
     use_dlz_mysql="$withval", use_dlz_mysql="no")
 
-AC_CHECK_PROGS(MYSQL_CONFIG, mysql_config)
-
 mysql_include=""
 mysql_lib=""
 if test "$use_dlz_mysql" = "yes"
 then
+	AC_CHECK_PROGS(MYSQL_CONFIG, mysql_config)
 	if test -n "$MYSQL_CONFIG"
 	then
 		mysql_include=`${MYSQL_CONFIG} --include`
