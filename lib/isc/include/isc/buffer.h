@@ -106,9 +106,8 @@
 /*!
  * To make many functions be inline macros (via \#define) define this.
  * If it is undefined, a function will be used.
-  */
+ */
 /* #define ISC_BUFFER_USEINLINE */
-
 
 ISC_LANG_BEGINDECLS
 
