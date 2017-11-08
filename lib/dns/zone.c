@@ -10764,13 +10764,13 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
+	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 	if (notify->key != NULL) {
 		/* Transfer ownership of key */
 		key = notify->key;
 		notify->key = NULL;
 	} else {
 		isc_netaddr_fromsockaddr(&dstip, &notify->dst);
-		isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 		result = dns_view_getpeertsig(notify->zone->view, &dstip, &key);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			notify_log(notify->zone, ISC_LOG_ERROR,
