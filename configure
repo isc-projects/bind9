@@ -1008,6 +1008,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_libbind
+enable_buffer_useinline
 enable_warn_shadow
 enable_warn_error
 enable_developer
@@ -1710,6 +1711,9 @@ Optional Features:
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-libbind        deprecated
+  --enable-buffer-useinline
+                          define ISC_BUFFER_USEINLINE when compiling
+                          [[default=yes]]
   --enable-warn-shadow    turn on -Wshadow when compiling
   --enable-warn-error     turn on -Werror when compiling
   --enable-developer      enable developer build settings
@@ -11469,6 +11473,20 @@ It is available from http://www.isc.org as a separate download." "$LINENO" 5
 	no|'')
 		;;
 esac
+
+# Check whether --enable-buffer_useinline was given.
+if test "${enable_buffer_useinline+set}" = set; then :
+  enableval=$enable_buffer_useinline; if test yes = "${enable}"
+	      then
+
+$as_echo "#define ISC_BUFFER_USEINLINE 1" >>confdefs.h
+
+	      fi
+else
+  $as_echo "#define ISC_BUFFER_USEINLINE 1" >>confdefs.h
+
+fi
+
 
 # Check whether --enable-warn_shadow was given.
 if test "${enable_warn_shadow+set}" = set; then :

@@ -533,6 +533,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to the sockaddr length type used by getnameinfo(3). */
 #undef IRS_GETNAMEINFO_SOCKLEN_T
 
+/* Define if you want to use inline buffers */
+#undef ISC_BUFFER_USEINLINE
+
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN
 

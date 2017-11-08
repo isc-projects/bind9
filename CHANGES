@@ -1,3 +1,8 @@
+4811.	[bug]		Revert api changes to use <isc/buffer.h> inline
+			macros.  Provide a alternative mechanism to turn
+			on the use of inline macros when building BIND.
+			[RT #46520]
+
 	--- 9.11.3b1 released ---
 
 4876.	[bug]		Address deadlock with accessing a keytable. [RT #47000]
