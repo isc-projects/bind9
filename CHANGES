@@ -1,3 +1,8 @@
+4811.	[bug]		Revert api changes to use <isc/buffer.h> inline
+			macros.  Provide a alternative mechanism to turn
+			on the use of inline macros when building BIND.
+			[RT #46520]
+
 4810.	[test]		The chain system test failed if the IPv6 interfaces
 			were not configured. [RT #46508]
 
