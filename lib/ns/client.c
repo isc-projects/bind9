@@ -1841,7 +1841,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			break;
 		case AF_INET6:
 			cp = (unsigned char *)&netaddr.type.in6;
-			length = 4;
+			length = 16;
 			break;
 		default:
 			INSIST(0);
@@ -1878,7 +1878,7 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			break;
 		case AF_INET6:
 			cp = (unsigned char *)&netaddr.type.in6;
-			length = 4;
+			length = 16;
 			break;
 		default:
 			INSIST(0);
