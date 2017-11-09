@@ -126,13 +126,12 @@ rcode_totext(dns_rcode_t rcode)
 {
 	static char buf[sizeof("?65535")];
 
+	if (rcode == dns_rcode_badcookie)
+		return ("BADCOOKIE");
 	if (rcode >= (sizeof(rcodetext)/sizeof(rcodetext[0]))) {
 		snprintf(buf, sizeof(buf), "?%u", rcode);
 		return (buf);
-	} else if (rcode == dns_rcode_badcookie)
-		return ("BADCOOKIE");
-	else
-		return (rcodetext[rcode]);
+	return (rcodetext[rcode]);
 }
 
 /*% print usage */
