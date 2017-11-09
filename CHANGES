@@ -1,3 +1,6 @@
+4812.	[bug]		Minor improvements to stability and consistency of code
+			handling managed keys. [RT #46468]
+
 4811.	[bug]		Revert api changes to use <isc/buffer.h> inline
 			macros.  Provide a alternative mechanism to turn
 			on the use of inline macros when building BIND.

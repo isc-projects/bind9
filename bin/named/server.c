@@ -14455,10 +14455,10 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 			else if (revoked)
 				snprintf(buf, sizeof(buf),
 					 "\n\ttrust revoked");
-			else if (kd.addhd < now)
+			else if (kd.addhd <= now)
 				snprintf(buf, sizeof(buf),
 					 "\n\ttrusted since: %s", tbuf);
-			else if (kd.addhd >= now)
+			else if (kd.addhd > now)
 				snprintf(buf, sizeof(buf),
 					 "\n\ttrust pending: %s", tbuf);
 			CHECK(putstr(text, buf));

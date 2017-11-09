@@ -131,11 +131,6 @@ echo "I: check new trust anchor can be added ($n)"
 ret=0
 standby1=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
 mkeys_loadkeys_on 1
-# Less than a second may have passed since the last time ns2 received a
-# ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
-# timestamp to prevent the refresh from not being initiated due to all
-# acceptance timers being equal to current timestamp.
-sleep 1
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
 # there should be two keys listed now
@@ -337,12 +332,6 @@ n=`expr $n + 1`
 echo "I: check that standby key is now trusted ($n)"
 ret=0
 wait_for_log "Returned from key fetch in keyfetch_done()" ns2/named.run
-# Less than a second may have passed since the last time ns2 received a
-# ./DNSKEY response from ns1.  Ensure status is checked at a different
-# timestamp to prevent false negatives caused by the add hold-down time for the
-# standby key being equal to current time ("trust pending") instead of in the
-# past ("trusted since").
-sleep 1
 mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
 count=`grep -c "keyid: " rndc.out.$n` 
@@ -423,13 +412,9 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: wait 21 seconds for key add/remove holddowns to expire ($n)"
+echo "I: wait 20 seconds for key add/remove holddowns to expire ($n)"
 ret=0
-# Wait for "month" plus 1 second.  If we only wait for "month" and the previous
-# two tests fit into a single second, we will get a false negative caused by
-# the add hold-down time for the second standby key being equal to current time
-# ("trust pending") instead of in the past ("trusted since").
-sleep 21
+sleep 20
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
 # two keys listed
@@ -526,18 +511,11 @@ $SETTIME -R none -D none -K ns1 $standby1 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>&-
 cp -f ns1/root.db.signed ns1/root.db.tmp
 BADSIG="SVn2tLDzpNX2rxR4xRceiCsiTqcWNKh7NQ0EQfCrVzp9WEmLw60sQ5kP xGk4FS/xSKfh89hO2O/H20Bzp0lMdtr2tKy8IMdU/mBZxQf2PXhUWRkg V2buVBKugTiOPTJSnaqYCN3rSfV1o7NtC1VNHKKK/D5g6bpDehdn5Gaq kpBhN+MSCCh9OZP2IT20luS1ARXxLlvuSVXJ3JYuuhTsQXUbX/SQpNoB Lo6ahCE55szJnmAxZEbb2KOVnSlZRA6ZBHDhdtO0S4OkvcmTutvcVV+7 w53CbKdaXhirvHIh0mZXmYk2PbPLDY7PU9wSH40UiWPOB9f00wwn6hUe uEQ1Qg=="
-# We need to prevent two different races here:
-#
-# 1. Less than a second may have passed since ns1 was started.  If we call
-#    dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by
-#    the subsequent "rndc reload ." call on platforms which do not set the
-#    "nanoseconds" field of isc_time_t, due to zone load time being seemingly
-#    equal to master file modification time.
-#
-# 2. Less than a second may have passed since the last time ns2 received a
-#    ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
-#    timestamp to prevent the refresh from not being initiated due to all
-#    acceptance timers being equal to current timestamp.
+# Less than a second may have passed since ns1 was started.  If we call
+# dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by the
+# subsequent "rndc reload ." call on platforms which do not set the
+# "nanoseconds" field of isc_time_t, due to zone load time being seemingly
+# equal to master file modification time.
 sleep 1
 sed -e "/ $rkeyid \./s, \. .*$, . $BADSIG," signer.out.$n > ns1/root.db.signed
 mkeys_reload_on 1

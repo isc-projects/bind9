@@ -9722,7 +9722,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 			}
 
 			/* Acceptance timer expired? */
-			if (kd.addhd < now)
+			if (kd.addhd <= now)
 				timer = kd.addhd;
 
 			/* Or do we just need to refresh the keyset? */
@@ -9824,12 +9824,10 @@ zone_refreshkeys(dns_zone_t *zone) {
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 		dns_zone_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
 			     timebuf);
-
-		if (!fetching)
-			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 	}
 
-	UNLOCK_ZONE(zone);
+	if (!fetching)
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 
 	dns_diff_clear(&diff);
 	if (ver != NULL) {
@@ -9837,6 +9835,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		dns_db_closeversion(db, &ver, commit);
 	}
 	dns_db_detach(&db);
+
+	UNLOCK_ZONE(zone);
 
 	INSIST(ver == NULL);
 }
