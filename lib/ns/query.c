@@ -8424,7 +8424,7 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 		goto cleanup;
 	}
 
-	dns_name_clone(signer, name);
+	dns_name_copy(signer, name, NULL);
 
 	/*
 	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
@@ -8489,7 +8489,7 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
-	dns_name_clone(qctx->client->query.qname, name);
+	dns_name_copy(qctx->client->query.qname, name, NULL);
 
 	clone = query_newrdataset(qctx->client);
 	if (clone == NULL) {
@@ -8650,7 +8650,7 @@ query_synthnxdomain(query_ctx_t *qctx,
 		goto cleanup;
 	}
 
-	dns_name_clone(signer, name);
+	dns_name_copy(signer, name, NULL);
 
 	/*
 	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
@@ -8681,7 +8681,7 @@ query_synthnxdomain(query_ctx_t *qctx,
 			goto cleanup;
 		}
 
-		dns_name_clone(nowild, name);
+		dns_name_copy(nowild, name, NULL);
 
 		clone = query_newrdataset(qctx->client);
 		sigclone = query_newrdataset(qctx->client);
