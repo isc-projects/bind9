@@ -289,7 +289,7 @@ sleep 10
 if 
 	$PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns1
 then
-	echo "I:restarted server ns1"	
+	echo "I:restarted server ns1"
 else
 	echo "I:could not restart server ns1"
 	exit 1
@@ -754,75 +754,81 @@ grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/
 #
 #  Add client library tests here
 #
-n=`expr $n + 1`
-ret=0
-echo "I:check that dns_client_update handles prerequisite NXDOMAIN failure ($n)"
-$SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "nxdomain exists.sample" \
+
+if test unset != "${SAMPLEUPDATE:-unset}" -a -x "${SAMPLEUPDATE}"
+then
+
+    n=`expr $n + 1`
+    ret=0
+    echo "I:check that dns_client_update handles prerequisite NXDOMAIN failure ($n)"
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "nxdomain exists.sample" \
 	add "nxdomain-exists.sample 0 in a 1.2.3.4" > update.out.test$n 2>&1
-$SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "nxdomain exists.sample" \
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "nxdomain exists.sample" \
 	add "check-nxdomain-exists.sample 0 in a 1.2.3.4" > update.out.check$n 2>&1
-$DIG +tcp @10.53.0.1 -p 5300 a nxdomain-exists.sample > dig.out.ns1.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a nxdomain-exists.sample > dig.out.ns2.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a check-nxdomain-exists.sample > check.out.ns2.test$n
-grep "update failed: YXDOMAIN" update.out.test$n > /dev/null || ret=1
-grep "update succeeded" update.out.check$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
-[ $ret = 0 ] || { echo I:failed; status=1; }
+    $DIG +tcp @10.53.0.1 -p 5300 a nxdomain-exists.sample > dig.out.ns1.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a nxdomain-exists.sample > dig.out.ns2.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a check-nxdomain-exists.sample > check.out.ns2.test$n
+    grep "update failed: YXDOMAIN" update.out.test$n > /dev/null || ret=1
+    grep "update succeeded" update.out.check$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+    grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
+    [ $ret = 0 ] || { echo I:failed; status=1; }
 
-n=`expr $n + 1`
-ret=0
-echo "I:check that dns_client_update handles prerequisite YXDOMAIN failure ($n)"
-$SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "yxdomain nxdomain.sample" \
+    n=`expr $n + 1`
+    ret=0
+    echo "I:check that dns_client_update handles prerequisite YXDOMAIN failure ($n)"
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "yxdomain nxdomain.sample" \
 	add "yxdomain-nxdomain.sample 0 in a 1.2.3.4" > update.out.test$n 2>&1
-$SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "yxdomain nxdomain.sample" \
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "yxdomain nxdomain.sample" \
 	add "check-yxdomain-nxdomain.sample 0 in a 1.2.3.4" > update.out.check$n 2>&1
-$DIG +tcp @10.53.0.1 -p 5300 a nxdomain-exists.sample > dig.out.ns1.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a nxdomain-exists.sample > dig.out.ns2.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a check-nxdomain-exists.sample > check.out.ns2.test$n
-grep "update failed: NXDOMAIN" update.out.test$n > /dev/null || ret=1
-grep "update succeeded" update.out.check$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
-[ $ret = 0 ] || { echo I:failed; status=1; }
+    $DIG +tcp @10.53.0.1 -p 5300 a nxdomain-exists.sample > dig.out.ns1.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a nxdomain-exists.sample > dig.out.ns2.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a check-nxdomain-exists.sample > check.out.ns2.test$n
+    grep "update failed: NXDOMAIN" update.out.test$n > /dev/null || ret=1
+    grep "update succeeded" update.out.check$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+    grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
+    [ $ret = 0 ] || { echo I:failed; status=1; }
 
-n=`expr $n + 1`
-ret=0
-echo "I:check that dns_client_update handles prerequisite NXRRSET failure ($n)"
-$SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "nxrrset exists.sample TXT This RRset exists." \
+    n=`expr $n + 1`
+    ret=0
+    echo "I:check that dns_client_update handles prerequisite NXRRSET failure ($n)"
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.1 -a 10.53.0.2 -p "nxrrset exists.sample TXT This RRset exists." \
 	add "nxrrset-exists.sample 0 in a 1.2.3.4" > update.out.test$n 2>&1
-$SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "nxrrset exists.sample TXT This RRset exists." \
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "nxrrset exists.sample TXT This RRset exists." \
 	add "check-nxrrset-exists.sample 0 in a 1.2.3.4" > update.out.check$n 2>&1
-$DIG +tcp @10.53.0.1 -p 5300 a nxrrset-exists.sample > dig.out.ns1.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a nxrrset-exists.sample > dig.out.ns2.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a check-nxrrset-exists.sample > check.out.ns2.test$n
-grep "update failed: YXRRSET" update.out.test$n > /dev/null || ret=1
-grep "update succeeded" update.out.check$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
-[ $ret = 0 ] || { echo I:failed; status=1; }
+    $DIG +tcp @10.53.0.1 -p 5300 a nxrrset-exists.sample > dig.out.ns1.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a nxrrset-exists.sample > dig.out.ns2.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a check-nxrrset-exists.sample > check.out.ns2.test$n
+    grep "update failed: YXRRSET" update.out.test$n > /dev/null || ret=1
+    grep "update succeeded" update.out.check$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+    grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
+    [ $ret = 0 ] || { echo I:failed; status=1; }
 
-n=`expr $n + 1`
-ret=0
-echo "I:check that dns_client_update handles prerequisite YXRRSET failure ($n)"
-$SAMPLEUPDATE -s -P 5300 -a 10.53.0.1 -a 10.53.0.2 \
+    n=`expr $n + 1`
+    ret=0
+    echo "I:check that dns_client_update handles prerequisite YXRRSET failure ($n)"
+    $SAMPLEUPDATE -s -P 5300 -a 10.53.0.1 -a 10.53.0.2 \
 	-p "yxrrset no-txt.sample TXT" \
 	add "yxrrset-nxrrset.sample 0 in a 1.2.3.4" > update.out.test$n 2>&1
-$SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "yxrrset no-txt.sample TXT" \
+    $SAMPLEUPDATE -P 5300 -a 10.53.0.2 -p "yxrrset no-txt.sample TXT" \
 	add "check-yxrrset-nxrrset.sample 0 in a 1.2.3.4" > update.out.check$n 2>&1
-$DIG +tcp @10.53.0.1 -p 5300 a yxrrset-nxrrset.sample > dig.out.ns1.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a yxrrset-nxrrset.sample > dig.out.ns2.test$n
-$DIG +tcp @10.53.0.2 -p 5300 a check-yxrrset-nxrrset.sample > check.out.ns2.test$n
-grep "update failed: NXRRSET" update.out.test$n > /dev/null || ret=1
-grep "update succeeded" update.out.check$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
-grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
-grep "2nd update failed: NXRRSET" update.out.test$n > /dev/null || ret=1
-[ $ret = 0 ] || { echo I:failed; status=1; }
+    $DIG +tcp @10.53.0.1 -p 5300 a yxrrset-nxrrset.sample > dig.out.ns1.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a yxrrset-nxrrset.sample > dig.out.ns2.test$n
+    $DIG +tcp @10.53.0.2 -p 5300 a check-yxrrset-nxrrset.sample > check.out.ns2.test$n
+    grep "update failed: NXRRSET" update.out.test$n > /dev/null || ret=1
+    grep "update succeeded" update.out.check$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
+    grep "status: NXDOMAIN" dig.out.ns2.test$n > /dev/null || ret=1
+    grep "status: NOERROR" check.out.ns2.test$n > /dev/null || ret=1
+    grep "2nd update failed: NXRRSET" update.out.test$n > /dev/null || ret=1
+    [ $ret = 0 ] || { echo I:failed; status=1; }
+
+fi
 
 #
 # End client library tests here
