@@ -709,8 +709,12 @@ size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->siz
 [ "$size" -gt 6000 ] || ret=1
 sleep 1
 $RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 sync maxjournal.test
-sleep 1
-
+for i in 1 2 3 4 5 6
+do
+    sleep 1
+    size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
+    [ "$size" -lt 5000 ] && break
+done
 size=`$PERL -e 'use File::stat; my $sb = stat(@ARGV[0]); printf("%s\n", $sb->size);' ns1/maxjournal.db.jnl`
 [ "$size" -lt 5000 ] || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
