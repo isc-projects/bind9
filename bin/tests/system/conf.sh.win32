@@ -61,6 +61,8 @@ MDIG=$TOP/Build/$VSCONF/mdig@EXEEXT@
 NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
 FEATURETEST=$TOP/Build/$VSCONF/feature-test@EXEEXT@
+SAMPLEUPDATE=$TOP/Build/$VSCONF/update@EXEEXT@
+
 # to port WIRETEST=$TOP/Build/$VSCONF/wire_test@EXEEXT@
 
 # this is given as argument to native WIN32 executables
@@ -229,6 +231,7 @@ export RANDFILE
 export RESOLVE
 export RNDC
 export RRCHECKER
+export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
