@@ -79,6 +79,8 @@
 #ifdef OPENSSL
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#include <openssl/ssl.h>
+#include <openssl/engine.h>
 #endif
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlversion.h>
@@ -1302,6 +1304,15 @@ main(int argc, char *argv[]) {
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	(void) ProfilerStart(NULL);
+#endif
+
+#ifdef OPENSSL
+	/* SSL library initialisation */
+	SSL_library_init();
+	OpenSSL_add_all_algorithms();
+	SSL_load_error_strings();
+	ERR_load_BIO_strings();
+	ERR_load_crypto_strings();
 #endif
 
 	/*
