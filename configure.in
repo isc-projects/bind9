@@ -1592,15 +1592,15 @@ If you do not want OpenSSL, use --without-openssl])
 		if test "/usr" = "$use_openssl"
 		then
 			DST_OPENSSL_INC=""
-			DST_OPENSSL_LIBS="-lcrypto"
+			DST_OPENSSL_LIBS="-lcrypto -lssl"
 		else
 			DST_OPENSSL_INC="-I$use_openssl/include"
 			case $host in
 			*-solaris*)
-				DST_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -R$use_openssl/lib -lcrypto -lssl"
 				;;
 			*-hp-hpux*)
-				DST_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -Wl,+b: -lcrypto -lssl"
 				;;
 			*-apple-darwin*)
 				#
@@ -1612,13 +1612,13 @@ If you do not want OpenSSL, use --without-openssl])
 				#
 				if test -f "$use_openssl/lib/libcrypto.dylib"
 				then
-					DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+					DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto -lssl"
 				else
 					DST_OPENSSL_LIBS="$use_openssl/lib/libcrypto.a"
 				fi
 				;;
 			*)
-				DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
+				DST_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto -lssl"
 				;;
 			esac
 		fi
