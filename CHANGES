@@ -1,3 +1,6 @@
+4815.	[bug]		rbt_test.c:insert_and_delete needed to call
+			dns_rbt_addnode instead of dns_rbt_addname. [RT #46553]
+
 4814.	[cleanup]	Use AS_HELP_STRING for consistent help text. [RT #46521]
 
 4813.	[bug]		Address potential read after free errors from
