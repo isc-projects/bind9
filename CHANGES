@@ -1,3 +1,6 @@
+4816.	[bug]		Don't use a common array for storing EDNS options
+			in DiG as it could fill up. [RT #45611]
+
 4815.	[bug]		rbt_test.c:insert_and_delete needed to call
 			dns_rbt_addnode instead of dns_rbt_addname. [RT #46553]
 
