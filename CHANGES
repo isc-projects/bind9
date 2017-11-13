@@ -1,3 +1,5 @@
+4814.	[cleanup]	Use AS_HELP_STRING for consistent help text. [RT #46521]
+
 4812.	[bug]		Minor improvements to stability and consistency of code
 			handling managed keys. [RT #46468]
 

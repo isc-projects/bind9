@@ -1707,11 +1707,11 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-libbind	  deprecated
-  --enable-warn-shadow	  turn on -Wshadow when compiling
-  --enable-warn-error	  turn on -Werror when compiling
+  --enable-libbind        deprecated
+  --enable-warn-shadow    turn on -Wshadow when compiling
+  --enable-warn-error     turn on -Werror when compiling
   --enable-developer      enable developer build settings
-  --enable-afl		  enable American Fuzzy Lop test harness [default=no]
+  --enable-afl            enable American Fuzzy Lop test harness [default=no]
   --enable-seccomp        enable support for libseccomp system call filtering
                           [default=no]
   --enable-kqueue         use BSD kqueue when available [default=yes]
@@ -1722,25 +1722,30 @@ Optional Features:
   --enable-openssl-hash   use OpenSSL for hash functions [default=no]
   --enable-openssl-version-check
                           check OpenSSL version [default=yes]
-  --enable-largefile	  64-bit file support
+  --enable-largefile      64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
-			  [all|minimal(default)|none]
-  --enable-ipv6           use IPv6 default=autodetect
+                          [all|minimal(default)|none]
+  --enable-ipv6           use IPv6 [default=autodetect]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
+$as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
+case "$enable_tcp_fastopen" in
+yes|''|autodetect
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
-  --disable-linux-caps	  disable linux capabilities
-  --enable-atomic	  enable machine specific atomic operations
-			  [default=autodetect]
+  --disable-linux-caps    disable linux capabilities
+  --enable-atomic         enable machine specific atomic operations
+                          [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
-  --disable-rpz-nsip	  disable rpz-nsip rules [default=enabled]
-  --disable-rpz-nsdname	  disable rpz-nsdname rules [default=enabled]
+  --disable-rpz-nsip      disable rpz nsip rules [default=enabled]
+  --disable-rpz-nsdname   disable rpz nsdname rules [default=enabled]
   --enable-filter-aaaa    enable filtering of AAAA records [default=no]
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
-  --enable-full-report	  report values of all configure options
+  --enable-full-report    report values of all configure options
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1754,52 +1759,58 @@ Optional Packages:
   --with-python-install-dir=PATH
                           installation directory for Python modules
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
-  --with-gssapi=[PATH|[/path/]krb5-config]      Specify path for system-supplied GSSAPI [default=yes]
+  --with-gssapi=PATH|/path/krb5-config
+                          Specify path for system-supplied GSSAPI
+                          [default=yes]
   --with-randomdev=PATH   Specify path for random device
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
-  --with-openssl=PATH     Build with OpenSSL yes|no|path.
-			  (Crypto is required for DNSSEC)
-  --with-pkcs11=PATH      Build with PKCS11 support yes|no|path
-			  (PATH is for the PKCS11 provider)
+  --with-openssl=PATH     Build with OpenSSL [yes|no|path]. (Crypto is
+                          required for DNSSEC)
+  --with-pkcs11=PATH      Build with PKCS11 support [yes|no|path] (PATH is for
+                          the PKCS11 provider)
   --with-ecdsa            Crypto ECDSA
-  --with-gost             Crypto GOST yes|no|raw|asn1.
-  --with-eddsa            Crypto EDDSA yes|all|no.
+  --with-gost             Crypto GOST [yes|no|raw|asn1].
+  --with-eddsa            Crypto EDDSA [yes|all|no].
   --with-aes              Crypto AES
-  --with-cc-alg=ALG      choose the algorithm for Client Cookie [aes|sha1|sha256]
-  --with-lmdb=PATH        build with LMDB library yes|no|path
-  --with-libxml2=PATH     build with libxml2 library yes|no|path
-  --with-libjson=PATH     build with libjson0 library yes|no|path
+  --with-cc-alg=ALG       choose the algorithm for Client Cookie
+                          [aes|sha1|sha256]
+  --with-lmdb=PATH        build with LMDB library [yes|no|path]
+  --with-libxml2=PATH     build with libxml2 library [yes|no|path]
+  --with-libjson=PATH     build with libjson0 library [yes|no|path]
   --with-zlib=PATH        build with zlib for HTTP compression [default=yes]
   --with-purify=PATH      use Rational purify
-  --with-gperftools-profiler  use gperftools CPU profiler
-  --with-kame=PATH	  use Kame IPv6 default path /usr/local/v6
-  --with-readline=LIBSPEC    specify readline library default auto
+  --with-gperftools-profiler
+                          use gperftools CPU profiler
+  --with-kame=PATH        use Kame IPv6 [default path /usr/local/v6]
+  --with-readline=LIBSPEC specify readline library [default auto]
 
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
-  --with-idn=MPREFIX      enable IDN support using idnkit default PREFIX
-  --with-libiconv=IPREFIX GNU libiconv are in IPREFIX default PREFIX
-  --with-iconv=LIBSPEC    specify iconv library default -liconv
+  --with-idn=MPREFIX      enable IDN support using idnkit [default PREFIX]
+  --with-libiconv=IPREFIX GNU libiconv are in IPREFIX [default PREFIX]
+  --with-iconv=LIBSPEC    specify iconv library [default -liconv]
   --with-idnlib=ARG       specify libidnkit
-  --with-atf=ARG          support Automated Test Framework
+  --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ drivers
-  --with-dlz-postgres=PATH   Build with Postgres DLZ driver yes|no|path.
-			       (Required to use Postgres with DLZ)
-  --with-dlz-mysql=PATH   Build with MySQL DLZ driver yes|no|path.
-			       (Required to use MySQL with DLZ)
-  --with-dlz-bdb=PATH   Build with Berkeley DB DLZ driver yes|no|path.
-			       (Required to use Berkeley DB with DLZ)
-  --with-dlz-filesystem=ARG    Build with filesystem DLZ driver yes|no.
-			       (Required to use file system driver with DLZ)
-  --with-dlz-ldap=PATH   Build with LDAP DLZ driver yes|no|path.
-			       (Required to use LDAP with DLZ)
-  --with-dlz-odbc=PATH   Build with ODBC DLZ driver yes|no|path.
-			       (Required to use ODBC with DLZ)
-  --with-dlz-stub=ARG    Build with stub DLZ driver yes|no.
-			       (Required to use stub driver with DLZ)
+  --with-dlz-postgres=PATH
+                          Build with Postgres DLZ driver [yes|no|path].
+                          (Required to use Postgres with DLZ)
+  --with-dlz-mysql=PATH   Build with MySQL DLZ driver [yes|no|path]. (Required
+                          to use MySQL with DLZ)
+  --with-dlz-bdb=PATH     Build with Berkeley DB DLZ driver [yes|no|path].
+                          (Required to use Berkeley DB with DLZ)
+  --with-dlz-filesystem=ARG
+                          Build with filesystem DLZ driver [yes|no]. (Required
+                          to use file system driver with DLZ)
+  --with-dlz-ldap=PATH    Build with LDAP DLZ driver [yes|no|path]. (Required
+                          to use LDAP with DLZ)
+  --with-dlz-odbc=PATH    Build with ODBC DLZ driver [yes|no|path]. (Required
+                          to use ODBC with DLZ)
+  --with-dlz-stub=ARG     Build with stub DLZ driver [yes|no]. (Required to
+                          use stub driver with DLZ)
   --with-make-clean       run "make clean" at end of configure [yes|no]
 
 Some influential environment variables:
@@ -11944,24 +11955,24 @@ $as_echo_n "checking python2 version >= 2.7 or python3 version >= 3.2... " >&6; 
 				if ${PYTHON:-false} -c "$testminvers"; then
 					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
-                                else
-                                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+				else
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-                                        unset ac_cv_path_PYTHON
-                                        unset PYTHON
-                                        continue
+					unset ac_cv_path_PYTHON
+					unset PYTHON
+					continue
 				fi
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
 $as_echo_n "checking python module 'argparse'... " >&6; }
 				if ${PYTHON:-false} -c "$testargparse"; then
 					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
-                                else
-                                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+				else
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-                                        unset ac_cv_path_PYTHON
-                                        unset PYTHON
-                                        continue
+					unset ac_cv_path_PYTHON
+					unset PYTHON
+					continue
 				fi
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'ply'" >&5
@@ -11970,11 +11981,11 @@ $as_echo_n "checking python module 'ply'... " >&6; }
 					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
 					break
-                                else
-                                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+				else
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
 $as_echo "not found" >&6; }
-                                        unset ac_cv_path_PYTHON
-                                        unset PYTHON
+					unset ac_cv_path_PYTHON
+					unset PYTHON
 				fi
 			done
 			if test "X$PYTHON" != "X"
@@ -13401,12 +13412,12 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-         $as_echo "#define HAVE_UNAME 1" >>confdefs.h
+	 $as_echo "#define HAVE_UNAME 1" >>confdefs.h
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
 $as_echo "$as_me: WARNING: uname is not correctly supported" >&2;}
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
@@ -15470,12 +15481,12 @@ else
 fi
 
 
-        case "$locktype" in
-                adaptive)
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_ADAPTIVE_NP" >&5
+	case "$locktype" in
+		adaptive)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_ADAPTIVE_NP" >&5
 $as_echo_n "checking for PTHREAD_MUTEX_ADAPTIVE_NP... " >&6; }
 
-                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 			  #ifndef _GNU_SOURCE
@@ -15504,15 +15515,15 @@ else
 $as_echo "using standard lock type" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-                        ;;
-                standard)
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
+			;;
+		standard)
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
 $as_echo "using standard lock type" >&6; }
-                        ;;
-                *)
-                        as_fn_error $? "You must specify \"adaptive\" or \"standard\" for --with-locktype." "$LINENO" 5
-                        ;;
-        esac
+			;;
+		*)
+			as_fn_error $? "You must specify \"adaptive\" or \"standard\" for --with-locktype." "$LINENO" 5
+			;;
+	esac
 
 	for ac_header in sched.h
 do :
@@ -15999,7 +16010,7 @@ If you don't want OpenSSL, use --without-openssl" "$LINENO" 5
 	*)
 		if test "yes" = "$want_native_pkcs11"
 		then
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
 $as_echo "" >&6; }
 			as_fn_error $? "OpenSSL and native PKCS11 cannot be used together." "$LINENO" 5
 		fi
@@ -16522,7 +16533,7 @@ $as_echo_n "checking for OpenSSL AES support... " >&6; }
 	if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-aes" >&5
 $as_echo "using --with-aes" >&6; }
-         # Expect cross-compiling with a modern OpenSSL
+	 # Expect cross-compiling with a modern OpenSSL
 	 have_aes="evp"
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -17188,8 +17199,8 @@ then
 $as_echo "#define HAVE_LMDB 1" >>confdefs.h
 
 	NZD_TOOLS="nzd"
-        NZDSRCS='${NZDSRCS}'
-        NZDTARGETS='${NZDTARGETS}'
+	NZDSRCS='${NZDSRCS}'
+	NZDTARGETS='${NZDTARGETS}'
 fi
 
 
@@ -18779,11 +18790,6 @@ if test "${enable_tcp_fastopen+set}" = set; then :
   enableval=$enable_tcp_fastopen;
 fi
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
-$as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
-case "$enable_tcp_fastopen" in
-yes|''|autodetect)
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -19364,10 +19370,10 @@ fi
 ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
 if test "x$ac_cv_func_strlcpy" = xyes; then :
   ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"
-         LWRES_PLATFORM_NEEDSTRLCPY="#undef LWRES_PLATFORM_NEEDSTRLCPY"
+	 LWRES_PLATFORM_NEEDSTRLCPY="#undef LWRES_PLATFORM_NEEDSTRLCPY"
 else
   ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"
-         LWRES_PLATFORM_NEEDSTRLCPY="#define LWRES_PLATFORM_NEEDSTRLCPY 1"
+	 LWRES_PLATFORM_NEEDSTRLCPY="#define LWRES_PLATFORM_NEEDSTRLCPY 1"
 fi
 
 
@@ -19592,11 +19598,11 @@ else
 
 #include <stdio.h>
 main() {
-        size_t j = 0;
-        char buf[100];
-        buf[0] = 0;
-        sprintf(buf, "%zu", j);
-        exit(strcmp(buf, "0") != 0);
+	size_t j = 0;
+	char buf[100];
+	buf[0] = 0;
+	sprintf(buf, "%zu", j);
+	exit(strcmp(buf, "0") != 0);
 }
 
 _ACEOF
@@ -19608,9 +19614,9 @@ else
 $as_echo "no" >&6; }
 	ISC_PRINT_OBJS="print.$O"
 	ISC_PRINT_SRCS="print.c"
-        ISC_PLATFORM_NEEDPRINTF='#define ISC_PLATFORM_NEEDPRINTF 1'
-        ISC_PLATFORM_NEEDFPRINTF='#define ISC_PLATFORM_NEEDFPRINTF 1'
-        ISC_PLATFORM_NEEDFSRINTF='#define ISC_PLATFORM_NEEDSPRINTF 1'
+	ISC_PLATFORM_NEEDPRINTF='#define ISC_PLATFORM_NEEDPRINTF 1'
+	ISC_PLATFORM_NEEDFPRINTF='#define ISC_PLATFORM_NEEDFPRINTF 1'
+	ISC_PLATFORM_NEEDFSRINTF='#define ISC_PLATFORM_NEEDSPRINTF 1'
 	ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"
 	LWRES_PLATFORM_NEEDVSNPRINTF="#define LWRES_PLATFORM_NEEDVSNPRINTF 1"
 fi
@@ -19946,11 +19952,11 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-        ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"
+	ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-        ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"
+	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -20452,7 +20458,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		esac
 		;;
 	no)
-	        have_stdatomic=no
+		have_stdatomic=no
 		ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 		use_atomic=no
 		arch=noatomic
@@ -20770,7 +20776,7 @@ int
 main ()
 {
 
-        return (__builtin_expect(1, 1) ? 1 : 0);
+	return (__builtin_expect(1, 1) ? 1 : 0);
 
   ;
   return 0;
@@ -20778,14 +20784,14 @@ main ()
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
 
-        have_builtin_expect=yes
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	have_builtin_expect=yes
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 else
 
-        have_builtin_expect=no
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	have_builtin_expect=no
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 fi
@@ -20809,7 +20815,7 @@ int
 main ()
 {
 
-        return (__builtin_clz(0xff) == 24 ? 1 : 0);
+	return (__builtin_clz(0xff) == 24 ? 1 : 0);
 
   ;
   return 0;
@@ -20817,14 +20823,14 @@ main ()
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
 
-        have_builtin_clz=yes
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	have_builtin_clz=yes
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 else
 
-        have_builtin_clz=no
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	have_builtin_clz=no
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 fi
@@ -26242,9 +26248,9 @@ yes)
 	then
 		if test "yes" = "$silent"
 		then
-                        make clean > /dev/null
-                else
-                        make clean
+			make clean > /dev/null
+		else
+			make clean
 		fi
 	fi
 	;;
@@ -26262,80 +26268,80 @@ report() {
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
     if $use_threads; then
-        echo "    Multiprocessing support (--enable-threads)"
-        if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-            echo "        Mutex lock type: $locktype"
-        fi
+	echo "    Multiprocessing support (--enable-threads)"
+	if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
+	    echo "        Mutex lock type: $locktype"
+	fi
     fi
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
-            echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
+	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
-        echo "        Algorithm: $with_cc_alg"
+	echo "        Algorithm: $with_cc_alg"
     fi
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-        test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-            echo "    IPv6 support (--enable-ipv6)"
-        test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
-                echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-        test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
-        test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
-        test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
-        test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
-        test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
+	    echo "    IPv6 support (--enable-ipv6)"
+	test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
+		echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
+	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
+	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
+	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
+	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
     fi
 
     if test "no" != "$use_pkcs11"; then
-        if test "yes" = "$want_native_pkcs11"; then
-            echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-        else
-            echo "    PKCS#11/Cryptoki support using OpenSSL (--with-pkcs11)"
-        fi
-        echo "        Provider library: $PKCS11_PROVIDER"
+	if test "yes" = "$want_native_pkcs11"; then
+	    echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
+	else
+	    echo "    PKCS#11/Cryptoki support using OpenSSL (--with-pkcs11)"
+	fi
+	echo "        Provider library: $PKCS11_PROVIDER"
     fi
     if test "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST"; then
-        echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
+	echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
     fi
     test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
-        echo "    ECDSA algorithm support (--with-ecdsa)"
+	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
-        echo "    EDDSA algorithm support (--with-eddsa)"
+	echo "    EDDSA algorithm support (--with-eddsa)"
     test "yes" = "$enable_fixed" && \
-        echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_filter" && \
-        echo "    AAAA filtering (--enable-filter-aaaa)"
+	echo "    AAAA filtering (--enable-filter-aaaa)"
     test "yes" = "$enable_seccomp" && \
-        echo "    Use libseccomp system call filtering (--enable-seccomp)"
+	echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" && \
-        echo "    Print backtrace on crash (--enable-backtrace)"
+	echo "    Print backtrace on crash (--enable-backtrace)"
     test "minimal" = "$want_symtable" && \
-        echo "    Use symbol table for backtrace, named only (--enable-symtable)"
+	echo "    Use symbol table for backtrace, named only (--enable-symtable)"
     test "yes" = "$want_symtable" -o "all" = "$want_symtable" && \
-        echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
+	echo "    Use symbol table for backtrace, all binaries (--enable-symtable=all)"
     test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
-        echo "    Very verbose query trace logging (--enable-querytrace)"
+	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
     test "no" = "$use_dlz_bdb" || \
-        echo "        Berkeley DB (--with-dlz-bdb)"
+	echo "        Berkeley DB (--with-dlz-bdb)"
     test "no" = "$use_dlz_ldap" || \
-        echo "        LDAP (--with-dlz-ldap)"
+	echo "        LDAP (--with-dlz-ldap)"
     test "no" = "$use_dlz_mysql" || \
-        echo "        MySQL (--with-dlz-mysql)"
+	echo "        MySQL (--with-dlz-mysql)"
     test "no" = "$use_dlz_odbc" || \
-        echo "        ODBC (--with-dlz-odbc)"
+	echo "        ODBC (--with-dlz-odbc)"
     test "no" = "$use_dlz_postgres" || \
-        echo "        Postgres (--with-dlz-postgres)"
+	echo "        Postgres (--with-dlz-postgres)"
     test "no" = "$use_dlz_filesystem" || \
-        echo "        Filesystem (--with-dlz-filesystem)"
+	echo "        Filesystem (--with-dlz-filesystem)"
     test "no" = "$use_dlz_stub" || \
-        echo "        Stub (--with-dlz-stub)"
+	echo "        Stub (--with-dlz-stub)"
     test "$use_dlz_bdb $use_dlz_ldap $use_dlz_mysql $use_dlz_odbc $use_dlz_postgres $use_dlz_filesystem $use_dlz_stub" = "no no no no no no no" && echo "        None"
 
     echo "-------------------------------------------------------------------------------"
@@ -26343,38 +26349,38 @@ report() {
     echo "Features disabled or unavailable on this platform:"
     $use_threads || echo "    Multiprocessing support (--enable-threads)"
     test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-            echo "    IPv6 support (--enable-ipv6)"
+	    echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \
-            echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
+	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
 
     test "yes" = "$enable_fixed" || \
-        echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
     then
-        echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
+	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
     elif test "no" = "$use_pkcs11"; then
-        echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
+	echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
     fi
     test "yes" = "$want_native_pkcs11" ||
-        echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
+	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST" || \
-        echo "    GOST algorithm support (--with-gost)"
+	echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
-        echo "    ECDSA algorithm support (--with-ecdsa)"
+	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
-        echo "    EDDSA algorithm support (--with-eddsa)"
+	echo "    EDDSA algorithm support (--with-eddsa)"
 
     test "yes" = "$enable_seccomp" || \
-        echo "    Use libseccomp system call filtering (--enable-seccomp)"
+	echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" || \
-        echo "    Print backtrace on crash (--enable-backtrace)"
+	echo "    Print backtrace on crash (--enable-backtrace)"
     test "yes" = "$want_querytrace" || \
-        echo "    Very verbose query trace logging (--enable-querytrace)"
+	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
@@ -26393,20 +26399,20 @@ report() {
 
 
     if test "X$ac_unrecognized_opts" != "X"; then
-        echo
-        echo "Unrecognized options:"
-        echo "    $ac_unrecognized_opts"
+	echo
+	echo "Unrecognized options:"
+	echo "    $ac_unrecognized_opts"
     fi
 
     if test "yes" != "$enable_full_report"; then
-        echo "-------------------------------------------------------------------------------"
-        echo "For more detail, use --enable-full-report."
+	echo "-------------------------------------------------------------------------------"
+	echo "For more detail, use --enable-full-report."
     fi
     echo "==============================================================================="
 }
 
 if test "yes" != "$silent"; then
-        report
+	report
 fi
 
 if test "X$CRYPTO" = "X"; then
