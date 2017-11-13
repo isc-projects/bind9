@@ -3383,7 +3383,7 @@ AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
 AC_ARG_ENABLE(tcp_fastopen,
 	      AS_HELP_STRING([--disable-tcp-fastopen],
-		     [disable TCP Fast Open support [default=autodetect]])
+		     [disable TCP Fast Open support [default=autodetect]]))
 
 AC_MSG_CHECKING(for TCP_FASTOPEN socket option)
 case "$enable_tcp_fastopen" in

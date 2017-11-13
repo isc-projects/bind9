@@ -1728,11 +1728,6 @@ Optional Features:
                           [all|minimal(default)|none]
   --enable-ipv6           use IPv6 [default=autodetect]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
-$as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
-case "$enable_tcp_fastopen" in
-yes|''|autodetect
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
@@ -18790,6 +18785,11 @@ if test "${enable_tcp_fastopen+set}" = set; then :
   enableval=$enable_tcp_fastopen;
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
+$as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
+case "$enable_tcp_fastopen" in
+yes|''|autodetect)
 	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
