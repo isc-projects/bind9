@@ -2119,7 +2119,7 @@ AC_SUBST(LIBTOOL_IN_MAIN)
 AC_ARG_ENABLE(exportlib,
 	      AS_HELP_STRING([--enable-exportlib],
 			     [build exportable library (GNU make required)
-				[[default=no]]])
+				[[default=no]]]))
 case "$enable_exportlib" in
 	yes)
 		gmake=
