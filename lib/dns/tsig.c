@@ -73,28 +73,15 @@
 static unsigned char hmacmd5_ndata[] = "\010hmac-md5\007sig-alg\003reg\003int";
 static unsigned char hmacmd5_offsets[] = { 0, 9, 17, 21, 25 };
 
-static dns_name_t hmacmd5 = {
-	DNS_NAME_MAGIC,
-	hmacmd5_ndata, 26, 5,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacmd5_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
-dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
+static dns_name_t hmacmd5 =
+	DNS_NAME_INITABSOLUTE(hmacmd5_ndata, hmacmd5_offsets);
+LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
 #endif
 
 static unsigned char gsstsig_ndata[] = "\010gss-tsig";
 static unsigned char gsstsig_offsets[] = { 0, 9 };
-static dns_name_t gsstsig = {
-	DNS_NAME_MAGIC,
-	gsstsig_ndata, 10, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	gsstsig_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
+static dns_name_t gsstsig =
+	DNS_NAME_INITABSOLUTE(gsstsig_ndata, gsstsig_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
 /*
@@ -103,84 +90,38 @@ LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_gssapi_name = &gsstsig;
  */
 static unsigned char gsstsigms_ndata[] = "\003gss\011microsoft\003com";
 static unsigned char gsstsigms_offsets[] = { 0, 4, 14, 18 };
-static dns_name_t gsstsigms = {
-	DNS_NAME_MAGIC,
-	gsstsigms_ndata, 19, 4,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	gsstsigms_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
+static dns_name_t gsstsigms =
+	DNS_NAME_INITABSOLUTE(gsstsigms_ndata, gsstsigms_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static unsigned char hmacsha1_ndata[] = "\011hmac-sha1";
 static unsigned char hmacsha1_offsets[] = { 0, 10 };
-
-static dns_name_t  hmacsha1 = {
-	DNS_NAME_MAGIC,
-	hmacsha1_ndata, 11, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacsha1_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
+static dns_name_t hmacsha1 =
+	DNS_NAME_INITABSOLUTE(hmacsha1_ndata, hmacsha1_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacsha1_name = &hmacsha1;
 
 static unsigned char hmacsha224_ndata[] = "\013hmac-sha224";
 static unsigned char hmacsha224_offsets[] = { 0, 12 };
-
-static dns_name_t hmacsha224 = {
-	DNS_NAME_MAGIC,
-	hmacsha224_ndata, 13, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacsha224_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
+static dns_name_t hmacsha224 =
+	DNS_NAME_INITABSOLUTE(hmacsha224_ndata, hmacsha224_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacsha224_name = &hmacsha224;
 
 static unsigned char hmacsha256_ndata[] = "\013hmac-sha256";
 static unsigned char hmacsha256_offsets[] = { 0, 12 };
-
-static dns_name_t hmacsha256 = {
-	DNS_NAME_MAGIC,
-	hmacsha256_ndata, 13, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacsha256_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
+static dns_name_t hmacsha256 =
+	DNS_NAME_INITABSOLUTE(hmacsha256_ndata, hmacsha256_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacsha256_name = &hmacsha256;
 
 static unsigned char hmacsha384_ndata[] = "\013hmac-sha384";
 static unsigned char hmacsha384_offsets[] = { 0, 12 };
-
-static dns_name_t hmacsha384 = {
-	DNS_NAME_MAGIC,
-	hmacsha384_ndata, 13, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacsha384_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
+static dns_name_t hmacsha384 =
+	DNS_NAME_INITABSOLUTE(hmacsha384_ndata, hmacsha384_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacsha384_name = &hmacsha384;
 
 static unsigned char hmacsha512_ndata[] = "\013hmac-sha512";
 static unsigned char hmacsha512_offsets[] = { 0, 12 };
-
-static dns_name_t hmacsha512 = {
-	DNS_NAME_MAGIC,
-	hmacsha512_ndata, 13, 2,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	hmacsha512_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
+static dns_name_t hmacsha512 =
+	DNS_NAME_INITABSOLUTE(hmacsha512_ndata, hmacsha512_offsets);
 LIBDNS_EXTERNAL_DATA dns_name_t *dns_tsig_hmacsha512_name = &hmacsha512;
 
 static isc_result_t

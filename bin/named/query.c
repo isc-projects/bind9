@@ -5951,15 +5951,6 @@ answer_in_glue(ns_client_t *client, dns_rdatatype_t qtype) {
 	}
 }
 
-#define NS_NAME_INIT(A,B) \
-	 { \
-		DNS_NAME_MAGIC, \
-		A, sizeof(A), sizeof(B), \
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
-		B, NULL, { (void *)-1, (void *)-1}, \
-		{NULL, NULL} \
-	}
-
 static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
 static unsigned char inaddr172_offsets[] = { 0, 3, 7, 15, 20 };
 static unsigned char inaddr192_offsets[] = { 0, 4, 8, 16, 21 };
@@ -5986,24 +5977,24 @@ static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
 static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
 
 static dns_name_t rfc1918names[] = {
-	NS_NAME_INIT(inaddr10, inaddr10_offsets),
-	NS_NAME_INIT(inaddr16172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr17172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr18172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr19172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr20172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr21172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr22172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr23172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr24172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr25172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr26172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr27172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr28172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr29172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr30172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr31172, inaddr172_offsets),
-	NS_NAME_INIT(inaddr168192, inaddr192_offsets)
+	DNS_NAME_INITABSOLUTE(inaddr10, inaddr10_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr16172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr17172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr18172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr19172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr20172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr21172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr22172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr23172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr24172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr25172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr26172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr27172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr28172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr29172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr30172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr31172, inaddr172_offsets),
+	DNS_NAME_INITABSOLUTE(inaddr168192, inaddr192_offsets)
 };
 
 
@@ -6013,8 +6004,10 @@ static unsigned char hostmaster_data[] = "\012hostmaster\014root-servers\003org"
 static unsigned char prisoner_offsets[] = { 0, 9, 14, 18 };
 static unsigned char hostmaster_offsets[] = { 0, 11, 24, 28 };
 
-static dns_name_t prisoner = NS_NAME_INIT(prisoner_data, prisoner_offsets);
-static dns_name_t hostmaster = NS_NAME_INIT(hostmaster_data, hostmaster_offsets);
+static dns_name_t prisoner =
+	DNS_NAME_INITABSOLUTE(prisoner_data, prisoner_offsets);
+static dns_name_t hostmaster =
+	DNS_NAME_INITABSOLUTE(hostmaster_data, hostmaster_offsets);
 
 static void
 warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {

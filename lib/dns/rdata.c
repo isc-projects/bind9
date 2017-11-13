@@ -312,14 +312,8 @@ generic_freestruct_tlsa(ARGS_FREESTRUCT);
 static unsigned char gc_msdcs_data[]  = "\002gc\006_msdcs";
 static unsigned char gc_msdcs_offset [] = { 0, 3 };
 
-static const dns_name_t gc_msdcs = {
-	DNS_NAME_MAGIC,
-	gc_msdcs_data, 10, 2,
-	DNS_NAMEATTR_READONLY,
-	gc_msdcs_offset, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
+static dns_name_t const gc_msdcs =
+	DNS_NAME_INITNONABSOLUTE(gc_msdcs_data, gc_msdcs_offset);
 
 /*%
  *	convert presentation level address to network order binary form.
