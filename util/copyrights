@@ -2514,7 +2514,7 @@
 ./contrib/dlz/bin/.gitignore			X	2014
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012,2015
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
-./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011,2014,2016
+./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011,2014,2016,2017
 ./contrib/dlz/drivers/.gitignore		X	2012
 ./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005,2008,2010,2011,2012
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005,2010,2011,2012
@@ -3431,7 +3431,7 @@
 ./lib/dns/tests/peer_test.c			C	2014
 ./lib/dns/tests/private_test.c			C	2011,2012
 ./lib/dns/tests/rbt_serialize_test.c		C	2014,2015
-./lib/dns/tests/rbt_test.c			C	2012,2013,2014,2015,2016
+./lib/dns/tests/rbt_test.c			C	2012,2013,2014,2015,2016,2017
 ./lib/dns/tests/rdata_test.c			C	2012,2013,2015,2016,2017
 ./lib/dns/tests/rdataset_test.c			C	2012
 ./lib/dns/tests/rdatasetstats_test.c		C	2012,2015
