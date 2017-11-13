@@ -51,7 +51,7 @@
 
 static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";
 static unsigned char dlviscorg_offsets[] = { 0, 4, 8, 12 };
-static const dns_name_t dlviscorg =
+static dns_name_t const dlviscorg =
 	DNS_NAME_INITABSOLUTE(dlviscorg_ndata, dlviscorg_offsets);
 
 static isc_result_t
