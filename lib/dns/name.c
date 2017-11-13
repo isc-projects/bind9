@@ -156,7 +156,6 @@ static unsigned char wild_offsets[] = { 0 };
 static dns_name_t const wild =
 	DNS_NAME_INITNONABSOLUTE(wild_ndata, wild_offsets);
 
-/* XXXDCL make const? */
 LIBDNS_EXTERNAL_DATA const dns_name_t *dns_wildcardname = &wild;
 
 unsigned int
