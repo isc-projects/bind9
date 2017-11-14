@@ -2558,7 +2558,7 @@ static unsigned char lb_dns_sd_udp_data[]  = "\002lb\007_dns-sd\004_udp";
 static unsigned char lb_dns_sd_udp_offsets[] = { 0, 3, 11 };
 
 static dns_name_t const dns_sd[] = {
-	DNS_NAME_INITNONABSOLUTE(b_dns_sd_udp_data,  b_dns_sd_udp_offsets),
+	DNS_NAME_INITNONABSOLUTE(b_dns_sd_udp_data, b_dns_sd_udp_offsets),
 	DNS_NAME_INITNONABSOLUTE(db_dns_sd_udp_data, db_dns_sd_udp_offsets),
 	DNS_NAME_INITNONABSOLUTE(r_dns_sd_udp_data, r_dns_sd_udp_offsets),
 	DNS_NAME_INITNONABSOLUTE(dr_dns_sd_udp_data, dr_dns_sd_udp_offsets),
