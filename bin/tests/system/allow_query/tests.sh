@@ -59,8 +59,7 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-. ../getopts.sh
+. $SYSTEMTESTTOP/getopts.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${port}"
 
@@ -84,7 +83,7 @@ status=`expr $status + $ret`
 
 # Test 2 - explicit any, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named02.conf.in > ns2/named.conf
+copy_config ns2/named02.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -98,7 +97,7 @@ status=`expr $status + $ret`
 
 # Test 3 - none, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named03.conf.in > ns2/named.conf
+copy_config ns2/named03.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -112,7 +111,7 @@ status=`expr $status + $ret`
 
 # Test 4 - address allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named04.conf.in > ns2/named.conf
+copy_config ns2/named04.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -126,7 +125,7 @@ status=`expr $status + $ret`
 
 # Test 5 - address not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named05.conf.in > ns2/named.conf
+copy_config ns2/named05.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -140,7 +139,7 @@ status=`expr $status + $ret`
 
 # Test 6 - address disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named06.conf.in > ns2/named.conf
+copy_config ns2/named06.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -154,7 +153,7 @@ status=`expr $status + $ret`
 
 # Test 7 - acl allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named07.conf.in > ns2/named.conf
+copy_config ns2/named07.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -168,7 +167,7 @@ status=`expr $status + $ret`
 
 # Test 8 - acl not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named08.conf.in > ns2/named.conf
+copy_config ns2/named08.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -183,7 +182,7 @@ status=`expr $status + $ret`
 
 # Test 9 - acl disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named09.conf.in > ns2/named.conf
+copy_config ns2/named09.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -197,7 +196,7 @@ status=`expr $status + $ret`
 
 # Test 10 - key allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named10.conf.in > ns2/named.conf
+copy_config ns2/named10.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -211,7 +210,7 @@ status=`expr $status + $ret`
 
 # Test 11 - key not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named11.conf.in > ns2/named.conf
+copy_config ns2/named11.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -225,7 +224,7 @@ status=`expr $status + $ret`
 
 # Test 12 - key disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named12.conf.in > ns2/named.conf
+copy_config ns2/named12.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -242,7 +241,7 @@ status=`expr $status + $ret`
 n=20
 # Test 21 - views default, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named21.conf.in > ns2/named.conf
+copy_config ns2/named21.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -256,7 +255,7 @@ status=`expr $status + $ret`
 
 # Test 22 - views explicit any, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named22.conf.in > ns2/named.conf
+copy_config ns2/named22.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -270,7 +269,7 @@ status=`expr $status + $ret`
 
 # Test 23 - views none, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named23.conf.in > ns2/named.conf
+copy_config ns2/named23.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -284,7 +283,7 @@ status=`expr $status + $ret`
 
 # Test 24 - views address allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named24.conf.in > ns2/named.conf
+copy_config ns2/named24.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -298,7 +297,7 @@ status=`expr $status + $ret`
 
 # Test 25 - views address not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named25.conf.in > ns2/named.conf
+copy_config ns2/named25.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -312,7 +311,7 @@ status=`expr $status + $ret`
 
 # Test 26 - views address disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named26.conf.in > ns2/named.conf
+copy_config ns2/named26.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -326,7 +325,7 @@ status=`expr $status + $ret`
 
 # Test 27 - views acl allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named27.conf.in > ns2/named.conf
+copy_config ns2/named27.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -340,7 +339,7 @@ status=`expr $status + $ret`
 
 # Test 28 - views acl not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named28.conf.in > ns2/named.conf
+copy_config ns2/named28.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -354,7 +353,7 @@ status=`expr $status + $ret`
 
 # Test 29 - views acl disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named29.conf.in > ns2/named.conf
+copy_config ns2/named29.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -368,7 +367,7 @@ status=`expr $status + $ret`
 
 # Test 30 - views key allowed, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named30.conf.in > ns2/named.conf
+copy_config ns2/named30.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -382,7 +381,7 @@ status=`expr $status + $ret`
 
 # Test 31 - views key not allowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named31.conf.in > ns2/named.conf
+copy_config ns2/named31.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -396,7 +395,7 @@ status=`expr $status + $ret`
 
 # Test 32 - views key disallowed, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named32.conf.in > ns2/named.conf
+copy_config ns2/named32.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -410,7 +409,7 @@ status=`expr $status + $ret`
 
 # Test 33 - views over options, views allow, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named33.conf.in > ns2/named.conf
+copy_config ns2/named33.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -424,7 +423,7 @@ status=`expr $status + $ret`
 
 # Test 34 - views over options, views disallow, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named34.conf.in > ns2/named.conf
+copy_config ns2/named34.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -442,7 +441,7 @@ n=40
 
 # Test 41 - zone default, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named40.conf.in > ns2/named.conf
+copy_config ns2/named40.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -566,7 +565,7 @@ status=`expr $status + $ret`
 
 # Test 53 - zones over options, zones allow, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named53.conf.in > ns2/named.conf
+copy_config ns2/named53.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -580,7 +579,7 @@ status=`expr $status + $ret`
 
 # Test 54 - zones over options, zones disallow, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named54.conf.in > ns2/named.conf
+copy_config ns2/named54.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -594,7 +593,7 @@ status=`expr $status + $ret`
 
 # Test 55 - zones over views, zones allow, query allowed
 n=`expr $n + 1`
-$SEDPORTS < ns2/named55.conf.in > ns2/named.conf
+copy_config ns2/named55.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -608,7 +607,7 @@ status=`expr $status + $ret`
 
 # Test 56 - zones over views, zones disallow, query refused
 n=`expr $n + 1`
-$SEDPORTS < ns2/named56.conf.in > ns2/named.conf
+copy_config ns2/named56.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
@@ -622,7 +621,7 @@ status=`expr $status + $ret`
 
 # Test 57 - zones over views, zones disallow, query refused (allow-query-on)
 n=`expr $n + 1`
-$SEDPORTS < ns2/named57.conf.in > ns2/named.conf
+copy_config ns2/named57.conf.in ns2/named.conf
 rndc_reload
 sleep 5
 
