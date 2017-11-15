@@ -11,8 +11,7 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-. ../getopts.sh
+. $SYSTEMTESTTOP/getopts.sh
 
 status=0
 
@@ -438,7 +437,7 @@ p1=`expr $t2 - $t1`
 echo_i "elasped time $p1 seconds"
 
 $RNDCCMD flush
-$SEDPORTS < ns3/named2.conf > ns3/named.conf
+copy_config ns3/named2.conf ns3/named.conf
 $RNDCCMD reload > /dev/null
 
 echo_i "timing 'nsip-wait-recurse no'"

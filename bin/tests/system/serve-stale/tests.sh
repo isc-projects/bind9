@@ -8,18 +8,7 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-. ../getopts.sh
-
-TESTNAME="$(basename $(pwd))"
-
-while getopts "p:c:" flag; do
-    case "$flag" in
-	p) port=$OPTARG ;;
-	c) controlport=$OPTARG ;;
-	*) exit 1 ;;
-    esac
-done
+. $SYSTEMTESTTOP/getopts.sh
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${controlport} -s"
 

@@ -10,6 +10,6 @@
 
 . ../getopts.sh
 
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ../common/controls.conf.in > ns2/controls.conf
-sed -e "s/@PORT@/${port}/g;s/@CONTROLPORT@/${controlport}/g;" < ns2/named01.conf.in > ns2/named.conf
+copy_config ../common/controls.conf.in ns2/controls.conf
+copy_config  ns2/named01.conf.in ns2/named.conf
 echo "${port}" > ns2/named.port

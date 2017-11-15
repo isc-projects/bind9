@@ -21,4 +21,8 @@ done
 shift $(($OPTIND - 1))
 OPTIND=1
 
-SEDPORTS="sed -e s/@PORT@/${port}/g -e s/@CONTROLPORT@/${controlport}/g"
+# Convenience function to copy configuration file, replacing the port numbers
+# during the copy - more readable than embedding a "sed" command in the script.
+copy_config() {
+    sed -e "s/@PORT@/${port}/g" -e "s/@CONTROLPORT@/${controlport}/g" < $1 > $2
+}
