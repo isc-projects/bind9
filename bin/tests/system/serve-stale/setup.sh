@@ -7,11 +7,11 @@
 
 . ../getopts.sh
 
-$SEDPORTS < ns1/named1.conf.in > ns1/named.conf
+copy_config ns1/named1.conf.in ns1/named.conf
 echo "${port}" > ns1/named.port
 
-$SEDPORTS < ans2/ans.pl.in > ans2/ans.pl
+copy_config ans2/ans.pl.in ans2/ans.pl
 echo "${port}" > ans2/named.port
 
-$SEDPORTS < ns3/named.conf.in > ns3/named.conf
+copy_config ns3/named.conf.in ns3/named.conf
 echo "${port}" > ns3/named.port
