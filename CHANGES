@@ -1,3 +1,6 @@
+4818.	[test]		The logfileconfig system test could intermittently
+			report false negatives on some platforms. [RT #46615]
+
 4817.	[cleanup]	Use DNS_NAME_INITABSOLUTE and DNS_NAME_INITNONABSOLUTE.
 			[RT #45433]
 
