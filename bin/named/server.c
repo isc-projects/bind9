@@ -4788,7 +4788,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					 "allow-notify", NULL, actx,
 					 named_g_mctx, &view->notifyacl));
 	if (view->transferacl == NULL)
-		CHECK(configure_view_acl(NULL, named_g_config,
+		CHECK(configure_view_acl(vconfig, config,
 					 "allow-transfer", NULL, actx,
 					 named_g_mctx, &view->transferacl));
 	if (view->updateacl == NULL)
