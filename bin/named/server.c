@@ -511,23 +511,34 @@ nzf_append(dns_view_t *view, const cfg_obj_t *zconfig);
  */
 static isc_result_t
 configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
-		   const char *aclname, const char *acltuplename,
-		   cfg_aclconfctx_t *actx, isc_mem_t *mctx, dns_acl_t **aclp)
+		   const cfg_obj_t *gconfig, const char *aclname,
+		   const char *acltuplename, cfg_aclconfctx_t *actx,
+		   isc_mem_t *mctx, dns_acl_t **aclp)
 {
 	isc_result_t result;
-	const cfg_obj_t *maps[3];
+	const cfg_obj_t *maps[4];
 	const cfg_obj_t *aclobj = NULL;
 	int i = 0;
 
-	if (*aclp != NULL)
+	if (*aclp != NULL) {
 		dns_acl_detach(aclp);
-	if (vconfig != NULL)
+	}
+	if (vconfig != NULL) {
 		maps[i++] = cfg_tuple_get(vconfig, "options");
+	}
 	if (config != NULL) {
 		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
-		if (options != NULL)
+		if (options != NULL) {
 			maps[i++] = options;
+		}
+	}
+	if (gconfig != NULL) {
+		const cfg_obj_t *options = NULL;
+		(void)cfg_map_get(gconfig, "options", &options);
+		if (options != NULL) {
+			maps[i++] = options;
+		}
 	}
 	maps[i] = NULL;
 
@@ -3706,12 +3717,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECKM(named_config_getport(config, &port), "port");
 	dns_view_setdstport(view, port);
 
-	CHECK(configure_view_acl(vconfig, config, "allow-query", NULL, actx,
-				 named_g_mctx, &view->queryacl));
+	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query", NULL,
+				 actx, named_g_mctx, &view->queryacl));
 	if (view->queryacl == NULL) {
-		CHECK(configure_view_acl(NULL, named_g_config, "allow-query",
-					 NULL, actx, named_g_mctx,
-					 &view->queryacl));
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+					 "allow-query", NULL, actx,
+					 named_g_mctx, &view->queryacl));
 	}
 
 	/*
@@ -4596,10 +4607,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	/*
 	 * Configure the "match-clients" and "match-destinations" ACL.
 	 */
-	CHECK(configure_view_acl(vconfig, config, "match-clients", NULL, actx,
-				 named_g_mctx, &view->matchclients));
-	CHECK(configure_view_acl(vconfig, config, "match-destinations", NULL,
-				 actx, named_g_mctx, &view->matchdestinations));
+	CHECK(configure_view_acl(vconfig, config, NULL, "match-clients",
+				 NULL, actx, named_g_mctx,
+				 &view->matchclients));
+	CHECK(configure_view_acl(vconfig, config, NULL, "match-destinations",
+				 NULL, actx, named_g_mctx,
+				 &view->matchdestinations));
 
 	/*
 	 * Configure the "match-recursive-only" option.
@@ -4673,21 +4686,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * "allow-recursion", and "allow-recursion-on" acls if
 	 * configured in named.conf.
 	 */
-	CHECK(configure_view_acl(vconfig, config, "allow-query-cache", NULL,
-				 actx, named_g_mctx, &view->cacheacl));
-	CHECK(configure_view_acl(vconfig, config, "allow-query-cache-on", NULL,
-				 actx, named_g_mctx, &view->cacheonacl));
-	if (view->cacheonacl == NULL)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache",
+				 NULL, actx, named_g_mctx, &view->cacheacl));
+	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache-on",
+				 NULL, actx, named_g_mctx, &view->cacheonacl));
+	if (view->cacheonacl == NULL) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-query-cache-on", NULL, actx,
 					 named_g_mctx, &view->cacheonacl));
+	}
 	if (strcmp(view->name, "_bind") != 0) {
-		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
-					 NULL, actx, named_g_mctx,
-					 &view->recursionacl));
-		CHECK(configure_view_acl(vconfig, config, "allow-recursion-on",
-					 NULL, actx, named_g_mctx,
-					 &view->recursiononacl));
+		CHECK(configure_view_acl(vconfig, config, NULL,
+					 "allow-recursion", NULL, actx,
+					 named_g_mctx, &view->recursionacl));
+		CHECK(configure_view_acl(vconfig, config, NULL,
+					 "allow-recursion-on", NULL, actx,
+					 named_g_mctx, &view->recursiononacl));
 	}
 
 	/*
@@ -4714,24 +4728,27 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * Set default "allow-recursion", "allow-recursion-on" and
 	 * "allow-query-cache" acls.
 	 */
-	if (view->recursionacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	if (view->recursionacl == NULL && view->recursion) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-recursion", NULL,
 					 actx, named_g_mctx,
 					 &view->recursionacl));
-	if (view->recursiononacl == NULL && view->recursion)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	}
+	if (view->recursiononacl == NULL && view->recursion) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-recursion-on", NULL,
 					 actx, named_g_mctx,
 					 &view->recursiononacl));
+	}
 	if (view->cacheacl == NULL) {
-		if (view->recursion)
-			CHECK(configure_view_acl(NULL, named_g_config,
+		if (view->recursion) {
+			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-query-cache", NULL,
 						 actx, named_g_mctx,
 						 &view->cacheacl));
-		else
+		} else {
 			CHECK(dns_acl_none(mctx, &view->cacheacl));
+		}
 	}
 
 	/*
@@ -4739,8 +4756,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * clients. This causes case not always to be preserved,
 	 * and is needed by some broken clients.
 	 */
-	CHECK(configure_view_acl(vconfig, config, "no-case-compress", NULL,
-				 actx, named_g_mctx, &view->nocasecompress));
+	CHECK(configure_view_acl(vconfig, config, NULL, "no-case-compress",
+				 NULL, actx, named_g_mctx,
+				 &view->nocasecompress));
 
 	/*
 	 * Disable name compression completely, this is a tradeoff
@@ -4755,8 +4773,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	/*
 	 * Filter setting on addresses in the answer section.
 	 */
-	CHECK(configure_view_acl(vconfig, config, "deny-answer-addresses",
-				 "acl", actx, named_g_mctx,
+	CHECK(configure_view_acl(vconfig, config, NULL,
+				 "deny-answer-addresses", "acl",
+				 actx, named_g_mctx,
 				 &view->denyansweracl));
 	CHECK(configure_view_nametable(vconfig, config, "deny-answer-addresses",
 				       "except-from", named_g_mctx,
@@ -4783,22 +4802,26 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * and allow-update-forwarding ACLs, if set, so they can be
 	 * inherited by zones.
 	 */
-	if (view->notifyacl == NULL)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	if (view->notifyacl == NULL) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-notify", NULL, actx,
 					 named_g_mctx, &view->notifyacl));
-	if (view->transferacl == NULL)
-		CHECK(configure_view_acl(vconfig, config,
+	}
+	if (view->transferacl == NULL) {
+		CHECK(configure_view_acl(vconfig, config, named_g_config,
 					 "allow-transfer", NULL, actx,
 					 named_g_mctx, &view->transferacl));
-	if (view->updateacl == NULL)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	}
+	if (view->updateacl == NULL) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-update", NULL, actx,
 					 named_g_mctx, &view->updateacl));
-	if (view->upfwdacl == NULL)
-		CHECK(configure_view_acl(NULL, named_g_config,
+	}
+	if (view->upfwdacl == NULL) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-update-forwarding", NULL, actx,
 					 named_g_mctx, &view->upfwdacl));
+	}
 
 	obj = NULL;
 	result = named_config_get(maps, "provide-ixfr", &obj);
@@ -4921,7 +4944,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			INSIST(0);
 	}
 
-	CHECK(configure_view_acl(vconfig, config, "filter-aaaa", NULL,
+	CHECK(configure_view_acl(vconfig, config, NULL, "filter-aaaa", NULL,
 				 actx, named_g_mctx, &view->aaaa_acl));
 
 	obj = NULL;
@@ -7847,7 +7870,7 @@ load_configuration(const char *filename, named_server_t *server,
 
 	isc_quota_soft(&server->sctx->recursionquota, softquota);
 
-	CHECK(configure_view_acl(NULL, config, "blackhole", NULL,
+	CHECK(configure_view_acl(NULL, config, NULL, "blackhole", NULL,
 				 named_g_aclconfctx, named_g_mctx,
 				 &server->sctx->blackholeacl));
 	if (server->sctx->blackholeacl != NULL) {
@@ -7855,8 +7878,8 @@ load_configuration(const char *filename, named_server_t *server,
 					     server->sctx->blackholeacl);
 	}
 
-	CHECK(configure_view_acl(NULL, config, "keep-response-order", NULL,
-				 named_g_aclconfctx, named_g_mctx,
+	CHECK(configure_view_acl(NULL, config, NULL, "keep-response-order",
+				 NULL, named_g_aclconfctx, named_g_mctx,
 				 &server->sctx->keepresporder));
 
 	obj = NULL;
