@@ -6446,13 +6446,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		} else {
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
-				/*
-				 * XXXMLG We don't check the return value
-				 * here.  If it fails, we will not do TTL
-				 * based expiry on this node.  However, we
-				 * will do it on the LRU side, so memory
-				 * will not leak... for long.
-				 */
 				INSIST(rbtdb->heaps != NULL);
 				result = isc_heap_insert(rbtdb->heaps[idx],
 						         newheader);
