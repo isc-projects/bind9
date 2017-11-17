@@ -6400,7 +6400,7 @@ zone_resigninc(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	expire = soaexpire - jitter % 3600 - 1;
 	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
