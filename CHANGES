@@ -1,3 +1,5 @@
+4822.	[bug]		Use resign_sooner in dns_db_setsigningtime. [RT #46473]
+
 4821.	[bug]		When resigning ensure that the SOA's expire time is
 			always later that the resigning time of other records.
 			[RT #46473]
@@ -6,7 +8,7 @@
 			information to the new header. [RT #46473]
 
 4819.	[bug]		Fully backout the transaction when adding a RRset
-			to the resigning / removal heaps fail. [RT #46473]
+			to the resigning / removal heaps fails. [RT #46473]
 
 4818.	[test]		The logfileconfig system test could intermittently
 			report false negatives on some platforms. [RT #46615]
