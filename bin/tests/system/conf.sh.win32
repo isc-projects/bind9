@@ -79,7 +79,10 @@ KRB5_CONFIG=NUL
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone autosign builtin
+#
+# List of tests that use ports 5300 and 9953.  For this reason, these must
+# be run sequentially.
+SEQUENTIALDIRS="acl additional addzone autosign builtin
 	 cacheclean case catz
 	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
 	 database digdelv dlv dlvauto dlz dlzexternal dname
@@ -94,6 +97,14 @@ SUBDIRS="acl additional addzone autosign builtin
 	 spf staticstub statistics statschannel stub tcp tkey tsig
 	 tsiggss unknown upforwd verify views wildcard xfer xferquota
 	 zero zonechecks"
+
+# List of tests that use unique ports (other than 5300 and 9953). These
+# tests can be run in parallel.
+#
+# This symbol must be kept in step with the PARALLEL macro in Makefile.in
+PARALLELDIRS="allow_query rpzrecurse serve-stale"
+
+SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
 # missing: chain integrity
 # extra: dname ednscompliance forward 
