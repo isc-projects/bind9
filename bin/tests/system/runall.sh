@@ -9,6 +9,10 @@
 #
 # Run all the system tests.
 #
+# Note: Use "make check" to run all the system tests.  This script will just
+# run those tests that require that each of their nameservers is the only one
+# running on an IP address.
+#
 
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
@@ -16,7 +20,7 @@ SYSTEMTESTTOP=.
 status=0
 
 {
-    for d in $SUBDIRS
+    for d in $SEQUENTIALDIRS
     do
             $SHELL run.sh "${@}" $d || status=1
     done
