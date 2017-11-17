@@ -6484,6 +6484,40 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					return (result);
 			}
 		} else {
+			idx = newheader->node->locknum;
+			if (IS_CACHE(rbtdb)) {
+				/*
+				 * XXXMLG We don't check the return value
+				 * here.  If it fails, we will not do TTL
+				 * based expiry on this node.  However, we
+				 * will do it on the LRU side, so memory
+				 * will not leak... for long.
+				 */
+				INSIST(rbtdb->heaps != NULL);
+				result = isc_heap_insert(rbtdb->heaps[idx],
+						         newheader);
+				if (result != ISC_R_SUCCESS) {
+					free_rdataset(rbtdb,
+						      rbtdb->common.mctx,
+						      newheader);
+					return (result);
+				}
+				if (ZEROTTL(newheader))
+					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
+							newheader, link);
+				else
+					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+							 newheader, link);
+			} else if (RESIGN(newheader)) {
+				result = resign_insert(rbtdb, idx, newheader);
+				if (result != ISC_R_SUCCESS) {
+					free_rdataset(rbtdb,
+						      rbtdb->common.mctx,
+						      newheader);
+					return (result);
+				}
+				resign_delete(rbtdb, rbtversion, header);
+			}
 			newheader->down = topheader;
 			topheader->next = newheader;
 			rbtnode->dirty = 1;
@@ -6498,30 +6532,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 						 RDATASET_ATTR_STALE;
 				}
 			}
-			idx = newheader->node->locknum;
-			if (IS_CACHE(rbtdb)) {
-				if (ZEROTTL(newheader))
-					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
-							newheader, link);
-				else
-					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-							 newheader, link);
-				/*
-				 * XXXMLG We don't check the return value
-				 * here.  If it fails, we will not do TTL
-				 * based expiry on this node.  However, we
-				 * will do it on the LRU side, so memory
-				 * will not leak... for long.
-				 */
-				INSIST(rbtdb->heaps != NULL);
-				(void)isc_heap_insert(rbtdb->heaps[idx],
-						      newheader);
-			} else if (RESIGN(newheader)) {
-				resign_delete(rbtdb, rbtversion, header);
-				result = resign_insert(rbtdb, idx, newheader);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-			}
 		}
 	} else {
 		/*
@@ -6535,6 +6545,30 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		if (newheader_nx) {
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			return (DNS_R_UNCHANGED);
+		}
+
+		idx = newheader->node->locknum;
+		if (IS_CACHE(rbtdb)) {
+			result = isc_heap_insert(rbtdb->heaps[idx], newheader);
+			if (result != ISC_R_SUCCESS) {
+				free_rdataset(rbtdb, rbtdb->common.mctx,
+					      newheader);
+				return (result);
+			}
+			if (ZEROTTL(newheader))
+				ISC_LIST_APPEND(rbtdb->rdatasets[idx],
+						newheader, link);
+			else
+				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
+						 newheader, link);
+		} else if (RESIGN(newheader)) {
+			result = resign_insert(rbtdb, idx, newheader);
+			if (result != ISC_R_SUCCESS) {
+				free_rdataset(rbtdb, rbtdb->common.mctx,
+					      newheader);
+				return (result);
+			}
+			resign_delete(rbtdb, rbtversion, header);
 		}
 
 		if (topheader != NULL) {
@@ -6576,21 +6610,6 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				dns_rdataslab_size((unsigned char *)newheader,
 						   sizeof(*newheader));
 			RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
-		}
-		idx = newheader->node->locknum;
-		if (IS_CACHE(rbtdb)) {
-			if (ZEROTTL(newheader))
-				ISC_LIST_APPEND(rbtdb->rdatasets[idx],
-						newheader, link);
-			else
-				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
-						 newheader, link);
-			isc_heap_insert(rbtdb->heaps[idx], newheader);
-		} else if (RESIGN(newheader)) {
-			resign_delete(rbtdb, rbtversion, header);
-			result = resign_insert(rbtdb, idx, newheader);
-			if (result != ISC_R_SUCCESS)
-				return (result);
 		}
 	}
 
@@ -7031,6 +7050,19 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			free_rdataset(rbtdb, rbtdb->common.mctx, newheader);
 			newheader = (rdatasetheader_t *)subresult;
 			init_rdataset(rbtdb, newheader);
+			if (RESIGN(header)) {
+			        newheader->attributes |= RDATASET_ATTR_RESIGN;
+				newheader->resign = header->resign;
+				newheader->resign_lsb = header->resign_lsb;
+				result = resign_insert(rbtdb, rbtnode->locknum,
+						       newheader);
+				if (result != ISC_R_SUCCESS) {
+					free_rdataset(rbtdb,
+						      rbtdb->common.mctx,
+						      newheader);
+					goto unlock;
+				}
+			}
 			/*
 			 * We have to set the serial since the rdataslab
 			 * subtraction routine copies the reserved portion of
@@ -7655,9 +7687,8 @@ getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
 static isc_result_t
 setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	isc_stdtime_t oldresign;
 	isc_result_t result = ISC_R_SUCCESS;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, oldheader;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(!IS_CACHE(rbtdb));
@@ -7669,7 +7700,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	NODE_LOCK(&rbtdb->node_locks[header->node->locknum].lock,
 		  isc_rwlocktype_write);
 
-	oldresign = (header->resign << 1) | header->resign_lsb;
+	oldheader = *header;
 	header->resign = (isc_stdtime_t)(dns_time64_from32(resign) >> 1);
 	header->resign_lsb = resign & 0x1;
 	if (header->heap_index != 0) {
@@ -7678,13 +7709,13 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 			isc_heap_delete(rbtdb->heaps[header->node->locknum],
 					header->heap_index);
 			header->heap_index = 0;
-		} else if (resign < oldresign)
+		} else if (resign_sooner(header, &oldheader))
 			isc_heap_increased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
-		else if (resign > oldresign)
+		else if (resign_sooner(&oldheader, header))
 			isc_heap_decreased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
-	} else if (resign && header->heap_index == 0) {
+	} else if (resign != 0 && header->heap_index == 0) {
 		header->attributes |= RDATASET_ATTR_RESIGN;
 		result = resign_insert(rbtdb, header->node->locknum, header);
 	}
