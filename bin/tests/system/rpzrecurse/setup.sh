@@ -12,15 +12,15 @@ set -e
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-
-. ../getopts.sh
+. $SYSTEMTESTTOP/getopts.sh
 
 USAGE="$0: [-xD]"
 DEBUG=
 while getopts "xD" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
-        D) TEST_DNSRPS="-D";;
+	D) TEST_DNSRPS="-D";;
+    -) break;;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -29,20 +29,27 @@ if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
 fi
+OPTIND=1
 
 $SHELL clean.sh $DEBUG
 
 $PERL testgen.pl
-$SEDPORTS < ns1/named.conf.in > ns1/named.conf
+
+copy_setports ns1/named.conf.in ns1/named.conf
 echo "${port}" > ns1/named.port
-$SEDPORTS < ns2/named.conf.header.in > ns2/named.conf.header
+
+copy_setports ns2/named.conf.header.in ns2/named.conf.header
 echo "${port}" > ns2/named.port
-cp -f ns2/named.default.conf ns2/named.conf
-$SEDPORTS < ns3/named1.conf.in > ns3/named.conf
+
+copy_setports ns2/named.default.conf ns2/named.conf
+
+copy_setports ns3/named1.conf.in ns3/named.conf
 echo "${port}" > ns3/named.port
-$SEDPORTS < ns4/named.conf.in > ns4/named.conf
+
+copy_setports ns4/named.conf.in ns4/named.conf
 echo "${port}" > ns4/named.port
-$SEDPORTS < ans5/ans.pl.in > ans5/ans.pl
+
+copy_setports ans5/ans.pl.in ans5/ans.pl
 
 # decide whether to test DNSRPS
 $SHELL ../rpz/ckdnsrps.sh $TEST_DNSRPS $DEBUG
