@@ -14,8 +14,9 @@
 
 # Clean up after rpz tests.
 
+rm -f test.output
 rm -f dig.out.*
-rm -f ns2/named.conf
+rm -f ns*/named.conf
 rm -f ns2/*.local
 rm -f ns2/*.queries
 rm -f ns2/named.[0-9]*.conf
