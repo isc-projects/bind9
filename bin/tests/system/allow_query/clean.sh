@@ -14,12 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2010/11/16 01:37:36 sar Exp $
-
 #
 # Clean up after allow query tests.
 #
 
+rm -f test.output
 rm -f dig.out.*
 rm -f ns2/named.conf ns2/named.port ns2/controls.conf
 rm -f */named.memstats
