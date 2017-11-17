@@ -158,6 +158,7 @@ if test -t 1 && type tput > /dev/null 2>&1 ; then
     COLOR_FAIL=`tput setaf 1`   # red
     COLOR_WARN=`tput setaf 3`   # yellow
     COLOR_PASS=`tput setaf 2`   # green
+    COLOR_STEN=`tput setaf 4`   # blue
     COLOR_INFO=`tput bold`      # bold
     COLOR_NONE=`tput sgr0`
 else
@@ -165,6 +166,7 @@ else
     COLOR_FAIL=''
     COLOR_WARN=''
     COLOR_PASS=''
+    COLOR_STEN=''
     COLOR_INFO=''
     COLOR_NONE=''
 fi
@@ -181,7 +183,11 @@ then
 		printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
 	}
 	echoinfo () {
-		printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+		COLOR=$COLOR_INFO
+		case "$1" in 
+			S:*|E:*) COLOR=${COLOR}${COLOR_STEN} ;; # Start/end messages
+		esac
+		printf "${COLOR}%s${COLOR_NONE}\n" "$*"
 	}
 else
 	echofail () {

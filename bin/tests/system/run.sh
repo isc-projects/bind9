@@ -68,7 +68,7 @@ result=$?
 if [ $result -eq 0 ]; then
     : prereqs ok
 else
-    echowarn "I:Prerequisites for $test missing, skipping test." >&2
+    echowarn "I:$test:Prerequisites missing, skipping test." >&2
     [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
@@ -76,7 +76,7 @@ fi
 
 # Test sockets after the prerequisites has been setup
 $PERL testsock.pl -p "${port}" || {
-    echowarn "I:Network interface aliases not set up.  Skipping test." >&2;
+    echowarn "I:$test:Network interface aliases not set up.  Skipping test." >&2;
     echowarn "R:$test:UNTESTED" >&2;
     echoinfo "E:$test:`date $dateargs`" >&2;
     exit 0;
@@ -88,7 +88,7 @@ if
 then
     : pkcs11 ok
 else
-    echowarn "I:Need PKCS#11 for $test, skipping test." >&2
+    echowarn "I:$test:Need PKCS#11, skipping test." >&2
     echowarn "R:$test:PKCS11ONLY" >&2
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
