@@ -6488,7 +6488,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			if (IS_CACHE(rbtdb)) {
 				INSIST(rbtdb->heaps != NULL);
 				result = isc_heap_insert(rbtdb->heaps[idx],
-						         newheader);
+							 newheader);
 				if (result != ISC_R_SUCCESS) {
 					free_rdataset(rbtdb,
 						      rbtdb->common.mctx,
@@ -7044,7 +7044,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader = (rdatasetheader_t *)subresult;
 			init_rdataset(rbtdb, newheader);
 			if (RESIGN(header)) {
-			        newheader->attributes |= RDATASET_ATTR_RESIGN;
+				newheader->attributes |= RDATASET_ATTR_RESIGN;
 				newheader->resign = header->resign;
 				newheader->resign_lsb = header->resign_lsb;
 				result = resign_insert(rbtdb, rbtnode->locknum,
