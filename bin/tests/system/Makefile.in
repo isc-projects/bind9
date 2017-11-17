@@ -40,26 +40,52 @@ feature-test@EXEEXT@: feature-test.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
 
 
-# Running the scripts below is bypassed when a separate
-# build directory is used.
+# Running the scripts below is bypassed when a separate # build directory is
+# used.
+
+# Define the tests that can be run in parallel.  This should be identical to
+# the definition of PARALLELDIRS in conf.sh.  These tests do not use query
+# port 5300 or control port 9953.
+
+PARALLEL = allow_query serve-stale rpzrecurse
+
+# Produce intermediate makefile that assigns unique port numbers to each
+# parallel test.
+
+parallel.mk:
+	@echo ".PHONY: $(PARALLEL)" > $@ ; \
+	echo "" >> $@ ; \
+	echo "check: $(PARALLEL)" >> $@ ; \
+	port=5299 ; \
+	for directory in $(PARALLEL) ; do \
+		port=$$(($$port + 2)) ; \
+	 	controlport=$$(($$port + 1)) ; \
+		echo "" >> $@ ; \
+		echo "$$directory:" >> $@ ; \
+		echo "	@$(SHELL) ./run.sh -p $$port -c $$controlport $$directory" >> $@ ; \
+	done
+
+# Targets to run the tests that can be done in parallel (which have unique
+# ports assigned to them) and the tests which must be run sequentially (because
+# they all use query port 5300 and control port 9953).
+
+parallel: parallel.mk
+	$(MAKE) -f parallel.mk
+
+sequential:
+	if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
+
+# Standard targets.
 
 check: test
 
-TESTS = allow_query serve-stale rpzrecurse alltests
-
-test: subdirs $(TESTS)
-
-alltests:
-	if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
-
-$(TESTS):
-	PORT=$$((32767+$$RANDOM)); \
-	$(SHELL) ./run.sh -p $$(($$PORT)) -c $$(($$PORT+1)) $@
+test: parallel sequential
 
 testclean clean distclean::
 	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
 	rm -f systests.output
 	rm -f random.data
+	rm -f parallel.mk
 	rm -f ${TARGETS}
 	rm -f ${OBJS}
 
@@ -71,5 +97,3 @@ installdirs:
 install::
 
 uninstall::
-
-.PHONY: $(TESTS)
