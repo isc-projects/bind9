@@ -335,7 +335,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "updating ns1/named.conf ($n)"
 ret=0
-$SEDPORTS < ns1/named2.conf.in > ns1/named.conf
+copy_setports ns1/named2.conf.in ns1/named.conf
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
