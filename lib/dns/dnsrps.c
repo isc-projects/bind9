@@ -15,6 +15,7 @@
 #include <isc/mem.h>
 #include <isc/stdlib.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN
