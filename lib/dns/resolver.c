@@ -2469,8 +2469,8 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		 * The fetch is waiting for a name to be found.
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
-		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES) {
+			fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 			want_try = ISC_TRUE;
 		} else {
 			fctx->findfail++;
@@ -2480,6 +2480,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 				 * know the answer.  There's nothing to do but
 				 * fail the fctx.
 				 */
+				fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 				want_done = ISC_TRUE;
 			}
 		}
