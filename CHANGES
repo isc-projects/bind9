@@ -1,3 +1,6 @@
+4823.	[test]		Refactor reclimit system test to improve its
+			reliability and speed. [RT #46632]
+
 4822.	[bug]		Use resign_sooner in dns_db_setsigningtime. [RT #46473]
 
 4821.	[bug]		When resigning ensure that the SOA's expire time is
