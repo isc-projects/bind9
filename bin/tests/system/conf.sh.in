@@ -76,7 +76,7 @@ KRB5_CONFIG=/dev/null
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
 SEQUENTIALDIRS="acl additional addzone autosign builtin
-	 cacheclean case catz cds chain
+	 cacheclean case cds chain
          checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
          database digdelv dlv dlz dlzexternal
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
@@ -95,7 +95,7 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin
 # tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query rps-recurse serve-stale"
+PARALLELDIRS="allow_query catz rpzrecurse serve-stale"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
