@@ -9,14 +9,14 @@
 include "../../common/rndc.key";
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { fd92:7065:b8e:ffff::2; };
@@ -29,7 +29,7 @@ options {
 			in-memory no
 			zone-directory "zonedir";
 		zone "catalog2.example"
-			default-masters { 10.53.0.1 port 5301; }
+			default-masters { 10.53.0.1 port @APORT1@; }
 			in-memory yes;
 		zone "catalog3.example"
 			default-masters { 10.53.0.1; }
