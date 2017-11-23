@@ -45,7 +45,7 @@
 ./bin/check/win32/checkzone.vcxproj.in		X	2013,2015,2016,2017
 ./bin/check/win32/checkzone.vcxproj.user	X	2013
 ./bin/confgen/.gitignore			X	2012
-./bin/confgen/Makefile.in			MAKE	2009,2012,2015,2016
+./bin/confgen/Makefile.in			MAKE	2009,2012,2015,2016,2017
 ./bin/confgen/ddns-confgen.8			MAN	DOCBOOK
 ./bin/confgen/ddns-confgen.c			C	2009,2011,2014
 ./bin/confgen/ddns-confgen.docbook		SGML	2009,2014,2015,2016
@@ -208,7 +208,7 @@
 ./bin/dnssec/win32/verify.vcxproj.in		X	2013,2015,2016,2017
 ./bin/dnssec/win32/verify.vcxproj.user		X	2013
 ./bin/named/.gitignore				X	2012,2014
-./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016
+./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/bind.keys.h				X	2009,2010,2011,2012,2017
 ./bin/named/bind9.ver3.xsl			SGML	2012,2013,2014
 ./bin/named/bind9.ver3.xsl.h			X	2012,2013,2014
