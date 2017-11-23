@@ -8,6 +8,10 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+# Attempt to disable parallel processing.
+.NOTPARALLEL:
+.NO_PARALLEL:
+
 VERSION=@BIND9_VERSION@
 
 @BIND9_PRODUCT@
@@ -135,7 +139,7 @@ server.@O@: server.c
 		-DPRODUCT=\"${PRODUCT}\" \
 		-DVERSION=\"${VERSION}\" -c ${srcdir}/server.c
 
-named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
+named@EXEEXT@: ${OBJS} ${DEPLIBS}
 	export MAKE_SYMTABLE="yes"; \
 	export BASEOBJS="${OBJS} ${UOBJS}"; \
 	${FINALBUILDCMD}
