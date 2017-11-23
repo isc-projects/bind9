@@ -6016,7 +6016,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Add the zone to its view in the new view list.
 	 */
 	if (!modify)
-	CHECK(dns_view_addzone(view, zone));
+		CHECK(dns_view_addzone(view, zone));
 
 	if (zone_is_catz) {
 		/*

@@ -8279,7 +8279,7 @@ setservestalettl(dns_db_t *db, dns_ttl_t ttl) {
 
 	/* currently no bounds checking.  0 means disable. */
 	rbtdb->serve_stale_ttl = ttl;
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -8290,7 +8290,7 @@ getservestalettl(dns_db_t *db, dns_ttl_t *ttl) {
 	REQUIRE(IS_CACHE(rbtdb));
 
 	*ttl = rbtdb->serve_stale_ttl;
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 
