@@ -109,6 +109,11 @@ print_usage(FILE *fp) {
 "            [ host [@local-server] {local-d-opt} [...]]\n", fp);
 }
 
+#if TARGET_OS_IPHONE
+static void usage(void) {
+	fprintf(stderr, "Press <Help> for complete list of options\n");
+}
+#else
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
@@ -119,6 +124,7 @@ usage(void) {
 	      "for complete list of options\n", stderr);
 	exit(1);
 }
+#endif
 
 /*% version */
 static void
@@ -818,8 +824,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			result = parse_uint(&num, value, COMMSIZE,
 					    "buffer size");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse buffer size");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse buffer size");
+				goto exit_or_usage;
+			}
 			lookup->udpsize = num;
 			break;
 		default:
@@ -864,8 +872,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				if (value != NULL) {
 					n = strlcpy(hexcookie, value,
 						    sizeof(hexcookie));
-					if (n >= sizeof(hexcookie))
-						fatal("COOKIE data too large");
+					if (n >= sizeof(hexcookie)) {
+						warn("COOKIE data too large");
+						goto exit_or_usage;
+					}
 					lookup->cookie = hexcookie;
 				} else
 					lookup->cookie = NULL;
@@ -916,8 +926,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			if (value == NULL)
 				goto need_value;
 			result = parse_uint(&num, value, 0x3f, "DSCP");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse DSCP value");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse DSCP value");
+				goto exit_or_usage;
+			}
 			lookup->dscp = num;
 			break;
 		default:
@@ -946,9 +958,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 								    value,
 								    255,
 								    "edns");
-						if (result != ISC_R_SUCCESS)
-							fatal("Couldn't parse "
+						if (result != ISC_R_SUCCESS) {
+							warn("Couldn't parse "
 							      "edns");
+							goto exit_or_usage;
+						}
 						lookup->edns = num;
 						break;
 					case 'f':
@@ -965,9 +979,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 								    value,
 								    0xffff,
 								  "ednsflags");
-						if (result != ISC_R_SUCCESS)
-							fatal("Couldn't parse "
+						if (result != ISC_R_SUCCESS) {
+							warn("Couldn't parse "
 							      "ednsflags");
+							goto exit_or_usage;
+						}
 						lookup->ednsflags = num;
 						break;
 					case 'n':
@@ -980,10 +996,12 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 							lookup->ednsoptscnt = 0;
 							break;
 						}
-						if (value == NULL)
-							fatal("ednsopt no "
-							      "code point "
-							      "specified");
+						if (value == NULL) {
+							warn("ednsopt no "
+							     "code point "
+							     "specified");
+							goto exit_or_usage;
+						}
 						code = next_token(&value, ":");
 						save_opt(lookup, code, value);
 						break;
@@ -1098,8 +1116,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			if (!state)
 				goto invalid_option;
 			result = parse_uint(&num, value, MAXNDOTS, "ndots");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse ndots");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse ndots");
+				goto exit_or_usage;
+			}
 			ndots = num;
 			break;
 		case 's':
@@ -1161,8 +1181,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				break;
 			}
 			result = parse_uint(&num, value, 15, "opcode");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse opcode");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse opcode");
+				goto exit_or_usage;
+			}
 			lookup->opcode = (dns_opcode_t)num;
 			break;
 		default:
@@ -1176,8 +1198,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 		if (value == NULL)
 			goto need_value;
 		result = parse_uint(&num, value, 512, "padding");
-		if (result != ISC_R_SUCCESS)
-			fatal("Couldn't parse padding");
+		if (result != ISC_R_SUCCESS) {
+			warn("Couldn't parse padding");
+			goto exit_or_usage;
+		}
 		lookup->padding = (isc_uint16_t)num;
 		break;
 	case 'q':
@@ -1216,8 +1240,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					goto invalid_option;
 				result = parse_uint(&lookup->retries, value,
 						    MAXTRIES - 1, "retries");
-				if (result != ISC_R_SUCCESS)
-					fatal("Couldn't parse retries");
+				if (result != ISC_R_SUCCESS) {
+					warn("Couldn't parse retries");
+					goto exit_or_usage;
+				}
 				lookup->retries++;
 				break;
 			default:
@@ -1300,8 +1326,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 			 */
 			if (splitwidth)
 				splitwidth += 3;
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse split");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse split");
+				goto exit_or_usage;
+			}
 			break;
 		case 't': /* stats */
 			FULLCHECK("stats");
@@ -1325,8 +1353,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				lookup->ecs_addr = NULL;
 			}
 			result = parse_netprefix(&lookup->ecs_addr, value);
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse client");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse client");
+				goto exit_or_usage;
+			}
 			break;
 		default:
 			goto invalid_option;
@@ -1349,8 +1379,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 				goto invalid_option;
 			result = parse_uint(&timeout, value, MAXTIMEOUT,
 					    "timeout");
-			if (result != ISC_R_SUCCESS)
-				fatal("Couldn't parse timeout");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse timeout");
+				goto exit_or_usage;
+			}
 			if (timeout == 0)
 				timeout = 1;
 			break;
@@ -1386,8 +1418,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 					goto invalid_option;
 				result = parse_uint(&lookup->retries, value,
 						    MAXTRIES, "tries");
-				if (result != ISC_R_SUCCESS)
-					fatal("Couldn't parse tries");
+				if (result != ISC_R_SUCCESS) {
+					warn("Couldn't parse tries");
+					goto exit_or_usage;
+				}
 				if (lookup->retries == 0)
 					lookup->retries = 1;
 				break;
@@ -1444,11 +1478,19 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 	default:
 	invalid_option:
 	need_value:
+#if TARGET_OS_IPHONE
+	exit_or_usage:
+#endif
 		fprintf(stderr, "Invalid option: +%s\n",
 			option);
 		usage();
 	}
 	return;
+
+#if ! TARGET_OS_IPHONE
+ exit_or_usage:
+	digexit();
+#endif
 }
 
 /*%

@@ -1,3 +1,5 @@
+4824.	[port]		Add iOS hooks to dig. [RT #42011]
+
 4823.	[test]		Refactor reclimit system test to improve its
 			reliability and speed. [RT #46632]
 

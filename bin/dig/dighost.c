@@ -375,6 +375,46 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 	}
 }
 
+void (*dighost_pre_exit_hook)(void) = NULL;
+
+#if TARGET_OS_IPHONE
+void
+warn(const char *format, ...) {
+	va_list args;
+
+	fflush(stdout);
+	fprintf(stderr, ";; Warning: ");
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
+}
+#else
+void
+warn(const char *format, ...) {
+	va_list args;
+
+	fflush(stdout);
+	fprintf(stderr, "%s: ", progname);
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
+}
+#endif
+
+void
+digexit(void) {
+	if (exitcode < 10)
+		exitcode = 10;
+	if (fatalexit != 0)
+		exitcode = fatalexit;
+	if (dighost_pre_exit_hook != NULL) {
+		dighost_pre_exit_hook();
+	}
+	exit(exitcode);
+}
+
 void
 fatal(const char *format, ...) {
 	va_list args;
@@ -385,11 +425,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	if (exitcode < 10)
-		exitcode = 10;
-	if (fatalexit != 0)
-		exitcode = fatalexit;
-	exit(exitcode);
+	digexit();
 }
 
 void
@@ -2161,9 +2197,13 @@ setup_lookup(dig_lookup_t *lookup) {
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
-			fatal("'%s' is not a legal name "
+			warn("'%s' is not a legal name "
 			      "(%s)", lookup->textname,
 			      isc_result_totext(result));
+#if TARGET_OS_IPHONE
+			check_next_lookup(current_lookup);
+			return (ISC_FALSE);
+#endif
 		}
 	}
 	dns_name_format(lookup->name, store, sizeof(store));

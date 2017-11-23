@@ -26,6 +26,10 @@
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 #define MXSERV 20
 #define MXNAME (DNS_NAME_MAXTEXT+1)
 #define MXRD 32
@@ -283,6 +287,13 @@ fatal(const char *format, ...)
 ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
 
 void
+warn(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
+
+ISC_PLATFORM_NORETURN_PRE void
+digexit(void)
+ISC_PLATFORM_NORETURN_POST;
+
+void
 debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
@@ -383,6 +394,9 @@ extern void
 
 extern void
 (*dighost_shutdown)(void);
+
+extern void
+(*dighost_pre_exit_hook)(void);
 
 void save_opt(dig_lookup_t *lookup, char *code, char *value);
 
