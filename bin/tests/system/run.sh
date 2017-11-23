@@ -15,30 +15,20 @@ SYSTEMTESTTOP=.
 
 stopservers=true
 clean=true
-port=5300
-controlport=9953
+baseport=5300
 dateargs="-R"
 
-while getopts "knp:d:c:" flag; do
+while getopts "knp:d:" flag; do
     case "$flag" in
 	k) stopservers=false ;;
 	n) clean=false ;;
-	p) port=$OPTARG ;;
-	c) controlport=$OPTARG ;;
+	p) baseport=$OPTARG ;;
 	d) dateargs=$OPTARG ;;
 	*) exit 1 ;;
     esac
 done
-
-if [ "$((${port}+0))" -ne "${port}" ] || [ "${port}" -le 1024 ] || [ "${port}" -gt 65535 ]; then
-    echo "Specified port '$port' must be numeric (1024,65535>" >&2; exit 1;
-fi
-
-if [ "$((${controlport}+0))" -ne "${controlport}" ] || [ "${controlport}" -le 1024 ] || [ "${controlport}" -gt 65535 ]; then
-    echo "Specified control port '$controlport' must be numeric (1024,65535>" >&2; exit 1;
-fi
-
 shift $(($OPTIND - 1))
+OPTIND=1
 
 test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
 
@@ -46,6 +36,9 @@ test=$1
 shift
 
 test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
+
+# Validate the port number and obtain other port numbers.
+. $SYSTEMTESTTOP/getopts.sh -p "$baseport"
 
 echoinfo "S:$test:`date $dateargs`" >&2
 echoinfo "T:$test:1:A" >&2
@@ -55,14 +48,14 @@ echoinfo "I:$test:CONTROLPORT:${controlport}" >&2
 
 if [ x${PERL:+set} = x ]
 then
-    echowarn "I:Perl not available.  Skipping test." >&2
+    echowarn "I:$test:Perl not available.  Skipping test." >&2
     echowarn "R:$test:UNTESTED" >&2
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0;
 fi
 
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -c "$controlport" -p "$port" -- "$@" )
+test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -p "$port" -- "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
@@ -97,15 +90,14 @@ fi
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then
-   ( cd $test && $SHELL setup.sh -c "$controlport" -p "$port" -- "$@" )
+   ( cd $test && $SHELL setup.sh -p "$port" -- "$@" )
 fi
 
 # Start name servers running
 $PERL start.pl -p $port $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
-( cd $test ; $SHELL tests.sh -c "$controlport" -p "$port" -- "$@" )
-
+( cd $test ; $SHELL tests.sh -p "$port" -- "$@" )
 status=$?
 
 if $stopservers
