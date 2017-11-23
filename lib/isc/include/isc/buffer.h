@@ -893,13 +893,13 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned int _length; \
 		unsigned char *_cp; \
-		_length = strlen(_source); \
+		_length = (unsigned int)strlen(_source); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
 			isc_buffer_t *_tmp = _b; \
 			ISC_REQUIRE(isc_buffer_reserve(&_tmp, _length) \
 				== ISC_R_SUCCESS); \
 		} \
-		ISC_REQUIRE(isc_buffer_availablelength(_b) >= (unsigned int) _length); \
+		ISC_REQUIRE(isc_buffer_availablelength(_b) >= _length); \
 		_cp = isc_buffer_used(_b); \
 		memmove(_cp, (_source), _length); \
 		(_b)->used += (_length); \
