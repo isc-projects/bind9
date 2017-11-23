@@ -43,8 +43,7 @@ test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
 echoinfo "S:$test:`date $dateargs`" >&2
 echoinfo "T:$test:1:A" >&2
 echoinfo "A:$test:System test $test" >&2
-echoinfo "I:$test:PORT:${port}" >&2
-echoinfo "I:$test:CONTROLPORT:${controlport}" >&2
+echoinfo "I:$test:PORTRANGE:${portlow} - ${porthigh}"
 
 if [ x${PERL:+set} = x ]
 then
@@ -113,7 +112,7 @@ $PERL stop.pl $test
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-	echofail "R:$test:$FAIL"
+	echofail "R:$test:FAIL"
 	# Don't clean up - we need the evidence.
 	find . -name core -exec chmod 0644 '{}' \;
 else
