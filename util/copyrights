@@ -1847,7 +1847,6 @@
 ./bin/tests/system/pkcs11ssl/usepkcs11		X	2014
 ./bin/tests/system/reclimit/README		TXT.BRIEF	2014,2016,2017
 ./bin/tests/system/reclimit/ans2/ans.pl		PERL	2014,2015,2016,2017
-./bin/tests/system/reclimit/ans4/ans.pl		PERL	2014,2016
 ./bin/tests/system/reclimit/ans7/ans.pl		PERL	2014,2016
 ./bin/tests/system/reclimit/clean.sh		SH	2014,2016
 ./bin/tests/system/reclimit/ns1/named.conf	CONF-C	2014,2016
