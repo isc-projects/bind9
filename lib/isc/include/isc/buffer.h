@@ -796,7 +796,7 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned int _length; \
 		unsigned char *_cp; \
-		_length = strlen(_source); \
+		_length = (unsigned int)strlen(_source); \
 		_cp = isc_buffer_used(_b); \
 		memmove(_cp, (_source), _length); \
 		(_b)->used += (_length); \
