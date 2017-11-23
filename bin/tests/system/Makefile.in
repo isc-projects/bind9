@@ -66,24 +66,19 @@ parallel.mk:
 		echo "	@$(SHELL) ./run.sh -p $$port $$directory" >> $@ ; \
 	done
 
-# Targets to run the tests that can be done in parallel (which have unique
-# ports assigned to them) and the tests which must be run sequentially (because
-# they all use query port 5300 and control port 9953).
+# Targets to run the tests.
 
-parallel: parallel.mk
-	@$(MAKE) -f parallel.mk
-
-sequential:
-	@if test -f ./runall.sh; then $(SHELL) ./runall.sh; fi
-
-# Standard targets.
+test: parallel.mk
+	@$(MAKE) -f parallel.mk check 2>&1 | tee systests.output
+	@$(SHELL) ./runsequential.sh 2>&1 | tee -a systests.output
+	@$(SHELL) ./testsummary.sh
 
 check: test
 
-test: parallel sequential
+# Other targets.
 
 testclean clean distclean::
-	if test -f ./cleanall.sh; then sh ./cleanall.sh; fi
+	if test -f ./cleanall.sh; then $(SHELL) ./cleanall.sh; fi
 	rm -f systests.output
 	rm -f random.data
 	rm -f parallel.mk

@@ -158,7 +158,7 @@ if test -t 1 && type tput > /dev/null 2>&1 ; then
     COLOR_FAIL=`tput setaf 1`   # red
     COLOR_WARN=`tput setaf 3`   # yellow
     COLOR_PASS=`tput setaf 2`   # green
-    COLOR_STEN=`tput setaf 4`   # blue
+    COLOR_STEN=`tput setaf 4`   # blue - for start/end messages
     COLOR_INFO=`tput bold`      # bold
     COLOR_NONE=`tput sgr0`
 else
@@ -207,10 +207,6 @@ fi
 TESTNAME="`basename $PWD`"
 
 echo_i() {
-    # Without formatting
-    echo "I:$TESTNAME:$@" >> test.output
-
-    # With formatting
     echoinfo "I:$TESTNAME:$@"
 }
 

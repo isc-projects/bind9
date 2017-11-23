@@ -42,7 +42,7 @@ OPTIND=1
 # the upper of the 10 ports notionally assigned does not exceed 65535.
 
 if [ "$((${port}+0))" != "${port}" ] || [ "${port}" -le 1024 ] || [ "${port}" -gt 65520 ]; then
-    echo "Specified port '$port' must be numeric and in the range 1025 to 65520" >&2
+    echo "Base of port range ($port) must be numeric and in the range 1025 to 65520" >&2
     exit 1
 fi
 
@@ -55,6 +55,11 @@ aport6=$(($port + 6))
 aport7=$(($port + 7))
 aport8=$(($port + 8))
 controlport=$(($port + 9))
+
+# Two more symbols that denote the limits of the range.
+
+portlow=$port
+porthigh=$controlport
 
 
 # copy_setports - Copy Configuration File and Replace Ports

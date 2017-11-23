@@ -6,38 +6,29 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#
 # Run all the system tests.
 #
-# Note: Use "make check" to run all the system tests.  This script will just
-# run those tests that require that each of their nameservers is the only one
-# running on an IP address.
+# Usage:
+#    runall.sh [numprocesses]
 #
+# ...where numprocess is the number of processes to use. The default is 1,
+# which runs the tests sequentially.
 
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-status=0
+numproc=
+if [ $# -eq 0 ]; then
+    numproc=1
 
-{
-    for d in $SEQUENTIALDIRS
-    do
-            $SHELL run.sh "${@}" $d || status=1
-    done
-} 2>&1 | tee "systests.output"
+elif [ $# -gt 1 ] ||  "$(($1 + 0))" -ne "$1" ]; then
+    echo "Usage: ./runall.sh [numprocesses]"
 
-$PERL testsock.pl || {
-    cat <<EOF >&2
-I:
-I:NOTE: System tests were skipped because they require that the
-I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured
-I:      as alias addresses on the loopback interface.  Please run
-I:      "bin/tests/system/ifconfig.sh up" as root to configure them.
-EOF
-}
+else
+    numproc=$1
 
-echo "I:System test result summary:"
-grep '^R:' systests.output | sed -e 's/^/I: /' -e 's/R:[^:]*//' | sort | uniq -c
-grep '^R:[^:]*:FAIL' systests.output > /dev/null && status=1
+fi
 
-exit $status
+make -j $numproc check
+
+exit $?
