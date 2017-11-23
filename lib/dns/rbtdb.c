@@ -8119,8 +8119,16 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		  isc_rwlocktype_write);
 
 	oldheader = *header;
-	header->resign = (isc_stdtime_t)(dns_time64_from32(resign) >> 1);
-	header->resign_lsb = resign & 0x1;
+	/*
+	 * Only break the heap invariant (by adjusting resign and resign_lsb)
+	 * if we are going to be restoring it by calling isc_heap_increased
+	 * or isc_heap_decreased.
+	 */
+	if (resign != 0) {
+		header->resign =
+			 (isc_stdtime_t)(dns_time64_from32(resign) >> 1);
+		header->resign_lsb = resign & 0x1;
+	}
 	if (header->heap_index != 0) {
 		INSIST(RESIGN(header));
 		if (resign == 0) {
