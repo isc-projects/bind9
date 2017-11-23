@@ -103,19 +103,19 @@ nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params) {
 	ATF_CHECK_EQ_MSG(result, ISC_R_NOSPACE,
 			 "\"%s\": expected a %lu-byte target buffer to be "
 			 "rejected, got %s\n",
-			 params->nsec3param_text, length - 1,
+			 params->nsec3param_text, (unsigned long)(length - 1),
 			 isc_result_totext(result));
 	result = dns_nsec3param_salttotext(&nsec3param, salt, length);
 	ATF_CHECK_EQ_MSG(result, ISC_R_NOSPACE,
 			 "\"%s\": expected a %lu-byte target buffer to be "
 			 "rejected, got %s\n",
-			 params->nsec3param_text, length,
+			 params->nsec3param_text, (unsigned long)length,
 			 isc_result_totext(result));
 	result = dns_nsec3param_salttotext(&nsec3param, salt, length + 1);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
 			 "\"%s\": expected a %lu-byte target buffer to be "
 			 "accepted, got %s\n",
-			 params->nsec3param_text, length + 1,
+			 params->nsec3param_text, (unsigned long)(length + 1),
 			 isc_result_totext(result));
 }
 
