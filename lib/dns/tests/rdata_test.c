@@ -247,7 +247,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 				   wire_ok->lineno,
 				   dns_test_tohex(wire_ok->data, wire_ok->len,
 						  hex, sizeof(hex)),
-				   wire_ok->len);
+				   (unsigned long)wire_ok->len);
 	} else {
 		ATF_REQUIRE_MSG(result != ISC_R_SUCCESS,
 				"line %d: %s (%lu): "
@@ -255,7 +255,7 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 				wire_ok->lineno,
 				dns_test_tohex(wire_ok->data, wire_ok->len,
 					       hex, sizeof(hex)),
-				wire_ok->len);
+				(unsigned long)wire_ok->len);
 	}
 	/*
 	 * If data was parsed correctly, perform two-way conversion checks
