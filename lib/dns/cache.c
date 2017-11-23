@@ -238,6 +238,7 @@ dns_cache_create3(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->references = 1;
 	cache->live_tasks = 0;
 	cache->rdclass = rdclass;
+	cache->serve_stale_ttl = 0;
 
 	cache->stats = NULL;
 	result = isc_stats_create(cmctx, &cache->stats,
