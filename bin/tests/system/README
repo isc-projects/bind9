@@ -4,66 +4,499 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-This is a simple test environment for running bind9 system tests
+Introduction
+===
+This directory holds a simple test environment for running bind9 system tests
 involving multiple name servers.
 
-There are multiple test suites, each in a separate subdirectory and
-involving a different DNS setup.  They are:
+With the exception of "common" (which holds configuration information common to
+multiple tests) and "win32" (which holds files needed to run the tests in a
+Windows environment), each directory holds a set of scripts and configuration
+files to test different parts of BIND.  The directories are named for the aspect
+of BIND they test, for example:
 
-  dnssec/	DNSSEC tests
-  forward/	Forwarding tests
-  glue/		Glue handling tests
-  limits/	Tests of handling of large data (close to server limits)
-  notify/	More NOTIFY tests
-  nsupdate/	Dynamic update and IXFR tests
-  resolver/     Regression tests for resolver bugs that have been fixed
-		(not a complete resolver test suite)
-  rrl/		query rate limiting
-  rpz/		Tests of response policy zone (RPZ) rewriting
-  rpzrecurse/	Another set of RPZ tests to check recursion behavior
-  stub/		Tests of stub zone functionality
-  unknown/	Unknown type and class tests
-  upforwd/	Update forwarding tests
-  views/	Tests of the "views" statement
-  xfer/		Zone transfer tests
-  xferquota/	Zone transfer quota tests
+  dnssec/       DNSSEC tests
+  forward/      Forwarding tests
+  glue/         Glue handling tests
 
-Typically each test suite sets up 2-5 name servers and then performs
-one or more tests against them.  Within the test suite subdirectory,
-each name server has a separate subdirectory containing its
-configuration data.  By convention, these subdirectories are named
-"ns1", "ns2", etc.
+etc.
 
-The tests are completely self-contained and do not require access to
-the real DNS.  Generally, one of the test servers (ns1) is set up as a
-root name server and is listed in the hints file of the others.
+Typically each set of tests sets up 2-5 name servers and then performs one or
+more tests against them.  Within the test subdirectory, each name server has a
+separate subdirectory containing its configuration data.  These subdirectories
+are named "nsN" or "ansN" (where N is a number between 1 and 8, e.g. ns1, ans2
+etc.)
 
-To enable all servers to run on the same machine, they bind to
-separate virtual IP address on the loopback interface.  ns1 runs on
-10.53.0.1, ns2 on 10.53.0.2, etc.  Before running any tests, you must
-set up these addresses by running "ifconfig.sh up" as root.
+The tests are completely self-contained and do not require access to the real
+DNS.  Generally, one of the test servers (usually ns1) is set up as a root name
+server and is listed in the hints file of the others.
 
-Mac OS X:
-If you wish to make the interfaces survive across reboots
-copy org.isc.bind.system and org.isc.bind.system to
-/Library/LaunchDaemons then run
-"launchctl load /Library/LaunchDaemons/org.isc.bind.system.plist" as
-root.
 
-The servers use port 5300 instead of the usual port 53, so they can be
-run without root privileges once the interfaces have been set up.
+Preparing to Run the Tests
+===
+To enable all servers to run on the same machine, they bind to separate virtual
+IP addresses on the loopback interface.  ns1 runs on 10.53.0.1, ns2 on
+10.53.0.2, etc.  Before running any tests, you must set up these addresses by
+running the command
 
-The tests can be run individually like this:
+    sh ifconfig.sh up
 
-  sh run.sh xfer
-  sh run.sh notify
-  etc.
+as root. The interfaces can be removed by executing the command:
 
-To run all the tests, just type "make test".
+    sh ifconfig.sh down
 
-When running system tests, named can be run under
-Valgrind. The output from Valgrind are sent to per-process files that
-can be reviewed after the test has completed. To enable this, set the
-USE_VALGRIND environment variable to "helgrind" to run the Helgrind
-tool, or any other value to run the Memcheck tool. To use "helgrind"
-effectively, build BIND with --disable-atomic.
+... also as root.
+
+The servers use unprivileged ports (above 1024) instead of the usual port 53, so
+they can be run without root privileges once the interfaces have been set up.
+
+
+Note for MacOS Users
+---
+If you wish to make the interfaces survive across reboots, copy
+org.isc.bind.system and org.isc.bind.system to /Library/LaunchDaemons then run
+
+    launchctl load /Library/LaunchDaemons/org.isc.bind.system.plist
+
+... as root.
+
+
+Running the Tests
+===
+The tests can be run individually using the following command:
+
+    sh run.sh [flags] <test-name>
+
+e.g.
+
+    sh run.sh [flags] notify
+
+Optional flags are:
+
+    -p <number>     Sets the range of ports used by the test.  If not specified,
+                    the test will use ports 5300 to 5309.
+    -n              Noclean - do not remove the output files if the test
+                    completes successfully.  By default, files created by the
+                    test are deleted if it passes;  they are not deleted if the
+                    test fails.
+    -k              Keep servers running after the test completes.  Each test
+                    usually starts a number of nameservers, either instances
+                    of the "named" being tested, or custom servers (written in
+                    Python or Perl) that feature test-specific behavior. The
+                    servers are automatically started before the test is run and
+                    stopped after it ends.  This flag leaves them running at the
+                    end of the test.
+    -d <arg>        Arguments to the "date" command used to produce the
+                    start and end time of the tests.  For example, the
+                    switch
+
+                        -d "+%Y-%m-%d:%h:%M:%s"
+
+                    would cause the "S" and "E" messages (see below) to have the
+                    date looking like "2017-11-23:16:06:32" instead of the
+                    default "Thu, 23 Nov 2017 16:06:32 +0000".
+
+To run all the system tests, type either:
+
+    sh runall.sh [numproc]
+
+or
+
+    make [-j numproc] test
+
+When running all the tests, the output is sent to the file systests.output
+(in the bin/tests/system) directory.
+
+The "numproc" option specifies the maximum number of tests that can run
+simultaneously.  The default is 1, which means that all the test run
+sequentially. If greater than 1, up to "numproc" tests will run simultaneously.
+(Each will use a unique set of ports, so there is no danger of them interfering
+with one another.)
+
+Parallel running will reduce the total time taken to run the BIND system tests,
+but will mean that the output from all the tests will be mixed up with one
+another in the systests.output file.  However, if you need to investigate the
+output from a test, there is a simple way of extracting the information.  Before
+discussing this though, the format of the test messages needs to be understood.
+
+All output from the system tests is in the form of lines with the following
+structure:
+
+    <letter>:<test-name>:<message> [(<number>)]
+
+e.g.
+
+    I:catz:checking that dom1.example is not served by master (1)
+
+The meanings of the fields are as follows:
+
+<letter>
+This indicates the type of message.  This is one of:
+
+    S   Start of the test
+    A   Start of test (retained for backwards compatibility)
+    T   Start of test (retained for backwards compatibility)
+    E   End of the test
+    I   Information.  A test will typically output many of these messages
+        during its run, indicating test progress.  Note that such a message
+        may be of the form "I:testname:failed", indicating that a sub-test
+        has failed.
+    R   Result.  Each test will reult in one such message, which is of the
+        form:
+
+                R:<test-name>:<result>
+
+        where <result> is one of:
+
+            PASS        The test passed
+            FAIL        The test failed
+	        SKIPPED     The test was not run, usually because some
+	                    prerequisites required to run the test are missing.
+	        UNTESTED    The test was not run for some other reason, e.g.
+                        a prerequiste is available but is not compatible with
+                        the platform on which the test is run.
+
+<test-name>
+This is the name of the test from which the message emanated.  This is
+the name of the subdirectory holding the test files.
+
+<message>
+This is text output by the test during its execution.
+
+(<number>)
+If present, this will correlate with a file created by the test.  The tests
+execute commands and route the output of each command to a file.  The name
+of this file depends on the command and the test, but will usually be of
+the form:
+
+    <command>.out.<suffix><number>
+
+e.g. nsupdate.out.test28, dig.out.q3.  This aids diagnosis of problems by
+allowing the output that caused the problem to be identified.
+
+Returning to the problem of extracting information about a single test from
+systests.output, the solution is fairly easy: run the command:
+
+    grep ':<test-name>:' systests.output
+
+e.g.
+
+    grep ':catz:' systests.output
+
+(note the colons before and after the test name).  This will list all the
+messages produced by the test in the order they were output.
+
+
+Re-running the Tests
+===
+If there is a requirement to re-run a test (or the entire test suite), the
+files produced by the tests should be deleted first.
+
+Deletion of files produced by an individual test can be done with the
+command:
+
+    (cd testname ; sh clean.sh)
+
+Deletion of the files produced by the set of tests (e.g. after the execution
+of "runall.sh") can be deleted by the command:
+
+    make testclean
+
+(Note that the Makefile has two other targets for cleaning up files: "clean"
+will delete all the files produced by the tests, as well as the object and
+executable files used by the tests.  "distclean" does all the work of "clean"
+as well as deleting configuration files produced by "configure".)
+
+
+Developer Notes
+===
+This section is intended for developers writing new tests.
+
+Overview
+---
+As noted above, each test suite is in a separate directory.  To interact with
+the test framework, the directories contain the following standard files:
+
+prereq.sh   Run at the beginning to determine whether the test can be run at
+            all; if not, we see a result of R:SKIPPED or R:UNTESTED.  This file
+            is optional: if not present, the test is assumed to have all its
+            prerequisties met.
+
+setup.sh    Run after prereq.sh, this sets up the preconditions for the tests.
+            Although optional, virtually all tests will require such a file to
+            set up the ports they should use for the test.
+
+tests.sh    Runs the actual tests.
+
+clean.sh    Run at the end to clean up temporary files, but only if the test
+            was completed successfully and its running was not inhibited by the
+            "-n" switch being passed to "run.sh". Otherwise the temporary files
+            are left in place for inspection.
+
+ns<N>       These subdirectories contain test name servers that can be queried
+            or can interact with each other. the value of N indicates the
+            address the server listens on: for example, ns2 listens on
+            10.53.0.2, and ns4 on 10.53.0.4. All test servers use an
+            unprivileged they don't need to run as root. These servers log at
+            the highest debug level, and the log is captured in the file
+            "named.run".
+
+ans<N>      Like ns[X], but these are simple mock name servers implemented in
+            Perl or Python.  They are generally programmed to misbehave in ways
+            named wouldn't, so as to exercise named's ability to interoperate
+            with badly behaved name servers.
+
+
+Port Usage
+---
+In order for the tests to run in parallel, each test requires a unique set of
+ports.  These are specified for each test by the "-p" option passed to "run.sh".
+This option is then passed to each of the test control scripts listed above.
+
+The convention used in the system tests is that the number passed is the start
+of a range of 10 ports.  The test is free to use the ports as required, although
+present usage is that the lowest port is used as the query port and the highest
+is used as the control port.  This is reinforced by the script getopts.sh: if
+used to parse the "-p" option (see below), the script set the following shell
+variables:
+
+    port                Number to be used for the query port.
+    controlport         Number to be used as the RNDC control port
+    aport1 - aport8     Eight port numbers that the test can use as needed.
+
+When running tests in paralel (i.e. giving a value of "numproc" greater than 1
+in the "make" or "runall.sh" commands listed above), it is guaranteed that each
+test will get a set of unique port numbers.
+
+In addition, the "getopts.sh" script also defines the following symbols:
+
+    portlow             Lowest port number in the range.
+    porthigh            Highest port number in the range
+
+
+Writing a Test
+---
+The test framework requires up to four shell scripts (as well as a number of
+nameserver instances) to run.  Certain expectations are put on each script:
+
+
+General
+---
+Each of the four scripts will be invoked with the command
+
+    sh <script> -p <baseport> -- <arguments>
+
+Each script should start with the following lines:
+
+    SYSTEMTESTTOP=..
+    . $SYSTEMTESTTOP/conf.sh
+    . $SYSTEMTESTTOP/getopts.sh
+
+"conf.sh" defines a series of environment variables together with functions
+useful for the test scripts.  "getopts.sh" parses the "-p" option and sets the
+shell variables listed above. (They are not combined into one script because,
+in certain instances - notably in "run.sh"" - some processing is required
+between the setting of the environment variables and the parsing of the port).
+
+The "--" between the "-p <baseport>" and any other arguments is required:
+without it, any other switches passed to the script would be parsed by
+getopts.sh, which would return an error because it would not recognise them.
+getopts.sh removes the "-p <port> --" from the argument list, leaving the script
+free to do its own parsing of any additional arguments.
+
+For example, if "test.sh" is invoked as:
+
+    sh tests.sh -p 12340 -- -D 1
+
+... and it includes the three lines listed above, after the execution of the
+code in getopts.sh, the following variables would be defined (with their
+associated values):
+
+    port        12340
+    aport1      12341
+    aport2      12342
+      :           :
+    aport8      12348
+    controlport 12349
+    portlow     12340
+    porthigh    12349
+
+    $1          -D
+    $2          1
+
+Should a script need to invoke another, it should pass the base port with the
+"-p" switch and add any additional arguments after the "--", i.e.  using the
+same format as listed above in the example for invoking "tests.sh"
+
+
+prereq.sh
+---
+As noted above, this is optional.  If present, it should check whether specific
+software needed to run the test is available and/or whether BIND has been
+configured with the appropriate options required.
+
+    * If the software required to run the test is present and the BIND configure
+      options are correct, prereq.sh should return with a status code of 0.
+
+    * If the software required to run the test is not available and/or BIND
+      has not been configured with the appropriate options, prereq.sh should
+      return with a status code of 1.
+
+    * If there is some other problem (e.g. prerequistie software is available
+      but is not properly configured), a status code of 255 should be returned.
+
+prereq.sh will be invoked using the '-p <baseport> -- "$@"' form described in
+the previous section.
+
+
+setup.sh
+---
+This is responsible for setting up the configuration files used in the test.
+
+To cope with the varying port number, ports are not hard-coded into
+configuration files (or, for that matter, scripts that emulate nameservers).
+Instead, setup.sh is responsible for editing the configuration files to set the
+port numbers.
+
+To do this, configuration files should be supplied in the form of templates
+containing tokens identifying ports.  The tokens have the same name as the shell
+variables listed above, but in upper-case and prefixed and suffixed by the "@"
+symbol.  For example, a fragment of a configuration file template might look
+like:
+
+    controls {
+        inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+    };
+
+    options {
+        query-source address 10.53.0.1;
+        notify-source 10.53.0.1;
+        transfer-source 10.53.0.1;
+        port @PORT@;
+        allow-new-zones yes;
+            :
+
+setup.sh should copy the template to the desired filename using the
+"copy_setports" shell function defined in "getopts.sh", i.e.
+
+    copy_setports ns1/named.conf.in ns1/named.conf
+
+This replaces the tokens @PORT@, @CONTROLPORT@, @APORT1@ through @APORT8@ with
+the contents of the shell variables listed above.  setup.sh should do this for
+all configuration files required when the test starts.
+
+A second important responsibility of setup.sh is to create a file called
+named.port in each "named" nameserver directory that defines the query port for
+that server, e.g.
+
+    echo $port > ns1/named.port
+
+The file is used by the framework to determine the port it should use to query
+the nameserver.  In most cases, all nameservers will use the same port number
+for queries.  Some tests may require a diffent port to be used for queries,
+which is why this task has been delegated to test-specific setup rather than be
+part of the framework.
+
+
+tests.sh
+---
+This is the main test file and the contents depend on the test. The contents are
+completely up to the developer, although most test scripts have a form similar
+to the following for each test:
+
+    1. n=`expr $n + 1`
+    2. echo_i "prime cache nodata.example ($n)"
+    3. ret=0
+    4. $DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+    5. grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+    6. grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+    7. if [ $ret != 0 ]; then echo_i "failed"; fi
+    8. status=`expr $status + $ret`
+
+1.  Increment the test number "n" (initialized to zero at the start of the
+    script).
+
+2.  Indicate that the sub-test is about to begin.  Note that "echo_i" instead of
+    "echo" is used.  echo_i is a function defined in "conf.sh" which will prefix
+    the message with "I:<testname>:", so allowing the output from each test to
+    test to be identified within systests.output.  The test number is included
+    in the message in order to tie the sub-test with its output.
+
+3. Initialize return status.
+
+4 - 6. Carry out the sub-test.  In this case, a nameserver is queried (note that
+    the port used is given by the "port" shell variable, which was set by the
+    inclusion the file "getopts.sh" at the start of the script).  The output is
+    routed to a file whose suffix includes the test number.  The response from
+    the server is interrogated and in this case, if the required string is not
+    found, an error is indicated by setting "ret" to 1.
+
+5.  If the sub-test failed, a mesage is printed.
+
+6.  "status", used to track whether any of the sub-tests have failed, is
+    incremented accordingly.  The value of "status" determines the status
+    returned by "tests.sh", which in turn determines whether the framework
+    prints the PASS or FAIL message.
+
+Regardless of this, rules that should be followed are:
+
+a.  Use the variables produced by getopts.sh to determine the ports to use for
+    sending and receiving queries.
+
+b.  Store all output produced by queries/commands into files.
+
+c.  Use a counter to tag messages and to associate the messages with the output
+    files.
+
+d.  Use "echo_i" to output informational messages.
+
+
+clean.sh
+---
+The inverse of "setup.sh", this is invoked by the framework to clean up the
+test directory.  It should delete all files that have been created by the test
+duriong its run (including the "named.port" files mentioned earlier).
+
+
+Adding a Test to the System Test Suite
+---
+Once a set of tests has been created, the following files should be edited:
+
+conf.sh.in  The name of the test should be added to the PARALLELDIRS variable.
+
+Makefile.in The name of the test should be added to the PARALLEL variable.
+
+(It is likely that a future iteration of the system test suite will remove the
+need to edit two files to add a test.)
+
+
+
+Notes on Parallel Execution
+---
+Although execution of an individual test is controlled by "run.sh", which
+executes the above shell scripts (and starts the relevant servers) for each
+test, the running of all tests in the test suite is controlled by the Makefile.
+("runall.sh" does little more than invoke "make" on the Makefile.)
+
+All system tests are capable of being run in parallel.  For this to work,
+each test needs to use a unique set of ports.  To avoid the need to define
+which tests use which ports (and so risk port clashes as further tests are
+added), the ports are assigned when the tests are run.  This is achieved by
+having the "test" target in the Makefile depend on "parallel.mk".  This file
+is created when "make check" is run, and contains a target for each test of
+the form:
+
+    <test-name>:
+        @$(SHELL) run.sh -p <baseport> <test-name>
+
+The <baseport> is unique and the values of <baseport> for each test are
+separated by at least 10 ports.
+
+
+Valgrind
+---
+When running system tests, named can be run under Valgrind. The output from
+Valgrind are sent to per-process files that can be reviewed after the test has
+completed. To enable this, set the USE_VALGRIND environment variable to
+"helgrind" to run the Helgrind tool, or any other value to run the Memcheck
+tool. To use "helgrind" effectively, build BIND with --disable-atomic.
