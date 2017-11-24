@@ -93,7 +93,7 @@ then
 fi
 
 # Start name servers running
-$PERL start.pl -p $port $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl --port $port $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
 ( cd $test ; $SHELL tests.sh -p "$port" -- "$@" )
