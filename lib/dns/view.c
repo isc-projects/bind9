@@ -519,8 +519,10 @@ destroy(dns_view_t *view) {
 		view->new_zone_dir = NULL;
 	}
 #ifdef HAVE_LMDB
-	if (view->new_zone_dbenv != NULL)
+	if (view->new_zone_dbenv != NULL) {
 		mdb_env_close((MDB_env *) view->new_zone_dbenv);
+		view->new_zone_dbenv = NULL;
+	}
 	if (view->new_zone_db != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_db);
 		view->new_zone_db = NULL;
