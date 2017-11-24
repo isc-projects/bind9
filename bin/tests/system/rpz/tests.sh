@@ -13,6 +13,7 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
+. $SYSTEMTESTTOP/getopts.sh
 
 ns=10.53.0
 ns1=$ns.1		# root, defining the others
@@ -66,7 +67,7 @@ if [ -z "$DNSRPS_TEST_MODE" ]; then
         echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
     else
         echo "I:running native RPZ sub-test"
-	$SHELL ./$0 -D1 $ARGS || status=1
+	$SHELL ./$0 -p $port -- -D1 $ARGS || status=1
     fi
 
     if [ -e dnsrps-off ]; then
