@@ -16,39 +16,60 @@ use Cwd;
 use Cwd 'abs_path';
 use Getopt::Long;
 
-# Option handling
-#   --noclean test [server [options]]
+# Usage:
+#   perl start.pl [--noclean] --restart] [--port port]  test [server [options]]
 #
-#   --noclean - Do not cleanup files in server directory
-#   test - name of the test directory
-#   server - name of the server directory
-#   options - alternate options for the server
-#             NOTE: options must be specified with '-- "<option list>"',
-#              for instance: start.pl . ns1 -- "-c n.conf -d 43"
-#             ALSO NOTE: this variable will be filled with the
-#		contents of the first non-commented/non-blank line of args
-#		in a file called "named.args" in an ns*/ subdirectory only
-#		the FIRST non-commented/non-blank line is used (everything
-#		else in the file is ignored. If "options" is already set,
-#		then "named.args" is ignored.
+#   --noclean       Do not cleanup files in server directory.
+#
+#   --restart       Indicate that the server is being restarted, so get the
+#                   server to append output to an existing log file instead of
+#                   starting a new one.
+#
+#   --port port     Specify the default port being used by the server to answer
+#                   queries (default 5300).  This script will interrogate the
+#                   server on this port to see if it is running. (Note: for
+#                   "named" nameservers, this can be overridden by the presence
+#                   of the file "named.port" in the server directory containing
+#                   the number of the query port.)
+#           
+#   test            Name of the test directory.
+#
+#   server          Name of the server directory.  This will be of the form
+#                   "nsN" or "ansN", where "N" is an integer between 1 and 8.
+#                   If not given, the script will start all the servers in the
+#                   test directory.
+#
+#   options         Alternate options for the server,
+#
+#                   NOTE: options must be specified with '-- "<option list>"',
+#                   for instance: start.pl . ns1 -- "-c n.conf -d 43"
+#
+#                   ALSO NOTE: this variable will be filled with the contents
+#                   of the first non-commented/non-blank line of args in a file
+#                   called "named.args" in an ns*/ subdirectory. Only the FIRST
+#		            non-commented/non-blank line is used (everything else in the
+#		            file is ignored. If "options" is already set, then
+#		            "named.args" is ignored.
 
-my $usage = "usage: $0 [--noclean] [--restart] test-directory [server-directory [server-options]]";
+my $usage = "usage: $0 [--noclean] [--restart] [--port <port>] test-directory [server-directory [server-options]]";
 my $noclean = '';
 my $restart = '';
 my $defaultport = 5300;
-GetOptions('noclean' => \$noclean, 'restart' => \$restart, 'p=i' => \$defaultport);
+
+GetOptions('noclean' => \$noclean, 'restart' => \$restart, 'port=i' => \$defaultport) or die "$usage\n";
+
 my $test = $ARGV[0];
 my $server = $ARGV[1];
 my $options = $ARGV[2];
 
 if (!$test) {
-	print "$usage\n";
+	die "$usage\n";
 }
 if (!-d $test) {
-	print "No test directory: \"$test\"\n";
+	die "No test directory: \"$test\"\n";
 }
 if ($server && !-d "$test/$server") {
-	print "No server directory: \"$test/$server\"\n";
+	die "No server directory: \"$test/$server\"\n";
 }
 
 # Global variables
@@ -197,7 +218,7 @@ sub start_server {
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
                 if (-e "$testdir/$server/ans.py") {
-                        $command = "$PYTHON -u ans.py 10.53.0.$' 5300";
+                        $command = "$PYTHON -u ans.py 10.53.0.$' $defaultport";
                 } elsif (-e "$testdir/$server/ans.pl") {
                         $command = "$PERL ans.pl";
                 } else {
@@ -259,7 +280,7 @@ sub start_server {
 sub verify_server {
 	my $server = shift;
 	my $n = $server;
-	my $port = 5300;
+	my $port = $defaultport;
 	my $tcp = "+tcp";
 
 	$n =~ s/^ns//;
