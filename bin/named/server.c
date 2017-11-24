@@ -7362,7 +7362,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		      view->new_zone_db, view->name);
 
 	status = mdb_cursor_open(txn, dbi, &cursor);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
@@ -7401,7 +7401,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 	if (result != ISC_R_SUCCESS) {
 		status = mdb_cursor_open(txn, dbi, &cursor);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			goto cleanup2;
 		}
 		while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
@@ -7480,7 +7480,7 @@ get_newzone_config(dns_view_t *view, const char *zonename,
 	key.mv_size = strlen(zname);
 
 	status = mdb_get(txn, dbi, &key, &data);
-	if (status != 0)
+	if (status != MDB_SUCCESS)
 		CHECK(ISC_R_FAILURE);
 
 	CHECK(data_to_cfg(view, &key, &data, &text, &zoneconf));
@@ -11853,7 +11853,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 	if (zconfig == NULL) {
 		/* We're deleting the zone from the database */
 		status = mdb_del(*txnp, dbi, &key, NULL);
-		if (status != 0 && status != MDB_NOTFOUND) {
+		if (status != MDB_SUCCESS && status != MDB_NOTFOUND) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11899,7 +11899,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		data.mv_size = isc_buffer_usedlength(text);
 
 		status = mdb_put(*txnp, dbi, &key, &data, 0);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11921,7 +11921,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		(void) mdb_txn_abort(*txnp);
 	else {
 		status = mdb_txn_commit(*txnp);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11951,7 +11951,7 @@ nzd_writable(dns_view_t *view) {
 	REQUIRE(view != NULL);
 
 	status = mdb_txn_begin((MDB_env *) view->new_zone_dbenv, 0, 0, &txn);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "mdb_txn_begin: %s",
@@ -11960,7 +11960,7 @@ nzd_writable(dns_view_t *view) {
 	}
 
 	status = mdb_dbi_open(txn, NULL, 0, &dbi);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "mdb_dbi_open: %s",
@@ -11983,7 +11983,7 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 
 	status = mdb_txn_begin((MDB_env *) view->new_zone_dbenv, 0,
 			       flags, &txn);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 			      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_txn_begin: %s",
@@ -11992,7 +11992,7 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	}
 
 	status = mdb_dbi_open(txn, NULL, 0, dbi);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 		      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_dbi_open: %s",
@@ -12003,7 +12003,7 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	*txnp = txn;
 
  cleanup:
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		if (txn != NULL)
 			mdb_txn_abort(txn);
 		return (ISC_R_FAILURE);
@@ -12062,7 +12062,7 @@ nzd_env_reopen(dns_view_t *view) {
 	nzd_env_close(view);
 
 	status = mdb_env_create(&env);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_create failed: %s",
@@ -12072,7 +12072,7 @@ nzd_env_reopen(dns_view_t *view) {
 
 	if (view->new_zone_mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, view->new_zone_mapsize);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 				      "mdb_env_set_mapsize failed: %s",
@@ -12082,7 +12082,7 @@ nzd_env_reopen(dns_view_t *view) {
 	}
 
 	status = mdb_env_open(env, view->new_zone_db, DNS_LMDB_FLAGS, 0600);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_open of '%s' failed: %s",
@@ -12111,7 +12111,7 @@ nzd_close(MDB_txn **txnp, isc_boolean_t commit) {
 	if (*txnp != NULL) {
 		if (commit) {
 			status = mdb_txn_commit(*txnp);
-			if (status != 0)
+			if (status != MDB_SUCCESS)
 				result = ISC_R_FAILURE;
 		} else
 			mdb_txn_abort(*txnp);
@@ -12136,7 +12136,7 @@ nzd_count(dns_view_t *view, int *countp) {
 		goto cleanup;
 
 	status = mdb_stat(txn, dbi, &statbuf);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 			      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_stat: %s",
@@ -12261,7 +12261,7 @@ migrate_nzf(dns_view_t *view) {
 		data.mv_size = isc_buffer_usedlength(text);
 
 		status = mdb_put(txn, dbi, &key, &data, MDB_NOOVERWRITE);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
