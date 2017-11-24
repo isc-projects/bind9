@@ -72,7 +72,9 @@ main (int argc, char *argv[]) {
 		exit(1);
 	}
 
-	while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
+	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+	     status == MDB_SUCCESS;
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
 		if (key.mv_data == NULL || key.mv_size == 0 ||
 		    data.mv_data == NULL || data.mv_size == 0)
 		{

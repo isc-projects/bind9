@@ -7367,7 +7367,9 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		goto cleanup;
 	}
 
-	while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
+	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+	     status == MDB_SUCCESS;
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
 		const cfg_obj_t *zlist = NULL;
 		const cfg_obj_t *zoneobj = NULL;
 
@@ -7404,7 +7406,9 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		if (status != MDB_SUCCESS) {
 			goto cleanup2;
 		}
-		while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
+		for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+		     status == MDB_SUCCESS;
+		     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
 			const cfg_obj_t *zlist = NULL;
 			const cfg_obj_t *zconfig = NULL;
 			isc_result_t result2;
