@@ -85,7 +85,9 @@ Optional flags are:
                     Python or Perl) that feature test-specific behavior. The
                     servers are automatically started before the test is run and
                     stopped after it ends.  This flag leaves them running at the
-                    end of the test.
+                    end of the test, so that additional queries can be sent
+                    by hand.  To stop the servers afterward, use
+                    "sh stop.sh <test-name>".
     -d <arg>        Arguments to the "date" command used to produce the
                     start and end time of the tests.  For example, the
                     switch
@@ -108,7 +110,7 @@ When running all the tests, the output is sent to the file systests.output
 (in the bin/tests/system) directory.
 
 The "numproc" option specifies the maximum number of tests that can run
-simultaneously.  The default is 1, which means that all the test run
+simultaneously.  The default is 1, which means that all of the tests run
 sequentially. If greater than 1, up to "numproc" tests will run simultaneously.
 (Each will use a unique set of ports, so there is no danger of them interfering
 with one another.)
@@ -195,7 +197,7 @@ files produced by the tests should be deleted first.
 Deletion of files produced by an individual test can be done with the
 command:
 
-    (cd testname ; sh clean.sh)
+    sh clean.sh <test-name>
 
 Deletion of the files produced by the set of tests (e.g. after the execution
 of "runall.sh") can be deleted by the command:
