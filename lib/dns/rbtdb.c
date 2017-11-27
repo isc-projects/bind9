@@ -6100,6 +6100,22 @@ resign_delete(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	}
 }
 
+static void
+update_recordsandbytes(isc_boolean_t add, rbtdb_version_t *rbtversion,
+		       rdatasetheader_t *header)
+{
+	unsigned char *hdr = (unsigned char *)header;
+	size_t hdrsize = sizeof (*header);
+
+	if (add) {
+		rbtversion->records += dns_rdataslab_count(hdr, hdrsize);
+		rbtversion->bytes += dns_rdataslab_size(hdr, hdrsize);
+	} else {
+		rbtversion->records -= dns_rdataslab_count(hdr, hdrsize);
+		rbtversion->bytes -= dns_rdataslab_size(hdr, hdrsize);
+	}
+}
+
 static isc_result_t
 add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
       rdatasetheader_t *newheader, unsigned int options, isc_boolean_t loading,
@@ -6438,41 +6454,8 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 		INSIST(rbtversion == NULL ||
 		       rbtversion->serial >= topheader->serial);
-		if (topheader_prev != NULL)
-			topheader_prev->next = newheader;
-		else
-			rbtnode->data = newheader;
-		newheader->next = topheader->next;
-		if (rbtversion != NULL)
-			RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
-		if (rbtversion != NULL && !header_nx) {
-			rbtversion->records -=
-				dns_rdataslab_count((unsigned char *)header,
-						    sizeof(*header));
-			rbtversion->bytes -=
-				dns_rdataslab_size((unsigned char *)header,
-						   sizeof(*header));
-		}
-		if (rbtversion != NULL && !newheader_nx) {
-			rbtversion->records +=
-				dns_rdataslab_count((unsigned char *)newheader,
-						    sizeof(*newheader));
-			rbtversion->bytes +=
-				dns_rdataslab_size((unsigned char *)newheader,
-						   sizeof(*newheader));
-		}
-		if (rbtversion != NULL)
-			RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 		if (loading) {
-			/*
-			 * There are no other references to 'header' when
-			 * loading, so we MAY clean up 'header' now.
-			 * Since we don't generate changed records when
-			 * loading, we MUST clean up 'header' now.
-			 */
 			newheader->down = NULL;
-			free_rdataset(rbtdb, rbtdb->common.mctx, header);
-
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
 				if (ZEROTTL(newheader))
@@ -6482,13 +6465,49 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
 							 newheader, link);
 				INSIST(rbtdb->heaps != NULL);
-				(void)isc_heap_insert(rbtdb->heaps[idx],
+				result = isc_heap_insert(rbtdb->heaps[idx],
+						         newheader);
+				if (result != ISC_R_SUCCESS) {
+					free_rdataset(rbtdb,
+						      rbtdb->common.mctx,
 						      newheader);
+					return (result);
+				}
 			} else if (RESIGN(newheader)) {
 				result = resign_insert(rbtdb, idx, newheader);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
+					free_rdataset(rbtdb,
+						      rbtdb->common.mctx,
+						      newheader);
 					return (result);
+				}
+				/*
+				 * Don't call resign_delete as we don't need
+				 * to reverse the delete.  The free_rdataset
+				 * call below will clean up the heap entry.
+				 */
 			}
+
+			/*
+			 * There are no other references to 'header' when
+			 * loading, so we MAY clean up 'header' now.
+			 * Since we don't generate changed records when
+			 * loading, we MUST clean up 'header' now.
+			 */
+			if (topheader_prev != NULL)
+				topheader_prev->next = newheader;
+			else
+				rbtnode->data = newheader;
+			newheader->next = topheader->next;
+			if (rbtversion != NULL && !header_nx) {
+				RWLOCK(&rbtversion->rwlock,
+				       isc_rwlocktype_write);
+				update_recordsandbytes(ISC_FALSE, rbtversion,
+						       header);
+				RWUNLOCK(&rbtversion->rwlock,
+					 isc_rwlocktype_write);
+			}
+			free_rdataset(rbtdb, rbtdb->common.mctx, header);
 		} else {
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
@@ -6517,6 +6536,11 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				}
 				resign_delete(rbtdb, rbtversion, header);
 			}
+			if (topheader_prev != NULL)
+				topheader_prev->next = newheader;
+			else
+				rbtnode->data = newheader;
+			newheader->next = topheader->next;
 			newheader->down = topheader;
 			topheader->next = newheader;
 			rbtnode->dirty = 1;
@@ -6529,6 +6553,14 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					set_ttl(rbtdb, sigheader, 0);
 					mark_header_ancient(rbtdb, sigheader);
 				}
+			}
+			if (rbtversion != NULL && !header_nx) {
+				RWLOCK(&rbtversion->rwlock,
+				       isc_rwlocktype_write);
+				update_recordsandbytes(ISC_FALSE, rbtversion,
+						       header);
+				RWUNLOCK(&rbtversion->rwlock,
+					 isc_rwlocktype_write);
 			}
 		}
 	} else {
@@ -6599,16 +6631,12 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			newheader->down = NULL;
 			rbtnode->data = newheader;
 		}
-		if (rbtversion != NULL && !newheader_nx) {
-			RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
-			rbtversion->records +=
-				dns_rdataslab_count((unsigned char *)newheader,
-						    sizeof(*newheader));
-			rbtversion->bytes +=
-				dns_rdataslab_size((unsigned char *)newheader,
-						   sizeof(*newheader));
-			RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
-		}
+	}
+
+	if (rbtversion != NULL && !newheader_nx) {
+		RWLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
+		update_recordsandbytes(ISC_TRUE, rbtversion, newheader);
+		RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_write);
 	}
 
 	/*
@@ -7077,12 +7105,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * to additional info.  We need to clear these fields
 			 * to avoid having duplicated references.
 			 */
-			rbtversion->records +=
-				dns_rdataslab_count((unsigned char *)newheader,
-						    sizeof(*newheader));
-			rbtversion->bytes +=
-				dns_rdataslab_size((unsigned char *)newheader,
-						   sizeof(*newheader));
+			update_recordsandbytes(ISC_TRUE, rbtversion, newheader);
 		} else if (result == DNS_R_NXRRSET) {
 			/*
 			 * This subtraction would remove all of the rdata;
@@ -7117,12 +7140,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * topheader.
 		 */
 		INSIST(rbtversion->serial >= topheader->serial);
-		rbtversion->records -=
-				dns_rdataslab_count((unsigned char *)header,
-						    sizeof(*header));
-		rbtversion->bytes -=
-				dns_rdataslab_size((unsigned char *)header,
-						   sizeof(*header));
+		update_recordsandbytes(ISC_FALSE, rbtversion, header);
 		if (topheader_prev != NULL)
 			topheader_prev->next = newheader;
 		else
@@ -8120,14 +8138,14 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		if (resign == 0) {
 			isc_heap_delete(rbtdb->heaps[header->node->locknum],
 					header->heap_index);
-			header->heap_index = 0;
-		} else if (resign_sooner(header, &oldheader))
+		} else if (resign_sooner(header, &oldheader)) {
 			isc_heap_increased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
-		else if (resign_sooner(&oldheader, header))
+		} else if (resign_sooner(&oldheader, header)) {
 			isc_heap_decreased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
-	} else if (resign != 0 && header->heap_index == 0) {
+		}
+	} else if (resign != 0) {
 		header->attributes |= RDATASET_ATTR_RESIGN;
 		result = resign_insert(rbtdb, header->node->locknum, header);
 	}
