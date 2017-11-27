@@ -6374,7 +6374,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 							 newheader, link);
 				INSIST(rbtdb->heaps != NULL);
 				result = isc_heap_insert(rbtdb->heaps[idx],
-						         newheader);
+							 newheader);
 				if (result != ISC_R_SUCCESS) {
 					free_rdataset(rbtdb,
 						      rbtdb->common.mctx,
