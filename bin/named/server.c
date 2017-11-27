@@ -7484,8 +7484,9 @@ get_newzone_config(dns_view_t *view, const char *zonename,
 	key.mv_size = strlen(zname);
 
 	status = mdb_get(txn, dbi, &key, &data);
-	if (status != MDB_SUCCESS)
+	if (status != MDB_SUCCESS) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	CHECK(data_to_cfg(view, &key, &data, &text, &zoneconf));
 
@@ -11867,8 +11868,9 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 				      namebuf, mdb_strerror(status));
 			result = ISC_R_FAILURE;
 			goto cleanup;
-		} else if (status != MDB_NOTFOUND)
+		} else if (status != MDB_NOTFOUND) {
 			commit = ISC_TRUE;
+		}
 	} else {
 		/* We're creating or overwriting the zone */
 		const cfg_obj_t *zoptions;
@@ -11921,9 +11923,9 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (!commit || result != ISC_R_SUCCESS)
+	if (!commit || result != ISC_R_SUCCESS) {
 		(void) mdb_txn_abort(*txnp);
-	else {
+	} else {
 		status = mdb_txn_commit(*txnp);
 		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
@@ -11940,8 +11942,10 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 
 	UNLOCK(&view->new_zone_lock);
 
-	if (text != NULL)
+	if (text != NULL) {
 		isc_buffer_free(&text);
+	}
+
 	return (result);
 }
 
@@ -12008,8 +12012,9 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 
  cleanup:
 	if (status != MDB_SUCCESS) {
-		if (txn != NULL)
+		if (txn != NULL) {
 			mdb_txn_abort(txn);
+		}
 		return (ISC_R_FAILURE);
 	}
 
@@ -12115,10 +12120,12 @@ nzd_close(MDB_txn **txnp, isc_boolean_t commit) {
 	if (*txnp != NULL) {
 		if (commit) {
 			status = mdb_txn_commit(*txnp);
-			if (status != MDB_SUCCESS)
+			if (status != MDB_SUCCESS) {
 				result = ISC_R_FAILURE;
-		} else
+			}
+		} else {
 			mdb_txn_abort(*txnp);
+		}
 		*txnp = NULL;
 	}
 
@@ -12136,8 +12143,9 @@ nzd_count(dns_view_t *view, int *countp) {
 	REQUIRE(countp != NULL);
 
 	result = nzd_open(view, MDB_RDONLY, &txn, &dbi);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	status = mdb_stat(txn, dbi, &statbuf);
 	if (status != MDB_SUCCESS) {
@@ -12213,8 +12221,9 @@ migrate_nzf(dns_view_t *view) {
 
 	zonelist = NULL;
 	CHECK(cfg_map_get(nzf_config, "zone", &zonelist));
-	if (!cfg_obj_islist(zonelist))
+	if (!cfg_obj_islist(zonelist)) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	CHECK(nzd_open(view, 0, &txn, &dbi));
 
@@ -12294,15 +12303,19 @@ migrate_nzf(dns_view_t *view) {
 	}
 
  cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		(void) nzd_close(&txn, ISC_FALSE);
-	else
+	} else {
 		result = nzd_close(&txn, commit);
+	}
 
-	if (text != NULL)
+	if (text != NULL) {
 		isc_buffer_free(&text);
-	if (nzf_config != NULL)
+	}
+
+	if (nzf_config != NULL) {
 		cfg_obj_destroy(named_g_addparser, &nzf_config);
+	}
 
 	return (result);
 }

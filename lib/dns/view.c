@@ -2152,8 +2152,9 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 			isc_mem_free(view->mctx, view->new_zone_db);
 			view->new_zone_db = NULL;
 		}
-		if (env != NULL)
+		if (env != NULL) {
 			mdb_env_close(env);
+		}
 #endif /* HAVE_LMDB */
 		view->new_zone_config = NULL;
 		view->cfg_destroy = NULL;
