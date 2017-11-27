@@ -11486,8 +11486,13 @@ nzd_env_reopen(dns_view_t *view) {
 		}
 	}
 
+	/*
+	 * MDB_NOTLS is used to prevent problems after configuration is
+	 * reloaded, due to the way LMDB's use of thread-local storage (TLS)
+	 * interacts with the BIND9 thread model.
+	 */
 	status = mdb_env_open(env, view->new_zone_db,
-			      MDB_NOSUBDIR|MDB_CREATE, 0600);
+			      MDB_NOSUBDIR|MDB_NOTLS|MDB_CREATE, 0600);
 	if (status != 0) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,

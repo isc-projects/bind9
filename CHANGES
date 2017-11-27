@@ -1,3 +1,6 @@
+4828.	[bug]		Do not use thread-local storage for storing LMDB reader
+			locktable slots. [RT #46556]
+
 4827.	[misc]		Add a precommit check script util/checklibs.sh
 			[RT #46215]
 
