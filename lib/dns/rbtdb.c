@@ -8138,6 +8138,7 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 		if (resign == 0) {
 			isc_heap_delete(rbtdb->heaps[header->node->locknum],
 					header->heap_index);
+			header->heap_index = 0;
 		} else if (resign_sooner(header, &oldheader)) {
 			isc_heap_increased(rbtdb->heaps[header->node->locknum],
 					   header->heap_index);
