@@ -1,3 +1,6 @@
+4827.	[misc]		Add a precommit check script util/checklibs.sh
+			[RT #46215]
+
 4826.	[cleanup]	Prevent potential build failures in bin/confgen/ and
 			bin/named/ when using parallel make. [RT #46648]
 
