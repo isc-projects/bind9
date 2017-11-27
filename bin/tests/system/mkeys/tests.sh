@@ -22,9 +22,7 @@ wait_for_log() {
 
 mkeys_reconfig_on() {
 	nsidx=$1
-	nextpart ns${nsidx}/named.run > /dev/null
 	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 reconfig . | sed "s/^/I: ns${nsidx} /"
-	wait_for_log "running" ns${nsidx}/named.run
 }
 
 mkeys_reload_on() {
@@ -69,9 +67,7 @@ mkeys_status_on() {
 
 mkeys_flush_on() {
 	nsidx=$1
-	nextpart ns${nsidx}/named.run > /dev/null
 	$RNDC -c ../common/rndc.conf -s 10.53.0.${nsidx} -p 9953 flush | sed "s/^/I: ns${nsidx} /"
-	wait_for_log "flushing caches in all views succeeded" ns${nsidx}/named.run
 }
 
 mkeys_secroots_on() {
@@ -652,7 +648,7 @@ ret=0
 # compare against the known key.
 tathex=`grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/'`
 tatkey=`$PERL -e 'printf("%d\n", hex(@ARGV[0]));' $tathex`
-realkey=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots - | grep '; managed' | sed 's#.*SHA1/\([0-9][0-9]*\) ; managed.*#\1#'`
+realkey=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 secroots - | sed -n 's#.*SHA1/\([0-9][0-9]*\) ; .*managed.*#\1#p'`
 [ "$tatkey" -eq "$realkey" ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
