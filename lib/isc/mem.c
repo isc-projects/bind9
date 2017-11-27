@@ -305,8 +305,6 @@ unsigned int
 isc__mempool_getfillcount(isc_mempool_t *mpctx);
 void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file);
-void
-isc__mem_printallactive(FILE *file);
 unsigned int
 isc__mem_references(isc_mem_t *ctx0);
 
