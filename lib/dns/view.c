@@ -2112,7 +2112,6 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 
 	if (mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, mapsize);
-		view->new_zone_mapsize = mapsize;
 		if (status != MDB_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
@@ -2120,6 +2119,7 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 				      mdb_strerror(status));
 			CHECK(ISC_R_FAILURE);
 		}
+		view->new_zone_mapsize = mapsize;
 	}
 
 	status = mdb_env_open(env, view->new_zone_db, DNS_LMDB_FLAGS, 0600);
