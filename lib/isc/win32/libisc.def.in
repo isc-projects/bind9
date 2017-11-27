@@ -51,6 +51,7 @@ isc__buffer_remainingregion
 isc__buffer_setactive
 isc__buffer_subtract
 isc__buffer_usedregion
+isc__hash_setvec
 isc__mem_allocate
 isc__mem_free
 isc__mem_get
@@ -208,6 +209,7 @@ isc_entropy_stats
 isc_entropy_status
 isc_entropy_stopcallbacksources
 isc_entropy_usebestsource
+isc_errno_toresult
 isc_error_fatal
 isc_error_runtimecheck
 isc_error_setfatal
@@ -455,6 +457,8 @@ isc_mutexblock_init
 isc_net_aton
 isc_net_disableipv4
 isc_net_disableipv6
+isc_net_enableipv4
+isc_net_enableipv6
 isc_net_getudpportrange
 isc_net_ntop
 isc_net_probe_ipv6only
@@ -621,6 +625,9 @@ isc_sockaddr_totext
 isc_sockaddr_v6fromin
 isc_socket_socketevent
 isc_socketmgr_createinctx
+@IF NOTYET
+isc_socketmgr_renderjson
+@END NOTYET
 @IF LIBXML2
 isc_socketmgr_renderxml
 @END LIBXML2

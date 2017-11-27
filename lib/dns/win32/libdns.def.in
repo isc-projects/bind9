@@ -3,6 +3,10 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
+dns__rbt_getheight
+dns__rbt_checkproperties
+dns__rbtnode_getdistance
+dns__zone_loadpending
 dns_acache_attach
 dns_acache_attachentry
 dns_acache_cancelentry
