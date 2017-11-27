@@ -116,6 +116,24 @@
 
 #define ARGS_CHECKNAMES dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad
 
+#ifndef DNS_NAME_INITABSOLUTE
+#define DNS_NAME_INITABSOLUTE(A,B) { \
+	DNS_NAME_MAGIC, \
+	A, sizeof(A), sizeof(B), \
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+	B, NULL, { (void *)-1, (void *)-1}, \
+	{NULL, NULL} \
+}
+#endif
+#ifndef DNS_NAME_INITNONABSOLUTE
+#define DNS_NAME_INITNONABSOLUTE(A,B) { \
+	DNS_NAME_MAGIC, \
+	A, (sizeof(A) - 1), sizeof(B), \
+	DNS_NAMEATTR_READONLY, \
+	B, NULL, { (void *)-1, (void *)-1}, \
+	{NULL, NULL} \
+}
+#endif
 
 /*%
  * Context structure for the totext_ functions.
@@ -321,14 +339,8 @@ generic_freestruct_tlsa(ARGS_FREESTRUCT);
 static unsigned char gc_msdcs_data[]  = "\002gc\006_msdcs";
 static unsigned char gc_msdcs_offset [] = { 0, 3 };
 
-static const dns_name_t gc_msdcs = {
-	DNS_NAME_MAGIC,
-	gc_msdcs_data, 10, 2,
-	DNS_NAMEATTR_READONLY,
-	gc_msdcs_offset, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
+static dns_name_t const gc_msdcs =
+	DNS_NAME_INITNONABSOLUTE(gc_msdcs_data, gc_msdcs_offset);
 
 /*%
  *	convert presentation level address to network order binary form.
