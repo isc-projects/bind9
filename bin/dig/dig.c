@@ -54,6 +54,16 @@
 
 #define DIG_MAX_ADDRESSES 20
 
+#ifndef DNS_NAME_INITABSOLUTE
+#define DNS_NAME_INITABSOLUTE(A,B) { \
+	DNS_NAME_MAGIC, \
+	A, sizeof(A), sizeof(B), \
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+	B, NULL, { (void *)-1, (void *)-1}, \
+	{NULL, NULL} \
+}
+#endif
+
 dig_lookup_t *default_lookup = NULL;
 
 static char *batchname = NULL;
@@ -472,14 +482,8 @@ isdotlocal(dns_message_t *msg) {
 	isc_result_t result;
 	static unsigned char local_ndata[] = { "\005local\0" };
 	static unsigned char local_offsets[] = { 0, 6 };
-	static dns_name_t local = {
-		DNS_NAME_MAGIC,
-		local_ndata, 7, 2,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-		local_offsets, NULL,
-		{(void *)-1, (void *)-1},
-		{NULL, NULL}
-	};
+	static dns_name_t local =
+		DNS_NAME_INITABSOLUTE(local_ndata, local_offsets);
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_QUESTION);
 	     result == ISC_R_SUCCESS;
