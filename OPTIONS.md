@@ -22,3 +22,5 @@ Some of these settings are:
 |`-DNS_RUN_PID_DIR=0`|Create default PID files in `${localstatedir}/run` rather than `${localstatedir}/run/{named,lwresd}/`|
 |`-DDIG_SIGCHASE=1`|Enable DNSSEC signature chasing support in `dig`.  (Note: This feature is deprecated. Use `delv` instead.)|
 |`-DNS_RPZ_MAX_ZONES=64`|Increase the maximum number of configurable response policy zones from 32 to 64; this is the highest possible setting|
+|`-DISC_HEAP_CHECK`|Test heap consistency after every heap operation; used
+when debugging |
