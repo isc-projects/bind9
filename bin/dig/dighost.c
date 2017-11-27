@@ -1418,7 +1418,7 @@ dig_ednsoptname_t optnames[] = {
 void
 save_opt(dig_lookup_t *lookup, char *code, char *value) {
 	isc_result_t result;
-	isc_uint32_t num;
+	isc_uint32_t num = 0;
 	isc_buffer_t b;
 	isc_boolean_t found = ISC_FALSE;
 	unsigned int i;
