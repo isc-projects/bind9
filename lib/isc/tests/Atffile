@@ -6,6 +6,7 @@ tp: aes_test
 tp: counter_test
 tp: errno_test
 tp: hash_test
+tp: heap_test
 tp: inet_ntop_test
 tp: lex_test
 tp: mem_test
