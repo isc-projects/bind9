@@ -149,7 +149,10 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define add_changed add_changed64
 #define add_empty_wildcards add_empty_wildcards64
 #define add_wildcard_magic add_wildcard_magic64
+#define addclosest addclosest64
+#define addnoqname addnoqname64
 #define addrdataset addrdataset64
+#define adjust_quantum adjust_quantum64
 #define allocate_version allocate_tversion64
 #define allrdatasets allrdatasets64
 #define attach attach64
@@ -162,9 +165,14 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define cache_findzonecut cache_findzonecut64
 #define cache_zonecut_callback cache_zonecut_callback64
 #define check_stale_header check_stale_header64
+#define clean_cache_node clean_cache_node64
+#define clean_stale_headers clean_stale_headers64
+#define clean_zone_node clean_zone_node64
 #define cleanup_dead_nodes cleanup_dead_nodes64
 #define cleanup_dead_nodes_callback cleanup_dead_nodes_callback64
+#define cleanup_nondirty cleanup_nondirty64
 #define closeversion closeversion64
+#define cname_and_other_data cname_and_other_data64
 #define createiterator createiterator64
 #define currentversion currentversion64
 #define dbiterator_current dbiterator_current64
@@ -177,9 +185,11 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define dbiterator_prev dbiterator_prev64
 #define dbiterator_seek dbiterator_seek64
 #define decrement_reference decrement_reference64
+#define delegating_type delegating_type64
 #define delete_callback delete_callback64
 #define delete_node delete_node64
 #define deleterdataset deleterdataset64
+#define dereference_iter_node dereference_iter_node64
 #define deserialize32 deserialize64
 #define detach detach64
 #define detachnode detachnode64
@@ -190,6 +200,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define find_closest_nsec find_closest_nsec64
 #define find_coveringnsec find_coveringnsec64
 #define find_deepest_zonecut find_deepest_zonecut64
+#define find_wildcard find_wildcard64
 #define findnode findnode64
 #define findnodeintree findnodeintree64
 #define findnsec3node findnsec3node64
@@ -209,26 +220,33 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define glue_nsdname_cb glue_nsdname_cb64
 #define hashsize hashsize64
 #define init_file_version init_file_version64
+#define init_rdataset init_rdataset64
 #define isdnssec isdnssec64
 #define ispersistent ispersistent64
 #define issecure issecure64
 #define iszonesecure iszonesecure64
 #define loading_addrdataset loading_addrdataset64
 #define loadnode loadnode64
+#define make_least_version make_least_version64
 #define mark_header_ancient mark_header_ancient64
 #define mark_stale_header mark_stale_header64
+#define match_header_version match_header_version64
 #define matchparams matchparams64
 #define maybe_free_rbtdb maybe_free_rbtdb64
+#define need_headerupdate need_headerupdate64
+#define new_rdataset new_rdataset64
 #define new_reference new_reference64
 #define newversion newversion64
 #define nodecount nodecount64
 #define nodefullname nodefullname64
 #define overmem overmem64
+#define overmem_purge overmem_purge64
 #define previous_closest_nsec previous_closest_nsec64
 #define printnode printnode64
 #define prune_tree prune_tree64
 #define rbt_datafixer rbt_datafixer64
 #define rbt_datawriter rbt_datawriter64
+#define rbtdb_write_header rbtdb_write_header64
 #define rbtdb_zero_header rbtdb_zero_header64
 #define rdataset_addglue rdataset_addglue64
 #define rdataset_clearprefetch rdataset_clearprefetch64
@@ -249,15 +267,20 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define rdatasetiter_first rdatasetiter_first64
 #define rdatasetiter_next rdatasetiter_next64
 #define reactivate_node reactivate_node64
+#define reference_iter_node reference_iter_node64
+#define rehash_gluetable rehash_gluetable64
 #define resign_delete resign_delete64
 #define resign_insert resign_insert64
 #define resign_sooner resign_sooner64
 #define resigned resigned64
+#define resume_iteration resume_iteration64
+#define rollback_node rollback_node64
 #define serialize serialize64
 #define set_index set_index64
 #define set_ttl set_ttl64
 #define setcachestats setcachestats64
 #define setgluecachestats setgluecachestats64
+#define setnsec3parameters setnsec3parameters64
 #define setownercase setownercase64
 #define setservestalettl setservestalettl64
 #define setsigningtime setsigningtime64
@@ -270,6 +293,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define update_newheader update_newheader64
 #define update_recordsandbytes  update_recordsandbytes64
 #define update_rrsetstats update_rrsetstats64
+#define valid_glue valid_glue64
 #define zone_find zone_find64
 #define zone_findrdataset zone_findrdataset64
 #define zone_findzonecut zone_findzonecut64
@@ -9807,7 +9831,7 @@ static const unsigned char charmask[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static unsigned char maptolower[] = {
+static const unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
 	0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
 	0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
