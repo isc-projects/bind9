@@ -1,3 +1,6 @@
+4830.	[bug]		Failure to configure ATF when requested did not cause
+			an error in top-level configure script. [RT #46655]
+
 4829.	[bug]		isc_heap_delete did not zero the index value when
 			the heap was created with a callback to do that.
 			[RT #46709]
