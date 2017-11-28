@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <lmdb.h>
 
+#include <dns/view.h>
+
 #include <isc/print.h>
 
 int
@@ -42,8 +44,7 @@ main (int argc, char *argv[]) {
 		exit(1);
 	}
 
-	status = mdb_env_open(env, path,
-			      MDB_RDONLY|MDB_NOTLS|MDB_NOSUBDIR, 0600);
+	status = mdb_env_open(env, path, DNS_LMDB_FLAGS, 0600);
 	if (status != 0) {
 		fprintf(stderr, "named-nzd2nzf: mdb_env_open: %s",
 			mdb_strerror(status));
