@@ -217,6 +217,8 @@ isc_heap_delete(isc_heap_t *heap, unsigned int idx) {
 	REQUIRE(idx >= 1 && idx <= heap->last);
 
 	heap_check(heap);
+	if (heap->index != NULL)
+		(heap->index)(heap->array[idx], 0);
 	if (idx == heap->last) {
 		heap->array[heap->last] = NULL;
 		heap->last--;

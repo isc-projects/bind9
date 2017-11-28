@@ -1,3 +1,7 @@
+4829.	[bug]		isc_heap_delete did not zero the index value when
+			the heap was created with a callback to do that.
+			[RT #46709]
+
 4828.	[bug]		Do not use thread-local storage for storing LMDB reader
 			locktable slots. [RT #46556]
 
