@@ -291,6 +291,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define update_cachestats update_cachestats64
 #define update_header update_header64
 #define update_newheader update_newheader64
+#define update_recordsandbytes  update_recordsandbytes64
 #define update_rrsetstats update_rrsetstats64
 #define valid_glue valid_glue64
 #define zone_find zone_find64
