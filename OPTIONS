@@ -25,5 +25,6 @@ Setting                   Description
                           Disable the use of inline functions to implement
 -DISC_BUFFER_USEINLINE=0  the isc_buffer API: this reduces performance but
                           may be useful when debugging
--DISC_HEAP_CHECK          Test heap consistency after every heap operation;
-                          used when debugging
+-DISC_HEAP_CHECK          Test heap consistency after every heap
+                          operation; used when debugging
+
