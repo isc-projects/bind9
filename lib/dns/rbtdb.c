@@ -208,6 +208,7 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define subtractrdataset subtractrdataset64
 #define ttl_sooner ttl_sooner64
 #define update_header update_header64
+#define update_recordsandbytes  update_recordsandbytes64
 #define update_rrsetstats update_rrsetstats64
 #define zone_find zone_find64
 #define zone_findrdataset zone_findrdataset64
