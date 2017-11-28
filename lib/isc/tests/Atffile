@@ -5,6 +5,7 @@ prop: test-suite = bind9
 tp: counter_test
 tp: errno_test
 tp: hash_test
+tp: heap_test
 tp: inet_ntop_test
 tp: lex_test
 tp: netaddr_test
