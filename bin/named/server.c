@@ -7414,11 +7414,35 @@ for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
 	return (result);
 }
 
+/*%
+ * Structure passed to the configure_newzone() callback; contains pointers
+ * required to invoke configure_zone().
+ */
+struct configure_zone_data {
+	cfg_obj_t *config;
+	cfg_obj_t *vconfig;
+	isc_mem_t *mctx;
+	cfg_aclconfctx_t *actx;
+};
+
+/*%
+ * Attempt to configure a zone found in NZD and return the result.
+ */
+static isc_result_t
+configure_newzone(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
+	struct configure_zone_data *czd = (struct configure_zone_data *)data;
+
+	return configure_zone(czd->config, cfg, czd->vconfig, czd->mctx, view,
+			      &named_g_server->viewlist, czd->actx, ISC_TRUE,
+			      ISC_FALSE, ISC_FALSE);
+}
+
 static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx)
 {
-	isc_result_t result = ISC_R_SUCCESS;
+	struct configure_zone_data czd = { config, vconfig, mctx, actx };
+	isc_result_t result;
 	int status;
 	isc_buffer_t *text = NULL;
 	cfg_obj_t *zoneconf = NULL;
@@ -7442,46 +7466,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		      "for view '%s'",
 		      view->new_zone_db, view->name);
 
-	status = mdb_cursor_open(txn, dbi, &cursor);
-	if (status != MDB_SUCCESS) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
-	     status == MDB_SUCCESS;
-	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
-		const cfg_obj_t *zlist = NULL;
-		const cfg_obj_t *zoneobj = NULL;
-
-		result = data_to_cfg(view, &key, &data, &text, &zoneconf);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-
-		CHECK(cfg_map_get(zoneconf, "zone", &zlist));
-		if (!cfg_obj_islist(zlist)) {
-			CHECK(ISC_R_FAILURE);
-		}
-
-		zoneobj = cfg_listelt_value(cfg_list_first(zlist));
-		CHECK(configure_zone(config, zoneobj, vconfig, mctx,
-				     view, &named_g_server->viewlist, actx,
-				     ISC_TRUE, ISC_FALSE, ISC_FALSE));
-
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-
-	result = ISC_R_SUCCESS;
-
- cleanup:
-	if (zoneconf != NULL) {
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-	if (cursor != NULL) {
-		mdb_cursor_close(cursor);
-		cursor = NULL;
-	}
+	result = for_all_newzone_cfgs(view, txn, dbi, configure_newzone, &czd);
 	if (result != ISC_R_SUCCESS) {
 		status = mdb_cursor_open(txn, dbi, &cursor);
 		if (status != MDB_SUCCESS) {
