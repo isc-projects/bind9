@@ -7354,26 +7354,24 @@ for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
 		     newzone_cfg_cb_t callback, ...)
 {
 	va_list callback_args;
-
 	const cfg_obj_t *zonelist = NULL;
 	const cfg_obj_t *zoneconfig;
 	cfg_obj_t *config = NULL;
-
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_buffer_t *text = NULL;
-
 	MDB_cursor *cursor = NULL;
 	MDB_val key, data;
 	int status;
 
 	status = mdb_cursor_open(txn, dbi, &cursor);
 	if (status != MDB_SUCCESS) {
-		return ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
 	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
 	     status == MDB_SUCCESS;
-	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT))
+	{
 		/*
 		 * Create a configuration object from data fetched from NZD.
 		 */
@@ -7432,9 +7430,9 @@ configure_newzone(dns_view_t *view, const cfg_obj_t *zoneconfig, va_list args)
 	isc_mem_t *mctx = va_arg(args, isc_mem_t *);
 	cfg_aclconfctx_t *actx = va_arg(args, cfg_aclconfctx_t *);
 
-	return configure_zone(config, zoneconfig, vconfig, mctx, view,
-			      &named_g_server->viewlist, actx, ISC_TRUE,
-			      ISC_FALSE, ISC_FALSE);
+	return (configure_zone(config, zoneconfig, vconfig, mctx, view,
+			       &named_g_server->viewlist, actx, ISC_TRUE,
+			       ISC_FALSE, ISC_FALSE));
 }
 
 /*%
@@ -7448,7 +7446,7 @@ configure_newzone_revert(dns_view_t *view, const cfg_obj_t *zoneconfig,
 
 	configure_zone_setviewcommit(ISC_R_FAILURE, zoneconfig, view);
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
