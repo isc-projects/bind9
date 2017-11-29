@@ -10,6 +10,7 @@
 
 #include <config.h>
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -7337,7 +7338,8 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
  * Prototype for a callback which can be used with for_all_newzone_cfgs().
  */
 typedef isc_result_t (*newzone_cfg_cb_t)(dns_view_t *view,
-					 const cfg_obj_t *cfg, void *data);
+					 const cfg_obj_t *zoneconfig,
+					 va_list args);
 
 /*%
  * For each zone found in a NZD opened by the caller, create an object
@@ -7348,8 +7350,10 @@ typedef isc_result_t (*newzone_cfg_cb_t)(dns_view_t *view,
  */
 static isc_result_t
 for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
-		     newzone_cfg_cb_t callback, void *callback_data)
+		     newzone_cfg_cb_t callback, ...)
 {
+	va_list callback_args;
+
 	const cfg_obj_t *zonelist = NULL;
 	const cfg_obj_t *zoneconfig;
 	cfg_obj_t *config = NULL;
@@ -7392,7 +7396,9 @@ for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
 		/*
 		 * Invoke callback.
 		 */
-		result = callback(view, zoneconfig, callback_data);
+		va_start(callback_args, callback);
+		result = callback(view, zoneconfig, callback_args);
+		va_end(callback_args);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
@@ -7415,25 +7421,18 @@ for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
 }
 
 /*%
- * Structure passed to the configure_newzone() callback; contains pointers
- * required to invoke configure_zone().
- */
-struct configure_zone_data {
-	cfg_obj_t *config;
-	cfg_obj_t *vconfig;
-	isc_mem_t *mctx;
-	cfg_aclconfctx_t *actx;
-};
-
-/*%
  * Attempt to configure a zone found in NZD and return the result.
  */
 static isc_result_t
-configure_newzone(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
-	struct configure_zone_data *czd = (struct configure_zone_data *)data;
+configure_newzone(dns_view_t *view, const cfg_obj_t *zoneconfig, va_list args)
+{
+	cfg_obj_t *config = va_arg(args, cfg_obj_t *);
+	cfg_obj_t *vconfig = va_arg(args, cfg_obj_t *);
+	isc_mem_t *mctx = va_arg(args, isc_mem_t *);
+	cfg_aclconfctx_t *actx = va_arg(args, cfg_aclconfctx_t *);
 
-	return configure_zone(czd->config, cfg, czd->vconfig, czd->mctx, view,
-			      &named_g_server->viewlist, czd->actx, ISC_TRUE,
+	return configure_zone(config, zoneconfig, vconfig, mctx, view,
+			      &named_g_server->viewlist, actx, ISC_TRUE,
 			      ISC_FALSE, ISC_FALSE);
 }
 
@@ -7441,10 +7440,12 @@ configure_newzone(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
  * Revert new view assignment for a zone found in NZD.
  */
 static isc_result_t
-configure_newzone_revert(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
-	UNUSED(data);
+configure_newzone_revert(dns_view_t *view, const cfg_obj_t *zoneconfig,
+			 va_list args)
+{
+	UNUSED(args);
 
-	configure_zone_setviewcommit(ISC_R_FAILURE, cfg, view);
+	configure_zone_setviewcommit(ISC_R_FAILURE, zoneconfig, view);
 
 	return ISC_R_SUCCESS;
 }
@@ -7453,7 +7454,6 @@ static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx)
 {
-	struct configure_zone_data czd = { config, vconfig, mctx, actx };
 	isc_result_t result;
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
@@ -7473,7 +7473,8 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		      "for view '%s'",
 		      view->new_zone_db, view->name);
 
-	result = for_all_newzone_cfgs(view, txn, dbi, configure_newzone, &czd);
+	result = for_all_newzone_cfgs(view, txn, dbi, configure_newzone,
+				      config, vconfig, mctx, actx);
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * An error was encountered while attempting to configure zones
@@ -7484,7 +7485,7 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		 * terms of trying to make things right.
 		 */
 		(void) for_all_newzone_cfgs(view, txn, dbi,
-					    configure_newzone_revert, NULL);
+					    configure_newzone_revert);
 	}
 
 	(void) nzd_close(&txn, ISC_FALSE);
