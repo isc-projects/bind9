@@ -7333,6 +7333,87 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	return (result);
 }
 
+/*%
+ * Prototype for a callback which can be used with for_all_newzone_cfgs().
+ */
+typedef isc_result_t (*newzone_cfg_cb_t)(dns_view_t *view,
+					 const cfg_obj_t *cfg, void *data);
+
+/*%
+ * For each zone found in a NZD opened by the caller, create an object
+ * representing its configuration and invoke "callback" with "view", the
+ * created object and "callback_data" as arguments.  Immediately interrupt
+ * processing if an error is encountered while transforming NZD data into a
+ * zone configuration object or if "callback" returns an error.
+ */
+static isc_result_t
+for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
+		     newzone_cfg_cb_t callback, void *callback_data)
+{
+	const cfg_obj_t *zonelist = NULL;
+	const cfg_obj_t *zoneconfig;
+	cfg_obj_t *config = NULL;
+
+	isc_buffer_t *text = NULL;
+	isc_result_t result;
+
+	MDB_cursor *cursor = NULL;
+	MDB_val key, data;
+	int status;
+
+	status = mdb_cursor_open(txn, dbi, &cursor);
+	if (status != MDB_SUCCESS) {
+		return ISC_R_FAILURE;
+	}
+
+	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+	     status == MDB_SUCCESS;
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
+		/*
+		 * Create a configuration object from data fetched from NZD.
+		 */
+		result = data_to_cfg(view, &key, &data, &text, &config);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Extract zone configuration from configuration object.
+		 */
+		result = cfg_map_get(config, "zone", &zonelist);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		} else if (!cfg_obj_islist(zonelist)) {
+			result = ISC_R_FAILURE;
+			break;
+		}
+		zoneconfig = cfg_listelt_value(cfg_list_first(zonelist));
+
+		/*
+		 * Invoke callback.
+		 */
+		result = callback(view, zoneconfig, callback_data);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Destroy the configuration object created in this iteration.
+		 */
+		cfg_obj_destroy(named_g_addparser, &config);
+	}
+
+	if (text != NULL) {
+		isc_buffer_free(&text);
+	}
+	if (config != NULL) {
+		cfg_obj_destroy(named_g_addparser, &config);
+	}
+	mdb_cursor_close(cursor);
+
+	return (result);
+}
+
 static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx)
