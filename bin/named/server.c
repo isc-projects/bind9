@@ -7437,19 +7437,26 @@ configure_newzone(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
 			      ISC_FALSE, ISC_FALSE);
 }
 
+/*%
+ * Revert new view assignment for a zone found in NZD.
+ */
+static isc_result_t
+configure_newzone_revert(dns_view_t *view, const cfg_obj_t *cfg, void *data) {
+	UNUSED(data);
+
+	configure_zone_setviewcommit(ISC_R_FAILURE, cfg, view);
+
+	return ISC_R_SUCCESS;
+}
+
 static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx)
 {
 	struct configure_zone_data czd = { config, vconfig, mctx, actx };
 	isc_result_t result;
-	int status;
-	isc_buffer_t *text = NULL;
-	cfg_obj_t *zoneconf = NULL;
-	MDB_cursor *cursor = NULL;
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
-	MDB_val key, data;
 
 	if (view->new_zone_config == NULL) {
 		return (ISC_R_SUCCESS);
@@ -7468,45 +7475,18 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	result = for_all_newzone_cfgs(view, txn, dbi, configure_newzone, &czd);
 	if (result != ISC_R_SUCCESS) {
-		status = mdb_cursor_open(txn, dbi, &cursor);
-		if (status != MDB_SUCCESS) {
-			goto cleanup2;
-		}
-		for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
-		     status == MDB_SUCCESS;
-		     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) {
-			const cfg_obj_t *zlist = NULL;
-			const cfg_obj_t *zconfig = NULL;
-			isc_result_t result2;
-
-			result2 = data_to_cfg(view, &key, &data, &text,
-					      &zoneconf);
-			if (result2 != ISC_R_SUCCESS) {
-				goto cleanup2;
-			}
-
-			result2 = cfg_map_get(zoneconf, "zone", &zlist);
-			if (result2 != ISC_R_SUCCESS) {
-				goto cleanup2;
-			}
-
-			zconfig = cfg_listelt_value(cfg_list_first(zlist));
-			configure_zone_setviewcommit(result, zconfig, view);
-
-			cfg_obj_destroy(named_g_addparser, &zoneconf);
-		}
+		/*
+		 * An error was encountered while attempting to configure zones
+		 * found in NZD.  As this error may have been caused by a
+		 * configure_zone() failure, try restoring a sane configuration
+		 * by reattaching all zones found in NZD to the old view.  If
+		 * this also fails, too bad, there is nothing more we can do in
+		 * terms of trying to make things right.
+		 */
+		(void) for_all_newzone_cfgs(view, txn, dbi,
+					    configure_newzone_revert, NULL);
 	}
 
- cleanup2:
-	if (text != NULL) {
-		isc_buffer_free(&text);
-	}
-	if (zoneconf != NULL) {
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-	if (cursor != NULL) {
-		mdb_cursor_close(cursor);
-	}
 	(void) nzd_close(&txn, ISC_FALSE);
 	return (result);
 }
