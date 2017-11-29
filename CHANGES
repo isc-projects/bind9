@@ -1,3 +1,6 @@
+4831.	[bug]		Convert the RRSIG expirytime to 64 bits for
+			comparisions in diff.c:resign. [RT #46710]
+
 4830.	[bug]		Failure to configure ATF when requested did not cause
 			an error in top-level configure script. [RT #46655]
 
