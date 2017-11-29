@@ -543,11 +543,12 @@ configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	maps[i] = NULL;
 
 	(void)named_config_get(maps, aclname, &aclobj);
-	if (aclobj == NULL)
+	if (aclobj == NULL) {
 		/*
 		 * No value available.	*aclp == NULL.
 		 */
 		return (ISC_R_SUCCESS);
+	}
 
 	if (acltuplename != NULL) {
 		/*
@@ -4602,12 +4603,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	/*
 	 * Configure the "match-clients" and "match-destinations" ACL.
-	 * (Only meaningful at the view level.)
+	 * (These are only meaningful at the view level, but 'config'
+	 * must be passed so that named ACLs defined at the global level
+	 * can be retrieved.)
 	 */
-	CHECK(configure_view_acl(vconfig, NULL, NULL, "match-clients",
+	CHECK(configure_view_acl(vconfig, config, NULL, "match-clients",
 				 NULL, actx, named_g_mctx,
 				 &view->matchclients));
-	CHECK(configure_view_acl(vconfig, NULL, NULL, "match-destinations",
+	CHECK(configure_view_acl(vconfig, config, NULL, "match-destinations",
 				 NULL, actx, named_g_mctx,
 				 &view->matchdestinations));
 
