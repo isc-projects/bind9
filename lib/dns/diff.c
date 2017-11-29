@@ -39,6 +39,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
+#include <dns/time.h>
 
 #define CHECK(op) \
 	do { result = (op);					\
@@ -205,7 +206,7 @@ static isc_stdtime_t
 setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
-	isc_stdtime_t when;
+	isc_int64_t when;
 	isc_result_t result;
 
 	result = dns_rdataset_first(modified);
@@ -215,7 +216,7 @@ setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0)
 		when = 0;
 	else
-		when = sig.timeexpire - delta;
+		when = dns_time64_from32(sig.timeexpire) - delta;
 	dns_rdata_reset(&rdata);
 
 	result = dns_rdataset_next(modified);
@@ -225,14 +226,15 @@ setresign(dns_rdataset_t *modified, isc_uint32_t delta) {
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}
-		if (when == 0 || sig.timeexpire - delta < when)
-			when = sig.timeexpire - delta;
+		if (when == 0 ||
+		    dns_time64_from32(sig.timeexpire) - delta < when)
+			when = dns_time64_from32(sig.timeexpire) - delta;
  next_rr:
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(modified);
 	}
 	INSIST(result == ISC_R_NOMORE);
-	return (when);
+	return ((isc_stdtime_t)when);
 }
 
 static isc_result_t
