@@ -13562,6 +13562,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		LOCK_ZONE(zone);
 		INSIST(zone->irefs > 1);
 		zone->irefs--;
+		ISC_LIST_UNLINK(zone->rss_events, event, ev_link);
 		goto nextevent;
 	}
 	dns_zone_idetach(&zone);
