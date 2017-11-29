@@ -7358,8 +7358,8 @@ for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
 	const cfg_obj_t *zoneconfig;
 	cfg_obj_t *config = NULL;
 
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_buffer_t *text = NULL;
-	isc_result_t result;
 
 	MDB_cursor *cursor = NULL;
 	MDB_val key, data;
