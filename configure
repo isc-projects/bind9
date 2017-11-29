@@ -26144,7 +26144,7 @@ fi
 		 *) srcdir="../../$srcdir";;
 		 esac
 		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
-		)  ;;
+		) || as_fn_error $? "Failed to configure ATF." "$LINENO" 5  ;;
     "chmod":C) chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter ;;
 
   esac
