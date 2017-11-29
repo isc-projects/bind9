@@ -7343,10 +7343,11 @@ typedef isc_result_t (*newzone_cfg_cb_t)(dns_view_t *view,
 
 /*%
  * For each zone found in a NZD opened by the caller, create an object
- * representing its configuration and invoke "callback" with "view", the
- * created object and "callback_data" as arguments.  Immediately interrupt
- * processing if an error is encountered while transforming NZD data into a
- * zone configuration object or if "callback" returns an error.
+ * representing its configuration and invoke "callback", passing it "view", the
+ * created object and a va_list containing (optional) extra arguments provided
+ * by the caller after "callback".  Immediately interrupt processing if an
+ * error is encountered while transforming NZD data into a zone configuration
+ * object or if "callback" returns an error.
  */
 static isc_result_t
 for_all_newzone_cfgs(dns_view_t *view, MDB_txn *txn, MDB_dbi dbi,
