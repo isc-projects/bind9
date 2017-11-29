@@ -1,3 +1,9 @@
+4833.	[bug]		isc_event_free should check that the event is not
+			linked when called. [RT #46725]
+
+4832.	[bug]		Events were not being removed from zone->rss_events.
+			[RT #46725]
+
 4831.	[bug]		Convert the RRSIG expirytime to 64 bits for
 			comparisions in diff.c:resign. [RT #46710]
 

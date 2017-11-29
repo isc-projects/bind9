@@ -703,6 +703,7 @@ isc__task_purgerange(isc_task_t *task0, void *sender, isc_eventtype_t first,
 
 	for (event = HEAD(events); event != NULL; event = next_event) {
 		next_event = NEXT(event, ev_link);
+		ISC_LIST_UNLINK(events, event, ev_link);
 		isc_event_free(&event);
 	}
 

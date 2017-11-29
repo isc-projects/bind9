@@ -1555,6 +1555,8 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	zone->updbit = NULL;
 	zone->rpzs = rpzs;
 	zone->db_registered = ISC_FALSE;
+	ISC_EVENT_INIT(&zone->updateevent, sizeof(zone->updateevent),
+		       0, NULL, 0, NULL, NULL, NULL, NULL, NULL);
 
 	zone->num = rpzs->p.num_zones++;
 	rpzs->zones[zone->num] = zone;
@@ -1633,6 +1635,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 			isc_event_t *event;
 
 			dns_db_currentversion(zone->db, &zone->dbversion);
+			INSIST(!ISC_LINK_LINKED(&zone->updateevent, ev_link));
 			ISC_EVENT_INIT(&zone->updateevent,
 				       sizeof(zone->updateevent), 0, NULL,
 				       DNS_EVENT_RPZUPDATED,
@@ -1669,6 +1672,7 @@ dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	zone = (dns_rpz_zone_t *) event->ev_arg;
+	isc_event_free(&event);
 	LOCK(&zone->rpzs->maint_lock);
 	zone->updatepending = ISC_FALSE;
 	zone->updaterunning = ISC_TRUE;
@@ -1679,7 +1683,6 @@ dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 	result = isc_time_now(&zone->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&zone->rpzs->maint_lock);
-	isc_event_free(&event);
 }
 
 static isc_result_t
@@ -1943,6 +1946,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * We finished a quantum; trigger the next one and return
 		 */
+		INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
 		ISC_EVENT_INIT(&rpz->updateevent,
 			       sizeof(rpz->updateevent), 0, NULL,
 			       DNS_EVENT_RPZUPDATED,
@@ -1995,6 +1999,7 @@ dns_rpz_update_from_db(dns_rpz_zone_t *rpz) {
 	}
 
 	event = &rpz->updateevent;
+	INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
 	ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent),
 		       0, NULL, DNS_EVENT_RPZUPDATED,
 		       update_quantum, rpz, rpz, NULL, NULL);
