@@ -307,7 +307,7 @@ typedef isc_uint32_t                    rbtdb_rdatatype_t;
 
 #define RBTDB_RDATATYPE_BASE(type)      ((dns_rdatatype_t)((type) & 0xFFFF))
 #define RBTDB_RDATATYPE_EXT(type)       ((dns_rdatatype_t)((type) >> 16))
-#define RBTDB_RDATATYPE_VALUE(base, ext)     ((rbtdb_rdatatype_t)(((isc_uint32_t)ext) << 16) | ((isc_uint32_t)base) & 0xffff)
+#define RBTDB_RDATATYPE_VALUE(base, ext) ((rbtdb_rdatatype_t)(((isc_uint32_t)ext) << 16) | (((isc_uint32_t)base) & 0xffff))
 
 #define RBTDB_RDATATYPE_SIGNSEC \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec)
