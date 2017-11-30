@@ -736,6 +736,14 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Zones created with <command>rndc addzone</command> could
+	  temporarily fail to inherit the <command>allow-transfer</command>
+	  ACL set in the <command>options</command> section of
+	  <filename>named.conf</filename>. [RT #46603]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The introduction of <command>libns</command> caused a bug
 	  in which TCP client objects were not recycled after use,
 	  leading to unconstrained memory growth. [RT #46029]

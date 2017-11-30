@@ -1,3 +1,8 @@
+4836.	[bug]		Zones created using "rndc addzone" could
+			temporarily fail to inherit an "allow-transfer"
+			ACL that had been configured in the options
+			statement. [RT #46603]
+
 4835.	[cleanup]	Clean up and refactor LMDB-related code. [RT #46718]
 
 4834.	[port]		Fix LMDB support on OpenBSD. [RT #46718]
