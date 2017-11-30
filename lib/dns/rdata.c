@@ -1796,10 +1796,10 @@ uint32_fromregion(isc_region_t *region) {
 	isc_uint32_t value;
 
 	REQUIRE(region->length >= 4);
-	value = region->base[0] << 24;
-	value |= region->base[1] << 16;
-	value |= region->base[2] << 8;
-	value |= region->base[3];
+	value = (isc_uint32_t)region->base[0] << 24;
+	value |= (isc_uint32_t)region->base[1] << 16;
+	value |= (isc_uint32_t)region->base[2] << 8;
+	value |= (isc_uint32_t)region->base[3];
 	return(value);
 }
 

@@ -421,10 +421,10 @@ static isc_uint32_t
 dns_hash(dns_qid_t *qid, const isc_sockaddr_t *dest, dns_messageid_t id,
 	 in_port_t port)
 {
-	unsigned int ret;
+	isc_uint32_t ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
-	ret ^= (id << 16) | port;
+	ret ^= ((isc_uint32_t)id << 16) | port;
 	ret %= qid->qid_nbuckets;
 
 	INSIST(ret < qid->qid_nbuckets);
