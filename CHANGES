@@ -1,3 +1,8 @@
+4836.	[bug]		Zones created using "rndc addzone" could
+			temporarily fail to inherit an "allow-transfer"
+			ACL that had been configured in the options
+			statement. [RT #46603]
+
 4833.	[bug]		isc_event_free should check that the event is not
 			linked when called. [RT #46725]
 
