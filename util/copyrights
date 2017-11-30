@@ -333,7 +333,7 @@
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2013,2015,2016
 ./bin/tests/atomic/Makefile.in			MAKE	2011,2012,2014,2016,2017
-./bin/tests/atomic/t_atomic.c			C	2011,2013,2015,2016
+./bin/tests/atomic/t_atomic.c			C	2011,2013,2015,2016,2017
 ./bin/tests/atomic/win32/t_atomic.vcxproj.filters.in	X	2013,2015
 ./bin/tests/atomic/win32/t_atomic.vcxproj.in	X	2013,2015,2016,2017
 ./bin/tests/atomic/win32/t_atomic.vcxproj.user	X	2013
@@ -616,7 +616,7 @@
 ./bin/tests/system/.gitignore			X	2012,2016
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011,2013,2015,2016,2017
-./bin/tests/system/acl/clean.sh			SH	2008,2012,2014,2015,2016
+./bin/tests/system/acl/clean.sh			SH	2008,2012,2014,2015,2016,2017
 ./bin/tests/system/acl/ns2/named1.conf		CONF-C	2008,2016
 ./bin/tests/system/acl/ns2/named2.conf		CONF-C	2008,2016
 ./bin/tests/system/acl/ns2/named3.conf		CONF-C	2008,2016
@@ -624,8 +624,13 @@
 ./bin/tests/system/acl/ns2/named5.conf		CONF-C	2013,2016
 ./bin/tests/system/acl/ns2/named6.conf		CONF-C	2014,2016
 ./bin/tests/system/acl/ns2/named7.conf		CONF-C	2014,2016
+./bin/tests/system/acl/ns3/example.db		ZONE	2017
+./bin/tests/system/acl/ns3/named.conf		CONF-C	2017
+./bin/tests/system/acl/ns4/example.db		ZONE	2017
+./bin/tests/system/acl/ns4/existing.db		ZONE	2017
+./bin/tests/system/acl/ns4/named.conf		CONF-C	2017
 ./bin/tests/system/acl/setup.sh			SH	2008,2012,2014,2016
-./bin/tests/system/acl/tests.sh			SH	2008,2012,2013,2014,2016
+./bin/tests/system/acl/tests.sh			SH	2008,2012,2013,2014,2016,2017
 ./bin/tests/system/additional/clean.sh		SH	2013,2014,2016,2017
 ./bin/tests/system/additional/ns1/mx.db		ZONE	2016
 ./bin/tests/system/additional/ns1/named.args	X	2013,2014
@@ -2577,7 +2582,7 @@
 ./bin/tools/named-journalprint.docbook		SGML	2009,2014,2015,2016,2017
 ./bin/tools/named-journalprint.html		HTML	DOCBOOK
 ./bin/tools/named-nzd2nzf.8			MAN	DOCBOOK
-./bin/tools/named-nzd2nzf.c			C	2016
+./bin/tools/named-nzd2nzf.c			C	2016,2017
 ./bin/tools/named-nzd2nzf.docbook		SGML	2016
 ./bin/tools/named-nzd2nzf.html			HTML	DOCBOOK
 ./bin/tools/named-rrchecker.1			MAN	DOCBOOK
@@ -3745,7 +3750,7 @@
 ./lib/isc/crc64.c				C	2013,2016
 ./lib/isc/entropy.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2014,2015,2016,2017
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005,2007,2015,2016
-./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014,2016
+./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005,2007,2014,2016,2017
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005,2007,2016,2017
 ./lib/isc/hash.c				C	2003,2004,2005,2006,2007,2009,2013,2014,2015,2016,2017
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2015,2016,2017
@@ -3898,7 +3903,7 @@
 ./lib/isc/pk11.c				C	2014,2015,2016,2017
 ./lib/isc/pk11_result.c				C	2014,2015,2016
 ./lib/isc/pool.c				C	2013,2015,2016
-./lib/isc/portset.c				C	2008,2016
+./lib/isc/portset.c				C	2008,2016,2017
 ./lib/isc/powerpc/Makefile.in			MAKE	2007,2012,2016
 ./lib/isc/powerpc/include/Makefile.in		MAKE	2007,2012,2016
 ./lib/isc/powerpc/include/isc/Makefile.in	MAKE	2007,2012,2015,2016
