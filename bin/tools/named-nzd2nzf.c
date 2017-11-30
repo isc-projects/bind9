@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <lmdb.h>
 
+#include <dns/view.h>
+
 #include <isc/print.h>
 
 int
@@ -36,42 +38,44 @@ main (int argc, char *argv[]) {
 	path = argv[1];
 
 	status = mdb_env_create(&env);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		fprintf(stderr, "named-nzd2nzf: mdb_env_create: %s",
 			mdb_strerror(status));
 		exit(1);
 	}
 
-	status = mdb_env_open(env, path,
-			      MDB_RDONLY|MDB_NOTLS|MDB_NOSUBDIR, 0600);
-	if (status != 0) {
+	status = mdb_env_open(env, path, DNS_LMDB_FLAGS, 0600);
+	if (status != MDB_SUCCESS) {
 		fprintf(stderr, "named-nzd2nzf: mdb_env_open: %s",
 			mdb_strerror(status));
 		exit(1);
 	}
 
 	status = mdb_txn_begin(env, 0, MDB_RDONLY, &txn);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		fprintf(stderr, "named-nzd2nzf: mdb_txn_begin: %s",
 			mdb_strerror(status));
 		exit(1);
 	}
 
 	status = mdb_dbi_open(txn, NULL, 0, &dbi);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		fprintf(stderr, "named-nzd2nzf: mdb_dbi_open: %s",
 			mdb_strerror(status));
 		exit(1);
 	}
 
 	status = mdb_cursor_open(txn, dbi, &cursor);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		fprintf(stderr, "named-nzd2nzf: mdb_cursor_open: %s",
 			mdb_strerror(status));
 		exit(1);
 	}
 
-	while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
+	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+	     status == MDB_SUCCESS;
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT))
+	{
 		if (key.mv_data == NULL || key.mv_size == 0 ||
 		    data.mv_data == NULL || data.mv_size == 0)
 		{
