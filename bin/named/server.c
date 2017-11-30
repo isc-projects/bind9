@@ -4719,6 +4719,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					       &view->cacheacl);
 			}
 		} else if (view->recursionacl == NULL) {
+			/*
+			 * XXXMUKS: Per comments above, should
+			 * view->recursionacl not inherit from
+			 * view->queryacl? Is the "else" preceding the
+			 * "if" correct?
+			 */
 			dns_acl_attach(view->cacheacl, &view->recursionacl);
 		}
 
@@ -4739,12 +4745,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 						 actx, named_g_mctx,
 						 &view->recursiononacl));
 		}
+#if 0
+		/*
+		 * XXXMUKS: Can view->cacheacl be NULL here? See
+		 * dns_acl_attach()s earlier in this block.
+		 */
 		if (view->cacheacl == NULL) {
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-query-cache", NULL,
 						 actx, named_g_mctx,
 						 &view->cacheacl));
 		}
+#endif
 	} else {
 		/*
 		 * We're not recursive; if "allow-query-cache" hasn't been
