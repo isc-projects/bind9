@@ -279,6 +279,14 @@
 	  code should explicitly include &lt;isc/util.h&gt;.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Zones created with <command>rndc addzone</command> could
+	  temporarily fail to inherit the <command>allow-transfer</command>
+	  ACL set in the <command>options</command> section of
+	  <filename>named.conf</filename>. [RT #46603]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
