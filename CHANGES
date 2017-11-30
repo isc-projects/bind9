@@ -1,3 +1,5 @@
+	--- 9.12.0rc1 released ---
+
 4836.	[bug]		Zones created using "rndc addzone" could
 			temporarily fail to inherit an "allow-transfer"
 			ACL that had been configured in the options
