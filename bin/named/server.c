@@ -4694,7 +4694,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache",
 				 NULL, actx, named_g_mctx, &view->cacheacl));
 
-	if (strcmp(view->name, "_bind") != 0) {
+	if (strcmp(view->name, "_bind") != 0 &&
+	    view->rdclass != dns_rdataclass_chaos)
+	{
 		CHECK(configure_view_acl(vconfig, config, NULL,
 					 "allow-recursion", NULL, actx,
 					 named_g_mctx, &view->recursionacl));
@@ -4714,22 +4716,23 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			if (view->recursionacl != NULL) {
 				dns_acl_attach(view->recursionacl,
 					       &view->cacheacl);
-			} else {
+			} else if (view->queryacl != NULL) {
 				dns_acl_attach(view->queryacl,
 					       &view->cacheacl);
 			}
-		} else if (view->recursionacl == NULL) {
-			/*
-			 * XXXMUKS: Per comments above, should
-			 * view->recursionacl not inherit from
-			 * view->queryacl? Is the "else" preceding the
-			 * "if" correct?
-			 */
-			dns_acl_attach(view->cacheacl, &view->recursionacl);
+		}
+		if (view->recursionacl == NULL) {
+			if (view->cacheacl != NULL) {
+				dns_acl_attach(view->cacheacl,
+					       &view->recursionacl);
+			} else if (view->queryacl != NULL) {
+				dns_acl_attach(view->queryacl,
+					       &view->recursionacl);
+			}
 		}
 
 		/*
-		 * If still unset, we now get default "allow-recursion",
+		 * If any are still unset, we now get default "allow-recursion",
 		 * "allow-recursion-on" and "allow-query-cache" ACLs from
 		 * the global config.
 		 */
@@ -4745,19 +4748,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 						 actx, named_g_mctx,
 						 &view->recursiononacl));
 		}
-#if 0
-		/*
-		 * XXXMUKS: Can view->cacheacl be NULL here? See
-		 * dns_acl_attach()s earlier in this block.
-		 */
 		if (view->cacheacl == NULL) {
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-query-cache", NULL,
 						 actx, named_g_mctx,
 						 &view->cacheacl));
 		}
-#endif
-	} else {
+	} else if (view->cacheacl == NULL) {
 		/*
 		 * We're not recursive; if "allow-query-cache" hasn't been
 		 * set at the options/view level, set it to none.
