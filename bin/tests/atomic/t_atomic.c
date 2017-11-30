@@ -181,7 +181,7 @@ static void
 do_store(isc_task_t *task, isc_event_t *ev) {
 	counter_t *state = (counter_t *)ev->ev_arg;
 	int i;
-	isc_uint8_t r;
+	isc_uint32_t r;
 	isc_uint32_t val;
 
 	r = random() % 256;
@@ -205,7 +205,7 @@ test_atomic_store() {
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event;
 	int i;
-	isc_uint8_t r;
+	isc_uint32_t r;
 	isc_uint32_t val;
 
 	t_assert("test_atomic_store", 1, T_REQUIRED, "%s",
