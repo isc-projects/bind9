@@ -7953,7 +7953,8 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	/*
-	 * Set "blackhole". Only legal at options or global defaults level.
+	 * Set "keep-response-order". Only legal at options or
+	 * global defaults level.
 	 */
 	CHECK(configure_view_acl(NULL, config, named_g_config,
 				 "keep-response-order", NULL,
