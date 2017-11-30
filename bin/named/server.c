@@ -7333,18 +7333,128 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	return (result);
 }
 
+/*%
+ * Prototype for a callback which can be used with for_all_newzone_cfgs().
+ */
+typedef isc_result_t (*newzone_cfg_cb_t)(const cfg_obj_t *zconfig,
+					 cfg_obj_t *config, cfg_obj_t *vconfig,
+					 isc_mem_t *mctx, dns_view_t *view,
+					 cfg_aclconfctx_t *actx);
+
+/*%
+ * For each zone found in a NZD opened by the caller, create an object
+ * representing its configuration and invoke "callback" with the created
+ * object, "config", "vconfig", "mctx", "view" and "actx" as arguments (all
+ * these are non-global variables required to invoke configure_zone()).
+ * Immediately interrupt processing if an error is encountered while
+ * transforming NZD data into a zone configuration object or if "callback"
+ * returns an error.
+ */
+static isc_result_t
+for_all_newzone_cfgs(newzone_cfg_cb_t callback, cfg_obj_t *config,
+		     cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
+		     cfg_aclconfctx_t *actx, MDB_txn *txn, MDB_dbi dbi)
+{
+	const cfg_obj_t *zconfig, *zlist = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_obj_t *zconfigobj = NULL;
+	isc_buffer_t *text = NULL;
+	MDB_cursor *cursor = NULL;
+	MDB_val data, key;
+	int status;
+
+	status = mdb_cursor_open(txn, dbi, &cursor);
+	if (status != MDB_SUCCESS) {
+		return (ISC_R_FAILURE);
+	}
+
+	for (status = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+	     status == MDB_SUCCESS;
+	     status = mdb_cursor_get(cursor, &key, &data, MDB_NEXT))
+	{
+		/*
+		 * Create a configuration object from data fetched from NZD.
+		 */
+		result = data_to_cfg(view, &key, &data, &text, &zconfigobj);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Extract zone configuration from configuration object.
+		 */
+		result = cfg_map_get(zconfigobj, "zone", &zlist);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		} else if (!cfg_obj_islist(zlist)) {
+			result = ISC_R_FAILURE;
+			break;
+		}
+		zconfig = cfg_listelt_value(cfg_list_first(zlist));
+
+		/*
+		 * Invoke callback.
+		 */
+		result = callback(zconfig, config, vconfig, mctx, view, actx);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Destroy the configuration object created in this iteration.
+		 */
+		cfg_obj_destroy(named_g_addparser, &zconfigobj);
+	}
+
+	if (text != NULL) {
+		isc_buffer_free(&text);
+	}
+	if (zconfigobj != NULL) {
+		cfg_obj_destroy(named_g_addparser, &zconfigobj);
+	}
+	mdb_cursor_close(cursor);
+
+	return (result);
+}
+
+/*%
+ * Attempt to configure a zone found in NZD and return the result.
+ */
+static isc_result_t
+configure_newzone(const cfg_obj_t *zconfig, cfg_obj_t *config,
+		  cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
+		  cfg_aclconfctx_t *actx)
+{
+	return (configure_zone(config, zconfig, vconfig, mctx, view,
+			       &named_g_server->viewlist, actx, ISC_TRUE,
+			       ISC_FALSE, ISC_FALSE));
+}
+
+/*%
+ * Revert new view assignment for a zone found in NZD.
+ */
+static isc_result_t
+configure_newzone_revert(const cfg_obj_t *zconfig, cfg_obj_t *config,
+			 cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
+			 cfg_aclconfctx_t *actx)
+{
+	UNUSED(config);
+	UNUSED(vconfig);
+	UNUSED(mctx);
+	UNUSED(actx);
+
+	configure_zone_setviewcommit(ISC_R_FAILURE, zconfig, view);
+
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		   isc_mem_t *mctx, cfg_aclconfctx_t *actx)
 {
-	isc_result_t result = ISC_R_SUCCESS;
-	int status;
-	isc_buffer_t *text = NULL;
-	cfg_obj_t *zoneconf = NULL;
-	MDB_cursor *cursor = NULL;
+	isc_result_t result;
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
-	MDB_val key, data;
 
 	if (view->new_zone_config == NULL) {
 		return (ISC_R_SUCCESS);
@@ -7361,82 +7471,22 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		      "for view '%s'",
 		      view->new_zone_db, view->name);
 
-	status = mdb_cursor_open(txn, dbi, &cursor);
-	if (status != 0) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
-	}
-
-	while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
-		const cfg_obj_t *zlist = NULL;
-		const cfg_obj_t *zoneobj = NULL;
-
-		result = data_to_cfg(view, &key, &data, &text, &zoneconf);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-
-		CHECK(cfg_map_get(zoneconf, "zone", &zlist));
-		if (!cfg_obj_islist(zlist)) {
-			CHECK(ISC_R_FAILURE);
-		}
-
-		zoneobj = cfg_listelt_value(cfg_list_first(zlist));
-		CHECK(configure_zone(config, zoneobj, vconfig, mctx,
-				     view, &named_g_server->viewlist, actx,
-				     ISC_TRUE, ISC_FALSE, ISC_FALSE));
-
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-
-	result = ISC_R_SUCCESS;
-
- cleanup:
-	if (zoneconf != NULL) {
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-	if (cursor != NULL) {
-		mdb_cursor_close(cursor);
-		cursor = NULL;
-	}
+	result = for_all_newzone_cfgs(configure_newzone, config, vconfig, mctx,
+				      view, actx, txn, dbi);
 	if (result != ISC_R_SUCCESS) {
-		status = mdb_cursor_open(txn, dbi, &cursor);
-		if (status != 0) {
-			goto cleanup2;
-		}
-		while (mdb_cursor_get(cursor, &key, &data, MDB_NEXT) == 0) {
-			const cfg_obj_t *zlist = NULL;
-			const cfg_obj_t *zconfig = NULL;
-			isc_result_t result2;
-
-			result2 = data_to_cfg(view, &key, &data, &text,
-					      &zoneconf);
-			if (result2 != ISC_R_SUCCESS) {
-				goto cleanup2;
-			}
-
-			result2 = cfg_map_get(zoneconf, "zone", &zlist);
-			if (result2 != ISC_R_SUCCESS) {
-				goto cleanup2;
-			}
-
-			zconfig = cfg_listelt_value(cfg_list_first(zlist));
-			configure_zone_setviewcommit(result, zconfig, view);
-
-			cfg_obj_destroy(named_g_addparser, &zoneconf);
-		}
+		/*
+		 * An error was encountered while attempting to configure zones
+		 * found in NZD.  As this error may have been caused by a
+		 * configure_zone() failure, try restoring a sane configuration
+		 * by reattaching all zones found in NZD to the old view.  If
+		 * this also fails, too bad, there is nothing more we can do in
+		 * terms of trying to make things right.
+		 */
+		(void) for_all_newzone_cfgs(configure_newzone_revert, config,
+					    vconfig, mctx, view, actx, txn,
+					    dbi);
 	}
 
- cleanup2:
-	if (text != NULL) {
-		isc_buffer_free(&text);
-	}
-	if (zoneconf != NULL) {
-		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	}
-	if (cursor != NULL) {
-		mdb_cursor_close(cursor);
-	}
 	(void) nzd_close(&txn, ISC_FALSE);
 	return (result);
 }
@@ -7480,8 +7530,9 @@ get_newzone_config(dns_view_t *view, const char *zonename,
 	key.mv_size = strlen(zname);
 
 	status = mdb_get(txn, dbi, &key, &data);
-	if (status != 0)
+	if (status != MDB_SUCCESS) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	CHECK(data_to_cfg(view, &key, &data, &text, &zoneconf));
 
@@ -7492,10 +7543,12 @@ get_newzone_config(dns_view_t *view, const char *zonename,
  cleanup:
 	(void) nzd_close(&txn, ISC_FALSE);
 
-	if (zoneconf != NULL)
+	if (zoneconf != NULL) {
 		cfg_obj_destroy(named_g_addparser, &zoneconf);
-	if (text != NULL)
+	}
+	if (text != NULL) {
 		isc_buffer_free(&text);
+	}
 
 	return (result);
 }
@@ -11853,7 +11906,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 	if (zconfig == NULL) {
 		/* We're deleting the zone from the database */
 		status = mdb_del(*txnp, dbi, &key, NULL);
-		if (status != 0 && status != MDB_NOTFOUND) {
+		if (status != MDB_SUCCESS && status != MDB_NOTFOUND) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11863,8 +11916,9 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 				      namebuf, mdb_strerror(status));
 			result = ISC_R_FAILURE;
 			goto cleanup;
-		} else if (status != MDB_NOTFOUND)
+		} else if (status != MDB_NOTFOUND) {
 			commit = ISC_TRUE;
+		}
 	} else {
 		/* We're creating or overwriting the zone */
 		const cfg_obj_t *zoptions;
@@ -11899,7 +11953,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 		data.mv_size = isc_buffer_usedlength(text);
 
 		status = mdb_put(*txnp, dbi, &key, &data, 0);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11917,11 +11971,11 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (!commit || result != ISC_R_SUCCESS)
+	if (!commit || result != ISC_R_SUCCESS) {
 		(void) mdb_txn_abort(*txnp);
-	else {
+	} else {
 		status = mdb_txn_commit(*txnp);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -11936,8 +11990,10 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 
 	UNLOCK(&view->new_zone_lock);
 
-	if (text != NULL)
+	if (text != NULL) {
 		isc_buffer_free(&text);
+	}
+
 	return (result);
 }
 
@@ -11951,7 +12007,7 @@ nzd_writable(dns_view_t *view) {
 	REQUIRE(view != NULL);
 
 	status = mdb_txn_begin((MDB_env *) view->new_zone_dbenv, 0, 0, &txn);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "mdb_txn_begin: %s",
@@ -11960,7 +12016,7 @@ nzd_writable(dns_view_t *view) {
 	}
 
 	status = mdb_dbi_open(txn, NULL, 0, &dbi);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "mdb_dbi_open: %s",
@@ -11983,7 +12039,7 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 
 	status = mdb_txn_begin((MDB_env *) view->new_zone_dbenv, 0,
 			       flags, &txn);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 			      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_txn_begin: %s",
@@ -11992,7 +12048,7 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	}
 
 	status = mdb_dbi_open(txn, NULL, 0, dbi);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 		      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_dbi_open: %s",
@@ -12003,9 +12059,10 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
 	*txnp = txn;
 
  cleanup:
-	if (status != 0) {
-		if (txn != NULL)
+	if (status != MDB_SUCCESS) {
+		if (txn != NULL) {
 			mdb_txn_abort(txn);
+		}
 		return (ISC_R_FAILURE);
 	}
 
@@ -12019,38 +12076,34 @@ nzd_open(dns_view_t *view, unsigned int flags, MDB_txn **txnp, MDB_dbi *dbi) {
  */
 static void
 nzd_env_close(dns_view_t *view) {
-	if (view->new_zone_dbenv != NULL) {
-		const char *dbpath = NULL;
-		isc_boolean_t have_dbpath = ISC_FALSE;
-		char dbpath_copy[PATH_MAX];
-		char lockpath[PATH_MAX];
-		int ret;
+	const char *dbpath = NULL;
+	char dbpath_copy[PATH_MAX];
+	char lockpath[PATH_MAX];
+	int status, ret;
 
-		if (mdb_env_get_path(view->new_zone_dbenv, &dbpath) == 0) {
-			have_dbpath = ISC_TRUE;
-			snprintf(lockpath, sizeof(lockpath), "%s-lock",
-				 dbpath);
-			strlcpy(dbpath_copy, dbpath, sizeof(dbpath_copy));
-		}
-
-		mdb_env_close((MDB_env *) view->new_zone_dbenv);
-		view->new_zone_dbenv = NULL;
-
-		if (have_dbpath) {
-			/*
-			 * Database files must be owned by the eventual user, not
-			 * by root.
-			 */
-			ret = chown(dbpath_copy, ns_os_uid(), -1);
-			UNUSED(ret);
-
-			/*
-			 * Some platforms need the lockfile not to exist when we
-			 * reopen the environment.
-			 */
-			(void) isc_file_remove(lockpath);
-		}
+	if (view->new_zone_dbenv == NULL) {
+		return;
 	}
+
+	status = mdb_env_get_path(view->new_zone_dbenv, &dbpath);
+	INSIST(status == MDB_SUCCESS);
+	snprintf(lockpath, sizeof(lockpath), "%s-lock", dbpath);
+	strlcpy(dbpath_copy, dbpath, sizeof(dbpath_copy));
+	mdb_env_close((MDB_env *) view->new_zone_dbenv);
+
+	/*
+	 * Database files must be owned by the eventual user, not by root.
+	 */
+	ret = chown(dbpath_copy, ns_os_uid(), -1);
+	UNUSED(ret);
+
+	/*
+	 * Some platforms need the lockfile not to exist when we reopen the
+	 * environment.
+	 */
+	(void) isc_file_remove(lockpath);
+
+	view->new_zone_dbenv = NULL;
 }
 
 static isc_result_t
@@ -12066,7 +12119,7 @@ nzd_env_reopen(dns_view_t *view) {
 	nzd_env_close(view);
 
 	status = mdb_env_create(&env);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_create failed: %s",
@@ -12076,7 +12129,7 @@ nzd_env_reopen(dns_view_t *view) {
 
 	if (view->new_zone_mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, view->new_zone_mapsize);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 				      "mdb_env_set_mapsize failed: %s",
@@ -12085,14 +12138,8 @@ nzd_env_reopen(dns_view_t *view) {
 		}
 	}
 
-	/*
-	 * MDB_NOTLS is used to prevent problems after configuration is
-	 * reloaded, due to the way LMDB's use of thread-local storage (TLS)
-	 * interacts with the BIND9 thread model.
-	 */
-	status = mdb_env_open(env, view->new_zone_db,
-			      MDB_NOSUBDIR|MDB_NOTLS|MDB_CREATE, 0600);
-	if (status != 0) {
+	status = mdb_env_open(env, view->new_zone_db, DNS_LMDB_FLAGS, 0600);
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_open of '%s' failed: %s",
@@ -12121,10 +12168,12 @@ nzd_close(MDB_txn **txnp, isc_boolean_t commit) {
 	if (*txnp != NULL) {
 		if (commit) {
 			status = mdb_txn_commit(*txnp);
-			if (status != 0)
+			if (status != MDB_SUCCESS) {
 				result = ISC_R_FAILURE;
-		} else
+			}
+		} else {
 			mdb_txn_abort(*txnp);
+		}
 		*txnp = NULL;
 	}
 
@@ -12142,11 +12191,12 @@ nzd_count(dns_view_t *view, int *countp) {
 	REQUIRE(countp != NULL);
 
 	result = nzd_open(view, MDB_RDONLY, &txn, &dbi);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
+	}
 
 	status = mdb_stat(txn, dbi, &statbuf);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(named_g_lctx,
 			      NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 			      ISC_LOG_WARNING, "mdb_stat: %s",
@@ -12219,8 +12269,9 @@ migrate_nzf(dns_view_t *view) {
 
 	zonelist = NULL;
 	CHECK(cfg_map_get(nzf_config, "zone", &zonelist));
-	if (!cfg_obj_islist(zonelist))
+	if (!cfg_obj_islist(zonelist)) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	CHECK(nzd_open(view, 0, &txn, &dbi));
 
@@ -12271,7 +12322,7 @@ migrate_nzf(dns_view_t *view) {
 		data.mv_size = isc_buffer_usedlength(text);
 
 		status = mdb_put(txn, dbi, &key, &data, MDB_NOOVERWRITE);
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(named_g_lctx,
 				      NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER,
@@ -12300,15 +12351,19 @@ migrate_nzf(dns_view_t *view) {
 	}
 
  cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		(void) nzd_close(&txn, ISC_FALSE);
-	else
+	} else {
 		result = nzd_close(&txn, commit);
+	}
 
-	if (text != NULL)
+	if (text != NULL) {
 		isc_buffer_free(&text);
-	if (nzf_config != NULL)
+	}
+
+	if (nzf_config != NULL) {
 		cfg_obj_destroy(named_g_addparser, &nzf_config);
+	}
 
 	return (result);
 }

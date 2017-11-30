@@ -519,8 +519,10 @@ destroy(dns_view_t *view) {
 		view->new_zone_dir = NULL;
 	}
 #ifdef HAVE_LMDB
-	if (view->new_zone_dbenv != NULL)
+	if (view->new_zone_dbenv != NULL) {
 		mdb_env_close((MDB_env *) view->new_zone_dbenv);
+		view->new_zone_dbenv = NULL;
+	}
 	if (view->new_zone_db != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_db);
 		view->new_zone_db = NULL;
@@ -2102,7 +2104,7 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 	}
 
 	status = mdb_env_create(&env);
-	if (status != 0) {
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_create failed: %s",
@@ -2112,24 +2114,18 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 
 	if (mapsize != 0ULL) {
 		status = mdb_env_set_mapsize(env, mapsize);
-		view->new_zone_mapsize = mapsize;
-		if (status != 0) {
+		if (status != MDB_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 				      "mdb_env_set_mapsize failed: %s",
 				      mdb_strerror(status));
 			CHECK(ISC_R_FAILURE);
 		}
+		view->new_zone_mapsize = mapsize;
 	}
 
-	/*
-	 * MDB_NOTLS is used to prevent problems after configuration is
-	 * reloaded, due to the way LMDB's use of thread-local storage (TLS)
-	 * interacts with the BIND9 thread model.
-	 */
-	status = mdb_env_open(env, view->new_zone_db,
-			      MDB_NOSUBDIR|MDB_NOTLS|MDB_CREATE, 0600);
-	if (status != 0) {
+	status = mdb_env_open(env, view->new_zone_db, DNS_LMDB_FLAGS, 0600);
+	if (status != MDB_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_OTHER, ISC_LOG_ERROR,
 			      "mdb_env_open of '%s' failed: %s",
@@ -2156,8 +2152,9 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 			isc_mem_free(view->mctx, view->new_zone_db);
 			view->new_zone_db = NULL;
 		}
-		if (env != NULL)
+		if (env != NULL) {
 			mdb_env_close(env);
+		}
 #endif /* HAVE_LMDB */
 		view->new_zone_config = NULL;
 		view->cfg_destroy = NULL;
