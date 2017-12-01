@@ -433,6 +433,7 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
+	isccc_sexpr_free(&request);
 	return;
 }
 
@@ -498,6 +499,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 					   NULL));
 	sends++;
 	isc_event_free(&event);
+	isccc_sexpr_free(&request);
 }
 
 static void
