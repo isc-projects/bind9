@@ -940,5 +940,36 @@ $IMPORTKEY -f import.key import.example > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:testing checking that inline signing works with inactive KSK ($n)"
+ret=0
+
+$DIG $DIGOPTS @10.53.0.3 -p 5300 soa inactivezsk  > dig.out.ns3.pre.test$n || ret=1
+soa1=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.pre.test$n`
+
+$NSUPDATE << EOF
+server 10.53.0.2 5300
+update add added.inactivezsk 0 IN TXT added record
+send
+EOF
+
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+    $DIG $DIGOPTS @10.53.0.3 -p 5300 soa inactivezsk  > dig.out.ns3.post.test$n || ret=1
+    soa2=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
+    test ${soa1:-0} -ne ${soa2:-0} && break
+    sleep 1
+done
+test ${soa1:-0} -ne ${soa2:-0} || ret=1
+
+$DIG $DIGOPTS @10.53.0.3 -p 5300 txt added.inactivezsk > dig.out.ns3.test$n || ret=1
+grep "ANSWER: 3," dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
+grep "TXT 7 2" dig.out.ns3.test$n > /dev/null || ret=1
+grep "TXT 8 2" dig.out.ns3.test$n > /dev/null || ret=1
+
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
