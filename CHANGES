@@ -1,3 +1,8 @@
+4837.	[bug]		dns_update_signatures{inc} (add_sigs) was not
+			properly determining if there were active KSK and
+			ZSK keys for a algorithm when update-check-ksk is
+			true (default) leaving records unsigned. [RT #46743]
+
 	--- 9.12.0rc1 released ---
 
 4836.	[bug]		Zones created using "rndc addzone" could
