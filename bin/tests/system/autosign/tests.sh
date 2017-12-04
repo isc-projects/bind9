@@ -1170,7 +1170,7 @@ if [ "$lret" != 0 ]; then ret=$lret; fi
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:check that zone with inactive zsk is properly autosigned ($n)"
+echo "I:check that zone with inactive ZSK and active KSK is properly autosigned ($n)"
 ret=0
 $DIG  $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.out
 grep "SOA 7 2" dig.out.ns3.out > /dev/null || ret=1
