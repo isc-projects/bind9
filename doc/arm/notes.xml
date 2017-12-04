@@ -241,10 +241,11 @@
       </listitem>
       <listitem>
 	<para>
-	  Named failed to properly determine if there were active
-	  KSK and ZSK keys for a algorithm when update-check-ksk
-	  is true (default) leaving records unsigned. [RT #46743]
-	  [RT #46754]
+	  <command>named</command> failed to properly determine whether
+	  there were active KSK and ZSK keys for an algorithm when
+	  <command>update-check-ksk</command> was true (which is the
+	  default setting). This could leave records unsigned
+	  when rolling keys. [RT #46743] [RT #46754]
 	</para>
       </listitem>
     </itemizedlist>
