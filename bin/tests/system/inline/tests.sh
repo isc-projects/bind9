@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: tests.sh,v 1.18 2012/02/23 06:53:15 marka Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -1023,7 +1021,7 @@ if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I:testing checking that inline signing works with inactive KSK ($n)"
+echo "I:testing that inline signing works with inactive ZSK and active KSK ($n)"
 ret=0
 
 $DIG $DIGOPTS @10.53.0.3 -p 5300 soa inactivezsk  > dig.out.ns3.pre.test$n || ret=1
