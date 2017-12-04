@@ -273,3 +273,12 @@ cp $infile $zonefile
 ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk -P sync now $zone 2> kg.out` || dumpit kg.out
 $KEYGEN -a RSASHA1 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
+
+#
+# A zone that has a published inactive key that is autosigned.
+#
+setup inaczsk2.example
+cp $infile $zonefile
+ksk=`$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a RSASHA1 -3 -q -r $RANDFILE -P now -A now+3600 $zone > kg.out 2>&1 || dumpit kg.out
+$DSFROMKEY $ksk.key > dsset-${zone}$TP

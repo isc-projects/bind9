@@ -28,6 +28,7 @@ rm -f ns2/private.secure.example.db ns2/bar.db
 rm -f ns3/*.nzd ns3/*.nzd-lock ns3/*.nzf
 rm -f ns3/*.nzf
 rm -f ns3/autonsec3.example.db
+rm -f ns3/inaczsk2.example.db
 rm -f ns3/kg.out ns3/s.out ns3/st.out
 rm -f ns3/kskonly.example.db
 rm -f ns3/nozsk.example.db ns3/inaczsk.example.db
