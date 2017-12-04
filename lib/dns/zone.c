@@ -6371,6 +6371,8 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 		if (!dst_key_isprivate(keys[i]))
 			continue;
+		if (dst_key_inactive(keys[i]))	/* Should be redundant. */
+			continue;
 
 		if (check_ksk && !REVOKE(keys[i])) {
 			isc_boolean_t have_ksk, have_nonksk;
@@ -6383,6 +6385,10 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			}
 			for (j = 0; j < nkeys; j++) {
 				if (j == i || ALG(keys[i]) != ALG(keys[j]))
+					continue;
+				if (!dst_key_isprivate(keys[j]))
+					continue;
+				if (dst_key_inactive(keys[j]))	/* SBR */
 					continue;
 				if (REVOKE(keys[j]))
 					continue;

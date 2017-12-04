@@ -72,7 +72,7 @@ do
 		$DIG $DIGOPTS $z @10.53.0.2 nsec > dig.out.ns2.test$n || ret=1
 		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
 	done
-	for z in bar. example.
+	for z in bar. example. inaczsk2.example.
 	do 
 		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
@@ -1203,6 +1203,14 @@ $SETTIME -p Psync `cat sync.key` > settime.out.$n|| ret=0
 grep "SYNC Publish:" settime.out.$n >/dev/null || ret=0
 n=`expr $n + 1`
 if [ "$lret" != 0 ]; then ret=$lret; fi
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that zone with inactive zsk is properly autosigned ($n)"
+ret=0
+$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.out
+grep "SOA 7 2" dig.out.ns3.out > /dev/null || ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
