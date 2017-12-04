@@ -740,6 +740,7 @@
 ./bin/tests/system/autosign/ns3/autonsec3.example.db.in	ZONE	2011,2016
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011,2016
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011,2016
+./bin/tests/system/autosign/ns3/inaczsk2.example.db.in	ZONE	2017
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009,2016
 ./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/tests/system/autosign/ns3/kskonly.example.db.in	ZONE	2017
