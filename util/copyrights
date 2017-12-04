@@ -834,7 +834,7 @@
 ./bin/tests/system/allow_query/setup.sh		SH	2010,2012
 ./bin/tests/system/allow_query/tests.sh		SH	2010,2012,2013,2016
 ./bin/tests/system/ans.pl			PERL	2011,2012,2014,2017
-./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015
+./bin/tests/system/autosign/clean.sh		SH	2009,2010,2011,2012,2013,2014,2015,2017
 ./bin/tests/system/autosign/ns1/keygen.sh	SH	2009,2010,2011,2012,2014,2016
 ./bin/tests/system/autosign/ns1/named.conf	CONF-C	2009,2013
 ./bin/tests/system/autosign/ns1/root.db.in	ZONE	2009,2010
@@ -855,9 +855,10 @@
 ./bin/tests/system/autosign/ns3/autonsec3.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011
+./bin/tests/system/autosign/ns3/inaczsk2.example.db.in	ZONE	2017
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009
-./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2016
-./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013
+./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2016,2017
+./bin/tests/system/autosign/ns3/named.conf	CONF-C	2009,2010,2011,2012,2013,2017
 ./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011
 ./bin/tests/system/autosign/ns3/nsec.example.db.in	ZONE	2010
 ./bin/tests/system/autosign/ns3/nsec3-to-nsec.example.db.in	ZONE	2010
@@ -883,7 +884,7 @@
 ./bin/tests/system/autosign/ns5/named.conf	CONF-C	2009
 ./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014
-./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2016
+./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2016,2017
 ./bin/tests/system/builtin/clean.sh		SH	2014
 ./bin/tests/system/builtin/ns1/named.conf	CONF-C	2011
 ./bin/tests/system/builtin/ns2/named.conf	CONF-C	2014
