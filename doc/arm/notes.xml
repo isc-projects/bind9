@@ -239,6 +239,14 @@
 	  <filename>named.conf</filename>. [RT #46603]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Named failed to properly determine if there were active
+	  KSK and ZSK keys for a algorithm when update-check-ksk
+	  is true (default) leaving records unsigned. [RT #46743]
+	  [RT #46754]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
