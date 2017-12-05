@@ -97,7 +97,9 @@ status=`expr $status + $ret`
 #
 # Check that zone is initially signed with a ZSK and not a KSK.
 #
-echo "I:check that zone with active and inactive ZSK and active KSK is properly resigned after the active ZSK is deleted - stage 1 ($n)"
+echo "I:check that zone with active and inactive ZSK and active KSK is properly"
+echo "I:  resigned after the active ZSK is deleted - stage 1: Verify that zone"
+echo "I:  is initially signed with a ZSK and not a KSK. ($n)"
 ret=0
 $DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
@@ -1206,7 +1208,9 @@ status=`expr $status + $ret`
 #
 # Check that zone is now signed with the KSK.
 #
-echo "I:check that zone with active and inactive ZSK and active KSK is properly resigned after the active ZSK is deleted - stage 2 ($n)"
+echo "I:check that zone with active and inactive ZSK and active KSK is properly"
+echo "I:  resigned after the active ZSK is deleted - stage 2: Verify that zone"
+echo "I:  is now signed with the KSK. ($n)"
 ret=0
 $DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
