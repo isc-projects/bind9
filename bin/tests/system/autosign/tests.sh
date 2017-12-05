@@ -80,7 +80,7 @@ do
 		$DIG $DIGOPTS $z @10.53.0.2 nsec > dig.out.ns2.test$n || ret=1
 		grep "NS SOA" dig.out.ns2.test$n > /dev/null || ret=1
 	done
-	for z in bar. example. inaczsk2.example.
+	for z in bar. example. inaczsk2.example. inaczsk3.example
 	do 
 		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
@@ -92,6 +92,28 @@ do
 done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; else echo "I:done"; fi
+status=`expr $status + $ret`
+
+#
+# Check that zone is initially signed with a ZSK and not a KSK.
+#
+echo "I:check that zone with active and inactive ZSK and active KSK is properly resigned after the active ZSK is deleted - stage 1 ($n)"
+ret=0
+$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
+kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
+       $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
+grep "CNAME 7 3 " dig.out.ns3.test$n > /dev/null || ret=1
+grep "CNAME 7 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null && ret=1
+count=`awk 'BEGIN { count = 0 }
+	    $4 == "RRSIG" && $5 == "CNAME" { count++ }
+	    END {print count}' dig.out.ns3.test$n`
+test $count -eq 1 || ret=1
+count=`awk 'BEGIN { count = 0 }
+       $4 == "DNSKEY" { count++ }
+       END {print count}' dig.out.ns3.test$n`
+test $count -eq 3 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
 echo "I:checking NSEC->NSEC3 conversion prerequisites ($n)"
@@ -1174,6 +1196,27 @@ echo "I:check that zone with inactive ZSK and active KSK is properly autosigned 
 ret=0
 $DIG  $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.out
 grep "SOA 7 2" dig.out.ns3.out > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+#
+# Check that zone is now signed with the KSK.
+#
+echo "I:check that zone with active and inactive ZSK and active KSK is properly resigned after the active ZSK is deleted - stage 2 ($n)"
+ret=0
+$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
+kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
+       $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
+grep "CNAME 7 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null || ret=1
+count=`awk 'BEGIN { count = 0 }
+       $4 == "RRSIG" && $5 == "CNAME" { count++ }
+       END {print count}' dig.out.ns3.test$n`
+test $count -eq 1 || ret=1
+count=`awk 'BEGIN { count = 0 }
+       $4 == "DNSKEY" { count++ }
+       END {print count}' dig.out.ns3.test$n`
+test $count -eq 2 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
