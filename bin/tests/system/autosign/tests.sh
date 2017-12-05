@@ -112,6 +112,9 @@ count=`awk 'BEGIN { count = 0 }
        $4 == "DNSKEY" { count++ }
        END {print count}' dig.out.ns3.test$n`
 test $count -eq 3 || ret=1
+id=`awk '$4 == "RRSIG" && $5 == "CNAME" { printf "%05u\n", $11 }' dig.out.ns3.test$n`
+$SETTIME -D now+5 ns3/Kinaczsk3.example.+007+${id}
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 loadkeys inaczsk3.example
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
