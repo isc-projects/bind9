@@ -278,7 +278,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup inaczsk3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a NSEC3RSASHA1 -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -a NSEC3RSASHA1 -3 -q -r $RANDFILE -D now+20 $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -a NSEC3RSASHA1 -3 -q -r $RANDFILE -P now -A now+3600 $zone > kg.out 2>&1 || dumpit kg.out
+ksk=`$KEYGEN -a NSEC3RSASHA1 -b 1204 -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a NSEC3RSASHA1 -b 1204 -3 -q -r $RANDFILE -D now+20 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -a NSEC3RSASHA1 -b 1204 -3 -q -r $RANDFILE -P now -A now+3600 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
