@@ -1,8 +1,8 @@
 4839.	[bug]		zone.c:zone_sign was not properly determining
-                        if there were active KSK and ZSK keys for
-                        a algorithm when update-check-ksk is true
-                        (default) leaving records unsigned with one or
-                        more DNSKEY algorithms. [RT #46774]
+			if there were active KSK and ZSK keys for
+			a algorithm when update-check-ksk is true
+			(default) leaving records unsigned with one or
+			more DNSKEY algorithms. [RT #46774]
 
 4838.	[bug]		zone.c:add_sigs was not properly determining
 			if there were active KSK and ZSK keys for
