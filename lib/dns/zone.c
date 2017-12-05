@@ -8466,6 +8466,11 @@ zone_sign(dns_zone_t *zone) {
 			 */
 			if (!dst_key_isprivate(zone_keys[i]))
 				continue;
+			/*
+			 * Should be redundant.
+			 */
+			if (dst_key_inactive(zone_keys[i]))
+				continue;
 
 			/*
 			 * When adding look for the specific key.
@@ -8499,6 +8504,13 @@ zone_sign(dns_zone_t *zone) {
 					if (j == i ||
 					    ALG(zone_keys[i]) !=
 					    ALG(zone_keys[j]))
+						continue;
+					if (!dst_key_isprivate(zone_keys[j]))
+						continue;
+					/*
+					 * Should be redundant.
+					 */
+					if (dst_key_inactive(zone_keys[j]))
 						continue;
 					if (REVOKE(zone_keys[j]))
 						continue;
