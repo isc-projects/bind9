@@ -266,6 +266,15 @@
 	  <code class="filename">named.conf</code>. [RT #46603]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> failed to properly determine whether
+	  there were active KSK and ZSK keys for an algorithm when
+	  <span class="command"><strong>update-check-ksk</strong></span> was true (which is the
+	  default setting). This could leave records unsigned
+	  when rolling keys. [RT #46743] [RT #46754]
+	</p>
+      </li>
 </ul></div>
   </div>
 
