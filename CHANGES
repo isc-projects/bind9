@@ -1,7 +1,6 @@
 4840.	[test]		Add tests to cover fallback to using ZSK on inactive
 			KSK. [RT #46787]
 
-
 4839.	[bug]		zone.c:zone_sign was not properly determining
 			if there were active KSK and ZSK keys for
 			a algorithm when update-check-ksk is true
