@@ -38,11 +38,6 @@
 #include <idn/api.h>
 #endif
 
-#ifdef WITH_LIBIDN
-#include <idna.h>
-#include <stringprep.h>
-#endif
-
 #ifdef WITH_LIBIDN2
 #include <idn2.h>
 #endif
@@ -4773,77 +4768,6 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	return (ISC_R_SUCCESS);
 }
 #endif /* WITH_IDNKIT */
-
-#ifdef WITH_LIBIDN
-static isc_result_t
-idn_locale_to_ace(const char *from, char *to, size_t tolen) {
-	isc_result_t result = ISC_R_FAILURE;
-	int res;
-	char *tmp_str = NULL;
-	char *ace_str = NULL;
-
-	tmp_str = stringprep_locale_to_utf8(from);
-
-	if (tmp_str != NULL) {
-		if (strlen(tmp_str) >= tolen) {
-			debug("UTF-8 string is too long");
-			free(tmp_str);
-			return ISC_R_NOSPACE;
-		}
-	}
-	else
-		return ISC_R_FAILURE;
-
-	res = idna_to_ascii_8z(tmp_str, &ace_str, 0);
-	if (res == IDNA_SUCCESS) {
-		/* check the length */
-		if (strlen(tmp_str) >= tolen) {
-			debug("encoded ASC string is too long");
-			result = ISC_R_NOSPACE;
-		} else {
-			(void) strncpy(to, ace_str, tolen);
-			result = ISC_R_SUCCESS;
-		}
-	}
-
-	free(tmp_str);
-	free(ace_str);
-	if (res != IDNA_SUCCESS) {
-		fatal("idna_to_ascii_8z failed: %s", idna_strerror(res));
-	}
-	return (result);
-}
-
-static isc_result_t
-idn_ace_to_locale(const char *from, char *to, size_t tolen) {
-	int res;
-	isc_result_t result;
-	char *tmp_str = NULL;
-
-	res = idna_to_unicode_8zlz(from, &tmp_str, 0);
-
-	if (res == IDNA_SUCCESS) {
-		/* check the length */
-		if (strlen(tmp_str) >= tolen) {
-			debug("decoded locale string is too long");
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
-
-		(void) strncpy(to, tmp_str, tolen);
-
-		result = ISC_R_SUCCESS;
-	} else {
-		debug("idna_to_unicode_8z8l failed: %s",
-		      idna_strerror(res));
-		result = ISC_R_FAILURE;
-	}
-
-cleanup:
-	free(tmp_str);
-	return (result);
-}
-#endif /* WITH_LIBIDN */
 
 #ifdef WITH_LIBIDN2
 static isc_result_t

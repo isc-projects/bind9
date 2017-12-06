@@ -4890,36 +4890,6 @@ fi
 AC_SUBST(IDNKIT_LIBS)
 
 #
-# IDN support using libidn
-#
-LIBIDN_LIBS=
-AC_ARG_WITH(libidn,
-	AS_HELP_STRING([--with-libidn[=PATH]], [enable IDN support using GNU libidn [yes|no|path]]),
-	use_libidn="$withval", use_libidn="no")
-case "$use_libidn" in
-yes)
-	if test X$prefix = XNONE ; then
-		libidn_path=/usr/local
-	else
-		libidn_path=$prefix
-	fi
-	LIBIDN_LIBS="-lidn"
-	;;
-no)
-	;;
-*)
-	LIBIDN_LIBS="-L$use_libidn/lib -lidn"
-	libidn_path="$use_libidn"
-	;;
-esac
-
-if test "$use_libidn" != no; then
-	AC_DEFINE(WITH_LIBIDN, 1, [define if libidn support is to be included.])
-	STD_CINCLUDES="$STD_CINCLUDES -I$libidn_path/include"
-fi
-AC_SUBST(LIBIDN_LIBS)
-
-#
 # IDN support using libidn2
 #
 
@@ -4971,19 +4941,12 @@ AC_SUBST(LIBIDN2_LIBS)
 # IDN support in general
 #
 
-# check if idnkit, libidn and libidn2 are not used at the same time
-if test "$use_idnkit" != no && test "$use_libidn" != no; then
-    AC_MSG_ERROR([idnkit and libidn cannot be used at the same time.])
-fi
+# check if idnkit and libidn2 are not used at the same time
 if test "$use_idnkit" != no && test "$use_libidn2" != no; then
     AC_MSG_ERROR([idnkit and libidn2 cannot be used at the same time.])
 fi
-if test "$use_libidn" != no && test "$use_libidn2" != no; then
-    AC_MSG_ERROR([libidn and libidn2 cannot be used at the same time.])
-fi
-
 # the IDN support is on
-if test "$use_idnkit" != no || test "$use_libidn" != no || test "$use_libidn2" != no; then
+if test "$use_idnkit" != no || test "$use_libidn2" != no; then
 	AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN input support is to be included.])
 	if test "$use_libidn2" = no || test "$use_libidn2_out" != no; then
 		AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])
