@@ -107,6 +107,8 @@ fromwire_opt(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sregion);
+	if (sregion.length == 0)
+		return (ISC_R_SUCCESS);
 	total = 0;
 	while (sregion.length != 0) {
 		if (sregion.length < 4)
