@@ -1,7 +1,6 @@
-4605.	[performance]	(partial backport) Improve general query
-			performance. Improves performance of owner case
-			restoration, hash function, etc. Uses inline
-			buffer implementation by default. [RT #45637]
+4840.	[test]		Add tests to cover fallback to using ZSK on inactive
+			KSK. [RT #46787]
+
 
 4839.	[bug]		zone.c:zone_sign was not properly determining
 			if there were active KSK and ZSK keys for
@@ -449,6 +448,11 @@
 			server timeout. [RT #45417]
 
 4651.	[test]		Silence coverity warnings in tsig_test.c. [RT #45528]
+
+4605.	[performance]	(partial backport) Improve general query
+			performance. Improves performance of owner case
+			restoration, hash function, etc. Uses inline
+			buffer implementation by default. [RT #45637]
 
 	--- 9.11.2 released ---
 
