@@ -194,14 +194,14 @@ tables_init(void) {
 static isc_uint32_t
 matrix_binaryrank(isc_uint32_t *bits, ssize_t rows, ssize_t cols) {
 	ssize_t i, j, k;
-	int rt = 0;
+	unsigned int rt = 0;
 	isc_uint32_t rank = 0;
 	isc_uint32_t tmp;
 
 	for (k = 0; k < rows; k++) {
 		i = k;
 
-		while (((bits[i] >> rt) & 1) == 0) {
+		while (rt >= cols || ((bits[i] >> rt) & 1) == 0) {
 			i++;
 
 			if (i < rows)
