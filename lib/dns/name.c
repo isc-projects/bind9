@@ -1044,7 +1044,8 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r) {
 		len = (r->length < r2.length) ? r->length : r2.length;
 		if (len > DNS_NAME_MAXWIRE)
 			len = DNS_NAME_MAXWIRE;
-		memmove(r2.base, r->base, len);
+		if (len != 0)
+			memmove(r2.base, r->base, len);
 		name->ndata = r2.base;
 		name->length = len;
 	} else {
@@ -2050,8 +2051,11 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 	if (gf) {
 		if (ISC_UNLIKELY(target->length - target->used < gp.length))
 			return (ISC_R_NOSPACE);
-		(void)memmove((unsigned char *)target->base + target->used,
-			      gp.ndata, (size_t)gp.length);
+		if (gp.length != 0) {
+			unsigned char *base = target->base;
+			(void)memmove(base + target->used, gp.ndata,
+				      (size_t)gp.length);
+		}
 		isc_buffer_add(target, gp.length);
 		if (ISC_UNLIKELY(target->length - target->used < 2))
 			return (ISC_R_NOSPACE);
@@ -2066,8 +2070,11 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 	} else {
 		if (ISC_UNLIKELY(target->length - target->used < name->length))
 			return (ISC_R_NOSPACE);
-		(void)memmove((unsigned char *)target->base + target->used,
-			      name->ndata, (size_t)name->length);
+		if (name->length != 0) {
+			unsigned char *base = target->base;
+			(void)memmove(base + target->used, name->ndata,
+				      (size_t)name->length);
+		}
 		isc_buffer_add(target, name->length);
 		dns_compress_add(cctx, name, name, offset);
 		if (comp_offsetp != NULL)
@@ -2542,7 +2549,8 @@ dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) 
 	ndata = (unsigned char *)target->base + target->used;
 	dest->ndata = target->base;
 
-	memmove(ndata, source->ndata, source->length);
+	if (source->length != 0)
+		memmove(ndata, source->ndata, source->length);
 
 	dest->ndata = ndata;
 	dest->labels = source->labels;

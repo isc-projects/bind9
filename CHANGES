@@ -1,3 +1,5 @@
+4841.	[bug]		Address -fsanitize=undefined warnings. [RT #46786]
+
 4840.	[test]		Add tests to cover fallback to using ZSK on inactive
 			KSK. [RT #46787]
 

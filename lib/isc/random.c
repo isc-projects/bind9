@@ -140,7 +140,8 @@ isc_random_get(isc_uint32_t *val) {
 	 */
 #if RAND_MAX >= 0xfffff
 	/* We have at least 20 bits.  Use lower 16 excluding lower most 4 */
-	*val = ((rand() >> 4) & 0xffff) | ((rand() << 12) & 0xffff0000);
+	*val = ((((unsigned int)rand()) & 0xffff0) >> 4) |
+	       ((((unsigned int)rand()) & 0xffff0) << 12);
 #elif RAND_MAX >= 0x7fff
 	/* We have at least 15 bits.  Use lower 10/11 excluding lower most 4 */
 	*val = ((rand() >> 4) & 0x000007ff) | ((rand() << 7) & 0x003ff800) |

@@ -4401,8 +4401,10 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 			}
 			isc_buffer_putuint16(buf, ednsopts[i].code);
 			isc_buffer_putuint16(buf, ednsopts[i].length);
-			isc_buffer_putmem(buf, ednsopts[i].value,
-					  ednsopts[i].length);
+			if (ednsopts[i].length != 0) {
+				isc_buffer_putmem(buf, ednsopts[i].value,
+						  ednsopts[i].length);
+			}
 		}
 
 		/* Padding must be the final option */
