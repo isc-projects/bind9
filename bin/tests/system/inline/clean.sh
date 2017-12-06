@@ -23,6 +23,8 @@ rm -f ns1/root.db.signed
 rm -f ns2/bits.db
 rm -f ns2/bits.db.jnl
 rm -f ns1/signer.out
+rm -f ns2/inactiveksk.db
+rm -f ns2/inactiveksk.db.jnl
 rm -f ns2/inactivezsk.db
 rm -f ns2/inactivezsk.db.jnl
 rm -f ns2/retransfer.db
@@ -54,6 +56,10 @@ rm -f ns3/expired.db
 rm -f ns3/expired.db.jnl
 rm -f ns3/expired.db.signed
 rm -f ns3/expired.db.signed.jnl
+rm -f ns3/inactiveksk.bk
+rm -f ns3/inactiveksk.bk.jnl
+rm -f ns3/inactiveksk.bk.signed
+rm -f ns3/inactiveksk.bk.signed.jnl
 rm -f ns3/inactivezsk.bk
 rm -f ns3/inactivezsk.bk.jnl
 rm -f ns3/inactivezsk.bk.signed
