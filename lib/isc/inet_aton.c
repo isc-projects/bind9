@@ -91,8 +91,8 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 	int base;
 	ptrdiff_t n;
 	unsigned char c;
-	isc_uint8_t parts[4];
-	isc_uint8_t *pp = parts;
+	isc_uint32_t parts[4];
+	isc_uint32_t *pp = parts;
 	int digit;
 
 	c = *cp;
@@ -144,7 +144,7 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 			 */
 			if (pp >= parts + 3 || val > 0xffU)
 				return (0);
-			*pp++ = (isc_uint8_t)val;
+			*pp++ = val;
 			c = *++cp;
 		} else
 			break;
