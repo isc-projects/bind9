@@ -1,0 +1,143 @@
+$ORIGIN .
+$TTL 300	; 5 minutes
+inacksk3.example	IN SOA	mname1. . (
+				6          ; serial
+				20         ; refresh (20 seconds)
+				20         ; retry (20 seconds)
+				1814400    ; expire (3 weeks)
+				3600       ; minimum (1 hour)
+				)
+			RRSIG	SOA 7 2 300 (
+				20180105040253 20171206030253 17570 inacksk3.example.
+				QptO/kcVg8pxOQNW11fUYTTXqzc8CjiXAVBSi1szdibP
+				xGY37+9F1NaQijAA/L1WOGuO446EXbCD4lVUqJyrP6PY
+				08Uo8YKO/OMP6/m8WztEBzTVaYEyINgz+tF7HzBt0/I6
+				Tn1Fh8uj4uKA3qhXGO7ssUmRcdi1fZB2h3hphUU= )
+			NS	ns.inacksk3.example.
+			RRSIG	NS 7 2 300 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				bM2qP+npbdkpkFvf6r7Mnt36FePrVDtdepetnDLVBtfP
+				lSRCkg8XUWC2MzR0wCbVEeH111PlySZUVywNMXECfFFX
+				1/mc6F+nEI1sPaXdU6vTrymJW+MENdn5KV/1Ve1+i38a
+				w6h5FeRUoNe9w3ItKmJmxeOKQ4mK7wA/bbcncwo= )
+$TTL 3600	; 1 hour
+			NSEC	a.inacksk3.example. NS SOA RRSIG NSEC DNSKEY TYPE65534
+			RRSIG	NSEC 7 2 3600 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				swiYw7bMGxEJJzu7KWFUTpMH7cCFdDTy+FVhVFrScjOG
+				OCObJzYQ7lhmXxuH8Eu161nE6mIKAXpjcehSj3h6litO
+				qow/8BErFwMnMjTbdZUFKZ9nW4TLBRji/bOgkfIppR0K
+				aUxWHMCtQiNquwgPC+rKwE40yQw1KlgDP5tt55Y= )
+$TTL 300	; 5 minutes
+			DNSKEY	257 3 7 (
+				AwEAAaG9OVHHQEw4I8QRRWXHDZG1eiAbPiPspACwXyxE
+				eVICN0UcY5l4jO09YfiUxdRN8RSSwVcW3aVT71saO30b
+				mrY4SOcERnNRPfU3F2J0riv9UISE4HDR5tvypQ+R6R/r
+				vIcmu178qUCCKroGvVb7iYJuphhdEMPFE6nyAbk5euhq
+				vE3O3Rb1niMoDJhuapi/oioDR1X4Cfkj27DSa4UoE8Hg
+				QfCRir20jx9RJ7IjDaXX9KhB8dJOAb0HM49PacRU3Ep5
+				Vsvwc2+MSU/9n+KxvLSaOZuHmFknOEwftaMzble12VQj
+				D0BfUWOEQ7VPneija6Pnt3iM1z6V6J1b+nJ1SMc=
+				) ; KSK; alg = NSEC3RSASHA1 ; key id = 7761
+			DNSKEY	256 3 7 (
+				AwEAAcRfrYZNp3gdpEG+DLouFLrih+lPp/fByO+IfUwx
+				yOsBVzrCaXk7wtI8Czt6RB/CVBj//DHnTQ60xP9sNIB3
+				9aaqaXfz+Qi/+65dVME8sE+IwphZI2tI1lJCN9rMYs+/
+				zngHdbWqYGGl4kdmRWnYeEupmoGy9N5oavsZOXQ5aGyZ
+				) ; ZSK; alg = NSEC3RSASHA1 ; key id = 17570
+			RRSIG	DNSKEY 7 2 300 (
+				20180105040253 20171206030253 17570 inacksk3.example.
+				TjaNk52XyZJTtBT+7UizX6To6KVPQO4/q0fQ2f1YOY53
+				XbWIqW1ZEu7dtM/E9MRh7lRBJxD1slKwzWgK9qrCHQUT
+				zdyaupE865KAO8CJKpEa5uyEoByI4K9smsmwt9JOqJrF
+				E/nqYmg/DIvxSWqvnZCQLy+pxR9Q04Cu0dvNW1o= )
+$TTL 0	; 0 seconds
+			TYPE65534 \# 5 ( 071E510000 )
+			TYPE65534 \# 5 ( 0744A20001 )
+			RRSIG	TYPE65534 7 2 0 (
+				20180105035556 20171206030253 17570 inacksk3.example.
+				Te0JxpcV+HTzJRfIxMDermiHxrezqRaHXuqPZC3OPpWV
+				uJVXZLcEUXsdotW9YetIwe+P2BYWx9SkX6zm96EwENqF
+				Ma12Ne7gZixOfW7V4CTlSmp8rmj6aWxudhP2QzZm7zU7
+				VEyId+oYlMUmDbMdtBV6MKdFbogZ1eoMfN602Sg= )
+$ORIGIN inacksk3.example.
+$TTL 300	; 5 minutes
+a			A	10.0.0.1
+			RRSIG	A 7 3 300 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				Ias4wKqOvivZdxsQwIDgtbMfw1DITPJlAGNfGRFkYUMC
+				+gVZy9KtvEXN8+omy4DwfObokPr2NgFsj3XNJTTss+RW
+				0Aljxku5HjiLO4OfWjLgNgfvjnDC+q/VcCuqJJrpON61
+				KDAQuMJ7T28uPngdx5yXWAk0e365CXS9vmS4pWc= )
+$TTL 3600	; 1 hour
+			NSEC	b.inacksk3.example. A RRSIG NSEC
+			RRSIG	NSEC 7 3 3600 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				i+KCoLtBQb1EqC2e2OVz1MSLNGU3xLeYkQtdl5Y6hgpB
+				wyMI7/16mQwNak5bvIm7/lX7viVcavuFVs/ae9a0hxqg
+				NHYv6UeHg8Txi0j1CQr5Fozmif3zSBsB3tO9IvQLpF1c
+				KQIe6VqNJKuzMvnF06DpL9qnsiC60+1KcCtDNeU= )
+$TTL 300	; 5 minutes
+b			A	10.0.0.2
+			RRSIG	A 7 3 300 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				deawm0L4aD7k79cnqslJ4pSBk+MYSdv1iUEnlPy6pSrG
+				+kHt44gc/XjlO/FAPrinUuH/tiFtQk9CvU1jcGvdvIOL
+				gtzVOrzWoOVJzwYS4IwFtcoviLUPK8stoFrsU+w5bUH/
+				t7mrDa3Lal3smsfvfW4qvCjDkYk4vyRw42AW7P0= )
+$TTL 3600	; 1 hour
+			NSEC	d.inacksk3.example. A RRSIG NSEC
+			RRSIG	NSEC 7 3 3600 (
+				20180105034827 20171206030233 17570 inacksk3.example.
+				pfOlptbgbK6Lx9wGJ5IyGzupu7vcwRoPJyyx3fjLwt9B
+				+hu+emnJTn0chLMEygs1A73+gw2JebwRwPpHWd4dP8lg
+				WsF4obvAKy8lWxKPiVP6w5VBDDNPq8lKaTUeu3a7wLYO
+				IsAiGO3FBqh5hDLS0KKDJydA+zEl5ckDGgwOwm8= )
+$TTL 300	; 5 minutes
+d			A	10.0.0.4
+			RRSIG	A 7 3 300 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				qPALj6QLsAxU4aV4KXYIPANHA0SjJtd/e08nPyfs+wIC
+				Z8OhHanTsf5jJuMO15bcbzJ0/4gIYv4gWdR+RuVLy3EY
+				JomX0PeZe13LupitSAx+JoeG7PMus2H3Oux4pUaAoUpQ
+				Wrs/nL/sgA8IUgJZMac5GoAnLU5YtwqidEne1HI= )
+$TTL 3600	; 1 hour
+			NSEC	ns.inacksk3.example. A RRSIG NSEC
+			RRSIG	NSEC 7 3 3600 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				XxbkRkob3CgJBV++MMvCLinETtUIUdi4Uy1gXB/zPloa
+				muSHcFuYKqygmDYGQ/VTan06CHSgZoGVOfPQ2KhX8Oks
+				OV7rqKr8pJo3gseHgjh7xLyhvzZJqgT+y30i+BQRCMzT
+				XOF0hcxOxBiTNgRojSPcrorMtbl+AE53RxIQCms= )
+$TTL 300	; 5 minutes
+ns			A	10.53.0.3
+			RRSIG	A 7 3 300 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				t8MnYJIoiCza5jbNZWCrc2Q3zIJ+RiefjzKqPg8d+MzL
+				tRU5miy9W+B7LrWrql6+XwFzoFlcwsGoZq2Ht0PiHK7w
+				qgO63ojvhIcO5E5St80KD5oyhVHpsQ4td6+5GhJCkGl1
+				3o4vLKyebrp7Zq9y954zk43/Xl2FqDc22HX5f7o= )
+$TTL 3600	; 1 hour
+			NSEC	x.inacksk3.example. A RRSIG NSEC
+			RRSIG	NSEC 7 3 3600 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				PKB66godfxMCZvf6E6BAizHXc9+K21KoMJJQp0lek2IC
+				BkmgdTH/INvS/cH81S1un8NCW6vhucr79+ntwxYGwNJB
+				0KQoIVNHIKg+tiiJquTvvDV1PfPFEDps59BzsN7vZnXS
+				iTxrncJj1dqG9EG0NcpYpsOf7WG7Yo8GrNkgZ7Q= )
+$TTL 300	; 5 minutes
+x			CNAME	a
+			RRSIG	CNAME 7 3 300 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				o42+o7Li+ZQYbltwYjnP2A0sSoDrBugPYhL+V2XfchUS
+				bANJntJu3GxGdEUJ52eunx4EL25wCR0yjCj8xQaQp3Pf
+				mTeB8+pkvlnekLTxQy8ZxFUvWFKBRz5ZkhzJoHLP+GPi
+				OfpU4XnGVrbly+ZFkfiTre+C245pPu8/fo4W/wg= )
+$TTL 3600	; 1 hour
+			NSEC	inacksk3.example. CNAME RRSIG NSEC
+			RRSIG	NSEC 7 3 3600 (
+				20180105030702 20171206030233 17570 inacksk3.example.
+				l4KfYcCXDjvKdy+l1PnWkKFgR4QI2fdcDFbIqQd6QPxO
+				mdsqIn2qWLpGTuXxhzQRR+yof7EHuUxXAmUDqo3d6rJl
+				VW3YzsHFmQpL0vU9E/RWcK/+lCak7IUo3O8OaCrekktF
+				++vPFmNWdDIMmFwCID8cwW3DU8TC2hga/jO0KMU= )
