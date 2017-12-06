@@ -939,9 +939,9 @@ dns_name_getlabelsequence(const dns_name_t *source,
 			  unsigned int first, unsigned int n,
 			  dns_name_t *target)
 {
-	unsigned char *offsets;
-	dns_offsets_t odata;
+	unsigned char *p, l;
 	unsigned int firstoffset, endoffset;
+	unsigned int i;
 
 	/*
 	 * Make 'target' refer to the 'n' labels including and following
@@ -954,17 +954,26 @@ dns_name_getlabelsequence(const dns_name_t *source,
 	REQUIRE(n <= source->labels - first); /* note first+n could overflow */
 	REQUIRE(BINDABLE(target));
 
-	SETUP_OFFSETS(source, offsets, odata);
-
-	if (first == source->labels)
+	p = source->ndata;
+	if (ISC_UNLIKELY(first == source->labels)) {
 		firstoffset = source->length;
-	else
-		firstoffset = offsets[first];
+	} else {
+		for (i = 0; i < first; i++) {
+			l = *p;
+			p += l + 1;
+		}
+		firstoffset = p - source->ndata;
+	}
 
-	if (first + n == source->labels)
+	if (ISC_LIKELY(first + n == source->labels))
 		endoffset = source->length;
-	else
-		endoffset = offsets[first + n];
+	else {
+		for (i = 0; i < n; i++) {
+			l = *p;
+			p += l + 1;
+		}
+		endoffset = p - source->ndata;
+	}
 
 	target->ndata = &source->ndata[firstoffset];
 	target->length = endoffset - firstoffset;
@@ -1756,16 +1765,15 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 	offset = 0;
 	nlabels = 0;
 	absolute = ISC_FALSE;
-	while (offset != length) {
+	while (ISC_LIKELY(offset != length)) {
 		INSIST(nlabels < 128);
 		offsets[nlabels++] = offset;
-		count = *ndata++;
-		offset++;
+		count = *ndata;
 		INSIST(count <= 63);
-		offset += count;
-		ndata += count;
+		offset += count + 1;
+		ndata += count + 1;
 		INSIST(offset <= length);
-		if (count == 0) {
+		if (ISC_UNLIKELY(count == 0)) {
 			absolute = ISC_TRUE;
 			break;
 		}

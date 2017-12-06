@@ -1,3 +1,8 @@
+4605.	[performance]	(partial backport) Improve general query
+			performance. Improves performance of owner case
+			restoration, hash function, etc. Uses inline
+			buffer implementation by default. [RT #45637]
+
 4839.	[bug]		zone.c:zone_sign was not properly determining
 			if there were active KSK and ZSK keys for
 			a algorithm when update-check-ksk is true

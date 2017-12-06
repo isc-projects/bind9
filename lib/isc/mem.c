@@ -198,14 +198,19 @@ struct isc__mempool {
 #define DELETE_TRACE(a, b, c, d, e)
 #define ISC_MEMFUNC_SCOPE
 #else
+#define TRACE_OR_RECORD (ISC_MEM_DEBUGTRACE|ISC_MEM_DEBUGRECORD)
 #define ADD_TRACE(a, b, c, d, e) \
 	do { \
-		if ((isc_mem_debugging & (ISC_MEM_DEBUGTRACE | \
-					  ISC_MEM_DEBUGRECORD)) != 0 && \
+		if ((isc_mem_debugging & TRACE_OR_RECORD) != 0 && \
 		     b != NULL) \
 			 add_trace_entry(a, b, c, d, e); \
 	} while (0)
-#define DELETE_TRACE(a, b, c, d, e)	delete_trace_entry(a, b, c, d, e)
+#define DELETE_TRACE(a, b, c, d, e)					\
+	do {								\
+	        if ((isc_mem_debugging & TRACE_OR_RECORD) != 0 &&	\
+		    b != NULL)						\
+			delete_trace_entry(a, b, c, d, e);		\
+	} while(0)
 
 static void
 print_active(isc__mem_t *ctx, FILE *out);
@@ -1508,9 +1513,7 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	if (((ctx->flags & ISC_MEMFLAG_INTERNAL) == 0) && (si != NULL))
 		mem_getstats(ctx, si[-1].u.size);
 
-#if ISC_MEM_TRACKLINES
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
-#endif
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
 	    !ctx->is_overmem) {
 		ctx->is_overmem = ISC_TRUE;
@@ -2031,7 +2034,7 @@ isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 		UNLOCK(mpctx->lock);
 
 #if ISC_MEM_TRACKLINES
-	if (item != NULL) {
+	if (((isc_mem_debugging & TRACE_OR_RECORD) != 0) && item != NULL) {
 		MCTXLOCK(mctx, &mctx->lock);
 		ADD_TRACE(mctx, item, mpctx->size, file, line);
 		MCTXUNLOCK(mctx, &mctx->lock);
@@ -2060,9 +2063,11 @@ isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 	mpctx->allocated--;
 
 #if ISC_MEM_TRACKLINES
-	MCTXLOCK(mctx, &mctx->lock);
-	DELETE_TRACE(mctx, mem, mpctx->size, file, line);
-	MCTXUNLOCK(mctx, &mctx->lock);
+	if ((isc_mem_debugging & TRACE_OR_RECORD) != 0) {
+		MCTXLOCK(mctx, &mctx->lock);
+		DELETE_TRACE(mctx, mem, mpctx->size, file, line);
+		MCTXUNLOCK(mctx, &mctx->lock);
+	}
 #endif /* ISC_MEM_TRACKLINES */
 
 	/*
@@ -2286,17 +2291,19 @@ isc_mem_checkdestroyed(FILE *file) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
 	LOCK(&contextslock);
-	if (!ISC_LIST_EMPTY(contexts))  {
+	if (!ISC_LIST_EMPTY(contexts)) {
 #if ISC_MEM_TRACKLINES
-		isc__mem_t *ctx;
+		if ((isc_mem_debugging & TRACE_OR_RECORD) != 0) {
+			isc__mem_t *ctx;
 
-		for (ctx = ISC_LIST_HEAD(contexts);
-		     ctx != NULL;
-		     ctx = ISC_LIST_NEXT(ctx, link)) {
-			fprintf(file, "context: %p\n", ctx);
-			print_active(ctx, file);
+			for (ctx = ISC_LIST_HEAD(contexts);
+			     ctx != NULL;
+			     ctx = ISC_LIST_NEXT(ctx, link)) {
+				fprintf(file, "context: %p\n", ctx);
+				print_active(ctx, file);
+			}
+			fflush(file);
 		}
-		fflush(file);
 #endif
 		INSIST(0);
 	}
