@@ -717,6 +717,17 @@ hashlist_init(hashlist_t *l, unsigned int nodes, unsigned int length) {
 }
 
 static void
+hashlist_free(hashlist_t *l) {
+	if (l->hashbuf) {
+		free(l->hashbuf);
+		l->hashbuf = NULL;
+		l->entries = 0;
+		l->length = 0;
+		l->size = 0;
+	}
+}
+
+static void
 hashlist_add(hashlist_t *l, const unsigned char *hash, size_t len)
 {
 
@@ -3891,6 +3902,9 @@ main(int argc, char *argv[]) {
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);
+
+	if (IS_NSEC3)
+		hashlist_free(&hashlist);
 
 	while (!ISC_LIST_EMPTY(keylist)) {
 		key = ISC_LIST_HEAD(keylist);
