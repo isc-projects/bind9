@@ -7362,17 +7362,34 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 }
 
 /*%
+ * Given a tuple which is part of a diff, return a pointer to the next tuple in
+ * that diff which has the same name and type (or NULL if no such tuple is
+ * found).
+ */
+static dns_difftuple_t *
+find_next_matching_tuple(dns_difftuple_t *cur) {
+	dns_difftuple_t *next;
+
+	while ((next = ISC_LIST_NEXT(cur, link)) != NULL) {
+		if (cur->rdata.type == next->rdata.type &&
+		    dns_name_equal(&cur->name, &next->name))
+		{
+			return (next);
+		}
+		cur = next;
+	}
+
+	return (NULL);
+}
+
+/*%
  * Remove all tuples with the same name and type as 'cur' from 'src' and append
  * them to 'dst'.
  */
 static void
 move_matching_tuples(dns_difftuple_t *cur, dns_diff_t *src, dns_diff_t *dst) {
 	do {
-		dns_difftuple_t *next = ISC_LIST_NEXT(cur, link);
-		while (next != NULL &&
-		       (cur->rdata.type != next->rdata.type ||
-			!dns_name_equal(&cur->name, &next->name)))
-			next = ISC_LIST_NEXT(next, link);
+		dns_difftuple_t *next = find_next_matching_tuple(cur);
 		ISC_LIST_UNLINK(src->tuples, cur, link);
 		dns_diff_appendminimal(dst, &cur);
 		INSIST(cur == NULL);
