@@ -7338,9 +7338,7 @@ dns__zone_update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	dns_difftuple_t *tuple;
 	isc_result_t result;
 
-	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = ISC_LIST_HEAD(diff->tuples)) {
+	while ((tuple = ISC_LIST_HEAD(diff->tuples)) != NULL) {
 		isc_stdtime_t exp = expire;
 
 		if (keyexpire != 0 &&
