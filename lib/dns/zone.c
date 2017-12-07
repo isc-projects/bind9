@@ -7361,6 +7361,25 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
+/*%
+ * Remove all tuples with the same name and type as 'cur' from 'src' and append
+ * them to 'dst'.
+ */
+static void
+move_matching_tuples(dns_difftuple_t *cur, dns_diff_t *src, dns_diff_t *dst) {
+	do {
+		dns_difftuple_t *next = ISC_LIST_NEXT(cur, link);
+		while (next != NULL &&
+		       (cur->rdata.type != next->rdata.type ||
+			!dns_name_equal(&cur->name, &next->name)))
+			next = ISC_LIST_NEXT(next, link);
+		ISC_LIST_UNLINK(src->tuples, cur, link);
+		dns_diff_appendminimal(dst, &cur);
+		INSIST(cur == NULL);
+		cur = next;
+	} while (cur != NULL);
+}
+
 static isc_result_t
 update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	    dst_key_t *zone_keys[], unsigned int nkeys, dns_zone_t *zone,
@@ -7394,17 +7413,14 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 			return (result);
 		}
 
-		do {
-			dns_difftuple_t *next = ISC_LIST_NEXT(tuple, link);
-			while (next != NULL &&
-			       (tuple->rdata.type != next->rdata.type ||
-				!dns_name_equal(&tuple->name, &next->name)))
-				next = ISC_LIST_NEXT(next, link);
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
-			dns_diff_appendminimal(zonediff->diff, &tuple);
-			INSIST(tuple == NULL);
-			tuple = next;
-		} while (tuple != NULL);
+		/*
+		 * Signature changes for all RRs with name tuple->name and type
+		 * tuple->rdata.type were appended to zonediff->diff.  Now we
+		 * remove all the "raw" changes with the same name and type
+		 * from diff (so that they are not processed by this loop
+		 * again) and append them to zonediff so that they get applied.
+		 */
+		move_matching_tuples(tuple, diff, zonediff->diff);
 	}
 	return (ISC_R_SUCCESS);
 }
