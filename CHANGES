@@ -1,3 +1,5 @@
+4843.	[bug]		dnssec-signzone free hashlist on exit. [RT #46791]
+
 4842.	[bug]		Conditionally compile opensslecdsa_link.c to avoid
 			warnings about unused function. [RT #46790]
 
