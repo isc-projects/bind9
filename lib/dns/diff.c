@@ -188,8 +188,6 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep)
 		ISC_LIST_APPEND(diff->tuples, *tuplep, link);
 		*tuplep = NULL;
 	}
-
-	ENSURE(*tuplep == NULL);
 }
 
 static isc_stdtime_t
