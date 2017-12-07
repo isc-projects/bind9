@@ -1,3 +1,6 @@
+4842.	[bug]		Conditionally compile opensslecdsa_link.c to avoid
+			warnings about unused function. [RT #46790]
+
 4841.	[bug]		Address -fsanitize=undefined warnings. [RT #46786]
 
 4840.	[test]		Add tests to cover fallback to using ZSK on inactive
