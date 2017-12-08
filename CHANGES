@@ -1,3 +1,6 @@
+4895.	[bug]		named could crash when a shutdown occurred during
+			an RPZ reload. [RT #46210]
+
 4894.	[bug]		named could crash while rolling a dnstap output file.
 			[RT #46942]
 

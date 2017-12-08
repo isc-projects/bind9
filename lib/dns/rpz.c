@@ -2089,8 +2089,14 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 				    ISC_FALSE);
 	if (rpz->db)
 		dns_db_detach(&rpz->db);
-	isc_ht_destroy(&rpz->nodes);
+
+	if (rpz->updaterunning)
+		isc_task_purgeevent(rpz->rpzs->updater, &rpz->updateevent);
+	isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
+			NULL, NULL, ISC_TRUE);
 	isc_timer_detach(&rpz->updatetimer);
+
+	isc_ht_destroy(&rpz->nodes);
 
 	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 }
