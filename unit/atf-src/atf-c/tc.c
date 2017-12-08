@@ -614,7 +614,9 @@ void
 atf_tc_fini(atf_tc_t *tc)
 {
     atf_map_fini(&tc->pimpl->m_vars);
+    atf_map_fini(&tc->pimpl->m_config);
     free(tc->pimpl);
+    tc->pimpl = NULL;
 }
 
 /*
