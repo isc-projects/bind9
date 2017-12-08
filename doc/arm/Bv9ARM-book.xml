@@ -2788,8 +2788,25 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		<para>
 		  A non-negative 32-bit integer
 		  (i.e., a number between 0 and 4294967295, inclusive).
-		  Its acceptable value might further
-		  be limited by the context in which it is used.
+		  Its acceptable value might be further
+		  limited by the context in which it is used.
+		</para>
+	      </entry>
+	    </row>
+	    <row rowsep="0">
+	      <entry colname="1">
+		<para>
+		  <varname>fixedpoint</varname>
+		</para>
+	      </entry>
+	      <entry colname="2">
+		<para>
+		  A non-negative real number that can be specified to
+		  the nearest one hundredth.  Up to five digits can be
+		  specified before a decimal point, and up to two
+		  digits after, so the maximum value is 99999.99.
+		  Acceptable values might be further limited by the
+		  context in which it is used.
 		</para>
 	      </entry>
 	    </row>
