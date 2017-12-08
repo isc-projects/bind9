@@ -1,3 +1,6 @@
+5046.	[bug]		named could crash during shutdown if an RPZ
+			reload was in progress. [RT #46210]
+
 5045.	[cleanup]	Remove support for DNSSEC algorithms 3 (DSA)
 			and 6 (DSA-NSEC3-SHA1). [GL #22]
 
