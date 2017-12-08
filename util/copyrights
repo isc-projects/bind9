@@ -4392,7 +4392,7 @@
 ./unit/atf-src/atf-c/detail/list.c		X	2011,2013
 ./unit/atf-src/atf-c/detail/list.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/list_test.c		X	2011,2013
-./unit/atf-src/atf-c/detail/map.c		X	2011,2013
+./unit/atf-src/atf-c/detail/map.c		X	2011,2013,2017
 ./unit/atf-src/atf-c/detail/map.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/map_test.c		X	2011,2013
 ./unit/atf-src/atf-c/detail/process.c		X	2011,2013
@@ -4407,7 +4407,7 @@
 ./unit/atf-src/atf-c/detail/text.c		X	2011,2013
 ./unit/atf-src/atf-c/detail/text.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/text_test.c		X	2011,2013
-./unit/atf-src/atf-c/detail/tp_main.c		X	2011,2013
+./unit/atf-src/atf-c/detail/tp_main.c		X	2011,2013,2017
 ./unit/atf-src/atf-c/detail/user.c		X	2011,2013
 ./unit/atf-src/atf-c/detail/user.h		X	2011,2013
 ./unit/atf-src/atf-c/detail/user_test.c		X	2011,2013
@@ -4420,7 +4420,7 @@
 ./unit/atf-src/atf-c/macros_h_test.c		X	2011,2013
 ./unit/atf-src/atf-c/macros_test.c		X	2011,2013
 ./unit/atf-src/atf-c/pkg_config_test.sh		X	2011,2013
-./unit/atf-src/atf-c/tc.c			X	2011,2013
+./unit/atf-src/atf-c/tc.c			X	2011,2013,2017
 ./unit/atf-src/atf-c/tc.h			X	2011,2013
 ./unit/atf-src/atf-c/tc_test.c			X	2011,2013
 ./unit/atf-src/atf-c/tp.c			X	2011,2013
