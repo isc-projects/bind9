@@ -285,6 +285,7 @@ list_tcs(const atf_tp_t *tp)
 
         atf_utils_free_charpp(vars);
     }
+    free(tcs);
 }
 
 /* ---------------------------------------------------------------------
