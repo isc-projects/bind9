@@ -954,6 +954,7 @@ newinception=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {p
 
 [ "$oldserial" = "$newserial" ] && ret=1
 [ "$oldinception" = "$newinception" ] && ret=1
+n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
