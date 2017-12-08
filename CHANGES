@@ -1,3 +1,6 @@
+4902.	[bug]		named could crash during shutdown if an RPZ
+			reload was in progress. [RT #46210]
+
 4901.	[func]		"dig +nssearch" now lists the name servers
 			for a domain that time out, as well as the servers
 			that respond. [GL #64]
