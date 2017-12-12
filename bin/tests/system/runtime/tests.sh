@@ -24,9 +24,19 @@ if [ ! "$CYGWIN" ]; then
     echo "I:verifying that named checks for conflicting listeners ($n)"
     ret=0
     (cd ns2; $NAMED -c named-alt1.conf -D ns2-extra-1 -X other.lock -m record,size,mctx -d 99 -g -U 4 >> named2.run 2>&1 & )
-    sleep 2
+    for i in 1 2 3 4 5 6 7 8 9
+    do
+        grep "unable to listen on any configured interface" ns2/named2.run > /dev/null && break
+        sleep 1
+    done
     grep "unable to listen on any configured interface" ns2/named2.run > /dev/null || ret=1
-    [ -s ns2/named2.pid ] && $KILL -15 `cat ns2/named2.pid`
+    for i in 1 2 3 4 5 6 7 8 9
+    do
+	grep "exiting (due to fatal error)" ns2/named2.run > /dev/null && break
+	sleep 1
+    done
+    pid=`cat ns2/named2.pid 2>/dev/null`
+    test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
     if [ $ret != 0 ]; then echo "I:failed"; fi
     status=`expr $status + $ret`
 fi
@@ -37,7 +47,8 @@ ret=0
 (cd ns2; $NAMED -c named-alt2.conf -D ns2-extra-2 -X named.lock -m record,size,mctx -d 99 -g -U 4 >> named3.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named3.run > /dev/null || ret=1
-[ -s ns2/named3.pid ] && $KILL -15 `cat ns2/named3.pid`
+pid=`cat ns2/named3.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -47,7 +58,8 @@ ret=0
 (cd ns2; $NAMED -c named-alt3.conf -D ns2-extra-3 -m record,size,mctx -d 99 -g -U 4 >> named4.run 2>&1 & )
 sleep 2
 grep "another named process" ns2/named4.run > /dev/null && ret=1
-[ -s ns2/named4.pid ] && $KILL -15 `cat ns2/named4.pid`
+pid=`cat ns2/named4.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
@@ -93,8 +105,10 @@ sleep 2
 grep "exiting (due to fatal error)" named4.run > /dev/null || ret=1
 # pidfile could be in either place depending on whether the directory
 # successfully changed.
-[ -s named.pid ] && kill -15 `cat named.pid` > /dev/null 2>&1
-[ -s ../named.pid ] && kill -15 `cat ../named.pid` > /dev/null 2>&1
+pid=`cat named.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+pid=`cat ../named.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -108,8 +122,10 @@ sleep 2
 grep "exiting (due to fatal error)" named5.run > /dev/null || ret=1
 # pidfile could be in either place depending on whether the directory
 # successfully changed.
-[ -s named.pid ] && kill -15 `cat named.pid` > /dev/null 2>&1
-[ -s ../named.pid ] && kill -15 `cat ../named.pid` > /dev/null 2>&1
+pid=`cat named.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+pid=`cat ../named.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

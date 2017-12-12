@@ -1,3 +1,7 @@
+4846.	[test]		Adjust timing values in runtime system test. Address
+			named.pid removal races in runtime system test.
+			[RT #46800]
+
 4845.	[bug]		Dig (non iOS) should exit on malformed names.
 			[RT #46806]
 
