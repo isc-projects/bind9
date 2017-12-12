@@ -3857,7 +3857,7 @@ notrace</command>. All debugging messages in the server have a debug
 	    logged in ISO8601 format.  If set to
 	    <userinput>iso8601-utc</userinput>, then the date and time
 	    are logged in ISO8601 format, with time zone set to
-	    UTC. The default is <userinput>local</userinput>.
+	    UTC. The default is <userinput>no</userinput>.
 	  </para>
 	  <para>
 	    <command>print-time</command> may
