@@ -52,9 +52,12 @@ then
     status=`expr $status + $ret`
 
     echo "I: shutting down existing named"
-    [ -s named4.pid ] && kill -15 `cat named4.pid` > /dev/null 2>&1
-    [ -s named5.pid ] && kill -15 `cat named5.pid` > /dev/null 2>&1
-    [ -s named6.pid ] && kill -15 `cat named6.pid` > /dev/null 2>&1
+    pid=`cat named4.pid 2>/dev/null`
+    test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+    pid=`cat named5.pid 2>/dev/null`
+    test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+    pid=`cat named6.pid 2>/dev/null`
+    test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 fi
 
 n=`expr $n + 1`
@@ -64,7 +67,8 @@ cd ns2
 $NAMED -c named-alt4.conf -d 99 -g > named4.run 2>&1 &
 sleep 2
 grep "exiting (due to fatal error)" named4.run > /dev/null || ret=1
-[ -s named4.pid ] && kill -15 `cat named4.pid` > /dev/null 2>&1
+pid=`cat named4.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -76,7 +80,8 @@ cd ns2
 $NAMED -c named-alt5.conf -d 99 -g > named5.run 2>&1 &
 sleep 2
 grep "exiting (due to fatal error)" named5.run > /dev/null || ret=1
-[ -s named5.pid ] && kill -15 `cat named5.pid` > /dev/null 2>&1
+pid=`cat named5.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -88,7 +93,8 @@ cd ns2
 $NAMED -c named-alt6.conf -d 99 -g > named6.run 2>&1 &
 sleep 2
 grep "exiting (due to fatal error)" named6.run > /dev/null || ret=1
-[ -s named6.pid ] && kill -15 `cat named6.pid` > /dev/null 2>&1
+pid=`cat named6.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
 cd ..
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`

@@ -1,3 +1,7 @@
+4846.	[test]		Adjust timing values in runtime system test. Address
+			named.pid removal races in runtime system test.
+			[RT #46800]
+
 4844.	[test]		Address memory leaks in libatf-c. [RT #46798]
 
 4843.	[bug]		dnssec-signzone free hashlist on exit. [RT #46791]
