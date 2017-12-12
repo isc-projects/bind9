@@ -1,3 +1,6 @@
+4845.	[bug]		Dig (non iOS) should exit on malformed names.
+			[RT #46806]
+
 4844.	[test]		Address memory leaks in libatf-c. [RT #46798]
 
 4843.	[bug]		dnssec-signzone free hashlist on exit. [RT #46791]

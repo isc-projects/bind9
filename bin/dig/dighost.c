@@ -2203,6 +2203,8 @@ setup_lookup(dig_lookup_t *lookup) {
 #if TARGET_OS_IPHONE
 			check_next_lookup(current_lookup);
 			return (ISC_FALSE);
+#else
+			digexit();
 #endif
 		}
 	}

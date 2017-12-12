@@ -471,6 +471,18 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo "I:failed"; fi
   status=`expr $status + $ret`
 
+  n=`expr $n + 1`
+  echo "I:check that dig gracefully handles bad escape in domain name ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 '\0.' > dig.out.test$n 2>&1
+  digstatus=$?
+  echo digstatus=$digstatus >> dig.out.test$n
+  test $digstatus -eq 10 || ret=1
+  grep REQUIRE dig.out.test$n > /dev/null && ret=1
+  grep "is not a legal name (bad escape)" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo "I:failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo "$DIG is needed, so skipping these dig tests"
 fi
