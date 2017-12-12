@@ -476,12 +476,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 		isc_buffer_free(&tsigin);
 	if (tsigout != NULL)
 		isc_buffer_free(&tsigout);
-	if (buf != NULL)
-		isc_buffer_free(&buf);
-	if (msg != NULL)
-		dns_message_destroy(&msg);
-	if (key != NULL)
-		dns_tsigkey_detach(&key);
+	dns_tsigkey_detach(&key);
 	if (ring != NULL)
 		dns_tsigkeyring_detach(&ring);
 	dns_test_end();
