@@ -1172,9 +1172,11 @@
 ./bin/tests/system/dnssec/ns2/algroll.db.in	ZONE	2010,2016
 ./bin/tests/system/dnssec/ns2/badparam.db.in	ZONE	2010,2016
 ./bin/tests/system/dnssec/ns2/cdnskey-auto.secure.db.in	ZONE	2015,2016
+./bin/tests/system/dnssec/ns2/cdnskey-kskonly.secure.db.in	ZONE	2017
 ./bin/tests/system/dnssec/ns2/cdnskey-update.secure.db.in	ZONE	2015,2016
 ./bin/tests/system/dnssec/ns2/cdnskey.secure.db.in	ZONE	2015,2016
 ./bin/tests/system/dnssec/ns2/cds-auto.secure.db.in	ZONE	2015,2016
+./bin/tests/system/dnssec/ns2/cds-kskonly.secure.db.in	ZONE	2017
 ./bin/tests/system/dnssec/ns2/cds-update.secure.db.in	ZONE	2015,2016
 ./bin/tests/system/dnssec/ns2/cds.secure.db.in	ZONE	2015,2016
 ./bin/tests/system/dnssec/ns2/child.nsec3.example.db	ZONE	2006,2008,2016
