@@ -78,6 +78,13 @@ SUBDIRS="acl additional allow_query addzone autosign builtin
 	 sortlist spf staticstub stub tkey tsig tsiggss unknown
 	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
+# Things that are different on Windows
+KILL=kill
+DIFF=diff
+DOS2UNIX=true
+# There's no trailing period on Windows
+TP=.
+
 # Use the CONFIG_SHELL detected by configure for tests
 SHELL=@SHELL@
 
