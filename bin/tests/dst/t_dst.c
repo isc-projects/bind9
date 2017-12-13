@@ -388,7 +388,8 @@ io(dns_name_t *name, isc_uint16_t id, isc_uint16_t alg, int type,
 	cleandir(tmp);
 
  failure:
-	dst_key_free(&key);
+	if (key != NULL)
+		dst_key_free(&key);
 }
 
 static void
