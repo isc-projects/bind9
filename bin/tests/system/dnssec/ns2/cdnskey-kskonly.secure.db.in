@@ -1,0 +1,9 @@
+; Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+;
+; This Source Code Form is subject to the terms of the Mozilla Public
+; License, v. 2.0. If a copy of the MPL was not distributed with this
+; file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+$TTL 3600
+@	SOA	ns2.example. . 1 3600 1200 86400 1200
+@	NS	ns2.example.

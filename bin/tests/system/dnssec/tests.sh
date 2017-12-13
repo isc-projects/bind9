@@ -3080,6 +3080,29 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+echo "I:check that CDS records are signed only using KSK when added by"
+echo "I:    nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+ret=0
+(
+echo zone cds-kskonly.secure
+echo server 10.53.0.2 5300
+echo update delete cds-kskonly.secure CDS
+echo send
+$DIG $DIGOPTS +noall +answer @10.53.0.2 dnskey cds-kskonly.secure |
+grep "DNSKEY.257" |
+$DSFROMKEY -C -f - -T 1 cds-kskonly.secure |
+sed "s/^/update add /"
+echo send
+) | $NSUPDATE
+$DIG $DIGOPTS +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
+lines=`awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+lines=`awk '$4 == "CDS" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 2 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:checking that positive unknown NSEC3 hash algorithm with OPTOUT does validate ($n)"
 ret=0
 $DIG $DIGOPTS +noauth +noadd +nodnssec +adflag -p 5300 @10.53.0.3 optout-unknown.example SOA > dig.out.ns3.test$n
@@ -3219,6 +3242,26 @@ echo send
 $DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
 test ${lines:-0} -eq 2 || ret=1
+lines=`awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:check that CDNSKEY records are signed only using KSK when added by"
+echo "I:    nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+ret=0
+(
+echo zone cdnskey-kskonly.secure
+echo server 10.53.0.2 5300
+echo update delete cdnskey-kskonly.secure CDNSKEY
+$DIG $DIGOPTS +noall +answer @10.53.0.2 dnskey cdnskey-kskonly.secure |
+sed -n -e "s/^/update add /" -e 's/DNSKEY.257/CDNSKEY 257/p'
+echo send
+) | $NSUPDATE
+$DIG $DIGOPTS +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
+lines=`awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
+test ${lines:-0} -eq 1 || ret=1
 lines=`awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l`
 test ${lines:-0} -eq 1 || ret=1
 n=`expr $n + 1`

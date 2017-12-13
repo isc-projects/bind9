@@ -6438,16 +6438,21 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			}
 		}
 		if (both) {
+			/*
+			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
+			 */
 			if (type == dns_rdatatype_dnskey ||
 			    type == dns_rdatatype_cdnskey ||
 			    type == dns_rdatatype_cds)
 			{
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
-			} else if (KSK(keys[i]))
+			} else if (KSK(keys[i])) {
 				continue;
-		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
-				continue;
+			}
+		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
+			continue;
+		}
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);

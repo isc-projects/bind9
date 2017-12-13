@@ -212,6 +212,14 @@ key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cat $infile $key1.key $key2.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
+zone=cds-kskonly.secure
+infile=cds-kskonly.secure.db.in
+zonefile=cds-kskonly.secure.db
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+cat $infile $key1.key $key2.key > $zonefile
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
+
 zone=cds-auto.secure
 infile=cds-auto.secure.db.in
 zonefile=cds-auto.secure.db
@@ -242,6 +250,14 @@ $SIGNER -P -g -x -r $RANDFILE -o $zone $zonefile > /dev/null
 zone=cdnskey-update.secure
 infile=cdnskey-update.secure.db.in
 zonefile=cdnskey-update.secure.db
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+cat $infile $key1.key $key2.key > $zonefile
+$SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
+
+zone=cdnskey-kskonly.secure
+infile=cdnskey-kskonly.secure.db.in
+zonefile=cdnskey-kskonly.secure.db
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
 key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 cat $infile $key1.key $key2.key > $zonefile

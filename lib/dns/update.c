@@ -1137,20 +1137,21 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		}
 
 		if (both) {
-			if (type == dns_rdatatype_dnskey) {
+			/*
+			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
+			 */
+			if (type == dns_rdatatype_dnskey ||
+			    type == dns_rdatatype_cdnskey ||
+			    type == dns_rdatatype_cds)
+			{
 				if (!KSK(keys[i]) && keyset_kskonly)
 					continue;
 			} else if (KSK(keys[i])) {
-				/*
-				 * CDS and CDNSKEY are signed with KSK
-				 * (RFC 7344, 4.1).
-				*/
-				if (type != dns_rdatatype_cds &&
-				    type != dns_rdatatype_cdnskey)
-					continue;
+				continue;
 			}
-		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey)
+		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
 			continue;
+		}
 
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
