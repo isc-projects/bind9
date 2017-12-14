@@ -12,7 +12,6 @@ set -e
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. $SYSTEMTESTTOP/getopts.sh
 
 USAGE="$0: [-xD]"
 DEBUG=
@@ -36,18 +35,13 @@ $SHELL clean.sh $DEBUG
 $PERL testgen.pl
 
 copy_setports ns1/named.conf.in ns1/named.conf
-echo "${port}" > ns1/named.port
 
 copy_setports ns2/named.conf.header.in ns2/named.conf.header
-echo "${port}" > ns2/named.port
-
 copy_setports ns2/named.default.conf ns2/named.conf
 
 copy_setports ns3/named1.conf.in ns3/named.conf
-echo "${port}" > ns3/named.port
 
 copy_setports ns4/named.conf.in ns4/named.conf
-echo "${port}" > ns4/named.port
 
 copy_setports ans5/ans.pl.in ans5/ans.pl
 
