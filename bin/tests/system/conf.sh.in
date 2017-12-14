@@ -212,6 +212,42 @@ echo_i() {
 }
 
 #
+# Useful functions in test scripts
+#
+
+# nextpart: read everything that's been appended to a file since the
+# last time 'nextpart' was called.
+nextpart () {
+    [ -f $1.prev ] || echo "0" > $1.prev
+    prev=`cat $1.prev`
+    awk "NR > $prev "'{ print }
+         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+}
+
+# copy_setports - Copy Configuration File and Replace Ports
+#
+# Convenience function to copy a configuration file, replacing the symbols
+# QUERYPORT, CONTROLPORT and EXTRAPORT[1-8] with the values of the equivalent
+# environment variables. (These values are set by "run.sh", which calls the
+# scripts invoking this function.)
+#
+# Usage:
+#   copy_setports infile outfile
+
+copy_setports() {
+    sed -e "s/@PORT@/${PORT}/g" \
+        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT2@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT3@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT4@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT5@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT6@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT7@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT8@/${EXTRAPORT1}/g" \
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+}
+
+#
 # Export command paths
 #
 export ARPANAME

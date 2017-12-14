@@ -14,8 +14,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-. ../getopts.sh
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 copy_setports ../common/controls.conf.in ns2/controls.conf
 copy_setports  ns2/named01.conf.in ns2/named.conf
-echo "${port}" > ns2/named.port
