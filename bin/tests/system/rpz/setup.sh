@@ -10,7 +10,6 @@ set -e
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. $SYSTEMTESTTOP/getopts.sh
 
 QPERF=`$SHELL qperf.sh`
 
