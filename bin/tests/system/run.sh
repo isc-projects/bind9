@@ -27,7 +27,7 @@ while getopts "knp:d:" flag; do
 	*) exit 1 ;;
     esac
 done
-shift $(($OPTIND - 1))
+shift `expr $OPTIND - 1`
 OPTIND=1
 
 test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
@@ -37,14 +37,16 @@ shift
 
 test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
 
-# Define the number of ports allocated for this test, and the lowest and
-# highest valid values for the "-p" option.  The lowest valid value is one more
-# than the highest privileged port (1024).  As the number specifies the lowest
-# port number in a block of ports, the highest valid value is such that the
-# highest port number in that block is 65535.
+# Define the number of ports allocated for each test, and the lowest and
+# highest valid values for the "-p" option.
 #
-# N.B.  It is assumed that the number of ports is >= 10.
-numport=10
+# The lowest valid value is one more than the highest privileged port number
+# (1024).
+#
+# The highest valid value is calculated by noting that the value passed on the
+# command line is the lowest port number in a block of "numports" consecutive
+# ports and that the highest valid port number is 65,535.
+numport=100
 minvalid=`expr 1024 + 1`
 maxvalid=`expr 65535 - $numport + 1`
 
@@ -53,14 +55,15 @@ if [ $? -ne 0 ]; then
     echofail "Must specify a numeric value for the port"
     exit 1
 elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
-    echofail "The port must be in the range $minvalid to $maxvalid" >&2
+    echofail "Tte specified port must be in the range $minvalid to $maxvalid" >&2
     exit 1
 fi
 
-# Name the first 10 ports in the set: the query port, the control port and
-# eight extra ports.  Since the lowest numbered port (specified in the command
-# line) will usually be a multiple of 10, the names are chosen so that the
-# number of EXTRAPORTn is "n".
+# Name the first 10 ports in the set (it is assumed that each test has access
+# to ten or more ports): the query port, the control port and eight extra
+# ports.  Since the lowest numbered port (specified in the command line)
+# will usually be a multiple of 10, the names are chosen so that if this is
+# true, the last digit of EXTRAPORTn is "n".
 export PORT=$baseport
 export EXTRAPORT1=`expr $baseport + 1`
 export EXTRAPORT2=`expr $baseport + 2`
