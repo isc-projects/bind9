@@ -47,7 +47,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # the definition of PARALLELDIRS in conf.sh.  These tests do not use query
 # port 5300 or control port 9953.
 
-PARALLEL = allow_query catz serve-stale rpzrecurse
+PARALLEL = allow_query catz rpzrecurse serve-stale
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The sequential tests all use ports 5300 (for queries) and
