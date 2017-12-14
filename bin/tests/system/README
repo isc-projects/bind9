@@ -12,8 +12,8 @@ involving multiple name servers.
 With the exception of "common" (which holds configuration information common to
 multiple tests) and "win32" (which holds files needed to run the tests in a
 Windows environment), each directory holds a set of scripts and configuration
-files to test different parts of BIND.  The directories are named for the aspect
-of BIND they test, for example:
+files to test different parts of BIND.  The directories are named for the
+aspect of BIND they test, for example:
 
   dnssec/       DNSSEC tests
   forward/      Forwarding tests
@@ -47,14 +47,16 @@ as root. The interfaces can be removed by executing the command:
 
 ... also as root.
 
-The servers use unprivileged ports (above 1024) instead of the usual port 53, so
-they can be run without root privileges once the interfaces have been set up.
+The servers use unprivileged ports (above 1024) instead of the usual port 53,
+so they can be run without root privileges once the interfaces have been set
+up.
 
 
 Note for MacOS Users
 ---
 If you wish to make the interfaces survive across reboots, copy
-org.isc.bind.system and org.isc.bind.system to /Library/LaunchDaemons then run
+org.isc.bind.system and org.isc.bind.system.plist to /Library/LaunchDaemons
+then run
 
     launchctl load /Library/LaunchDaemons/org.isc.bind.system.plist
 
@@ -73,8 +75,8 @@ e.g.
 
 Optional flags are:
 
-    -p <number>     Sets the range of ports used by the test.  If not specified,
-                    the test will use ports 5300 to 5309.
+    -p <number>     Sets the range of ports used by the test.  If not
+                    specified, the test will use ports 5300 to 5309.
     -n              Noclean - do not remove the output files if the test
                     completes successfully.  By default, files created by the
                     test are deleted if it passes;  they are not deleted if the
@@ -83,11 +85,9 @@ Optional flags are:
                     usually starts a number of nameservers, either instances
                     of the "named" being tested, or custom servers (written in
                     Python or Perl) that feature test-specific behavior. The
-                    servers are automatically started before the test is run and
-                    stopped after it ends.  This flag leaves them running at the
-                    end of the test, so that additional queries can be sent
-                    by hand.  To stop the servers afterward, use
-                    "sh stop.sh <test-name>".
+                    servers are automatically started before the test is run
+                    and stopped after it ends.  This flag leaves them running
+                    at the end of the test.
     -d <arg>        Arguments to the "date" command used to produce the
                     start and end time of the tests.  For example, the
                     switch
@@ -110,7 +110,7 @@ When running all the tests, the output is sent to the file systests.output
 (in the bin/tests/system) directory.
 
 The "numproc" option specifies the maximum number of tests that can run
-simultaneously.  The default is 1, which means that all of the tests run
+simultaneously.  The default is 1, which means that all the test run
 sequentially. If greater than 1, up to "numproc" tests will run simultaneously.
 (Each will use a unique set of ports, so there is no danger of them interfering
 with one another.)
@@ -118,8 +118,9 @@ with one another.)
 Parallel running will reduce the total time taken to run the BIND system tests,
 but will mean that the output from all the tests will be mixed up with one
 another in the systests.output file.  However, if you need to investigate the
-output from a test, there is a simple way of extracting the information.  Before
-discussing this though, the format of the test messages needs to be understood.
+output from a test, there is a simple way of extracting the information.
+Before discussing this though, the format of the test messages needs to be
+understood.
 
 All output from the system tests is in the form of lines with the following
 structure:
@@ -152,14 +153,14 @@ This indicates the type of message.  This is one of:
 
             PASS        The test passed
             FAIL        The test failed
-	        SKIPPED     The test was not run, usually because some
-	                    prerequisites required to run the test are missing.
-	        UNTESTED    The test was not run for some other reason, e.g.
+            SKIPPED     The test was not run, usually because some
+                        prerequisites required to run the test are missing.
+            UNTESTED    The test was not run for some other reason, e.g.
                         a prerequiste is available but is not compatible with
                         the platform on which the test is run.
 
 <test-name>
-This is the name of the test from which the message emanated.  This is
+This is the name of the test from which the message emanated, which is also
 the name of the subdirectory holding the test files.
 
 <message>
@@ -197,7 +198,7 @@ files produced by the tests should be deleted first.
 Deletion of files produced by an individual test can be done with the
 command:
 
-    sh clean.sh <test-name>
+    (cd testname ; sh clean.sh)
 
 Deletion of the files produced by the set of tests (e.g. after the execution
 of "runall.sh") can be deleted by the command:
@@ -239,31 +240,31 @@ ns<N>       These subdirectories contain test name servers that can be queried
             or can interact with each other. the value of N indicates the
             address the server listens on: for example, ns2 listens on
             10.53.0.2, and ns4 on 10.53.0.4. All test servers use an
-            unprivileged they don't need to run as root. These servers log at
-            the highest debug level, and the log is captured in the file
+            unprivileged port, so they don't need to run as root. These servers
+            log at the highest debug level and the log is captured in the file
             "named.run".
 
 ans<N>      Like ns[X], but these are simple mock name servers implemented in
             Perl or Python.  They are generally programmed to misbehave in ways
-            named wouldn't, so as to exercise named's ability to interoperate
+            named would not so as to exercise named's ability to interoperate
             with badly behaved name servers.
 
 
 Port Usage
 ---
 In order for the tests to run in parallel, each test requires a unique set of
-ports.  These are specified for each test by the "-p" option passed to "run.sh".
-This option is then passed to each of the test control scripts listed above.
+ports.  These are specified by the "-p" option passed to "run.sh".  This option
+is then passed to each of the test control scripts listed above.
 
 The convention used in the system tests is that the number passed is the start
-of a range of 10 ports.  The test is free to use the ports as required, although
-present usage is that the lowest port is used as the query port and the highest
-is used as the control port.  This is reinforced by the script getopts.sh: if
-used to parse the "-p" option (see below), the script set the following shell
-variables:
+of a range of 10 ports.  The test is free to use the ports as required,
+although present usage is that the lowest port is used as the query port and
+the highest is used as the control port.  This is reinforced by the script
+getopts.sh: if used to parse the "-p" option (see below), the script sets the
+following shell variables:
 
     port                Number to be used for the query port.
-    controlport         Number to be used as the RNDC control port
+    controlport         Number to be used as the RNDC control port.
     aport1 - aport8     Eight port numbers that the test can use as needed.
 
 When running tests in paralel (i.e. giving a value of "numproc" greater than 1
@@ -273,7 +274,7 @@ test will get a set of unique port numbers.
 In addition, the "getopts.sh" script also defines the following symbols:
 
     portlow             Lowest port number in the range.
-    porthigh            Highest port number in the range
+    porthigh            Highest port number in the range.
 
 
 Writing a Test
@@ -297,14 +298,14 @@ Each script should start with the following lines:
 "conf.sh" defines a series of environment variables together with functions
 useful for the test scripts.  "getopts.sh" parses the "-p" option and sets the
 shell variables listed above. (They are not combined into one script because,
-in certain instances - notably in "run.sh"" - some processing is required
+in certain instances - notably in "run.sh" - some processing is required
 between the setting of the environment variables and the parsing of the port).
 
 The "--" between the "-p <baseport>" and any other arguments is required:
 without it, any other switches passed to the script would be parsed by
 getopts.sh, which would return an error because it would not recognise them.
-getopts.sh removes the "-p <port> --" from the argument list, leaving the script
-free to do its own parsing of any additional arguments.
+getopts.sh removes the "-p <port> --" from the argument list, leaving the
+script free to do its own parsing of any additional arguments.
 
 For example, if "test.sh" is invoked as:
 
@@ -376,7 +377,7 @@ like:
         transfer-source 10.53.0.1;
         port @PORT@;
         allow-new-zones yes;
-            :
+    };
 
 setup.sh should copy the template to the desired filename using the
 "copy_setports" shell function defined in "getopts.sh", i.e.
@@ -395,7 +396,7 @@ that server, e.g.
 
 The file is used by the framework to determine the port it should use to query
 the nameserver.  In most cases, all nameservers will use the same port number
-for queries.  Some tests may require a diffent port to be used for queries,
+for queries.  Some tests may require a different port to be used for queries,
 which is why this task has been delegated to test-specific setup rather than be
 part of the framework.
 
@@ -418,24 +419,24 @@ to the following for each test:
 1.  Increment the test number "n" (initialized to zero at the start of the
     script).
 
-2.  Indicate that the sub-test is about to begin.  Note that "echo_i" instead of
-    "echo" is used.  echo_i is a function defined in "conf.sh" which will prefix
-    the message with "I:<testname>:", so allowing the output from each test to
-    test to be identified within systests.output.  The test number is included
-    in the message in order to tie the sub-test with its output.
+2.  Indicate that the sub-test is about to begin.  Note that "echo_i" instead
+    of "echo" is used.  echo_i is a function defined in "conf.sh" which will
+    prefix the message with "I:<testname>:", so allowing the output from each
+    test to be identified within the output. The test number is included in the
+    message in order to tie the sub-test with its output.
 
 3. Initialize return status.
 
-4 - 6. Carry out the sub-test.  In this case, a nameserver is queried (note that
-    the port used is given by the "port" shell variable, which was set by the
-    inclusion the file "getopts.sh" at the start of the script).  The output is
-    routed to a file whose suffix includes the test number.  The response from
-    the server is interrogated and in this case, if the required string is not
-    found, an error is indicated by setting "ret" to 1.
+4 - 6. Carry out the sub-test.  In this case, a nameserver is queried (note
+    that the port used is given by the "port" shell variable, which was set by
+    the inclusion the file "getopts.sh" at the start of the script).  The
+    output is routed to a file whose suffix includes the test number.  The
+    response from the server is examined and in this case, if the required
+    string is not found, an error is indicated by setting "ret" to 1.
 
-5.  If the sub-test failed, a mesage is printed.
+7.  If the sub-test failed, a mesage is printed.
 
-6.  "status", used to track whether any of the sub-tests have failed, is
+8.  "status", used to track whether any of the sub-tests have failed, is
     incremented accordingly.  The value of "status" determines the status
     returned by "tests.sh", which in turn determines whether the framework
     prints the PASS or FAIL message.
@@ -457,7 +458,7 @@ clean.sh
 ---
 The inverse of "setup.sh", this is invoked by the framework to clean up the
 test directory.  It should delete all files that have been created by the test
-duriong its run (including the "named.port" files mentioned earlier).
+during its run (including the "named.port" files mentioned earlier).
 
 
 Adding a Test to the System Test Suite
