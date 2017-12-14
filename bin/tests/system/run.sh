@@ -28,7 +28,6 @@ while getopts "knp:d:" flag; do
     esac
 done
 shift `expr $OPTIND - 1`
-OPTIND=1
 
 test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
 
