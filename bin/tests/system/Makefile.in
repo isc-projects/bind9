@@ -40,7 +40,7 @@ feature-test@EXEEXT@: feature-test.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
 
 
-# Running the scripts below is bypassed when a separate # build directory is
+# Running the scripts below is bypassed when a separate build directory is
 # used.
 
 # Define the tests that can be run in parallel.  This should be identical to
@@ -58,12 +58,12 @@ parallel.mk:
 	@echo ".PHONY: $(PARALLEL)" > $@ ; \
 	echo "" >> $@ ; \
 	echo "check: $(PARALLEL)" >> $@ ; \
-	port=9990 ; \
+	port=$${STARTPORT:-5000} ; \
 	for directory in $(PARALLEL) ; do \
-		port=$$(($$port + 10)) ; \
 		echo "" >> $@ ; \
 		echo "$$directory:" >> $@ ; \
 		echo "	@$(SHELL) ./run.sh -p $$port $$directory" >> $@ ; \
+		port=`expr $$port + 100` ; \
 	done
 
 # Targets to run the tests.

@@ -75,16 +75,18 @@ e.g.
 
 Optional flags are:
 
-    -p <number>     Sets the range of ports used by the test.  A block of 10
+    -p <number>     Sets the range of ports used by the test.  A block of 100
                     ports is available for each test, the number given to the
                     "-p" switch being the number of the start of that block
                     (e.g.  "-p 7900" will mean that the test is able to use
-                    ports 7900 through 7909).  If not specified, the test will
-                    use ports 5300 to 5309.
+                    ports 7900 through 7999).  If not specified, the test will
+                    have ports 5000 to 5099 available to it.
+
     -n              Noclean - do not remove the output files if the test
                     completes successfully.  By default, files created by the
                     test are deleted if it passes;  they are not deleted if the
                     test fails.
+
     -k              Keep servers running after the test completes.  Each test
                     usually starts a number of nameservers, either instances
                     of the "named" being tested, or custom servers (written in
@@ -94,6 +96,7 @@ Optional flags are:
                     at the end of the test, so that additional queries can be
                     sent by hand.  To stop the servers afterwards, use the
                     command "sh stop.sh <test-name>".
+
     -d <arg>        Arguments to the "date" command used to produce the
                     start and end time of the tests.  For example, the
                     switch
@@ -123,11 +126,36 @@ or
 When running all the tests, the output is sent to the file systests.output
 (in the bin/tests/system) directory.
 
-The "numproc" option specifies the maximum number of tests that can run
-simultaneously.  The default is 1, which means that all of the tests run
-sequentially. If greater than 1, up to "numproc" tests will run simultaneously.
-(Each will use a unique set of ports, so there is no danger of them interfering
-with one another.)
+The "numproc" option specifies the maximum number of tests that can run in
+parallel.  The default is 1, which means that all of the tests run
+sequentially. If greater than 1, up to "numproc" tests will run simultaneously,
+new tests being started as tests finish. Each test will get a unique set of
+ports, so there is no danger of tests interfering with one another.
+
+It is also possible to run the test suites from two installations of BIND on
+the same machine at the same time.  To to this:
+
+1. Each installation must have its own directory tree. The system tests create
+temporary configuration files in the test directories, so separate directory
+trees are required to avoid interference between the same test running in the
+different installations.
+
+2. For one of the test suites, the starting port number must be specified by
+setting the environment variable STARTPORT before starting the test suite.
+Each test suite comprises about 100 tests, each being allocated a set of 100
+ports.  The port ranges are allocated in sequence, so each test suite requires
+about 10,000 ports to itself.  By default, the port allocation starts at 5,000.
+So the following set of commands:
+
+    cd <installation-1>/bin/tests/system
+    sh run.sh 4
+    cd <installation-2>/bin/tests/system
+    STARTPORT=20000 sh run.sh 4
+
+... will start the test suite for installation-1 using the default base port
+of 5,000, so the test suite will use ports 5,000 through 15,000 (or there
+abouts).  The use of "STARTPORT=20000" to prefix the run of the test suite for
+installation-2 will mean the test suite uses ports 20,000 through 30,000 or so.
 
 Parallel running will reduce the total time taken to run the BIND system tests,
 but will mean that the output from all the tests will be mixed up with one
@@ -330,10 +358,6 @@ configured with the appropriate options required.
     * If there is some other problem (e.g. prerequistie software is available
       but is not properly configured), a status code of 255 should be returned.
 
-prereq.sh will be invoked using the '-p <baseport> -- "$@"' form described in
-the previous section.
-
-
 setup.sh
 ---
 This is responsible for setting up the configuration files used in the test.
@@ -427,7 +451,7 @@ clean.sh
 ---
 The inverse of "setup.sh", this is invoked by the framework to clean up the
 test directory.  It should delete all files that have been created by the test
-during its run (including the "named.port" files mentioned earlier).
+during its run.
 
 
 Adding a Test to the System Test Suite
@@ -462,7 +486,7 @@ the form:
         @$(SHELL) run.sh -p <baseport> <test-name>
 
 The <baseport> is unique and the values of <baseport> for each test are
-separated by at least 10 ports.
+separated by at least 100 ports.
 
 
 Valgrind
