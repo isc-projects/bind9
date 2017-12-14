@@ -20,7 +20,7 @@ options {
 	allow-new-zones yes;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
-	listen-on port @APORT1@ { 10.53.0.1; };
+	listen-on port @EXTRAPORT1@ { 10.53.0.1; };
 	listen-on-v6 { none; };
 	notify no;
 	recursion no;

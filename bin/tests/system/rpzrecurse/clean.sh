@@ -12,7 +12,6 @@ rm -f dig.out.*
 rm -f ns*/named.lock
 rm -f ns*/named.memstats
 rm -f ns*/*.run
-rm -f ns*/named.port
 rm -f ns*/*core *core
 rm -f ns*/named.conf
 

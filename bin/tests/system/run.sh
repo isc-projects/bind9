@@ -37,13 +37,49 @@ shift
 
 test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
 
-# Validate the port number and obtain other port numbers.
-. $SYSTEMTESTTOP/getopts.sh -p "$baseport"
+# Define the number of ports allocated for this test, and the lowest and
+# highest valid values for the "-p" option.  The lowest valid value is one more
+# than the highest privileged port (1024).  As the number specifies the lowest
+# port number in a block of ports, the highest valid value is such that the
+# highest port number in that block is 65535.
+#
+# N.B.  It is assumed that the number of ports is >= 10.
+numport=10
+minvalid=`expr 1024 + 1`
+maxvalid=`expr 65535 - $numport + 1`
+
+test "$baseport" -eq "$baseport" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echofail "Must specify a numeric value for the port"
+    exit 1
+elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
+    echofail "The port must be in the range $minvalid to $maxvalid" >&2
+    exit 1
+fi
+
+# Name the first 10 ports in the set: the query port, the control port and
+# eight extra ports.  Since the lowest numbered port (specified in the command
+# line) will usually be a multiple of 10, the names are chosen so that the
+# number of EXTRAPORTn is "n".
+export PORT=$baseport
+export EXTRAPORT1=`expr $baseport + 1`
+export EXTRAPORT2=`expr $baseport + 2`
+export EXTRAPORT3=`expr $baseport + 3`
+export EXTRAPORT4=`expr $baseport + 4`
+export EXTRAPORT5=`expr $baseport + 5`
+export EXTRAPORT6=`expr $baseport + 6`
+export EXTRAPORT7=`expr $baseport + 7`
+export EXTRAPORT8=`expr $baseport + 8`
+export CONTROLPORT=`expr $baseport + 9`
+
+export LOWPORT=$baseport
+export HIGHPORT=`expr $baseport + $numport - 1`
+
 
 echoinfo "S:$test:`date $dateargs`" >&2
 echoinfo "T:$test:1:A" >&2
 echoinfo "A:$test:System test $test" >&2
-echoinfo "I:$test:PORTRANGE:${portlow} - ${porthigh}"
+echoinfo "I:$test:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 
 if [ x${PERL:+set} = x ]
 then
@@ -54,7 +90,7 @@ then
 fi
 
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh -p "$port" -- "$@" )
+test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
@@ -67,7 +103,7 @@ else
 fi
 
 # Test sockets after the prerequisites has been setup
-$PERL testsock.pl -p "${port}" || {
+$PERL testsock.pl -p $PORT  || {
     echowarn "I:$test:Network interface aliases not set up.  Skipping test." >&2;
     echowarn "R:$test:UNTESTED" >&2;
     echoinfo "E:$test:`date $dateargs`" >&2;
@@ -89,14 +125,14 @@ fi
 # Set up any dynamically generated test data
 if test -f $test/setup.sh
 then
-   ( cd $test && $SHELL setup.sh -p "$port" -- "$@" )
+   ( cd $test && $SHELL setup.sh "$@" )
 fi
 
 # Start name servers running
-$PERL start.pl --port $port $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl --port $PORT $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
-( cd $test ; $SHELL tests.sh -p "$port" -- "$@" )
+( cd $test ; $SHELL tests.sh "$@" )
 status=$?
 
 if $stopservers
@@ -122,7 +158,7 @@ else
         rm -f $SYSTEMTESTTOP/random.data
         if test -f $test/clean.sh
         then
-			( cd $test && $SHELL clean.sh "-p" "$port" -- "$@" )
+		( cd $test && $SHELL clean.sh "$@" )
         fi
         if test -d ../../../.git
         then

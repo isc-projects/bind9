@@ -51,12 +51,11 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. $SYSTEMTESTTOP/getopts.sh
 
-DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${port}"
+DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"
 
 rndc_reload() {
-    RNDCOUT=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${controlport} reload 2>&1`
+    RNDCOUT=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 2>&1`
     echo_i "ns2 $RNDCOUT"
 }
 

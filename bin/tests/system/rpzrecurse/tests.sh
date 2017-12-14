@@ -11,7 +11,6 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. $SYSTEMTESTTOP/getopts.sh
 
 status=0
 
@@ -38,27 +37,22 @@ fi
 trap 'exit 1' 1 2 15
 
 DNSRPSCMD=../rpz/dnsrps
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${controlport} -s"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Run the tests twice, first without DNSRPS and then with if it is available
 if [ -z "$DNSRPS_TEST_MODE" ]; then
     if [ -e dnsrps-only ]; then
-        echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
+	echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
     else
-        echo_i "running native RPZ sub-test"
-        # The "--" between the port specificatiion switches and the argumens
-        # to this script are required bacuse of the two-stage parsing: the
-        # ports are parsed with the "getopt" statement in getopts.sh, and
-        # the "-D" switch with the "getopt" statement in this file.  This
-        # parsing also requires that the port switches must be specified first.
-	    $SHELL ./$0 -p ${port} -- -D1 $ARGS || status=1
+	echo_i "running native RPZ sub-test"
+	$SHELL ./$0 -D1 $ARGS || status=1
     fi
 
     if [ -e dnsrps-off ]; then
 	echo_i "'dnsrps-off' found: skipping DNSRPS sub-test"
     else
 	echo_i "attempting to configure servers with DNSRPS..."
-	$SHELL ./setup.sh -p ${port} -- -D $DEBUG
+	$SHELL ./setup.sh -D $DEBUG
 	echo_i `sed -n 's/^## /I:/p' dnsrps.conf`
 	if grep '^#fail' dnsrps.conf >/dev/null; then
 	    echo_i "exit status: 1"
@@ -70,7 +64,7 @@ if [ -z "$DNSRPS_TEST_MODE" ]; then
 	    $RNDCCMD 10.53.0.2 flush
 	    $RNDCCMD 10.53.0.3 flush
 	    echo_i "running DNSRPS sub-test"
-	    $SHELL ./$0 -p ${port} -- -D2 $ARGS || status=1
+	    $SHELL ./$0 -D2 $ARGS || status=1
         else
             echo_i "DNSRPS sub-test skipped"
 	fi
@@ -91,7 +85,7 @@ run_server() {
 
     echo_i "starting resolver using named.$TEST_NAME.conf"
     copy_setports ns2/named.$TEST_NAME.conf ns2/named.conf
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
+    $PERL $SYSTEMTESTTOP/start.pl --port ${PORT} --noclean --restart . ns2
     sleep 3
 }
 
@@ -100,7 +94,7 @@ run_query() {
     LINE=$2
 
     NAME=`sed -n -e "$LINE,"'$p' ns2/$TEST_NAME.queries | head -n 1`
-    $DIG $DIGOPTS $NAME a @10.53.0.2 -p ${port} -b 127.0.0.1 > dig.out.${t}
+    $DIG $DIGOPTS $NAME a @10.53.0.2 -p ${PORT} -b 127.0.0.1 > dig.out.${t}
     grep "status: SERVFAIL" dig.out.${t} > /dev/null 2>&1 && return 1
     return 0
 }
@@ -140,7 +134,7 @@ sed -n 's/^## /I:/p' dnsrps.conf
 
 t=`expr $t + 1`
 echo_i "testing that l1.l0 exists without RPZ (${t})"
-$DIG $DIGOPTS l1.l0 ns @10.53.0.2 -p ${port} > dig.out.${t}
+$DIG $DIGOPTS l1.l0 ns @10.53.0.2 -p ${PORT} > dig.out.${t}
 grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
     echo_i "test ${t} failed"
     status=1
@@ -148,7 +142,7 @@ grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
 
 t=`expr $t + 1`
 echo_i "testing that l2.l1.l0 returns SERVFAIL without RPZ (${t})"
-$DIG $DIGOPTS l2.l1.l0 ns @10.53.0.2 -p ${port} > dig.out.${t}
+$DIG $DIGOPTS l2.l1.l0 ns @10.53.0.2 -p ${PORT} > dig.out.${t}
 grep "status: SERVFAIL" dig.out.${t} > /dev/null 2>&1 || {
     echo_i "test ${t} failed"
     status=1
@@ -234,7 +228,7 @@ run_server 6a
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to cache CNAME record (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${port} www.test.example.org CNAME > dig.out.${t}
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
 sleep 1
 echo_i "suspending authority server"
 if [ "$CYGWIN" ]; then
@@ -252,7 +246,7 @@ test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${port} www.test.example.org A > dig.out.${t} &
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A > dig.out.${t} &
 sleep 1
 echo_i "removing the NSDNAME policy"
 cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
@@ -282,7 +276,7 @@ run_server 6a
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to cache CNAME record (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${port} www.test.example.org CNAME > dig.out.${t}
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
 sleep 1
 echo_i "suspending authority server"
 if [ "$CYGWIN" ]; then
@@ -299,7 +293,7 @@ test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${port} www.test.example.org A > dig.out.${t} &
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A > dig.out.${t} &
 sleep 1
 echo_i "removing the policy zone"
 cp ns2/named.default.conf ns2/named.conf
@@ -327,7 +321,7 @@ done
 t=`expr $t + 1`
 echo_i "testing CLIENT-IP behavior (${t})"
 run_server clientip
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.4 > dig.out.${t}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.4 > dig.out.${t}
 grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || {
     echo_i "test $t failed: query failed"
     status=1
@@ -341,17 +335,17 @@ grep "^l2.l1.l0.[ 	]*[0-9]*[ 	]*IN[ 	]*A[ 	]*10.53.0.2" dig.out.${t} > /dev/null
 t=`expr $t + 1`
 echo_i "testing CLIENT-IP behavior #2 (${t})"
 run_server clientip2
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.1 > dig.out.${t}.1
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.1 > dig.out.${t}.1
 grep "status: SERVFAIL" dig.out.${t}.1 > /dev/null 2>&1 || {
     echo_i "test $t failed: query failed"
     status=1
 }
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.2 > dig.out.${t}.2
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.2 > dig.out.${t}.2
 grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null 2>&1 || {
     echo_i "test $t failed: query failed"
     status=1
 }
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.3 > dig.out.${t}.3
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.3 > dig.out.${t}.3
 grep "status: NOERROR" dig.out.${t}.3 > /dev/null 2>&1 || {
     echo_i "test $t failed: query failed"
     status=1
@@ -360,7 +354,7 @@ grep "^l2.l1.l0.[ 	]*[0-9]*[ 	]*IN[ 	]*A[ 	]*10.53.0.1" dig.out.${t}.3 > /dev/nu
     echo_i "test $t failed: didn't get expected answer"
     status=1
 }
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.4 > dig.out.${t}.4
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.4 > dig.out.${t}.4
 grep "status: SERVFAIL" dig.out.${t}.4 > /dev/null 2>&1 || {
     echo_i "test $t failed: query failed"
     status=1
@@ -371,9 +365,9 @@ t=`expr $t + 1`
 echo_i "testing RPZ log clause (${t})"
 run_server log
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.4 > dig.out.${t}
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.3 >> dig.out.${t}
-$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${port} -b 10.53.0.2 >> dig.out.${t}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.4 > dig.out.${t}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.3 >> dig.out.${t}
+$DIG $DIGOPTS l2.l1.l0 a @10.53.0.2 -p ${PORT} -b 10.53.0.2 >> dig.out.${t}
 sed -n "$cur,"'$p' < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-Data rewrite l2.l1.l0 via 32.4.0.53.10.rpz-client-ip.log1" > /dev/null && {
     echo_i " failed: unexpected rewrite message for policy zone log1 was logged"
     status=1
@@ -392,12 +386,12 @@ sed -n "$cur,"'$p' < ns2/named.run | grep "view recursive: rpz CLIENT-IP Local-D
 t=`expr $t + 1`
 echo_i "testing wildcard behavior with 1 RPZ zone (${t})"
 run_server wildcard1
-$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.1
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
 grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
 }
-$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.2
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
 grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
@@ -406,12 +400,12 @@ grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
 t=`expr $t + 1`
 echo_i "testing wildcard behavior with 2 RPZ zones (${t})"
 run_server wildcard2
-$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.1
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
 grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
 }
-$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.2
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
 grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
@@ -420,12 +414,12 @@ grep "status: NXDOMAIN" dig.out.${t}.2 > /dev/null || {
 t=`expr $t + 1`
 echo_i "testing wildcard behavior with 1 RPZ zone and no non-wildcard triggers (${t})"
 run_server wildcard3
-$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.1
+$DIG $DIGOPTS www.test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.1
 grep "status: NXDOMAIN" dig.out.${t}.1 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
 }
-$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${port} > dig.out.${t}.2
+$DIG $DIGOPTS test1.example.net a @10.53.0.2 -p ${PORT} > dig.out.${t}.2
 grep "status: NOERROR" dig.out.${t}.2 > /dev/null || {
     echo_i "test ${t} failed"
     status=1
@@ -436,7 +430,7 @@ echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' (
 echo_i "timing 'nsip-wait-recurse yes' (default)"
 ret=0
 t1=`$PERL -e 'print time()."\n";'`
-$DIG -p ${port} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
 t2=`$PERL -e 'print time()."\n";'`
 p1=`expr $t2 - $t1`
 echo_i "elasped time $p1 seconds"
@@ -447,7 +441,7 @@ $RNDCCMD 10.53.0.3 reload > /dev/null
 
 echo_i "timing 'nsip-wait-recurse no'"
 t3=`$PERL -e 'print time()."\n";'`
-$DIG -p ${port} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
+$DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
 t4=`$PERL -e 'print time()."\n";'`
 p2=`expr $t4 - $t3`
 echo_i "elasped time $p2 seconds"

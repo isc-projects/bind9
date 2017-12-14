@@ -67,7 +67,7 @@ Running the Tests
 ===
 The tests can be run individually using the following command:
 
-    sh run.sh [flags] <test-name>
+    sh run.sh [flags] <test-name> [<test-arguments>]
 
 e.g.
 
@@ -75,8 +75,12 @@ e.g.
 
 Optional flags are:
 
-    -p <number>     Sets the range of ports used by the test.  If not
-                    specified, the test will use ports 5300 to 5309.
+    -p <number>     Sets the range of ports used by the test.  A block of 10
+                    ports is available for each test, the number given to the
+                    "-p" switch being the number of the start of that block
+                    (e.g.  "-p 7900" will mean that the test is able to use
+                    ports 7900 through 7909).  If not specified, the test will
+                    use ports 5300 to 5309.
     -n              Noclean - do not remove the output files if the test
                     completes successfully.  By default, files created by the
                     test are deleted if it passes;  they are not deleted if the
@@ -87,16 +91,26 @@ Optional flags are:
                     Python or Perl) that feature test-specific behavior. The
                     servers are automatically started before the test is run
                     and stopped after it ends.  This flag leaves them running
-                    at the end of the test.
+                    at the end of the test, so that additional queries can be
+                    sent by hand.  To stop the servers afterwards, use the
+                    command "sh stop.sh <test-name>".
     -d <arg>        Arguments to the "date" command used to produce the
                     start and end time of the tests.  For example, the
                     switch
 
                         -d "+%Y-%m-%d:%h:%M:%s"
 
-                    would cause the "S" and "E" messages (see below) to have the
-                    date looking like "2017-11-23:16:06:32" instead of the
+                    would cause the "S" and "E" messages (see below) to have
+                    the date looking like "2017-11-23:16:06:32" instead of the
                     default "Thu, 23 Nov 2017 16:06:32 +0000".
+
+Arguments are:
+
+    test-name       Mandatory. The name of the test, which is the name of the
+                    subdirectory in bin/tests/system holding the test files.
+
+    test-arguments  Optional arguments that are passed to each of the test's
+                    scripts.
 
 To run all the system tests, type either:
 
@@ -110,7 +124,7 @@ When running all the tests, the output is sent to the file systests.output
 (in the bin/tests/system) directory.
 
 The "numproc" option specifies the maximum number of tests that can run
-simultaneously.  The default is 1, which means that all the test run
+simultaneously.  The default is 1, which means that all of the tests run
 sequentially. If greater than 1, up to "numproc" tests will run simultaneously.
 (Each will use a unique set of ports, so there is no danger of them interfering
 with one another.)
@@ -198,7 +212,7 @@ files produced by the tests should be deleted first.
 Deletion of files produced by an individual test can be done with the
 command:
 
-    (cd testname ; sh clean.sh)
+    sh clean.sh <test-name>
 
 Deletion of the files produced by the set of tests (e.g. after the execution
 of "runall.sh") can be deleted by the command:
@@ -253,28 +267,27 @@ ans<N>      Like ns[X], but these are simple mock name servers implemented in
 Port Usage
 ---
 In order for the tests to run in parallel, each test requires a unique set of
-ports.  These are specified by the "-p" option passed to "run.sh".  This option
-is then passed to each of the test control scripts listed above.
+ports.  These are specified by the "-p" option passed to "run.sh", which sets
+environment variables that the scripts listed above can reference.
 
 The convention used in the system tests is that the number passed is the start
 of a range of 10 ports.  The test is free to use the ports as required,
 although present usage is that the lowest port is used as the query port and
-the highest is used as the control port.  This is reinforced by the script
-getopts.sh: if used to parse the "-p" option (see below), the script sets the
-following shell variables:
+the highest is used as the control port.  This is reinforced by the environment
+variables set by run.sh. These are:
 
-    port                Number to be used for the query port.
-    controlport         Number to be used as the RNDC control port.
-    aport1 - aport8     Eight port numbers that the test can use as needed.
+    PORT                     Number to be used for the query port.
+    CONTROLPORT              Number to be used as the RNDC control port.
+    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be use as needed.
+
+Two other environment variables are defined:
+
+    LOWPORT                  The lowest port number in the range.
+    HIGHPORT                 The highest port number in the range.
 
 When running tests in paralel (i.e. giving a value of "numproc" greater than 1
 in the "make" or "runall.sh" commands listed above), it is guaranteed that each
 test will get a set of unique port numbers.
-
-In addition, the "getopts.sh" script also defines the following symbols:
-
-    portlow             Lowest port number in the range.
-    porthigh            Highest port number in the range.
 
 
 Writing a Test
@@ -285,51 +298,19 @@ nameserver instances) to run.  Certain expectations are put on each script:
 
 General
 ---
-Each of the four scripts will be invoked with the command
+1. Each of the four scripts will be invoked with the command
 
-    sh <script> -p <baseport> -- <arguments>
+    sh <script> [<arguments>]
+
+Thhe optional arguments are test-specific.  They are 
 
 Each script should start with the following lines:
 
     SYSTEMTESTTOP=..
     . $SYSTEMTESTTOP/conf.sh
-    . $SYSTEMTESTTOP/getopts.sh
 
 "conf.sh" defines a series of environment variables together with functions
-useful for the test scripts.  "getopts.sh" parses the "-p" option and sets the
-shell variables listed above. (They are not combined into one script because,
-in certain instances - notably in "run.sh" - some processing is required
-between the setting of the environment variables and the parsing of the port).
-
-The "--" between the "-p <baseport>" and any other arguments is required:
-without it, any other switches passed to the script would be parsed by
-getopts.sh, which would return an error because it would not recognise them.
-getopts.sh removes the "-p <port> --" from the argument list, leaving the
-script free to do its own parsing of any additional arguments.
-
-For example, if "test.sh" is invoked as:
-
-    sh tests.sh -p 12340 -- -D 1
-
-... and it includes the three lines listed above, after the execution of the
-code in getopts.sh, the following variables would be defined (with their
-associated values):
-
-    port        12340
-    aport1      12341
-    aport2      12342
-      :           :
-    aport8      12348
-    controlport 12349
-    portlow     12340
-    porthigh    12349
-
-    $1          -D
-    $2          1
-
-Should a script need to invoke another, it should pass the base port with the
-"-p" switch and add any additional arguments after the "--", i.e.  using the
-same format as listed above in the example for invoking "tests.sh"
+useful for the test scripts.
 
 
 prereq.sh
@@ -338,8 +319,9 @@ As noted above, this is optional.  If present, it should check whether specific
 software needed to run the test is available and/or whether BIND has been
 configured with the appropriate options required.
 
-    * If the software required to run the test is present and the BIND configure
-      options are correct, prereq.sh should return with a status code of 0.
+    * If the software required to run the test is present and the BIND
+      configure options are correct, prereq.sh should return with a status code
+       of 0.
 
     * If the software required to run the test is not available and/or BIND
       has not been configured with the appropriate options, prereq.sh should
@@ -362,10 +344,10 @@ Instead, setup.sh is responsible for editing the configuration files to set the
 port numbers.
 
 To do this, configuration files should be supplied in the form of templates
-containing tokens identifying ports.  The tokens have the same name as the shell
-variables listed above, but in upper-case and prefixed and suffixed by the "@"
-symbol.  For example, a fragment of a configuration file template might look
-like:
+containing tokens identifying ports.  The tokens have the same name as the
+shell variables listed above, but in upper-case and prefixed and suffixed by
+the "@" symbol.  For example, a fragment of a configuration file template might
+look like:
 
     controls {
         inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
@@ -380,32 +362,19 @@ like:
     };
 
 setup.sh should copy the template to the desired filename using the
-"copy_setports" shell function defined in "getopts.sh", i.e.
+"copy_setports" shell function defined in "conf.sh", i.e.
 
     copy_setports ns1/named.conf.in ns1/named.conf
 
-This replaces the tokens @PORT@, @CONTROLPORT@, @APORT1@ through @APORT8@ with
-the contents of the shell variables listed above.  setup.sh should do this for
-all configuration files required when the test starts.
-
-A second important responsibility of setup.sh is to create a file called
-named.port in each "named" nameserver directory that defines the query port for
-that server, e.g.
-
-    echo $port > ns1/named.port
-
-The file is used by the framework to determine the port it should use to query
-the nameserver.  In most cases, all nameservers will use the same port number
-for queries.  Some tests may require a different port to be used for queries,
-which is why this task has been delegated to test-specific setup rather than be
-part of the framework.
-
+This replaces the tokens @PORT@, @CONTROLPORT@, @EXTRAPORT1@ through
+@EXTRAPORT8@ with the contents of the shell variables listed above.  setup.sh
+should do this for all configuration files required when the test starts.
 
 tests.sh
 ---
-This is the main test file and the contents depend on the test. The contents are
-completely up to the developer, although most test scripts have a form similar
-to the following for each test:
+This is the main test file and the contents depend on the test. The contents
+are completely up to the developer, although most test scripts have a form
+similar to the following for each test:
 
     1. n=`expr $n + 1`
     2. echo_i "prime cache nodata.example ($n)"
