@@ -133,7 +133,7 @@ new tests being started as tests finish. Each test will get a unique set of
 ports, so there is no danger of tests interfering with one another.
 
 It is also possible to run the test suites from two installations of BIND on
-the same machine at the same time.  To to this:
+the same machine at the same time.  To do this:
 
 1. Each installation must have its own directory tree. The system tests create
 temporary configuration files in the test directories, so separate directory
