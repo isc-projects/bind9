@@ -206,8 +206,6 @@ $DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale no) ($n)"
