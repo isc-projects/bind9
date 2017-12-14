@@ -8,31 +8,30 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-. $SYSTEMTESTTOP/getopts.sh
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${controlport} -s"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 n=0
 
 #echo_i "check ans.pl server ($n)"
-#$DIG -p ${port} @10.53.0.2 example NS
-#$DIG -p ${port} @10.53.0.2 example SOA
-#$DIG -p ${port} @10.53.0.2 ns.example A
-#$DIG -p ${port} @10.53.0.2 ns.example AAAA
-#$DIG -p ${port} @10.53.0.2 txt enable
-#$DIG -p ${port} @10.53.0.2 txt disable
-#$DIG -p ${port} @10.53.0.2 ns.example AAAA
-#$DIG -p ${port} @10.53.0.2 txt enable
-#$DIG -p ${port} @10.53.0.2 ns.example AAAA
-##$DIG -p ${port} @10.53.0.2 data.example TXT
-#$DIG -p ${port} @10.53.0.2 nodata.example TXT
-#$DIG -p ${port} @10.53.0.2 nxdomain.example TXT
+#$DIG -p ${PORT} @10.53.0.2 example NS
+#$DIG -p ${PORT} @10.53.0.2 example SOA
+#$DIG -p ${PORT} @10.53.0.2 ns.example A
+#$DIG -p ${PORT} @10.53.0.2 ns.example AAAA
+#$DIG -p ${PORT} @10.53.0.2 txt enable
+#$DIG -p ${PORT} @10.53.0.2 txt disable
+#$DIG -p ${PORT} @10.53.0.2 ns.example AAAA
+#$DIG -p ${PORT} @10.53.0.2 txt enable
+#$DIG -p ${PORT} @10.53.0.2 ns.example AAAA
+##$DIG -p ${PORT} @10.53.0.2 data.example TXT
+#$DIG -p ${PORT} @10.53.0.2 nodata.example TXT
+#$DIG -p ${PORT} @10.53.0.2 nxdomain.example TXT
 
 n=`expr $n + 1`
 echo_i "prime cache data.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -41,7 +40,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "prime cache nodata.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -50,7 +49,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "prime cache nxdomain.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -59,7 +58,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.2 txt disable  > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -78,7 +77,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -87,7 +86,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -96,7 +95,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -120,7 +119,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example (serve-stale off) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -130,7 +129,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale off) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -138,7 +137,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example (serve-stale off) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -161,7 +160,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example (serve-stale on) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -170,7 +169,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale on) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -179,7 +178,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example (serve-stale on) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -203,7 +202,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example (serve-stale no) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -213,7 +212,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale no) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -221,7 +220,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example (serve-stale no) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -244,7 +243,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example (serve-stale yes) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -253,7 +252,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale yes) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -262,7 +261,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example (serve-stale yes) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -293,7 +292,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale data.example (serve-stale reset) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -302,7 +301,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nodata.example (serve-stale reset) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -311,7 +310,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check stale nxdomain.example (serve-stale reset) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -374,7 +373,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.2 txt enable  > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -383,7 +382,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "prime cache data.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -392,7 +391,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "prime cache nodata.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -401,7 +400,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "prime cache nxdomain.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -410,7 +409,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.2 txt disable  > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -429,7 +428,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check fail of data.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -438,7 +437,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check fail of nodata.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -447,7 +446,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check fail of nxdomain.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -471,7 +470,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check data.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 data.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -480,7 +479,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check nodata.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nodata.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -489,7 +488,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check nxdomain.example (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${port} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
