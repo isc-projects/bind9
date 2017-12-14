@@ -433,7 +433,7 @@ t1=`$PERL -e 'print time()."\n";'`
 $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
 t2=`$PERL -e 'print time()."\n";'`
 p1=`expr $t2 - $t1`
-echo_i "elasped time $p1 seconds"
+echo_i "elapsed time $p1 seconds"
 
 $RNDCCMD 10.53.0.3 flush
 copy_setports ns3/named2.conf.in ns3/named.conf
@@ -444,7 +444,7 @@ t3=`$PERL -e 'print time()."\n";'`
 $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
 t4=`$PERL -e 'print time()."\n";'`
 p2=`expr $t4 - $t3`
-echo_i "elasped time $p2 seconds"
+echo_i "elapsed time $p2 seconds"
 
 if test $p1 -le $p2; then ret=1; fi
 if test $ret != 0; then echo_i "failed"; fi

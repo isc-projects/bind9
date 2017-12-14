@@ -44,15 +44,13 @@ feature-test@EXEEXT@: feature-test.@O@
 # used.
 
 # Define the tests that can be run in parallel.  This should be identical to
-# the definition of PARALLELDIRS in conf.sh.  These tests do not use query
-# port 5300 or control port 9953.
+# the definition of PARALLELDIRS in conf.sh.
 
 PARALLEL = allow_query catz rpzrecurse serve-stale
 
 # Produce intermediate makefile that assigns unique port numbers to each
-# parallel test.  The sequential tests all use ports 5300 (for queries) and
-# 9953 (for control).  For this reason, the parallel tests start at port
-# # 10,000
+# parallel test.  The start port number of 5,000 is arbitrary - it must just
+# be greated that the highest privileged port, 1024.
 
 parallel.mk:
 	@echo ".PHONY: $(PARALLEL)" > $@ ; \
