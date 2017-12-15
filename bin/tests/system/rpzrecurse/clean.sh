@@ -14,7 +14,6 @@
 
 # Clean up after rpz tests.
 
-rm -f test.output
 rm -f dig.out.*
 
 rm -f ns*/named.lock
