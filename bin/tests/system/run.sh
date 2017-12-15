@@ -79,16 +79,16 @@ export LOWPORT=$baseport
 export HIGHPORT=`expr $baseport + $numport - 1`
 
 
-echoinfo "S:$test:`date $dateargs`"
-echoinfo "T:$test:1:A"
-echoinfo "A:$test:System test $test"
-echoinfo "I:$test:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
+echostart "S:$test:`date $dateargs`"
+echoinfo  "T:$test:1:A"
+echoinfo  "A:$test:System test $test"
+echoinfo  "I:$test:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 
 if [ x${PERL:+set} = x ]
 then
     echowarn "I:$test:Perl not available.  Skipping test."
     echowarn "R:$test:UNTESTED"
-    echoinfo "E:$test:`date $dateargs`"
+    echoend  "E:$test:`date $dateargs`"
     exit 0;
 fi
 
@@ -101,7 +101,7 @@ if [ $result -eq 0 ]; then
 else
     echowarn "I:$test:Prerequisites missing, skipping test."
     [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
-    echoinfo "E:$test:`date $dateargs`" >&2
+    echoend "E:$test:`date $dateargs`" >&2
     exit 0
 fi
 
@@ -109,7 +109,7 @@ fi
 $PERL testsock.pl -p $PORT  || {
     echowarn "I:$test:Network interface aliases not set up.  Skipping test."
     echowarn "R:$test:UNTESTED"
-    echoinfo "E:$test:`date $dateargs`"
+    echoend  "E:$test:`date $dateargs`"
     exit 0;
 }
 
@@ -121,7 +121,7 @@ then
 else
     echowarn "I:$test:Need PKCS#11, skipping test."
     echowarn "R:$test:PKCS11ONLY"
-    echoinfo "E:$test:`date $dateargs`"
+    echoend  "E:$test:`date $dateargs`"
     exit 0
 fi
 
@@ -132,7 +132,7 @@ then
 fi
 
 # Start name servers running
-$PERL start.pl --port $PORT $test || { echofail "R:$test:FAIL"; echoinfo "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl --port $PORT $test || { echofail "R:$test:FAIL"; echoend "E:$test:`date $dateargs`"; exit 1; }
 
 # Run the tests
 ( cd $test ; $SHELL tests.sh "$@" )
@@ -170,6 +170,6 @@ else
     fi
 fi
 
-echoinfo "E:$test:`date $dateargs`"
+echoend "E:$test:`date $dateargs`"
 
 exit $status

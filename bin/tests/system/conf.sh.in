@@ -155,20 +155,23 @@ NZD=@NZD_TOOLS@
 # Set up color-coded test output
 #
 if test -t 1 && type tput > /dev/null 2>&1 ; then
+    COLOR_END=`tput setaf 4`    # blue
     COLOR_FAIL=`tput setaf 1`   # red
-    COLOR_WARN=`tput setaf 3`   # yellow
-    COLOR_PASS=`tput setaf 2`   # green
-    COLOR_STEN=`tput setaf 4`   # blue - for start/end messages
     COLOR_INFO=`tput bold`      # bold
     COLOR_NONE=`tput sgr0`
+    COLOR_PASS=`tput setaf 2`   # green
+    COLOR_START=`tput setaf 4`  # blue
+    COLOR_WARN=`tput setaf 3`   # yellow
 else
     # set to empty strings so printf succeeds
+    COLOR_END=''
     COLOR_FAIL=''
-    COLOR_WARN=''
-    COLOR_PASS=''
-    COLOR_STEN=''
     COLOR_INFO=''
     COLOR_NONE=''
+    COLOR_PASS=''
+    COLOR_START=''
+    COLOR_STEN=''
+    COLOR_WARN=''
 fi
 
 if type printf > /dev/null 2>&1
@@ -183,11 +186,13 @@ then
 		printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
 	}
 	echoinfo () {
-		COLOR=$COLOR_INFO
-		case "$1" in
-			S:*|E:*) COLOR=${COLOR}${COLOR_STEN} ;; # Start/end messages
-		esac
-		printf "${COLOR}%s${COLOR_NONE}\n" "$*"
+		printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+	}
+	echostart () {
+		printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
+	}
+	echoend () {
+		printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 	}
 else
 	echofail () {
@@ -200,6 +205,12 @@ else
 		echo "$*"
 	}
 	echoinfo () {
+		echo "$*"
+	}
+	echostart () {
+		echo "$*"
+	}
+	echoend () {
 		echo "$*"
 	}
 fi
