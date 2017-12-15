@@ -12,7 +12,7 @@
 1. [Introduction](#intro)
 1. [Reporting bugs and getting help](#help)
 1. [Contributing to BIND](#contrib)
-1. [BIND 9.12 features](#features)
+1. [BIND 9.13 features](#features)
 1. [Building BIND](#build)
 1. [Compile-time options](#opts)
 1. [Automated testing](#testing)
@@ -101,39 +101,13 @@ If your patch introduces a new feature in BIND, please submit it to
 [bind-suggest@isc.org](mailto:bind-suggest@isc.org); if it fixes a bug,
 please submit it to [bind9-bugs@isc.org](mailto:bind9-bugs@isc.org).
 
-### <a name="features"/> BIND 9.12 features
+### <a name="features"/> BIND 9.13 features
 
-BIND 9.12.0 is the newest development branch of BIND 9. It includes a
-number of changes from BIND 9.11 and earlier releases.  New features
+BIND 9.13.0 is the newest development branch of BIND 9. It includes a
+number of changes from BIND 9.12 and earlier releases.  New features
 include:
 
-* `named` and related libraries have been substantially refactored for
-  improved query performance -- particularly on delegation heavy zones -- 
-  and for improved readability, maintainability, and testability.
-* Code implementing the name server query processing logic has been moved
-  into a new `libns` library, for easier testing and use in tools other
-  than `named`.
-* Cached, validated NSEC and other records can now be used to synthesize
-  NXDOMAIN responses.
-* The DNS Response Policy Service API (DNSRPS) is now supported.
-* Setting `'max-journal-size default'` now limits the size of journal files
-  to twice the size of the zone.
-* `dnstap-read -x` prints a hex dump of the wire format of each logged
-  DNS message.
-* `dnstap` output files can now be configured to roll automatically when
-  reaching a given size.
-* Log file timestamps can now also be formatted in ISO 8601 (local) or ISO
-  8601 (UTC) formats.
-* Logging channels and `dnstap` output files can now be configured to use a
-  timestamp as the suffix when rolling to a new file.
-* `'named-checkconf -l'` lists zones found in `named.conf`.
-* Added support for the EDNS Padding and Keepalive options.
-* 'new-zones-directory' option sets the location where the configuration
-  data for zones added by rndc addzone is stored.
-* The default key algorithm in `rndc-confgen` is now hmac-sha256.
-* `filter-aaaa-on-v4` and `filter-aaaa-on-v6` options are now available
-  by default without a configure option.
-* The obsolete `isc-hmac-fixup` command has been removed.
+* TBD
 
 ### <a name="build"/> Building BIND
 
