@@ -60,15 +60,15 @@ parallel.mk:
 	for directory in $(PARALLEL) ; do \
 		echo "" >> $@ ; \
 		echo "$$directory:" >> $@ ; \
-		echo "	@$(SHELL) ./run.sh -p $$port $$directory" >> $@ ; \
+		echo "	@$(SHELL) ./run.sh -r -p $$port $$directory | tee $$directory/test.output" >> $@ ; \
 		port=`expr $$port + 100` ; \
 	done
 
 # Targets to run the tests.
 
 test: parallel.mk
-	@$(MAKE) -f parallel.mk check 2>&1 | tee systests.output
-	@$(SHELL) ./runsequential.sh 2>&1 | tee -a systests.output
+	@$(MAKE) -f parallel.mk check
+	@$(SHELL) ./runsequential.sh -r
 	@$(SHELL) ./testsummary.sh
 
 check: test
