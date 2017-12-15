@@ -92,6 +92,13 @@ then
     exit 0;
 fi
 
+$PERL testsock.pl -p $PORT  || {
+    echowarn "I:$test:Network interface aliases not set up.  Skipping test."
+    echowarn "R:$test:UNTESTED"
+    echoend  "E:$test:`date $dateargs`"
+    exit 0;
+}
+
 # Check for test-specific prerequisites.
 test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh "$@" )
 result=$?
@@ -104,14 +111,6 @@ else
     echoend "E:$test:`date $dateargs`" >&2
     exit 0
 fi
-
-# Test sockets after the prerequisites has been setup
-$PERL testsock.pl -p $PORT  || {
-    echowarn "I:$test:Network interface aliases not set up.  Skipping test."
-    echowarn "R:$test:UNTESTED"
-    echoend  "E:$test:`date $dateargs`"
-    exit 0;
-}
 
 # Check for PKCS#11 support
 if
