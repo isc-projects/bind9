@@ -17,16 +17,21 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-numproc=
+usage="Usage: ./runall.sh [numprocesses]"
+
 if [ $# -eq 0 ]; then
     numproc=1
-
-elif [ $# -gt 1 ] ||  "$(($1 + 0))" -ne "$1" ]; then
-    echo "Usage: ./runall.sh [numprocesses]"
-
-else
+elif [ $# -eq 1 ]; then
+    test "$1" -eq "$1" > /dev/null 2>& 1
+    if [ $? -ne 0 ]; then
+        # Value passed is not numeric
+        echo "$usage"
+        exit 1
+    fi
     numproc=$1
-
+else
+    echo "$usage"
+    exit 1
 fi
 
 make -j $numproc check
