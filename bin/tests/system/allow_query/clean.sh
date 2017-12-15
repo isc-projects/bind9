@@ -12,7 +12,6 @@
 # Clean up after allow query tests.
 #
 
-rm -f test.output
 rm -f dig.out.*
 rm -f ns2/named.conf ns2/named.port ns2/controls.conf
 rm -f */named.memstats
