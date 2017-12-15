@@ -1312,13 +1312,17 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (cfg_obj_isboolean(obj)) {
 			ixfrdiff = cfg_obj_asboolean(obj);
-		} else if (!strcasecmp(cfg_obj_asstring(obj), "primary") &&
-			   !strcasecmp(cfg_obj_asstring(obj), "master") &&
+		} else if ((strcasecmp(cfg_obj_asstring(obj),
+				       "primary") == 0 ||
+			   strcasecmp(cfg_obj_asstring(obj),
+				       "master") == 0) &&
 			   ztype == dns_zone_master)
 		{
 			ixfrdiff = ISC_TRUE;
-		} else if (!strcasecmp(cfg_obj_asstring(obj), "secondary") &&
-			   !strcasecmp(cfg_obj_asstring(obj), "slave") &&
+		} else if ((strcasecmp(cfg_obj_asstring(obj),
+				       "secondary") == 0 ||
+			   strcasecmp(cfg_obj_asstring(obj),
+				       "slave") == 0) &&
 			   ztype == dns_zone_slave)
 		{
 			ixfrdiff = ISC_TRUE;
