@@ -22,6 +22,7 @@
 1. [Contributing to BIND](#contrib)
 1. [BIND 9.9 features](#features)
 1. [Building BIND](#build)
+1. [MacOS](#macos)
 1. [Compile-time options](#opts)
 1. [Automated testing](#testing)
 1. [Documentation](#doc)
