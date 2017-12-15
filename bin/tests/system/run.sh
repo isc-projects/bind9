@@ -18,12 +18,13 @@ clean=true
 baseport=5300
 dateargs="-R"
 
-while getopts "knp:d:" flag; do
+while getopts "rnp:d:" flag; do
     case "$flag" in
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
 	d) dateargs=$OPTARG ;;
+	r) runall="-r" ;;
 	*) exit 1 ;;
     esac
 done
@@ -54,7 +55,7 @@ if [ $? -ne 0 ]; then
     echofail "Must specify a numeric value for the port"
     exit 1
 elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
-    echofail "Tte specified port must be in the range $minvalid to $maxvalid" >&2
+    echofail "The specified port must be in the range $minvalid to $maxvalid" >&2
     exit 1
 fi
 
@@ -78,16 +79,16 @@ export LOWPORT=$baseport
 export HIGHPORT=`expr $baseport + $numport - 1`
 
 
-echoinfo "S:$test:`date $dateargs`" >&2
-echoinfo "T:$test:1:A" >&2
-echoinfo "A:$test:System test $test" >&2
+echoinfo "S:$test:`date $dateargs`"
+echoinfo "T:$test:1:A"
+echoinfo "A:$test:System test $test"
 echoinfo "I:$test:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 
 if [ x${PERL:+set} = x ]
 then
-    echowarn "I:$test:Perl not available.  Skipping test." >&2
-    echowarn "R:$test:UNTESTED" >&2
-    echoinfo "E:$test:`date $dateargs`" >&2
+    echowarn "I:$test:Perl not available.  Skipping test."
+    echowarn "R:$test:UNTESTED"
+    echoinfo "E:$test:`date $dateargs`"
     exit 0;
 fi
 
@@ -98,7 +99,7 @@ result=$?
 if [ $result -eq 0 ]; then
     : prereqs ok
 else
-    echowarn "I:$test:Prerequisites missing, skipping test." >&2
+    echowarn "I:$test:Prerequisites missing, skipping test."
     [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
     echoinfo "E:$test:`date $dateargs`" >&2
     exit 0
@@ -106,9 +107,9 @@ fi
 
 # Test sockets after the prerequisites has been setup
 $PERL testsock.pl -p $PORT  || {
-    echowarn "I:$test:Network interface aliases not set up.  Skipping test." >&2;
-    echowarn "R:$test:UNTESTED" >&2;
-    echoinfo "E:$test:`date $dateargs`" >&2;
+    echowarn "I:$test:Network interface aliases not set up.  Skipping test."
+    echowarn "R:$test:UNTESTED"
+    echoinfo "E:$test:`date $dateargs`"
     exit 0;
 }
 
@@ -118,9 +119,9 @@ if
 then
     : pkcs11 ok
 else
-    echowarn "I:$test:Need PKCS#11, skipping test." >&2
-    echowarn "R:$test:PKCS11ONLY" >&2
-    echoinfo "E:$test:`date $dateargs`" >&2
+    echowarn "I:$test:Need PKCS#11, skipping test."
+    echowarn "R:$test:PKCS11ONLY"
+    echoinfo "E:$test:`date $dateargs`"
     exit 0
 fi
 
@@ -158,17 +159,14 @@ else
     if $clean
     then
         rm -f $SYSTEMTESTTOP/random.data
-        if test -f $test/clean.sh
-        then
-		( cd $test && $SHELL clean.sh "$@" )
-        fi
+	$SHELL clean.sh $runall $test "$@"
         if test -d ../../../.git
         then
-            git status -su --ignored $test |
+            git status -su --ignored $test | \
             sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
             -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
             -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
-		fi
+	fi
     fi
 fi
 

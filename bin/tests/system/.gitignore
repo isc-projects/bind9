@@ -6,5 +6,6 @@ named.pid
 named.run
 named.port
 /feature-test
+**/test.output
 /systests.output
 /random.data
