@@ -1979,23 +1979,27 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	typestr = cfg_obj_asstring(obj);
-	if (strcasecmp(typestr, "master") == 0)
+	if (strcasecmp(typestr, "master") == 0 ||
+	    strcasecmp(typestr, "primary") == 0)
+	{
 		ztype = MASTERZONE;
-	else if (strcasecmp(typestr, "slave") == 0)
+	} else if (strcasecmp(typestr, "slave") == 0 ||
+		   strcasecmp(typestr, "secondary") == 0)
+	{
 		ztype = SLAVEZONE;
-	else if (strcasecmp(typestr, "stub") == 0)
+	} else if (strcasecmp(typestr, "stub") == 0) {
 		ztype = STUBZONE;
-	else if (strcasecmp(typestr, "static-stub") == 0)
+	} else if (strcasecmp(typestr, "static-stub") == 0) {
 		ztype = STATICSTUBZONE;
-	else if (strcasecmp(typestr, "forward") == 0)
+	} else if (strcasecmp(typestr, "forward") == 0) {
 		ztype = FORWARDZONE;
-	else if (strcasecmp(typestr, "hint") == 0)
+	} else if (strcasecmp(typestr, "hint") == 0) {
 		ztype = HINTZONE;
-	else if (strcasecmp(typestr, "delegation-only") == 0)
+	} else if (strcasecmp(typestr, "delegation-only") == 0) {
 		ztype = DELEGATIONZONE;
-	else if (strcasecmp(typestr, "redirect") == 0)
+	} else if (strcasecmp(typestr, "redirect") == 0) {
 		ztype = REDIRECTZONE;
-	else {
+	} else {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "zone '%s': invalid type %s",
 			    znamestr, typestr);
@@ -3053,8 +3057,11 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 			if (obj != NULL)
 				zonetype = cfg_obj_asstring(obj);
 		}
-		if (strcasecmp(zonetype, "master") != 0 &&
-		    strcasecmp(zonetype, "slave") != 0) {
+		if (strcasecmp(zonetype, "primary") != 0 &&
+		    strcasecmp(zonetype, "master") != 0 &&
+		    strcasecmp(zonetype, "secondary") != 0 &&
+		    strcasecmp(zonetype, "slave") != 0)
+		{
 			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
 				    "%s '%s'%s%s is not a master or slave zone",
 				    rpz_catz, zonename, forview, viewname);

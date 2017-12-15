@@ -1310,16 +1310,21 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "ixfr-from-differences", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		if (cfg_obj_isboolean(obj))
+		if (cfg_obj_isboolean(obj)) {
 			ixfrdiff = cfg_obj_asboolean(obj);
-		else if (!strcasecmp(cfg_obj_asstring(obj), "master") &&
-			 ztype == dns_zone_master)
+		} else if (!strcasecmp(cfg_obj_asstring(obj), "primary") &&
+			   !strcasecmp(cfg_obj_asstring(obj), "master") &&
+			   ztype == dns_zone_master)
+		{
 			ixfrdiff = ISC_TRUE;
-		else if (!strcasecmp(cfg_obj_asstring(obj), "slave") &&
-			ztype == dns_zone_slave)
+		} else if (!strcasecmp(cfg_obj_asstring(obj), "secondary") &&
+			   !strcasecmp(cfg_obj_asstring(obj), "slave") &&
+			   ztype == dns_zone_slave)
+		{
 			ixfrdiff = ISC_TRUE;
-		else
+		} else {
 			ixfrdiff = ISC_FALSE;
+		}
 		if (raw != NULL) {
 			dns_zone_setoption(raw, DNS_ZONEOPT_IXFRFROMDIFFS,
 					   ISC_TRUE);

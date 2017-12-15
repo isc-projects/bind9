@@ -422,18 +422,23 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 	const char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
-	if (strcasecmp(str, "master") == 0)
+	if (strcasecmp(str, "primary") == 0 ||
+	    strcasecmp(str, "master") == 0)
+	{
 		ztype = dns_zone_master;
-	else if (strcasecmp(str, "slave") == 0)
+	} else if (strcasecmp(str, "secondary") == 0 ||
+		   strcasecmp(str, "slave") == 0)
+	{
 		ztype = dns_zone_slave;
-	else if (strcasecmp(str, "stub") == 0)
+	} else if (strcasecmp(str, "stub") == 0) {
 		ztype = dns_zone_stub;
-	else if (strcasecmp(str, "static-stub") == 0)
+	} else if (strcasecmp(str, "static-stub") == 0) {
 		ztype = dns_zone_staticstub;
-	else if (strcasecmp(str, "redirect") == 0)
+	} else if (strcasecmp(str, "redirect") == 0) {
 		ztype = dns_zone_redirect;
-	else
+	} else {
 		INSIST(0);
+	}
 	return (ztype);
 }
 

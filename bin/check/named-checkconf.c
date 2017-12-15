@@ -126,8 +126,13 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 		     element = cfg_list_next(element)) {
 			value = cfg_listelt_value(element);
 			type = cfg_tuple_get(value, "type");
-			if (strcasecmp(cfg_obj_asstring(type), "master") != 0)
+			if ((strcasecmp(cfg_obj_asstring(type),
+					"primary") != 0) &&
+			    (strcasecmp(cfg_obj_asstring(type),
+					"master") != 0))
+			{
 				continue;
+			}
 			*obj = cfg_tuple_get(value, "mode");
 			return (ISC_TRUE);
 		}
@@ -243,11 +248,14 @@ configure_zone(const char *vclass, const char *view,
 	 * Skip loading checks for any type other than
 	 * master and redirect
 	 */
-	if (strcasecmp(cfg_obj_asstring(typeobj), "hint") == 0)
+	if (strcasecmp(cfg_obj_asstring(typeobj), "hint") == 0) {
 		return (configure_hint(zfile, zclass, mctx));
-	else if ((strcasecmp(cfg_obj_asstring(typeobj), "master") != 0) &&
-		  (strcasecmp(cfg_obj_asstring(typeobj), "redirect") != 0))
+	} else if ((strcasecmp(cfg_obj_asstring(typeobj), "primary") != 0) &&
+		   (strcasecmp(cfg_obj_asstring(typeobj), "master") != 0) &&
+		   (strcasecmp(cfg_obj_asstring(typeobj), "redirect") != 0))
+	{
 		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * Is the redirect zone configured as a slave?

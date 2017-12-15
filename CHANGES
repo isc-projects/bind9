@@ -1,3 +1,7 @@
+4848.	[func]		Zone types "primary" and "secondary" can now be used
+			as synonyms for "master" and "slave" in named.conf.
+			[RT #46713]
+
 4847.	[bug]		dnssec-dnskey-kskonly was not being honoured for
 			CDS and CDNSKEY. [RT #46755]
 

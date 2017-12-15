@@ -60,7 +60,10 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  Zone types <command>primary</command> and
+	  <command>secondary</command> are now available as synonyms for
+	  <command>master</command> and <command>slave</command>,
+	  respectively, in <filename>named.conf</filename>.
 	</para>
       </listitem>
     </itemizedlist>

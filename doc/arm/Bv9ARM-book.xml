@@ -6835,13 +6835,13 @@ options {
 		  difference set.
 		</para>
 		<para><command>ixfr-from-differences</command>
-		  also accepts <command>master</command> and
-		  <command>slave</command> at the view and options
-		  levels which causes
+		  also accepts <command>master</command> (or
+		  <command>primary</command>) and
+		  <command>slave</command> (or <command>secondary</command>)
+		  at the view and options levels, which causes
 		  <command>ixfr-from-differences</command> to be enabled for
-		  all <command>master</command> or
-		  <command>slave</command> zones respectively.
-		  It is off by default.
+		  all primary or secondary zones, respectively.
+		  It is off for all zones by default.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -11686,7 +11686,7 @@ view "external" {
 	    Statement Grammar</title></info>
 
 <programlisting><command>zone</command> <replaceable>zone_name</replaceable> [ <replaceable>class</replaceable> ] <command>{</command>
-    <command>type</command> master ;
+    <command>type</command> ( master | primary );
   [ <command>allow-query</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
   [ <command>allow-query-on</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
   [ <command>allow-transfer</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
@@ -11745,7 +11745,7 @@ view "external" {
 <command>}</command> ;
 
 <command>zone</command> <replaceable>zone_name</replaceable> [ <replaceable>class</replaceable> ] <command>{</command>
-    <command>type</command> slave ;
+    <command>type</command> (slave | secondary);
   [ <command>allow-notify</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
   [ <command>allow-query</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
   [ <command>allow-query-on</command> <command>{</command> <replaceable>address_match_list</replaceable> <command>}</command> ; ]
@@ -11905,10 +11905,14 @@ view "external" {
 	      The <command>type</command> keyword is required
 	      for the <command>zone</command> configuration unless
 	      it is an <command>in-view</command> configuration. Its
-	      acceptable values include: <varname>delegation-only</varname>,
-	      <varname>forward</varname>, <varname>hint</varname>,
-	      <varname>master</varname>, <varname>redirect</varname>,
-	      <varname>slave</varname>, <varname>static-stub</varname>,
+	      acceptable values include:
+	      <varname>master</varname> (or <varname>primary</varname>),
+	      <varname>slave</varname> (or <varname>secondary</varname>),
+	      <varname>delegation-only</varname>,
+	      <varname>forward</varname>,
+	      <varname>hint</varname>,
+	      <varname>redirect</varname>,
+	      <varname>static-stub</varname>,
 	      and <varname>stub</varname>.
 	    </para>
 
@@ -11929,8 +11933,8 @@ view "external" {
 		      <para>
 			The server has a master copy of the data
 			for the zone and will be able to provide authoritative
-			answers for
-			it.
+			answers for it. Type <varname>primary</varname> is
+			a synonym for <varname>master</varname>.
 		      </para>
 		    </entry>
 		  </row>
@@ -11943,7 +11947,9 @@ view "external" {
 		    <entry colname="2">
 		      <para>
 			A slave zone is a replica of a master
-			zone. The <command>masters</command> list
+			zone. Type <varname>secondary</varname> is a
+			synonym for <varname>slave</varname>.
+			The <command>masters</command> list
 			specifies one or more IP addresses
 			of master servers that the slave contacts to update
 			its copy of the zone.

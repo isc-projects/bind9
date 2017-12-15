@@ -521,7 +521,9 @@ static cfg_type_t cfg_type_rrsetorderingelement = {
  * "check-names" option has a different syntax.
  */
 
-static const char *checktype_enums[] = { "master", "slave", "response", NULL };
+static const char *checktype_enums[] = {
+	"primary", "master", "secondary", "slave", "response", NULL
+};
 static cfg_type_t cfg_type_checktype = {
 	"checktype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
 	&cfg_rep_string, &checktype_enums
@@ -658,8 +660,9 @@ static cfg_type_t cfg_type_forwardtype = {
 };
 
 static const char *zonetype_enums[] = {
-	"delegation-only", "forward", "hint", "master", "redirect",
-	"slave", "static-stub", "stub", NULL
+	"primary", "master", "secondary", "slave",
+	"delegation-only", "forward", "hint", "redirect",
+	"static-stub", "stub", NULL
 };
 static cfg_type_t cfg_type_zonetype = {
 	"zonetype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
@@ -2719,7 +2722,9 @@ static cfg_type_t cfg_type_minimal = {
 	&cfg_rep_string, minimal_enums,
 };
 
-static const char *ixfrdiff_enums[] = { "master", "slave", NULL };
+static const char *ixfrdiff_enums[] = {
+	"primary", "master", "secondary", "slave", NULL
+};
 static isc_result_t
 parse_ixfrdiff_type(cfg_parser_t *pctx, const cfg_type_t *type,
 		    cfg_obj_t **ret)
