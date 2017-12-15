@@ -26,7 +26,7 @@ use Cwd 'abs_path';
 use Getopt::Long;
 
 # Usage:
-#   perl start.pl [--noclean] --restart] [--port port]  test [server [options]]
+#   perl start.pl [--noclean] [--restart] [--port port]  test [server [options]]
 #
 #   --noclean       Do not cleanup files in server directory.
 #
@@ -48,7 +48,7 @@ use Getopt::Long;
 #                   If not given, the script will start all the servers in the
 #                   test directory.
 #
-#   options         Alternate options for the server,
+#   options         Alternate options for the server.
 #
 #                   NOTE: options must be specified with '-- "<option list>"',
 #                   for instance: start.pl . ns1 -- "-c n.conf -d 43"
@@ -56,16 +56,16 @@ use Getopt::Long;
 #                   ALSO NOTE: this variable will be filled with the contents
 #                   of the first non-commented/non-blank line of args in a file
 #                   called "named.args" in an ns*/ subdirectory. Only the FIRST
-#		            non-commented/non-blank line is used (everything else in the
-#		            file is ignored. If "options" is already set, then
-#		            "named.args" is ignored.
+#                   non-commented/non-blank line is used (everything else in the
+#                   file is ignored). If "options" is already set, then
+#                   "named.args" is ignored.
 
 my $usage = "usage: $0 [--noclean] [--restart] [--port <port>] test-directory [server-directory [server-options]]";
 my $noclean = '';
 my $restart = '';
-my $defaultport = 5300;
+my $queryport = 5300;
 
-GetOptions('noclean' => \$noclean, 'restart' => \$restart, 'port=i' => \$defaultport) or die "$usage\n";
+GetOptions('noclean' => \$noclean, 'restart' => \$restart, 'port=i' => \$queryport) or die "$usage\n";
 
 my $test = $ARGV[0];
 my $server = $ARGV[1];
@@ -116,7 +116,6 @@ if ($server) {
 	foreach $name(@ns, @lwresd, @ans) {
 		&start_server($name);
 		&verify_server($name) if ($name =~ /^ns/);
-		
 	}
 }
 
@@ -125,7 +124,7 @@ if ($server) {
 sub check_ports {
 	my $server = shift;
 	my $options = "";
-	my $port = $defaultport;
+	my $port = $queryport;
 	my $file = "";
 
 	$file = $testdir . "/" . $server . "/named.port" if ($server);
@@ -202,9 +201,9 @@ sub start_server {
 		} else {
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
-			$command .= "-T nosoa " 
+			$command .= "-T nosoa "
 				if (-e "$testdir/$server/named.nosoa");
-			$command .= "-T noaa " 
+			$command .= "-T noaa "
 				if (-e "$testdir/$server/named.noaa");
 			$command .= "-T dropedns "
 				if (-e "$testdir/$server/named.dropedns");
@@ -248,7 +247,7 @@ sub start_server {
 	} elsif ($server =~ /^ans/) {
 		$cleanup_files = "{ans.run}";
                 if (-e "$testdir/$server/ans.py") {
-                        $command = "$PYTHON -u ans.py 10.53.0.$' $defaultport";
+                        $command = "$PYTHON -u ans.py 10.53.0.$' $queryport";
                 } elsif (-e "$testdir/$server/ans.pl") {
                         $command = "$PERL ans.pl";
                 } else {
@@ -310,7 +309,7 @@ sub start_server {
 sub verify_server {
 	my $server = shift;
 	my $n = $server;
-	my $port = $defaultport;
+	my $port = $queryport;
 	my $tcp = "+tcp";
 
 	$n =~ s/^ns//;
