@@ -18,7 +18,7 @@ use Cwd 'abs_path';
 use Getopt::Long;
 
 # Usage:
-#   perl stop.pl [[-use-rndc] [--port port] test [server]
+#   perl stop.pl [-use-rndc [--port port]] test [server]
 #
 #   --use-rndc      Attempt to stop the server via the "rndc stop" command.
 #
@@ -26,11 +26,11 @@ use Getopt::Long;
 #                   command port over which the attempt should be made.  If
 #                   not specified, port 9953 is used.
 #
-#   test            Name of the test directory,
+#   test            Name of the test directory.
 #
-#   server          Name of the server directory
+#   server          Name of the server directory.
 
-my $usage = "usage: $0 [--use-rndc] [--port port] test-directory [server-directory]";
+my $usage = "usage: $0 [--use-rndc [--port port]] test-directory [server-directory]";
 
 my $use_rndc = 0;
 my $port = 9953;
@@ -43,7 +43,7 @@ my $server = $ARGV[1];
 die "$usage\n" unless defined($test);
 die "No test directory: \"$test\"\n" unless (-d $test);
 die "No server directory: \"$server\"\n" if (defined($server) && !-d "$test/$server");
-    
+
 # Global variables
 my $testdir = abs_path($test);
 my @servers;
