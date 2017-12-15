@@ -107,6 +107,9 @@ Optional flags are:
                     the date looking like "2017-11-23:16:06:32" instead of the
                     default "Thu, 23 Nov 2017 16:06:32 +0000".
 
+    -r              The "runall" flag.  This is related to cleaning up after
+                    all the tests. (See "Mainenance Notes" below.)
+
 Arguments are:
 
     test-name       Mandatory. The name of the test, which is the name of the
@@ -136,9 +139,9 @@ It is also possible to run the test suites from two installations of BIND on
 the same machine at the same time.  To do this:
 
 1. Each installation must have its own directory tree. The system tests create
-temporary configuration files in the test directories, so separate directory
-trees are required to avoid interference between the same test running in the
-different installations.
+files in the test directories, so separate directory trees are required to
+avoid interference between the same test running in the different
+installations.
 
 2. For one of the test suites, the starting port number must be specified by
 setting the environment variable STARTPORT before starting the test suite.
@@ -158,12 +161,12 @@ abouts).  The use of "STARTPORT=20000" to prefix the run of the test suite for
 installation-2 will mean the test suite uses ports 20,000 through 30,000 or so.
 
 Parallel running will reduce the total time taken to run the BIND system tests,
-but will mean that the output from all the tests will be mixed up with one
-another in the systests.output file.  However, if you need to investigate the
-output from a test, there is a simple way of extracting the information.
-Before discussing this though, the format of the test messages needs to be
-understood.
+but will mean that the output from all the tests pointed to the screen will be
+mixed up with one another.  However, the systests.output file produced at the
+end of the run will contain the output from each test, one after the other.
 
+Format of Test Output
+---
 All output from the system tests is in the form of lines with the following
 structure:
 
@@ -219,18 +222,6 @@ the form:
 e.g. nsupdate.out.test28, dig.out.q3.  This aids diagnosis of problems by
 allowing the output that caused the problem to be identified.
 
-Returning to the problem of extracting information about a single test from
-systests.output, the solution is fairly easy: run the command:
-
-    grep ':<test-name>:' systests.output
-
-e.g.
-
-    grep ':catz:' systests.output
-
-(note the colons before and after the test name).  This will list all the
-messages produced by the test in the order they were output.
-
 
 Re-running the Tests
 ===
@@ -256,6 +247,7 @@ as well as deleting configuration files produced by "configure".)
 Developer Notes
 ===
 This section is intended for developers writing new tests.
+
 
 Overview
 ---
@@ -328,11 +320,30 @@ General
 ---
 1. Each of the four scripts will be invoked with the command
 
-    sh <script> [<arguments>]
+    (cd <test-directory> ; sh <script> [<arguments>] )
 
-Thhe optional arguments are test-specific.  They are 
+... so that working directory when the script starts executing is the test
+directory.
 
-Each script should start with the following lines:
+2. Arguments can be only passed to the script if the test is being run as a
+one-off with "run.sh". In this case, everything on the command line after the
+name of the test is passed to each script.  For example, the command:
+
+    sh run.sh -p 12300 mytest -D xyz
+
+... will run "mytest" with a port range of 12300 to 12399.  Each of the
+framework scripts provided by the test will be invoked using the remaining
+arguments, e.g.
+
+   (cd mytest ; sh prereq.sh -D xyz)
+   (cd mytest ; sh setup.sh -D xyz)
+   (cd mytest ; sh tests.sh -D xyz)
+   (cd mytest ; sh clean.sh -D xyz)
+
+No arguments will be passed to the test scripts if the test is run as part of
+a run of the full test suite (e.g. the tests are started with "runall.sh").
+
+3.  Each script should start with the following lines:
 
     SYSTEMTESTTOP=..
     . $SYSTEMTESTTOP/conf.sh
@@ -349,7 +360,7 @@ configured with the appropriate options required.
 
     * If the software required to run the test is present and the BIND
       configure options are correct, prereq.sh should return with a status code
-       of 0.
+      of 0.
 
     * If the software required to run the test is not available and/or BIND
       has not been configured with the appropriate options, prereq.sh should
@@ -357,6 +368,7 @@ configured with the appropriate options required.
 
     * If there is some other problem (e.g. prerequistie software is available
       but is not properly configured), a status code of 255 should be returned.
+
 
 setup.sh
 ---
@@ -393,6 +405,7 @@ setup.sh should copy the template to the desired filename using the
 This replaces the tokens @PORT@, @CONTROLPORT@, @EXTRAPORT1@ through
 @EXTRAPORT8@ with the contents of the shell variables listed above.  setup.sh
 should do this for all configuration files required when the test starts.
+
 
 tests.sh
 ---
@@ -451,21 +464,34 @@ clean.sh
 ---
 The inverse of "setup.sh", this is invoked by the framework to clean up the
 test directory.  It should delete all files that have been created by the test
-during its run.
+during its run.A
 
 
 Adding a Test to the System Test Suite
 ---
 Once a set of tests has been created, the following files should be edited:
 
-conf.sh.in  The name of the test should be added to the PARALLELDIRS variable.
+* conf.sh.in  The name of the test should be added to the PARALLELDIRS
+variable.
 
-Makefile.in The name of the test should be added to the PARALLEL variable.
+* Makefile.in The name of the test should be added to the PARALLEL variable.
 
 (It is likely that a future iteration of the system test suite will remove the
 need to edit two files to add a test.)
 
 
+Valgrind
+---
+When running system tests, named can be run under Valgrind. The output from
+Valgrind are sent to per-process files that can be reviewed after the test has
+completed. To enable this, set the USE_VALGRIND environment variable to
+"helgrind" to run the Helgrind tool, or any other value to run the Memcheck
+tool. To use "helgrind" effectively, build BIND with --disable-atomic.
+
+
+Maintenance Notes
+===
+This section is aimed at developers maintaining BIND's system test framework.
 
 Notes on Parallel Execution
 ---
@@ -483,16 +509,41 @@ is created when "make check" is run, and contains a target for each test of
 the form:
 
     <test-name>:
-        @$(SHELL) run.sh -p <baseport> <test-name>
+        @$(SHELL) run.sh -r -p <baseport> <test-name>
 
 The <baseport> is unique and the values of <baseport> for each test are
 separated by at least 100 ports.
 
 
-Valgrind
+Cleaning up from Tests
 ---
-When running system tests, named can be run under Valgrind. The output from
-Valgrind are sent to per-process files that can be reviewed after the test has
-completed. To enable this, set the USE_VALGRIND environment variable to
-"helgrind" to run the Helgrind tool, or any other value to run the Memcheck
-tool. To use "helgrind" effectively, build BIND with --disable-atomic.
+When a test is run, files are produced in the test directory by both the test
+itself and the test framework.
+
+The former comprises the the logs from the running of nameservers, the output
+from "dig" and "rndc" commands used in the test,  and anything else that the
+test developer feels is relevant. In the event of a test failure, they can be
+useful in tracking down the problem.
+
+At the moment, there is only one file in the latter category, the file
+test.output.  This is created when the test is run as part of a run of the
+test suite (e.g. via "runall.sh") and comprises a copy of the output sent to
+stdout.  (If the test is running in parallel with other tests, the output sent
+to stdout will be interleaved with their output.  The output in test.output
+will comprise solely the output from this test.)
+
+If the test is run by itself with a direct invocation of "run.sh", the disposal
+of the output depends on the test.  If it fails, all output is retained.  If it
+succeeds, "run.sh" calls the framework's "clean.sh". This deletes the test's
+test.output file then calls the test's own "clean.sh" to clean up the
+test-specific files.
+
+The clean-up path is different if the test is run as part of the test suite.
+In this case, although the test is ultimately run by a call to "run.sh",
+"run.sh" is invoked with the "-r" switch (the "runall" flag).  Should the test
+fail, all files are retained as before.  If the test passes, the framework's
+"clean.sh" with the "-r" switch.  This causes it to only call the test's
+"clean.sh", leaving the test.output file untouched.  When all tests in the
+testsuite have been run, the test suite code invokes "testsummary.sh".  This
+iterates through all test directory, concatenating the "test.output" file to a
+single "systests.output", deleting "test.output" as it does so.
