@@ -289,6 +289,15 @@ affect compilation:
 |`BUILD_LDFLAGS`||
 |`BUILD_LIBS`||
 
+#### <a name="macos"> MacOS
+
+Building on MacOS assumes that the "Command Tools for Xcode" is installed.
+This can be downloaded from https://developer.apple.com/download/more/
+or if you have Xcode already installed you can run "Xcode-select --install".
+This will add /usr/include to the system and install the compiler and other
+tools so that they can be easily found.
+
+
 #### <a name="opts"/> Compile-time options
 
 To see a full list of configuration options, run `configure --help`.
