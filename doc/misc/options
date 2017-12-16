@@ -97,8 +97,9 @@ options {
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );
-        check-names ( master | slave | response
-            ) ( fail | warn | ignore ); // may occur multiple times
+        check-names ( primary | master |
+            secondary | slave | response ) (
+            fail | warn | ignore ); // may occur multiple times
         check-sibling <boolean>;
         check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
@@ -192,7 +193,8 @@ options {
         hostname ( <quoted_string> | none );
         inline-signing <boolean>;
         interface-interval <integer>;
-        ixfr-from-differences ( master | slave | <boolean> );
+        ixfr-from-differences ( primary | master | secondary | slave |
+            <boolean> );
         keep-response-order { <address_match_element>; ... };
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
@@ -461,8 +463,9 @@ view <string> [ <class> ] {
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-mx-cname ( fail | warn | ignore );
-        check-names ( master | slave | response
-            ) ( fail | warn | ignore ); // may occur multiple times
+        check-names ( primary | master |
+            secondary | slave | response ) (
+            fail | warn | ignore ); // may occur multiple times
         check-sibling <boolean>;
         check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
@@ -529,7 +532,8 @@ view <string> [ <class> ] {
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         glue-cache <boolean>;
         inline-signing <boolean>;
-        ixfr-from-differences ( master | slave | <boolean> );
+        ixfr-from-differences ( primary | master | secondary | slave |
+            <boolean> );
         key <string> {
                 algorithm <string>;
                 secret <string>;
@@ -800,8 +804,9 @@ view <string> [ <class> ] {
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ] [ dscp <integer> ];
                 try-tcp-refresh <boolean>;
-                type ( delegation-only | forward | hint | master | redirect
-                    | slave | static-stub | stub );
+                type ( primary | master | secondary | slave |
+                    delegation-only | forward | hint | redirect |
+                    static-stub | stub );
                 update-check-ksk <boolean>;
                 update-policy ( local | { ( deny | grant ) <string> (
                     6to4-self | external | krb5-self | krb5-subdomain |
@@ -902,8 +907,8 @@ zone <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         try-tcp-refresh <boolean>;
-        type ( delegation-only | forward | hint | master | redirect | slave
-            | static-stub | stub );
+        type ( primary | master | secondary | slave | delegation-only |
+            forward | hint | redirect | static-stub | stub );
         update-check-ksk <boolean>;
         update-policy ( local | { ( deny | grant ) <string> ( 6to4-self |
             external | krb5-self | krb5-subdomain | ms-self | ms-subdomain

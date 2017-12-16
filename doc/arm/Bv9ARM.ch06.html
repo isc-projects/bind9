@@ -4668,13 +4668,13 @@ options {
                   difference set.
                 </p>
                 <p><span class="command"><strong>ixfr-from-differences</strong></span>
-                  also accepts <span class="command"><strong>master</strong></span> and
-                  <span class="command"><strong>slave</strong></span> at the view and options
-                  levels which causes
+                  also accepts <span class="command"><strong>master</strong></span> (or
+                  <span class="command"><strong>primary</strong></span>) and
+                  <span class="command"><strong>slave</strong></span> (or <span class="command"><strong>secondary</strong></span>)
+                  at the view and options levels, which causes
                   <span class="command"><strong>ixfr-from-differences</strong></span> to be enabled for
-                  all <span class="command"><strong>master</strong></span> or
-                  <span class="command"><strong>slave</strong></span> zones respectively.
-                  It is off by default.
+                  all primary or secondary zones, respectively.
+                  It is off for all zones by default.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>multi-master</strong></span></span></dt>
@@ -9219,7 +9219,7 @@ view "external" {
             Statement Grammar</h3></div></div></div>
 
 <pre class="programlisting"><span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> master ;
+    <span class="command"><strong>type</strong></span> ( master | primary );
   [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>allow-query-on</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>allow-transfer</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
@@ -9278,7 +9278,7 @@ view "external" {
 <span class="command"><strong>}</strong></span> ;
 
 <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> slave ;
+    <span class="command"><strong>type</strong></span> (slave | secondary);
   [ <span class="command"><strong>allow-notify</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
   [ <span class="command"><strong>allow-query-on</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
@@ -9442,10 +9442,14 @@ view "external" {
               The <span class="command"><strong>type</strong></span> keyword is required
               for the <span class="command"><strong>zone</strong></span> configuration unless
               it is an <span class="command"><strong>in-view</strong></span> configuration. Its
-              acceptable values include: <code class="varname">delegation-only</code>,
-              <code class="varname">forward</code>, <code class="varname">hint</code>,
-              <code class="varname">master</code>, <code class="varname">redirect</code>,
-              <code class="varname">slave</code>, <code class="varname">static-stub</code>,
+              acceptable values include:
+              <code class="varname">master</code> (or <code class="varname">primary</code>),
+              <code class="varname">slave</code> (or <code class="varname">secondary</code>),
+              <code class="varname">delegation-only</code>,
+              <code class="varname">forward</code>,
+              <code class="varname">hint</code>,
+              <code class="varname">redirect</code>,
+              <code class="varname">static-stub</code>,
               and <code class="varname">stub</code>.
             </p>
 
@@ -9466,8 +9470,8 @@ view "external" {
                       <p>
                         The server has a master copy of the data
                         for the zone and will be able to provide authoritative
-                        answers for
-                        it.
+                        answers for it. Type <code class="varname">primary</code> is
+                        a synonym for <code class="varname">master</code>.
                       </p>
                     </td>
 </tr>
@@ -9480,7 +9484,9 @@ view "external" {
 <td>
                       <p>
                         A slave zone is a replica of a master
-                        zone. The <span class="command"><strong>masters</strong></span> list
+                        zone. Type <code class="varname">secondary</code> is a
+                        synonym for <code class="varname">slave</code>.
+                        The <span class="command"><strong>masters</strong></span> list
                         specifies one or more IP addresses
                         of master servers that the slave contacts to update
                         its copy of the zone.
