@@ -285,7 +285,9 @@ list_tcs(const atf_tp_t *tp)
 
         atf_utils_free_charpp(vars);
     }
-    free(tcs);
+#define UNCONST(a) ((void *)(unsigned long)(const void *)(a))
+    free(UNCONST(tcs));
+#undef UNCONST
 }
 
 /* ---------------------------------------------------------------------
