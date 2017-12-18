@@ -76,18 +76,19 @@ LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_reset = ISC_TRUE;
 
 static char endopt = '\0';
 
-#define	BADOPT	'?'
-#define	BADARG	':'
-#define ENDOPT  &endopt
+#define BADOPT '?'
+#define BADARG ':'
+#define ENDOPT &endopt
 
 /*!
  * getopt --
  *	Parse argc/argv argument vector.
  */
 int
-isc_commandline_parse(int argc, char * const *argv, const char *options) {
+isc_commandline_parse(int argc, char *const *argv, const char *options)
+{
 	static char *place = ENDOPT;
-	const char *option;		/* Index into *options of option. */
+	const char * option; /* Index into *options of option. */
 
 	REQUIRE(argc >= 0 && argv != NULL && options != NULL);
 
@@ -125,7 +126,7 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 	}
 
 	isc_commandline_option = *place++;
-	option = strchr(options, isc_commandline_option);
+	option                 = strchr(options, isc_commandline_option);
 
 	/*
 	 * Ensure valid option has been passed as specified by options string.
@@ -138,12 +139,11 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 
 		if (isc_commandline_errprint && *options != ':')
 			fprintf(stderr, "%s: %s -- %c\n",
-				isc_commandline_progname,
-				isc_msgcat_get(isc_msgcat,
-					       ISC_MSGSET_COMMANDLINE,
-					       ISC_MSG_ILLEGALOPT,
-					       "illegal option"),
-				isc_commandline_option);
+			        isc_commandline_progname,
+			        isc_msgcat_get(
+			                isc_msgcat, ISC_MSGSET_COMMANDLINE,
+			                ISC_MSG_ILLEGALOPT, "illegal option"),
+			        isc_commandline_option);
 
 		return (BADOPT);
 	}
@@ -191,13 +191,13 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 
 			if (isc_commandline_errprint)
 				fprintf(stderr, "%s: %s -- %c\n",
-					isc_commandline_progname,
-					isc_msgcat_get(isc_msgcat,
-						       ISC_MSGSET_COMMANDLINE,
-						       ISC_MSG_OPTNEEDARG,
-						       "option requires "
-						       "an argument"),
-					isc_commandline_option);
+				        isc_commandline_progname,
+				        isc_msgcat_get(isc_msgcat,
+				                       ISC_MSGSET_COMMANDLINE,
+				                       ISC_MSG_OPTNEEDARG,
+				                       "option requires "
+				                       "an argument"),
+				        isc_commandline_option);
 
 			return (BADOPT);
 		}
@@ -215,11 +215,11 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 
 isc_result_t
 isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
-			  char ***argvp, unsigned int n)
+                          char ***argvp, unsigned int n)
 {
 	isc_result_t result;
 
- restart:
+restart:
 	/* Discard leading whitespace. */
 	while (*s == ' ' || *s == '\t')
 		s++;
@@ -248,7 +248,7 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 			 */
 			while (*t != '\0') {
 				t++;
-				*(t-1) = *t;
+				*(t - 1) = *t;
 			}
 			while (*p != '\0' && *p != '}') {
 				p++;
@@ -262,8 +262,8 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 		} else if (*p != '\0')
 			*p++ = '\0';
 
-		result = isc_commandline_strtoargv(mctx, p,
-						   argcp, argvp, n + 1);
+		result =
+		        isc_commandline_strtoargv(mctx, p, argcp, argvp, n + 1);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		(*argvp)[n] = s;

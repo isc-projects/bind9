@@ -45,13 +45,14 @@ static inline isc_int32_t
 #else
 static isc_int32_t
 #endif
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+{
 	int ret;
 
 #ifdef __GNUC__
 	asm("ics");
 #else
-	 __isync();
+	__isync();
 #endif
 
 	ret = fetch_and_add((atomic_p)p, (int)val);
@@ -59,10 +60,10 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 #ifdef __GNUC__
 	asm("ics");
 #else
-	 __isync();
+	__isync();
 #endif
 
-	 return (ret);
+	return (ret);
 }
 
 #ifdef __GNUC__
@@ -70,13 +71,14 @@ static inline int
 #else
 static int
 #endif
-isc_atomic_cmpxchg(atomic_p p, int old, int replacement) {
+isc_atomic_cmpxchg(atomic_p p, int old, int replacement)
+{
 	int orig = old;
 
 #ifdef __GNUC__
 	asm("ics");
 #else
-	 __isync();
+	__isync();
 #endif
 	if (compare_and_swap(p, &orig, replacement))
 		orig = old;
@@ -84,7 +86,7 @@ isc_atomic_cmpxchg(atomic_p p, int old, int replacement) {
 #ifdef __GNUC__
 	asm("ics");
 #else
-	 __isync();
+	__isync();
 #endif
 
 	return (orig);
@@ -92,91 +94,91 @@ isc_atomic_cmpxchg(atomic_p p, int old, int replacement) {
 
 #elif defined(ISC_PLATFORM_USEGCCASM) || defined(ISC_PLATFORM_USEMACASM)
 static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+{
 	isc_int32_t orig;
 
-	__asm__ volatile (
+	__asm__ volatile(
 #ifdef ISC_PLATFORM_USEMACASM
-		"1:"
-		"lwarx r6, 0, %1\n"
-		"mr %0, r6\n"
-		"add r6, r6, %2\n"
-		"stwcx. r6, 0, %1\n"
-		"bne- 1b\n"
-		"sync"
+	        "1:"
+	        "lwarx r6, 0, %1\n"
+	        "mr %0, r6\n"
+	        "add r6, r6, %2\n"
+	        "stwcx. r6, 0, %1\n"
+	        "bne- 1b\n"
+	        "sync"
 #else
-		"1:"
-		"lwarx 6, 0, %1\n"
-		"mr %0, 6\n"
-		"add 6, 6, %2\n"
-		"stwcx. 6, 0, %1\n"
-		"bne- 1b\n"
-		"sync"
+	        "1:"
+	        "lwarx 6, 0, %1\n"
+	        "mr %0, 6\n"
+	        "add 6, 6, %2\n"
+	        "stwcx. 6, 0, %1\n"
+	        "bne- 1b\n"
+	        "sync"
 #endif
-		: "=&r"(orig)
-		: "r"(p), "r"(val)
-		: "r6", "memory"
-		);
+	        : "=&r"(orig)
+	        : "r"(p), "r"(val)
+	        : "r6", "memory");
 
 	return (orig);
 }
 
 static inline void
-isc_atomic_store(void *p, isc_int32_t val) {
-	__asm__ volatile (
+isc_atomic_store(void *p, isc_int32_t val)
+{
+	__asm__ volatile(
 #ifdef ISC_PLATFORM_USEMACASM
-		"1:"
-		"lwarx r6, 0, %0\n"
-		"lwz r6, %1\n"
-		"stwcx. r6, 0, %0\n"
-		"bne- 1b\n"
-		"sync"
+	        "1:"
+	        "lwarx r6, 0, %0\n"
+	        "lwz r6, %1\n"
+	        "stwcx. r6, 0, %0\n"
+	        "bne- 1b\n"
+	        "sync"
 #else
-		"1:"
-		"lwarx 6, 0, %0\n"
-		"lwz 6, %1\n"
-		"stwcx. 6, 0, %0\n"
-		"bne- 1b\n"
-		"sync"
+	        "1:"
+	        "lwarx 6, 0, %0\n"
+	        "lwz 6, %1\n"
+	        "stwcx. 6, 0, %0\n"
+	        "bne- 1b\n"
+	        "sync"
 #endif
-		:
-		: "r"(p), "m"(val)
-		: "r6", "memory"
-		);
+	        :
+	        : "r"(p), "m"(val)
+	        : "r6", "memory");
 }
 
 static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+{
 	isc_int32_t orig;
 
-	__asm__ volatile (
+	__asm__ volatile(
 #ifdef ISC_PLATFORM_USEMACASM
-		"1:"
-		"lwarx r6, 0, %1\n"
-		"mr %0,r6\n"
-		"cmpw r6, %2\n"
-		"bne 2f\n"
-		"mr r6, %3\n"
-		"stwcx. r6, 0, %1\n"
-		"bne- 1b\n"
-		"2:\n"
-		"sync"
+	        "1:"
+	        "lwarx r6, 0, %1\n"
+	        "mr %0,r6\n"
+	        "cmpw r6, %2\n"
+	        "bne 2f\n"
+	        "mr r6, %3\n"
+	        "stwcx. r6, 0, %1\n"
+	        "bne- 1b\n"
+	        "2:\n"
+	        "sync"
 #else
-		"1:"
-		"lwarx 6, 0, %1\n"
-		"mr %0,6\n"
-		"cmpw 6, %2\n"
-		"bne 2f\n"
-		"mr 6, %3\n"
-		"stwcx. 6, 0, %1\n"
-		"bne- 1b\n"
-		"2:\n"
-		"sync"
+	        "1:"
+	        "lwarx 6, 0, %1\n"
+	        "mr %0,6\n"
+	        "cmpw 6, %2\n"
+	        "bne 2f\n"
+	        "mr 6, %3\n"
+	        "stwcx. 6, 0, %1\n"
+	        "bne- 1b\n"
+	        "2:\n"
+	        "sync"
 #endif
-		: "=&r" (orig)
-		: "r"(p), "r"(cmpval), "r"(val)
-		: "r6", "memory"
-		);
+	        : "=&r"(orig)
+	        : "r"(p), "r"(cmpval), "r"(val)
+	        : "r6", "memory");
 
 	return (orig);
 }

@@ -15,11 +15,11 @@
 
 #include <config.h>
 
-#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/stat.h>
+#include <sys/param.h> /* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <sys/un.h>
 
 #ifdef HAVE_NANOSLEEP
@@ -45,30 +45,29 @@
  * resolve their interdependencies.  Thus only the problem variable's type
  * is defined here.
  */
-#define FILESOURCE_HANDLE_TYPE	int
+#define FILESOURCE_HANDLE_TYPE int
 
 typedef struct {
-	int	handle;
-	enum	{
-		isc_usocketsource_disconnected,
-		isc_usocketsource_connecting,
-		isc_usocketsource_connected,
-		isc_usocketsource_ndesired,
-		isc_usocketsource_wrote,
-		isc_usocketsource_reading
-	} status;
-	size_t	sz_to_recv;
+	int handle;
+	enum { isc_usocketsource_disconnected,
+	       isc_usocketsource_connecting,
+	       isc_usocketsource_connected,
+	       isc_usocketsource_ndesired,
+	       isc_usocketsource_wrote,
+	       isc_usocketsource_reading } status;
+	size_t sz_to_recv;
 } isc_entropyusocketsource_t;
 
 #include "../entropy.c"
 
 static unsigned int
-get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired)
+{
 	isc_entropy_t *ent = source->ent;
-	unsigned char buf[128];
-	int fd = source->sources.file.handle;
-	ssize_t n, ndesired;
-	unsigned int added;
+	unsigned char  buf[128];
+	int            fd = source->sources.file.handle;
+	ssize_t        n, ndesired;
+	unsigned int   added;
 
 	if (source->bad)
 		return (0);
@@ -78,7 +77,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	added = 0;
 	while (desired > 0) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
-		n = read(fd, buf, ndesired);
+		n        = read(fd, buf, ndesired);
 		if (n < 0) {
 			if (errno == EAGAIN || errno == EINTR)
 				goto out;
@@ -93,23 +92,24 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	}
 	goto out;
 
- err:
+err:
 	(void)close(fd);
 	source->sources.file.handle = -1;
-	source->bad = ISC_TRUE;
+	source->bad                 = ISC_TRUE;
 
- out:
+out:
 	return (added);
 }
 
 static unsigned int
-get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired)
+{
 	isc_entropy_t *ent = source->ent;
-	unsigned char buf[128];
-	int fd = source->sources.usocket.handle;
-	ssize_t n = 0, ndesired;
-	unsigned int added;
-	size_t sz_to_recv = source->sources.usocket.sz_to_recv;
+	unsigned char  buf[128];
+	int            fd = source->sources.usocket.handle;
+	ssize_t        n  = 0, ndesired;
+	unsigned int   added;
+	size_t         sz_to_recv = source->sources.usocket.sz_to_recv;
 
 	if (source->bad)
 		return (0);
@@ -119,9 +119,9 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 	added = 0;
 	while (desired > 0) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
- eagain_loop:
+	eagain_loop:
 
-		switch ( source->sources.usocket.status ) {
+		switch (source->sources.usocket.status) {
 		case isc_usocketsource_ndesired:
 			buf[0] = ndesired;
 			if ((n = sendto(fd, buf, 1, 0, NULL, 0)) < 0) {
@@ -132,7 +132,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			}
 			INSIST(n == 1);
 			source->sources.usocket.status =
-						isc_usocketsource_wrote;
+			        isc_usocketsource_wrote;
 			goto eagain_loop;
 
 		case isc_usocketsource_connecting:
@@ -147,12 +147,12 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			}
 			if (n == 1) {
 				source->sources.usocket.status =
-					isc_usocketsource_ndesired;
+				        isc_usocketsource_ndesired;
 				goto eagain_loop;
 			}
 			INSIST(n == 2);
 			source->sources.usocket.status =
-						isc_usocketsource_wrote;
+			        isc_usocketsource_wrote;
 			/* FALLTHROUGH */
 
 		case isc_usocketsource_wrote:
@@ -173,7 +173,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 #ifdef HAVE_NANOSLEEP
 					struct timespec ts;
 
-					ts.tv_sec = 0;
+					ts.tv_sec  = 0;
 					ts.tv_nsec = 1000000;
 					nanosleep(&ts, NULL);
 #else
@@ -186,8 +186,8 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 				goto err;
 			}
 			source->sources.usocket.status =
-					isc_usocketsource_reading;
-			sz_to_recv = buf[0];
+			        isc_usocketsource_reading;
+			sz_to_recv                         = buf[0];
 			source->sources.usocket.sz_to_recv = sz_to_recv;
 			if (sz_to_recv > sizeof(buf))
 				goto err;
@@ -206,15 +206,14 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 				n = 0;
 			break;
 
-		default:
-			goto err;
+		default: goto err;
 		}
 
 		if ((size_t)n != sz_to_recv)
 			source->sources.usocket.sz_to_recv -= n;
 		else
 			source->sources.usocket.status =
-				isc_usocketsource_connected;
+			        isc_usocketsource_connected;
 
 		if (n == 0)
 			goto out;
@@ -225,13 +224,13 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 	}
 	goto out;
 
- err:
+err:
 	close(fd);
-	source->bad = ISC_TRUE;
+	source->bad                    = ISC_TRUE;
 	source->sources.usocket.status = isc_usocketsource_disconnected;
 	source->sources.usocket.handle = -1;
 
- out:
+out:
 	return (added);
 }
 
@@ -240,11 +239,12 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
  * pool.
  */
 static void
-fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
-	unsigned int added;
-	unsigned int remaining;
-	unsigned int needed;
-	unsigned int nsource;
+fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking)
+{
+	unsigned int         added;
+	unsigned int         remaining;
+	unsigned int         needed;
+	unsigned int         nsource;
 	isc_entropysource_t *source;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -274,8 +274,8 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 	if (needed == 0) {
 		REQUIRE(!blocking);
 
-		if ((ent->pool.entropy >= RND_POOLBITS / 4)
-		    && (ent->pool.pseudo <= RND_POOLBITS / 4))
+		if ((ent->pool.entropy >= RND_POOLBITS / 4) &&
+		    (ent->pool.pseudo <= RND_POOLBITS / 4))
 			return;
 
 		needed = THRESHOLD_BITS * 4;
@@ -305,7 +305,7 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 	 * others are always drained.
 	 */
 
-	added = 0;
+	added     = 0;
 	remaining = needed;
 	if (ent->nextsource == NULL) {
 		ent->nextsource = ISC_LIST_HEAD(ent->sources);
@@ -313,7 +313,7 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 			return;
 	}
 	source = ent->nextsource;
- again_file:
+again_file:
 	for (nsource = 0; nsource < ent->nsources; nsource++) {
 		unsigned int got;
 
@@ -322,7 +322,7 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 
 		got = 0;
 
-		switch ( source->type ) {
+		switch (source->type) {
 		case ENTROPY_SOURCETYPE_FILE:
 			got = get_from_filesource(source, remaining);
 			break;
@@ -380,12 +380,13 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 }
 
 static int
-wait_for_sources(isc_entropy_t *ent) {
+wait_for_sources(isc_entropy_t *ent)
+{
 	isc_entropysource_t *source;
-	int maxfd, fd;
-	int cc;
-	fd_set reads;
-	fd_set writes;
+	int                  maxfd, fd;
+	int                  cc;
+	fd_set               reads;
+	fd_set               writes;
 
 	maxfd = -1;
 	FD_ZERO(&reads);
@@ -404,8 +405,7 @@ wait_for_sources(isc_entropy_t *ent) {
 			fd = source->sources.usocket.handle;
 			if (fd >= 0) {
 				switch (source->sources.usocket.status) {
-				case isc_usocketsource_disconnected:
-					break;
+				case isc_usocketsource_disconnected: break;
 				case isc_usocketsource_connecting:
 				case isc_usocketsource_connected:
 				case isc_usocketsource_ndesired:
@@ -434,12 +434,14 @@ wait_for_sources(isc_entropy_t *ent) {
 }
 
 static void
-destroyfilesource(isc_entropyfilesource_t *source) {
+destroyfilesource(isc_entropyfilesource_t *source)
+{
 	(void)close(source->handle);
 }
 
 static void
-destroyusocketsource(isc_entropyusocketsource_t *source) {
+destroyusocketsource(isc_entropyusocketsource_t *source)
+{
 	close(source->handle);
 }
 
@@ -447,9 +449,10 @@ destroyusocketsource(isc_entropyusocketsource_t *source) {
  * Make a fd non-blocking
  */
 static isc_result_t
-make_nonblock(int fd) {
-	int ret;
-	int flags;
+make_nonblock(int fd)
+{
+	int  ret;
+	int  flags;
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef USE_FIONBIO_IOCTL
 	int on = 1;
@@ -465,11 +468,11 @@ make_nonblock(int fd) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
-				 "ioctl(%d, FIONBIO, &on): %s", fd,
+		                 "ioctl(%d, FIONBIO, &on): %s", fd,
 #else
-				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+		                 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
 #endif
-				 strbuf);
+		                 strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}
@@ -478,12 +481,13 @@ make_nonblock(int fd) {
 }
 
 isc_result_t
-isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
-	int fd;
-	struct stat _stat;
-	isc_boolean_t is_usocket = ISC_FALSE;
-	isc_boolean_t is_connected = ISC_FALSE;
-	isc_result_t ret;
+isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname)
+{
+	int                  fd;
+	struct stat          _stat;
+	isc_boolean_t        is_usocket   = ISC_FALSE;
+	isc_boolean_t        is_connected = ISC_FALSE;
+	isc_result_t         ret;
 	isc_entropysource_t *source;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -532,14 +536,14 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 		strlcpy(sname.sun_path, fname, sizeof(sname.sun_path));
 #ifdef ISC_PLATFORM_HAVESALEN
 #if !defined(SUN_LEN)
-#define SUN_LEN(su) \
+#define SUN_LEN(su)                                                            \
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 		sname.sun_len = SUN_LEN(&sname);
 #endif
 
-		if (connect(fd, (struct sockaddr *) &sname,
-			    sizeof(struct sockaddr_un)) < 0) {
+		if (connect(fd, (struct sockaddr *)&sname,
+		            sizeof(struct sockaddr_un)) < 0) {
 			if (errno != EINPROGRESS) {
 				ret = isc__errno2result(errno);
 				goto closefd;
@@ -558,24 +562,24 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	 * From here down, no failures can occur.
 	 */
 	source->magic = SOURCE_MAGIC;
-	source->ent = ent;
+	source->ent   = ent;
 	source->total = 0;
-	source->bad = ISC_FALSE;
+	source->bad   = ISC_FALSE;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
 	if (is_usocket) {
 		source->sources.usocket.handle = fd;
 		if (is_connected)
 			source->sources.usocket.status =
-					isc_usocketsource_connected;
+			        isc_usocketsource_connected;
 		else
 			source->sources.usocket.status =
-					isc_usocketsource_connecting;
+			        isc_usocketsource_connecting;
 		source->sources.usocket.sz_to_recv = 0;
-		source->type = ENTROPY_SOURCETYPE_USOCKET;
+		source->type                       = ENTROPY_SOURCETYPE_USOCKET;
 	} else {
 		source->sources.file.handle = fd;
-		source->type = ENTROPY_SOURCETYPE_FILE;
+		source->type                = ENTROPY_SOURCETYPE_FILE;
 	}
 
 	/*
@@ -587,10 +591,10 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
 
- closefd:
+closefd:
 	(void)close(fd);
 
- errout:
+errout:
 	UNLOCK(&ent->lock);
 
 	return (ret);

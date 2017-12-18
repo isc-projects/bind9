@@ -9,26 +9,26 @@
 /*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-	"$Id: netscope.c,v 1.13 2007/06/19 23:47:17 tbox Exp $";
+static char rcsid[] = "$Id: netscope.c,v 1.13 2007/06/19 23:47:17 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 
-#include <isc/string.h>
 #include <isc/net.h>
 #include <isc/netscope.h>
 #include <isc/result.h>
+#include <isc/string.h>
 
 isc_result_t
-isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
+isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid)
+{
 	char *ep;
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 	unsigned int ifid;
 #endif
 	struct in6_addr *in6;
-	isc_uint32_t zone;
-	isc_uint64_t llz;
+	isc_uint32_t     zone;
+	isc_uint64_t     llz;
 
 	/* at this moment, we only support AF_INET6 */
 	if (af != AF_INET6)

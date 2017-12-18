@@ -7,9 +7,9 @@
  */
 
 #include <config.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <atf-c.h>
 
@@ -20,18 +20,20 @@
 #include <isc/result.h>
 
 ATF_TC(isc_buffer_reserve);
-ATF_TC_HEAD(isc_buffer_reserve, tc) {
+ATF_TC_HEAD(isc_buffer_reserve, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "reserve space in dynamic buffers");
 }
 
-ATF_TC_BODY(isc_buffer_reserve, tc) {
-	isc_result_t result;
+ATF_TC_BODY(isc_buffer_reserve, tc)
+{
+	isc_result_t  result;
 	isc_buffer_t *b;
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	b = NULL;
+	b      = NULL;
 	result = isc_buffer_allocate(mctx, &b, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_EQ(b->length, 1024);
@@ -94,18 +96,20 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 }
 
 ATF_TC(isc_buffer_reallocate);
-ATF_TC_HEAD(isc_buffer_reallocate, tc) {
+ATF_TC_HEAD(isc_buffer_reallocate, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "reallocate dynamic buffers");
 }
 
-ATF_TC_BODY(isc_buffer_reallocate, tc) {
-	isc_result_t result;
+ATF_TC_BODY(isc_buffer_reallocate, tc)
+{
+	isc_result_t  result;
 	isc_buffer_t *b;
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	b = NULL;
+	b      = NULL;
 	result = isc_buffer_allocate(mctx, &b, 1024);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(b != NULL);
@@ -129,20 +133,22 @@ ATF_TC_BODY(isc_buffer_reallocate, tc) {
 }
 
 ATF_TC(isc_buffer_dynamic);
-ATF_TC_HEAD(isc_buffer_dynamic, tc) {
+ATF_TC_HEAD(isc_buffer_dynamic, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "dynamic buffer automatic reallocation");
 }
 
-ATF_TC_BODY(isc_buffer_dynamic, tc) {
-	isc_result_t result;
+ATF_TC_BODY(isc_buffer_dynamic, tc)
+{
+	isc_result_t  result;
 	isc_buffer_t *b;
-	size_t last_length = 10;
-	int i;
+	size_t        last_length = 10;
+	int           i;
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	b = NULL;
+	b      = NULL;
 	result = isc_buffer_allocate(mctx, &b, last_length);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(b != NULL);
@@ -155,35 +161,34 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 	for (i = 0; i < 1000; i++) {
 		isc_buffer_putstr(b, "thisisa24charslongstring");
 	}
-	ATF_CHECK(b->length-last_length >= 1000*24);
-	last_length+=1000*24;
+	ATF_CHECK(b->length - last_length >= 1000 * 24);
+	last_length += 1000 * 24;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint8(b, 1);
 	}
 
-	ATF_CHECK(b->length-last_length >= 10000*1);
-	last_length += 10000*1;
+	ATF_CHECK(b->length - last_length >= 10000 * 1);
+	last_length += 10000 * 1;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint16(b, 1);
 	}
 
-	ATF_CHECK(b->length-last_length >= 10000*2);
+	ATF_CHECK(b->length - last_length >= 10000 * 2);
 
-	last_length += 10000*2;
+	last_length += 10000 * 2;
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint24(b, 1);
 	}
-	ATF_CHECK(b->length-last_length >= 10000*3);
+	ATF_CHECK(b->length - last_length >= 10000 * 3);
 
-	last_length+=10000*3;
+	last_length += 10000 * 3;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint32(b, 1);
 	}
-	ATF_CHECK(b->length-last_length >= 10000*4);
-
+	ATF_CHECK(b->length - last_length >= 10000 * 4);
 
 	isc_buffer_free(&b);
 
@@ -191,16 +196,18 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 }
 
 ATF_TC(isc_buffer_printf);
-ATF_TC_HEAD(isc_buffer_printf, tc) {
+ATF_TC_HEAD(isc_buffer_printf, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "printf() into a buffer");
 }
 
-ATF_TC_BODY(isc_buffer_printf, tc) {
-	unsigned int used, prev_used;
-	const char *empty_fmt;
-	isc_result_t result;
+ATF_TC_BODY(isc_buffer_printf, tc)
+{
+	unsigned int  used, prev_used;
+	const char *  empty_fmt;
+	isc_result_t  result;
 	isc_buffer_t *b, sb;
-	char buf[8];
+	char          buf[8];
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -208,7 +215,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	/*
 	 * Prepare a buffer with auto-reallocation enabled.
 	 */
-	b = NULL;
+	b      = NULL;
 	result = isc_buffer_allocate(mctx, &b, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	isc_buffer_setautorealloc(b, ISC_TRUE);
@@ -265,7 +272,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	 */
 	prev_used = used;
 	empty_fmt = "";
-	result = isc_buffer_printf(b, empty_fmt, NULL);
+	result    = isc_buffer_printf(b, empty_fmt, NULL);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	used = isc_buffer_usedlength(b);
 	ATF_CHECK_EQ(prev_used, used);
@@ -302,7 +309,8 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_buffer_reserve);
 	ATF_TP_ADD_TC(tp, isc_buffer_reallocate);
 	ATF_TP_ADD_TC(tp, isc_buffer_dynamic);

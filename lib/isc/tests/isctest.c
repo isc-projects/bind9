@@ -28,34 +28,33 @@
 
 #include "isctest.h"
 
-isc_mem_t *mctx = NULL;
-isc_entropy_t *ectx = NULL;
-isc_log_t *lctx = NULL;
-isc_taskmgr_t *taskmgr = NULL;
-isc_timermgr_t *timermgr = NULL;
+isc_mem_t *      mctx      = NULL;
+isc_entropy_t *  ectx      = NULL;
+isc_log_t *      lctx      = NULL;
+isc_taskmgr_t *  taskmgr   = NULL;
+isc_timermgr_t * timermgr  = NULL;
 isc_socketmgr_t *socketmgr = NULL;
-isc_task_t *maintask = NULL;
-int ncpus;
+isc_task_t *     maintask  = NULL;
+int              ncpus;
 
 static isc_boolean_t hash_active = ISC_FALSE;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
  */
-static isc_logcategory_t categories[] = {
-		{ "",                0 },
-		{ "client",          0 },
-		{ "network",         0 },
-		{ "update",          0 },
-		{ "queries",         0 },
-		{ "unmatched",       0 },
-		{ "update-security", 0 },
-		{ "query-errors",    0 },
-		{ NULL,              0 }
-};
+static isc_logcategory_t categories[] = {{"", 0},
+                                         {"client", 0},
+                                         {"network", 0},
+                                         {"update", 0},
+                                         {"queries", 0},
+                                         {"unmatched", 0},
+                                         {"update-security", 0},
+                                         {"query-errors", 0},
+                                         {NULL, 0}};
 
 static void
-cleanup_managers(void) {
+cleanup_managers(void)
+{
 	if (maintask != NULL)
 		isc_task_destroy(&maintask);
 	if (socketmgr != NULL)
@@ -67,7 +66,8 @@ cleanup_managers(void) {
 }
 
 static isc_result_t
-create_managers(void) {
+create_managers(void)
+{
 	isc_result_t result;
 #ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
@@ -83,13 +83,14 @@ create_managers(void) {
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 	return (ISC_R_SUCCESS);
 
- cleanup:
+cleanup:
 	cleanup_managers();
 	return (result);
 }
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
+isc_test_begin(FILE *logfile, isc_boolean_t start_managers)
+{
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
@@ -101,20 +102,19 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
-		isc_logconfig_t *logconfig = NULL;
+		isc_logconfig_t *    logconfig = NULL;
 
 		CHECK(isc_log_create(mctx, &lctx, &logconfig));
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
 
-		destination.file.stream = logfile;
-		destination.file.name = NULL;
-		destination.file.versions = ISC_LOG_ROLLNEVER;
+		destination.file.stream       = logfile;
+		destination.file.name         = NULL;
+		destination.file.versions     = ISC_LOG_ROLLNEVER;
 		destination.file.maximum_size = 0;
 		CHECK(isc_log_createchannel(logconfig, "stderr",
-					    ISC_LOG_TOFILEDESC,
-					    ISC_LOG_DYNAMIC,
-					    &destination, 0));
+		                            ISC_LOG_TOFILEDESC, ISC_LOG_DYNAMIC,
+		                            &destination, 0));
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
 
@@ -129,13 +129,14 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+cleanup:
 	isc_test_end();
 	return (result);
 }
 
 void
-isc_test_end(void) {
+isc_test_end(void)
+{
 	if (maintask != NULL)
 		isc_task_detach(&maintask);
 	if (taskmgr != NULL)
@@ -159,11 +160,12 @@ isc_test_end(void) {
  * Sleep for 'usec' microseconds.
  */
 void
-isc_test_nap(isc_uint32_t usec) {
+isc_test_nap(isc_uint32_t usec)
+{
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 
-	ts.tv_sec = usec / 1000000;
+	ts.tv_sec  = usec / 1000000;
 	ts.tv_nsec = (usec % 1000000) * 1000;
 	nanosleep(&ts, NULL);
 #elif HAVE_USLEEP

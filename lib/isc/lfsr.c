@@ -19,23 +19,23 @@
 #include <isc/lfsr.h>
 #include <isc/util.h>
 
-#define VALID_LFSR(x)	(x != NULL)
+#define VALID_LFSR(x) (x != NULL)
 
 void
 isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
-	      isc_uint32_t tap, unsigned int count,
-	      isc_lfsrreseed_t reseed, void *arg)
+              isc_uint32_t tap, unsigned int count, isc_lfsrreseed_t reseed,
+              void *arg)
 {
 	REQUIRE(VALID_LFSR(lfsr));
 	REQUIRE(8 <= bits && bits <= 32);
 	REQUIRE(tap != 0);
 
-	lfsr->state = state;
-	lfsr->bits = bits;
-	lfsr->tap = tap;
-	lfsr->count = count;
+	lfsr->state  = state;
+	lfsr->bits   = bits;
+	lfsr->tap    = tap;
+	lfsr->count  = count;
 	lfsr->reseed = reseed;
-	lfsr->arg = arg;
+	lfsr->arg    = arg;
 
 	if (count == 0 && reseed != NULL)
 		reseed(lfsr, arg);
@@ -77,14 +77,14 @@ void
 isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count)
 {
 	unsigned char *p;
-	unsigned int bit;
-	unsigned int byte;
+	unsigned int   bit;
+	unsigned int   byte;
 
 	REQUIRE(VALID_LFSR(lfsr));
 	REQUIRE(data != NULL);
 	REQUIRE(count > 0);
 
-	p = data;
+	p    = data;
 	byte = count;
 
 	while (byte--) {

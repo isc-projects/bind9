@@ -38,7 +38,7 @@
  *** Imports.
  ***/
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #endif /* ISC_STAT_H */

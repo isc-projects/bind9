@@ -30,15 +30,13 @@ ISC_LANG_BEGINDECLS
  *** Functions
  ***/
 
-isc_result_t
-isc_base32_totext(isc_region_t *source, int wordlength,
-		  const char *wordbreak, isc_buffer_t *target);
-isc_result_t
-isc_base32hex_totext(isc_region_t *source, int wordlength,
-		     const char *wordbreak, isc_buffer_t *target);
-isc_result_t
-isc_base32hexnp_totext(isc_region_t *source, int wordlength,
-		       const char *wordbreak, isc_buffer_t *target);
+isc_result_t isc_base32_totext(isc_region_t *source, int wordlength,
+                               const char *wordbreak, isc_buffer_t *target);
+isc_result_t isc_base32hex_totext(isc_region_t *source, int wordlength,
+                                  const char *wordbreak, isc_buffer_t *target);
+isc_result_t isc_base32hexnp_totext(isc_region_t *source, int wordlength,
+                                    const char *  wordbreak,
+                                    isc_buffer_t *target);
 /*!<
  * \brief Convert data into base32 encoded text.
  *
@@ -60,12 +58,10 @@ isc_base32hexnp_totext(isc_region_t *source, int wordlength,
  *	necessary.
  */
 
-isc_result_t
-isc_base32_decodestring(const char *cstr, isc_buffer_t *target);
-isc_result_t
-isc_base32hex_decodestring(const char *cstr, isc_buffer_t *target);
-isc_result_t
-isc_base32hexnp_decodestring(const char *cstr, isc_buffer_t *target);
+isc_result_t isc_base32_decodestring(const char *cstr, isc_buffer_t *target);
+isc_result_t isc_base32hex_decodestring(const char *cstr, isc_buffer_t *target);
+isc_result_t isc_base32hexnp_decodestring(const char *  cstr,
+                                          isc_buffer_t *target);
 /*!<
  * \brief Decode a null-terminated string in base32, base32hex, or
  * base32hex non-padded.
@@ -85,12 +81,12 @@ isc_base32hexnp_decodestring(const char *cstr, isc_buffer_t *target);
  *\li		isc_base32_tobuffer().
  */
 
-isc_result_t
-isc_base32_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
-isc_result_t
-isc_base32hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
-isc_result_t
-isc_base32hexnp_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
+isc_result_t isc_base32_tobuffer(isc_lex_t *lexer, isc_buffer_t *target,
+                                 int length);
+isc_result_t isc_base32hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target,
+                                    int length);
+isc_result_t isc_base32hexnp_tobuffer(isc_lex_t *lexer, isc_buffer_t *target,
+                                      int length);
 /*!<
  * \brief Convert text encoded in base32, base32hex, or base32hex
  * non-padded from a lexer context into data.
@@ -107,12 +103,12 @@ isc_base32hexnp_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  *	advanced as necessary.
  */
 
-isc_result_t
-isc_base32_decoderegion(isc_region_t *source, isc_buffer_t *target);
-isc_result_t
-isc_base32hex_decoderegion(isc_region_t *source, isc_buffer_t *target);
-isc_result_t
-isc_base32hexnp_decoderegion(isc_region_t *source, isc_buffer_t *target);
+isc_result_t isc_base32_decoderegion(isc_region_t *source,
+                                     isc_buffer_t *target);
+isc_result_t isc_base32hex_decoderegion(isc_region_t *source,
+                                        isc_buffer_t *target);
+isc_result_t isc_base32hexnp_decoderegion(isc_region_t *source,
+                                          isc_buffer_t *target);
 /*!<
  * \brief Decode a packed (no white space permitted) region in
  * base32, base32hex or base32hex non-padded.

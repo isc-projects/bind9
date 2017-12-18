@@ -38,23 +38,25 @@ static char rndc_keyFile[MAX_PATH];
 static char session_keyFile[MAX_PATH];
 static char resolv_confFile[MAX_PATH];
 
-static DWORD baseLen = MAX_PATH;
-static BOOL Initialized = FALSE;
+static DWORD baseLen     = MAX_PATH;
+static BOOL  Initialized = FALSE;
 
 void
-isc_ntpaths_init(void) {
+isc_ntpaths_init(void)
+{
 	HKEY hKey;
 	BOOL keyFound = TRUE;
 
 	memset(namedBase, 0, sizeof(namedBase));
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey)
-		!= ERROR_SUCCESS)
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey) !=
+	    ERROR_SUCCESS)
 		keyFound = FALSE;
 
 	if (keyFound == TRUE) {
 		/* Get the named directory */
 		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
-			(LPBYTE)namedBase, &baseLen) != ERROR_SUCCESS)
+		                    (LPBYTE)namedBase,
+		                    &baseLen) != ERROR_SUCCESS)
 			keyFound = FALSE;
 		RegCloseKey(hKey);
 	}
@@ -80,7 +82,7 @@ isc_ntpaths_init(void) {
 
 	strlcpy(ns_defaultpidfile, namedBase, sizeof(ns_defaultpidfile));
 	strlcat(ns_defaultpidfile, "\\etc\\named.pid",
-		sizeof(ns_defaultpidfile));
+	        sizeof(ns_defaultpidfile));
 
 	strlcpy(ns_lockfile, namedBase, sizeof(ns_lockfile));
 	strlcat(ns_lockfile, "\\etc\\named.lock", sizeof(ns_lockfile));
@@ -93,46 +95,27 @@ isc_ntpaths_init(void) {
 
 	/* Added to avoid an assert on NULL value */
 	strlcpy(resolv_confFile, namedBase, sizeof(resolv_confFile));
-	strlcat(resolv_confFile, "\\etc\\resolv.conf",
-		sizeof(resolv_confFile));
+	strlcat(resolv_confFile, "\\etc\\resolv.conf", sizeof(resolv_confFile));
 
 	Initialized = TRUE;
 }
 
 char *
-isc_ntpaths_get(int ind) {
+isc_ntpaths_get(int ind)
+{
 	if (!Initialized)
 		isc_ntpaths_init();
 
 	switch (ind) {
-	case NAMED_CONF_PATH:
-		return (ns_confFile);
-		break;
-	case RESOLV_CONF_PATH:
-		return (resolv_confFile);
-		break;
-	case RNDC_CONF_PATH:
-		return (rndc_confFile);
-		break;
-	case NAMED_PID_PATH:
-		return (ns_defaultpidfile);
-		break;
-	case NAMED_LOCK_PATH:
-		return (ns_lockfile);
-		break;
-	case LOCAL_STATE_DIR:
-		return (local_state_dir);
-		break;
-	case SYS_CONF_DIR:
-		return (sys_conf_dir);
-		break;
-	case RNDC_KEY_PATH:
-		return (rndc_keyFile);
-		break;
-	case SESSION_KEY_PATH:
-		return (session_keyFile);
-		break;
-	default:
-		return (NULL);
+	case NAMED_CONF_PATH: return (ns_confFile); break;
+	case RESOLV_CONF_PATH: return (resolv_confFile); break;
+	case RNDC_CONF_PATH: return (rndc_confFile); break;
+	case NAMED_PID_PATH: return (ns_defaultpidfile); break;
+	case NAMED_LOCK_PATH: return (ns_lockfile); break;
+	case LOCAL_STATE_DIR: return (local_state_dir); break;
+	case SYS_CONF_DIR: return (sys_conf_dir); break;
+	case RNDC_KEY_PATH: return (rndc_keyFile); break;
+	case SESSION_KEY_PATH: return (session_keyFile); break;
+	default: return (NULL);
 	}
 }

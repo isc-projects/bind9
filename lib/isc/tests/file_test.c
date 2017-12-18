@@ -19,7 +19,8 @@
 #include <isc/result.h>
 
 ATF_TC(isc_file_sanitize);
-ATF_TC_HEAD(isc_file_sanitize, tc) {
+ATF_TC_HEAD(isc_file_sanitize, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "sanitized filenames");
 }
 
@@ -36,7 +37,8 @@ ATF_TC_HEAD(isc_file_sanitize, tc) {
 #define F(x) "testdata/file/" x ".test"
 
 static void
-touch(const char *filename) {
+touch(const char *filename)
+{
 	int fd;
 
 	unlink(filename);
@@ -45,9 +47,10 @@ touch(const char *filename) {
 		close(fd);
 }
 
-ATF_TC_BODY(isc_file_sanitize, tc) {
+ATF_TC_BODY(isc_file_sanitize, tc)
+{
 	isc_result_t result;
-	char buf[1024];
+	char         buf[1024];
 
 	ATF_CHECK(chdir(TESTS) != -1);
 
@@ -78,33 +81,35 @@ ATF_TC_BODY(isc_file_sanitize, tc) {
 }
 
 ATF_TC(isc_file_template);
-ATF_TC_HEAD(isc_file_template, tc) {
+ATF_TC_HEAD(isc_file_template, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "file template");
 }
 
-ATF_TC_BODY(isc_file_template, tc) {
+ATF_TC_BODY(isc_file_template, tc)
+{
 	isc_result_t result;
-	char buf[1024];
+	char         buf[1024];
 
 	ATF_CHECK(chdir(TESTS) != -1);
 
-	result = isc_file_template("/absolute/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/absolute/path", "file-XXXXXXXX", buf,
+	                           sizeof(buf));
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "/absolute/file-XXXXXXXX");
 
-	result = isc_file_template("relative/path", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("relative/path", "file-XXXXXXXX", buf,
+	                           sizeof(buf));
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "relative/file-XXXXXXXX");
 
-	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result = isc_file_template("/trailing/slash/", "file-XXXXXXXX", buf,
+	                           sizeof(buf));
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "/trailing/slash/file-XXXXXXXX");
 
 	result = isc_file_template("relative/trailing/slash/", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	                           buf, sizeof(buf));
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "relative/trailing/slash/file-XXXXXXXX");
 
@@ -112,8 +117,8 @@ ATF_TC_BODY(isc_file_template, tc) {
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "/file-XXXXXXXX");
 
-	result = isc_file_template("noslash", "file-XXXXXXXX",
-				   buf, sizeof(buf));
+	result =
+	        isc_file_template("noslash", "file-XXXXXXXX", buf, sizeof(buf));
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_STREQ(buf, "file-XXXXXXXX");
 
@@ -125,9 +130,9 @@ ATF_TC_BODY(isc_file_template, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_file_sanitize);
 	ATF_TP_ADD_TC(tp, isc_file_template);
 	return (atf_no_error());
 }
-

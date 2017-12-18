@@ -15,9 +15,9 @@
  * \brief
  * File offsets are operating-system dependent.
  */
-#include <limits.h>             /* Required for CHAR_BIT. */
+#include <limits.h> /* Required for CHAR_BIT. */
+#include <stddef.h> /* For Linux Standard Base. */
 #include <sys/types.h>
-#include <stddef.h>		/* For Linux Standard Base. */
 
 typedef off_t isc_offset_t;
 

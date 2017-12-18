@@ -24,20 +24,19 @@
  */
 static inline isc_int32_t
 #ifdef __GNUC__
-__attribute__ ((unused))
+        __attribute__((unused))
 #endif
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+        isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
 {
 	isc_int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile isc_int32_t *)p;; prev = swapped) {
 		swapped = prev + val;
-		__asm__ volatile(
-			"mov ar.ccv=%2;;"
-			"cmpxchg4.acq %0=%4,%3,ar.ccv"
-			: "=r" (swapped), "=m" (*p)
-			: "r" (prev), "r" (swapped), "m" (*p)
-			: "memory");
+		__asm__ volatile("mov ar.ccv=%2;;"
+		                 "cmpxchg4.acq %0=%4,%3,ar.ccv"
+		                 : "=r"(swapped), "=m"(*p)
+		                 : "r"(prev), "r"(swapped), "m"(*p)
+		                 : "memory");
 		if (swapped == prev)
 			break;
 	}
@@ -50,16 +49,11 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
  */
 static inline void
 #ifdef __GNUC__
-__attribute__ ((unused))
+        __attribute__((unused))
 #endif
-isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+        isc_atomic_store(isc_int32_t *p, isc_int32_t val)
 {
-	__asm__ volatile(
-		"st4.rel %0=%1"
-		: "=m" (*p)
-		: "r" (val)
-		: "memory"
-		);
+	__asm__ volatile("st4.rel %0=%1" : "=m"(*p) : "r"(val) : "memory");
 }
 
 /*
@@ -69,18 +63,17 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val)
  */
 static inline isc_int32_t
 #ifdef __GNUC__
-__attribute__ ((unused))
+        __attribute__((unused))
 #endif
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+        isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
 {
 	isc_int32_t ret;
 
-	__asm__ volatile(
-		"mov ar.ccv=%2;;"
-		"cmpxchg4.acq %0=%4,%3,ar.ccv"
-		: "=r" (ret), "=m" (*p)
-		: "r" (cmpval), "r" (val), "m" (*p)
-		: "memory");
+	__asm__ volatile("mov ar.ccv=%2;;"
+	                 "cmpxchg4.acq %0=%4,%3,ar.ccv"
+	                 : "=r"(ret), "=m"(*p)
+	                 : "r"(cmpval), "r"(val), "m"(*p)
+	                 : "memory");
 
 	return (ret);
 }

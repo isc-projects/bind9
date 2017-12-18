@@ -32,7 +32,7 @@
 #include <config.h>
 
 #include <stdlib.h>
-#include <time.h>		/* Required for time(). */
+#include <time.h> /* Required for time(). */
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -40,18 +40,18 @@
 #include <unistd.h>
 #endif
 
+#include <isc/entropy.h>
 #include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
-#include <isc/mem.h>
-#include <isc/entropy.h>
 #include <isc/random.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define RNG_MAGIC			ISC_MAGIC('R', 'N', 'G', 'x')
-#define VALID_RNG(r)			ISC_MAGIC_VALID(r, RNG_MAGIC)
+#define RNG_MAGIC ISC_MAGIC('R', 'N', 'G', 'x')
+#define VALID_RNG(r) ISC_MAGIC_VALID(r, RNG_MAGIC)
 
 #define KEYSTREAM_ONLY
 #include "chacha_private.h"
@@ -70,21 +70,22 @@
 
 /* ChaCha RNG state */
 struct isc_rng {
-	unsigned int	magic;
-	isc_mem_t	*mctx;
-	chacha_ctx	cpctx;
-	isc_uint8_t	buffer[CHACHA_BUFFERSIZE];
-	size_t		have;
-	unsigned int	references;
-	int		count;
-	isc_entropy_t	*entropy;	/*%< entropy source */
-	isc_mutex_t	lock;
+	unsigned int   magic;
+	isc_mem_t *    mctx;
+	chacha_ctx     cpctx;
+	isc_uint8_t    buffer[CHACHA_BUFFERSIZE];
+	size_t         have;
+	unsigned int   references;
+	int            count;
+	isc_entropy_t *entropy; /*%< entropy source */
+	isc_mutex_t    lock;
 };
 
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void
-initialize_rand(void) {
+initialize_rand(void)
+{
 #ifndef HAVE_ARC4RANDOM
 	unsigned int pid = getpid();
 
@@ -99,12 +100,14 @@ initialize_rand(void) {
 }
 
 static void
-initialize(void) {
+initialize(void)
+{
 	RUNTIME_CHECK(isc_once_do(&once, initialize_rand) == ISC_R_SUCCESS);
 }
 
 void
-isc_random_seed(isc_uint32_t seed) {
+isc_random_seed(isc_uint32_t seed)
+{
 	initialize();
 
 #ifndef HAVE_ARC4RANDOM
@@ -114,21 +117,22 @@ isc_random_seed(isc_uint32_t seed) {
 	UNUSED(seed);
 	arc4random_stir();
 #elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom((u_char *) &seed, sizeof(isc_uint32_t));
+	arc4random_addrandom((u_char *)&seed, sizeof(isc_uint32_t));
 #else
-       /*
-	* If arc4random() is available and no corresponding seeding
-	* function arc4random_addrandom() is available, no seeding is
-	* done on such platforms (e.g., OpenBSD 5.5).  This is because
-	* the OS itself is supposed to seed the RNG and it is assumed
-	* that no explicit seeding is required.
-	*/
-       UNUSED(seed);
+	/*
+	 * If arc4random() is available and no corresponding seeding
+	 * function arc4random_addrandom() is available, no seeding is
+	 * done on such platforms (e.g., OpenBSD 5.5).  This is because
+	 * the OS itself is supposed to seed the RNG and it is assumed
+	 * that no explicit seeding is required.
+	 */
+	UNUSED(seed);
 #endif
 }
 
 void
-isc_random_get(isc_uint32_t *val) {
+isc_random_get(isc_uint32_t *val)
+{
 	REQUIRE(val != NULL);
 
 	initialize();
@@ -145,7 +149,7 @@ isc_random_get(isc_uint32_t *val) {
 #elif RAND_MAX >= 0x7fff
 	/* We have at least 15 bits.  Use lower 10/11 excluding lower most 4 */
 	*val = ((rand() >> 4) & 0x000007ff) | ((rand() << 7) & 0x003ff800) |
-		((rand() << 18) & 0xffc00000);
+	       ((rand() << 18) & 0xffc00000);
 #else
 #error RAND_MAX is too small
 #endif
@@ -155,7 +159,8 @@ isc_random_get(isc_uint32_t *val) {
 }
 
 isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
+isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter)
+{
 	isc_uint32_t rnd;
 
 	REQUIRE(jitter < max || (jitter == 0 && max == 0));
@@ -168,7 +173,8 @@ isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
 }
 
 static void
-chacha_reinit(isc_rng_t *rng, isc_uint8_t *buffer, size_t n) {
+chacha_reinit(isc_rng_t *rng, isc_uint8_t *buffer, size_t n)
+{
 	REQUIRE(rng != NULL);
 
 	if (n < CHACHA_KEYSIZE + CHACHA_IVSIZE)
@@ -179,13 +185,14 @@ chacha_reinit(isc_rng_t *rng, isc_uint8_t *buffer, size_t n) {
 }
 
 isc_result_t
-isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
+isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp)
+{
 	union {
 		unsigned char rnd[128];
-		isc_uint32_t rnd32[32];
+		isc_uint32_t  rnd32[32];
 	} rnd;
 	isc_result_t result;
-	isc_rng_t *rng;
+	isc_rng_t *  rng;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(rngp != NULL && *rngp == NULL);
@@ -194,8 +201,8 @@ isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
 		/*
 		 * We accept any quality of random data to avoid blocking.
 		 */
-		result = isc_entropy_getdata(entropy, rnd.rnd,
-					     sizeof(rnd), NULL, 0);
+		result = isc_entropy_getdata(entropy, rnd.rnd, sizeof(rnd),
+		                             NULL, 0);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	} else {
 		int i;
@@ -224,10 +231,10 @@ isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
 	isc_mem_attach(mctx, &rng->mctx);
 
 	/* Local non-algorithm initializations. */
-	rng->count = 0;
-	rng->entropy = entropy; /* don't have to attach */
+	rng->count      = 0;
+	rng->entropy    = entropy; /* don't have to attach */
 	rng->references = 1;
-	rng->magic = RNG_MAGIC;
+	rng->magic      = RNG_MAGIC;
 
 	*rngp = rng;
 
@@ -235,7 +242,8 @@ isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
 }
 
 void
-isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp) {
+isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp)
+{
 
 	REQUIRE(VALID_RNG(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
@@ -248,7 +256,8 @@ isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp) {
 }
 
 static void
-destroy(isc_rng_t *rng) {
+destroy(isc_rng_t *rng)
+{
 
 	REQUIRE(VALID_RNG(rng));
 
@@ -258,13 +267,14 @@ destroy(isc_rng_t *rng) {
 }
 
 void
-isc_rng_detach(isc_rng_t **rngp) {
-	isc_rng_t *rng;
+isc_rng_detach(isc_rng_t **rngp)
+{
+	isc_rng_t *   rng;
 	isc_boolean_t dest = ISC_FALSE;
 
 	REQUIRE(rngp != NULL && VALID_RNG(*rngp));
 
-	rng = *rngp;
+	rng   = *rngp;
 	*rngp = NULL;
 
 	LOCK(&rng->lock);
@@ -280,7 +290,8 @@ isc_rng_detach(isc_rng_t **rngp) {
 }
 
 static void
-chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen) {
+chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen)
+{
 	REQUIRE(VALID_RNG(rng));
 
 #ifndef KEYSTREAM_ONLY
@@ -289,7 +300,7 @@ chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen) {
 
 	/* Fill buffer with the keystream. */
 	chacha_encrypt_bytes(&rng->cpctx, rng->buffer, rng->buffer,
-			     CHACHA_BUFFERSIZE);
+	                     CHACHA_BUFFERSIZE);
 
 	/* Mix in optional user provided data. */
 	if (dat != NULL) {
@@ -301,20 +312,20 @@ chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen) {
 	}
 
 	/* Immediately reinit for backtracking resistance. */
-	chacha_reinit(rng, rng->buffer,
-		      CHACHA_KEYSIZE + CHACHA_IVSIZE);
+	chacha_reinit(rng, rng->buffer, CHACHA_KEYSIZE + CHACHA_IVSIZE);
 	memset(rng->buffer, 0, CHACHA_KEYSIZE + CHACHA_IVSIZE);
 	rng->have = CHACHA_MAXHAVE;
 }
 
 static void
-chacha_getbytes(isc_rng_t *rng, isc_uint8_t *output, size_t length) {
+chacha_getbytes(isc_rng_t *rng, isc_uint8_t *output, size_t length)
+{
 	REQUIRE(VALID_RNG(rng));
 
 	while (ISC_UNLIKELY(length > CHACHA_MAXHAVE)) {
 		chacha_rekey(rng, NULL, 0);
 		memmove(output, rng->buffer + CHACHA_BUFFERSIZE - rng->have,
-			CHACHA_MAXHAVE);
+		        CHACHA_MAXHAVE);
 		output += CHACHA_MAXHAVE;
 		length -= CHACHA_MAXHAVE;
 		rng->have = 0;
@@ -330,10 +341,11 @@ chacha_getbytes(isc_rng_t *rng, isc_uint8_t *output, size_t length) {
 }
 
 static void
-chacha_stir(isc_rng_t *rng) {
+chacha_stir(isc_rng_t *rng)
+{
 	union {
 		unsigned char rnd[128];
-		isc_uint32_t rnd32[32];
+		isc_uint32_t  rnd32[32];
 	} rnd;
 	isc_result_t result;
 
@@ -343,8 +355,8 @@ chacha_stir(isc_rng_t *rng) {
 		/*
 		 * We accept any quality of random data to avoid blocking.
 		 */
-		result = isc_entropy_getdata(rng->entropy, rnd.rnd,
-					     sizeof(rnd), NULL, 0);
+		result = isc_entropy_getdata(rng->entropy, rnd.rnd, sizeof(rnd),
+		                             NULL, 0);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	} else {
 		int i;
@@ -369,7 +381,8 @@ chacha_stir(isc_rng_t *rng) {
 }
 
 void
-isc_rng_randombytes(isc_rng_t *rng, void *output, size_t length) {
+isc_rng_randombytes(isc_rng_t *rng, void *output, size_t length)
+{
 	isc_uint8_t *ptr = output;
 
 	REQUIRE(VALID_RNG(rng));
@@ -395,7 +408,8 @@ isc_rng_randombytes(isc_rng_t *rng, void *output, size_t length) {
 }
 
 isc_uint16_t
-isc_rng_random(isc_rng_t *rng) {
+isc_rng_random(isc_rng_t *rng)
+{
 	isc_uint16_t result;
 
 	isc_rng_randombytes(rng, &result, sizeof(result));
@@ -404,7 +418,8 @@ isc_rng_random(isc_rng_t *rng) {
 }
 
 isc_uint16_t
-isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound) {
+isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound)
+{
 	isc_uint16_t min, r;
 
 	REQUIRE(VALID_RNG(rng));

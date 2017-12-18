@@ -23,7 +23,7 @@
 #include <isc/util.h>
 
 #ifdef HAVE_CATGETS
-#include <nl_types.h>		/* Required for nl_catd. */
+#include <nl_types.h> /* Required for nl_catd. */
 #endif
 
 /*
@@ -35,17 +35,18 @@
  */
 
 struct isc_msgcat {
-	unsigned int	magic;
+	unsigned int magic;
 #ifdef HAVE_CATGETS
-	nl_catd		catalog;
+	nl_catd catalog;
 #endif
 };
 
-#define MSGCAT_MAGIC			ISC_MAGIC('M', 'C', 'a', 't')
-#define VALID_MSGCAT(m)			ISC_MAGIC_VALID(m, MSGCAT_MAGIC)
+#define MSGCAT_MAGIC ISC_MAGIC('M', 'C', 'a', 't')
+#define VALID_MSGCAT(m) ISC_MAGIC_VALID(m, MSGCAT_MAGIC)
 
 void
-isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp) {
+isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp)
+{
 	isc_msgcat_t *msgcat;
 
 	/*
@@ -75,7 +76,8 @@ isc_msgcat_open(const char *name, isc_msgcat_t **msgcatp) {
 }
 
 void
-isc_msgcat_close(isc_msgcat_t **msgcatp) {
+isc_msgcat_close(isc_msgcat_t **msgcatp)
+{
 	isc_msgcat_t *msgcat;
 
 	/*
@@ -100,7 +102,7 @@ isc_msgcat_close(isc_msgcat_t **msgcatp) {
 
 const char *
 isc_msgcat_get(isc_msgcat_t *msgcat, int set, int message,
-	       const char *default_text)
+               const char *default_text)
 {
 	/*
 	 * Get message 'message' from message set 'set' in 'msgcat'.  If it

@@ -21,14 +21,11 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_file_settime(const char *file, isc_time_t *time);
+isc_result_t isc_file_settime(const char *file, isc_time_t *time);
 
-isc_result_t
-isc_file_mode(const char *file, mode_t *modep);
+isc_result_t isc_file_mode(const char *file, mode_t *modep);
 
-isc_result_t
-isc_file_getmodtime(const char *file, isc_time_t *time);
+isc_result_t isc_file_getmodtime(const char *file, isc_time_t *time);
 /*!<
  * \brief Get the time of last modification of a file.
  *
@@ -60,10 +57,10 @@ isc_file_getmodtime(const char *file, isc_time_t *time);
  *
  */
 
-isc_result_t
-isc_file_mktemplate(const char *path, char *buf, size_t buflen);
+isc_result_t isc_file_mktemplate(const char *path, char *buf, size_t buflen);
 /*!<
- * \brief Generate a template string suitable for use with isc_file_openunique().
+ * \brief Generate a template string suitable for use with
+ *isc_file_openunique().
  *
  * Notes:
  *\li	This function is intended to make creating temporary files
@@ -92,18 +89,12 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen);
  *				of the path with the internal template string.
  */
 
-isc_result_t
-isc_file_openunique(char *templet, FILE **fp);
-isc_result_t
-isc_file_openuniqueprivate(char *templet, FILE **fp);
-isc_result_t
-isc_file_openuniquemode(char *templet, int mode, FILE **fp);
-isc_result_t
-isc_file_bopenunique(char *templet, FILE **fp);
-isc_result_t
-isc_file_bopenuniqueprivate(char *templet, FILE **fp);
-isc_result_t
-isc_file_bopenuniquemode(char *templet, int mode, FILE **fp);
+isc_result_t isc_file_openunique(char *templet, FILE **fp);
+isc_result_t isc_file_openuniqueprivate(char *templet, FILE **fp);
+isc_result_t isc_file_openuniquemode(char *templet, int mode, FILE **fp);
+isc_result_t isc_file_bopenunique(char *templet, FILE **fp);
+isc_result_t isc_file_bopenuniqueprivate(char *templet, FILE **fp);
+isc_result_t isc_file_bopenuniquemode(char *templet, int mode, FILE **fp);
 /*!<
  * \brief Create and open a file with a unique name based on 'templet'.
  *	isc_file_bopen*() open the file in binary mode in Windows.
@@ -161,37 +152,31 @@ isc_file_bopenuniquemode(char *templet, int mode, FILE **fp);
  *		Something totally unexpected happened.
  */
 
-isc_result_t
-isc_file_remove(const char *filename);
+isc_result_t isc_file_remove(const char *filename);
 /*!<
  * \brief Remove the file named by 'filename'.
  */
 
-isc_result_t
-isc_file_rename(const char *oldname, const char *newname);
+isc_result_t isc_file_rename(const char *oldname, const char *newname);
 /*!<
  * \brief Rename the file 'oldname' to 'newname'.
  */
 
-isc_boolean_t
-isc_file_exists(const char *pathname);
+isc_boolean_t isc_file_exists(const char *pathname);
 /*!<
- * \brief Return #ISC_TRUE if the calling process can tell that the given file exists.
- * Will not return true if the calling process has insufficient privileges
- * to search the entire path.
+ * \brief Return #ISC_TRUE if the calling process can tell that the given file
+ * exists. Will not return true if the calling process has insufficient
+ * privileges to search the entire path.
  */
 
-isc_boolean_t
-isc_file_isabsolute(const char *filename);
+isc_boolean_t isc_file_isabsolute(const char *filename);
 /*!<
  * \brief Return #ISC_TRUE if the given file name is absolute.
  */
 
-isc_result_t
-isc_file_isplainfile(const char *name);
+isc_result_t isc_file_isplainfile(const char *name);
 
-isc_result_t
-isc_file_isplainfilefd(int fd);
+isc_result_t isc_file_isplainfilefd(int fd);
 /*!<
  * \brief Check that the file is a plain file
  *
@@ -211,8 +196,7 @@ isc_file_isplainfilefd(int fd);
  *		These occur when stat returns -1 and an errno.
  */
 
-isc_result_t
-isc_file_isdirectory(const char *name);
+isc_result_t isc_file_isdirectory(const char *name);
 /*!<
  * \brief Check that 'name' exists and is a directory.
  *
@@ -227,27 +211,24 @@ isc_file_isdirectory(const char *name);
  *		These occur when stat returns -1 and an errno.
  */
 
-isc_boolean_t
-isc_file_iscurrentdir(const char *filename);
+isc_boolean_t isc_file_iscurrentdir(const char *filename);
 /*!<
- * \brief Return #ISC_TRUE if the given file name is the current directory (".").
+ * \brief Return #ISC_TRUE if the given file name is the current directory
+ * (".").
  */
 
-isc_boolean_t
-isc_file_ischdiridempotent(const char *filename);
+isc_boolean_t isc_file_ischdiridempotent(const char *filename);
 /*%<
  * Return #ISC_TRUE if calling chdir(filename) multiple times will give
  * the same result as calling it once.
  */
 
-const char *
-isc_file_basename(const char *filename);
+const char *isc_file_basename(const char *filename);
 /*%<
  * Return the final component of the path in the file name.
  */
 
-isc_result_t
-isc_file_progname(const char *filename, char *buf, size_t buflen);
+isc_result_t isc_file_progname(const char *filename, char *buf, size_t buflen);
 /*!<
  * \brief Given an operating system specific file name "filename"
  * referring to a program, return the canonical program name.
@@ -263,23 +244,21 @@ isc_file_progname(const char *filename, char *buf, size_t buflen);
  *\li	#ISC_R_NOSPACE 	The name did not fit in 'buf'.
  */
 
-isc_result_t
-isc_file_template(const char *path, const char *templet, char *buf,
-		  size_t buflen);
+isc_result_t isc_file_template(const char *path, const char *templet, char *buf,
+                               size_t buflen);
 /*%<
  * Create an OS specific template using 'path' to define the directory
  * 'templet' to describe the filename and store the result in 'buf'
  * such that path can be renamed to buf atomically.
  */
 
-isc_result_t
-isc_file_renameunique(const char *file, char *templet);
+isc_result_t isc_file_renameunique(const char *file, char *templet);
 /*%<
  * Rename 'file' using 'templet' as a template for the new file name.
  */
 
-isc_result_t
-isc_file_absolutepath(const char *filename, char *path, size_t pathlen);
+isc_result_t isc_file_absolutepath(const char *filename, char *path,
+                                   size_t pathlen);
 /*%<
  * Given a file name, return the fully qualified path to the file.
  */
@@ -290,23 +269,20 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen);
  * (see write_open() in BIND 8's ns_config.c).
  */
 
-isc_result_t
-isc_file_truncate(const char *filename, isc_offset_t size);
+isc_result_t isc_file_truncate(const char *filename, isc_offset_t size);
 /*%<
  * Truncate/extend the file specified to 'size' bytes.
  */
 
-isc_result_t
-isc_file_safecreate(const char *filename, FILE **fp);
+isc_result_t isc_file_safecreate(const char *filename, FILE **fp);
 /*%<
  * Open 'filename' for writing, truncating if necessary.  Ensure that
  * if it existed it was a normal file.  If creating the file, ensure
  * that only the owner can read/write it.
  */
 
-isc_result_t
-isc_file_splitpath(isc_mem_t *mctx, const char *path,
-		   char **dirname, char const **basename);
+isc_result_t isc_file_splitpath(isc_mem_t *mctx, const char *path,
+                                char **dirname, char const **basename);
 /*%<
  * Split a path into dirname and basename.  If 'path' contains no slash
  * (or, on windows, backslash), then '*dirname' is set to ".".
@@ -319,8 +295,7 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path,
  * - ISC_R_NOMEMORY if unable to allocate memory
  */
 
-isc_result_t
-isc_file_getsize(const char *file, off_t *size);
+isc_result_t isc_file_getsize(const char *file, off_t *size);
 /*%<
  * Return the size of the file (stored in the parameter pointed
  * to by 'size') in bytes.
@@ -329,8 +304,7 @@ isc_file_getsize(const char *file, off_t *size);
  * - ISC_R_SUCCESS on success
  */
 
-isc_result_t
-isc_file_getsizefd(int fd, off_t *size);
+isc_result_t isc_file_getsizefd(int fd, off_t *size);
 /*%<
  * Return the size of the file (stored in the parameter pointed
  * to by 'size') in bytes.
@@ -339,25 +313,22 @@ isc_file_getsizefd(int fd, off_t *size);
  * - ISC_R_SUCCESS on success
  */
 
-void *
-isc_file_mmap(void *addr, size_t len, int prot,
-	      int flags, int fd, off_t offset);
+void *isc_file_mmap(void *addr, size_t len, int prot, int flags, int fd,
+                    off_t offset);
 /*%<
  * Portable front-end to mmap().  If mmap() is not defined on this
  * platform, then we simulate it by calling malloc() and read().
  * (In this event, the addr, prot, and flags parameters are ignored).
  */
 
-int
-isc_file_munmap(void *addr, size_t len);
+int isc_file_munmap(void *addr, size_t len);
 /*%<
  * Portable front-end to munmap().  If munmap() is not defined on
  * this platform, then we simply free the memory.
  */
 
-isc_result_t
-isc_file_sanitize(const char *dir, const char *base, const char *ext,
-		  char *path, size_t length);
+isc_result_t isc_file_sanitize(const char *dir, const char *base,
+                               const char *ext, char *path, size_t length);
 /*%<
  * Generate a sanitized filename, such as for MKEYS or NZF files.
  *
@@ -384,8 +355,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
  * - ISC_R_NOSPACE if the resulting path would be longer than 'length'
  */
 
-isc_boolean_t
-isc_file_isdirwritable(const char *path);
+isc_boolean_t isc_file_isdirwritable(const char *path);
 /*%<
  *	Return true if the path is a directory and is writable
  */

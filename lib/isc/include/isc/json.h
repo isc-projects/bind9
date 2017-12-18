@@ -23,19 +23,19 @@
  * prefix the header file names with "json-c/" and using
  * -I <prefix>/include/json-c results in too many filename collisions.
  */
-#include <json-c/linkhash.h>
-#include <json-c/json_util.h>
-#include <json-c/json_object.h>
-#include <json-c/json_tokener.h>
-#include <json-c/json_object_iterator.h>
 #include <json-c/json_c_version.h>
+#include <json-c/json_object.h>
+#include <json-c/json_object_iterator.h>
+#include <json-c/json_tokener.h>
+#include <json-c/json_util.h>
+#include <json-c/linkhash.h>
 #else
 #include <json/json.h>
 #endif
 #endif
 
-#define ISC_JSON_RENDERCONFIG		0x00000001 /* render config data */
-#define ISC_JSON_RENDERSTATS		0x00000002 /* render stats */
-#define ISC_JSON_RENDERALL		0x000000ff /* render everything */
+#define ISC_JSON_RENDERCONFIG 0x00000001 /* render config data */
+#define ISC_JSON_RENDERSTATS 0x00000002  /* render stats */
+#define ISC_JSON_RENDERALL 0x000000ff    /* render everything */
 
 #endif /* ISC_JSON_H */

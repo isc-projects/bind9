@@ -29,8 +29,8 @@
 #define ISC_HMACSHA512_KEYLENGTH ISC_SHA512_BLOCK_LENGTH
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
-#include <openssl/opensslv.h>
 #include <openssl/hmac.h>
+#include <openssl/opensslv.h>
 
 typedef struct {
 	HMAC_CTX *ctx;
@@ -57,121 +57,101 @@ typedef pk11_context_t isc_hmacsha512_t;
 #else
 
 typedef struct {
-	isc_sha1_t sha1ctx;
+	isc_sha1_t    sha1ctx;
 	unsigned char key[ISC_HMACSHA1_KEYLENGTH];
 } isc_hmacsha1_t;
 
 typedef struct {
-	isc_sha224_t sha224ctx;
+	isc_sha224_t  sha224ctx;
 	unsigned char key[ISC_HMACSHA224_KEYLENGTH];
 } isc_hmacsha224_t;
 
 typedef struct {
-	isc_sha256_t sha256ctx;
+	isc_sha256_t  sha256ctx;
 	unsigned char key[ISC_HMACSHA256_KEYLENGTH];
 } isc_hmacsha256_t;
 
 typedef struct {
-	isc_sha384_t sha384ctx;
+	isc_sha384_t  sha384ctx;
 	unsigned char key[ISC_HMACSHA384_KEYLENGTH];
 } isc_hmacsha384_t;
 
 typedef struct {
-	isc_sha512_t sha512ctx;
+	isc_sha512_t  sha512ctx;
 	unsigned char key[ISC_HMACSHA512_KEYLENGTH];
 } isc_hmacsha512_t;
 #endif
 
 ISC_LANG_BEGINDECLS
 
-void
-isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
-		  unsigned int len);
+void isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
+                       unsigned int len);
 
-void
-isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx);
+void isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx);
 
-void
-isc_hmacsha1_update(isc_hmacsha1_t *ctx, const unsigned char *buf,
-		    unsigned int len);
+void isc_hmacsha1_update(isc_hmacsha1_t *ctx, const unsigned char *buf,
+                         unsigned int len);
 
-void
-isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
-isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
+isc_boolean_t isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest,
+                                  size_t len);
 
+void isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
+                         unsigned int len);
 
-void
-isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
-		    unsigned int len);
+void isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx);
 
-void
-isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx);
+void isc_hmacsha224_update(isc_hmacsha224_t *ctx, const unsigned char *buf,
+                           unsigned int len);
 
-void
-isc_hmacsha224_update(isc_hmacsha224_t *ctx, const unsigned char *buf,
-		      unsigned int len);
+void isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest,
+                         size_t len);
 
-void
-isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len);
+isc_boolean_t isc_hmacsha224_verify(isc_hmacsha224_t *ctx,
+                                    unsigned char *digest, size_t len);
 
-isc_boolean_t
-isc_hmacsha224_verify(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
+                         unsigned int len);
 
+void isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx);
 
-void
-isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
-		    unsigned int len);
+void isc_hmacsha256_update(isc_hmacsha256_t *ctx, const unsigned char *buf,
+                           unsigned int len);
 
-void
-isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx);
+void isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest,
+                         size_t len);
 
-void
-isc_hmacsha256_update(isc_hmacsha256_t *ctx, const unsigned char *buf,
-		      unsigned int len);
+isc_boolean_t isc_hmacsha256_verify(isc_hmacsha256_t *ctx,
+                                    unsigned char *digest, size_t len);
 
-void
-isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
+                         unsigned int len);
 
-isc_boolean_t
-isc_hmacsha256_verify(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx);
 
+void isc_hmacsha384_update(isc_hmacsha384_t *ctx, const unsigned char *buf,
+                           unsigned int len);
 
-void
-isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
-		    unsigned int len);
+void isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest,
+                         size_t len);
 
-void
-isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx);
+isc_boolean_t isc_hmacsha384_verify(isc_hmacsha384_t *ctx,
+                                    unsigned char *digest, size_t len);
 
-void
-isc_hmacsha384_update(isc_hmacsha384_t *ctx, const unsigned char *buf,
-		      unsigned int len);
+void isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
+                         unsigned int len);
 
-void
-isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx);
 
-isc_boolean_t
-isc_hmacsha384_verify(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len);
+void isc_hmacsha512_update(isc_hmacsha512_t *ctx, const unsigned char *buf,
+                           unsigned int len);
 
+void isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest,
+                         size_t len);
 
-void
-isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
-		    unsigned int len);
-
-void
-isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx);
-
-void
-isc_hmacsha512_update(isc_hmacsha512_t *ctx, const unsigned char *buf,
-		      unsigned int len);
-
-void
-isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len);
-
-isc_boolean_t
-isc_hmacsha512_verify(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len);
+isc_boolean_t isc_hmacsha512_verify(isc_hmacsha512_t *ctx,
+                                    unsigned char *digest, size_t len);
 
 ISC_LANG_ENDDECLS
 

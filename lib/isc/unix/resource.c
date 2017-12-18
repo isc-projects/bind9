@@ -10,9 +10,9 @@
 
 #include <config.h>
 
-#include <sys/types.h>
-#include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
 #include <sys/resource.h>
+#include <sys/time.h> /* Required on some systems for <sys/resource.h>. */
+#include <sys/types.h>
 
 #include <isc/platform.h>
 #include <isc/resource.h>
@@ -20,7 +20,7 @@
 #include <isc/util.h>
 
 #ifdef __linux__
-#include <linux/fs.h>	/* To get the large NR_OPEN. */
+#include <linux/fs.h> /* To get the large NR_OPEN. */
 #endif
 
 #if defined(__hpux) && defined(HAVE_SYS_DYNTUNE_H)
@@ -30,22 +30,15 @@
 #include "errno2result.h"
 
 static isc_result_t
-resource2rlim(isc_resource_t resource, int *rlim_resource) {
+resource2rlim(isc_resource_t resource, int *rlim_resource)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 	switch (resource) {
-	case isc_resource_coresize:
-		*rlim_resource = RLIMIT_CORE;
-		break;
-	case isc_resource_cputime:
-		*rlim_resource = RLIMIT_CPU;
-		break;
-	case isc_resource_datasize:
-		*rlim_resource = RLIMIT_DATA;
-		break;
-	case isc_resource_filesize:
-		*rlim_resource = RLIMIT_FSIZE;
-		break;
+	case isc_resource_coresize: *rlim_resource = RLIMIT_CORE; break;
+	case isc_resource_cputime: *rlim_resource = RLIMIT_CPU; break;
+	case isc_resource_datasize: *rlim_resource = RLIMIT_DATA; break;
+	case isc_resource_filesize: *rlim_resource = RLIMIT_FSIZE; break;
 	case isc_resource_lockedmemory:
 #ifdef RLIMIT_MEMLOCK
 		*rlim_resource = RLIMIT_MEMLOCK;
@@ -74,16 +67,14 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 		result = ISC_R_NOTIMPLEMENTED;
 #endif
 		break;
-	case isc_resource_stacksize:
-		*rlim_resource = RLIMIT_STACK;
-		break;
+	case isc_resource_stacksize: *rlim_resource = RLIMIT_STACK; break;
 	default:
 		/*
 		 * This test is not very robust if isc_resource_t
 		 * changes, but generates a clear assertion message.
 		 */
 		REQUIRE(resource >= isc_resource_coresize &&
-			resource <= isc_resource_stacksize);
+		        resource <= isc_resource_stacksize);
 
 		result = ISC_R_RANGE;
 		break;
@@ -93,12 +84,13 @@ resource2rlim(isc_resource_t resource, int *rlim_resource) {
 }
 
 isc_result_t
-isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
-	struct rlimit rl;
+isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value)
+{
+	struct rlimit           rl;
 	ISC_PLATFORM_RLIMITTYPE rlim_value;
-	int unixresult;
-	int unixresource;
-	isc_result_t result;
+	int                     unixresult;
+	int                     unixresource;
+	isc_result_t            result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result != ISC_R_SUCCESS)
@@ -116,12 +108,13 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		 * ISC_PLATFORM_RLIMITTYPE is not overflowed.
 		 */
 		isc_resourcevalue_t rlim_max;
-		isc_boolean_t rlim_t_is_signed =
-			ISC_TF(((double)(ISC_PLATFORM_RLIMITTYPE)-1) < 0);
+		isc_boolean_t       rlim_t_is_signed =
+		        ISC_TF(((double)(ISC_PLATFORM_RLIMITTYPE)-1) < 0);
 
 		if (rlim_t_is_signed)
-			rlim_max = ~((ISC_PLATFORM_RLIMITTYPE)1 <<
-				     (sizeof(ISC_PLATFORM_RLIMITTYPE) * 8 - 1));
+			rlim_max =
+			        ~((ISC_PLATFORM_RLIMITTYPE)1
+			          << (sizeof(ISC_PLATFORM_RLIMITTYPE) * 8 - 1));
 		else
 			rlim_max = (ISC_PLATFORM_RLIMITTYPE)-1;
 
@@ -132,7 +125,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	}
 
 	rl.rlim_cur = rl.rlim_max = rlim_value;
-	unixresult = setrlimit(unixresource, &rl);
+	unixresult                = setrlimit(unixresource, &rl);
 
 	if (unixresult == 0)
 		return (ISC_R_SUCCESS);
@@ -146,13 +139,13 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	 */
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
 		rl.rlim_cur = OPEN_MAX;
-		unixresult = setrlimit(unixresource, &rl);
+		unixresult  = setrlimit(unixresource, &rl);
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
 	}
 #elif defined(__linux__)
 #ifndef NR_OPEN
-#define NR_OPEN (1024*1024)
+#define NR_OPEN (1024 * 1024)
 #endif
 
 	/*
@@ -179,7 +172,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
 		if (getrlimit(unixresource, &rl) == 0) {
 			rl.rlim_cur = rl.rlim_max;
-			unixresult = setrlimit(unixresource, &rl);
+			unixresult  = setrlimit(unixresource, &rl);
 			if (unixresult == 0)
 				return (ISC_R_SUCCESS);
 		}
@@ -188,11 +181,12 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 }
 
 isc_result_t
-isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
-	int unixresult;
-	int unixresource;
+isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value)
+{
+	int           unixresult;
+	int           unixresource;
 	struct rlimit rl;
-	isc_result_t result;
+	isc_result_t  result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result == ISC_R_SUCCESS) {
@@ -205,11 +199,12 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 }
 
 isc_result_t
-isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
-	int unixresult;
-	int unixresource;
+isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value)
+{
+	int           unixresult;
+	int           unixresource;
 	struct rlimit rl;
-	isc_result_t result;
+	isc_result_t  result;
 
 	result = resource2rlim(resource, &unixresource);
 	if (result == ISC_R_SUCCESS) {

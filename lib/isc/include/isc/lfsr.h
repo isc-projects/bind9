@@ -34,21 +34,19 @@ typedef void (*isc_lfsrreseed_t)(isc_lfsr_t *, void *);
  * needs to be taken to not change state once the lfsr is in operation.
  */
 struct isc_lfsr {
-	isc_uint32_t		state;	/*%< previous state */
-	unsigned int		bits;	/*%< length */
-	isc_uint32_t		tap;	/*%< bit taps */
-	unsigned int		count;	/*%< reseed count (in BITS!) */
-	isc_lfsrreseed_t	reseed;	/*%< reseed function */
-	void		       *arg;	/*%< reseed function argument */
+	isc_uint32_t     state;  /*%< previous state */
+	unsigned int     bits;   /*%< length */
+	isc_uint32_t     tap;    /*%< bit taps */
+	unsigned int     count;  /*%< reseed count (in BITS!) */
+	isc_lfsrreseed_t reseed; /*%< reseed function */
+	void *           arg;    /*%< reseed function argument */
 };
 
 ISC_LANG_BEGINDECLS
 
-
-void
-isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
-		   isc_uint32_t tap, unsigned int count,
-		   isc_lfsrreseed_t reseed, void *arg);
+void isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
+                   isc_uint32_t tap, unsigned int count,
+                   isc_lfsrreseed_t reseed, void *arg);
 /*%<
  * Initialize an LFSR.
  *
@@ -66,8 +64,7 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
  *\li	tap != 0
  */
 
-void
-isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
+void isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
 /*%<
  * Returns "count" bytes of data from the LFSR.
  *
@@ -80,8 +77,7 @@ isc_lfsr_generate(isc_lfsr_t *lfsr, void *data, unsigned int count);
  *\li	count > 0.
  */
 
-void
-isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
+void isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
 /*%<
  * Skip "skip" states.
  *
@@ -90,8 +86,7 @@ isc_lfsr_skip(isc_lfsr_t *lfsr, unsigned int skip);
  *\li	lfsr be valid.
  */
 
-isc_uint32_t
-isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2);
+isc_uint32_t isc_lfsr_generate32(isc_lfsr_t *lfsr1, isc_lfsr_t *lfsr2);
 /*%<
  * Given two LFSRs, use the current state from each to skip entries in the
  * other.  The next states are then xor'd together and returned.

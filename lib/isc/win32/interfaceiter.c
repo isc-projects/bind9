@@ -14,20 +14,20 @@
  */
 
 #include <config.h>
+#include <sys/types.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <sys/types.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #include <isc/interfaceiter.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/string.h>
 #include <isc/strerror.h>
+#include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -44,67 +44,64 @@ void InitSockets(void);
  * not have a valid address family).
  */
 
-
-#define IFITER_MAGIC		0x49464954U	/* IFIT. */
-#define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
+#define IFITER_MAGIC 0x49464954U /* IFIT. */
+#define VALID_IFITER(t) ((t) != NULL && (t)->magic == IFITER_MAGIC)
 
 struct isc_interfaceiter {
-	unsigned int		magic;		/* Magic number. */
-	isc_mem_t		*mctx;
-	SOCKET			socket;
-	INTERFACE_INFO		IFData;		/* Current Interface Info. */
-	int			numIF;		/* Current Interface count. */
-	int			v4IF;		/* Number of IPv4 Interfaces */
-	INTERFACE_INFO		*buf4;		/* Buffer for WSAIoctl data. */
-	unsigned int		buf4size;	/* Bytes allocated. */
-	INTERFACE_INFO		*pos4;		/* Current offset in IF List */
-	SOCKET_ADDRESS_LIST	*buf6;		/* Buffer for WSAIoctl data. */
-	unsigned int		buf6size;	/* Bytes allocated. */
-	unsigned int		pos6;		/* Which entry to process. */
-	isc_boolean_t		v6loop;		/* See IPv6 loop address. */
-	isc_boolean_t		pos6zero;	/* Done pos6 == 0. */
-	isc_interface_t		current;	/* Current interface data. */
-	isc_result_t		result;		/* Last result code. */
+	unsigned int         magic; /* Magic number. */
+	isc_mem_t *          mctx;
+	SOCKET               socket;
+	INTERFACE_INFO       IFData;   /* Current Interface Info. */
+	int                  numIF;    /* Current Interface count. */
+	int                  v4IF;     /* Number of IPv4 Interfaces */
+	INTERFACE_INFO *     buf4;     /* Buffer for WSAIoctl data. */
+	unsigned int         buf4size; /* Bytes allocated. */
+	INTERFACE_INFO *     pos4;     /* Current offset in IF List */
+	SOCKET_ADDRESS_LIST *buf6;     /* Buffer for WSAIoctl data. */
+	unsigned int         buf6size; /* Bytes allocated. */
+	unsigned int         pos6;     /* Which entry to process. */
+	isc_boolean_t        v6loop;   /* See IPv6 loop address. */
+	isc_boolean_t        pos6zero; /* Done pos6 == 0. */
+	isc_interface_t      current;  /* Current interface data. */
+	isc_result_t         result;   /* Last result code. */
 };
-
 
 /*
  * Size of buffer for SIO_GET_INTERFACE_LIST, in number of interfaces.
  * We assume no sane system will have more than than 1K of IP addresses on
  * all of its adapters.
  */
-#define IFCONF_SIZE_INITIAL	  16
-#define IFCONF_SIZE_INCREMENT	  64
-#define IFCONF_SIZE_MAX		1040
+#define IFCONF_SIZE_INITIAL 16
+#define IFCONF_SIZE_INCREMENT 64
+#define IFCONF_SIZE_MAX 1040
 
 static void
-get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
+get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src)
+{
 	dst->family = family;
 	switch (family) {
 	case AF_INET:
-		memmove(&dst->type.in,
-			&((struct sockaddr_in *) src)->sin_addr,
-			sizeof(struct in_addr));
+		memmove(&dst->type.in, &((struct sockaddr_in *)src)->sin_addr,
+		        sizeof(struct in_addr));
 		break;
-	case	AF_INET6:
+	case AF_INET6:
 		memmove(&dst->type.in6,
-			&((struct sockaddr_in6 *) src)->sin6_addr,
-			sizeof(struct in6_addr));
-		dst->zone = ((struct sockaddr_in6 *) src)->sin6_scope_id;
+		        &((struct sockaddr_in6 *)src)->sin6_addr,
+		        sizeof(struct in6_addr));
+		dst->zone = ((struct sockaddr_in6 *)src)->sin6_scope_id;
 		break;
-	default:
-		INSIST(0);
-		break;
+	default: INSIST(0); break;
 	}
 }
 
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
-	char strbuf[ISC_STRERRORSIZE];
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
+{
+	char                 strbuf[ISC_STRERRORSIZE];
 	isc_interfaceiter_t *iter;
-	isc_result_t result;
-	int error;
-	unsigned long bytesReturned = 0;
+	isc_result_t         result;
+	int                  error;
+	unsigned long        bytesReturned = 0;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
@@ -116,18 +113,18 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	InitSockets();
 
-	iter->mctx = mctx;
-	iter->buf4 = NULL;
-	iter->buf6 = NULL;
-	iter->pos4 = NULL;
-	iter->pos6 = 0;
-	iter->v6loop = ISC_TRUE;
+	iter->mctx     = mctx;
+	iter->buf4     = NULL;
+	iter->buf6     = NULL;
+	iter->pos4     = NULL;
+	iter->pos6     = 0;
+	iter->v6loop   = ISC_TRUE;
 	iter->pos6zero = ISC_TRUE;
 	iter->buf6size = 0;
 	iter->buf4size = 0;
-	iter->result = ISC_R_FAILURE;
-	iter->numIF = 0;
-	iter->v4IF = 0;
+	iter->result   = ISC_R_FAILURE;
+	iter->numIF    = 0;
+	iter->v4IF     = 0;
 
 	/*
 	 * Create an unbound datagram socket to do the
@@ -140,8 +137,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto inet6_only;
 		isc__strerror(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"making interface scan socket: %s",
-				strbuf);
+		                 "making interface scan socket: %s", strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto socket_failure;
 	}
@@ -150,7 +146,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * Get the interface configuration, allocating more memory if
 	 * necessary.
 	 */
-	iter->buf4size = IFCONF_SIZE_INITIAL*sizeof(INTERFACE_INFO);
+	iter->buf4size = IFCONF_SIZE_INITIAL * sizeof(INTERFACE_INFO);
 
 	for (;;) {
 		iter->buf4 = isc_mem_get(mctx, iter->buf4size);
@@ -159,17 +155,17 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto alloc_failure;
 		}
 
-		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST,
-			     0, 0, iter->buf4, iter->buf4size,
-			     &bytesReturned, 0, 0) == SOCKET_ERROR)
-		{
+		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST, 0, 0,
+		             iter->buf4, iter->buf4size, &bytesReturned, 0,
+		             0) == SOCKET_ERROR) {
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
 				isc__strerror(error, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						"get interface configuration: %s",
-						strbuf);
+				UNEXPECTED_ERROR(
+				        __FILE__, __LINE__,
+				        "get interface configuration: %s",
+				        strbuf);
 				result = ISC_R_UNEXPECTED;
 				goto ioctl_failure;
 			}
@@ -187,29 +183,30 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			    (bytesReturned < iter->buf4size))
 				break;
 		}
-		if (iter->buf4size >= IFCONF_SIZE_MAX*sizeof(INTERFACE_INFO)) {
+		if (iter->buf4size >=
+		    IFCONF_SIZE_MAX * sizeof(INTERFACE_INFO)) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "get interface configuration: "
-					 "maximum buffer size exceeded");
+			                 "get interface configuration: "
+			                 "maximum buffer size exceeded");
 			result = ISC_R_UNEXPECTED;
 			goto ioctl_failure;
 		}
 		isc_mem_put(mctx, iter->buf4, iter->buf4size);
 
-		iter->buf4size += IFCONF_SIZE_INCREMENT *
-			sizeof(INTERFACE_INFO);
+		iter->buf4size +=
+		        IFCONF_SIZE_INCREMENT * sizeof(INTERFACE_INFO);
 	}
 
 	/*
 	 * A newly created iterator has an undefined position
 	 * until isc_interfaceiter_first() is called.
 	 */
-	iter->v4IF = bytesReturned/sizeof(INTERFACE_INFO);
+	iter->v4IF = bytesReturned / sizeof(INTERFACE_INFO);
 
 	/* We don't need the socket any more, so close it */
 	closesocket(iter->socket);
 
- inet6_only:
+inet6_only:
 	/*
 	 * Create an unbound datagram socket to do the
 	 * SIO_ADDRESS_LIST_QUERY WSAIoctl on.
@@ -221,8 +218,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto inet_only;
 		isc__strerror(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				"making interface scan socket: %s",
-				strbuf);
+		                 "making interface scan socket: %s", strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto ioctl_failure;
 	}
@@ -232,7 +228,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * necessary.
 	 */
 	iter->buf6size = sizeof(SOCKET_ADDRESS_LIST) +
-			 IFCONF_SIZE_INITIAL*sizeof(SOCKET_ADDRESS);
+	                 IFCONF_SIZE_INITIAL * sizeof(SOCKET_ADDRESS);
 
 	for (;;) {
 		iter->buf6 = isc_mem_get(mctx, iter->buf6size);
@@ -241,17 +237,16 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto ioctl_failure;
 		}
 
-		if (WSAIoctl(iter->socket, SIO_ADDRESS_LIST_QUERY,
-			     0, 0, iter->buf6, iter->buf6size,
-			     &bytesReturned, 0, 0) == SOCKET_ERROR)
-		{
+		if (WSAIoctl(iter->socket, SIO_ADDRESS_LIST_QUERY, 0, 0,
+		             iter->buf6, iter->buf6size, &bytesReturned, 0,
+		             0) == SOCKET_ERROR) {
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
 				isc__strerror(error, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "sio address list query: %s",
-						 strbuf);
+				                 "sio address list query: %s",
+				                 strbuf);
 				result = ISC_R_UNEXPECTED;
 				goto ioctl6_failure;
 			}
@@ -261,38 +256,39 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		} else
 			break;
 
-		if (iter->buf6size >= IFCONF_SIZE_MAX*sizeof(SOCKET_ADDRESS)) {
+		if (iter->buf6size >=
+		    IFCONF_SIZE_MAX * sizeof(SOCKET_ADDRESS)) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "get interface configuration: "
-					 "maximum buffer size exceeded");
+			                 "get interface configuration: "
+			                 "maximum buffer size exceeded");
 			result = ISC_R_UNEXPECTED;
 			goto ioctl6_failure;
 		}
 		isc_mem_put(mctx, iter->buf6, iter->buf6size);
 
-		iter->buf6size += IFCONF_SIZE_INCREMENT *
-			sizeof(SOCKET_ADDRESS);
+		iter->buf6size +=
+		        IFCONF_SIZE_INCREMENT * sizeof(SOCKET_ADDRESS);
 	}
 
 	closesocket(iter->socket);
 
- inet_only:
+inet_only:
 	iter->magic = IFITER_MAGIC;
-	*iterp = iter;
+	*iterp      = iter;
 	return (ISC_R_SUCCESS);
 
- ioctl6_failure:
+ioctl6_failure:
 	isc_mem_put(mctx, iter->buf6, iter->buf6size);
 
- ioctl_failure:
+ioctl_failure:
 	if (iter->buf4 != NULL)
 		isc_mem_put(mctx, iter->buf4, iter->buf4size);
 
- alloc_failure:
+alloc_failure:
 	if (iter->socket != INVALID_SOCKET)
-		(void) closesocket(iter->socket);
+		(void)closesocket(iter->socket);
 
- socket_failure:
+socket_failure:
 	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
@@ -306,8 +302,9 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  */
 
 static isc_result_t
-internal_current(isc_interfaceiter_t *iter) {
-	BOOL ifNamed = FALSE;
+internal_current(isc_interfaceiter_t *iter)
+{
+	BOOL          ifNamed = FALSE;
 	unsigned long flags;
 
 	REQUIRE(VALID_IFITER(iter));
@@ -317,14 +314,14 @@ internal_current(isc_interfaceiter_t *iter) {
 	iter->current.af = AF_INET;
 
 	get_addr(AF_INET, &iter->current.address,
-		 (struct sockaddr *)&(iter->IFData.iiAddress));
+	         (struct sockaddr *)&(iter->IFData.iiAddress));
 
 	/*
 	 * Get interface flags.
 	 */
 
 	iter->current.flags = 0;
-	flags = iter->IFData.iiFlags;
+	flags               = iter->IFData.iiFlags;
 
 	if ((flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
@@ -332,14 +329,14 @@ internal_current(isc_interfaceiter_t *iter) {
 	if ((flags & IFF_POINTTOPOINT) != 0) {
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
 		snprintf(iter->current.name, sizeof(iter->current.name),
-			 "PPP Interface %d", iter->numIF);
+		         "PPP Interface %d", iter->numIF);
 		ifNamed = TRUE;
 	}
 
 	if ((flags & IFF_LOOPBACK) != 0) {
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
 		snprintf(iter->current.name, sizeof(iter->current.name),
-			 "Loopback Interface %d", iter->numIF);
+		         "Loopback Interface %d", iter->numIF);
 		ifNamed = TRUE;
 	}
 
@@ -348,26 +345,27 @@ internal_current(isc_interfaceiter_t *iter) {
 	 */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 		get_addr(AF_INET, &iter->current.dstaddress,
-		(struct sockaddr *)&(iter->IFData.iiBroadcastAddress));
+		         (struct sockaddr *)&(iter->IFData.iiBroadcastAddress));
 	}
 
 	if (ifNamed == FALSE)
 		snprintf(iter->current.name, sizeof(iter->current.name),
-			"TCP/IP Interface %d", iter->numIF);
+		         "TCP/IP Interface %d", iter->numIF);
 
 	/*
 	 * Get the network mask.
 	 */
 	get_addr(AF_INET, &iter->current.netmask,
-		 (struct sockaddr *)&(iter->IFData.iiNetmask));
+	         (struct sockaddr *)&(iter->IFData.iiNetmask));
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-internal_current6(isc_interfaceiter_t *iter) {
+internal_current6(isc_interfaceiter_t *iter)
+{
 	SOCKET fd;
-	int i;
+	int    i;
 
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE(iter->buf6 != NULL);
@@ -379,7 +377,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 		if (iter->pos6 == 0U)
 			iter->pos6zero = ISC_TRUE;
 		get_addr(AF_INET6, &iter->current.address,
-			 iter->buf6->Address[iter->pos6].lpSockaddr);
+		         iter->buf6->Address[iter->pos6].lpSockaddr);
 
 		/*
 		 * Set interface flags.
@@ -388,26 +386,26 @@ internal_current6(isc_interfaceiter_t *iter) {
 		iter->current.flags = INTERFACE_F_UP;
 
 		snprintf(iter->current.name, sizeof(iter->current.name),
-			 "TCP/IPv6 Interface %d", iter->pos6 + 1);
+		         "TCP/IPv6 Interface %d", iter->pos6 + 1);
 
 		for (i = 0; i < 16; i++)
 			iter->current.netmask.type.in6.s6_addr[i] = 0xff;
 		iter->current.netmask.family = AF_INET6;
 		if (IN6_IS_ADDR_LOOPBACK(&iter->current.address.type.in6))
-			   iter->v6loop = ISC_TRUE;
+			iter->v6loop = ISC_TRUE;
 	} else {
 		/*
 		 * See if we can bind to the ::1 and if so return ::1.
 		 */
 		struct sockaddr_in6 sin6;
 
-		iter->v6loop = ISC_TRUE;	/* So we don't loop forever. */
+		iter->v6loop = ISC_TRUE; /* So we don't loop forever. */
 
 		fd = socket(AF_INET6, SOCK_DGRAM, 0);
 		if (fd == INVALID_SOCKET)
 			return (ISC_R_IGNORE);
 		memset(&sin6, 0, sizeof(sin6));
-		sin6.sin6_family = AF_INET6;
+		sin6.sin6_family           = AF_INET6;
 		sin6.sin6_addr.s6_addr[15] = 1;
 		if (bind(fd, (struct sockaddr *)&sin6, sizeof(sin6)) < 0) {
 			closesocket(fd);
@@ -417,7 +415,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 
 		iter->current.flags = INTERFACE_F_UP | INTERFACE_F_LOOPBACK;
 		snprintf(iter->current.name, sizeof(iter->current.name),
-			"TCP/IPv6 Loopback Interface");
+		         "TCP/IPv6 Loopback Interface");
 		for (i = 0; i < 16; i++) {
 			if (i != 15)
 				iter->current.address.type.in6.s6_addr[i] = 0;
@@ -439,7 +437,8 @@ internal_current6(isc_interfaceiter_t *iter) {
  * interfaces, otherwise ISC_R_SUCCESS.
  */
 static isc_result_t
-internal_next(isc_interfaceiter_t *iter) {
+internal_next(isc_interfaceiter_t *iter)
+{
 	if (iter->numIF >= iter->v4IF)
 		return (ISC_R_NOMORE);
 
@@ -465,7 +464,8 @@ internal_next(isc_interfaceiter_t *iter) {
 }
 
 static isc_result_t
-internal_next6(isc_interfaceiter_t *iter) {
+internal_next6(isc_interfaceiter_t *iter)
+{
 	if (iter->pos6 == 0U && iter->v6loop)
 		return (ISC_R_NOMORE);
 	if (iter->pos6 != 0U)
@@ -474,21 +474,22 @@ internal_next6(isc_interfaceiter_t *iter) {
 }
 
 isc_result_t
-isc_interfaceiter_current(isc_interfaceiter_t *iter,
-			  isc_interface_t *ifdata) {
+isc_interfaceiter_current(isc_interfaceiter_t *iter, isc_interface_t *ifdata)
+{
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 	memmove(ifdata, &iter->current, sizeof(*ifdata));
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_interfaceiter_first(isc_interfaceiter_t *iter) {
+isc_interfaceiter_first(isc_interfaceiter_t *iter)
+{
 
 	REQUIRE(VALID_IFITER(iter));
 
 	if (iter->buf6 != NULL) {
-		iter->pos6 = iter->buf6->iAddressCount;
-		iter->v6loop = ISC_FALSE;
+		iter->pos6     = iter->buf6->iAddressCount;
+		iter->v6loop   = ISC_FALSE;
 		iter->pos6zero = ISC_TF(iter->pos6 == 0U);
 	}
 	iter->result = ISC_R_SUCCESS;
@@ -496,7 +497,8 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 }
 
 isc_result_t
-isc_interfaceiter_next(isc_interfaceiter_t *iter) {
+isc_interfaceiter_next(isc_interfaceiter_t *iter)
+{
 	isc_result_t result;
 
 	REQUIRE(VALID_IFITER(iter));
@@ -523,7 +525,8 @@ isc_interfaceiter_next(isc_interfaceiter_t *iter) {
 }
 
 void
-isc_interfaceiter_destroy(isc_interfaceiter_t **iterp) {
+isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
+{
 	isc_interfaceiter_t *iter;
 	REQUIRE(iterp != NULL);
 	iter = *iterp;

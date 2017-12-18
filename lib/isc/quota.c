@@ -18,38 +18,43 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_quota_init(isc_quota_t *quota, int max) {
-	quota->max = max;
+isc_quota_init(isc_quota_t *quota, int max)
+{
+	quota->max  = max;
 	quota->used = 0;
 	quota->soft = 0;
 	return (isc_mutex_init(&quota->lock));
 }
 
 void
-isc_quota_destroy(isc_quota_t *quota) {
+isc_quota_destroy(isc_quota_t *quota)
+{
 	INSIST(quota->used == 0);
-	quota->max = 0;
+	quota->max  = 0;
 	quota->used = 0;
 	quota->soft = 0;
 	DESTROYLOCK(&quota->lock);
 }
 
 void
-isc_quota_soft(isc_quota_t *quota, int soft) {
+isc_quota_soft(isc_quota_t *quota, int soft)
+{
 	LOCK(&quota->lock);
 	quota->soft = soft;
 	UNLOCK(&quota->lock);
 }
 
 void
-isc_quota_max(isc_quota_t *quota, int max) {
+isc_quota_max(isc_quota_t *quota, int max)
+{
 	LOCK(&quota->lock);
 	quota->max = max;
 	UNLOCK(&quota->lock);
 }
 
 isc_result_t
-isc_quota_reserve(isc_quota_t *quota) {
+isc_quota_reserve(isc_quota_t *quota)
+{
 	isc_result_t result;
 	LOCK(&quota->lock);
 	if (quota->max == 0 || quota->used < quota->max) {
@@ -65,7 +70,8 @@ isc_quota_reserve(isc_quota_t *quota) {
 }
 
 void
-isc_quota_release(isc_quota_t *quota) {
+isc_quota_release(isc_quota_t *quota)
+{
 	LOCK(&quota->lock);
 	INSIST(quota->used > 0);
 	quota->used--;

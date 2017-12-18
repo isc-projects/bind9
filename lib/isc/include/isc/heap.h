@@ -42,10 +42,9 @@ typedef void (*isc_heapaction_t)(void *, void *);
 
 typedef struct isc_heap isc_heap_t;
 
-isc_result_t
-isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
-		isc_heapindex_t index, unsigned int size_increment,
-		isc_heap_t **heapp);
+isc_result_t isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
+                             isc_heapindex_t index, unsigned int size_increment,
+                             isc_heap_t **heapp);
 /*!<
  * \brief Create a new heap.  The heap is implemented using a space-efficient
  * storage method.  When the heap elements are deleted space is not freed
@@ -73,8 +72,7 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
  *\li	ISC_R_NOMEMORY		- insufficient memory
  */
 
-void
-isc_heap_destroy(isc_heap_t **heapp);
+void isc_heap_destroy(isc_heap_t **heapp);
 /*!<
  * \brief Destroys a heap.
  *
@@ -82,8 +80,7 @@ isc_heap_destroy(isc_heap_t **heapp);
  *\li	"heapp" is not NULL and "*heap" points to a valid isc_heap_t.
  */
 
-isc_result_t
-isc_heap_insert(isc_heap_t *heap, void *elt);
+isc_result_t isc_heap_insert(isc_heap_t *heap, void *elt);
 /*!<
  * \brief Inserts a new element into a heap.
  *
@@ -91,8 +88,7 @@ isc_heap_insert(isc_heap_t *heap, void *elt);
  *\li	"heapp" is not NULL and "*heap" points to a valid isc_heap_t.
  */
 
-void
-isc_heap_delete(isc_heap_t *heap, unsigned int index);
+void isc_heap_delete(isc_heap_t *heap, unsigned int index);
 /*!<
  * \brief Deletes an element from a heap, by element index.
  *
@@ -102,8 +98,7 @@ isc_heap_delete(isc_heap_t *heap, unsigned int index);
  *	provided during heap creation.
  */
 
-void
-isc_heap_increased(isc_heap_t *heap, unsigned int index);
+void isc_heap_increased(isc_heap_t *heap, unsigned int index);
 /*!<
  * \brief Indicates to the heap that an element's priority has increased.
  * This function MUST be called whenever an element has increased in priority.
@@ -114,8 +109,7 @@ isc_heap_increased(isc_heap_t *heap, unsigned int index);
  *	provided during heap creation.
  */
 
-void
-isc_heap_decreased(isc_heap_t *heap, unsigned int index);
+void isc_heap_decreased(isc_heap_t *heap, unsigned int index);
 /*!<
  * \brief Indicates to the heap that an element's priority has decreased.
  * This function MUST be called whenever an element has decreased in priority.
@@ -126,8 +120,7 @@ isc_heap_decreased(isc_heap_t *heap, unsigned int index);
  *	provided during heap creation.
  */
 
-void *
-isc_heap_element(isc_heap_t *heap, unsigned int index);
+void *isc_heap_element(isc_heap_t *heap, unsigned int index);
 /*!<
  * \brief Returns the element for a specific element index.
  *
@@ -140,8 +133,7 @@ isc_heap_element(isc_heap_t *heap, unsigned int index);
  *\li	A pointer to the element for the element index.
  */
 
-void
-isc_heap_foreach(isc_heap_t *heap, isc_heapaction_t action, void *uap);
+void isc_heap_foreach(isc_heap_t *heap, isc_heapaction_t action, void *uap);
 /*!<
  * \brief Iterate over the heap, calling an action for each element.  The
  * order of iteration is not sorted.

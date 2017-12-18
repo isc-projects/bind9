@@ -27,7 +27,6 @@
  * could result from creating a separate task for each object.
  */
 
-
 /***
  *** Imports.
  ***/
@@ -47,10 +46,9 @@ typedef struct isc_taskpool isc_taskpool_t;
  ***** Functions.
  *****/
 
-isc_result_t
-isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
-		    unsigned int ntasks, unsigned int quantum,
-		    isc_taskpool_t **poolp);
+isc_result_t isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
+                                 unsigned int ntasks, unsigned int quantum,
+                                 isc_taskpool_t **poolp);
 /*%<
  * Create a task pool of "ntasks" tasks, each with quantum
  * "quantum".
@@ -74,23 +72,20 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
  *\li	#ISC_R_UNEXPECTED
  */
 
-void
-isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp);
+void isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp);
 /*%<
  * Attach to a task from the pool.  Currently the next task is chosen
  * from the pool at random.  (This may be changed in the future to
  * something that guaratees balance.)
  */
 
-int
-isc_taskpool_size(isc_taskpool_t *pool);
+int isc_taskpool_size(isc_taskpool_t *pool);
 /*%<
  * Returns the number of tasks in the task pool 'pool'.
  */
 
-isc_result_t
-isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
-					isc_taskpool_t **targetp);
+isc_result_t isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
+                                 isc_taskpool_t **targetp);
 
 /*%<
  * If 'size' is larger than the number of tasks in the pool pointed to by
@@ -120,8 +115,7 @@ isc_taskpool_expand(isc_taskpool_t **sourcep, unsigned int size,
  * \li	#ISC_R_NOMEMORY
  */
 
-void
-isc_taskpool_destroy(isc_taskpool_t **poolp);
+void isc_taskpool_destroy(isc_taskpool_t **poolp);
 /*%<
  * Destroy a task pool.  The tasks in the pool are detached but not
  * shut down.
@@ -130,8 +124,7 @@ isc_taskpool_destroy(isc_taskpool_t **poolp);
  * \li	'*poolp' is a valid task pool.
  */
 
-void
-isc_taskpool_setprivilege(isc_taskpool_t *pool, isc_boolean_t priv);
+void isc_taskpool_setprivilege(isc_taskpool_t *pool, isc_boolean_t priv);
 /*%<
  * Set the privilege flag on all tasks in 'pool' to 'priv'.  If 'priv' is
  * true, then when the task manager is set into privileged mode, only

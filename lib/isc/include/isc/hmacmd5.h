@@ -28,8 +28,8 @@
 #define ISC_HMACMD5_KEYLENGTH 64
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
-#include <openssl/opensslv.h>
 #include <openssl/hmac.h>
+#include <openssl/opensslv.h>
 
 typedef struct {
 	HMAC_CTX *ctx;
@@ -46,32 +46,27 @@ typedef pk11_context_t isc_hmacmd5_t;
 #else
 
 typedef struct {
-	isc_md5_t md5ctx;
+	isc_md5_t     md5ctx;
 	unsigned char key[ISC_HMACMD5_KEYLENGTH];
 } isc_hmacmd5_t;
 #endif
 
 ISC_LANG_BEGINDECLS
 
-void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len);
+void isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
+                      unsigned int len);
 
-void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx);
+void isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx);
 
-void
-isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len);
+void isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
+                        unsigned int len);
 
-void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest);
+void isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest);
+isc_boolean_t isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len);
+isc_boolean_t isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest,
+                                  size_t len);
 
 ISC_LANG_ENDDECLS
 

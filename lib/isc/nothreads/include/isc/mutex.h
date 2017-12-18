@@ -9,19 +9,16 @@
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
 
-#include <isc/result.h>		/* for ISC_R_ codes */
+#include <isc/result.h> /* for ISC_R_ codes */
 
 typedef int isc_mutex_t;
 
-#define isc_mutex_init(mp) \
-	(*(mp) = 0, ISC_R_SUCCESS)
-#define isc_mutex_lock(mp) \
-	((*(mp))++ == 0 ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-#define isc_mutex_unlock(mp) \
-	(--(*(mp)) == 0 ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
-#define isc_mutex_trylock(mp) \
+#define isc_mutex_init(mp) (*(mp) = 0, ISC_R_SUCCESS)
+#define isc_mutex_lock(mp) ((*(mp))++ == 0 ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_mutex_unlock(mp) (--(*(mp)) == 0 ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_mutex_trylock(mp)                                                  \
 	(*(mp) == 0 ? ((*(mp))++, ISC_R_SUCCESS) : ISC_R_LOCKBUSY)
-#define isc_mutex_destroy(mp) \
+#define isc_mutex_destroy(mp)                                                  \
 	(*(mp) == 0 ? (*(mp) = -1, ISC_R_SUCCESS) : ISC_R_UNEXPECTED)
 #define isc_mutex_stats(fp)
 

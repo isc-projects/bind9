@@ -21,73 +21,78 @@
  */
 
 /* check handle for NULL and INVALID_HANDLE */
-inline BOOL IsValidHandle( HANDLE hHandle) {
-    return ((hHandle != NULL) && (hHandle != INVALID_HANDLE_VALUE));
+inline BOOL
+IsValidHandle(HANDLE hHandle)
+{
+	return ((hHandle != NULL) && (hHandle != INVALID_HANDLE_VALUE));
 }
 
 /* validate wait return codes... */
-inline BOOL WaitSucceeded( DWORD dwWaitResult, DWORD dwHandleCount) {
-    return ((dwWaitResult >= WAIT_OBJECT_0) &&
-	    (dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
+inline BOOL
+WaitSucceeded(DWORD dwWaitResult, DWORD dwHandleCount)
+{
+	return ((dwWaitResult >= WAIT_OBJECT_0) &&
+	        (dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
 }
 
-inline BOOL WaitAbandoned( DWORD dwWaitResult, DWORD dwHandleCount) {
-    return ((dwWaitResult >= WAIT_ABANDONED_0) &&
-	    (dwWaitResult < WAIT_ABANDONED_0 + dwHandleCount));
+inline BOOL
+WaitAbandoned(DWORD dwWaitResult, DWORD dwHandleCount)
+{
+	return ((dwWaitResult >= WAIT_ABANDONED_0) &&
+	        (dwWaitResult < WAIT_ABANDONED_0 + dwHandleCount));
 }
 
-inline BOOL WaitTimeout( DWORD dwWaitResult) {
-    return (dwWaitResult == WAIT_TIMEOUT);
+inline BOOL
+WaitTimeout(DWORD dwWaitResult)
+{
+	return (dwWaitResult == WAIT_TIMEOUT);
 }
 
-inline BOOL WaitFailed( DWORD dwWaitResult) {
-    return (dwWaitResult == WAIT_FAILED);
+inline BOOL
+WaitFailed(DWORD dwWaitResult)
+{
+	return (dwWaitResult == WAIT_FAILED);
 }
 
 /* compute object indices for waits... */
-inline DWORD WaitSucceededIndex( DWORD dwWaitResult) {
-    return (dwWaitResult - WAIT_OBJECT_0);
+inline DWORD
+WaitSucceededIndex(DWORD dwWaitResult)
+{
+	return (dwWaitResult - WAIT_OBJECT_0);
 }
 
-inline DWORD WaitAbandonedIndex( DWORD dwWaitResult) {
-    return (dwWaitResult - WAIT_ABANDONED_0);
+inline DWORD
+WaitAbandonedIndex(DWORD dwWaitResult)
+{
+	return (dwWaitResult - WAIT_ABANDONED_0);
 }
-
-
 
 typedef HANDLE isc_thread_t;
-typedef DWORD isc_threadresult_t;
+typedef DWORD  isc_threadresult_t;
 typedef void * isc_threadarg_t;
-typedef isc_threadresult_t (WINAPI *isc_threadfunc_t)(isc_threadarg_t);
+typedef isc_threadresult_t(WINAPI *isc_threadfunc_t)(isc_threadarg_t);
 typedef DWORD isc_thread_key_t;
 
 #define isc_thread_self (unsigned long)GetCurrentThreadId
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
+isc_result_t isc_thread_create(isc_threadfunc_t, isc_threadarg_t,
+                               isc_thread_t *);
 
-isc_result_t
-isc_thread_join(isc_thread_t, isc_threadresult_t *);
+isc_result_t isc_thread_join(isc_thread_t, isc_threadresult_t *);
 
-void
-isc_thread_setconcurrency(unsigned int level);
+void isc_thread_setconcurrency(unsigned int level);
 
-void
-isc_thread_setname(isc_thread_t, const char *);
+void isc_thread_setname(isc_thread_t, const char *);
 
-int
-isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *));
+int isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *));
 
-int
-isc_thread_key_delete(isc_thread_key_t key);
+int isc_thread_key_delete(isc_thread_key_t key);
 
-void *
-isc_thread_key_getspecific(isc_thread_key_t);
+void *isc_thread_key_getspecific(isc_thread_key_t);
 
-int
-isc_thread_key_setspecific(isc_thread_key_t key, void *value);
+int isc_thread_key_setspecific(isc_thread_key_t key, void *value);
 
 #define isc_thread_yield() Sleep(0)
 

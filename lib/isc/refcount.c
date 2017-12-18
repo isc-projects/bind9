@@ -18,7 +18,8 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
+isc_refcount_init(isc_refcount_t *ref, unsigned int n)
+{
 	REQUIRE(ref != NULL);
 
 	ref->refs = n;

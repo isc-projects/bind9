@@ -24,21 +24,20 @@
  * Forward declarations
  */
 
-char *
-FormatError(int error);
+char *FormatError(int error);
 
-char *
-GetWSAErrorMessage(int errval);
+char *GetWSAErrorMessage(int errval);
 
-char *
-NTstrerror(int err, BOOL *bfreebuf);
+char *NTstrerror(int err, BOOL *bfreebuf);
 
 /*
  * We need to do this this way for profiled locks.
  */
 
 static isc_mutex_t isc_strerror_lock;
-static void init_lock(void) {
+static void
+init_lock(void)
+{
 	RUNTIME_CHECK(isc_mutex_init(&isc_strerror_lock) == ISC_R_SUCCESS);
 }
 
@@ -48,10 +47,11 @@ static void init_lock(void) {
  */
 
 void
-isc__strerror(int num, char *buf, size_t size) {
-	char *msg;
-	BOOL freebuf;
-	unsigned int unum = num;
+isc__strerror(int num, char *buf, size_t size)
+{
+	char *            msg;
+	BOOL              freebuf;
+	unsigned int      unum = num;
 	static isc_once_t once = ISC_ONCE_INIT;
 
 	REQUIRE(buf != NULL);
@@ -60,12 +60,12 @@ isc__strerror(int num, char *buf, size_t size) {
 
 	LOCK(&isc_strerror_lock);
 	freebuf = FALSE;
-	msg = NTstrerror(num, &freebuf);
+	msg     = NTstrerror(num, &freebuf);
 	if (msg != NULL)
 		snprintf(buf, size, "%s", msg);
 	else
 		snprintf(buf, size, "Unknown error: %u", unum);
-	if(freebuf && msg != NULL) {
+	if (freebuf && msg != NULL) {
 		LocalFree(msg);
 	}
 	UNLOCK(&isc_strerror_lock);
@@ -78,19 +78,16 @@ isc__strerror(int num, char *buf, size_t size) {
  * be an unusual event.
  */
 char *
-FormatError(int error) {
+FormatError(int error)
+{
 	LPVOID lpMsgBuf = NULL;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		error,
-		/* Default language */
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR) &lpMsgBuf,
-		0,
-		NULL);
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+	                      FORMAT_MESSAGE_FROM_SYSTEM |
+	                      FORMAT_MESSAGE_IGNORE_INSERTS,
+	              NULL, error,
+	              /* Default language */
+	              MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+	              (LPTSTR)&lpMsgBuf, 0, NULL);
 
 	return (lpMsgBuf);
 }
@@ -101,7 +98,8 @@ FormatError(int error) {
  * since those messages are not available in the system error messages.
  */
 char *
-NTstrerror(int err, BOOL *bfreebuf) {
+NTstrerror(int err, BOOL *bfreebuf)
+{
 	char *retmsg = NULL;
 
 	/* Copy the error value first in case of other errors */
@@ -119,7 +117,7 @@ NTstrerror(int err, BOOL *bfreebuf) {
 	 * If it's not one of the standard Unix error codes,
 	 * try a system error message
 	 */
-	if (errval > (DWORD) _sys_nerr) {
+	if (errval > (DWORD)_sys_nerr) {
 		*bfreebuf = TRUE;
 		return (FormatError(errval));
 	} else {
@@ -130,19 +128,18 @@ NTstrerror(int err, BOOL *bfreebuf) {
 /*
  * This is a replacement for perror
  */
-void __cdecl
-NTperror(char *errmsg) {
+void __cdecl NTperror(char *errmsg)
+{
 	/* Copy the error value first in case of other errors */
-	int errval = errno;
-	BOOL bfreebuf = FALSE;
+	int   errval   = errno;
+	BOOL  bfreebuf = FALSE;
 	char *msg;
 
 	msg = NTstrerror(errval, &bfreebuf);
 	fprintf(stderr, "%s: %s\n", errmsg, msg);
-	if(bfreebuf == TRUE) {
+	if (bfreebuf == TRUE) {
 		LocalFree(msg);
 	}
-
 }
 
 /*
@@ -151,210 +148,117 @@ NTperror(char *errmsg) {
  * and there is no function to get them.
  */
 char *
-GetWSAErrorMessage(int errval) {
+GetWSAErrorMessage(int errval)
+{
 	char *msg;
 
 	switch (errval) {
 
-	case WSAEINTR:
-		msg = "Interrupted system call";
-		break;
+	case WSAEINTR: msg = "Interrupted system call"; break;
 
-	case WSAEBADF:
-		msg = "Bad file number";
-		break;
+	case WSAEBADF: msg = "Bad file number"; break;
 
-	case WSAEACCES:
-		msg = "Permission denied";
-		break;
+	case WSAEACCES: msg = "Permission denied"; break;
 
-	case WSAEFAULT:
-		msg = "Bad address";
-		break;
+	case WSAEFAULT: msg = "Bad address"; break;
 
-	case WSAEINVAL:
-		msg = "Invalid argument";
-		break;
+	case WSAEINVAL: msg = "Invalid argument"; break;
 
-	case WSAEMFILE:
-		msg = "Too many open sockets";
-		break;
+	case WSAEMFILE: msg = "Too many open sockets"; break;
 
-	case WSAEWOULDBLOCK:
-		msg = "Operation would block";
-		break;
+	case WSAEWOULDBLOCK: msg = "Operation would block"; break;
 
-	case WSAEINPROGRESS:
-		msg = "Operation now in progress";
-		break;
+	case WSAEINPROGRESS: msg = "Operation now in progress"; break;
 
-	case WSAEALREADY:
-		msg = "Operation already in progress";
-		break;
+	case WSAEALREADY: msg = "Operation already in progress"; break;
 
-	case WSAENOTSOCK:
-		msg = "Socket operation on non-socket";
-		break;
+	case WSAENOTSOCK: msg = "Socket operation on non-socket"; break;
 
-	case WSAEDESTADDRREQ:
-		msg = "Destination address required";
-		break;
+	case WSAEDESTADDRREQ: msg = "Destination address required"; break;
 
-	case WSAEMSGSIZE:
-		msg = "Message too long";
-		break;
+	case WSAEMSGSIZE: msg = "Message too long"; break;
 
-	case WSAEPROTOTYPE:
-		msg = "Protocol wrong type for socket";
-		break;
+	case WSAEPROTOTYPE: msg = "Protocol wrong type for socket"; break;
 
-	case WSAENOPROTOOPT:
-		msg = "Bad protocol option";
-		break;
+	case WSAENOPROTOOPT: msg = "Bad protocol option"; break;
 
-	case WSAEPROTONOSUPPORT:
-		msg = "Protocol not supported";
-		break;
+	case WSAEPROTONOSUPPORT: msg = "Protocol not supported"; break;
 
-	case WSAESOCKTNOSUPPORT:
-		msg = "Socket type not supported";
-		break;
+	case WSAESOCKTNOSUPPORT: msg = "Socket type not supported"; break;
 
-	case WSAEOPNOTSUPP:
-		msg = "Operation not supported on socket";
-		break;
+	case WSAEOPNOTSUPP: msg = "Operation not supported on socket"; break;
 
-	case WSAEPFNOSUPPORT:
-		msg = "Protocol family not supported";
-		break;
+	case WSAEPFNOSUPPORT: msg = "Protocol family not supported"; break;
 
-	case WSAEAFNOSUPPORT:
-		msg = "Address family not supported";
-		break;
+	case WSAEAFNOSUPPORT: msg = "Address family not supported"; break;
 
-	case WSAEADDRINUSE:
-		msg = "Address already in use";
-		break;
+	case WSAEADDRINUSE: msg = "Address already in use"; break;
 
-	case WSAEADDRNOTAVAIL:
-		msg = "Can't assign requested address";
-		break;
+	case WSAEADDRNOTAVAIL: msg = "Can't assign requested address"; break;
 
-	case WSAENETDOWN:
-		msg = "Network is down";
-		break;
+	case WSAENETDOWN: msg = "Network is down"; break;
 
-	case WSAENETUNREACH:
-		msg = "Network is unreachable";
-		break;
+	case WSAENETUNREACH: msg = "Network is unreachable"; break;
 
-	case WSAENETRESET:
-		msg = "Net connection reset";
-		break;
+	case WSAENETRESET: msg = "Net connection reset"; break;
 
-	case WSAECONNABORTED:
-		msg = "Software caused connection abort";
-		break;
+	case WSAECONNABORTED: msg = "Software caused connection abort"; break;
 
-	case WSAECONNRESET:
-		msg = "Connection reset by peer";
-		break;
+	case WSAECONNRESET: msg = "Connection reset by peer"; break;
 
-	case WSAENOBUFS:
-		msg = "No buffer space available";
-		break;
+	case WSAENOBUFS: msg = "No buffer space available"; break;
 
-	case WSAEISCONN:
-		msg = "Socket is already connected";
-		break;
+	case WSAEISCONN: msg = "Socket is already connected"; break;
 
-	case WSAENOTCONN:
-		msg = "Socket is not connected";
-		break;
+	case WSAENOTCONN: msg = "Socket is not connected"; break;
 
-	case WSAESHUTDOWN:
-		msg = "Can't send after socket shutdown";
-		break;
+	case WSAESHUTDOWN: msg = "Can't send after socket shutdown"; break;
 
-	case WSAETOOMANYREFS:
-		msg = "Too many references: can't splice";
-		break;
+	case WSAETOOMANYREFS: msg = "Too many references: can't splice"; break;
 
-	case WSAETIMEDOUT:
-		msg = "Connection timed out";
-		break;
+	case WSAETIMEDOUT: msg = "Connection timed out"; break;
 
-	case WSAECONNREFUSED:
-		msg = "Connection refused";
-		break;
+	case WSAECONNREFUSED: msg = "Connection refused"; break;
 
-	case WSAELOOP:
-		msg = "Too many levels of symbolic links";
-		break;
+	case WSAELOOP: msg = "Too many levels of symbolic links"; break;
 
-	case WSAENAMETOOLONG:
-		msg = "File name too long";
-		break;
+	case WSAENAMETOOLONG: msg = "File name too long"; break;
 
-	case WSAEHOSTDOWN:
-		msg = "Host is down";
-		break;
+	case WSAEHOSTDOWN: msg = "Host is down"; break;
 
-	case WSAEHOSTUNREACH:
-		msg = "No route to host";
-		break;
+	case WSAEHOSTUNREACH: msg = "No route to host"; break;
 
-	case WSAENOTEMPTY:
-		msg = "Directory not empty";
-		break;
+	case WSAENOTEMPTY: msg = "Directory not empty"; break;
 
-	case WSAEPROCLIM:
-		msg = "Too many processes";
-		break;
+	case WSAEPROCLIM: msg = "Too many processes"; break;
 
-	case WSAEUSERS:
-		msg = "Too many users";
-		break;
+	case WSAEUSERS: msg = "Too many users"; break;
 
-	case WSAEDQUOT:
-		msg = "Disc quota exceeded";
-		break;
+	case WSAEDQUOT: msg = "Disc quota exceeded"; break;
 
-	case WSAESTALE:
-		msg = "Stale NFS file handle";
-		break;
+	case WSAESTALE: msg = "Stale NFS file handle"; break;
 
-	case WSAEREMOTE:
-		msg = "Too many levels of remote in path";
-		break;
+	case WSAEREMOTE: msg = "Too many levels of remote in path"; break;
 
-	case WSASYSNOTREADY:
-		msg = "Network system is unavailable";
-		break;
+	case WSASYSNOTREADY: msg = "Network system is unavailable"; break;
 
-	case WSAVERNOTSUPPORTED:
-		msg = "Winsock version out of range";
-		break;
+	case WSAVERNOTSUPPORTED: msg = "Winsock version out of range"; break;
 
-	case WSANOTINITIALISED:
-		msg = "WSAStartup not yet called";
-		break;
+	case WSANOTINITIALISED: msg = "WSAStartup not yet called"; break;
 
 	case WSAEDISCON:
 		msg = "Graceful shutdown in progress";
 		break;
-/*
-	case WSAHOST_NOT_FOUND:
-		msg = "Host not found";
-		break;
+		/*
+		        case WSAHOST_NOT_FOUND:
+		                msg = "Host not found";
+		                break;
 
-	case WSANO_DATA:
-		msg = "No host data of that type was found";
-		break;
-*/
-	default:
-		msg = NULL;
-		break;
+		        case WSANO_DATA:
+		                msg = "No host data of that type was found";
+		                break;
+		*/
+	default: msg = NULL; break;
 	}
 	return (msg);
 }
@@ -365,7 +269,8 @@ GetWSAErrorMessage(int errval) {
  */
 
 char *
-GetCryptErrorMessage(int errval) {
+GetCryptErrorMessage(int errval)
+{
 	char *msg;
 
 	switch (errval) {
@@ -375,21 +280,21 @@ GetCryptErrorMessage(int errval) {
 		break;
 	case NTE_BAD_KEYSET:
 		msg = "The Registry entry for the key container "
-			"could not be opened and may not exist.";
+		      "could not be opened and may not exist.";
 		break;
 	case NTE_BAD_KEYSET_PARAM:
 		msg = "The pszContainer or pszProvider parameter "
-			"is set to an illegal value.";
+		      "is set to an illegal value.";
 		break;
 	case NTE_BAD_PROV_TYPE:
 		msg = "The value of the dwProvType parameter is out "
-			"of range. All provider types must be from "
-			"1 to 999, inclusive.";
+		      "of range. All provider types must be from "
+		      "1 to 999, inclusive.";
 		break;
 	case NTE_BAD_SIGNATURE:
 		msg = "The provider DLL signature did not verify "
-			"correctly. Either the DLL or the digital "
-			"signature has been tampered with.";
+		      "correctly. Either the DLL or the digital "
+		      "signature has been tampered with.";
 		break;
 	case NTE_EXISTS:
 		msg = "The dwFlags parameter is CRYPT_NEWKEYSET, but the key"
@@ -403,8 +308,8 @@ GetCryptErrorMessage(int errval) {
 		break;
 	case NTE_KEYSET_NOT_DEF:
 		msg = "No Registry entry exists in the HKEY_CURRENT_USER "
-			"window for the key container specified by "
-			"pszContainer.";
+		      "window for the key container specified by "
+		      "pszContainer.";
 		break;
 	case NTE_NO_MEMORY:
 		msg = "The CSP ran out of memory during the operation.";
@@ -441,10 +346,7 @@ GetCryptErrorMessage(int errval) {
 		      "prior to verifying its signature.";
 		break;
 
-	default:
-		msg = NULL;
-		break;
+	default: msg = NULL; break;
 	}
 	return msg;
 }
-

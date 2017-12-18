@@ -44,9 +44,9 @@ static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 
 #include <config.h>
 
-#include <limits.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 
 #include <isc/stdlib.h>
 #include <isc/util.h>
@@ -58,12 +58,13 @@ static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
  * alphabets and digits are each contiguous.
  */
 unsigned long
-isc_strtoul(const char *nptr, char **endptr, int base) {
-	const char *s = nptr;
+isc_strtoul(const char *nptr, char **endptr, int base)
+{
+	const char *  s = nptr;
 	unsigned long acc;
 	unsigned char c;
 	unsigned long cutoff;
-	int neg = 0, any, cutlim;
+	int           neg = 0, any, cutlim;
 
 	/*
 	 * See strtol for comments as to the logic used.
@@ -73,11 +74,10 @@ isc_strtoul(const char *nptr, char **endptr, int base) {
 	} while (isspace(c));
 	if (c == '-') {
 		neg = 1;
-		c = *s++;
+		c   = *s++;
 	} else if (c == '+')
 		c = *s++;
-	if ((base == 0 || base == 16) &&
-	    c == '0' && (*s == 'x' || *s == 'X')) {
+	if ((base == 0 || base == 16) && c == '0' && (*s == 'x' || *s == 'X')) {
 		c = s[1];
 		s += 2;
 		base = 16;
@@ -106,7 +106,7 @@ isc_strtoul(const char *nptr, char **endptr, int base) {
 		}
 	}
 	if (any < 0) {
-		acc = ULONG_MAX;
+		acc   = ULONG_MAX;
 		errno = ERANGE;
 	} else if (neg)
 		acc = -acc;

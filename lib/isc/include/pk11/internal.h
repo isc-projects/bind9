@@ -27,11 +27,10 @@ unsigned int pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt);
 
 CK_ATTRIBUTE *pk11_attribute_first(const pk11_object_t *obj);
 
-CK_ATTRIBUTE *pk11_attribute_next(const pk11_object_t *obj,
-				  CK_ATTRIBUTE *attr);
+CK_ATTRIBUTE *pk11_attribute_next(const pk11_object_t *obj, CK_ATTRIBUTE *attr);
 
 CK_ATTRIBUTE *pk11_attribute_bytype(const pk11_object_t *obj,
-				    CK_ATTRIBUTE_TYPE type);
+                                    CK_ATTRIBUTE_TYPE    type);
 
 ISC_LANG_ENDDECLS
 

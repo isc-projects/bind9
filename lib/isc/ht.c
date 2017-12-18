@@ -12,48 +12,48 @@
 
 #include <isc/hash.h>
 #include <isc/ht.h>
-#include <isc/types.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/types.h>
 #include <isc/util.h>
-
 
 typedef struct isc_ht_node isc_ht_node_t;
 
-#define ISC_HT_MAGIC			ISC_MAGIC('H', 'T', 'a', 'b')
-#define ISC_HT_VALID(ht)		ISC_MAGIC_VALID(ht, ISC_HT_MAGIC)
+#define ISC_HT_MAGIC ISC_MAGIC('H', 'T', 'a', 'b')
+#define ISC_HT_VALID(ht) ISC_MAGIC_VALID(ht, ISC_HT_MAGIC)
 
 struct isc_ht_node {
-	void *value;
+	void *         value;
 	isc_ht_node_t *next;
-	size_t keysize;
-	unsigned char key[];
+	size_t         keysize;
+	unsigned char  key[];
 };
 
 struct isc_ht {
-	unsigned int magic;
-	isc_mem_t *mctx;
-	size_t size;
-	size_t mask;
-	unsigned int count;
+	unsigned int    magic;
+	isc_mem_t *     mctx;
+	size_t          size;
+	size_t          mask;
+	unsigned int    count;
 	isc_ht_node_t **table;
 };
 
 struct isc_ht_iter {
-	isc_ht_t *ht;
-	size_t i;
+	isc_ht_t *     ht;
+	size_t         i;
 	isc_ht_node_t *cur;
 };
 
 isc_result_t
-isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
+isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits)
+{
 	isc_ht_t *ht = NULL;
-	size_t i;
+	size_t    i;
 
 	REQUIRE(htp != NULL && *htp == NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(bits >= 1 && bits <= (sizeof(size_t)*8 - 1));
+	REQUIRE(bits >= 1 && bits <= (sizeof(size_t) * 8 - 1));
 
 	ht = isc_mem_get(mctx, sizeof(struct isc_ht));
 	if (ht == NULL) {
@@ -63,11 +63,11 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 	ht->mctx = NULL;
 	isc_mem_attach(mctx, &ht->mctx);
 
-	ht->size = ((size_t)1<<bits);
-	ht->mask = ((size_t)1<<bits)-1;
+	ht->size  = ((size_t)1 << bits);
+	ht->mask  = ((size_t)1 << bits) - 1;
 	ht->count = 0;
 
-	ht->table = isc_mem_get(ht->mctx, ht->size * sizeof(isc_ht_node_t*));
+	ht->table = isc_mem_get(ht->mctx, ht->size * sizeof(isc_ht_node_t *));
 	if (ht->table == NULL) {
 		isc_mem_putanddetach(&ht->mctx, ht, sizeof(struct isc_ht));
 		return (ISC_R_NOMEMORY);
@@ -84,9 +84,10 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 }
 
 void
-isc_ht_destroy(isc_ht_t **htp) {
+isc_ht_destroy(isc_ht_t **htp)
+{
 	isc_ht_t *ht;
-	size_t i;
+	size_t    i;
 
 	REQUIRE(htp != NULL);
 
@@ -101,25 +102,25 @@ isc_ht_destroy(isc_ht_t **htp) {
 			isc_ht_node_t *next = node->next;
 			ht->count--;
 			isc_mem_put(ht->mctx, node,
-				    sizeof(isc_ht_node_t) + node->keysize);
+			            sizeof(isc_ht_node_t) + node->keysize);
 			node = next;
 		}
 	}
 
 	INSIST(ht->count == 0);
 
-	isc_mem_put(ht->mctx, ht->table, ht->size * sizeof(isc_ht_node_t*));
+	isc_mem_put(ht->mctx, ht->table, ht->size * sizeof(isc_ht_node_t *));
 	isc_mem_putanddetach(&ht->mctx, ht, sizeof(struct isc_ht));
 
 	*htp = NULL;
 }
 
 isc_result_t
-isc_ht_add(isc_ht_t *ht, const unsigned char *key,
-	   isc_uint32_t keysize, void *value)
+isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
+           void *value)
 {
 	isc_ht_node_t *node;
-	isc_uint32_t hash;
+	isc_uint32_t   hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -140,8 +141,8 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 
 	memmove(node->key, key, keysize);
 	node->keysize = keysize;
-	node->next = ht->table[hash & ht->mask];
-	node->value = value;
+	node->next    = ht->table[hash & ht->mask];
+	node->value   = value;
 
 	ht->count++;
 	ht->table[hash & ht->mask] = node;
@@ -149,11 +150,11 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 }
 
 isc_result_t
-isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
-	    isc_uint32_t keysize, void **valuep)
+isc_ht_find(const isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
+            void **valuep)
 {
 	isc_ht_node_t *node;
-	isc_uint32_t hash;
+	isc_uint32_t   hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -162,8 +163,7 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
-		    memcmp(key, node->key, keysize) == 0)
-		{
+		    memcmp(key, node->key, keysize) == 0) {
 			if (valuep != NULL)
 				*valuep = node->value;
 			return (ISC_R_SUCCESS);
@@ -175,9 +175,10 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 }
 
 isc_result_t
-isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
+isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize)
+{
 	isc_ht_node_t *node, *prev;
-	isc_uint32_t hash;
+	isc_uint32_t   hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -193,7 +194,7 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
 			else
 				prev->next = node->next;
 			isc_mem_put(ht->mctx, node,
-				    sizeof(isc_ht_node_t) + node->keysize);
+			            sizeof(isc_ht_node_t) + node->keysize);
 			ht->count--;
 
 			return (ISC_R_SUCCESS);
@@ -206,7 +207,8 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
 }
 
 isc_result_t
-isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
+isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp)
+{
 	isc_ht_iter_t *it;
 
 	REQUIRE(ISC_HT_VALID(ht));
@@ -216,8 +218,8 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	if (it == NULL)
 		return (ISC_R_NOMEMORY);
 
-	it->ht = ht;
-	it->i = 0;
+	it->ht  = ht;
+	it->i   = 0;
 	it->cur = NULL;
 
 	*itp = it;
@@ -226,9 +228,10 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 }
 
 void
-isc_ht_iter_destroy(isc_ht_iter_t **itp) {
+isc_ht_iter_destroy(isc_ht_iter_t **itp)
+{
 	isc_ht_iter_t *it;
-	isc_ht_t *ht;
+	isc_ht_t *     ht;
 
 	REQUIRE(itp != NULL && *itp != NULL);
 
@@ -240,7 +243,8 @@ isc_ht_iter_destroy(isc_ht_iter_t **itp) {
 }
 
 isc_result_t
-isc_ht_iter_first(isc_ht_iter_t *it) {
+isc_ht_iter_first(isc_ht_iter_t *it)
+{
 	REQUIRE(it != NULL);
 
 	it->i = 0;
@@ -256,7 +260,8 @@ isc_ht_iter_first(isc_ht_iter_t *it) {
 }
 
 isc_result_t
-isc_ht_iter_next(isc_ht_iter_t *it) {
+isc_ht_iter_next(isc_ht_iter_t *it)
+{
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
 
@@ -274,17 +279,18 @@ isc_ht_iter_next(isc_ht_iter_t *it) {
 }
 
 isc_result_t
-isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
-	isc_result_t result = ISC_R_SUCCESS;
+isc_ht_iter_delcurrent_next(isc_ht_iter_t *it)
+{
+	isc_result_t   result    = ISC_R_SUCCESS;
 	isc_ht_node_t *to_delete = NULL;
-	isc_ht_node_t *prev = NULL;
-	isc_ht_node_t *node = NULL;
-	isc_uint32_t hash;
-	isc_ht_t *ht;
+	isc_ht_node_t *prev      = NULL;
+	isc_ht_node_t *node      = NULL;
+	isc_uint32_t   hash;
+	isc_ht_t *     ht;
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
 	to_delete = it->cur;
-	ht = it->ht;
+	ht        = it->ht;
 
 	it->cur = it->cur->next;
 	if (it->cur == NULL) {
@@ -298,7 +304,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 	}
 
 	hash = isc_hash_function(to_delete->key, to_delete->keysize, ISC_TRUE,
-				 NULL);
+	                         NULL);
 	node = ht->table[hash & ht->mask];
 	while (node != to_delete) {
 		prev = node;
@@ -310,15 +316,15 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 		ht->table[hash & ht->mask] = node->next;
 	else
 		prev->next = node->next;
-	isc_mem_put(ht->mctx, node,
-		    sizeof(isc_ht_node_t) + node->keysize);
+	isc_mem_put(ht->mctx, node, sizeof(isc_ht_node_t) + node->keysize);
 	ht->count--;
 
 	return (result);
 }
 
 void
-isc_ht_iter_current(isc_ht_iter_t *it, void **valuep) {
+isc_ht_iter_current(isc_ht_iter_t *it, void **valuep)
+{
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
 	*valuep = it->cur->value;
@@ -329,13 +335,14 @@ isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize)
 {
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
-	*key = it->cur->key;
+	*key     = it->cur->key;
 	*keysize = it->cur->keysize;
 }
 
 unsigned int
-isc_ht_count(isc_ht_t *ht) {
+isc_ht_count(isc_ht_t *ht)
+{
 	REQUIRE(ISC_HT_VALID(ht));
 
-	return(ht->count);
+	return (ht->count);
 }

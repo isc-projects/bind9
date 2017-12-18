@@ -14,8 +14,8 @@
 /*! \file isc/lang.h */
 
 #ifdef __cplusplus
-#define ISC_LANG_BEGINDECLS	extern "C" {
-#define ISC_LANG_ENDDECLS	}
+#define ISC_LANG_BEGINDECLS extern "C" {
+#define ISC_LANG_ENDDECLS }
 #else
 #define ISC_LANG_BEGINDECLS
 #define ISC_LANG_ENDDECLS

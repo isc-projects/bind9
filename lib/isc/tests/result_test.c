@@ -15,10 +15,12 @@
 #include <isc/result.h>
 
 ATF_TC(isc_result_toid);
-ATF_TC_HEAD(isc_result_toid, tc) {
+ATF_TC_HEAD(isc_result_toid, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "convert result to identifier string");
 }
-ATF_TC_BODY(isc_result_toid, tc) {
+ATF_TC_BODY(isc_result_toid, tc)
+{
 	const char *id;
 
 	id = isc_result_toid(ISC_R_SUCCESS);
@@ -29,10 +31,12 @@ ATF_TC_BODY(isc_result_toid, tc) {
 }
 
 ATF_TC(isc_result_totext);
-ATF_TC_HEAD(isc_result_totext, tc) {
+ATF_TC_HEAD(isc_result_totext, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "convert result to description string");
 }
-ATF_TC_BODY(isc_result_totext, tc) {
+ATF_TC_BODY(isc_result_totext, tc)
+{
 	const char *str;
 
 	str = isc_result_totext(ISC_R_SUCCESS);
@@ -45,7 +49,8 @@ ATF_TC_BODY(isc_result_totext, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_result_toid);
 	ATF_TP_ADD_TC(tp, isc_result_totext);
 

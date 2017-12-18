@@ -22,6 +22,6 @@
 
 #include <isc/backtrace.h>
 
-LIBISC_EXTERNAL_DATA const int isc__backtrace_nsymbols = 0;
-LIBISC_EXTERNAL_DATA const
-	isc_backtrace_symmap_t isc__backtrace_symtable[] = { { NULL, "" } };
+LIBISC_EXTERNAL_DATA const int isc__backtrace_nsymbols                      = 0;
+LIBISC_EXTERNAL_DATA const isc_backtrace_symmap_t isc__backtrace_symtable[] = {
+        {NULL, ""}};

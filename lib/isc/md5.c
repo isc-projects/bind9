@@ -52,29 +52,32 @@
 #endif
 
 void
-isc_md5_init(isc_md5_t *ctx) {
+isc_md5_init(isc_md5_t *ctx)
+{
 	ctx->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(ctx->ctx != NULL);
 	RUNTIME_CHECK(EVP_DigestInit(ctx->ctx, EVP_md5()) == 1);
 }
 
 void
-isc_md5_invalidate(isc_md5_t *ctx) {
+isc_md5_invalidate(isc_md5_t *ctx)
+{
 	EVP_MD_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 }
 
 void
-isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len)
+{
 	if (len == 0U)
 		return;
-	RUNTIME_CHECK(EVP_DigestUpdate(ctx->ctx,
-				       (const void *) buf,
-				       (size_t) len) == 1);
+	RUNTIME_CHECK(EVP_DigestUpdate(ctx->ctx, (const void *)buf,
+	                               (size_t)len) == 1);
 }
 
 void
-isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest)
+{
 	RUNTIME_CHECK(EVP_DigestFinal(ctx->ctx, digest, NULL) == 1);
 	EVP_MD_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
@@ -83,44 +86,48 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 #elif PKCS11CRYPTO
 
 void
-isc_md5_init(isc_md5_t *ctx) {
-	CK_RV rv;
-	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
+isc_md5_init(isc_md5_t *ctx)
+{
+	CK_RV        rv;
+	CK_MECHANISM mech = {CKM_MD5, NULL, 0};
 
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	                               ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 }
 
 void
-isc_md5_invalidate(isc_md5_t *ctx) {
-	CK_BYTE garbage[ISC_MD5_DIGESTLENGTH];
+isc_md5_invalidate(isc_md5_t *ctx)
+{
+	CK_BYTE  garbage[ISC_MD5_DIGESTLENGTH];
 	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
 
 	if (ctx->handle == NULL)
 		return;
-	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
+	(void)pkcs_C_DigestFinal(ctx->session, garbage, &len);
 	isc_safe_memwipe(garbage, sizeof(garbage));
 	pk11_return_session(ctx);
 }
 
 void
-isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
-	CK_RV rv;
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len)
+{
+	CK_RV       rv;
 	CK_BYTE_PTR pPart;
 
 	DE_CONST(buf, pPart);
 	PK11_FATALCHECK(pkcs_C_DigestUpdate,
-			(ctx->session, pPart, (CK_ULONG) len));
+	                (ctx->session, pPart, (CK_ULONG)len));
 }
 
 void
-isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
-	CK_RV rv;
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest)
+{
+	CK_RV    rv;
 	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
 
 	PK11_FATALCHECK(pkcs_C_DigestFinal,
-			(ctx->session, (CK_BYTE_PTR) digest, &len));
+	                (ctx->session, (CK_BYTE_PTR)digest, &len));
 	pk11_return_session(ctx);
 }
 
@@ -133,7 +140,7 @@ byteSwap(isc_uint32_t *buf, unsigned words)
 
 	do {
 		*buf++ = (isc_uint32_t)((unsigned)p[3] << 8 | p[2]) << 16 |
-			((unsigned)p[1] << 8 | p[0]);
+		         ((unsigned)p[1] << 8 | p[0]);
 		p += 4;
 	} while (--words);
 }
@@ -143,7 +150,8 @@ byteSwap(isc_uint32_t *buf, unsigned words)
  * initialization constants.
  */
 void
-isc_md5_init(isc_md5_t *ctx) {
+isc_md5_init(isc_md5_t *ctx)
+{
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
 	ctx->buf[2] = 0x98badcfe;
@@ -154,7 +162,8 @@ isc_md5_init(isc_md5_t *ctx) {
 }
 
 void
-isc_md5_invalidate(isc_md5_t *ctx) {
+isc_md5_invalidate(isc_md5_t *ctx)
+{
 	isc_safe_memwipe(ctx, sizeof(*ctx));
 }
 
@@ -169,8 +178,8 @@ isc_md5_invalidate(isc_md5_t *ctx) {
 /*@}*/
 
 /*! This is the central step in the MD5 algorithm. */
-#define MD5STEP(f,w,x,y,z,in,s) \
-	 (w += f(x,y,z) + in, w = (w<<s | w>>(32-s)) + x)
+#define MD5STEP(f, w, x, y, z, in, s)                                          \
+	(w += f(x, y, z) + in, w = (w << s | w >> (32 - s)) + x)
 
 /*!
  * The core of the MD5 algorithm, this alters an existing MD5 hash to
@@ -178,7 +187,8 @@ isc_md5_invalidate(isc_md5_t *ctx) {
  * the data and converts bytes into longwords for this routine.
  */
 static void
-transform(isc_uint32_t buf[4], isc_uint32_t const in[16]) {
+transform(isc_uint32_t buf[4], isc_uint32_t const in[16])
+{
 	register isc_uint32_t a, b, c, d;
 
 	a = buf[0];
@@ -265,16 +275,17 @@ transform(isc_uint32_t buf[4], isc_uint32_t const in[16]) {
  * of bytes.
  */
 void
-isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
+isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len)
+{
 	isc_uint32_t t;
 
 	/* Update byte count */
 
 	t = ctx->bytes[0];
 	if ((ctx->bytes[0] = t + len) < t)
-		ctx->bytes[1]++;	/* Carry from low to high */
+		ctx->bytes[1]++; /* Carry from low to high */
 
-	t = 64 - (t & 0x3f);	/* Space available in ctx->in (at least 1) */
+	t = 64 - (t & 0x3f); /* Space available in ctx->in (at least 1) */
 	if (t > len) {
 		memmove((unsigned char *)ctx->in + 64 - t, buf, len);
 		return;
@@ -304,8 +315,9 @@ isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void
-isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
-	int count = ctx->bytes[0] & 0x3f;    /* Number of bytes in ctx->in */
+isc_md5_final(isc_md5_t *ctx, unsigned char *digest)
+{
+	int count = ctx->bytes[0] & 0x3f; /* Number of bytes in ctx->in */
 	unsigned char *p = (unsigned char *)ctx->in + count;
 
 	/* Set the first char of padding to 0x80.  There is always room. */
@@ -314,11 +326,11 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	/* Bytes of padding needed to make 56 bytes (-8..55) */
 	count = 56 - 1 - count;
 
-	if (count < 0) {	/* Padding forces an extra block */
+	if (count < 0) { /* Padding forces an extra block */
 		memset(p, 0, count + 8);
 		byteSwap(ctx->in, 16);
 		transform(ctx->buf, ctx->in);
-		p = (unsigned char *)ctx->in;
+		p     = (unsigned char *)ctx->in;
 		count = 56;
 	}
 	memset(p, 0, count);
@@ -331,7 +343,7 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 
 	byteSwap(ctx->buf, 4);
 	memmove(digest, ctx->buf, 16);
-	isc_safe_memwipe(ctx, sizeof(*ctx));	/* In case it's sensitive */
+	isc_safe_memwipe(ctx, sizeof(*ctx)); /* In case it's sensitive */
 }
 #endif
 
@@ -340,9 +352,25 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 /* Make the Visual Studio linker happy */
 #include <isc/util.h>
 
-void isc_md5_final() { INSIST(0); }
-void isc_md5_init() { INSIST(0); }
-void isc_md5_invalidate() { INSIST(0); }
-void isc_md5_update() { INSIST(0); }
+void
+isc_md5_final()
+{
+	INSIST(0);
+}
+void
+isc_md5_init()
+{
+	INSIST(0);
+}
+void
+isc_md5_invalidate()
+{
+	INSIST(0);
+}
+void
+isc_md5_update()
+{
+	INSIST(0);
+}
 #endif
 #endif /* PK11_MD5_DISABLE */

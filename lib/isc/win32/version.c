@@ -15,5 +15,5 @@
 LIBISC_EXTERNAL_DATA const char isc_version[] = VERSION;
 
 LIBISC_EXTERNAL_DATA const unsigned int isc_libinterface = LIBINTERFACE;
-LIBISC_EXTERNAL_DATA const unsigned int isc_librevision = LIBREVISION;
-LIBISC_EXTERNAL_DATA const unsigned int isc_libage = LIBAGE;
+LIBISC_EXTERNAL_DATA const unsigned int isc_librevision  = LIBREVISION;
+LIBISC_EXTERNAL_DATA const unsigned int isc_libage       = LIBAGE;

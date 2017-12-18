@@ -25,8 +25,7 @@ ISC_LANG_BEGINDECLS
  * Requires:
  * 	'buf' to be non NULL.
  */
-void
-isc__strerror(int num, char *buf, size_t bufsize);
+void isc__strerror(int num, char *buf, size_t bufsize);
 
 ISC_LANG_ENDDECLS
 

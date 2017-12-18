@@ -86,9 +86,9 @@
 
 typedef isc_event_t isc_appevent_t;
 
-#define ISC_APPEVENT_FIRSTEVENT		(ISC_EVENTCLASS_APP + 0)
-#define ISC_APPEVENT_SHUTDOWN		(ISC_EVENTCLASS_APP + 1)
-#define ISC_APPEVENT_LASTEVENT		(ISC_EVENTCLASS_APP + 65535)
+#define ISC_APPEVENT_FIRSTEVENT (ISC_EVENTCLASS_APP + 0)
+#define ISC_APPEVENT_SHUTDOWN (ISC_EVENTCLASS_APP + 1)
+#define ISC_APPEVENT_LASTEVENT (ISC_EVENTCLASS_APP + 65535)
 
 /*%
  * app module methods.  Only app driver implementations use this structure.
@@ -96,21 +96,18 @@ typedef isc_event_t isc_appevent_t;
  * functions).  magic must be ISCAPI_APPMETHODS_MAGIC.
  */
 typedef struct isc_appmethods {
-	void		(*ctxdestroy)(isc_appctx_t **ctxp);
-	isc_result_t	(*ctxstart)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxrun)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxsuspend)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxshutdown)(isc_appctx_t *ctx);
-	void		(*ctxfinish)(isc_appctx_t *ctx);
-	void		(*settaskmgr)(isc_appctx_t *ctx,
-				      isc_taskmgr_t *timermgr);
-	void		(*setsocketmgr)(isc_appctx_t *ctx,
-					isc_socketmgr_t *timermgr);
-	void		(*settimermgr)(isc_appctx_t *ctx,
-				       isc_timermgr_t *timermgr);
-	isc_result_t 	(*ctxonrun)(isc_appctx_t *ctx, isc_mem_t *mctx,
-				    isc_task_t *task, isc_taskaction_t action,
-				    void *arg);
+	void (*ctxdestroy)(isc_appctx_t **ctxp);
+	isc_result_t (*ctxstart)(isc_appctx_t *ctx);
+	isc_result_t (*ctxrun)(isc_appctx_t *ctx);
+	isc_result_t (*ctxsuspend)(isc_appctx_t *ctx);
+	isc_result_t (*ctxshutdown)(isc_appctx_t *ctx);
+	void (*ctxfinish)(isc_appctx_t *ctx);
+	void (*settaskmgr)(isc_appctx_t *ctx, isc_taskmgr_t *timermgr);
+	void (*setsocketmgr)(isc_appctx_t *ctx, isc_socketmgr_t *timermgr);
+	void (*settimermgr)(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
+	isc_result_t (*ctxonrun)(isc_appctx_t *ctx, isc_mem_t *mctx,
+	                         isc_task_t *task, isc_taskaction_t action,
+	                         void *arg);
 } isc_appmethods_t;
 
 /*%
@@ -123,22 +120,20 @@ typedef struct isc_appmethods {
  * all app context invariants.
  */
 struct isc_appctx {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_appmethods_t	*methods;
+	unsigned int      impmagic;
+	unsigned int      magic;
+	isc_appmethods_t *methods;
 };
 
-#define ISCAPI_APPCTX_MAGIC		ISC_MAGIC('A','a','p','c')
-#define ISCAPI_APPCTX_VALID(c)		((c) != NULL && \
-					 (c)->magic == ISCAPI_APPCTX_MAGIC)
+#define ISCAPI_APPCTX_MAGIC ISC_MAGIC('A', 'a', 'p', 'c')
+#define ISCAPI_APPCTX_VALID(c)                                                 \
+	((c) != NULL && (c)->magic == ISCAPI_APPCTX_MAGIC)
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_app_ctxstart(isc_appctx_t *ctx);
+isc_result_t isc_app_ctxstart(isc_appctx_t *ctx);
 
-isc_result_t
-isc_app_start(void);
+isc_result_t isc_app_start(void);
 /*!<
  * \brief Start an ISC library application.
  *
@@ -150,12 +145,11 @@ isc_app_start(void);
  *\li	'ctx' is a valid application context (for app_ctxstart()).
  */
 
-isc_result_t
-isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
-		 isc_taskaction_t action, void *arg);
-isc_result_t
-isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
-	      void *arg);
+isc_result_t isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx,
+                              isc_task_t *task, isc_taskaction_t action,
+                              void *arg);
+isc_result_t isc_app_onrun(isc_mem_t *mctx, isc_task_t *task,
+                           isc_taskaction_t action, void *arg);
 /*!<
  * \brief Request delivery of an event when the application is run.
  *
@@ -168,11 +162,9 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
  *	ISC_R_NOMEMORY
  */
 
-isc_result_t
-isc_app_ctxrun(isc_appctx_t *ctx);
+isc_result_t isc_app_ctxrun(isc_appctx_t *ctx);
 
-isc_result_t
-isc_app_run(void);
+isc_result_t isc_app_run(void);
 /*!<
  * \brief Run an ISC library application.
  *
@@ -194,8 +186,7 @@ isc_app_run(void);
  *\li	ISC_R_RELOAD			Reload has been requested.
  */
 
-isc_boolean_t
-isc_app_isrunning(void);
+isc_boolean_t isc_app_isrunning(void);
 /*!<
  * \brief Return if the ISC library application is running.
  *
@@ -204,11 +195,9 @@ isc_app_isrunning(void);
  *\li	ISC_FALSE   App is not running.
  */
 
-isc_result_t
-isc_app_ctxshutdown(isc_appctx_t *ctx);
+isc_result_t isc_app_ctxshutdown(isc_appctx_t *ctx);
 
-isc_result_t
-isc_app_shutdown(void);
+isc_result_t isc_app_shutdown(void);
 /*!<
  * \brief Request application shutdown.
  *
@@ -225,14 +214,12 @@ isc_app_shutdown(void);
  *\li	ISC_R_UNEXPECTED
  */
 
-isc_result_t
-isc_app_ctxsuspend(isc_appctx_t *ctx);
+isc_result_t isc_app_ctxsuspend(isc_appctx_t *ctx);
 /*!<
  * \brief This has the same behavior as isc_app_ctxsuspend().
  */
 
-isc_result_t
-isc_app_reload(void);
+isc_result_t isc_app_reload(void);
 /*!<
  * \brief Request application reload.
  *
@@ -244,11 +231,9 @@ isc_app_reload(void);
  *\li	ISC_R_UNEXPECTED
  */
 
-void
-isc_app_ctxfinish(isc_appctx_t *ctx);
+void isc_app_ctxfinish(isc_appctx_t *ctx);
 
-void
-isc_app_finish(void);
+void isc_app_finish(void);
 /*!<
  * \brief Finish an ISC library application.
  *
@@ -263,8 +248,7 @@ isc_app_finish(void);
  *\li	Any resources allocated by isc_app_start() have been released.
  */
 
-void
-isc_app_block(void);
+void isc_app_block(void);
 /*!<
  * \brief Indicate that a blocking operation will be performed.
  *
@@ -278,8 +262,7 @@ isc_app_block(void);
  * \li	No other blocking operations are in progress.
  */
 
-void
-isc_app_unblock(void);
+void isc_app_unblock(void);
 /*!<
  * \brief Indicate that a blocking operation is complete.
  *
@@ -293,8 +276,7 @@ isc_app_unblock(void);
  * \li	isc_app_block() has been called by the same thread.
  */
 
-isc_result_t
-isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp);
+isc_result_t isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp);
 /*!<
  * \brief Create an application context.
  *
@@ -303,8 +285,7 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp);
  *\li	'ctxp' != NULL && *ctxp == NULL.
  */
 
-void
-isc_appctx_destroy(isc_appctx_t **ctxp);
+void isc_appctx_destroy(isc_appctx_t **ctxp);
 /*!<
  * \brief Destroy an application context.
  *
@@ -315,8 +296,7 @@ isc_appctx_destroy(isc_appctx_t **ctxp);
  *\li	*ctxp == NULL.
  */
 
-void
-isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr);
+void isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr);
 /*!<
  * \brief Associate a task manager with an application context.
  *
@@ -327,8 +307,7 @@ isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr);
  *\li	'taskmgr' is a valid task manager.
  */
 
-void
-isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr);
+void isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr);
 /*!<
  * \brief Associate a socket manager with an application context.
  *
@@ -340,8 +319,7 @@ isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr);
  *\li	'socketmgr' is a valid socket manager.
  */
 
-void
-isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
+void isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
 /*!<
  * \brief Associate a socket timer with an application context.
  *
@@ -356,19 +334,17 @@ isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
 /*%<
  * See isc_appctx_create() above.
  */
-typedef isc_result_t
-(*isc_appctxcreatefunc_t)(isc_mem_t *mctx, isc_appctx_t **ctxp);
+typedef isc_result_t (*isc_appctxcreatefunc_t)(isc_mem_t *    mctx,
+                                               isc_appctx_t **ctxp);
 
-isc_result_t
-isc_app_register(isc_appctxcreatefunc_t createfunc);
+isc_result_t isc_app_register(isc_appctxcreatefunc_t createfunc);
 /*%<
  * Register a new application implementation and add it to the list of
  * supported implementations.  This function must be called when a different
  * event library is used than the one contained in the ISC library.
  */
 
-isc_result_t
-isc__app_register(void);
+isc_result_t isc__app_register(void);
 /*%<
  * A short cut function that specifies the application module in the ISC
  * library for isc_app_register().  An application that uses the ISC library

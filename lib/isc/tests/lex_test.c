@@ -21,17 +21,19 @@
 #include <isc/util.h>
 
 ATF_TC(lex_0xff);
-ATF_TC_HEAD(lex_0xff, tc) {
+ATF_TC_HEAD(lex_0xff, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "check handling of 0xff");
 }
-ATF_TC_BODY(lex_0xff, tc) {
-	isc_mem_t *mctx = NULL;
+ATF_TC_BODY(lex_0xff, tc)
+{
+	isc_mem_t *  mctx = NULL;
 	isc_result_t result;
-	isc_lex_t *lex = NULL;
+	isc_lex_t *  lex = NULL;
 	isc_buffer_t death_buf;
-	isc_token_t token;
+	isc_token_t  token;
 
-	unsigned char death[] = { EOF, 'A' };
+	unsigned char death[] = {EOF, 'A'};
 
 	UNUSED(tc);
 
@@ -52,18 +54,20 @@ ATF_TC_BODY(lex_0xff, tc) {
 }
 
 ATF_TC(lex_setline);
-ATF_TC_HEAD(lex_setline, tc) {
+ATF_TC_HEAD(lex_setline, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "check setting of source line");
 }
-ATF_TC_BODY(lex_setline, tc) {
-	isc_mem_t *mctx = NULL;
-	isc_result_t result;
-	isc_lex_t *lex = NULL;
+ATF_TC_BODY(lex_setline, tc)
+{
+	isc_mem_t *   mctx = NULL;
+	isc_result_t  result;
+	isc_lex_t *   lex    = NULL;
 	unsigned char text[] = "text\nto\nbe\nprocessed\nby\nlexer";
-	isc_buffer_t buf;
-	isc_token_t token;
+	isc_buffer_t  buf;
+	isc_token_t   token;
 	unsigned long line;
-	int i;
+	int           i;
 
 	UNUSED(tc);
 
@@ -100,9 +104,9 @@ ATF_TC_BODY(lex_setline, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, lex_0xff);
 	ATF_TP_ADD_TC(tp, lex_setline);
 	return (atf_no_error());
 }
-

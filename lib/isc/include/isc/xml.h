@@ -26,8 +26,8 @@
 
 #define ISC_XMLCHAR (const xmlChar *)
 
-#define ISC_XML_RENDERCONFIG		0x00000001 /* render config data */
-#define ISC_XML_RENDERSTATS		0x00000002 /* render stats */
-#define ISC_XML_RENDERALL		0x000000ff /* render everything */
+#define ISC_XML_RENDERCONFIG 0x00000001 /* render config data */
+#define ISC_XML_RENDERSTATS 0x00000002  /* render stats */
+#define ISC_XML_RENDERALL 0x000000ff    /* render everything */
 
 #endif /* ISC_XML_H */

@@ -40,14 +40,13 @@ ISC_LANG_BEGINDECLS
 
 /*% isc_quota structure */
 struct isc_quota {
-	isc_mutex_t	lock; /*%< Locked by lock. */
-	int 		max;
-	int 		used;
-	int		soft;
+	isc_mutex_t lock; /*%< Locked by lock. */
+	int         max;
+	int         used;
+	int         soft;
 };
 
-isc_result_t
-isc_quota_init(isc_quota_t *quota, int max);
+isc_result_t isc_quota_init(isc_quota_t *quota, int max);
 /*%<
  * Initialize a quota object.
  *
@@ -56,26 +55,22 @@ isc_quota_init(isc_quota_t *quota, int max);
  *	Other error	Lock creation failed.
  */
 
-void
-isc_quota_destroy(isc_quota_t *quota);
+void isc_quota_destroy(isc_quota_t *quota);
 /*%<
  * Destroy a quota object.
  */
 
-void
-isc_quota_soft(isc_quota_t *quota, int soft);
+void isc_quota_soft(isc_quota_t *quota, int soft);
 /*%<
  * Set a soft quota.
  */
 
-void
-isc_quota_max(isc_quota_t *quota, int max);
+void isc_quota_max(isc_quota_t *quota, int max);
 /*%<
  * Re-set a maximum quota.
  */
 
-isc_result_t
-isc_quota_reserve(isc_quota_t *quota);
+isc_result_t isc_quota_reserve(isc_quota_t *quota);
 /*%<
  * Attempt to reserve one unit of 'quota'.
  *
@@ -85,21 +80,18 @@ isc_quota_reserve(isc_quota_t *quota);
  * \li	#ISC_R_QUOTA		Quota is full
  */
 
-void
-isc_quota_release(isc_quota_t *quota);
+void isc_quota_release(isc_quota_t *quota);
 /*%<
  * Release one unit of quota.
  */
 
-isc_result_t
-isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
+isc_result_t isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
 /*%<
  * Like isc_quota_reserve, and also attaches '*p' to the
  * quota if successful (ISC_R_SUCCESS or ISC_R_SOFTQUOTA).
  */
 
-void
-isc_quota_detach(isc_quota_t **p);
+void isc_quota_detach(isc_quota_t **p);
 /*%<
  * Like isc_quota_release, and also detaches '*p' from the
  * quota.

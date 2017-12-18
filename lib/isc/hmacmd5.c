@@ -38,17 +38,17 @@
 #endif
 
 void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len)
+isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key, unsigned int len)
 {
 	ctx->ctx = HMAC_CTX_new();
 	RUNTIME_CHECK(ctx->ctx != NULL);
-	RUNTIME_CHECK(HMAC_Init_ex(ctx->ctx, (const void *) key,
-				   (int) len, EVP_md5(), NULL) == 1);
+	RUNTIME_CHECK(HMAC_Init_ex(ctx->ctx, (const void *)key, (int)len,
+	                           EVP_md5(), NULL) == 1);
 }
 
 void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
+isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx)
+{
 	if (ctx->ctx == NULL)
 		return;
 	HMAC_CTX_free(ctx->ctx);
@@ -57,13 +57,14 @@ isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 
 void
 isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len)
+                   unsigned int len)
 {
-	RUNTIME_CHECK(HMAC_Update(ctx->ctx, buf, (int) len) == 1);
+	RUNTIME_CHECK(HMAC_Update(ctx->ctx, buf, (int)len) == 1);
 }
 
 void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
+isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest)
+{
 	RUNTIME_CHECK(HMAC_Final(ctx->ctx, digest, NULL) == 1);
 	HMAC_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
@@ -73,33 +74,30 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 
 #ifndef PK11_MD5_HMAC_REPLACE
 
-static CK_BBOOL truevalue = TRUE;
+static CK_BBOOL truevalue  = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
 void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len)
+isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key, unsigned int len)
 {
-	CK_RV rv;
-	CK_MECHANISM mech = { CKM_MD5_HMAC, NULL, 0 };
-	CK_OBJECT_CLASS keyClass = CKO_SECRET_KEY;
-	CK_KEY_TYPE keyType = CKK_MD5_HMAC;
-	CK_ATTRIBUTE keyTemplate[] =
-	{
-		{ CKA_CLASS, &keyClass, (CK_ULONG) sizeof(keyClass) },
-		{ CKA_KEY_TYPE, &keyType, (CK_ULONG) sizeof(keyType) },
-		{ CKA_TOKEN, &falsevalue, (CK_ULONG) sizeof(falsevalue) },
-		{ CKA_PRIVATE, &falsevalue, (CK_ULONG) sizeof(falsevalue) },
-		{ CKA_SIGN, &truevalue, (CK_ULONG) sizeof(truevalue) },
-		{ CKA_VALUE, NULL, (CK_ULONG) len }
-	};
+	CK_RV           rv;
+	CK_MECHANISM    mech          = {CKM_MD5_HMAC, NULL, 0};
+	CK_OBJECT_CLASS keyClass      = CKO_SECRET_KEY;
+	CK_KEY_TYPE     keyType       = CKK_MD5_HMAC;
+	CK_ATTRIBUTE    keyTemplate[] = {
+                {CKA_CLASS, &keyClass, (CK_ULONG)sizeof(keyClass)},
+                {CKA_KEY_TYPE, &keyType, (CK_ULONG)sizeof(keyType)},
+                {CKA_TOKEN, &falsevalue, (CK_ULONG)sizeof(falsevalue)},
+                {CKA_PRIVATE, &falsevalue, (CK_ULONG)sizeof(falsevalue)},
+                {CKA_SIGN, &truevalue, (CK_ULONG)sizeof(truevalue)},
+                {CKA_VALUE, NULL, (CK_ULONG)len}};
 #ifdef PK11_PAD_HMAC_KEYS
 	CK_BYTE keypad[ISC_MD5_DIGESTLENGTH];
 
 	if (len < ISC_MD5_DIGESTLENGTH) {
 		memset(keypad, 0, ISC_MD5_DIGESTLENGTH);
 		memmove(keypad, key, len);
-		keyTemplate[5].pValue = keypad;
+		keyTemplate[5].pValue     = keypad;
 		keyTemplate[5].ulValueLen = ISC_MD5_DIGESTLENGTH;
 	} else
 		DE_CONST(key, keyTemplate[5].pValue);
@@ -107,51 +105,52 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	                               ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
-			(ctx->session, keyTemplate,
-			 (CK_ULONG) 6, &ctx->object));
+	                (ctx->session, keyTemplate, (CK_ULONG)6, &ctx->object));
 	INSIST(ctx->object != CK_INVALID_HANDLE);
 	PK11_FATALCHECK(pkcs_C_SignInit, (ctx->session, &mech, ctx->object));
 }
 
 void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
-	CK_BYTE garbage[ISC_MD5_DIGESTLENGTH];
+isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx)
+{
+	CK_BYTE  garbage[ISC_MD5_DIGESTLENGTH];
 	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
 
 	if (ctx->handle == NULL)
 		return;
-	(void) pkcs_C_SignFinal(ctx->session, garbage, &len);
+	(void)pkcs_C_SignFinal(ctx->session, garbage, &len);
 	isc_safe_memwipe(garbage, sizeof(garbage));
 	if (ctx->object != CK_INVALID_HANDLE)
-		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
+		(void)pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 }
 
 void
 isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len)
+                   unsigned int len)
 {
-	CK_RV rv;
+	CK_RV       rv;
 	CK_BYTE_PTR pPart;
 
 	DE_CONST(buf, pPart);
 	PK11_FATALCHECK(pkcs_C_SignUpdate,
-			(ctx->session, pPart, (CK_ULONG) len));
+	                (ctx->session, pPart, (CK_ULONG)len));
 }
 
 void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
-	CK_RV rv;
+isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest)
+{
+	CK_RV    rv;
 	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
 
 	PK11_FATALCHECK(pkcs_C_SignFinal,
-			(ctx->session, (CK_BYTE_PTR) digest, &len));
+	                (ctx->session, (CK_BYTE_PTR)digest, &len));
 	if (ctx->object != CK_INVALID_HANDLE)
-		(void) pkcs_C_DestroyObject(ctx->session, ctx->object);
+		(void)pkcs_C_DestroyObject(ctx->session, ctx->object);
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 }
@@ -163,28 +162,27 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 #define OPAD 0x5C
 
 void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len)
+isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key, unsigned int len)
 {
-	CK_RV rv;
-	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
+	CK_RV         rv;
+	CK_MECHANISM  mech = {CKM_MD5, NULL, 0};
 	unsigned char ipad[PADLEN];
-	unsigned int i;
+	unsigned int  i;
 
 	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	                               ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(PADLEN)) != NULL);
 	if (len > PADLEN) {
 		CK_BYTE_PTR kPart;
-		CK_ULONG kl;
+		CK_ULONG    kl;
 
 		PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 		DE_CONST(key, kPart);
 		PK11_FATALCHECK(pkcs_C_DigestUpdate,
-				(ctx->session, kPart, (CK_ULONG) len));
+		                (ctx->session, kPart, (CK_ULONG)len));
 		kl = ISC_MD5_DIGESTLENGTH;
 		PK11_FATALCHECK(pkcs_C_DigestFinal,
-				(ctx->session, (CK_BYTE_PTR) ctx->key, &kl));
+		                (ctx->session, (CK_BYTE_PTR)ctx->key, &kl));
 	} else
 		memmove(ctx->key, key, len);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
@@ -192,11 +190,12 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 	for (i = 0; i < PADLEN; i++)
 		ipad[i] ^= ctx->key[i];
 	PK11_FATALCHECK(pkcs_C_DigestUpdate,
-			(ctx->session, ipad, (CK_ULONG) PADLEN));
+	                (ctx->session, ipad, (CK_ULONG)PADLEN));
 }
 
 void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
+isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx)
+{
 	if (ctx->key != NULL)
 		pk11_mem_put(ctx->key, PADLEN);
 	ctx->key = NULL;
@@ -205,27 +204,27 @@ isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 
 void
 isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len)
+                   unsigned int len)
 {
-	CK_RV rv;
+	CK_RV       rv;
 	CK_BYTE_PTR pPart;
 
 	DE_CONST(buf, pPart);
 	PK11_FATALCHECK(pkcs_C_DigestUpdate,
-			(ctx->session, pPart, (CK_ULONG) len));
+	                (ctx->session, pPart, (CK_ULONG)len));
 }
 
 void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
-	CK_RV rv;
-	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
-	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
-	CK_BYTE opad[PADLEN];
+isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest)
+{
+	CK_RV        rv;
+	CK_MECHANISM mech = {CKM_MD5, NULL, 0};
+	CK_ULONG     len  = ISC_MD5_DIGESTLENGTH;
+	CK_BYTE      opad[PADLEN];
 	unsigned int i;
 
-	PK11_FATALCHECK(pkcs_C_DigestFinal,
-			(ctx->session, (CK_BYTE_PTR) digest,
-			 (CK_ULONG_PTR) &len));
+	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, (CK_BYTE_PTR)digest,
+	                                     (CK_ULONG_PTR)&len));
 	memset(opad, OPAD, PADLEN);
 	for (i = 0; i < PADLEN; i++)
 		opad[i] ^= ctx->key[i];
@@ -233,13 +232,11 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	ctx->key = NULL;
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 	PK11_FATALCHECK(pkcs_C_DigestUpdate,
-			(ctx->session, opad, (CK_ULONG) PADLEN));
+	                (ctx->session, opad, (CK_ULONG)PADLEN));
 	PK11_FATALCHECK(pkcs_C_DigestUpdate,
-			(ctx->session, (CK_BYTE_PTR) digest, len));
-	PK11_FATALCHECK(pkcs_C_DigestFinal,
-			(ctx->session,
-			 (CK_BYTE_PTR) digest,
-			 (CK_ULONG_PTR) &len));
+	                (ctx->session, (CK_BYTE_PTR)digest, len));
+	PK11_FATALCHECK(pkcs_C_DigestFinal, (ctx->session, (CK_BYTE_PTR)digest,
+	                                     (CK_ULONG_PTR)&len));
 	pk11_return_session(ctx);
 }
 #endif
@@ -254,11 +251,10 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
  * Start HMAC-MD5 process.  Initialize an md5 context and digest the key.
  */
 void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len)
+isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key, unsigned int len)
 {
 	unsigned char ipad[PADLEN];
-	int i;
+	int           i;
 
 	memset(ctx->key, 0, sizeof(ctx->key));
 	if (len > sizeof(ctx->key)) {
@@ -277,7 +273,8 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 }
 
 void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
+isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx)
+{
 	isc_md5_invalidate(&ctx->md5ctx);
 	isc_safe_memwipe(ctx->key, sizeof(ctx->key));
 }
@@ -288,7 +285,7 @@ isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
  */
 void
 isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len)
+                   unsigned int len)
 {
 	isc_md5_update(&ctx->md5ctx, buf, len);
 }
@@ -297,9 +294,10 @@ isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
  * Compute signature - finalize MD5 operation and reapply MD5.
  */
 void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
+isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest)
+{
 	unsigned char opad[PADLEN];
-	int i;
+	int           i;
 
 	isc_md5_final(&ctx->md5ctx, digest);
 
@@ -321,12 +319,14 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
  * compare to the supplied digest.
  */
 isc_boolean_t
-isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest) {
+isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest)
+{
 	return (isc_hmacmd5_verify2(ctx, digest, ISC_MD5_DIGESTLENGTH));
 }
 
 isc_boolean_t
-isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
+isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len)
+{
 	unsigned char newdigest[ISC_MD5_DIGESTLENGTH];
 
 	REQUIRE(len <= ISC_MD5_DIGESTLENGTH);
@@ -339,11 +339,35 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 /* Make the Visual Studio linker happy */
 #include <isc/util.h>
 
-void isc_hmacmd5_init() { INSIST(0); }
-void isc_hmacmd5_invalidate() { INSIST(0); }
-void isc_hmacmd5_sign() { INSIST(0); }
-void isc_hmacmd5_update() { INSIST(0); }
-void isc_hmacmd5_verify() { INSIST(0); }
-void isc_hmacmd5_verify2() { INSIST(0); }
+void
+isc_hmacmd5_init()
+{
+	INSIST(0);
+}
+void
+isc_hmacmd5_invalidate()
+{
+	INSIST(0);
+}
+void
+isc_hmacmd5_sign()
+{
+	INSIST(0);
+}
+void
+isc_hmacmd5_update()
+{
+	INSIST(0);
+}
+void
+isc_hmacmd5_verify()
+{
+	INSIST(0);
+}
+void
+isc_hmacmd5_verify2()
+{
+	INSIST(0);
+}
 #endif
 #endif /* PK11_MD5_DISABLE */

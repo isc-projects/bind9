@@ -24,23 +24,21 @@ typedef CRITICAL_SECTION isc_mutex_t;
  */
 #if (_WIN32_WINNT < 0x0400)
 WINBASEAPI BOOL WINAPI
-TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
+                TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 #endif /* _WIN32_WINNT < 0x0400 */
 
-#define isc_mutex_init(mp) \
-	(InitializeCriticalSection((mp)), ISC_R_SUCCESS)
-#define isc_mutex_lock(mp) \
-	(EnterCriticalSection((mp)), ISC_R_SUCCESS)
-#define isc_mutex_unlock(mp) \
-	(LeaveCriticalSection((mp)), ISC_R_SUCCESS)
-#define isc_mutex_trylock(mp) \
+#define isc_mutex_init(mp) (InitializeCriticalSection((mp)), ISC_R_SUCCESS)
+#define isc_mutex_lock(mp) (EnterCriticalSection((mp)), ISC_R_SUCCESS)
+#define isc_mutex_unlock(mp) (LeaveCriticalSection((mp)), ISC_R_SUCCESS)
+#define isc_mutex_trylock(mp)                                                  \
 	(TryEnterCriticalSection((mp)) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
-#define isc_mutex_destroy(mp) \
-	(DeleteCriticalSection((mp)), ISC_R_SUCCESS)
+#define isc_mutex_destroy(mp) (DeleteCriticalSection((mp)), ISC_R_SUCCESS)
 
 /*
  * This is a placeholder for now since we are not keeping any mutex stats
  */
-#define isc_mutex_stats(fp) do {} while (0)
+#define isc_mutex_stats(fp)                                                    \
+	do {                                                                   \
+	} while (0)
 
 #endif /* ISC_MUTEX_H */

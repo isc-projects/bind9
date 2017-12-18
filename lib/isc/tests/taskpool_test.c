@@ -27,11 +27,13 @@
 
 /* Create a taskpool */
 ATF_TC(create_pool);
-ATF_TC_HEAD(create_pool, tc) {
+ATF_TC_HEAD(create_pool, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "create a taskpool");
 }
-ATF_TC_BODY(create_pool, tc) {
-	isc_result_t result;
+ATF_TC_BODY(create_pool, tc)
+{
+	isc_result_t    result;
 	isc_taskpool_t *pool = NULL;
 
 	UNUSED(tc);
@@ -51,11 +53,13 @@ ATF_TC_BODY(create_pool, tc) {
 
 /* Resize a taskpool */
 ATF_TC(expand_pool);
-ATF_TC_HEAD(expand_pool, tc) {
+ATF_TC_HEAD(expand_pool, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "expand a taskpool");
 }
-ATF_TC_BODY(expand_pool, tc) {
-	isc_result_t result;
+ATF_TC_BODY(expand_pool, tc)
+{
+	isc_result_t    result;
 	isc_taskpool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(tc);
@@ -68,7 +72,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	ATF_REQUIRE_EQ(isc_taskpool_size(pool1), 10);
 
 	/* resizing to a smaller size should have no effect */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_taskpool_expand(&pool1, 5, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_taskpool_size(pool2), 10);
@@ -78,7 +82,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	pool2 = NULL;
 
 	/* resizing to the same size should have no effect */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_taskpool_expand(&pool1, 10, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_taskpool_size(pool2), 10);
@@ -88,7 +92,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	pool2 = NULL;
 
 	/* resizing to larger size should make a new pool */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_taskpool_expand(&pool1, 20, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_taskpool_size(pool2), 20);
@@ -103,13 +107,15 @@ ATF_TC_BODY(expand_pool, tc) {
 
 /* Get tasks */
 ATF_TC(get_tasks);
-ATF_TC_HEAD(get_tasks, tc) {
+ATF_TC_HEAD(get_tasks, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "create a taskpool");
 }
-ATF_TC_BODY(get_tasks, tc) {
-	isc_result_t result;
-	isc_taskpool_t *pool = NULL;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+ATF_TC_BODY(get_tasks, tc)
+{
+	isc_result_t    result;
+	isc_taskpool_t *pool  = NULL;
+	isc_task_t *    task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(tc);
 
@@ -142,13 +148,15 @@ ATF_TC_BODY(get_tasks, tc) {
 
 /* Get tasks */
 ATF_TC(set_privilege);
-ATF_TC_HEAD(set_privilege, tc) {
+ATF_TC_HEAD(set_privilege, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "create a taskpool");
 }
-ATF_TC_BODY(set_privilege, tc) {
-	isc_result_t result;
-	isc_taskpool_t *pool = NULL;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+ATF_TC_BODY(set_privilege, tc)
+{
+	isc_result_t    result;
+	isc_taskpool_t *pool  = NULL;
+	isc_task_t *    task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(tc);
 
@@ -192,7 +200,8 @@ ATF_TC_BODY(set_privilege, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, create_pool);
 	ATF_TP_ADD_TC(tp, expand_pool);
 	ATF_TP_ADD_TC(tp, get_tasks);
@@ -200,4 +209,3 @@ ATF_TP_ADD_TCS(tp) {
 
 	return (atf_no_error());
 }
-

@@ -35,8 +35,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp);
+isc_result_t isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp);
 /*%<
  * Create a port set and initialize it as an empty set.
  *
@@ -49,8 +48,7 @@ isc_portset_create(isc_mem_t *mctx, isc_portset_t **portsetp);
  *\li	#ISC_R_NOMEMORY
  */
 
-void
-isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp);
+void isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp);
 /*%<
  * Destroy a port set.
  *
@@ -60,8 +58,7 @@ isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp);
  *\li	'*portsetp' to be a valid set.
  */
 
-isc_boolean_t
-isc_portset_isset(isc_portset_t *portset, in_port_t port);
+isc_boolean_t isc_portset_isset(isc_portset_t *portset, in_port_t port);
 /*%<
  * Test whether the given port is stored in the portset.
  *
@@ -72,8 +69,7 @@ isc_portset_isset(isc_portset_t *portset, in_port_t port);
  * \li	#ISC_TRUE if the port is found, ISC_FALSE otherwise.
  */
 
-unsigned int
-isc_portset_nports(isc_portset_t *portset);
+unsigned int isc_portset_nports(isc_portset_t *portset);
 /*%<
  * Provides the number of ports stored in the given portset.
  *
@@ -84,8 +80,7 @@ isc_portset_nports(isc_portset_t *portset);
  * \li	the number of ports stored in portset.
  */
 
-void
-isc_portset_add(isc_portset_t *portset, in_port_t port);
+void isc_portset_add(isc_portset_t *portset, in_port_t port);
 /*%<
  * Add the given port to the portset.  The port may or may not be stored in
  * the portset.
@@ -94,8 +89,7 @@ isc_portset_add(isc_portset_t *portset, in_port_t port);
  *\li	'portlist' to be valid.
  */
 
-void
-isc_portset_remove(isc_portset_t *portset, in_port_t port);
+void isc_portset_remove(isc_portset_t *portset, in_port_t port);
 /*%<
  * Remove the given port to the portset.  The port may or may not be stored in
  * the portset.
@@ -104,9 +98,8 @@ isc_portset_remove(isc_portset_t *portset, in_port_t port);
  *\li	'portlist' to be valid.
  */
 
-void
-isc_portset_addrange(isc_portset_t *portset, in_port_t port_lo,
-		     in_port_t port_hi);
+void isc_portset_addrange(isc_portset_t *portset, in_port_t port_lo,
+                          in_port_t port_hi);
 /*%<
  * Add a subset of [port_lo, port_hi] (inclusive) to the portset.  Ports in the
  * subset may or may not be stored in portset.
@@ -116,9 +109,8 @@ isc_portset_addrange(isc_portset_t *portset, in_port_t port_lo,
  *\li	port_lo <= port_hi
  */
 
-void
-isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
-			in_port_t port_hi);
+void isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
+                             in_port_t port_hi);
 /*%<
  * Subtract a subset of [port_lo, port_hi] (inclusive) from the portset.  Ports
  * in the subset may or may not be stored in portset.
@@ -130,4 +122,4 @@ isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
 
 ISC_LANG_ENDDECLS
 
-#endif	/* ISC_PORTSET_H */
+#endif /* ISC_PORTSET_H */

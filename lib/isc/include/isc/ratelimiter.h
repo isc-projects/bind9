@@ -34,15 +34,15 @@ ISC_LANG_BEGINDECLS
  ***** Functions.
  *****/
 
-isc_result_t
-isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
-		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp);
+isc_result_t isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
+                                    isc_task_t *        task,
+                                    isc_ratelimiter_t **ratelimiterp);
 /*%<
  * Create a rate limiter.  The execution interval is initially undefined.
  */
 
-isc_result_t
-isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
+isc_result_t isc_ratelimiter_setinterval(isc_ratelimiter_t *rl,
+                                         isc_interval_t *   interval);
 /*!<
  * Set the minimum interval between event executions.
  * The interval value is copied, so the caller need not preserve it.
@@ -51,23 +51,20 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
  *	'*interval' is a nonzero interval.
  */
 
-void
-isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
+void isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
 /*%<
  * Set the number of events processed per interval timer tick.
  * If 'perint' is zero it is treated as 1.
  */
 
-void
-isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, isc_boolean_t pushpop);
+void isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, isc_boolean_t pushpop);
 /*%<
  * Set / clear the ratelimiter to from push pop mode rather
  * first in - first out mode (default).
  */
 
-isc_result_t
-isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
-			isc_event_t **eventp);
+isc_result_t isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
+                                     isc_event_t **eventp);
 /*%<
  * Queue an event for rate-limited execution.
  *
@@ -87,8 +84,7 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
  *\li	'(*eventp)->ev_sender' to be NULL.
  */
 
-isc_result_t
-isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event);
+isc_result_t isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event);
 /*
  * Dequeue a event off the ratelimiter queue.
  *
@@ -97,8 +93,7 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event);
  * \li	ISC_R_SUCCESS
  */
 
-void
-isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
+void isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
 /*%<
  * Shut down a rate limiter.
  *
@@ -113,26 +108,23 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
  *\li	The rate limiter is no longer attached to its task.
  */
 
-void
-isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target);
+void isc_ratelimiter_attach(isc_ratelimiter_t * source,
+                            isc_ratelimiter_t **target);
 /*%<
  * Attach to a rate limiter.
  */
 
-void
-isc_ratelimiter_detach(isc_ratelimiter_t **ratelimiterp);
+void isc_ratelimiter_detach(isc_ratelimiter_t **ratelimiterp);
 /*%<
  * Detach from a rate limiter.
  */
 
-isc_result_t
-isc_ratelimiter_stall(isc_ratelimiter_t *rl);
+isc_result_t isc_ratelimiter_stall(isc_ratelimiter_t *rl);
 /*%<
  * Stall event processing.
  */
 
-isc_result_t
-isc_ratelimiter_release(isc_ratelimiter_t *rl);
+isc_result_t isc_ratelimiter_release(isc_ratelimiter_t *rl);
 /*%<
  * Release a stalled rate limiter.
  */

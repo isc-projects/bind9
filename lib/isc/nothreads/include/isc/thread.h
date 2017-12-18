@@ -18,17 +18,15 @@ ISC_LANG_BEGINDECLS
 
 /* Placeholder types (they are not accessed) */
 
-typedef void * isc_thread_t;
-typedef void * isc_threadresult_t;
-typedef void * isc_threadarg_t;
-typedef void * isc_threadfunc_t;
-typedef void * isc_thread_key_t;
+typedef void *isc_thread_t;
+typedef void *isc_threadresult_t;
+typedef void *isc_threadarg_t;
+typedef void *isc_threadfunc_t;
+typedef void *isc_thread_key_t;
 
-void
-isc_thread_setconcurrency(unsigned int level);
+void isc_thread_setconcurrency(unsigned int level);
 
-void
-isc_thread_setname(isc_thread_t thread, const char *name);
+void isc_thread_setname(isc_thread_t thread, const char *name);
 
 #define isc_thread_self() ((unsigned long)0)
 #define isc_thread_yield() ((void)0)

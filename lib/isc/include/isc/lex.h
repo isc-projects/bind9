@@ -59,11 +59,11 @@ ISC_LANG_BEGINDECLS
  * Various options for isc_lex_gettoken().
  */
 
-#define ISC_LEXOPT_EOL			0x01	/*%< Want end-of-line token. */
-#define ISC_LEXOPT_EOF			0x02	/*%< Want end-of-file token. */
-#define ISC_LEXOPT_INITIALWS		0x04	/*%< Want initial whitespace. */
-#define ISC_LEXOPT_NUMBER		0x08	/*%< Recognize numbers. */
-#define ISC_LEXOPT_QSTRING		0x10	/*%< Recognize qstrings. */
+#define ISC_LEXOPT_EOL 0x01       /*%< Want end-of-line token. */
+#define ISC_LEXOPT_EOF 0x02       /*%< Want end-of-file token. */
+#define ISC_LEXOPT_INITIALWS 0x04 /*%< Want initial whitespace. */
+#define ISC_LEXOPT_NUMBER 0x08    /*%< Recognize numbers. */
+#define ISC_LEXOPT_QSTRING 0x10   /*%< Recognize qstrings. */
 /*@}*/
 
 /*@{*/
@@ -74,14 +74,14 @@ ISC_LANG_BEGINDECLS
  * the paren count is > 0.  To use this option, '(' and ')' must be special
  * characters.
  */
-#define ISC_LEXOPT_DNSMULTILINE		0x20	/*%< Handle '(' and ')'. */
-#define ISC_LEXOPT_NOMORE		0x40	/*%< Want "no more" token. */
+#define ISC_LEXOPT_DNSMULTILINE 0x20 /*%< Handle '(' and ')'. */
+#define ISC_LEXOPT_NOMORE 0x40       /*%< Want "no more" token. */
 
-#define ISC_LEXOPT_CNUMBER		0x80    /*%< Recognize octal and hex. */
-#define ISC_LEXOPT_ESCAPE		0x100	/*%< Recognize escapes. */
-#define ISC_LEXOPT_QSTRINGMULTILINE	0x200	/*%< Allow multiline "" strings */
-#define ISC_LEXOPT_OCTAL		0x400	/*%< Expect a octal number. */
-#define ISC_LEXOPT_BTEXT		0x800	/*%< Bracketed text. */
+#define ISC_LEXOPT_CNUMBER 0x80           /*%< Recognize octal and hex. */
+#define ISC_LEXOPT_ESCAPE 0x100           /*%< Recognize escapes. */
+#define ISC_LEXOPT_QSTRINGMULTILINE 0x200 /*%< Allow multiline "" strings */
+#define ISC_LEXOPT_OCTAL 0x400            /*%< Expect a octal number. */
+#define ISC_LEXOPT_BTEXT 0x800            /*%< Bracketed text. */
 /*@}*/
 /*@{*/
 /*!
@@ -89,10 +89,10 @@ ISC_LANG_BEGINDECLS
  * isc_lex_setcomments().
  */
 
-#define ISC_LEXCOMMENT_C		0x01
-#define ISC_LEXCOMMENT_CPLUSPLUS	0x02
-#define ISC_LEXCOMMENT_SHELL		0x04
-#define ISC_LEXCOMMENT_DNSMASTERFILE	0x08
+#define ISC_LEXCOMMENT_C 0x01
+#define ISC_LEXCOMMENT_CPLUSPLUS 0x02
+#define ISC_LEXCOMMENT_SHELL 0x04
+#define ISC_LEXCOMMENT_DNSMASTERFILE 0x08
 /*@}*/
 
 /***
@@ -106,37 +106,37 @@ typedef char isc_lexspecials_t[256];
 /* Tokens */
 
 typedef enum {
-	isc_tokentype_unknown = 0,
-	isc_tokentype_string = 1,
-	isc_tokentype_number = 2,
-	isc_tokentype_qstring = 3,
-	isc_tokentype_eol = 4,
-	isc_tokentype_eof = 5,
+	isc_tokentype_unknown   = 0,
+	isc_tokentype_string    = 1,
+	isc_tokentype_number    = 2,
+	isc_tokentype_qstring   = 3,
+	isc_tokentype_eol       = 4,
+	isc_tokentype_eof       = 5,
 	isc_tokentype_initialws = 6,
-	isc_tokentype_special = 7,
-	isc_tokentype_nomore = 8,
-	isc_tokentype_btext = 8
+	isc_tokentype_special   = 7,
+	isc_tokentype_nomore    = 8,
+	isc_tokentype_btext     = 8
 } isc_tokentype_t;
 
 typedef union {
-	char				as_char;
-	unsigned long			as_ulong;
-	isc_region_t			as_region;
-	isc_textregion_t		as_textregion;
-	void *				as_pointer;
+	char             as_char;
+	unsigned long    as_ulong;
+	isc_region_t     as_region;
+	isc_textregion_t as_textregion;
+	void *           as_pointer;
 } isc_tokenvalue_t;
 
 typedef struct isc_token {
-	isc_tokentype_t			type;
-	isc_tokenvalue_t		value;
+	isc_tokentype_t  type;
+	isc_tokenvalue_t value;
 } isc_token_t;
 
 /***
  *** Functions
  ***/
 
-isc_result_t
-isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
+isc_result_t isc_lex_create(isc_mem_t *mctx, size_t max_token,
+                            isc_lex_t **lexp);
 /*%<
  * Create a lexer.
  *
@@ -153,8 +153,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
  *\li	#ISC_R_NOMEMORY
  */
 
-void
-isc_lex_destroy(isc_lex_t **lexp);
+void isc_lex_destroy(isc_lex_t **lexp);
 /*%<
  * Destroy the lexer.
  *
@@ -165,8 +164,7 @@ isc_lex_destroy(isc_lex_t **lexp);
  *\li	*lexp == NULL
  */
 
-unsigned int
-isc_lex_getcomments(isc_lex_t *lex);
+unsigned int isc_lex_getcomments(isc_lex_t *lex);
 /*%<
  * Return the current lexer commenting styles.
  *
@@ -177,8 +175,7 @@ isc_lex_getcomments(isc_lex_t *lex);
  *\li	The commenting sytles which are currently allowed.
  */
 
-void
-isc_lex_setcomments(isc_lex_t *lex, unsigned int comments);
+void isc_lex_setcomments(isc_lex_t *lex, unsigned int comments);
 /*%<
  * Set allowed lexer commenting styles.
  *
@@ -188,8 +185,7 @@ isc_lex_setcomments(isc_lex_t *lex, unsigned int comments);
  *\li	'comments' has meaningful values.
  */
 
-void
-isc_lex_getspecials(isc_lex_t *lex, isc_lexspecials_t specials);
+void isc_lex_getspecials(isc_lex_t *lex, isc_lexspecials_t specials);
 /*%<
  * Put the current list of specials into 'specials'.
  *
@@ -197,8 +193,7 @@ isc_lex_getspecials(isc_lex_t *lex, isc_lexspecials_t specials);
  *\li	'lex' is a valid lexer.
  */
 
-void
-isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials);
+void isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials);
 /*!<
  * The characters in 'specials' are returned as tokens.  Along with
  * whitespace, they delimit strings and numbers.
@@ -211,8 +206,7 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials);
  *\li	'lex' is a valid lexer.
  */
 
-isc_result_t
-isc_lex_openfile(isc_lex_t *lex, const char *filename);
+isc_result_t isc_lex_openfile(isc_lex_t *lex, const char *filename);
 /*%<
  * Open 'filename' and make it the current input source for 'lex'.
  *
@@ -230,8 +224,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename);
  *\li	#ISC_R_UNEXPECTED
  */
 
-isc_result_t
-isc_lex_openstream(isc_lex_t *lex, FILE *stream);
+isc_result_t isc_lex_openstream(isc_lex_t *lex, FILE *stream);
 /*%<
  * Make 'stream' the current input source for 'lex'.
  *
@@ -245,8 +238,7 @@ isc_lex_openstream(isc_lex_t *lex, FILE *stream);
  *\li	#ISC_R_NOMEMORY			Out of memory
  */
 
-isc_result_t
-isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
+isc_result_t isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
 /*%<
  * Make 'buffer' the current input source for 'lex'.
  *
@@ -260,8 +252,7 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
  *\li	#ISC_R_NOMEMORY			Out of memory
  */
 
-isc_result_t
-isc_lex_close(isc_lex_t *lex);
+isc_result_t isc_lex_close(isc_lex_t *lex);
 /*%<
  * Close the most recently opened object (i.e. file or buffer).
  *
@@ -270,8 +261,8 @@ isc_lex_close(isc_lex_t *lex);
  *\li	#ISC_R_NOMORE			No more input sources
  */
 
-isc_result_t
-isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp);
+isc_result_t isc_lex_gettoken(isc_lex_t *lex, unsigned int options,
+                              isc_token_t *tokenp);
 /*%<
  * Get the next token.
  *
@@ -296,9 +287,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp);
  *\li	#ISC_R_NOMORE			No more input sources
  */
 
-isc_result_t
-isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
-		       isc_tokentype_t expect, isc_boolean_t eol);
+isc_result_t isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
+                                    isc_tokentype_t expect, isc_boolean_t eol);
 /*%<
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles quoted
@@ -315,8 +305,8 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
  * \li	any return code from isc_lex_gettoken().
  */
 
-isc_result_t
-isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, isc_boolean_t eol);
+isc_result_t isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token,
+                                   isc_boolean_t eol);
 /*%<
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles end
@@ -332,8 +322,7 @@ isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, isc_boolean_t eol);
  * \li	any return code from isc_lex_gettoken().
  */
 
-void
-isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
+void isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
 /*%<
  * Unget the current token.
  *
@@ -347,8 +336,8 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
  *\li	There is no ungotten token already.
  */
 
-void
-isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r);
+void isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp,
+                              isc_region_t *r);
 /*%<
  * Returns a region containing the text of the last token returned.
  *
@@ -362,8 +351,7 @@ isc_lex_getlasttokentext(isc_lex_t *lex, isc_token_t *tokenp, isc_region_t *r);
  *\li	A token has been gotten and not ungotten.
  */
 
-char *
-isc_lex_getsourcename(isc_lex_t *lex);
+char *isc_lex_getsourcename(isc_lex_t *lex);
 /*%<
  * Return the input source name.
  *
@@ -375,9 +363,7 @@ isc_lex_getsourcename(isc_lex_t *lex);
  *\li	result valid while current input source exists.
  */
 
-
-unsigned long
-isc_lex_getsourceline(isc_lex_t *lex);
+unsigned long isc_lex_getsourceline(isc_lex_t *lex);
 /*%<
  * Return the input source line number.
  *
@@ -388,8 +374,7 @@ isc_lex_getsourceline(isc_lex_t *lex);
  *\li 	Current line number or 0 if no current source.
  */
 
-isc_result_t
-isc_lex_setsourcename(isc_lex_t *lex, const char *name);
+isc_result_t isc_lex_setsourcename(isc_lex_t *lex, const char *name);
 /*%<
  * Assigns a new name to the input source.
  *
@@ -403,8 +388,7 @@ isc_lex_setsourcename(isc_lex_t *lex, const char *name);
  * \li	#ISC_R_NOTFOUND - there are no sources.
  */
 
-isc_result_t
-isc_lex_setsourceline(isc_lex_t *lex, unsigned long line);
+isc_result_t isc_lex_setsourceline(isc_lex_t *lex, unsigned long line);
 /*%<
  * Assigns a new line number to the input source. This can be used
  * when parsing a buffer that's been excerpted from the middle a file,
@@ -420,8 +404,7 @@ isc_lex_setsourceline(isc_lex_t *lex, unsigned long line);
  * \li	#ISC_R_NOTFOUND - there are no sources.
  */
 
-isc_boolean_t
-isc_lex_isfile(isc_lex_t *lex);
+isc_boolean_t isc_lex_isfile(isc_lex_t *lex);
 /*%<
  * Return whether the current input source is a file.
  *
@@ -432,7 +415,6 @@ isc_lex_isfile(isc_lex_t *lex);
  * \li	#ISC_TRUE if the current input is a file,
  *\li	#ISC_FALSE otherwise.
  */
-
 
 ISC_LANG_ENDDECLS
 

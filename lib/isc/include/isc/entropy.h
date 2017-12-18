@@ -52,9 +52,9 @@
 /*@{*/
 /*% Entropy callback function. */
 typedef isc_result_t (*isc_entropystart_t)(isc_entropysource_t *source,
-					   void *arg, isc_boolean_t blocking);
-typedef isc_result_t (*isc_entropyget_t)(isc_entropysource_t *source,
-					 void *arg, isc_boolean_t blocking);
+                                           void *arg, isc_boolean_t blocking);
+typedef isc_result_t (*isc_entropyget_t)(isc_entropysource_t *source, void *arg,
+                                         isc_boolean_t blocking);
 typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
 /*@}*/
 
@@ -70,14 +70,14 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  *
  *
  */
-#define ISC_ENTROPY_GOODONLY	0x00000001U
+#define ISC_ENTROPY_GOODONLY 0x00000001U
 /*!
  * \brief
  *	Extract as much good data as possible, but if there isn't enough
  *	at hand, return what is available.  This flag only makes sense
  *	when used with _GOODONLY.
  */
-#define ISC_ENTROPY_PARTIAL	0x00000002U
+#define ISC_ENTROPY_PARTIAL 0x00000002U
 /*!
  * \brief
  *	Block the task until data is available.  This is contrary to the
@@ -87,7 +87,7 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  *	This flag only makes sense when used with _GOODONLY, and will
  *	block regardless of the setting for _PARTIAL.
  */
-#define ISC_ENTROPY_BLOCKING	0x00000004U
+#define ISC_ENTROPY_BLOCKING 0x00000004U
 
 /*!
  * \brief
@@ -96,7 +96,7 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  *	mixed into the entropy pool, but no increment in contained entropy
  *	will be assumed.  This flag only makes sense on sample sources.
  */
-#define ISC_ENTROPYSOURCE_ESTIMATE	0x00000001U
+#define ISC_ENTROPYSOURCE_ESTIMATE 0x00000001U
 
 /*
  * For use with isc_entropy_usebestsource().
@@ -105,18 +105,18 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  * \brief
  *	Use the keyboard as the only entropy source.
  */
-#define ISC_ENTROPY_KEYBOARDYES		1
+#define ISC_ENTROPY_KEYBOARDYES 1
 /*!
  * \brief
  *	Never use the keyboard as an entropy source.
  */
-#define ISC_ENTROPY_KEYBOARDNO		2
+#define ISC_ENTROPY_KEYBOARDNO 2
 /*!
  * \brief
  *	Use the keyboard as an entropy source only if opening the
  *	random device fails.
  */
-#define ISC_ENTROPY_KEYBOARDMAYBE	3
+#define ISC_ENTROPY_KEYBOARDMAYBE 3
 
 ISC_LANG_BEGINDECLS
 
@@ -124,26 +124,23 @@ ISC_LANG_BEGINDECLS
  *** Functions
  ***/
 
-isc_result_t
-isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp);
+isc_result_t isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp);
 /*!<
  * \brief Create a new entropy object.
  */
 
-void
-isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp);
+void isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp);
 /*!<
  * Attaches to an entropy object.
  */
 
-void
-isc_entropy_detach(isc_entropy_t **entp);
+void isc_entropy_detach(isc_entropy_t **entp);
 /*!<
  * \brief Detaches from an entropy object.
  */
 
-isc_result_t
-isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname);
+isc_result_t isc_entropy_createfilesource(isc_entropy_t *ent,
+                                          const char *   fname);
 /*!<
  * \brief Create a new entropy source from a file.
  *
@@ -161,27 +158,23 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname);
  * The file will never be opened/read again once EOF is reached.
  */
 
-void
-isc_entropy_destroysource(isc_entropysource_t **sourcep);
+void isc_entropy_destroysource(isc_entropysource_t **sourcep);
 /*!<
  * \brief Removes an entropy source from the entropy system.
  */
 
-isc_result_t
-isc_entropy_createsamplesource(isc_entropy_t *ent,
-			       isc_entropysource_t **sourcep);
+isc_result_t isc_entropy_createsamplesource(isc_entropy_t *       ent,
+                                            isc_entropysource_t **sourcep);
 /*!<
  * \brief Create an entropy source that consists of samples.  Each sample is
  * added to the source via isc_entropy_addsamples(), below.
  */
 
-isc_result_t
-isc_entropy_createcallbacksource(isc_entropy_t *ent,
-				 isc_entropystart_t start,
-				 isc_entropyget_t get,
-				 isc_entropystop_t stop,
-				 void *arg,
-				 isc_entropysource_t **sourcep);
+isc_result_t isc_entropy_createcallbacksource(isc_entropy_t *    ent,
+                                              isc_entropystart_t start,
+                                              isc_entropyget_t   get,
+                                              isc_entropystop_t stop, void *arg,
+                                              isc_entropysource_t **sourcep);
 /*!<
  * \brief Create an entropy source that is polled via a callback.
  *
@@ -193,20 +186,18 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
  * within an entropy API callback function.
  */
 
-void
-isc_entropy_stopcallbacksources(isc_entropy_t *ent);
+void isc_entropy_stopcallbacksources(isc_entropy_t *ent);
 /*!<
  * \brief Call the stop functions for callback sources that have had their
  * start functions called.
  */
 
 /*@{*/
-isc_result_t
-isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
-			      isc_uint32_t extra);
-isc_result_t
-isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
-		      isc_uint32_t extra);
+isc_result_t isc_entropy_addcallbacksample(isc_entropysource_t *source,
+                                           isc_uint32_t         sample,
+                                           isc_uint32_t         extra);
+isc_result_t isc_entropy_addsample(isc_entropysource_t *source,
+                                   isc_uint32_t sample, isc_uint32_t extra);
 /*!<
  * \brief Add a sample to the sample source.
  *
@@ -223,9 +214,9 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
  */
 /*@}*/
 
-isc_result_t
-isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    unsigned int *returned, unsigned int flags);
+isc_result_t isc_entropy_getdata(isc_entropy_t *ent, void *data,
+                                 unsigned int length, unsigned int *returned,
+                                 unsigned int flags);
 /*!<
  * \brief Get random data from entropy pool 'ent'.
  *
@@ -255,9 +246,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
  * \li	other error codes are possible when a hook is in use
  */
 
-void
-isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    isc_uint32_t entropy);
+void isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
+                         isc_uint32_t entropy);
 /*!<
  * \brief Add "length" bytes in "data" to the entropy pool, incrementing the
  * pool's entropy count by "entropy."
@@ -266,22 +256,21 @@ isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
  * actually added.
  */
 
-void
-isc_entropy_stats(isc_entropy_t *ent, FILE *out);
+void isc_entropy_stats(isc_entropy_t *ent, FILE *out);
 /*!<
  * \brief Dump some (trivial) stats to the stdio stream "out".
  */
 
-unsigned int
-isc_entropy_status(isc_entropy_t *end);
+unsigned int isc_entropy_status(isc_entropy_t *end);
 /*
  * Returns the number of bits the pool currently contains.  This is just
  * an estimate.
  */
 
-isc_result_t
-isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
-			  const char *randomfile, int use_keyboard);
+isc_result_t isc_entropy_usebestsource(isc_entropy_t *       ectx,
+                                       isc_entropysource_t **source,
+                                       const char *          randomfile,
+                                       int                   use_keyboard);
 /*!<
  * \brief Use whatever source of entropy is best.
  *
@@ -314,8 +303,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
  *	isc_entropy_createcallbacksource().
  */
 
-void
-isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
+void isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
 /*!<
  * \brief Configure entropy context 'ectx' to use the hook function
  *
@@ -324,8 +312,7 @@ isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
  * isc_entropy_sethook(), whenever isc_entropy_getdata() is called.
  */
 
-void
-isc_entropy_sethook(isc_entropy_getdata_t myhook);
+void isc_entropy_sethook(isc_entropy_getdata_t myhook);
 /*!<
  * \brief Set the hook function.
  *

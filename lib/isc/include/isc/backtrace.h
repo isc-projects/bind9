@@ -42,21 +42,20 @@
  *** Types
  ***/
 struct isc_backtrace_symmap {
-	void		*addr;
-	const char	*symbol;
+	void *      addr;
+	const char *symbol;
 };
 
 LIBISC_EXTERNAL_DATA extern const int isc__backtrace_nsymbols;
-LIBISC_EXTERNAL_DATA extern const
-	isc_backtrace_symmap_t isc__backtrace_symtable[];
+LIBISC_EXTERNAL_DATA extern const isc_backtrace_symmap_t
+        isc__backtrace_symtable[];
 
 /***
  *** Functions
  ***/
 
 ISC_LANG_BEGINDECLS
-isc_result_t
-isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
+isc_result_t isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
 /*%<
  * Get a back trace of the running process above this function itself.  On
  * success, addrs[i] will store the address of the call point of the i-th
@@ -77,9 +76,8 @@ isc_backtrace_gettrace(void **addrs, int maxaddrs, int *nframes);
  *\li	#ISC_R_NOTIMPLEMENTED
  */
 
-isc_result_t
-isc_backtrace_getsymbolfromindex(int index, const void **addrp,
-				 const char **symbolp);
+isc_result_t isc_backtrace_getsymbolfromindex(int index, const void **addrp,
+                                              const char **symbolp);
 /*%<
  * Returns the content of the internal symbol table of the given index.
  * On success, *addrsp and *symbolp point to the address and the symbol of
@@ -98,9 +96,8 @@ isc_backtrace_getsymbolfromindex(int index, const void **addrp,
  *\li	#ISC_R_RANGE
  */
 
-isc_result_t
-isc_backtrace_getsymbol(const void *addr, const char **symbolp,
-			unsigned long *offsetp);
+isc_result_t isc_backtrace_getsymbol(const void *addr, const char **symbolp,
+                                     unsigned long *offsetp);
 /*%<
  * Searches the internal symbol table for the symbol that most matches the
  * given 'addr'.  On success, '*symbolp' will point to the name of function
@@ -121,4 +118,4 @@ isc_backtrace_getsymbol(const void *addr, const char **symbolp,
  */
 ISC_LANG_ENDDECLS
 
-#endif	/* ISC_BACKTRACE_H */
+#endif /* ISC_BACKTRACE_H */

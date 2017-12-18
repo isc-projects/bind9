@@ -22,11 +22,12 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
-	int presult;
-	isc_result_t result;
+isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
+{
+	int             presult;
+	isc_result_t    result;
 	struct timespec ts;
-	char strbuf[ISC_STRERRORSIZE];
+	char            strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(c != NULL && m != NULL && t != NULL);
 
@@ -63,10 +64,9 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	} while (presult == EINTR);
 
 	isc__strerror(presult, strbuf, sizeof(strbuf));
-	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() %s %s",
-			 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-					ISC_MSG_RETURNED, "returned"),
-			 strbuf);
+	UNEXPECTED_ERROR(__FILE__, __LINE__, "pthread_cond_timedwait() %s %s",
+	                 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+	                                ISC_MSG_RETURNED, "returned"),
+	                 strbuf);
 	return (ISC_R_UNEXPECTED);
 }

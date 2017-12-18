@@ -16,9 +16,9 @@
 #include <ifaddrs.h>
 
 /*% Iterator Magic */
-#define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'G')
+#define IFITER_MAGIC ISC_MAGIC('I', 'F', 'I', 'G')
 /*% Valid Iterator */
-#define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
+#define VALID_IFITER(t) ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 #ifdef __linux
 static isc_boolean_t seenv6 = ISC_FALSE;
@@ -26,26 +26,27 @@ static isc_boolean_t seenv6 = ISC_FALSE;
 
 /*% Iterator structure */
 struct isc_interfaceiter {
-	unsigned int		magic;		/*%< Magic number. */
-	isc_mem_t		*mctx;
-	void			*buf;		/*%< (unused) */
-	unsigned int		bufsize;	/*%< (always 0) */
-	struct ifaddrs		*ifaddrs;	/*%< List of ifaddrs */
-	struct ifaddrs		*pos;		/*%< Ptr to current ifaddr */
-	isc_interface_t		current;	/*%< Current interface data. */
-	isc_result_t		result;		/*%< Last result code. */
-#ifdef  __linux
-	FILE *                  proc;
-	char                    entry[ISC_IF_INET6_SZ];
-	isc_result_t            valid;
+	unsigned int    magic; /*%< Magic number. */
+	isc_mem_t *     mctx;
+	void *          buf;     /*%< (unused) */
+	unsigned int    bufsize; /*%< (always 0) */
+	struct ifaddrs *ifaddrs; /*%< List of ifaddrs */
+	struct ifaddrs *pos;     /*%< Ptr to current ifaddr */
+	isc_interface_t current; /*%< Current interface data. */
+	isc_result_t    result;  /*%< Last result code. */
+#ifdef __linux
+	FILE *       proc;
+	char         entry[ISC_IF_INET6_SZ];
+	isc_result_t valid;
 #endif
 };
 
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
+{
 	isc_interfaceiter_t *iter;
-	isc_result_t result;
-	char strbuf[ISC_STRERRORSIZE];
+	isc_result_t         result;
+	char                 strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
@@ -55,8 +56,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	if (iter == NULL)
 		return (ISC_R_NOMEMORY);
 
-	iter->mctx = mctx;
-	iter->buf = NULL;
+	iter->mctx    = mctx;
+	iter->buf     = NULL;
 	iter->bufsize = 0;
 	iter->ifaddrs = NULL;
 #ifdef __linux
@@ -74,12 +75,12 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	if (getifaddrs(&iter->ifaddrs) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_IFITERGETIFADDRS,
-						ISC_MSG_GETIFADDRS,
-						"getting interface "
-						"addresses: getifaddrs: %s"),
-				 strbuf);
+		                 isc_msgcat_get(isc_msgcat,
+		                                ISC_MSGSET_IFITERGETIFADDRS,
+		                                ISC_MSG_GETIFADDRS,
+		                                "getting interface "
+		                                "addresses: getifaddrs: %s"),
+		                 strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
@@ -88,14 +89,14 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * A newly created iterator has an undefined position
 	 * until isc_interfaceiter_first() is called.
 	 */
-	iter->pos = NULL;
+	iter->pos    = NULL;
 	iter->result = ISC_R_FAILURE;
 
 	iter->magic = IFITER_MAGIC;
-	*iterp = iter;
+	*iterp      = iter;
 	return (ISC_R_SUCCESS);
 
- failure:
+failure:
 #ifdef __linux
 	if (iter->proc != NULL)
 		fclose(iter->proc);
@@ -114,10 +115,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  */
 
 static isc_result_t
-internal_current(isc_interfaceiter_t *iter) {
+internal_current(isc_interfaceiter_t *iter)
+{
 	struct ifaddrs *ifa;
-	int family;
-	unsigned int namelen;
+	int             family;
+	unsigned int    namelen;
 
 	REQUIRE(VALID_IFITER(iter));
 
@@ -169,12 +171,12 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	if (ifa->ifa_netmask != NULL)
 		get_addr(family, &iter->current.netmask, ifa->ifa_netmask,
-			 ifa->ifa_name);
+		         ifa->ifa_name);
 
 	if (ifa->ifa_dstaddr != NULL &&
 	    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0)
 		get_addr(family, &iter->current.dstaddress, ifa->ifa_dstaddr,
-			 ifa->ifa_name);
+		         ifa->ifa_name);
 
 	return (ISC_R_SUCCESS);
 }
@@ -187,7 +189,8 @@ internal_current(isc_interfaceiter_t *iter) {
  * interfaces, otherwise ISC_R_SUCCESS.
  */
 static isc_result_t
-internal_next(isc_interfaceiter_t *iter) {
+internal_next(isc_interfaceiter_t *iter)
+{
 
 	if (iter->pos != NULL)
 		iter->pos = iter->pos->ifa_next;
@@ -203,7 +206,8 @@ internal_next(isc_interfaceiter_t *iter) {
 }
 
 static void
-internal_destroy(isc_interfaceiter_t *iter) {
+internal_destroy(isc_interfaceiter_t *iter)
+{
 
 #ifdef __linux
 	if (iter->proc != NULL)
@@ -215,8 +219,9 @@ internal_destroy(isc_interfaceiter_t *iter) {
 	iter->ifaddrs = NULL;
 }
 
-static
-void internal_first(isc_interfaceiter_t *iter) {
+static void
+internal_first(isc_interfaceiter_t *iter)
+{
 
 #ifdef __linux
 	linux_if_inet6_first(iter);

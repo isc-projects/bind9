@@ -18,52 +18,49 @@
 #include <sys/param.h>
 #include <sys/sysctl.h>
 
-#include <net/route.h>
 #include <net/if_dl.h>
+#include <net/route.h>
 
 #include <isc/print.h>
 
 /* XXX what about Alpha? */
 #ifdef sgi
-#define ROUNDUP(a) ((a) > 0 ? \
-		(1 + (((a) - 1) | (sizeof(__uint64_t) - 1))) : \
-		sizeof(__uint64_t))
+#define ROUNDUP(a)                                                             \
+	((a) > 0 ? (1 + (((a)-1) | (sizeof(__uint64_t) - 1)))                  \
+	         : sizeof(__uint64_t))
 #else
-#define ROUNDUP(a) ((a) > 0 ? (1 + (((a) - 1) | (sizeof(long) - 1))) \
-		    : sizeof(long))
+#define ROUNDUP(a)                                                             \
+	((a) > 0 ? (1 + (((a)-1) | (sizeof(long) - 1))) : sizeof(long))
 #endif
 
-#define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'S')
-#define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
+#define IFITER_MAGIC ISC_MAGIC('I', 'F', 'I', 'S')
+#define VALID_IFITER(t) ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 struct isc_interfaceiter {
-	unsigned int		magic;		/* Magic number. */
-	isc_mem_t		*mctx;
-	void			*buf;		/* Buffer for sysctl data. */
-	unsigned int		bufsize;	/* Bytes allocated. */
-	unsigned int		bufused;	/* Bytes used. */
-	unsigned int		pos;		/* Current offset in
-						   sysctl data. */
-	isc_interface_t		current;	/* Current interface data. */
-	isc_result_t		result;		/* Last result code. */
+	unsigned int magic; /* Magic number. */
+	isc_mem_t *  mctx;
+	void *       buf;        /* Buffer for sysctl data. */
+	unsigned int bufsize;    /* Bytes allocated. */
+	unsigned int bufused;    /* Bytes used. */
+	unsigned int pos;        /* Current offset in
+	                            sysctl data. */
+	isc_interface_t current; /* Current interface data. */
+	isc_result_t    result;  /* Last result code. */
 };
 
 static int mib[6] = {
-	CTL_NET,
-	PF_ROUTE,
-	0,
-	0, 			/* Any address family. */
-	NET_RT_IFLIST,
-	0 			/* Flags. */
+        CTL_NET,       PF_ROUTE, 0, 0, /* Any address family. */
+        NET_RT_IFLIST, 0               /* Flags. */
 };
 
 isc_result_t
-isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
+isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp)
+{
 	isc_interfaceiter_t *iter;
-	isc_result_t result;
-	size_t bufsize;
-	size_t bufused;
-	char strbuf[ISC_STRERRORSIZE];
+	isc_result_t         result;
+	size_t               bufsize;
+	size_t               bufused;
+	char                 strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
@@ -74,21 +71,21 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		return (ISC_R_NOMEMORY);
 
 	iter->mctx = mctx;
-	iter->buf = 0;
+	iter->buf  = 0;
 
 	/*
 	 * Determine the amount of memory needed.
 	 */
 	bufsize = 0;
-	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
+	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t)0) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_IFITERSYSCTL,
-						ISC_MSG_GETIFLISTSIZE,
-						"getting interface "
-						"list size: sysctl: %s"),
-				 strbuf);
+		                 isc_msgcat_get(isc_msgcat,
+		                                ISC_MSGSET_IFITERSYSCTL,
+		                                ISC_MSG_GETIFLISTSIZE,
+		                                "getting interface "
+		                                "list size: sysctl: %s"),
+		                 strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
@@ -101,15 +98,15 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	}
 
 	bufused = bufsize;
-	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t) 0) < 0) {
+	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t)0) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_IFITERSYSCTL,
-						ISC_MSG_GETIFLIST,
-						"getting interface list: "
-						"sysctl: %s"),
-				 strbuf);
+		                 isc_msgcat_get(isc_msgcat,
+		                                ISC_MSGSET_IFITERSYSCTL,
+		                                ISC_MSG_GETIFLIST,
+		                                "getting interface list: "
+		                                "sysctl: %s"),
+		                 strbuf);
 		result = ISC_R_UNEXPECTED;
 		goto failure;
 	}
@@ -120,14 +117,14 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * A newly created iterator has an undefined position
 	 * until isc_interfaceiter_first() is called.
 	 */
-	iter->pos = (unsigned int) -1;
+	iter->pos    = (unsigned int)-1;
 	iter->result = ISC_R_FAILURE;
 
 	iter->magic = IFITER_MAGIC;
-	*iterp = iter;
+	*iterp      = iter;
 	return (ISC_R_SUCCESS);
 
- failure:
+failure:
 	if (iter->buf != NULL)
 		isc_mem_put(mctx, iter->buf, iter->bufsize);
 	isc_mem_put(mctx, iter, sizeof(*iter));
@@ -143,19 +140,20 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  */
 
 static isc_result_t
-internal_current(isc_interfaceiter_t *iter) {
+internal_current(isc_interfaceiter_t *iter)
+{
 	struct ifa_msghdr *ifam, *ifam_end;
 
 	REQUIRE(VALID_IFITER(iter));
-	REQUIRE (iter->pos < (unsigned int) iter->bufused);
+	REQUIRE(iter->pos < (unsigned int)iter->bufused);
 
-	ifam = (struct ifa_msghdr *) ((char *) iter->buf + iter->pos);
-	ifam_end = (struct ifa_msghdr *) ((char *) iter->buf + iter->bufused);
+	ifam     = (struct ifa_msghdr *)((char *)iter->buf + iter->pos);
+	ifam_end = (struct ifa_msghdr *)((char *)iter->buf + iter->bufused);
 
 	if (ifam->ifam_type == RTM_IFINFO) {
-		struct if_msghdr *ifm = (struct if_msghdr *) ifam;
-		struct sockaddr_dl *sdl = (struct sockaddr_dl *) (ifm + 1);
-		unsigned int namelen;
+		struct if_msghdr *  ifm = (struct if_msghdr *)ifam;
+		struct sockaddr_dl *sdl = (struct sockaddr_dl *)(ifm + 1);
+		unsigned int        namelen;
 
 		memset(&iter->current, 0, sizeof(iter->current));
 
@@ -183,26 +181,23 @@ internal_current(isc_interfaceiter_t *iter) {
 		 */
 		return (ISC_R_IGNORE);
 	} else if (ifam->ifam_type == RTM_NEWADDR) {
-		int i;
-		int family;
+		int              i;
+		int              family;
 		struct sockaddr *mask_sa = NULL;
 		struct sockaddr *addr_sa = NULL;
-		struct sockaddr *dst_sa = NULL;
+		struct sockaddr *dst_sa  = NULL;
 
 		struct sockaddr *sa = (struct sockaddr *)(ifam + 1);
-		family = sa->sa_family;
+		family              = sa->sa_family;
 
-		for (i = 0; i < RTAX_MAX; i++)
-		{
+		for (i = 0; i < RTAX_MAX; i++) {
 			if ((ifam->ifam_addrs & (1 << i)) == 0)
 				continue;
 
-			INSIST(sa < (struct sockaddr *) ifam_end);
+			INSIST(sa < (struct sockaddr *)ifam_end);
 
 			switch (i) {
-			case RTAX_NETMASK: /* Netmask */
-				mask_sa = sa;
-				break;
+			case RTAX_NETMASK: /* Netmask */ mask_sa = sa; break;
 			case RTAX_IFA: /* Interface address */
 				addr_sa = sa;
 				break;
@@ -211,19 +206,20 @@ internal_current(isc_interfaceiter_t *iter) {
 				break;
 			}
 #ifdef ISC_PLATFORM_HAVESALEN
-			sa = (struct sockaddr *)((char*)(sa)
-					 + ROUNDUP(sa->sa_len));
+			sa = (struct sockaddr *)((char *)(sa) +
+			                         ROUNDUP(sa->sa_len));
 #else
 #ifdef sgi
 			/*
 			 * Do as the contributed SGI code does.
 			 */
-			sa = (struct sockaddr *)((char*)(sa)
-					 + ROUNDUP(_FAKE_SA_LEN_DST(sa)));
+			sa = (struct sockaddr *)((char *)(sa) +
+			                         ROUNDUP(_FAKE_SA_LEN_DST(sa)));
 #else
 			/* XXX untested. */
-			sa = (struct sockaddr *)((char*)(sa)
-					 + ROUNDUP(sizeof(struct sockaddr)));
+			sa = (struct sockaddr *)((char *)(sa) +
+			                         ROUNDUP(sizeof(
+			                                 struct sockaddr)));
 #endif
 #endif
 		}
@@ -238,24 +234,24 @@ internal_current(isc_interfaceiter_t *iter) {
 		iter->current.af = family;
 
 		get_addr(family, &iter->current.address, addr_sa,
-			 iter->current.name);
+		         iter->current.name);
 
 		if (mask_sa != NULL)
 			get_addr(family, &iter->current.netmask, mask_sa,
-				 iter->current.name);
+			         iter->current.name);
 
 		if (dst_sa != NULL &&
 		    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0)
 			get_addr(family, &iter->current.dstaddress, dst_sa,
-				 iter->current.name);
+			         iter->current.name);
 
 		return (ISC_R_SUCCESS);
 	} else {
 		printf("%s",
 		       isc_msgcat_get(isc_msgcat, ISC_MSGSET_IFITERSYSCTL,
-				      ISC_MSG_UNEXPECTEDTYPE,
-				      "warning: unexpected interface list "
-				      "message type\n"));
+		                      ISC_MSG_UNEXPECTEDTYPE,
+		                      "warning: unexpected interface list "
+		                      "message type\n"));
 		return (ISC_R_IGNORE);
 	}
 }
@@ -268,11 +264,12 @@ internal_current(isc_interfaceiter_t *iter) {
  * interfaces, otherwise ISC_R_SUCCESS.
  */
 static isc_result_t
-internal_next(isc_interfaceiter_t *iter) {
+internal_next(isc_interfaceiter_t *iter)
+{
 	struct ifa_msghdr *ifam;
-	REQUIRE (iter->pos < (unsigned int) iter->bufused);
+	REQUIRE(iter->pos < (unsigned int)iter->bufused);
 
-	ifam = (struct ifa_msghdr *) ((char *) iter->buf + iter->pos);
+	ifam = (struct ifa_msghdr *)((char *)iter->buf + iter->pos);
 
 	iter->pos += ifam->ifam_msglen;
 
@@ -283,14 +280,16 @@ internal_next(isc_interfaceiter_t *iter) {
 }
 
 static void
-internal_destroy(isc_interfaceiter_t *iter) {
+internal_destroy(isc_interfaceiter_t *iter)
+{
 	UNUSED(iter); /* Unused. */
-	/*
-	 * Do nothing.
-	 */
+	              /*
+	               * Do nothing.
+	               */
 }
 
-static
-void internal_first(isc_interfaceiter_t *iter) {
+static void
+internal_first(isc_interfaceiter_t *iter)
+{
 	iter->pos = 0;
 }

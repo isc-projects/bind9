@@ -11,13 +11,12 @@
 
 /*! \file isc/regex.h */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-int
-isc_regex_validate(const char *expression);
+int isc_regex_validate(const char *expression);
 /*%<
  * Check a regular expression for syntactic correctness.
  *

@@ -20,8 +20,8 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value);
+isc_result_t isc_resource_setlimit(isc_resource_t      resource,
+                                   isc_resourcevalue_t value);
 /*%<
  * Set the maximum limit for a system resource.
  *
@@ -41,8 +41,8 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value);
  *			to change the resource limit.
  */
 
-isc_result_t
-isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value);
+isc_result_t isc_resource_getlimit(isc_resource_t       resource,
+                                   isc_resourcevalue_t *value);
 /*%<
  * Get the maximum limit for a system resource.
  *
@@ -72,8 +72,8 @@ isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value);
  *\li	#ISC_R_NOTIMPLEMENTED	'resource' is not a type known by the OS.
  */
 
-isc_result_t
-isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value);
+isc_result_t isc_resource_getcurlimit(isc_resource_t       resource,
+                                      isc_resourcevalue_t *value);
 /*%<
  * Same as isc_resource_getlimit(), but returns the current (soft) limit.
  *
@@ -85,4 +85,3 @@ isc_resource_getcurlimit(isc_resource_t resource, isc_resourcevalue_t *value);
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_RESOURCE_H */
-

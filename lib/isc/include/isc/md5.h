@@ -46,8 +46,8 @@
 #define ISC_MD5_BLOCK_LENGTH 64U
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
-#include <openssl/opensslv.h>
 #include <openssl/evp.h>
+#include <openssl/opensslv.h>
 
 typedef struct {
 	EVP_MD_CTX *ctx;
@@ -72,17 +72,13 @@ typedef struct {
 
 ISC_LANG_BEGINDECLS
 
-void
-isc_md5_init(isc_md5_t *ctx);
+void isc_md5_init(isc_md5_t *ctx);
 
-void
-isc_md5_invalidate(isc_md5_t *ctx);
+void isc_md5_invalidate(isc_md5_t *ctx);
 
-void
-isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len);
+void isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len);
 
-void
-isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
+void isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 
 ISC_LANG_ENDDECLS
 

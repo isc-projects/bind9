@@ -14,8 +14,8 @@
 
 #include <atf-c.h>
 
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <isc/queue.h>
 
@@ -23,14 +23,15 @@
 
 typedef struct item item_t;
 struct item {
-	int 			value;
-	ISC_QLINK(item_t)	qlink;
+	int value;
+	ISC_QLINK(item_t) qlink;
 };
 
 typedef ISC_QUEUE(item_t) item_queue_t;
 
 static void
-item_init(item_t *item, int value) {
+item_init(item_t *item, int value)
+{
 	item->value = value;
 	ISC_QLINK_INIT(item, qlink);
 }
@@ -41,14 +42,16 @@ item_init(item_t *item, int value) {
 
 /* Test UDP sendto/recv (IPv4) */
 ATF_TC(queue_valid);
-ATF_TC_HEAD(queue_valid, tc) {
+ATF_TC_HEAD(queue_valid, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "Check queue validity");
 }
-ATF_TC_BODY(queue_valid, tc) {
+ATF_TC_BODY(queue_valid, tc)
+{
 	isc_result_t result;
 	item_queue_t queue;
-	item_t one, two, three, four, five;
-	item_t *p;
+	item_t       one, two, three, four, five;
+	item_t *     p;
 
 	UNUSED(tc);
 
@@ -68,35 +71,35 @@ ATF_TC_BODY(queue_valid, tc) {
 	ISC_QUEUE_POP(queue, qlink, p);
 	ATF_CHECK(p == NULL);
 
-	ATF_CHECK(! ISC_QLINK_LINKED(&one, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(&one, qlink));
 	ISC_QUEUE_PUSH(queue, &one, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&one, qlink));
 
-	ATF_CHECK(! ISC_QUEUE_EMPTY(queue));
+	ATF_CHECK(!ISC_QUEUE_EMPTY(queue));
 
 	ISC_QUEUE_POP(queue, qlink, p);
 	ATF_REQUIRE(p != NULL);
 	ATF_CHECK_EQ(p->value, 1);
 	ATF_CHECK(ISC_QUEUE_EMPTY(queue));
-	ATF_CHECK(! ISC_QLINK_LINKED(p, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(p, qlink));
 
 	ISC_QUEUE_PUSH(queue, p, qlink);
-	ATF_CHECK(! ISC_QUEUE_EMPTY(queue));
+	ATF_CHECK(!ISC_QUEUE_EMPTY(queue));
 	ATF_CHECK(ISC_QLINK_LINKED(p, qlink));
 
-	ATF_CHECK(! ISC_QLINK_LINKED(&two, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(&two, qlink));
 	ISC_QUEUE_PUSH(queue, &two, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&two, qlink));
 
-	ATF_CHECK(! ISC_QLINK_LINKED(&three, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(&three, qlink));
 	ISC_QUEUE_PUSH(queue, &three, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&three, qlink));
 
-	ATF_CHECK(! ISC_QLINK_LINKED(&four, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(&four, qlink));
 	ISC_QUEUE_PUSH(queue, &four, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&four, qlink));
 
-	ATF_CHECK(! ISC_QLINK_LINKED(&five, qlink));
+	ATF_CHECK(!ISC_QLINK_LINKED(&five, qlink));
 	ISC_QUEUE_PUSH(queue, &five, qlink);
 	ATF_CHECK(ISC_QLINK_LINKED(&five, qlink));
 
@@ -128,9 +131,9 @@ ATF_TC_BODY(queue_valid, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, queue_valid);
 
 	return (atf_no_error());
 }
-

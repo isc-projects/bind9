@@ -20,29 +20,28 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define RETERR(x) do { \
-	isc_result_t _r = (x); \
-	if (_r != ISC_R_SUCCESS) \
-		return (_r); \
+#define RETERR(x)                                                              \
+	do {                                                                   \
+		isc_result_t _r = (x);                                         \
+		if (_r != ISC_R_SUCCESS)                                       \
+			return (_r);                                           \
 	} while (0)
-
 
 /*
  * BEW: These static functions are copied from lib/dns/rdata.c.
  */
-static isc_result_t
-str_totext(const char *source, isc_buffer_t *target);
+static isc_result_t str_totext(const char *source, isc_buffer_t *target);
 
-static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
+static isc_result_t mem_tobuffer(isc_buffer_t *target, void *base,
+                                 unsigned int length);
 
 static const char hex[] = "0123456789ABCDEF";
 
 isc_result_t
-isc_hex_totext(isc_region_t *source, int wordlength,
-	       const char *wordbreak, isc_buffer_t *target)
+isc_hex_totext(isc_region_t *source, int wordlength, const char *wordbreak,
+               isc_buffer_t *target)
 {
-	char buf[3];
+	char         buf[3];
 	unsigned int loops = 0;
 
 	if (wordlength < 2)
@@ -57,8 +56,7 @@ isc_hex_totext(isc_region_t *source, int wordlength,
 
 		loops++;
 		if (source->length != 0 &&
-		    (int)((loops + 1) * 2) >= wordlength)
-		{
+		    (int)((loops + 1) * 2) >= wordlength) {
 			loops = 0;
 			RETERR(str_totext(wordbreak, target));
 		}
@@ -70,10 +68,10 @@ isc_hex_totext(isc_region_t *source, int wordlength,
  * State of a hex decoding process in progress.
  */
 typedef struct {
-	int length;		/*%< Desired length of binary data or -1 */
-	isc_buffer_t *target;	/*%< Buffer for resulting binary data */
-	int digits;		/*%< Number of buffered hex digits */
-	int val[2];
+	int           length; /*%< Desired length of binary data or -1 */
+	isc_buffer_t *target; /*%< Buffer for resulting binary data */
+	int           digits; /*%< Number of buffered hex digits */
+	int           val[2];
 } hex_decode_ctx_t;
 
 static inline void
@@ -85,7 +83,8 @@ hex_decode_init(hex_decode_ctx_t *ctx, int length, isc_buffer_t *target)
 }
 
 static inline isc_result_t
-hex_decode_char(hex_decode_ctx_t *ctx, int c) {
+hex_decode_char(hex_decode_ctx_t *ctx, int c)
+{
 	const char *s;
 
 	if ((s = strchr(hex, toupper(c))) == NULL)
@@ -108,7 +107,8 @@ hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 }
 
 static inline isc_result_t
-hex_decode_finish(hex_decode_ctx_t *ctx) {
+hex_decode_finish(hex_decode_ctx_t *ctx)
+{
 	if (ctx->length > 0)
 		return (ISC_R_UNEXPECTEDEND);
 	if (ctx->digits != 0)
@@ -117,11 +117,12 @@ hex_decode_finish(hex_decode_ctx_t *ctx) {
 }
 
 isc_result_t
-isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
-	hex_decode_ctx_t ctx;
+isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length)
+{
+	hex_decode_ctx_t  ctx;
 	isc_textregion_t *tr;
-	isc_token_t token;
-	isc_boolean_t eol;
+	isc_token_t       token;
+	isc_boolean_t     eol;
 
 	hex_decode_init(&ctx, length, target);
 
@@ -133,7 +134,7 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 		else
 			eol = ISC_TRUE;
 		RETERR(isc_lex_getmastertoken(lexer, &token,
-					      isc_tokentype_string, eol));
+		                              isc_tokentype_string, eol));
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
@@ -147,7 +148,8 @@ isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 }
 
 isc_result_t
-isc_hex_decodestring(const char *cstr, isc_buffer_t *target) {
+isc_hex_decodestring(const char *cstr, isc_buffer_t *target)
+{
 	hex_decode_ctx_t ctx;
 
 	hex_decode_init(&ctx, -1, target);
@@ -155,7 +157,7 @@ isc_hex_decodestring(const char *cstr, isc_buffer_t *target) {
 		int c = *cstr++;
 		if (c == '\0')
 			break;
-		if (c == ' ' || c == '\t' || c == '\n' || c== '\r')
+		if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
 			continue;
 		RETERR(hex_decode_char(&ctx, c));
 	}
@@ -164,7 +166,8 @@ isc_hex_decodestring(const char *cstr, isc_buffer_t *target) {
 }
 
 static isc_result_t
-str_totext(const char *source, isc_buffer_t *target) {
+str_totext(const char *source, isc_buffer_t *target)
+{
 	unsigned int l;
 	isc_region_t region;
 
@@ -180,7 +183,8 @@ str_totext(const char *source, isc_buffer_t *target) {
 }
 
 static isc_result_t
-mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length)
+{
 	isc_region_t tr;
 
 	isc_buffer_availableregion(target, &tr);

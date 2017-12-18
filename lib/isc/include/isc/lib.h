@@ -13,22 +13,20 @@
 
 /*! \file isc/lib.h */
 
-#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
 LIBISC_EXTERNAL_DATA extern isc_msgcat_t *isc_msgcat;
 
-void
-isc_lib_initmsgcat(void);
+void isc_lib_initmsgcat(void);
 /*!<
  * \brief Initialize the ISC library's message catalog, isc_msgcat, if it
  * has not already been initialized.
  */
 
-void
-isc_lib_register(void);
+void isc_lib_register(void);
 /*!<
  * \brief Register the ISC library implementations for some base services
  * such as memory or event management and handling socket or timer events.

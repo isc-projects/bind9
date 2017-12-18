@@ -18,20 +18,22 @@
 #include <isc/once.h>
 #include <isc/util.h>
 
-static isc_mutex_t createlock;
-static isc_once_t once = ISC_ONCE_INIT;
+static isc_mutex_t            createlock;
+static isc_once_t             once              = ISC_ONCE_INIT;
 static isc_appctxcreatefunc_t appctx_createfunc = NULL;
-static isc_boolean_t is_running = ISC_FALSE;
+static isc_boolean_t          is_running        = ISC_FALSE;
 
 #define ISCAPI_APPMETHODS_VALID(m) ISC_MAGIC_VALID(m, ISCAPI_APPMETHODS_MAGIC)
 
 static void
-initialize(void) {
+initialize(void)
+{
 	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_app_register(isc_appctxcreatefunc_t createfunc) {
+isc_app_register(isc_appctxcreatefunc_t createfunc)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -47,7 +49,8 @@ isc_app_register(isc_appctxcreatefunc_t createfunc) {
 }
 
 isc_result_t
-isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
+isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp)
+{
 	isc_result_t result;
 
 	if (isc_bind9)
@@ -64,7 +67,8 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 }
 
 void
-isc_appctx_destroy(isc_appctx_t **ctxp) {
+isc_appctx_destroy(isc_appctx_t **ctxp)
+{
 	REQUIRE(ctxp != NULL && ISCAPI_APPCTX_VALID(*ctxp));
 
 	if (isc_bind9)
@@ -76,7 +80,8 @@ isc_appctx_destroy(isc_appctx_t **ctxp) {
 }
 
 isc_result_t
-isc_app_ctxstart(isc_appctx_t *ctx) {
+isc_app_ctxstart(isc_appctx_t *ctx)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
 	if (isc_bind9)
@@ -86,7 +91,8 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 }
 
 isc_result_t
-isc_app_ctxrun(isc_appctx_t *ctx) {
+isc_app_ctxrun(isc_appctx_t *ctx)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
 	if (isc_bind9)
@@ -96,9 +102,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 }
 
 isc_result_t
-isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx,
-		 isc_task_t *task, isc_taskaction_t action,
-		 void *arg)
+isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
+                 isc_taskaction_t action, void *arg)
 {
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
@@ -109,7 +114,8 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx,
 }
 
 isc_result_t
-isc_app_ctxsuspend(isc_appctx_t *ctx) {
+isc_app_ctxsuspend(isc_appctx_t *ctx)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
 	if (isc_bind9)
@@ -119,7 +125,8 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 }
 
 isc_result_t
-isc_app_ctxshutdown(isc_appctx_t *ctx) {
+isc_app_ctxshutdown(isc_appctx_t *ctx)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
 	if (isc_bind9)
@@ -129,7 +136,8 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 }
 
 void
-isc_app_ctxfinish(isc_appctx_t *ctx) {
+isc_app_ctxfinish(isc_appctx_t *ctx)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 
 	if (isc_bind9)
@@ -139,7 +147,8 @@ isc_app_ctxfinish(isc_appctx_t *ctx) {
 }
 
 void
-isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr) {
+isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 	REQUIRE(taskmgr != NULL);
 
@@ -150,7 +159,8 @@ isc_appctx_settaskmgr(isc_appctx_t *ctx, isc_taskmgr_t *taskmgr) {
 }
 
 void
-isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr) {
+isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 	REQUIRE(socketmgr != NULL);
 
@@ -161,7 +171,8 @@ isc_appctx_setsocketmgr(isc_appctx_t *ctx, isc_socketmgr_t *socketmgr) {
 }
 
 void
-isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr) {
+isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr)
+{
 	REQUIRE(ISCAPI_APPCTX_VALID(ctx));
 	REQUIRE(timermgr != NULL);
 
@@ -172,7 +183,8 @@ isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr) {
 }
 
 isc_result_t
-isc_app_start(void) {
+isc_app_start(void)
+{
 	if (isc_bind9)
 		return (isc__app_start());
 
@@ -180,8 +192,8 @@ isc_app_start(void) {
 }
 
 isc_result_t
-isc_app_onrun(isc_mem_t *mctx, isc_task_t *task,
-	       isc_taskaction_t action, void *arg)
+isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
+              void *arg)
 {
 	if (isc_bind9)
 		return (isc__app_onrun(mctx, task, action, arg));
@@ -190,12 +202,13 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task,
 }
 
 isc_result_t
-isc_app_run() {
+isc_app_run()
+{
 	if (isc_bind9) {
 		isc_result_t result;
 
 		is_running = ISC_TRUE;
-		result = isc__app_run();
+		result     = isc__app_run();
 		is_running = ISC_FALSE;
 
 		return (result);
@@ -205,12 +218,14 @@ isc_app_run() {
 }
 
 isc_boolean_t
-isc_app_isrunning() {
+isc_app_isrunning()
+{
 	return (is_running);
 }
 
 isc_result_t
-isc_app_shutdown(void) {
+isc_app_shutdown(void)
+{
 	if (isc_bind9)
 		return (isc__app_shutdown());
 
@@ -218,7 +233,8 @@ isc_app_shutdown(void) {
 }
 
 isc_result_t
-isc_app_reload(void) {
+isc_app_reload(void)
+{
 	if (isc_bind9)
 		return (isc__app_reload());
 
@@ -226,7 +242,8 @@ isc_app_reload(void) {
 }
 
 void
-isc_app_finish(void) {
+isc_app_finish(void)
+{
 	if (!isc_bind9)
 		return;
 
@@ -234,7 +251,8 @@ isc_app_finish(void) {
 }
 
 void
-isc_app_block(void) {
+isc_app_block(void)
+{
 	if (!isc_bind9)
 		return;
 
@@ -242,7 +260,8 @@ isc_app_block(void) {
 }
 
 void
-isc_app_unblock(void) {
+isc_app_unblock(void)
+{
 	if (!isc_bind9)
 		return;
 

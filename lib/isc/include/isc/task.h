@@ -66,7 +66,6 @@
  * unsend events which they have sent.
  */
 
-
 /***
  *** Imports.
  ***/
@@ -78,10 +77,10 @@
 #include <isc/types.h>
 #include <isc/xml.h>
 
-#define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
-#define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_TEST		(ISC_EVENTCLASS_TASK + 1)
-#define ISC_TASKEVENT_LASTEVENT		(ISC_EVENTCLASS_TASK + 65535)
+#define ISC_TASKEVENT_FIRSTEVENT (ISC_EVENTCLASS_TASK + 0)
+#define ISC_TASKEVENT_SHUTDOWN (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_TEST (ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_LASTEVENT (ISC_EVENTCLASS_TASK + 65535)
 
 /*****
  ***** Tasks.
@@ -94,19 +93,17 @@ ISC_LANG_BEGINDECLS
  ***/
 
 typedef enum {
-		isc_taskmgrmode_normal = 0,
-		isc_taskmgrmode_privileged
+	isc_taskmgrmode_normal = 0,
+	isc_taskmgrmode_privileged
 } isc_taskmgrmode_t;
 
 /*% Task and task manager methods */
 typedef struct isc_taskmgrmethods {
-	void		(*destroy)(isc_taskmgr_t **managerp);
-	void		(*setmode)(isc_taskmgr_t *manager,
-				   isc_taskmgrmode_t mode);
+	void (*destroy)(isc_taskmgr_t **managerp);
+	void (*setmode)(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
 	isc_taskmgrmode_t (*mode)(isc_taskmgr_t *manager);
-	isc_result_t	(*taskcreate)(isc_taskmgr_t *manager,
-				      unsigned int quantum,
-				      isc_task_t **taskp);
+	isc_result_t (*taskcreate)(isc_taskmgr_t *manager, unsigned int quantum,
+	                           isc_task_t **taskp);
 	void (*setexcltask)(isc_taskmgr_t *mgr, isc_task_t *task);
 	isc_result_t (*excltask)(isc_taskmgr_t *mgr, isc_task_t **taskp);
 } isc_taskmgrmethods_t;
@@ -117,21 +114,22 @@ typedef struct isc_taskmethods {
 	void (*destroy)(isc_task_t **taskp);
 	void (*send)(isc_task_t *task, isc_event_t **eventp);
 	void (*sendanddetach)(isc_task_t **taskp, isc_event_t **eventp);
-	unsigned int (*unsend)(isc_task_t *task, void *sender, isc_eventtype_t type,
-			       void *tag, isc_eventlist_t *events);
+	unsigned int (*unsend)(isc_task_t *task, void *sender,
+	                       isc_eventtype_t type, void *tag,
+	                       isc_eventlist_t *events);
 	isc_result_t (*onshutdown)(isc_task_t *task, isc_taskaction_t action,
-				   void *arg);
+	                           void *arg);
 	void (*shutdown)(isc_task_t *task);
 	void (*setname)(isc_task_t *task, const char *name, void *tag);
 	unsigned int (*purgeevents)(isc_task_t *task, void *sender,
-				    isc_eventtype_t type, void *tag);
+	                            isc_eventtype_t type, void *tag);
 	unsigned int (*purgerange)(isc_task_t *task, void *sender,
-				   isc_eventtype_t first, isc_eventtype_t last,
-				   void *tag);
+	                           isc_eventtype_t first, isc_eventtype_t last,
+	                           void *tag);
 	isc_result_t (*beginexclusive)(isc_task_t *task);
 	void (*endexclusive)(isc_task_t *task);
-    void (*setprivilege)(isc_task_t *task, isc_boolean_t priv);
-    isc_boolean_t (*privilege)(isc_task_t *task);
+	void (*setprivilege)(isc_task_t *task, isc_boolean_t priv);
+	isc_boolean_t (*privilege)(isc_task_t *task);
 } isc_taskmethods_t;
 
 /*%
@@ -144,32 +142,30 @@ typedef struct isc_taskmethods {
  * all task invariants.
  */
 struct isc_taskmgr {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_taskmgrmethods_t	*methods;
+	unsigned int          impmagic;
+	unsigned int          magic;
+	isc_taskmgrmethods_t *methods;
 };
 
-#define ISCAPI_TASKMGR_MAGIC	ISC_MAGIC('A','t','m','g')
-#define ISCAPI_TASKMGR_VALID(m)	((m) != NULL && \
-				 (m)->magic == ISCAPI_TASKMGR_MAGIC)
+#define ISCAPI_TASKMGR_MAGIC ISC_MAGIC('A', 't', 'm', 'g')
+#define ISCAPI_TASKMGR_VALID(m)                                                \
+	((m) != NULL && (m)->magic == ISCAPI_TASKMGR_MAGIC)
 
 /*%
  * This is the common prefix of a task object.  The same note as
  * that for the taskmgr structure applies.
  */
 struct isc_task {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_taskmethods_t	*methods;
+	unsigned int       impmagic;
+	unsigned int       magic;
+	isc_taskmethods_t *methods;
 };
 
-#define ISCAPI_TASK_MAGIC	ISC_MAGIC('A','t','s','t')
-#define ISCAPI_TASK_VALID(s)	((s) != NULL && \
-				 (s)->magic == ISCAPI_TASK_MAGIC)
+#define ISCAPI_TASK_MAGIC ISC_MAGIC('A', 't', 's', 't')
+#define ISCAPI_TASK_VALID(s) ((s) != NULL && (s)->magic == ISCAPI_TASK_MAGIC)
 
-isc_result_t
-isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
-		isc_task_t **taskp);
+isc_result_t isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
+                             isc_task_t **taskp);
 /*%<
  * Create a task.
  *
@@ -202,8 +198,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
  *\li	#ISC_R_SHUTTINGDOWN
  */
 
-void
-isc_task_attach(isc_task_t *source, isc_task_t **targetp);
+void isc_task_attach(isc_task_t *source, isc_task_t **targetp);
 /*%<
  * Attach *targetp to source.
  *
@@ -218,8 +213,7 @@ isc_task_attach(isc_task_t *source, isc_task_t **targetp);
  *\li	*targetp is attached to source.
  */
 
-void
-isc_task_detach(isc_task_t **taskp);
+void isc_task_detach(isc_task_t **taskp);
 /*%<
  * Detach *taskp from its task.
  *
@@ -240,8 +234,7 @@ isc_task_detach(isc_task_t **taskp);
  *		all resources used by the task will be freed.
  */
 
-void
-isc_task_send(isc_task_t *task, isc_event_t **eventp);
+void isc_task_send(isc_task_t *task, isc_event_t **eventp);
 /*%<
  * Send '*event' to 'task'.
  *
@@ -255,8 +248,7 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp);
  *\li	*eventp == NULL.
  */
 
-void
-isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
+void isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
 /*%<
  * Send '*event' to '*taskp' and then detach '*taskp' from its
  * task.
@@ -281,10 +273,9 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-
-unsigned int
-isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last, void *tag);
+unsigned int isc_task_purgerange(isc_task_t *task, void *sender,
+                                 isc_eventtype_t first, isc_eventtype_t last,
+                                 void *tag);
 /*%<
  * Purge events from a task's event queue.
  *
@@ -308,9 +299,8 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *\li	The number of events purged.
  */
 
-unsigned int
-isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
-	       void *tag);
+unsigned int isc_task_purge(isc_task_t *task, void *sender,
+                            isc_eventtype_t type, void *tag);
 /*%<
  * Purge events from a task's event queue.
  *
@@ -340,8 +330,7 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
  *\li	The number of events purged.
  */
 
-isc_boolean_t
-isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
+isc_boolean_t isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*%<
  * Purge 'event' from a task's event queue.
  *
@@ -372,9 +361,9 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *					or was marked unpurgeable.
  */
 
-unsigned int
-isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		     isc_eventtype_t last, void *tag, isc_eventlist_t *events);
+unsigned int isc_task_unsendrange(isc_task_t *task, void *sender,
+                                  isc_eventtype_t first, isc_eventtype_t last,
+                                  void *tag, isc_eventlist_t *events);
 /*%<
  * Remove events from a task's event queue.
  *
@@ -400,9 +389,9 @@ isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *\li	The number of events unsent.
  */
 
-unsigned int
-isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
-		void *tag, isc_eventlist_t *events);
+unsigned int isc_task_unsend(isc_task_t *task, void *sender,
+                             isc_eventtype_t type, void *tag,
+                             isc_eventlist_t *events);
 /*%<
  * Remove events from a task's event queue.
  *
@@ -431,9 +420,8 @@ isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
  *\li	The number of events unsent.
  */
 
-isc_result_t
-isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
-		    void *arg);
+isc_result_t isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
+                                 void *arg);
 /*%<
  * Send a shutdown event with action 'action' and argument 'arg' when
  * 'task' is shutdown.
@@ -461,8 +449,7 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action,
  *\li	#ISC_R_SHUTTINGDOWN			Task is shutting down.
  */
 
-void
-isc_task_shutdown(isc_task_t *task);
+void isc_task_shutdown(isc_task_t *task);
 /*%<
  * Shutdown 'task'.
  *
@@ -486,8 +473,7 @@ isc_task_shutdown(isc_task_t *task);
  *	posted (in LIFO order).
  */
 
-void
-isc_task_destroy(isc_task_t **taskp);
+void isc_task_destroy(isc_task_t **taskp);
 /*%<
  * Destroy '*taskp'.
  *
@@ -515,8 +501,7 @@ isc_task_destroy(isc_task_t **taskp);
  *		all resources used by the task will be freed.
  */
 
-void
-isc_task_setname(isc_task_t *task, const char *name, void *tag);
+void isc_task_setname(isc_task_t *task, const char *name, void *tag);
 /*%<
  * Name 'task'.
  *
@@ -531,8 +516,7 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag);
  *\li	'task' is a valid task.
  */
 
-const char *
-isc_task_getname(isc_task_t *task);
+const char *isc_task_getname(isc_task_t *task);
 /*%<
  * Get the name of 'task', as previously set using isc_task_setname().
  *
@@ -549,8 +533,7 @@ isc_task_getname(isc_task_t *task);
  *
  */
 
-void *
-isc_task_gettag(isc_task_t *task);
+void *isc_task_gettag(isc_task_t *task);
 /*%<
  * Get the tag value for  'task', as previously set using isc_task_settag().
  *
@@ -561,8 +544,7 @@ isc_task_gettag(isc_task_t *task);
  *\li	'task' is a valid task.
  */
 
-isc_result_t
-isc_task_beginexclusive(isc_task_t *task);
+isc_result_t isc_task_beginexclusive(isc_task_t *task);
 /*%<
  * Request exclusive access for 'task', which must be the calling
  * task.  Waits for any other concurrently executing tasks to finish their
@@ -581,8 +563,7 @@ isc_task_beginexclusive(isc_task_t *task);
  *				access.
  */
 
-void
-isc_task_endexclusive(isc_task_t *task);
+void isc_task_endexclusive(isc_task_t *task);
 /*%<
  * Relinquish the exclusive access obtained by isc_task_beginexclusive(),
  * allowing other tasks to execute.
@@ -592,10 +573,8 @@ isc_task_endexclusive(isc_task_t *task);
  *		exclusive access by calling isc_task_spl().
  */
 
-void
-isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
-void
-isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
+void isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
+void isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
 /*%<
  * Provide the most recent timestamp on the task.  The timestamp is considered
  * as the "current time".
@@ -611,8 +590,7 @@ isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
  *\li	'*t' has the "current time".
  */
 
-isc_boolean_t
-isc_task_exiting(isc_task_t *t);
+isc_boolean_t isc_task_exiting(isc_task_t *t);
 /*%<
  * Returns ISC_TRUE if the task is in the process of shutting down,
  * ISC_FALSE otherwise.
@@ -621,8 +599,7 @@ isc_task_exiting(isc_task_t *t);
  *\li	'task' is a valid task.
  */
 
-void
-isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
+void isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
 /*%<
  * Set or unset the task's "privileged" flag depending on the value of
  * 'priv'.
@@ -638,8 +615,7 @@ isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
  *\li	'task' is a valid task.
  */
 
-isc_boolean_t
-isc_task_privilege(isc_task_t *task);
+isc_boolean_t isc_task_privilege(isc_task_t *task);
 /*%<
  * Returns the current value of the task's privilege flag.
  *
@@ -651,13 +627,13 @@ isc_task_privilege(isc_task_t *task);
  ***** Task Manager.
  *****/
 
-isc_result_t
-isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
-			unsigned int workers, unsigned int default_quantum,
-			isc_taskmgr_t **managerp);
-isc_result_t
-isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		   unsigned int default_quantum, isc_taskmgr_t **managerp);
+isc_result_t isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
+                                     unsigned int    workers,
+                                     unsigned int    default_quantum,
+                                     isc_taskmgr_t **managerp);
+isc_result_t isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
+                                unsigned int    default_quantum,
+                                isc_taskmgr_t **managerp);
 /*%<
  * Create a new task manager.  isc_taskmgr_createinctx() also associates
  * the new manager with the specified application context.
@@ -699,11 +675,9 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *					manager shutting down.
  */
 
-void
-isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
+void isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
 
-isc_taskmgrmode_t
-isc_taskmgr_mode(isc_taskmgr_t *manager);
+isc_taskmgrmode_t isc_taskmgr_mode(isc_taskmgr_t *manager);
 /*%<
  * Set/get the current operating mode of the task manager.  Valid modes are:
  *
@@ -724,8 +698,7 @@ isc_taskmgr_mode(isc_taskmgr_t *manager);
  *\li      'manager' is a valid task manager.
  */
 
-void
-isc_taskmgr_destroy(isc_taskmgr_t **managerp);
+void isc_taskmgr_destroy(isc_taskmgr_t **managerp);
 /*%<
  * Destroy '*managerp'.
  *
@@ -758,8 +731,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp);
  *	have been freed.
  */
 
-void
-isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
+void isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
 /*%<
  * Set a task which will be used for all task-exclusive operations.
  *
@@ -769,8 +741,7 @@ isc_taskmgr_setexcltask(isc_taskmgr_t *mgr, isc_task_t *task);
  *\li	'task' is a valid task.
  */
 
-isc_result_t
-isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
+isc_result_t isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
 /*%<
  * Attach '*taskp' to the task set by isc_taskmgr_getexcltask().
  * This task should be used whenever running in task-exclusive mode,
@@ -782,35 +753,30 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
  *\li	taskp != NULL && *taskp == NULL
  */
 
-
 #ifdef HAVE_LIBXML2
-int
-isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
+int isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
 #endif
 
 #ifdef HAVE_JSON
-isc_result_t
-isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
+isc_result_t isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
 #endif
 
 /*%<
  * See isc_taskmgr_create() above.
  */
-typedef isc_result_t
-(*isc_taskmgrcreatefunc_t)(isc_mem_t *mctx, unsigned int workers,
-			   unsigned int default_quantum,
-			   isc_taskmgr_t **managerp);
+typedef isc_result_t (*isc_taskmgrcreatefunc_t)(isc_mem_t *     mctx,
+                                                unsigned int    workers,
+                                                unsigned int    default_quantum,
+                                                isc_taskmgr_t **managerp);
 
-isc_result_t
-isc_task_register(isc_taskmgrcreatefunc_t createfunc);
+isc_result_t isc_task_register(isc_taskmgrcreatefunc_t createfunc);
 /*%<
  * Register a new task management implementation and add it to the list of
  * supported implementations.  This function must be called when a different
  * event library is used than the one contained in the ISC library.
  */
 
-isc_result_t
-isc__task_register(void);
+isc_result_t isc__task_register(void);
 /*%<
  * A short cut function that specifies the task management module in the ISC
  * library for isc_task_register().  An application that uses the ISC library
@@ -823,17 +789,13 @@ isc__task_register(void);
  * of the task queue. They are not intended as part of the public API.
  */
 #if defined(ISC_PLATFORM_USETHREADS)
-void
-isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
+void isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
 
-void
-isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
+void isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
 #else
-isc_boolean_t
-isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
+isc_boolean_t isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
 
-isc_result_t
-isc__taskmgr_dispatch(isc_taskmgr_t *taskmgr);
+isc_result_t isc__taskmgr_dispatch(isc_taskmgr_t *taskmgr);
 #endif /* !ISC_PLATFORM_USETHREADS */
 
 ISC_LANG_ENDDECLS

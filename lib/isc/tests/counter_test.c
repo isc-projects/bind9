@@ -17,13 +17,15 @@
 #include "isctest.h"
 
 ATF_TC(isc_counter);
-ATF_TC_HEAD(isc_counter, tc) {
+ATF_TC_HEAD(isc_counter, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "isc counter object");
 }
-ATF_TC_BODY(isc_counter, tc) {
-	isc_result_t result;
+ATF_TC_BODY(isc_counter, tc)
+{
+	isc_result_t   result;
 	isc_counter_t *counter = NULL;
-	int i;
+	int            i;
 
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -54,8 +56,8 @@ ATF_TC_BODY(isc_counter, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_counter);
 	return (atf_no_error());
 }
-

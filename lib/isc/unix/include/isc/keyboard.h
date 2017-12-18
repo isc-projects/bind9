@@ -21,22 +21,19 @@
 ISC_LANG_BEGINDECLS
 
 typedef struct {
-	int fd;
+	int            fd;
 	struct termios saved_mode;
-	isc_result_t result;
+	isc_result_t   result;
 } isc_keyboard_t;
 
-isc_result_t
-isc_keyboard_open(isc_keyboard_t *keyboard);
+isc_result_t isc_keyboard_open(isc_keyboard_t *keyboard);
 
-isc_result_t
-isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleepseconds);
+isc_result_t isc_keyboard_close(isc_keyboard_t *keyboard,
+                                unsigned int    sleepseconds);
 
-isc_result_t
-isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp);
+isc_result_t isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp);
 
-isc_boolean_t
-isc_keyboard_canceled(isc_keyboard_t *keyboard);
+isc_boolean_t isc_keyboard_canceled(isc_keyboard_t *keyboard);
 
 ISC_LANG_ENDDECLS
 

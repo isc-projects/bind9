@@ -15,7 +15,8 @@
 #endif
 
 isc_uint64_t
-isc_meminfo_totalphys(void) {
+isc_meminfo_totalphys(void)
+{
 #if defined(CTL_HW) && (defined(HW_PHYSMEM64) || defined(HW_MEMSIZE))
 	int mib[2];
 	mib[0] = CTL_HW;
@@ -25,12 +26,12 @@ isc_meminfo_totalphys(void) {
 	mib[1] = HW_PHYSMEM64;
 #endif
 	isc_uint64_t size = 0;
-	size_t len = sizeof(size);
+	size_t       len  = sizeof(size);
 	if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
 		return (size);
 #endif
 #if defined(_SC_PHYS_PAGES) && defined(_SC_PAGESIZE)
-	return ((size_t) (sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE)));
+	return ((size_t)(sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGESIZE)));
 #endif
 	return (0);
 }

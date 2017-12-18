@@ -24,26 +24,23 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
+#define CHECK(r)                                                               \
+	do {                                                                   \
+		result = (r);                                                  \
+		if (result != ISC_R_SUCCESS)                                   \
+			goto cleanup;                                          \
 	} while (0)
 
-extern isc_mem_t *mctx;
-extern isc_entropy_t *ectx;
-extern isc_log_t *lctx;
-extern isc_taskmgr_t *taskmgr;
-extern isc_timermgr_t *timermgr;
+extern isc_mem_t *      mctx;
+extern isc_entropy_t *  ectx;
+extern isc_log_t *      lctx;
+extern isc_taskmgr_t *  taskmgr;
+extern isc_timermgr_t * timermgr;
 extern isc_socketmgr_t *socketmgr;
-extern int ncpus;
+extern int              ncpus;
 
-isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers);
+isc_result_t isc_test_begin(FILE *logfile, isc_boolean_t start_managers);
 
-void
-isc_test_end(void);
+void isc_test_end(void);
 
-void
-isc_test_nap(isc_uint32_t usec);
+void isc_test_nap(isc_uint32_t usec);

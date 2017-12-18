@@ -10,12 +10,12 @@
 
 #include <config.h>
 
+#include <assert.h> /* for assert() */
 #include <ctype.h>
-#include <stdio.h>		/* for sprintf() */
-#include <string.h>		/* for strlen() */
-#include <assert.h>		/* for assert() */
+#include <stdio.h>  /* for sprintf() */
+#include <string.h> /* for strlen() */
 
-#define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
+#define ISC__PRINT_SOURCE /* Used to get the isc_print_* prototypes. */
 
 #include <isc/assertions.h>
 #include <isc/int.h>
@@ -29,14 +29,14 @@
  */
 #undef sprintf
 
-static int
-isc__print_printf(void (*emit)(char, void *), void *arg,
-		  const char *format, va_list ap);
+static int isc__print_printf(void (*emit)(char, void *), void *arg,
+                             const char *format, va_list ap);
 
 static void
-file_emit(char c, void *arg) {
+file_emit(char c, void *arg)
+{
 	FILE *fp = arg;
-	int i = c & 0xff;
+	int   i  = c & 0xff;
 
 	putc(i, fp);
 }
@@ -52,9 +52,10 @@ isc_print_vfprintf(FILE *fp, const char *format, va_list ap) {
 #endif
 
 int
-isc_print_printf(const char *format, ...) {
+isc_print_printf(const char *format, ...)
+{
 	va_list ap;
-	int n;
+	int     n;
 
 	assert(format != NULL);
 
@@ -65,9 +66,10 @@ isc_print_printf(const char *format, ...) {
 }
 
 int
-isc_print_fprintf(FILE *fp, const char *format, ...) {
+isc_print_fprintf(FILE *fp, const char *format, ...)
+{
 	va_list ap;
-	int n;
+	int     n;
 
 	assert(fp != NULL);
 	assert(format != NULL);
@@ -79,16 +81,22 @@ isc_print_fprintf(FILE *fp, const char *format, ...) {
 }
 
 static void
-nocheck_emit(char c, void *arg) {
-	struct { char *str; } *a = arg;
+nocheck_emit(char c, void *arg)
+{
+	struct {
+		char *str;
+	} *a = arg;
 
 	*(a->str)++ = c;
 }
 
 int
-isc_print_sprintf(char *str, const char *format, ...) {
-	struct { char *str; } arg;
-	int n;
+isc_print_sprintf(char *str, const char *format, ...)
+{
+	struct {
+		char *str;
+	} arg;
+	int     n;
 	va_list ap;
 
 	arg.str = str;
@@ -104,15 +112,15 @@ isc_print_sprintf(char *str, const char *format, ...) {
  */
 
 int
-isc_print_snprintf(char *str, size_t size, const char *format, ...) {
+isc_print_snprintf(char *str, size_t size, const char *format, ...)
+{
 	va_list ap;
-	int ret;
+	int     ret;
 
 	va_start(ap, format);
 	ret = isc_print_vsnprintf(str, size, format, ap);
 	va_end(ap);
 	return (ret);
-
 }
 
 /*!
@@ -120,8 +128,12 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...) {
  */
 
 static void
-string_emit(char c, void *arg) {
-	struct { char *str; size_t size; } *p = arg;
+string_emit(char c, void *arg)
+{
+	struct {
+		char * str;
+		size_t size;
+	} *p = arg;
 
 	if (p->size > 0U) {
 		*(p->str)++ = c;
@@ -130,14 +142,18 @@ string_emit(char c, void *arg) {
 }
 
 int
-isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
-	struct { char *str; size_t size; } arg;
+isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap)
+{
+	struct {
+		char * str;
+		size_t size;
+	} arg;
 	int n;
 
 	assert(str != NULL);
 	assert(format != NULL);
 
-	arg.str = str;
+	arg.str  = str;
 	arg.size = size;
 
 	n = isc__print_printf(string_emit, &arg, format, ap);
@@ -147,34 +163,34 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 }
 
 static int
-isc__print_printf(void (*emit)(char, void *), void *arg,
-		  const char *format, va_list ap)
+isc__print_printf(void (*emit)(char, void *), void *arg, const char *format,
+                  va_list ap)
 {
-	int h;
-	int l;
-	int z;
-	int q;
-	int alt;
-	int zero;
-	int left;
-	int plus;
-	int space;
-	int neg;
-	isc_int64_t tmpi;
-	isc_uint64_t tmpui;
+	int           h;
+	int           l;
+	int           z;
+	int           q;
+	int           alt;
+	int           zero;
+	int           left;
+	int           plus;
+	int           space;
+	int           neg;
+	isc_int64_t   tmpi;
+	isc_uint64_t  tmpui;
 	unsigned long width;
 	unsigned long precision;
-	unsigned int length;
-	char buf[1024];
-	char c;
-	void *v;
-	const char *cp;
-	const char *head;
-	int count = 0;
-	int pad;
-	int zeropad;
-	int dot;
-	double dbl;
+	unsigned int  length;
+	char          buf[1024];
+	char          c;
+	void *        v;
+	const char *  cp;
+	const char *  head;
+	int           count = 0;
+	int           pad;
+	int           zeropad;
+	int           dot;
+	double        dbl;
 	isc_boolean_t precision_set;
 #ifdef HAVE_LONG_DOUBLE
 	long double ldbl;
@@ -196,9 +212,10 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		/*
 		 * Reset flags.
 		 */
-		dot = neg = space = plus = left = zero = alt = h = l = q = z = 0;
+		dot = neg = space = plus = left = zero = alt = h = l = q = z =
+		        0;
 		width = precision = 0;
-		head = "";
+		head              = "";
 		pad = zeropad = 0;
 		precision_set = ISC_FALSE;
 
@@ -215,7 +232,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					space = 1;
 				format++;
 			} else if (*format == '+') {
-				plus = 1;
+				plus  = 1;
 				space = 0;
 				format++;
 			} else if (*format == '0') {
@@ -234,7 +251,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			format++;
 		} else if (isdigit((unsigned char)*format)) {
 			char *e;
-			width = strtoul(format, &e, 10);
+			width  = strtoul(format, &e, 10);
 			format = e;
 		}
 
@@ -245,20 +262,19 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			format++;
 			dot = 1;
 			if (*format == '*') {
-				precision = va_arg(ap, int);
+				precision     = va_arg(ap, int);
 				precision_set = ISC_TRUE;
 				format++;
 			} else if (isdigit((unsigned char)*format)) {
 				char *e;
-				precision = strtoul(format, &e, 10);
+				precision     = strtoul(format, &e, 10);
 				precision_set = ISC_TRUE;
-				format = e;
+				format        = e;
 			}
 		}
 
 		switch (*format) {
-		case '\0':
-			continue;
+		case '\0': continue;
 		case '%':
 			emit(*format, arg);
 			count++;
@@ -338,7 +354,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				else
 					tmpi = va_arg(ap, int);
 				if (tmpi < 0) {
-					head = "-";
+					head  = "-";
 					tmpui = -tmpi;
 				} else {
 					if (plus)
@@ -351,7 +367,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				}
 				if (tmpui <= 0xffffffffU)
 					sprintf(buf, "%lu",
-						(unsigned long)tmpui);
+					        (unsigned long)tmpui);
 				else {
 					unsigned long mid;
 					unsigned long lo;
@@ -359,15 +375,14 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					lo = tmpui % 1000000000;
 					tmpui /= 1000000000;
 					mid = tmpui % 1000000000;
-					hi = tmpui / 1000000000;
+					hi  = tmpui / 1000000000;
 					if (hi != 0U) {
 						sprintf(buf, "%lu", hi);
 						sprintf(buf + strlen(buf),
-							"%09lu", mid);
+						        "%09lu", mid);
 					} else
 						sprintf(buf, "%lu", mid);
-					sprintf(buf + strlen(buf), "%09lu",
-						lo);
+					sprintf(buf + strlen(buf), "%09lu", lo);
 				}
 				goto printint;
 			case 'o':
@@ -380,8 +395,8 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				else
 					tmpui = va_arg(ap, int);
 				if (tmpui <= 0xffffffffU)
-					sprintf(buf, alt ?  "%#lo" : "%lo",
-						(unsigned long)tmpui);
+					sprintf(buf, alt ? "%#lo" : "%lo",
+					        (unsigned long)tmpui);
 				else {
 					unsigned long mid;
 					unsigned long lo;
@@ -389,17 +404,17 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					lo = tmpui % 010000000000;
 					tmpui /= 010000000000;
 					mid = tmpui % 010000000000;
-					hi = tmpui / 010000000000;
+					hi  = tmpui / 010000000000;
 					if (hi != 0U) {
 						sprintf(buf,
-							alt ?  "%#lo" : "%lo",
-							hi);
+						        alt ? "%#lo" : "%lo",
+						        hi);
 						sprintf(buf + strlen(buf),
-							"%09lo", mid);
+						        "%09lo", mid);
 					} else
 						sprintf(buf,
-							alt ?  "%#lo" : "%lo",
-							mid);
+						        alt ? "%#lo" : "%lo",
+						        mid);
 					sprintf(buf + strlen(buf), "%09lo", lo);
 				}
 				goto printint;
@@ -414,7 +429,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					tmpui = va_arg(ap, unsigned int);
 				if (tmpui <= 0xffffffffU)
 					sprintf(buf, "%lu",
-						(unsigned long)tmpui);
+					        (unsigned long)tmpui);
 				else {
 					unsigned long mid;
 					unsigned long lo;
@@ -422,15 +437,14 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					lo = tmpui % 1000000000;
 					tmpui /= 1000000000;
 					mid = tmpui % 1000000000;
-					hi = tmpui / 1000000000;
+					hi  = tmpui / 1000000000;
 					if (hi != 0U) {
 						sprintf(buf, "%lu", hi);
 						sprintf(buf + strlen(buf),
-							"%09lu", mid);
-					 } else
+						        "%09lu", mid);
+					} else
 						sprintf(buf, "%lu", mid);
-					sprintf(buf + strlen(buf), "%09lu",
-						lo);
+					sprintf(buf + strlen(buf), "%09lu", lo);
 				}
 				goto printint;
 			case 'x':
@@ -449,9 +463,9 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				}
 				if (tmpui <= 0xffffffffU)
 					sprintf(buf, "%lx",
-						(unsigned long)tmpui);
+					        (unsigned long)tmpui);
 				else {
-					unsigned long hi = tmpui>>32;
+					unsigned long hi = tmpui >> 32;
 					unsigned long lo = tmpui & 0xffffffff;
 					sprintf(buf, "%lx", hi);
 					sprintf(buf + strlen(buf), "%08lx", lo);
@@ -473,9 +487,9 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				}
 				if (tmpui <= 0xffffffffU)
 					sprintf(buf, "%lX",
-						(unsigned long)tmpui);
-				else  {
-					unsigned long hi = tmpui>>32;
+					        (unsigned long)tmpui);
+				else {
+					unsigned long hi = tmpui >> 32;
 					unsigned long lo = tmpui & 0xffffffff;
 					sprintf(buf, "%lX", hi);
 					sprintf(buf + strlen(buf), "%08lX", lo);
@@ -489,14 +503,14 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					else if (length < width && zero)
 						zeropad = width - length;
 					if (width != 0U) {
-						pad = width - length -
-						      zeropad - strlen(head);
+						pad = width - length - zeropad -
+						      strlen(head);
 						if (pad < 0)
 							pad = 0;
 					}
 				}
 				count += strlen(head) + strlen(buf) + pad +
-					 zeropad;
+				         zeropad;
 				if (!left) {
 					while (pad > 0) {
 						emit(' ', arg);
@@ -518,8 +532,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					pad--;
 				}
 				break;
-			default:
-				break;
+			default: break;
 			}
 			break;
 		case 's':
@@ -529,12 +542,12 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				/*
 				 * cp need not be NULL terminated.
 				 */
-				const char *tp;
+				const char *  tp;
 				unsigned long n;
 
 				if (precision != 0U)
 					assert(cp != NULL);
-				n = precision;
+				n  = precision;
 				tp = cp;
 				while (n != 0U && *tp != '\0')
 					n--, tp++;
@@ -617,11 +630,11 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				pad--;
 			}
 			break;
-		case 'D':	/*deprecated*/
+		case 'D': /*deprecated*/
 			assert("use %ld instead of %D" == NULL);
-		case 'O':	/*deprecated*/
+		case 'O': /*deprecated*/
 			assert("use %lo instead of %O" == NULL);
-		case 'U':	/*deprecated*/
+		case 'U': /*deprecated*/
 			assert("use %lu instead of %U" == NULL);
 
 		case 'L':
@@ -651,8 +664,8 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			if (precision > 512U)
 				precision = 512;
 			sprintf(fmt, "%%%s%s.%lu%s%c", alt ? "#" : "",
-				plus ? "+" : space ? " " : "",
-				precision, l ? "L" : "", *format);
+			        plus ? "+" : space ? " " : "", precision,
+			        l ? "L" : "", *format);
 			switch (*format) {
 			case 'e':
 			case 'E':
@@ -689,12 +702,10 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 					pad--;
 				}
 				break;
-			default:
-				continue;
+			default: continue;
 			}
 			break;
-		default:
-			continue;
+		default: continue;
 		}
 		format++;
 	}

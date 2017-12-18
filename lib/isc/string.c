@@ -50,24 +50,25 @@
 static const char digits[] = "0123456789abcdefghijklmnoprstuvwxyz";
 
 isc_uint64_t
-isc_string_touint64(char *source, char **end, int base) {
+isc_string_touint64(char *source, char **end, int base)
+{
 	isc_uint64_t tmp;
 	isc_uint64_t overflow;
-	char *s = source;
-	const char *o;
-	char c;
+	char *       s = source;
+	const char * o;
+	char         c;
 
 	if ((base < 0) || (base == 1) || (base > 36)) {
 		*end = source;
 		return (0);
 	}
 
-	while (*s != 0 && isascii(*s&0xff) && isspace(*s&0xff))
+	while (*s != 0 && isascii(*s & 0xff) && isspace(*s & 0xff))
 		s++;
 	if (*s == '+' /* || *s == '-' */)
 		s++;
 	if (base == 0) {
-		if (*s == '0' && (*(s+1) == 'X' || *(s+1) == 'x')) {
+		if (*s == '0' && (*(s + 1) == 'X' || *(s + 1) == 'x')) {
 			s += 2;
 			base = 16;
 		} else if (*s == '0')
@@ -84,7 +85,7 @@ isc_string_touint64(char *source, char **end, int base) {
 	tmp = 0;
 
 	while ((c = *s) != 0) {
-		c = tolower(c&0xff);
+		c = tolower(c & 0xff);
 		/* end ? */
 		if ((o = strchr(digits, c)) == NULL) {
 			*end = s;
@@ -114,7 +115,8 @@ isc_string_touint64(char *source, char **end, int base) {
 }
 
 isc_result_t
-isc_string_copy(char *target, size_t size, const char *source) {
+isc_string_copy(char *target, size_t size, const char *source)
+{
 	REQUIRE(size > 0U);
 
 	if (strlcpy(target, source, size) >= size) {
@@ -128,7 +130,8 @@ isc_string_copy(char *target, size_t size, const char *source) {
 }
 
 void
-isc_string_copy_truncate(char *target, size_t size, const char *source) {
+isc_string_copy_truncate(char *target, size_t size, const char *source)
+{
 	REQUIRE(size > 0U);
 
 	strlcpy(target, source, size);
@@ -137,7 +140,8 @@ isc_string_copy_truncate(char *target, size_t size, const char *source) {
 }
 
 isc_result_t
-isc_string_append(char *target, size_t size, const char *source) {
+isc_string_append(char *target, size_t size, const char *source)
+{
 	REQUIRE(size > 0U);
 	REQUIRE(strlen(target) < size);
 
@@ -152,7 +156,8 @@ isc_string_append(char *target, size_t size, const char *source) {
 }
 
 void
-isc_string_append_truncate(char *target, size_t size, const char *source) {
+isc_string_append_truncate(char *target, size_t size, const char *source)
+{
 	REQUIRE(size > 0U);
 	REQUIRE(strlen(target) < size);
 
@@ -162,9 +167,10 @@ isc_string_append_truncate(char *target, size_t size, const char *source) {
 }
 
 isc_result_t
-isc_string_printf(char *target, size_t size, const char *format, ...) {
+isc_string_printf(char *target, size_t size, const char *format, ...)
+{
 	va_list args;
-	size_t n;
+	size_t  n;
 
 	REQUIRE(size > 0U);
 
@@ -198,13 +204,14 @@ isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
 }
 
 char *
-isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
+isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source)
+{
 	char *target;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(source != NULL);
 
-	target = (char *) isc_mem_allocate(mctx, source->length + 1);
+	target = (char *)isc_mem_allocate(mctx, source->length + 1);
 	if (target != NULL) {
 		memmove(source->base, target, source->length);
 		target[source->length] = '\0';
@@ -214,11 +221,12 @@ isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
 }
 
 char *
-isc_string_separate(char **stringp, const char *delim) {
-	char *string = *stringp;
-	char *s;
+isc_string_separate(char **stringp, const char *delim)
+{
+	char *      string = *stringp;
+	char *      s;
 	const char *d;
-	char sc, dc;
+	char        sc, dc;
 
 	if (string == NULL)
 		return (NULL);
@@ -226,7 +234,7 @@ isc_string_separate(char **stringp, const char *delim) {
 	for (s = string; (sc = *s) != '\0'; s++)
 		for (d = delim; (dc = *d) != '\0'; d++)
 			if (sc == dc) {
-				*s++ = '\0';
+				*s++     = '\0';
 				*stringp = s;
 				return (string);
 			}
@@ -237,9 +245,9 @@ isc_string_separate(char **stringp, const char *delim) {
 size_t
 isc_string_strlcpy(char *dst, const char *src, size_t size)
 {
-	char *d = dst;
+	char *      d = dst;
 	const char *s = src;
-	size_t n = size;
+	size_t      n = size;
 
 	/* Copy as many bytes as will fit */
 	if (n != 0U && --n != 0U) {
@@ -252,30 +260,30 @@ isc_string_strlcpy(char *dst, const char *src, size_t size)
 	/* Not enough room in dst, add NUL and traverse rest of src */
 	if (n == 0U) {
 		if (size != 0U)
-			*d = '\0';		/* NUL-terminate dst */
+			*d = '\0'; /* NUL-terminate dst */
 		while (*s++)
 			;
 	}
 
-	return(s - src - 1);	/* count does not include NUL */
+	return (s - src - 1); /* count does not include NUL */
 }
 
 size_t
 isc_string_strlcat(char *dst, const char *src, size_t size)
 {
-	char *d = dst;
+	char *      d = dst;
 	const char *s = src;
-	size_t n = size;
-	size_t dlen;
+	size_t      n = size;
+	size_t      dlen;
 
 	/* Find the end of dst and adjust bytes left but don't go past end */
 	while (n-- != 0U && *d != '\0')
 		d++;
 	dlen = d - dst;
-	n = size - dlen;
+	n    = size - dlen;
 
 	if (n == 0U)
-		return(dlen + strlen(s));
+		return (dlen + strlen(s));
 	while (*s != '\0') {
 		if (n != 1U) {
 			*d++ = *s;
@@ -285,26 +293,26 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 	}
 	*d = '\0';
 
-	return(dlen + (s - src));	/* count does not include NUL */
+	return (dlen + (s - src)); /* count does not include NUL */
 }
 
 char *
-isc_string_strcasestr(const char *str, const char *search) {
-	char c, sc, *s;
+isc_string_strcasestr(const char *str, const char *search)
+{
+	char   c, sc, *s;
 	size_t len;
 
 	if ((c = *search++) != 0) {
-		c = tolower((unsigned char) c);
+		c   = tolower((unsigned char)c);
 		len = strlen(search);
 		do {
 			do {
 				if ((sc = *str++) == 0)
 					return (NULL);
-			} while ((char) tolower((unsigned char) sc) != c);
+			} while ((char)tolower((unsigned char)sc) != c);
 		} while (strncasecmp(str, search, len) != 0);
 		str--;
 	}
 	DE_CONST(str, s);
 	return (s);
-
 }

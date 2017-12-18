@@ -46,16 +46,14 @@ enum NtPaths {
 /*
  * Information about where the files are on disk
  */
-#define NAMED_LOCALSTATEDIR	"/dns/bin"
-#define NAMED_SYSCONFDIR	"/dns/etc"
+#define NAMED_LOCALSTATEDIR "/dns/bin"
+#define NAMED_SYSCONFDIR "/dns/etc"
 
 ISC_LANG_BEGINDECLS
 
-void
-isc_ntpaths_init(void);
+void isc_ntpaths_init(void);
 
-char *
-isc_ntpaths_get(int);
+char *isc_ntpaths_get(int);
 
 ISC_LANG_ENDDECLS
 

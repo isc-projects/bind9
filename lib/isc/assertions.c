@@ -31,8 +31,8 @@
 /*%
  * Forward.
  */
-static void
-default_callback(const char *, int, isc_assertiontype_t, const char *);
+static void default_callback(const char *, int, isc_assertiontype_t,
+                             const char *);
 
 static isc_assertioncallback_t isc_assertion_failed_cb = default_callback;
 
@@ -44,7 +44,7 @@ static isc_assertioncallback_t isc_assertion_failed_cb = default_callback;
 /* coverity[+kill] */
 void
 isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
-		     const char *cond)
+                     const char *cond)
 {
 	isc_assertion_failed_cb(file, line, type, cond);
 	abort();
@@ -53,7 +53,8 @@ isc_assertion_failed(const char *file, int line, isc_assertiontype_t type,
 
 /*% Set callback. */
 void
-isc_assertion_setcallback(isc_assertioncallback_t cb) {
+isc_assertion_setcallback(isc_assertioncallback_t cb)
+{
 	if (cb == NULL)
 		isc_assertion_failed_cb = default_callback;
 	else
@@ -62,7 +63,8 @@ isc_assertion_setcallback(isc_assertioncallback_t cb) {
 
 /*% Type to Text */
 const char *
-isc_assertion_typetotext(isc_assertiontype_t type) {
+isc_assertion_typetotext(isc_assertiontype_t type)
+{
 	const char *result;
 
 	/*
@@ -71,20 +73,11 @@ isc_assertion_typetotext(isc_assertiontype_t type) {
 	 * the ISC development environment.
 	 */
 	switch (type) {
-	case isc_assertiontype_require:
-		result = "REQUIRE";
-		break;
-	case isc_assertiontype_ensure:
-		result = "ENSURE";
-		break;
-	case isc_assertiontype_insist:
-		result = "INSIST";
-		break;
-	case isc_assertiontype_invariant:
-		result = "INVARIANT";
-		break;
-	default:
-		result = NULL;
+	case isc_assertiontype_require: result = "REQUIRE"; break;
+	case isc_assertiontype_ensure: result = "ENSURE"; break;
+	case isc_assertiontype_insist: result = "INSIST"; break;
+	case isc_assertiontype_invariant: result = "INVARIANT"; break;
+	default: result = NULL;
 	}
 	return (result);
 }
@@ -95,35 +88,36 @@ isc_assertion_typetotext(isc_assertiontype_t type) {
 
 static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
-		 const char *cond)
+                 const char *cond)
 {
-	void *tracebuf[BACKTRACE_MAXFRAME];
-	int i, nframes;
-	const char *logsuffix = ".";
-	const char *fname;
+	void *       tracebuf[BACKTRACE_MAXFRAME];
+	int          i, nframes;
+	const char * logsuffix = ".";
+	const char * fname;
 	isc_result_t result;
 
 	result = isc_backtrace_gettrace(tracebuf, BACKTRACE_MAXFRAME, &nframes);
-		if (result == ISC_R_SUCCESS && nframes > 0)
-			logsuffix = ", back trace";
+	if (result == ISC_R_SUCCESS && nframes > 0)
+		logsuffix = ", back trace";
 
-	fprintf(stderr, "%s:%d: %s(%s) %s%s\n",
-		file, line, isc_assertion_typetotext(type), cond,
-		isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-			       ISC_MSG_FAILED, "failed"), logsuffix);
+	fprintf(stderr, "%s:%d: %s(%s) %s%s\n", file, line,
+	        isc_assertion_typetotext(type), cond,
+	        isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL, ISC_MSG_FAILED,
+	                       "failed"),
+	        logsuffix);
 	if (result == ISC_R_SUCCESS) {
 		for (i = 0; i < nframes; i++) {
 			unsigned long offset;
 
-			fname = NULL;
+			fname  = NULL;
 			result = isc_backtrace_getsymbol(tracebuf[i], &fname,
-							 &offset);
+			                                 &offset);
 			if (result == ISC_R_SUCCESS) {
 				fprintf(stderr, "#%d %p in %s()+0x%lx\n", i,
-					tracebuf[i], fname, offset);
+				        tracebuf[i], fname, offset);
 			} else {
 				fprintf(stderr, "#%d %p in ??\n", i,
-					tracebuf[i]);
+				        tracebuf[i]);
 			}
 		}
 	}

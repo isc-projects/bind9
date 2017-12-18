@@ -30,26 +30,27 @@
  *** Globals
  ***/
 
-LIBISC_EXTERNAL_DATA isc_msgcat_t *		isc_msgcat = NULL;
-
+LIBISC_EXTERNAL_DATA isc_msgcat_t *isc_msgcat = NULL;
 
 /***
  *** Private
  ***/
 
-static isc_once_t		msgcat_once = ISC_ONCE_INIT;
+static isc_once_t msgcat_once = ISC_ONCE_INIT;
 
 /***
  *** Functions
  ***/
 
 static void
-open_msgcat(void) {
+open_msgcat(void)
+{
 	isc_msgcat_open("libisc.cat", &isc_msgcat);
 }
 
 void
-isc_lib_initmsgcat(void) {
+isc_lib_initmsgcat(void)
+{
 	isc_result_t result;
 
 	/*!
@@ -65,20 +66,21 @@ isc_lib_initmsgcat(void) {
 		 * (Note that the catalog might be open anyway, so we might
 		 * as well try to  provide an internationalized message.)
 		 */
-		fprintf(stderr, "%s:%d: %s: isc_once_do() %s.\n",
-			__FILE__, __LINE__,
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-				       ISC_MSG_FATALERROR, "fatal error"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-				       ISC_MSG_FAILED, "failed"));
+		fprintf(stderr, "%s:%d: %s: isc_once_do() %s.\n", __FILE__,
+		        __LINE__,
+		        isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+		                       ISC_MSG_FATALERROR, "fatal error"),
+		        isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+		                       ISC_MSG_FAILED, "failed"));
 		abort();
 	}
 }
 
-static isc_once_t		register_once = ISC_ONCE_INIT;
+static isc_once_t register_once = ISC_ONCE_INIT;
 
 static void
-do_register(void) {
+do_register(void)
+{
 	isc_bind9 = ISC_FALSE;
 
 	RUNTIME_CHECK(isc__mem_register() == ISC_R_SUCCESS);
@@ -89,7 +91,8 @@ do_register(void) {
 }
 
 void
-isc_lib_register(void) {
-	RUNTIME_CHECK(isc_once_do(&register_once, do_register)
-		      == ISC_R_SUCCESS);
+isc_lib_register(void)
+{
+	RUNTIME_CHECK(isc_once_do(&register_once, do_register) ==
+	              ISC_R_SUCCESS);
 }

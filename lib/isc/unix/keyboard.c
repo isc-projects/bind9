@@ -11,24 +11,25 @@
 #include <config.h>
 
 #include <sys/param.h>
-#include <sys/types.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <sys/uio.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <isc/keyboard.h>
 #include <isc/util.h>
 
 isc_result_t
-isc_keyboard_open(isc_keyboard_t *keyboard) {
-	int fd;
-	isc_result_t ret;
+isc_keyboard_open(isc_keyboard_t *keyboard)
+{
+	int            fd;
+	isc_result_t   ret;
 	struct termios current_mode;
 
 	REQUIRE(keyboard != NULL);
@@ -46,14 +47,14 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 
 	current_mode = keyboard->saved_mode;
 
-	current_mode.c_iflag &=
-			~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
+	current_mode.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR |
+	                          IGNCR | ICRNL | IXON);
 	current_mode.c_oflag &= ~OPOST;
-	current_mode.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-	current_mode.c_cflag &= ~(CSIZE|PARENB);
+	current_mode.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+	current_mode.c_cflag &= ~(CSIZE | PARENB);
 	current_mode.c_cflag |= CS8;
 
-	current_mode.c_cc[VMIN] = 1;
+	current_mode.c_cc[VMIN]  = 1;
 	current_mode.c_cc[VTIME] = 0;
 	if (tcsetattr(fd, TCSAFLUSH, &current_mode) < 0) {
 		ret = ISC_R_IOERROR;
@@ -64,14 +65,15 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 
 	return (ISC_R_SUCCESS);
 
- errout:
-	close (fd);
+errout:
+	close(fd);
 
 	return (ret);
 }
 
 isc_result_t
-isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
+isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime)
+{
 	REQUIRE(keyboard != NULL);
 
 	if (sleeptime > 0 && keyboard->result != ISC_R_CANCELED)
@@ -86,10 +88,11 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
 }
 
 isc_result_t
-isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
-	ssize_t cc;
+isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp)
+{
+	ssize_t       cc;
 	unsigned char c;
-	cc_t *controlchars;
+	cc_t *        controlchars;
 
 	REQUIRE(keyboard != NULL);
 	REQUIRE(cp != NULL);
@@ -112,6 +115,7 @@ isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 }
 
 isc_boolean_t
-isc_keyboard_canceled(isc_keyboard_t *keyboard) {
+isc_keyboard_canceled(isc_keyboard_t *keyboard)
+{
 	return (ISC_TF(keyboard->result == ISC_R_CANCELED));
 }

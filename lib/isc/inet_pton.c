@@ -9,8 +9,7 @@
 /*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-	"$Id: inet_pton.c,v 1.19 2007/06/19 23:47:17 tbox Exp $";
+static char rcsid[] = "$Id: inet_pton.c,v 1.19 2007/06/19 23:47:17 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -21,11 +20,11 @@ static char rcsid[] =
 #include <isc/net.h>
 
 /*% INT16 Size */
-#define NS_INT16SZ	 2
+#define NS_INT16SZ 2
 /*% IPv4 Address Size */
-#define NS_INADDRSZ	 4
+#define NS_INADDRSZ 4
 /*% IPv6 Address Size */
-#define NS_IN6ADDRSZ	16
+#define NS_IN6ADDRSZ 16
 
 /*
  * WARNING: Don't even consider trying to compile this on a system where
@@ -46,15 +45,12 @@ static int inet_pton6(const char *src, unsigned char *dst);
  *	Paul Vixie, 1996.
  */
 int
-isc_net_pton(int af, const char *src, void *dst) {
+isc_net_pton(int af, const char *src, void *dst)
+{
 	switch (af) {
-	case AF_INET:
-		return (inet_pton4(src, dst));
-	case AF_INET6:
-		return (inet_pton6(src, dst));
-	default:
-		errno = EAFNOSUPPORT;
-		return (-1);
+	case AF_INET: return (inet_pton4(src, dst));
+	case AF_INET6: return (inet_pton6(src, dst));
+	default: errno = EAFNOSUPPORT; return (-1);
 	}
 	/* NOTREACHED */
 }
@@ -70,13 +66,14 @@ isc_net_pton(int af, const char *src, void *dst) {
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton4(const char *src, unsigned char *dst) {
+inet_pton4(const char *src, unsigned char *dst)
+{
 	static const char digits[] = "0123456789";
-	int saw_digit, octets, ch;
-	unsigned char tmp[NS_INADDRSZ], *tp;
+	int               saw_digit, octets, ch;
+	unsigned char     tmp[NS_INADDRSZ], *tp;
 
-	saw_digit = 0;
-	octets = 0;
+	saw_digit   = 0;
+	octets      = 0;
 	*(tp = tmp) = 0;
 	while ((ch = *src++) != '\0') {
 		const char *pch;
@@ -98,7 +95,7 @@ inet_pton4(const char *src, unsigned char *dst) {
 		} else if (ch == '.' && saw_digit) {
 			if (octets == 4)
 				return (0);
-			*++tp = 0;
+			*++tp     = 0;
 			saw_digit = 0;
 		} else
 			return (0);
@@ -123,24 +120,25 @@ inet_pton4(const char *src, unsigned char *dst) {
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton6(const char *src, unsigned char *dst) {
+inet_pton6(const char *src, unsigned char *dst)
+{
 	static const char xdigits_l[] = "0123456789abcdef",
-			  xdigits_u[] = "0123456789ABCDEF";
+	                  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
-	const char *xdigits, *curtok;
-	int ch, seen_xdigits;
-	unsigned int val;
+	const char *  xdigits, *curtok;
+	int           ch, seen_xdigits;
+	unsigned int  val;
 
 	memset((tp = tmp), '\0', NS_IN6ADDRSZ);
-	endp = tp + NS_IN6ADDRSZ;
+	endp   = tp + NS_IN6ADDRSZ;
 	colonp = NULL;
 	/* Leading :: requires some special handling. */
 	if (*src == ':')
 		if (*++src != ':')
 			return (0);
-	curtok = src;
+	curtok       = src;
 	seen_xdigits = 0;
-	val = 0;
+	val          = 0;
 	while ((ch = *src++) != '\0') {
 		const char *pch;
 
@@ -163,25 +161,25 @@ inet_pton6(const char *src, unsigned char *dst) {
 			}
 			if (tp + NS_INT16SZ > endp)
 				return (0);
-			*tp++ = (unsigned char) (val >> 8) & 0xff;
-			*tp++ = (unsigned char) val & 0xff;
+			*tp++        = (unsigned char)(val >> 8) & 0xff;
+			*tp++        = (unsigned char)val & 0xff;
 			seen_xdigits = 0;
-			val = 0;
+			val          = 0;
 			continue;
 		}
 		if (ch == '.' && ((tp + NS_INADDRSZ) <= endp) &&
 		    inet_pton4(curtok, tp) > 0) {
 			tp += NS_INADDRSZ;
 			seen_xdigits = 0;
-			break;	/* '\0' was seen by inet_pton4(). */
+			break; /* '\0' was seen by inet_pton4(). */
 		}
 		return (0);
 	}
 	if (seen_xdigits) {
 		if (tp + NS_INT16SZ > endp)
 			return (0);
-		*tp++ = (unsigned char) (val >> 8) & 0xff;
-		*tp++ = (unsigned char) val & 0xff;
+		*tp++ = (unsigned char)(val >> 8) & 0xff;
+		*tp++ = (unsigned char)val & 0xff;
 	}
 	if (colonp != NULL) {
 		/*
@@ -189,12 +187,12 @@ inet_pton6(const char *src, unsigned char *dst) {
 		 * overlapping regions, we'll do the shift by hand.
 		 */
 		const int n = (int)(tp - colonp);
-		int i;
+		int       i;
 
 		if (tp == endp)
 			return (0);
 		for (i = 1; i <= n; i++) {
-			endp[- i] = colonp[n - i];
+			endp[-i]      = colonp[n - i];
 			colonp[n - i] = 0;
 		}
 		tp = endp;

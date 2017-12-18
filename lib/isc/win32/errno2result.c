@@ -10,11 +10,11 @@
 
 #include <config.h>
 
-#include <winsock2.h>
 #include "errno2result.h"
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/util.h>
+#include <winsock2.h>
 
 /*
  * Convert a POSIX errno value into an isc_result_t.  The
@@ -23,8 +23,8 @@
  * not already there.
  */
 isc_result_t
-isc__errno2resultx(int posixerrno, isc_boolean_t dolog,
-		   const char *file, int line)
+isc__errno2resultx(int posixerrno, isc_boolean_t dolog, const char *file,
+                   int line)
 {
 	char strbuf[ISC_STRERRORSIZE];
 
@@ -32,76 +32,55 @@ isc__errno2resultx(int posixerrno, isc_boolean_t dolog,
 	case ENOTDIR:
 	case WSAELOOP:
 	case WSAEINVAL:
-	case EINVAL:		/* XXX sometimes this is not for files */
+	case EINVAL: /* XXX sometimes this is not for files */
 	case ENAMETOOLONG:
 	case WSAENAMETOOLONG:
 	case EBADF:
-	case WSAEBADF:
-		return (ISC_R_INVALIDFILE);
-	case ENOENT:
-		return (ISC_R_FILENOTFOUND);
+	case WSAEBADF: return (ISC_R_INVALIDFILE);
+	case ENOENT: return (ISC_R_FILENOTFOUND);
 	case EACCES:
 	case WSAEACCES:
-	case EPERM:
-		return (ISC_R_NOPERM);
-	case EEXIST:
-		return (ISC_R_FILEEXISTS);
-	case EIO:
-		return (ISC_R_IOERROR);
-	case ENOMEM:
-		return (ISC_R_NOMEMORY);
+	case EPERM: return (ISC_R_NOPERM);
+	case EEXIST: return (ISC_R_FILEEXISTS);
+	case EIO: return (ISC_R_IOERROR);
+	case ENOMEM: return (ISC_R_NOMEMORY);
 #ifdef EOVERFLOW
-	case EOVERFLOW:
-		return (ISC_R_RANGE);
+	case EOVERFLOW: return (ISC_R_RANGE);
 #endif
 	case ENFILE:
 	case EMFILE:
-	case WSAEMFILE:
-		return (ISC_R_TOOMANYOPENFILES);
-	case ERROR_CANCELLED:
-		return (ISC_R_CANCELED);
+	case WSAEMFILE: return (ISC_R_TOOMANYOPENFILES);
+	case ERROR_CANCELLED: return (ISC_R_CANCELED);
 	case ERROR_CONNECTION_REFUSED:
-	case WSAECONNREFUSED:
-		return (ISC_R_CONNREFUSED);
+	case WSAECONNREFUSED: return (ISC_R_CONNREFUSED);
 	case WSAENOTCONN:
-	case ERROR_CONNECTION_INVALID:
-		return (ISC_R_NOTCONNECTED);
+	case ERROR_CONNECTION_INVALID: return (ISC_R_NOTCONNECTED);
 	case ERROR_HOST_UNREACHABLE:
-	case WSAEHOSTUNREACH:
-		return (ISC_R_HOSTUNREACH);
+	case WSAEHOSTUNREACH: return (ISC_R_HOSTUNREACH);
 	case ERROR_NETWORK_UNREACHABLE:
-	case WSAENETUNREACH:
-		return (ISC_R_NETUNREACH);
-	case ERROR_NO_NETWORK:
-		return (ISC_R_NETUNREACH);
-	case ERROR_PORT_UNREACHABLE:
-		return (ISC_R_HOSTUNREACH);
-	case ERROR_SEM_TIMEOUT:
-		return (ISC_R_TIMEDOUT);
+	case WSAENETUNREACH: return (ISC_R_NETUNREACH);
+	case ERROR_NO_NETWORK: return (ISC_R_NETUNREACH);
+	case ERROR_PORT_UNREACHABLE: return (ISC_R_HOSTUNREACH);
+	case ERROR_SEM_TIMEOUT: return (ISC_R_TIMEDOUT);
 	case WSAECONNRESET:
 	case WSAENETRESET:
 	case WSAECONNABORTED:
 	case WSAEDISCON:
 	case ERROR_OPERATION_ABORTED:
 	case ERROR_CONNECTION_ABORTED:
-	case ERROR_REQUEST_ABORTED:
-		return (ISC_R_CONNECTIONRESET);
-	case WSAEADDRNOTAVAIL:
-		return (ISC_R_ADDRNOTAVAIL);
+	case ERROR_REQUEST_ABORTED: return (ISC_R_CONNECTIONRESET);
+	case WSAEADDRNOTAVAIL: return (ISC_R_ADDRNOTAVAIL);
 	case ERROR_NETNAME_DELETED:
-	case WSAENETDOWN:
-		return (ISC_R_NETUNREACH);
-	case WSAEHOSTDOWN:
-		return (ISC_R_HOSTUNREACH);
-	case WSAENOBUFS:
-		return (ISC_R_NORESOURCES);
+	case WSAENETDOWN: return (ISC_R_NETUNREACH);
+	case WSAEHOSTDOWN: return (ISC_R_HOSTUNREACH);
+	case WSAENOBUFS: return (ISC_R_NORESOURCES);
 	default:
 		if (dolog) {
 			isc__strerror(posixerrno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(file, line,
-					 "unable to convert errno "
-					 "to isc_result: %d: %s",
-					 posixerrno, strbuf);
+			                 "unable to convert errno "
+			                 "to isc_result: %d: %s",
+			                 posixerrno, strbuf);
 		}
 		/*
 		 * XXXDCL would be nice if perhaps this function could

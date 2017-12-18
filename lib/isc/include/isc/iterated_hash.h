@@ -29,10 +29,9 @@
 ISC_LANG_BEGINDECLS
 
 int isc_iterated_hash(unsigned char out[NSEC3_MAX_HASH_LENGTH],
-		      unsigned int hashalg, int iterations,
-		      const unsigned char *salt, int saltlength,
-		      const unsigned char *in, int inlength);
-
+                      unsigned int hashalg, int iterations,
+                      const unsigned char *salt, int saltlength,
+                      const unsigned char *in, int inlength);
 
 ISC_LANG_ENDDECLS
 

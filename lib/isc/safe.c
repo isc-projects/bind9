@@ -23,7 +23,8 @@
 #endif
 
 isc_boolean_t
-isc_safe_memequal(const void *s1, const void *s2, size_t n) {
+isc_safe_memequal(const void *s1, const void *s2, size_t n)
+{
 	isc_uint8_t acc = 0;
 
 	if (n != 0U) {
@@ -36,12 +37,12 @@ isc_safe_memequal(const void *s1, const void *s2, size_t n) {
 	return (ISC_TF(acc == 0));
 }
 
-
 int
-isc_safe_memcompare(const void *b1, const void *b2, size_t len) {
+isc_safe_memcompare(const void *b1, const void *b2, size_t len)
+{
 	const unsigned char *p1 = b1, *p2 = b2;
-	size_t i;
-	int res = 0, done = 0;
+	size_t               i;
+	int                  res = 0, done = 0;
 
 	for (i = 0; i < len; i++) {
 		/* lt is -1 if p1[i] < p2[i]; else 0. */
@@ -64,7 +65,8 @@ isc_safe_memcompare(const void *b1, const void *b2, size_t len) {
 }
 
 void
-isc_safe_memwipe(void *ptr, size_t len) {
+isc_safe_memwipe(void *ptr, size_t len)
+{
 	if (ISC_UNLIKELY(ptr == NULL || len == 0))
 		return;
 

@@ -29,8 +29,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_uint64_t
-isc_string_touint64(char *source, char **endp, int base);
+isc_uint64_t isc_string_touint64(char *source, char **endp, int base);
 /*%<
  * Convert the string pointed to by 'source' to isc_uint64_t.
  *
@@ -44,8 +43,7 @@ isc_string_touint64(char *source, char **endp, int base);
  * On error 'endp' points to 'source'.
  */
 
-isc_result_t
-isc_string_copy(char *target, size_t size, const char *source);
+isc_result_t isc_string_copy(char *target, size_t size, const char *source);
 /*
  * Copy the string pointed to by 'source' to 'target' which is a
  * pointer to a string of at least 'size' bytes.
@@ -69,8 +67,7 @@ isc_string_copy(char *target, size_t size, const char *source);
  *	                  is too small.
  */
 
-void
-isc_string_copy_truncate(char *target, size_t size, const char *source);
+void isc_string_copy_truncate(char *target, size_t size, const char *source);
 /*
  * Copy the string pointed to by 'source' to 'target' which is a
  * pointer to a string of at least 'size' bytes.
@@ -85,8 +82,7 @@ isc_string_copy_truncate(char *target, size_t size, const char *source);
  *	than 'size' bytes (including NUL).
  */
 
-isc_result_t
-isc_string_append(char *target, size_t size, const char *source);
+isc_result_t isc_string_append(char *target, size_t size, const char *source);
 /*
  * Append the string pointed to by 'source' to 'target' which is a
  * pointer to a NUL terminated string of at least 'size' bytes.
@@ -111,8 +107,7 @@ isc_string_append(char *target, size_t size, const char *source);
  *	                  is too small.
  */
 
-void
-isc_string_append_truncate(char *target, size_t size, const char *source);
+void isc_string_append_truncate(char *target, size_t size, const char *source);
 /*
  * Append the string pointed to by 'source' to 'target' which is a
  * pointer to a NUL terminated string of at least 'size' bytes.
@@ -128,9 +123,8 @@ isc_string_append_truncate(char *target, size_t size, const char *source);
  *	than 'size' bytes (including NUL).
  */
 
-isc_result_t
-isc_string_printf(char *target, size_t size, const char *format, ...)
-	ISC_FORMAT_PRINTF(3, 4);
+isc_result_t isc_string_printf(char *target, size_t size, const char *format,
+                               ...) ISC_FORMAT_PRINTF(3, 4);
 /*
  * Print 'format' to 'target' which is a pointer to a string of at least
  * 'size' bytes.
@@ -154,9 +148,8 @@ isc_string_printf(char *target, size_t size, const char *format, ...)
  *	                  is too small.
  */
 
-void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
-	ISC_FORMAT_PRINTF(3, 4);
+void isc_string_printf_truncate(char *target, size_t size, const char *format,
+                                ...) ISC_FORMAT_PRINTF(3, 4);
 /*
  * Print 'format' to 'target' which is a pointer to a string of at least
  * 'size' bytes.
@@ -171,9 +164,7 @@ isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
  *	than 'size' bytes (including NUL).
  */
 
-
-char *
-isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
+char *isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
 /*
  * Copy the region pointed to by r to a NUL terminated string
  * allocated from the memory context pointed to by mctx.
@@ -190,35 +181,29 @@ isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
  *
  */
 
-char *
-isc_string_separate(char **stringp, const char *delim);
+char *isc_string_separate(char **stringp, const char *delim);
 
 #ifdef ISC_PLATFORM_NEEDSTRSEP
 #define strsep isc_string_separate
 #endif
 
 #ifdef ISC_PLATFORM_NEEDMEMMOVE
-#define memmove(a,b,c) bcopy(b,a,c)
+#define memmove(a, b, c) bcopy(b, a, c)
 #endif
 
-size_t
-isc_string_strlcpy(char *dst, const char *src, size_t size);
-
+size_t isc_string_strlcpy(char *dst, const char *src, size_t size);
 
 #ifdef ISC_PLATFORM_NEEDSTRLCPY
 #define strlcpy isc_string_strlcpy
 #endif
 
-
-size_t
-isc_string_strlcat(char *dst, const char *src, size_t size);
+size_t isc_string_strlcat(char *dst, const char *src, size_t size);
 
 #ifdef ISC_PLATFORM_NEEDSTRLCAT
 #define strlcat isc_string_strlcat
 #endif
 
-char *
-isc_string_strcasestr(const char *big, const char *little);
+char *isc_string_strcasestr(const char *big, const char *little);
 
 #ifdef ISC_PLATFORM_NEEDSTRCASESTR
 #define strcasestr isc_string_strcasestr

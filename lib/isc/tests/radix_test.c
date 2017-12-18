@@ -16,22 +16,24 @@
 
 #include <atf-c.h>
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "isctest.h"
 
 ATF_TC(isc_radix_search);
-ATF_TC_HEAD(isc_radix_search, tc) {
+ATF_TC_HEAD(isc_radix_search, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "test radix seaching");
 }
-ATF_TC_BODY(isc_radix_search, tc) {
+ATF_TC_BODY(isc_radix_search, tc)
+{
 	isc_radix_tree_t *radix = NULL;
 	isc_radix_node_t *node;
-	isc_prefix_t prefix;
-	isc_result_t result;
-	struct in_addr in_addr;
-	isc_netaddr_t netaddr;
+	isc_prefix_t      prefix;
+	isc_result_t      result;
+	struct in_addr    in_addr;
+	isc_netaddr_t     netaddr;
 
 	UNUSED(tc);
 
@@ -45,7 +47,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 	isc_netaddr_fromin(&netaddr, &in_addr);
 	NETADDR_TO_PREFIX_T(&netaddr, prefix, 24, ISC_FALSE);
 
-	node = NULL;
+	node   = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)1;
@@ -55,7 +57,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 	isc_netaddr_fromin(&netaddr, &in_addr);
 	NETADDR_TO_PREFIX_T(&netaddr, prefix, 16, ISC_FALSE);
 
-	node = NULL;
+	node   = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	node->data[0] = (void *)2;
@@ -65,7 +67,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 	isc_netaddr_fromin(&netaddr, &in_addr);
 	NETADDR_TO_PREFIX_T(&netaddr, prefix, 22, ISC_FALSE);
 
-	node = NULL;
+	node   = NULL;
 	result = isc_radix_search(radix, &node, &prefix);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(node->data[0], (void *)2);
@@ -80,7 +82,8 @@ ATF_TC_BODY(isc_radix_search, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_radix_search);
 
 	return (atf_no_error());

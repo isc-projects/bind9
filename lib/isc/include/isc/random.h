@@ -9,12 +9,12 @@
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
 
-#include <isc/lang.h>
-#include <isc/types.h>
+#include <isc/deprecated.h>
 #include <isc/entropy.h>
+#include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/deprecated.h>
+#include <isc/types.h>
 
 /*! \file isc/random.h
  * \brief Implements pseudo random number generators.
@@ -43,14 +43,12 @@ typedef struct isc_rng isc_rng_t;
  * Opaque type
  */
 
-void
-isc_random_seed(isc_uint32_t seed);
+void isc_random_seed(isc_uint32_t seed);
 /*%<
  * Set the initial seed of the random state.
  */
 
-void
-isc_random_get(isc_uint32_t *val);
+void isc_random_get(isc_uint32_t *val);
 /*%<
  * Get a random value.
  *
@@ -58,15 +56,14 @@ isc_random_get(isc_uint32_t *val);
  *	val != NULL.
  */
 
-isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter);
+isc_uint32_t isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter);
 /*%<
  * Get a random value between (max - jitter) and (max).
  * This is useful for jittering timer values.
  */
 
-isc_result_t
-isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp);
+isc_result_t isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy,
+                            isc_rng_t **rngp);
 /*%<
  * Creates and initializes a pseudo random number generator. The
  * returned RNG can be used to generate pseudo random numbers.
@@ -91,8 +88,7 @@ isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp);
  *\li	#ISC_R_NOMEMORY Resource limit: Out of Memory
  */
 
-void
-isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp);
+void isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp);
 /*%<
  * Increments a reference count on the passed RNG.
  *
@@ -102,8 +98,7 @@ isc_rng_attach(isc_rng_t *source, isc_rng_t **targetp);
  *     reference incremented RNG is returned.
  */
 
-void
-isc_rng_detach(isc_rng_t **rngp);
+void isc_rng_detach(isc_rng_t **rngp);
 /*%<
  * Decrements a reference count on the passed RNG. If the reference
  * count reaches 0, the RNG is destroyed.
@@ -112,14 +107,12 @@ isc_rng_detach(isc_rng_t **rngp);
  * \li rngp != NULL the RNG struct to decrement reference for
  */
 
-void
-isc_rng_randombytes(isc_rng_t *rngctx, void *output, size_t length);
+void isc_rng_randombytes(isc_rng_t *rngctx, void *output, size_t length);
 /*%<
  * Returns a pseudo random sequence of length octets in output.
  */
 
-isc_uint16_t
-isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
+isc_uint16_t isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
 /*%<
  * Returns a pseudo random 16-bit unsigned integer.
  *
@@ -127,8 +120,7 @@ isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
  * instead.
  */
 
-isc_uint16_t
-isc_rng_uniformrandom(isc_rng_t *rngctx, isc_uint16_t upper_bound);
+isc_uint16_t isc_rng_uniformrandom(isc_rng_t *rngctx, isc_uint16_t upper_bound);
 /*%<
  * Returns a uniformly distributed pseudo-random 16-bit unsigned integer
  * less than 'upper_bound'.

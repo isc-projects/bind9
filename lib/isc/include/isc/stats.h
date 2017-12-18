@@ -20,15 +20,15 @@ ISC_LANG_BEGINDECLS
 /*%<
  * Flag(s) for isc_stats_dump().
  */
-#define ISC_STATSDUMP_VERBOSE	0x00000001 /*%< dump 0-value counters */
+#define ISC_STATSDUMP_VERBOSE 0x00000001 /*%< dump 0-value counters */
 
 /*%<
  * Dump callback type.
  */
 typedef void (*isc_stats_dumper_t)(isc_statscounter_t, isc_uint64_t, void *);
 
-isc_result_t
-isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters);
+isc_result_t isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp,
+                              int ncounters);
 /*%<
  * Create a statistics counter structure of general type.  It counts a general
  * set of counters indexed by an ID between 0 and ncounters -1.
@@ -44,8 +44,7 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters);
  *\li	anything else	-- failure
  */
 
-void
-isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp);
+void isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp);
 /*%<
  * Attach to a statistics set.
  *
@@ -55,8 +54,7 @@ isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp);
  *\li	'statsp' != NULL && '*statsp' == NULL
  */
 
-void
-isc_stats_detach(isc_stats_t **statsp);
+void isc_stats_detach(isc_stats_t **statsp);
 /*%<
  * Detaches from the statistics set.
  *
@@ -64,8 +62,7 @@ isc_stats_detach(isc_stats_t **statsp);
  *\li	'statsp' != NULL and '*statsp' is a valid isc_stats_t.
  */
 
-int
-isc_stats_ncounters(isc_stats_t *stats);
+int isc_stats_ncounters(isc_stats_t *stats);
 /*%<
  * Returns the number of counters contained in stats.
  *
@@ -74,8 +71,7 @@ isc_stats_ncounters(isc_stats_t *stats);
  *
  */
 
-void
-isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter);
+void isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter);
 /*%<
  * Increment the counter-th counter of stats.
  *
@@ -86,8 +82,7 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter);
  *	on creation.
  */
 
-void
-isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter);
+void isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter);
 /*%<
  * Decrement the counter-th counter of stats.
  *
@@ -95,9 +90,8 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter);
  *\li	'stats' is a valid isc_stats_t.
  */
 
-void
-isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
-	       unsigned int options);
+void isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
+                    unsigned int options);
 /*%<
  * Dump the current statistics counters in a specified way.  For each counter
  * in stats, dump_fn is called with its current value and the given argument
@@ -108,9 +102,8 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
  *\li	'stats' is a valid isc_stats_t.
  */
 
-void
-isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
-	      isc_statscounter_t counter);
+void isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+                   isc_statscounter_t counter);
 /*%<
  * Set the given counter to the specfied value.
  *
@@ -118,9 +111,8 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
  *\li	'stats' is a valid isc_stats_t.
  */
 
-void
-isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
-	      isc_statscounter_t counter);
+void isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+                   isc_statscounter_t counter);
 /*%<
  * Set the given counter to the specfied value.
  *

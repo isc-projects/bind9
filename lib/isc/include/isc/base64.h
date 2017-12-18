@@ -22,9 +22,8 @@ ISC_LANG_BEGINDECLS
  *** Functions
  ***/
 
-isc_result_t
-isc_base64_totext(isc_region_t *source, int wordlength,
-		  const char *wordbreak, isc_buffer_t *target);
+isc_result_t isc_base64_totext(isc_region_t *source, int wordlength,
+                               const char *wordbreak, isc_buffer_t *target);
 /*!<
  * \brief Convert data into base64 encoded text.
  *
@@ -46,8 +45,7 @@ isc_base64_totext(isc_region_t *source, int wordlength,
  *	necessary.
  */
 
-isc_result_t
-isc_base64_decodestring(const char *cstr, isc_buffer_t *target);
+isc_result_t isc_base64_decodestring(const char *cstr, isc_buffer_t *target);
 /*!<
  * \brief Decode a null-terminated base64 string.
  *
@@ -66,8 +64,8 @@ isc_base64_decodestring(const char *cstr, isc_buffer_t *target);
  *\li		isc_base64_tobuffer().
  */
 
-isc_result_t
-isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
+isc_result_t isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target,
+                                 int length);
 /*!<
  * \brief Convert base64 encoded text from a lexer context into data.
  *
@@ -82,8 +80,6 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  *	if length is positive.  The 'used' pointer in target will be
  *	advanced as necessary.
  */
-
-
 
 ISC_LANG_ENDDECLS
 

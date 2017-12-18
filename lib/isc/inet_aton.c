@@ -58,16 +58,16 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.23 2008/12/01 23:47:45 tbox Exp $";
+static char rcsid[]  = "$Id: inet_aton.c,v 1.23 2008/12/01 23:47:45 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 
 #include <ctype.h>
-#include <stddef.h>		/* Required for NULL. */
+#include <stddef.h> /* Required for NULL. */
 
-#include <isc/types.h>
 #include <isc/net.h>
+#include <isc/types.h>
 
 /*%
  * Check whether "cp" is a valid ascii representation
@@ -77,14 +77,15 @@ static char rcsid[] = "$Id: inet_aton.c,v 1.23 2008/12/01 23:47:45 tbox Exp $";
  * cannot distinguish between failure and a local broadcast address.
  */
 int
-isc_net_aton(const char *cp, struct in_addr *addr) {
-	isc_uint32_t val;
-	int base;
-	ptrdiff_t n;
+isc_net_aton(const char *cp, struct in_addr *addr)
+{
+	isc_uint32_t  val;
+	int           base;
+	ptrdiff_t     n;
 	unsigned char c;
-	isc_uint32_t parts[4];
+	isc_uint32_t  parts[4];
 	isc_uint32_t *pp = parts;
-	int digit;
+	int           digit;
 
 	c = *cp;
 	for (;;) {
@@ -95,13 +96,15 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 		 */
 		if (!isdigit(c & 0xff))
 			return (0);
-		val = 0; base = 10; digit = 0;
+		val   = 0;
+		base  = 10;
+		digit = 0;
 		if (c == '0') {
 			c = *++cp;
 			if (c == 'x' || c == 'X')
 				base = 16, c = *++cp;
 			else {
-				base = 8;
+				base  = 8;
 				digit = 1;
 			}
 		}
@@ -115,13 +118,13 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 			if (isascii(c) && isdigit(c)) {
 				if (base == 8 && (c == '8' || c == '9'))
 					return (0);
-				val = (val * base) + (c - '0');
-				c = *++cp;
+				val   = (val * base) + (c - '0');
+				c     = *++cp;
 				digit = 1;
 			} else if (base == 16 && isascii(c) && isxdigit(c)) {
 				val = (val << 4) |
-					(c + 10 - (islower(c) ? 'a' : 'A'));
-				c = *++cp;
+				      (c + 10 - (islower(c) ? 'a' : 'A'));
+				c     = *++cp;
 				digit = 1;
 			} else
 				break;
@@ -136,7 +139,7 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 			if (pp >= parts + 3 || val > 0xffU)
 				return (0);
 			*pp++ = val;
-			c = *++cp;
+			c     = *++cp;
 		} else
 			break;
 	}
@@ -156,22 +159,21 @@ isc_net_aton(const char *cp, struct in_addr *addr) {
 	 */
 	n = pp - parts + 1;
 	switch (n) {
-	case 1:				/* a -- 32 bits */
-		break;
+	case 1: /* a -- 32 bits */ break;
 
-	case 2:				/* a.b -- 8.24 bits */
+	case 2: /* a.b -- 8.24 bits */
 		if (val > 0xffffffU)
 			return (0);
 		val |= parts[0] << 24;
 		break;
 
-	case 3:				/* a.b.c -- 8.8.16 bits */
+	case 3: /* a.b.c -- 8.8.16 bits */
 		if (val > 0xffffU)
 			return (0);
 		val |= (parts[0] << 24) | (parts[1] << 16);
 		break;
 
-	case 4:				/* a.b.c.d -- 8.8.8.8 bits */
+	case 4: /* a.b.c.d -- 8.8.8.8 bits */
 		if (val > 0xffU)
 			return (0);
 		val |= (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8);

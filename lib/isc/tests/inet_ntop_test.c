@@ -19,30 +19,30 @@
 #include "../inet_ntop.c"
 
 ATF_TC(isc_net_ntop);
-ATF_TC_HEAD(isc_net_ntop, tc) {
+ATF_TC_HEAD(isc_net_ntop, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "isc_net_ntop implementation");
 }
-ATF_TC_BODY(isc_net_ntop, tc) {
-	char buf[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
-	int r;
+ATF_TC_BODY(isc_net_ntop, tc)
+{
+	char   buf[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
+	int    r;
 	size_t i;
 	unsigned char abuf[16];
 	struct {
-		int		family;
-		const char *	address;
-	} testdata[] = {
-		{ AF_INET, "0.0.0.0" },
-		{ AF_INET, "0.1.0.0" },
-		{ AF_INET, "0.0.2.0" },
-		{ AF_INET, "0.0.0.3" },
-		{ AF_INET, "255.255.255.255" },
-		{ AF_INET6, "::" },
-		{ AF_INET6, "::1.2.3.4" },
-		{ AF_INET6, "::ffff:1.2.3.4" },
-		{ AF_INET6, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" }
-	};
+		int         family;
+		const char *address;
+	} testdata[] = {{AF_INET, "0.0.0.0"},
+	                {AF_INET, "0.1.0.0"},
+	                {AF_INET, "0.0.2.0"},
+	                {AF_INET, "0.0.0.3"},
+	                {AF_INET, "255.255.255.255"},
+	                {AF_INET6, "::"},
+	                {AF_INET6, "::1.2.3.4"},
+	                {AF_INET6, "::ffff:1.2.3.4"},
+	                {AF_INET6, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"}};
 
-	for (i = 0; i < sizeof(testdata)/sizeof(testdata[0]); i++) {
+	for (i = 0; i < sizeof(testdata) / sizeof(testdata[0]); i++) {
 		r = inet_pton(testdata[i].family, testdata[i].address, abuf);
 		ATF_REQUIRE_EQ_MSG(r, 1, "%s", testdata[i].address);
 		isc_net_ntop(testdata[i].family, abuf, buf, sizeof(buf));
@@ -53,7 +53,8 @@ ATF_TC_BODY(isc_net_ntop, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_net_ntop);
 	return (atf_no_error());
 }

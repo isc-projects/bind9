@@ -11,11 +11,11 @@
 #ifndef ISC_HT_H
 #define ISC_HT_H 1
 
-#include <string.h>
-#include <isc/types.h>
 #include <isc/result.h>
+#include <isc/types.h>
+#include <string.h>
 
-typedef struct isc_ht isc_ht_t;
+typedef struct isc_ht      isc_ht_t;
 typedef struct isc_ht_iter isc_ht_iter_t;
 
 /*%
@@ -31,8 +31,7 @@ typedef struct isc_ht_iter isc_ht_iter_t;
  *\li	#ISC_R_NOMEMORY		-- not enough memory to create pool
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
-isc_result_t
-isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits);
+isc_result_t isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits);
 
 /*%
  * Destroy hashtable, freeing everything
@@ -40,8 +39,7 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits);
  * Requires:
  * \li	*htp is valid hashtable
  */
-void
-isc_ht_destroy(isc_ht_t **htp);
+void isc_ht_destroy(isc_ht_t **htp);
 
 /*%
  * Add a node to hashtable, pointed by binary key 'key' of size 'keysize';
@@ -55,9 +53,8 @@ isc_ht_destroy(isc_ht_t **htp);
  *\li	#ISC_R_EXISTS		-- node of the same key already exists
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
-isc_result_t
-isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
-		   void *value);
+isc_result_t isc_ht_add(isc_ht_t *ht, const unsigned char *key,
+                        isc_uint32_t keysize, void *value);
 
 /*%
  * Find a node matching 'key'/'keysize' in hashtable 'ht';
@@ -72,9 +69,8 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
  * \li	#ISC_R_SUCCESS		-- success
  * \li	#ISC_R_NOTFOUND		-- key not found
  */
-isc_result_t
-isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
-	    isc_uint32_t keysize, void **valuep);
+isc_result_t isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
+                         isc_uint32_t keysize, void **valuep);
 
 /*%
  * Delete node from hashtable
@@ -85,20 +81,18 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
  *\li	#ISC_R_NOTFOUND		-- key not found
  *\li	#ISC_R_SUCCESS		-- all is well
  */
-isc_result_t
-isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize);
+isc_result_t isc_ht_delete(isc_ht_t *ht, const unsigned char *key,
+                           isc_uint32_t keysize);
 
 /*%
  * Create an iterator for the hashtable; point '*itp' to it.
  */
-isc_result_t
-isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp);
+isc_result_t isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp);
 
 /*%
  * Destroy the iterator '*itp', set it to NULL
  */
-void
-isc_ht_iter_destroy(isc_ht_iter_t **itp);
+void isc_ht_iter_destroy(isc_ht_iter_t **itp);
 
 /*%
  * Set an iterator to the first entry.
@@ -107,8 +101,7 @@ isc_ht_iter_destroy(isc_ht_iter_t **itp);
  * \li 	#ISC_R_SUCCESS	-- success
  * \li	#ISC_R_NOMORE	-- no data in the hashtable
  */
-isc_result_t
-isc_ht_iter_first(isc_ht_iter_t *it);
+isc_result_t isc_ht_iter_first(isc_ht_iter_t *it);
 
 /*%
  * Set an iterator to the next entry.
@@ -117,8 +110,7 @@ isc_ht_iter_first(isc_ht_iter_t *it);
  * \li 	#ISC_R_SUCCESS	-- success
  * \li	#ISC_R_NOMORE	-- end of hashtable reached
  */
-isc_result_t
-isc_ht_iter_next(isc_ht_iter_t *it);
+isc_result_t isc_ht_iter_next(isc_ht_iter_t *it);
 
 /*%
  * Delete current entry and set an iterator to the next entry.
@@ -127,22 +119,19 @@ isc_ht_iter_next(isc_ht_iter_t *it);
  * \li 	#ISC_R_SUCCESS	-- success
  * \li	#ISC_R_NOMORE	-- end of hashtable reached
  */
-isc_result_t
-isc_ht_iter_delcurrent_next(isc_ht_iter_t *it);
-
+isc_result_t isc_ht_iter_delcurrent_next(isc_ht_iter_t *it);
 
 /*%
  * Set 'value' to the current value under the iterator
  */
-void
-isc_ht_iter_current(isc_ht_iter_t *it, void **valuep);
+void isc_ht_iter_current(isc_ht_iter_t *it, void **valuep);
 
 /*%
  * Set 'key' and 'keysize to the current key and keysize for the value
  * under the iterator
  */
-void
-isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize);
+void isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key,
+                            size_t *keysize);
 
 /*%
  * Returns the number of items in the hashtable.
@@ -150,6 +139,5 @@ isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize);
  * Requires:
  *\li	'ht' is a valid hashtable
  */
-unsigned int
-isc_ht_count(isc_ht_t *ht);
+unsigned int isc_ht_count(isc_ht_t *ht);
 #endif

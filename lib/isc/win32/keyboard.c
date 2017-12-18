@@ -12,13 +12,13 @@
 
 #include <sys/types.h>
 
-#include <windows.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <fcntl.h>
+#include <windows.h>
 
 #include <io.h>
 
@@ -26,7 +26,8 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_keyboard_open(isc_keyboard_t *keyboard) {
+isc_keyboard_open(isc_keyboard_t *keyboard)
+{
 	int fd;
 
 	REQUIRE(keyboard != NULL);
@@ -43,11 +44,12 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 }
 
 isc_result_t
-isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
+isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime)
+{
 	REQUIRE(keyboard != NULL);
 
 	if (sleeptime > 0 && keyboard->result != ISC_R_CANCELED)
-		(void)Sleep(sleeptime*1000);
+		(void)Sleep(sleeptime * 1000);
 
 	keyboard->fd = -1;
 
@@ -55,8 +57,9 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
 }
 
 isc_result_t
-isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
-	ssize_t cc;
+isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp)
+{
+	ssize_t       cc;
 	unsigned char c;
 
 	REQUIRE(keyboard != NULL);
@@ -74,7 +77,7 @@ isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 }
 
 isc_boolean_t
-isc_keyboard_canceled(isc_keyboard_t *keyboard) {
+isc_keyboard_canceled(isc_keyboard_t *keyboard)
+{
 	return (ISC_TF(keyboard->result == ISC_R_CANCELED));
 }
-

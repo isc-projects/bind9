@@ -21,14 +21,15 @@
 #include <isc/stdlib.h>
 
 isc_result_t
-isc_parse_uint32(isc_uint32_t *uip, const char *string, int base) {
+isc_parse_uint32(isc_uint32_t *uip, const char *string, int base)
+{
 	unsigned long n;
-	isc_uint32_t r;
-	char *e;
-	if (! isalnum((unsigned char)(string[0])))
+	isc_uint32_t  r;
+	char *        e;
+	if (!isalnum((unsigned char)(string[0])))
 		return (ISC_R_BADNUMBER);
 	errno = 0;
-	n = strtoul(string, &e, base);
+	n     = strtoul(string, &e, base);
 	if (*e != '\0')
 		return (ISC_R_BADNUMBER);
 	/*
@@ -44,7 +45,8 @@ isc_parse_uint32(isc_uint32_t *uip, const char *string, int base) {
 }
 
 isc_result_t
-isc_parse_uint16(isc_uint16_t *uip, const char *string, int base) {
+isc_parse_uint16(isc_uint16_t *uip, const char *string, int base)
+{
 	isc_uint32_t val;
 	isc_result_t result;
 	result = isc_parse_uint32(&val, string, base);
@@ -52,12 +54,13 @@ isc_parse_uint16(isc_uint16_t *uip, const char *string, int base) {
 		return (result);
 	if (val > 0xFFFF)
 		return (ISC_R_RANGE);
-	*uip = (isc_uint16_t) val;
+	*uip = (isc_uint16_t)val;
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_parse_uint8(isc_uint8_t *uip, const char *string, int base) {
+isc_parse_uint8(isc_uint8_t *uip, const char *string, int base)
+{
 	isc_uint32_t val;
 	isc_result_t result;
 	result = isc_parse_uint32(&val, string, base);
@@ -65,6 +68,6 @@ isc_parse_uint8(isc_uint8_t *uip, const char *string, int base) {
 		return (result);
 	if (val > 0xFF)
 		return (ISC_R_RANGE);
-	*uip = (isc_uint8_t) val;
+	*uip = (isc_uint8_t)val;
 	return (ISC_R_SUCCESS);
 }

@@ -17,8 +17,7 @@
 
 ISC_LANG_BEGINDECLS
 
-unsigned int
-isc_os_ncpus(void);
+unsigned int isc_os_ncpus(void);
 /*%<
  * Return the number of CPUs available on the system, or 1 if this cannot
  * be determined.

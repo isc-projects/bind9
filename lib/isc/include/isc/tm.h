@@ -17,18 +17,15 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-
 ISC_LANG_BEGINDECLS
 
-time_t
-isc_tm_timegm(struct tm *tm);
+time_t isc_tm_timegm(struct tm *tm);
 /*
  * Convert a tm structure to time_t, using UTC rather than the local
  * time zone.
  */
 
-char *
-isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm);
+char *isc_tm_strptime(const char *buf, const char *fmt, struct tm *tm);
 /*
  * Parse a formatted date string into struct tm.
  */

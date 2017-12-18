@@ -31,11 +31,11 @@ int fcntl(int, int, ...);
  */
 #include <io.h>
 #ifndef F_OK
-#define	F_OK	0
+#define F_OK 0
 #endif
 
 #ifndef X_OK
-#define	X_OK	1
+#define X_OK 1
 #endif
 
 #ifndef W_OK

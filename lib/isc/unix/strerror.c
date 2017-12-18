@@ -26,19 +26,22 @@
  * We need to do this this way for profiled locks.
  */
 static isc_mutex_t isc_strerror_lock;
-static void init_lock(void) {
+static void
+init_lock(void)
+{
 	RUNTIME_CHECK(isc_mutex_init(&isc_strerror_lock) == ISC_R_SUCCESS);
 }
 #else
-extern const char * const sys_errlist[];
-extern const int sys_nerr;
+extern const char *const sys_errlist[];
+extern const int         sys_nerr;
 #endif
 
 void
-isc__strerror(int num, char *buf, size_t size) {
+isc__strerror(int num, char *buf, size_t size)
+{
 #ifdef HAVE_STRERROR
-	char *msg;
-	unsigned int unum = (unsigned int)num;
+	char *            msg;
+	unsigned int      unum = (unsigned int)num;
 	static isc_once_t once = ISC_ONCE_INIT;
 
 	REQUIRE(buf != NULL);
@@ -53,13 +56,13 @@ isc__strerror(int num, char *buf, size_t size) {
 		snprintf(buf, size, "Unknown error: %u", unum);
 	UNLOCK(&isc_strerror_lock);
 #else
-	unsigned int unum = (unsigned int)num;
+        unsigned int unum = (unsigned int)num;
 
-	REQUIRE(buf != NULL);
+        REQUIRE(buf != NULL);
 
-	if (num >= 0 && num < sys_nerr)
-		snprintf(buf, size, "%s", sys_errlist[num]);
-	else
-		snprintf(buf, size, "Unknown error: %u", unum);
+        if (num >= 0 && num < sys_nerr)
+                snprintf(buf, size, "%s", sys_errlist[num]);
+        else
+                snprintf(buf, size, "Unknown error: %u", unum);
 #endif
 }

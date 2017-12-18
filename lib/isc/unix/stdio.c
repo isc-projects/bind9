@@ -13,14 +13,15 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <isc/stdio.h>
 #include <isc/stat.h>
+#include <isc/stdio.h>
 #include <isc/util.h>
 
 #include "errno2result.h"
 
 isc_result_t
-isc_stdio_open(const char *filename, const char *mode, FILE **fp) {
+isc_stdio_open(const char *filename, const char *mode, FILE **fp)
+{
 	FILE *f;
 
 	f = fopen(filename, mode);
@@ -31,7 +32,8 @@ isc_stdio_open(const char *filename, const char *mode, FILE **fp) {
 }
 
 isc_result_t
-isc_stdio_close(FILE *f) {
+isc_stdio_close(FILE *f)
+{
 	int r;
 
 	r = fclose(f);
@@ -42,7 +44,8 @@ isc_stdio_close(FILE *f) {
 }
 
 isc_result_t
-isc_stdio_seek(FILE *f, off_t offset, int whence) {
+isc_stdio_seek(FILE *f, off_t offset, int whence)
+{
 	int r;
 
 #ifdef HAVE_FSEEKO
@@ -57,7 +60,8 @@ isc_stdio_seek(FILE *f, off_t offset, int whence) {
 }
 
 isc_result_t
-isc_stdio_tell(FILE *f, off_t *offsetp) {
+isc_stdio_tell(FILE *f, off_t *offsetp)
+{
 	off_t r;
 
 	REQUIRE(offsetp != NULL);
@@ -75,9 +79,10 @@ isc_stdio_tell(FILE *f, off_t *offsetp) {
 }
 
 isc_result_t
-isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret) {
+isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	size_t r;
+	size_t       r;
 
 	clearerr(f);
 	r = fread(ptr, size, nmemb, f);
@@ -94,10 +99,10 @@ isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f, size_t *nret) {
 
 isc_result_t
 isc_stdio_write(const void *ptr, size_t size, size_t nmemb, FILE *f,
-	       size_t *nret)
+                size_t *nret)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	size_t r;
+	size_t       r;
 
 	clearerr(f);
 	r = fwrite(ptr, size, nmemb, f);
@@ -109,7 +114,8 @@ isc_stdio_write(const void *ptr, size_t size, size_t nmemb, FILE *f,
 }
 
 isc_result_t
-isc_stdio_flush(FILE *f) {
+isc_stdio_flush(FILE *f)
+{
 	int r;
 
 	r = fflush(f);
@@ -127,9 +133,10 @@ isc_stdio_flush(FILE *f) {
 #endif
 
 isc_result_t
-isc_stdio_sync(FILE *f) {
+isc_stdio_sync(FILE *f)
+{
 	struct stat buf;
-	int r;
+	int         r;
 
 	if (fstat(fileno(f), &buf) != 0)
 		return (isc__errno2result(errno));
@@ -146,4 +153,3 @@ isc_stdio_sync(FILE *f) {
 	else
 		return (isc__errno2result(errno));
 }
-

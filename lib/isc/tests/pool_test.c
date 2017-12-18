@@ -22,22 +22,24 @@
 #include "isctest.h"
 
 static isc_result_t
-poolinit(void **target, void *arg) {
+poolinit(void **target, void *arg)
+{
 	isc_result_t result;
 
-	isc_taskmgr_t *mgr = (isc_taskmgr_t *) arg;
-	isc_task_t *task = NULL;
-	result = isc_task_create(mgr, 0, &task);
+	isc_taskmgr_t *mgr  = (isc_taskmgr_t *)arg;
+	isc_task_t *   task = NULL;
+	result              = isc_task_create(mgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	*target = (void *) task;
+	*target = (void *)task;
 	return (ISC_R_SUCCESS);
 }
 
 static void
-poolfree(void **target) {
-	isc_task_t *task = *(isc_task_t **) target;
+poolfree(void **target)
+{
+	isc_task_t *task = *(isc_task_t **)target;
 	isc_task_destroy(&task);
 	*target = NULL;
 }
@@ -48,12 +50,14 @@ poolfree(void **target) {
 
 /* Create a pool */
 ATF_TC(create_pool);
-ATF_TC_HEAD(create_pool, tc) {
+ATF_TC_HEAD(create_pool, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "create a pool");
 }
-ATF_TC_BODY(create_pool, tc) {
+ATF_TC_BODY(create_pool, tc)
+{
 	isc_result_t result;
-	isc_pool_t *pool = NULL;
+	isc_pool_t * pool = NULL;
 
 	UNUSED(tc);
 
@@ -72,12 +76,14 @@ ATF_TC_BODY(create_pool, tc) {
 
 /* Resize a pool */
 ATF_TC(expand_pool);
-ATF_TC_HEAD(expand_pool, tc) {
+ATF_TC_HEAD(expand_pool, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "expand a pool");
 }
-ATF_TC_BODY(expand_pool, tc) {
+ATF_TC_BODY(expand_pool, tc)
+{
 	isc_result_t result;
-	isc_pool_t *pool1 = NULL, *pool2 = NULL, *hold = NULL;
+	isc_pool_t * pool1 = NULL, *pool2 = NULL, *hold = NULL;
 
 	UNUSED(tc);
 
@@ -89,7 +95,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	ATF_REQUIRE_EQ(isc_pool_count(pool1), 10);
 
 	/* resizing to a smaller size should have no effect */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_pool_expand(&pool1, 5, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_pool_count(pool2), 10);
@@ -99,7 +105,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	pool2 = NULL;
 
 	/* resizing to the same size should have no effect */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_pool_expand(&pool1, 10, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_pool_count(pool2), 10);
@@ -109,7 +115,7 @@ ATF_TC_BODY(expand_pool, tc) {
 	pool2 = NULL;
 
 	/* resizing to larger size should make a new pool */
-	hold = pool1;
+	hold   = pool1;
 	result = isc_pool_expand(&pool1, 20, &pool2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_pool_count(pool2), 20);
@@ -124,14 +130,13 @@ ATF_TC_BODY(expand_pool, tc) {
 
 /* Get objects */
 ATF_TC(get_objects);
-ATF_TC_HEAD(get_objects, tc) {
-	atf_tc_set_md_var(tc, "descr", "get objects");
-}
-ATF_TC_BODY(get_objects, tc) {
+ATF_TC_HEAD(get_objects, tc) { atf_tc_set_md_var(tc, "descr", "get objects"); }
+ATF_TC_BODY(get_objects, tc)
+{
 	isc_result_t result;
-	isc_pool_t *pool = NULL;
-	void *item;
-	isc_task_t *task1 = NULL, *task2 = NULL, *task3 = NULL;
+	isc_pool_t * pool = NULL;
+	void *       item;
+	isc_task_t * task1 = NULL, *task2 = NULL, *task3 = NULL;
 
 	UNUSED(tc);
 
@@ -144,15 +149,15 @@ ATF_TC_BODY(get_objects, tc) {
 
 	item = isc_pool_get(pool);
 	ATF_REQUIRE(item != NULL);
-	isc_task_attach((isc_task_t *) item, &task1);
+	isc_task_attach((isc_task_t *)item, &task1);
 
 	item = isc_pool_get(pool);
 	ATF_REQUIRE(item != NULL);
-	isc_task_attach((isc_task_t *) item, &task2);
+	isc_task_attach((isc_task_t *)item, &task2);
 
 	item = isc_pool_get(pool);
 	ATF_REQUIRE(item != NULL);
-	isc_task_attach((isc_task_t *) item, &task3);
+	isc_task_attach((isc_task_t *)item, &task3);
 
 	isc_task_detach(&task1);
 	isc_task_detach(&task2);
@@ -164,15 +169,14 @@ ATF_TC_BODY(get_objects, tc) {
 	isc_test_end();
 }
 
-
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, create_pool);
 	ATF_TP_ADD_TC(tp, expand_pool);
 	ATF_TP_ADD_TC(tp, get_objects);
 
 	return (atf_no_error());
 }
-

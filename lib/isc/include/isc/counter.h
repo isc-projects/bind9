@@ -36,14 +36,13 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp);
+isc_result_t isc_counter_create(isc_mem_t *mctx, int limit,
+                                isc_counter_t **counterp);
 /*%<
  * Allocate and initialize a counter object.
  */
 
-isc_result_t
-isc_counter_increment(isc_counter_t *counter);
+isc_result_t isc_counter_increment(isc_counter_t *counter);
 /*%<
  * Increment the counter.
  *
@@ -52,26 +51,22 @@ isc_counter_increment(isc_counter_t *counter);
  * incremented regardless of return value.)
  */
 
-unsigned int
-isc_counter_used(isc_counter_t *counter);
+unsigned int isc_counter_used(isc_counter_t *counter);
 /*%<
  * Return the current counter value.
  */
 
-void
-isc_counter_setlimit(isc_counter_t *counter, int limit);
+void isc_counter_setlimit(isc_counter_t *counter, int limit);
 /*%<
  * Set the counter limit.
  */
 
-void
-isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp);
+void isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp);
 /*%<
  * Attach to a counter object, increasing its reference counter.
  */
 
-void
-isc_counter_detach(isc_counter_t **counterp);
+void isc_counter_detach(isc_counter_t **counterp);
 /*%<
  * Detach (and destroy if reference counter has dropped to zero)
  * a counter object.

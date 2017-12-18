@@ -13,7 +13,7 @@
 
 /* XXXDCL this should be moved to lib/isc/include/isc/errno2result.h. */
 
-#include <errno.h>		/* Provides errno. */
+#include <errno.h> /* Provides errno. */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -22,9 +22,8 @@ ISC_LANG_BEGINDECLS
 
 #define isc__errno2result(x) isc___errno2result(x, ISC_TRUE, __FILE__, __LINE__)
 
-isc_result_t
-isc___errno2result(int posixerrno, isc_boolean_t dolog,
-		   const char *file, unsigned int line);
+isc_result_t isc___errno2result(int posixerrno, isc_boolean_t dolog,
+                                const char *file, unsigned int line);
 
 ISC_LANG_ENDDECLS
 

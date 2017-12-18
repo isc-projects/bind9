@@ -16,8 +16,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_syslog_facilityfromstring(const char *str, int *facilityp);
+isc_result_t isc_syslog_facilityfromstring(const char *str, int *facilityp);
 /*
  * Convert 'str' to the appropriate syslog facility constant.
  *

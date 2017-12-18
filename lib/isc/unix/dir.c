@@ -13,8 +13,8 @@
 
 #include <config.h>
 
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <ctype.h>
 #include <errno.h>
@@ -29,15 +29,16 @@
 
 #include "errno2result.h"
 
-#define ISC_DIR_MAGIC		ISC_MAGIC('D', 'I', 'R', '*')
-#define VALID_DIR(dir)		ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
+#define ISC_DIR_MAGIC ISC_MAGIC('D', 'I', 'R', '*')
+#define VALID_DIR(dir) ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
 
 void
-isc_dir_init(isc_dir_t *dir) {
+isc_dir_init(isc_dir_t *dir)
+{
 	REQUIRE(dir != NULL);
 
 	dir->entry.name[0] = '\0';
-	dir->entry.length = 0;
+	dir->entry.length  = 0;
 
 	dir->handle = NULL;
 
@@ -49,8 +50,9 @@ isc_dir_init(isc_dir_t *dir) {
  * NULL will be returned.
  */
 isc_result_t
-isc_dir_open(isc_dir_t *dir, const char *dirname) {
-	char *p;
+isc_dir_open(isc_dir_t *dir, const char *dirname)
+{
+	char *       p;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_DIR(dir));
@@ -73,7 +75,7 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	if (dir->dirname < p && *(p - 1) != '/')
 		*p++ = '/';
 	*p++ = '*';
-	*p = '\0';
+	*p   = '\0';
 
 	/*
 	 * Open stream.
@@ -95,7 +97,8 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
  * the dir stream and reads the first file in one operation.
  */
 isc_result_t
-isc_dir_read(isc_dir_t *dir) {
+isc_dir_read(isc_dir_t *dir)
+{
 	struct dirent *entry;
 
 	REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
@@ -128,18 +131,20 @@ isc_dir_read(isc_dir_t *dir) {
  * \brief Close directory stream.
  */
 void
-isc_dir_close(isc_dir_t *dir) {
-       REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
+isc_dir_close(isc_dir_t *dir)
+{
+	REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
 
-       (void)closedir(dir->handle);
-       dir->handle = NULL;
+	(void)closedir(dir->handle);
+	dir->handle = NULL;
 }
 
 /*!
  * \brief Reposition directory stream at start.
  */
 isc_result_t
-isc_dir_reset(isc_dir_t *dir) {
+isc_dir_reset(isc_dir_t *dir)
+{
 	REQUIRE(VALID_DIR(dir) && dir->handle != NULL);
 
 	rewinddir(dir->handle);
@@ -148,7 +153,8 @@ isc_dir_reset(isc_dir_t *dir) {
 }
 
 isc_result_t
-isc_dir_chdir(const char *dirname) {
+isc_dir_chdir(const char *dirname)
+{
 	/*!
 	 * \brief Change the current directory to 'dirname'.
 	 */
@@ -162,7 +168,8 @@ isc_dir_chdir(const char *dirname) {
 }
 
 isc_result_t
-isc_dir_chroot(const char *dirname) {
+isc_dir_chroot(const char *dirname)
+{
 #ifdef HAVE_CHROOT
 	void *tmp;
 #endif
@@ -178,7 +185,7 @@ isc_dir_chroot(const char *dirname) {
 	 */
 	tmp = getprotobyname("udp");
 	if (tmp != NULL)
-		(void) getservbyname("domain", "udp");
+		(void)getservbyname("domain", "udp");
 
 	if (chroot(dirname) < 0 || chdir("/") < 0)
 		return (isc__errno2result(errno));
@@ -190,12 +197,13 @@ isc_dir_chroot(const char *dirname) {
 }
 
 isc_result_t
-isc_dir_createunique(char *templet) {
+isc_dir_createunique(char *templet)
+{
 	isc_result_t result;
-	char *x;
-	char *p;
-	int i;
-	int pid;
+	char *       x;
+	char *       p;
+	int          i;
+	int          pid;
 
 	REQUIRE(templet != NULL);
 
@@ -212,7 +220,7 @@ isc_dir_createunique(char *templet) {
 	     x--, pid /= 10)
 		*x = pid % 10 + '0';
 
-	x++;			/* Set x to start of ex-Xs. */
+	x++; /* Set x to start of ex-Xs. */
 
 	do {
 		i = mkdir(templet, 0700);

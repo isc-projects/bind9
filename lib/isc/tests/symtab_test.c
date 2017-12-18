@@ -16,13 +16,14 @@
 
 #include <unistd.h>
 
-#include <isc/symtab.h>
 #include <isc/print.h>
+#include <isc/symtab.h>
 
 #include "isctest.h"
 
 static void
-undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
+undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg)
+{
 	UNUSED(arg);
 
 	ATF_REQUIRE_EQ(type, 1);
@@ -35,15 +36,17 @@ undefine(char *key, unsigned int type, isc_symvalue_t value, void *arg) {
  */
 
 ATF_TC(symtab_grow);
-ATF_TC_HEAD(symtab_grow, tc) {
+ATF_TC_HEAD(symtab_grow, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "symbol table growth");
 }
-ATF_TC_BODY(symtab_grow, tc) {
-	isc_result_t result;
-	isc_symtab_t *st = NULL;
-	isc_symvalue_t value;
+ATF_TC_BODY(symtab_grow, tc)
+{
+	isc_result_t    result;
+	isc_symtab_t *  st = NULL;
+	isc_symvalue_t  value;
 	isc_symexists_t policy = isc_symexists_reject;
-	int i;
+	int             i;
 
 	UNUSED(tc);
 
@@ -131,9 +134,9 @@ ATF_TC_BODY(symtab_grow, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, symtab_grow);
 
 	return (atf_no_error());
 }
-

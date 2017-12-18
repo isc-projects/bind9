@@ -20,23 +20,23 @@
  * returns the previous value.
  */
 static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, int val) {
+isc_atomic_xadd(isc_int32_t *p, int val)
+{
 	isc_int32_t orig;
 
-	__asm__ __volatile__ (
-	"	.set	push		\n"
-	"	.set	mips2		\n"
-	"	.set	noreorder	\n"
-	"	.set	noat		\n"
-	"1:	ll	$1, %1		\n"
-	"	addu	%0, $1, %2	\n"
-	"	sc	%0, %1		\n"
-	"	beqz	%0, 1b		\n"
-	"	move	%0, $1		\n"
-	"	.set	pop		\n"
-	: "=&r" (orig), "+R" (*p)
-	: "r" (val)
-	: "memory");
+	__asm__ __volatile__("	.set	push		\n"
+	                     "	.set	mips2		\n"
+	                     "	.set	noreorder	\n"
+	                     "	.set	noat		\n"
+	                     "1:	ll	$1, %1		\n"
+	                     "	addu	%0, $1, %2	\n"
+	                     "	sc	%0, %1		\n"
+	                     "	beqz	%0, 1b		\n"
+	                     "	move	%0, $1		\n"
+	                     "	.set	pop		\n"
+	                     : "=&r"(orig), "+R"(*p)
+	                     : "r"(val)
+	                     : "memory");
 
 	return (orig);
 }
@@ -45,7 +45,8 @@ isc_atomic_xadd(isc_int32_t *p, int val) {
  * This routine atomically stores the value 'val' in 'p'.
  */
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+{
 	*p = val;
 }
 
@@ -55,25 +56,25 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * case.
  */
 static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, int cmpval, int val) {
+isc_atomic_cmpxchg(isc_int32_t *p, int cmpval, int val)
+{
 	isc_int32_t orig;
 	isc_int32_t tmp;
 
-	__asm__ __volatile__ (
-	"	.set	push		\n"
-	"	.set	mips2		\n"
-	"	.set	noreorder	\n"
-	"	.set	noat		\n"
-	"1:	ll	$1, %1		\n"
-	"	bne	$1, %3, 2f	\n"
-	"	move	%2, %4		\n"
-	"	sc	%2, %1		\n"
-	"	beqz	%2, 1b		\n"
-	"2:	move	%0, $1		\n"
-	"	.set	pop		\n"
-	: "=&r"(orig), "+R" (*p), "=r" (tmp)
-	: "r"(cmpval), "r"(val)
-	: "memory");
+	__asm__ __volatile__("	.set	push		\n"
+	                     "	.set	mips2		\n"
+	                     "	.set	noreorder	\n"
+	                     "	.set	noat		\n"
+	                     "1:	ll	$1, %1		\n"
+	                     "	bne	$1, %3, 2f	\n"
+	                     "	move	%2, %4		\n"
+	                     "	sc	%2, %1		\n"
+	                     "	beqz	%2, 1b		\n"
+	                     "2:	move	%0, $1		\n"
+	                     "	.set	pop		\n"
+	                     : "=&r"(orig), "+R"(*p), "=r"(tmp)
+	                     : "r"(cmpval), "r"(val)
+	                     : "memory");
 
 	return (orig);
 }

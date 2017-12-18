@@ -14,8 +14,8 @@
  * compiled via inclusion from the relevant OS source file, ie,
  * \link unix/entropy.c unix/entropy.c \endlink or win32/entropy.c.
  *
- * \author Much of this code is modeled after the NetBSD /dev/random implementation,
- * written by Michael Graff <explorer@netbsd.org>.
+ * \author Much of this code is modeled after the NetBSD /dev/random
+ * implementation, written by Michael Graff <explorer@netbsd.org>.
  */
 
 #include <errno.h>
@@ -43,11 +43,11 @@
 #include <pk11/pk11.h>
 #endif
 
-#define ENTROPY_MAGIC		ISC_MAGIC('E', 'n', 't', 'e')
-#define SOURCE_MAGIC		ISC_MAGIC('E', 'n', 't', 's')
+#define ENTROPY_MAGIC ISC_MAGIC('E', 'n', 't', 'e')
+#define SOURCE_MAGIC ISC_MAGIC('E', 'n', 't', 's')
 
-#define VALID_ENTROPY(e)	ISC_MAGIC_VALID(e, ENTROPY_MAGIC)
-#define VALID_SOURCE(s)		ISC_MAGIC_VALID(s, SOURCE_MAGIC)
+#define VALID_ENTROPY(e) ISC_MAGIC_VALID(e, ENTROPY_MAGIC)
+#define VALID_SOURCE(s) ISC_MAGIC_VALID(s, SOURCE_MAGIC)
 
 /***
  *** "constants."  Do not change these unless you _really_ know what
@@ -57,23 +57,23 @@
 /*%
  * Size of entropy pool in 32-bit words.  This _MUST_ be a power of 2.
  */
-#define RND_POOLWORDS	128
+#define RND_POOLWORDS 128
 /*% Pool in bytes. */
-#define RND_POOLBYTES	(RND_POOLWORDS * 4)
+#define RND_POOLBYTES (RND_POOLWORDS * 4)
 /*% Pool in bits. */
-#define RND_POOLBITS	(RND_POOLWORDS * 32)
+#define RND_POOLBITS (RND_POOLWORDS * 32)
 
 /*%
  * Number of bytes returned per hash.  This must be true:
  *	threshold * 2 <= digest_size_in_bytes
  */
-#define RND_ENTROPY_THRESHOLD	10
-#define THRESHOLD_BITS		(RND_ENTROPY_THRESHOLD * 8)
+#define RND_ENTROPY_THRESHOLD 10
+#define THRESHOLD_BITS (RND_ENTROPY_THRESHOLD * 8)
 
 /*%
  * Size of the input event queue in samples.
  */
-#define RND_EVENTQSIZE	32
+#define RND_EVENTQSIZE 32
 
 /*%
  * The number of times we'll "reseed" for pseudorandom seeds.  This is an
@@ -82,29 +82,29 @@
  * there is little we can do other than hope they're smart enough to
  * call _adddata() with something better than we can come up with.
  */
-#define RND_INITIALIZE	128
+#define RND_INITIALIZE 128
 
 /*% Entropy Pool */
 typedef struct {
-	isc_uint32_t	cursor;		/*%< current add point in the pool */
-	isc_uint32_t	entropy;	/*%< current entropy estimate in bits */
-	isc_uint32_t	pseudo;		/*%< bits extracted in pseudorandom */
-	isc_uint32_t	rotate;		/*%< how many bits to rotate by */
-	isc_uint32_t	pool[RND_POOLWORDS];	/*%< random pool data */
+	isc_uint32_t cursor;  /*%< current add point in the pool */
+	isc_uint32_t entropy; /*%< current entropy estimate in bits */
+	isc_uint32_t pseudo;  /*%< bits extracted in pseudorandom */
+	isc_uint32_t rotate;  /*%< how many bits to rotate by */
+	isc_uint32_t pool[RND_POOLWORDS]; /*%< random pool data */
 } isc_entropypool_t;
 
 struct isc_entropy {
-	unsigned int			magic;
-	isc_mem_t		       *mctx;
-	isc_mutex_t			lock;
-	unsigned int			refcnt;
-	isc_uint32_t			initialized;
-	isc_uint32_t			initcount;
-	isc_entropypool_t		pool;
-	isc_boolean_t			usehook;
-	unsigned int			nsources;
-	isc_entropysource_t	       *nextsource;
-	ISC_LIST(isc_entropysource_t)	sources;
+	unsigned int         magic;
+	isc_mem_t *          mctx;
+	isc_mutex_t          lock;
+	unsigned int         refcnt;
+	isc_uint32_t         initialized;
+	isc_uint32_t         initcount;
+	isc_entropypool_t    pool;
+	isc_boolean_t        usehook;
+	unsigned int         nsources;
+	isc_entropysource_t *nextsource;
+	ISC_LIST(isc_entropysource_t) sources;
 };
 
 /*% Global Hook */
@@ -112,25 +112,25 @@ static isc_entropy_getdata_t hook;
 
 /*% Sample Queue */
 typedef struct {
-	isc_uint32_t	last_time;	/*%< last time recorded */
-	isc_uint32_t	last_delta;	/*%< last delta value */
-	isc_uint32_t	last_delta2;	/*%< last delta2 value */
-	isc_uint32_t	nsamples;	/*%< number of samples filled in */
-	isc_uint32_t   *samples;	/*%< the samples */
-	isc_uint32_t   *extra;		/*%< extra samples added in */
+	isc_uint32_t  last_time;   /*%< last time recorded */
+	isc_uint32_t  last_delta;  /*%< last delta value */
+	isc_uint32_t  last_delta2; /*%< last delta2 value */
+	isc_uint32_t  nsamples;    /*%< number of samples filled in */
+	isc_uint32_t *samples;     /*%< the samples */
+	isc_uint32_t *extra;       /*%< extra samples added in */
 } sample_queue_t;
 
 typedef struct {
-	sample_queue_t	samplequeue;
+	sample_queue_t samplequeue;
 } isc_entropysamplesource_t;
 
 typedef struct {
-	isc_boolean_t		start_called;
-	isc_entropystart_t	startfunc;
-	isc_entropyget_t	getfunc;
-	isc_entropystop_t	stopfunc;
-	void		       *arg;
-	sample_queue_t		samplequeue;
+	isc_boolean_t      start_called;
+	isc_entropystart_t startfunc;
+	isc_entropyget_t   getfunc;
+	isc_entropystop_t  stopfunc;
+	void *             arg;
+	sample_queue_t     samplequeue;
 } isc_cbsource_t;
 
 typedef struct {
@@ -138,37 +138,37 @@ typedef struct {
 } isc_entropyfilesource_t;
 
 struct isc_entropysource {
-	unsigned int	magic;
-	unsigned int	type;
-	isc_entropy_t  *ent;
-	isc_uint32_t	total;		/*%< entropy from this source */
-	ISC_LINK(isc_entropysource_t)	link;
-	char		name[32];
-	isc_boolean_t	bad;
-	isc_boolean_t	warn_keyboard;
-	isc_keyboard_t	kbd;
+	unsigned int   magic;
+	unsigned int   type;
+	isc_entropy_t *ent;
+	isc_uint32_t   total; /*%< entropy from this source */
+	ISC_LINK(isc_entropysource_t) link;
+	char           name[32];
+	isc_boolean_t  bad;
+	isc_boolean_t  warn_keyboard;
+	isc_keyboard_t kbd;
 	union {
-		isc_entropysamplesource_t	sample;
-		isc_entropyfilesource_t		file;
-		isc_cbsource_t			callback;
-		isc_entropyusocketsource_t	usocket;
+		isc_entropysamplesource_t  sample;
+		isc_entropyfilesource_t    file;
+		isc_cbsource_t             callback;
+		isc_entropyusocketsource_t usocket;
 	} sources;
 };
 
-#define ENTROPY_SOURCETYPE_SAMPLE	1	/*%< Type is a sample source */
-#define ENTROPY_SOURCETYPE_FILE		2	/*%< Type is a file source */
-#define ENTROPY_SOURCETYPE_CALLBACK	3	/*%< Type is a callback source */
-#define ENTROPY_SOURCETYPE_USOCKET	4	/*%< Type is a Unix socket source */
+#define ENTROPY_SOURCETYPE_SAMPLE 1   /*%< Type is a sample source */
+#define ENTROPY_SOURCETYPE_FILE 2     /*%< Type is a file source */
+#define ENTROPY_SOURCETYPE_CALLBACK 3 /*%< Type is a callback source */
+#define ENTROPY_SOURCETYPE_USOCKET 4  /*%< Type is a Unix socket source */
 
 /*@{*/
 /*%
  * The random pool "taps"
  */
-#define TAP1	99
-#define TAP2	59
-#define TAP3	31
-#define TAP4	 9
-#define TAP5	 7
+#define TAP1 99
+#define TAP2 59
+#define TAP3 31
+#define TAP4 9
+#define TAP5 7
 /*@}*/
 
 /*@{*/
@@ -176,33 +176,31 @@ struct isc_entropysource {
  * Declarations for function provided by the system dependent sources that
  * include this file.
  */
-static void
-fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
+static void fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
 
-static int
-wait_for_sources(isc_entropy_t *);
+static int wait_for_sources(isc_entropy_t *);
 
-static void
-destroyfilesource(isc_entropyfilesource_t *source);
+static void destroyfilesource(isc_entropyfilesource_t *source);
 
-static void
-destroyusocketsource(isc_entropyusocketsource_t *source);
+static void destroyusocketsource(isc_entropyusocketsource_t *source);
 
 /*@}*/
 
 static void
-samplequeue_release(isc_entropy_t *ent, sample_queue_t *sq) {
+samplequeue_release(isc_entropy_t *ent, sample_queue_t *sq)
+{
 	REQUIRE(sq->samples != NULL);
 	REQUIRE(sq->extra != NULL);
 
 	isc_mem_put(ent->mctx, sq->samples, RND_EVENTQSIZE * 4);
 	isc_mem_put(ent->mctx, sq->extra, RND_EVENTQSIZE * 4);
 	sq->samples = NULL;
-	sq->extra = NULL;
+	sq->extra   = NULL;
 }
 
 static isc_result_t
-samplesource_allocate(isc_entropy_t *ent, sample_queue_t *sq) {
+samplesource_allocate(isc_entropy_t *ent, sample_queue_t *sq)
+{
 	sq->samples = isc_mem_get(ent->mctx, RND_EVENTQSIZE * 4);
 	if (sq->samples == NULL)
 		return (ISC_R_NOMEMORY);
@@ -224,7 +222,8 @@ samplesource_allocate(isc_entropy_t *ent, sample_queue_t *sq) {
  * very large.
  */
 static inline void
-add_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
+add_entropy(isc_entropy_t *ent, isc_uint32_t entropy)
+{
 	/* clamp input.  Yes, this must be done. */
 	entropy = ISC_MIN(entropy, RND_POOLBITS);
 	/* Add in the entropy we already have. */
@@ -237,7 +236,8 @@ add_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
  * Decrement the amount of entropy the pool has.
  */
 static inline void
-subtract_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
+subtract_entropy(isc_entropy_t *ent, isc_uint32_t entropy)
+{
 	entropy = ISC_MIN(entropy, ent->pool.entropy);
 	ent->pool.entropy -= entropy;
 }
@@ -247,7 +247,8 @@ subtract_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
  * very large.
  */
 static inline void
-add_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
+add_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo)
+{
 	/* clamp input.  Yes, this must be done. */
 	pseudo = ISC_MIN(pseudo, RND_POOLBITS * 8);
 	/* Add in the pseudo we already have. */
@@ -260,7 +261,8 @@ add_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
  * Decrement the amount of pseudo the pool has.
  */
 static inline void
-subtract_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
+subtract_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo)
+{
 	pseudo = ISC_MIN(pseudo, ent->pool.pseudo);
 	ent->pool.pseudo -= pseudo;
 }
@@ -269,7 +271,8 @@ subtract_pseudo(isc_entropy_t *ent, isc_uint32_t pseudo) {
  * Add one word to the pool, rotating the input as needed.
  */
 static inline void
-entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
+entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val)
+{
 	/*
 	 * Steal some values out of the pool, and xor them into the
 	 * word we were given.
@@ -287,7 +290,7 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
 		rp->pool[rp->cursor++] ^= val;
 	else
 		rp->pool[rp->cursor++] ^=
-		  ((val << rp->rotate) | (val >> (32 - rp->rotate)));
+		        ((val << rp->rotate) | (val >> (32 - rp->rotate)));
 
 	/*
 	 * If we have looped around the pool, increment the rotate
@@ -310,11 +313,11 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
  */
 static void
 entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
-		    isc_uint32_t entropy)
+                    isc_uint32_t entropy)
 {
-	isc_uint32_t val;
+	isc_uint32_t  val;
 	unsigned long addr;
-	isc_uint8_t *buf;
+	isc_uint8_t * buf;
 
 	/* Silly MSVC in 64 bit mode complains here... */
 #ifdef _WIN64
@@ -335,9 +338,7 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 			val = val << 8 | *buf++;
 			len--;
 			/* FALLTHROUGH */
-		case 1:
-			val = val << 8 | *buf++;
-			len--;
+		case 1: val = val << 8 | *buf++; len--;
 		}
 
 		entropypool_add_word(&ent->pool, val);
@@ -359,8 +360,7 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		case 2:
 			val = val << 8 | *buf++;
 			/* FALLTHROUGH */
-		case 1:
-			val = val << 8 | *buf++;
+		case 1: val = val << 8 | *buf++;
 		}
 
 		entropypool_add_word(&ent->pool, val);
@@ -371,9 +371,10 @@ entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 }
 
 static inline void
-reseed(isc_entropy_t *ent) {
+reseed(isc_entropy_t *ent)
+{
 	isc_time_t t;
-	pid_t pid;
+	pid_t      pid;
 
 	if (ent->initcount == 0) {
 		pid = getpid();
@@ -397,10 +398,11 @@ reseed(isc_entropy_t *ent) {
 }
 
 static inline unsigned int
-estimate_entropy(sample_queue_t *sq, isc_uint32_t t) {
-	isc_int32_t		delta;
-	isc_int32_t		delta2;
-	isc_int32_t		delta3;
+estimate_entropy(sample_queue_t *sq, isc_uint32_t t)
+{
+	isc_int32_t delta;
+	isc_int32_t delta2;
+	isc_int32_t delta3;
 
 	/*!
 	 * If the time counter has overflowed, calculate the real difference.
@@ -425,8 +427,8 @@ estimate_entropy(sample_queue_t *sq, isc_uint32_t t) {
 	if (delta3 < 0)
 		delta3 = -delta3;
 
-	sq->last_time = t;
-	sq->last_delta = delta;
+	sq->last_time   = t;
+	sq->last_delta  = delta;
 	sq->last_delta2 = delta2;
 
 	/*
@@ -444,16 +446,17 @@ estimate_entropy(sample_queue_t *sq, isc_uint32_t t) {
 }
 
 static unsigned int
-crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
+crunchsamples(isc_entropy_t *ent, sample_queue_t *sq)
+{
 	unsigned int ns;
 	unsigned int added;
 
 	if (sq->nsamples < 6)
 		return (0);
 
-	added = 0;
-	sq->last_time = sq->samples[0];
-	sq->last_delta = 0;
+	added           = 0;
+	sq->last_time   = sq->samples[0];
+	sq->last_delta  = 0;
 	sq->last_delta2 = 0;
 
 	/*
@@ -475,7 +478,7 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 	 */
 	for (ns = 0; ns < 4; ns++) {
 		sq->samples[ns] = sq->samples[sq->nsamples - 4 + ns];
-		sq->extra[ns] = sq->extra[sq->nsamples - 4 + ns];
+		sq->extra[ns]   = sq->extra[sq->nsamples - 4 + ns];
 	}
 
 	sq->nsamples = 4;
@@ -485,13 +488,13 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 
 static unsigned int
 get_from_callback(isc_entropysource_t *source, unsigned int desired,
-		  isc_boolean_t blocking)
+                  isc_boolean_t blocking)
 {
-	isc_entropy_t *ent = source->ent;
+	isc_entropy_t * ent = source->ent;
 	isc_cbsource_t *cbs = &source->sources.callback;
-	unsigned int added;
-	unsigned int got;
-	isc_result_t result;
+	unsigned int    added;
+	unsigned int    got;
+	isc_result_t    result;
 
 	if (desired == 0)
 		return (0);
@@ -506,7 +509,7 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
 		cbs->start_called = ISC_TRUE;
 	}
 
-	added = 0;
+	added  = 0;
 	result = ISC_R_SUCCESS;
 	while (desired > 0 && result == ISC_R_SUCCESS) {
 		result = cbs->getfunc(source, cbs->arg, blocking);
@@ -516,9 +519,8 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
 			desired -= ISC_MIN(got, desired);
 			result = ISC_R_SUCCESS;
 		} else if (result != ISC_R_SUCCESS &&
-			   result != ISC_R_NOTBLOCKING)
+		           result != ISC_R_NOTBLOCKING)
 			source->bad = ISC_TRUE;
-
 	}
 
 	return (added);
@@ -537,13 +539,13 @@ get_from_callback(isc_entropysource_t *source, unsigned int desired,
  */
 isc_result_t
 isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    unsigned int *returned, unsigned int flags)
+                    unsigned int *returned, unsigned int flags)
 {
-	unsigned int i;
-	isc_sha1_t hash;
+	unsigned int  i;
+	isc_sha1_t    hash;
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-	isc_uint32_t remain, deltae, count, total;
-	isc_uint8_t *buf;
+	isc_uint32_t  remain, deltae, count, total;
+	isc_uint8_t * buf;
 	isc_boolean_t goodonly, partial, blocking;
 
 	REQUIRE(VALID_ENTROPY(ent));
@@ -551,7 +553,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 	REQUIRE(length > 0);
 
 	goodonly = ISC_TF((flags & ISC_ENTROPY_GOODONLY) != 0);
-	partial = ISC_TF((flags & ISC_ENTROPY_PARTIAL) != 0);
+	partial  = ISC_TF((flags & ISC_ENTROPY_PARTIAL) != 0);
 	blocking = ISC_TF((flags & ISC_ENTROPY_BLOCKING) != 0);
 
 	REQUIRE(!partial || returned != NULL);
@@ -564,8 +566,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 	}
 
 	remain = length;
-	buf = data;
-	total = 0;
+	buf    = data;
+	total  = 0;
 	while (remain != 0) {
 		count = ISC_MIN(remain, RND_ENTROPY_THRESHOLD);
 
@@ -621,8 +623,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		}
 
 		isc_sha1_init(&hash);
-		isc_sha1_update(&hash, (void *)(ent->pool.pool),
-				RND_POOLBYTES);
+		isc_sha1_update(&hash, (void *)(ent->pool.pool), RND_POOLBYTES);
 		isc_sha1_final(&hash, digest);
 
 		/*
@@ -643,7 +644,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		add_pseudo(ent, count * 8);
 	}
 
- partial_output:
+partial_output:
 	isc_safe_memwipe(digest, sizeof(digest));
 
 	if (returned != NULL)
@@ -653,7 +654,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 	return (ISC_R_SUCCESS);
 
- zeroize:
+zeroize:
 	/* put the entropy we almost extracted back */
 	add_entropy(ent, total);
 	isc_safe_memwipe(data, length);
@@ -667,26 +668,29 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 }
 
 static void
-isc_entropypool_init(isc_entropypool_t *pool) {
-	pool->cursor = RND_POOLWORDS - 1;
+isc_entropypool_init(isc_entropypool_t *pool)
+{
+	pool->cursor  = RND_POOLWORDS - 1;
 	pool->entropy = 0;
-	pool->pseudo = 0;
-	pool->rotate = 0;
+	pool->pseudo  = 0;
+	pool->rotate  = 0;
 	memset(pool->pool, 0, RND_POOLBYTES);
 }
 
 static void
-isc_entropypool_invalidate(isc_entropypool_t *pool) {
-	pool->cursor = 0;
+isc_entropypool_invalidate(isc_entropypool_t *pool)
+{
+	pool->cursor  = 0;
 	pool->entropy = 0;
-	pool->pseudo = 0;
-	pool->rotate = 0;
+	pool->pseudo  = 0;
+	pool->rotate  = 0;
 	memset(pool->pool, 0, RND_POOLBYTES);
 }
 
 isc_result_t
-isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
-	isc_result_t result;
+isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp)
+{
+	isc_result_t   result;
 	isc_entropy_t *ent;
 
 	REQUIRE(mctx != NULL);
@@ -708,21 +712,21 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	 */
 	ISC_LIST_INIT(ent->sources);
 	ent->nextsource = NULL;
-	ent->nsources = 0;
-	ent->mctx = NULL;
+	ent->nsources   = 0;
+	ent->mctx       = NULL;
 	isc_mem_attach(mctx, &ent->mctx);
-	ent->refcnt = 1;
+	ent->refcnt      = 1;
 	ent->initialized = 0;
-	ent->initcount = 0;
-	ent->usehook = ISC_FALSE;
-	ent->magic = ENTROPY_MAGIC;
+	ent->initcount   = 0;
+	ent->usehook     = ISC_FALSE;
+	ent->magic       = ENTROPY_MAGIC;
 
 	isc_entropypool_init(&ent->pool);
 
 	*entp = ent;
 	return (ISC_R_SUCCESS);
 
- errout:
+errout:
 	isc_mem_put(mctx, ent, sizeof(isc_entropy_t));
 
 	return (result);
@@ -732,14 +736,15 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
  * Requires "ent" be locked.
  */
 static void
-destroysource(isc_entropysource_t **sourcep) {
+destroysource(isc_entropysource_t **sourcep)
+{
 	isc_entropysource_t *source;
-	isc_entropy_t *ent;
-	isc_cbsource_t *cbs;
+	isc_entropy_t *      ent;
+	isc_cbsource_t *     cbs;
 
-	source = *sourcep;
+	source   = *sourcep;
 	*sourcep = NULL;
-	ent = source->ent;
+	ent      = source->ent;
 
 	ISC_LIST_UNLINK(ent->sources, source, link);
 	ent->nextsource = NULL;
@@ -748,11 +753,11 @@ destroysource(isc_entropysource_t **sourcep) {
 
 	switch (source->type) {
 	case ENTROPY_SOURCETYPE_FILE:
-		if (! source->bad)
+		if (!source->bad)
 			destroyfilesource(&source->sources.file);
 		break;
 	case ENTROPY_SOURCETYPE_USOCKET:
-		if (! source->bad)
+		if (!source->bad)
 			destroyusocketsource(&source->sources.usocket);
 		break;
 	case ENTROPY_SOURCETYPE_SAMPLE:
@@ -773,7 +778,8 @@ destroysource(isc_entropysource_t **sourcep) {
 }
 
 static inline isc_boolean_t
-destroy_check(isc_entropy_t *ent) {
+destroy_check(isc_entropy_t *ent)
+{
 	isc_entropysource_t *source;
 
 	if (ent->refcnt > 0)
@@ -783,10 +789,8 @@ destroy_check(isc_entropy_t *ent) {
 	while (source != NULL) {
 		switch (source->type) {
 		case ENTROPY_SOURCETYPE_FILE:
-		case ENTROPY_SOURCETYPE_USOCKET:
-			break;
-		default:
-			return (ISC_FALSE);
+		case ENTROPY_SOURCETYPE_USOCKET: break;
+		default: return (ISC_FALSE);
 		}
 		source = ISC_LIST_NEXT(source, link);
 	}
@@ -795,13 +799,14 @@ destroy_check(isc_entropy_t *ent) {
 }
 
 static void
-destroy(isc_entropy_t **entp) {
-	isc_entropy_t *ent;
+destroy(isc_entropy_t **entp)
+{
+	isc_entropy_t *      ent;
 	isc_entropysource_t *source;
-	isc_mem_t *mctx;
+	isc_mem_t *          mctx;
 
 	REQUIRE(entp != NULL && *entp != NULL);
-	ent = *entp;
+	ent   = *entp;
 	*entp = NULL;
 
 	LOCK(&ent->lock);
@@ -813,11 +818,9 @@ destroy(isc_entropy_t **entp) {
 	 */
 	source = ISC_LIST_HEAD(ent->sources);
 	while (source != NULL) {
-		switch(source->type) {
+		switch (source->type) {
 		case ENTROPY_SOURCETYPE_FILE:
-		case ENTROPY_SOURCETYPE_USOCKET:
-			destroysource(&source);
-			break;
+		case ENTROPY_SOURCETYPE_USOCKET: destroysource(&source); break;
 		}
 		source = ISC_LIST_HEAD(ent->sources);
 	}
@@ -841,15 +844,16 @@ destroy(isc_entropy_t **entp) {
 }
 
 void
-isc_entropy_destroysource(isc_entropysource_t **sourcep) {
+isc_entropy_destroysource(isc_entropysource_t **sourcep)
+{
 	isc_entropysource_t *source;
-	isc_entropy_t *ent;
-	isc_boolean_t killit;
+	isc_entropy_t *      ent;
+	isc_boolean_t        killit;
 
 	REQUIRE(sourcep != NULL);
 	REQUIRE(VALID_SOURCE(*sourcep));
 
-	source = *sourcep;
+	source   = *sourcep;
 	*sourcep = NULL;
 
 	ent = source->ent;
@@ -868,16 +872,13 @@ isc_entropy_destroysource(isc_entropysource_t **sourcep) {
 }
 
 isc_result_t
-isc_entropy_createcallbacksource(isc_entropy_t *ent,
-				 isc_entropystart_t start,
-				 isc_entropyget_t get,
-				 isc_entropystop_t stop,
-				 void *arg,
-				 isc_entropysource_t **sourcep)
+isc_entropy_createcallbacksource(isc_entropy_t *ent, isc_entropystart_t start,
+                                 isc_entropyget_t get, isc_entropystop_t stop,
+                                 void *arg, isc_entropysource_t **sourcep)
 {
-	isc_result_t result;
+	isc_result_t         result;
 	isc_entropysource_t *source;
-	isc_cbsource_t *cbs;
+	isc_cbsource_t *     cbs;
 
 	REQUIRE(VALID_ENTROPY(ent));
 	REQUIRE(get != NULL);
@@ -899,17 +900,17 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 		goto errout;
 
 	cbs->start_called = ISC_FALSE;
-	cbs->startfunc = start;
-	cbs->getfunc = get;
-	cbs->stopfunc = stop;
-	cbs->arg = arg;
+	cbs->startfunc    = start;
+	cbs->getfunc      = get;
+	cbs->stopfunc     = stop;
+	cbs->arg          = arg;
 
 	/*
 	 * From here down, no failures can occur.
 	 */
 	source->magic = SOURCE_MAGIC;
-	source->type = ENTROPY_SOURCETYPE_CALLBACK;
-	source->ent = ent;
+	source->type  = ENTROPY_SOURCETYPE_CALLBACK;
+	source->ent   = ent;
 	source->total = 0;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
@@ -925,7 +926,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
 
- errout:
+errout:
 	if (source != NULL)
 		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
 
@@ -935,9 +936,10 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 }
 
 void
-isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
+isc_entropy_stopcallbacksources(isc_entropy_t *ent)
+{
 	isc_entropysource_t *source;
-	isc_cbsource_t *cbs;
+	isc_cbsource_t *     cbs;
 
 	REQUIRE(VALID_ENTROPY(ent));
 
@@ -960,12 +962,12 @@ isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
 }
 
 isc_result_t
-isc_entropy_createsamplesource(isc_entropy_t *ent,
-			       isc_entropysource_t **sourcep)
+isc_entropy_createsamplesource(isc_entropy_t *       ent,
+                               isc_entropysource_t **sourcep)
 {
-	isc_result_t result;
+	isc_result_t         result;
 	isc_entropysource_t *source;
-	sample_queue_t *sq;
+	sample_queue_t *     sq;
 
 	REQUIRE(VALID_ENTROPY(ent));
 	REQUIRE(sourcep != NULL && *sourcep == NULL);
@@ -978,7 +980,7 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 		goto errout;
 	}
 
-	sq = &source->sources.sample.samplequeue;
+	sq     = &source->sources.sample.samplequeue;
 	result = samplesource_allocate(ent, sq);
 	if (result != ISC_R_SUCCESS)
 		goto errout;
@@ -987,8 +989,8 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 	 * From here down, no failures can occur.
 	 */
 	source->magic = SOURCE_MAGIC;
-	source->type = ENTROPY_SOURCETYPE_SAMPLE;
-	source->ent = ent;
+	source->type  = ENTROPY_SOURCETYPE_SAMPLE;
+	source->ent   = ent;
 	source->total = 0;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
@@ -1004,7 +1006,7 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
 
- errout:
+errout:
 	if (source != NULL)
 		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
 
@@ -1019,12 +1021,13 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
  * queue was full when this function was called.
  */
 static isc_result_t
-addsample(sample_queue_t *sq, isc_uint32_t sample, isc_uint32_t extra) {
+addsample(sample_queue_t *sq, isc_uint32_t sample, isc_uint32_t extra)
+{
 	if (sq->nsamples >= RND_EVENTQSIZE)
 		return (ISC_R_NOMORE);
 
 	sq->samples[sq->nsamples] = sample;
-	sq->extra[sq->nsamples] = extra;
+	sq->extra[sq->nsamples]   = extra;
 	sq->nsamples++;
 
 	if (sq->nsamples >= RND_EVENTQSIZE)
@@ -1035,12 +1038,12 @@ addsample(sample_queue_t *sq, isc_uint32_t sample, isc_uint32_t extra) {
 
 isc_result_t
 isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
-		      isc_uint32_t extra)
+                      isc_uint32_t extra)
 {
-	isc_entropy_t *ent;
+	isc_entropy_t * ent;
 	sample_queue_t *sq;
-	unsigned int entropy;
-	isc_result_t result;
+	unsigned int    entropy;
+	isc_result_t    result;
 
 	REQUIRE(VALID_SOURCE(source));
 
@@ -1048,7 +1051,7 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 
 	LOCK(&ent->lock);
 
-	sq = &source->sources.sample.samplequeue;
+	sq     = &source->sources.sample.samplequeue;
 	result = addsample(sq, sample, extra);
 	if (result == ISC_R_QUEUEFULL) {
 		entropy = crunchsamples(ent, sq);
@@ -1062,15 +1065,15 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 
 isc_result_t
 isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
-			      isc_uint32_t extra)
+                              isc_uint32_t extra)
 {
 	sample_queue_t *sq;
-	isc_result_t result;
+	isc_result_t    result;
 
 	REQUIRE(VALID_SOURCE(source));
 	REQUIRE(source->type == ENTROPY_SOURCETYPE_CALLBACK);
 
-	sq = &source->sources.callback.samplequeue;
+	sq     = &source->sources.callback.samplequeue;
 	result = addsample(sq, sample, extra);
 
 	return (result);
@@ -1078,7 +1081,7 @@ isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
 
 void
 isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    isc_uint32_t entropy)
+                    isc_uint32_t entropy)
 {
 	REQUIRE(VALID_ENTROPY(ent));
 
@@ -1093,25 +1096,25 @@ isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
 }
 
 static void
-dumpstats(isc_entropy_t *ent, FILE *out) {
+dumpstats(isc_entropy_t *ent, FILE *out)
+{
 	fprintf(out,
-		isc_msgcat_get(isc_msgcat, ISC_MSGSET_ENTROPY,
-			       ISC_MSG_ENTROPYSTATS,
-			       "Entropy pool %p:  refcnt %u cursor %u,"
-			       " rotate %u entropy %u pseudo %u nsources %u"
-			       " nextsource %p initialized %u initcount %u\n"),
-		ent, ent->refcnt,
-		ent->pool.cursor, ent->pool.rotate,
-		ent->pool.entropy, ent->pool.pseudo,
-		ent->nsources, ent->nextsource, ent->initialized,
-		ent->initcount);
+	        isc_msgcat_get(isc_msgcat, ISC_MSGSET_ENTROPY,
+	                       ISC_MSG_ENTROPYSTATS,
+	                       "Entropy pool %p:  refcnt %u cursor %u,"
+	                       " rotate %u entropy %u pseudo %u nsources %u"
+	                       " nextsource %p initialized %u initcount %u\n"),
+	        ent, ent->refcnt, ent->pool.cursor, ent->pool.rotate,
+	        ent->pool.entropy, ent->pool.pseudo, ent->nsources,
+	        ent->nextsource, ent->initialized, ent->initcount);
 }
 
 /*
  * This function ignores locking.  Use at your own risk.
  */
 void
-isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
+isc_entropy_stats(isc_entropy_t *ent, FILE *out)
+{
 	REQUIRE(VALID_ENTROPY(ent));
 
 	LOCK(&ent->lock);
@@ -1120,7 +1123,8 @@ isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
 }
 
 unsigned int
-isc_entropy_status(isc_entropy_t *ent) {
+isc_entropy_status(isc_entropy_t *ent)
+{
 	unsigned int estimate;
 
 	LOCK(&ent->lock);
@@ -1131,7 +1135,8 @@ isc_entropy_status(isc_entropy_t *ent) {
 }
 
 void
-isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp) {
+isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp)
+{
 	REQUIRE(VALID_ENTROPY(ent));
 	REQUIRE(entp != NULL && *entp == NULL);
 
@@ -1144,12 +1149,13 @@ isc_entropy_attach(isc_entropy_t *ent, isc_entropy_t **entp) {
 }
 
 void
-isc_entropy_detach(isc_entropy_t **entp) {
+isc_entropy_detach(isc_entropy_t **entp)
+{
 	isc_entropy_t *ent;
-	isc_boolean_t killit;
+	isc_boolean_t  killit;
 
 	REQUIRE(entp != NULL && VALID_ENTROPY(*entp));
-	ent = *entp;
+	ent   = *entp;
 	*entp = NULL;
 
 	LOCK(&ent->lock);
@@ -1166,7 +1172,8 @@ isc_entropy_detach(isc_entropy_t **entp) {
 }
 
 static isc_result_t
-kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking)
+{
 	/*
 	 * The intent of "first" is to provide a warning message only once
 	 * during the run of a program that might try to gather keyboard
@@ -1176,14 +1183,15 @@ kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 
 	UNUSED(arg);
 
-	if (! blocking)
+	if (!blocking)
 		return (ISC_R_NOENTROPY);
 
 	if (first) {
 		if (source->warn_keyboard)
-			fprintf(stderr, "You must use the keyboard to create "
-				"entropy, since your system is lacking\n"
-				"/dev/random (or equivalent)\n\n");
+			fprintf(stderr,
+			        "You must use the keyboard to create "
+			        "entropy, since your system is lacking\n"
+			        "/dev/random (or equivalent)\n\n");
 		first = ISC_FALSE;
 	}
 	fprintf(stderr, "start typing:\n");
@@ -1192,22 +1200,24 @@ kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 }
 
 static void
-kbdstop(isc_entropysource_t *source, void *arg) {
+kbdstop(isc_entropysource_t *source, void *arg)
+{
 
 	UNUSED(arg);
 
-	if (! isc_keyboard_canceled(&source->kbd))
+	if (!isc_keyboard_canceled(&source->kbd))
 		fprintf(stderr, "stop typing.\r\n");
 
 	(void)isc_keyboard_close(&source->kbd, 3);
 }
 
 static isc_result_t
-kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
-	isc_result_t result;
-	isc_time_t t;
-	isc_uint32_t sample;
-	isc_uint32_t extra;
+kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking)
+{
+	isc_result_t  result;
+	isc_time_t    t;
+	isc_uint32_t  sample;
+	isc_uint32_t  extra;
 	unsigned char c;
 
 	UNUSED(arg);
@@ -1222,7 +1232,7 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	TIME_NOW(&t);
 
 	sample = isc_time_nanoseconds(&t);
-	extra = c;
+	extra  = c;
 
 	result = isc_entropy_addcallbacksample(source, sample, extra);
 	if (result != ISC_R_SUCCESS) {
@@ -1238,17 +1248,17 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 
 isc_result_t
 isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
-			  const char *randomfile, int use_keyboard)
+                          const char *randomfile, int use_keyboard)
 {
-	isc_result_t result;
-	isc_result_t final_result = ISC_R_NOENTROPY;
-	isc_boolean_t userfile = ISC_TRUE;
+	isc_result_t  result;
+	isc_result_t  final_result = ISC_R_NOENTROPY;
+	isc_boolean_t userfile     = ISC_TRUE;
 
 	REQUIRE(VALID_ENTROPY(ectx));
 	REQUIRE(source != NULL && *source == NULL);
 	REQUIRE(use_keyboard == ISC_ENTROPY_KEYBOARDYES ||
-		use_keyboard == ISC_ENTROPY_KEYBOARDNO  ||
-		use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE);
+	        use_keyboard == ISC_ENTROPY_KEYBOARDNO ||
+	        use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE);
 
 #ifdef PKCS11CRYPTO
 	if (randomfile != NULL)
@@ -1258,7 +1268,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 #ifdef PATH_RANDOMDEV
 	if (randomfile == NULL) {
 		randomfile = PATH_RANDOMDEV;
-		userfile = ISC_FALSE;
+		userfile   = ISC_FALSE;
 	}
 #endif
 
@@ -1274,13 +1284,11 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 	}
 
 	if (use_keyboard != ISC_ENTROPY_KEYBOARDNO) {
-		result = isc_entropy_createcallbacksource(ectx, kbdstart,
-							  kbdget, kbdstop,
-							  NULL, source);
+		result = isc_entropy_createcallbacksource(
+		        ectx, kbdstart, kbdget, kbdstop, NULL, source);
 		if (result == ISC_R_SUCCESS)
-			(*source)->warn_keyboard =
-				ISC_TF(use_keyboard ==
-				       ISC_ENTROPY_KEYBOARDMAYBE);
+			(*source)->warn_keyboard = ISC_TF(
+			        use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE);
 
 		if (final_result != ISC_R_SUCCESS)
 			final_result = result;
@@ -1296,7 +1304,8 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
 }
 
 void
-isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff) {
+isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff)
+{
 	REQUIRE(VALID_ENTROPY(ectx));
 
 	LOCK(&ectx->lock);
@@ -1305,6 +1314,7 @@ isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff) {
 }
 
 void
-isc_entropy_sethook(isc_entropy_getdata_t myhook) {
+isc_entropy_sethook(isc_entropy_getdata_t myhook)
+{
 	hook = myhook;
 }

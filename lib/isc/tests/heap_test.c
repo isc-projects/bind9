@@ -26,7 +26,8 @@ struct e {
 };
 
 static isc_boolean_t
-compare(void *p1, void *p2) {
+compare(void *p1, void *p2)
+{
 	struct e *e1 = p1;
 	struct e *e2 = p2;
 
@@ -34,21 +35,24 @@ compare(void *p1, void *p2) {
 }
 
 static void
-idx(void *p, unsigned int i) {
+idx(void *p, unsigned int i)
+{
 	struct e *e = p;
 
 	e->index = i;
 }
 
 ATF_TC(isc_heap_delete);
-ATF_TC_HEAD(isc_heap_delete, tc) {
+ATF_TC_HEAD(isc_heap_delete, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "test isc_heap_delete");
 }
-ATF_TC_BODY(isc_heap_delete, tc) {
-	isc_mem_t *mctx = NULL;
-	isc_heap_t *heap = NULL;
+ATF_TC_BODY(isc_heap_delete, tc)
+{
+	isc_mem_t *  mctx = NULL;
+	isc_heap_t * heap = NULL;
 	isc_result_t result;
-	struct e e1 = { 100, 0 };
+	struct e     e1 = {100, 0};
 
 	UNUSED(tc);
 
@@ -76,7 +80,8 @@ ATF_TC_BODY(isc_heap_delete, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_heap_delete);
 
 	return (atf_no_error());

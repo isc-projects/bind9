@@ -14,8 +14,8 @@
 
 #include <atf-c.h>
 
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <isc/parseint.h>
 
@@ -27,10 +27,12 @@
 
 /* Test for 32 bit overflow on 64 bit machines in isc_parse_uint32 */
 ATF_TC(parse_overflow);
-ATF_TC_HEAD(parse_overflow, tc) {
+ATF_TC_HEAD(parse_overflow, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "Check for 32 bit overflow");
 }
-ATF_TC_BODY(parse_overflow, tc) {
+ATF_TC_BODY(parse_overflow, tc)
+{
 	isc_result_t result;
 	isc_uint32_t output;
 	UNUSED(tc);
@@ -54,9 +56,9 @@ ATF_TC_BODY(parse_overflow, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, parse_overflow);
 
 	return (atf_no_error());
 }
-

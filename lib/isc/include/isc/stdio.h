@@ -30,37 +30,29 @@
 ISC_LANG_BEGINDECLS
 
 /*% Open */
-isc_result_t
-isc_stdio_open(const char *filename, const char *mode, FILE **fp);
+isc_result_t isc_stdio_open(const char *filename, const char *mode, FILE **fp);
 
 /*% Close */
-isc_result_t
-isc_stdio_close(FILE *f);
+isc_result_t isc_stdio_close(FILE *f);
 
 /*% Seek */
-isc_result_t
-isc_stdio_seek(FILE *f, off_t offset, int whence);
+isc_result_t isc_stdio_seek(FILE *f, off_t offset, int whence);
 
 /*% Tell */
-isc_result_t
-isc_stdio_tell(FILE *f, off_t *offsetp);
+isc_result_t isc_stdio_tell(FILE *f, off_t *offsetp);
 
 /*% Read */
-isc_result_t
-isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f,
-	       size_t *nret);
+isc_result_t isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f,
+                            size_t *nret);
 
 /*% Write */
-isc_result_t
-isc_stdio_write(const void *ptr, size_t size, size_t nmemb, FILE *f,
-		size_t *nret);
+isc_result_t isc_stdio_write(const void *ptr, size_t size, size_t nmemb,
+                             FILE *f, size_t *nret);
 
 /*% Flush */
-isc_result_t
-isc_stdio_flush(FILE *f);
+isc_result_t isc_stdio_flush(FILE *f);
 
-isc_result_t
-isc_stdio_sync(FILE *f);
+isc_result_t isc_stdio_sync(FILE *f);
 /*%<
  * Invoke fsync() on the file descriptor underlying an stdio stream, or an
  * equivalent system-dependent operation.  Note that this function has no

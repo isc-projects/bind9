@@ -8,42 +8,35 @@
 
 /* $Id: DLLMain.c,v 1.7 2007/06/18 23:47:49 tbox Exp $ */
 
-#include <windows.h>
 #include <stdio.h>
+#include <windows.h>
 
 /*
  * Called when we enter the DLL
  */
-__declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
-					  DWORD fdwReason, LPVOID lpvReserved)
+__declspec(dllexport) BOOL WINAPI
+        DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-	switch (fdwReason)
-	{
+	switch (fdwReason) {
 	/*
 	 * The DLL is loading due to process
 	 * initialization or a call to LoadLibrary.
 	 */
-	case DLL_PROCESS_ATTACH:
-		break;
+	case DLL_PROCESS_ATTACH: break;
 
 	/* The attached process creates a new thread.  */
-	case DLL_THREAD_ATTACH:
-		break;
+	case DLL_THREAD_ATTACH: break;
 
 	/* The thread of the attached process terminates. */
-	case DLL_THREAD_DETACH:
-		break;
+	case DLL_THREAD_DETACH: break;
 
 	/*
 	 * The DLL is unloading from a process due to
 	 * process termination or a call to FreeLibrary.
 	 */
-	case DLL_PROCESS_DETACH:
-		break;
+	case DLL_PROCESS_DETACH: break;
 
-	default:
-		break;
+	default: break;
 	}
 	return (TRUE);
 }
-

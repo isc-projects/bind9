@@ -75,11 +75,10 @@ ISC_LANG_BEGINDECLS
 
 LIBISC_EXTERNAL_DATA extern isc_hash_t *isc_hashctx;
 
-isc_result_t
-isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit,
-		   isc_hash_t **hctx);
-isc_result_t
-isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit);
+isc_result_t isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
+                                size_t limit, isc_hash_t **hctx);
+isc_result_t isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy,
+                             size_t limit);
 /*!<
  * \brief Create a new hash object.
  *
@@ -96,18 +95,14 @@ isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit);
  * these functions may fail.
  */
 
-void
-isc_hash_ctxattach(isc_hash_t *hctx, isc_hash_t **hctxp)
-	ISC_DEPRECATED;
+void isc_hash_ctxattach(isc_hash_t *hctx, isc_hash_t **hctxp) ISC_DEPRECATED;
 /*!<
  * \brief Attach to a hash object.
  *
  * This function is only necessary for the multiple-context mode.
  */
 
-void
-isc_hash_ctxdetach(isc_hash_t **hctxp)
-	ISC_DEPRECATED;
+void isc_hash_ctxdetach(isc_hash_t **hctxp) ISC_DEPRECATED;
 /*!<
  * \brief Detach from a hash object.
  *
@@ -115,21 +110,18 @@ isc_hash_ctxdetach(isc_hash_t **hctxp)
  * hash object as an argument.
  */
 
-void
-isc_hash_destroy(void);
+void isc_hash_destroy(void);
 /*!<
- * \brief This function is for the single-context mode, and is expected to be used
- * as a counterpart of isc_hash_create().
+ * \brief This function is for the single-context mode, and is expected to be
+ * used as a counterpart of isc_hash_create().
  *
  * A valid module-internal hash object must have been created, and this
  * function should be called only once.
  */
 
 /*@{*/
-void
-isc_hash_ctxinit(isc_hash_t *hctx);
-void
-isc_hash_init(void);
+void isc_hash_ctxinit(isc_hash_t *hctx);
+void isc_hash_init(void);
 /*!<
  * \brief Initialize a hash object.
  *
@@ -150,14 +142,11 @@ isc_hash_init(void);
 /*@}*/
 
 /*@{*/
-unsigned int
-isc_hash_ctxcalc(isc_hash_t *hctx, const unsigned char *key,
-		 unsigned int keylen, isc_boolean_t case_sensitive)
-	ISC_DEPRECATED;
-unsigned int
-isc_hash_calc(const unsigned char *key, unsigned int keylen,
-	      isc_boolean_t case_sensitive)
-	ISC_DEPRECATED;
+unsigned int isc_hash_ctxcalc(isc_hash_t *hctx, const unsigned char *key,
+                              unsigned int  keylen,
+                              isc_boolean_t case_sensitive) ISC_DEPRECATED;
+unsigned int isc_hash_calc(const unsigned char *key, unsigned int keylen,
+                           isc_boolean_t case_sensitive) ISC_DEPRECATED;
 /*!<
  * \brief Calculate a hash value.
  *
@@ -178,9 +167,7 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
  */
 /*@}*/
 
-void
-isc__hash_setvec(const isc_uint16_t *vec)
-	ISC_DEPRECATED;
+void isc__hash_setvec(const isc_uint16_t *vec) ISC_DEPRECATED;
 
 /*!<
  * \brief Set the contents of the random vector used in hashing.
@@ -195,20 +182,16 @@ isc__hash_setvec(const isc_uint16_t *vec)
  * doing before using this function.
  */
 
-const void *
-isc_hash_get_initializer(void);
+const void *isc_hash_get_initializer(void);
 
-void
-isc_hash_set_initializer(const void *initializer);
+void isc_hash_set_initializer(const void *initializer);
 
-isc_uint32_t
-isc_hash_function(const void *data, size_t length,
-		  isc_boolean_t case_sensitive,
-		  const isc_uint32_t *previous_hashp);
-isc_uint32_t
-isc_hash_function_reverse(const void *data, size_t length,
-			  isc_boolean_t case_sensitive,
-			  const isc_uint32_t *previous_hashp);
+isc_uint32_t isc_hash_function(const void *data, size_t length,
+                               isc_boolean_t       case_sensitive,
+                               const isc_uint32_t *previous_hashp);
+isc_uint32_t isc_hash_function_reverse(const void *data, size_t length,
+                                       isc_boolean_t       case_sensitive,
+                                       const isc_uint32_t *previous_hashp);
 /*!<
  * \brief Calculate a hash over data.
  *

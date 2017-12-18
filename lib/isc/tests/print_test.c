@@ -20,17 +20,15 @@
  * it on all platforms even if we don't include it in libisc.
  */
 #include <isc/platform.h>
-#if !defined(ISC_PLATFORM_NEEDPRINTF) && \
-    !defined(ISC_PLATFORM_NEEDFPRINTF) && \
-    !defined(ISC_PLATFORM_NEEDSPRINTF) && \
-    !defined(ISC_PLATFORM_NEEDVSNPRINTF)
+#if !defined(ISC_PLATFORM_NEEDPRINTF) && !defined(ISC_PLATFORM_NEEDFPRINTF) && \
+        !defined(ISC_PLATFORM_NEEDSPRINTF) &&                                  \
+        !defined(ISC_PLATFORM_NEEDVSNPRINTF)
 #define ISC__PRINT_SOURCE
 #include "../print.c"
 #else
-#if !defined(ISC_PLATFORM_NEEDPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDFPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDSPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDVSNPRINTF)
+#if !defined(ISC_PLATFORM_NEEDPRINTF) || !defined(ISC_PLATFORM_NEEDFPRINTF) || \
+        !defined(ISC_PLATFORM_NEEDSPRINTF) ||                                  \
+        !defined(ISC_PLATFORM_NEEDVSNPRINTF)
 #define ISC__PRINT_SOURCE
 #endif
 #include <isc/print.h>
@@ -39,16 +37,18 @@
 #endif
 
 ATF_TC(snprintf);
-ATF_TC_HEAD(snprintf, tc) {
+ATF_TC_HEAD(snprintf, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "snprintf implementation");
 }
-ATF_TC_BODY(snprintf, tc) {
-	char buf[10000];
+ATF_TC_BODY(snprintf, tc)
+{
+	char         buf[10000];
 	isc_uint64_t ll = 8589934592ULL;
 	isc_uint64_t nn = 20000000000000ULL;
 	isc_uint64_t zz = 10000000000000000000ULL;
-	int n;
-	size_t size;
+	int          n;
+	size_t       size;
 
 	UNUSED(tc);
 
@@ -112,20 +112,23 @@ ATF_TC_BODY(snprintf, tc) {
 
 	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "0x%" ISC_PRINT_QUADFORMAT "x",
+	                       zz);
 	ATF_CHECK_EQ(n, 18);
 	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
 }
 
 ATF_TC(fprintf);
-ATF_TC_HEAD(fprintf, tc) {
+ATF_TC_HEAD(fprintf, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "fprintf implementation");
 }
-ATF_TC_BODY(fprintf, tc) {
-	FILE *f;
-	int n;
+ATF_TC_BODY(fprintf, tc)
+{
+	FILE * f;
+	int    n;
 	size_t size;
-	char buf[10000];
+	char   buf[10000];
 
 	UNUSED(tc);
 
@@ -133,7 +136,7 @@ ATF_TC_BODY(fprintf, tc) {
 	ATF_REQUIRE(f != NULL);
 
 	size = 1000;
-	n = isc_print_fprintf(f, "%zu", size);
+	n    = isc_print_fprintf(f, "%zu", size);
 	ATF_CHECK_EQ(n, 4);
 
 	rewind(f);
@@ -153,7 +156,8 @@ ATF_TC_BODY(fprintf, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, snprintf);
 	ATF_TP_ADD_TC(tp, fprintf);
 	return (atf_no_error());

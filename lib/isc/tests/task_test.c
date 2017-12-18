@@ -24,12 +24,13 @@
  */
 
 /* task event handler, sets a boolean to true */
-int counter = 0;
+int         counter = 0;
 isc_mutex_t set_lock;
 
 static void
-set(isc_task_t *task, isc_event_t *event) {
-	int *value = (int *) event->ev_arg;
+set(isc_task_t *task, isc_event_t *event)
+{
+	int *value = (int *)event->ev_arg;
 
 	UNUSED(task);
 
@@ -40,14 +41,15 @@ set(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-set_and_drop(isc_task_t *task, isc_event_t *event) {
-	int *value = (int *) event->ev_arg;
+set_and_drop(isc_task_t *task, isc_event_t *event)
+{
+	int *value = (int *)event->ev_arg;
 
 	UNUSED(task);
 
 	isc_event_free(&event);
 	LOCK(&set_lock);
-	*value = (int) isc_taskmgr_mode(taskmgr);
+	*value = (int)isc_taskmgr_mode(taskmgr);
 	counter++;
 	UNLOCK(&set_lock);
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
@@ -59,12 +61,14 @@ set_and_drop(isc_task_t *task, isc_event_t *event) {
 
 /* Create a task */
 ATF_TC(create_task);
-ATF_TC_HEAD(create_task, tc) {
+ATF_TC_HEAD(create_task, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "create and destroy a task");
 }
-ATF_TC_BODY(create_task, tc) {
+ATF_TC_BODY(create_task, tc)
+{
 	isc_result_t result;
-	isc_task_t *task = NULL;
+	isc_task_t * task = NULL;
 
 	UNUSED(tc);
 
@@ -82,15 +86,17 @@ ATF_TC_BODY(create_task, tc) {
 
 /* Process events */
 ATF_TC(all_events);
-ATF_TC_HEAD(all_events, tc) {
+ATF_TC_HEAD(all_events, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "process task events");
 }
-ATF_TC_BODY(all_events, tc) {
+ATF_TC_BODY(all_events, tc)
+{
 	isc_result_t result;
-	isc_task_t *task = NULL;
+	isc_task_t * task = NULL;
 	isc_event_t *event;
-	int a = 0, b = 0;
-	int i = 0;
+	int          a = 0, b = 0;
+	int          i = 0;
 
 	UNUSED(tc);
 
@@ -106,15 +112,15 @@ ATF_TC_BODY(all_events, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* First event */
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
-				   set, &a, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &a,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(a, 0);
 	isc_task_send(task, &event);
 
-	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
-				   set, &b, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST, set, &b,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(b, 0);
@@ -139,20 +145,22 @@ ATF_TC_BODY(all_events, tc) {
 
 /* Privileged events */
 ATF_TC(privileged_events);
-ATF_TC_HEAD(privileged_events, tc) {
+ATF_TC_HEAD(privileged_events, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "process privileged events");
 }
-ATF_TC_BODY(privileged_events, tc) {
+ATF_TC_BODY(privileged_events, tc)
+{
 	isc_result_t result;
-	isc_task_t *task1 = NULL, *task2 = NULL;
+	isc_task_t * task1 = NULL, *task2 = NULL;
 	isc_event_t *event;
-	int a = 0, b = 0, c = 0, d = 0, e = 0;
-	int i = 0;
+	int          a = 0, b = 0, c = 0, d = 0, e = 0;
+	int          i = 0;
 
 	UNUSED(tc);
 
 	counter = 1;
-	result = isc_mutex_init(&set_lock);
+	result  = isc_mutex_init(&set_lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_test_begin(NULL, ISC_TRUE);
@@ -179,40 +187,40 @@ ATF_TC_BODY(privileged_events, tc) {
 	ATF_CHECK(!isc_task_privilege(task2));
 
 	/* First event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set, &a, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &a,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(a, 0);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
-				   set, &b, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, set, &b,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(b, 0);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set, &c, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &c,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(c, 0);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
-	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set, &d, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST, set, &d,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(d, 0);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
-	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
-				   set, &e, sizeof (isc_event_t));
+	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST, set, &e,
+	                           sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(e, 0);
@@ -268,20 +276,22 @@ ATF_TC_BODY(privileged_events, tc) {
  * we explicitly set it into normal mode *while* running privileged.
  */
 ATF_TC(privilege_drop);
-ATF_TC_HEAD(privilege_drop, tc) {
+ATF_TC_HEAD(privilege_drop, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "process privileged events");
 }
-ATF_TC_BODY(privilege_drop, tc) {
+ATF_TC_BODY(privilege_drop, tc)
+{
 	isc_result_t result;
-	isc_task_t *task1 = NULL, *task2 = NULL;
+	isc_task_t * task1 = NULL, *task2 = NULL;
 	isc_event_t *event;
-	int a = -1, b = -1, c = -1, d = -1, e = -1;	/* non valid states */
+	int a = -1, b = -1, c = -1, d = -1, e = -1; /* non valid states */
 	int i = 0;
 
 	UNUSED(tc);
 
 	counter = 1;
-	result = isc_mutex_init(&set_lock);
+	result  = isc_mutex_init(&set_lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_test_begin(NULL, ISC_TRUE);
@@ -309,7 +319,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	/* First event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set_and_drop, &a, sizeof (isc_event_t));
+	                           set_and_drop, &a, sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(a, -1);
@@ -317,7 +327,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	/* Second event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
-				   set_and_drop, &b, sizeof (isc_event_t));
+	                           set_and_drop, &b, sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(b, -1);
@@ -325,7 +335,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	/* Third event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set_and_drop, &c, sizeof (isc_event_t));
+	                           set_and_drop, &c, sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(c, -1);
@@ -333,7 +343,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	/* Fourth event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
-				   set_and_drop, &d, sizeof (isc_event_t));
+	                           set_and_drop, &d, sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(d, -1);
@@ -341,7 +351,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 
 	/* Fifth event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
-				   set_and_drop, &e, sizeof (isc_event_t));
+	                           set_and_drop, &e, sizeof(isc_event_t));
 	ATF_REQUIRE(event != NULL);
 
 	ATF_CHECK_EQ(e, -1);
@@ -371,8 +381,8 @@ ATF_TC_BODY(privilege_drop, tc) {
 	 * have run in privileged mode...
 	 */
 	ATF_CHECK(a == isc_taskmgrmode_privileged ||
-		  c == isc_taskmgrmode_privileged ||
-		  d == isc_taskmgrmode_privileged);
+	          c == isc_taskmgrmode_privileged ||
+	          d == isc_taskmgrmode_privileged);
 	ATF_CHECK(a + c + d == isc_taskmgrmode_privileged);
 
 	/* ...and neither of the non-privileged tasks did... */
@@ -394,7 +404,8 @@ ATF_TC_BODY(privilege_drop, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, create_task);
 	ATF_TP_ADD_TC(tp, all_events);
 	ATF_TP_ADD_TC(tp, privileged_events);
@@ -402,4 +413,3 @@ ATF_TP_ADD_TCS(tp) {
 
 	return (atf_no_error());
 }
-

@@ -20,34 +20,36 @@
  * returns the previous value.
  */
 static __inline__ isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+{
 	isc_int32_t prev = val;
 
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
+	        "lock;"
 #endif
-		"xadd %0, %1"
-		:"=q"(prev)
-		:"m"(*p), "0"(prev)
-		:"memory", "cc");
+	        "xadd %0, %1"
+	        : "=q"(prev)
+	        : "m"(*p), "0"(prev)
+	        : "memory", "cc");
 
 	return (prev);
 }
 
 #ifdef ISC_PLATFORM_HAVEXADDQ
 static __inline__ isc_int64_t
-isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
+isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val)
+{
 	isc_int64_t prev = val;
 
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
-	    "lock;"
+	        "lock;"
 #endif
-	    "xaddq %0, %1"
-	    :"=q"(prev)
-	    :"m"(*p), "0"(prev)
-	    :"memory", "cc");
+	        "xaddq %0, %1"
+	        : "=q"(prev)
+	        : "m"(*p), "0"(prev)
+	        : "memory", "cc");
 
 	return (prev);
 }
@@ -57,20 +59,21 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
  * This routine atomically stores the value 'val' in 'p' (32-bit version).
  */
 static __inline__ void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+{
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
-		/*
-		 * xchg should automatically lock memory, but we add it
-		 * explicitly just in case (it at least doesn't harm)
-		 */
-		"lock;"
+	        /*
+	         * xchg should automatically lock memory, but we add it
+	         * explicitly just in case (it at least doesn't harm)
+	         */
+	        "lock;"
 #endif
 
-		"xchgl %1, %0"
-		:
-		: "r"(val), "m"(*p)
-		: "memory");
+	        "xchgl %1, %0"
+	        :
+	        : "r"(val), "m"(*p)
+	        : "memory");
 }
 
 #ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
@@ -78,20 +81,21 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * This routine atomically stores the value 'val' in 'p' (64-bit version).
  */
 static __inline__ void
-isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+isc_atomic_storeq(isc_int64_t *p, isc_int64_t val)
+{
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
-		/*
-		 * xchg should automatically lock memory, but we add it
-		 * explicitly just in case (it at least doesn't harm)
-		 */
-		"lock;"
+	        /*
+	         * xchg should automatically lock memory, but we add it
+	         * explicitly just in case (it at least doesn't harm)
+	         */
+	        "lock;"
 #endif
 
-		"xchgq %1, %0"
-		:
-		: "r"(val), "m"(*p)
-		: "memory");
+	        "xchgq %1, %0"
+	        :
+	        : "r"(val), "m"(*p)
+	        : "memory");
 }
 #endif /* ISC_PLATFORM_HAVEATOMICSTOREQ */
 
@@ -101,15 +105,16 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
  * case.
  */
 static __inline__ isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+{
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
+	        "lock;"
 #endif
-		"cmpxchgl %1, %2"
-		: "=a"(cmpval)
-		: "r"(val), "m"(*p), "a"(cmpval)
-		: "memory");
+	        "cmpxchgl %1, %2"
+	        : "=a"(cmpval)
+	        : "r"(val), "m"(*p), "a"(cmpval)
+	        : "memory");
 
 	return (cmpval);
 }
@@ -123,62 +128,59 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
  * intended address in the embedded mnemonic.
  */
 static isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+{
 	(void)(p);
 	(void)(val);
 
-	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %edx\n"
+	__asm("movl 8(%ebp), %ecx\n"
+	      "movl 12(%ebp), %edx\n"
 #ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
+	      "lock;"
 #endif
-		"xadd %edx, (%ecx)\n"
+	      "xadd %edx, (%ecx)\n"
 
-		/*
-		 * set the return value directly in the register so that we
-		 * can avoid guessing the correct position in the stack for a
-		 * local variable.
-		 */
-		"movl %edx, %eax"
-		);
+	      /*
+	       * set the return value directly in the register so that we
+	       * can avoid guessing the correct position in the stack for a
+	       * local variable.
+	       */
+	      "movl %edx, %eax");
 }
 
 static void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+{
 	(void)(p);
 	(void)(val);
 
-	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %edx\n"
+	__asm("movl 8(%ebp), %ecx\n"
+	      "movl 12(%ebp), %edx\n"
 #ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
+	      "lock;"
 #endif
-		"xchgl (%ecx), %edx\n"
-		);
+	      "xchgl (%ecx), %edx\n");
 }
 
 static isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+{
 	(void)(p);
 	(void)(cmpval);
 	(void)(val);
 
-	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %eax\n"	/* must be %eax for cmpxchgl */
-		"movl 16(%ebp), %edx\n"
+	__asm("movl 8(%ebp), %ecx\n"
+	      "movl 12(%ebp), %eax\n" /* must be %eax for cmpxchgl */
+	      "movl 16(%ebp), %edx\n"
 #ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
+	      "lock;"
 #endif
 
-		/*
-		 * If (%ecx) == %eax then (%ecx) := %edx.
-		 % %eax is set to old (%ecx), which will be the return value.
-		 */
-		"cmpxchgl %edx, (%ecx)"
-		);
+	      /*
+	       * If (%ecx) == %eax then (%ecx) := %edx.
+	       % %eax is set to old (%ecx), which will be the return value.
+	       */
+	      "cmpxchgl %edx, (%ecx)");
 }
 #else /* !ISC_PLATFORM_USEGCCASM && !ISC_PLATFORM_USESTDASM */
 

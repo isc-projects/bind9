@@ -40,7 +40,8 @@
  * SUCH DAMAGE.
  *
  *	from: FreeBSD: src/sys/i386/include/atomic.h,v 1.20 2001/02/11
- * $FreeBSD: src/sys/sparc64/include/atomic.h,v 1.8 2004/05/22 00:52:16 marius Exp $
+ * $FreeBSD: src/sys/sparc64/include/atomic.h,v 1.8 2004/05/22 00:52:16 marius
+ *Exp $
  */
 
 #ifndef ISC_ATOMIC_H
@@ -49,7 +50,7 @@
 #include <isc/platform.h>
 #include <isc/types.h>
 
-#define	ASI_P	0x80		/* Primary Address Space Identifier */
+#define ASI_P 0x80 /* Primary Address Space Identifier */
 
 #ifdef ISC_PLATFORM_USEGCCASM
 
@@ -58,15 +59,15 @@
  * returns the previous value.
  */
 static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+{
 	isc_int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile isc_int32_t *)p;; prev = swapped) {
 		swapped = prev + val;
-		__asm__ volatile(
-			"casa [%2] %3, %4, %0"
-			: "+r"(swapped), "=m"(*p)
-			: "r"(p), "n"(ASI_P), "r"(prev), "m"(*p));
+		__asm__ volatile("casa [%2] %3, %4, %0"
+		                 : "+r"(swapped), "=m"(*p)
+		                 : "r"(p), "n"(ASI_P), "r"(prev), "m"(*p));
 		if (swapped == prev)
 			break;
 	}
@@ -78,15 +79,15 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
  * This routine atomically stores the value 'val' in 'p'.
  */
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+{
 	isc_int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile isc_int32_t *)p;; prev = swapped) {
 		swapped = val;
-		__asm__ volatile(
-			"casa [%2] %3, %4, %0"
-			: "+r"(swapped), "=m"(*p)
-			: "r"(p), "n"(ASI_P), "r"(prev), "m"(*p));
+		__asm__ volatile("casa [%2] %3, %4, %0"
+		                 : "+r"(swapped), "=m"(*p)
+		                 : "r"(p), "n"(ASI_P), "r"(prev), "m"(*p));
 		if (swapped == prev)
 			break;
 	}
@@ -98,18 +99,18 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * case.
  */
 static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+{
 	isc_int32_t temp = val;
 
-	__asm__ volatile(
-		"casa [%2] %3, %4, %0"
-		: "+r"(temp), "=m"(*p)
-		: "r"(p), "n"(ASI_P), "r"(cmpval), "m"(*p));
+	__asm__ volatile("casa [%2] %3, %4, %0"
+	                 : "+r"(temp), "=m"(*p)
+	                 : "r"(p), "n"(ASI_P), "r"(cmpval), "m"(*p));
 
 	return (temp);
 }
 
-#else  /* ISC_PLATFORM_USEGCCASM */
+#else /* ISC_PLATFORM_USEGCCASM */
 
 #error "unsupported compiler.  disable atomic ops by --disable-atomic"
 

@@ -7,23 +7,25 @@
  */
 
 #include <config.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <atf-c.h>
 
-#include <isc/time.h>
 #include <isc/result.h>
+#include <isc/time.h>
 
 ATF_TC(isc_time_parsehttptimestamp);
-ATF_TC_HEAD(isc_time_parsehttptimestamp, tc) {
+ATF_TC_HEAD(isc_time_parsehttptimestamp, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "parse http time stamp");
 }
-ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
+ATF_TC_BODY(isc_time_parsehttptimestamp, tc)
+{
 	isc_result_t result;
-	isc_time_t t, x;
-	char buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
+	isc_time_t   t, x;
+	char         buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
@@ -36,13 +38,15 @@ ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
 }
 
 ATF_TC(isc_time_formatISO8601);
-ATF_TC_HEAD(isc_time_formatISO8601, tc) {
+ATF_TC_HEAD(isc_time_formatISO8601, tc)
+{
 	atf_tc_set_md_var(tc, "descr", "print UTC in ISO8601");
 }
-ATF_TC_BODY(isc_time_formatISO8601, tc) {
+ATF_TC_BODY(isc_time_formatISO8601, tc)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char         buf[64];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
@@ -72,14 +76,16 @@ ATF_TC_BODY(isc_time_formatISO8601, tc) {
 }
 
 ATF_TC(isc_time_formatISO8601ms);
-ATF_TC_HEAD(isc_time_formatISO8601ms, tc) {
+ATF_TC_HEAD(isc_time_formatISO8601ms, tc)
+{
 	atf_tc_set_md_var(tc, "descr",
-			  "print UTC in ISO8601 with milliseconds");
+	                  "print UTC in ISO8601 with milliseconds");
 }
-ATF_TC_BODY(isc_time_formatISO8601ms, tc) {
+ATF_TC_BODY(isc_time_formatISO8601ms, tc)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char         buf[64];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
@@ -110,14 +116,15 @@ ATF_TC_BODY(isc_time_formatISO8601ms, tc) {
 }
 
 ATF_TC(isc_time_formatISO8601L);
-ATF_TC_HEAD(isc_time_formatISO8601L, tc) {
-	atf_tc_set_md_var(tc, "descr",
-			  "print local time in ISO8601");
+ATF_TC_HEAD(isc_time_formatISO8601L, tc)
+{
+	atf_tc_set_md_var(tc, "descr", "print local time in ISO8601");
 }
-ATF_TC_BODY(isc_time_formatISO8601L, tc) {
+ATF_TC_BODY(isc_time_formatISO8601L, tc)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char         buf[64];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
@@ -146,14 +153,16 @@ ATF_TC_BODY(isc_time_formatISO8601L, tc) {
 }
 
 ATF_TC(isc_time_formatISO8601Lms);
-ATF_TC_HEAD(isc_time_formatISO8601Lms, tc) {
+ATF_TC_HEAD(isc_time_formatISO8601Lms, tc)
+{
 	atf_tc_set_md_var(tc, "descr",
-			  "print local time in ISO8601 with milliseconds");
+	                  "print local time in ISO8601 with milliseconds");
 }
-ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
+ATF_TC_BODY(isc_time_formatISO8601Lms, tc)
+{
 	isc_result_t result;
-	isc_time_t t;
-	char buf[64];
+	isc_time_t   t;
+	char         buf[64];
 
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
@@ -185,7 +194,8 @@ ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
 /*
  * Main
  */
-ATF_TP_ADD_TCS(tp) {
+ATF_TP_ADD_TCS(tp)
+{
 	ATF_TP_ADD_TC(tp, isc_time_parsehttptimestamp);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601ms);
@@ -193,4 +203,3 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601Lms);
 	return (atf_no_error());
 }
-

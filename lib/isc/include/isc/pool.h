@@ -23,7 +23,6 @@
  * independent task or memory context.
  */
 
-
 /***
  *** Imports.
  ***/
@@ -38,11 +37,9 @@ ISC_LANG_BEGINDECLS
  ***** Types.
  *****/
 
-typedef void
-(*isc_pooldeallocator_t)(void **object);
+typedef void (*isc_pooldeallocator_t)(void **object);
 
-typedef isc_result_t
-(*isc_poolinitializer_t)(void **target, void *arg);
+typedef isc_result_t (*isc_poolinitializer_t)(void **target, void *arg);
 
 typedef struct isc_pool isc_pool_t;
 
@@ -50,11 +47,10 @@ typedef struct isc_pool isc_pool_t;
  ***** Functions.
  *****/
 
-isc_result_t
-isc_pool_create(isc_mem_t *mctx, unsigned int count,
-		isc_pooldeallocator_t free,
-		isc_poolinitializer_t init, void *initarg,
-		isc_pool_t **poolp);
+isc_result_t isc_pool_create(isc_mem_t *mctx, unsigned int count,
+                             isc_pooldeallocator_t free,
+                             isc_poolinitializer_t init, void *initarg,
+                             isc_pool_t **poolp);
 /*%<
  * Create a pool of "count" object pointers. If 'free' is not NULL,
  * it points to a function that will detach the objects.  'init'
@@ -81,22 +77,20 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count,
  *\li	#ISC_R_UNEXPECTED
  */
 
-void *
-isc_pool_get(isc_pool_t *pool);
+void *isc_pool_get(isc_pool_t *pool);
 /*%<
  * Returns a pointer to an object from the pool. Currently the object
  * is chosen from the pool at random.  (This may be changed in the future
  * to something that guaratees balance.)
  */
 
-int
-isc_pool_count(isc_pool_t *pool);
+int isc_pool_count(isc_pool_t *pool);
 /*%<
  * Returns the number of objcts in the pool 'pool'.
  */
 
-isc_result_t
-isc_pool_expand(isc_pool_t **sourcep, unsigned int count, isc_pool_t **targetp);
+isc_result_t isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
+                             isc_pool_t **targetp);
 
 /*%<
  * If 'size' is larger than the number of objects in the pool pointed to by
@@ -126,8 +120,7 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count, isc_pool_t **targetp);
  * \li	#ISC_R_NOMEMORY
  */
 
-void
-isc_pool_destroy(isc_pool_t **poolp);
+void isc_pool_destroy(isc_pool_t **poolp);
 /*%<
  * Destroy a task pool.  The tasks in the pool are detached but not
  * shut down.

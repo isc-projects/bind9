@@ -9,8 +9,7 @@
 /*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-	"$Id: inet_ntop.c,v 1.21 2009/07/17 23:47:41 tbox Exp $";
+static char rcsid[] = "$Id: inet_ntop.c,v 1.21 2009/07/17 23:47:41 tbox Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -24,20 +23,18 @@ static char rcsid[] =
 #include <isc/string.h>
 #include <isc/util.h>
 
-#define NS_INT16SZ	 2
-#define NS_IN6ADDRSZ	16
+#define NS_INT16SZ 2
+#define NS_IN6ADDRSZ 16
 
 /*
  * WARNING: Don't even consider trying to compile this on a system where
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
  */
 
-static const char *inet_ntop4(const unsigned char *src, char *dst,
-			      size_t size);
+static const char *inet_ntop4(const unsigned char *src, char *dst, size_t size);
 
 #ifdef AF_INET6
-static const char *inet_ntop6(const unsigned char *src, char *dst,
-			      size_t size);
+static const char *inet_ntop6(const unsigned char *src, char *dst, size_t size);
 #endif
 
 /*! char *
@@ -52,15 +49,11 @@ const char *
 isc_net_ntop(int af, const void *src, char *dst, size_t size)
 {
 	switch (af) {
-	case AF_INET:
-		return (inet_ntop4(src, dst, size));
+	case AF_INET: return (inet_ntop4(src, dst, size));
 #ifdef AF_INET6
-	case AF_INET6:
-		return (inet_ntop6(src, dst, size));
+	case AF_INET6: return (inet_ntop6(src, dst, size));
 #endif
-	default:
-		errno = EAFNOSUPPORT;
-		return (NULL);
+	default: errno = EAFNOSUPPORT; return (NULL);
 	}
 	/* NOTREACHED */
 }
@@ -81,9 +74,8 @@ static const char *
 inet_ntop4(const unsigned char *src, char *dst, size_t size)
 {
 	static const char *fmt = "%u.%u.%u.%u";
-	char tmp[sizeof("255.255.255.255")];
-	int n;
-
+	char               tmp[sizeof("255.255.255.255")];
+	int                n;
 
 	n = snprintf(tmp, sizeof(tmp), fmt, src[0], src[1], src[2], src[3]);
 	if (n < 0 || (size_t)n >= size) {
@@ -113,9 +105,11 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 	 * to use pointer overlays.  All the world's not a VAX.
 	 */
 	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")], *tp;
-	struct { int base, len; } best, cur;
+	struct {
+		int base, len;
+	} best, cur;
 	unsigned int words[NS_IN6ADDRSZ / NS_INT16SZ];
-	int i;
+	int          i;
 
 	/*
 	 * Preprocess:
@@ -126,9 +120,9 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 	for (i = 0; i < NS_IN6ADDRSZ; i++)
 		words[i / 2] |= (src[i] << ((1 - (i % 2)) << 3));
 	best.base = -1;
-	best.len = 0;	/* silence compiler */
-	cur.base = -1;
-	cur.len = 0;	/* silence compiler */
+	best.len  = 0; /* silence compiler */
+	cur.base  = -1;
+	cur.len   = 0; /* silence compiler */
 	for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
 		if (words[i] == 0) {
 			if (cur.base == -1)
@@ -166,11 +160,10 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 		if (i != 0)
 			*tp++ = ':';
 		/* Is this address an encapsulated IPv4? */
-		if (i == 6 && best.base == 0 && (best.len == 6 ||
-		    (best.len == 7 && words[7] != 0x0001) ||
-		    (best.len == 5 && words[5] == 0xffff))) {
-			if (!inet_ntop4(src+12, tp,
-					sizeof(tmp) - (tp - tmp)))
+		if (i == 6 && best.base == 0 &&
+		    (best.len == 6 || (best.len == 7 && words[7] != 0x0001) ||
+		     (best.len == 5 && words[5] == 0xffff))) {
+			if (!inet_ntop4(src + 12, tp, sizeof(tmp) - (tp - tmp)))
 				return (NULL);
 			tp += strlen(tp);
 			break;
@@ -179,8 +172,8 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 		tp += snprintf(tp, sizeof(tmp) - (tp - tmp), "%x", words[i]);
 	}
 	/* Was it a trailing run of 0x00's? */
-	if (best.base != -1 && (best.base + best.len) ==
-	    (NS_IN6ADDRSZ / NS_INT16SZ))
+	if (best.base != -1 &&
+	    (best.base + best.len) == (NS_IN6ADDRSZ / NS_INT16SZ))
 		*tp++ = ':';
 	*tp++ = '\0';
 
