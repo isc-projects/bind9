@@ -1,6 +1,7 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
   LC_ALL: C
+  DOCKER_DRIVER: overlay2
 
 stages:
   - image
