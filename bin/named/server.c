@@ -12607,6 +12607,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	dns_zone_t *zone = NULL;
 #ifndef HAVE_LMDB
 	FILE *fp = NULL;
+	isc_boolean_t cleanup_config = ISC_FALSE;
 #else /* HAVE_LMDB */
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
@@ -12699,14 +12700,15 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	 * we've created. If there was a previous one, merge the new
 	 * zone into it.
 	 */
-	if (cfg->nzf_config == NULL)
+	if (cfg->nzf_config == NULL) {
 		cfg_obj_attach(zoneconf, &cfg->nzf_config);
-	else {
+	} else {
 		cfg_obj_t *z;
 		DE_CONST(zoneobj, z);
 		CHECK(cfg_parser_mapadd(cfg->add_parser,
 					cfg->nzf_config, z, "zone"));
 	}
+	cleanup_config = ISC_TRUE;
 #endif /* HAVE_LMDB */
 
 	/*
@@ -12752,6 +12754,12 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 #ifndef HAVE_LMDB
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);
+	if (result != ISC_R_SUCCESS && cleanup_config) {
+		tresult = delete_zoneconf(view, cfg->add_parser,
+					 cfg->nzf_config, name,
+					 NULL);
+		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+	}
 #else /* HAVE_LMDB */
 	if (txn != NULL)
 		(void) nzd_close(&txn, ISC_FALSE);

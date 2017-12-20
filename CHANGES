@@ -1,3 +1,6 @@
+4849.	[bug]		Duplicate zones could appear in the .nzf file if
+			addzone failed. [RT #46435]
+
 4847.	[bug]		dnssec-dnskey-kskonly was not being honoured for
 			CDS and CDNSKEY. [RT #46755]
 
