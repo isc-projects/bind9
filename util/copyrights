@@ -802,6 +802,7 @@
 ./bin/tests/system/addzone/ns2/normal.db	ZONE	2010,2016
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010,2016
 ./bin/tests/system/addzone/ns2/redirect.db	ZONE	2016
+./bin/tests/system/addzone/ns3/e.db		ZONE	2017
 ./bin/tests/system/addzone/ns3/named1.conf	CONF-C	2017
 ./bin/tests/system/addzone/ns3/named2.conf	CONF-C	2017
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014,2016,2017
@@ -1493,7 +1494,7 @@
 ./bin/tests/system/emptyzones/ns1/root.hint	ZONE	2014,2016
 ./bin/tests/system/emptyzones/setup.sh		SH	2014,2016
 ./bin/tests/system/emptyzones/tests.sh		SH	2014,2015,2016
-./bin/tests/system/feature-test.c		C	2016
+./bin/tests/system/feature-test.c		C	2016,2017
 ./bin/tests/system/fetchlimit/ans4/ans.pl	PERL	2015,2016
 ./bin/tests/system/fetchlimit/clean.sh		SH	2015,2016
 ./bin/tests/system/fetchlimit/ns1/named.conf	CONF-C	2015,2016
