@@ -30,12 +30,18 @@ while getopts "rnp:d:" flag; do
 done
 shift `expr $OPTIND - 1`
 
-test $# -gt 0 || { echo "usage: $0 [-k|-n|-p <PORT>] test-directory" >&2; exit 1; }
+if [ $# -eq 0 ]; then
+    echofail "Usage: $0 [-k] [-n] [-p <PORT>] [-r] test-directory [test-options]" >&2;
+    exit 1
+fi
 
 test=$1
 shift
 
-test -d $test || { echofail "$0: $test: no such test" >&2; exit 1; }
+if [ ! -d test ]; then
+    echofail "$0: $test: no such test" >&2
+    exit 1
+fi
 
 # Define the number of ports allocated for each test, and the lowest and
 # highest valid values for the "-p" option.
@@ -52,10 +58,10 @@ maxvalid=`expr 65535 - $numport + 1`
 
 test "$baseport" -eq "$baseport" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echofail "Must specify a numeric value for the port"
+    echofail "$0: $test: must specify a numeric value for the port" >&2
     exit 1
 elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
-    echofail "The specified port must be in the range $minvalid to $maxvalid" >&2
+    echofail "$0: $test: the specified port must be in the range $minvalid to $maxvalid" >&2
     exit 1
 fi
 
@@ -108,7 +114,7 @@ if [ $result -eq 0 ]; then
 else
     echowarn "I:$test:Prerequisites missing, skipping test."
     [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
-    echoend "E:$test:`date $dateargs`" >&2
+    echoend "E:$test:`date $dateargs`"
     exit 0
 fi
 
@@ -150,11 +156,11 @@ $PERL stop.pl $test
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-	echofail "R:$test:FAIL"
-	# Don't clean up - we need the evidence.
-	find . -name core -exec chmod 0644 '{}' \;
+    echofail "R:$test:FAIL"
+    # Do not clean up - we need the evidence.
+    find . -name core -exec chmod 0644 '{}' \;
 else
-	echopass "R:$test:PASS"
+    echopass "R:$test:PASS"
     if $clean
     then
         rm -f $SYSTEMTESTTOP/random.data
