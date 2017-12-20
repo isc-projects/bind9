@@ -14,7 +14,7 @@
 1. [Contributing to BIND](#contrib)
 1. [BIND 9.13 features](#features)
 1. [Building BIND](#build)
-1. [MacOS](#macos)
+1. [macOS](#macos)
 1. [Compile-time options](#opts)
 1. [Automated testing](#testing)
 1. [Documentation](#doc)
@@ -146,9 +146,9 @@ affect compilation:
 |`BUILD_LDFLAGS`||
 |`BUILD_LIBS`||
 
-#### <a name="macos"> MacOS
+#### <a name="macos"> macOS
 
-Building on MacOS assumes that the "Command Tools for Xcode" is installed.
+Building on macOS assumes that the "Command Tools for Xcode" is installed.
 This can be downloaded from https://developer.apple.com/download/more/
 or if you have Xcode already installed you can run "xcode-select --install".
 This will add /usr/include to the system and install the compiler and other
