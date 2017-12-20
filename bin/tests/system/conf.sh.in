@@ -218,7 +218,9 @@ fi
 TESTNAME="`basename $PWD`"
 
 echo_i() {
-    echoinfo "I:$TESTNAME:$@"
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$TESTNAME:$LINE"
+    done
 }
 
 #
