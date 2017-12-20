@@ -664,6 +664,7 @@
 ./bin/tests/system/addzone/ns2/previous.db	ZONE	2010,2016
 ./bin/tests/system/addzone/ns2/redirect.db.1	ZONE	2016,2017
 ./bin/tests/system/addzone/ns2/redirect.db.2	ZONE	2016,2017
+./bin/tests/system/addzone/ns3/e.db		ZONE	2017
 ./bin/tests/system/addzone/ns3/named1.conf	CONF-C	2017
 ./bin/tests/system/addzone/ns3/named2.conf	CONF-C	2017
 ./bin/tests/system/addzone/ns3/redirect.db.1	ZONE	2017
