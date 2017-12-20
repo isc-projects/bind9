@@ -27,15 +27,21 @@ while getopts "r" flag; do
 done
 shift `expr $OPTIND - 1`
 
-test $# -gt 0 || { echo "usage: $0 [-r] test-directory" >&2; exit 1; }
+if [ $# -eq 0 ]; then
+    echo "usage: $0 [-r] test-directory" >&2
+    exit 1
+fi
 
-test=$1
+systest=$1
 shift
 
 if [ "$runall" = "" ]; then
-    rm -f $test/test.output
+    rm -f $systest/test.output
 fi
 
-if test -f $test/clean.sh; then
-    ( cd $test && $SHELL clean.sh "$@" )
+if [ -f $systest/clean.sh ]; then
+    ( cd $systest && $SHELL clean.sh "$@" )
+else
+    echo "Test directory $systest does not exist" >&2
+    exit 1
 fi
