@@ -17,7 +17,15 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-usage="Usage: ./runall.sh [numprocesses]"
+usage="Usage: ./runall.sh [-n] [numprocesses]"
+
+while getopts "n" flag; do
+    case "$flag" in
+	n) CLEANFLAG="NOCLEAN=-n" ;;
+	*) echo "$usage" >&2 ; exit 1 ;;
+    esac
+done
+shift `expr $OPTIND - 1`
 
 if [ $# -eq 0 ]; then
     numproc=1
@@ -25,7 +33,7 @@ elif [ $# -eq 1 ]; then
     test "$1" -eq "$1" > /dev/null 2>& 1
     if [ $? -ne 0 ]; then
         # Value passed is not numeric
-        echo "$usage"
+        echo "$usage" >&2
         exit 1
     fi
     numproc=$1
@@ -34,6 +42,6 @@ else
     exit 1
 fi
 
-make -j $numproc check
+$CLEANFLAG make -j $numproc check
 
 exit $?
