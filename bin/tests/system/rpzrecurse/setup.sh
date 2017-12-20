@@ -19,7 +19,6 @@ while getopts "xD" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
 	D) TEST_DNSRPS="-D";;
-    -) break;;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
