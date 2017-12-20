@@ -297,7 +297,7 @@ $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A > dig.out.${t} &
 sleep 1
 echo_i "removing the policy zone"
 cp ns2/named.default.conf ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig 2>&1 | sed 's/^/I:ns2 /'
+echo_i "`$RNDCCMD 10.53.0.2 reconfig 2>&1 | sed 's/^/I:ns2 /'`"
 test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
 sleep 1
 echo_i "resuming authority server"
