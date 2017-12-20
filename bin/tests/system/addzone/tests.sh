@@ -672,6 +672,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+if ! $FEATURETEST --with-lmdb
+then
+    echo "I:check that addzone is fully reversed on failure (--with-lmdb=no) ($n)"
+    ret=0
+    $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone "test1.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
+    $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone "test2.baz" '{ type master; file "dne.db"; };' > /dev/null 2>&1 && ret=1
+    $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone "test3.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
+    $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 delzone "test3.baz" > /dev/null 2>&1 || ret=1
+    grep test2.baz ns3/_default.nzf > /dev/null && ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
+fi
+
 echo "I:check that named restarts with multiple added zones ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 addzone "test4.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
