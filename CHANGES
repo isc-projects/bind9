@@ -1,3 +1,6 @@
+4849.	[bug]		Duplicate zones could appear in the .nzf file if
+			addzone failed. [RT #46435]
+
 4848.	[func]		Zone types "primary" and "secondary" can now be used
 			as synonyms for "master" and "slave" in named.conf.
 			[RT #46713]
