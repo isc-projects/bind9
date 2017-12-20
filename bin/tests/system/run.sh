@@ -35,11 +35,11 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-test=$1
+systest=$1
 shift
 
-if [ ! -d test ]; then
-    echofail "$0: $test: no such test" >&2
+if [ ! -d $systest ]; then
+    echofail "$0: $systest: no such test" >&2
     exit 1
 fi
 
@@ -58,10 +58,10 @@ maxvalid=`expr 65535 - $numport + 1`
 
 test "$baseport" -eq "$baseport" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echofail "$0: $test: must specify a numeric value for the port" >&2
+    echofail "$0: $systest: must specify a numeric value for the port" >&2
     exit 1
 elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
-    echofail "$0: $test: the specified port must be in the range $minvalid to $maxvalid" >&2
+    echofail "$0: $systest: the specified port must be in the range $minvalid to $maxvalid" >&2
     exit 1
 fi
 
@@ -85,62 +85,67 @@ export LOWPORT=$baseport
 export HIGHPORT=`expr $baseport + $numport - 1`
 
 
-echostart "S:$test:`date $dateargs`"
-echoinfo  "T:$test:1:A"
-echoinfo  "A:$test:System test $test"
-echoinfo  "I:$test:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
+echostart "S:$systest:`date $dateargs`"
+echoinfo  "T:$systest:1:A"
+echoinfo  "A:$systest:System test $systest"
+echoinfo  "I:$systest:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 
 if [ x${PERL:+set} = x ]
 then
-    echowarn "I:$test:Perl not available.  Skipping test."
-    echowarn "R:$test:UNTESTED"
-    echoend  "E:$test:`date $dateargs`"
+    echowarn "I:$systest:Perl not available.  Skipping test."
+    echowarn "R:$systest:UNTESTED"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0;
 fi
 
 $PERL testsock.pl -p $PORT  || {
-    echowarn "I:$test:Network interface aliases not set up.  Skipping test."
-    echowarn "R:$test:UNTESTED"
-    echoend  "E:$test:`date $dateargs`"
+    echowarn "I:$systest:Network interface aliases not set up.  Skipping test."
+    echowarn "R:$systest:UNTESTED"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0;
 }
 
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh "$@" )
+test ! -f $systest/prereq.sh || ( cd $systest && $SHELL prereq.sh "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
     : prereqs ok
 else
-    echowarn "I:$test:Prerequisites missing, skipping test."
-    [ $result -eq 255 ] && echowarn "R:$test:SKIPPED" || echowarn "R:$test:UNTESTED"
-    echoend "E:$test:`date $dateargs`"
+    echowarn "I:$systest:Prerequisites missing, skipping test."
+    [ $result -eq 255 ] && echowarn "R:$systest:SKIPPED" || echowarn "R:$systest:UNTESTED"
+    echoend "E:$systest:`date $dateargs`"
     exit 0
 fi
 
 # Check for PKCS#11 support
 if
-    test ! -f $test/usepkcs11 || $SHELL cleanpkcs11.sh
+    test ! -f $systest/usepkcs11 || $SHELL cleanpkcs11.sh
 then
     : pkcs11 ok
 else
-    echowarn "I:$test:Need PKCS#11, skipping test."
-    echowarn "R:$test:PKCS11ONLY"
-    echoend  "E:$test:`date $dateargs`"
+    echowarn "I:$systest:Need PKCS#11, skipping test."
+    echowarn "R:$systest:PKCS11ONLY"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0
 fi
 
 # Set up any dynamically generated test data
-if test -f $test/setup.sh
+if test -f $systest/setup.sh
 then
-   ( cd $test && $SHELL setup.sh "$@" )
+   ( cd $systest && $SHELL setup.sh "$@" )
 fi
 
 # Start name servers running
-$PERL start.pl --port $PORT $test || { echofail "R:$test:FAIL"; echoend "E:$test:`date $dateargs`"; exit 1; }
+$PERL start.pl --port $PORT $systest
+if [ $? -ne 0 ]; then
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:`date $dateargs`"
+    exit 1
+fi
 
 # Run the tests
-( cd $test ; $SHELL tests.sh "$@" )
+( cd $systest ; $SHELL tests.sh "$@" )
 status=$?
 
 if $stopservers
@@ -151,30 +156,30 @@ else
 fi
 
 # Shutdown
-$PERL stop.pl $test
+$PERL stop.pl $systest
 
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-    echofail "R:$test:FAIL"
+    echofail "R:$systest:FAIL"
     # Do not clean up - we need the evidence.
     find . -name core -exec chmod 0644 '{}' \;
 else
-    echopass "R:$test:PASS"
+    echopass "R:$systest:PASS"
     if $clean
     then
-        rm -f $SYSTEMTESTTOP/random.data
-	$SHELL clean.sh $runall $test "$@"
-        if test -d ../../../.git
-        then
-            git status -su --ignored $test | \
-            sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-            -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+	rm -f $SYSTEMTESTTOP/random.data
+	$SHELL clean.sh $runall $systest "$@"
+	if test -d ../../../.git
+	then
+	    git status -su --ignored $systest | \
+	    sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
+	    -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
+	    -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
 	fi
     fi
 fi
 
-echoend "E:$test:`date $dateargs`"
+echoend "E:$systest:`date $dateargs`"
 
 exit $status
