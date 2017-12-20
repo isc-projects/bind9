@@ -1,3 +1,6 @@
+4849.	[bug]		Duplicate zones could appear in the .nzf file if
+			addzone failed. [RT #46435]
+
 4846.	[test]		Adjust timing values in runtime system test. Address
 			named.pid removal races in runtime system test.
 			[RT #46800]
