@@ -9,3 +9,4 @@ named.port
 **/test.output
 /systests.output
 /random.data
+parallel.mk

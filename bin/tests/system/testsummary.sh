@@ -44,8 +44,7 @@ done
 
 
 $PERL testsock.pl || {
-    cat <<EOF >&2
-I:
+    cat <<EOF
 I:NOTE: System tests were skipped because they require that the
 I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured
 I:      as alias addresses on the loopback interface.  Please run
