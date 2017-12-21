@@ -222,6 +222,8 @@ main(int argc, char *argv[]) {
 		randomfile = argv[2];
 		argv += 2;
 		argc -= 2;
+		POST(argv);
+		POST(argc);
 	}
 
 	dns_result_register();
