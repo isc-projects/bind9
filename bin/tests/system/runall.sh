@@ -9,10 +9,13 @@
 # Run all the system tests.
 #
 # Usage:
-#    runall.sh [numprocesses]
+#    runall.sh [-n] [numprocesses]
 #
-# ...where numprocess is the number of processes to use. The default is 1,
-# which runs the tests sequentially.
+#   -n          Noclean.  Keep all output files produced by all tests.  These
+#               can later be removed by running "cleanall.sh".
+#
+#   numprocess  Number of simultaneous processes to use when running the tests.
+#               The default is one, which causes the tests to run sequentially.
 
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh

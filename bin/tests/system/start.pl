@@ -17,7 +17,7 @@ use Cwd 'abs_path';
 use Getopt::Long;
 
 # Usage:
-#   perl start.pl [--noclean] [--restart] [--port port]  test [server [options]]
+#   perl start.pl [--noclean] [--restart] [--port port] test [server [options]]
 #
 #   --noclean       Do not cleanup files in server directory.
 #
@@ -47,8 +47,8 @@ use Getopt::Long;
 #                   ALSO NOTE: this variable will be filled with the contents
 #                   of the first non-commented/non-blank line of args in a file
 #                   called "named.args" in an ns*/ subdirectory. Only the FIRST
-#                   non-commented/non-blank line is used (everything else in the
-#                   file is ignored). If "options" is already set, then
+#                   non-commented/non-blank line is used (everything else in
+#                   the file is ignored). If "options" is already set, then
 #                   "named.args" is ignored.
 
 my $usage = "usage: $0 [--noclean] [--restart] [--port <port>] test-directory [server-directory [server-options]]";
