@@ -99,6 +99,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	isc_buffer_init(&sigbuf, tsig.signature, sigsize);
 	CHECK(dst_context_sign(tsigctx, &sigbuf));
 	tsig.siglen = isc_buffer_usedlength(&sigbuf);
+	ATF_CHECK_EQ(sigsize, tsig.siglen);
 
 	CHECK(isc_buffer_allocate(mctx, &dynbuf, 512));
 	CHECK(dns_rdata_fromstruct(&rdata, dns_rdataclass_any,
