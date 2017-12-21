@@ -83,6 +83,8 @@ stages:
   stage: build
   before_script:
     - whoami
+    - ip a s
+    - ip r s
     - bash bin/tests/system/ifconfig.sh up
     - ./autogen.sh
   script:
