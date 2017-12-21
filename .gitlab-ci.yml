@@ -82,7 +82,7 @@ stages:
 .build: &build_job
   stage: build
   before_script:
-    - bash bin/tests/system/ifconfig.sh up
+    - sudo bash bin/tests/system/ifconfig.sh up
     - ./autogen.sh
   script:
     - ./configure
