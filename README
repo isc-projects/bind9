@@ -7,7 +7,7 @@ Contents
  3. Contributing to BIND
  4. BIND 9.9 features
  5. Building BIND
- 6. MacOS
+ 6. macOS
  7. Compile-time options
  8. Automated testing
  9. Documentation
@@ -280,9 +280,9 @@ BUILD_CPPFLAGS
 BUILD_LDFLAGS
 BUILD_LIBS
 
-MacOS
+macOS
 
-Building on MacOS assumes that the "Command Tools for Xcode" is installed.
+Building on macOS assumes that the "Command Tools for Xcode" is installed.
 This can be downloaded from https://developer.apple.com/download/more/ or
 if you have Xcode already installed you can run "xcode-select --install".
 This will add /usr/include to the system and install the compiler and
