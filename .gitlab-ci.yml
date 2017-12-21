@@ -91,9 +91,9 @@ stages:
     - ./configure
     - make -k all V=1
     - make -k check V=1
-  artifacts:
-    untracked: true
-    expire_in: '1 hour'
+#  artifacts:
+#    untracked: true
+#    expire_in: '1 hour'
 
 .test: &test_job
   stage: test
