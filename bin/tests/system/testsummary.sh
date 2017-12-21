@@ -31,17 +31,10 @@ while getopts "n" flag; do
     esac
 done
 
-rm -f systests.output
-touch systests.output
-for directory in $SUBDIRS ; do
-    if [ -e $directory/test.output ]; then
-        cat $directory/test.output >> systests.output
-	if [ "$keepfile" = "" ]; then
-	    rm $directory/test.output
-	fi
-    fi
-done
-
+cat */test.output > systests.output 2> /dev/null
+if [ "$keepfile" = "" ]; then
+    rm -f */test.output
+fi
 
 $PERL testsock.pl || {
     cat <<EOF
