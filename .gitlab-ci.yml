@@ -6,7 +6,6 @@ variables:
 
 stages:
   - build
-  - test
 
 .debian-jessie-amd64: &debian_jessie_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
@@ -56,14 +55,14 @@ stages:
     - linux
     - docker
 
-.ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
+.ubuntu-trusty-amd64: &ubuntu_trusty_i386_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-i386"
   tags:
     - linux
     - docker
 
-.ubuntu-xenial-amd64: &ubuntu_xenial_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
+.ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   tags:
     - linux
     - docker
@@ -71,10 +70,12 @@ stages:
 .build: &build_job
   stage: build
   before_script:
+    - bash bin/tests/system/ifconfig.sh up
     - ./autogen.sh
   script:
     - ./configure
     - make -k all V=1
+    - make -k check V=1
   artifacts:
     untracked: true
     expire_in: '1 hour'
@@ -82,92 +83,36 @@ stages:
 .test: &test_job
   stage: test
   before_script:
-    - bash bin/tests/system/ifconfig.sh up
   script:
-    - make -k check V=1
 
 build:debian:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
-test:debian:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *test_job
-  dependencies:
-    - build:debian:jessie:amd64
-
 build:debian:jessie:i386:
   <<: *debian_jessie_i386_image
   <<: *build_job
-
-test:debian:jessie:i386:
-  <<: *debian_jessie_i386_image
-  <<: *test_job
-  dependencies:
-    - build:debian:jessie:i386
-
-####
 
 build:debian:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
-test:debian:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *test_job
-  dependencies:
-    - build:debian:stretch:amd64
-
-build:debian:stretch:i386:
-  <<: *debian_stretch_i386_image
+build:debian:buster:i386:
+  <<: *debian_buster_i386_image
   <<: *build_job
-
-test:debian:stretch:i386:
-  <<: *debian_stretch_i386_image
-  <<: *test_job
-  dependencies:
-    - build:debian:stretch:i386
-
-####
 
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-test:debian:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *test_job
-  dependencies:
-    - build:debian:sid:amd64
-
 build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
 
-test:debian:sid:i386:
-  <<: *debian_sid_i386_image
-  <<: *test_job
-  dependencies:
-    - build:debian:sid:i386
-
-####
-
-build:ubuntu:xenial:amd64:
-  <<: *ubuntu_xenial_amd64_image
+build:ubuntu:trusty:amd64:
+  <<: *ubuntu_trusty_amd64_image
   <<: *build_job
-
-test:ubuntu:xenial:amd64:
-  <<: *ubuntu_xenial_amd64_image
-  <<: *test_job
-  dependencies:
-    - build:ubuntu:xenial:amd64
 
 build:ubuntu:xenial:i386:
   <<: *ubuntu_xenial_i386_image
   <<: *build_job
-
-test:ubuntu:xenial:i386:
-  <<: *ubuntu_xenial_i386_image
-  <<: *test_job
-  dependencies:
-    - build:ubuntu:xenial:i386
