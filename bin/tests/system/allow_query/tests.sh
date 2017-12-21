@@ -55,8 +55,7 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"
 
 rndc_reload() {
-    RNDCOUT=`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 2>&1`
-    echo_i "ns2 $RNDCOUT"
+    echo_i "`$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 2>&1 | sed 's/^/ns2 /'`"
 }
 
 status=0
