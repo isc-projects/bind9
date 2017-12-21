@@ -2,106 +2,68 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   LC_ALL: C
   DOCKER_DRIVER: overlay2
+  CI_REGISTRY_IMAGE: oerdnj/bind9
 
 stages:
-  - image
   - build
   - test
 
-.image: &image
-  image: docker:latest
-  stage: image
-  services:
-    - docker:dind
-  tags:
-    - docker
-  before_script:
-    - docker info
-  script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker pull "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" || true
-    - docker build --cache-from "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" -t "$CI_REGISTRY_IMAGE/$CI_JOB_NAME" "contrib/docker/$CI_JOB_NAME"
-    - docker push "$CI_REGISTRY_IMAGE/$CI_JOB_NAME"
-  only:
-    - master
-    - triggers
-    - tags
-    - gitlab-ci
-
-debian-amd64:oldstable:
-  <<: *image
-
-debian-i386:oldstable:
-  <<: *image
-
-debian-amd64:stable:
-  <<: *image
-
-debian-i386:stable:
-  <<: *image
-
-debian-amd64:unstable:
-  <<: *image
-
-debian-i386:unstable:
-  <<: *image
-
-ubuntu-amd64:latest:
-  <<: *image
-
-ubuntu-i386:latest:
-  <<: *image
-
-#centos-amd64:latest:
-#  <<: *image
-
-#fedora-amd64:latest:
-#  <<: *image
-
-.debian-amd64:oldstable: &debian_oldstable_amd64_image
-  image: "$CI_REGISTRY_IMAGE/debian-amd64:oldstable"
+.debian-jessie-amd64: &debian_jessie_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
   tags:
     - linux
     - docker
 
-.debian-i386:oldstable: &debian_oldstable_i386_image
-  image: "$CI_REGISTRY_IMAGE/debian-i386:oldstable"
+.debian-jessie-i386: &debian_jessie_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-jessie-i386"
   tags:
     - linux
     - docker
 
-.debian-amd64:stable: &debian_stable_amd64_image
-  image: "$CI_REGISTRY_IMAGE/debian-amd64:stable"
+.debian-stretch-amd64: &debian_stretch_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   tags:
     - linux
     - docker
 
-.debian-i386:stable: &debian_stable_i386_image
-  image: "$CI_REGISTRY_IMAGE/debian-i386:stable"
+.debian-stretch-i386:: &debian_stretch_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
   tags:
     - linux
     - docker
 
-.debian-amd64:unstable: &debian_unstable_amd64_image
-  image: "$CI_REGISTRY_IMAGE/debian-amd64:unstable"
+.debian-buster-amd64: &debian_buster_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   tags:
     - linux
     - docker
 
-.debian-i386:unstable: &debian_unstable_i386_image
-  image: "$CI_REGISTRY_IMAGE/debian-i386:unstable"
+.debian-buster-i386:: &debian_buster_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-buster-i386"
   tags:
     - linux
     - docker
 
-.ubuntu-amd64:latest: &ubuntu_latest_amd64_image
-  image: "$CI_REGISTRY_IMAGE/ubuntu-amd64:latest"
+.debian-sid-amd64: &debian_sid_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   tags:
     - linux
     - docker
 
-.ubuntu-amd64:latest: &ubuntu_latest_i386_image
-  image: "$CI_REGISTRY_IMAGE/ubuntu-i386:latest"
+.debian-sid-i386: &debian_sid_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-xenial-amd64: &ubuntu_xenial_i386_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
   tags:
     - linux
     - docker
@@ -125,87 +87,87 @@ ubuntu-i386:latest:
     - make -k check V=1
 
 build:debian:oldstable:amd64:
-  <<: *debian_oldstable_amd64_image
+  <<: *debian_jessie_amd64_image
   <<: *build_job
 
-test:debian:oldstable:amd64:
-  <<: *debian_oldstable_amd64_image
+test:debian:jessie:amd64:
+  <<: *debian_jessie_amd64_image
   <<: *test_job
   dependencies:
-    - build:debian:oldstable:amd64
+    - build:debian:jessie:amd64
 
-build:debian:oldstable:i386:
-  <<: *debian_oldstable_i386_image
+build:debian:jessie:i386:
+  <<: *debian_jessie_i386_image
   <<: *build_job
 
-test:debian:oldstable:i386:
-  <<: *debian_oldstable_i386_image
+test:debian:jessie:i386:
+  <<: *debian_jessie_i386_image
   <<: *test_job
   dependencies:
-    - build:debian:oldstable:i386
+    - build:debian:jessie:i386
 
 ####
 
-build:debian:stable:amd64:
-  <<: *debian_stable_amd64_image
+build:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
   <<: *build_job
 
-test:debian:stable:amd64:
-  <<: *debian_stable_amd64_image
+test:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
   <<: *test_job
   dependencies:
-    - build:debian:stable:amd64
+    - build:debian:stretch:amd64
 
-build:debian:stable:i386:
-  <<: *debian_stable_i386_image
+build:debian:stretch:i386:
+  <<: *debian_stretch_i386_image
   <<: *build_job
 
-test:debian:stable:i386:
-  <<: *debian_stable_i386_image
+test:debian:stretch:i386:
+  <<: *debian_stretch_i386_image
   <<: *test_job
   dependencies:
-    - build:debian:stable:i386
+    - build:debian:stretch:i386
 
 ####
 
-build:debian:unstable:amd64:
-  <<: *debian_unstable_amd64_image
+build:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
   <<: *build_job
 
-test:debian:unstable:amd64:
-  <<: *debian_unstable_amd64_image
+test:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
   <<: *test_job
   dependencies:
-    - build:debian:unstable:amd64
+    - build:debian:sid:amd64
 
-build:debian:unstable:i386:
-  <<: *debian_unstable_i386_image
+build:debian:sid:i386:
+  <<: *debian_sid_i386_image
   <<: *build_job
 
-test:debian:unstable:i386:
-  <<: *debian_unstable_i386_image
+test:debian:sid:i386:
+  <<: *debian_sid_i386_image
   <<: *test_job
   dependencies:
-    - build:debian:unstable:i386
+    - build:debian:sid:i386
 
 ####
 
-build:ubuntu:latest:amd64:
-  <<: *ubuntu_latest_amd64_image
+build:ubuntu:xenial:amd64:
+  <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
-test:ubuntu:latest:amd64:
-  <<: *ubuntu_latest_amd64_image
+test:ubuntu:xenial:amd64:
+  <<: *ubuntu_xenial_amd64_image
   <<: *test_job
   dependencies:
-    - build:ubuntu:latest:amd64
+    - build:ubuntu:xenial:amd64
 
-build:ubuntu:latest:i386:
-  <<: *ubuntu_latest_i386_image
+build:ubuntu:xenial:i386:
+  <<: *ubuntu_xenial_i386_image
   <<: *build_job
 
-test:ubuntu:latest:i386:
-  <<: *ubuntu_latest_i386_image
+test:ubuntu:xenial:i386:
+  <<: *ubuntu_xenial_i386_image
   <<: *test_job
   dependencies:
-    - build:ubuntu:latest:i386
+    - build:ubuntu:xenial:i386
