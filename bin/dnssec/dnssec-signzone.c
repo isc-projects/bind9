@@ -3681,6 +3681,8 @@ main(int argc, char *argv[]) {
 		if (nsec3iter > max)
 			fatal("NSEC3 iterations too big for weakest DNSKEY "
 			      "strength. Maximum iterations allowed %u.", max);
+	} else {
+		hashlist_init(&hashlist, 0, 0);	/* silence clang */
 	}
 
 	gversion = NULL;
@@ -3842,8 +3844,7 @@ main(int argc, char *argv[]) {
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);
 
-	if (IS_NSEC3)
-		hashlist_free(&hashlist);
+	hashlist_free(&hashlist);
 
 	while (!ISC_LIST_EMPTY(keylist)) {
 		key = ISC_LIST_HEAD(keylist);
