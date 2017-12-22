@@ -394,10 +394,10 @@ status=`expr $status + $ret`
 
 HAS_PYYAML=0
 if [ -n "$PYTHON" ] ; then
-	$PYTHON -c "import yaml" && HAS_PYYAML=1
+	$PYTHON -c "import yaml" 2> /dev/null && HAS_PYYAML=1
 fi
 
-if [ $HAS_PYYAML ] ; then
+if [ $HAS_PYYAML -ne 0 ] ; then
 	echo "I:checking dnstap-read YAML output"
 	ret=0
 	$PYTHON ydump.py "$DNSTAPREAD" "ns3/dnstap.out.save" > ydump.out || ret=1
