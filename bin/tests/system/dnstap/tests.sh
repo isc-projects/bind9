@@ -400,7 +400,7 @@ fi
 if [ $HAS_PYYAML -ne 0 ] ; then
 	echo "I:checking dnstap-read YAML output"
 	ret=0
-	$PYTHON ydump.py "$DNSTAPREAD" "ns3/dnstap.out.save" > /dev/null || ret=1
+	$PYTHON ydump.py "$DNSTAPREAD" "ns3/dnstap.out.save" > ydump.out || ret=1
 	if [ $ret != 0 ]; then echo "I: failed"; fi
 	status=`expr $status + $ret`
 fi
