@@ -7395,7 +7395,7 @@ for_all_newzone_cfgs(newzone_cfg_cb_t callback, cfg_obj_t *config,
 		     cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
 		     cfg_aclconfctx_t *actx, MDB_txn *txn, MDB_dbi dbi)
 {
-	const cfg_obj_t *zconfig, *zlist = NULL;
+	const cfg_obj_t *zconfig, *zlist;
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_obj_t *zconfigobj = NULL;
 	isc_buffer_t *text = NULL;
@@ -7423,6 +7423,7 @@ for_all_newzone_cfgs(newzone_cfg_cb_t callback, cfg_obj_t *config,
 		/*
 		 * Extract zone configuration from configuration object.
 		 */
+		zlist = NULL;
 		result = cfg_map_get(zconfigobj, "zone", &zlist);
 		if (result != ISC_R_SUCCESS) {
 			break;

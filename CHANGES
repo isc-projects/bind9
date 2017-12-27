@@ -1,5 +1,8 @@
 	--- 9.12.0 released ---
 
+4850.	[bug]		Named failed to restart with multiple added zones in
+			lmdb database. [RT #46889]
+
 	--- 9.12.0rc1 released ---
 
 4841.	[bug]		Address -fsanitize=undefined warnings. [RT #46786]
