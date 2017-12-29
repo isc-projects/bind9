@@ -110,7 +110,7 @@ while (<CHANGES>) {
 	    $file_types{$_} = "ZONE";
 	} elsif ($base =~ /\.mkd$/) {
 	    $file_types{$_} = "MKD";
-	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Atffile|\.(gif|jpg))$/i) {
+	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Atffile|Kyuafile|\.(gif|jpg))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
 	    $file_types{$_} = "X";
