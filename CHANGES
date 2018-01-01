@@ -1,3 +1,6 @@
+4851.	[port]		Support using kyua as well as atf-run to run the unit
+			tests. [RT #46853]
+
 4846.	[test]		Adjust timing values in runtime system test. Address
 			named.pid removal races in runtime system test.
 			[RT #46800]
