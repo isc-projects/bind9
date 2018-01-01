@@ -454,6 +454,9 @@ isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 	struct tm tm;
 #endif
 
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
@@ -473,6 +476,9 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 	struct tm tm;
 #endif
 
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
