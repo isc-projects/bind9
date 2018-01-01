@@ -1,3 +1,6 @@
+4853.	[bug]		Add REQUIRE's and INSIST's to isc_time_formatISO8601L
+			and isc_time_formatISO8601Lms. [RT #46916]
+
 4852.	[bug]		Handle strftime() failing in isc_time_formatISO8601ms.
 			Add REQUIRE's and INSIST's to isc_time_formattimestamp,
 			isc_time_formathttptimestamp, isc_time_formatISO8601,

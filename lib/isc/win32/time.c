@@ -343,7 +343,10 @@ isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
@@ -364,7 +367,10 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSS" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
