@@ -1,3 +1,7 @@
+4852.	[bug]		Add REQUIRE's and INSIST's to isc_time_formattimestamp,
+			isc_time_formathttptimestamp, isc_time_formatISO8601.
+			[RT #46892]
+
 4851.	[port]		Support using kyua as well as atf-run to run the unit
 			tests. [RT #46853]
 
