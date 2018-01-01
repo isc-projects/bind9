@@ -1,3 +1,6 @@
+4851.	[port]		Support using kyua as well as atf-run to run the unit
+			tests. [RT #46853]
+
 4850.	[bug]		Named failed to restart with multiple added zones in
 			lmdb database. [RT #46889]
 
