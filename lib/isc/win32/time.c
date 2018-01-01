@@ -272,7 +272,10 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	char DateBuf[50];
 	char TimeBuf[50];
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToLocalFileTime(&t->absolute, &localft) &&
 	    FileTimeToSystemTime(&localft, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "dd-MMM-yyyy",
@@ -296,7 +299,10 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 
 /* strftime() format: "%a, %d %b %Y %H:%M:%S GMT" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st,
 			      "ddd',' dd MMM yyyy", DateBuf, 50);
@@ -318,6 +324,7 @@ isc_time_parsehttptimestamp(char *buf, isc_time_t *t) {
 
 	REQUIRE(buf != NULL);
 	REQUIRE(t != NULL);
+
 	p = isc_tm_strptime(buf, "%a, %d %b %Y %H:%M:%S", &t_tm);
 	if (p == NULL)
 		return (ISC_R_UNEXPECTED);
@@ -379,7 +386,10 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%SZ" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
@@ -400,7 +410,10 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 
 	/* strtime() format: "%Y-%m-%dT%H:%M:%S.SSSZ" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyy-MM-dd",
 			      DateBuf, 50);
