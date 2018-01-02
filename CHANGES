@@ -1,3 +1,6 @@
+4854.	[bug]		query_synthcnamewildcard should stop generating the
+			response if query_synthwildcard fails. [RT #46939]
+
 4853.	[bug]		Add REQUIRE's and INSIST's to isc_time_formatISO8601L
 			and isc_time_formatISO8601Lms. [RT #46916]
 
