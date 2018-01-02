@@ -8549,6 +8549,10 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	dns_rdata_cname_t cname;
 
 	result = query_synthwildcard(qctx, rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
 	qctx->client->query.attributes |= NS_QUERYATTR_PARTIALANSWER;
 
 	/*
