@@ -442,7 +442,10 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 
 	/* strtime() format: "%Y%m%d%H%M%SSSS" */
 
+	REQUIRE(t != NULL);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
+
 	if (FileTimeToSystemTime(&t->absolute, &st)) {
 		GetDateFormat(LOCALE_NEUTRAL, 0, &st, "yyyyMMdd",
 			      DateBuf, 50);

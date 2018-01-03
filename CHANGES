@@ -1,3 +1,6 @@
+4855.	[bug]		isc_time_formatshorttimestamp produced incorrect
+			output. [RT #46938]
+
 4854.	[bug]		query_synthcnamewildcard should stop generating the
 			response if query_synthwildcard fails. [RT #46939]
 
