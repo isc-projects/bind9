@@ -6576,7 +6576,8 @@ zone_resigninc(dns_zone_t *zone) {
 	 */
 	if (ISC_LIST_EMPTY(zonediff.diff->tuples)) {
 		/*
-		 * Commit the changes if any key has been marked as offline.			 */
+		 * Commit the changes if any key has been marked as offline.
+		 */
 		if (zonediff.offline)
 			dns_db_closeversion(db, &version, ISC_TRUE);
 		goto failure;
