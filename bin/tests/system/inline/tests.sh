@@ -1084,5 +1084,21 @@ grep "DNSKEY 8 1 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null 
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I:check that zonestatus reports 'type: master' for a inline master zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 zonestatus master > rndc.out.ns3.test$n
+grep "type: master" rndc.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+
+status=`expr $status + $ret`
+n=`expr $n + 1`
+echo "I:check that zonestatus reports 'type: slave' for a inline slave zone ($n)"
+ret=0
+$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 zonestatus bits > rndc.out.ns3.test$n
+grep "type: slave" rndc.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
