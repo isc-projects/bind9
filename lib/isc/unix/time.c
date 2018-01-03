@@ -552,6 +552,9 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 	struct tm tm;
 #endif
 
+	REQUIRE(t != NULL);
+	INSIST(t->nanoseconds < NS_PER_S);
+	REQUIRE(buf != NULL);
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
@@ -562,7 +565,6 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 #endif
 	INSIST(flen < len);
 	if (flen > 0U && len - flen >= 5) {
-		flen -= 1; /* rewind one character (Z) */
 		snprintf(buf + flen, len - flen, "%03u",
 			 t->nanoseconds / NS_PER_MS);
 	}

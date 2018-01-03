@@ -182,6 +182,37 @@ ATF_TC_BODY(isc_time_formatISO8601Lms, tc) {
 	ATF_CHECK_STREQ(buf, "2015-12-13T01:46:40.123");
 }
 
+ATF_TC(isc_time_formatshorttimestamp);
+ATF_TC_HEAD(isc_time_formatshorttimestamp, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "print UTC time as yyyymmddhhmmsssss");
+}
+ATF_TC_BODY(isc_time_formatshorttimestamp, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	char buf[64];
+
+	setenv("TZ", "PST8PDT", 1);
+	result = isc_time_now(&t);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/* check formatting: yyyymmddhhmmsssss */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_formatshorttimestamp(&t, buf, sizeof(buf));
+	ATF_CHECK_EQ(strlen(buf), 17);
+
+	/* check time conversion correctness */
+	memset(buf, 'X', sizeof(buf));
+	isc_time_settoepoch(&t);
+	isc_time_formatshorttimestamp(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "19700101000000000");
+
+	memset(buf, 'X', sizeof(buf));
+	isc_time_set(&t, 1450000000, 123000000);
+	isc_time_formatshorttimestamp(&t, buf, sizeof(buf));
+	ATF_CHECK_STREQ(buf, "20151213094640123");
+}
+
 /*
  * Main
  */
@@ -191,6 +222,6 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601ms);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601L);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601Lms);
+	ATF_TP_ADD_TC(tp, isc_time_formatshorttimestamp);
 	return (atf_no_error());
 }
-
