@@ -12,12 +12,6 @@
 4851.	[port]		Support using kyua as well as atf-run to run the unit
 			tests. [RT #46853]
 
-4850.	[bug]		Named failed to restart with multiple added zones in
-			lmdb database. [RT #46889]
-
-4849.	[bug]		Duplicate zones could appear in the .nzf file if
-			addzone failed. [RT #46435]
-
 4847.	[bug]		dnssec-dnskey-kskonly was not being honoured for
 			CDS and CDNSKEY. [RT #46755]
 
@@ -36,6 +30,12 @@
 			warnings about unused function. [RT #46790]
 
 	--- 9.12.0 released ---
+
+4850.	[bug]		Named failed to restart with multiple added zones in
+			lmdb database. [RT #46889]
+
+4849.	[bug]		Duplicate zones could appear in the .nzf file if
+			addzone failed. [RT #46435]
 
 	--- 9.12.0rc1 released ---
 
