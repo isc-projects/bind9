@@ -1686,7 +1686,6 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	 * the GLUEOK flag.  Glue will be looked for later, but not
 	 * necessarily in the same database.
 	 */
-	node = NULL;
 	result = dns_db_findext(db, name, version, type,
 				client->query.dboptions,
 				client->now, &node, fname, &cm, &ci,
@@ -2358,6 +2357,33 @@ fixfname(ns_client_t *client, dns_name_t **fname, isc_buffer_t **dbuf,
 }
 
 static void
+free_devent(ns_client_t *client, isc_event_t **eventp,
+	    dns_fetchevent_t **deventp)
+{
+	dns_fetchevent_t *devent = *deventp;
+
+	REQUIRE((void*)(*eventp) == (void *)(*deventp));
+
+	if (devent->fetch != NULL)
+		dns_resolver_destroyfetch(&devent->fetch);
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (devent->rdataset != NULL)
+		query_putrdataset(client, &devent->rdataset);
+	if (devent->rdataset != NULL)
+		query_putrdataset(client, &devent->sigrdataset);
+	/*
+	 * If the two pointers are the same then leave the setting of
+	 * (*deventp) to NULL to isc_event_free.
+	 */
+	if ((void *)eventp != (void *)deventp)
+		(*deventp) = NULL;
+	isc_event_free(eventp);
+}
+
+static void
 prefetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
@@ -2375,14 +2401,7 @@ prefetch_done(isc_task_t *task, isc_event_t *event) {
 		client->query.prefetch = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
-	if (devent->fetch != NULL)
-		dns_resolver_destroyfetch(&devent->fetch);
-	if (devent->node != NULL)
-		dns_db_detachnode(devent->db, &devent->node);
-	if (devent->db != NULL)
-		dns_db_detach(&devent->db);
-	query_putrdataset(client, &devent->rdataset);
-	isc_event_free(&event);
+	free_devent(client, &event, &devent);
 	ns_client_detach(&client);
 }
 
@@ -2674,8 +2693,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		st->r.db = NULL;
 		if (*rdatasetp != NULL)
 			query_putrdataset(client, rdatasetp);
-		*rdatasetp = st->r.r_rdataset;
-		st->r.r_rdataset = NULL;
+		SAVE(*rdatasetp, st->r.r_rdataset);
 		result = st->r.r_result;
 		if (result == DNS_R_DELEGATION) {
 			CTRACE(ISC_LOG_ERROR, "RPZ recursing");
@@ -5014,6 +5032,7 @@ qctx_freedata(query_ctx_t *qctx) {
 	}
 
 	if (qctx->db != NULL) {
+		INSIST(qctx->node == NULL);
 		dns_db_detach(&qctx->db);
 	}
 
@@ -5031,7 +5050,8 @@ qctx_freedata(query_ctx_t *qctx) {
 	}
 
 	if (qctx->event != NULL) {
-		isc_event_free(ISC_EVENT_PTR(&qctx->event));
+		free_devent(qctx->client,
+			    ISC_EVENT_PTR(&qctx->event), &qctx->event);
 	}
 }
 
@@ -5422,7 +5442,7 @@ query_lookup(query_ctx_t *qctx) {
 static void
 fetch_callback(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
-	dns_fetch_t *fetch;
+	dns_fetch_t *fetch = NULL;
 	ns_client_t *client;
 	isc_boolean_t fetch_canceled, client_shuttingdown;
 	isc_result_t result;
@@ -5460,8 +5480,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->query.fetch == NULL);
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
-	fetch = devent->fetch;
-	devent->fetch = NULL;
+	SAVE(fetch, devent->fetch);
 
 	/*
 	 * If this client is shutting down, or this transaction
@@ -5469,14 +5488,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	client_shuttingdown = ns_client_shuttingdown(client);
 	if (fetch_canceled || client_shuttingdown) {
-		if (devent->node != NULL)
-			dns_db_detachnode(devent->db, &devent->node);
-		if (devent->db != NULL)
-			dns_db_detach(&devent->db);
-		query_putrdataset(client, &devent->rdataset);
-		if (devent->sigrdataset != NULL)
-			query_putrdataset(client, &devent->sigrdataset);
-		isc_event_free(&event);
+		free_devent(client, &event, &devent);
 		if (fetch_canceled) {
 			CTRACE(ISC_LOG_ERROR, "fetch cancelled");
 			query_error(client, DNS_R_SERVFAIL, __LINE__);
@@ -5711,11 +5723,11 @@ query_resume(query_ctx_t *qctx) {
 		RESTORE(qctx->sigrdataset, qctx->rpz_st->q.sigrdataset);
 		qctx->qtype = qctx->rpz_st->q.qtype;
 
-		qctx->rpz_st->r.db = qctx->event->db;
 		if (qctx->event->node != NULL)
 			dns_db_detachnode(qctx->event->db, &qctx->event->node);
+		SAVE(qctx->rpz_st->r.db, qctx->event->db);
 		qctx->rpz_st->r.r_type = qctx->event->qtype;
-		qctx->rpz_st->r.r_rdataset = qctx->event->rdataset;
+		SAVE(qctx->rpz_st->r.r_rdataset, qctx->event->rdataset);
 		query_putrdataset(qctx->client, &qctx->event->sigrdataset);
 	} else if (REDIRECT(qctx->client)) {
 		/*
@@ -5761,10 +5773,10 @@ query_resume(query_ctx_t *qctx) {
 		qctx->authoritative = ISC_FALSE;
 
 		qctx->qtype = qctx->event->qtype;
-		qctx->db = qctx->event->db;
-		qctx->node = qctx->event->node;
-		qctx->rdataset = qctx->event->rdataset;
-		qctx->sigrdataset = qctx->event->sigrdataset;
+		SAVE(qctx->db, qctx->event->db);
+		SAVE(qctx->node, qctx->event->node);
+		SAVE(qctx->rdataset, qctx->event->rdataset);
+		SAVE(qctx->sigrdataset, qctx->event->sigrdataset);
 	}
 	INSIST(qctx->rdataset != NULL);
 
@@ -5847,7 +5859,8 @@ query_resume(query_ctx_t *qctx) {
 	    (qctx->rpz_st->state & DNS_RPZ_RECURSING) != 0) {
 		qctx->rpz_st->r.r_result = qctx->event->result;
 		result = qctx->rpz_st->q.result;
-		isc_event_free(ISC_EVENT_PTR(&qctx->event));
+		free_devent(qctx->client,
+			    ISC_EVENT_PTR(&qctx->event), &qctx->event);
 	} else if (REDIRECT(qctx->client)) {
 		result = qctx->client->query.redirect.result;
 		qctx->is_zone = qctx->client->query.redirect.is_zone;
@@ -7451,6 +7464,7 @@ static isc_result_t
 query_zone_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
 	dns_rdataset_t **sigrdatasetp = NULL;
+	isc_boolean_t detach = ISC_FALSE;
 
 	/*
 	 * If the query type is DS, look to see if we are
@@ -7547,7 +7561,10 @@ query_zone_delegation(query_ctx_t *qctx) {
 	 * We enable the retrieval of glue for this
 	 * database by setting client->query.gluedb.
 	 */
-	qctx->client->query.gluedb = qctx->db;
+	if (qctx->db != NULL && qctx->client->query.gluedb == NULL) {
+		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
+		detach = ISC_TRUE;
+	}
 	qctx->client->query.isreferral = ISC_TRUE;
 	/*
 	 * We must ensure NOADDITIONAL is off,
@@ -7562,7 +7579,9 @@ query_zone_delegation(query_ctx_t *qctx) {
 	query_addrrset(qctx->client, &qctx->fname,
 		       &qctx->rdataset, sigrdatasetp,
 		       qctx->dbuf, DNS_SECTION_AUTHORITY);
-	qctx->client->query.gluedb = NULL;
+	if (detach) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
 
 	/*
 	 * Add a DS if needed
@@ -7584,6 +7603,7 @@ static isc_result_t
 query_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
 	dns_rdataset_t **sigrdatasetp = NULL;
+	isc_boolean_t detach = ISC_FALSE;
 
 	qctx->authoritative = ISC_FALSE;
 
@@ -7711,8 +7731,12 @@ query_delegation(query_ctx_t *qctx) {
 	 * This is the best answer.
 	 */
 	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
-	qctx->client->query.gluedb = qctx->zdb;
 	qctx->client->query.isreferral = ISC_TRUE;
+
+	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL) {
+		dns_db_attach(qctx->zdb, &qctx->client->query.gluedb);
+		detach = ISC_TRUE;
+	}
 
 	/*
 	 * We must ensure NOADDITIONAL is off,
@@ -7727,8 +7751,10 @@ query_delegation(query_ctx_t *qctx) {
 	query_addrrset(qctx->client, &qctx->fname,
 		       &qctx->rdataset, sigrdatasetp,
 		       qctx->dbuf, DNS_SECTION_AUTHORITY);
-	qctx->client->query.gluedb = NULL;
 	qctx->client->query.attributes &= ~NS_QUERYATTR_CACHEGLUEOK;
+	if (detach) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
 
 	/*
 	 * Add a DS if needed
