@@ -1,3 +1,7 @@
+4857.	[bug]		Maintain attach/detach semantics for event->db,
+			event->node, event->rdataset and event->sigrdataset
+			in query.c. [RT #46891]
+
 4856.	[bug]		'rndc zonestatus' reported the wrong underlying type
 			for a inline slave zone. [RT #46875]
 
