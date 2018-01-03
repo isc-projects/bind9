@@ -289,7 +289,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2016
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006,2007,2016
 ./bin/named/statschannel.c			C	2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006,2007,2009,2010,2012,2014,2016
@@ -1644,7 +1644,7 @@
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012,2013,2016
 ./bin/tests/system/inline/.gitignore		X	2014
 ./bin/tests/system/inline/checkdsa.sh.in	SH	2013,2014,2016
-./bin/tests/system/inline/clean.sh		SH	2011,2012,2013,2014,2015,2016,2017
+./bin/tests/system/inline/clean.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/inline/ns1/named.conf	CONF-C	2011,2016
 ./bin/tests/system/inline/ns1/root.db.in	ZONE	2011,2012,2013,2016,2017
 ./bin/tests/system/inline/ns1/sign.sh		SH	2011,2012,2014,2016
@@ -1666,7 +1666,7 @@
 ./bin/tests/system/inline/ns7/sign.sh		SH	2017
 ./bin/tests/system/inline/prereq.sh		SH	2014,2016
 ./bin/tests/system/inline/setup.sh		SH	2011,2012,2013,2014,2016,2017
-./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014,2016,2017
+./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/integrity/clean.sh		SH	2017
 ./bin/tests/system/integrity/ns1/mx-cname.db	ZONE	2017
 ./bin/tests/system/integrity/ns1/named.conf	CONF-C	2017
@@ -2135,7 +2135,7 @@
 ./bin/tests/system/rpzrecurse/prereq.sh		SH	2015,2016
 ./bin/tests/system/rpzrecurse/setup.sh		SH	2015,2016
 ./bin/tests/system/rpzrecurse/testgen.pl	PERL	2015,2016
-./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016
+./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016,2018
 ./bin/tests/system/rrchecker/classlist.good	X	2013
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2014,2016,2017
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
@@ -3841,7 +3841,7 @@
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007,2013,2016
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2014,2015,2016,2017
-./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007,2016
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014,2015,2016,2017
 ./lib/irs/Atffile				X	2016
