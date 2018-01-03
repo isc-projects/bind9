@@ -1905,7 +1905,7 @@
 ./bin/tests/system/rpzrecurse/prereq.sh		SH	2015,2016
 ./bin/tests/system/rpzrecurse/setup.sh		SH	2015
 ./bin/tests/system/rpzrecurse/testgen.pl	PERL	2015
-./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016
+./bin/tests/system/rpzrecurse/tests.sh		SH	2015,2016,2018
 ./bin/tests/system/rrchecker/classlist.good	X	2013
 ./bin/tests/system/rrchecker/clean.sh		SH	2013,2017
 ./bin/tests/system/rrchecker/privatelist.good	X	2013
@@ -3508,7 +3508,7 @@
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004,2007,2013
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2011,2012,2013,2015,2016,2017
-./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2013,2014,2015,2016,2017
 ./lib/irs/Atffile				X	2016
