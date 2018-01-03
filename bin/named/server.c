@@ -13853,7 +13853,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 			isc_buffer_t **text)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_zone_t *zone = NULL, *raw = NULL;
+	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw = NULL;
 	const char *type, *file;
 	char zonename[DNS_NAME_FORMATSIZE];
 	isc_uint32_t serial, signed_serial, nodes;
@@ -13886,7 +13886,19 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		goto cleanup;
 	}
 
-	zonetype = dns_zone_gettype(zone);
+	/* Inline signing? */
+	CHECK(dns_zone_getdb(zone, &db));
+	dns_zone_getraw(zone, &raw);
+	hasraw = ISC_TF(raw != NULL);
+	if (hasraw) {
+		mayberaw = raw;
+		zonetype = dns_zone_gettype(raw);
+		CHECK(dns_zone_getdb(raw, &rawdb));
+	} else {
+		mayberaw = zone;
+		zonetype = dns_zone_gettype(zone);
+	}
+
 	switch (zonetype) {
 	case dns_zone_master:
 		type = "master";
@@ -13913,15 +13925,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		type = "unknown";
 	}
 
-	/* Inline signing? */
-	CHECK(dns_zone_getdb(zone, &db));
-	dns_zone_getraw(zone, &raw);
-	hasraw = ISC_TF(raw != NULL);
-	if (hasraw)
-		CHECK(dns_zone_getdb(raw, &rawdb));
-
 	/* Serial number */
-	serial = dns_zone_getserial(hasraw ? raw : zone);
+	serial = dns_zone_getserial(mayberaw);
 	snprintf(serbuf, sizeof(serbuf), "%u", serial);
 	if (hasraw) {
 		signed_serial = dns_zone_getserial(zone);
@@ -13939,8 +13944,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 			   DNS_ZONEKEY_MAINTAIN) != 0);
 
 	/* Master files */
-	file = dns_zone_getfile(hasraw ? raw : zone);
-	nfiles = dns_zone_getincludes(hasraw ? raw : zone, &incfiles);
+	file = dns_zone_getfile(mayberaw);
+	nfiles = dns_zone_getincludes(mayberaw, &incfiles);
 
 	/* Load time */
 	dns_zone_getloadtime(zone, &loadtime);
@@ -13951,9 +13956,9 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	    zonetype == dns_zone_stub ||
 	    zonetype == dns_zone_redirect)
 	{
-		dns_zone_getexpiretime(zone, &expiretime);
+		dns_zone_getexpiretime(mayberaw, &expiretime);
 		isc_time_formathttptimestamp(&expiretime, xbuf, sizeof(xbuf));
-		dns_zone_getrefreshtime(zone, &refreshtime);
+		dns_zone_getrefreshtime(mayberaw, &refreshtime);
 		isc_time_formathttptimestamp(&refreshtime, rbuf, sizeof(rbuf));
 	}
 
@@ -13968,9 +13973,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	/* Dynamic? */
 	if (zonetype == dns_zone_master) {
-		dynamic = dns_zone_isdynamic(hasraw ? raw : zone, ISC_TRUE);
-		frozen = dynamic && !dns_zone_isdynamic(hasraw ? raw : zone,
-							ISC_FALSE);
+		dynamic = dns_zone_isdynamic(mayberaw, ISC_TRUE);
+		frozen = dynamic && !dns_zone_isdynamic(mayberaw, ISC_FALSE);
 	}
 
 	/* Next resign event */
@@ -14019,8 +14023,9 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		CHECK(putstr(text, file));
 		for (i = 0; i < nfiles; i++) {
 			CHECK(putstr(text, ", "));
-			if (incfiles[i] != NULL)
+			if (incfiles[i] != NULL) {
 				CHECK(putstr(text, incfiles[i]));
+			}
 		}
 	}
 
@@ -14051,12 +14056,14 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	if (secure) {
 		CHECK(putstr(text, "\nsecure: yes"));
-		if (hasraw)
+		if (hasraw) {
 			CHECK(putstr(text, "\ninline signing: yes"));
-		else
+		} else {
 			CHECK(putstr(text, "\ninline signing: no"));
-	} else
+		}
+	} else {
 		CHECK(putstr(text, "\nsecure: no"));
+	}
 
 	if (maintain) {
 		CHECK(putstr(text, "\nkey maintenance: automatic"));
@@ -14064,10 +14071,11 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 			CHECK(putstr(text, "\nnext key event: "));
 			CHECK(putstr(text, kbuf));
 		}
-	} else if (allow)
+	} else if (allow) {
 		CHECK(putstr(text, "\nkey maintenance: on command"));
-	else if (secure || hasraw)
+	} else if (secure || hasraw) {
 		CHECK(putstr(text, "\nkey maintenance: none"));
+	}
 
 	if (!isc_time_isepoch(&resigntime)) {
 		CHECK(putstr(text, "\nnext resign node: "));
@@ -14078,40 +14086,50 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	if (dynamic) {
 		CHECK(putstr(text, "\ndynamic: yes"));
-		if (frozen)
+		if (frozen) {
 			CHECK(putstr(text, "\nfrozen: yes"));
-		else
+		} else {
 			CHECK(putstr(text, "\nfrozen: no"));
-	} else
+		}
+	} else {
 		CHECK(putstr(text, "\ndynamic: no"));
+	}
 
 	CHECK(putstr(text, "\nreconfigurable via modzone: "));
 	CHECK(putstr(text, dns_zone_getadded(zone) ? "yes" : "no"));
 
  cleanup:
 	/* Indicate truncated output if possible. */
-	if (result == ISC_R_NOSPACE)
+	if (result == ISC_R_NOSPACE) {
 		(void) putstr(text, "\n...");
-	if ((result == ISC_R_SUCCESS || result == ISC_R_NOSPACE))
+	}
+	if ((result == ISC_R_SUCCESS || result == ISC_R_NOSPACE)) {
 		(void) putnull(text);
+	}
 
-	if (db != NULL)
+	if (db != NULL) {
 		dns_db_detach(&db);
-	if (rawdb != NULL)
+	}
+	if (rawdb != NULL) {
 		dns_db_detach(&rawdb);
-	if (incfiles != NULL) {
+	}
+	if (incfiles != NULL && mayberaw != NULL) {
 		int i;
-		isc_mem_t *mctx = dns_zone_getmctx(hasraw ? raw : zone);
+		isc_mem_t *mctx = dns_zone_getmctx(mayberaw);
 
-		for (i = 0; i < nfiles; i++)
-			if (incfiles[i] != NULL)
+		for (i = 0; i < nfiles; i++) {
+			if (incfiles[i] != NULL) {
 				isc_mem_free(mctx, incfiles[i]);
+			}
+		}
 		isc_mem_free(mctx, incfiles);
 	}
-	if (raw != NULL)
+	if (raw != NULL) {
 		dns_zone_detach(&raw);
-	if (zone != NULL)
+	}
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
+	}
 	return (result);
 }
 

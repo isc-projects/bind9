@@ -1,3 +1,6 @@
+4856.	[bug]		'rndc zonestatus' reported the wrong underlying type
+			for a inline slave zone. [RT #46875]
+
 4855.	[bug]		isc_time_formatshorttimestamp produced incorrect
 			output. [RT #46938]
 
