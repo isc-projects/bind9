@@ -105,3 +105,4 @@ rm -f import.key Kimport*
 rm -f checkgost checkdsa checkecdsa
 rm -f ns3/a-file
 rm -f dig.out.*
+rm -f rndc.out.ns*
