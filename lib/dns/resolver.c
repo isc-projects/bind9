@@ -1051,14 +1051,13 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	 * cannot fail in that case.
 	 */
 	result = isc_timer_reset(fctx->timer, isc_timertype_inactive,
-				  NULL, NULL, ISC_TRUE);
+				 NULL, NULL, ISC_TRUE);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_timer_reset(): %s",
 				 isc_result_totext(result));
 	}
 }
-
 
 static inline isc_result_t
 fctx_startidletimer(fetchctx_t *fctx, isc_interval_t *interval) {
@@ -1336,7 +1335,8 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 
 	for (find = ISC_LIST_HEAD(fctx->finds);
 	     find != NULL;
-	     find = next_find) {
+	     find = next_find)
+	{
 		next_find = ISC_LIST_NEXT(find, publink);
 		ISC_LIST_UNLINK(fctx->finds, find, publink);
 		dns_adb_destroyfind(&find);
@@ -1352,7 +1352,8 @@ fctx_cleanupaltfinds(fetchctx_t *fctx) {
 
 	for (find = ISC_LIST_HEAD(fctx->altfinds);
 	     find != NULL;
-	     find = next_find) {
+	     find = next_find)
+	{
 		next_find = ISC_LIST_NEXT(find, publink);
 		ISC_LIST_UNLINK(fctx->altfinds, find, publink);
 		dns_adb_destroyfind(&find);
@@ -1368,7 +1369,8 @@ fctx_cleanupforwaddrs(fetchctx_t *fctx) {
 
 	for (addr = ISC_LIST_HEAD(fctx->forwaddrs);
 	     addr != NULL;
-	     addr = next_addr) {
+	     addr = next_addr)
+	{
 		next_addr = ISC_LIST_NEXT(addr, publink);
 		ISC_LIST_UNLINK(fctx->forwaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
@@ -1383,7 +1385,8 @@ fctx_cleanupaltaddrs(fetchctx_t *fctx) {
 
 	for (addr = ISC_LIST_HEAD(fctx->altaddrs);
 	     addr != NULL;
-	     addr = next_addr) {
+	     addr = next_addr)
+	{
 		next_addr = ISC_LIST_NEXT(addr, publink);
 		ISC_LIST_UNLINK(fctx->altaddrs, addr, publink);
 		dns_adb_freeaddrinfo(fctx->adb, &addr);
@@ -1391,16 +1394,20 @@ fctx_cleanupaltaddrs(fetchctx_t *fctx) {
 }
 
 static inline void
-fctx_stopeverything(fetchctx_t *fctx, isc_boolean_t no_response,
-		    isc_boolean_t age_untried)
+fctx_stopqueries(fetchctx_t *fctx, isc_boolean_t no_response,
+		 isc_boolean_t age_untried)
 {
-	FCTXTRACE("stopeverything");
+	FCTXTRACE("stopqueries");
 	fctx_cancelqueries(fctx, no_response, age_untried);
+	fctx_stoptimer(fctx);
+}
+
+static inline void
+fctx_cleanupall(fetchctx_t *fctx) {
 	fctx_cleanupfinds(fctx);
 	fctx_cleanupaltfinds(fctx);
 	fctx_cleanupforwaddrs(fctx);
 	fctx_cleanupaltaddrs(fctx);
-	fctx_stoptimer(fctx);
 }
 
 static void
@@ -1651,7 +1658,8 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 		age_untried = ISC_TRUE;
 
 	fctx->reason = NULL;
-	fctx_stopeverything(fctx, no_response, age_untried);
+
+	fctx_stopqueries(fctx, no_response, age_untried);
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
@@ -4271,11 +4279,12 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 		dns_resolver_cancelfetch(fctx->nsfetch);
 
 	/*
-	 * Shut down anything that is still running on behalf of this
-	 * fetch.  To avoid deadlock with the ADB, we must do this
-	 * before we lock the bucket lock.
+	 * Shut down anything still running on behalf of this
+	 * fetch, and clean up finds and addresses.  To avoid deadlock
+	 * with the ADB, we must do this before we lock the bucket lock.
 	 */
-	fctx_stopeverything(fctx, ISC_FALSE, ISC_FALSE);
+	fctx_stopqueries(fctx, ISC_FALSE, ISC_FALSE);
+	fctx_cleanupall(fctx);
 
 	LOCK(&res->buckets[bucketnum].lock);
 
