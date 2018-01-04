@@ -1,4 +1,14 @@
-	--- 9.12.0 released ---
+	--- 9.12.0rc2 released ---
+
+4859.	[bug]		A loop was possible when attempting to validate
+			unsigned CNAME responses from secure zones;
+			this caused a delay in returning SERVFAIL and
+			also increased the chances of encountering
+			CVE-2017-3145. [RT #46839]
+
+4858.	[security]	Addresses could be referenced after being freed
+			in resolver.c, causing an assertion failure.
+			(CVE-2017-3145) [RT #46839]
 
 4850.	[bug]		Named failed to restart with multiple added zones in
 			lmdb database. [RT #46889]
