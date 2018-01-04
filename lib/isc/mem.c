@@ -2352,7 +2352,6 @@ isc_mem_references(isc_mem_t *ctx0) {
 	return (references);
 }
 
-#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
 typedef struct summarystat {
 	isc_uint64_t	total;
 	isc_uint64_t	inuse;
@@ -2360,7 +2359,6 @@ typedef struct summarystat {
 	isc_uint64_t	blocksize;
 	isc_uint64_t	contextsize;
 } summarystat_t;
-#endif
 
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
