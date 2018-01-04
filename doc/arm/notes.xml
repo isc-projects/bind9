@@ -43,7 +43,7 @@
 	  Addresses could be referenced after being freed during resolver
 	  processing, causing an assertion failure. The chances of this
 	  happening were remote, but the introduction of a delay in
-	  resolution increasred them. This bug is disclosed in
+	  resolution increased them. This bug is disclosed in
 	  CVE-2017-3145. [RT #46839]
 	</para>
       </listitem>
