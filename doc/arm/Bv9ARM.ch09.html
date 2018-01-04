@@ -45,7 +45,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.9.11</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.9.11-P1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -61,17 +61,17 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.9.11</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.9.11-P1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
     <p>
-      This document summarizes significant changes since the last
-      production release of BIND on the corresponding major release
-      branch.
-      Please see the CHANGES file for a further list of bug fixes and
-      other changes.
+      This document summarizes changes since BIND 9.9.11.
+    </p>
+    <p>
+      BIND 9.9.11-P1 addresses the security issue described in
+      CVE-2017-3145.
     </p>
 
   </div>
@@ -131,6 +131,16 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  Addresses could be referenced after being freed during resolver
+	  processing, causing an assertion failure. The chances of this
+	  happening were remote, but the introduction of a delay in
+	  resolution increased them. (The delay will be addressed in
+	  an upcoming maintenance release.) This bug is disclosed in
+	  CVE-2017-3145. [RT #46839]
+	</p>
+      </li>
 <li class="listitem">
 	<p>
 	  An error in TSIG handling could permit unauthorized zone
@@ -248,6 +258,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.9.11 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.9.11-P1 (Extended Support Version)</p>
 </body>
 </html>
