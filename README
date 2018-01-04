@@ -7,11 +7,12 @@ Contents
  3. Contributing to BIND
  4. BIND 9.12 features
  5. Building BIND
- 6. Compile-time options
- 7. Automated testing
- 8. Documentation
- 9. Change log
-10. Acknowledgments
+ 6. macOS
+ 7. Compile-time options
+ 8. Automated testing
+ 9. Documentation
+10. Change log
+11. Acknowledgments
 
 Introduction
 
@@ -164,6 +165,14 @@ BUILD_CFLAGS   Optional, used for cross-compiling
 BUILD_CPPFLAGS
 BUILD_LDFLAGS
 BUILD_LIBS
+
+macOS
+
+Building on macOS assumes that the "Command Tools for Xcode" is installed.
+This can be downloaded from https://developer.apple.com/download/more/ or
+if you have Xcode already installed you can run "xcode-select --install".
+This will add /usr/include to the system and install the compiler and
+other tools so that they can be easily found.
 
 Compile-time options
 
