@@ -1342,7 +1342,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * the GLUEOK flag.  Glue will be looked for later, but not
 	 * necessarily in the same database.
 	 */
-	node = NULL;
 	result = dns_db_findext(db, name, version, type,
 				client->query.dboptions,
 				client->now, &node, fname, &cm, &ci,
@@ -3789,9 +3788,36 @@ query_addnxrrsetnsec(ns_client_t *client, dns_db_t *db,
 }
 
 static void
+free_devent(ns_client_t *client, isc_event_t **eventp,
+	    dns_fetchevent_t **deventp)
+{
+	dns_fetchevent_t *devent = *deventp;
+
+	REQUIRE((void*)(*eventp) == (void *)(*deventp));
+
+	if (devent->fetch != NULL)
+		dns_resolver_destroyfetch(&devent->fetch);
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (devent->rdataset != NULL)
+		query_putrdataset(client, &devent->rdataset);
+	if (devent->rdataset != NULL)
+		query_putrdataset(client, &devent->sigrdataset);
+	/*
+	 * If the two pointers are the same then leave the setting of
+	 * (*deventp) to NULL to isc_event_free.
+	 */
+	if ((void *)eventp != (void *)deventp)
+		(*deventp) = NULL;
+	isc_event_free(eventp);
+}
+
+static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
-	dns_fetch_t *fetch;
+	dns_fetch_t *fetch = NULL;
 	ns_client_t *client;
 	isc_boolean_t fetch_canceled, client_shuttingdown;
 	isc_result_t result;
@@ -3833,8 +3859,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->query.fetch == NULL);
 
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
-	fetch = devent->fetch;
-	devent->fetch = NULL;
+	SAVE(fetch, devent->fetch);
 
 	/*
 	 * If this client is shutting down, or this transaction
@@ -3842,14 +3867,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	 */
 	client_shuttingdown = ns_client_shuttingdown(client);
 	if (fetch_canceled || client_shuttingdown) {
-		if (devent->node != NULL)
-			dns_db_detachnode(devent->db, &devent->node);
-		if (devent->db != NULL)
-			dns_db_detach(&devent->db);
-		query_putrdataset(client, &devent->rdataset);
-		if (devent->sigrdataset != NULL)
-			query_putrdataset(client, &devent->sigrdataset);
-		isc_event_free(&event);
+		free_devent(client, &event, &devent);
 		if (fetch_canceled) {
 			CTRACE(ISC_LOG_ERROR, "fetch cancelled");
 			query_error(client, DNS_R_SERVFAIL, __LINE__);
@@ -4097,8 +4115,7 @@ rpz_rrset_find(ns_client_t *client, dns_rpz_type_t rpz_type,
 		INSIST(*rdatasetp == NULL ||
 		       !dns_rdataset_isassociated(*rdatasetp));
 		st->state &= ~DNS_RPZ_RECURSING;
-		*dbp = st->r.db;
-		st->r.db = NULL;
+		RESTORE(*dbp, st->r.db);
 		if (*rdatasetp != NULL)
 			query_putrdataset(client, rdatasetp);
 		RESTORE(*rdatasetp, st->r.r_rdataset);
@@ -5840,10 +5857,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			authoritative = ISC_FALSE;
 
 			qtype = event->qtype;
-			RESTORE(db, event->db);
-			RESTORE(node, event->node);
-			RESTORE(rdataset, event->rdataset);
-			RESTORE(sigrdataset, event->sigrdataset);
+			SAVE(db, event->db);
+			SAVE(node, event->node);
+			SAVE(rdataset, event->rdataset);
+			SAVE(sigrdataset, event->sigrdataset);
 		}
 		INSIST(rdataset != NULL);
 
@@ -5895,7 +5912,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		    (rpz_st->state & DNS_RPZ_RECURSING) != 0) {
 			rpz_st->r.r_result = event->result;
 			result = rpz_st->q.result;
-			isc_event_free(ISC_EVENT_PTR(&event));
+			free_devent(client, ISC_EVENT_PTR(&event), &event);
 		} else {
 			result = event->result;
 		}
@@ -6477,6 +6494,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			 * We're authoritative for an ancestor of QNAME.
 			 */
 			if (!USECACHE(client) || !RECURSIONOK(client)) {
+				isc_boolean_t detach = ISC_FALSE;
+
 				dns_fixedname_init(&fixed);
 				dns_name_copy(fname,
 					      dns_fixedname_name(&fixed), NULL);
@@ -6496,7 +6515,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 * We enable the retrieval of glue for this
 				 * database by setting client->query.gluedb.
 				 */
-				client->query.gluedb = db;
+				if (db != NULL &&
+				    client->query.gluedb == NULL) {
+					dns_db_attach(db,
+						      &client->query.gluedb);
+					detach = ISC_TRUE;
+				}
 				client->query.isreferral = ISC_TRUE;
 				/*
 				 * We must ensure NOADDITIONAL is off,
@@ -6513,7 +6537,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_addrrset(client, &fname,
 					       &rdataset, sigrdatasetp,
 					       dbuf, DNS_SECTION_AUTHORITY);
-				client->query.gluedb = NULL;
+				if (detach) {
+					dns_db_detach(&client->query.gluedb);
+				}
 				if (WANTDNSSEC(client))
 					query_addds(client, db, node, version,
 						   dns_fixedname_name(&fixed));
@@ -6615,6 +6641,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				else
 					RECURSE_ERROR(result);
 			} else {
+				isc_boolean_t detach = ISC_FALSE;
+
 				dns_fixedname_init(&fixed);
 				dns_name_copy(fname,
 					      dns_fixedname_name(&fixed), NULL);
@@ -6623,8 +6651,15 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				 */
 				client->query.attributes |=
 					NS_QUERYATTR_CACHEGLUEOK;
-				client->query.gluedb = zdb;
 				client->query.isreferral = ISC_TRUE;
+
+				if (zdb != NULL &&
+				    client->query.gluedb == NULL) {
+					dns_db_attach(zdb,
+						      &client->query.gluedb);
+					detach = ISC_TRUE;
+				}
+
 				/*
 				 * We must ensure NOADDITIONAL is off,
 				 * because the generation of
@@ -6640,9 +6675,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				query_addrrset(client, &fname,
 					       &rdataset, sigrdatasetp,
 					       dbuf, DNS_SECTION_AUTHORITY);
-				client->query.gluedb = NULL;
 				client->query.attributes &=
 					~NS_QUERYATTR_CACHEGLUEOK;
+				if (detach) {
+					dns_db_detach(&client->query.gluedb);
+				}
+
 				if (WANTDNSSEC(client))
 					query_addds(client, db, node, version,
 						   dns_fixedname_name(&fixed));
@@ -7741,8 +7779,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			query_releasename(client, &zfname);
 		dns_db_detach(&zdb);
 	}
-	if (event != NULL)
-		isc_event_free(ISC_EVENT_PTR(&event));
+	if (event != NULL) {
+		free_devent(client, ISC_EVENT_PTR(&event), &event);
+	}
 
 	/*
 	 * AA bit.
