@@ -1,3 +1,13 @@
+4859.	[bug]		A loop was possible when attempting to validate
+			unsigned CNAME responses from secure zones;
+			this caused a delay in returning SERVFAIL and
+			also increased the chances of encountering
+			CVE-2017-3145. [RT #46839]
+
+4858.	[security]	Addresses could be referenced after being freed
+			in resolver.c, causing an assertion failure.
+			(CVE-2017-3145) [RT #46839]
+
 4857.	[bug]		Maintain attach/detach semantics for event->db,
 			event->node, event->rdataset and event->sigrdataset
 			in query.c. [RT #46891]
