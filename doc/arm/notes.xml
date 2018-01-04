@@ -16,10 +16,11 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      This document summarizes changes since the last production
-      release on the BIND 9.11 branch.
-      Please see the <filename>CHANGES</filename> file for a further
-      list of bug fixes and other changes.
+      This document summarizes changes since BIND 9.11.2.
+    </para>
+    <para>
+      BIND 9.11.2-P1 addresses the security issue described in
+      CVE-2017-3145.
     </para>
   </section>
 
@@ -100,6 +101,16 @@
 
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  Addresses could be referenced after being freed during resolver
+	  processing, causing an assertion failure. The chances of this
+	  happening were remote, but the introduction of a delay in
+	  resolution increased them. (The delay will be addressed in
+	  an upcoming maintenance release.) This bug is disclosed in
+	  CVE-2017-3145. [RT #46839]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  An error in TSIG handling could permit unauthorized zone
