@@ -2687,13 +2687,11 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		INSIST(dns_name_equal(name, st->r_name));
 		INSIST(*rdatasetp == NULL ||
 		       !dns_rdataset_isassociated(*rdatasetp));
-		INSIST(*dbp == NULL);
 		st->state &= ~DNS_RPZ_RECURSING;
-		*dbp = st->r.db;
-		st->r.db = NULL;
+		RESTORE(*dbp, st->r.db);
 		if (*rdatasetp != NULL)
 			query_putrdataset(client, rdatasetp);
-		SAVE(*rdatasetp, st->r.r_rdataset);
+		RESTORE(*rdatasetp, st->r.r_rdataset);
 		result = st->r.r_result;
 		if (result == DNS_R_DELEGATION) {
 			CTRACE(ISC_LOG_ERROR, "RPZ recursing");
