@@ -1,3 +1,9 @@
+	--- 9.10.6-P1 released ---
+
+4858.	[security]	Addresses could be referenced after being freed
+			in resolver.c, causing an assertion failure.
+			(CVE-2017-3145) [RT #46839]
+
 	--- 9.10.6 released ---
 
 	--- 9.10.6rc2 released ---
