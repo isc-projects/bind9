@@ -2321,8 +2321,6 @@ isc_mem_references(isc_mem_t *ctx0) {
 	return (references);
 }
 
-#ifdef HAVE_LIBXML2
-
 typedef struct summarystat {
 	isc_uint64_t	total;
 	isc_uint64_t	inuse;
