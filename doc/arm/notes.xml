@@ -100,6 +100,15 @@
 	  [RT #45181]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Addresses could be referenced after being freed during resolver
+	  processing, causing an assertion failure. The chances of this
+	  happening were remote, but the introduction of a delay in
+	  resolution increasred them. This bug is disclosed in
+	  CVE-2017-3145. [RT #46839]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
@@ -190,6 +199,15 @@
 
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  Attempting to validate improperly unsigned CNAME responses
+	  from secure zones could cause a validator loop. This caused
+	  a delay in returning SERVFAIL and also increased the chances
+	  of encountering the crash bug described in CVE-2017-3145.
+	  [RT #46839]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  When <command>named</command> was reconfigured, failure of some
