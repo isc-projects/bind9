@@ -251,6 +251,10 @@ CVE-2017-3135, CVE-2017-3136, CVE-2017-3137, and CVE-2017-3138.
 BIND 9.9.11 is a maintenance release, and addresses the security flaws
 disclosed in CVE-2017-3140, CVE-2017-3141, CVE-2017-3142 and CVE-2017-3143.
 
+#### BIND 9.9.11-P1
+
+BIND 9.9.11-P1 addresses the security flaw disclosed in CVE-2017-3145.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
