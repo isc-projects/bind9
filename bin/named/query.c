@@ -3860,7 +3860,7 @@ free_devent(ns_client_t *client, isc_event_t **eventp,
 		dns_db_detach(&devent->db);
 	if (devent->rdataset != NULL)
 		query_putrdataset(client, &devent->rdataset);
-	if (devent->rdataset != NULL)
+	if (devent->sigrdataset != NULL)
 		query_putrdataset(client, &devent->sigrdataset);
 	/*
 	 * If the two pointers are the same then leave the setting of
