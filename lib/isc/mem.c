@@ -774,8 +774,9 @@ mem_get(isc__mem_t *ctx, size_t size) {
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		if (ISC_LIKELY(ret != NULL))
 			memset(ret, 0xbe, size); /* Mnemonic for "beef". */
-	} else {
+	}
 #if ISC_MEM_CHECKOVERRUN
+	else {
 		if (ISC_LIKELY(ret != NULL))
 			ret[size-1] = 0xbe;
 	}
