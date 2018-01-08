@@ -13,3 +13,4 @@ rm -f */named.run */named.run.prev
 rm -f dig.*
 rm -f sfcache.*
 rm -f ns*/named.lock
+rm -f named.run.part*

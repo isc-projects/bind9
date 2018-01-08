@@ -68,7 +68,8 @@ ret=0
 nextpart ns5/named.run > /dev/null
 $DIG $DIGOPTS bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
-nextpart ns5/named.run | grep 'servfail cache hit bar.example/A (CD=0)' > /dev/null || ret=1
+nextpart ns5/named.run > ns5/named.run.part$n
+grep 'servfail cache hit bar.example/A (CD=0)' ns5/named.run.part$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -77,7 +78,8 @@ echo "I:checking cache is bypassed with +cd query ($n)"
 ret=0
 $DIG $DIGOPTS +cd bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
-nextpart ns5/named.run | grep 'servfail cache hit' > /dev/null && ret=1
+nextpart ns5/named.run > ns5/named.run.part$n
+grep 'servfail cache hit' ns5/named.run.part$n > /dev/null && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -86,7 +88,8 @@ echo "I:checking cache is used for subsequent +cd query ($n)"
 ret=0
 $DIG $DIGOPTS +dnssec bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
-nextpart ns5/named.run | grep 'servfail cache hit bar.example/A (CD=1)' > /dev/null || ret=1
+nextpart ns5/named.run > ns5/named.run.part$n
+grep 'servfail cache hit bar.example/A (CD=1)' ns5/named.run.part$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
