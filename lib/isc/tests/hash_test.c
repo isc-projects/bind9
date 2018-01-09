@@ -1806,29 +1806,29 @@ ATF_TC_BODY(isc_crc64, tc) {
 		},
 		{
 			TEST_INPUT("a"),
-			"0x9AA9C0AC27F473CE", 1
+			"0xCE73F427ACC0A99A", 1
 		},
 		{
 			TEST_INPUT("abc"),
-			"0x0297F4F93A818B04", 1
+			"0x048B813AF9F49702", 1
 		},
 		{
 			TEST_INPUT("message digest"),
-			"0xF47B357AEAF97352", 1
+			"0x5273F9EA7A357BF4", 1
 		},
 		{
 			TEST_INPUT("abcdefghijklmnopqrstuvwxyz"),
-			"0xA1AA8B21F979F059", 1
+			"0x59F079F9218BAAA1", 1
 		},
 		{
 			TEST_INPUT("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm"
 				   "nopqrstuvwxyz0123456789"),
-			"0xFBB6781EF7A86DA3", 1
+			"0xA36DA8F71E78B6FB", 1
 		},
 		{
 			TEST_INPUT("123456789012345678901234567890123456789"
 				   "01234567890123456789012345678901234567890"),
-			"0x4A87E7C873EBE581", 1
+			"0x81E5EB73C8E7874A", 1
 		},
 		{ NULL, 0, NULL, 1 }
 	};
@@ -1843,7 +1843,8 @@ ATF_TC_BODY(isc_crc64, tc) {
 				       testcase->input_len);
 		}
 		isc_crc64_final(&crc);
-		tohexstr((unsigned char *) &crc, sizeof(crc), str, sizeof(str));
+		snprintf(str, sizeof(str),
+			 "0x%016" ISC_PRINT_QUADFORMAT "X", crc);
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
