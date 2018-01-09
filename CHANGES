@@ -1,3 +1,5 @@
+4860.	[bug]		isc_int8_t should be signed char.  [RT #46973]
+
 4859.	[bug]		A loop was possible when attempting to validate
 			unsigned CNAME responses from secure zones;
 			this caused a delay in returning SERVFAIL and
