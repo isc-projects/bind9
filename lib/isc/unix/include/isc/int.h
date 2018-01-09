@@ -13,7 +13,7 @@
 
 /*! \file */
 
-typedef char				isc_int8_t;
+typedef signed char			isc_int8_t;
 typedef unsigned char			isc_uint8_t;
 typedef short				isc_int16_t;
 typedef unsigned short			isc_uint16_t;
