@@ -1,4 +1,4 @@
-4862.	[bug]		The rdata flags for RRSIG was not being properly set
+4862.	[bug]		The rdata flags for RRSIG were not being properly set
 			when constructing a rdataslab. [RT #46978]
 
 4861.	[bug]		The isc_crc64 unit test was not endian independent.
