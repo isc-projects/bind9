@@ -1,4 +1,4 @@
-	--- 9.12.0 released ---
+	--- 9.12.0rc3 released ---
 
 4862.	[bug]		The rdata flags for RRSIG were not being properly set
 			when constructing a rdataslab. [RT #46978]
