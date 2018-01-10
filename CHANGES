@@ -1,3 +1,6 @@
+4862.	[bug]		The rdata flags for RRSIG was not being properly set
+			when constructing a rdataslab. [RT #46978]
+
 4860.	[bug]		isc_int8_t should be signed char.  [RT #46973]
 
 4859.	[bug]		A loop was possible when attempting to validate
