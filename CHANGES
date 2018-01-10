@@ -1,5 +1,8 @@
 	--- 9.12.0 released ---
 
+4862.	[bug]		The rdata flags for RRSIG was not being properly set
+			when constructing a rdataslab. [RT #46978]
+
 	--- 9.12.0rc2 released ---
 
 4859.	[bug]		A loop was possible when attempting to validate

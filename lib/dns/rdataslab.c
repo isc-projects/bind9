@@ -320,7 +320,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		 * Store the per RR meta data.
 		 */
 		if (rdataset->type == dns_rdatatype_rrsig) {
-			*rawbuf++ |= (x[i].rdata.flags & DNS_RDATA_OFFLINE) ?
+			*rawbuf++ = (x[i].rdata.flags & DNS_RDATA_OFFLINE) ?
 					    DNS_RDATASLAB_OFFLINE : 0;
 		}
 		memmove(rawbuf, x[i].rdata.data, x[i].rdata.length);
