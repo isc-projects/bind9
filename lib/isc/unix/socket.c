@@ -1525,9 +1525,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 			   "sendto pktinfo data, ifindex %u",
 			   dev->pktinfo.ipi6_ifindex);
 
+		msg->msg_control = (void *)sock->sendcmsgbuf;
 		msg->msg_controllen = cmsg_space(sizeof(struct in6_pktinfo));
 		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
-		msg->msg_control = (void *)sock->sendcmsgbuf;
 
 		cmsgp = (struct cmsghdr *)sock->sendcmsgbuf;
 		cmsgp->cmsg_level = IPPROTO_IPV6;
@@ -1546,6 +1546,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 
 		cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
 					   msg->msg_controllen);
+		msg->msg_control = (void *)sock->sendcmsgbuf;
 		msg->msg_controllen += cmsg_space(sizeof(use_min_mtu));
 		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
 
@@ -1631,6 +1632,12 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 				sock->dscp = dscp;
 		}
 #endif
+		if (msg->msg_controllen != 0 &&
+		    msg->msg_controllen < sock->sendcmsgbuflen)
+		{
+			memset(sock->sendcmsgbuf + msg->msg_controllen, 0,
+			       sock->sendcmsgbuflen - msg->msg_controllen);
+		}
 	}
 #endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
