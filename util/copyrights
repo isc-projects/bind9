@@ -2682,7 +2682,7 @@
 ./doc/tex/notestyle.sty				X	2015
 ./doc/xsl/.gitignore				X	2012,2015
 ./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014,2015
-./doc/xsl/arm-param.xsl				SGML	2015
+./doc/xsl/arm-param.xsl				SGML	2015,2018
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009,2015,2016
 ./doc/xsl/graphics/caution.eps			X	2015
 ./doc/xsl/graphics/caution.pdf			X	2015
