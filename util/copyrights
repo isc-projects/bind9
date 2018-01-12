@@ -3319,7 +3319,7 @@
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2013,2016
 ./lib/dns/include/dns/nsec.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2008,2011,2012,2016
 ./lib/dns/include/dns/nsec3.h			C	2008,2009,2010,2011,2012,2013,2016,2017
-./lib/dns/include/dns/nta.h			C	2014,2015,2016
+./lib/dns/include/dns/nta.h			C	2014,2015,2016,2018
 ./lib/dns/include/dns/opcode.h			C	2002,2004,2005,2006,2007,2016
 ./lib/dns/include/dns/order.h			C	2002,2004,2005,2006,2007,2016,2017
 ./lib/dns/include/dns/peer.h			C	2000,2001,2003,2004,2005,2006,2007,2008,2009,2013,2014,2015,2016,2017
@@ -3361,7 +3361,7 @@
 ./lib/dns/include/dns/version.h			C	2001,2004,2005,2006,2007,2012,2013,2016
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006,2007,2009,2013,2016
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/dns/include/dns/zonekey.h			C	2001,2004,2005,2006,2007,2016
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2016,2017
 ./lib/dns/include/dst/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012,2015,2016
@@ -3386,7 +3386,7 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2010,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005,2007,2008,2009,2011,2012,2013,2014,2015,2016
 ./lib/dns/nsec3.c				C	2006,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./lib/dns/nta.c					C	2014,2015,2016,2017
+./lib/dns/nta.c					C	2014,2015,2016,2017,2018
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2014,2015,2016,2017
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
@@ -3681,7 +3681,7 @@
 ./lib/dns/win32/gen.vcxproj.filters.in		X	2013,2015
 ./lib/dns/win32/gen.vcxproj.in			X	2013,2015,2016,2017
 ./lib/dns/win32/gen.vcxproj.user		X	2013
-./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./lib/dns/win32/libdns.def.in			X	2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/dns/win32/libdns.vcxproj.filters.in	X	2013,2014,2015,2016,2017
 ./lib/dns/win32/libdns.vcxproj.in		X	2013,2014,2015,2016,2017
 ./lib/dns/win32/libdns.vcxproj.user		X	2013
@@ -4030,7 +4030,7 @@
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005,2007,2016
 ./lib/isc/unix/pk11_api.c			C	2014,2016
 ./lib/isc/unix/resource.c			C	2000,2001,2004,2007,2008,2009,2016
-./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004,2005,2007,2008,2009,2016
 ./lib/isc/unix/stdio.c				C	2000,2001,2004,2007,2011,2012,2013,2014,2016
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005,2007,2016
@@ -4178,11 +4178,11 @@
 ./lib/ns/Kyuafile				X	2017
 ./lib/ns/Makefile.in				MAKE	2017
 ./lib/ns/api					X	2017
-./lib/ns/client.c				C	2017
+./lib/ns/client.c				C	2017,2018
 ./lib/ns/hooks.h				C	2017
 ./lib/ns/include/Makefile.in			MAKE	2017
 ./lib/ns/include/ns/Makefile.in			MAKE	2017
-./lib/ns/include/ns/client.h			C	2017
+./lib/ns/include/ns/client.h			C	2017,2018
 ./lib/ns/include/ns/interfacemgr.h		C	2017
 ./lib/ns/include/ns/lib.h			C	2017
 ./lib/ns/include/ns/listenlist.h		C	2017
@@ -4200,7 +4200,7 @@
 ./lib/ns/lib.c					C	2017
 ./lib/ns/listenlist.c				C	2017
 ./lib/ns/log.c					C	2017
-./lib/ns/notify.c				C	2017
+./lib/ns/notify.c				C	2017,2018
 ./lib/ns/query.c				C	2017,2018
 ./lib/ns/server.c				C	2017
 ./lib/ns/sortlist.c				C	2017
@@ -4219,7 +4219,7 @@
 ./lib/ns/update.c				C	2017
 ./lib/ns/version.c				C	2017
 ./lib/ns/win32/DLLMain.c			C	2017
-./lib/ns/win32/libns.def			X	2017
+./lib/ns/win32/libns.def			X	2017,2018
 ./lib/ns/win32/libns.vcxproj.filters		X	2017
 ./lib/ns/win32/libns.vcxproj.in			X	2017
 ./lib/ns/win32/libns.vcxproj.user		X	2017
