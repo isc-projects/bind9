@@ -238,7 +238,7 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	 * If we're expiring before the next recheck, we might
 	 * as well stop the timer now.
 	 */
-	if (nta->timer != NULL && nta->expiry - now < ntatable->recheck)
+	if (nta->timer != NULL && nta->expiry - now < view->nta_recheck)
 		(void) isc_timer_reset(nta->timer, isc_timertype_inactive,
 				       NULL, NULL, ISC_TRUE);
 	nta_detach(view->mctx, &nta);

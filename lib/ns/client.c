@@ -2626,6 +2626,8 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	isc_sockaddr_fromnetaddr(&client->destsockaddr, &client->destaddr, 0);
+
 	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
 		ecs = &client->ecs;
 	}
@@ -3713,6 +3715,11 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client) {
 	return (&client->peeraddr);
+}
+
+isc_sockaddr_t *
+ns_client_getdestaddr(ns_client_t *client) {
+	return (&client->destsockaddr);
 }
 
 isc_result_t
