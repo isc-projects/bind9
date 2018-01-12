@@ -1449,6 +1449,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 #endif
 
 	memset(msg, 0, sizeof(*msg));
+	if (sock->sendcmsgbuflen != 0U) {
+		memset(sock->sendcmsgbuf, 0, sock->sendcmsgbuflen);
+	}
 
 	if (!sock->connected) {
 		msg->msg_name = (void *)&dev->address.type.sa;

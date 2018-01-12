@@ -41,7 +41,6 @@ struct dns_ntatable {
 	unsigned int		magic;
 	dns_view_t		*view;
 	isc_rwlock_t		rwlock;
-	isc_uint32_t		recheck;
 	isc_taskmgr_t		*taskmgr;
 	isc_timermgr_t		*timermgr;
 	isc_task_t		*task;
