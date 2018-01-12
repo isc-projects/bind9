@@ -18,6 +18,7 @@ ns_client_detach
 ns_client_dumprecursing
 ns_client_error
 ns_client_getsockaddr
+ns_client_getdestaddr
 ns_client_killoldestquery
 ns_client_log
 ns_client_logv

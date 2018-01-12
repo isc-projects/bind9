@@ -1063,6 +1063,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->rss_event = NULL;
 	zone->rss_state = NULL;
 	zone->updatemethod = dns_updatemethod_increment;
+	zone->maxrecords = 0U;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -13157,6 +13158,13 @@ isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg)
 {
+	return (dns_zone_notifyreceive2(zone, from, NULL, msg));
+}
+
+isc_result_t
+dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
+			isc_sockaddr_t *to, dns_message_t *msg)
+{
 	unsigned int i;
 	dns_rdata_soa_t soa;
 	dns_rdataset_t *rdataset = NULL;
@@ -13165,7 +13173,6 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	char fromtext[ISC_SOCKADDR_FORMATSIZE];
 	int match = 0;
 	isc_netaddr_t netaddr;
-	isc_sockaddr_t local, remote;
 	isc_uint32_t serial = 0;
 	isc_boolean_t have_serial = ISC_FALSE;
 	dns_tsigkey_t *tsigkey;
@@ -13201,7 +13208,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
 	if (inline_secure(zone)) {
-		result = dns_zone_notifyreceive(zone->raw, from, msg);
+		result = dns_zone_notifyreceive2(zone->raw, from, to, msg);
 		UNLOCK_ZONE(zone);
 		return (result);
 	}
@@ -13345,10 +13352,11 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		dns_zone_log(zone, ISC_LOG_INFO, "notify from %s: no serial",
 			     fromtext);
 	zone->notifyfrom = *from;
-	remote = zone->masteraddr;
-	local = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
-	dns_zonemgr_unreachabledel(zone->zmgr, &remote, &local);
+
+	if (to != NULL) {
+		dns_zonemgr_unreachabledel(zone->zmgr, from, to);
+	}
 	dns_zone_refresh(zone);
 	return (ISC_R_SUCCESS);
 }
@@ -19010,6 +19018,7 @@ dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		dns_nsec3param_toprivate(&nrdata, &prdata, zone->privatetype,
 					 np->data, sizeof(np->data));
 		np->length = prdata.length;
+		np->nsec = ISC_FALSE;
 	}
 
 	zone_iattach(zone, &dummy);

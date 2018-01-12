@@ -1,5 +1,8 @@
 	--- 9.12.0rc3 released ---
 
+4863.	[bug]		Fix various other bugs reported by Valgrind's
+			memcheck tool. [RT #46978]
+
 4862.	[bug]		The rdata flags for RRSIG were not being properly set
 			when constructing a rdataslab. [RT #46978]
 

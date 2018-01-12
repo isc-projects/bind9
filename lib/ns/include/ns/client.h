@@ -135,6 +135,7 @@ struct ns_client {
 	isc_sockaddr_t		peeraddr;
 	isc_boolean_t		peeraddr_valid;
 	isc_netaddr_t		destaddr;
+	isc_sockaddr_t		destsockaddr;
 
 	dns_ecs_t		ecs;   /*%< EDNS client subnet sent by client */
 
@@ -300,6 +301,13 @@ isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client);
 /*%<
  * Get the socket address of the client whose request is
+ * currently being processed.
+ */
+
+isc_sockaddr_t *
+ns_client_getdestaddr(ns_client_t *client);
+/*%<
+ * Get the destination address (server) for the request that is
  * currently being processed.
  */
 
