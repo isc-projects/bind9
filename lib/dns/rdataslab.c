@@ -297,7 +297,9 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	region->base = rawbuf;
 	region->length = buflen;
 
+	memset(rawbuf, 0, buflen);
 	rawbuf += reservelen;
+
 #if DNS_RDATASET_FIXED
 	offsetbase = rawbuf;
 #endif
