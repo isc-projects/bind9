@@ -2194,6 +2194,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	isc_sockaddr_fromnetaddr(&client->destsockaddr, &client->destaddr, 0);
+
 	/*
 	 * Find a view that matches the client's source address.
 	 */
@@ -3136,6 +3138,11 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 isc_sockaddr_t *
 ns_client_getsockaddr(ns_client_t *client) {
 	return (&client->peeraddr);
+}
+
+isc_sockaddr_t *
+ns_client_getdestaddr(ns_client_t *client) {
+	return (&client->destsockaddr);
 }
 
 isc_result_t
