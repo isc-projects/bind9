@@ -1954,7 +1954,7 @@
 ./bin/tests/system/rndc/ns6/named.args		X	2016
 ./bin/tests/system/rndc/ns6/named.conf.in	CONF-C	2016
 ./bin/tests/system/rndc/setup.sh		SH	2011,2012,2013,2014,2016,2017
-./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014,2015,2016,2017
+./bin/tests/system/rndc/tests.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/rpz/.gitignore		X	2017
 ./bin/tests/system/rpz/Makefile.in		MAKE	2017
 ./bin/tests/system/rpz/ckdnsrps.sh		SH	2017
