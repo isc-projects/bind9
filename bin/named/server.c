@@ -2194,11 +2194,17 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	RUNTIME_CHECK(zone == NULL);
 	/* Create a config for new zone */
 	confbuf = NULL;
-	dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
-	cfg_parser_reset(cfg->add_parser);
-	result = cfg_parse_buffer3(cfg->add_parser, confbuf, "catz", 0,
-				   &cfg_type_addzoneconf, &zoneconf);
-	isc_buffer_free(&confbuf);
+	result = dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
+	if (result == ISC_R_SUCCESS) {
+		cfg_parser_reset(cfg->add_parser);
+		result = cfg_parse_buffer3(cfg->add_parser, confbuf, "catz", 0,
+					   &cfg_type_addzoneconf, &zoneconf);
+		isc_buffer_free(&confbuf);
+	}
+	/*
+	 * Fail if either dns_catz_generate_zonecfg() or cfg_parse_buffer3()
+	 * failed.
+	 */
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
