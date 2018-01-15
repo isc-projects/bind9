@@ -57,7 +57,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT] = {
+	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
 		[NS_QUERY_DONE_BEGIN] = {
 			.callback = ns_test_hook_catch_call,
 			.callback_data = NULL,
@@ -264,7 +264,7 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_lookup() or query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT] = {
+	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
 		[NS_QUERY_LOOKUP_BEGIN] = {
 			.callback = ns_test_hook_catch_call,
 			.callback_data = NULL,
