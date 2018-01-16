@@ -2337,7 +2337,6 @@ resquery_send(resquery_t *query) {
 	dns_compress_t cctx;
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
-	isc_boolean_t connecting = ISC_FALSE;
 	isc_boolean_t tcp = ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
@@ -2783,7 +2782,6 @@ resquery_send(resquery_t *query) {
 						    query);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_message;
-			connecting = ISC_TRUE;
 			query->connects++;
 		}
 	}
@@ -2810,19 +2808,7 @@ resquery_send(resquery_t *query) {
 
 	result = isc_socket_sendto2(sock, &r, task, address, NULL,
 				    &query->sendevent, 0);
-	if (result != ISC_R_SUCCESS) {
-		if (connecting) {
-			/*
-			 * This query is still connecting.
-			 * Mark it as canceled so that it will just be
-			 * cleaned up when the connected event is received.
-			 * Keep fctx around until the event is processed.
-			 */
-			query->fctx->nqueries++;
-			query->attributes |= RESQUERY_ATTR_CANCELED;
-		}
-		goto cleanup_message;
-	}
+	INSIST(result == ISC_R_SUCCESS);
 
 	query->sends++;
 

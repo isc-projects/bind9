@@ -1,3 +1,6 @@
+4865.	[cleanup]	Simplify handling isc_socket_sendto2() return values.
+			[RT #46986]
+
 4864.	[bug]		named acting as a slave for a catalog zone crashed if
 			the latter contained a master definition without an IP
 			address. [RT #45999]

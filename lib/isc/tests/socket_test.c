@@ -387,7 +387,7 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 	recv_dscp_value = 0;
 
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
-	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS, "%s",
 			   isc_result_totext(result));
 	waitfor(&completion);
 	ATF_CHECK(completion.done);
@@ -492,7 +492,7 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 	recv_dscp_value = 0;
 
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	waitfor(&completion);
 	ATF_CHECK(completion.done);
 	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
