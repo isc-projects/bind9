@@ -2,26 +2,11 @@
 			the latter contained a master definition without an IP
 			address. [RT #45999]
 
-4863.	[bug]		Fix various other bugs reported by Valgrind's
-			memcheck tool. [RT #46978]
-
-4862.	[bug]		The rdata flags for RRSIG were not being properly set
-			when constructing a rdataslab. [RT #46978]
-
 4861.	[bug]		The isc_crc64 unit test was not endian independent.
 			[RT #46973]
 
 4860.	[bug]		isc_int8_t should be signed char.  [RT #46973]
 
-4859.	[bug]		A loop was possible when attempting to validate
-			unsigned CNAME responses from secure zones;
-			this caused a delay in returning SERVFAIL and
-			also increased the chances of encountering
-			CVE-2017-3145. [RT #46839]
-
-4858.	[security]	Addresses could be referenced after being freed
-			in resolver.c, causing an assertion failure.
-			(CVE-2017-3145) [RT #46839]
 
 4857.	[bug]		Maintain attach/detach semantics for event->db,
 			event->node, event->rdataset and event->sigrdataset
@@ -65,6 +50,26 @@
 			warnings about unused function. [RT #46790]
 
 	--- 9.12.0 released ---
+
+	--- 9.12.0rc3 released ---
+
+4863.	[bug]		Fix various other bugs reported by Valgrind's
+			memcheck tool. [RT #46978]
+
+4862.	[bug]		The rdata flags for RRSIG were not being properly set
+			when constructing a rdataslab. [RT #46978]
+
+	--- 9.12.0rc2 released ---
+
+4859.	[bug]		A loop was possible when attempting to validate
+			unsigned CNAME responses from secure zones;
+			this caused a delay in returning SERVFAIL and
+			also increased the chances of encountering
+			CVE-2017-3145. [RT #46839]
+
+4858.	[security]	Addresses could be referenced after being freed
+			in resolver.c, causing an assertion failure.
+			(CVE-2017-3145) [RT #46839]
 
 4850.	[bug]		Named failed to restart with multiple added zones in
 			lmdb database. [RT #46889]
