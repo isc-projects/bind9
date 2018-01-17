@@ -586,8 +586,13 @@ main(int argc, char **argv) {
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	/* associate the key */
-	ret = dst_key_fromlabel(name, alg, flags, protocol,
-				rdclass, "pkcs11", label, NULL, mctx, &key);
+	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass,
+#ifdef PKCS11CRYPTO
+				"pkcs11",
+#else
+				engine,
+#endif
+				label, NULL, mctx, &key);
 	isc_entropy_stopcallbacksources(ectx);
 
 	if (ret != ISC_R_SUCCESS) {
