@@ -7,7 +7,7 @@
 <!ENTITY mdash "&#8212;">
 <!ENTITY ouml "&#xf6;">]>
 <!--
- - Copyright (C) 2014-2018  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2014-2017  Internet Systems Consortium, Inc. ("ISC")
  -
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,9 +21,7 @@
       BIND 9.12.0 is a new feature release of BIND.  This document
       summarizes new features and functional changes that have been
       introduced on this branch, as well as features that have been
-      deprecated or removed.  With each development release leading
-      up to the final BIND 9.12.0 release, this document will be
-      updated with additional features added and bugs fixed.
+      deprecated or removed.
     </para>
   </section>
 
@@ -35,20 +33,6 @@
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </para>
-  </section>
-
-  <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</para>
-      </listitem>
-    </itemizedlist>
   </section>
 
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
@@ -687,54 +671,6 @@
 	  The <command>filter-aaaa-on-v4</command> and
 	  <command>filter-aaaa-on-v6</command> options are no longer
 	  conditionally compiled in <command>named</command>. [RT #46340]
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Zones created with <command>rndc addzone</command> could
-	  temporarily fail to inherit the <command>allow-transfer</command>
-	  ACL set in the <command>options</command> section of
-	  <filename>named.conf</filename>. [RT #46603]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The introduction of <command>libns</command> caused a bug
-	  in which TCP client objects were not recycled after use,
-	  leading to unconstrained memory growth. [RT #46029]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Some header files included &lt;isc/util.h&gt; incorrectly as
-	  it pollutes with namespace with non ISC_ macros and this should
-	  only be done by explicitly including &lt;isc/util.h&gt;.  This
-	  has been corrected.  Some code may depend on &lt;isc/util.h&gt;
-	  being implicitly included via other header files.  Such
-	  code should explicitly include &lt;isc/util.h&gt;.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> failed to properly determine whether
-	  there were active KSK and ZSK keys for an algorithm when
-	  <command>update-check-ksk</command> was true (which is the
-	  default setting). This could leave records unsigned
-	  when rolling keys. [RT #46743] [RT #46754] [RT #46774]
 	</para>
       </listitem>
     </itemizedlist>
