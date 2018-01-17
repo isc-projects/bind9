@@ -383,7 +383,7 @@ isc_md5_check(isc_boolean_t testing) {
 	/*
 	 * Must return true in standard case, should return false for testing.
 	 */
-	return (ISC_TF(bcmp(digest, expected, ISC_MD5_DIGESTLENGTH) == 0));
+	return (ISC_TF(memcmp(digest, expected, ISC_MD5_DIGESTLENGTH) == 0));
 }
 
 #else /* !PK11_MD5_DISABLE */
