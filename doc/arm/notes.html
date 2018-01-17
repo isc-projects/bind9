@@ -24,9 +24,7 @@
       BIND 9.12.0 is a new feature release of BIND.  This document
       summarizes new features and functional changes that have been
       introduced on this branch, as well as features that have been
-      deprecated or removed.  With each development release leading
-      up to the final BIND 9.12.0 release, this document will be
-      updated with additional features added and bugs fixed.
+      deprecated or removed.
     </p>
   </div>
 
@@ -40,20 +38,6 @@
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </p>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</p>
-      </li></ul></div>
   </div>
 
   <div class="section">
@@ -699,56 +683,6 @@
 	  The <span class="command"><strong>filter-aaaa-on-v4</strong></span> and
 	  <span class="command"><strong>filter-aaaa-on-v6</strong></span> options are no longer
 	  conditionally compiled in <span class="command"><strong>named</strong></span>. [RT #46340]
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Zones created with <span class="command"><strong>rndc addzone</strong></span> could
-	  temporarily fail to inherit the <span class="command"><strong>allow-transfer</strong></span>
-	  ACL set in the <span class="command"><strong>options</strong></span> section of
-	  <code class="filename">named.conf</code>. [RT #46603]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  The introduction of <span class="command"><strong>libns</strong></span> caused a bug
-	  in which TCP client objects were not recycled after use,
-	  leading to unconstrained memory growth. [RT #46029]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Some header files included &lt;isc/util.h&gt; incorrectly as
-	  it pollutes with namespace with non ISC_ macros and this should
-	  only be done by explicitly including &lt;isc/util.h&gt;.  This
-	  has been corrected.  Some code may depend on &lt;isc/util.h&gt;
-	  being implicitly included via other header files.  Such
-	  code should explicitly include &lt;isc/util.h&gt;.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> failed to properly determine whether
-	  there were active KSK and ZSK keys for an algorithm when
-	  <span class="command"><strong>update-check-ksk</strong></span> was true (which is the
-	  default setting). This could leave records unsigned
-	  when rolling keys. [RT #46743] [RT #46754] [RT #46774]
 	</p>
       </li>
 </ul></div>
