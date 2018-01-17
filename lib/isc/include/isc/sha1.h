@@ -74,6 +74,9 @@ isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data, unsigned int len);
 void
 isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest);
 
+isc_boolean_t
+isc_sha1_check(isc_boolean_t testing);
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_SHA1_H */

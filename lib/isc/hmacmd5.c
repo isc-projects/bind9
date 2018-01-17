@@ -345,6 +345,72 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 	return (isc_safe_memequal(digest, newdigest, len));
 }
 
+/*
+ * Check for MD5 support; if it does not work, raise a fatal error.
+ *
+ * Use the first test vector from RFC 2104, with a second round using
+ * a too-short key.
+ *
+ * Standard use is testing 0 and expecting result true.
+ * Testing use is testing 1..4 and expecting result false.
+ */
+isc_boolean_t
+isc_hmacmd5_check(int testing) {
+	isc_hmacmd5_t ctx;
+	unsigned char key[] = { /* 0x0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b */
+		0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+		0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b
+	};
+	unsigned char input[] = { /* "Hi There" */
+		0x48, 0x69, 0x20, 0x54, 0x68, 0x65, 0x72, 0x65
+	};
+	unsigned char expected[] = {
+		0x92, 0x94, 0x72, 0x7a, 0x36, 0x38, 0xbb, 0x1c,
+		0x13, 0xf4, 0x8e, 0xf8, 0x15, 0x8b, 0xfc, 0x9d
+	};
+	unsigned char expected2[] = {
+		0xad, 0xb8, 0x48, 0x05, 0xb8, 0x8d, 0x03, 0xe5,
+		0x90, 0x1e, 0x4b, 0x05, 0x69, 0xce, 0x35, 0xea
+	};
+	isc_boolean_t result;
+
+	/*
+	 * Introduce a fault for testing.
+	 */
+	switch (testing) {
+	case 0:
+	default:
+		break;
+	case 1:
+		key[0] ^= 0x01;
+		break;
+	case 2:
+		input[0] ^= 0x01;
+		break;
+	case 3:
+		expected[0] ^= 0x01;
+		break;
+	case 4:
+		expected2[0] ^= 0x01;
+		break;
+	}
+
+	/*
+	 * These functions do not return anything; any failure will be fatal.
+	 */
+	isc_hmacmd5_init(&ctx, key, 16U);
+	isc_hmacmd5_update(&ctx, input, 8U);
+	result = isc_hmacmd5_verify2(&ctx, expected, sizeof(expected));
+	if (!result) {
+		return (result);
+	}
+
+	/* Second round using a byte key */
+	isc_hmacmd5_init(&ctx, key, 1U);
+	isc_hmacmd5_update(&ctx, input, 8U);
+	return (isc_hmacmd5_verify2(&ctx, expected2, sizeof(expected2)));
+}
+
 #else /* !PK11_MD5_DISABLE */
 #ifdef WIN32
 /* Make the Visual Studio linker happy */
@@ -356,5 +422,6 @@ void isc_hmacmd5_sign() { INSIST(0); }
 void isc_hmacmd5_update() { INSIST(0); }
 void isc_hmacmd5_verify() { INSIST(0); }
 void isc_hmacmd5_verify2() { INSIST(0); }
+void isc_hmacmd5_check() { INSIST(0); }
 #endif
 #endif /* PK11_MD5_DISABLE */

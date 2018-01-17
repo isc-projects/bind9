@@ -82,6 +82,9 @@ isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest);
 isc_boolean_t
 isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len);
 
+isc_boolean_t
+isc_hmacmd5_check(int testing);
+
 ISC_LANG_ENDDECLS
 
 #endif /* !PK11_MD5_DISABLE */

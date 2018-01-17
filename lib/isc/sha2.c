@@ -83,7 +83,9 @@ isc_sha224_init(isc_sha224_t *context) {
 	}
 	context->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(context->ctx != NULL);
-	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha224()) == 1);
+	if (EVP_DigestInit(context->ctx, EVP_sha224()) != 1) {
+		FATAL_ERROR(__FILE__, __LINE__, "Cannot initialize SHA224.");
+	}
 }
 
 void
@@ -129,7 +131,9 @@ isc_sha256_init(isc_sha256_t *context) {
 	}
 	context->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(context->ctx != NULL);
-	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha256()) == 1);
+	if (EVP_DigestInit(context->ctx, EVP_sha256()) != 1) {
+		FATAL_ERROR(__FILE__, __LINE__, "Cannot initialize SHA256.");
+	}
 }
 
 void
@@ -175,7 +179,9 @@ isc_sha512_init(isc_sha512_t *context) {
 	}
 	context->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(context->ctx != NULL);
-	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha512()) == 1);
+	if (EVP_DigestInit(context->ctx, EVP_sha512()) != 1) {
+		FATAL_ERROR(__FILE__, __LINE__, "Cannot initialize SHA512.");
+	}
 }
 
 void
@@ -219,7 +225,9 @@ isc_sha384_init(isc_sha384_t *context) {
 	}
 	context->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(context->ctx != NULL);
-	RUNTIME_CHECK(EVP_DigestInit(context->ctx, EVP_sha384()) == 1);
+	if (EVP_DigestInit(context->ctx, EVP_sha384()) != 1) {
+		FATAL_ERROR(__FILE__, __LINE__, "Cannot initialize SHA384.");
+	}
 }
 
 void
