@@ -1,6 +1,6 @@
 #!/bin/sh -x
 #
-# Copyright (C) 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2016-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -341,7 +341,7 @@ status=`expr $status + $ret`
 ##########################################################################
 echo "I:Testing masters suboption and random labels"
 n=`expr $n + 1`
-echo "I: adding dom5.example with 'masters' suboption set and a random label ($n)"
+echo "I: adding dom5.example with a valid masters suboption (IP without TSIG) and a random label ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
@@ -433,7 +433,7 @@ status=`expr $status + $ret`
 ##########################################################################
 echo "I:Testing masters global option"
 n=`expr $n + 1`
-echo "I: adding dom6.example and global masters option ($n)"
+echo "I: adding dom6.example and a valid global masters option (IP without TSIG) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
@@ -526,6 +526,77 @@ grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+n=`expr $n + 1`
+echo "I: adding dom6.example and an invalid global masters option (TSIG without IP) ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add label1.masters.catalog1.example 3600 IN TXT "tsig_key"
+    update add 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example 3600 IN PTR dom6.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom6.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "error .* while trying to generate config for zone \"dom6.example\"" > /dev/null && {
+
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: removing dom6.example ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update delete label1.masters.catalog1.example 3600 IN TXT "tsig_key"
+    update delete 4346f565b4d63ddb99e5d2497ff22d04e878e8f8.zones.catalog1.example 3600 IN PTR dom6.example.
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom6.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
 
 ##########################################################################
 n=`expr $n + 1`
@@ -769,7 +840,7 @@ status=`expr $status + $ret`
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
 
 n=`expr $n + 1`
-echo "I: adding domain dom9.example to catalog1 zone with masters and tsig key($n)"
+echo "I: adding domain dom9.example to catalog1 zone with a valid masters suboption (IP with TSIG) ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
@@ -819,7 +890,7 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: deleting domain dom9.example from catalog1 zone($n)"
+echo "I: deleting domain dom9.example from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
@@ -852,6 +923,78 @@ echo "I: checking that dom9.example is no longer accessible on slave ($n)"
 ret=0
 $DIG soa dom9.example @10.53.0.2 -p 5300 > dig.out.test$n
 grep "status: REFUSED" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
+
+n=`expr $n + 1`
+echo "I: adding domain dom9.example to catalog1 zone with an invalid masters suboption (TSIG without IP) ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update add f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example 3600 IN PTR dom9.example.
+    update add label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example 3600 IN TXT "tsig_key"
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: adding zone 'dom9.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "error .* while trying to generate config for zone \"dom9.example\"" > /dev/null && {
+
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: deleting domain dom9.example from catalog1 zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 5300
+    update delete f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example 3600 IN PTR dom9.example.
+    update delete label1.masters.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example 3600 IN TXT "tsig_key"
+    send
+END
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: waiting for slave to sync up ($n)"
+ret=1
+try=0
+while test $try -lt 45
+do
+    sleep 1
+    sed -n "$cur,"'$p' < ns2/named.run | grep "catz: deleting zone 'dom9.example' from catalog 'catalog1.example'" > /dev/null && {
+	ret=0
+	break
+    }
+    try=`expr $try + 1`
+done
 if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
@@ -933,7 +1076,7 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: checking that zone-directory is populated with a hashed filename($n)"
+echo "I: checking that zone-directory is populated with a hashed filename ($n)"
 ret=0
 [ -f "ns2/zonedir/__catz__4d70696f2335687069467f11f5d5378c480383f97782e553fb2d04a7bb2a23ed.db" ] || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
@@ -1329,7 +1472,15 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: reconfiguring slave - removing catalog4 catalog zone ($n)"
+echo "I: reconfiguring slave - removing catalog4 catalog zone, adding non-existent catalog5 catalog zone ($n)"
+ret=0
+cat ns2/named.conf.in | sed -e "s/^#T2//" > ns2/named.conf
+$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > /dev/null 2>&1 && ret=1
+if [ $ret != 0 ]; then echo "I: failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo "I: reconfiguring slave - removing non-existent catalog5 catalog zone ($n)"
 ret=0
 cat ns2/named.conf.in > ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig || ret=1
@@ -1405,7 +1556,7 @@ status=`expr $status + $ret`
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
 
 n=`expr $n + 1`
-echo "I: Adding domain dom13.example to catalog1 zone with ns1 as master($n)"
+echo "I: Adding domain dom13.example to catalog1 zone with ns1 as master ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 5300
@@ -1457,7 +1608,7 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: Adding domain dom13.example to catalog2 zone with ns3 as master($n)"
+echo "I: Adding domain dom13.example to catalog2 zone with ns3 as master ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 5300
@@ -1617,7 +1768,7 @@ status=`expr $status + $ret`
 cur=`awk 'BEGIN {l=0} /^/ {l++} END { print l }' ns2/named.run`
 
 n=`expr $n + 1`
-echo "I: Adding domain dom14.example with rndc with ns1 as master($n)"
+echo "I: Adding domain dom14.example with rndc with ns1 as master ($n)"
 ret=0
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 addzone dom14.example '{type slave; masters {10.53.0.1;};};' || ret=1
 if [ $ret != 0 ]; then echo "I: failed"; fi
@@ -1651,7 +1802,7 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo "I: Adding domain dom14.example to catalog2 zone with ns3 as master($n)"
+echo "I: Adding domain dom14.example to catalog2 zone with ns3 as master ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.3 5300
@@ -1784,7 +1935,7 @@ status=`expr $status + $ret`
 sleep 3
 
 n=`expr $n + 1`
-echo "I: checking that dom15.example is served by slave($n)"
+echo "I: checking that dom15.example is served by slave ($n)"
 for try in 0 1 2 3 4 5 6 7 8 9; do
     $DIG soa dom15.example @10.53.0.2 -p 5300 > dig.out.test$n
     ret=0

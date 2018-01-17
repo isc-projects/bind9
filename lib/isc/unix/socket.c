@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1449,6 +1449,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 #endif
 
 	memset(msg, 0, sizeof(*msg));
+	if (sock->sendcmsgbuflen != 0U) {
+		memset(sock->sendcmsgbuf, 0, sock->sendcmsgbuflen);
+	}
 
 	if (!sock->connected) {
 		msg->msg_name = (void *)&dev->address.type.sa;

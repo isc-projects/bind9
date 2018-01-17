@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -41,7 +41,6 @@ struct dns_ntatable {
 	unsigned int		magic;
 	dns_view_t		*view;
 	isc_rwlock_t		rwlock;
-	isc_uint32_t		recheck;
 	isc_taskmgr_t		*taskmgr;
 	isc_timermgr_t		*timermgr;
 	isc_task_t		*task;

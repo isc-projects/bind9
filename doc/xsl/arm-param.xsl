@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding="iso-8859-1"?>
 <!--
- - Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  -
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,8 +38,8 @@
   <xsl:template match="abstract"/>
   <xsl:template match="sidebar"/>
 
-  <!-- Two section level in the Table of contents -->
-  <xsl:param name="toc.section.depth">2</xsl:param>
+  <!-- Three section levels deep in the Table of contents -->
+  <xsl:param name="toc.section.depth">3</xsl:param>
 
   <!-- Do not show the collaborators listed in bookinfo -->
   <xsl:param name="doc.collab.show" select="0"/>

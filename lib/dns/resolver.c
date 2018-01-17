@@ -1670,6 +1670,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->sends = 0;
 	query->connects = 0;
 	query->dscp = addrinfo->dscp;
+	query->udpsize = 0;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.

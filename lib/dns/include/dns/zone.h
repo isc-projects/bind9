@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1264,6 +1264,9 @@ dns_zone_getjournalsize(dns_zone_t *zone);
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 		       dns_message_t *msg);
+isc_result_t
+dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
+			isc_sockaddr_t *to, dns_message_t *msg);
 /*%<
  *	Tell the zone that it has received a NOTIFY message from another
  *	server.  This may cause some zone maintenance activity to occur.
