@@ -1,3 +1,7 @@
+4866.	[port]		DST library initialization verifies MD5 (when MD5
+			was not disabled) and SHA-1 hash and HMAC support.
+			[RT #46764]
+
 4862.	[bug]		The rdata flags for RRSIG were not being properly set
 			when constructing a rdataslab. [RT #46978]
 

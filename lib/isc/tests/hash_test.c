@@ -1960,6 +1960,42 @@ ATF_TC_BODY(isc_hash_initializer, tc) {
 	ATF_CHECK_EQ(h1, h2);
 }
 
+#ifndef PK11_MD5_DISABLE
+ATF_TC(md5_check);
+ATF_TC_HEAD(md5_check, tc) {
+	atf_tc_set_md_var(tc, "descr", "Startup MD5 check test");
+}
+ATF_TC_BODY(md5_check, tc) {
+	UNUSED(tc);
+
+	ATF_REQUIRE(isc_md5_check(ISC_FALSE));
+	ATF_CHECK(!isc_md5_check(ISC_TRUE));
+
+	ATF_REQUIRE(isc_hmacmd5_check(0));
+	ATF_CHECK(!isc_hmacmd5_check(1));
+	ATF_CHECK(!isc_hmacmd5_check(2));
+	ATF_CHECK(!isc_hmacmd5_check(3));
+	ATF_CHECK(!isc_hmacmd5_check(4));
+}
+#endif
+
+ATF_TC(sha1_check);
+ATF_TC_HEAD(sha1_check, tc) {
+	atf_tc_set_md_var(tc, "descr", "Startup SHA-1 check test");
+}
+ATF_TC_BODY(sha1_check, tc) {
+	UNUSED(tc);
+
+	ATF_REQUIRE(isc_sha1_check(ISC_FALSE));
+	ATF_CHECK(!isc_sha1_check(ISC_TRUE));
+
+	ATF_REQUIRE(isc_hmacsha1_check(0));
+	ATF_CHECK(!isc_hmacsha1_check(1));
+	ATF_CHECK(!isc_hmacsha1_check(2));
+	ATF_CHECK(!isc_hmacsha1_check(3));
+	ATF_CHECK(!isc_hmacsha1_check(4));
+}
+
 /*
  * Main
  */
@@ -1968,6 +2004,11 @@ ATF_TP_ADD_TCS(tp) {
 	 * Tests of hash functions, including isc_hash and the
 	 * various cryptographic hashes.
 	 */
+#ifndef PK11_MD5_DISABLE
+	ATF_TP_ADD_TC(tp, md5_check);
+#endif
+	ATF_TP_ADD_TC(tp, sha1_check);
+
 	ATF_TP_ADD_TC(tp, isc_hash_function);
 	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
 	ATF_TP_ADD_TC(tp, isc_hash_initializer);

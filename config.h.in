@@ -120,6 +120,9 @@ int sigwait(const unsigned int *set, int *sig);
 /** define if you have strerror in the C library. */
 #undef HAVE_STRERROR
 
+/* Define if OpenSSL provides FIPS_mode() */
+#undef HAVE_FIPS_MODE
+
 /* Define if OpenSSL includes DSA support */
 #undef HAVE_OPENSSL_DSA
 

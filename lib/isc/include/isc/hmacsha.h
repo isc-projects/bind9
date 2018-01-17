@@ -101,6 +101,9 @@ isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
 isc_boolean_t
 isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
 
+isc_boolean_t
+isc_hmacsha1_check(int testing);
+
 
 void
 isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,

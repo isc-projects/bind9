@@ -322,6 +322,9 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `EVP_sha512' function. */
 @HAVE_EVP_SHA512@
 
+/* Define if OpenSSL provides FIPS_mode() */
+@HAVE_FIPS_MODE@
+
 /* Define if OpenSSL includes DSA support */
 @HAVE_OPENSSL_DSA@
 

@@ -399,6 +399,7 @@ my @substdefh = ("AES_CC",
                  "HAVE_EVP_SHA256",
                  "HAVE_EVP_SHA384",
                  "HAVE_EVP_SHA512",
+                 "HAVE_FIPS_MODE",
                  "HAVE_GEOIP",
                  "HAVE_GEOIP_CITY_V6",
                  "HAVE_GEOIP_V6",
@@ -1787,6 +1788,33 @@ EOF
         }
     } else {
         die "can't compile OpenSSL version test: $compret\n";
+    }
+}
+
+# check FIPS_mode
+
+if ($use_openssl eq "yes") {
+    if ($verbose) {
+        printf "checking for FIPS_mode\n";
+    }
+    open F, ">testfips.c" || die $!;
+    print F << 'EOF';
+extern int FIPS_mode();
+
+int main() {
+    return FIPS_mode();
+}
+EOF
+    close F;
+    my $library = $configlib{"OPENSSL_LIB"};
+    $compret = `cl /nologo /MD testfips.c "$library"`;
+    if (grep { -f and -x } ".\\testfips.exe") {
+        $configdefh{"HAVE_FIPS_MODE"} = 1;
+    } else {
+        if ($verbose) {
+            print "can't compile FIPS_mode test: $compret\n";
+            print "disabling FIPS_mode\n";
+        }
     }
 }
 
@@ -3599,7 +3627,7 @@ exit 0;
 #  --with-dlz-* ?
 #
 # Notes: MSVC versions
-# MSVC 15.0 _MSC_VER == 1910 (VS 2017)
+# MSVC 15.x _MSC_VER == 191y (VS 2017)
 # MSVC 14.0 _MSC_VER == 1900 (VS 2015)
 # MSVC 12.0 _MSC_VER == 1800 (VS 2013)
 # MSVC 11.0 _MSC_VER == 1700 (VS 2012)
