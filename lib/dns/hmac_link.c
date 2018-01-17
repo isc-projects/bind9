@@ -22,7 +22,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.19 2011/01/11 23:47:13 tbox Exp $
  */
 
 #include <config.h>
@@ -42,6 +41,7 @@
 #include <dst/result.h>
 
 #include "dst_internal.h"
+#include "dst_openssl.h"
 #include "dst_parse.h"
 
 #ifndef PK11_MD5_DISABLE
@@ -337,6 +337,28 @@ static dst_func_t hmacmd5_functions = {
 
 isc_result_t
 dst__hmacmd5_init(dst_func_t **funcp) {
+#ifdef HAVE_FIPS_MODE
+	/*
+	 * Problems from OpenSSL are likely from FIPS mode
+	 */
+	int fips_mode = FIPS_mode();
+
+	if (fips_mode != 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "FIPS mode is %d: MD5 is only supported "
+				 "if the value is 0.\n"
+				 "Please disable either FIPS mode or MD5.",
+				 fips_mode);
+	}
+#endif
+
+	/*
+	 * Prevent use of incorrect crypto
+	 */
+
+	RUNTIME_CHECK(isc_md5_check(ISC_FALSE));
+	RUNTIME_CHECK(isc_hmacmd5_check(0));
+
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
 		*funcp = &hmacmd5_functions;
@@ -623,6 +645,12 @@ static dst_func_t hmacsha1_functions = {
 
 isc_result_t
 dst__hmacsha1_init(dst_func_t **funcp) {
+	/*
+	 * Prevent use of incorrect crypto
+	 */
+	RUNTIME_CHECK(isc_sha1_check(ISC_FALSE));
+	RUNTIME_CHECK(isc_hmacsha1_check(0));
+
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
 		*funcp = &hmacsha1_functions;

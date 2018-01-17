@@ -1,3 +1,7 @@
+4866.	[port]		DST library initialization verifies MD5 (when MD5
+			was not disabled) and SHA-1 hash and HMAC support.
+			[RT #46764]
+
 4864.	[bug]		named acting as a slave for a catalog zone crashed if
 			the latter contained a master definition without an IP
 			address. [RT #45999]

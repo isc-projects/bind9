@@ -1789,6 +1789,21 @@ no)
 ;;
 esac
 
+	AC_MSG_CHECKING(for OpenSSL FIPS mode support)
+	have_fips_mode=""
+	AC_TRY_LINK([#include <openssl/crypto.h>],
+		    [FIPS_mode();],
+		    have_fips_mode=yes,
+		    have_fips_mode=no)
+	if test "x$have_fips_mode" = "xyes"
+	then
+		AC_DEFINE([HAVE_FIPS_MODE], [1],
+			  [Define if OpenSSL provides FIPS_mode()])
+		AC_MSG_RESULT(yes)
+	else
+		AC_MSG_RESULT(no)
+	fi
+
 	AC_MSG_CHECKING(for OpenSSL DSA support)
 	if test -f $use_openssl/include/openssl/dsa.h
 	then

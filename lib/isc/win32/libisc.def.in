@@ -286,12 +286,14 @@ isc_heap_insert
 isc_hex_decodestring
 isc_hex_tobuffer
 isc_hex_totext
+isc_hmacmd5_check
 isc_hmacmd5_init
 isc_hmacmd5_invalidate
 isc_hmacmd5_sign
 isc_hmacmd5_update
 isc_hmacmd5_verify
 isc_hmacmd5_verify2
+isc_hmacsha1_check
 isc_hmacsha1_init
 isc_hmacsha1_invalidate
 isc_hmacsha1_sign
@@ -407,6 +409,7 @@ isc_logconfig_destroy
 isc_logconfig_get
 isc_logconfig_use
 isc_logfile_roll
+isc_md5_check
 isc_md5_final
 isc_md5_init
 isc_md5_invalidate
@@ -580,6 +583,7 @@ isc_serial_gt
 isc_serial_le
 isc_serial_lt
 isc_serial_ne
+isc_sha1_check
 isc_sha1_final
 isc_sha1_init
 isc_sha1_invalidate
