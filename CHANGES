@@ -1,3 +1,8 @@
+4867.	[cleanup]	Normalize rndc on/off commands (validation and
+			querylog) so they accept the same synonyms
+			for on/off (yes/no, true/false, enable/disable).
+			Thanks to Tony Finch. [RT #47022]
+
 4863.	[bug]		Fix various other bugs reported by Valgrind's
 			memcheck tool. [RT #46978]
 
