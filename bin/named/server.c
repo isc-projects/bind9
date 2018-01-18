@@ -7962,7 +7962,7 @@ ns_server_togglequerylog(ns_server_t *server, isc_lex_t *lex) {
 
 	ptr = next_token(lex, NULL);
 	if (ptr == NULL) {
-		value = !prev;
+		value = server->log_queries ? ISC_FALSE : ISC_TRUE;
 	} else if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
 		   !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		value = ISC_TRUE;
