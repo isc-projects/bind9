@@ -249,13 +249,13 @@ nextpart () {
 copy_setports() {
     sed -e "s/@PORT@/${PORT}/g" \
         -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT2@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT3@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT4@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT5@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT6@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT7@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT8@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
         -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
 }
 
