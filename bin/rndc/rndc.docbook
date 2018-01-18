@@ -572,7 +572,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>querylog</userinput> <optional>on|off</optional> </term>
+	<term><userinput>querylog</userinput> <optional> on | off </optional> </term>
 	<listitem>
 	  <para>
 	    Enable or disable query logging.  (For backward
@@ -933,7 +933,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>validation ( on | off | check ) <optional><replaceable>view ...</replaceable></optional> </userinput></term>
+	<term><userinput>validation ( on | off | status ) <optional><replaceable>view ...</replaceable></optional> </userinput></term>
 	<listitem>
 	  <para>
 	    Enable, disable, or check the current status of

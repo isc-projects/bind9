@@ -9600,14 +9600,17 @@ ns_server_togglequerylog(ns_server_t *server, isc_lex_t *lex) {
 		return (ISC_R_UNEXPECTEDEND);
 
 	ptr = next_token(lex, NULL);
-	if (ptr == NULL)
-		value = server->log_queries ? ISC_FALSE : ISC_TRUE;
-	else if (strcasecmp(ptr, "yes") == 0 || strcasecmp(ptr, "on") == 0)
+	if (ptr == NULL) {
+		value = !prev;
+	} else if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
+		   !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		value = ISC_TRUE;
-	else if (strcasecmp(ptr, "no") == 0 || strcasecmp(ptr, "off") == 0)
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false")) {
 		value = ISC_FALSE;
-	else
-		return (ISC_R_NOTFOUND);
+	} else {
+		return (DNS_R_SYNTAX);
+	}
 
 	if (server->log_queries == value)
 		return (ISC_R_SUCCESS);
@@ -10255,15 +10258,16 @@ ns_server_validation(ns_server_t *server, isc_lex_t *lex,
 		return (ISC_R_UNEXPECTEDEND);
 
 	if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
-	    !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true"))
+	    !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		enable = ISC_TRUE;
-	else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
-		 !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false")) {
 		enable = ISC_FALSE;
-	else if (!strcasecmp(ptr, "check"))
+	} else if (!strcasecmp(ptr, "check") || !strcasecmp(ptr, "status")) {
 		set = ISC_FALSE;
-	else
+	} else {
 		return (DNS_R_SYNTAX);
+	}
 
 	/* Look for the view name. */
 	ptr = next_token(lex, text);
