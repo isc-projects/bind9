@@ -645,7 +645,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>querylog</userinput> <optional>on|off</optional> </term>
+	<term><userinput>querylog</userinput> <optional> on | off </optional> </term>
 	<listitem>
 	  <para>
 	    Enable or disable query logging.  (For backward
@@ -752,25 +752,6 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>serve-stale ( on | off | reset | status) <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
-	<listitem>
-	  <para>
-	    Enable, disable, or reset the serving of stale answers
-	    as configured in named.conf. Serving of stale answers
-	    will remain disabled across <filename>named.conf</filename>
-	    reloads if disabled via rndc until it is reset via rndc.
-	  </para>
-	  <para>
-	    Status will report whether serving of stale answers is
-	    currently enabled, disabled or not configured for a
-	    view.  If serving of stale records is configured then
-	    the values of stale-answer-ttl and max-stale-ttl are
-	    reported.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
 	<term><userinput>secroots <optional>-</optional> <optional><replaceable>view ...</replaceable></optional></userinput></term>
 	<listitem>
 	  <para>
@@ -795,6 +776,25 @@
 	  </para>
 	  <para>
 	    See also <command>rndc managed-keys</command>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><userinput>serve-stale ( on | off | status | reset ) <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+	<listitem>
+	  <para>
+	    Enable, disable, or reset the serving of stale answers
+	    as configured in named.conf. Serving of stale answers
+	    will remain disabled across <filename>named.conf</filename>
+	    reloads if disabled via rndc until it is reset via rndc.
+	  </para>
+	  <para>
+	    Status will report whether serving of stale answers is
+	    currently enabled, disabled or not configured for a
+	    view.  If serving of stale records is configured then
+	    the values of stale-answer-ttl and max-stale-ttl are
+	    reported.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -1049,7 +1049,7 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>validation ( on | off | check ) <optional><replaceable>view ...</replaceable></optional> </userinput></term>
+	<term><userinput>validation ( on | off | status ) <optional><replaceable>view ...</replaceable></optional> </userinput></term>
 	<listitem>
 	  <para>
 	    Enable, disable, or check the current status of

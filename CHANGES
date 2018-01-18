@@ -1,3 +1,8 @@
+4867.	[cleanup]	Normalize rndc on/off commands (validation,
+			querylog, serve-stale) so they all accept the
+			same synonyms for on/off (yes/no, true/false,
+			enable/disable). Thanks to Tony Finch. [RT #47022]
+
 4866.	[port]		DST library initialization verifies MD5 (when MD5
 			was not disabled) and SHA-1 hash and HMAC support.
 			[RT #46764]
