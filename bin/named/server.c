@@ -10193,14 +10193,17 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex) {
 	prev = ns_server_getoption(server->sctx, NS_SERVER_LOGQUERIES);
 
 	ptr = next_token(lex, NULL);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		value = !prev;
-	else if (strcasecmp(ptr, "yes") == 0 || strcasecmp(ptr, "on") == 0)
+	} else if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
+		   !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		value = ISC_TRUE;
-	else if (strcasecmp(ptr, "no") == 0 || strcasecmp(ptr, "off") == 0)
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false")) {
 		value = ISC_FALSE;
-	else
-		return (ISC_R_NOTFOUND);
+	} else {
+		return (DNS_R_SYNTAX);
+	}
 
 	if (value == prev)
 		return (ISC_R_SUCCESS);
@@ -10849,15 +10852,16 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 		return (ISC_R_UNEXPECTEDEND);
 
 	if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
-	    !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true"))
+	    !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		enable = ISC_TRUE;
-	else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
-		 !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false"))
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false")) {
 		enable = ISC_FALSE;
-	else if (!strcasecmp(ptr, "check"))
+	} else if (!strcasecmp(ptr, "check") || !strcasecmp(ptr, "status")) {
 		set = ISC_FALSE;
-	else
+	} else {
 		return (DNS_R_SYNTAX);
+	}
 
 	/* Look for the view name. */
 	ptr = next_token(lex, text);
@@ -14928,13 +14932,15 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	if (strcasecmp(ptr, "on") == 0 || strcasecmp(ptr, "yes") == 0) {
+	if (!strcasecmp(ptr, "on") || !strcasecmp(ptr, "yes") ||
+	    !strcasecmp(ptr, "enable") || !strcasecmp(ptr, "true")) {
 		staleanswersok = dns_stale_answer_yes;
-	} else if (strcasecmp(ptr, "off") == 0 || strcasecmp(ptr, "no") == 0) {
+	} else if (!strcasecmp(ptr, "off") || !strcasecmp(ptr, "no") ||
+		   !strcasecmp(ptr, "disable") || !strcasecmp(ptr, "false")) {
 		staleanswersok = dns_stale_answer_no;
 	} else if (strcasecmp(ptr, "reset") == 0) {
 		staleanswersok = dns_stale_answer_conf;
-	} else if (strcasecmp(ptr, "status") == 0) {
+	} else if (!strcasecmp(ptr, "check") || !strcasecmp(ptr, "status")) {
 		wantstatus = ISC_TRUE;
 	} else
 		return (DNS_R_SYNTAX);
