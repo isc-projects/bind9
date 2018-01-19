@@ -1,4 +1,4 @@
-.\" Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2000, 2001, 2004, 2005, 2007, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -437,7 +437,7 @@ All of these options can be shortened, i\&.e\&., to
 \fB\-f\fR\&.
 .RE
 .PP
-\fBquerylog\fR [on|off]
+\fBquerylog\fR [ on | off ]
 .RS 4
 Enable or disable query logging\&. (For backward compatibility, this command can also be used without an argument to toggle query logging on and off\&.)
 .sp
@@ -505,15 +505,6 @@ or waiting for the
 timer\&.
 .RE
 .PP
-\fBserve\-stale ( on | off | reset | status) \fR\fB[\fIclass\fR [\fIview\fR]]\fR
-.RS 4
-Enable, disable, or reset the serving of stale answers as configured in named\&.conf\&. Serving of stale answers will remain disabled across
-named\&.conf
-reloads if disabled via rndc until it is reset via rndc\&.
-.sp
-Status will report whether serving of stale answers is currently enabled, disabled or not configured for a view\&. If serving of stale records is configured then the values of stale\-answer\-ttl and max\-stale\-ttl are reported\&.
-.RE
-.PP
 \fBsecroots \fR\fB[\-]\fR\fB \fR\fB[\fIview \&.\&.\&.\fR]\fR
 .RS 4
 Dump the security roots (i\&.e\&., trust anchors configured via
@@ -531,6 +522,15 @@ named\&.conf\&.
 .sp
 See also
 \fBrndc managed\-keys\fR\&.
+.RE
+.PP
+\fBserve\-stale ( on | off | status | reset ) \fR\fB[\fIclass\fR [\fIview\fR]]\fR
+.RS 4
+Enable, disable, or reset the serving of stale answers as configured in named\&.conf\&. Serving of stale answers will remain disabled across
+named\&.conf
+reloads if disabled via rndc until it is reset via rndc\&.
+.sp
+Status will report whether serving of stale answers is currently enabled, disabled or not configured for a view\&. If serving of stale records is configured then the values of stale\-answer\-ttl and max\-stale\-ttl are reported\&.
 .RE
 .PP
 \fBshowzone \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
@@ -681,7 +681,7 @@ List the names of all TSIG keys currently configured for use by
 in each view\&. The list both statically configured keys and dynamic TKEY\-negotiated keys\&.
 .RE
 .PP
-\fBvalidation ( on | off | check ) \fR\fB[\fIview \&.\&.\&.\fR]\fR\fB \fR
+\fBvalidation ( on | off | status ) \fR\fB[\fIview \&.\&.\&.\fR]\fR\fB \fR
 .RS 4
 Enable, disable, or check the current status of DNSSEC validation\&. Note
 \fBdnssec\-enable\fR
@@ -730,5 +730,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2000, 2001, 2004, 2005, 2007, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2000, 2001, 2004, 2005, 2007, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
 .br
