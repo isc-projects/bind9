@@ -1,3 +1,6 @@
+4868.	[func]		dnssec-keygen can no longer generate HMAC keys.
+			Use tsig-keygen instead. [RT #46404]
+
 4867.	[cleanup]	Normalize rndc on/off commands (validation,
 			querylog, serve-stale) so they all accept the
 			same synonyms for on/off (yes/no, true/false,

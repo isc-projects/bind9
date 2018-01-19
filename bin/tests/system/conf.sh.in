@@ -240,4 +240,5 @@ export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
 export TESTSOCK6
+export TSIGKEYGEN
 export WIRETEST

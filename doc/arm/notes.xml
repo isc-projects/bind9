@@ -60,6 +60,18 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  <command>dnssec-keygen</command> can no longer generate HMAC
+	  keys for TSIG authentication. Use <command>tsig-keygen</command>
+	  to generate these keys. [RT #46404]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>

@@ -228,13 +228,18 @@ fi
 
 echo "I:check that multiple dnssec-keygen calls don't emit dns_dnssec_findmatchingkeys warning"
 ret=0
-$KEYGEN -r $RANDFILE -a hmac-sha256 -b 128 -n host example.net > keygen.out1 2>&1 || ret=1
+$KEYGEN -r $RANDFILE -a dh -b 128 -n host example.net > keygen.out1 2>&1 || ret=1
 grep dns_dnssec_findmatchingkeys keygen.out1 > /dev/null && ret=1
-$KEYGEN -r $RANDFILE -a hmac-sha256 -b 128 -n host example.net > keygen.out2 2>&1 || ret=1
+$KEYGEN -r $RANDFILE -a dh -b 128 -n host example.net > keygen.out2 2>&1 || ret=1
 grep dns_dnssec_findmatchingkeys keygen.out2 > /dev/null && ret=1
 if [ $ret -eq 1 ] ; then
 	echo "I: failed"; status=1
 fi
+
+echo "I:check that dnssec-keygen won't generate TSIG keys"
+ret=0
+$KEYGEN -r $RANDFILE -a hmac-sha256 -b 128 -n host example.net > keygen.out3 2>&1 && ret=1
+grep "unknown algorithm" keygen.out3 > /dev/null || ret=1
 
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -510,19 +510,11 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	alg = dst_key_alg(dstkey);
 
 	/*
-	 * For HMAC and Diffie Hellman just check if there is a
-	 * direct collision as they can't be revoked.  Additionally
-	 * dns_dnssec_findmatchingkeys only handles DNSKEY which is
-	 * not used for HMAC.
+	 * For Diffie Hellman just check if there is a direct collision as
+	 * they can't be revoked.  Additionally dns_dnssec_findmatchingkeys
+	 * only handles DNSKEY which is not used for HMAC.
 	 */
-	switch (alg) {
-	case DST_ALG_HMACMD5:
-	case DST_ALG_HMACSHA1:
-	case DST_ALG_HMACSHA224:
-	case DST_ALG_HMACSHA256:
-	case DST_ALG_HMACSHA384:
-	case DST_ALG_HMACSHA512:
-	case DST_ALG_DH:
+	if (alg == DST_ALG_DH) {
 		isc_buffer_init(&fileb, filename, sizeof(filename));
 		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE,
 					       dir, &fileb);
