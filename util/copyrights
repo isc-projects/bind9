@@ -120,8 +120,8 @@
 ./bin/dnssec/dnssec-keyfromlabel.docbook	SGML	2008,2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/dnssec/dnssec-keyfromlabel.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2014,2015,2016,2017
+./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
+./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005,2007,2008,2009,2010,2011,2012,2014,2015,2016,2017,2018
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-revoke.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-revoke.c			C	2009,2010,2011,2012,2014,2015,2016,2017
@@ -139,7 +139,7 @@
 ./bin/dnssec/dnssec-verify.c			C	2012,2014,2015,2016,2017
 ./bin/dnssec/dnssec-verify.docbook		SGML	2012,2014,2015,2016
 ./bin/dnssec/dnssec-verify.html			HTML	DOCBOOK
-./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004,2007,2008,2009,2010,2011,2012,2014,2015,2016,2017
 ./bin/dnssec/win32/dnssectool.vcxproj.filters.in	X	2013,2015
 ./bin/dnssec/win32/dnssectool.vcxproj.in	X	2013,2014,2015,2016,2017
@@ -1009,7 +1009,7 @@
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004,2007,2013,2016
 ./bin/tests/system/common/rndc.key		CONF-C	2011,2013,2016
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004,2007,2016
-./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/conf.sh.win32		SH	2016,2017
 ./bin/tests/system/cookie/.gitignore		X	2014,2015
 ./bin/tests/system/cookie/bad-cookie-badhex.conf	CONF-C	2014,2015,2016
@@ -2300,11 +2300,11 @@
 ./bin/tests/system/tkey/tests.sh		SH	2001,2004,2007,2009,2011,2012,2013,2014,2016,2017
 ./bin/tests/system/tools/clean.sh		SH	2017
 ./bin/tests/system/tools/tests.sh		SH	2017
-./bin/tests/system/tsig/clean.sh		SH	2005,2006,2007,2012,2014,2016
+./bin/tests/system/tsig/clean.sh		SH	2005,2006,2007,2012,2014,2016,2018
 ./bin/tests/system/tsig/ns1/example.db		ZONE	2005,2006,2007,2009,2012,2016
 ./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006,2007,2016
 ./bin/tests/system/tsig/setup.sh		SH	2016,2017
-./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011,2012,2016
+./bin/tests/system/tsig/tests.sh		SH	2005,2006,2007,2011,2012,2016,2018
 ./bin/tests/system/tsiggss/authsock.pl		PERL	2011,2012,2016
 ./bin/tests/system/tsiggss/clean.sh		SH	2010,2011,2014,2015,2016
 ./bin/tests/system/tsiggss/ns1/administrator.ccache	X	2010
@@ -3100,7 +3100,7 @@
 ./doc/arm/man.pkcs11-tokens.html		X	2016,2017
 ./doc/arm/man.rndc-confgen.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
 ./doc/arm/man.rndc.conf.html			X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
-./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./doc/arm/man.rndc.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/managed-keys.xml			SGML	2010,2014,2015,2016,2017
 ./doc/arm/notes-wrapper.xml			SGML	2014,2015,2016
 ./doc/arm/notes.conf				X	2015
