@@ -1,3 +1,7 @@
+4869.	[bug]		Address some cases where NULL with zero length could
+			be passed to memmove which is undefined behaviour and
+			can lead to bad optimisation. [RT #46888]
+
 4868.	[func]		dnssec-keygen can no longer generate HMAC keys.
 			Use tsig-keygen instead. [RT #46404]
 

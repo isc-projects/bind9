@@ -1002,7 +1002,7 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 		result = ISC_R_BADNUMBER;
 		goto cleanup;
 	}
-	memcpy(t, rdatastr.data, rdatastr.length);
+	memmove(t, rdatastr.data, rdatastr.length);
 	t[rdatastr.length] = 0;
 	result = isc_parse_uint32(&tversion, t, 10);
 	if (result != ISC_R_SUCCESS) {
@@ -1097,7 +1097,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			if (keyname == NULL)
 				return (ISC_R_NOMEMORY);
 			dns_name_init(keyname, 0);
-			memcpy(keycbuf, rdatastr.data, rdatastr.length);
+			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
 			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
@@ -1126,8 +1126,8 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			if (value->type == dns_rdatatype_txt)
 				ipkl->keys[i] = keyname;
 			else /* A/AAAA */
-				memcpy(&ipkl->addrs[i], &sockaddr,
-				       sizeof(isc_sockaddr_t));
+				memmove(&ipkl->addrs[i], &sockaddr,
+					sizeof(isc_sockaddr_t));
 		} else {
 			result = dns_ipkeylist_resize(mctx, ipkl,
 						      i+1);
@@ -1158,8 +1158,8 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 			if (value->type == dns_rdatatype_txt)
 				ipkl->keys[i] = keyname;
 			else /* A/AAAA */
-				memcpy(&ipkl->addrs[i], &sockaddr,
-				       sizeof(isc_sockaddr_t));
+				memmove(&ipkl->addrs[i], &sockaddr,
+					sizeof(isc_sockaddr_t));
 			ipkl->count++;
 		}
 		return (ISC_R_SUCCESS);
@@ -1251,7 +1251,8 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		result = dns_rdata_apl_current(&rdata_apl, &apl_ent);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		memset(buf, 0, sizeof(buf));
-		memcpy(buf, apl_ent.data, apl_ent.length);
+		if (apl_ent.data != NULL && apl_ent.length > 0)
+			memmove(buf, apl_ent.data, apl_ent.length);
 		if (apl_ent.family == 1)
 			isc_netaddr_fromin(&addr, (struct in_addr*) buf);
 		else if (apl_ent.family == 2)
