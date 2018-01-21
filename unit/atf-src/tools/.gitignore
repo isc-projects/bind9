@@ -1,0 +1,9 @@
+atf-config
+atf-report
+atf-run
+atf-version
+atf.7
+defs.hpp
+libtools.a
+revision.h
+revision.h.stamp
