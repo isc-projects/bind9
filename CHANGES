@@ -1,3 +1,6 @@
+4870.	[test]		Update included ATF library to atf-0.21 preserving
+			the ATF tool. [RT #46967]
+
 4869.	[bug]		Address some cases where NULL with zero length could
 			be passed to memmove which is undefined behaviour and
 			can lead to bad optimisation. [RT #46888]
