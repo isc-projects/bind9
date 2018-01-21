@@ -1,3 +1,7 @@
+4869.	[bug]		Address some cases where NULL with zero length could
+			be passed to memmove which is undefined behaviour and
+			can lead to bad optimisation. [RT #46888]
+
 4867.	[cleanup]	Normalize rndc on/off commands (validation and
 			querylog) so they accept the same synonyms
 			for on/off (yes/no, true/false, enable/disable).
