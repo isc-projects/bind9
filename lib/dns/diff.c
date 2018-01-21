@@ -89,11 +89,16 @@ dns_difftuple_create(isc_mem_t *mctx,
 
 	t->ttl = ttl;
 
-	memmove(datap, rdata->data, rdata->length);
 	dns_rdata_init(&t->rdata);
 	dns_rdata_clone(rdata, &t->rdata);
-	t->rdata.data = datap;
-	datap += rdata->length;
+	if (rdata->data != NULL) {
+		memmove(datap, rdata->data, rdata->length);
+		t->rdata.data = datap;
+		datap += rdata->length;
+	} else {
+		t->rdata.data = NULL;
+		INSIST(rdata->length == 0);
+	}
 
 	ISC_LINK_INIT(&t->rdata, link);
 	ISC_LINK_INIT(t, link);
