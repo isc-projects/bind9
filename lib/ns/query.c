@@ -8147,6 +8147,8 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
 
+	INSIST(qctx->fname != NULL);
+
 	if ((qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) == 0) {
 		query_addrrset(client, &qctx->fname,
 			       &qctx->rdataset, &qctx->sigrdataset,
