@@ -157,11 +157,11 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 	static unsigned char buf1[16];
 	static unsigned char buf2[16];
 
-	memcpy(buf1, ev->region.base, 12);
+	memmove(buf1, ev->region.base, 12);
 	memset(buf1 + 12, 0, 4);
 	buf1[2] |= 0x80;	/* qr=1 */
 
-	memcpy(buf2, ev->region.base, 12);
+	memmove(buf2, ev->region.base, 12);
 	memset(buf2 + 12, 1, 4);
 	buf2[2] |= 0x80;	/* qr=1 */
 
