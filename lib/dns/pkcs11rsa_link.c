@@ -96,10 +96,15 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 #endif
 
 	/*
-	 * Reject incorrect RSA key lengths.
+	 * Reject incorrect RSA key lengths or disabled algorithms.
 	 */
 	switch (dctx->key->key_alg) {
 	case DST_ALG_RSAMD5:
+#ifndef PK11_MD5_DISABLE
+		if (isc_md5_available() == ISC_FALSE)
+			return (ISC_R_FAILURE);
+#endif
+		/* FALLTHROUGH */
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -636,6 +641,9 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	switch (key->key_alg) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+		if (isc_md5_available() == ISC_FALSE)
+			return (ISC_R_FAILURE);
+	
 		mech.mechanism = CKM_MD5;
 		break;
 #endif
@@ -792,6 +800,9 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	switch (key->key_alg) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+		if (isc_md5_available() == ISC_FALSE)
+			return (ISC_R_FAILURE);
+
 		der = md5_der;
 		derlen = sizeof(md5_der);
 		hashlen = ISC_MD5_DIGESTLENGTH;
@@ -1016,6 +1027,9 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	switch (key->key_alg) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+		if (isc_md5_available() == ISC_FALSE)
+			return (ISC_R_FAILURE);
+
 		der = md5_der;
 		derlen = sizeof(md5_der);
 		hashlen = ISC_MD5_DIGESTLENGTH;
