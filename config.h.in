@@ -453,9 +453,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
 
-/* Define to 1 if you have the <stdatomic.h> header file. */
-#undef HAVE_STDATOMIC_H
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 

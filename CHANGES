@@ -1,3 +1,7 @@
+4871.	[bug]		Fix configure glitch in detecting stdatomic.h
+			support on systems with multiple compilers.
+			[RT #46959]
+
 4870.	[test]		Update included ATF library to atf-0.21 preserving
 			the ATF tool. [RT #46967]
 
