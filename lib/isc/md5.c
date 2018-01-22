@@ -36,6 +36,7 @@
 
 #include <isc/assertions.h>
 #include <isc/md5.h>
+#include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -53,6 +54,9 @@
 #define EVP_MD_CTX_new() &(ctx->_ctx)
 #define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
 #endif
+
+static isc_once_t available_once = ISC_ONCE_INIT;
+static isc_boolean_t available = ISC_FALSE;
 
 void
 isc_md5_init(isc_md5_t *ctx) {
@@ -85,7 +89,31 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	ctx->ctx = NULL;
 }
 
+static void
+do_detect_available() {
+	isc_md5_t local;
+	isc_md5_t *ctx = &local;
+	unsigned char digest[ISC_MD5_DIGESTLENGTH];
+
+	ctx->ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(ctx->ctx != NULL);
+	available = ISC_TF(EVP_DigestInit(ctx->ctx, EVP_md5()) == 1);
+	(void)EVP_DigestFinal(ctx->ctx, digest, NULL);
+	EVP_MD_CTX_free(ctx->ctx);
+	ctx->ctx = NULL;
+}
+
+isc_boolean_t
+isc_md5_available() {
+	RUNTIME_CHECK(isc_once_do(&available_once, do_detect_available)
+		      == ISC_R_SUCCESS);
+	return available;
+}
+
 #elif PKCS11CRYPTO
+
+static isc_once_t available_once = ISC_ONCE_INIT;
+static isc_boolean_t available = ISC_FALSE;
 
 void
 isc_md5_init(isc_md5_t *ctx) {
@@ -127,6 +155,31 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	PK11_FATALCHECK(pkcs_C_DigestFinal,
 			(ctx->session, (CK_BYTE_PTR) digest, &len));
 	pk11_return_session(ctx);
+}
+
+static void
+do_detect_available() {
+	isc_md5_t local;
+	isc_md5_t *ctx = &local;
+	CK_RV rv;
+	CK_MECHANISM mech = { CKM_MD5, NULL, 0 };
+
+	if (pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
+				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS)
+	{
+		rv = pkcs_C_DigestInit(ctx->session, &mech);
+		isc_md5_invalidate(ctx);
+		available = (ISC_TF(rv == CKR_OK));
+	} else {
+		available = ISC_FALSE;
+	}
+}
+
+isc_boolean_t
+isc_md5_available() {
+	RUNTIME_CHECK(isc_once_do(&available_once, do_detect_available)
+		      == ISC_R_SUCCESS);
+	return available;
 }
 
 #else
@@ -337,6 +390,11 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	byteSwap(ctx->buf, 4);
 	memmove(digest, ctx->buf, 16);
 	isc_safe_memwipe(ctx, sizeof(*ctx));	/* In case it's sensitive */
+}
+
+isc_boolean_t
+isc_md5_available() {
+	return ISC_TRUE;
 }
 #endif
 

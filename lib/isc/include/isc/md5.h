@@ -90,6 +90,9 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 isc_boolean_t
 isc_md5_check(isc_boolean_t testing);
 
+isc_boolean_t
+isc_md5_available();
+
 ISC_LANG_ENDDECLS
 
 #endif /* !PK11_MD5_DISABLE */
