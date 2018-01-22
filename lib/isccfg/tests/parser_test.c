@@ -134,10 +134,56 @@ ATF_TC_BODY(parse_buffer, tc) {
 	cleanup();
 }
 
+ATF_TC(cfg_map_firstclause);
+ATF_TC_HEAD(cfg_map_firstclause, tc) {
+	atf_tc_set_md_var(tc, "descr", "cfg_map_firstclause");
+}
+ATF_TC_BODY(cfg_map_firstclause, tc) {
+	const char *name = NULL;
+	const void *clauses = NULL;
+	unsigned int idx;
+
+	UNUSED(tc);
+
+	name = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &idx);
+	ATF_CHECK(name != NULL);
+	ATF_CHECK(clauses != NULL);
+	ATF_CHECK_EQ(idx, 0);
+}
+
+ATF_TC(cfg_map_nextclause);
+ATF_TC_HEAD(cfg_map_nextclause, tc) {
+	atf_tc_set_md_var(tc, "descr", "cfg_map_firstclause");
+}
+ATF_TC_BODY(cfg_map_nextclause, tc) {
+	const char *name = NULL;
+	const void *clauses = NULL;
+	unsigned int idx;
+
+	UNUSED(tc);
+
+	name = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &idx);
+	ATF_REQUIRE(name != NULL);
+	ATF_REQUIRE(clauses != NULL);
+	ATF_REQUIRE_EQ(idx, ISC_R_SUCCESS);
+
+	do {
+		name = cfg_map_nextclause(&cfg_type_zoneopts, &clauses, &idx);
+		if (name != NULL) {
+			ATF_CHECK(clauses != NULL);
+		} else {
+			ATF_CHECK_EQ(clauses, NULL);
+			ATF_CHECK_EQ(idx, 0);
+		}
+	} while (name != NULL);
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, parse_buffer);
+	ATF_TP_ADD_TC(tp, cfg_map_firstclause);
+	ATF_TP_ADD_TC(tp, cfg_map_nextclause);
 	return (atf_no_error());
 }

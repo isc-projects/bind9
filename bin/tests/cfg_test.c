@@ -20,6 +20,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
 #include <dns/log.h>
@@ -64,6 +65,7 @@ main(int argc, char **argv) {
 	isc_boolean_t grammar = ISC_FALSE;
 	isc_boolean_t memstats = ISC_FALSE;
 	char *filename = NULL;
+	unsigned int zonetype = 0;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -97,6 +99,36 @@ main(int argc, char **argv) {
 	while (argc > 1) {
 		if (strcmp(argv[1], "--grammar") == 0) {
 			grammar = ISC_TRUE;
+		} else if (strcmp(argv[1], "--zonegrammar") == 0) {
+			argv++, argc--;
+			if (argc <= 1)  {
+				usage();
+			}
+			if (strcmp(argv[1], "master") == 0 ||
+			    strcmp(argv[1], "primary") == 0)
+			{
+				zonetype = CFG_ZONE_MASTER;
+			} else if (strcmp(argv[1], "slave") == 0 ||
+				   strcmp(argv[1], "seconary") == 0)
+			{
+				zonetype = CFG_ZONE_SLAVE;
+			} else if (strcmp(argv[1], "stub") == 0) {
+				zonetype = CFG_ZONE_STUB;
+			} else if (strcmp(argv[1], "static-stub") == 0) {
+				zonetype = CFG_ZONE_STATICSTUB;
+			} else if (strcmp(argv[1], "hint") == 0) {
+				zonetype = CFG_ZONE_HINT;
+			} else if (strcmp(argv[1], "forward") == 0) {
+				zonetype = CFG_ZONE_FORWARD;
+			} else if (strcmp(argv[1], "redirect") == 0) {
+				zonetype = CFG_ZONE_REDIRECT;
+			} else if (strcmp(argv[1], "delegation-only") == 0) {
+				zonetype = CFG_ZONE_DELEGATION;
+			} else if (strcmp(argv[1], "in-view") == 0) {
+				zonetype = CFG_ZONE_INVIEW;
+			} else {
+				usage();
+			}
 		} else if (strcmp(argv[1], "--memstats") == 0) {
 			memstats = ISC_TRUE;
 		} else if (strcmp(argv[1], "--named") == 0) {
@@ -115,6 +147,8 @@ main(int argc, char **argv) {
 		if (type == NULL)
 			usage();
 		cfg_print_grammar(type, output, NULL);
+	} else if (zonetype != 0) {
+		cfg_print_zonegrammar(zonetype, output, NULL);
 	} else {
 		if (type == NULL || filename == NULL)
 			usage();

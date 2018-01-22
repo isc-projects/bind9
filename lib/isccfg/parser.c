@@ -157,8 +157,8 @@ print_open(cfg_printer_t *pctx) {
 	}
 }
 
-static void
-print_indent(cfg_printer_t *pctx) {
+void
+cfg_print_indent(cfg_printer_t *pctx) {
 	int indent = pctx->indent;
 	if ((pctx->flags & CFG_PRINTER_ONELINE) != 0) {
 		cfg_print_cstr(pctx, " ");
@@ -174,7 +174,7 @@ static void
 print_close(cfg_printer_t *pctx) {
 	if ((pctx->flags & CFG_PRINTER_ONELINE) == 0) {
 		pctx->indent--;
-		print_indent(pctx);
+		cfg_print_indent(pctx);
 	}
 	cfg_print_cstr(pctx, "}");
 }
@@ -1467,7 +1467,7 @@ print_list(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 			cfg_print_obj(pctx, elt->obj);
 			cfg_print_cstr(pctx, "; ");
 		} else {
-			print_indent(pctx);
+			cfg_print_indent(pctx);
 			cfg_print_obj(pctx, elt->obj);
 			cfg_print_cstr(pctx, ";\n");
 		}
@@ -1909,7 +1909,7 @@ cfg_parse_netprefix_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
 static void
 print_symval(cfg_printer_t *pctx, const char *name, cfg_obj_t *obj) {
 	if ((pctx->flags & CFG_PRINTER_ONELINE) == 0)
-		print_indent(pctx);
+		cfg_print_indent(pctx);
 
 	cfg_print_cstr(pctx, name);
 	cfg_print_cstr(pctx, " ");
@@ -1984,8 +1984,8 @@ static struct flagtext {
 	{ 0, NULL }
 };
 
-static void
-print_clause_flags(cfg_printer_t *pctx, unsigned int flags) {
+void
+cfg_print_clauseflags(cfg_printer_t *pctx, unsigned int flags) {
 	struct flagtext *p;
 	isc_boolean_t first = ISC_TRUE;
 	for (p = flagtexts; p->flag != 0; p++) {
@@ -2009,14 +2009,12 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 	REQUIRE(type != NULL);
 
 	for (clauseset = type->of; *clauseset != NULL; clauseset++) {
-		for (clause = *clauseset;
-		     clause->name != NULL;
-		     clause++) {
+		for (clause = *clauseset; clause->name != NULL; clause++) {
 			cfg_print_cstr(pctx, clause->name);
 			cfg_print_cstr(pctx, " ");
 			cfg_doc_obj(pctx, clause->type);
 			cfg_print_cstr(pctx, ";");
-			print_clause_flags(pctx, clause->flags);
+			cfg_print_clauseflags(pctx, clause->flags);
 			cfg_print_cstr(pctx, "\n\n");
 		}
 	}
@@ -2058,16 +2056,14 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 	print_open(pctx);
 
 	for (clauseset = type->of; *clauseset != NULL; clauseset++) {
-		for (clause = *clauseset;
-		     clause->name != NULL;
-		     clause++) {
-			print_indent(pctx);
+		for (clause = *clauseset; clause->name != NULL; clause++) {
+			cfg_print_indent(pctx);
 			cfg_print_cstr(pctx, clause->name);
 			if (clause->type->print != cfg_print_void)
 				cfg_print_cstr(pctx, " ");
 			cfg_doc_obj(pctx, clause->type);
 			cfg_print_cstr(pctx, ";");
-			print_clause_flags(pctx, clause->flags);
+			cfg_print_clauseflags(pctx, clause->flags);
 			cfg_print_cstr(pctx, "\n");
 		}
 	}
@@ -2113,6 +2109,55 @@ cfg_map_count(const cfg_obj_t *mapobj) {
 
 	map = &mapobj->value.map;
 	return (isc_symtab_count(map->symtab));
+}
+
+const char *
+cfg_map_firstclause(const cfg_type_t *map, const void **clauses,
+		    unsigned int *idx)
+{
+	cfg_clausedef_t * const * clauseset;
+
+	REQUIRE(map != NULL && map->rep == &cfg_rep_map);
+	REQUIRE(idx != NULL);
+	REQUIRE(clauses != NULL && *clauses == NULL);
+
+	clauseset = map->of;
+	if (*clauseset == NULL) {
+		return (NULL);
+	}
+	*clauses = *clauseset;
+	*idx = 0;
+	while ((*clauseset)[*idx].name == NULL) {
+		*clauses = (*++clauseset);
+		if (*clauses == NULL)
+			return (NULL);
+	}
+	return ((*clauseset)[*idx].name);
+}
+
+const char *
+cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
+		   unsigned int *idx)
+{
+	cfg_clausedef_t * const * clauseset;
+
+	REQUIRE(map != NULL && map->rep == &cfg_rep_map);
+	REQUIRE(idx != NULL);
+	REQUIRE(clauses != NULL && *clauses != NULL);
+
+	clauseset = map->of;
+	while (*clauseset != NULL && *clauseset != *clauses) {
+		clauseset++;
+	}
+	INSIST(*clauseset == *clauses);
+	(*idx)++;
+	while ((*clauseset)[*idx].name == NULL) {
+		*idx = 0;
+		*clauses = (*++clauseset);
+		if (*clauses == NULL)
+			return (NULL);
+	}
+	return ((*clauseset)[*idx].name);
 }
 
 /* Parse an arbitrary token, storing its raw text representation. */
