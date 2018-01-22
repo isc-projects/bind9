@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2002-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -4093,7 +4093,7 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 
 	memmove(clauses, zone_clauses, sizeof(zone_clauses));
 	memmove(clauses + sizeof(zone_clauses)/sizeof(zone_clauses[0]) - 1,
-	        zone_only_clauses, sizeof(zone_only_clauses));
+		zone_only_clauses, sizeof(zone_only_clauses));
 	qsort(clauses, NCLAUSES - 1, sizeof(clause[0]), cmp_clause);
 
 	cfg_print_cstr(&pctx, "zone <string> [ <class> ] {\n");
