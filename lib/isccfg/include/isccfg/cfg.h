@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2002, 2004-2007, 2010, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000-2002, 2004-2007, 2010, 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -538,10 +538,10 @@ cfg_obj_line(const cfg_obj_t *obj);
 
 const char *
 cfg_map_firstclause(const cfg_type_t *map, const void **clauses,
-                    unsigned int *idx);
+		    unsigned int *idx);
 const char *
 cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
-                   unsigned int *idx);
+		   unsigned int *idx);
 
 ISC_LANG_ENDDECLS
 
