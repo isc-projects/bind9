@@ -46,6 +46,8 @@
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
+#include <isccfg/grammar.h>
+#include <isccfg/namedconf.h>
 
 #include <bind9/check.h>
 
@@ -1699,17 +1701,6 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 	return (result);
 }
 
-#define MASTERZONE	1
-#define SLAVEZONE	2
-#define STUBZONE	4
-#define HINTZONE	8
-#define FORWARDZONE	16
-#define DELEGATIONZONE	32
-#define STATICSTUBZONE	64
-#define REDIRECTZONE	128
-#define STREDIRECTZONE	0	/* Set to REDIRECTZONE to allow xfr-in. */
-#define CHECKACL	512
-
 typedef struct {
 	const char *name;
 	int allowed;
@@ -1763,82 +1754,20 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	isc_boolean_t dlz;
 	dns_masterformat_t masterformat;
 	isc_boolean_t ddns = ISC_FALSE;
-
-	static optionstable options[] = {
-	{ "allow-notify", SLAVEZONE | CHECKACL },
-	{ "allow-query", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE |
-	  CHECKACL | STATICSTUBZONE },
-	{ "allow-transfer", MASTERZONE | SLAVEZONE | CHECKACL },
-	{ "allow-update", MASTERZONE | CHECKACL },
-	{ "allow-update-forwarding", SLAVEZONE | CHECKACL },
-	{ "also-notify", MASTERZONE | SLAVEZONE },
-	{ "auto-dnssec", MASTERZONE | SLAVEZONE },
-	{ "check-dup-records", MASTERZONE },
-	{ "check-mx", MASTERZONE },
-	{ "check-mx-cname", MASTERZONE },
-	{ "check-srv-cname", MASTERZONE },
-	{ "check-wildcard", MASTERZONE },
-	{ "database", MASTERZONE | SLAVEZONE | STUBZONE | REDIRECTZONE },
-	{ "delegation-only", HINTZONE | STUBZONE | FORWARDZONE |
-	  DELEGATIONZONE },
-	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "dnssec-dnskey-kskonly", MASTERZONE | SLAVEZONE },
-	{ "dnssec-loadkeys-interval", MASTERZONE | SLAVEZONE },
-	{ "dnssec-secure-to-insecure", MASTERZONE },
-	{ "file", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE | REDIRECTZONE },
-	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | STATICSTUBZONE |
-	  FORWARDZONE },
-	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | STATICSTUBZONE |
-	  FORWARDZONE },
-	{ "integrity-check", MASTERZONE },
-	{ "ixfr-base", MASTERZONE | SLAVEZONE },
-	{ "ixfr-tmp-file", MASTERZONE | SLAVEZONE },
-	{ "journal", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
-	{ "key-directory", MASTERZONE | SLAVEZONE },
-	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
-	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE |
-	  REDIRECTZONE },
-	{ "masters", SLAVEZONE | STUBZONE | REDIRECTZONE },
-	{ "max-ixfr-log-size", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
-	{ "max-records", MASTERZONE | SLAVEZONE | STUBZONE | STREDIRECTZONE |
-	  STATICSTUBZONE | REDIRECTZONE },
-	{ "max-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "max-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "max-transfer-idle-in", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "max-transfer-idle-out", MASTERZONE | SLAVEZONE },
-	{ "max-transfer-time-in", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "max-transfer-time-out", MASTERZONE | SLAVEZONE },
-	{ "max-zone-ttl", MASTERZONE | REDIRECTZONE },
-	{ "min-refresh-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "min-retry-time", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "notify", MASTERZONE | SLAVEZONE },
-	{ "notify-source", MASTERZONE | SLAVEZONE },
-	{ "notify-source-v6", MASTERZONE | SLAVEZONE },
-	{ "pubkey", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "request-expire", SLAVEZONE | REDIRECTZONE },
-	{ "request-ixfr", SLAVEZONE | REDIRECTZONE },
-	{ "server-addresses", STATICSTUBZONE },
-	{ "server-names", STATICSTUBZONE },
-	{ "sig-re-signing-interval", MASTERZONE | SLAVEZONE },
-	{ "sig-signing-nodes", MASTERZONE | SLAVEZONE },
-	{ "sig-signing-signatures", MASTERZONE | SLAVEZONE },
-	{ "sig-signing-type", MASTERZONE | SLAVEZONE },
-	{ "sig-validity-interval", MASTERZONE | SLAVEZONE },
-	{ "signing", MASTERZONE | SLAVEZONE },
-	{ "transfer-source", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "transfer-source-v6", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "try-tcp-refresh", SLAVEZONE | STREDIRECTZONE },
-	{ "update-check-ksk", MASTERZONE | SLAVEZONE },
-	{ "update-policy", MASTERZONE },
-	{ "zone-statistics", MASTERZONE | SLAVEZONE | STUBZONE |
-	  STATICSTUBZONE | REDIRECTZONE },
+	const void *clauses = NULL;
+	const char *option = NULL;
+	static const char *acls[] = {
+		"allow-notify",
+		"allow-transfer",
+		"allow-update",
+		"allow-update-forwarding",
 	};
 
 	static optionstable dialups[] = {
-	{ "notify", MASTERZONE | SLAVEZONE | STREDIRECTZONE },
-	{ "notify-passive", SLAVEZONE | STREDIRECTZONE },
-	{ "passive", SLAVEZONE | STUBZONE | STREDIRECTZONE },
-	{ "refresh", SLAVEZONE | STUBZONE | STREDIRECTZONE },
+	{ "notify", CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
+	{ "notify-passive", CFG_ZONE_SLAVE },
+	{ "passive", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
+	{ "refresh", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
 	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
@@ -1879,30 +1808,30 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	typestr = cfg_obj_asstring(obj);
-	if (strcasecmp(typestr, "master") == 0)
-		ztype = MASTERZONE;
-	else if (strcasecmp(typestr, "slave") == 0)
-		ztype = SLAVEZONE;
-	else if (strcasecmp(typestr, "stub") == 0)
-		ztype = STUBZONE;
-	else if (strcasecmp(typestr, "static-stub") == 0)
-		ztype = STATICSTUBZONE;
-	else if (strcasecmp(typestr, "forward") == 0)
-		ztype = FORWARDZONE;
-	else if (strcasecmp(typestr, "hint") == 0)
-		ztype = HINTZONE;
-	else if (strcasecmp(typestr, "delegation-only") == 0)
-		ztype = DELEGATIONZONE;
-	else if (strcasecmp(typestr, "redirect") == 0)
-		ztype = REDIRECTZONE;
-	else {
+	if (strcasecmp(typestr, "master") == 0) {
+		ztype = CFG_ZONE_MASTER;
+	} else if (strcasecmp(typestr, "slave") == 0) {
+		ztype = CFG_ZONE_SLAVE;
+	} else if (strcasecmp(typestr, "stub") == 0) {
+		ztype = CFG_ZONE_STUB;
+	} else if (strcasecmp(typestr, "static-stub") == 0) {
+		ztype = CFG_ZONE_STATICSTUB;
+	} else if (strcasecmp(typestr, "forward") == 0) {
+		ztype = CFG_ZONE_FORWARD;
+	} else if (strcasecmp(typestr, "hint") == 0) {
+		ztype = CFG_ZONE_HINT;
+	} else if (strcasecmp(typestr, "delegation-only") == 0) {
+		ztype = CFG_ZONE_DELEGATION;
+	} else if (strcasecmp(typestr, "redirect") == 0) {
+		ztype = CFG_ZONE_REDIRECT;
+	} else {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "zone '%s': invalid type %s",
 			    znamestr, typestr);
 		return (ISC_R_FAILURE);
 	}
 
-	if (ztype == REDIRECTZONE && strcmp(znamestr, ".") != 0) {
+	if (ztype == CFG_ZONE_REDIRECT && strcmp(znamestr, ".") != 0) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "redirect zones must be called \".\"");
 		return (ISC_R_FAILURE);
@@ -1948,8 +1877,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
-		tresult = nameexist(zconfig, namebuf, ztype == HINTZONE ? 1 :
-				    ztype == REDIRECTZONE ? 2 : 3,
+		tresult = nameexist(zconfig, namebuf,
+				    ztype == CFG_ZONE_HINT ? 1 :
+				     ztype == CFG_ZONE_REDIRECT ? 2 : 3,
 				    symtab, "zone '%s': already exists "
 				    "previous definition: %s:%u", logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
@@ -1969,47 +1899,39 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		result = ISC_R_FAILURE;
 
 	/*
-	 * Look for inappropriate options for the given zone type.
+	 * Check validity of the zone options.
+	 */
+	option = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);
+	while (option != NULL) {
+		obj = NULL;
+		if (cfg_map_get(zoptions, option, &obj) == ISC_R_SUCCESS &&
+		    obj != NULL && !cfg_clause_validforzone(option, ztype))
+		{
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "option '%s' is not allowed "
+				    "in '%s' zone '%s'",
+				    option, typestr, znamestr);
+			result = ISC_R_FAILURE;
+		}
+		option = cfg_map_nextclause(&cfg_type_zoneopts, &clauses, &i);
+	}
+
+	/*
 	 * Check that ACLs expand correctly.
 	 */
-	for (i = 0; i < sizeof(options) / sizeof(options[0]); i++) {
-		obj = NULL;
-		if ((options[i].allowed & ztype) == 0 &&
-		    cfg_map_get(zoptions, options[i].name, &obj) ==
-		    ISC_R_SUCCESS)
-		{
-			if (strcmp(options[i].name, "allow-update") != 0 ||
-			    ztype != SLAVEZONE) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "option '%s' is not allowed "
-					    "in '%s' zone '%s'",
-					    options[i].name, typestr,
-					    znamestr);
-					result = ISC_R_FAILURE;
-			} else
-				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-					    "option '%s' is not allowed "
-					    "in '%s' zone '%s'",
-					    options[i].name, typestr,
-					    znamestr);
+	for (i = 0; i < (sizeof(acls) / sizeof(acls[0])); i++) {
+		tresult = checkacl(acls[i], actx, zconfig,
+				   voptions, config, logctx, mctx);
+		if (tresult != ISC_R_SUCCESS) {
+			result = tresult;
 		}
-		obj = NULL;
-		if ((options[i].allowed & ztype) != 0 &&
-		    (options[i].allowed & CHECKACL) != 0) {
-
-			tresult = checkacl(options[i].name, actx, zconfig,
-					   voptions, config, logctx, mctx);
-			if (tresult != ISC_R_SUCCESS)
-				result = tresult;
-		}
-
 	}
 
 	/*
 	 * Master & slave zones may have an "also-notify" field, but
 	 * shouldn't if notify is disabled.
 	 */
-	if (ztype == MASTERZONE || ztype == SLAVEZONE ) {
+	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
 		isc_boolean_t donotify = ISC_TRUE;
 
 		obj = NULL;
@@ -2023,7 +1945,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				donotify = cfg_obj_asboolean(obj);
 			else {
 				const char *notifystr = cfg_obj_asstring(obj);
-				if (ztype != MASTERZONE &&
+				if (ztype != CFG_ZONE_MASTER &&
 				    strcasecmp(notifystr, "master-only") == 0)
 					donotify = ISC_FALSE;
 			}
@@ -2052,7 +1974,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Slave & stub zones must have a "masters" field.
 	 */
-	if (ztype == SLAVEZONE || ztype == STUBZONE) {
+	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB) {
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
@@ -2077,7 +1999,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
-	if (ztype == MASTERZONE || ztype == SLAVEZONE) {
+	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
 		isc_boolean_t signing = ISC_FALSE;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
@@ -2142,7 +2064,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "'auto-dnssec %s;' requires%s "
 				    "inline-signing to be configured for "
 				    "the zone", arg,
-				    (ztype == MASTERZONE) ?
+				    (ztype == CFG_ZONE_MASTER) ?
 					 " dynamic DNS or" : "");
 			result = ISC_R_FAILURE;
 		}
@@ -2161,7 +2083,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		    !signing)
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-dnskey-kskonly: requires "
 				    "inline-signing when used in slave zone");
@@ -2170,7 +2094,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		    !signing)
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-loadkeys-interval: requires "
 				    "inline-signing when used in slave zone");
@@ -2179,7 +2105,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == SLAVEZONE && !signing) {
+		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SLAVE &&
+		    !signing)
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "update-check-ksk: requires "
 				    "inline-signing when used in slave zone");
@@ -2190,7 +2118,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check the excessively complicated "dialup" option.
 	 */
-	if (ztype == MASTERZONE || ztype == SLAVEZONE || ztype == STUBZONE) {
+	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
+	    ztype == CFG_ZONE_STUB)
+	{
 		const cfg_obj_t *dialup = NULL;
 		(void)cfg_map_get(zoptions, "dialup", &dialup);
 		if (dialup != NULL && cfg_obj_isstring(dialup)) {
@@ -2238,7 +2168,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Check that a RFC 1918 / ULA reverse zone is not forward first
 	 * unless explictly configured to be so.
 	 */
-	if (ztype == FORWARDZONE && (rfc1918 || ula)) {
+	if (ztype == CFG_ZONE_FORWARD && (rfc1918 || ula)) {
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "forward", &obj);
 		if (obj == NULL) {
@@ -2265,7 +2195,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "server-addresses", &obj);
-	if (ztype == STATICSTUBZONE && obj != NULL) {
+	if (ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
 		for (element = cfg_list_first(obj);
 		     element != NULL;
 		     element = cfg_list_next(element))
@@ -2298,7 +2228,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 */
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "server-names", &obj);
-	if (zname != NULL && ztype == STATICSTUBZONE && obj != NULL) {
+	if (zname != NULL && ztype == CFG_ZONE_STATICSTUB && obj != NULL) {
 		for (element = cfg_list_first(obj);
 		     element != NULL;
 		     element = cfg_list_next(element))
@@ -2434,20 +2364,23 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if ((tresult != ISC_R_SUCCESS &&
-		    (ztype == MASTERZONE || ztype == HINTZONE ||
-		     (ztype == SLAVEZONE && res1 == ISC_R_SUCCESS &&
-		      cfg_obj_asboolean(obj))))) {
+		    (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_HINT ||
+		     (ztype == CFG_ZONE_SLAVE && res1 == ISC_R_SUCCESS &&
+		      cfg_obj_asboolean(obj)))))
+		{
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': missing 'file' entry",
 			    znamestr);
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == SLAVEZONE || ddns)) {
+			   (ztype == CFG_ZONE_SLAVE || ddns)) {
 			tresult = fileexist(fileobj, files, ISC_TRUE, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == MASTERZONE || ztype == HINTZONE)) {
+			   (ztype == CFG_ZONE_MASTER ||
+			    ztype == CFG_ZONE_HINT))
+		{
 			tresult = fileexist(fileobj, files, ISC_FALSE, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;

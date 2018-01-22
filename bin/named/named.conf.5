@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2017 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2017-04-25
+.\"      Date: 2017-08-15
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2017\-04\-25" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2017\-08\-15" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -318,7 +318,7 @@ options {
 	fstrm\-set\-output\-queue\-size \fIinteger\fR;
 	fstrm\-set\-reopen\-interval \fIinteger\fR;
 	geoip\-directory ( \fIquoted_string\fR | none );
-	geoip\-use\-ecs ( \fIquoted_string\fR | none );
+	geoip\-use\-ecs \fIboolean\fR;
 	heartbeat\-interval \fIinteger\fR;
 	hostname ( \fIquoted_string\fR | none );
 	inline\-signing \fIboolean\fR;
@@ -375,7 +375,6 @@ options {
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ]
 	    [ dscp \fIinteger\fR ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	nta\-lifetime \fIttlval\fR;
 	nta\-recheck \fIttlval\fR;
 	nxdomain\-redirect \fIstring\fR;
@@ -698,7 +697,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ]
 	    [ dscp \fIinteger\fR ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	nta\-lifetime \fIttlval\fR;
 	nta\-recheck \fIttlval\fR;
 	nxdomain\-redirect \fIstring\fR;
@@ -868,7 +866,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 		notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR
 		    | * ) ] [ dscp \fIinteger\fR ];
 		notify\-to\-soa \fIboolean\fR;
-		nsec3\-test\-zone \fIboolean\fR; // test only
 		pubkey \fIinteger\fR
 		    \fIinteger\fR
 		    \fIinteger\fR
@@ -976,7 +973,6 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ]
 	    [ dscp \fIinteger\fR ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	pubkey \fIinteger\fR \fIinteger\fR
 	request\-expire \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
@@ -1024,5 +1020,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2017 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2018 Internet Systems Consortium, Inc. ("ISC")
 .br

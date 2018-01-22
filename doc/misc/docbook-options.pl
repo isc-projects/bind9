@@ -122,6 +122,7 @@ while (<FH>) {
 	}
 
 	s{ // not configured}{};
+	s{ // non-operational}{};
 	s{ // may occur multiple times}{};
 	s{<([a-z0-9_-]+)>}{<replaceable>$1</replaceable>}g;
 	s{[[]}{[}g;
