@@ -2790,7 +2790,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		if (update_class == zoneclass) {
 
 			/*
-			 * RFC1123 doesn't allow MF and MD in master zones.				 */
+			 * RFC1123 doesn't allow MF and MD in master zones.
+			 */
 			if (rdata.type == dns_rdatatype_md ||
 			    rdata.type == dns_rdatatype_mf) {
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -2879,7 +2880,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				 * Ignore attempts to add NSEC3PARAM records
 				 * with any flags other than OPTOUT.
 				 */
-				if ((rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
+				if ((rdata.data[1] &
+				     ~DNS_NSEC3FLAG_OPTOUT) != 0)
+				{
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
 						   "attempt to add NSEC3PARAM "

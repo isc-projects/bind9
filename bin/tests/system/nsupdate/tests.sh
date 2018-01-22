@@ -817,6 +817,18 @@ END
 grep "couldn't get address for 'unresolvable..': not found" nsupdate.out > /dev/null || ret=1
 [ $ret = 0 ] || { echo I:failed; status=1; }
 
+n=`expr $n + 1`
+ret=0
+echo "I:check that TKEY in a update is rejected ($n)"
+$NSUPDATE -d <<END > nsupdate.out-$n 2>&1 && ret=1
+server 10.53.0.3 5300
+update add tkey.example 0 in tkey invalid.algorithm. 1516055980 1516140801 1 0 16 gRof8D2BFKvl/vrr9Lmnjw== 16 gRof8D2BFKvl/vrr9Lmnjw==
+send
+END
+grep "UPDATE, status: NOERROR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
+grep "UPDATE, status: FORMERR" nsupdate.out-$n > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo I:failed; status=1; }
+
 #
 #  Add client library tests here
 #
