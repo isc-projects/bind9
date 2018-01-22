@@ -8,6 +8,7 @@ cfg_acl_fromconfig2
 cfg_aclconfctx_attach
 cfg_aclconfctx_create
 cfg_aclconfctx_detach
+cfg_clause_validforzone
 cfg_create_list
 cfg_create_obj
 cfg_create_tuple
@@ -29,8 +30,10 @@ cfg_listelt_value
 cfg_log_init
 cfg_lookingat_netaddr
 cfg_map_count
+cfg_map_firstclause
 cfg_map_get
 cfg_map_getname
+cfg_map_nextclause
 cfg_obj_asboolean
 cfg_obj_asfixedpoint
 cfg_obj_asnetprefix
@@ -100,9 +103,11 @@ cfg_print
 cfg_print_boolean
 cfg_print_bracketed_list
 cfg_print_chars
+cfg_print_clauseflags
 cfg_print_cstr
 cfg_print_fixedpoint
 cfg_print_grammar
+cfg_print_indent
 cfg_print_map
 cfg_print_mapbody
 cfg_print_obj
@@ -116,6 +121,7 @@ cfg_print_uint32
 cfg_print_uint64
 cfg_print_ustring
 cfg_print_void
+cfg_print_zonegrammar
 cfg_printx
 cfg_tuple_get
 cfg_ungettoken
