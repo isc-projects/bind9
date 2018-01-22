@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: cfg.h,v 1.46 2010/08/13 23:47:04 tbox Exp $ */
-
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
 
@@ -537,6 +535,13 @@ cfg_obj_line(const cfg_obj_t *obj);
 /*%<
  * Return the line in file where this object was defined.
  */
+
+const char *
+cfg_map_firstclause(const cfg_type_t *map, const void **clauses,
+                    unsigned int *idx);
+const char *
+cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
+                   unsigned int *idx);
 
 ISC_LANG_ENDDECLS
 

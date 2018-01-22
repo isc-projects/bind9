@@ -935,12 +935,9 @@
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="acl_grammar"></a><span class="command"><strong>acl</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>acl</strong></span> <em class="replaceable"><code>acl-name</code></em> <span class="command"><strong>{</strong></span>
-    <em class="replaceable"><code>address_match_list</code></em>
-<span class="command"><strong>};</strong></span>
+        <pre class="programlisting">
+<span class="command"><strong>acl</strong></span> <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };
 </pre>
-
       </div>
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -1024,18 +1021,19 @@
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="controls_grammar"></a><span class="command"><strong>controls</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>controls {</strong></span>
-  [ <span class="command"><strong>inet</strong></span> ( <em class="replaceable"><code>ip_addr</code></em> | <span class="command"><strong>*</strong></span> ) [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] <span class="command"><strong>allow {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span>
-      [ <span class="command"><strong>keys {</strong></span> <em class="replaceable"><code>key_list</code></em> <span class="command"><strong>}</strong></span> ]
-      [ <span class="command"><strong>read-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ] <span class="command"><strong>;</strong></span> ]
-  [ <span class="command"><strong>unix</strong></span> <em class="replaceable"><code>path</code></em> <span class="command"><strong>perm</strong></span> <em class="replaceable"><code>number</code></em> <span class="command"><strong>owner</strong></span> <em class="replaceable"><code>number</code></em> <span class="command"><strong>group</strong></span> <em class="replaceable"><code>number</code></em>
-      [ <span class="command"><strong>keys {</strong></span> <em class="replaceable"><code>key_list</code></em> <span class="command"><strong>}</strong></span> ]
-      [ <span class="command"><strong>read-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ] <span class="command"><strong>;</strong></span> ]
-   [ ...; ]
-<span class="command"><strong>};</strong></span>
+        <pre class="programlisting">
+<span class="command"><strong>controls</strong></span> {
+	<span class="command"><strong>inet</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |
+	    * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] allow
+	    { <em class="replaceable"><code>address_match_element</code></em>; ... } [
+	    <span class="command"><strong>keys</strong></span> { <em class="replaceable"><code>string</code></em>; ... } ] [ read-only
+	    <em class="replaceable"><code>boolean</code></em> ];
+	<span class="command"><strong>unix</strong></span> <em class="replaceable"><code>quoted_string</code></em> perm <em class="replaceable"><code>integer</code></em>
+	    <span class="command"><strong>owner</strong></span> <em class="replaceable"><code>integer</code></em> group <em class="replaceable"><code>integer</code></em> [
+	    <span class="command"><strong>keys</strong></span> { <em class="replaceable"><code>string</code></em>; ... } ] [ read-only
+	    <em class="replaceable"><code>boolean</code></em> ];
+};
 </pre>
-
       </div>
 
       <div class="section">
@@ -1195,13 +1193,12 @@
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="key_grammar"></a><span class="command"><strong>key</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_id</code></em> <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>algorithm</strong></span> <em class="replaceable"><code>algorithm_id</code></em><span class="command"><strong>;</strong></span>
-    <span class="command"><strong>secret</strong></span> <em class="replaceable"><code>secret_string</code></em><span class="command"><strong>;</strong></span>
-<span class="command"><strong>};</strong></span>
+        <pre class="programlisting">
+<span class="command"><strong>key</strong></span> <em class="replaceable"><code>string</code></em> {
+	<span class="command"><strong>algorithm</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>secret</strong></span> <em class="replaceable"><code>string</code></em>;
+};
 </pre>
-
       </div>
 
       <div class="section">
@@ -1257,30 +1254,23 @@
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="logging_grammar"></a><span class="command"><strong>logging</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>logging {</strong></span>
-  [ <span class="command"><strong>channel</strong></span> <em class="replaceable"><code>channel_name</code></em> <span class="command"><strong>{</strong></span>
-    ( ( <span class="command"><strong>file</strong></span> <em class="replaceable"><code>path_name</code></em>
-          [ <span class="command"><strong>versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <code class="option">unlimited</code> ) ]
-          [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ]
-          [ <span class="command"><strong>suffix</strong></span> ( <code class="option">increment</code> | <code class="option">timestamp</code> ) )
-      | <span class="command"><strong>syslog</strong></span> <em class="replaceable"><code>syslog_facility</code></em>
-      | <span class="command"><strong>stderr</strong></span>
-      | <span class="command"><strong>null</strong></span> ) <span class="command"><strong>;</strong></span>
-      [ <span class="command"><strong>severity</strong></span> ( <code class="option">critical</code> | <code class="option">error</code> | <code class="option">warning</code> | <code class="option">notice</code> |
-                   <code class="option">info</code> | <code class="option">debug</code> [ <em class="replaceable"><code>level</code></em> ] | <code class="option">dynamic</code> ) <span class="command"><strong>;</strong></span> ]
-      [ <span class="command"><strong>print-category</strong></span> <em class="replaceable"><code>yes_or_no</code></em> <span class="command"><strong>;</strong></span> ]
-      [ <span class="command"><strong>print-severity</strong></span> <em class="replaceable"><code>yes_or_no</code></em> <span class="command"><strong>;</strong></span> ]
-      [ <span class="command"><strong>print-time</strong></span> ( <code class="option">yes</code> | <code class="option">no</code> | <code class="option">local</code> | <code class="option">iso8601</code> | <code class="option">iso8601-utc</code> ) ;
-      [ <span class="command"><strong>buffered</strong></span> <em class="replaceable"><code>yes_or_no</code></em> <span class="command"><strong>;</strong></span> ]
-    <span class="command"><strong>};</strong></span> ]
-  [ <span class="command"><strong>category</strong></span> <em class="replaceable"><code>category_name</code></em> <span class="command"><strong>{</strong></span>
-     <em class="replaceable"><code>channel_name</code></em> <span class="command"><strong>;</strong></span> ...
-    <span class="command"><strong>};</strong></span> ]
-    ...
-<span class="command"><strong>};</strong></span>
+        <pre class="programlisting">
+<span class="command"><strong>logging</strong></span> {
+	<span class="command"><strong>category</strong></span> <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };
+	<span class="command"><strong>channel</strong></span> <em class="replaceable"><code>string</code></em> {
+		<span class="command"><strong>buffered</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em> [ versions ( unlimited | <em class="replaceable"><code>integer</code></em> ) ]
+		    [ size <em class="replaceable"><code>size</code></em> ] [ suffix ( increment | timestamp ) ];
+		<span class="command"><strong>null</strong></span>;
+		<span class="command"><strong>print-category</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>print-severity</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>print-time</strong></span> ( iso8601 | iso8601-utc | local | <em class="replaceable"><code>boolean</code></em> );
+		<span class="command"><strong>severity</strong></span> <em class="replaceable"><code>log_severity</code></em>;
+		<span class="command"><strong>stderr</strong></span>;
+		<span class="command"><strong>syslog</strong></span> [ <em class="replaceable"><code>syslog_facility</code></em> ];
+	};
+};
 </pre>
-
       </div>
 
       <div class="section">
@@ -2323,15 +2313,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="masters_grammar"></a><span class="command"><strong>masters</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting">
-<span class="command"><strong>masters</strong></span> <em class="replaceable"><code>name</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-  ( <em class="replaceable"><code>masters_list</code></em> <span class="command"><strong>;</strong></span> ) |
-  ( <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key</code></em> ] <span class="command"><strong>;</strong></span> )
-    ...
-<span class="command"><strong>};</strong></span>
+        <pre class="programlisting">
+<span class="command"><strong>masters</strong></span> <em class="replaceable"><code>string</code></em> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp
+    <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [
+    <span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port
+    <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
 </pre>
-
       </div>
 
       <div class="section">
@@ -2354,318 +2341,301 @@ badresp:1,adberr:0,findfail:0,valfail:0]
           This is the grammar of the <span class="command"><strong>options</strong></span>
           statement in the <code class="filename">named.conf</code> file:
         </p>
-
-<pre class="programlisting"><span class="command"><strong>options {</strong></span>
-  [ <span class="command"><strong>attach-cache</strong></span> <em class="replaceable"><code>cache_name</code></em> ; ]
-  [ <span class="command"><strong>version</strong></span> <em class="replaceable"><code>version_string</code></em> ; ]
-  [ <span class="command"><strong>hostname</strong></span> <em class="replaceable"><code>hostname_string</code></em> ; ]
-  [ <span class="command"><strong>server-id</strong></span> <em class="replaceable"><code>server_id_string</code></em> ; ]
-  [ <span class="command"><strong>directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>dnstap {</strong></span> <em class="replaceable"><code>message_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dnstap-output</strong></span> ( <code class="option">file</code> | <code class="option">unix</code> ) <em class="replaceable"><code>path_name</code></em> [ <span class="command"><strong>size</strong></span> <em class="replaceable"><code>size_spec</code></em> ] [ <span class="command"><strong>versions</strong></span> ( <em class="replaceable"><code>number</code></em> | <code class="option">unlimited</code> ) ] ; ]
-  [ <span class="command"><strong>dnstap-identity</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">hostname</code> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>dnstap-version</strong></span> ( <em class="replaceable"><code>string</code></em> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>fstrm-set-buffer-hint</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fstrm-set-flush-timeout</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fstrm-set-input-queue-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fstrm-set-output-notify-threshold</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fstrm-set-output-queue-model</strong></span> ( <code class="option">mpsc</code> | <code class="option">spsc</code> ) ; ]
-  [ <span class="command"><strong>fstrm-set-output-queue-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>geoip-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>managed-keys-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>new-zones-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>named-xfer</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>tkey-gssapi-keytab</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>tkey-gssapi-credential</strong></span> <em class="replaceable"><code>principal</code></em> ; ]
-  [ <span class="command"><strong>tkey-domain</strong></span> <em class="replaceable"><code>domain_name</code></em> ; ]
-  [ <span class="command"><strong>tkey-dhkey</strong></span> <em class="replaceable"><code>key_name</code></em> <em class="replaceable"><code>key_tag</code></em> ; ]
-  [ <span class="command"><strong>cache-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>dump-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>bindkeys-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>lock-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>secroots-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>session-keyfile</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>session-keyname</strong></span> <em class="replaceable"><code>key_name</code></em> ; ]
-  [ <span class="command"><strong>session-keyalg</strong></span> <em class="replaceable"><code>algorithm_id</code></em> ; ]
-  [ <span class="command"><strong>memstatistics</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>memstatistics-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>pid-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>recursing-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>statistics-file</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>auth-nxdomain</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>nxdomain-redirect</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>deallocate-on-exit</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dialup</strong></span> <em class="replaceable"><code>dialup_option</code></em> ; ]
-  [ <span class="command"><strong>fake-iquery</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>fetch-glue</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>flush-zones-on-shutdown</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>has-old-clients</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>host-statistics</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>host-statistics-max</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>glue-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>minimal-responses</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">no-auth</code> | <code class="option">no-auth-recursive</code> ) ; ]
-  [ <span class="command"><strong>multiple-cnames</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>notify</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">explicit</code> | <code class="option">master-only</code> ) ; ]
-  [ <span class="command"><strong>recursion</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>send-cookie</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>require-server-cookie</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>cookie-algorithm</strong></span> <em class="replaceable"><code>algorithm_id</code></em> ; ]
-  [ <span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>secret_string</code></em> ; ]
-  [ <span class="command"><strong>nocookie-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>request-nsid</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>rfc2308-type1</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>use-id-pool</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>maintain-ixfr-base</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>ixfr-from-differences</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">master</code> | <code class="option">slave</code> ) ; ]
-  [ <span class="command"><strong>auto-dnssec</strong></span> ( <code class="option">allow</code> | <code class="option">maintain</code> | <code class="option">off</code> ) ; ]
-  [ <span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-validation</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">auto</code> ) ; ]
-  [ <span class="command"><strong>dnssec-lookaside</strong></span> ( <code class="option">auto</code> | <code class="option">no</code> | <em class="replaceable"><code>domain</code></em> trust-anchor <em class="replaceable"><code>domain</code></em> ) ; ]
-  [ <span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>domain yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
-  [ <span class="command"><strong>forwarders {</strong></span>
-      ( <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; )
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dual-stack-servers</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( ( <em class="replaceable"><code>domain_name</code></em> | <em class="replaceable"><code>ip_addr</code></em> ) [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; )
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">master</code> | <code class="option">slave</code> | <code class="option">response</code> )
-                ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-dup-records</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-mx</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>check-mx-cname</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-srv-cname</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-sibling</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>check-spf</strong></span> ( <code class="option">warn</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>allow-new-zones</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>allow-notify {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-cache {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-cache-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-transfer {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-recursion {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-recursion-on {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-update {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ]
-  [ <span class="command"><strong>allow-update-forwarding {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>automatic-interface-scan</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>geoip-use-ecs</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-update-mode</strong></span> ( <code class="option">maintain</code> | <code class="option">no-resign</code> ) ; ]
-  [ <span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>allow-v6-synthesis {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>blackhole {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>keep-response-order {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>no-case-compress {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>message-compression</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>use-v4-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>avoid-v4-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>use-v6-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>avoid-v6-udp-ports {</strong></span> <em class="replaceable"><code>port_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>listen-on</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>listen-on-v6</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>query-source</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> ) )
-      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="option">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ] ;
-  [ <span class="command"><strong>query-source-v6</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> ) )
-      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="option">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ] ;
-  [ <span class="command"><strong>use-queryport-pool</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>queryport-pool-ports</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>queryport-pool-updateinterval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>reserved-sockets</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>recursive-clients</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>tcp-clients</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-clients-per-query</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>fetches-per-server</strong></span> <em class="replaceable"><code>number</code></em> [ ( <code class="option">drop</code> | <code class="option">fail</code> ) ] ; ]
-  [ <span class="command"><strong>fetches-per-zone</strong></span> <em class="replaceable"><code>number</code></em> [ ( <code class="option">drop</code> | <code class="option">fail</code> ) ] ; ]
-  [ <span class="command"><strong>fetch-quota-params</strong></span> <em class="replaceable"><code>number fixedpoint fixedpoint fixedpoint</code></em> ; ]
-  [ <span class="command"><strong>notify-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>startup-notify-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>serial-query-rate</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>serial-queries</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>tcp-listen-queue</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>tcp-initial-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
-  [ <span class="command"><strong>tcp-idle-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
-  [ <span class="command"><strong>tcp-keepalive-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
-  [ <span class="command"><strong>tcp-advertised-timeout</strong></span> <em class="replaceable"><code>number</code></em>; ]
-  [ <span class="command"><strong>transfer-format</strong></span> ( <code class="option">one-answer</code> | <code class="option">many-answers</code> ) ; ]
-  [ <span class="command"><strong>transfer-message-size</strong></span>  <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>transfers-in</strong></span>  <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>transfers-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>transfers-per-ns</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>seconds</code></em> ; ]
-  [ <span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="option">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>also-notify</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em>] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em>] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>max-ixfr-log-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-journal-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>coresize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>datasize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>files</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>stacksize</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>cleaning-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>heartbeat-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>statistics-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>topology {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>sortlist {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>rrset-order {</strong></span> <em class="replaceable"><code>order_spec</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-stale-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-zone-ttl</strong></span> ( <code class="option">unlimited</code> | <em class="replaceable"><code>number</code></em> ) ; ]
-  [ <span class="command"><strong>stale-answer-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>stale-answer-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>serial-update-method</strong></span> ( <code class="option">increment</code> | <code class="option">unixtime</code> | <code class="option">date</code> ) ; ]
-  [ <span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>number</code></em> [<em class="replaceable"><code>number</code></em>] ; ]
-  [ <span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>min-roots</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>use-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>treat-cr-as-space</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>nta-lifetime</strong></span> <em class="replaceable"><code>duration</code></em> ; ]
-  [ <span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>duration</code></em> ; ]
-  [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ; ]
-  [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ; ]
-  [ <span class="command"><strong>random-device</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>max-cache-size</strong></span> <em class="replaceable"><code>size_or_percent</code></em> ; ]
-  [ <span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>filter-aaaa-on-v4</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">break-dnssec</code> ) ; ]
-  [ <span class="command"><strong>filter-aaaa-on-v6</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">break-dnssec</code> ) ; ]
-  [ <span class="command"><strong>filter-aaaa {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dns64</strong></span> <em class="replaceable"><code>ipv6-prefix</code></em> <span class="command"><strong>{</strong></span>
-      [ <span class="command"><strong>clients {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-      [ <span class="command"><strong>mapped {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-      [ <span class="command"><strong>exclude {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-      [ <span class="command"><strong>suffix</strong></span> <em class="replaceable"><code>ip6-address</code></em> ; ]
-      [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-      [ <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dns64-server</strong></span> <em class="replaceable"><code>name</code></em> ]
-  [ <span class="command"><strong>dns64-contact</strong></span> <em class="replaceable"><code>name</code></em> ]
-  [ <span class="command"><strong>preferred-glue</strong></span> ( <code class="option">A</code> | <code class="option">AAAA</code> | <code class="option">none</code> ); ]
-  [ <span class="command"><strong>edns-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_list</code></em> } block-size <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-rsa-exponent-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>root-delegation-only</strong></span> [ <span class="command"><strong>exclude {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
-  [ <span class="command"><strong>querylog</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>disable-algorithms</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>algorithm</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>disable-ds-digests</strong></span> <em class="replaceable"><code>domain</code></em> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>digest_type</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
-  [ <span class="command"><strong>masterfile-style</strong></span> ( <code class="option">relative</code> | <code class="option">full</code> ) ; ]
-  [ <span class="command"><strong>empty-server</strong></span> <em class="replaceable"><code>name</code></em> ; ]
-  [ <span class="command"><strong>empty-contact</strong></span> <em class="replaceable"><code>name</code></em> ; ]
-  [ <span class="command"><strong>empty-zones-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>disable-empty-zone</strong></span> <em class="replaceable"><code>zone_name</code></em> ; ]
-  [ <span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>zero-no-soa-ttl-cache</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>resolver-query-timeout</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>deny-answer-addresses {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span>
-      [ <span class="command"><strong>except-from {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
-  [ <span class="command"><strong>deny-answer-aliases {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span>
-      [ <span class="command"><strong>except-from {</strong></span> <em class="replaceable"><code>namelist</code></em> <span class="command"><strong>}</strong></span> ] ; ]
-  [ <span class="command"><strong>prefetch</strong></span> <em class="replaceable"><code>number</code></em> [ <em class="replaceable"><code>number</code></em> ] ; ]
-  [ <span class="command"><strong>rate-limit {</strong></span>
-      [ <span class="command"><strong>responses-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>referrals-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>nodata-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>nxdomains-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>errors-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>all-per-second</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>window</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>log-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-      [ <span class="command"><strong>qps-scale</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>ipv4-prefix-length</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>ipv6-prefix-length</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>slip</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>exempt-clients {</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-      [ <span class="command"><strong>max-table-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-      [ <span class="command"><strong>min-table-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>response-policy {</strong></span>
-        <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em>
-      [ <span class="command"><strong>policy</strong></span> ( given | disabled | passthru | drop |
-                 tcp-only | nxdomain | nodata | cname <em class="replaceable"><code>domain</code></em> ) ]
-      [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>log</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>number</code></em> ]
-      [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>number</code></em> ]
-      [ <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ] ;
-         ...
-    <span class="command"><strong>}</strong></span> [ <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>number</code></em> ]
-      [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>number</code></em> ]
-      [ <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>min-ns-dots</strong></span> <em class="replaceable"><code>number</code></em> ]
-      [ <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>qname-wait-recurse</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-      [ <span class="command"><strong>dnsrps-options</strong></span> { <em class="replaceable"><code>parameters</code></em> } ] ; ]
-  [ <span class="command"><strong>catalog-zones {</strong></span>
-        <span class="command"><strong>zone</strong></span> <em class="replaceable"><code>quoted_string</code></em>
-          [ <code class="option">default-masters</code> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-              ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em>] [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em>] ) ;
-                ...
-            <span class="command"><strong>}</strong></span> ]
-          [ <span class="command"><strong>zone-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ]
-          [ <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ]
-          [ <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>interval</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>v6-bias</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>trust-anchor-telemetry</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-<span class="command"><strong>}</strong></span> ; ]
+        <pre class="programlisting">
+<span class="command"><strong>options</strong></span> {
+	<span class="command"><strong>allow-new-zones</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>allow-notify</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-cache</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-cache-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-recursion</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-recursion-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-transfer</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-update</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-update-forwarding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>also-notify</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> |
+	    <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port
+	    <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )
+	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> |
+	    * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>attach-cache</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>auth-nxdomain</strong></span> <em class="replaceable"><code>boolean</code></em>; // default changed
+	<span class="command"><strong>auto-dnssec</strong></span> ( allow | maintain | off );
+	<span class="command"><strong>automatic-interface-scan</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>avoid-v4-udp-ports</strong></span> { <em class="replaceable"><code>portrange</code></em>; ... };
+	<span class="command"><strong>avoid-v6-udp-ports</strong></span> { <em class="replaceable"><code>portrange</code></em>; ... };
+	<span class="command"><strong>bindkeys-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>blackhole</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>cache-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>catalog-zones</strong></span> { zone <em class="replaceable"><code>quoted_string</code></em> [ default-masters [ port
+	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [
+	    <span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key
+	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [
+	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>check-dup-records</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>check-mx</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-mx-cname</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-names</strong></span> ( primary | master |
+	    <span class="command"><strong>secondary</strong></span> | slave | response ) (
+	    <span class="command"><strong>fail</strong></span> | warn | ignore );
+	<span class="command"><strong>check-sibling</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>check-spf</strong></span> ( warn | ignore );
+	<span class="command"><strong>check-srv-cname</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>cleaning-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | sha1 | sha256 );
+	<span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>coresize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>datasize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>deny-answer-addresses</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } [
+	    <span class="command"><strong>except-from</strong></span> { <em class="replaceable"><code>quoted_string</code></em>; ... } ];
+	<span class="command"><strong>deny-answer-aliases</strong></span> { <em class="replaceable"><code>quoted_string</code></em>; ... } [ except-from {
+	    <em class="replaceable"><code>quoted_string</code></em>; ... } ];
+	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>disable-algorithms</strong></span> <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>;
+	    ... };
+	<span class="command"><strong>disable-ds-digests</strong></span> <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>;
+	    ... };
+	<span class="command"><strong>disable-empty-zone</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dns64</strong></span> <em class="replaceable"><code>netprefix</code></em> {
+		<span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>clients</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+		<span class="command"><strong>exclude</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+		<span class="command"><strong>mapped</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+		<span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>suffix</strong></span> <em class="replaceable"><code>ipv6_address</code></em>;
+	};
+	<span class="command"><strong>dns64-contact</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dns64-server</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnsrps-options</strong></span> { <em class="replaceable"><code>unspecified-text</code></em> };
+	<span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dnssec-lookaside</strong></span> ( <em class="replaceable"><code>string</code></em> trust-anchor
+	    <em class="replaceable"><code>string</code></em> | auto | no );
+	<span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
+	<span class="command"><strong>dnssec-validation</strong></span> ( yes | no | auto );
+	<span class="command"><strong>dnstap</strong></span> { ( all | auth | client | forwarder |
+	    <span class="command"><strong>resolver</strong></span> ) [ ( query | response ) ]; ... };
+	<span class="command"><strong>dnstap-identity</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none |
+	    <span class="command"><strong>hostname</strong></span> );
+	<span class="command"><strong>dnstap-output</strong></span> ( file | unix ) <em class="replaceable"><code>quoted_string</code></em> [
+	    <span class="command"><strong>size</strong></span> ( unlimited | <em class="replaceable"><code>size</code></em> ) ] [ versions (
+	    <span class="command"><strong>unlimited</strong></span> | <em class="replaceable"><code>integer</code></em> ) ] [ suffix ( increment
+	    | timestamp ) ];
+	<span class="command"><strong>dnstap-version</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dual-stack-servers</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>quoted_string</code></em> [ port
+	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv4_address</code></em> [ port
+	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port
+	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] ); ... };
+	<span class="command"><strong>dump-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>edns-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>empty-contact</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>empty-server</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>empty-zones-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>fetch-quota-params</strong></span> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>fixedpoint</code></em> <em class="replaceable"><code>fixedpoint</code></em> <em class="replaceable"><code>fixedpoint</code></em>;
+	<span class="command"><strong>fetches-per-server</strong></span> <em class="replaceable"><code>integer</code></em> [ ( drop | fail ) ];
+	<span class="command"><strong>fetches-per-zone</strong></span> <em class="replaceable"><code>integer</code></em> [ ( drop | fail ) ];
+	<span class="command"><strong>files</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>filter-aaaa</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>filter-aaaa-on-v4</strong></span> ( break-dnssec | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>filter-aaaa-on-v6</strong></span> ( break-dnssec | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>flush-zones-on-shutdown</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em>
+	    | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>fstrm-set-buffer-hint</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-flush-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-input-queue-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-output-notify-threshold</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-output-queue-model</strong></span> ( mpsc | spsc );
+	<span class="command"><strong>fstrm-set-output-queue-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>geoip-directory</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>geoip-use-ecs</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>glue-cache</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>heartbeat-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>hostname</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>ixfr-from-differences</strong></span> ( primary | master | secondary | slave |
+	    <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>keep-response-order</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>lame-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>listen-on</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp
+	    <em class="replaceable"><code>integer</code></em> ] {
+	    <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>listen-on-v6</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp
+	    <em class="replaceable"><code>integer</code></em> ] {
+	    <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>lmdb-mapsize</strong></span> <em class="replaceable"><code>sizeval</code></em>;
+	<span class="command"><strong>lock-file</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>managed-keys-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>max-cache-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> | <em class="replaceable"><code>percentage</code></em> );
+	<span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-rsa-exponent-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-stale-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>memstatistics</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>memstatistics-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>message-compression</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>minimal-responses</strong></span> ( no-auth | no-auth-recursive | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>new-zones-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>no-case-compress</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>nocookie-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-rate</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
+	    <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ]
+	    [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>nta-lifetime</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>nta-recheck</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>nxdomain-redirect</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>pid-file</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>preferred-glue</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>prefetch</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>query-source</strong></span> ( ( [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port (
+	    <em class="replaceable"><code>integer</code></em> | * ) ] ) | ( [ [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) ]
+	    <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>integer</code></em> | * ) ) ) [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>query-source-v6</strong></span> ( ( [ address ] ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port (
+	    <em class="replaceable"><code>integer</code></em> | * ) ] ) | ( [ [ address ] ( <em class="replaceable"><code>ipv6_address</code></em> | * ) ]
+	    <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>integer</code></em> | * ) ) ) [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>querylog</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>random-device</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>rate-limit</strong></span> {
+		<span class="command"><strong>all-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>errors-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>exempt-clients</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+		<span class="command"><strong>ipv4-prefix-length</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>ipv6-prefix-length</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>log-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+		<span class="command"><strong>max-table-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>min-table-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>nodata-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>nxdomains-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>qps-scale</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>referrals-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>responses-per-second</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>slip</strong></span> <em class="replaceable"><code>integer</code></em>;
+		<span class="command"><strong>window</strong></span> <em class="replaceable"><code>integer</code></em>;
+	};
+	<span class="command"><strong>recursing-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>recursion</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>recursive-clients</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-nsid</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>require-server-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>reserved-sockets</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>resolver-nonbackoff-tries</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>resolver-query-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>resolver-retry-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size
+	    <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>quoted_string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>policy</strong></span> ( cname | disabled | drop | given | no-op | nodata |
+	    <span class="command"><strong>nxdomain</strong></span> | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
+	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>min-ns-dots</strong></span> <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>qname-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsdname-enable <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-options { <em class="replaceable"><code>unspecified-text</code></em>
+	    } ];
+	<span class="command"><strong>root-delegation-only</strong></span> [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];
+	<span class="command"><strong>rrset-order</strong></span> { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name
+	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };
+	<span class="command"><strong>secroots-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>send-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>serial-query-rate</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>serial-update-method</strong></span> ( date | increment | unixtime );
+	<span class="command"><strong>server-id</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none | hostname );
+	<span class="command"><strong>servfail-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>session-keyalg</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>session-keyfile</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>session-keyname</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>sortlist</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>stacksize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>stale-answer-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>stale-answer-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
+	<span class="command"><strong>startup-notify-rate</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>statistics-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>synth-from-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>tcp-advertised-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tcp-clients</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tcp-idle-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tcp-initial-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tcp-keepalive-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tcp-listen-queue</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tkey-dhkey</strong></span> <em class="replaceable"><code>quoted_string</code></em> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>tkey-domain</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>tkey-gssapi-credential</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>tkey-gssapi-keytab</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>transfer-format</strong></span> ( many-answers | one-answer );
+	<span class="command"><strong>transfer-message-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
+	    <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )
+	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfers-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>transfers-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>transfers-per-ns</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>trust-anchor-telemetry</strong></span> <em class="replaceable"><code>boolean</code></em>; // experimental
+	<span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>use-v4-udp-ports</strong></span> { <em class="replaceable"><code>portrange</code></em>; ... };
+	<span class="command"><strong>use-v6-udp-ports</strong></span> { <em class="replaceable"><code>portrange</code></em>; ... };
+	<span class="command"><strong>v6-bias</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>version</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
+	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zero-no-soa-ttl-cache</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
 </pre>
-
       </div>
 
       <div class="section">
@@ -8441,42 +8411,40 @@ example.com                 CNAME   rpz-tcp-only.
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="server_statement_grammar"></a><span class="command"><strong>server</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>server</strong></span> ( <em class="replaceable"><code>ip_addr</code></em> | <em class="replaceable"><code>ip_prefix</code></em> ) <span class="command"><strong>{</strong></span>
-  [ <span class="command"><strong>bogus</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>request-nsid</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>send-cookie</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>edns</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>edns-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>edns-version</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>padding</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>tcp-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>tcp-keepalive</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>transfers</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>transfer-format</strong></span> ( one-answer | many-answers ) ; ]
-  [ <span class="command"><strong>keys</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>key_id</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>query-source</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip_addr</code></em> | <code class="constant">*</code> ) )
-      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="constant">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>query-source-v6</strong></span> ( [ <span class="command"><strong>address</strong></span> ] ( <em class="replaceable"><code>ip_addr</code></em> | <code class="constant">*</code> ) )
-      [ <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>ip_port</code></em> | <code class="constant">*</code> ) ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>use-queryport-pool</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>queryport-pool-ports</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>queryport-pool-updateinterval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
+        <pre class="programlisting">
+<span class="command"><strong>server</strong></span> <em class="replaceable"><code>netprefix</code></em> {
+	<span class="command"><strong>bogus</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>edns</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>edns-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>edns-version</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>keys</strong></span> <em class="replaceable"><code>server_key</code></em>;
+	<span class="command"><strong>max-udp-size</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
+	    <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ]
+	    [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>padding</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>query-source</strong></span> ( ( [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port (
+	    <em class="replaceable"><code>integer</code></em> | * ) ] ) | ( [ [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) ]
+	    <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>integer</code></em> | * ) ) ) [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>query-source-v6</strong></span> ( ( [ address ] ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port (
+	    <em class="replaceable"><code>integer</code></em> | * ) ] ) | ( [ [ address ] ( <em class="replaceable"><code>ipv6_address</code></em> | * ) ]
+	    <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>integer</code></em> | * ) ) ) [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-nsid</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>send-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>tcp-keepalive</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>tcp-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>transfer-format</strong></span> ( many-answers | one-answer );
+	<span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
+	    <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )
+	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfers</strong></span> <em class="replaceable"><code>integer</code></em>;
+};
 </pre>
-
         </div>
 
         <div class="section">
@@ -8747,12 +8715,13 @@ example.com                 CNAME   rpz-tcp-only.
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="statschannels"></a><span class="command"><strong>statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>statistics-channels {</strong></span>
-  [ <span class="command"><strong>inet</strong></span> ( <em class="replaceable"><code>ip_addr</code></em> | <code class="constant">*</code> ) [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ]
-      [ <span class="command"><strong>allow { </strong></span><em class="replaceable"><code> address_match_list </code></em> <span class="command"><strong>}</strong></span> ] ; ]
-    ...
-<span class="command"><strong>}</strong></span>;
+        <pre class="programlisting">
+<span class="command"><strong>statistics-channels</strong></span> {
+	<span class="command"><strong>inet</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |
+	    * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
+	    <span class="command"><strong>allow</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ...
+	    } ];
+};
 </pre>
       </div>
 
@@ -8881,13 +8850,10 @@ example.com                 CNAME   rpz-tcp-only.
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="trusted-keys"></a><span class="command"><strong>trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>trusted-keys {</strong></span>
-  ( <em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key_data</code></em> ; )
-    ...
-<span class="command"><strong>}</strong></span> ;
+        <pre class="programlisting">
+<span class="command"><strong>trusted-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };
 </pre>
-
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -8938,13 +8904,10 @@ example.com                 CNAME   rpz-tcp-only.
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="managed_keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Grammar</h3></div></div></div>
-
-<pre class="programlisting"><span class="command"><strong>managed-keys {</strong></span>
-  ( <em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>initial_key</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key_data</code></em> ; )
-    ...
-<span class="command"><strong>}</strong></span> ;
+        <pre class="programlisting">
+<span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };
 </pre>
-
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -9218,216 +9181,203 @@ view "external" {
 <a name="zone_statement_grammar"></a><span class="command"><strong>zone</strong></span>
             Statement Grammar</h3></div></div></div>
 
-<pre class="programlisting"><span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> ( master | primary );
-  [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-on</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-transfer</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-update</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>update-policy</strong></span> <code class="option">local</code> | <span class="command"><strong>{</strong></span> <em class="replaceable"><code>update_policy_rule</code></em> ; ...  <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>also-notify</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-mx</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>check-spf</strong></span> ( <code class="option">warn</code> | <code class="option">ignore</code> ); ]
-  [ <span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dialup</strong></span> <em class="replaceable"><code>dialup_option</code></em> ; ]
-  [ <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
-  [ <span class="command"><strong>journal</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>max-journal-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
-  [ <span class="command"><strong>forwarders</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ... ] <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>ixfr-base</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>ixfr-from-differences</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>ixfr-tmp-file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>maintain-ixfr-base</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>max-ixfr-log-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>notify</strong></span> <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">explicit</code> | <code class="option">master-only</code> ; ]
-  [ <span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>seconds</code></em> ; ]
-  [ <span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>pubkey</strong></span> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>number</code></em> [ <em class="replaceable"><code>number</code></em> ] ; ]
-  [ <span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong></strong></span><span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>auto-dnssec</strong></span> ( <code class="option">allow</code> | <code class="option">maintain</code> | <code class="option">off</code> ) ; ]
-  [ <span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>serial-update-method</strong></span> ( <code class="option">increment</code> | <code class="option">unixtime</code> | <code class="option">date</code> ) ; ]
-  [ <span class="command"><strong>max-zone-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> (slave | secondary);
-  [ <span class="command"><strong>allow-notify</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-on</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-transfer</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-update-forwarding</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>dnssec-update-mode</strong></span> ( <code class="option">maintain</code> | <code class="option">no-resign</code> ); ]
-  [ <span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>also-notify</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>dialup</strong></span> <em class="replaceable"><code>dialup_option</code></em> ; ]
-  [ <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
-  [ <span class="command"><strong>journal</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>max-journal-size</strong></span> <em class="replaceable"><code>size_spec</code></em> ; ]
-  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
-  [ <span class="command"><strong>forwarders</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>ixfr-base</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>ixfr-from-differences</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>ixfr-tmp-file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>maintain-ixfr-base</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>masters</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>max-ixfr-log-size</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>notify</strong></span> ( <em class="replaceable"><code>yes_or_no</code></em> | <code class="option">explicit</code> | <code class="option">master-only</code> ) ; ]
-  [ <span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>seconds</code></em> ; ]
-  [ <span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>pubkey</strong></span> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>number</code></em> [ <em class="replaceable"><code>number</code></em> ] ; ]
-  [ <span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong></strong></span><span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>path_name</code></em> ; ]
-  [ <span class="command"><strong>auto-dnssec</strong></span> ( <code class="option">allow</code> | <code class="option">maintain</code> | <code class="option">off</code> ) ; ]
-  [ <span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> hint;
-    <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ;
-  [ <span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ] // Not Implemented.
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> stub;
-  [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>allow-query-on</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>check-names</strong></span> ( <code class="option">warn</code> | <code class="option">fail</code> | <code class="option">ignore</code> ) ; ]
-  [ <span class="command"><strong>dialup</strong></span> <em class="replaceable"><code>dialup_option</code></em> ; ]
-  [ <span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
-  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
-  [ <span class="command"><strong>forwarders</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ... ] <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>masters</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>pubkey</strong></span> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ip4_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ip6_addr</code></em> | <code class="constant">*</code> )
-      [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ]
-  [ <span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
-  [ <span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-  [ <span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> static-stub;
-  [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>server-addresses</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>ip_addr</code></em> ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>server-names</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>namelist</code></em> ] <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>zone-statistics</strong></span> ( <code class="option">full</code> | <code class="option">terse</code> | <code class="option">none</code> ) ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> forward;
-  [ <span class="command"><strong>forward</strong></span> ( <code class="option">only</code> | <code class="option">first</code> ) ; ]
-  [ <span class="command"><strong>forwarders</strong></span> <span class="command"><strong>{</strong></span> [ <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] ; ... <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>yes_or_no</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>"."</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> redirect;
-  [ <span class="command"><strong>file</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-  [ <span class="command"><strong>masters</strong></span> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] [ <span class="command"><strong>dscp</strong></span> <em class="replaceable"><code>ip_dscp</code></em> ] <span class="command"><strong>{</strong></span>
-      ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [ <span class="command"><strong>port</strong></span> <em class="replaceable"><code>ip_port</code></em> ] ) [ <span class="command"><strong>key</strong></span> <em class="replaceable"><code>key_name</code></em> ] ;
-        ...
-    <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>masterfile-format</strong></span> ( <code class="option">text</code> | <code class="option">raw</code> | <code class="option">map</code> ) ; ]
-  [ <span class="command"><strong>allow-query</strong></span> <span class="command"><strong>{</strong></span> <em class="replaceable"><code>address_match_list</code></em> <span class="command"><strong>}</strong></span> ; ]
-  [ <span class="command"><strong>max-zone-ttl</strong></span> <em class="replaceable"><code>number</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-    <span class="command"><strong>type</strong></span> delegation-only;
-<span class="command"><strong>}</strong></span> ;
-
-<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>zone_name</code></em> [ <em class="replaceable"><code>class</code></em> ] <span class="command"><strong>{</strong></span>
-  [ <span class="command"><strong>in-view</strong></span> <em class="replaceable"><code>string</code></em> ; ]
-<span class="command"><strong>}</strong></span> ;
-
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> ( master | primary );
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-transfer</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-update</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>also-notify</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>auto-dnssec</strong></span> ( allow | maintain | off );
+	<span class="command"><strong>check-dup-records</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>check-mx</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-mx-cname</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-names</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-sibling</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>check-spf</strong></span> ( warn | ignore );
+	<span class="command"><strong>check-srv-cname</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>dlz</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>ixfr-from-differences</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>journal</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>serial-update-method</strong></span> ( date | increment | unixtime );
+	<span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>update-policy</strong></span> ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self | external | krb5-self | krb5-subdomain | ms-self | ms-subdomain | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };
+	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> ( slave | secondary );
+	<span class="command"><strong>allow-notify</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-transfer</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-update-forwarding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>also-notify</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>auto-dnssec</strong></span> ( allow | maintain | off );
+	<span class="command"><strong>check-names</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>dlz</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>ixfr-from-differences</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>journal</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>key-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>masters</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-to-soa</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>sig-signing-nodes</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-signatures</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> hint;
+	<span class="command"><strong>check-names</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> stub;
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>check-names</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>masters</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> static-stub;
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>server-addresses</strong></span> { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ]; ... };
+	<span class="command"><strong>server-names</strong></span> { <em class="replaceable"><code>quoted_string</code></em>; ... };
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> forward;
+	<span class="command"><strong>delegation-only</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> redirect;
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>dlz</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>masters</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-zone-ttl</strong></span> ( unlimited | <em class="replaceable"><code>ttlval</code></em> );
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> delegation-only;
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>in-view</strong></span> <em class="replaceable"><code>string</code></em>;
+};
 </pre>
 
         </div>

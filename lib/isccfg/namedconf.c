@@ -24,6 +24,7 @@
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 #include <isccfg/log.h>
+#include <isccfg/namedconf.h>
 
 #define TOKEN_STRING(pctx) (pctx->token.value.as_textregion.base)
 
@@ -141,7 +142,6 @@ static cfg_type_t cfg_type_ttlval;
 static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
-static cfg_type_t cfg_type_zoneopts;
 
 /*% tkey-dhkey */
 
@@ -2001,105 +2001,279 @@ static cfg_type_t cfg_type_validityinterval = {
 /*%
  * Clauses that can be found in a 'zone' statement,
  * with defaults in the 'view' or 'options' statement.
+ *
+ * Note: CFG_ZONE_* options indicate in which zone types this clause is
+ * legal.
  */
 static cfg_clausedef_t
 zone_clauses[] = {
-	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
-	{ "allow-query", &cfg_type_bracketed_aml, 0 },
-	{ "allow-query-on", &cfg_type_bracketed_aml, 0 },
-	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update", &cfg_type_bracketed_aml, 0 },
-	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
-	{ "also-notify", &cfg_type_namesockaddrkeylist, 0 },
-	{ "alt-transfer-source", &cfg_type_sockaddr4wild, 0 },
-	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "auto-dnssec", &cfg_type_autodnssec, 0 },
-	{ "check-dup-records", &cfg_type_checkmode, 0 },
-	{ "check-integrity", &cfg_type_boolean, 0 },
-	{ "check-mx", &cfg_type_checkmode, 0 },
-	{ "check-mx-cname", &cfg_type_checkmode, 0 },
-	{ "check-sibling", &cfg_type_boolean, 0 },
-	{ "check-spf", &cfg_type_warn, 0 },
-	{ "check-srv-cname", &cfg_type_checkmode, 0 },
-	{ "check-wildcard", &cfg_type_boolean, 0 },
-	{ "dialup", &cfg_type_dialuptype, 0 },
-	{ "dnssec-dnskey-kskonly", &cfg_type_boolean, 0 },
-	{ "dnssec-loadkeys-interval", &cfg_type_uint32, 0 },
-	{ "dnssec-secure-to-insecure", &cfg_type_boolean, 0 },
-	{ "dnssec-update-mode", &cfg_type_dnssecupdatemode, 0 },
-	{ "forward", &cfg_type_forwardtype, 0 },
-	{ "forwarders", &cfg_type_portiplist, 0 },
-	{ "inline-signing", &cfg_type_boolean, 0 },
-	{ "key-directory", &cfg_type_qstring, 0 },
-	{ "maintain-ixfr-base", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "masterfile-format", &cfg_type_masterformat, 0 },
-	{ "masterfile-style", &cfg_type_masterstyle, 0 },
-	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "max-journal-size", &cfg_type_size, 0 },
-	{ "max-records", &cfg_type_uint32, 0 },
-	{ "max-refresh-time", &cfg_type_uint32, 0 },
-	{ "max-retry-time", &cfg_type_uint32, 0 },
-	{ "max-transfer-idle-in", &cfg_type_uint32, 0 },
-	{ "max-transfer-idle-out", &cfg_type_uint32, 0 },
-	{ "max-transfer-time-in", &cfg_type_uint32, 0 },
-	{ "max-transfer-time-out", &cfg_type_uint32, 0 },
-	{ "max-zone-ttl", &cfg_type_maxttl, 0 },
-	{ "min-refresh-time", &cfg_type_uint32, 0 },
-	{ "min-retry-time", &cfg_type_uint32, 0 },
-	{ "multi-master", &cfg_type_boolean, 0 },
-	{ "notify", &cfg_type_notifytype, 0 },
-	{ "notify-delay", &cfg_type_uint32, 0 },
-	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
-	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "notify-to-soa", &cfg_type_boolean, 0 },
-	{ "nsec3-test-zone", &cfg_type_boolean, CFG_CLAUSEFLAG_TESTONLY },
-	{ "request-expire", &cfg_type_boolean, 0 },
-	{ "request-ixfr", &cfg_type_boolean, 0 },
-	{ "serial-update-method", &cfg_type_updatemethod, 0 },
-	{ "sig-signing-nodes", &cfg_type_uint32, 0 },
-	{ "sig-signing-signatures", &cfg_type_uint32, 0 },
-	{ "sig-signing-type", &cfg_type_uint32, 0 },
-	{ "sig-validity-interval", &cfg_type_validityinterval, 0 },
-	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
-	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
-	{ "try-tcp-refresh", &cfg_type_boolean, 0 },
-	{ "update-check-ksk", &cfg_type_boolean, 0 },
-	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
-	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
-	{ "zone-statistics", &cfg_type_zonestat, 0 },
+	{ "allow-notify", &cfg_type_bracketed_aml,
+		CFG_ZONE_SLAVE
+	},
+	{ "allow-query", &cfg_type_bracketed_aml,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_REDIRECT | CFG_ZONE_STATICSTUB
+	},
+	{ "allow-query-on", &cfg_type_bracketed_aml,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_REDIRECT | CFG_ZONE_STATICSTUB
+	},
+	{ "allow-transfer", &cfg_type_bracketed_aml,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "allow-update", &cfg_type_bracketed_aml,
+		CFG_ZONE_MASTER
+	},
+	{ "allow-update-forwarding", &cfg_type_bracketed_aml,
+		CFG_ZONE_SLAVE
+	},
+	{ "also-notify", &cfg_type_namesockaddrkeylist,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "alt-transfer-source", &cfg_type_sockaddr4wild,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "auto-dnssec", &cfg_type_autodnssec,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "check-dup-records", &cfg_type_checkmode,
+		CFG_ZONE_MASTER
+	},
+	{ "check-integrity", &cfg_type_boolean,
+		CFG_ZONE_MASTER
+	},
+	{ "check-mx", &cfg_type_checkmode,
+		CFG_ZONE_MASTER
+	},
+	{ "check-mx-cname", &cfg_type_checkmode,
+		CFG_ZONE_MASTER
+	},
+	{ "check-sibling", &cfg_type_boolean,
+		CFG_ZONE_MASTER
+	},
+	{ "check-spf", &cfg_type_warn,
+		CFG_ZONE_MASTER
+	},
+	{ "check-srv-cname", &cfg_type_checkmode,
+		CFG_ZONE_MASTER
+	},
+	{ "check-wildcard", &cfg_type_boolean,
+		CFG_ZONE_MASTER
+	},
+	{ "dialup", &cfg_type_dialuptype,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "dnssec-dnskey-kskonly", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "dnssec-loadkeys-interval", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "dnssec-secure-to-insecure", &cfg_type_boolean,
+		CFG_ZONE_MASTER
+	},
+	{ "dnssec-update-mode", &cfg_type_dnssecupdatemode,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "forward", &cfg_type_forwardtype,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_FORWARD
+	},
+	{ "forwarders", &cfg_type_portiplist,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_FORWARD
+	},
+	{ "inline-signing", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "key-directory", &cfg_type_qstring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "maintain-ixfr-base", &cfg_type_boolean,
+		CFG_CLAUSEFLAG_OBSOLETE
+	},
+	{ "masterfile-format", &cfg_type_masterformat,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE |
+		CFG_ZONE_STUB | CFG_ZONE_REDIRECT
+	},
+	{ "masterfile-style", &cfg_type_masterstyle,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE |
+		CFG_ZONE_STUB | CFG_ZONE_REDIRECT
+	},
+	{ "max-ixfr-log-size", &cfg_type_size,
+		CFG_CLAUSEFLAG_OBSOLETE
+	},
+	{ "max-journal-size", &cfg_type_size,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "max-records", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_REDIRECT
+	},
+	{ "max-refresh-time", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "max-retry-time", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "max-transfer-idle-in", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "max-transfer-idle-out", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "max-transfer-time-in", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "max-transfer-time-out", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "max-zone-ttl", &cfg_type_maxttl,
+		CFG_ZONE_MASTER | CFG_ZONE_REDIRECT
+	},
+	{ "min-refresh-time", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "min-retry-time", &cfg_type_uint32,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "multi-master", &cfg_type_boolean,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "notify", &cfg_type_notifytype,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "notify-delay", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "notify-source", &cfg_type_sockaddr4wild,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "notify-source-v6", &cfg_type_sockaddr6wild,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "notify-to-soa", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "nsec3-test-zone", &cfg_type_boolean,
+		CFG_CLAUSEFLAG_TESTONLY |
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "request-expire", &cfg_type_boolean,
+		CFG_ZONE_SLAVE
+	},
+	{ "request-ixfr", &cfg_type_boolean,
+		CFG_ZONE_SLAVE
+	},
+	{ "serial-update-method", &cfg_type_updatemethod,
+		CFG_ZONE_MASTER
+	},
+	{ "sig-signing-nodes", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "sig-signing-signatures", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "sig-signing-type", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "sig-validity-interval", &cfg_type_validityinterval,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "transfer-source", &cfg_type_sockaddr4wild,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "transfer-source-v6", &cfg_type_sockaddr6wild,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "try-tcp-refresh", &cfg_type_boolean,
+		CFG_ZONE_SLAVE
+	},
+	{ "update-check-ksk", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "use-alt-transfer-source", &cfg_type_boolean,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "zero-no-soa-ttl", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "zone-statistics", &cfg_type_zonestat,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_REDIRECT
+	},
 	{ NULL, NULL, 0 }
 };
 
 /*%
- * Clauses that can be found in a 'zone' statement
- * only.
+ * Clauses that can be found in a 'zone' statement only.
+ *
+ * Note: CFG_ZONE_* options indicate in which zone types this clause is
+ * legal.
  */
 static cfg_clausedef_t
 zone_only_clauses[] = {
-	{ "type", &cfg_type_zonetype, 0 },
-	{ "file", &cfg_type_qstring, 0 },
-	{ "journal", &cfg_type_qstring, 0 },
-	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "masters", &cfg_type_namesockaddrkeylist, 0 },
-	{ "pubkey", &cfg_type_pubkey,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
-	{ "update-policy", &cfg_type_updatepolicy, 0 },
-	{ "database", &cfg_type_astring, 0 },
-	{ "dlz", &cfg_type_astring, 0 },
-	{ "delegation-only", &cfg_type_boolean, 0 },
 	/*
 	 * Note that the format of the check-names option is different between
 	 * the zone options and the global/view options.  Ugh.
 	 */
-	{ "check-names", &cfg_type_checkmode, 0 },
-	{ "in-view", &cfg_type_astring, 0 },
-	{ "ixfr-from-differences", &cfg_type_boolean, 0 },
-	{ "server-addresses", &cfg_type_bracketed_sockaddrlist, 0 },
-	{ "server-names", &cfg_type_namelist, 0 },
+	{ "check-names", &cfg_type_checkmode,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE |
+		CFG_ZONE_HINT | CFG_ZONE_STUB
+	},
+	{ "database", &cfg_type_astring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB
+	},
+	{ "delegation-only", &cfg_type_boolean,
+		CFG_ZONE_HINT | CFG_ZONE_STUB | CFG_ZONE_FORWARD
+	},
+	{ "dlz", &cfg_type_astring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_REDIRECT
+	},
+	{ "file", &cfg_type_qstring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_HINT | CFG_ZONE_REDIRECT
+	},
+	{ "in-view", &cfg_type_astring,
+		CFG_ZONE_INVIEW
+	},
+	{ "ixfr-base", &cfg_type_qstring,
+		CFG_CLAUSEFLAG_OBSOLETE
+	},
+	{ "ixfr-from-differences", &cfg_type_boolean,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "ixfr-tmp-file", &cfg_type_qstring,
+		CFG_CLAUSEFLAG_OBSOLETE
+	},
+	{ "journal", &cfg_type_qstring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "masters", &cfg_type_namesockaddrkeylist,
+		CFG_ZONE_SLAVE | CFG_ZONE_STUB | CFG_ZONE_REDIRECT
+	},
+	{ "pubkey", &cfg_type_pubkey,
+		CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE
+	},
+	{ "server-addresses", &cfg_type_bracketed_sockaddrlist,
+		CFG_ZONE_STATICSTUB
+	},
+	{ "server-names", &cfg_type_namelist,
+		CFG_ZONE_STATICSTUB
+	},
+	{ "type", &cfg_type_zonetype,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION | CFG_ZONE_HINT |
+		CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD
+	},
+	{ "update-policy", &cfg_type_updatepolicy,
+		CFG_ZONE_MASTER
+	},
 	{ NULL, NULL, 0 }
 };
-
 
 /*% The top-level named.conf syntax. */
 
@@ -2163,7 +2337,7 @@ zone_clausesets[] = {
 	zone_clauses,
 	NULL
 };
-static cfg_type_t cfg_type_zoneopts = {
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_zoneopts = {
 	"zoneopts", cfg_parse_map, cfg_print_map,
 	cfg_doc_map, &cfg_rep_map, zone_clausesets };
 
@@ -3866,3 +4040,118 @@ static cfg_type_t cfg_type_maxttl = {
 	"maxttl_no_default", parse_maxttl, cfg_print_ustring, doc_maxttl,
 	&cfg_rep_string, maxttl_enums
 };
+
+static int cmp_clause(const void *ap, const void *bp) {
+	const cfg_clausedef_t *a = (const cfg_clausedef_t *)ap;
+	const cfg_clausedef_t *b = (const cfg_clausedef_t *)bp;
+	return (strcmp(a->name, b->name));
+}
+
+isc_boolean_t
+cfg_clause_validforzone(const char *name, unsigned int ztype) {
+	const cfg_clausedef_t *clause;
+	isc_boolean_t valid = ISC_FALSE;
+
+	for (clause = zone_clauses; clause->name != NULL; clause++) {
+		if ((clause->flags & ztype) == 0 ||
+		    strcmp(clause->name, name) != 0)
+		{
+			continue;
+		}
+		valid = ISC_TRUE;
+	}
+	for (clause = zone_only_clauses; clause->name != NULL; clause++) {
+		if ((clause->flags & ztype) == 0 ||
+		    strcmp(clause->name, name) != 0)
+		{
+			continue;
+		}
+		valid = ISC_TRUE;
+	}
+
+	return (valid);
+}
+
+void
+cfg_print_zonegrammar(const unsigned int zonetype,
+		      void (*f)(void *closure, const char *text, int textlen),
+		      void *closure)
+{
+#define NCLAUSES \
+	(((sizeof(zone_clauses) + sizeof(zone_only_clauses)) / \
+	  sizeof(clause[0])) - 1)
+
+	cfg_printer_t pctx;
+	cfg_clausedef_t *clause = NULL;
+	cfg_clausedef_t clauses[NCLAUSES];
+
+	pctx.f = f;
+	pctx.closure = closure;
+	pctx.indent = 0;
+	pctx.flags = 0;
+
+	memmove(clauses, zone_clauses, sizeof(zone_clauses));
+	memmove(clauses + sizeof(zone_clauses)/sizeof(zone_clauses[0]) - 1,
+	        zone_only_clauses, sizeof(zone_only_clauses));
+	qsort(clauses, NCLAUSES - 1, sizeof(clause[0]), cmp_clause);
+
+	cfg_print_cstr(&pctx, "zone <string> [ <class> ] {\n");
+	pctx.indent++;
+
+	switch (zonetype) {
+	case CFG_ZONE_MASTER:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type ( master | primary );\n");
+		break;
+	case CFG_ZONE_SLAVE:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type ( slave | secondary );\n");
+		break;
+	case CFG_ZONE_STUB:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type stub;\n");
+		break;
+	case CFG_ZONE_HINT:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type hint;\n");
+		break;
+	case CFG_ZONE_FORWARD:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type forward;\n");
+		break;
+	case CFG_ZONE_STATICSTUB:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type static-stub;\n");
+		break;
+	case CFG_ZONE_REDIRECT:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type redirect;\n");
+		break;
+	case CFG_ZONE_DELEGATION:
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, "type delegation-only;\n");
+		break;
+	case CFG_ZONE_INVIEW:
+		/* no zone type is specified for these */
+		break;
+	default:
+		INSIST(0);
+	}
+
+	for (clause = clauses; clause->name != NULL; clause++) {
+		if ((clause->flags & zonetype) == 0 ||
+		    strcasecmp(clause->name, "type") == 0) {
+			continue;
+		}
+		cfg_print_indent(&pctx);
+		cfg_print_cstr(&pctx, clause->name);
+		cfg_print_cstr(&pctx, " ");
+		cfg_doc_obj(&pctx, clause->type);
+		cfg_print_cstr(&pctx, ";");
+		cfg_print_clauseflags(&pctx, clause->flags);
+		cfg_print_cstr(&pctx, "\n");
+	}
+
+	pctx.indent--;
+	cfg_print_cstr(&pctx, "};\n");
+}

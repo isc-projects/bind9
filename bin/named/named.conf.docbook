@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
  -
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2017-04-25</date>
+    <date>2018-01-22</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -44,6 +44,7 @@
       <year>2015</year>
       <year>2016</year>
       <year>2017</year>
+      <year>2018</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
   </docinfo>
@@ -86,14 +87,14 @@ acl <replaceable>string</replaceable> { <replaceable>address_match_element</repl
     <literallayout class="normal">
 controls {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
-	    * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> allow
-	    { <replaceable>address_match_element</replaceable>; ... } <optional>
-	    keys { <replaceable>string</replaceable>; ... } </optional> <optional> read-only
-	    <replaceable>boolean</replaceable> </optional>;
+	    * ) [ port ( <replaceable>integer</replaceable> | * ) ] allow
+	    { <replaceable>address_match_element</replaceable>; ... } [
+	    keys { <replaceable>string</replaceable>; ... } ] [ read-only
+	    <replaceable>boolean</replaceable> ];
 	unix <replaceable>quoted_string</replaceable> perm <replaceable>integer</replaceable>
-	    owner <replaceable>integer</replaceable> group <replaceable>integer</replaceable> <optional>
-	    keys { <replaceable>string</replaceable>; ... } </optional> <optional> read-only
-	    <replaceable>boolean</replaceable> </optional>;
+	    owner <replaceable>integer</replaceable> group <replaceable>integer</replaceable> [
+	    keys { <replaceable>string</replaceable>; ... } ] [ read-only
+	    <replaceable>boolean</replaceable> ];
 };
 </literallayout>
   </refsection>
@@ -133,19 +134,20 @@ logging {
 	category <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	channel <replaceable>string</replaceable> {
 		buffered <replaceable>boolean</replaceable>;
-		file <replaceable>quoted_string</replaceable> <optional> versions ( unlimited | <replaceable>integer</replaceable> ) </optional>
-		    <optional> size <replaceable>size</replaceable> </optional> <optional> suffix ( increment | timestamp ) </optional>;
+		file <replaceable>quoted_string</replaceable> [ versions ( unlimited | <replaceable>integer</replaceable> ) ]
+		    [ size <replaceable>size</replaceable> ] [ suffix ( increment | timestamp ) ];
 		null;
 		print-category <replaceable>boolean</replaceable>;
 		print-severity <replaceable>boolean</replaceable>;
 		print-time ( iso8601 | iso8601-utc | local | <replaceable>boolean</replaceable> );
 		severity <replaceable>log_severity</replaceable>;
 		stderr;
-		syslog <optional> <replaceable>syslog_facility</replaceable> </optional>;
+		syslog [ <replaceable>syslog_facility</replaceable> ];
 	};
 };
 </literallayout>
   </refsection>
+
 
   <refsection><info><title>MANAGED-KEYS</title></info>
 
@@ -158,10 +160,10 @@ managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceabl
   <refsection><info><title>MASTERS</title></info>
 
     <literallayout class="normal">
-masters <replaceable>string</replaceable> <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp
-    <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional>
-    port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-    <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
+masters <replaceable>string</replaceable> [ port <replaceable>integer</replaceable> ] [ dscp
+    <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
+    port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+    <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
 </literallayout>
   </refsection>
 
@@ -169,10 +171,6 @@ masters <replaceable>string</replaceable> <optional> port <replaceable>integer</
 
     <literallayout class="normal">
 options {
-	acache-cleaning-interval <replaceable>integer</replaceable>;
-	acache-enable <replaceable>boolean</replaceable>;
-	additional-from-auth <replaceable>boolean</replaceable>;
-	additional-from-cache <replaceable>boolean</replaceable>;
 	allow-new-zones <replaceable>boolean</replaceable>;
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
@@ -184,13 +182,13 @@ options {
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
-	also-notify <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> |
-	    <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> |
-	    * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	also-notify [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> |
+	    <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
+	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
+	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
+	    * ) ] [ dscp <replaceable>integer</replaceable> ];
 	attach-cache <replaceable>string</replaceable>;
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
 	auto-dnssec ( allow | maintain | off );
@@ -200,17 +198,18 @@ options {
 	bindkeys-file <replaceable>quoted_string</replaceable>;
 	blackhole { <replaceable>address_match_element</replaceable>; ... };
 	cache-file <replaceable>quoted_string</replaceable>;
-	catalog-zones { zone <replaceable>quoted_string</replaceable> <optional> default-masters <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional>
-	    port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> ) <optional> key
-	    <replaceable>string</replaceable> </optional>; ... } </optional> <optional> zone-directory <replaceable>quoted_string</replaceable> </optional> <optional>
-	    in-memory <replaceable>boolean</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional>; ... };
+	catalog-zones { zone <replaceable>quoted_string</replaceable> [ default-masters [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
+	    port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
+	    <replaceable>string</replaceable> ]; ... } ] [ zone-directory <replaceable>quoted_string</replaceable> ] [
+	    in-memory <replaceable>boolean</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ]; ... };
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
-	check-names ( master | slave | response
-	    ) ( fail | warn | ignore );
+	check-names ( primary | master |
+	    secondary | slave | response ) (
+	    fail | warn | ignore );
 	check-sibling <replaceable>boolean</replaceable>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
@@ -221,10 +220,10 @@ options {
 	cookie-secret <replaceable>string</replaceable>;
 	coresize ( default | unlimited | <replaceable>sizeval</replaceable> );
 	datasize ( default | unlimited | <replaceable>sizeval</replaceable> );
-	deny-answer-addresses { <replaceable>address_match_element</replaceable>; ... } <optional>
-	    except-from { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	deny-answer-aliases { <replaceable>quoted_string</replaceable>; ... } <optional> except-from {
-	    <replaceable>quoted_string</replaceable>; ... } </optional>;
+	deny-answer-addresses { <replaceable>address_match_element</replaceable>; ... } [
+	    except-from { <replaceable>quoted_string</replaceable>; ... } ];
+	deny-answer-aliases { <replaceable>quoted_string</replaceable>; ... } [ except-from {
+	    <replaceable>quoted_string</replaceable>; ... } ];
 	dialup ( notify | notify-passive | passive | refresh | <replaceable>boolean</replaceable> );
 	directory <replaceable>quoted_string</replaceable>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>;
@@ -242,6 +241,8 @@ options {
 	};
 	dns64-contact <replaceable>string</replaceable>;
 	dns64-server <replaceable>string</replaceable>;
+	dnsrps-enable <replaceable>boolean</replaceable>;
+	dnsrps-options { <replaceable>unspecified-text</replaceable> };
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-enable <replaceable>boolean</replaceable>;
@@ -253,35 +254,35 @@ options {
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder |
-	    resolver ) <optional> ( query | response ) </optional>; ... };
+	    resolver ) [ ( query | response ) ]; ... };
 	dnstap-identity ( <replaceable>quoted_string</replaceable> | none |
 	    hostname );
-	dnstap-output ( file | unix ) <replaceable>quoted_string</replaceable> <optional>
-	    size ( unlimited | <replaceable>size</replaceable> ) </optional> <optional> versions (
-	    unlimited | <replaceable>integer</replaceable> ) </optional> <optional> suffix ( increment
-	    | timestamp ) </optional>;
+	dnstap-output ( file | unix ) <replaceable>quoted_string</replaceable> [
+	    size ( unlimited | <replaceable>size</replaceable> ) ] [ versions (
+	    unlimited | <replaceable>integer</replaceable> ) ] [ suffix ( increment
+	    | timestamp ) ];
 	dnstap-version ( <replaceable>quoted_string</replaceable> | none );
 	dscp <replaceable>integer</replaceable>;
-	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> { ( <replaceable>quoted_string</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> | <replaceable>ipv4_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> ); ... };
+	dual-stack-servers [ port <replaceable>integer</replaceable> ] { ( <replaceable>quoted_string</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv4_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] ); ... };
 	dump-file <replaceable>quoted_string</replaceable>;
 	edns-udp-size <replaceable>integer</replaceable>;
 	empty-contact <replaceable>string</replaceable>;
 	empty-server <replaceable>string</replaceable>;
 	empty-zones-enable <replaceable>boolean</replaceable>;
 	fetch-quota-params <replaceable>integer</replaceable> <replaceable>fixedpoint</replaceable> <replaceable>fixedpoint</replaceable> <replaceable>fixedpoint</replaceable>;
-	fetches-per-server <replaceable>integer</replaceable> <optional> ( drop | fail ) </optional>;
-	fetches-per-zone <replaceable>integer</replaceable> <optional> ( drop | fail ) </optional>;
+	fetches-per-server <replaceable>integer</replaceable> [ ( drop | fail ) ];
+	fetches-per-zone <replaceable>integer</replaceable> [ ( drop | fail ) ];
 	files ( default | unlimited | <replaceable>sizeval</replaceable> );
 	filter-aaaa { <replaceable>address_match_element</replaceable>; ... };
 	filter-aaaa-on-v4 ( break-dnssec | <replaceable>boolean</replaceable> );
 	filter-aaaa-on-v6 ( break-dnssec | <replaceable>boolean</replaceable> );
 	flush-zones-on-shutdown <replaceable>boolean</replaceable>;
 	forward ( first | only );
-	forwarders <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable>
-	    | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional>; ... };
+	forwarders [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>ipv4_address</replaceable>
+	    | <replaceable>ipv6_address</replaceable> ) [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ]; ... };
 	fstrm-set-buffer-hint <replaceable>integer</replaceable>;
 	fstrm-set-flush-timeout <replaceable>integer</replaceable>;
 	fstrm-set-input-queue-size <replaceable>integer</replaceable>;
@@ -290,20 +291,22 @@ options {
 	fstrm-set-output-queue-size <replaceable>integer</replaceable>;
 	fstrm-set-reopen-interval <replaceable>integer</replaceable>;
 	geoip-directory ( <replaceable>quoted_string</replaceable> | none );
-	geoip-use-ecs ( <replaceable>quoted_string</replaceable> | none );
+	geoip-use-ecs <replaceable>boolean</replaceable>;
+	glue-cache <replaceable>boolean</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
 	hostname ( <replaceable>quoted_string</replaceable> | none );
 	inline-signing <replaceable>boolean</replaceable>;
 	interface-interval <replaceable>integer</replaceable>;
-	ixfr-from-differences ( master | slave | <replaceable>boolean</replaceable> );
+	ixfr-from-differences ( primary | master | secondary | slave |
+	    <replaceable>boolean</replaceable> );
 	keep-response-order { <replaceable>address_match_element</replaceable>; ... };
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
-	listen-on <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp
-	    <replaceable>integer</replaceable> </optional> {
+	listen-on [ port <replaceable>integer</replaceable> ] [ dscp
+	    <replaceable>integer</replaceable> ] {
 	    <replaceable>address_match_element</replaceable>; ... };
-	listen-on-v6 <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp
-	    <replaceable>integer</replaceable> </optional> {
+	listen-on-v6 [ port <replaceable>integer</replaceable> ] [ dscp
+	    <replaceable>integer</replaceable> ] {
 	    <replaceable>address_match_element</replaceable>; ... };
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
 	lock-file ( <replaceable>quoted_string</replaceable> | none );
@@ -311,11 +314,10 @@ options {
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
 	match-mapped-addresses <replaceable>boolean</replaceable>;
-	max-acache-size ( unlimited | <replaceable>sizeval</replaceable> );
 	max-cache-size ( default | unlimited | <replaceable>sizeval</replaceable> | <replaceable>percentage</replaceable> );
 	max-cache-ttl <replaceable>integer</replaceable>;
 	max-clients-per-query <replaceable>integer</replaceable>;
-	max-journal-size ( unlimited | <replaceable>sizeval</replaceable> );
+	max-journal-size ( default | unlimited | <replaceable>sizeval</replaceable> );
 	max-ncache-ttl <replaceable>integer</replaceable>;
 	max-records <replaceable>integer</replaceable>;
 	max-recursion-depth <replaceable>integer</replaceable>;
@@ -323,6 +325,7 @@ options {
 	max-refresh-time <replaceable>integer</replaceable>;
 	max-retry-time <replaceable>integer</replaceable>;
 	max-rsa-exponent-size <replaceable>integer</replaceable>;
+	max-stale-ttl <replaceable>ttlval</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
 	max-transfer-idle-out <replaceable>integer</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
@@ -337,33 +340,33 @@ options {
 	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses ( no-auth | no-auth-recursive | <replaceable>boolean</replaceable> );
 	multi-master <replaceable>boolean</replaceable>;
+	new-zones-directory <replaceable>quoted_string</replaceable>;
 	no-case-compress { <replaceable>address_match_element</replaceable>; ... };
 	nocookie-udp-size <replaceable>integer</replaceable>;
 	notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 	notify-delay <replaceable>integer</replaceable>;
 	notify-rate <replaceable>integer</replaceable>;
-	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>
-	    <optional> dscp <replaceable>integer</replaceable> </optional>;
+	notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ]
+	    [ dscp <replaceable>integer</replaceable> ];
 	notify-to-soa <replaceable>boolean</replaceable>;
-	nsec3-test-zone <replaceable>boolean</replaceable>; // test only
 	nta-lifetime <replaceable>ttlval</replaceable>;
 	nta-recheck <replaceable>ttlval</replaceable>;
 	nxdomain-redirect <replaceable>string</replaceable>;
 	pid-file ( <replaceable>quoted_string</replaceable> | none );
 	port <replaceable>integer</replaceable>;
 	preferred-glue <replaceable>string</replaceable>;
-	prefetch <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
+	prefetch <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
 	provide-ixfr <replaceable>boolean</replaceable>;
-	query-source ( ( <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
-	query-source-v6 ( ( <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
+	query-source ( ( [ address ] ( <replaceable>ipv4_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv4_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
+	query-source-v6 ( ( [ address ] ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv6_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
 	querylog <replaceable>boolean</replaceable>;
-	random-device <replaceable>quoted_string</replaceable>;
+	random-device ( <replaceable>quoted_string</replaceable> | none );
 	rate-limit {
 		all-per-second <replaceable>integer</replaceable>;
 		errors-per-second <replaceable>integer</replaceable>;
@@ -389,20 +392,26 @@ options {
 	request-nsid <replaceable>boolean</replaceable>;
 	require-server-cookie <replaceable>boolean</replaceable>;
 	reserved-sockets <replaceable>integer</replaceable>;
+	resolver-nonbackoff-tries <replaceable>integer</replaceable>;
 	resolver-query-timeout <replaceable>integer</replaceable>;
+	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>quoted_string</replaceable> <optional> log <replaceable>boolean</replaceable> </optional> <optional>
-	    max-policy-ttl <replaceable>integer</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional> <optional>
+	response-policy { zone <replaceable>quoted_string</replaceable> [ log <replaceable>boolean</replaceable> ] [
+	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
 	    policy ( cname | disabled | drop | given | no-op | nodata |
-	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) </optional> <optional>
-	    recursive-only <replaceable>boolean</replaceable> </optional>; ... } <optional> break-dnssec <replaceable>boolean</replaceable> </optional> <optional>
-	    max-policy-ttl <replaceable>integer</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional> <optional>
-	    min-ns-dots <replaceable>integer</replaceable> </optional> <optional> nsip-wait-recurse <replaceable>boolean</replaceable> </optional> <optional>
-	    qname-wait-recurse <replaceable>boolean</replaceable> </optional> <optional> recursive-only <replaceable>boolean</replaceable> </optional>;
-	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	rrset-order { <optional> class <replaceable>string</replaceable> </optional> <optional> type <replaceable>string</replaceable> </optional> <optional> name
-	    <replaceable>quoted_string</replaceable> </optional> <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
+	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
+	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [
+	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
+	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
+	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ] [
+	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ] [
+	    dnsrps-enable <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>
+	    } ];
+	root-delegation-only [ exclude { <replaceable>quoted_string</replaceable>; ... } ];
+	rrset-order { [ class <replaceable>string</replaceable> ] [ type <replaceable>string</replaceable> ] [ name
+	    <replaceable>quoted_string</replaceable> ] <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
 	secroots-file <replaceable>quoted_string</replaceable>;
 	send-cookie <replaceable>boolean</replaceable>;
 	serial-query-rate <replaceable>integer</replaceable>;
@@ -415,9 +424,11 @@ options {
 	sig-signing-nodes <replaceable>integer</replaceable>;
 	sig-signing-signatures <replaceable>integer</replaceable>;
 	sig-signing-type <replaceable>integer</replaceable>;
-	sig-validity-interval <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
+	sig-validity-interval <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
 	stacksize ( default | unlimited | <replaceable>sizeval</replaceable> );
+	stale-answer-enable <replaceable>boolean</replaceable>;
+	stale-answer-ttl <replaceable>ttlval</replaceable>;
 	startup-notify-rate <replaceable>integer</replaceable>;
 	statistics-file <replaceable>quoted_string</replaceable>;
 	synth-from-dnssec <replaceable>boolean</replaceable>;
@@ -433,10 +444,10 @@ options {
 	tkey-gssapi-keytab <replaceable>quoted_string</replaceable>;
 	transfer-format ( many-answers | one-answer );
 	transfer-message-size <replaceable>integer</replaceable>;
-	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
 	transfers-in <replaceable>integer</replaceable>;
 	transfers-out <replaceable>integer</replaceable>;
 	transfers-per-ns <replaceable>integer</replaceable>;
@@ -465,18 +476,18 @@ server <replaceable>netprefix</replaceable> {
 	edns-version <replaceable>integer</replaceable>;
 	keys <replaceable>server_key</replaceable>;
 	max-udp-size <replaceable>integer</replaceable>;
-	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>
-	    <optional> dscp <replaceable>integer</replaceable> </optional>;
+	notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ]
+	    [ dscp <replaceable>integer</replaceable> ];
 	padding <replaceable>integer</replaceable>;
 	provide-ixfr <replaceable>boolean</replaceable>;
-	query-source ( ( <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
-	query-source-v6 ( ( <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
+	query-source ( ( [ address ] ( <replaceable>ipv4_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv4_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
+	query-source-v6 ( ( [ address ] ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv6_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
 	request-expire <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	request-nsid <replaceable>boolean</replaceable>;
@@ -484,10 +495,10 @@ server <replaceable>netprefix</replaceable> {
 	tcp-keepalive <replaceable>boolean</replaceable>;
 	tcp-only <replaceable>boolean</replaceable>;
 	transfer-format ( many-answers | one-answer );
-	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
 	transfers <replaceable>integer</replaceable>;
 };
 </literallayout>
@@ -498,9 +509,9 @@ server <replaceable>netprefix</replaceable> {
     <literallayout class="normal">
 statistics-channels {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
-	    * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
+	    * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
 	    allow { <replaceable>address_match_element</replaceable>; ...
-	    } </optional>;
+	    } ];
 };
 </literallayout>
   </refsection>
@@ -516,11 +527,7 @@ trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceab
   <refsection><info><title>VIEW</title></info>
 
     <literallayout class="normal">
-view <replaceable>string</replaceable> <optional> <replaceable>class</replaceable> </optional> {
-	acache-cleaning-interval <replaceable>integer</replaceable>;
-	acache-enable <replaceable>boolean</replaceable>;
-	additional-from-auth <replaceable>boolean</replaceable>;
-	additional-from-cache <replaceable>boolean</replaceable>;
+view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-new-zones <replaceable>boolean</replaceable>;
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
@@ -532,38 +539,39 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
-	also-notify <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> |
-	    <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> |
-	    * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	also-notify [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> |
+	    <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
+	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
+	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
+	    * ) ] [ dscp <replaceable>integer</replaceable> ];
 	attach-cache <replaceable>string</replaceable>;
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
 	auto-dnssec ( allow | maintain | off );
 	cache-file <replaceable>quoted_string</replaceable>;
-	catalog-zones { zone <replaceable>quoted_string</replaceable> <optional> default-masters <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional>
-	    port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> ) <optional> key
-	    <replaceable>string</replaceable> </optional>; ... } </optional> <optional> zone-directory <replaceable>quoted_string</replaceable> </optional> <optional>
-	    in-memory <replaceable>boolean</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional>; ... };
+	catalog-zones { zone <replaceable>quoted_string</replaceable> [ default-masters [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
+	    port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
+	    <replaceable>string</replaceable> ]; ... } ] [ zone-directory <replaceable>quoted_string</replaceable> ] [
+	    in-memory <replaceable>boolean</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ]; ... };
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
-	check-names ( master | slave | response
-	    ) ( fail | warn | ignore );
+	check-names ( primary | master |
+	    secondary | slave | response ) (
+	    fail | warn | ignore );
 	check-sibling <replaceable>boolean</replaceable>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
 	check-wildcard <replaceable>boolean</replaceable>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	clients-per-query <replaceable>integer</replaceable>;
-	deny-answer-addresses { <replaceable>address_match_element</replaceable>; ... } <optional>
-	    except-from { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	deny-answer-aliases { <replaceable>quoted_string</replaceable>; ... } <optional> except-from {
-	    <replaceable>quoted_string</replaceable>; ... } </optional>;
+	deny-answer-addresses { <replaceable>address_match_element</replaceable>; ... } [
+	    except-from { <replaceable>quoted_string</replaceable>; ... } ];
+	deny-answer-aliases { <replaceable>quoted_string</replaceable>; ... } [ except-from {
+	    <replaceable>quoted_string</replaceable>; ... } ];
 	dialup ( notify | notify-passive | passive | refresh | <replaceable>boolean</replaceable> );
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>;
 	    ... };
@@ -584,6 +592,8 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	};
 	dns64-contact <replaceable>string</replaceable>;
 	dns64-server <replaceable>string</replaceable>;
+	dnsrps-enable <replaceable>boolean</replaceable>;
+	dnsrps-options { <replaceable>unspecified-text</replaceable> };
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-enable <replaceable>boolean</replaceable>;
@@ -595,11 +605,11 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder |
-	    resolver ) <optional> ( query | response ) </optional>; ... };
-	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> { ( <replaceable>quoted_string</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> | <replaceable>ipv4_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> ); ... };
+	    resolver ) [ ( query | response ) ]; ... };
+	dual-stack-servers [ port <replaceable>integer</replaceable> ] { ( <replaceable>quoted_string</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv4_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] ); ... };
 	dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
 	    <replaceable>unspecified-text</replaceable> };
 	edns-udp-size <replaceable>integer</replaceable>;
@@ -607,16 +617,18 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	empty-server <replaceable>string</replaceable>;
 	empty-zones-enable <replaceable>boolean</replaceable>;
 	fetch-quota-params <replaceable>integer</replaceable> <replaceable>fixedpoint</replaceable> <replaceable>fixedpoint</replaceable> <replaceable>fixedpoint</replaceable>;
-	fetches-per-server <replaceable>integer</replaceable> <optional> ( drop | fail ) </optional>;
-	fetches-per-zone <replaceable>integer</replaceable> <optional> ( drop | fail ) </optional>;
+	fetches-per-server <replaceable>integer</replaceable> [ ( drop | fail ) ];
+	fetches-per-zone <replaceable>integer</replaceable> [ ( drop | fail ) ];
 	filter-aaaa { <replaceable>address_match_element</replaceable>; ... };
 	filter-aaaa-on-v4 ( break-dnssec | <replaceable>boolean</replaceable> );
 	filter-aaaa-on-v6 ( break-dnssec | <replaceable>boolean</replaceable> );
 	forward ( first | only );
-	forwarders <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable>
-	    | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional>; ... };
+	forwarders [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>ipv4_address</replaceable>
+	    | <replaceable>ipv6_address</replaceable> ) [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ]; ... };
+	glue-cache <replaceable>boolean</replaceable>;
 	inline-signing <replaceable>boolean</replaceable>;
-	ixfr-from-differences ( master | slave | <replaceable>boolean</replaceable> );
+	ixfr-from-differences ( primary | master | secondary | slave |
+	    <replaceable>boolean</replaceable> );
 	key <replaceable>string</replaceable> {
 		algorithm <replaceable>string</replaceable>;
 		secret <replaceable>string</replaceable>;
@@ -632,17 +644,17 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
 	match-destinations { <replaceable>address_match_element</replaceable>; ... };
 	match-recursive-only <replaceable>boolean</replaceable>;
-	max-acache-size ( unlimited | <replaceable>sizeval</replaceable> );
 	max-cache-size ( default | unlimited | <replaceable>sizeval</replaceable> | <replaceable>percentage</replaceable> );
 	max-cache-ttl <replaceable>integer</replaceable>;
 	max-clients-per-query <replaceable>integer</replaceable>;
-	max-journal-size ( unlimited | <replaceable>sizeval</replaceable> );
+	max-journal-size ( default | unlimited | <replaceable>sizeval</replaceable> );
 	max-ncache-ttl <replaceable>integer</replaceable>;
 	max-records <replaceable>integer</replaceable>;
 	max-recursion-depth <replaceable>integer</replaceable>;
 	max-recursion-queries <replaceable>integer</replaceable>;
 	max-refresh-time <replaceable>integer</replaceable>;
 	max-retry-time <replaceable>integer</replaceable>;
+	max-stale-ttl <replaceable>ttlval</replaceable>;
 	max-transfer-idle-in <replaceable>integer</replaceable>;
 	max-transfer-idle-out <replaceable>integer</replaceable>;
 	max-transfer-time-in <replaceable>integer</replaceable>;
@@ -655,28 +667,28 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses ( no-auth | no-auth-recursive | <replaceable>boolean</replaceable> );
 	multi-master <replaceable>boolean</replaceable>;
+	new-zones-directory <replaceable>quoted_string</replaceable>;
 	no-case-compress { <replaceable>address_match_element</replaceable>; ... };
 	nocookie-udp-size <replaceable>integer</replaceable>;
 	notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 	notify-delay <replaceable>integer</replaceable>;
-	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>
-	    <optional> dscp <replaceable>integer</replaceable> </optional>;
+	notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ]
+	    [ dscp <replaceable>integer</replaceable> ];
 	notify-to-soa <replaceable>boolean</replaceable>;
-	nsec3-test-zone <replaceable>boolean</replaceable>; // test only
 	nta-lifetime <replaceable>ttlval</replaceable>;
 	nta-recheck <replaceable>ttlval</replaceable>;
 	nxdomain-redirect <replaceable>string</replaceable>;
 	preferred-glue <replaceable>string</replaceable>;
-	prefetch <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
+	prefetch <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
 	provide-ixfr <replaceable>boolean</replaceable>;
-	query-source ( ( <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
-	query-source-v6 ( ( <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-	    <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) </optional>
-	    port ( <replaceable>integer</replaceable> | * ) ) ) <optional> dscp <replaceable>integer</replaceable> </optional>;
+	query-source ( ( [ address ] ( <replaceable>ipv4_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv4_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
+	query-source-v6 ( ( [ address ] ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+	    <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] ( <replaceable>ipv6_address</replaceable> | * ) ]
+	    port ( <replaceable>integer</replaceable> | * ) ) ) [ dscp <replaceable>integer</replaceable> ];
 	rate-limit {
 		all-per-second <replaceable>integer</replaceable>;
 		errors-per-second <replaceable>integer</replaceable>;
@@ -699,20 +711,26 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	request-ixfr <replaceable>boolean</replaceable>;
 	request-nsid <replaceable>boolean</replaceable>;
 	require-server-cookie <replaceable>boolean</replaceable>;
+	resolver-nonbackoff-tries <replaceable>integer</replaceable>;
 	resolver-query-timeout <replaceable>integer</replaceable>;
+	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>quoted_string</replaceable> <optional> log <replaceable>boolean</replaceable> </optional> <optional>
-	    max-policy-ttl <replaceable>integer</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional> <optional>
+	response-policy { zone <replaceable>quoted_string</replaceable> [ log <replaceable>boolean</replaceable> ] [
+	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
 	    policy ( cname | disabled | drop | given | no-op | nodata |
-	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) </optional> <optional>
-	    recursive-only <replaceable>boolean</replaceable> </optional>; ... } <optional> break-dnssec <replaceable>boolean</replaceable> </optional> <optional>
-	    max-policy-ttl <replaceable>integer</replaceable> </optional> <optional> min-update-interval <replaceable>integer</replaceable> </optional> <optional>
-	    min-ns-dots <replaceable>integer</replaceable> </optional> <optional> nsip-wait-recurse <replaceable>boolean</replaceable> </optional> <optional>
-	    qname-wait-recurse <replaceable>boolean</replaceable> </optional> <optional> recursive-only <replaceable>boolean</replaceable> </optional>;
-	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
-	rrset-order { <optional> class <replaceable>string</replaceable> </optional> <optional> type <replaceable>string</replaceable> </optional> <optional> name
-	    <replaceable>quoted_string</replaceable> </optional> <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
+	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
+	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [
+	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
+	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
+	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ] [
+	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ] [
+	    dnsrps-enable <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>
+	    } ];
+	root-delegation-only [ exclude { <replaceable>quoted_string</replaceable>; ... } ];
+	rrset-order { [ class <replaceable>string</replaceable> ] [ type <replaceable>string</replaceable> ] [ name
+	    <replaceable>quoted_string</replaceable> ] <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
 	send-cookie <replaceable>boolean</replaceable>;
 	serial-update-method ( date | increment | unixtime );
 	server <replaceable>netprefix</replaceable> {
@@ -722,20 +740,20 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 		edns-version <replaceable>integer</replaceable>;
 		keys <replaceable>server_key</replaceable>;
 		max-udp-size <replaceable>integer</replaceable>;
-		notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | *
-		    ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-		notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable>
-		    | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+		notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | *
+		    ) ] [ dscp <replaceable>integer</replaceable> ];
+		notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable>
+		    | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		padding <replaceable>integer</replaceable>;
 		provide-ixfr <replaceable>boolean</replaceable>;
-		query-source ( ( <optional> address </optional> ( <replaceable>ipv4_address</replaceable> | * ) <optional> port
-		    ( <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> (
-		    <replaceable>ipv4_address</replaceable> | * ) </optional> port ( <replaceable>integer</replaceable> | * ) ) ) <optional>
-		    dscp <replaceable>integer</replaceable> </optional>;
-		query-source-v6 ( ( <optional> address </optional> ( <replaceable>ipv6_address</replaceable> | * ) <optional>
-		    port ( <replaceable>integer</replaceable> | * ) </optional> ) | ( <optional> <optional> address </optional> (
-		    <replaceable>ipv6_address</replaceable> | * ) </optional> port ( <replaceable>integer</replaceable> | * ) ) ) <optional>
-		    dscp <replaceable>integer</replaceable> </optional>;
+		query-source ( ( [ address ] ( <replaceable>ipv4_address</replaceable> | * ) [ port
+		    ( <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] (
+		    <replaceable>ipv4_address</replaceable> | * ) ] port ( <replaceable>integer</replaceable> | * ) ) ) [
+		    dscp <replaceable>integer</replaceable> ];
+		query-source-v6 ( ( [ address ] ( <replaceable>ipv6_address</replaceable> | * ) [
+		    port ( <replaceable>integer</replaceable> | * ) ] ) | ( [ [ address ] (
+		    <replaceable>ipv6_address</replaceable> | * ) ] port ( <replaceable>integer</replaceable> | * ) ) ) [
+		    dscp <replaceable>integer</replaceable> ];
 		request-expire <replaceable>boolean</replaceable>;
 		request-ixfr <replaceable>boolean</replaceable>;
 		request-nsid <replaceable>boolean</replaceable>;
@@ -743,24 +761,26 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 		tcp-keepalive <replaceable>boolean</replaceable>;
 		tcp-only <replaceable>boolean</replaceable>;
 		transfer-format ( many-answers | one-answer );
-		transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> |
-		    * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-		    <replaceable>integer</replaceable> | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+		transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
+		    * ) ] [ dscp <replaceable>integer</replaceable> ];
+		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		transfers <replaceable>integer</replaceable>;
 	};
 	servfail-ttl <replaceable>ttlval</replaceable>;
 	sig-signing-nodes <replaceable>integer</replaceable>;
 	sig-signing-signatures <replaceable>integer</replaceable>;
 	sig-signing-type <replaceable>integer</replaceable>;
-	sig-validity-interval <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
+	sig-validity-interval <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
 	sortlist { <replaceable>address_match_element</replaceable>; ... };
+	stale-answer-enable <replaceable>boolean</replaceable>;
+	stale-answer-ttl <replaceable>ttlval</replaceable>;
 	synth-from-dnssec <replaceable>boolean</replaceable>;
 	transfer-format ( many-answers | one-answer );
-	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
 	trust-anchor-telemetry <replaceable>boolean</replaceable>; // experimental
 	trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>;
@@ -771,21 +791,21 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	v6-bias <replaceable>integer</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
-	zone <replaceable>string</replaceable> <optional> <replaceable>class</replaceable> </optional> {
+	zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		allow-notify { <replaceable>address_match_element</replaceable>; ... };
 		allow-query { <replaceable>address_match_element</replaceable>; ... };
 		allow-query-on { <replaceable>address_match_element</replaceable>; ... };
 		allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 		allow-update { <replaceable>address_match_element</replaceable>; ... };
 		allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
-		also-notify <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { (
-		    <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> |
-		    <replaceable>ipv6_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>;
+		also-notify [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { (
+		    <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] |
+		    <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ];
 		    ... };
-		alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port (
-		    <replaceable>integer</replaceable> | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-		alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-		    <replaceable>integer</replaceable> | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+		alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port (
+		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
+		alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		auto-dnssec ( allow | maintain | off );
 		check-dup-records ( fail | warn | ignore );
 		check-integrity <replaceable>boolean</replaceable>;
@@ -807,9 +827,9 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 		dnssec-update-mode ( maintain | no-resign );
 		file <replaceable>quoted_string</replaceable>;
 		forward ( first | only );
-		forwarders <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { (
-		    <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional> <optional>
-		    dscp <replaceable>integer</replaceable> </optional>; ... };
+		forwarders [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { (
+		    <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) [ port <replaceable>integer</replaceable> ] [
+		    dscp <replaceable>integer</replaceable> ]; ... };
 		in-view <replaceable>string</replaceable>;
 		inline-signing <replaceable>boolean</replaceable>;
 		ixfr-from-differences <replaceable>boolean</replaceable>;
@@ -817,11 +837,11 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 		key-directory <replaceable>quoted_string</replaceable>;
 		masterfile-format ( map | raw | text );
 		masterfile-style ( full | relative );
-		masters <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable>
-		    | <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional>
-		    port <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
+		masters [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable>
+		    | <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [
+		    port <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
 		max-ixfr-log-size ( default | unlimited |
-		max-journal-size ( unlimited | <replaceable>sizeval</replaceable> );
+		max-journal-size ( default | unlimited | <replaceable>sizeval</replaceable> );
 		max-records <replaceable>integer</replaceable>;
 		max-refresh-time <replaceable>integer</replaceable>;
 		max-retry-time <replaceable>integer</replaceable>;
@@ -835,38 +855,38 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 		multi-master <replaceable>boolean</replaceable>;
 		notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 		notify-delay <replaceable>integer</replaceable>;
-		notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | *
-		    ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-		notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable>
-		    | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+		notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | *
+		    ) ] [ dscp <replaceable>integer</replaceable> ];
+		notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable>
+		    | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		notify-to-soa <replaceable>boolean</replaceable>;
-		nsec3-test-zone <replaceable>boolean</replaceable>; // test only
 		pubkey <replaceable>integer</replaceable>
 		    <replaceable>integer</replaceable>
 		    <replaceable>integer</replaceable>
 		request-expire <replaceable>boolean</replaceable>;
 		request-ixfr <replaceable>boolean</replaceable>;
 		serial-update-method ( date | increment | unixtime );
-		server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional>
-		    port <replaceable>integer</replaceable> </optional>; ... };
+		server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) [
+		    port <replaceable>integer</replaceable> ]; ... };
 		server-names { <replaceable>quoted_string</replaceable>; ... };
 		sig-signing-nodes <replaceable>integer</replaceable>;
 		sig-signing-signatures <replaceable>integer</replaceable>;
 		sig-signing-type <replaceable>integer</replaceable>;
-		sig-validity-interval <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
-		transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> |
-		    * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port (
-		    <replaceable>integer</replaceable> | * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+		sig-validity-interval <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
+		transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
+		    * ) ] [ dscp <replaceable>integer</replaceable> ];
+		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port (
+		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		try-tcp-refresh <replaceable>boolean</replaceable>;
-		type ( delegation-only | forward | hint | master | redirect
-		    | slave | static-stub | stub );
+		type ( primary | master | secondary | slave |
+		    delegation-only | forward | hint | redirect |
+		    static-stub | stub );
 		update-check-ksk <replaceable>boolean</replaceable>;
 		update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> (
 		    6to4-self | external | krb5-self | krb5-subdomain |
 		    ms-self | ms-subdomain | name | self | selfsub |
 		    selfwild | subdomain | tcp-self | wildcard | zonesub )
-		    <optional> <replaceable>string</replaceable> </optional> <replaceable>rrtypelist</replaceable>; ... };
+		    [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
 		use-alt-transfer-source <replaceable>boolean</replaceable>;
 		zero-no-soa-ttl <replaceable>boolean</replaceable>;
 		zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );
@@ -879,20 +899,20 @@ view <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
   <refsection><info><title>ZONE</title></info>
 
     <literallayout class="normal">
-zone <replaceable>string</replaceable> <optional> <replaceable>class</replaceable> </optional> {
+zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };
 	allow-query { <replaceable>address_match_element</replaceable>; ... };
 	allow-query-on { <replaceable>address_match_element</replaceable>; ... };
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
-	also-notify <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> |
-	    <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
-	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
-	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> |
-	    * ) </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	also-notify [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> |
+	    <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
+	alt-transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
+	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
+	    * ) ] [ dscp <replaceable>integer</replaceable> ];
 	auto-dnssec ( allow | maintain | off );
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <replaceable>boolean</replaceable>;
@@ -913,8 +933,8 @@ zone <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	dnssec-update-mode ( maintain | no-resign );
 	file <replaceable>quoted_string</replaceable>;
 	forward ( first | only );
-	forwarders <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>ipv4_address</replaceable>
-	    | <replaceable>ipv6_address</replaceable> ) <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional>; ... };
+	forwarders [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>ipv4_address</replaceable>
+	    | <replaceable>ipv6_address</replaceable> ) [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ]; ... };
 	in-view <replaceable>string</replaceable>;
 	inline-signing <replaceable>boolean</replaceable>;
 	ixfr-from-differences <replaceable>boolean</replaceable>;
@@ -922,10 +942,10 @@ zone <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	key-directory <replaceable>quoted_string</replaceable>;
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
-	masters <optional> port <replaceable>integer</replaceable> </optional> <optional> dscp <replaceable>integer</replaceable> </optional> { ( <replaceable>masters</replaceable> |
-	    <replaceable>ipv4_address</replaceable> <optional> port <replaceable>integer</replaceable> </optional> | <replaceable>ipv6_address</replaceable> <optional> port
-	    <replaceable>integer</replaceable> </optional> ) <optional> key <replaceable>string</replaceable> </optional>; ... };
-	max-journal-size ( unlimited | <replaceable>sizeval</replaceable> );
+	masters [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> |
+	    <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
+	max-journal-size ( default | unlimited | <replaceable>sizeval</replaceable> );
 	max-records <replaceable>integer</replaceable>;
 	max-refresh-time <replaceable>integer</replaceable>;
 	max-retry-time <replaceable>integer</replaceable>;
@@ -939,35 +959,34 @@ zone <replaceable>string</replaceable> <optional> <replaceable>class</replaceabl
 	multi-master <replaceable>boolean</replaceable>;
 	notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 	notify-delay <replaceable>integer</replaceable>;
-	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>
-	    <optional> dscp <replaceable>integer</replaceable> </optional>;
+	notify-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ]
+	    [ dscp <replaceable>integer</replaceable> ];
 	notify-to-soa <replaceable>boolean</replaceable>;
-	nsec3-test-zone <replaceable>boolean</replaceable>; // test only
 	pubkey <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	request-expire <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	serial-update-method ( date | increment | unixtime );
-	server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) <optional> port
-	    <replaceable>integer</replaceable> </optional>; ... };
+	server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) [ port
+	    <replaceable>integer</replaceable> ]; ... };
 	server-names { <replaceable>quoted_string</replaceable>; ... };
 	sig-signing-nodes <replaceable>integer</replaceable>;
 	sig-signing-signatures <replaceable>integer</replaceable>;
 	sig-signing-type <replaceable>integer</replaceable>;
-	sig-validity-interval <replaceable>integer</replaceable> <optional> <replaceable>integer</replaceable> </optional>;
-	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional> <optional>
-	    dscp <replaceable>integer</replaceable> </optional>;
-	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * )
-	    </optional> <optional> dscp <replaceable>integer</replaceable> </optional>;
+	sig-validity-interval <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ];
+	transfer-source ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [
+	    dscp <replaceable>integer</replaceable> ];
+	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
+	    ] [ dscp <replaceable>integer</replaceable> ];
 	try-tcp-refresh <replaceable>boolean</replaceable>;
-	type ( delegation-only | forward | hint | master | redirect | slave
-	    | static-stub | stub );
+	type ( primary | master | secondary | slave | delegation-only |
+	    forward | hint | redirect | static-stub | stub );
 	update-check-ksk <replaceable>boolean</replaceable>;
 	update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> ( 6to4-self |
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
 	    | name | self | selfsub | selfwild | subdomain | tcp-self |
-	    wildcard | zonesub ) <optional> <replaceable>string</replaceable> </optional> <replaceable>rrtypelist</replaceable>; ... };
+	    wildcard | zonesub ) [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );

@@ -48,4 +48,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
 /*%< An EDNS client subnet address, used as an ACL element */
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ecsprefix;
 
+/*%< Zone options */
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_zoneopts;
+
 #endif /* ISCCFG_NAMEDCONF_H */
