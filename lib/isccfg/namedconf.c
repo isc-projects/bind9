@@ -2066,6 +2066,11 @@ zone_only_clauses[] = {
 	 * Note that the format of the check-names option is different between
 	 * the zone options and the global/view options.  Ugh.
 	 */
+	{ "type", &cfg_type_zonetype,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
+		CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION | CFG_ZONE_HINT |
+		CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD
+	},
 	{ "check-names", &cfg_type_checkmode,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE |
 		CFG_ZONE_HINT | CFG_ZONE_STUB
@@ -2109,11 +2114,6 @@ zone_only_clauses[] = {
 	},
 	{ "server-names", &cfg_type_namelist,
 		CFG_ZONE_STATICSTUB
-	},
-	{ "type", &cfg_type_zonetype,
-		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_STUB |
-		CFG_ZONE_STATICSTUB | CFG_ZONE_DELEGATION | CFG_ZONE_HINT |
-		CFG_ZONE_REDIRECT | CFG_ZONE_FORWARD
 	},
 	{ "update-policy", &cfg_type_updatepolicy,
 		CFG_ZONE_MASTER
