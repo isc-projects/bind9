@@ -35,6 +35,7 @@
 #include <isc/file.h>
 #include <isc/fsaccess.h>
 #include <isc/lex.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/stdtime.h>
@@ -404,6 +405,10 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 	switch (alg) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
+		if (isc_md5_available())
+			return (check_rsa(priv, external));
+		else
+			return (DST_R_UNSUPPORTEDALG);
 #endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
@@ -429,7 +434,10 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 		return (check_eddsa(priv, external));
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
-		return (check_hmac_md5(priv, old));
+		if (isc_md5_available())
+			return (check_hmac_md5(priv, old));
+		else
+			return (DST_R_UNSUPPORTEDALG);
 #endif
 	case DST_ALG_HMACSHA1:
 		return (check_hmac_sha(priv, HMACSHA1_NTAGS, alg));
@@ -648,11 +656,13 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	}
 
 #ifdef PK11_MD5_DISABLE
-	check = check_data(priv, alg == DST_ALG_RSA ? DST_ALG_RSASHA1 : alg,
-			   ISC_TRUE, external);
+	if (alg == DST_ALG_RSA)
+		alg = DST_ALG_RSASHA1;
 #else
-	check = check_data(priv, alg, ISC_TRUE, external);
+	if (isc_md5_available() == ISC_FALSE && alg == DST_ALG_RSA)
+		alg = DST_ALG_RSASHA1;
 #endif
+	check = check_data(priv, alg, ISC_TRUE, external);
 	if (check < 0) {
 		ret = DST_R_INVALIDPRIVATEKEY;
 		goto fail;

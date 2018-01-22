@@ -242,6 +242,9 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	unsigned char digests[32];
 	unsigned int i;
 
+	if (isc_md5_available() == ISC_FALSE)
+		return (ISC_R_NOTIMPLEMENTED);
+
 	isc_buffer_usedregion(shared, &r);
 
 	/*
@@ -318,6 +321,12 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	}
 
 #ifndef PK11_MD5_DISABLE
+	if (isc_md5_available() == ISC_FALSE) {
+		tkey_log("process_dhtkey: MD5 was disabled");
+		tkeyout->error = dns_tsigerror_badalg;
+		return (ISC_R_SUCCESS);
+	}
+
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey_log("process_dhtkey: algorithms other than "
 			 "hmac-md5 are not supported");

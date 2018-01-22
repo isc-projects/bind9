@@ -15,6 +15,7 @@
 #include <ctype.h>
 
 #include <isc/buffer.h>
+#include <isc/md5.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/region.h>
@@ -106,8 +107,10 @@
 #define MD5_SECALGNAMES \
 	{ DNS_KEYALG_RSAMD5, "RSAMD5", 0 }, \
 	{ DNS_KEYALG_RSAMD5, "RSA", 0 },
+#define MD5_SECALGNAMES_SKIP 2
 #else
 #define MD5_SECALGNAMES
+#define MD5_SECALGNAMES_SKIP 0
 #endif
 #ifndef PK11_DH_DISABLE
 #define DH_SECALGNAMES \
@@ -353,14 +356,26 @@ dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
 isc_result_t
 dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
 	unsigned int value;
-	RETERR(dns_mnemonic_fromtext(&value, source, secalgs, 0xff));
+	struct tbl *algs = secalgs;
+
+#ifndef PK11_MD5_DISABLE
+	if (isc_md5_available() == ISC_FALSE)
+		algs = secalgs + MD5_SECALGNAMES_SKIP;
+#endif
+	RETERR(dns_mnemonic_fromtext(&value, source, algs, 0xff));
 	*secalgp = value;
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(secalg, target, secalgs));
+	struct tbl *algs = secalgs;
+
+#ifndef PK11_MD5_DISABLE
+	if (isc_md5_available() == ISC_FALSE)
+		algs = secalgs + MD5_SECALGNAMES_SKIP;
+#endif
+	return (dns_mnemonic_totext(secalg, target, algs));
 }
 
 void

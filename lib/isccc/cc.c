@@ -270,11 +270,15 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 	switch (algorithm) {
 #ifndef PK11_MD5_DISABLE
 	case ISCCC_ALG_HMACMD5:
-		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
-				 REGION_SIZE(*secret));
-		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
-		source.rend = digest + ISC_MD5_DIGESTLENGTH;
+		if (isc_md5_available()) {
+			isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
+					 REGION_SIZE(*secret));
+			isc_hmacmd5_update(&ctx.hmd5, data, length);
+			isc_hmacmd5_sign(&ctx.hmd5, digest);
+			source.rend = digest + ISC_MD5_DIGESTLENGTH;
+		} else {
+			return (ISC_R_FAILURE);
+		}
 		break;
 #endif
 
@@ -348,14 +352,18 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 {
 	unsigned int hmac_base, signed_base;
 	isc_result_t result;
+	const isc_boolean_t md5 = ISC_TF(algorithm == ISCCC_ALG_HMACMD5);
 
 #ifndef PK11_MD5_DISABLE
+	if (md5 && isc_md5_available() == ISC_FALSE)
+		return (ISC_R_NOTIMPLEMENTED);
+
 	result = isc_buffer_reserve(buffer,
-				    4 + ((algorithm == ISCCC_ALG_HMACMD5) ?
+				    4 + ((md5) ?
 					 sizeof(auth_hmd5) :
 					 sizeof(auth_hsha)));
 #else
-	if (algorithm == ISCCC_ALG_HMACMD5)
+	if (md5)
 		return (ISC_R_NOTIMPLEMENTED);
 	result = isc_buffer_reserve(buffer, 4 + sizeof(auth_hsha));
 #endif
@@ -374,7 +382,7 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		 * we know what it is.
 		 */
 #ifndef PK11_MD5_DISABLE
-		if (algorithm == ISCCC_ALG_HMACMD5) {
+		if (md5) {
 			hmac_base = (*buffer)->used + HMD5_OFFSET;
 			isc_buffer_putmem(*buffer,
 					  auth_hmd5, sizeof(auth_hmd5));
@@ -440,7 +448,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	if (!isccc_alist_alistp(_auth))
 		return (ISC_R_FAILURE);
 #ifndef PK11_MD5_DISABLE
-	if (algorithm == ISCCC_ALG_HMACMD5)
+	if (algorithm == ISCCC_ALG_HMACMD5 && isc_md5_available())
 		hmac = isccc_alist_lookup(_auth, "hmd5");
 	else
 #endif
@@ -455,12 +463,16 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	switch (algorithm) {
 #ifndef PK11_MD5_DISABLE
 	case ISCCC_ALG_HMACMD5:
-		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
-				 REGION_SIZE(*secret));
-		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
-		source.rend = digest + ISC_MD5_DIGESTLENGTH;
-		break;
+		if (isc_md5_available()) {
+			isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
+					 REGION_SIZE(*secret));
+			isc_hmacmd5_update(&ctx.hmd5, data, length);
+			isc_hmacmd5_sign(&ctx.hmd5, digest);
+			source.rend = digest + ISC_MD5_DIGESTLENGTH;
+			break;
+		} else {
+			return (ISC_R_FAILURE);
+		}
 #endif
 
 	case ISCCC_ALG_HMACSHA1:
