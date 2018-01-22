@@ -850,6 +850,22 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		goto insist_cleanup;
 	}
 
+	/*
+	 * RFC2930: TKEY and TSIG are not allowed to be loaded
+	 * from master files.
+	 */
+	if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+	    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+	    dns_rdatatype_ismeta(type))
+	{
+		(*callbacks->error)(callbacks,
+				   "%s: %s:%lu: meta RR type '%s'",
+				   "$GENERATE",
+				   source, line, gtype);
+		result = DNS_R_METATYPE;
+		goto insist_cleanup;
+	}
+
 	for (i = start; i <= stop; i += step) {
 		result = genname(lhs, i, lhsbuf, DNS_MASTER_LHS);
 		if (result != ISC_R_SUCCESS)
@@ -1698,6 +1714,30 @@ load_text(dns_loadctx_t *lctx) {
 			char typename[DNS_RDATATYPE_FORMATSIZE];
 
 			result = DNS_R_OBSOLETE;
+
+			dns_rdatatype_format(type, typename, sizeof(typename));
+			(*callbacks->error)(callbacks,
+					    "%s:%lu: %s '%s': %s",
+					    source, line,
+					    "type", typename,
+					    dns_result_totext(result));
+			if (MANYERRS(lctx, result)) {
+				SETRESULT(lctx, result);
+			} else
+				goto insist_and_cleanup;
+		}
+
+		/*
+		 * RFC2930: TKEY and TSIG are not allowed to be loaded
+		 * from master files.
+		 */
+		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
+		    dns_rdatatype_ismeta(type))
+		{
+			char typename[DNS_RDATATYPE_FORMATSIZE];
+
+			result = DNS_R_METATYPE;
 
 			dns_rdatatype_format(type, typename, sizeof(typename));
 			(*callbacks->error)(callbacks,

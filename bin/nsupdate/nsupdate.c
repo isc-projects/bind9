@@ -2001,6 +2001,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 	}
 	fprintf(stream, "%s\n%.*s", description,
 	       (int)isc_buffer_usedlength(buf), (char*)isc_buffer_base(buf));
+	fflush(stream);
 	isc_buffer_free(&buf);
 }
 
