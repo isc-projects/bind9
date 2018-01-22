@@ -123,6 +123,8 @@ while (<CHANGES>) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\/named\.notcp$/i) {
 	    $file_types{$_} = "X";
+	} elsif ($base =~ /\/doc\/misc\/[-a-z]*\.zoneopt$/i) {
+	    $file_types{$_} = "X";
 	} elsif ($base =~ /\/README$/i) {
 	    $file_types{$_} = "TXT.BRIEF";
 	} else {
