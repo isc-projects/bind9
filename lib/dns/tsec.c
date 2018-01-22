@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -63,7 +64,12 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		switch (dst_key_alg(key)) {
 #ifndef PK11_MD5_DISABLE
 		case DST_ALG_HMACMD5:
-			algname = dns_tsig_hmacmd5_name;
+			if (isc_md5_available()) {
+				algname = dns_tsig_hmacmd5_name;
+			} else {
+				isc_mem_put(mctx, tsec, sizeof(*tsec));
+				return (DNS_R_BADALG);
+			}
 			break;
 #endif
 		case DST_ALG_HMACSHA1:

@@ -21,6 +21,7 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/log.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
@@ -2599,6 +2600,15 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	}
 
 	algorithm = cfg_obj_asstring(algobj);
+#ifndef PK11_MD5_DISABLE
+	/* Skip hmac-md5* algorithms */
+	if (isc_md5_available() == ISC_FALSE &&
+	    strncasecmp(algorithm, "hmac-md5", 8) == 0) {
+		cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
+			    "disabled algorithm '%s'", algorithm);
+		return (ISC_R_DISABLED);
+	}
+#endif
 	for (i = 0; algorithms[i].name != NULL; i++) {
 		len = strlen(algorithms[i].name);
 		if (strncasecmp(algorithms[i].name, algorithm, len) == 0 &&

@@ -23,6 +23,7 @@
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/keyboard.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -74,7 +75,7 @@ alg_fromtext(const char *name) {
 		p = &name[5];
 
 #ifndef PK11_MD5_DISABLE
-	if (strcasecmp(p, "md5") == 0)
+	if (strcasecmp(p, "md5") == 0 && isc_md5_available())
 		return DST_ALG_HMACMD5;
 #endif
 	if (strcasecmp(p, "sha1") == 0)
@@ -133,6 +134,13 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 	switch (alg) {
 #ifndef PK11_MD5_DISABLE
 	    case DST_ALG_HMACMD5:
+		if (isc_md5_available() == ISC_FALSE) {
+			fatal("unsupported algorithm %d\n", alg);
+		} else if (keysize < 1 || keysize > 512) {
+			fatal("keysize %d out of range (must be 1-512)\n",
+			      keysize);
+		}
+		break;
 #endif
 	    case DST_ALG_HMACSHA1:
 	    case DST_ALG_HMACSHA224:

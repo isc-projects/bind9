@@ -62,6 +62,7 @@
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
+#include <isc/md5.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
 #include <isc/parseint.h>
@@ -1047,9 +1048,10 @@ parse_hmac(const char *hmac) {
 	digestbits = 0;
 
 #ifndef PK11_MD5_DISABLE
-	if (strcasecmp(buf, "hmac-md5") == 0) {
+	if (strcasecmp(buf, "hmac-md5") == 0 && isc_md5_available()) {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
-	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
+	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0 &&
+		   isc_md5_available()) {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		digestbits = parse_bits(&buf[9], "digest-bits [0..128]", 128);
 	} else
@@ -1169,7 +1171,13 @@ setup_file_key(void) {
 	switch (dst_key_alg(dstkey)) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		if (isc_md5_available()) {
+			hmacname = DNS_TSIG_HMACMD5_NAME;
+		} else {
+			printf(";; Couldn't create key %s: bad algorithm\n",
+			       keynametext);
+			goto failure;
+		}
 		break;
 #endif
 	case DST_ALG_HMACSHA1:

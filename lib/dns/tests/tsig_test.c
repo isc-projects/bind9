@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 
@@ -504,7 +505,8 @@ ATF_TC_BODY(algvalid, tc) {
 	UNUSED(tc);
 
 #ifndef PK11_MD5_DISABLE
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_TRUE);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5),
+		       isc_md5_available());
 #else
 	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_FALSE);
 #endif
@@ -526,7 +528,9 @@ ATF_TC_BODY(algfromname, tc) {
 	UNUSED(tc);
 
 #ifndef PK11_MD5_DISABLE
-	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACMD5_NAME), DST_ALG_HMACMD5);
+	if (isc_md5_available())
+		ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACMD5_NAME),
+			       DST_ALG_HMACMD5);
 #endif
 
 	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACSHA1_NAME), DST_ALG_HMACSHA1);

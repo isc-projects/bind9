@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <isc/md5.h>
 #include <isc/util.h>
 #include <isc/print.h>
 
@@ -226,23 +227,25 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 	/* RSAMD5 */
 
 #ifndef PK11_MD5_DISABLE
-	key->key_alg = DST_ALG_RSAMD5;
+	if (isc_md5_available()) {
+		key->key_alg = DST_ALG_RSAMD5;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				 ISC_FALSE, 0, &ctx);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+					 ISC_FALSE, 0, &ctx);
+		ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
-	r.base = d;
-	r.length = 10;
-	ret = dst_context_adddata(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+		r.base = d;
+		r.length = 10;
+		ret = dst_context_adddata(ctx, &r);
+		ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
-	r.base = sigmd5;
-	r.length = 256;
-	ret = dst_context_verify(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+		r.base = sigmd5;
+		r.length = 256;
+		ret = dst_context_verify(ctx, &r);
+		ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
-	dst_context_destroy(&ctx);
+		dst_context_destroy(&ctx);
+	}
 #endif
 
 	/* RSASHA256 */

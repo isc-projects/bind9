@@ -17,6 +17,7 @@
 
 #include <isc/buffer.h>
 #include <isc/log.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/region.h>
@@ -1008,7 +1009,12 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 	if (name != NULL) {
 		switch (algorithms[i].hmac) {
 #ifndef PK11_MD5_DISABLE
-		case hmacmd5: *name = dns_tsig_hmacmd5_name; break;
+		case hmacmd5:
+			if (isc_md5_available()) {
+				*name = dns_tsig_hmacmd5_name; break;
+			} else {
+				return (ISC_R_NOTFOUND);
+			}
 #endif
 		case hmacsha1: *name = dns_tsig_hmacsha1_name; break;
 		case hmacsha224: *name = dns_tsig_hmacsha224_name; break;

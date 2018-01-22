@@ -29,6 +29,7 @@
 #include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/log.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
@@ -468,9 +469,10 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 	strlcpy(buf, hmacstr, ISC_MIN(len + 1, sizeof(buf)));
 
 #ifndef PK11_MD5_DISABLE
-	if (strcasecmp(buf, "hmac-md5") == 0) {
+	if (strcasecmp(buf, "hmac-md5") == 0 && isc_md5_available()) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
-	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
+	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0 &&
+		   isc_md5_available()) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
@@ -583,10 +585,10 @@ setup_keystr(void) {
 			exit(1);
 		}
 	} else {
-#ifndef PK11_MD5_DISABLE
-		hmacname = DNS_TSIG_HMACMD5_NAME;
-#else
 		hmacname = DNS_TSIG_HMACSHA256_NAME;
+#ifndef PK11_MD5_DISABLE
+		if (isc_md5_available())
+			hmacname = DNS_TSIG_HMACMD5_NAME;
 #endif
 		name = keystr;
 		n = s;
@@ -723,7 +725,8 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	switch (dst_key_alg(dstkey)) {
 #ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		if (isc_md5_available())
+			hmacname = DNS_TSIG_HMACMD5_NAME;
 		break;
 #endif
 	case DST_ALG_HMACSHA1:
@@ -1654,12 +1657,13 @@ evaluate_key(char *cmdline) {
 			return (STATUS_SYNTAX);
 		}
 		namestr = n + 1;
-	} else
-#ifndef PK11_MD5_DISABLE
-		hmacname = DNS_TSIG_HMACMD5_NAME;
-#else
+	} else {
 		hmacname = DNS_TSIG_HMACSHA256_NAME;
+#ifndef PK11_MD5_DISABLE
+		if (isc_md5_available())
+			hmacname = DNS_TSIG_HMACMD5_NAME;
 #endif
+	}
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));
