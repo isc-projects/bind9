@@ -76,13 +76,11 @@
 	section is followed by
 	<emphasis>Chapter 4</emphasis>, which contains more advanced
 	concepts that the system administrator may need for implementing
-	certain options. <emphasis>Chapter 5</emphasis>
-	describes the <acronym>BIND</acronym> 9 lightweight
-	resolver.  The contents of <emphasis>Chapter 6</emphasis> are
+	certain options. The contents of <emphasis>Chapter 5</emphasis> are
 	organized as in a reference manual to aid in the ongoing
-	maintenance of the software. <emphasis>Chapter 7</emphasis> addresses
+	maintenance of the software. <emphasis>Chapter 6</emphasis> addresses
 	security considerations, and
-	<emphasis>Chapter 8</emphasis> contains troubleshooting help. The
+	<emphasis>Chapter 7</emphasis> contains troubleshooting help. The
 	main body of the document is followed by several
 	<emphasis>appendices</emphasis> which contain useful reference
 	information, such as a <emphasis>bibliography</emphasis> and
@@ -2453,33 +2451,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </programlisting>
 
       </section>
-    </section>
-  </chapter>
-
-  <chapter xml:id="Bv9ARM.ch05"><info><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title></info>
-
-    <section xml:id="lightweight_resolver"><info><title>The Lightweight Resolver Library</title></info>
-
-      <para>
-	Traditionally applications have been linked with a stub resolver
-	library that sends recursive DNS queries to a local caching name
-	server.
-      </para>
-      <para>
-	IPv6 once introduced new complexity into the resolution process,
-	such as following A6 chains and DNAME records, and simultaneous
-	lookup of IPv4 and IPv6 addresses.  Though most of the complexity was
-	then removed, these are hard or impossible
-	to implement in a traditional stub resolver.
-      </para>
-      <para>
-	<acronym>BIND</acronym> 9 therefore can also provide resolution
-	services to local clients
-	using a combination of a lightweight resolver library and a resolver
-	daemon process running on the local host.  These communicate using
-	a simple UDP-based protocol, the "lightweight resolver protocol"
-	that is distinct from and simpler than the full DNS protocol.
-      </para>
     </section>
   </chapter>
 
