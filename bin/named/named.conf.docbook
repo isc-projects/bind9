@@ -10,7 +10,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-01-22</date>
+    <date>2017-10-26</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -207,9 +207,8 @@ options {
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
-	check-names ( primary | master |
-	    secondary | slave | response ) (
-	    fail | warn | ignore );
+	check-names ( master | slave | response
+	    ) ( fail | warn | ignore );
 	check-sibling <replaceable>boolean</replaceable>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
@@ -297,8 +296,7 @@ options {
 	hostname ( <replaceable>quoted_string</replaceable> | none );
 	inline-signing <replaceable>boolean</replaceable>;
 	interface-interval <replaceable>integer</replaceable>;
-	ixfr-from-differences ( primary | master | secondary | slave |
-	    <replaceable>boolean</replaceable> );
+	ixfr-from-differences ( master | slave | <replaceable>boolean</replaceable> );
 	keep-response-order { <replaceable>address_match_element</replaceable>; ... };
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
@@ -559,9 +557,8 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx ( fail | warn | ignore );
 	check-mx-cname ( fail | warn | ignore );
-	check-names ( primary | master |
-	    secondary | slave | response ) (
-	    fail | warn | ignore );
+	check-names ( master | slave | response
+	    ) ( fail | warn | ignore );
 	check-sibling <replaceable>boolean</replaceable>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
@@ -627,8 +624,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    | <replaceable>ipv6_address</replaceable> ) [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ]; ... };
 	glue-cache <replaceable>boolean</replaceable>;
 	inline-signing <replaceable>boolean</replaceable>;
-	ixfr-from-differences ( primary | master | secondary | slave |
-	    <replaceable>boolean</replaceable> );
+	ixfr-from-differences ( master | slave | <replaceable>boolean</replaceable> );
 	key <replaceable>string</replaceable> {
 		algorithm <replaceable>string</replaceable>;
 		secret <replaceable>string</replaceable>;
@@ -878,9 +874,8 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port (
 		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		try-tcp-refresh <replaceable>boolean</replaceable>;
-		type ( primary | master | secondary | slave |
-		    delegation-only | forward | hint | redirect |
-		    static-stub | stub );
+		type ( delegation-only | forward | hint | master | redirect
+		    | slave | static-stub | stub );
 		update-check-ksk <replaceable>boolean</replaceable>;
 		update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> (
 		    6to4-self | external | krb5-self | krb5-subdomain |
@@ -980,8 +975,8 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	try-tcp-refresh <replaceable>boolean</replaceable>;
-	type ( primary | master | secondary | slave | delegation-only |
-	    forward | hint | redirect | static-stub | stub );
+	type ( delegation-only | forward | hint | master | redirect | slave
+	    | static-stub | stub );
 	update-check-ksk <replaceable>boolean</replaceable>;
 	update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> ( 6to4-self |
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain

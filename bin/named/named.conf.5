@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2018-01-08
+.\"      Date: 2017-10-26
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2018\-01\-08" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2017\-10\-26" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -217,9 +217,8 @@ options {
 	check\-integrity \fIboolean\fR;
 	check\-mx ( fail | warn | ignore );
 	check\-mx\-cname ( fail | warn | ignore );
-	check\-names ( primary | master |
-	    secondary | slave | response ) (
-	    fail | warn | ignore );
+	check\-names ( master | slave | response
+	    ) ( fail | warn | ignore );
 	check\-sibling \fIboolean\fR;
 	check\-spf ( warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
@@ -307,8 +306,7 @@ options {
 	hostname ( \fIquoted_string\fR | none );
 	inline\-signing \fIboolean\fR;
 	interface\-interval \fIinteger\fR;
-	ixfr\-from\-differences ( primary | master | secondary | slave |
-	    \fIboolean\fR );
+	ixfr\-from\-differences ( master | slave | \fIboolean\fR );
 	keep\-response\-order { \fIaddress_match_element\fR; \&.\&.\&. };
 	key\-directory \fIquoted_string\fR;
 	lame\-ttl \fIttlval\fR;
@@ -585,9 +583,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 	check\-integrity \fIboolean\fR;
 	check\-mx ( fail | warn | ignore );
 	check\-mx\-cname ( fail | warn | ignore );
-	check\-names ( primary | master |
-	    secondary | slave | response ) (
-	    fail | warn | ignore );
+	check\-names ( master | slave | response
+	    ) ( fail | warn | ignore );
 	check\-sibling \fIboolean\fR;
 	check\-spf ( warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
@@ -653,8 +650,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	    | \fIipv6_address\fR ) [ port \fIinteger\fR ] [ dscp \fIinteger\fR ]; \&.\&.\&. };
 	glue\-cache \fIboolean\fR;
 	inline\-signing \fIboolean\fR;
-	ixfr\-from\-differences ( primary | master | secondary | slave |
-	    \fIboolean\fR );
+	ixfr\-from\-differences ( master | slave | \fIboolean\fR );
 	key \fIstring\fR {
 		algorithm \fIstring\fR;
 		secret \fIstring\fR;
@@ -904,9 +900,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 		transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port (
 		    \fIinteger\fR | * ) ] [ dscp \fIinteger\fR ];
 		try\-tcp\-refresh \fIboolean\fR;
-		type ( primary | master | secondary | slave |
-		    delegation\-only | forward | hint | redirect |
-		    static\-stub | stub );
+		type ( delegation\-only | forward | hint | master | redirect
+		    | slave | static\-stub | stub );
 		update\-check\-ksk \fIboolean\fR;
 		update\-policy ( local | { ( deny | grant ) \fIstring\fR (
 		    6to4\-self | external | krb5\-self | krb5\-subdomain |
@@ -1010,8 +1005,8 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * )
 	    ] [ dscp \fIinteger\fR ];
 	try\-tcp\-refresh \fIboolean\fR;
-	type ( primary | master | secondary | slave | delegation\-only |
-	    forward | hint | redirect | static\-stub | stub );
+	type ( delegation\-only | forward | hint | master | redirect | slave
+	    | static\-stub | stub );
 	update\-check\-ksk \fIboolean\fR;
 	update\-policy ( local | { ( deny | grant ) \fIstring\fR ( 6to4\-self |
 	    external | krb5\-self | krb5\-subdomain | ms\-self | ms\-subdomain

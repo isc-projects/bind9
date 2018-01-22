@@ -55,7 +55,7 @@
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.7"></a><h2>DESCRIPTION</h2>
+<a name="id-1.13.27.7"></a><h2>DESCRIPTION</h2>
 
     <p><code class="filename">named.conf</code> is the configuration file
       for
@@ -76,7 +76,7 @@
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.8"></a><h2>ACL</h2>
+<a name="id-1.13.27.8"></a><h2>ACL</h2>
 
     <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -84,7 +84,7 @@ acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.9"></a><h2>CONTROLS</h2>
+<a name="id-1.13.27.9"></a><h2>CONTROLS</h2>
 
     <div class="literallayout"><p><br>
 controls {<br>
@@ -102,7 +102,7 @@ controls {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.10"></a><h2>DLZ</h2>
+<a name="id-1.13.27.10"></a><h2>DLZ</h2>
 
     <div class="literallayout"><p><br>
 dlz <em class="replaceable"><code>string</code></em> {<br>
@@ -113,7 +113,7 @@ dlz <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.11"></a><h2>DYNDB</h2>
+<a name="id-1.13.27.11"></a><h2>DYNDB</h2>
 
     <div class="literallayout"><p><br>
 dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>quoted_string</code></em> {<br>
@@ -122,7 +122,7 @@ dyndb <em class="replaceable"><code>string</code></em> <em class="replaceable"><
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.12"></a><h2>KEY</h2>
+<a name="id-1.13.27.12"></a><h2>KEY</h2>
 
     <div class="literallayout"><p><br>
 key <em class="replaceable"><code>string</code></em> {<br>
@@ -133,7 +133,7 @@ key <em class="replaceable"><code>string</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.13"></a><h2>LOGGING</h2>
+<a name="id-1.13.27.13"></a><h2>LOGGING</h2>
 
     <div class="literallayout"><p><br>
 logging {<br>
@@ -156,7 +156,7 @@ logging {<br>
 
 
   <div class="refsection">
-<a name="id-1.14.27.14"></a><h2>MANAGED-KEYS</h2>
+<a name="id-1.13.27.14"></a><h2>MANAGED-KEYS</h2>
 
     <div class="literallayout"><p><br>
 managed-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em><br>
@@ -165,7 +165,7 @@ managed-keys { <em class="replaceable"><code>string</code></em> <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.15"></a><h2>MASTERS</h2>
+<a name="id-1.13.27.15"></a><h2>MASTERS</h2>
 
     <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp<br>
@@ -176,7 +176,7 @@ masters <em class="replaceable"><code>string</code></em> [ port <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.16"></a><h2>OPTIONS</h2>
+<a name="id-1.13.27.16"></a><h2>OPTIONS</h2>
 
     <div class="literallayout"><p><br>
 options {<br>
@@ -216,9 +216,8 @@ options {<br>
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
 	check-mx-cname ( fail | warn | ignore );<br>
-	check-names ( primary | master |<br>
-	    secondary | slave | response ) (<br>
-	    fail | warn | ignore );<br>
+	check-names ( master | slave | response<br>
+	    ) ( fail | warn | ignore );<br>
 	check-sibling <em class="replaceable"><code>boolean</code></em>;<br>
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
@@ -306,8 +305,7 @@ options {<br>
 	hostname ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	inline-signing <em class="replaceable"><code>boolean</code></em>;<br>
 	interface-interval <em class="replaceable"><code>integer</code></em>;<br>
-	ixfr-from-differences ( primary | master | secondary | slave |<br>
-	    <em class="replaceable"><code>boolean</code></em> );<br>
+	ixfr-from-differences ( master | slave | <em class="replaceable"><code>boolean</code></em> );<br>
 	keep-response-order { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
@@ -476,7 +474,7 @@ options {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.17"></a><h2>SERVER</h2>
+<a name="id-1.13.27.17"></a><h2>SERVER</h2>
 
     <div class="literallayout"><p><br>
 server <em class="replaceable"><code>netprefix</code></em> {<br>
@@ -515,7 +513,7 @@ server <em class="replaceable"><code>netprefix</code></em> {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.18"></a><h2>STATISTICS-CHANNELS</h2>
+<a name="id-1.13.27.18"></a><h2>STATISTICS-CHANNELS</h2>
 
     <div class="literallayout"><p><br>
 statistics-channels {<br>
@@ -528,7 +526,7 @@ statistics-channels {<br>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.19"></a><h2>TRUSTED-KEYS</h2>
+<a name="id-1.13.27.19"></a><h2>TRUSTED-KEYS</h2>
 
     <div class="literallayout"><p><br>
 trusted-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
@@ -537,7 +535,7 @@ trusted-keys { <em class="replaceable"><code>string</code></em> <em class="repla
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.20"></a><h2>VIEW</h2>
+<a name="id-1.13.27.20"></a><h2>VIEW</h2>
 
     <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
@@ -572,9 +570,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
 	check-mx-cname ( fail | warn | ignore );<br>
-	check-names ( primary | master |<br>
-	    secondary | slave | response ) (<br>
-	    fail | warn | ignore );<br>
+	check-names ( master | slave | response<br>
+	    ) ( fail | warn | ignore );<br>
 	check-sibling <em class="replaceable"><code>boolean</code></em>;<br>
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
@@ -640,8 +637,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };<br>
 	glue-cache <em class="replaceable"><code>boolean</code></em>;<br>
 	inline-signing <em class="replaceable"><code>boolean</code></em>;<br>
-	ixfr-from-differences ( primary | master | secondary | slave |<br>
-	    <em class="replaceable"><code>boolean</code></em> );<br>
+	ixfr-from-differences ( master | slave | <em class="replaceable"><code>boolean</code></em> );<br>
 	key <em class="replaceable"><code>string</code></em> {<br>
 		algorithm <em class="replaceable"><code>string</code></em>;<br>
 		secret <em class="replaceable"><code>string</code></em>;<br>
@@ -891,9 +887,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port (<br>
 		    <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 		try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-		type ( primary | master | secondary | slave |<br>
-		    delegation-only | forward | hint | redirect |<br>
-		    static-stub | stub );<br>
+		type ( delegation-only | forward | hint | master | redirect<br>
+		    | slave | static-stub | stub );<br>
 		update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 		update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> (<br>
 		    6to4-self | external | krb5-self | krb5-subdomain |<br>
@@ -910,7 +905,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.21"></a><h2>ZONE</h2>
+<a name="id-1.13.27.21"></a><h2>ZONE</h2>
 
     <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {<br>
@@ -994,8 +989,8 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )<br>
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-	type ( primary | master | secondary | slave | delegation-only |<br>
-	    forward | hint | redirect | static-stub | stub );<br>
+	type ( delegation-only | forward | hint | master | redirect | slave<br>
+	    | static-stub | stub );<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 	update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self |<br>
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain<br>
@@ -1009,14 +1004,14 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.22"></a><h2>FILES</h2>
+<a name="id-1.13.27.22"></a><h2>FILES</h2>
 
     <p><code class="filename">/etc/named.conf</code>
     </p>
   </div>
 
   <div class="refsection">
-<a name="id-1.14.27.23"></a><h2>SEE ALSO</h2>
+<a name="id-1.13.27.23"></a><h2>SEE ALSO</h2>
 
     <p><span class="citerefentry">
 	<span class="refentrytitle">ddns-confgen</span>(8)

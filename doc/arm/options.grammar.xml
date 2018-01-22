@@ -46,9 +46,8 @@
 	<command>check-integrity</command> <replaceable>boolean</replaceable>;
 	<command>check-mx</command> ( fail | warn | ignore );
 	<command>check-mx-cname</command> ( fail | warn | ignore );
-	<command>check-names</command> ( primary | master |
-	    <command>secondary</command> | slave | response ) (
-	    <command>fail</command> | warn | ignore );
+	<command>check-names</command> ( master | slave | response
+	    ) ( fail | warn | ignore );
 	<command>check-sibling</command> <replaceable>boolean</replaceable>;
 	<command>check-spf</command> ( warn | ignore );
 	<command>check-srv-cname</command> ( fail | warn | ignore );
@@ -136,8 +135,7 @@
 	<command>hostname</command> ( <replaceable>quoted_string</replaceable> | none );
 	<command>inline-signing</command> <replaceable>boolean</replaceable>;
 	<command>interface-interval</command> <replaceable>integer</replaceable>;
-	<command>ixfr-from-differences</command> ( primary | master | secondary | slave |
-	    <replaceable>boolean</replaceable> );
+	<command>ixfr-from-differences</command> ( master | slave | <replaceable>boolean</replaceable> );
 	<command>keep-response-order</command> { <replaceable>address_match_element</replaceable>; ... };
 	<command>key-directory</command> <replaceable>quoted_string</replaceable>;
 	<command>lame-ttl</command> <replaceable>ttlval</replaceable>;

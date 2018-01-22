@@ -198,9 +198,8 @@ options {<br>
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
 	check-mx-cname ( fail | warn | ignore );<br>
-	check-names ( primary | master |<br>
-	    secondary | slave | response ) (<br>
-	    fail | warn | ignore );<br>
+	check-names ( master | slave | response<br>
+	    ) ( fail | warn | ignore );<br>
 	check-sibling <em class="replaceable"><code>boolean</code></em>;<br>
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
@@ -288,8 +287,7 @@ options {<br>
 	hostname ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
 	inline-signing <em class="replaceable"><code>boolean</code></em>;<br>
 	interface-interval <em class="replaceable"><code>integer</code></em>;<br>
-	ixfr-from-differences ( primary | master | secondary | slave |<br>
-	    <em class="replaceable"><code>boolean</code></em> );<br>
+	ixfr-from-differences ( master | slave | <em class="replaceable"><code>boolean</code></em> );<br>
 	keep-response-order { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
@@ -554,9 +552,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx ( fail | warn | ignore );<br>
 	check-mx-cname ( fail | warn | ignore );<br>
-	check-names ( primary | master |<br>
-	    secondary | slave | response ) (<br>
-	    fail | warn | ignore );<br>
+	check-names ( master | slave | response<br>
+	    ) ( fail | warn | ignore );<br>
 	check-sibling <em class="replaceable"><code>boolean</code></em>;<br>
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
@@ -622,8 +619,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };<br>
 	glue-cache <em class="replaceable"><code>boolean</code></em>;<br>
 	inline-signing <em class="replaceable"><code>boolean</code></em>;<br>
-	ixfr-from-differences ( primary | master | secondary | slave |<br>
-	    <em class="replaceable"><code>boolean</code></em> );<br>
+	ixfr-from-differences ( master | slave | <em class="replaceable"><code>boolean</code></em> );<br>
 	key <em class="replaceable"><code>string</code></em> {<br>
 		algorithm <em class="replaceable"><code>string</code></em>;<br>
 		secret <em class="replaceable"><code>string</code></em>;<br>
@@ -873,9 +869,8 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port (<br>
 		    <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 		try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-		type ( primary | master | secondary | slave |<br>
-		    delegation-only | forward | hint | redirect |<br>
-		    static-stub | stub );<br>
+		type ( delegation-only | forward | hint | master | redirect<br>
+		    | slave | static-stub | stub );<br>
 		update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 		update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> (<br>
 		    6to4-self | external | krb5-self | krb5-subdomain |<br>
@@ -976,8 +971,8 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )<br>
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-	type ( primary | master | secondary | slave | delegation-only |<br>
-	    forward | hint | redirect | static-stub | stub );<br>
+	type ( delegation-only | forward | hint | master | redirect | slave<br>
+	    | static-stub | stub );<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 	update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self |<br>
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain<br>
