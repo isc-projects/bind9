@@ -20200,22 +20200,36 @@ done
 # Machine architecture dependent features
 #
 have_stdatomic=no
-for ac_header in stdatomic.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
-if test "x$ac_cv_header_stdatomic_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STDATOMIC_H 1
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable stdatomic.h" >&5
+$as_echo_n "checking for usable stdatomic.h... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdatomic.h>
+
+int
+main ()
+{
+
+atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+
+  ;
+  return 0;
+}
 _ACEOF
- have_stdatomic=yes
-		  ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	 have_stdatomic=yes
+	 ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
 else
-  have_stdatomic=no
-		  ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	 have_stdatomic=no
+	 ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 fi
-
-done
-
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 # Check whether --enable-atomic was given.
 if test "${enable_atomic+set}" = set; then :
