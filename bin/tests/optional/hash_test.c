@@ -90,43 +90,47 @@ main(int argc, char **argv) {
 	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
 
 #ifndef PK11_MD5_DISABLE
-	s = "abc";
-	isc_md5_init(&md5);
-	memmove(buffer, s, strlen(s));
-	isc_md5_update(&md5, buffer, strlen(s));
-	isc_md5_final(&md5, digest);
-	print_digest(s, "md5", digest, 4);
+	if (isc_md5_available()) {
+		s = "abc";
+		isc_md5_init(&md5);
+		memmove(buffer, s, strlen(s));
+		isc_md5_update(&md5, buffer, strlen(s));
+		isc_md5_final(&md5, digest);
+		print_digest(s, "md5", digest, 4);
 
-	/*
-	 * The 3 HMAC-MD5 examples from RFC2104
-	 */
-	s = "Hi There";
-	memset(key, 0x0b, 16);
-	isc_hmacmd5_init(&hmacmd5, key, 16);
-	memmove(buffer, s, strlen(s));
-	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
-	print_digest(s, "hmacmd5", digest, 4);
+		/*
+		 * The 3 HMAC-MD5 examples from RFC2104
+		 */
+		s = "Hi There";
+		memset(key, 0x0b, 16);
+		isc_hmacmd5_init(&hmacmd5, key, 16);
+		memmove(buffer, s, strlen(s));
+		isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+		isc_hmacmd5_sign(&hmacmd5, digest);
+		print_digest(s, "hmacmd5", digest, 4);
 
-	s = "what do ya want for nothing?";
-	strlcpy((char *)key, "Jefe", sizeof(key));
-	isc_hmacmd5_init(&hmacmd5, key, 4);
-	memmove(buffer, s, strlen(s));
-	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
-	print_digest(s, "hmacmd5", digest, 4);
+		s = "what do ya want for nothing?";
+		strlcpy((char *)key, "Jefe", sizeof(key));
+		isc_hmacmd5_init(&hmacmd5, key, 4);
+		memmove(buffer, s, strlen(s));
+		isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+		isc_hmacmd5_sign(&hmacmd5, digest);
+		print_digest(s, "hmacmd5", digest, 4);
 
-	s = "\335\335\335\335\335\335\335\335\335\335"
-	    "\335\335\335\335\335\335\335\335\335\335"
-	    "\335\335\335\335\335\335\335\335\335\335"
-	    "\335\335\335\335\335\335\335\335\335\335"
-	    "\335\335\335\335\335\335\335\335\335\335";
-	memset(key, 0xaa, 16);
-	isc_hmacmd5_init(&hmacmd5, key, 16);
-	memmove(buffer, s, strlen(s));
-	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
-	print_digest(s, "hmacmd5", digest, 4);
+		s = "\335\335\335\335\335\335\335\335\335\335"
+		    "\335\335\335\335\335\335\335\335\335\335"
+		    "\335\335\335\335\335\335\335\335\335\335"
+		    "\335\335\335\335\335\335\335\335\335\335"
+		    "\335\335\335\335\335\335\335\335\335\335";
+		memset(key, 0xaa, 16);
+		isc_hmacmd5_init(&hmacmd5, key, 16);
+		memmove(buffer, s, strlen(s));
+		isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
+		isc_hmacmd5_sign(&hmacmd5, digest);
+		print_digest(s, "hmacmd5", digest, 4);
+	} else {
+		fprintf(stderr, "Skipping disabled MD5 algorithm\n");
+	}
 #endif
 
 	/*

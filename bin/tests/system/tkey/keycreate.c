@@ -21,6 +21,7 @@
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -143,6 +144,8 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	static char keystr[] = "0123456789ab";
 
 	isc_event_free(&event);
+	if (isc_md5_available() == ISC_FALSE)
+		CHECK("MD5 was disabled", ISC_R_NOTIMPLEMENTED);
 
 	result = ISC_R_FAILURE;
 	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1)
