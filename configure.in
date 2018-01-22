@@ -4169,11 +4169,20 @@ AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 # Machine architecture dependent features
 #
 have_stdatomic=no
-AC_CHECK_HEADERS(stdatomic.h,
-		 [have_stdatomic=yes
-		  ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"],
-		 [have_stdatomic=no
-		  ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"])
+AC_MSG_CHECKING(for usable stdatomic.h)
+AC_TRY_COMPILE([
+#include <stdio.h>
+#include <stdatomic.h>
+],
+[
+atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+],
+        [AC_MSG_RESULT(yes)
+	 have_stdatomic=yes
+	 ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"],
+	[AC_MSG_RESULT(no)
+	 have_stdatomic=no
+	 ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"])
 
 AC_ARG_ENABLE(atomic,
 	      AS_HELP_STRING([--enable-atomic],
