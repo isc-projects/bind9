@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2017 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2018 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,20 +9,20 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Chapter 6. BIND 9 Configuration Reference</title>
+<title>Chapter 5. BIND 9 Configuration Reference</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
-<link rel="prev" href="Bv9ARM.ch05.html" title="Chapter 5. The BIND 9 Lightweight Resolver">
-<link rel="next" href="Bv9ARM.ch07.html" title="Chapter 7. BIND 9 Security Considerations">
+<link rel="prev" href="Bv9ARM.ch04.html" title="Chapter 4. Advanced DNS Features">
+<link rel="next" href="Bv9ARM.ch07.html" title="Chapter 6. BIND 9 Security Considerations">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Chapter 6. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</th></tr>
+<tr><th colspan="3" align="center">Chapter 5. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</th></tr>
 <tr>
 <td width="20%" align="left">
-<a accesskey="p" href="Bv9ARM.ch05.html">Prev</a> </td>
+<a accesskey="p" href="Bv9ARM.ch04.html">Prev</a> </td>
 <th width="60%" align="center"> </th>
 <td width="20%" align="right"> <a accesskey="n" href="Bv9ARM.ch07.html">Next</a>
 </td>
@@ -32,7 +32,7 @@
 </div>
 <div class="chapter">
 <div class="titlepage"><div><div><h1 class="title">
-<a name="Bv9ARM.ch06"></a>Chapter 6. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</h1></div></div></div>
+<a name="Bv9ARM.ch06"></a>Chapter 5. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</h1></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
@@ -536,7 +536,7 @@
 
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.7.4.4.2"></a>Syntax</h4></div></div></div>
+<a name="id-1.6.4.4.2"></a>Syntax</h4></div></div></div>
 
 <pre class="programlisting"><em class="replaceable"><code>address_match_list</code></em> = <em class="replaceable"><code>address_match_list_element</code></em> <span class="command"><strong>;</strong></span> ...
 
@@ -547,7 +547,7 @@
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.7.4.4.3"></a>Definition and Usage</h4></div></div></div>
+<a name="id-1.6.4.4.3"></a>Definition and Usage</h4></div></div></div>
 
           <p>
             Address match lists are primarily used to determine access
@@ -662,7 +662,7 @@
 
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.7.4.5.3"></a>Syntax</h4></div></div></div>
+<a name="id-1.6.4.5.3"></a>Syntax</h4></div></div></div>
 
           <p>
             </p>
@@ -679,7 +679,7 @@
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.7.4.5.4"></a>Definition and Usage</h4></div></div></div>
+<a name="id-1.6.4.5.4"></a>Definition and Usage</h4></div></div></div>
 
           <p>
             Comments may appear anywhere that whitespace may appear in
@@ -9340,6 +9340,8 @@ view "external" {
 	<span class="command"><strong>type</strong></span> static-stub;
 	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
 	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>forward</strong></span> ( first | only );
+	<span class="command"><strong>forwarders</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ]; ... };
 	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>server-addresses</strong></span> { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [ port <em class="replaceable"><code>integer</code></em> ]; ... };
 	<span class="command"><strong>server-names</strong></span> { <em class="replaceable"><code>quoted_string</code></em>; ... };
@@ -10873,7 +10875,7 @@ view external {
           </p>
           <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.7.6.2.3"></a>Resource Records</h4></div></div></div>
+<a name="id-1.6.6.2.3"></a>Resource Records</h4></div></div></div>
 
             <p>
               A domain name identifies a node.  Each node has a set of
@@ -14608,15 +14610,15 @@ HOST-127.EXAMPLE. MX 0 .
 <table width="100%" summary="Navigation footer">
 <tr>
 <td width="40%" align="left">
-<a accesskey="p" href="Bv9ARM.ch05.html">Prev</a> </td>
+<a accesskey="p" href="Bv9ARM.ch04.html">Prev</a> </td>
 <td width="20%" align="center"> </td>
 <td width="40%" align="right"> <a accesskey="n" href="Bv9ARM.ch07.html">Next</a>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Chapter 5. The <acronym class="acronym">BIND</acronym> 9 Lightweight Resolver </td>
+<td width="40%" align="left" valign="top">Chapter 4. Advanced DNS Features </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
-<td width="40%" align="right" valign="top"> Chapter 7. <acronym class="acronym">BIND</acronym> 9 Security Considerations</td>
+<td width="40%" align="right" valign="top"> Chapter 6. <acronym class="acronym">BIND</acronym> 9 Security Considerations</td>
 </tr>
 </table>
 </div>

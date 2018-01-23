@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2017 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2018 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -38,11 +38,11 @@
 <dl class="toc">
 <dt><span class="section"><a href="Bv9ARM.ch12.html#bind9.library">BIND 9 DNS Library Support</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.2.5">Installation</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.2.6">Known Defects/Restrictions</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.2.7">The dns.conf File</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.2.8">Sample Applications</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.13.2.9">Library References</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.12.2.5">Installation</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.12.2.6">Known Defects/Restrictions</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.12.2.7">The dns.conf File</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.12.2.8">Sample Applications</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch12.html#id-1.12.2.9">Library References</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -104,7 +104,7 @@
 </ul></div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.2.5"></a>Installation</h3></div></div></div>
+<a name="id-1.12.2.5"></a>Installation</h3></div></div></div>
     
     <pre class="screen">
 $ <strong class="userinput"><code>make install</code></strong>
@@ -120,7 +120,7 @@ $ <strong class="userinput"><code>make install</code></strong>
   </div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.2.6"></a>Known Defects/Restrictions</h3></div></div></div>
+<a name="id-1.12.2.6"></a>Known Defects/Restrictions</h3></div></div></div>
     
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
@@ -160,7 +160,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.2.7"></a>The dns.conf File</h3></div></div></div>
+<a name="id-1.12.2.7"></a>The dns.conf File</h3></div></div></div>
     
     <p>
       The IRS library supports an "advanced" configuration file related to
@@ -178,7 +178,7 @@ $ <strong class="userinput"><code>make</code></strong>
   </div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.2.8"></a>Sample Applications</h3></div></div></div>
+<a name="id-1.12.2.8"></a>Sample Applications</h3></div></div></div>
     
     <p>
       Some sample application programs using this API are provided for
@@ -187,7 +187,7 @@ $ <strong class="userinput"><code>make</code></strong>
     </p>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.3"></a>sample: a simple stub resolver utility</h4></div></div></div>
+<a name="id-1.12.2.8.3"></a>sample: a simple stub resolver utility</h4></div></div></div>
       
       <p>
 	Sends a query of a given name (of a given optional RR type) to a
@@ -253,7 +253,7 @@ $ <strong class="userinput"><code>make</code></strong>
     </div>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.4"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
+<a name="id-1.12.2.8.4"></a>sample-async: a simple stub resolver, working asynchronously</h4></div></div></div>
       
       <p>
       Similar to "sample", but accepts a list
@@ -289,7 +289,7 @@ $ <strong class="userinput"><code>make</code></strong>
     </div>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.5"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
+<a name="id-1.12.2.8.5"></a>sample-request: a simple DNS transaction client</h4></div></div></div>
       
       <p>
 	Sends a query to a specified server, and prints the response with
@@ -329,7 +329,7 @@ $ <strong class="userinput"><code>make</code></strong>
     </div>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.6"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
+<a name="id-1.12.2.8.6"></a>sample-gai: getaddrinfo() and getnameinfo() test code</h4></div></div></div>
       
       <p>
 	This is a test program to check <span class="command"><strong>getaddrinfo()</strong></span> and
@@ -349,7 +349,7 @@ $ <strong class="userinput"><code>make</code></strong>
     </div>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.7"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
+<a name="id-1.12.2.8.7"></a>sample-update: a simple dynamic update client program</h4></div></div></div>
       
       <p>
 	Accepts a single update command as a command-line argument, sends
@@ -449,7 +449,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
     </div>
     <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.13.2.8.8"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
+<a name="id-1.12.2.8.8"></a>nsprobe: domain/name server checker in terms of RFC 4074</h4></div></div></div>
       
       <p>
 	Checks a set of domains to see the name servers of the domains
@@ -506,7 +506,7 @@ $ <strong class="userinput"><code>sample-update -a sample-update -k Kxxx.+nnn+mm
   </div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.13.2.9"></a>Library References</h3></div></div></div>
+<a name="id-1.12.2.9"></a>Library References</h3></div></div></div>
     
     <p>
       As of this writing, there is no formal "manual" for the libraries,
