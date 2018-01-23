@@ -2455,7 +2455,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
     </section>
   </chapter>
 
-  <chapter xml:id="Bv9ARM.ch06"><info><title><acronym>BIND</acronym> 9 Configuration Reference</title></info>
+  <chapter xml:id="Bv9ARM.ch05"><info><title><acronym>BIND</acronym> 9 Configuration Reference</title></info>
 
     <para>
       <acronym>BIND</acronym> 9 configuration is broadly similar
@@ -16572,7 +16572,7 @@ HOST-127.EXAMPLE. MX 0 .
       </section>
 
     </chapter>
-    <chapter xml:id="Bv9ARM.ch07"><info><title><acronym>BIND</acronym> 9 Security Considerations</title></info>
+    <chapter xml:id="Bv9ARM.ch06"><info><title><acronym>BIND</acronym> 9 Security Considerations</title></info>
 
       <section xml:id="Access_Control_Lists"><info><title>Access Control Lists</title></info>
 
@@ -16896,7 +16896,7 @@ allow-query { !{ !10/8; any; }; key example; };
       </section>
     </chapter>
 
-    <chapter xml:id="Bv9ARM.ch08"><info><title>Troubleshooting</title></info>
+    <chapter xml:id="Bv9ARM.ch07"><info><title>Troubleshooting</title></info>
 
       <section xml:id="common_problems"><info><title>Common Problems</title></info>
 
@@ -16967,11 +16967,11 @@ allow-query { !{ !10/8; any; }; key example; };
       </section>
     </chapter>
 
-    <appendix xml:id="Bv9ARM.ch09"><info><title>Release Notes</title></info>
+    <appendix xml:id="Bv9ARM.ch08"><info><title>Release Notes</title></info>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes.xml"/>
     </appendix>
 
-    <appendix xml:id="Bv9ARM.ch10"><info><title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title></info>
+    <appendix xml:id="Bv9ARM.ch09"><info><title>A Brief History of the <acronym>DNS</acronym> and <acronym>BIND</acronym></title></info>
       <para xml:id="historical_dns_information">
 	Although the "official" beginning of the Domain Name
 	System occurred in 1984 with the publication of RFC 920, the
@@ -17069,7 +17069,7 @@ allow-query { !{ !10/8; any; }; key example; };
       </para>
     </appendix>
 
-    <appendix xml:id="Bv9ARM.ch11"><info><title>General <acronym>DNS</acronym> Reference Information</title></info>
+    <appendix xml:id="Bv9ARM.ch10"><info><title>General <acronym>DNS</acronym> Reference Information</title></info>
 
       <section xml:id="ipv6addresses"><info><title>IPv6 addresses (AAAA)</title></info>
 
@@ -17918,11 +17918,11 @@ allow-query { !{ !10/8; any; }; key example; };
       </section>
     </appendix>
 
-    <appendix xml:id="Bv9ARM.ch12"><info><title>BIND 9 DNS Library Support</title></info>
+    <appendix xml:id="Bv9ARM.ch11"><info><title>BIND 9 DNS Library Support</title></info>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libdns.xml"/>
     </appendix>
 
-    <reference xml:id="Bv9ARM.ch13"><info><title>Manual pages</title></info>
+    <reference xml:id="Bv9ARM.ch12"><info><title>Manual pages</title></info>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/arpaname.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/confgen/ddns-confgen.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/delv/delv.docbook"/>

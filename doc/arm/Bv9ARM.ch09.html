@@ -9,17 +9,18 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Appendix A. Release Notes</title>
+<title>Appendix B. A Brief History of the DNS and BIND</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
-<link rel="prev" href="Bv9ARM.ch08.html" title="Chapter 7. Troubleshooting">
-<link rel="next" href="Bv9ARM.ch10.html" title="Appendix B. A Brief History of the DNS and BIND">
+<link rel="prev" href="Bv9ARM.ch08.html" title="Appendix A. Release Notes">
+<link rel="next" href="Bv9ARM.ch10.html" title="Appendix C. General DNS Reference Information">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Appendix A. Release Notes</th></tr>
+<tr><th colspan="3" align="center">Appendix B. A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym>
+</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="Bv9ARM.ch08.html">Prev</a> </td>
@@ -32,138 +33,103 @@
 </div>
 <div class="appendix">
 <div class="titlepage"><div><div><h1 class="title">
-<a name="Bv9ARM.ch09"></a>Release Notes</h1></div></div></div>
-<div class="toc">
-<p><b>Table of Contents</b></p>
-<dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.9.2">Release Notes for BIND Version 9.12.1-dev</a></span></dt>
-<dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_thanks">Thank You</a></span></dt>
-</dl></dd>
-</dl>
-</div>
-      <div class="section">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.12.1-dev</h2></div></div></div>
-  
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_intro"></a>Introduction</h3></div></div></div>
-    <p>
-      This document summarizes changes since the last production
-      release on the BIND 9.12 branch. Please see the
-      <code class="filename">CHANGES</code> for a further list of bug fixes
-      and other changes.
-    </p>
-  </div>
+<a name="Bv9ARM.ch09"></a>A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym>
+</h1></div></div></div>
+      <p><a name="historical_dns_information"></a>
+        Although the "official" beginning of the Domain Name
+        System occurred in 1984 with the publication of RFC 920, the
+        core of the new system was described in 1983 in RFCs 882 and
+        883. From 1984 to 1987, the ARPAnet (the precursor to today's
+        Internet) became a testbed of experimentation for developing the
+        new naming/addressing scheme in a rapidly expanding,
+        operational network environment.  New RFCs were written and
+        published in 1987 that modified the original documents to
+        incorporate improvements based on the working model. RFC 1034,
+        "Domain Names-Concepts and Facilities", and RFC 1035, "Domain
+        Names-Implementation and Specification" were published and
+        became the standards upon which all <acronym class="acronym">DNS</acronym> implementations are
+        built.
+      </p>
 
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_download"></a>Download</h3></div></div></div>
-    <p>
-      The latest versions of BIND 9 software can always be found at
-      <a class="link" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
-      There you will find additional information about each release,
-      source code, and pre-compiled versions for Microsoft Windows
-      operating systems.
-    </p>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  None.
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_license"></a>License</h3></div></div></div>
-    <p>
-      BIND is open source software licenced under the terms of the Mozilla
-      Public License, version 2.0 (see the <code class="filename">LICENSE</code>
-      file for the full text).
-    </p>
-    <p>
-      The license requires that if you make changes to BIND and distribute
-      them outside your organization, those changes must be published under
-      the same license. It does not require that you publish or disclose
-      anything other than the changes you have made to our software.  This
-      requirement does not affect anyone who is using BIND, with or without
-      modifications, without redistributing it, nor anyone redistributing
-      BIND without changes.
-    </p>
-    <p>
-      Those wishing to discuss license compliance may contact ISC at
-      <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
-	https://www.isc.org/mission/contact/</a>.
-    </p>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="end_of_life"></a>End of Life</h3></div></div></div>
-    <p>
-      The end-of-life date for BIND 9.12 has not yet been determined.
-      However, it is not intended to be an Extended Support Version (ESV)
-      branch; accordingly, support will end after the next stable
-      branch (9.14) becomes available.  Those needing a longer-lived
-      branch are encouraged to use the current ESV, BIND 9.11, which
-      will be supported until December 2021. See
-      <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
-      for details of ISC's software support policy.
-    </p>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
-    <p>
-      Thank you to everyone who assisted us in making this release possible.
-      If you would like to contribute to ISC to assist us in continuing to
-      make quality open source software, please visit our donations page at
-      <a class="link" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
-    </p>
-  </div>
-</div>
+      <p>
+        The first working domain name server, called "Jeeves", was
+        written in 1983-84 by Paul Mockapetris for operation on DEC
+        Tops-20
+        machines located at the University of Southern California's
+        Information
+        Sciences Institute (USC-ISI) and SRI International's Network
+        Information
+        Center (SRI-NIC). A <acronym class="acronym">DNS</acronym> server for
+        Unix machines, the Berkeley Internet
+        Name Domain (<acronym class="acronym">BIND</acronym>) package, was
+        written soon after by a group of
+        graduate students at the University of California at Berkeley
+        under
+        a grant from the US Defense Advanced Research Projects
+        Administration
+        (DARPA).
+      </p>
+      <p>
+        Versions of <acronym class="acronym">BIND</acronym> through
+        4.8.3 were maintained by the Computer
+        Systems Research Group (CSRG) at UC Berkeley. Douglas Terry, Mark
+        Painter, David Riggle and Songnian Zhou made up the initial <acronym class="acronym">BIND</acronym>
+        project team. After that, additional work on the software package
+        was done by Ralph Campbell. Kevin Dunlap, a Digital Equipment
+        Corporation
+        employee on loan to the CSRG, worked on <acronym class="acronym">BIND</acronym> for 2 years, from 1985
+        to 1987. Many other people also contributed to <acronym class="acronym">BIND</acronym> development
+        during that time: Doug Kingston, Craig Partridge, Smoot
+        Carl-Mitchell,
+        Mike Muuss, Jim Bloom and Mike Schwartz. <acronym class="acronym">BIND</acronym> maintenance was subsequently
+        handled by Mike Karels and Øivind Kure.
+      </p>
+      <p>
+        <acronym class="acronym">BIND</acronym> versions 4.9 and 4.9.1 were
+        released by Digital Equipment
+        Corporation (now Compaq Computer Corporation). Paul Vixie, then
+        a DEC employee, became <acronym class="acronym">BIND</acronym>'s
+        primary caretaker. He was assisted
+        by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan
+        Beecher, Andrew
+        Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
+        Baran, Anant Kumar, Art Harkin, Win Treese, Don Lewis, Christophe
+        Wolfhugel, and others.
+      </p>
+      <p>
+        In 1994, <acronym class="acronym">BIND</acronym> version 4.9.2 was sponsored by
+        Vixie Enterprises. Paul
+        Vixie became <acronym class="acronym">BIND</acronym>'s principal
+        architect/programmer.
+      </p>
+      <p>
+        <acronym class="acronym">BIND</acronym> versions from 4.9.3 onward
+        have been developed and maintained
+        by the Internet Systems Consortium and its predecessor,
+        the Internet Software Consortium,  with support being provided
+        by ISC's sponsors.
+      </p>
+      <p>
+        As co-architects/programmers, Bob Halley and
+        Paul Vixie released the first production-ready version of
+        <acronym class="acronym">BIND</acronym> version 8 in May 1997.
+      </p>
+      <p>
+        BIND version 9 was released in September 2000 and is a
+        major rewrite of nearly all aspects of the underlying
+        BIND architecture.
+      </p>
+      <p>
+        BIND versions 4 and 8 are officially deprecated.
+        No additional development is done
+        on BIND version 4 or BIND version 8.
+      </p>
+      <p>
+        <acronym class="acronym">BIND</acronym> development work is made
+        possible today by the sponsorship
+        of several corporations, and by the tireless work efforts of
+        numerous individuals.
+      </p>
     </div>
 <div class="navfooter">
 <hr>
@@ -176,10 +142,9 @@
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Chapter 7. Troubleshooting </td>
+<td width="40%" align="left" valign="top">Appendix A. Release Notes </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
-<td width="40%" align="right" valign="top"> Appendix B. A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym>
-</td>
+<td width="40%" align="right" valign="top"> Appendix C. General <acronym class="acronym">DNS</acronym> Reference Information</td>
 </tr>
 </table>
 </div>
