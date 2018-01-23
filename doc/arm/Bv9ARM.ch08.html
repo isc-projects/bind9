@@ -9,17 +9,17 @@
 <html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Chapter 7. Troubleshooting</title>
+<title>Appendix A. Release Notes</title>
 <meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
-<link rel="prev" href="Bv9ARM.ch07.html" title="Chapter 6. BIND 9 Security Considerations">
-<link rel="next" href="Bv9ARM.ch09.html" title="Appendix A. Release Notes">
+<link rel="prev" href="Bv9ARM.ch07.html" title="Chapter 7. Troubleshooting">
+<link rel="next" href="Bv9ARM.ch09.html" title="Appendix B. A Brief History of the DNS and BIND">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Chapter 7. Troubleshooting</th></tr>
+<tr><th colspan="3" align="center">Appendix A. Release Notes</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="Bv9ARM.ch07.html">Prev</a> </td>
@@ -30,94 +30,171 @@
 </table>
 <hr>
 </div>
-<div class="chapter">
+<div class="appendix">
 <div class="titlepage"><div><div><h1 class="title">
-<a name="Bv9ARM.ch08"></a>Chapter 7. Troubleshooting</h1></div></div></div>
+<a name="Bv9ARM.ch08"></a>Release Notes</h1></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#common_problems">Common Problems</a></span></dt>
-<dd><dl><dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.8.2.2">It's not working; how can I figure out what's wrong?</a></span></dt></dl></dd>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.8.3">Incrementing and Changing the Serial Number</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch08.html#more_help">Where Can I Get Help?</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.12.1-dev</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_security">Security Fixes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_features">New Features</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_removed">Removed Features</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_changes">Feature Changes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_bugs">Bug Fixes</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_license">License</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#end_of_life">End of Life</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_thanks">Thank You</a></span></dt>
+</dl></dd>
 </dl>
 </div>
-
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="common_problems"></a>Common Problems</h2></div></div></div>
-
-        <div class="section">
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.12.1-dev</h2></div></div></div>
+  
+  <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id-1.8.2.2"></a>It's not working; how can I figure out what's wrong?</h3></div></div></div>
+<a name="relnotes_intro"></a>Introduction</h3></div></div></div>
+    <p>
+      BIND 9.13 is unstable development release of BIND.
+      This document summarizes new features and functional changes that
+      have been introduced on this branch.  With each development
+      release leading up to the stable BIND 9.14 release, this document
+      will be updated with additional features added and bugs fixed.
+    </p>
+  </div>
 
-          <p>
-            The best solution to solving installation and
-            configuration issues is to take preventative measures by setting
-            up logging files beforehand. The log files provide a
-            source of hints and information that can be used to figure out
-            what went wrong and how to fix the problem.
-          </p>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_download"></a>Download</h3></div></div></div>
+    <p>
+      The latest versions of BIND 9 software can always be found at
+      <a class="link" href="http://www.isc.org/downloads/" target="_top">http://www.isc.org/downloads/</a>.
+      There you will find additional information about each release,
+      source code, and pre-compiled versions for Microsoft Windows
+      operating systems.
+    </p>
+  </div>
 
-        </div>
-      </div>
-      <div class="section">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.8.3"></a>Incrementing and Changing the Serial Number</h2></div></div></div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  Addresses could be referenced after being freed during resolver
+	  processing, causing an assertion failure. The chances of this
+	  happening were remote, but the introduction of a delay in
+	  resolution increased them. This bug is disclosed in
+	  CVE-2017-3145. [RT #46839]
+	</p>
+      </li></ul></div>
+  </div>
 
-        <p>
-          Zone serial numbers are just numbers &#8212; they aren't
-          date related.  A lot of people set them to a number that
-          represents a date, usually of the form YYYYMMDDRR.
-          Occasionally they will make a mistake and set them to a
-          "date in the future" then try to correct them by setting
-          them to the "current date".  This causes problems because
-          serial numbers are used to indicate that a zone has been
-          updated.  If the serial number on the slave server is
-          lower than the serial number on the master, the slave
-          server will attempt to update its copy of the zone.
-        </p>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_features"></a>New Features</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  None.
+	</p>
+      </li></ul></div>
+  </div>
 
-        <p>
-          Setting the serial number to a lower number on the master
-          server than the slave server means that the slave will not perform
-          updates to its copy of the zone.
-        </p>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  <span class="command"><strong>dnssec-keygen</strong></span> can no longer generate HMAC
+	  keys for TSIG authentication. Use <span class="command"><strong>tsig-keygen</strong></span>
+	  to generate these keys. [RT #46404]
+	</p>
+      </li></ul></div>
+  </div>
 
-        <p>
-          The solution to this is to add 2147483647 (2^31-1) to the
-          number, reload the zone and make sure all slaves have updated to
-          the new zone serial number, then reset the number to what you want
-          it to be, and reload the zone again.
-        </p>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  Zone types <span class="command"><strong>primary</strong></span> and
+	  <span class="command"><strong>secondary</strong></span> are now available as synonyms for
+	  <span class="command"><strong>master</strong></span> and <span class="command"><strong>slave</strong></span>,
+	  respectively, in <code class="filename">named.conf</code>.
+	</p>
+      </li></ul></div>
+  </div>
 
-      </div>
-      <div class="section">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="more_help"></a>Where Can I Get Help?</h2></div></div></div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  Attempting to validate improperly unsigned CNAME responses
+	  from secure zones could cause a validator loop. This caused
+	  a delay in returning SERVFAIL and also increased the chances
+	  of encountering the crash bug described in CVE-2017-3145.
+	  [RT #46839]
+	</p>
+      </li></ul></div>
+  </div>
 
-        <p>
-          The Internet Systems Consortium
-          (<acronym class="acronym">ISC</acronym>) offers a wide range
-          of support and service agreements for <acronym class="acronym">BIND</acronym> and <acronym class="acronym">DHCP</acronym> servers. Four
-          levels of premium support are available and each level includes
-          support for all <acronym class="acronym">ISC</acronym> programs,
-          significant discounts on products
-          and training, and a recognized priority on bug fixes and
-          non-funded feature requests. In addition, <acronym class="acronym">ISC</acronym> offers a standard
-          support agreement package which includes services ranging from bug
-          fix announcements to remote support. It also includes training in
-          <acronym class="acronym">BIND</acronym> and <acronym class="acronym">DHCP</acronym>.
-        </p>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_license"></a>License</h3></div></div></div>
+    <p>
+      BIND is open source software licenced under the terms of the Mozilla
+      Public License, version 2.0 (see the <code class="filename">LICENSE</code>
+      file for the full text).
+    </p>
+    <p>
+      The license requires that if you make changes to BIND and distribute
+      them outside your organization, those changes must be published under
+      the same license. It does not require that you publish or disclose
+      anything other than the changes you have made to our software.  This
+      requirement does not affect anyone who is using BIND, with or without
+      modifications, without redistributing it, nor anyone redistributing
+      BIND without changes.
+    </p>
+    <p>
+      Those wishing to discuss license compliance may contact ISC at
+      <a class="link" href="https://www.isc.org/mission/contact/" target="_top">
+	https://www.isc.org/mission/contact/</a>.
+    </p>
+  </div>
 
-        <p>
-          To discuss arrangements for support, contact
-          <a class="link" href="mailto:info@isc.org" target="_top">info@isc.org</a> or visit the
-          <acronym class="acronym">ISC</acronym> web page at
-          <a class="link" href="http://www.isc.org/services/support/" target="_top">http://www.isc.org/services/support/</a>
-          to read more.
-        </p>
-      </div>
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="end_of_life"></a>End of Life</h3></div></div></div>
+    <p>
+      BIND 9.13 is an unstable development branch. When its development
+      is complete, it will be renamed to BIND 9.14, which will be a
+      stable branch.
+    </p>
+    <p>
+      The end of life date for BIND 9.14 has not yet been determined.
+      For those needing long term support, the current Extended Support
+      Version (ESV) is BIND 9.11, which will be supported until December
+      2021. See
+      <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
+      for details of ISC's software support policy.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_thanks"></a>Thank You</h3></div></div></div>
+    <p>
+      Thank you to everyone who assisted us in making this release possible.
+      If you would like to contribute to ISC to assist us in continuing to
+      make quality open source software, please visit our donations page at
+      <a class="link" href="http://www.isc.org/donate/" target="_top">http://www.isc.org/donate/</a>.
+    </p>
+  </div>
+</div>
     </div>
 <div class="navfooter">
 <hr>
@@ -130,12 +207,13 @@
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Chapter 6. <acronym class="acronym">BIND</acronym> 9 Security Considerations </td>
+<td width="40%" align="left" valign="top">Chapter 7. Troubleshooting </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
-<td width="40%" align="right" valign="top"> Appendix A. Release Notes</td>
+<td width="40%" align="right" valign="top"> Appendix B. A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym>
+</td>
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.0-dev</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.1-dev</p>
 </body>
 </html>
