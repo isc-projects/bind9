@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -324,7 +324,6 @@ options {
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	pid\-file ( \fIquoted_string\fR | none );
 	port \fIinteger\fR;
 	preferred\-glue \fIstring\fR;
@@ -583,7 +582,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	preferred\-glue \fIstring\fR;
 	provide\-ixfr \fIboolean\fR;
 	query\-source ( ( [ address ] ( \fIipv4_address\fR | * ) [ port (
@@ -709,7 +707,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 		notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR
 		    | * ) ];
 		notify\-to\-soa \fIboolean\fR;
-		nsec3\-test\-zone \fIboolean\fR; // test only
 		pubkey \fIinteger\fR
 		    \fIinteger\fR
 		    \fIinteger\fR
@@ -809,7 +806,6 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-to\-soa \fIboolean\fR;
-	nsec3\-test\-zone \fIboolean\fR; // test only
 	pubkey \fIinteger\fR \fIinteger\fR
 	request\-ixfr \fIboolean\fR;
 	serial\-update\-method ( increment | unixtime );
@@ -854,5 +850,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2018 Internet Systems Consortium, Inc. ("ISC")
 .br
