@@ -6123,7 +6123,7 @@ set_key_expiry_warning(dns_zone_t *zone, isc_stdtime_t when, isc_stdtime_t now)
 		isc_time_set(&zone->keywarntime, when - delta, 0);
 	}  else {
 		isc_time_set(&zone->keywarntime, when - 7 * 24 * 3600, 0);
-		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+		isc_time_formattimestamp(&zone->keywarntime, timebuf, 80);
 		dns_zone_log(zone, ISC_LOG_NOTICE,
 			     "setting keywarntime to %s", timebuf);
 	}
