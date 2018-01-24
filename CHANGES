@@ -1,3 +1,5 @@
+4875.	[bug]		Address compile failures on older systems. [RT #47015]
+
 4874.	[bug]		Wrong time display when reporting new keywarntime.
 			[RT #47042]
 

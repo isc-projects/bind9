@@ -28,7 +28,7 @@ struct isc_ht_node {
 	void *value;
 	isc_ht_node_t *next;
 	size_t keysize;
-	unsigned char key[];
+	unsigned char key[FLEXIBLE_ARRAY_MEMBER];
 };
 
 struct isc_ht {
@@ -101,7 +101,8 @@ isc_ht_destroy(isc_ht_t **htp) {
 			isc_ht_node_t *next = node->next;
 			ht->count--;
 			isc_mem_put(ht->mctx, node,
-				    sizeof(isc_ht_node_t) + node->keysize);
+				    offsetof(isc_ht_node_t, key) +
+				    node->keysize);
 			node = next;
 		}
 	}
@@ -134,7 +135,7 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 		node = node->next;
 	}
 
-	node = isc_mem_get(ht->mctx, sizeof(isc_ht_node_t) + keysize);
+	node = isc_mem_get(ht->mctx, offsetof(isc_ht_node_t, key) + keysize);
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -192,7 +193,8 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
 			else
 				prev->next = node->next;
 			isc_mem_put(ht->mctx, node,
-				    sizeof(isc_ht_node_t) + node->keysize);
+				    offsetof(isc_ht_node_t, key) +
+				    node->keysize);
 			ht->count--;
 
 			return (ISC_R_SUCCESS);
@@ -310,7 +312,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 	else
 		prev->next = node->next;
 	isc_mem_put(ht->mctx, node,
-		    sizeof(isc_ht_node_t) + node->keysize);
+		    offsetof(isc_ht_node_t, key) + node->keysize);
 	ht->count--;
 
 	return (result);

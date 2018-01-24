@@ -10,10 +10,10 @@
 #ifndef ISC_DEPRECATED_H
 #define ISC_DEPRECATED_H
 
-#ifdef __GNUC__
+#if (__GNUC__ + 0) > 3
 #define ISC_DEPRECATED                  __attribute__((deprecated))
 #else
 #define ISC_DEPRECATED                  /* none */
-#endif /* __GNUC __ */
+#endif /* __GNUC__ > 3*/
 
 #endif
