@@ -1,3 +1,5 @@
+4876.	[bug]		Address deadlock with accessing a keytable. [RT #47000]
+
 4874.	[bug]		Wrong time display when reporting new keywarntime.
 			[RT #47042]
 

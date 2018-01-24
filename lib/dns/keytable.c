@@ -99,13 +99,11 @@ dns_keytable_attach(dns_keytable_t *source, dns_keytable_t **targetp) {
 	REQUIRE(VALID_KEYTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	RWLOCK(&source->rwlock, isc_rwlocktype_write);
-
+	LOCK(&source->lock);
 	INSIST(source->references > 0);
 	source->references++;
 	INSIST(source->references != 0);
-
-	RWUNLOCK(&source->rwlock, isc_rwlocktype_write);
+	UNLOCK(&source->lock);
 
 	*targetp = source;
 }
@@ -122,19 +120,17 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 	REQUIRE(keytablep != NULL && VALID_KEYTABLE(*keytablep));
 
 	keytable = *keytablep;
+	*keytablep = NULL;
 
-	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
-
+	LOCK(&keytable->lock);
 	INSIST(keytable->references > 0);
 	keytable->references--;
-	LOCK(&keytable->lock);
-	if (keytable->references == 0 && keytable->active_nodes == 0)
+	if (keytable->references == 0)
 		destroy = ISC_TRUE;
 	UNLOCK(&keytable->lock);
 
-	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
-
 	if (destroy) {
+		INSIST(keytable->active_nodes == 0);
 		dns_rbt_destroy(&keytable->table);
 		isc_rwlock_destroy(&keytable->rwlock);
 		DESTROYLOCK(&keytable->lock);
@@ -142,8 +138,6 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 		isc_mem_putanddetach(&keytable->mctx,
 				     keytable, sizeof(*keytable));
 	}
-
-	*keytablep = NULL;
 }
 
 static isc_result_t
@@ -623,7 +617,7 @@ dns_keynode_managed(dns_keynode_t *keynode) {
 isc_result_t
 dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 	isc_result_t result;
-	dns_keynode_t *knode = NULL;
+	dns_keynode_t *knode;
 
 	REQUIRE(target != NULL && *target == NULL);
 

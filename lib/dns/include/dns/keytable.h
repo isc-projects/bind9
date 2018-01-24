@@ -61,8 +61,8 @@ struct dns_keytable {
 	isc_rwlock_t		rwlock;
 	/* Locked by lock. */
 	isc_uint32_t		active_nodes;
-	/* Locked by rwlock. */
 	isc_uint32_t		references;
+	/* Locked by rwlock. */
 	dns_rbt_t		*table;
 };
 
