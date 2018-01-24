@@ -1810,8 +1810,12 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	/*
 	 * Exponential backoff after the first few tries.
 	 */
-	if (fctx->restarts > fctx->res->nonbackofftries)
-		us <<= (fctx->restarts - fctx->res->nonbackofftries);
+	if (fctx->restarts > fctx->res->nonbackofftries) {
+		int shift = fctx->restarts - fctx->res->nonbackofftries;
+		if (shift > 6)
+			shift = 6;
+		us <<= shift;
+	}
 
 	/*
 	 * Add a fudge factor to the expected rtt based on the current
