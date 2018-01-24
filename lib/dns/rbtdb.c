@@ -1675,7 +1675,7 @@ update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
 		newh->node = (dns_rbtnode_t *)p;
 	}
 	if (CASESET(old)) {
-		uint16_t attr;
+		isc_uint16_t attr;
 
 		memmove(newh->upper, old->upper, sizeof(old->upper));
 		attr = old->attributes & (RDATASET_ATTR_CASESET |
