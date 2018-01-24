@@ -186,7 +186,7 @@ ATF_TC_HEAD(benchmark, tc) {
 static void *
 fromwire_thread(void *arg) {
 	unsigned int maxval = 32000000;
-	uint8_t data[] = {
+	isc_uint8_t data[] = {
 		3, 'w', 'w', 'w',
 		7, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
 		7, 'i', 'n', 'v', 'a', 'l', 'i', 'd',
