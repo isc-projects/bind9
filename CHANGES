@@ -1,3 +1,6 @@
+4877.	[bug]		Address integer overflow when exponentially
+			backing off retry intervals. [RT #47041]
+
 4876.	[bug]		Address deadlock with accessing a keytable. [RT #47000]
 
 4875.	[bug]		Address compile failures on older systems. [RT #47015]
