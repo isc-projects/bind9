@@ -42,7 +42,7 @@ running the command
 
     sh ifconfig.sh up
 
-as root. The interfaces can be removed by executing the command:
+as root.  The interfaces can be removed by executing the command:
 
     sh ifconfig.sh down
 
@@ -82,7 +82,7 @@ Optional flags are:
     -k              Keep servers running after the test completes.  Each test
                     usually starts a number of nameservers, either instances
                     of the "named" being tested, or custom servers (written in
-                    Python or Perl) that feature test-specific behavior. The
+                    Python or Perl) that feature test-specific behavior.  The
                     servers are automatically started before the test is run
                     and stopped after it ends.  This flag leaves them running
                     at the end of the test, so that additional queries can be
@@ -97,15 +97,15 @@ Optional flags are:
     -p <number>     Sets the range of ports used by the test.  A block of 100
                     ports is available for each test, the number given to the
                     "-p" switch being the number of the start of that block
-                    (e.g.  "-p 7900" will mean that the test is able to use
+                    (e.g. "-p 7900" will mean that the test is able to use
                     ports 7900 through 7999).  If not specified, the test will
                     have ports 5000 to 5099 available to it.
 
     -r              The "runall" flag.  This is related to cleaning up after
                     the tests (see "Maintenance Notes" below).  If specified,
-                    if prevents a copy of the test's output listing from being
+                    it prevents a copy of the test's output listing from being
                     deleted when the directory is cleaned up after the test
-                    completes. (The test's output listing comprises messages
+                    completes.  (The test's output listing comprises messages
                     produced by the test during its execution; it does not
                     include the output files produced by utilities such as
                     "dig" or "rndc", nor any logging output from named itself.)
@@ -116,7 +116,7 @@ Optional flags are:
 
 Arguments are:
 
-    test-name       Mandatory. The name of the test, which is the name of the
+    test-name       Mandatory.  The name of the test, which is the name of the
                     subdirectory in bin/tests/system holding the test files.
 
     test-arguments  Optional arguments that are passed to each of the test's
@@ -134,8 +134,8 @@ the retention of all output files from all tests.
 
 The optional "numproc" argument specifies the maximum number of tests that can
 run in parallel.  The default is 1, which means that all of the tests run
-sequentially. If greater than 1, up to "numproc" tests will run simultaneously,
-new tests being started as tests finish. Each test will get a unique set of
+sequentially.  If greater than 1, up to "numproc" tests will run simultaneously,
+new tests being started as tests finish.  Each test will get a unique set of
 ports, so there is no danger of tests interfering with one another.  Parallel
 running will reduce the total time taken to run the BIND system tests, but will
 mean that the output from all the tests sent to the screen will be mixed up
@@ -161,10 +161,10 @@ running make, e.g.
 Running Multiple System Test Suites Simultaneously
 ---
 In some cases it may be desirable to have multiple instances of the system test
-suite running simultaneously (e.g. from different terminal windows). To do
+suite running simultaneously (e.g. from different terminal windows).  To do
 this:
 
-1. Each installation must have its own directory tree. The system tests create
+1. Each installation must have its own directory tree.  The system tests create
 files in the test directories, so separate directory trees are required to
 avoid interference between the same test running in the different
 installations.
@@ -257,11 +257,11 @@ Deletion of files produced by an individual test can be done with the command:
 
     sh clean.sh [-r] <test-name>
 
-The optional flag is"
+The optional flag is:
 
     -r              The "runall" flag.  This is related to cleaning up after
                     the tests (see "Maintenance Notes" below).  If specified,
-                    if prevents a copy of the test's output listing from being
+                    it prevents a copy of the test's output listing from being
                     deleted when the directory is cleaned after the test
                     completes.
 
@@ -287,7 +287,7 @@ This section is intended for developers writing new tests.
 
 Overview
 ---
-As noted above, each test  is in a separate directory.  To interact with the
+As noted above, each test is in a separate directory.  To interact with the
 test framework, the directories contain the following standard files:
 
 prereq.sh   Run at the beginning to determine whether the test can be run at
@@ -303,16 +303,16 @@ tests.sh    Runs the actual tests.  This file is mandatory.
 
 clean.sh    Run at the end to clean up temporary files, but only if the test
             was completed successfully and its running was not inhibited by the
-            "-n" switch being passed to "run.sh". Otherwise the temporary files
-            are left in place for inspection.
+	    "-n" switch being passed to "run.sh".  Otherwise the temporary
+	    files are left in place for inspection.
 
 ns<N>       These subdirectories contain test name servers that can be queried
-            or can interact with each other. the value of N indicates the
-            address the server listens on: for example, ns2 listens on
-            10.53.0.2, and ns4 on 10.53.0.4. All test servers use an
-            unprivileged port, so they don't need to run as root. These servers
-            log at the highest debug level and the log is captured in the file
-            "named.run".
+	    or can interact with each other.  The value of N indicates the
+	    address the server listens on: for example, ns2 listens on
+	    10.53.0.2, and ns4 on 10.53.0.4.  All test servers use an
+	    unprivileged port, so they don't need to run as root.  These
+	    servers log at the highest debug level and the log is captured in
+	    the file "named.run".
 
 ans<N>      Like ns[X], but these are simple mock name servers implemented in
             Perl or Python.  They are generally programmed to misbehave in ways
@@ -328,7 +328,7 @@ environment variables that the scripts listed above can reference.
 
 The convention used in the system tests is that the number passed is the start
 of a range of 100 ports.  The test is free to use the ports as required,
-although the first ten ports in the block named and generally tests use the
+although the first ten ports in the block are named and generally tests use the
 named ports for their intended purpose.  The names of the environment variables
 are:
 
@@ -376,14 +376,14 @@ General
 directory.
 
 2. Arguments can be only passed to the script if the test is being run as a
-one-off with "run.sh". In this case, everything on the command line after the
+one-off with "run.sh".  In this case, everything on the command line after the
 name of the test is passed to each script.  For example, the command:
 
     sh run.sh -p 12300 mytest -D xyz
 
 ... will run "mytest" with a port range of 12300 to 12399.  Each of the
 framework scripts provided by the test will be invoked using the remaining
-arguments, e.g.
+arguments, e.g.:
 
    (cd mytest ; sh prereq.sh -D xyz)
    (cd mytest ; sh setup.sh -D xyz)
@@ -432,9 +432,9 @@ port numbers.
 
 To do this, configuration files should be supplied in the form of templates
 containing tokens identifying ports.  The tokens have the same name as the
-shell variables listed above, but in upper-case and prefixed and suffixed by
-the "@" symbol.  For example, a fragment of a configuration file template might
-look like:
+environment variables listed above, but are prefixed and suffixed by the "@"
+symbol.  For example, a fragment of a configuration file template might look
+like:
 
     controls {
         inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
@@ -454,8 +454,9 @@ setup.sh should copy the template to the desired filename using the
     copy_setports ns1/named.conf.in ns1/named.conf
 
 This replaces the tokens @PORT@, @CONTROLPORT@, @EXTRAPORT1@ through
-@EXTRAPORT8@ with the contents of the shell variables listed above.  setup.sh
-should do this for all configuration files required when the test starts.
+@EXTRAPORT8@ with the contents of the environment variables listed above.
+setup.sh should do this for all configuration files required when the test
+starts.
 
 ("setup.sh" should also use this method for replacing the tokens in any Perl or
 Python name servers used in the test.)
@@ -463,14 +464,14 @@ Python name servers used in the test.)
 
 tests.sh
 ---
-This is the main test file and the contents depend on the test. The contents
+This is the main test file and the contents depend on the test.  The contents
 are completely up to the developer, although most test scripts have a form
 similar to the following for each sub-test:
 
     1. n=`expr $n + 1`
     2. echo_i "prime cache nodata.example ($n)"
     3. ret=0
-    4. $DIG -p $PORT @10.53.0.1 nodata.example TXT > dig.out.test$n
+    4. $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
     5. grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
     6. grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
     7. if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -482,14 +483,14 @@ similar to the following for each sub-test:
 2.  Indicate that the sub-test is about to begin.  Note that "echo_i" instead
     of "echo" is used.  echo_i is a function defined in "conf.sh" which will
     prefix the message with "I:<testname>:", so allowing the output from each
-    test to be identified within the output. The test number is included in the
-    message in order to tie the sub-test with its output.
+    test to be identified within the output.  The test number is included in
+    the message in order to tie the sub-test with its output.
 
 3. Initialize return status.
 
 4 - 6. Carry out the sub-test.  In this case, a nameserver is queried (note
     that the port used is given by the PORT environment variable, which was set
-    by the inclusion the file "conf.sh" at the start of the script).  The
+    by the inclusion of the file "conf.sh" at the start of the script).  The
     output is routed to a file whose suffix includes the test number.  The
     response from the server is examined and, in this case, if the required
     string is not found, an error is indicated by setting "ret" to 1.
@@ -538,9 +539,9 @@ For the former, the version of "named" being run is that in the "bin/named"
 directory in the tree holding the tests (i.e. if "make test" is being run
 immediately after "make", the version of "named" used is that just built).  The
 configuration files, zone files etc. for these servers are located in
-subdirectories named of the test directory "nsN", where N is a small integer.
+subdirectories of the test directory named "nsN", where N is a small integer.
 The latter are special nameservers, mostly used for generating deliberately bad
-responses, are located in subdirectories named "ansN" (again, N is an integer).
+responses, located in subdirectories named "ansN" (again, N is an integer).
 In addition to configuration files, these directories should hold the
 appropriate script files as well.
 
@@ -549,17 +550,17 @@ there is an "ns2" directory, there cannot be an "ans2" directory as well.
 Ideally, the directory numbers should start at 1 and work upwards.
 
 When running a test, the servers are started using "start.sh" (which is nothing
-more than a wrapper for start.pl.)  The options for "start.pl" are documented
+more than a wrapper for start.pl).  The options for "start.pl" are documented
 in the header for that file, so will not be repeated here.  In summary, when
 invoked by "run.sh", start.pl looks for directories named "nsN" or "ansN" in
-the test directory and starts the server it finds there.
+the test directory and starts the servers it finds there.
 
 
 "named" Command-Line Options
 ---
 By default, start.pl starts a "named" server with the following options:
 
-     -c named.conf  Specifies the configuration file to use (so by implication,
+    -c named.conf   Specifies the configuration file to use (so by implication,
                     each "nsN" nameserver's configuration file must be called
                     named.conf).
 
@@ -583,13 +584,13 @@ By default, start.pl starts a "named" server with the following options:
 
 In addition, start.pl also sets the following undocumented flag:
 
-    -T clientest    Makes clients single-shot with their own memory context.
+    -T clienttest   Makes clients single-shot with their own memory context.
 
-All output is sent to a file called "named.run" in the namserver
-directory.
+All output is sent to a file called "named.run" in the nameserver directory.
 
 The options used to start named can be altered.  There are three ways of doing
-this.  "start.pl" checks the methods in a specific order: if a check succeeds, the options are set and any other specification is ignored.  In order these
+this.  "start.pl" checks the methods in a specific order: if a check succeeds,
+the options are set and any other specification is ignored.  In order, these
 are:
 
 1. Specifying options to "start.sh"/"start.pl" after the name of the test
@@ -599,38 +600,38 @@ directory, e.g.
 
 (This is only really useful when running tests interactively.)
 
-2. Including a file called "named.args" in the "nsN" directory. If present, the
-contents of the first line of the file are used as the named command-line
-arguments.  The rest of the file is ignored.
+2. Including a file called "named.args" in the "nsN" directory.  If present,
+the contents of the first non-commented, non-blank line of the file are used as
+the named command-line arguments.  The rest of the file is ignored.
 
 3. Tweaking the default command line arguments with "-T" options.  This flag is
 used to alter the behavior of BIND for testing and is not documented in the
-ARM.  The "clientest" option has already been mentioned, but the presence of
+ARM.  The "clienttest" option has already been mentioned, but the presence of
 certain files in the "nsN" directory adds flags to the default command line
 (the content of the files is irrelevant - it is only the presence that counts):
 
-    named.noaa      Appends "-T noaa", which causes "named" to never set the AA
-                    bit in an answer.
+    named.noaa       Appends "-T noaa" to the command line, which causes
+                     "named" to never set the AA bit in an answer.
 
-    named.dropedns  Adds "-T dropedns" to the command line, which causes
-                    "named" to recognise EDNS options in messages, but drop
-                    messages containing them.
+    named.dropedns   Adds "-T dropedns" to the command line, which causes
+                     "named" to recognise EDNS options in messages, but drop
+                     messages containing them.
 
     named.maxudp1460 Adds "-T maxudp1460" to the command line, setting the
-                     maxium UDP size handled by named to 1460.
+                     maximum UDP size handled by named to 1460.
 
-    named.maxudp512 Adds "-T maxudp512" to the command line, setting the
-                    maxium UDP size handled by named to 512.
+    named.maxudp512  Adds "-T maxudp512" to the command line, setting the
+                     maximum UDP size handled by named to 512.
 
-    named.noedns    Appends "-T noedns", which disables recognition of EDNS
-                    options in messages.
+    named.noedns     Appends "-T noedns" to the command line, which disables
+                     recognition of EDNS options in messages.
 
-    named.notcp     Adds "-T notcp", which disables TCP in "named".
+    named.notcp      Adds "-T notcp", which disables TCP in "named".
 
-    named.soa       Appends "-T nosoa" to the command line.  This disables
-                    the addition of SOA records to negative responses (or to
-                    the additional section if the response is triggered by RPZ
-                    rewriting).
+    named.soa        Appends "-T nosoa" to the command line, which disables
+                     the addition of SOA records to negative responses (or to
+                     the additional section if the response is triggered by RPZ
+                     rewriting).
 
 
 Starting Other Nameservers
@@ -642,8 +643,8 @@ else.
 
 (This is not strictly true: Python servers are provided with the number of the
 query port to use.  Altering the port used by Perl servers currently requires
-creating a template file containing the "@PORT@" construct, and having
-"setup.sh" substitute the actual port being used before the test starts.)
+creating a template file containing the "@PORT@" token, and having "setup.sh"
+substitute the actual port being used before the test starts.)
 
 
 Stopping Nameservers
@@ -681,11 +682,11 @@ need to edit two files to add a test.)
 
 Valgrind
 ---
-When running system tests, named can be run under Valgrind. The output from
+When running system tests, named can be run under Valgrind.  The output from
 Valgrind are sent to per-process files that can be reviewed after the test has
-completed. To enable this, set the USE_VALGRIND environment variable to
+completed.  To enable this, set the USE_VALGRIND environment variable to
 "helgrind" to run the Helgrind tool, or any other value to run the Memcheck
-tool. To use "helgrind" effectively, build BIND with --disable-atomic.
+tool.  To use "helgrind" effectively, build BIND with --disable-atomic.
 
 
 Maintenance Notes
@@ -748,7 +749,7 @@ this reason, "clean.sh" cannot delete "test.output" as, if the test is
 being run as part of a test suite, the file must be retained.
 
 2. If the deletion of "test.output" were to be solely the responsibility of
-"testsummnary.sh", should a test suite terminate abnormally, cleaning up a test
+"testsummary.sh", should a test suite terminate abnormally, cleaning up a test
 directory with "sh clean.sh <test-directory>" would leave the file present.
 
 3. An additional step could be added to "cleanall.sh" (which calls the
@@ -759,8 +760,8 @@ could leave the file present.
 
 To get round this, the system's "clean.sh" script takes an optional flag, "-r"
 (the "runall" flag).  When the test suite is run, each invocation of "run.sh"
-is passed the runall flag. In turn, "run.sh" passes the flag to "clean.sh",
+is passed the runall flag.  In turn, "run.sh" passes the flag to "clean.sh",
 which causes that script not to delete the "tests.output" file.  In other
 words, when the system's "clean.sh" is invoked standalone on a test directory
-(or as past of a run of "cleanall.sh"), it will delete the "test.output" if it
+(or as part of a run of "cleanall.sh"), it will delete the "test.output" if it
 is present.  When invoked during a run of the entire test suite, it won't.
