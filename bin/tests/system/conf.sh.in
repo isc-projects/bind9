@@ -172,7 +172,6 @@ else
     COLOR_NONE=''
     COLOR_PASS=''
     COLOR_START=''
-    COLOR_STEN=''
     COLOR_WARN=''
 fi
 
