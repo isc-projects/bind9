@@ -19,6 +19,8 @@ SYSTEMTESTTOP=.
 # the tests will call "testsummary.sh", which will concatenate all test output
 # files into a single systests.output.
 
+runall=0
+
 while getopts "r" flag; do
     case $flag in
 	r) runall=1 ;;
@@ -35,7 +37,7 @@ fi
 systest=$1
 shift
 
-if [ "$runall" = "" ]; then
+if [ $runall -eq 0 ]; then
     rm -f $systest/test.output
 fi
 

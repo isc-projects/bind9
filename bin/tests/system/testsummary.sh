@@ -24,6 +24,8 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
+keepfile=0
+
 while getopts "n" flag; do
     case $flag in
 	n) keepfile=1 ;;
@@ -32,7 +34,7 @@ while getopts "n" flag; do
 done
 
 cat */test.output > systests.output 2> /dev/null
-if [ "$keepfile" = "" ]; then
+if [ $keepfile -eq 0 ]; then
     rm -f */test.output
 fi
 
