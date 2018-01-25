@@ -25,14 +25,12 @@ SYSTEMTESTTOP=.
 stopservers=true
 clean=true
 baseport=5300
-dateargs="-R"
 
 while getopts "rnp:d:" flag; do
     case "$flag" in
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
-	d) dateargs=$OPTARG ;;
 	r) runall="-r" ;;
 	*) exit 1 ;;
     esac
@@ -94,7 +92,7 @@ export LOWPORT=$baseport
 export HIGHPORT=`expr $baseport + $numport - 1`
 
 
-echostart "S:$systest:`date $dateargs`"
+echostart "S:$systest:`date`"
 echoinfo  "T:$systest:1:A"
 echoinfo  "A:$systest:System test $systest"
 echoinfo  "I:$systest:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
