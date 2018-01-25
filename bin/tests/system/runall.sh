@@ -40,7 +40,7 @@ elif [ $# -eq 1 ]; then
     fi
     numproc=$1
 else
-    echo "$usage"
+    echo "$usage" >&2
     exit 1
 fi
 
