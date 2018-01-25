@@ -4,7 +4,6 @@ nsupdate.out*
 named.lock
 named.pid
 named.run
-named.port
 /feature-test
 **/test.output
 /systests.output
