@@ -79,18 +79,6 @@ e.g.
 
 Optional flags are:
 
-    -p <number>     Sets the range of ports used by the test.  A block of 100
-                    ports is available for each test, the number given to the
-                    "-p" switch being the number of the start of that block
-                    (e.g.  "-p 7900" will mean that the test is able to use
-                    ports 7900 through 7999).  If not specified, the test will
-                    have ports 5000 to 5099 available to it.
-
-    -n              Noclean - do not remove the output files if the test
-                    completes successfully.  By default, files created by the
-                    test are deleted if it passes;  they are not deleted if the
-                    test fails.
-
     -k              Keep servers running after the test completes.  Each test
                     usually starts a number of nameservers, either instances
                     of the "named" being tested, or custom servers (written in
@@ -101,15 +89,17 @@ Optional flags are:
                     sent by hand.  To stop the servers afterwards, use the
                     command "sh stop.sh <test-name>".
 
-    -d <arg>        Arguments to the "date" command used to produce the
-                    start and end time of the tests.  For example, the
-                    switch
+    -n              Noclean - do not remove the output files if the test
+                    completes successfully.  By default, files created by the
+                    test are deleted if it passes;  they are not deleted if the
+                    test fails.
 
-                        -d "+%Y-%m-%d:%H:%M:%S"
-
-                    would cause the "S" and "E" messages (see below) to have
-                    the date looking like "2017-11-23:16:06:32" instead of the
-                    default "Thu, 23 Nov 2017 16:06:32 +0000".
+    -p <number>     Sets the range of ports used by the test.  A block of 100
+                    ports is available for each test, the number given to the
+                    "-p" switch being the number of the start of that block
+                    (e.g.  "-p 7900" will mean that the test is able to use
+                    ports 7900 through 7999).  If not specified, the test will
+                    have ports 5000 to 5099 available to it.
 
     -r              The "runall" flag.  This is related to cleaning up after
                     the tests (see "Maintenance Notes" below).  If specified,
