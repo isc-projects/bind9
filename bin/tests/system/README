@@ -4,6 +4,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 Introduction
 ===
 This directory holds a simple test environment for running bind9 system tests
@@ -28,8 +29,8 @@ are named "nsN" or "ansN" (where N is a number between 1 and 8, e.g. ns1, ans2
 etc.)
 
 The tests are completely self-contained and do not require access to the real
-DNS.  Generally, one of the test servers (usually ns1) is set up as a root name
-server and is listed in the hints file of the others.
+DNS.  Generally, one of the test servers (usually ns1) is set up as a root
+nameserver and is listed in the hints file of the others.
 
 
 Preparing to Run the Tests
@@ -147,10 +148,13 @@ sequentially. If greater than 1, up to "numproc" tests will run simultaneously,
 new tests being started as tests finish. Each test will get a unique set of
 ports, so there is no danger of tests interfering with one another.  Parallel
 running will reduce the total time taken to run the BIND system tests, but will
-mean that the output from all the tests pointed to the screen will be mixed up
+mean that the output from all the tests sent to the screen will be mixed up
 with one another.  However, the systests.output file produced at the end of the
 run (in the bin/tests/system directory) will contain the output from each test
 in sequential order.
+
+Note that it is not possible to pass arguments to tests though the "runall.sh"
+script.
 
 A run of all the system tests can also be initiated via make:
 
@@ -162,8 +166,6 @@ running make, e.g.
 
     NOCLEAN=-n make [-j numproc] test
 
-(Note that it is not possible to pass arguments to tests though the "runall.sh"
-script.)
 
 
 Running Multiple System Test Suites Simultaneously
@@ -180,17 +182,17 @@ installations.
 2. For one of the test suites, the starting port number must be specified by
 setting the environment variable STARTPORT before starting the test suite.
 Each test suite comprises about 100 tests, each being allocated a set of 100
-ports.  The port ranges are allocated in sequence, so each test suite requires
-about 10,000 ports to itself.  By default, the port allocation starts at 5,000.
-So the following set of commands:
+ports.  The port ranges for each test are allocated sequentially, so each test
+suite requires about 10,000 ports to itself.  By default, the port allocation
+starts at 5,000.  So the following set of commands:
 
     Terminal Window 1:
         cd <installation-1>/bin/tests/system
-        sh run.sh 4
+        sh runall.sh 4
 
     Terminal Window 2:
         cd <installation-2>/bin/tests/system
-        STARTPORT=20000 sh run.sh 4
+        STARTPORT=20000 sh runall.sh 4
 
 ... will start the test suite for installation-1 using the default base port
 of 5,000, so the test suite will use ports 5,000 through 15,000 (or there
@@ -307,7 +309,7 @@ setup.sh    Run after prereq.sh, this sets up the preconditions for the tests.
             Although optional, virtually all tests will require such a file to
             set up the ports they should use for the test.
 
-tests.sh    Runs the actual tests.
+tests.sh    Runs the actual tests.  This file is mandatory.
 
 clean.sh    Run at the end to clean up temporary files, but only if the test
             was completed successfully and its running was not inhibited by the
@@ -337,7 +339,8 @@ environment variables that the scripts listed above can reference.
 The convention used in the system tests is that the number passed is the start
 of a range of 100 ports.  The test is free to use the ports as required,
 although the first ten ports in the block named and generally tests use the
-named ports for their intended purpose.  The names are:
+named ports for their intended purpose.  The names of the environment variables
+are:
 
     PORT                     Number to be used for the query port.
     CONTROLPORT              Number to be used as the RNDC control port.
@@ -347,6 +350,19 @@ Two other environment variables are defined:
 
     LOWPORT                  The lowest port number in the range.
     HIGHPORT                 The highest port number in the range.
+
+Since port ranges usually start on a boundary of 10, the variables are set such
+that the last digit of the port number corresponds to the number of the
+EXTRAPORTn variable.  For example, if the port range were to start at 5200, the
+port assignments would be:
+
+    PORT = 5200
+    EXTRAPORT1 = 5201
+        :
+    EXTRAPORT8 = 5208
+    CONTROLPORT = 5209
+    LOWPORT = 5200
+    HIGHPORT = 5299
 
 When running tests in parallel (i.e. giving a value of "numproc" greater than 1
 in the "make" or "runall.sh" commands listed above), it is guaranteed that each
@@ -393,7 +409,8 @@ a run of the full test suite (e.g. the tests are started with "runall.sh").
     . $SYSTEMTESTTOP/conf.sh
 
 "conf.sh" defines a series of environment variables together with functions
-useful for the test scripts.
+useful for the test scripts. (conf.sh.win32 is the Windows equivalent of this
+file.)
 
 
 prereq.sh
@@ -450,7 +467,7 @@ This replaces the tokens @PORT@, @CONTROLPORT@, @EXTRAPORT1@ through
 @EXTRAPORT8@ with the contents of the shell variables listed above.  setup.sh
 should do this for all configuration files required when the test starts.
 
-(Setup should also use this method for replacing the tokens in any Perl or
+("setup.sh" should also use this method for replacing the tokens in any Perl or
 Python name servers used in the test.)
 
 
@@ -482,12 +499,13 @@ similar to the following for each sub-test:
 
 4 - 6. Carry out the sub-test.  In this case, a nameserver is queried (note
     that the port used is given by the PORT environment variable, which was set
-    bythe inclusion the file "conf.sh" at the start of the script).  The
+    by the inclusion the file "conf.sh" at the start of the script).  The
     output is routed to a file whose suffix includes the test number.  The
-    response from the server is examined and in this case, if the required
+    response from the server is examined and, in this case, if the required
     string is not found, an error is indicated by setting "ret" to 1.
 
-7.  If the sub-test failed, a message is printed.
+7.  If the sub-test failed, a message is printed. "echo_i" is used to print
+    the message to add the prefix "I:<test-name>:" before it is output.
 
 8.  "status", used to track how many of the sub-tests have failed, is
     incremented accordingly.  The value of "status" determines the status
@@ -496,15 +514,16 @@ similar to the following for each sub-test:
 
 Regardless of this, rules that should be followed are:
 
-a.  Use the variables produced by conf.sh to determine the ports to use for
-    sending and receiving queries.
+a.  Use the environment variables set by conf.sh to determine the ports to use
+    for sending and receiving queries.
 
-b.  Store all output produced by queries/commands into files.  These files
-    should be named according to the command that produced them, e.g. "dig"
-    output should be stored in a file "dig.out.<suffix>"
-
-c.  Use a counter to tag messages and to associate the messages with the output
+b.  Use a counter to tag messages and to associate the messages with the output
     files.
+
+c.  Store all output produced by queries/commands into files.  These files
+    should be named according to the command that produced them, e.g. "dig"
+    output should be stored in a file "dig.out.<suffix>", the suffix being
+    related to the value of the counter.
 
 d.  Use "echo_i" to output informational messages.
 
@@ -576,7 +595,7 @@ In addition, start.pl also sets the following undocumented flag:
 
     -T clientest    Makes clients single-shot with their own memory context.
 
-All output is redirected to a file called "named.run" in the namserver
+All output is sent to a file called "named.run" in the namserver
 directory.
 
 The options used to start named can be altered.  There are three ways of doing
@@ -623,6 +642,7 @@ certain files in the "nsN" directory adds flags to the default command line
                     the additional section if the response is triggered by RPZ
                     rewriting).
 
+
 Starting Other Nameservers
 ---
 In contrast to "named", nameservers written in Perl or Python (whose script
@@ -653,7 +673,6 @@ by the command:
 associated with the test are stopped.
 
 
-
 Adding a Test to the System Test Suite
 ---
 Once a test has been created, the following files should be edited:
@@ -668,7 +687,6 @@ or SEQUENTIAL variables.
 
 (It is likely that a future iteration of the system test suite will remove the
 need to edit two files to add a test.)
-
 
 
 Valgrind
@@ -705,49 +723,54 @@ The <baseport> is unique and the values of <baseport> for each test are
 separated by at least 100 ports.
 
 
-Cleaning up from Tests
+Cleaning Up From Tests
 ---
-When a test is run, files are produced in the test directory by both the test
-itself and the test framework.
+When a test is run, files are created in the test directory.  These files fall
+into three categories:
 
-The former comprises the the logs from the running of nameservers, the output
-from "dig" and "rndc" commands used in the test,  and anything else that the
-test developer feels is relevant. In the event of a test failure, they can be
-useful in tracking down the problem.
+1. Files generated by the test itself, e.g. output from "dig" and "rndc".
 
-At the moment, there is only one file in the latter category, the file
-test.output.  This is created when the test is run as part of a run of the test
-suite (e.g. via "runall.sh") and comprises a copy of the output sent to stdout.
-(If the test is running in parallel with other tests, the output sent to stdout
-will be interleaved with their output.  The output in test.output will comprise
-solely the output from this test.)
+2. Files produced by named which may not be cleaned up if named exits
+abnormally, e.g. core files, PID files etc.
 
-Files generated by the test are cleaned up by the test's "clean.sh".  Files
-generated by the framework are cleaned up by the framework itself.  However,
-how the framework files are cleaned up depends on the way the test is run.
+3. The file "test.output" containing the text written to stdout by the test.
+This is only produced when the test is run as part of the entire test suite
+(e.g. via "runall.sh").
 
-If the test is run by itself with a direct invocation of "run.sh", the disposal
-of the output depends on the test.  If it fails, all output is retained.  If it
-succeeds, "run.sh" calls the framework's "clean.sh". This deletes the test's
-test.output file then calls the test's own "clean.sh" to clean up the
-test-specific files.
+If the test fails, all these files are retained.  But if the test succeeds,
+they are cleaned up at different times:
 
-The clean-up path is different if the test is run as part of the test suite.
-Although the files produced by the test are cleaned up after each test, the
-test.output file is retained until all the tests are completed, at which point
-the script "testsummary.sh" is called to concatenate all the test output files
-into a single systests.output file and to delete the individual output files.
-(Waiting until all tests have completed before concatenating the individual
-output files to systests.output is done to avoid problems where tests are run
-in parallel.  If tests append their output to systests.output as they finish,
-there is the (admittedly small) chance that two tests may attempt to append
-their output at the same time.)
+1. Files generated by the test itself are cleaned up by the test's own
+"clean.sh".  This is called from the system's "clean.sh", which in turn is
+called from "run.sh".
 
-In this case, although the test is ultimately started by a call to "run.sh",
-"run.sh" is invoked with the "-r" switch (the "runall" flag).  Should the test
-fail, all files are retained as before.  If the test passes, the framework's
-"clean.sh" is called  and the "-r" switch passed to it.  This causes clean.sh
-to only call the test's "clean.sh", leaving the test.output file untouched.
-When all tests in the test suite have been run, the test suite code invokes
-"testsummary.sh".  This concatenates all test.output files to a single
-"systests.output", deleting them afterwards.
+2. Files that may not be cleaned up if named exits abnormally are removed
+by the system's "clean.sh".
+
+3. "test.output" files are deleted when the test suite ends.  At this point,
+the file "testsummary.sh" is called which concatenates all the "test.output"
+files into a single "systest.output" file before deleting them.
+
+A complication arises with the "test.output" file however:
+
+1. "clean.sh" is called by "run.sh" if the test ends successfully.  For
+this reason, "clean.sh" cannot delete "test.output" as, if the test is
+being run as part of a test suite, the file must be retained.
+
+2. If the deletion of "test.output" were to be solely the responsibility of
+"testsummnary.sh", should a test suite terminate abnormally, cleaning up a test
+directory with "sh clean.sh <test-directory>" would leave the file present.
+
+3. An additional step could be added to "cleanall.sh" (which calls the
+system's "clean.sh" for each test) to remove the "test.output" file.  However,
+although the file would be deleted should all test directories be cleaned,
+it would still mean that running "clean.sh" on a particular test directory
+could leave the file present.
+
+To get round this, the system's "clean.sh" script takes an optional flag, "-r"
+(the "runall" flag).  When the test suite is run, each invocation of "run.sh"
+is passed the runall flag. In turn, "run.sh" passes the flag to "clean.sh",
+which causes that script not to delete the "tests.output" file.  In other
+words, when the system's "clean.sh" is invoked standalone on a test directory
+(or as past of a run of "cleanall.sh"), it will delete the "test.output" if it
+is present.  When invoked during a run of the entire test suite, it won't.
