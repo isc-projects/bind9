@@ -75,21 +75,21 @@ KRB5_CONFIG=/dev/null
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
-SEQUENTIALDIRS="acl additional addzone autosign builtin
-	 cacheclean case cds chain
-         checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@
-         database digdelv dlv dlz dlzexternal
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
-	 emptyzones fetchlimit filter-aaaa formerr geoip glue gost
-	 inline integrity ixfr keepalive @KEYMGR@ legacy limits
-	 logfileconfig masterfile masterformat metadata mkeys
-	 names notify nslookup nsupdate nzd2nzf padding pending
-	 pipelined @PKCS11_TEST@ reclimit redirect resolver rndc
-	 rpz rrchecker rrl rrsetorder rsabigexponent
-	 runtime sfcache smartsign sortlist spf staticstub
-	 statistics statschannel stub synthfromdnssec tcp tkey tools
-	 tsig tsiggss unknown upforwd verify views wildcard xfer
-	 xferquota zero zonechecks"
+SEQUENTIALDIRS="acl additional addzone autosign builtin \
+	cacheclean case cds chain \
+	checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
+	database digdelv dlv dlz dlzexternal \
+	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
+	emptyzones fetchlimit filter-aaaa formerr geoip glue gost \
+	inline integrity ixfr keepalive @KEYMGR@ legacy limits \
+	logfileconfig masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf padding pending \
+	pipelined @PKCS11_TEST@ reclimit redirect resolver rndc \
+	rpz rrchecker rrl rrsetorder rsabigexponent \
+	runtime sfcache smartsign sortlist spf staticstub \
+	statistics statschannel stub synthfromdnssec tcp tkey tools \
+	tsig tsiggss unknown upforwd verify views wildcard xfer \
+	xferquota zero zonechecks"
 
 # List of tests that use unique ports (other than 5300 and 9953). These
 # tests can be run in parallel.
