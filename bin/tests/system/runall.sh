@@ -23,7 +23,7 @@
 #   -n          Noclean.  Keep all output files produced by all tests.  These
 #               can later be removed by running "cleanall.sh".
 #
-#   numprocess  Number of simultaneous processes to use when running the tests.
+#   numprocess  Number of concurrent processes to use when running the tests.
 #               The default is one, which causes the tests to run sequentially.
 
 SYSTEMTESTTOP=.
@@ -41,7 +41,7 @@ shift `expr $OPTIND - 1`
 if [ $# -eq 0 ]; then
     numproc=1
 elif [ $# -eq 1 ]; then
-    test "$1" -eq "$1" > /dev/null 2>& 1
+    test "$1" -eq "$1" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         # Value passed is not numeric
         echo "$usage" >&2

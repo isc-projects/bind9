@@ -58,7 +58,7 @@ PARALLEL = allow_query rpzrecurse
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
-# be greated that the highest privileged port, 1024.
+# be greater than the highest privileged port, 1024.
 
 parallel.mk:
 	@echo ".PHONY: $(PARALLEL)" > $@ ; \
