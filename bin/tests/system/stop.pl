@@ -18,7 +18,7 @@ use Cwd 'abs_path';
 use Getopt::Long;
 
 # Usage:
-#   perl stop.pl [-use-rndc [--port port]] test [server]
+#   perl stop.pl [--use-rndc [--port port]] test [server]
 #
 #   --use-rndc      Attempt to stop the server via the "rndc stop" command.
 #
