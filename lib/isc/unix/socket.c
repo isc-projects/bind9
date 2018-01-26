@@ -312,11 +312,14 @@ typedef isc_event_t intev_t;
 #ifdef TUNE_LARGE
 #ifdef sun
 #define RCVBUFSIZE (1*1024*1024)
+#define SNDBUFSIZE (1*1024*1024)
 #else
 #define RCVBUFSIZE (16*1024*1024)
+#define SNDBUFSIZE (16*1024*1024)
 #endif
 #else
 #define RCVBUFSIZE (32*1024)
+#define SNDBUFSIZE (32*1024)
 #endif /* TUNE_LARGE */
 
 /*%
@@ -2511,6 +2514,62 @@ set_rcvbuf(void) {
 }
 #endif
 
+#ifdef SO_SNDBUF
+static isc_once_t	sndbuf_once = ISC_ONCE_INIT;
+static int		sndbuf = SNDBUFSIZE;
+
+static void
+set_sndbuf(void) {
+	int fd;
+	int max = sndbuf, min;
+	ISC_SOCKADDR_LEN_T len;
+
+	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+#if defined(ISC_PLATFORM_HAVEIPV6)
+	if (fd == -1) {
+		switch (errno) {
+		case EPROTONOSUPPORT:
+		case EPFNOSUPPORT:
+		case EAFNOSUPPORT:
+		/*
+		 * Linux 2.2 (and maybe others) return EINVAL instead of
+		 * EAFNOSUPPORT.
+		 */
+		case EINVAL:
+			fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+			break;
+		}
+	}
+#endif
+	if (fd == -1)
+		return;
+
+	len = sizeof(min);
+	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&min, &len) == 0 &&
+	    min < sndbuf) {
+ again:
+		if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf,
+			       sizeof(sndbuf)) == -1) {
+			if (errno == ENOBUFS && sndbuf > min) {
+				max = sndbuf - 1;
+				sndbuf = (sndbuf + min) / 2;
+				goto again;
+			} else {
+				sndbuf = min;
+				goto cleanup;
+			}
+		} else
+			min = sndbuf;
+		if (min != max) {
+			sndbuf = max;
+			goto again;
+		}
+	}
+ cleanup:
+	close (fd);
+}
+#endif
+
 #ifdef SO_BSDCOMPAT
 /*
  * This really should not be necessary to do.  Having to workout
@@ -2594,7 +2653,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #if defined(USE_CMSG) || defined(SO_BSDCOMPAT) || defined(SO_NOSIGPIPE)
 	int on = 1;
 #endif
-#if defined(SO_RCVBUF)
+#if defined(SO_RCVBUF) || defined(SO_SNDBUF)
 	ISC_SOCKADDR_LEN_T optlen;
 	int size = 0;
 #endif
@@ -2793,7 +2852,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		set_tcp_maxseg(sock, 1280 - 20 - 40); /* 1280 - TCP - IPV6 */
 	}
 
-#if defined(USE_CMSG) || defined(SO_RCVBUF)
+#if defined(USE_CMSG) || defined(SO_RCVBUF) || defined(SO_SNDBUF)
 	if (sock->type == isc_sockettype_udp) {
 
 #if defined(USE_CMSG)
@@ -2925,6 +2984,27 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			}
 		}
 #endif
+
+#if defined(SO_SNDBUF)
+		optlen = sizeof(size);
+		if (getsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
+			       (void *)&size, &optlen) == 0 && size < sndbuf) {
+			RUNTIME_CHECK(isc_once_do(&sndbuf_once,
+						  set_sndbuf) == ISC_R_SUCCESS);
+			if (setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
+			       (void *)&sndbuf, sizeof(sndbuf)) == -1) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"setsockopt(%d, SO_SNDBUF, %d) %s: %s",
+					sock->fd, sndbuf,
+					isc_msgcat_get(isc_msgcat,
+						       ISC_MSGSET_GENERAL,
+						       ISC_MSG_FAILED,
+						       "failed"),
+					strbuf);
+			}
+		}
+#endif
 	}
 #ifdef IPV6_RECVTCLASS
 	if ((sock->pf == AF_INET6)
@@ -2952,7 +3032,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 				 strbuf);
 	}
 #endif
-#endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
+#endif /* defined(USE_CMSG) || defined(SO_RCVBUF) || defined(SO_SNDBUF) */
 
 setup_done:
 	inc_stats(manager->stats, sock->statsindex[STATID_OPEN]);
