@@ -29,7 +29,6 @@ keepfile=0
 while getopts "n" flag; do
     case $flag in
 	n) keepfile=1 ;;
-	*) exit 1 ;;
     esac
 done
 

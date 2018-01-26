@@ -24,7 +24,6 @@ runall=0
 while getopts "r" flag; do
     case $flag in
 	r) runall=1 ;;
-	*) exit 1;;
     esac
 done
 shift `expr $OPTIND - 1`

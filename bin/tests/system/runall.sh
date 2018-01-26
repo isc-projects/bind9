@@ -25,7 +25,6 @@ usage="Usage: ./runall.sh [-n] [numprocesses]"
 while getopts "n" flag; do
     case "$flag" in
 	n) CLEANFLAG="NOCLEAN=-n" ;;
-	*) echo "$usage" >&2 ; exit 1 ;;
     esac
 done
 shift `expr $OPTIND - 1`

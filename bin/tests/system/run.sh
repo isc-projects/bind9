@@ -17,13 +17,12 @@ stopservers=true
 clean=true
 baseport=5300
 
-while getopts "rnp:d:" flag; do
+while getopts "knp:r" flag; do
     case "$flag" in
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
 	r) runall="-r" ;;
-	*) exit 1 ;;
     esac
 done
 shift `expr $OPTIND - 1`
