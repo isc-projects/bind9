@@ -33,7 +33,7 @@ usage="Usage: ./runall.sh [-n] [numprocesses]"
 
 while getopts "n" flag; do
     case "$flag" in
-	n) CLEANFLAG="NOCLEAN=-n" ;;
+	n) export NOCLEAN="-n" ;;
     esac
 done
 shift `expr $OPTIND - 1`
@@ -53,6 +53,6 @@ else
     exit 1
 fi
 
-$CLEANFLAG make -j $numproc check
+make -j $numproc check
 
 exit $?
