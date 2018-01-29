@@ -51,15 +51,20 @@ PARALLEL = allow_query catz rpzrecurse serve-stale
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
 # be greater than the highest privileged port, 1024.
+#
+# Test names need to be sanitized because Solaris make does not like
+# underscores in target names and requires explicit differentiation
+# between a target name and a directory name (.PHONY is not supported).
 
 parallel.mk:
-	@echo ".PHONY: $(PARALLEL)" > $@ ; \
+	@PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
+	echo ".PHONY: $$PARALLEL_SANITIZED" > $@ ; \
 	echo "" >> $@ ; \
-	echo "check: $(PARALLEL)" >> $@ ; \
+	echo "check: $$PARALLEL_SANITIZED" >> $@ ; \
 	port=$${STARTPORT:-5000} ; \
 	for directory in $(PARALLEL) ; do \
 		echo "" >> $@ ; \
-		echo "$$directory:" >> $@ ; \
+		echo "test-`echo $$directory | tr _ -`:" >> $@ ; \
 		echo "	@$(SHELL) ./run.sh $$NOCLEAN -r -p $$port $$directory 2>&1 | tee $$directory/test.output" >> $@ ; \
 		port=`expr $$port + 100` ; \
 	done
