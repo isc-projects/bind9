@@ -1,3 +1,6 @@
+4878.	[bug]		List 'ply' as a requirement for the 'isc' python
+			package. [RT #47065]
+
 4877.	[bug]		Address integer overflow when exponentially
 			backing off retry intervals. [RT #47041]
 
