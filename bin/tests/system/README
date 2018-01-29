@@ -668,12 +668,12 @@ Adding a Test to the System Test Suite
 ---
 Once a test has been created, the following files should be edited:
 
-* conf.sh.in  The name of the test should be added to one of the the
-PARALLELDIRS or SEQUENTIALDIRS variables.  The former is used for tests that
+* conf.sh.in  The name of the test should be added to the PARALLELDIRS or
+SEQUENTIALDIRS variables as appropriate.  The former is used for tests that
 can run in parallel with other tests, the latter for tests that are unable to
 do so.
 
-* conf.sh.win32 This si the Windows equivalent of conf.sh.in.  The name of the
+* conf.sh.win32 This is the Windows equivalent of conf.sh.in.  The name of the
 test should be added to the PARALLELDIRS or SEQUENTIALDIRS variables as
 appropriate.
 
