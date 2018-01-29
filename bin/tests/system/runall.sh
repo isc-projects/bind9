@@ -10,6 +10,7 @@
 #
 # Usage:
 #    runall.sh [-n] [numprocesses]
+#   -c          Force colored output.
 #
 #   -n          Noclean.  Keep all output files produced by all tests.  These
 #               can later be removed by running "cleanall.sh".
@@ -20,12 +21,14 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-usage="Usage: ./runall.sh [-n] [numprocesses]"
+usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 
+SYSTEMTEST_FORCE_COLOR=0
 SYSTEMTEST_NO_CLEAN=0
 
-while getopts "n" flag; do
+while getopts "cn" flag; do
     case "$flag" in
+	c) SYSTEMTEST_FORCE_COLOR=1 ;;
 	n) SYSTEMTEST_NO_CLEAN=1 ;;
     esac
 done
@@ -46,7 +49,9 @@ else
     exit 1
 fi
 
+export SYSTEMTEST_FORCE_COLOR
 export SYSTEMTEST_NO_CLEAN
+
 make -j $numproc check
 
 exit $?
