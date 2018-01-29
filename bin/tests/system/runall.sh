@@ -22,11 +22,11 @@ SYSTEMTESTTOP=.
 
 usage="Usage: ./runall.sh [-n] [numprocesses]"
 
-NOCLEAN=""
+SYSTEMTEST_NO_CLEAN=0
 
 while getopts "n" flag; do
     case "$flag" in
-	n) NOCLEAN="-n" ;;
+	n) SYSTEMTEST_NO_CLEAN=1 ;;
     esac
 done
 shift `expr $OPTIND - 1`
@@ -46,7 +46,7 @@ else
     exit 1
 fi
 
-export NOCLEAN
+export SYSTEMTEST_NO_CLEAN
 make -j $numproc check
 
 exit $?
