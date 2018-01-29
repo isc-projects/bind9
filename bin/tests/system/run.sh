@@ -67,20 +67,33 @@ fi
 # ports.  Since the lowest numbered port (specified in the command line)
 # will usually be a multiple of 10, the names are chosen so that if this is
 # true, the last digit of EXTRAPORTn is "n".
-export PORT=$baseport
-export EXTRAPORT1=`expr $baseport + 1`
-export EXTRAPORT2=`expr $baseport + 2`
-export EXTRAPORT3=`expr $baseport + 3`
-export EXTRAPORT4=`expr $baseport + 4`
-export EXTRAPORT5=`expr $baseport + 5`
-export EXTRAPORT6=`expr $baseport + 6`
-export EXTRAPORT7=`expr $baseport + 7`
-export EXTRAPORT8=`expr $baseport + 8`
-export CONTROLPORT=`expr $baseport + 9`
+PORT=$baseport
+EXTRAPORT1=`expr $baseport + 1`
+EXTRAPORT2=`expr $baseport + 2`
+EXTRAPORT3=`expr $baseport + 3`
+EXTRAPORT4=`expr $baseport + 4`
+EXTRAPORT5=`expr $baseport + 5`
+EXTRAPORT6=`expr $baseport + 6`
+EXTRAPORT7=`expr $baseport + 7`
+EXTRAPORT8=`expr $baseport + 8`
+CONTROLPORT=`expr $baseport + 9`
 
-export LOWPORT=$baseport
-export HIGHPORT=`expr $baseport + $numport - 1`
+LOWPORT=$baseport
+HIGHPORT=`expr $baseport + $numport - 1`
 
+export PORT
+export EXTRAPORT1
+export EXTRAPORT2
+export EXTRAPORT3
+export EXTRAPORT4
+export EXTRAPORT5
+export EXTRAPORT6
+export EXTRAPORT7
+export EXTRAPORT8
+export CONTROLPORT
+
+export LOWPORT
+export HIGHPORT
 
 echostart "S:$systest:`date`"
 echoinfo  "T:$systest:1:A"
