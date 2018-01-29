@@ -83,7 +83,7 @@ KRB5_CONFIG=NUL
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
 SEQUENTIALDIRS="acl additional addzone autosign builtin \
-	 cacheclean case catz \
+	 cacheclean case \
 	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
 	 database digdelv dlv dlvauto dlz dlzexternal dname \
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
