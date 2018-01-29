@@ -22,4 +22,5 @@ setup(name='isc',
       author='Internet Systems Consortium, Inc',
       author_email='bind9-bugs@isc.org',
       license='ISC',
+      requires=['ply'],
       packages=['isc'])
