@@ -1,3 +1,6 @@
+4878.	[bug]		List 'ply' as a requirement for the 'isc' python
+			package. [RT #47065]
+
 4811.	[bug]		Revert api changes to use <isc/buffer.h> inline
 			macros.  Provide a alternative mechanism to turn
 			on the use of inline macros when building BIND.
