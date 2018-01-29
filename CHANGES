@@ -1,3 +1,6 @@
+4878.	[bug]		List 'ply' as a requirement for the 'isc' python
+			package. [RT #47065]
+
 	--- 9.9.12b1 released ---
 
 4876.	[bug]		Address deadlock with accessing a keytable. [RT #47000]
