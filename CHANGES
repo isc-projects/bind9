@@ -1,3 +1,5 @@
+4879.	[bug]		dns_rdata_caa:value_len is was small. [RT #47086]
+
 4878.	[bug]		List 'ply' as a requirement for the 'isc' python
 			package. [RT #47065]
 
