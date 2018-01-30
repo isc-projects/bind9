@@ -1,7 +1,8 @@
 4882.	[bug]		Address potential memory leak in
 			dns_update_signaturesinc. [RT #47084]
 
-4879.	[bug]		dns_rdata_caa:value_len is was small. [RT #47086]
+4879.	[bug]		dns_rdata_caa:value_len field was too small.
+			[RT #47086]
 
 4878.	[bug]		List 'ply' as a requirement for the 'isc' python
 			package. [RT #47065]
