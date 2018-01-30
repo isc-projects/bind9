@@ -7,9 +7,6 @@
 4879.	[bug]		dns_rdata_caa:value_len field was too small.
 			[RT #47086]
 
-4878.	[bug]		List 'ply' as a requirement for the 'isc' python
-			package. [RT #47065]
-
 	--- 9.10.7b1 released ---
 
 4876.	[bug]		Address deadlock with accessing a keytable. [RT #47000]
