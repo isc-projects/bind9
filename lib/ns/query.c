@@ -1012,9 +1012,11 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	 * This limits our searching to the zone where the first name
 	 * (the query target) was looked for.  This prevents following
 	 * CNAMES or DNAMES into other zones and prevents returning
-	 * additional data from other zones.
+	 * additional data from other zones. This does not apply if we're
+	 * answering a query where recursion is requested and allowed.
 	 */
 	if (client->query.rpz_st == NULL &&
+	    !(WANTRECURSION(client) && RECURSIONOK(client)) &&
 	    client->query.authdbset && db != client->query.authdb)
 	{
 		return (DNS_R_REFUSED);
