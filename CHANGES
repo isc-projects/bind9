@@ -1,3 +1,6 @@
+4881.	[bug]		Only include dst_openssl.h when OpenSSL is required.
+			[RT #47068]
+
 4879.	[bug]		dns_rdata_caa:value_len is was small. [RT #47086]
 
 4878.	[bug]		List 'ply' as a requirement for the 'isc' python
