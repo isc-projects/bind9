@@ -1,3 +1,9 @@
+4880.	[bug]		Named wasn't returning the target of a cross zone
+			CNAME between to served zones when recursion was
+			desired and available (RD=1, RA=1). Don't return
+			the CNAME target otherwise to prevent accidental
+			cache poisoning. [RT #47078]
+
 4879.	[bug]		dns_rdata_caa:value_len is was small. [RT #47086]
 
 4878.	[bug]		List 'ply' as a requirement for the 'isc' python
@@ -32,8 +38,8 @@
 			the ATF tool. [RT #46967]
 
 4869.	[bug]		Address some cases where NULL with zero length could
-			be passed to memmove which is undefined behaviour and
-			can lead to bad optimisation. [RT #46888]
+			be passed to memmove which is undefined behavior and
+			can lead to bad optimization. [RT #46888]
 
 4867.	[cleanup]	Normalize rndc on/off commands (validation,
 			querylog, serve-stale) so they all accept the
@@ -78,7 +84,7 @@
 4851.	[port]		Support using kyua as well as atf-run to run the unit
 			tests. [RT #46853]
 
-4847.	[bug]		dnssec-dnskey-kskonly was not being honoured for
+4847.	[bug]		dnssec-dnskey-kskonly was not being honored for
 			CDS and CDNSKEY. [RT #46755]
 
 4846.	[test]		Adjust timing values in runtime system test. Address
