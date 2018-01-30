@@ -2,8 +2,8 @@
 
 PATH="@ATFBIN@:${PATH}"
 export PATH
-ATFRUN=`type atf-run 2>/dev/null | awk '{print $3}'`
-KYUA=`type kyua 2>/dev/null | awk '{print $3}'`
+ATFRUN=`command -v atf-run 2>/dev/null`
+KYUA=`command -v kyua 2>/dev/null`
 
 status=0
 if [ -n "@UNITTESTS@" -a -x "$ATFRUN" -a -f Atffile ]
