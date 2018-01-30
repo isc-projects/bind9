@@ -10,7 +10,8 @@
 			the CNAME target otherwise to prevent accidental
 			cache poisoning. [RT #47078]
 
-4879.	[bug]		dns_rdata_caa:value_len is was small. [RT #47086]
+4879.	[bug]		dns_rdata_caa:value_len field was too small.
+			[RT #47086]
 
 4878.	[bug]		List 'ply' as a requirement for the 'isc' python
 			package. [RT #47065]
