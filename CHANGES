@@ -1,3 +1,6 @@
+4881.	[bug]		Only include dst_openssl.h when OpenSSL is required.
+			[RT #47068]
+
 4880.	[bug]		Named wasn't returning the target of a cross zone
 			CNAME between to served zones when recursion was
 			desired and available (RD=1, RA=1). Don't return
