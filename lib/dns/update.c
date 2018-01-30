@@ -2014,6 +2014,10 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	}
 
  failure:
+	if (node != NULL) {
+		dns_db_detachnode(db, &node);
+	}
+
 	dns_diff_clear(&state->sig_diff);
 	dns_diff_clear(&state->nsec_diff);
 	dns_diff_clear(&state->nsec_mindiff);
