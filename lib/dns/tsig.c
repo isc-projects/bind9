@@ -137,7 +137,7 @@ tsigkey_free(dns_tsigkey_t *key);
 isc_boolean_t
 dns__tsig_algvalid(unsigned int alg) {
 #ifndef PK11_MD5_DISABLE
-	if (alg == DST_ALG_HMACMD5) {
+	if (alg == DST_ALG_HMACMD5 && isc_md5_available()) {
 		return (ISC_TRUE);
 	}
 #endif
@@ -464,6 +464,18 @@ destroyring(dns_tsig_keyring_t *ring) {
 	isc_mem_putanddetach(&ring->mctx, ring, sizeof(dns_tsig_keyring_t));
 }
 
+static inline int
+known_algs_start() {
+#ifndef PK11_MD5_DISABLE
+	/* Skip MD5 backed algorithm.
+	 * It is hardcoded here it is always first. */
+	if (isc_md5_available() == ISC_FALSE &&
+	    known_algs[0].dstalg == DST_ALG_HMACMD5)
+		return 1;
+#endif
+	return 0;
+}
+
 /*
  * Look up the DST_ALG_ constant for a given name.
  */
@@ -471,7 +483,8 @@ unsigned int
 dns__tsig_algfromname(const dns_name_t *algorithm) {
 	int i;
 	int n = sizeof(known_algs) / sizeof(*known_algs);
-	for (i = 0; i < n; ++i) {
+
+	for (i = known_algs_start(); i < n; ++i) {
 		const dns_name_t *name = known_algs[i].name;
 		if (algorithm == name || dns_name_equal(algorithm, name)) {
 			return (known_algs[i].dstalg);
@@ -488,7 +501,8 @@ const dns_name_t*
 dns__tsig_algnamefromname(const dns_name_t *algorithm) {
 	int i;
 	int n = sizeof(known_algs) / sizeof(*known_algs);
-	for (i = 0; i < n; ++i) {
+
+	for (i = known_algs_start(); i < n; ++i) {
 		const dns_name_t *name = known_algs[i].name;
 		if (algorithm == name || dns_name_equal(algorithm, name)) {
 			return (name);
@@ -509,7 +523,8 @@ isc_boolean_t
 dns__tsig_algallocated(const dns_name_t *algorithm) {
 	int i;
 	int n = sizeof(known_algs) / sizeof(*known_algs);
-	for (i = 0; i < n; ++i) {
+
+	for (i = known_algs_start(); i < n; ++i) {
 		const dns_name_t *name = known_algs[i].name;
 		if (algorithm == name) {
 			return (ISC_FALSE);
