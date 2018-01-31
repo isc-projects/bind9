@@ -662,12 +662,11 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
+#ifndef PK11_RSA_PKCS_REPLACE
+			bad = ISC_TRUE;
+#endif
 			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
 		}
-#ifndef PK11_RSA_PKCS_REPLACE
-		else
-			++rsa_algorithms;
-#endif
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_RSA_PKCS,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
@@ -783,9 +782,9 @@ scan_slots(void) {
 #endif
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
+			bad = ISC_TRUE;
 			PK11_TRACEM(CKM_SHA_1);
-		} else
-			++digest_algorithms;
+		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
 			bad = ISC_TRUE;
@@ -816,12 +815,11 @@ scan_slots(void) {
 #endif
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
+#ifndef PK11_SHA_1_HMAC_REPLACE
+			bad = ISC_TRUE;
+#endif
 			PK11_TRACEM(CKM_SHA_1_HMAC);
 		}
-#ifndef PK11_SHA_1_HMAC_REPLACE
-		else
-			++digest_algorithms;
-#endif
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA224_HMAC_REPLACE
