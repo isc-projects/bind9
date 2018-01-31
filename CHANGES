@@ -1,3 +1,5 @@
+4883.	[cleanup]	Improved debugging output from dnssec-cds. [RT #47026]
+
 4882.	[bug]		Address potential memory leak in
 			dns_update_signaturesinc. [RT #47084]
 
