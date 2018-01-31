@@ -977,6 +977,21 @@ named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
 	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
 }
 
+static inline int
+algorithms_start() {
+#ifndef PK11_MD5_DISABLE
+	if (isc_md5_available() == ISC_FALSE) {
+		int i = 0;
+		while (algorithms[i].str != NULL &&
+			algorithms[i].hmac == hmacmd5) {
+			i++;
+		}
+		return i;
+	}
+#endif
+	return 0;
+}
+
 isc_result_t
 named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			      unsigned int *typep, isc_uint16_t *digestbits)
@@ -986,7 +1001,7 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 	isc_uint16_t bits;
 	isc_result_t result;
 
-	for (i = 0; algorithms[i].str != NULL; i++) {
+	for (i = algorithms_start(); algorithms[i].str != NULL; i++) {
 		len = strlen(algorithms[i].str);
 		if (strncasecmp(algorithms[i].str, str, len) == 0 &&
 		    (str[len] == '\0' ||
