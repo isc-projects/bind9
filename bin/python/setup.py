@@ -13,6 +13,6 @@ setup(name='isc',
       url='https://www.isc.org/bind',
       author='Internet Systems Consortium, Inc',
       author_email='bind9-bugs@isc.org',
-      license='ISC',
+      license='MPL',
       requires=['ply'],
       packages=['isc'])
