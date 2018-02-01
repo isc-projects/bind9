@@ -192,8 +192,8 @@ tables_init(void) {
  * This function destroys (modifies) the data passed in bits.
  */
 static isc_uint32_t
-matrix_binaryrank(isc_uint32_t *bits, ssize_t rows, ssize_t cols) {
-	ssize_t i, j, k;
+matrix_binaryrank(isc_uint32_t *bits, size_t rows, size_t cols) {
+	size_t i, j, k;
 	unsigned int rt = 0;
 	isc_uint32_t rank = 0;
 	isc_uint32_t tmp;
