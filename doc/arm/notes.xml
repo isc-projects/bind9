@@ -89,6 +89,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  When answering authoritative queries, <command>named</command>
+	  does not return the target of a cross-zone CNAME between two
+	  locally served zones; this prevents accidental cache poisoning.
+	  This same restriction was incorrectly applied to recursive
+	  queries as well; this has been fixed. [RT #47078]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Attempting to validate improperly unsigned CNAME responses
 	  from secure zones could cause a validator loop. This caused
 	  a delay in returning SERVFAIL and also increased the chances
