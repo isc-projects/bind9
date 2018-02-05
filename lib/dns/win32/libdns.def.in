@@ -359,6 +359,7 @@ dns_dsdigest_totext
 dns_dt_attach
 dns_dt_close
 dns_dt_create
+dns_dt_create2
 dns_dt_datatotext
 dns_dt_detach
 dns_dt_getframe
