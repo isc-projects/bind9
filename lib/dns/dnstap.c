@@ -55,6 +55,7 @@
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
+#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/types.h>
@@ -332,10 +333,17 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	REQUIRE(VALID_DTENV(env));
 
 	/*
+	 * Run in task-exclusive mode.
+	 */
+	result = isc_task_beginexclusive(env->reopen_task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/*
 	 * Check that we can create a new fw object.
 	 */
 	fwopt = fstrm_writer_options_init();
 	if (fwopt == NULL) {
+		isc_task_endexclusive(env->reopen_task);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -423,6 +431,8 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 
 	if (fuwopt != NULL)
 		fstrm_unix_writer_options_destroy(&fuwopt);
+
+	isc_task_endexclusive(env->reopen_task);
 
 	return (result);
 }
