@@ -80,6 +80,11 @@ while (<CHANGES>) {
 	    $file_types{$_} = "PERL";
 	} elsif ($base =~ /\.py$/i) {
 	    $file_types{$_} = "PYTHON";
+	    if (open(PYTHON, $_)) {
+	      my $line = <PYTHON>;
+	      $file_types{$_} = "PYTHON-BIN" if ($line && $line =~ /^#!/);
+	      close(PYTHON);
+	    }
 	} elsif ($base =~ /\.sh$/) {
 	    $file_types{$_} = "SH";
 	} elsif ($base =~ /\.docbook$/ ||
