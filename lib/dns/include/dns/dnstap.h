@@ -195,7 +195,8 @@ dns_dt_reopen(dns_dtenv_t *env, int roll);
  * keep.  If 'roll' is negative, or if 'env->mode' is dns_dtmode_unix,
  * then the channel is simply reopened.
  *
- * Note: dns_dt_reopen() must be called in task exclusive mode.
+ * Note: dns_dt_reopen() uses task-exclusive mode and must be run in the
+ * context of env->reopen_task.
  *
  * Requires:
  *\li	'env' is a valid dnstap environment.
