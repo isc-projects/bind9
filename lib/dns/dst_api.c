@@ -235,12 +235,17 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 #elif PKCS11CRYPTO
 	RETERR(dst__pkcs11_init(mctx, engine));
 #ifndef PK11_MD5_DISABLE
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5],
+				   DST_ALG_RSAMD5));
 #endif
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1],
+				   DST_ALG_RSASHA1));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
+				   DST_ALG_NSEC3RSASHA1));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256],
+				   DST_ALG_RSASHA256));
+	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512],
+				   DST_ALG_RSASHA512));
 #ifndef PK11_DSA_DISABLE
 	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));

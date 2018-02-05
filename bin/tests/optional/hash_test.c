@@ -129,7 +129,7 @@ main(int argc, char **argv) {
 		isc_hmacmd5_sign(&hmacmd5, digest);
 		print_digest(s, "hmacmd5", digest, 4);
 	} else {
-		fprintf(stderr, "Skipping disabled MD5 algorithm\n");
+		fprintf(stderr, "Skipping disabled MD5 algorithm tests.\n");
 	}
 #endif
 

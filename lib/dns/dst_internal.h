@@ -246,7 +246,8 @@ isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 				  unsigned char algorithm);
-isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
+isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp,
+				 unsigned char algorithm);
 #ifndef PK11_DSA_DISABLE
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);

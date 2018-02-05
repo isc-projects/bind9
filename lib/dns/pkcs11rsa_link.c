@@ -2233,11 +2233,22 @@ static dst_func_t pkcs11rsa_functions = {
 };
 
 isc_result_t
-dst__pkcs11rsa_init(dst_func_t **funcp) {
+dst__pkcs11rsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	REQUIRE(funcp != NULL);
 
-	if (*funcp == NULL)
-		*funcp = &pkcs11rsa_functions;
+	if (*funcp == NULL) {
+		switch (algorithm) {
+#ifndef PK11_MD5_DISABLE
+			case DST_ALG_RSAMD5:
+				if (isc_md5_available())
+					*funcp = &pkcs11rsa_functions;
+				break;
+#endif
+			default:
+				*funcp = &pkcs11rsa_functions;
+				break;
+		}
+	}
 	return (ISC_R_SUCCESS);
 }
 

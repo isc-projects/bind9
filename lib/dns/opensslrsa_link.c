@@ -1792,6 +1792,12 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
 
 	if (*funcp == NULL) {
 		switch (algorithm) {
+#ifndef PK11_MD5_DISABLE
+		case DST_ALG_RSAMD5:
+			if (isc_md5_available())
+				*funcp = &opensslrsa_functions;
+			break;
+#endif
 		case DST_ALG_RSASHA256:
 #if defined(HAVE_EVP_SHA256) || !USE_EVP
 			*funcp = &opensslrsa_functions;
