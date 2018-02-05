@@ -86,12 +86,13 @@ static isc_logcategory_t categories[] = {
 
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-	  dns_message_t *message, dns_ecs_t *ecs,
+	  dns_message_t *message, dns_aclenv_t *env, dns_ecs_t *ecs,
 	  isc_result_t *sigresultp, dns_view_t **viewp)
 {
 	UNUSED(srcaddr);
 	UNUSED(destaddr);
 	UNUSED(message);
+	UNUSED(env);
 	UNUSED(ecs);
 	UNUSED(sigresultp);
 	UNUSED(viewp);

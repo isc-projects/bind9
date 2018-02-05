@@ -56,7 +56,7 @@ typedef void
  */
 typedef isc_result_t
 (*ns_matchview_t)(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_ecs_t *ecs,
+		  dns_message_t *message, dns_aclenv_t *env, dns_ecs_t *ecs,
 		  isc_result_t *sigresultp, dns_view_t **viewp);
 
 /*%

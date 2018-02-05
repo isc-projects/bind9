@@ -9345,11 +9345,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
  */
 static isc_result_t
 get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_ecs_t *ecs,
+		  dns_message_t *message, dns_aclenv_t *env, dns_ecs_t *ecs,
 		  isc_result_t *sigresult, dns_view_t **viewp)
 {
-	dns_aclenv_t *env =
-		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 	dns_view_t *view;
 
 	REQUIRE(message != NULL);

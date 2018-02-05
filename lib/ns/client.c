@@ -2262,6 +2262,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	unsigned int flags;
 	isc_boolean_t notimp;
 	size_t reqsize;
+	dns_aclenv_t *env;
 	dns_ecs_t *ecs = NULL;
 #ifdef HAVE_DNSTAP
 	dns_dtmsgtype_t dtmsgtype;
@@ -2372,9 +2373,8 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	 * Check the blackhole ACL for UDP only, since TCP is done in
 	 * client_newconn.
 	 */
+	env = ns_interfacemgr_getaclenv(client->interface->mgr);
 	if (!TCP_CLIENT(client)) {
-		dns_aclenv_t *env =
-			ns_interfacemgr_getaclenv(client->interface->mgr);
 		if (client->sctx->blackholeacl != NULL &&
 		    dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl,
 				  env, &match, NULL) == ISC_R_SUCCESS &&
@@ -2632,7 +2632,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		ecs = &client->ecs;
 	}
 	result = client->sctx->matchingview(&netaddr, &client->destaddr,
-					    client->message, ecs,
+					    client->message, env, ecs,
 					    &sigresult, &client->view);
 	if (result != ISC_R_SUCCESS) {
 		char classname[DNS_RDATACLASS_FORMATSIZE];

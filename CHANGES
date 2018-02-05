@@ -1,3 +1,6 @@
+4884.	[bug]		named could crash on shutdown due to a race between
+			shutdown_server() and ns__client_request(). [RT #47120]
+
 4883.	[cleanup]	Improved debugging output from dnssec-cds. [RT #47026]
 
 4882.	[bug]		Address potential memory leak in
