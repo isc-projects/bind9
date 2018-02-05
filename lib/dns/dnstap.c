@@ -101,6 +101,8 @@ struct dns_dtenv {
 	struct fstrm_iothr *iothr;
 	struct fstrm_iothr_options *fopt;
 
+	isc_task_t *reopen_task;
+
 	isc_region_t identity;
 	isc_region_t version;
 	char *path;
@@ -177,6 +179,14 @@ isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp)
 {
+	return (dns_dt_create2(mctx, mode, path, foptp, NULL, envp));
+}
+
+isc_result_t
+dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
+	       struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	       dns_dtenv_t **envp)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
 	struct fstrm_unix_writer_options *fuwopt = NULL;
@@ -249,6 +259,8 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env->rolls = ISC_LOG_ROLLINFINITE;
 	env->fopt = *foptp;
 	*foptp = NULL;
+
+	env->reopen_task = reopen_task;
 
 	isc_mem_attach(mctx, &env->mctx);
 
