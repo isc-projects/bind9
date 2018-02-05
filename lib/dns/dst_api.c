@@ -190,6 +190,12 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 	dst_result_register();
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
+
+#ifdef OPENSSL
+	RETERR(dst__openssl_init(engine));
+#elif PKCS11CRYPTO
+	RETERR(dst__pkcs11_init(mctx, engine));
+#endif
 #ifndef PK11_MD5_DISABLE
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
 #endif
@@ -199,7 +205,6 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 #ifdef OPENSSL
-	RETERR(dst__openssl_init(engine));
 #ifndef PK11_MD5_DISABLE
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5],
 				    DST_ALG_RSAMD5));
@@ -233,7 +238,6 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448]));
 #endif
 #elif PKCS11CRYPTO
-	RETERR(dst__pkcs11_init(mctx, engine));
 #ifndef PK11_MD5_DISABLE
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5],
 				   DST_ALG_RSAMD5));
