@@ -4227,7 +4227,7 @@
 ./lib/ns/include/ns/log.h			C	2017
 ./lib/ns/include/ns/notify.h			C	2017
 ./lib/ns/include/ns/query.h			C	2017
-./lib/ns/include/ns/server.h			C	2017
+./lib/ns/include/ns/server.h			C	2017,2018
 ./lib/ns/include/ns/sortlist.h			C	2017
 ./lib/ns/include/ns/stats.h			C	2017
 ./lib/ns/include/ns/types.h			C	2017
