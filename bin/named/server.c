@@ -3549,8 +3549,9 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 			fstrm_iothr_options_set_reopen_interval(fopt, i);
 		}
 
-		CHECKM(dns_dt_create(named_g_mctx, dmode, dpath,
-				     &fopt, &named_g_server->dtenv),
+		CHECKM(dns_dt_create2(named_g_mctx, dmode, dpath,
+				      &fopt, named_g_server->task,
+				      &named_g_server->dtenv),
 		       "unable to create dnstap environment");
 
 		CHECKM(dns_dt_setupfile(named_g_server->dtenv,
@@ -14821,10 +14822,7 @@ named_server_dnstap(named_server_t *server, isc_lex_t *lex,
 		return (DNS_R_SYNTAX);
 	}
 
-	result = isc_task_beginexclusive(server->task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = dns_dt_reopen(server->dtenv, backups);
-	isc_task_endexclusive(server->task);
 	return (result);
 #else
 	UNUSED(server);
