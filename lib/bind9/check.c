@@ -41,6 +41,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rrl.h>
 #include <dns/secalg.h>
+#include <dns/ssu.h>
 
 #include <dst/dst.h>
 
@@ -1623,9 +1624,9 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 	isc_result_t tresult;
 	const cfg_listelt_t *element;
 	const cfg_listelt_t *element2;
-	dns_fixedname_t fixed;
+	dns_fixedname_t fixed_id, fixed_name;
+	dns_name_t *id, *name;
 	const char *str;
-	isc_buffer_t b;
 
 	/* Check for "update-policy local;" */
 	if (cfg_obj_isstring(policy) &&
@@ -1642,27 +1643,36 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		const cfg_obj_t *matchtype = cfg_tuple_get(stmt, "matchtype");
 		const cfg_obj_t *dname = cfg_tuple_get(stmt, "name");
 		const cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
+		dns_ssumatchtype_t mtype;
 
-		dns_fixedname_init(&fixed);
+		dns_fixedname_init(&fixed_id);
+		dns_fixedname_init(&fixed_name);
+		id = dns_fixedname_name(&fixed_id);
+		name = dns_fixedname_name(&fixed_name);
+
+		tresult = dns_ssu_mtypefromstring(cfg_obj_asstring(matchtype),
+						  &mtype);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+				    "has a bad match-type");
+		}
+
 		str = cfg_obj_asstring(identity);
-		isc_buffer_constinit(&b, str, strlen(str));
-		isc_buffer_add(&b, strlen(str));
-		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
-					    dns_rootname, 0, NULL);
+		tresult = dns_name_fromstring(id, str, 1, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
 			result = tresult;
 		}
 
+		/*
+		 * There is no name field for subzone.
+		 */
 		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(cfg_obj_asstring(matchtype), "zonesub") != 0) {
-			dns_fixedname_init(&fixed);
+		    mtype != dns_ssumatchtype_subdomain)
+		{
 			str = cfg_obj_asstring(dname);
-			isc_buffer_constinit(&b, str, strlen(str));
-			isc_buffer_add(&b, strlen(str));
-			tresult = dns_name_fromtext(dns_fixedname_name(&fixed),
-						    &b, dns_rootname, 0, NULL);
+			tresult = dns_name_fromstring(name, str, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
@@ -1671,11 +1681,53 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		}
 
 		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(cfg_obj_asstring(matchtype), "wildcard") == 0 &&
-		    !dns_name_iswildcard(dns_fixedname_name(&fixed))) {
+		    mtype == dns_ssumatchtype_wildcard &&
+		    !dns_name_iswildcard(name))
+		{
 			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 				    "'%s' is not a wildcard", str);
 			result = ISC_R_FAILURE;
+		}
+
+		/*
+		 * For some match types, the name should be a placeholder
+		 * value, either "." or the same as identity.
+		 */
+		switch (mtype) {
+		case dns_ssumatchtype_self:
+		case dns_ssumatchtype_selfsub:
+		case dns_ssumatchtype_selfwild:
+			if (tresult == ISC_R_SUCCESS &&
+			    (!dns_name_equal(id, name) &&
+			     !dns_name_equal(dns_rootname, name))) {
+				cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+					    "identity and name fields are not "
+					    "the same");
+				result = ISC_R_FAILURE;
+			}
+			break;
+		case dns_ssumatchtype_selfkrb5:
+		case dns_ssumatchtype_selfms:
+		case dns_ssumatchtype_subdomainms:
+		case dns_ssumatchtype_subdomainkrb5:
+		case dns_ssumatchtype_tcpself:
+		case dns_ssumatchtype_6to4self:
+			if (tresult == ISC_R_SUCCESS &&
+			    !dns_name_equal(dns_rootname, name)) {
+				cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+					    "name field not set to "
+					    "placeholder value '.'");
+				result = ISC_R_FAILURE;
+			}
+			break;
+		case dns_ssumatchtype_name:
+		case dns_ssumatchtype_subdomain:
+		case dns_ssumatchtype_wildcard:
+		case dns_ssumatchtype_external:
+		case dns_ssumatchtype_local:
+			break;
+		default:
+			INSIST(0);
 		}
 
 		for (element2 = cfg_list_first(typelist);
