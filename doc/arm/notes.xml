@@ -47,6 +47,15 @@
 	  CVE-2017-3145. [RT #46839]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  update-policy rules that otherwise ignore the name field now
+	  require that it be set to "." to ensure that any type list
+	  present is properly interpreted.  If the name field was omitted
+	  from the rule declaration and a type list was present it wouldn't
+	  be interpreted as expected.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
