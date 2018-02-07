@@ -891,6 +891,7 @@ dns_soa_setrefresh
 dns_soa_setretry
 dns_soa_setserial
 dns_ssu_external_match
+dns_ssu_mtypefromstring
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules

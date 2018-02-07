@@ -28,23 +28,43 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_SSUMATCHTYPE_NAME		0
-#define DNS_SSUMATCHTYPE_SUBDOMAIN	1
-#define DNS_SSUMATCHTYPE_WILDCARD	2
-#define DNS_SSUMATCHTYPE_SELF		3
-#define DNS_SSUMATCHTYPE_SELFSUB	4
-#define DNS_SSUMATCHTYPE_SELFWILD	5
-#define DNS_SSUMATCHTYPE_SELFKRB5	6
-#define DNS_SSUMATCHTYPE_SELFMS		7
-#define DNS_SSUMATCHTYPE_SUBDOMAINMS	8
-#define DNS_SSUMATCHTYPE_SUBDOMAINKRB5	9
-#define DNS_SSUMATCHTYPE_TCPSELF	10
-#define DNS_SSUMATCHTYPE_6TO4SELF	11
-#define DNS_SSUMATCHTYPE_EXTERNAL	12
-#define DNS_SSUMATCHTYPE_LOCAL		13
-#define DNS_SSUMATCHTYPE_MAX 		13  /* max value */
+typedef enum {
+	dns_ssumatchtype_name = 0,
+	dns_ssumatchtype_subdomain = 1,
+	dns_ssumatchtype_wildcard = 2,
+	dns_ssumatchtype_self    = 3,
+	dns_ssumatchtype_selfsub = 4,
+	dns_ssumatchtype_selfwild = 5,
+	dns_ssumatchtype_selfkrb5 = 6,
+	dns_ssumatchtype_selfms  = 7,
+	dns_ssumatchtype_subdomainms = 8,
+	dns_ssumatchtype_subdomainkrb5 = 9,
+	dns_ssumatchtype_tcpself = 10,
+	dns_ssumatchtype_6to4self = 11,
+	dns_ssumatchtype_external = 12,
+	dns_ssumatchtype_local = 13,
+	dns_ssumatchtype_max = 13,      /* max value */
 
-#define DNS_SSUMATCHTYPE_DLZ		14  /* intentionally higher than _MAX */
+	dns_ssumatchtype_dlz = 14       /* intentionally higher than _max */
+} dns_ssumatchtype_t;
+
+#define DNS_SSUMATCHTYPE_NAME		dns_ssumatchtype_name
+#define DNS_SSUMATCHTYPE_SUBDOMAIN	dns_ssumatchtype_subdomain
+#define DNS_SSUMATCHTYPE_WILDCARD	dns_ssumatchtype_wildcard
+#define DNS_SSUMATCHTYPE_SELF		dns_ssumatchtype_self
+#define DNS_SSUMATCHTYPE_SELFSUB	dns_ssumatchtype_selfsub
+#define DNS_SSUMATCHTYPE_SELFWILD	dns_ssumatchtype_selfwild
+#define DNS_SSUMATCHTYPE_SELFKRB5	dns_ssumatchtype_selfkrb5
+#define DNS_SSUMATCHTYPE_SELFMS		dns_ssumatchtype_selfms
+#define DNS_SSUMATCHTYPE_SUBDOMAINMS	dns_ssumatchtype_subdomainms
+#define DNS_SSUMATCHTYPE_SUBDOMAINKRB5	dns_ssumatchtype_subdomainkrb5
+#define DNS_SSUMATCHTYPE_TCPSELF	dns_ssumatchtype_tcpself
+#define DNS_SSUMATCHTYPE_6TO4SELF	dns_ssumatchtype_6to4self
+#define DNS_SSUMATCHTYPE_EXTERNAL	dns_ssumatchtype_external
+#define DNS_SSUMATCHTYPE_LOCAL		dns_ssumatchtype_local
+#define DNS_SSUMATCHTYPE_MAX 		dns_ssumatchtype_max  /* max value */
+
+#define DNS_SSUMATCHTYPE_DLZ		dns_ssumatchtype_dlz  /* intentionally higher than _MAX */
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
@@ -213,15 +233,28 @@ isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
  *\li	#ISC_R_NOMORE
  */
 
-
-/*%<
- * Check a policy rule via an external application
- */
 isc_boolean_t
 dns_ssu_external_match(dns_name_t *identity, dns_name_t *signer,
 		       dns_name_t *name, isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,
 		       isc_mem_t *mctx);
+/*%<
+ * Check a policy rule via an external application
+ */
+
+isc_result_t
+dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype);
+/*%<
+ * Set 'mtype' from 'str'
+ *
+ * Requires:
+ *\li		'str' is not NULL.
+ *\li		'mtype' is not NULL,
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTFOUND
+ */
 
 ISC_LANG_ENDDECLS
 
