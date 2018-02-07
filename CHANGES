@@ -1,3 +1,8 @@
+4885.	[security]	update-policy rules that otherwise ignore the name
+			field now require that it be set to "." to ensure
+			that any type list present is properly interpreted.
+			[RT #47126]
+
 4884.	[bug]		named could crash on shutdown due to a race between
 			shutdown_server() and ns__client_request(). [RT #47120]
 

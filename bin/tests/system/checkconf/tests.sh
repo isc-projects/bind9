@@ -40,14 +40,24 @@ status=`expr $status + $ret`
 
 for bad in bad-*.conf
 do
-	n=`expr $n + 1`
-	echo "I: checking that named-checkconf detects error in $bad ($n)"
-	ret=0
-	$CHECKCONF $bad > checkconf.out 2>&1
-	if [ $? != 1 ]; then ret=1; fi
-	grep "^$bad:[0-9]*: " checkconf.out > /dev/null || ret=1
-	if [ $ret != 0 ]; then echo "I:failed"; fi
-	status=`expr $status + $ret`
+    n=`expr $n + 1`
+    echo "I: checking that named-checkconf detects error in $bad ($n)"
+    ret=0
+    $CHECKCONF $bad > checkconf.out 2>&1
+    if [ $? != 1 ]; then ret=1; fi
+    grep "^$bad:[0-9]*: " checkconf.out > /dev/null || ret=1
+    case $bad in
+    bad-update-policy[123].conf)
+	pat="identity and name fields are not the same"
+	grep "$pat" checkconf.out > /dev/null || ret=1
+	;;
+    bad-update-policy*.conf)
+	pat="name field not set to placeholder value"
+	grep "$pat" checkconf.out > /dev/null || ret=1
+	;;
+    esac
+    if [ $ret != 0 ]; then echo "I:failed"; fi
+    status=`expr $status + $ret`
 done
 
 for good in good-*.conf

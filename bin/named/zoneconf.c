@@ -233,37 +233,10 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			INSIST(0);
 
 		str = cfg_obj_asstring(matchtype);
-		if (strcasecmp(str, "name") == 0)
-			mtype = dns_ssumatchtype_name;
-		else if (strcasecmp(str, "subdomain") == 0)
-			mtype = dns_ssumatchtype_subdomain;
-		else if (strcasecmp(str, "wildcard") == 0)
-			mtype = dns_ssumatchtype_wildcard;
-		else if (strcasecmp(str, "self") == 0)
-			mtype = dns_ssumatchtype_self;
-		else if (strcasecmp(str, "selfsub") == 0)
-			mtype = dns_ssumatchtype_selfsub;
-		else if (strcasecmp(str, "selfwild") == 0)
-			mtype = dns_ssumatchtype_selfwild;
-		else if (strcasecmp(str, "ms-self") == 0)
-			mtype = dns_ssumatchtype_selfms;
-		else if (strcasecmp(str, "krb5-self") == 0)
-			mtype = dns_ssumatchtype_selfkrb5;
-		else if (strcasecmp(str, "ms-subdomain") == 0)
-			mtype = dns_ssumatchtype_subdomainms;
-		else if (strcasecmp(str, "krb5-subdomain") == 0)
-			mtype = dns_ssumatchtype_subdomainkrb5;
-		else if (strcasecmp(str, "tcp-self") == 0)
-			mtype = dns_ssumatchtype_tcpself;
-		else if (strcasecmp(str, "6to4-self") == 0)
-			mtype = dns_ssumatchtype_6to4self;
-		else if (strcasecmp(str, "zonesub") == 0) {
-			mtype = dns_ssumatchtype_subdomain;
+		CHECK(dns_ssu_mtypefromstring(str, &mtype));
+		if (mtype == dns_ssumatchtype_subdomain) {
 			usezone = ISC_TRUE;
-		} else if (strcasecmp(str, "external") == 0)
-			mtype = dns_ssumatchtype_external;
-		else
-			INSIST(0);
+		}
 
 		dns_fixedname_init(&fident);
 		str = cfg_obj_asstring(identity);
