@@ -206,15 +206,28 @@ isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
  *\li	#ISC_R_NOMORE
  */
 
-
-/*%<
- * Check a policy rule via an external application
- */
 isc_boolean_t
 dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,
 		       isc_mem_t *mctx);
+/*%<
+ * Check a policy rule via an external application
+ */
+
+isc_result_t
+dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype);
+/*%<
+ * Set 'mtype' from 'str'
+ *
+ * Requires:
+ *\li		'str' is not NULL.
+ *\li		'mtype' is not NULL,
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTFOUND
+ */
 
 ISC_LANG_ENDDECLS
 

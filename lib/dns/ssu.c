@@ -642,3 +642,43 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 	*tablep = table;
 	return (ISC_R_SUCCESS);
 }
+
+isc_result_t
+dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype) {
+
+	REQUIRE(str != NULL);
+	REQUIRE(mtype != NULL);
+
+	if (strcasecmp(str, "name") == 0) {
+		*mtype = dns_ssumatchtype_name;
+	} else if (strcasecmp(str, "subdomain") == 0) {
+		*mtype = dns_ssumatchtype_subdomain;
+	} else if (strcasecmp(str, "wildcard") == 0) {
+		*mtype = dns_ssumatchtype_wildcard;
+	} else if (strcasecmp(str, "self") == 0) {
+		*mtype = dns_ssumatchtype_self;
+	} else if (strcasecmp(str, "selfsub") == 0) {
+		*mtype = dns_ssumatchtype_selfsub;
+	} else if (strcasecmp(str, "selfwild") == 0) {
+		*mtype = dns_ssumatchtype_selfwild;
+	} else if (strcasecmp(str, "ms-self") == 0) {
+		*mtype = dns_ssumatchtype_selfms;
+	} else if (strcasecmp(str, "krb5-self") == 0) {
+		*mtype = dns_ssumatchtype_selfkrb5;
+	} else if (strcasecmp(str, "ms-subdomain") == 0) {
+		*mtype = dns_ssumatchtype_subdomainms;
+	} else if (strcasecmp(str, "krb5-subdomain") == 0) {
+		*mtype = dns_ssumatchtype_subdomainkrb5;
+	} else if (strcasecmp(str, "tcp-self") == 0) {
+		*mtype = dns_ssumatchtype_tcpself;
+	} else if (strcasecmp(str, "6to4-self") == 0) {
+		*mtype = dns_ssumatchtype_6to4self;
+	} else if (strcasecmp(str, "zonesub") == 0) {
+		*mtype = dns_ssumatchtype_subdomain;
+	} else if (strcasecmp(str, "external") == 0) {
+		*mtype = dns_ssumatchtype_external;
+	} else {
+		return (ISC_R_NOTFOUND);
+	}
+	return (ISC_R_SUCCESS);
+}
