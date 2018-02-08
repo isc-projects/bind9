@@ -10582,7 +10582,8 @@ example.com. NS ns2.example.net.
                         <em class="replaceable"><code>identity</code></em> field.
                         The <em class="replaceable"><code>name</code></em> field
                         is ignored, but should be the same as the
-                        <em class="replaceable"><code>identity</code></em> field.
+                        <em class="replaceable"><code>identity</code></em> field or
+                        "."
                         The <code class="varname">self</code> nametype is
                         most useful when allowing using one key per
                         name to update, where the key has the same
@@ -10634,7 +10635,7 @@ example.com. NS ns2.example.net.
                         and converts it machine.realm allowing the machine
                         to update machine.realm.  The REALM to be matched
                         is specified in the <em class="replaceable"><code>identity</code></em>
-                        field.
+                        field.  The name field should be set to "."
                       </p>
                     </td>
 </tr>
@@ -10668,7 +10669,7 @@ example.com. NS ns2.example.net.
                         and converts it machine.realm allowing the machine
                         to update machine.realm.  The REALM to be matched
                         is specified in the <em class="replaceable"><code>identity</code></em>
-                        field.
+                        field. The name field should be set to "."
                       </p>
                     </td>
 </tr>
@@ -10685,7 +10686,8 @@ example.com. NS ns2.example.net.
                         converts it to machine.realm allowing the machine
                         to update subdomains of machine.realm.  The REALM
                         to be matched is specified in the
-                        <em class="replaceable"><code>identity</code></em> field.
+                        <em class="replaceable"><code>identity</code></em> field. The
+                        name field should be set to "."
                       </p>
                     </td>
 </tr>
@@ -10700,7 +10702,8 @@ example.com. NS ns2.example.net.
                         Allow updates that have been sent via TCP and
                         for which the standard mapping from the initiating
                         IP address into the IN-ADDR.ARPA and IP6.ARPA
-                        namespaces match the name to be updated.
+                        namespaces match the name to be updated.  The
+                        name field should be set to "."
                       </p>
                       <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
