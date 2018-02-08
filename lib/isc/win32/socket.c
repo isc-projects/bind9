@@ -641,10 +641,10 @@ initialise(void) {
 		exit(1);
 	}
 	/*
-	 * The following APIs do not exist as functions in a library, but we must
-	 * ask winsock for them.  They are "extensions" -- but why they cannot be
-	 * actual functions is beyond me.  So, ask winsock for the pointers to the
-	 * functions we need.
+	 * The following APIs do not exist as functions in a library, but
+	 * we must ask winsock for them.  They are "extensions" -- but why
+	 * they cannot be actual functions is beyond me.  So, ask winsock
+	 * for the pointers to the functions we need.
 	 */
 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	INSIST(sock != INVALID_SOCKET);

@@ -1,3 +1,7 @@
+4888.	[test]		Initialize sockets correctly in sample-update so
+			that nsupdate system test will will run on Windows.
+			[RT #47097]
+
 4886.	[doc]		Document dig -u in manpage. [RT #47150]
 
 4885.	[security]	update-policy rules that otherwise ignore the name
