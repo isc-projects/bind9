@@ -114,7 +114,8 @@ named_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 	/*
 	 * Compare the 'command' parameter against all known control commands.
 	 */
-	if (command_compare(command, NAMED_COMMAND_NULL) ||
+	if ((command_compare(command, NAMED_COMMAND_NULL) &&
+	     strlen(cmdline) == 4) ||
 	    command_compare(command, NAMED_COMMAND_STATUS))
 	{
 		log_level = ISC_LOG_DEBUG(1);

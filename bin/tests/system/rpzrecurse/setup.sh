@@ -19,6 +19,7 @@ while getopts "xD" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
         D) TEST_DNSRPS="-D";;
+	N) NOCLEAN=set;;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -28,7 +29,7 @@ if test "$#" -ne 0; then
     exit 1
 fi
 
-$SHELL clean.sh $DEBUG
+[ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
 
 $PERL testgen.pl
 cp -f ns2/named.default.conf ns2/named.conf

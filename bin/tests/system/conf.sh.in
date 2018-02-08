@@ -125,6 +125,8 @@ else
         TESTSOCK6=false
 fi
 
+# Windows process management leave empty
+PSSUSPEND=
 
 PYTHON=@PYTHON@
 
@@ -231,6 +233,7 @@ export PIPEQUERIES
 export PK11DEL
 export PK11GEN
 export PK11LIST
+export PSSUSPEND
 export PYTHON
 export RANDFILE
 export RESOLVE
