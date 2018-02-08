@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -86,22 +86,22 @@ usage(void) {
 #ifdef _WIN32
 static void
 InitSockets(void) {
-        WORD wVersionRequested;
-        WSADATA wsaData;
-        int err;
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
 
-        wVersionRequested = MAKEWORD(2, 0);
+	wVersionRequested = MAKEWORD(2, 0);
 
-        err = WSAStartup(wVersionRequested, &wsaData);
-        if (err != 0) {
-                fprintf(stderr, "WSAStartup() failed: %d\n", err);
-                exit(1);
-        }
+	err = WSAStartup(wVersionRequested, &wsaData);
+	if (err != 0) {
+		fprintf(stderr, "WSAStartup() failed: %d\n", err);
+		exit(1);
+	}
 }
 
 static void
 DestroySockets(void) {
-        WSACleanup();
+	WSACleanup();
 }
 #else
 #define InitSockets() ((void)0)
