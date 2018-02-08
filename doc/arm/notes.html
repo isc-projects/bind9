@@ -43,26 +43,15 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</p>
-      </li>
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
 	  update-policy rules that otherwise ignore the name field now
 	  require that it be set to "." to ensure that any type list
-	  present is properly interpreted.  If the name field was omitted
-	  from the rule declaration and a type list was present it wouldn't
-	  be interpreted as expected.
+	  present is properly interpreted.  Previously, if the name field
+	  was omitted from the rule declaration but a type list was
+	  present, it wouldn't be interpreted as expected.
 	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">
@@ -90,11 +79,9 @@
       </li>
 <li class="listitem">
 	<p>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
+	  <span class="command"><strong>named</strong></span> could crash when acting as a slave for a
+	  catalog zone if zone contained a master definition without an IP
+	  address. [RT #45999]
 	</p>
       </li>
 </ul></div>
