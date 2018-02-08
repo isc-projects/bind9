@@ -17,3 +17,4 @@ rm -f ns2/named.conf
 rm -f ns3/named.conf
 rm -f ns*/*core *core
 rm -f dnsrps*.conf dnsrpzd*
+rm -f ns*/session.key
