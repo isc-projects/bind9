@@ -1,3 +1,5 @@
+	--- 9.12.1b1 released ---
+
 4888.	[test]		Initialize sockets correctly in sample-update so
 			that nsupdate system test will will run on Windows.
 			[RT #47097]
