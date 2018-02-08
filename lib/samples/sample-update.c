@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2010, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2010, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -94,22 +94,22 @@ usage(void) {
 #ifdef _WIN32
 static void
 InitSockets(void) {
-        WORD wVersionRequested;
-        WSADATA wsaData;
-        int err;
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
 
-        wVersionRequested = MAKEWORD(2, 0);
+	wVersionRequested = MAKEWORD(2, 0);
 
-        err = WSAStartup(wVersionRequested, &wsaData);
-        if (err != 0) {
-                fprintf(stderr, "WSAStartup() failed: %d\n", err);
-                exit(1);
-        }
+	err = WSAStartup(wVersionRequested, &wsaData);
+	if (err != 0) {
+		fprintf(stderr, "WSAStartup() failed: %d\n", err);
+		exit(1);
+	}
 }
 
 static void
 DestroySockets(void) {
-        WSACleanup();
+	WSACleanup();
 }
 #else
 #define InitSockets() ((void)0)
