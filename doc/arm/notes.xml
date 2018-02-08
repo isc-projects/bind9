@@ -39,20 +39,11 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  update-policy rules that otherwise ignore the name field now
 	  require that it be set to "." to ensure that any type list
-	  present is properly interpreted.  If the name field was omitted
-	  from the rule declaration and a type list was present it wouldn't
-	  be interpreted as expected.
+	  present is properly interpreted.  Previously, if the name field
+	  was omitted from the rule declaration but a type list was
+	  present, it wouldn't be interpreted as expected.
 	</para>
       </listitem>
     </itemizedlist>
@@ -81,11 +72,9 @@
       </listitem>
       <listitem>
 	<para>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
+	  <command>named</command> could crash when acting as a slave for a
+	  catalog zone if zone contained a master definition without an IP
+	  address. [RT #45999]
 	</para>
       </listitem>
     </itemizedlist>

@@ -136,6 +136,10 @@ include:
   by default without a configure option.
 * The obsolete `isc-hmac-fixup` command has been removed.
 
+#### BIND 9.12.1
+
+BIND 9.12.1 is a maintenance release.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
