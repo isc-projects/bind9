@@ -362,8 +362,17 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-v</term>
-        <listitem>
+	<term>-u</term>
+	<listitem>
+	  <para>
+	    Print query times in microseconds instead of milliseconds.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-v</term>
+	<listitem>
 	  <para>
 	    Print the version number and exit.
 	  </para>
