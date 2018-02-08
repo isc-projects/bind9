@@ -83,6 +83,31 @@ usage(void) {
 	exit(1);
 }
 
+#ifdef _WIN32
+static void
+InitSockets(void) {
+        WORD wVersionRequested;
+        WSADATA wsaData;
+        int err;
+
+        wVersionRequested = MAKEWORD(2, 0);
+
+        err = WSAStartup(wVersionRequested, &wsaData);
+        if (err != 0) {
+                fprintf(stderr, "WSAStartup() failed: %d\n", err);
+                exit(1);
+        }
+}
+
+static void
+DestroySockets(void) {
+        WSACleanup();
+}
+#else
+#define InitSockets() ((void)0)
+#define DestroySockets() ((void)0)
+#endif
+
 static isc_boolean_t
 addserver(const char *server, isc_sockaddrlist_t *list,
 	   isc_sockaddr_t *sockaddr)
@@ -100,10 +125,12 @@ addserver(const char *server, isc_sockaddrlist_t *list,
 #ifdef AI_NUMERICSERV
 	hints.ai_flags |= AI_NUMERICSERV;
 #endif
+	InitSockets();
 	gaierror = getaddrinfo(server, port, &hints, &res);
 	if (gaierror != 0) {
 		fprintf(stderr, "getaddrinfo(%s) failed: %s\n",
 			server, gai_strerror(gaierror));
+		DestroySockets();
 		return (ISC_FALSE);
 	}
 	INSIST(res->ai_addrlen <= sizeof(sockaddr->type));
@@ -112,6 +139,7 @@ addserver(const char *server, isc_sockaddrlist_t *list,
 	ISC_LINK_INIT(sockaddr, link);
 	ISC_LIST_APPEND(*list, sockaddr, link);
 	freeaddrinfo(res);
+	DestroySockets();
 	return (ISC_TRUE);
 }
 
