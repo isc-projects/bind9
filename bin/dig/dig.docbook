@@ -350,6 +350,15 @@
       </varlistentry>
 
       <varlistentry>
+	<term>-u</term>
+	<listitem>
+	  <para>
+	    Print query times in microseconds instead of milliseconds.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
 	<term>-v</term>
 	<listitem>
 	  <para>
