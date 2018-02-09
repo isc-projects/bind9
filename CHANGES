@@ -1,5 +1,5 @@
 4888.	[test]		Initialize sockets correctly in sample-update so
-			that nsupdate system test will will run on Windows.
+			that the nsupdate system test will run on Windows.
 			[RT #47097]
 
 4887.	[test]		Enable the rpzrecurse test to run on Windows.
