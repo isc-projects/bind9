@@ -7820,8 +7820,8 @@ load_configuration(const char *filename, named_server_t *server,
 	if (access(server->bindkeysfile, R_OK) == 0) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "reading built-in trusted "
-			      "keys from file '%s'", server->bindkeysfile);
+			      "reading built-in trust anchors "
+			      "from file '%s'", server->bindkeysfile);
 
 		CHECK(cfg_parser_create(named_g_mctx, named_g_lctx,
 					&bindkeys_parser));
@@ -7832,8 +7832,8 @@ load_configuration(const char *filename, named_server_t *server,
 	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "unable to open '%s' using built-in keys",
-			      server->bindkeysfile);
+			      "unable to open '%s'; using built-in keys "
+			      "instead", server->bindkeysfile);
 	}
 
 	/* Ensure exclusive access to configuration data. */

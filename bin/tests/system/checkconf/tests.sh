@@ -362,5 +362,34 @@ $CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo "I: check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not warning ($n)"
+ret=0
+$CHECKCONF check-root-ksk-both.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: check that the 2017 ICANN ROOT KSK alone does not warning ($n)"
+ret=0
+$CHECKCONF check-root-ksk-2017.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] && ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo "I: check that the dlv.isc.org KSK generates a warning ($n)"
+ret=0
+$CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] || ret=1
+if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
