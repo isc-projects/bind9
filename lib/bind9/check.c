@@ -2965,7 +2965,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if ((tflags & ROOT_KSK_2010) != 0 && (tflags & ROOT_KSK_2017) == 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "trusted-key for root from 2010 without updated "
-			    "trusted-key from 2017");
+			    "trusted-key from 2017: THIS WILL FAIL AFTER "
+			    "KEY ROLLOVER");
 	}
 
 	if ((tflags & DLV_KSK_KEY) != 0) {
