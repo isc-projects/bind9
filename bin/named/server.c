@@ -5314,7 +5314,7 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	if (access(server->bindkeysfile, R_OK) == 0) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "reading built-in trust anchors "
 			      "from file '%s'", server->bindkeysfile);
 
@@ -5326,7 +5326,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECK(result);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "unable to open '%s'; using built-in keys "
 			      "instead", server->bindkeysfile);
 	}
