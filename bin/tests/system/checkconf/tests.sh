@@ -367,6 +367,7 @@ echo "I: check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK gene
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
+grep "trusted-key for root from 2010 without updated" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -388,6 +389,7 @@ echo "I: check that the dlv.isc.org KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
+grep "trusted-key for dlv.isc.org still present" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
 
