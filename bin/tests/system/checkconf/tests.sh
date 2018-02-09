@@ -333,7 +333,7 @@ status=`expr $status + $ret`
 
 echo "I: check that the dlv.isc.org KSK generates a warning ($n)"
 ret=0
-$CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
+$CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; ret=1; fi
 status=`expr $status + $ret`
