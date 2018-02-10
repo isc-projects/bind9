@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
 .\" Copyright (C) 2000-2003 Internet Software Consortium.
 .\" 
 .\" Permission to use, copy, modify, and/or distribute this software for any
@@ -226,6 +226,11 @@ option is supplied to indicate a reverse lookup\&. A zone transfer can be reques
 to
 ixfr=N\&. The incremental zone transfer will contain the changes made to the zone since the serial number in the zone\*(Aqs SOA record was
 \fIN\fR\&.
+.RE
+.PP
+\-u
+.RS 4
+Print query times in microseconds instead of milliseconds\&.
 .RE
 .PP
 \-v
@@ -780,7 +785,7 @@ There are probably too many query options\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
 .br
 Copyright \(co 2000-2003 Internet Software Consortium.
 .br
