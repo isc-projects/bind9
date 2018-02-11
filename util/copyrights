@@ -1012,6 +1012,7 @@
 ./bin/tests/system/checkconf/bad-update-policy8.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-update-policy9.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-view-also-notify.conf	CONF-C	2016
+./bin/tests/system/checkconf/check-dlv-ksk-key.conf	CONF-C	2018
 ./bin/tests/system/checkconf/check-dup-records-fail.conf	CONF-C	2014,2016
 ./bin/tests/system/checkconf/check-dup-records.db	ZONE	2014,2016
 ./bin/tests/system/checkconf/check-mx-cname-fail.conf	CONF-C	2014,2016
@@ -1020,6 +1021,9 @@
 ./bin/tests/system/checkconf/check-mx.db	ZONE	2014,2016
 ./bin/tests/system/checkconf/check-names-fail.conf	CONF-C	2014,2016
 ./bin/tests/system/checkconf/check-names.db	ZONE	2014,2016
+./bin/tests/system/checkconf/check-root-ksk-2010.conf	CONF-C	2018
+./bin/tests/system/checkconf/check-root-ksk-2017.conf	CONF-C	2018
+./bin/tests/system/checkconf/check-root-ksk-both.conf	CONF-C	2018
 ./bin/tests/system/checkconf/check-srv-cname-fail.conf	CONF-C	2014,2016
 ./bin/tests/system/checkconf/check-srv-cname.db	ZONE	2014,2016
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013,2014,2016
