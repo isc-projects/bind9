@@ -1,3 +1,6 @@
+4890.	[func]		Remove unused ondestroy callback from libisc.
+			[isc-projects/bind9!3]
+
 4889.	[func]		Warn about the use of old root keys without the new
 			root key being present.  Warn about dlv.isc.org's
 			key being present. Warn about both managed and
