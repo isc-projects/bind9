@@ -242,7 +242,7 @@ whatever output the unit test emits, whereas in the other modes, output is
 redirected:
 
         $ cd lib/isc/tests
-        $ hash_test isc_sha512
+        $ ./hash_test isc_sha512
 
 #### Writing unit tests
 
