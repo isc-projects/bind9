@@ -343,7 +343,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\mutexblock.h" />
     <ClInclude Include="..\include\isc\netaddr.h" />
     <ClInclude Include="..\include\isc\netscope.h" />
-    <ClInclude Include="..\include\isc\ondestroy.h" />
     <ClInclude Include="..\include\isc\os.h" />
     <ClInclude Include="..\include\isc\parseint.h" />
     <ClInclude Include="..\include\isc\pool.h" />
@@ -462,7 +461,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\netaddr.c" />
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nls\msgcat.c" />
-    <ClCompile Include="..\ondestroy.c" />
     <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\pool.c" />
     <ClCompile Include="..\portset.c" />

@@ -48,7 +48,6 @@
 #include <isc/deprecated.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
-#include <isc/ondestroy.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 
@@ -223,7 +222,6 @@ struct dns_db {
 	isc_uint16_t				attributes;
 	dns_rdataclass_t			rdclass;
 	dns_name_t				origin;
-	isc_ondestroy_t				ondest;
 	isc_mem_t *				mctx;
 	ISC_LIST(dns_dbonupdatelistener_t)	update_listeners;
 };
@@ -358,17 +356,6 @@ dns_db_detach(dns_db_t **dbp);
  *
  * \li	If '*dbp' is the last reference to the database,
  *		all resources used by the database will be freed
- */
-
-isc_result_t
-dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp);
-/*%<
- * Causes 'eventp' to be sent to be sent to 'task' when the database is
- * destroyed.
- *
- * Note; ownership of the eventp is taken from the caller (and *eventp is
- * set to NULL). The sender field of the event is set to 'db' before it is
- * sent to the task.
  */
 
 isc_boolean_t
