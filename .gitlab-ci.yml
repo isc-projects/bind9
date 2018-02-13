@@ -91,14 +91,11 @@ stages:
     - ./configure
     - make -k all V=1
     - make -k check V=1
-#  artifacts:
-#    untracked: true
-#    expire_in: '1 hour'
-
-.test: &test_job
-  stage: test
-  before_script:
-  script:
+  artifacts:
+    paths:
+    - bin/named/named
+    - bin/tests/
+    expire_in: '1 hour'
 
 build:debian:jessie:amd64:
   <<: *debian_jessie_amd64_image
