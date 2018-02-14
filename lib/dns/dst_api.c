@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004-2013, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2013, 2015-2018  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1675,7 +1675,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fprintf(fp, " ");
 
 	if (key->key_ttl != 0)
-		fprintf(fp, "%d ", key->key_ttl);
+		fprintf(fp, "%u ", key->key_ttl);
 
 	isc_buffer_usedregion(&classb, &r);
 	if ((unsigned) fwrite(r.base, 1, r.length, fp) != r.length)
