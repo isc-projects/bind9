@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007-2009, 2011-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007-2009, 2011-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -3027,7 +3027,7 @@ dns_rbt_printnodeinfo(dns_rbtnode_t *n, FILE *f) {
 			(n->down_is_relative == 1 ? " D" : ""),
 			(n->data_is_relative == 1 ? " T" : ""));
 
-	fprintf(f, "node lock address = %d\n", n->locknum);
+	fprintf(f, "node lock address = %u\n", n->locknum);
 
 	fprintf(f, "Parent: %p\n", n->parent);
 	fprintf(f, "Right: %p\n", n->right);
