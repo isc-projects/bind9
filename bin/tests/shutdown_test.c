@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2011, 2013, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2011, 2013, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -148,7 +148,7 @@ new_task(isc_mem_t *mctx, const char *name) {
 		INSIST(strlen(name) < sizeof(ti->name));
 		strlcpy(ti->name, name, sizeof(ti->name));
 	} else {
-		snprintf(ti->name, sizeof(ti->name), "%d", task_count);
+		snprintf(ti->name, sizeof(ti->name), "%u", task_count);
 	}
 	RUNTIME_CHECK(isc_task_create(task_manager, 0, &ti->task) ==
 		      ISC_R_SUCCESS);
@@ -184,7 +184,7 @@ main(int argc, char *argv[]) {
 			workers = 8192;
 	} else
 		workers = 2;
-	printf("%d workers\n", workers);
+	printf("%u workers\n", workers);
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
