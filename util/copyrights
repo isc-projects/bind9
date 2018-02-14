@@ -1994,7 +1994,7 @@
 ./bin/tests/system/rpz/Makefile.in		MAKE	2017
 ./bin/tests/system/rpz/ckdnsrps.sh		SH	2017
 ./bin/tests/system/rpz/clean.sh			SH	2011,2012,2013,2014,2016,2017
-./bin/tests/system/rpz/dnsrps.c			C	2017
+./bin/tests/system/rpz/dnsrps.c			C	2017,2018
 ./bin/tests/system/rpz/dnsrpzd-license.conf	X	2017
 ./bin/tests/system/rpz/dnsrpzd.conf		CONF-C	2017
 ./bin/tests/system/rpz/ns1/named.conf		CONF-C	2011,2013,2016,2017
