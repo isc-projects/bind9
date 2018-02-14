@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id: name_test.c,v 1.43 2009/09/02 23:48:01 tbox Exp $ */
 
 #include <config.h>
 
@@ -132,8 +130,8 @@ main(int argc, char *argv[]) {
 						   dns_rootname, 0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
-					"dns_name_fromtext() failed: %d\n",
-					result);
+					"dns_name_fromtext() failed: %s\n",
+					dns_result_totext(result));
 				exit(1);
 			}
 		}
@@ -155,8 +153,8 @@ main(int argc, char *argv[]) {
 						   0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
-					"dns_name_fromtext() failed: %d\n",
-					result);
+					"dns_name_fromtext() failed: %s\n",
+					dns_result_totext(result));
 				exit(1);
 			}
 		}
