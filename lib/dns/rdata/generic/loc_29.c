@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -561,7 +561,7 @@ totext_loc(ARGS_TOTEXT) {
 	}
 
 	snprintf(buf, sizeof(buf),
-		 "%d %d %d.%03d %s %d %d %d.%03d %s %s%ld.%02ldm %s %s %s",
+		 "%d %d %d.%03d %s %d %d %d.%03d %s %s%lu.%02lum %s %s %s",
 		 d1, m1, s1, fs1, north ? "N" : "S",
 		 d2, m2, s2, fs2, east ? "E" : "W",
 		 below ? "-" : "", altitude/100, altitude % 100,
