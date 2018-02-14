@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999-2001, 2005-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 1999-2001, 2005-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -40,8 +40,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id$ */
 
 /*! \file */
 
@@ -149,10 +147,10 @@ typedef struct sdlz_rdatasetiter {
 #define VALID_SDLZNODE(sdlzn)	VALID_SDLZLOOKUP(sdlzn)
 
 /* These values are taken from RFC 1537 */
-#define SDLZ_DEFAULT_REFRESH	(60 * 60 * 8)
-#define SDLZ_DEFAULT_RETRY	(60 * 60 * 2)
-#define SDLZ_DEFAULT_EXPIRE	(60 * 60 * 24 * 7)
-#define SDLZ_DEFAULT_MINIMUM	(60 * 60 * 24)
+#define SDLZ_DEFAULT_REFRESH	28800U		/* 8 hours */
+#define SDLZ_DEFAULT_RETRY	7200U		/* 2 hours */
+#define SDLZ_DEFAULT_EXPIRE	604800U		/* 7 days */
+#define SDLZ_DEFAULT_MINIMUM	86400U		/* 1 day */
 
 /* This is a reasonable value */
 #define SDLZ_DEFAULT_TTL	(60 * 60 * 24)
