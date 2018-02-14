@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2012, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2012, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -63,11 +63,11 @@ main(void) {
 			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
 			 &access);
 
-	printf("fsaccess=%d\n", access);
+	printf("fsaccess=%u\n", access);
 
 	isc_fsaccess_add(ISC_FSACCESS_OTHER, ISC_FSACCESS_READ, &access);
 
-	printf("fsaccess=%d\n", access);
+	printf("fsaccess=%u\n", access);
 
 	result = isc_fsaccess_set(PATH, access);
 	if (result != ISC_R_SUCCESS)

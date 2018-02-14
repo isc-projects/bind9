@@ -529,7 +529,7 @@
 ./bin/tests/entropy2_test.c			C	2000,2001,2004,2005,2007,2015,2018
 ./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007,2015,2018
 ./bin/tests/fromhex.pl				PERL	2015
-./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007,2012,2015
+./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007,2012,2015,2018
 ./bin/tests/gxba_test.c				C	2000,2001,2004,2005,2007,2015
 ./bin/tests/gxbn_test.c				C	2000,2001,2004,2005,2007,2015
 ./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006,2007,2014,2015,2017
