@@ -96,17 +96,17 @@
 ./bin/dig/.gitignore				X	2012,2014
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013,2014,2015,2016,2017
 ./bin/dig/dig.1					MAN	DOCBOOK
-./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013,2014,2015,2016,2017,2018
 ./bin/dig/dig.html				HTML	DOCBOOK
-./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/host.1				MAN	DOCBOOK
-./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007,2008,2009,2014,2015,2016,2017
 ./bin/dig/host.html				HTML	DOCBOOK
-./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
+./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/nslookup.1				MAN	DOCBOOK
-./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017
+./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/nslookup.docbook			SGML	2004,2005,2006,2007,2010,2013,2014,2015,2016,2017
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp.in			X	2001,2002,2004,2005,2006,2009,2013,2014,2016
@@ -159,7 +159,7 @@
 ./bin/dnssec/dnssec-settime.docbook		SGML	2009,2010,2011,2014,2015,2016,2017
 ./bin/dnssec/dnssec-settime.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signzone.c C.NAI 1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-verify.8			MAN	DOCBOOK
@@ -332,7 +332,7 @@
 ./bin/pkcs11/openssl-1.0.1t-patch		X	2016
 ./bin/pkcs11/openssl-1.0.2h-patch		X	2016
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
-./bin/pkcs11/pkcs11-destroy.c X 2009,2010,2014,2015,2018
+./bin/pkcs11/pkcs11-destroy.c			X	2009,2010,2014,2015,2018
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009,2014,2015,2016
 ./bin/pkcs11/pkcs11-destroy.html		HTML	DOCBOOK
 ./bin/pkcs11/pkcs11-keygen.8			MAN	DOCBOOK
@@ -340,7 +340,7 @@
 ./bin/pkcs11/pkcs11-keygen.docbook		SGML	2009,2014,2015,2016,2017
 ./bin/pkcs11/pkcs11-keygen.html			HTML	DOCBOOK
 ./bin/pkcs11/pkcs11-list.8			MAN	DOCBOOK
-./bin/pkcs11/pkcs11-list.c C 2009,2014,2015,2016,2018
+./bin/pkcs11/pkcs11-list.c			C	2009,2014,2015,2016,2018
 ./bin/pkcs11/pkcs11-list.docbook		SGML	2009,2014,2015,2016
 ./bin/pkcs11/pkcs11-list.html			HTML	DOCBOOK
 ./bin/pkcs11/pkcs11-tokens.8			MAN	DOCBOOK
@@ -547,7 +547,7 @@
 ./bin/tests/dst/Ktest.+003+49667.key.in		X	2001,2004,2013
 ./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004,2006,2007,2008,2009,2010,2012,2013,2014,2016
 ./bin/tests/dst/dst_2_data.in			X	1999,2000,2001,2013
-./bin/tests/dst/dst_test.c C 1999,2000,2001,2004,2005,2007,2009,2012,2014,2015,2016,2018
+./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004,2005,2007,2009,2012,2014,2015,2016,2018
 ./bin/tests/dst/gsstest.c			C	2006,2007,2009,2010,2011,2013,2014,2015,2016
 ./bin/tests/dst/t2_data_1.in			X	1999,2000,2001,2013
 ./bin/tests/dst/t2_data_2.in			X	1999,2000,2001,2013
@@ -561,8 +561,8 @@
 ./bin/tests/dst/win32/t_dst.vcxproj.filters.in	X	2013,2015
 ./bin/tests/dst/win32/t_dst.vcxproj.in		X	2013,2015,2016,2017
 ./bin/tests/dst/win32/t_dst.vcxproj.user	X	2013
-./bin/tests/entropy2_test.c C 2000,2001,2004,2005,2007,2015,2016,2018
-./bin/tests/entropy_test.c C 2000,2001,2004,2005,2007,2015,2016,2018
+./bin/tests/entropy2_test.c			C	2000,2001,2004,2005,2007,2015,2016,2018
+./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007,2015,2016,2018
 ./bin/tests/fromhex.pl				PERL	2015,2016
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007,2012,2015,2016,2018
 ./bin/tests/gxba_test.c				C	2000,2001,2004,2005,2007,2015,2016
@@ -577,7 +577,7 @@
 ./bin/tests/hashes/win32/t_hashes.vcxproj.in	X	2013,2015,2016,2017
 ./bin/tests/hashes/win32/t_hashes.vcxproj.user	X	2013
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004,2007,2012,2016
-./bin/tests/inter_test.c C 2000,2001,2003,2004,2005,2007,2008,2015,2016,2018
+./bin/tests/inter_test.c			C	2000,2001,2003,2004,2005,2007,2008,2015,2016,2018
 ./bin/tests/keyboard_test.c			C	2000,2001,2004,2005,2007,2015,2016
 ./bin/tests/lex_test.c				C	1998,1999,2000,2001,2004,2005,2007,2015,2016
 ./bin/tests/lfsr_test.c				C	1999,2000,2001,2004,2005,2007,2015,2016
@@ -625,7 +625,11 @@
 ./bin/tests/mem/win32/t_mem.vcxproj.in		X	2013,2015,2016,2017
 ./bin/tests/mem/win32/t_mem.vcxproj.user	X	2013
 ./bin/tests/mempool_test.c			C	1999,2000,2001,2004,2007,2016
+<<<<<<< HEAD
 ./bin/tests/name_test.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2015,2016,2018
+=======
+./bin/tests/name_test.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2015,2016,2017,2018
+>>>>>>> copyrights
 ./bin/tests/named.conf				CONF-C	1999,2000,2001,2004,2007,2011,2015,2016
 ./bin/tests/names/Makefile.in			MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014,2016
 ./bin/tests/names/dns_name_compare_data		X	1999,2000,2001
@@ -718,13 +722,16 @@
 ./bin/tests/rbt/dns_rbtnodechain_prev.data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev_data	X	1999,2000,2001
 ./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005,2007,2009,2011,2012,2013,2015,2016,2018
+<<<<<<< HEAD
 ./bin/tests/rbt/win32/t_rbt.dsp.in		X	2013
 ./bin/tests/rbt/win32/t_rbt.dsw			X	2013
 ./bin/tests/rbt/win32/t_rbt.mak.in		X	2013
+=======
+>>>>>>> copyrights
 ./bin/tests/rbt/win32/t_rbt.vcxproj.filters.in	X	2013,2015
 ./bin/tests/rbt/win32/t_rbt.vcxproj.in		X	2013,2015,2016,2017
 ./bin/tests/rbt/win32/t_rbt.vcxproj.user	X	2013
-./bin/tests/rbt_test.c C 1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015,2016,2018
+./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015,2016,2018
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012,2016
 ./bin/tests/resolv.conf.sample			CONF-SH	2000,2001,2004,2007,2012,2016
@@ -736,12 +743,16 @@
 ./bin/tests/resolver/win32/t_resolver.vcxproj.filters.in	X	2013,2015
 ./bin/tests/resolver/win32/t_resolver.vcxproj.in	X	2013,2015,2016,2017
 ./bin/tests/resolver/win32/t_resolver.vcxproj.user	X	2013
-./bin/tests/rwlock_test.c C 1998,1999,2000,2001,2004,2005,2007,2013,2016,2017,2018
+./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005,2007,2013,2016,2017,2018
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004,2007,2015,2016
-./bin/tests/shutdown_test.c C 1998,1999,2000,2001,2004,2007,2011,2013,2016,2017,2018
+./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004,2007,2011,2013,2016,2017,2018
 ./bin/tests/sig0_test.c				C	2000,2001,2004,2005,2007,2008,2009,2012,2015,2016
 ./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004,2007,2008,2012,2013,2014,2015,2016,2017,2018
+<<<<<<< HEAD
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014,2016
+=======
+./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000,2001,2002,2004,2007,2009,2012,2014,2016,2017
+>>>>>>> copyrights
 ./bin/tests/sockaddr/t_sockaddr.c		C	1999,2000,2001,2004,2007,2013,2016
 ./bin/tests/sockaddr/win32/t_sockaddr.dsp.in	X	2013
 ./bin/tests/sockaddr/win32/t_sockaddr.dsw	X	2013
