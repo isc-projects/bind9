@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2004, 2007, 2008, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2004, 2007, 2008, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,8 +42,8 @@ my_send(isc_task_t *task, isc_event_t *event) {
 	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
-	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, "
-	       "result %d)\n",
+	printf("my_send: %s task %p\n\t(sock %p, base %p, length %u, n %u, "
+	       "result %u)\n",
 	       (char *)(event->ev_arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
@@ -70,7 +70,7 @@ my_recv(isc_task_t *task, isc_event_t *event) {
 	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
-	printf("Socket %s (sock %p, base %p, length %d, n %d, result %d)\n",
+	printf("Socket %s (sock %p, base %p, length %u, n %u, result %u)\n",
 	       (char *)(event->ev_arg), sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
@@ -130,8 +130,8 @@ my_http_get(isc_task_t *task, isc_event_t *event) {
 	sock = event->ev_sender;
 	dev = (isc_socketevent_t *)event;
 
-	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %d, "
-	       "n %d, result %d)\n",
+	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %u, "
+	       "n %u, result %u)\n",
 	       (char *)(event->ev_arg), task, sock,
 	       dev->region.base, dev->region.length,
 	       dev->n, dev->result);
@@ -160,7 +160,7 @@ my_connect(isc_task_t *task, isc_event_t *event) {
 	sock = event->ev_sender;
 	dev = (isc_socket_connev_t *)event;
 
-	printf("%s: Connection result:  %d\n", (char *)(event->ev_arg),
+	printf("%s: Connection result:  %u\n", (char *)(event->ev_arg),
 	       dev->result);
 
 	if (dev->result != ISC_R_SUCCESS) {
@@ -200,7 +200,7 @@ my_listen(isc_task_t *task, isc_event_t *event) {
 
 	dev = (isc_socket_newconnev_t *)event;
 
-	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
+	printf("newcon %s (task %p, oldsock %p, newsock %p, result %u)\n",
 	       name, task, event->ev_sender, dev->newsocket, dev->result);
 	fflush(stdout);
 
@@ -279,7 +279,7 @@ main(int argc, char *argv[]) {
 			workers = 8192;
 	} else
 		workers = 2;
-	printf("%d workers\n", workers);
+	printf("%u workers\n", workers);
 
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		pf = PF_INET6;
