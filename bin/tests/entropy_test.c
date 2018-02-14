@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001, 2004, 2005, 2007, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2004, 2005, 2007, 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,7 +29,7 @@ hex_dump(const char *msg, void *data, unsigned int length) {
 
 	base = data;
 
-	printf("DUMP of %d bytes:  %s\n\t", length, msg);
+	printf("DUMP of %u bytes:  %s\n\t", length, msg);
 	for (len = 0; len < length; len++) {
 		if (len % 16 == 0 && !first)
 			printf("\n\t");
