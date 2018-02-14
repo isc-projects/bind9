@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2008, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2008, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id: inter_test.c,v 1.16 2008/03/20 23:47:00 tbox Exp $ */
 
 /*! \file */
 #include <config.h>
@@ -51,7 +49,7 @@ main(int argc, char **argv) {
 				isc_result_totext(result));
 			continue;
 		}
-		fprintf(stdout, "%s %d %x\n", ifdata.name, ifdata.af,
+		fprintf(stdout, "%s %u %x\n", ifdata.name, ifdata.af,
 			ifdata.flags);
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
@@ -98,7 +96,7 @@ main(int argc, char **argv) {
 				isc_result_totext(result));
 			continue;
 		}
-		fprintf(stdout, "%s %d %x\n", ifdata.name, ifdata.af,
+		fprintf(stdout, "%s %u %x\n", ifdata.name, ifdata.af,
 			ifdata.flags);
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
