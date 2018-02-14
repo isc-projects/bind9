@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -125,7 +125,7 @@ main(int argc, char **argv) {
 			}
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
-			printf("%d\n", serial);
+			printf("%u\n", serial);
 			return (0);
 #else
 			INSIST(0);
