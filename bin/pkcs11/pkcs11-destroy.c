@@ -232,7 +232,7 @@ main(int argc, char *argv[]) {
 
 	if (wait != 0) {
 		printf("WARNING: This action is irreversible! "
-		       "Destroying key objects in %d seconds\n  ", wait);
+		       "Destroying key objects in %u seconds\n  ", wait);
 		for (i = 0; i < wait; i++) {
 			printf(".");
 			fflush(stdout);
