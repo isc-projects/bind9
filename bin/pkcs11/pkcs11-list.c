@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2014-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -125,7 +125,7 @@ main(int argc, char *argv[]) {
 		printf("slot %lu\n", slot);
 
 	if (id) {
-		printf("id %i\n", id);
+		printf("id %u\n", id);
 		attr_id[0] = (id >> 8) & 0xff;
 		attr_id[1] = id & 0xff;
 	} else if (label != NULL) {
