@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -3436,7 +3436,7 @@ static void
 dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
 	if (value == INT_MAX)
 		return;
-	fprintf(f, " [%s TTL %d]", legend, value - now);
+	fprintf(f, " [%s TTL %d]", legend, (int)(value - now));
 }
 
 static void
