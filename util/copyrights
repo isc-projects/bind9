@@ -527,7 +527,7 @@
 ./bin/tests/dst/win32/t_dst.vcxproj.in		X	2013,2015,2016,2017
 ./bin/tests/dst/win32/t_dst.vcxproj.user	X	2013
 ./bin/tests/entropy2_test.c			C	2000,2001,2004,2005,2007,2015,2018
-./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007,2015
+./bin/tests/entropy_test.c			C	2000,2001,2004,2005,2007,2015,2018
 ./bin/tests/fromhex.pl				PERL	2015
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005,2007,2012,2015
 ./bin/tests/gxba_test.c				C	2000,2001,2004,2005,2007,2015
