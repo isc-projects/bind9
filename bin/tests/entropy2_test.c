@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -40,7 +40,7 @@ hex_dump(const char *msg, void *data, unsigned int length) {
 
 	base = data;
 
-	printf("DUMP of %d bytes:  %s\n\t", length, msg);
+	printf("DUMP of %u bytes:  %s\n\t", length, msg);
 	for (len = 0; len < length; len++) {
 		if (len % 16 == 0 && !first)
 			printf("\n\t");
