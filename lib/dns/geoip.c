@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -189,10 +189,12 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 	clean_state(state);
 #endif
 
-	if (family == AF_INET)
+	if (family == AF_INET) {
 		state->ipnum = ipnum;
-	else
+	} else {
+		INSIST(ipnum6 != NULL);
 		state->ipnum6 = *ipnum6;
+	}
 
 	state->family = family;
 	state->subtype = subtype;
