@@ -10233,7 +10233,7 @@ ns_server_setdebuglevel(ns_server_t *server, isc_lex_t *lex) {
 	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "debug level is now %d", ns_g_debuglevel);
+		      "debug level is now %u", ns_g_debuglevel);
 	return (ISC_R_SUCCESS);
 }
 
@@ -10783,7 +10783,7 @@ ns_server_tsigdelete(ns_server_t *server, isc_lex_t *lex,
 	}
 	isc_task_endexclusive(server->task);
 
-	snprintf(fbuf, sizeof(fbuf), "%d", foundkeys);
+	snprintf(fbuf, sizeof(fbuf), "%u", foundkeys);
 
 	CHECK(putstr(text, fbuf));
 	CHECK(putstr(text, " tsig keys deleted."));
@@ -14056,9 +14056,11 @@ ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		unsigned int n;
 		ptr = next_token(lex, text);
 		if (ptr != NULL) {
-			n = sscanf(ptr, "%u", &backups);
-			if (n != 1U)
+			unsigned int u;
+			n = sscanf(ptr, "%u", &u);
+			if (n != 1U || u > INT_MAX)
 				return (ISC_R_BADNUMBER);
+			backups = u;
 		}
 	} else
 		return (DNS_R_SYNTAX);
