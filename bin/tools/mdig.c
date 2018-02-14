@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1378,12 +1378,12 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 
 			result = parse_uint(&display_splitwidth, value,
 					    1023, "split");
-			if (display_splitwidth % 4 != 0) {
+			if ((display_splitwidth % 4) != 0) {
 				display_splitwidth =
 				    ((display_splitwidth + 3) / 4) * 4;
 				fprintf(stderr, ";; Warning, split must be "
 						"a multiple of 4; adjusting "
-						"to %d\n",
+						"to %u\n",
 					display_splitwidth);
 			}
 			/*

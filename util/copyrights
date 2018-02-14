@@ -2734,7 +2734,7 @@
 ./bin/tools/isc-hmac-fixup.docbook		SGML	2010,2013,2014,2015,2016,2017
 ./bin/tools/isc-hmac-fixup.html			HTML	DOCBOOK
 ./bin/tools/mdig.1				MAN	DOCBOOK
-./bin/tools/mdig.c				C	2015,2016,2017
+./bin/tools/mdig.c				C	2015,2016,2017,2018
 ./bin/tools/mdig.docbook			SGML	2015,2016,2017
 ./bin/tools/mdig.html				HTML	DOCBOOK
 ./bin/tools/named-journalprint.8		MAN	DOCBOOK
