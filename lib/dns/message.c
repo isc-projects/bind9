@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -3862,11 +3862,11 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; EXPIRE");
 			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
 				if (optlen == 2) {
-					isc_uint16_t dsecs;
+					unsigned int dsecs;
 					dsecs = isc_buffer_getuint16(&optbuf);
 					ADD_STRING(target, "; TCP KEEPALIVE:");
 					snprintf(buf, sizeof(buf), " %u.%u",
-						 dsecs / 10, dsecs % 10);
+						 dsecs / 10U, dsecs % 10U);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " secs\n");
 					continue;
