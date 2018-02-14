@@ -3489,7 +3489,7 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 		if (name == NULL)
 			continue;
 		if (debug)
-			fprintf(f, "; bucket %d\n", i);
+			fprintf(f, "; bucket %u\n", i);
 		for (;
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, plink))
@@ -3583,7 +3583,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry,
 #endif
 
 	if (entry->expires != 0)
-		fprintf(f, " [ttl %d]", entry->expires - now);
+		fprintf(f, " [ttl %d]", (int)(entry->expires - now));
 
 #ifdef ENABLE_FETCHLIMIT
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
@@ -3601,7 +3601,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry,
 		print_dns_name(f, &li->qname);
 		dns_rdatatype_format(li->qtype, typebuf, sizeof(typebuf));
 		fprintf(f, " %s [lame TTL %d]\n", typebuf,
-			li->lame_timer - now);
+			(int)(li->lame_timer - now));
 	}
 }
 
