@@ -588,7 +588,7 @@
 ./bin/tests/rbt/win32/t_rbt.vcxproj.filters.in	X	2013,2015
 ./bin/tests/rbt/win32/t_rbt.vcxproj.in		X	2013,2015,2016,2017
 ./bin/tests/rbt/win32/t_rbt.vcxproj.user	X	2013
-./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015,2016
+./bin/tests/rbt_test.c C 1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015,2016,2018
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012,2016
 ./bin/tests/resolv.conf.sample			CONF-SH	2000,2001,2004,2007,2012,2016
