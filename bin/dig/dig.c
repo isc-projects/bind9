@@ -258,7 +258,7 @@ help(void) {
  * Callback from dighost.c to print the received message.
  */
 static void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	time_t tnow;
 	struct tm tmnow;
@@ -1157,11 +1157,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 
 			result = parse_uint(&splitwidth, value,
 					    1023, "split");
-			if (splitwidth % 4 != 0) {
+			if ((splitwidth % 4) != 0U) {
 				splitwidth = ((splitwidth + 3) / 4) * 4;
 				fprintf(stderr, ";; Warning, split must be "
 						"a multiple of 4; adjusting "
-						"to %d\n", splitwidth);
+						"to %u\n", splitwidth);
 			}
 			/*
 			 * There is an adjustment done in the

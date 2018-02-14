@@ -176,7 +176,7 @@ host_shutdown(void) {
 }
 
 static void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_time_t now;
 	int diff;
 

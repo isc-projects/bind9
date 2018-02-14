@@ -362,7 +362,7 @@ isc_result_t
 	isc_boolean_t headers);
 
 void
-(*dighost_received)(int bytes, isc_sockaddr_t *from, dig_query_t *query);
+(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query);
 
 void
 (*dighost_trying)(char *frm, dig_lookup_t *lookup);
@@ -436,7 +436,7 @@ hex_dump(isc_buffer_t *b) {
 
 	isc_buffer_usedregion(b, &r);
 
-	printf("%d bytes\n", r.length);
+	printf("%u bytes\n", r.length);
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
 		if (len % 16 == 15) {
@@ -571,7 +571,7 @@ debug(const char *format, ...) {
 		fflush(stdout);
 		if (debugtiming) {
 			TIME_NOW(&t);
-			fprintf(stderr, "%d.%06d: ", isc_time_seconds(&t),
+			fprintf(stderr, "%u.%06u: ", isc_time_seconds(&t),
 				isc_time_nanoseconds(&t) / 1000);
 		}
 		va_start(args, format);
