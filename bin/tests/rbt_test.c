@@ -186,7 +186,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 		printf("\n  result from dns_rbtnodechain_current: %s\n",
 		       dns_result_totext(result));
 
-	printf("  level_matches = %d, level_count = %d\n",
+	printf("  level_matches = %u, level_count = %u\n",
 	       chain.level_matches, chain.level_count);
 }
 
