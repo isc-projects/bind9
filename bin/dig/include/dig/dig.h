@@ -413,7 +413,7 @@ extern isc_result_t
  */
 
 extern void
-(*dighost_received)(int bytes, isc_sockaddr_t *from, dig_query_t *query);
+(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query);
 /*%<
  * Print a message about where and when the response
  * was received from, like the final comment in the
