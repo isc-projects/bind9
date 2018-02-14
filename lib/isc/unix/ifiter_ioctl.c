@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2009, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2009, 2014-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -555,7 +555,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 			bits = 8 - prefixlen;
 			prefixlen = 0;
 		}
-		iter->current.netmask.type.in6.s6_addr[i] = (~0 << bits) & 0xff;
+		iter->current.netmask.type.in6.s6_addr[i] =
+			(~0U << bits) & 0xff;
 	}
 	return (ISC_R_SUCCESS);
 
@@ -749,7 +750,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 			bits = lifreq.lifr_addrlen - i;
 			bits = (bits < 8) ? (8 - bits) : 0;
 			iter->current.netmask.type.in6.s6_addr[i / 8] =
-				(~0 << bits) & 0xff;
+				(~0U << bits) & 0xff;
 		}
 
 		return (ISC_R_SUCCESS);
