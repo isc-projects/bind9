@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2013, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2013, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -113,7 +113,7 @@ main(int argc, char *argv[]) {
 		nworkers = 2;
 	if (nworkers > 100)
 		nworkers = 100;
-	printf("%d workers\n", nworkers);
+	printf("%u workers\n", nworkers);
 
 	RUNTIME_CHECK(isc_rwlock_init(&lock, 5, 10) == ISC_R_SUCCESS);
 
