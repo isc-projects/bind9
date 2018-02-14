@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2009, 2014, 2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2009, 2014, 2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -564,7 +564,8 @@ internal_current4(isc_interfaceiter_t *iter) {
 			bits = 8 - prefixlen;
 			prefixlen = 0;
 		}
-		iter->current.netmask.type.in6.s6_addr[i] = (~0 << bits) & 0xff;
+		iter->current.netmask.type.in6.s6_addr[i] =
+			(~0U << bits) & 0xff;
 	}
 	return (ISC_R_SUCCESS);
 
@@ -758,7 +759,7 @@ internal_current6(isc_interfaceiter_t *iter) {
 			bits = lifreq.lifr_addrlen - i;
 			bits = (bits < 8) ? (8 - bits) : 0;
 			iter->current.netmask.type.in6.s6_addr[i / 8] =
-				(~0 << bits) & 0xff;
+				(~0U << bits) & 0xff;
 		}
 
 		return (ISC_R_SUCCESS);
