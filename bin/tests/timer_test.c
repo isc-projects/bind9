@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2004, 2007, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2004, 2007, 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -106,7 +106,7 @@ main(int argc, char *argv[]) {
 			workers = 8192;
 	} else
 		workers = 2;
-	printf("%d workers\n", workers);
+	printf("%u workers\n", workers);
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx1) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_taskmgr_create(mctx1, workers, 0, &manager) ==
