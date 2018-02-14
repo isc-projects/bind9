@@ -3527,7 +3527,7 @@
 ./lib/dns/rdata/generic/l32_105.h		C	2013,2016
 ./lib/dns/rdata/generic/l64_106.c		C	2013,2014,2015,2016,2017
 ./lib/dns/rdata/generic/l64_106.h		C	2013,2016
-./lib/dns/rdata/generic/loc_29.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2015,2016,2017
+./lib/dns/rdata/generic/loc_29.c		C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2015,2016,2017,2018
 ./lib/dns/rdata/generic/loc_29.h		C	1999,2000,2001,2004,2005,2007,2016
 ./lib/dns/rdata/generic/lp_107.c		C	2013,2015,2016,2017
 ./lib/dns/rdata/generic/lp_107.h		C	2013,2016
