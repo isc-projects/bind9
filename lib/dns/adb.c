@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -3458,7 +3458,7 @@ static void
 dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
 	if (value == INT_MAX)
 		return;
-	fprintf(f, " [%s TTL %d]", legend, value - now);
+	fprintf(f, " [%s TTL %d]", legend, (int)(value - now));
 }
 
 static void
