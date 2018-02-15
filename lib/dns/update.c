@@ -1388,7 +1388,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	unsigned int sigs = 0;
 	unsigned int maxsigs = dns_zone_getsignatures(zone);
 
-	if (statep == NULL || (statep != NULL && *statep == NULL)) {
+	if (statep == NULL || *statep == NULL) {
 		if (statep == NULL) {
 			state = &mystate;
 		} else {
