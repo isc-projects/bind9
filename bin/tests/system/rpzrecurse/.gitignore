@@ -2,6 +2,7 @@
 /ns2/named.conf.header
 /ns2/named.conf
 /ns3/named.conf
+/ns3/named2.conf
 /ns4/named.conf
 /ans5/ans.pl
 /ans5/ans.pid
