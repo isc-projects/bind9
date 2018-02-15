@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2012, 2013, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2012, 2013, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -366,6 +366,7 @@ decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags * data, siz
 		return ASN1_OVERRUN;
 	p++;
 	len--;
+	POST(len);
 	reallen--;
 	ret++;
 	data->delegFlag = (*p >> 7) & 1;
