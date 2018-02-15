@@ -24,6 +24,5 @@ rm -f ns*/named.conf
 rm -f ns2/*.local
 rm -f ns2/*.queries
 rm -f ns2/named.[0-9]*.conf
-rm -f ns*/named.lock
-rm -f ns*/named.memstats
-rm -f ns*/named.run
+rm -f ns2/named.conf.header
+rm -f ns*/session.key

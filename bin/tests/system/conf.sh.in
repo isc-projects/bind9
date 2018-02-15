@@ -81,7 +81,7 @@ KRB5_CONFIG=/dev/null
 # be run sequentially.
 SUBDIRS="acl additional addzone autosign builtin
 	 cacheclean case chain checkconf @CHECKDS@ checknames
-	 checkzone cookie @COVERAGE@ database delv digdelv dlv
+	 checkzone cookie @COVERAGE@ database digdelv dlv
 	 dlz dlzexternal dlzredir dns64 dnssec dsdigest
 	 dscp ecdsa eddsa ednscompliance emptyzones fetchlimit filter-aaaa
 	 formerr forward geoip glue gost ixfr inline integrity

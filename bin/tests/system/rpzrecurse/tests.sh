@@ -33,7 +33,8 @@ run_server() {
 
     echo_i "starting resolver using named.$TESTNAME.conf"
     cp -f ns2/named.$TESTNAME.conf ns2/named.conf
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns2
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
+    sleep 3
 }
 
 run_query() {
