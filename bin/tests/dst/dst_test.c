@@ -69,13 +69,13 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
-		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		printf("adddata(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		dst_context_destroy(&ctx);
 		return;
 	}
 	ret = dst_context_sign(ctx, &sigbuf);
-	printf("sign(%d) returned: %s\n", dst_key_alg(key),
+	printf("sign(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	dst_context_destroy(&ctx);
 
@@ -84,13 +84,13 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	ret = dst_context_create3(key, mctx,
 				  DNS_LOGCATEGORY_GENERAL, ISC_FALSE, &ctx);
 	if (ret != ISC_R_SUCCESS) {
-		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
+		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		return;
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
-		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		printf("adddata(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		dst_context_destroy(&ctx);
 		return;
