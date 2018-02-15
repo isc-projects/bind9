@@ -690,6 +690,7 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 			       (tgt_ip->w[3]>>24) & 0xffU);
 		if (len < 0 || len > (int)sizeof(str)) {
 			return (ISC_R_FAILURE);
+		}
 	} else {
 		len = snprintf(str, sizeof(str), "%d", tgt_prefix);
 		if (len == -1)
