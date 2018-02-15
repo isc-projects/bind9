@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -766,7 +766,7 @@ add_log_str(isc_buffer_t *lb, const char *str, unsigned int str_len) {
 
 	isc_buffer_availableregion(lb, &region);
 	if (str_len >= region.length) {
-		if (region.length <= 0)
+		if (region.length == 0U)
 			return;
 		str_len = region.length;
 	}
