@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001, 2003-2005, 2007, 2013, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2003-2005, 2007, 2013, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,7 +28,10 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		  isc_thread_t *thread)
 {
 	pthread_attr_t attr;
+#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
+    defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	size_t stacksize;
+#endif
 	int ret;
 
 	pthread_attr_init(&attr);
