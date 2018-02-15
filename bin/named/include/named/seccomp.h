@@ -60,35 +60,6 @@ int scmp_syscalls[] = {
 	SCMP_SYS(unlink),
 	SCMP_SYS(socket),
 	SCMP_SYS(sendto),
-#ifndef ISC_PLATFORM_USETHREADS
-	SCMP_SYS(bind),
-	SCMP_SYS(accept),
-	SCMP_SYS(connect),
-	SCMP_SYS(listen),
-	SCMP_SYS(fcntl),
-	SCMP_SYS(sendmsg),
-	SCMP_SYS(recvmsg),
-	SCMP_SYS(uname),
-	SCMP_SYS(setrlimit),
-	SCMP_SYS(getrlimit),
-	SCMP_SYS(setsockopt),
-	SCMP_SYS(getsockopt),
-	SCMP_SYS(getsockname),
-	SCMP_SYS(lstat),
-	SCMP_SYS(getgid),
-	SCMP_SYS(getegid),
-	SCMP_SYS(getuid),
-	SCMP_SYS(geteuid),
-	SCMP_SYS(setresgid),
-	SCMP_SYS(setresuid),
-	SCMP_SYS(setgid),
-	SCMP_SYS(setuid),
-	SCMP_SYS(prctl),
-	SCMP_SYS(epoll_wait),
-	SCMP_SYS(getdents),
-	SCMP_SYS(utimes),
-	SCMP_SYS(dup),
-#endif
 };
 const char *scmp_syscall_names[] = {
 	"access",
@@ -127,35 +98,6 @@ const char *scmp_syscall_names[] = {
 	"unlink",
 	"socket",
 	"sendto",
-#ifndef ISC_PLATFORM_USETHREADS
-	"bind",
-	"accept",
-	"connect",
-	"listen",
-	"fcntl",
-	"sendmsg",
-	"recvmsg",
-	"uname",
-	"setrlimit",
-	"getrlimit",
-	"setsockopt",
-	"getsockopt",
-	"getsockname",
-	"lstat",
-	"getgid",
-	"getegid",
-	"getuid",
-	"geteuid",
-	"setresgid",
-	"setresuid",
-	"setgid",
-	"setuid",
-	"prctl",
-	"epoll_wait",
-	"getdents",
-	"utimes",
-	"dup",
-#endif
 };
 #endif /* __x86_64__ */
 #ifdef __i386__
@@ -195,9 +137,6 @@ int scmp_syscalls[] = {
 	SCMP_SYS(getrandom),
 #endif
 	SCMP_SYS(unlink),
-#ifndef ISC_PLATFORM_USETHREADS
-	SCMP_SYS(fcntl64),
-#endif
 };
 const char *scmp_syscall_names[] = {
 	"access",
@@ -235,9 +174,6 @@ const char *scmp_syscall_names[] = {
 	"getrandom",
 #endif
 	"unlink",
-#ifndef ISC_PLATFORM_USETHREADS
-	"fcntl64",
-#endif
 };
 #endif /* __i386__ */
 #endif /* HAVE_LIBSECCOMP */

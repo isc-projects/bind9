@@ -121,10 +121,6 @@ ATF_TC_BODY(all_events, tc) {
 	isc_task_send(task, &event);
 
 	while ((a == 0 || b == 0) && i++ < 5000) {
-#ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
-			isc__taskmgr_dispatch(taskmgr);
-#endif
 		isc_test_nap(1000);
 	}
 
@@ -158,13 +154,11 @@ ATF_TC_BODY(privileged_events, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * Pause the task manager so we can fill up the work queue
 	 * without things happening while we do it.
 	 */
 	isc__taskmgr_pause(taskmgr);
-#endif
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -222,16 +216,10 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	isc__taskmgr_resume(taskmgr);
-#endif
 
 	/* We're waiting for *all* variables to be set */
 	while ((a == 0 || b == 0 || c == 0 || d == 0 || e == 0) && i++ < 5000) {
-#ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
-			isc__taskmgr_dispatch(taskmgr);
-#endif
 		isc_test_nap(1000);
 	}
 
@@ -287,13 +275,11 @@ ATF_TC_BODY(privilege_drop, tc) {
 	result = isc_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * Pause the task manager so we can fill up the work queue
 	 * without things happening while we do it.
 	 */
 	isc__taskmgr_pause(taskmgr);
-#endif
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -351,17 +337,11 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	isc__taskmgr_resume(taskmgr);
-#endif
 
 	/* We're waiting for all variables to be set. */
 	while ((a == -1 || b == -1 || c == -1 || d == -1 || e == -1) &&
 	       i++ < 5000) {
-#ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
-			isc__taskmgr_dispatch(taskmgr);
-#endif
 		isc_test_nap(1000);
 	}
 

@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: atomic.h,v 1.6 2008/01/24 23:47:00 tbox Exp $ */
-
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
@@ -36,9 +34,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	__asm (
 		"movq %rdi, %rdx\n"
 		"movl %esi, %eax\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xadd %eax, (%rdx)\n"
 		/*
 		 * XXX: assume %eax will be used as the return value.
@@ -55,9 +51,7 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 	__asm (
 		"movq %rdi, %rdx\n"
 		"movq %rsi, %rax\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xaddq %rax, (%rdx)\n"
 		/*
 		 * XXX: assume %rax will be used as the return value.
@@ -74,9 +68,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	__asm (
 		"movq %rdi, %rax\n"
 		"movl %esi, %edx\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xchgl (%rax), %edx\n"
 		);
 }
@@ -90,9 +82,7 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
 	__asm (
 		"movq %rdi, %rax\n"
 		"movq %rsi, %rdx\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xchgq (%rax), %rdx\n"
 		);
 }
@@ -111,10 +101,8 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		"movl %edx, %ecx\n"
 		"movl %esi, %eax\n"
 		"movq %rdi, %rdx\n"
-
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
+
 		/*
 		 * If [%rdi] == %eax then [%rdi] := %ecx (equal to %edx
 		 * from above), and %eax is untouched (equal to %esi)

@@ -19,6 +19,12 @@
  *** Network.
  ***/
 
+/*
+ * Always defined, for the benefit of legacy software using this header.
+ */
+#define ISC_PLATFORM_USETHREADS 1
+
+
 /*! \brief
  * Define if this system needs the <netinet/in6.h> header file included
  * for full IPv6 support (pretty much only UnixWare).
@@ -216,11 +222,6 @@
 /***
  *** Miscellaneous.
  ***/
-
-/*
- * Defined if we are using threads.
- */
-@ISC_PLATFORM_USETHREADS@
 
 /*
  * Defined if unistd.h does not cause fd_set to be delared.

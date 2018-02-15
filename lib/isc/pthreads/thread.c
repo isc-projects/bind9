@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: thread.c,v 1.17 2007/06/19 23:47:18 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>

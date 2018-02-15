@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -164,15 +162,11 @@ dns_fullname_hash(const dns_name_t *name, isc_boolean_t case_sensitive);
 /*
  * dns_name_t to text post-conversion procedure.
  */
-#ifdef ISC_PLATFORM_USETHREADS
 static int thread_key_initialized = 0;
 static isc_mutex_t thread_key_mutex;
 static isc_mem_t *thread_key_mctx = NULL;
 static isc_thread_key_t totext_filter_proc_key;
 static isc_once_t once = ISC_ONCE_INIT;
-#else
-static dns_name_totextfilter_t totext_filter_proc = NULL;
-#endif
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,
@@ -1322,7 +1316,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 static void
 free_specific(void *arg) {
 	dns_name_totextfilter_t *mem = arg;
@@ -1369,7 +1362,6 @@ totext_filter_proc_key_init(void) {
 	}
 	return (result);
 }
-#endif
 
 isc_result_t
 dns_name_totext(const dns_name_t *name, isc_boolean_t omit_final_dot,
@@ -1399,11 +1391,9 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	unsigned int labels;
 	isc_boolean_t saw_root = ISC_FALSE;
 	unsigned int oused = target->used;
-#ifdef ISC_PLATFORM_USETHREADS
 	dns_name_totextfilter_t *mem;
 	dns_name_totextfilter_t totext_filter_proc = NULL;
 	isc_result_t result;
-#endif
 	isc_boolean_t omit_final_dot =
 		ISC_TF(options & DNS_NAME_OMITFINALDOT);
 
@@ -1414,11 +1404,10 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(ISC_BUFFER_VALID(target));
 
-#ifdef ISC_PLATFORM_USETHREADS
 	result = totext_filter_proc_key_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#endif
+
 	ndata = name->ndata;
 	nlen = name->length;
 	labels = name->labels;
@@ -1558,11 +1547,9 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	}
 	isc_buffer_add(target, tlen - trem);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	mem = isc_thread_key_getspecific(totext_filter_proc_key);
 	if (mem != NULL)
 		totext_filter_proc = *mem;
-#endif
 	if (totext_filter_proc != NULL)
 		return ((*totext_filter_proc)(target, oused, saw_root));
 
@@ -2384,7 +2371,6 @@ dns_name_print(const dns_name_t *name, FILE *stream) {
 
 isc_result_t
 dns_name_settotextfilter(dns_name_totextfilter_t proc) {
-#ifdef ISC_PLATFORM_USETHREADS
 	isc_result_t result;
 	dns_name_totextfilter_t *mem;
 	int res;
@@ -2420,10 +2406,6 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 		result = ISC_R_UNEXPECTED;
 	}
 	return (result);
-#else
-	totext_filter_proc = proc;
-	return (ISC_R_SUCCESS);
-#endif
 }
 
 void
@@ -2574,7 +2556,6 @@ dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target) 
 
 void
 dns_name_destroy(void) {
-#ifdef ISC_PLATFORM_USETHREADS
 	RUNTIME_CHECK(isc_once_do(&once, thread_key_mutex_init)
 				  == ISC_R_SUCCESS);
 
@@ -2585,8 +2566,6 @@ dns_name_destroy(void) {
 		thread_key_initialized = 0;
 	}
 	UNLOCK(&thread_key_mutex);
-
-#endif
 }
 
 /*

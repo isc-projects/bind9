@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: rbt_test.c,v 1.1.14.8 2012/02/10 16:24:37 ckb Exp $ */
-
 /* ! \file */
 
 #include <config.h>
@@ -1078,7 +1076,6 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	dns_test_end();
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 
 /*
@@ -1206,7 +1203,6 @@ ATF_TC_BODY(benchmark, tc) {
 }
 
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Main
@@ -1220,11 +1216,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rbt_insert);
 	ATF_TP_ADD_TC(tp, rbt_remove);
 	ATF_TP_ADD_TC(tp, rbt_insert_and_remove);
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	return (atf_no_error());
 }
