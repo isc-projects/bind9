@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2009, 2011, 2012, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2009, 2011, 2012, 2015-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,8 +54,8 @@ totext_in_dhcid(ARGS_TOTEXT) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {
 			n = snprintf(buf, sizeof(buf), " ; %u %u %u",
-				     sr2.base[0] * 256 + sr2.base[1],
-				     sr2.base[2], rdata->length - 3);
+				     sr2.base[0] * 256U + sr2.base[1],
+				     sr2.base[2], rdata->length - 3U);
 			INSIST(n < sizeof(buf));
 			RETERR(str_totext(buf, target));
 		}
