@@ -1,3 +1,6 @@
+4888.	[test]		Update system test framework to allow appropriately-
+                        written system tests to be run in parallel. [RT #46602]
+
 4891.	[placeholder]
 
 4890.	[func]		Remove unused ondestroy callback from libisc.
