@@ -11214,7 +11214,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		     zonecount, automatic);
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "debug level: %d\n", named_g_debuglevel);
+	snprintf(line, sizeof(line), "debug level: %u\n", named_g_debuglevel);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "xfers running: %u\n", xferrunning);
