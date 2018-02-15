@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #include <config.h>
 
 #include <stddef.h>
@@ -24,7 +23,7 @@ isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
 	REQUIRE(ref != NULL);
 
 	ref->refs = n;
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(ISC_REFCOUNT_HAVEATOMIC)
+#if !defined(ISC_REFCOUNT_HAVEATOMIC)
 	return (isc_mutex_init(&ref->lock));
 #else
 	return (ISC_R_SUCCESS);

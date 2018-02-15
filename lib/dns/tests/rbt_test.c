@@ -1264,7 +1264,6 @@ ATF_TC_BODY(rbt_nodechain, tc) {
 	dns_test_end();
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 
 /*
@@ -1392,7 +1391,6 @@ ATF_TC_BODY(benchmark, tc) {
 }
 
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Main
@@ -1410,11 +1408,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rbt_addname);
 	ATF_TP_ADD_TC(tp, rbt_deletename);
 	ATF_TP_ADD_TC(tp, rbt_nodechain);
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	return (atf_no_error());
 }

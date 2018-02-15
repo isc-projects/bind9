@@ -70,11 +70,7 @@ create_managers(unsigned int workers) {
 	char *p;
 
 	if (workers == 0) {
-#ifdef ISC_PLATFORM_USETHREADS
 		workers = isc_os_ncpus();
-#else
-		workers = 1;
-#endif
 	}
 
 	p = getenv("ISC_TASK_WORKERS");
@@ -123,11 +119,7 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
 
-#ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
-#else
-	ncpus = 1;
-#endif
 
 	if (start_managers) {
 		CHECK(create_managers(workers));

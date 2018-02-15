@@ -646,7 +646,6 @@ ATF_TC_BODY(getlabelsequence, tc) {
 	}
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 
 /*
@@ -742,7 +741,6 @@ ATF_TC_BODY(benchmark, tc) {
 }
 
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 /*
  * Main
@@ -760,11 +758,9 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, countlabels);
 	ATF_TP_ADD_TC(tp, getlabel);
 	ATF_TP_ADD_TC(tp, getlabelsequence);
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);
 #endif /* DNS_BENCHMARK_TESTS */
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	return (atf_no_error());
 }
