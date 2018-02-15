@@ -2163,7 +2163,6 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	dns_asyncload_t *asl = event->ev_arg;
 	dns_zone_t *zone = asl->zone;
 	isc_result_t result;
-	isc_boolean_t load_pending;
 
 	UNUSED(task);
 
@@ -2171,17 +2170,8 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	/* Make sure load is still pending */
 	LOCK_ZONE(zone);
-	load_pending = ISC_TF(DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING));
-
-	if (!load_pending) {
-		UNLOCK_ZONE(zone);
-		goto cleanup;
-	}
-
 	result = zone_load(zone, 0, ISC_TRUE);
-
 	if (result != DNS_R_CONTINUE) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	}
@@ -2191,7 +2181,6 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	if (asl->loaded != NULL)
 		(asl->loaded)(asl->loaded_arg, zone, task);
 
- cleanup:
 	isc_mem_put(zone->mctx, asl, sizeof (*asl));
 	dns_zone_idetach(&zone);
 }
