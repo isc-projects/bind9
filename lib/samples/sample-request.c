@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2012-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2012-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -85,7 +85,7 @@ make_querymessage(dns_message_t *message, const char *namestr,
 	qname0 = dns_fixedname_name(&fixedqname);
 	result = dns_name_fromtext(qname0, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to convert qname: %d\n", result);
+		fprintf(stderr, "failed to convert qname: %u\n", result);
 		return (result);
 	}
 
@@ -175,13 +175,13 @@ main(int argc, char *argv[]) {
 	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_lib_init failed: %d\n", result);
+		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
 
 	result = dns_client_create(&client, 0);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %d\n", result);
+		fprintf(stderr, "dns_client_create failed: %u\n", result);
 		exit(1);
 	}
 
