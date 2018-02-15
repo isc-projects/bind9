@@ -401,12 +401,12 @@ sock_dump(isc_socket_t *sock) {
 
 	printf("\n\t\tSock Dump\n");
 	printf("\t\tfd: %Iu\n", sock->fd);
-	printf("\t\treferences: %d\n", sock->references);
-	printf("\t\tpending_accept: %d\n", sock->pending_accept);
-	printf("\t\tconnecting: %d\n", sock->pending_connect);
-	printf("\t\tconnected: %d\n", sock->connected);
-	printf("\t\tbound: %d\n", sock->bound);
-	printf("\t\tpending_iocp: %d\n", sock->pending_iocp);
+	printf("\t\treferences: %u\n", sock->references);
+	printf("\t\tpending_accept: %u\n", sock->pending_accept);
+	printf("\t\tconnecting: %u\n", sock->pending_connect);
+	printf("\t\tconnected: %u\n", sock->connected);
+	printf("\t\tbound: %u\n", sock->bound);
+	printf("\t\tpending_iocp: %u\n", sock->pending_iocp);
 	printf("\t\tsocket type: %d\n", sock->type);
 
 	printf("\n\t\tSock Recv List\n");
