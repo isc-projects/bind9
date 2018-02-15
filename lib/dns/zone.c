@@ -2185,9 +2185,11 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-	zone_load(zone, 0, ISC_TRUE);
+	result = zone_load(zone, 0, ISC_TRUE);
 
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	if (result != DNS_R_CONTINUE) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	}
 	UNLOCK_ZONE(zone);
 
 	/* Inform the zone table we've finished loading */
