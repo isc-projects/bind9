@@ -1872,7 +1872,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 				continue;
 			input = batchline;
 			bargv[bargc] = next_token(&input, " \t\r\n");
-			while ((bargv[bargc] != NULL) && (bargc < 14)) {
+			while ((bargc < 14) && (bargv[bargc] != NULL)) {
 				bargc++;
 				bargv[bargc] = next_token(&input, " \t\r\n");
 			}
