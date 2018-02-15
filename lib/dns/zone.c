@@ -2211,8 +2211,11 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 		return (ISC_R_FAILURE);
 
 	/* If we already have a load pending, stop now */
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING)) {
+		UNLOCK_ZONE(zone);
 		return (ISC_R_ALREADYRUNNING);
+	}
 
 	asl = isc_mem_get(zone->mctx, sizeof (*asl));
 	if (asl == NULL)
@@ -2229,7 +2232,6 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 	if (e == NULL)
 		CHECK(ISC_R_NOMEMORY);
 
-	LOCK_ZONE(zone);
 	zone_iattach(zone, &asl->zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	isc_task_send(zone->loadtask, &e);
@@ -2240,6 +2242,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
   failure:
 	if (asl != NULL)
 		isc_mem_put(zone->mctx, asl, sizeof (*asl));
+	UNLOCK_ZONE(zone);
 	return (result);
 }
 
