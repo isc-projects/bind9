@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -774,7 +774,7 @@ add_log_str(isc_buffer_t *lb, const char *str, unsigned int str_len) {
 
 	isc_buffer_availableregion(lb, &region);
 	if (str_len >= region.length) {
-		if (region.length <= 0)
+		if (region.length == 0U)
 			return;
 		str_len = region.length;
 	}
