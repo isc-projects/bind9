@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1884,8 +1884,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				bargc = 1;
 				input = batchline;
 				bargv[bargc] = next_token(&input, " \t\r\n");
-				while ((bargv[bargc] != NULL) &&
-				       (bargc < 62)) {
+				while ((bargc < 62) && (bargv[bargc] != NULL)) {
 					bargc++;
 					bargv[bargc] =
 						next_token(&input, " \t\r\n");
@@ -2084,7 +2083,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				goto next_line;
 			input = batchline;
 			bargv[bargc] = next_token(&input, " \t\r\n");
-			while ((bargv[bargc] != NULL) && (bargc < 14)) {
+			while ((bargc < 14) && (bargv[bargc] != NULL)) {
 				bargc++;
 				bargv[bargc] = next_token(&input, " \t\r\n");
 			}
@@ -2154,7 +2153,7 @@ query_finished(void) {
 		bargc = 1;
 		input = batchline;
 		bargv[bargc] = next_token(&input, " \t\r\n");
-		while ((bargv[bargc] != NULL) && (bargc < 14)) {
+		while ((bargc < 14) && (bargv[bargc] != NULL)) {
 			bargc++;
 			bargv[bargc] = next_token(&input, " \t\r\n");
 		}
