@@ -2274,7 +2274,7 @@ print_contexts(FILE *file) {
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		fprintf(file, "context: %p (%s): %d references\n",
+		fprintf(file, "context: %p (%s): %u references\n",
 			ctx,
 			ctx->name[0] == 0 ? "<unknown>" : ctx->name,
 			ctx->references);
