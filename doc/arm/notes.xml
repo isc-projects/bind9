@@ -53,7 +53,9 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  <command>named</command> will now log a warning if the old
+	  root DNSSEC key is explicitly configured and has not been updated.
+	  [RT #43670]
 	</para>
       </listitem>
     </itemizedlist>
