@@ -228,20 +228,26 @@ nextpart () {
 # environment variables. (These values are set by "run.sh", which calls the
 # scripts invoking this function.)
 #
+# Note: The use of the "atsign" variable prevents the contents of the "sed"
+#       command from causing an error when this file is processed during
+#       the setup for the Windows build.
+#       
+#
 # Usage:
 #   copy_setports infile outfile
 
 copy_setports() {
-    sed -e "s/@PORT@/${PORT}/g" \
-        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
-        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
-        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
-        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
-        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
-        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
-        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+    atsign="@"
+    sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
+        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
+        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
+        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
+        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
+        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
+        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
+        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
+        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
+        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" $1 > $2
 }
 
 #
