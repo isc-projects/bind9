@@ -10618,7 +10618,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 		     zonecount, automatic);
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "debug level: %d\n", ns_g_debuglevel);
+	snprintf(line, sizeof(line), "debug level: %u\n", ns_g_debuglevel);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "xfers running: %u\n", xferrunning);
