@@ -152,23 +152,11 @@ then
 			then
 				use_dlz_mysql=$d
 				mysql_include=$d/include/mysql
-			if test -d $d/lib/mysql
-				then
-				mysql_lib=$d/lib/mysql
-				else
-					mysql_lib=$d/lib
-				fi
 				break
 			elif test -f $d/include/mysql.h
 			then
 				use_dlz_mysql=$d
 				mysql_include=$d/include
-				if test -d $d/lib/mysql
-				then
-					mysql_lib=$d/lib/mysql
-				else
-					mysql_lib=$d/lib
-				fi
 				break
 			fi
 		done
@@ -179,21 +167,9 @@ then
 	if test -f $d/include/mysql/mysql.h
 	then
 		mysql_include=$d/include/mysql
-		if test -d $d/lib/mysql
-		then
-			mysql_lib=$d/lib/mysql
-		else
-			mysql_lib=$d/lib
-		fi
 	elif test -f $d/include/mysql.h
 	then
 		mysql_include=$d/include
-		if test -d $d/lib/mysql
-		then
-			mysql_lib=$d/lib/mysql
-		else
-			mysql_lib=$d/lib
-		fi
 	fi
 fi
 
@@ -217,6 +193,12 @@ case "$use_dlz_mysql" in
 [using mysql with libs ${mysql_lib} and includes ${mysql_include}])
 		;;
 	*)
+		if test -d "$use_dlz_mysql/lib/mysql"
+		then
+			mysql_lib="$use_dlz_mysql/lib/mysql"
+		else
+			mysql_lib="$use_dlz_mysql/lib"
+		fi
 		DLZ_ADD_DRIVER(MYSQL, dlz_mysql_driver,
 				[-I${mysql_include}],
 				[-L${mysql_lib} -lmysqlclient -lz -lcrypt -lm])
