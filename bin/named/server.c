@@ -8895,7 +8895,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "UDP listeners per interface: %u\n"
 #endif
 		     "number of zones: %u\n"
-		     "debug level: %d\n"
+		     "debug level: %u\n"
 		     "xfers running: %u\n"
 		     "xfers deferred: %u\n"
 		     "soa queries in progress: %u\n"
