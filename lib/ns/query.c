@@ -5072,7 +5072,7 @@ query_trace(query_ctx_t *qctx) {
 		snprintf(qbuf, sizeof(qbuf), "<unset>");
 
 	snprintf(mbuf, sizeof(mbuf) - 1,
-		 "client attr:0x%x, query attr:0x%X, restarts:%d, "
+		 "client attr:0x%x, query attr:0x%X, restarts:%u, "
 		 "origqname:%s, timer:%d, authdb:%d, referral:%d",
 		 qctx->client->attributes,
 		 qctx->client->query.attributes,
