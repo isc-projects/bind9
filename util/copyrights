@@ -582,7 +582,7 @@
 ./bin/tests/master_test.c			C	1999,2000,2001,2004,2007,2009,2015
 ./bin/tests/mdig.c				C	2016,2017.2018
 ./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2005,2007,2009,2012
-./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004,2007,2009,2013
+./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004,2007,2009,2013,2018
 ./bin/tests/mem/win32/t_mem.dsp.in		X	2013
 ./bin/tests/mem/win32/t_mem.dsw			X	2013
 ./bin/tests/mem/win32/t_mem.mak.in		X	2013
