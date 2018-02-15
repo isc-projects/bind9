@@ -2166,19 +2166,14 @@ static void
 zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	dns_asyncload_t *asl = event->ev_arg;
 	dns_zone_t *zone = asl->zone;
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 	isc_boolean_t load_pending;
 
 	UNUSED(task);
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
-		result = ISC_R_CANCELED;
 	isc_event_free(&event);
-
-	if (result == ISC_R_CANCELED)
-		goto cleanup;
 
 	/* Make sure load is still pending */
 	LOCK_ZONE(zone);
