@@ -2722,7 +2722,7 @@
 ./bin/tools/arpaname.docbook			SGML	2009,2014,2015,2016
 ./bin/tools/arpaname.html			HTML	DOCBOOK
 ./bin/tools/dnstap-read.1			MAN	DOCBOOK
-./bin/tools/dnstap-read.c			C	2015,2016
+./bin/tools/dnstap-read.c			C	2015,2016,2018
 ./bin/tools/dnstap-read.docbook			SGML	2015,2016
 ./bin/tools/dnstap-read.html			HTML	DOCBOOK
 ./bin/tools/genrandom.8				MAN	DOCBOOK
