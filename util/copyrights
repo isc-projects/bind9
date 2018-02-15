@@ -3225,7 +3225,7 @@
 ./lib/export/samples/sample-gai.c		C	2009,2012,2013,2015
 ./lib/export/samples/sample-request.c		C	2009,2012,2013,2014,2015,2016
 ./lib/export/samples/sample-update.c		C	2009,2010,2012,2013,2014,2015,2016,2017,2018
-./lib/export/samples/sample.c			C	2009,2012,2013,2014,2015,2016,2017
+./lib/export/samples/sample.c			C	2009,2012,2013,2014,2015,2016,2017,2018
 ./lib/irs/Atffile				X	2016
 ./lib/irs/Kyuafile				X	2017
 ./lib/irs/Makefile.in				MAKE	2009,2012,2014,2015,2016,2017

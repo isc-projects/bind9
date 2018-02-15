@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -213,7 +213,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 		name = dns_fixedname_name(&fname);
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "failed to convert qname: %d\n",
+			fprintf(stderr, "failed to convert qname: %u\n",
 				result);
 			exit(1);
 		}
@@ -222,7 +222,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 	result = dns_client_setservers(client, dns_rdataclass_in, name,
 				       &servers);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "set server failed: %d\n", result);
+		fprintf(stderr, "set server failed: %u\n", result);
 		exit(1);
 	}
 }
@@ -313,14 +313,14 @@ main(int argc, char *argv[]) {
 	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_lib_init failed: %d\n", result);
+		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
 
 	clientopt = 0;
 	result = dns_client_create(&client, clientopt);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %d\n", result);
+		fprintf(stderr, "dns_client_create failed: %u\n", result);
 		exit(1);
 	}
 
@@ -350,7 +350,7 @@ main(int argc, char *argv[]) {
 	qname = dns_fixedname_name(&qname0);
 	result = dns_name_fromtext(qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
-		fprintf(stderr, "failed to convert qname: %d\n", result);
+		fprintf(stderr, "failed to convert qname: %u\n", result);
 
 	/* Perform resolution */
 	resopt = 0;
