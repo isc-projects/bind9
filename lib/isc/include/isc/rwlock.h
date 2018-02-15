@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rwlock.h,v 1.28 2007/06/19 23:47:18 tbox Exp $ */
-
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
@@ -34,7 +32,6 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-#ifdef ISC_PLATFORM_USETHREADS
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || (defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
 #define ISC_RWLOCK_USEATOMIC 1
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
@@ -108,14 +105,6 @@ struct isc_rwlock {
 	isc_rwlocktype_t	original;
 #endif  /* ISC_RWLOCK_USEATOMIC */
 };
-#else /* ISC_PLATFORM_USETHREADS */
-struct isc_rwlock {
-	unsigned int		magic;
-	isc_rwlocktype_t	type;
-	unsigned int		active;
-};
-#endif /* ISC_PLATFORM_USETHREADS */
-
 
 isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,

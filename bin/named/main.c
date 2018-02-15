@@ -724,11 +724,6 @@ parse_command_line(int argc, char *argv[]) {
 			printf("linked to zlib version: %s\n",
 			       zlibVersion());
 #endif
-#ifdef ISC_PLATFORM_USETHREADS
-			printf("threads support is enabled\n");
-#else
-			printf("threads support is disabled\n");
-#endif
 			exit(0);
 		case 'x':
 			/* Obsolete. No longer in use. Ignore. */
@@ -780,7 +775,6 @@ create_managers(void) {
 
 	INSIST(named_g_cpus_detected > 0);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	if (named_g_cpus == 0)
 		named_g_cpus = named_g_cpus_detected;
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -789,9 +783,6 @@ create_managers(void) {
 		      named_g_cpus_detected,
 		      named_g_cpus_detected == 1 ? "" : "s",
 		      named_g_cpus, named_g_cpus == 1 ? "" : "s");
-#else
-	named_g_cpus = 1;
-#endif
 #ifdef WIN32
 	named_g_udpdisp = 1;
 #else
@@ -804,12 +795,10 @@ create_managers(void) {
 	if (named_g_udpdisp > named_g_cpus)
 		named_g_udpdisp = named_g_cpus;
 #endif
-#ifdef ISC_PLATFORM_USETHREADS
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "using %u UDP listener%s per interface",
 		      named_g_udpdisp, named_g_udpdisp == 1 ? "" : "s");
-#endif
 
 	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0,
 				    &named_g_taskmgr);
@@ -969,12 +958,10 @@ setup(void) {
 	}
 #endif
 
-#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * Check for the number of cpu's before named_os_chroot().
 	 */
 	named_g_cpus_detected = isc_os_ncpus();
-#endif
 
 	named_os_chroot(named_g_chrootdir);
 

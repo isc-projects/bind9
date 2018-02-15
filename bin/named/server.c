@@ -11201,7 +11201,6 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	}
 	CHECK(putstr(text, line));
 
-#ifdef ISC_PLATFORM_USETHREADS
 	snprintf(line, sizeof(line), "CPUs found: %u\n", named_g_cpus_detected);
 	CHECK(putstr(text, line));
 
@@ -11211,10 +11210,6 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	snprintf(line, sizeof(line), "UDP listeners per interface: %u\n",
 		 named_g_udpdisp);
 	CHECK(putstr(text, line));
-#else
-	snprintf(line, sizeof(line), "CPUs found: N/A (threads disabled)\n");
-	CHECK(putstr(text, line));
-#endif
 
 	snprintf(line, sizeof(line), "number of zones: %u (%u automatic)\n",
 		     zonecount, automatic);

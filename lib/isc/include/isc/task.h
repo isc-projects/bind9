@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
 
@@ -824,20 +822,13 @@ isc__task_register(void);
 /*%<
  * These functions allow unit tests to manipulate the processing
  * of the task queue. They are not intended as part of the public API.
+ * (XXX: these should be moved to task_p.h not task.h)
  */
-#if defined(ISC_PLATFORM_USETHREADS)
 void
 isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
 
 void
 isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
-#else
-isc_boolean_t
-isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
-
-isc_result_t
-isc__taskmgr_dispatch(isc_taskmgr_t *taskmgr);
-#endif /* !ISC_PLATFORM_USETHREADS */
 
 ISC_LANG_ENDDECLS
 

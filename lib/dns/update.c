@@ -2039,7 +2039,7 @@ static isc_stdtime_t
 epoch_to_yyyymmdd(time_t when) {
 	struct tm *tm;
 
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+#if !defined(WIN32)
 	struct tm tm0;
 	tm = localtime_r(&when, &tm0);
 #else

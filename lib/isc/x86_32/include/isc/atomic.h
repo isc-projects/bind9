@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: atomic.h,v 1.10 2008/01/24 23:47:00 tbox Exp $ */
-
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
@@ -27,9 +25,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	isc_int32_t prev = val;
 
 	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xadd %0, %1"
 		:"=q"(prev)
 		:"m"(*p), "0"(prev)
@@ -44,9 +40,7 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 	isc_int64_t prev = val;
 
 	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
 	    "lock;"
-#endif
 	    "xaddq %0, %1"
 	    :"=q"(prev)
 	    :"m"(*p), "0"(prev)
@@ -62,14 +56,11 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 static __inline__ void
 isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
 		/*
 		 * xchg should automatically lock memory, but we add it
 		 * explicitly just in case (it at least doesn't harm)
 		 */
 		"lock;"
-#endif
-
 		"xchgl %1, %0"
 		:
 		: "r"(val), "m"(*p)
@@ -83,14 +74,11 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 static __inline__ void
 isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
 	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
 		/*
 		 * xchg should automatically lock memory, but we add it
 		 * explicitly just in case (it at least doesn't harm)
 		 */
 		"lock;"
-#endif
-
 		"xchgq %1, %0"
 		:
 		: "r"(val), "m"(*p)
@@ -106,9 +94,7 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
 static __inline__ isc_int32_t
 isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"cmpxchgl %1, %2"
 		: "=a"(cmpval)
 		: "r"(val), "m"(*p), "a"(cmpval)
@@ -133,9 +119,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	__asm (
 		"movl 8(%ebp), %ecx\n"
 		"movl 12(%ebp), %edx\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xadd %edx, (%ecx)\n"
 
 		/*
@@ -155,9 +139,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	__asm (
 		"movl 8(%ebp), %ecx\n"
 		"movl 12(%ebp), %edx\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 		"xchgl (%ecx), %edx\n"
 		);
 }
@@ -172,9 +154,7 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		"movl 8(%ebp), %ecx\n"
 		"movl 12(%ebp), %eax\n"	/* must be %eax for cmpxchgl */
 		"movl 16(%ebp), %edx\n"
-#ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
-#endif
 
 		/*
 		 * If (%ecx) == %eax then (%ecx) := %edx.

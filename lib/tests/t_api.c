@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: t_api.c,v 1.68 2010/12/21 04:20:23 marka Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -600,12 +598,12 @@ t_getdate(char *buf, size_t buflen) {
 	size_t		n;
 	time_t		t;
 	struct tm	*p;
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+#if !defined(WIN32)
 	struct tm	tm;
 #endif
 
 	t = time(NULL);
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+#if !defined(WIN32)
 	p = localtime_r(&t, &tm);
 #else
 	p = localtime(&t);

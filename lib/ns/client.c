@@ -98,7 +98,6 @@
 #define SEND_BUFFER_SIZE		4096
 #define RECV_BUFFER_SIZE		4096
 
-#ifdef ISC_PLATFORM_USETHREADS
 #define NMCTXS				100
 /*%<
  * Number of 'mctx pools' for clients. (Should this be configurable?)
@@ -108,13 +107,6 @@
  * completely avoiding contentions among threads for an authoritative-only
  * server.
  */
-#else
-#define NMCTXS				0
-/*%<
- * If named with built without thread, simply share manager's context.  Using
- * a separate context in this case would simply waste memory.
- */
-#endif
 
 #define COOKIE_SIZE 24U /* 8 + 4 + 4 + 8 */
 #define ECS_SIZE 20U /* 2 + 1 + 1 + [0..16] */

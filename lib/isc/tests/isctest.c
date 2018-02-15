@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -72,11 +70,7 @@ cleanup_managers(void) {
 static isc_result_t
 create_managers(void) {
 	isc_result_t result;
-#ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
-#else
-	ncpus = 1;
-#endif
 
 	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
@@ -121,11 +115,7 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 		CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL));
 	}
 
-#ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
-#else
-	ncpus = 1;
-#endif
 
 	if (start_managers)
 		CHECK(create_managers());

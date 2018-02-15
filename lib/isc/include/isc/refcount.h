@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: refcount.h,v 1.17 2009/09/29 23:48:04 tbox Exp $ */
-
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
@@ -93,7 +91,6 @@ ISC_LANG_BEGINDECLS
 /*
  * Sample implementations
  */
-#ifdef ISC_PLATFORM_USETHREADS
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD)
 #define ISC_REFCOUNT_HAVEATOMIC 1
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
@@ -252,44 +249,6 @@ typedef struct isc_refcount {
 	} while (0)
 
 #endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD) */
-#else  /* ISC_PLATFORM_USETHREADS */
-
-typedef struct isc_refcount {
-	int refs;
-} isc_refcount_t;
-
-#define isc_refcount_destroy(rp) ISC_REQUIRE((rp)->refs == 0)
-#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
-
-#define isc_refcount_increment0(rp, tp)					\
-	do {								\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		int _n = ++(rp)->refs;					\
-		if (_tmp != NULL)					\
-			*_tmp = _n;					\
-	} while (0)
-
-#define isc_refcount_increment(rp, tp)					\
-	do {								\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		int _n;							\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		_n = ++(rp)->refs;					\
-		if (_tmp != NULL)					\
-			*_tmp = _n;					\
-	} while (0)
-
-#define isc_refcount_decrement(rp, tp)					\
-	do {								\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		int _n;							\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		_n = --(rp)->refs;					\
-		if (_tmp != NULL)					\
-			*_tmp = _n;					\
-	} while (0)
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 isc_result_t
 isc_refcount_init(isc_refcount_t *ref, unsigned int n);
