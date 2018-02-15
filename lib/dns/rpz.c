@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -682,13 +682,13 @@ ip2name(const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 	int i, n, len;
 
 	if (KEY_IS_IPV4(tgt_prefix, tgt_ip)) {
-		len = snprintf(str, sizeof(str), "%d.%d.%d.%d.%d",
-			       tgt_prefix - 96,
-			       tgt_ip->w[3] & 0xff,
-			       (tgt_ip->w[3]>>8) & 0xff,
-			       (tgt_ip->w[3]>>16) & 0xff,
-			       (tgt_ip->w[3]>>24) & 0xff);
-		if (len < 0 || len > (int)sizeof(str))
+		len = snprintf(str, sizeof(str), "%u.%u.%u.%u.%u",
+			       tgt_prefix - 96U,
+			       tgt_ip->w[3] & 0xffU,
+			       (tgt_ip->w[3]>>8) & 0xffU,
+			       (tgt_ip->w[3]>>16) & 0xffU,
+			       (tgt_ip->w[3]>>24) & 0xffU);
+		if (len < 0 || len > (int)sizeof(str)) {
 			return (ISC_R_FAILURE);
 	} else {
 		len = snprintf(str, sizeof(str), "%d", tgt_prefix);
