@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1161,6 +1161,7 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 				return (ASN1_OVERFLOW);
 			*p-- = 0;
 			len--;
+			POST(len);
 		}
 	} else {
 		val = ~val;
@@ -1176,6 +1177,7 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 				return (ASN1_OVERFLOW);
 			*p-- = 0xff;
 			len--;
+			POST(len);
 		}
 	}
 	*size = base - p;
