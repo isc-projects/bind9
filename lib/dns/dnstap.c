@@ -1195,7 +1195,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 
 	/* Message size */
 	if (d->msgdata.base != NULL) {
-		snprintf(buf, sizeof(buf), "%zdb ", (size_t) d->msgdata.length);
+		snprintf(buf, sizeof(buf), "%zub ", (size_t) d->msgdata.length);
 		CHECK(putstr(dest, buf));
 	} else
 		CHECK(putstr(dest, "0b "));
