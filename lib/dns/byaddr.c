@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2013, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2013, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -84,10 +84,10 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 	if (address->family == AF_INET) {
 		(void)snprintf(textname, sizeof(textname),
 			       "%u.%u.%u.%u.in-addr.arpa.",
-			       (bytes[3] & 0xff),
-			       (bytes[2] & 0xff),
-			       (bytes[1] & 0xff),
-			       (bytes[0] & 0xff));
+			       (bytes[3] & 0xffU),
+			       (bytes[2] & 0xffU),
+			       (bytes[1] & 0xffU),
+			       (bytes[0] & 0xffU));
 	} else if (address->family == AF_INET6) {
 		size_t remaining;
 
