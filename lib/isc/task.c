@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1439,7 +1439,7 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 				      &manager->threads[manager->workers]) ==
 		    ISC_R_SUCCESS) {
 			char name[16];	/* thread name limit on Linux */
-			snprintf(name, sizeof(name), "isc-worker%04d", i);
+			snprintf(name, sizeof(name), "isc-worker%04u", i);
 			isc_thread_setname(manager->threads[manager->workers],
 					   name);
 			manager->workers++;
