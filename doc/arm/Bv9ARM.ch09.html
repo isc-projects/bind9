@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.3b1</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.3rc1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.3b1</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.3rc1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -199,7 +199,8 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
 	<p>
 	  The ISC DNSSEC Lookaside Validation (DLV) service has
 	  been shut down; all DLV records in the dlv.isc.org zone
@@ -211,7 +212,15 @@
 	  <span class="command"><strong>auto</strong></span> or to use dlv.isc.org as a trust
 	  anchor results in a warning being issued.
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> will now log a warning if the old
+	  root DNSSEC key is explicitly configured and has not been updated.
+	  [RT #43670]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
@@ -423,6 +432,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.3b1 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.3rc1 (Extended Support Version)</p>
 </body>
 </html>
