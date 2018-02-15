@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001, 2004, 2005, 2007, 2009, 2011, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2004, 2005, 2007, 2009, 2011, 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -489,7 +489,6 @@ t_tasks2(void) {
 	uintptr_t		ntasks;
 	int			result;
 	char			*p;
-	isc_event_t		*event;
 	unsigned int		workers;
 	isc_result_t		isc_result;
 
@@ -546,7 +545,7 @@ t_tasks2(void) {
 	}
 
 	T2_event = isc_event_allocate(T2_mctx, (void *)1, 1, t2_callback,
-					(void *)ntasks, sizeof(*event));
+				      (void *)ntasks, sizeof(*T2_event));
 	if (T2_event == NULL) {
 		t_info("isc_event_allocate failed\n");
 		return(T_UNRESOLVED);
