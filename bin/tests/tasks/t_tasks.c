@@ -1366,7 +1366,7 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 		       event->ev_sender,
 		       (int)event->ev_type,
 		       event->ev_tag,
-		       event->ev_attributes & ISC_EVENTATTR_NOPURGE ?
+		       ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) ?
 		       "NP" : "P");
 	}
 
@@ -1392,7 +1392,7 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 	if (sender_match && type_match && tag_match) {
 		if (event->ev_attributes & ISC_EVENTATTR_NOPURGE) {
 			t_info("event %p,%d,%p matched but was not purgable\n",
-				event->ev_sender, (int)event->ev_type,
+			       event->ev_sender, (int)event->ev_type,
 			       event->ev_tag);
 			++T10_eventcnt;
 		} else {
