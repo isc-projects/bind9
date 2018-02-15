@@ -79,10 +79,6 @@ static isc_result_t
 waitfor(completion_t *completion) {
 	int i = 0;
 	while (!completion->done && i++ < 5000) {
-#ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
-			isc__taskmgr_dispatch(taskmgr);
-#endif
 		isc_test_nap(1000);
 	}
 	if (completion->done)
@@ -105,20 +101,7 @@ waitfor(completion_t *completion) {
 
 static void
 waitbody(void) {
-#ifndef ISC_PLATFORM_USETHREADS
-	struct timeval tv;
-	isc_socketwait_t *swait = NULL;
-
-	while (isc__taskmgr_ready(taskmgr))
-		isc__taskmgr_dispatch(taskmgr);
-	if (socketmgr != NULL) {
-		tv.tv_sec = 0;
-		tv.tv_usec = 1000 ;
-		if (isc__socketmgr_waitevents(socketmgr, &tv, &swait) > 0)
-			isc__socketmgr_dispatch(socketmgr, swait);
-	} else
-#endif
-		isc_test_nap(1000);
+	isc_test_nap(1000);
 }
 
 static isc_result_t

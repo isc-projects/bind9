@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: t_tasks.c,v 1.49 2011/07/27 07:45:55 marka Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -25,21 +23,7 @@
 
 #include <tests/t_api.h>
 
-
-#ifdef ISC_PLATFORM_USETHREADS
-isc_boolean_t threaded = ISC_TRUE;
-#else
-isc_boolean_t threaded = ISC_FALSE;
-#endif
-
 static int senders[4];
-
-static void
-require_threads(void) {
-	t_info("This test requires threads\n");
-	t_result(T_THREADONLY);
-	return;
-}
 
 static void
 t1_callback(isc_task_t *task, isc_event_t *event) {
@@ -584,10 +568,7 @@ static void
 t2(void) {
 	t_assert("tasks", 2, T_REQUIRED, "%s", a2);
 
-	if (threaded)
-		t_result(t_tasks2());
-	else
-		require_threads();
+	t_result(t_tasks2());
 }
 
 #define	T3_NEVENTS	256
@@ -853,10 +834,7 @@ static void
 t3(void) {
 	t_assert("tasks", 3, T_REQUIRED, "%s", a3);
 
-	if (threaded)
-		t_result(t_tasks3());
-	else
-		require_threads();
+	t_result(t_tasks3());
 }
 
 static isc_mutex_t	T4_mx;
@@ -1063,10 +1041,7 @@ static void
 t4(void) {
 	t_assert("tasks", 4, T_REQUIRED, "%s", a4);
 
-	if (threaded)
-		t_result(t_tasks4());
-	else
-		require_threads();
+	t_result(t_tasks4());
 }
 
 static int		T7_nprobs;
@@ -1291,10 +1266,7 @@ static void
 t7(void) {
 	t_assert("tasks", 7, T_REQUIRED, "%s", a7);
 
-	if (threaded)
-		t_result(t_tasks7());
-	else
-		require_threads();
+	t_result(t_tasks7());
 }
 
 #define	T10_SENDERCNT	3
@@ -1781,10 +1753,7 @@ static void
 t10(void) {
 	t_assert("tasks", 10, T_REQUIRED, "%s", a10);
 
-	if (threaded)
-		t_result(t_tasks10());
-	else
-		require_threads();
+	t_result(t_tasks10());
 }
 
 static int		T11_nprobs;
@@ -2074,10 +2043,7 @@ static void
 t11(void) {
 	t_assert("tasks", 11, T_REQUIRED, "%s", a11);
 
-	if (threaded)
-		t_result(t_tasks11(1));
-	else
-		require_threads();
+	t_result(t_tasks11(1));
 }
 
 static const char *a12 =
@@ -2095,10 +2061,7 @@ static void
 t12(void) {
 	t_assert("tasks", 12, T_REQUIRED, "%s", a12);
 
-	if (threaded)
-		t_result(t_tasks12());
-	else
-		require_threads();
+	t_result(t_tasks12());
 }
 
 static int	T13_nfails;
@@ -2205,10 +2168,7 @@ static void
 t13(void) {
 	t_assert("tasks", 13, T_REQUIRED, "%s", a13);
 
-	if (threaded)
-		t_result(t_tasks13());
-	else
-		require_threads();
+	t_result(t_tasks13());
 }
 
 #define T14_NTASKS 10

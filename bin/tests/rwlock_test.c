@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: rwlock_test.c,v 1.26 2007/06/19 23:46:59 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdio.h>
@@ -23,8 +21,6 @@
 #ifdef WIN32
 #define sleep(x)	Sleep(1000 * x)
 #endif
-
-#ifdef ISC_PLATFORM_USETHREADS
 
 isc_rwlock_t lock;
 
@@ -129,15 +125,3 @@ main(int argc, char *argv[]) {
 
 	return (0);
 }
-
-#else
-
-int
-main(int argc, char *argv[]) {
-	UNUSED(argc);
-	UNUSED(argv);
-	fprintf(stderr, "This test requires threads.\n");
-	return(1);
-}
-
-#endif

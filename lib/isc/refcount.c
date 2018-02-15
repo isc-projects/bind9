@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: refcount.c,v 1.5 2007/06/19 23:47:17 tbox Exp $ */
-
 #include <config.h>
 
 #include <stddef.h>
@@ -22,7 +20,7 @@ isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
 	REQUIRE(ref != NULL);
 
 	ref->refs = n;
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(ISC_REFCOUNT_HAVEATOMIC)
+#if !defined(ISC_REFCOUNT_HAVEATOMIC)
 	return (isc_mutex_init(&ref->lock));
 #else
 	return (ISC_R_SUCCESS);

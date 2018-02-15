@@ -10056,9 +10056,7 @@ dns_zone_markdirty(dns_zone_t *zone) {
 			if (result != ISC_R_SUCCESS) {
 				UNLOCK_ZONE(zone);
 				secure = NULL;
-#ifdef ISC_PLATFORM_USETHREADS
 				isc_thread_yield();
-#endif
 				goto again;
 			}
 
@@ -10324,9 +10322,7 @@ dump_done(void *arg, isc_result_t result) {
 			if (result != ISC_R_SUCCESS) {
 				UNLOCK_ZONE(zone);
 				secure = NULL;
-#if ISC_PLATFORM_USETHREADS
 				isc_thread_yield();
-#endif
 				goto again;
 			}
 		}
@@ -14869,9 +14865,7 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
 			secure = NULL;
-#if ISC_PLATFORM_USETHREADS
 			isc_thread_yield();
-#endif
 			goto again;
 		}
 	}
@@ -15098,9 +15092,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
 			secure = NULL;
-#if ISC_PLATFORM_USETHREADS
 			isc_thread_yield();
-#endif
 			goto again;
 		}
 	}
@@ -15362,9 +15354,7 @@ zone_loaddone(void *arg, isc_result_t result) {
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
 			secure = NULL;
-#if ISC_PLATFORM_USETHREADS
 			isc_thread_yield();
-#endif
 			goto again;
 		}
 	}
@@ -18387,9 +18377,7 @@ dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
 			secure = NULL;
-#if ISC_PLATFORM_USETHREADS
 			isc_thread_yield();
-#endif
 			goto again;
 		}
 	}

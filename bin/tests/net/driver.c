@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: driver.c,v 1.11 2007/06/19 23:47:00 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -32,13 +30,13 @@ const char *
 gettime(void) {
 	static char now[512];
 	time_t t;
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+#if !defined(WIN32)
 	struct tm tm;
 #endif
 
 	(void)time(&t);
 
-#if defined(ISC_PLATFORM_USETHREADS) && !defined(WIN32)
+#if !defined(WIN32)
 	strftime(now, sizeof(now) - 1, "%A %d %B %H:%M:%S %Y",
 		 localtime_r(&t, &tm));
 #else

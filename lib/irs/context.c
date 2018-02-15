@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: context.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/app.h>
@@ -41,15 +39,10 @@
 #define DNS_CONF "/etc/dns.conf"
 #endif
 
-#ifndef ISC_PLATFORM_USETHREADS
-irs_context_t *irs_g_context = NULL;
-#else
 static isc_boolean_t thread_key_initialized = ISC_FALSE;
 static isc_mutex_t thread_key_mutex;
 static isc_thread_key_t irs_context_key;
 static isc_once_t once = ISC_ONCE_INIT;
-#endif
-
 
 struct irs_context {
 	/*
@@ -124,7 +117,6 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 	return (result);
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 static void
 free_specific_context(void *arg) {
 	irs_context_t *context = arg;
@@ -162,7 +154,6 @@ thread_key_init(void) {
 
 	return (result);
 }
-#endif /* ISC_PLATFORM_USETHREADS */
 
 isc_result_t
 irs_context_get(irs_context_t **contextp) {
@@ -171,15 +162,6 @@ irs_context_get(irs_context_t **contextp) {
 
 	REQUIRE(contextp != NULL && *contextp == NULL);
 
-#ifndef ISC_PLATFORM_USETHREADS
-	if (irs_g_context == NULL) {
-		result = irs_context_create(&irs_g_context);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
-
-	context = irs_g_context;
-#else
 	result = thread_key_init();
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -195,7 +177,6 @@ irs_context_get(irs_context_t **contextp) {
 			return (result);
 		}
 	}
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	*contextp = context;
 
@@ -324,11 +305,7 @@ irs_context_destroy(irs_context_t **contextp) {
 
 	*contextp = NULL;
 
-#ifndef ISC_PLATFORM_USETHREADS
-	irs_g_context = NULL;
-#else
 	(void)isc_thread_key_setspecific(irs_context_key, NULL);
-#endif
 }
 
 isc_mem_t *
