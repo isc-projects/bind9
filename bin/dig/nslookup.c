@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -405,7 +405,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 }
 
 static void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query)
 {
 	UNUSED(bytes);
 	UNUSED(from);
@@ -507,7 +507,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	printf("  %s\t\t%s\n",
 	       usesearch ? "search" : "nosearch",
 	       recurse ? "recurse" : "norecurse");
-	printf("  timeout = %d\t\tretry = %d\tport = %d\tndots = %d\n",
+	printf("  timeout = %u\t\tretry = %d\tport = %u\tndots = %d\n",
 	       timeout, tries, port, ndots);
 	printf("  querytype = %-8s\tclass = %s\n", deftype, defclass);
 	printf("  srchlist = ");

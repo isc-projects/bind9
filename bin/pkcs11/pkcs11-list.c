@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -133,7 +133,7 @@ main(int argc, char *argv[]) {
 		printf("slot %lu\n", slot);
 
 	if (id) {
-		printf("id %i\n", id);
+		printf("id %u\n", id);
 		attr_id[0] = (id >> 8) & 0xff;
 		attr_id[1] = id & 0xff;
 	} else if (label != NULL) {

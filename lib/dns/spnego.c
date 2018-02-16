@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -1169,6 +1169,7 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 				return (ASN1_OVERFLOW);
 			*p-- = 0;
 			len--;
+			POST(len);
 		}
 	} else {
 		val = ~val;
@@ -1184,6 +1185,7 @@ der_put_int(unsigned char *p, size_t len, int val, size_t *size)
 				return (ASN1_OVERFLOW);
 			*p-- = 0xff;
 			len--;
+			POST(len);
 		}
 	}
 	*size = base - p;

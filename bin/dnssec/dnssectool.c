@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -216,12 +216,14 @@ cleanup_logging(isc_log_t **logp) {
 	REQUIRE(logp != NULL);
 
 	log = *logp;
+	*logp = NULL;
+
 	if (log == NULL)
 		return;
+
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
-	logp = NULL;
 }
 
 void

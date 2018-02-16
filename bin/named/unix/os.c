@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2011, 2013, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2011, 2013, 2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -732,7 +732,9 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 
 static void
 setperms(uid_t uid, gid_t gid) {
+#if defined(HAVE_SETEGID) || defined(HAVE_SETRESGID)
 	char strbuf[ISC_STRERRORSIZE];
+#endif
 #if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
 	gid_t oldgid, tmpg;
 #endif

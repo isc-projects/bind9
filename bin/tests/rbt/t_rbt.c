@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011-2013, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -42,9 +42,9 @@ char		*Tokens[T_MAXTOKS];
 
 static int
 t_dns_rbtnodechain_init(char *dbfile, char *findname,
-			char *firstname, char *firstorigin,
 			char *nextname, char *nextorigin,
 			char *prevname, char *prevorigin,
+			char *firstname, char *firstorigin,
 			char *lastname, char *lastorigin);
 static char *
 fixedname_totext(dns_fixedname_t *name);

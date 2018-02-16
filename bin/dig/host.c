@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -175,7 +175,7 @@ host_shutdown(void) {
 }
 
 static void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_time_t now;
 	int diff;
 
