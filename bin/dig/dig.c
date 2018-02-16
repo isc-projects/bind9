@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -233,7 +233,7 @@ help(void) {
  * Callback from dighost.c to print the received message.
  */
 static void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
+received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_uint64_t diff;
 	time_t tnow;
 	struct tm tmnow;
@@ -1311,11 +1311,11 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 
 			result = parse_uint(&splitwidth, value,
 					    1023, "split");
-			if (splitwidth % 4 != 0) {
+			if ((splitwidth % 4) != 0U) {
 				splitwidth = ((splitwidth + 3) / 4) * 4;
 				fprintf(stderr, ";; Warning, split must be "
 						"a multiple of 4; adjusting "
-						"to %d\n", splitwidth);
+						"to %u\n", splitwidth);
 			}
 			/*
 			 * There is an adjustment done in the
@@ -1884,8 +1884,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				bargc = 1;
 				input = batchline;
 				bargv[bargc] = next_token(&input, " \t\r\n");
-				while ((bargv[bargc] != NULL) &&
-				       (bargc < 62)) {
+				while ((bargc < 62) && (bargv[bargc] != NULL)) {
 					bargc++;
 					bargv[bargc] =
 						next_token(&input, " \t\r\n");
@@ -2084,7 +2083,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				goto next_line;
 			input = batchline;
 			bargv[bargc] = next_token(&input, " \t\r\n");
-			while ((bargv[bargc] != NULL) && (bargc < 14)) {
+			while ((bargc < 14) && (bargv[bargc] != NULL)) {
 				bargc++;
 				bargv[bargc] = next_token(&input, " \t\r\n");
 			}
@@ -2154,7 +2153,7 @@ query_finished(void) {
 		bargc = 1;
 		input = batchline;
 		bargv[bargc] = next_token(&input, " \t\r\n");
-		while ((bargv[bargc] != NULL) && (bargc < 14)) {
+		while ((bargc < 14) && (bargv[bargc] != NULL)) {
 			bargc++;
 			bargv[bargc] = next_token(&input, " \t\r\n");
 		}

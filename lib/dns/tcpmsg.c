@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2004-2007, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2004-2007, 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -113,7 +113,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 	tcpmsg->result = ISC_R_SUCCESS;
 	isc_buffer_add(&tcpmsg->buffer, ev->n);
 
-	XDEBUG(("Received %d bytes (of %d)\n", ev->n, tcpmsg->size));
+	XDEBUG(("Received %u bytes (of %d)\n", ev->n, tcpmsg->size));
 
  send_and_free:
 	isc_task_send(tcpmsg->task, &dev);

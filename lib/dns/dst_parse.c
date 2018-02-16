@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999-2002, 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 1999-2002, 2004-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -738,7 +738,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	/* XXXDCL return value should be checked for full filesystem */
 	fprintf(fp, "%s v%d.%d\n", PRIVATE_KEY_STR, major, minor);
 
-	fprintf(fp, "%s %d ", ALGORITHM_STR, dst_key_alg(key));
+	fprintf(fp, "%s %u ", ALGORITHM_STR, dst_key_alg(key));
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (dst_key_alg(key)) {

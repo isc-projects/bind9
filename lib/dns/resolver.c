@@ -9362,9 +9362,10 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		}
 	} else if (fctx->rmessage->rcode == dns_rcode_badvers) {
 		unsigned int version;
-		isc_boolean_t setnocookie = ISC_FALSE;
 #if DNS_EDNS_VERSION > 0
 		unsigned int flags, mask;
+#else
+		isc_boolean_t setnocookie = ISC_FALSE;
 #endif
 
 		/*
@@ -9376,8 +9377,10 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		 */
 		if (dns_adb_getcookie(fctx->adb, query->addrinfo,
 				      cookie, sizeof(cookie)) == 0U) {
+#if DNS_EDNS_VERSION <= 0
 			if (!NOCOOKIE(query->addrinfo))
 				setnocookie = ISC_TRUE;
+#endif
 			dns_adb_changeflags(fctx->adb, query->addrinfo,
 					    FCTX_ADDRINFO_NOCOOKIE,
 					    FCTX_ADDRINFO_NOCOOKIE);
@@ -11115,7 +11118,7 @@ dns_resolver_dumpfetches(dns_resolver_t *resolver,
 		     fc = ISC_LIST_NEXT(fc, link))
 		{
 			dns_name_print(fc->domain, fp);
-			fprintf(fp, ": %d active (%d spilled, %d allowed)\n",
+			fprintf(fp, ": %u active (%u spilled, %u allowed)\n",
 				fc->count, fc->dropped, fc->allowed);
 		}
 		UNLOCK(&resolver->dbuckets[i].lock);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -214,7 +214,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 		name = dns_fixedname_name(&fname);
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "failed to convert qname: %d\n",
+			fprintf(stderr, "failed to convert qname: %u\n",
 				result);
 			exit(1);
 		}
@@ -223,7 +223,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 	result = dns_client_setservers(client, dns_rdataclass_in, name,
 				       &servers);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "set server failed: %d\n", result);
+		fprintf(stderr, "set server failed: %u\n", result);
 		exit(1);
 	}
 }
@@ -363,7 +363,7 @@ main(int argc, char *argv[]) {
 	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_lib_init failed: %d\n", result);
+		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
 
@@ -393,7 +393,7 @@ main(int argc, char *argv[]) {
 	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
 				    clientopt, &client, addr4, addr6);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %d, %s\n", result,
+		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,
 			isc_result_totext(result));
 		exit(1);
 	}
@@ -405,7 +405,7 @@ main(int argc, char *argv[]) {
 
 		result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 		if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-			fprintf(stderr, "irs_resconf_load failed: %d\n",
+			fprintf(stderr, "irs_resconf_load failed: %u\n",
 				result);
 			exit(1);
 		}
@@ -414,7 +414,7 @@ main(int argc, char *argv[]) {
 					       NULL, nameservers);
 		if (result != ISC_R_SUCCESS) {
 			irs_resconf_destroy(&resconf);
-			fprintf(stderr, "dns_client_setservers failed: %d\n",
+			fprintf(stderr, "dns_client_setservers failed: %u\n",
 				result);
 			exit(1);
 		}
@@ -446,7 +446,7 @@ main(int argc, char *argv[]) {
 	qname = dns_fixedname_name(&qname0);
 	result = dns_name_fromtext(qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
-		fprintf(stderr, "failed to convert qname: %d\n", result);
+		fprintf(stderr, "failed to convert qname: %u\n", result);
 
 	/* Perform resolution */
 	resopt = DNS_CLIENTRESOPT_ALLOWRUN;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1460,6 +1460,7 @@ txt_totext(isc_region_t *source, isc_boolean_t quote, isc_buffer_t *target) {
 			return (ISC_R_NOSPACE);
 		*tp++ = '"';
 		tl--;
+		POST(tl);
 	}
 	isc_buffer_add(target, (unsigned int)(tp - (char *)region.base));
 	isc_region_consume(source, *source->base + 1);
@@ -1610,6 +1611,7 @@ multitxt_totext(isc_region_t *source, isc_buffer_t *target) {
 		return (ISC_R_NOSPACE);
 	*tp++ = '"';
 	tl--;
+	POST(tl);
 	isc_buffer_add(target, (unsigned int)(tp - (char *)region.base));
 	return (ISC_R_SUCCESS);
 }

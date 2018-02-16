@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2513,11 +2513,11 @@ loadzonekeys(isc_boolean_t preserve_keys, isc_boolean_t load_public) {
 		goto cleanup;
 
 	if (set_keyttl && keyttl != rdataset.ttl) {
-		fprintf(stderr, "User-specified TTL %d conflicts "
+		fprintf(stderr, "User-specified TTL %u conflicts "
 				"with existing DNSKEY RRset TTL.\n",
 				keyttl);
 		fprintf(stderr, "Imported keys will use the RRSet "
-				"TTL %d instead.\n",
+				"TTL %u instead.\n",
 				rdataset.ttl);
 	}
 	keyttl = rdataset.ttl;
@@ -3128,12 +3128,12 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 	isc_uint64_t sig_ms;	   /* Signatures per millisecond */
 	FILE *out = output_stdout ? stderr : stdout;
 
-	fprintf(out, "Signatures generated:               %10d\n", nsigned);
-	fprintf(out, "Signatures retained:                %10d\n", nretained);
-	fprintf(out, "Signatures dropped:                 %10d\n", ndropped);
-	fprintf(out, "Signatures successfully verified:   %10d\n", nverified);
+	fprintf(out, "Signatures generated:               %10u\n", nsigned);
+	fprintf(out, "Signatures retained:                %10u\n", nretained);
+	fprintf(out, "Signatures dropped:                 %10u\n", ndropped);
+	fprintf(out, "Signatures successfully verified:   %10u\n", nverified);
 	fprintf(out, "Signatures unsuccessfully "
-		     "verified: %10d\n", nverifyfailed);
+		     "verified: %10u\n", nverifyfailed);
 
 	time_us = isc_time_microdiff(sign_finish, sign_start);
 	time_ms = time_us / 1000;
@@ -3646,8 +3646,8 @@ main(int argc, char *argv[]) {
 	get_soa_ttls();
 
 	if (set_maxttl && set_keyttl && keyttl > maxttl) {
-		fprintf(stderr, "%s: warning: Specified key TTL %d "
-			"exceeds maximum zone TTL; reducing to %d\n",
+		fprintf(stderr, "%s: warning: Specified key TTL %u "
+			"exceeds maximum zone TTL; reducing to %u\n",
 			program, keyttl, maxttl);
 		keyttl = maxttl;
 	}
