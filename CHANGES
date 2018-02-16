@@ -1,3 +1,5 @@
+4893.	[bug]		Address various issues reported by cppcheck. [GL #51]
+
 	--- 9.11.3rc1 released ---
 
 4889.	[func]		Warn about the use of old root keys without the new

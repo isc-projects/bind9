@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -193,7 +193,7 @@ print_yaml(dns_dtdata_t *dt) {
 	}
 
 	if (dt->msgdata.base != NULL) {
-		printf("  message_size: %zdb\n", (size_t) dt->msgdata.length);
+		printf("  message_size: %zub\n", (size_t) dt->msgdata.length);
 	} else
 		printf("  message_size: 0b\n");
 

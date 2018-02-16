@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2009-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -627,7 +627,7 @@ request_done(isc_task_t *task, isc_event_t *event) {
 	} else if (rev->result == ISC_R_TIMEDOUT)
 		*resultp = timedout;
 	else {
-		fprintf(stderr, "unexpected result: %d (domain=%s, server=",
+		fprintf(stderr, "unexpected result: %u (domain=%s, server=",
 			rev->result, trans->domain);
 		print_address(stderr, &server->address);
 		fputc('\n', stderr);
@@ -1060,14 +1060,14 @@ main(int argc, char *argv[]) {
 	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_lib_init failed: %d\n", result);
+		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
 
 	result = ctxs_init(&mctx, &actx, &taskmgr, &socketmgr,
 			   &timermgr);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "ctx create failed: %d\n", result);
+		fprintf(stderr, "ctx create failed: %u\n", result);
 		exit(1);
 	}
 
@@ -1076,7 +1076,7 @@ main(int argc, char *argv[]) {
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr,
 				    timermgr, 0, &client);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_createx failed: %d\n", result);
+		fprintf(stderr, "dns_client_createx failed: %u\n", result);
 		exit(1);
 	}
 
@@ -1106,7 +1106,7 @@ main(int argc, char *argv[]) {
 	result = dns_client_setservers(client, dns_rdataclass_in, NULL,
 				       &servers);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to set server: %d\n", result);
+		fprintf(stderr, "failed to set server: %u\n", result);
 		exit(1);
 	}
 
@@ -1114,7 +1114,7 @@ main(int argc, char *argv[]) {
 	probe_task = NULL;
 	result = isc_task_create(taskmgr, 0, &probe_task);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create task: %d\n", result);
+		fprintf(stderr, "failed to create task: %u\n", result);
 		exit(1);
 	}
 

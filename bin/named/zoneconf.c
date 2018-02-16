@@ -1600,6 +1600,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 							     ipkl.addrs,
 							     ipkl.keys,
 							     ipkl.count);
+			count = ipkl.count;
 			dns_ipkeylist_clear(mctx, &ipkl);
 			RETERR(result);
 		} else

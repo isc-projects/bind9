@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2004, 2005, 2007, 2009, 2012, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2004, 2005, 2007, 2009, 2012, 2014-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,19 +54,19 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	ret = dst_context_create3(key, mctx,
 				  DNS_LOGCATEGORY_GENERAL, ISC_TRUE, &ctx);
 	if (ret != ISC_R_SUCCESS) {
-		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
+		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		return;
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
-		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		printf("adddata(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		dst_context_destroy(&ctx);
 		return;
 	}
 	ret = dst_context_sign(ctx, &sigbuf);
-	printf("sign(%d) returned: %s\n", dst_key_alg(key),
+	printf("sign(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	dst_context_destroy(&ctx);
 
@@ -75,19 +75,19 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	ret = dst_context_create3(key, mctx,
 				  DNS_LOGCATEGORY_GENERAL, ISC_FALSE, &ctx);
 	if (ret != ISC_R_SUCCESS) {
-		printf("contextcreate(%d) returned: %s\n", dst_key_alg(key),
+		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		return;
 	}
 	ret = dst_context_adddata(ctx, &datareg);
 	if (ret != ISC_R_SUCCESS) {
-		printf("adddata(%d) returned: %s\n", dst_key_alg(key),
+		printf("adddata(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
 		dst_context_destroy(&ctx);
 		return;
 	}
 	ret = dst_context_verify(ctx, &sigreg);
-	printf("verify(%d) returned: %s\n", dst_key_alg(key),
+	printf("verify(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	dst_context_destroy(&ctx);
 }
@@ -104,19 +104,19 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 
 	isc_buffer_init(&buf1, buffer1, sizeof(buffer1));
 	ret = dst_key_todns(key, &buf1);
-	printf("todns(%d) returned: %s\n", dst_key_alg(key),
+	printf("todns(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
 	ret = dst_key_fromdns(dst_key_name(key), dns_rdataclass_in,
 			      &buf1, mctx, &newkey);
-	printf("fromdns(%d) returned: %s\n", dst_key_alg(key),
+	printf("fromdns(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
 	isc_buffer_init(&buf2, buffer2, sizeof(buffer2));
 	ret = dst_key_todns(newkey, &buf2);
-	printf("todns2(%d) returned: %s\n", dst_key_alg(key),
+	printf("todns2(%u) returned: %s\n", dst_key_alg(key),
 	       isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
@@ -124,7 +124,7 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_usedregion(&buf2, &r2);
 	match = ISC_TF(r1.length == r2.length &&
 		       memcmp(r1.base, r2.base, r1.length) == 0);
-	printf("compare(%d): %s\n", dst_key_alg(key),
+	printf("compare(%u): %s\n", dst_key_alg(key),
 	       match ? "true" : "false");
 	dst_key_free(&newkey);
 }
@@ -194,11 +194,11 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx) {
 	{
 		int i;
 		printf("secrets don't match\n");
-		printf("secret 1: %d bytes\n", r1.length);
+		printf("secret 1: %u bytes\n", r1.length);
 		for (i = 0; i < (int) r1.length; i++)
 			printf("%02x ", r1.base[i]);
 		printf("\n");
-		printf("secret 2: %d bytes\n", r2.length);
+		printf("secret 2: %u bytes\n", r2.length);
 		for (i = 0; i < (int) r2.length; i++)
 			printf("%02x ", r2.base[i]);
 		printf("\n");

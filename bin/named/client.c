@@ -3904,7 +3904,7 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 		}
 		UNLOCK(&client->query.fetchlock);
 		fprintf(f, "; client %s%s%s: id %u '%s/%s/%s'%s%s "
-			"requesttime %d\n", peerbuf, sep, name,
+			"requesttime %u\n", peerbuf, sep, name,
 			client->message->id, namebuf, typebuf, classbuf,
 			origfor, original,
 			isc_time_seconds(&client->requesttime));

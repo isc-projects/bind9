@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007, 2012, 2013, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2012, 2013, 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -358,6 +358,7 @@ decode_ContextFlags(const unsigned char *p, size_t len, ContextFlags * data, siz
 		return ASN1_OVERRUN;
 	p++;
 	len--;
+	POST(len);
 	reallen--;
 	ret++;
 	data->delegFlag = (*p >> 7) & 1;
