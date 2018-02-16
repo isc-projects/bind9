@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -186,7 +186,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 		printf("\n  result from dns_rbtnodechain_current: %s\n",
 		       dns_result_totext(result));
 
-	printf("  level_matches = %d, level_count = %d\n",
+	printf("  level_matches = %u, level_count = %u\n",
 	       chain.level_matches, chain.level_count);
 }
 

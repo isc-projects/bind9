@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -446,12 +446,12 @@ ip2name(dns_rpz_cidr_t *cidr, const dns_rpz_cidr_key_t *tgt_ip,
 	    tgt_ip->w[0] == 0 &&
 	    tgt_ip->w[1] == 0 &&
 	    tgt_ip->w[2] == ADDR_V4MAPPED) {
-		len = snprintf(str, sizeof(str), "%d.%d.%d.%d.%d",
-			       tgt_prefix - 96,
-			       tgt_ip->w[3] & 0xff,
-			       (tgt_ip->w[3]>>8) & 0xff,
-			       (tgt_ip->w[3]>>16) & 0xff,
-			       (tgt_ip->w[3]>>24) & 0xff);
+		len = snprintf(str, sizeof(str), "%u.%u.%u.%u.%u",
+			       tgt_prefix - 96U,
+			       tgt_ip->w[3] & 0xffU,
+			       (tgt_ip->w[3]>>8) & 0xffU,
+			       (tgt_ip->w[3]>>16) & 0xffU,
+			       (tgt_ip->w[3]>>24) & 0xffU);
 		if (len == -1 || len > (int)sizeof(str))
 			return (ISC_R_FAILURE);
 	} else {

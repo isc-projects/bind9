@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2009, 2011-2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2009, 2011-2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -1226,7 +1226,7 @@ static isc_result_t
 roll_log(isc_logchannel_t *channel) {
 	int i, n, greatest;
 	char current[PATH_MAX + 1];
-	char new[PATH_MAX + 1];
+	char newpath[PATH_MAX + 1];
 	const char *path;
 	isc_result_t result;
 
@@ -1246,10 +1246,9 @@ roll_log(isc_logchannel_t *channel) {
 		 */
 		for (greatest = 0; greatest < INT_MAX; greatest++) {
 			n = snprintf(current, sizeof(current),
-				     "%s.%u", path, greatest) ;
-			if (n >= (int)sizeof(current) || n < 0)
-				break;
-			if (!isc_file_exists(current))
+				     "%s.%u", path, (unsigned)greatest) ;
+			if (n >= (int)sizeof(current) || n < 0 ||
+			    !isc_file_exists(current))
 				break;
 		}
 	} else {
@@ -1271,16 +1270,20 @@ roll_log(isc_logchannel_t *channel) {
 
 	for (i = greatest; i > 0; i--) {
 		result = ISC_R_SUCCESS;
-		n = snprintf(current, sizeof(current), "%s.%u", path, i - 1);
-		if (n >= (int)sizeof(current) || n < 0)
+		n = snprintf(current, sizeof(current), "%s.%u", path,
+			     (unsigned)(i - 1));
+		if (n >= (int)sizeof(current) || n < 0) {
 			result = ISC_R_NOSPACE;
+		}
 		if (result == ISC_R_SUCCESS) {
-			n = snprintf(new, sizeof(new), "%s.%u", path, i);
-			if (n >= (int)sizeof(new) || n < 0)
+			n = snprintf(newpath, sizeof(newpath), "%s.%u",
+				     path, (unsigned)i);
+			if (n >= (int)sizeof(newpath) || n < 0) {
 				result = ISC_R_NOSPACE;
+			}
 		}
 		if (result == ISC_R_SUCCESS)
-			result = isc_file_rename(current, new);
+			result = isc_file_rename(current, newpath);
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_FILENOTFOUND)
 			syslog(LOG_ERR,
@@ -1290,11 +1293,11 @@ roll_log(isc_logchannel_t *channel) {
 	}
 
 	if (FILE_VERSIONS(channel) != 0) {
-		n = snprintf(new, sizeof(new), "%s.0", path);
-		if (n >= (int)sizeof(new) || n < 0)
+		n = snprintf(newpath, sizeof(newpath), "%s.0", path);
+		if (n >= (int)sizeof(newpath) || n < 0)
 			result = ISC_R_NOSPACE;
 		else
-			result = isc_file_rename(path, new);
+			result = isc_file_rename(path, newpath);
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_FILENOTFOUND)
 			syslog(LOG_ERR,

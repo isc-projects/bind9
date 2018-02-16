@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007, 2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -122,7 +122,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 	tcpmsg->result = ISC_R_SUCCESS;
 	isc_buffer_add(&tcpmsg->buffer, ev->n);
 
-	XDEBUG(("Received %d bytes (of %d)\n", ev->n, tcpmsg->size));
+	XDEBUG(("Received %u bytes (of %d)\n", ev->n, tcpmsg->size));
 
  send_and_free:
 	isc_task_send(tcpmsg->task, &dev);

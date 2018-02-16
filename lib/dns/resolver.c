@@ -9844,7 +9844,7 @@ dns_resolver_dumpfetches(dns_resolver_t *resolver, FILE *fp) {
 		     fc = ISC_LIST_NEXT(fc, link))
 		{
 			dns_name_print(fc->domain, fp);
-			fprintf(fp, ": %d active (%d spilled, %d allowed)\n",
+			fprintf(fp, ": %u active (%u spilled, %u allowed)\n",
 				fc->count, fc->dropped, fc->allowed);
 		}
 		UNLOCK(&resolver->dbuckets[i].lock);

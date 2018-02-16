@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2009, 2011, 2013-2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -498,7 +498,6 @@ t_tasks2(void) {
 	uintptr_t		ntasks;
 	int			result;
 	char			*p;
-	isc_event_t		*event;
 	unsigned int		workers;
 	isc_result_t		isc_result;
 
@@ -555,7 +554,7 @@ t_tasks2(void) {
 	}
 
 	T2_event = isc_event_allocate(T2_mctx, (void *)1, 1, t2_callback,
-					(void *)ntasks, sizeof(*event));
+				      (void *)ntasks, sizeof(*T2_event));
 	if (T2_event == NULL) {
 		t_info("isc_event_allocate failed\n");
 		return(T_UNRESOLVED);
@@ -1376,7 +1375,7 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 		       event->ev_sender,
 		       (int)event->ev_type,
 		       event->ev_tag,
-		       event->ev_attributes & ISC_EVENTATTR_NOPURGE ?
+		       ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) ?
 		       "NP" : "P");
 	}
 
@@ -1402,7 +1401,7 @@ t10_event2(isc_task_t *task, isc_event_t *event) {
 	if (sender_match && type_match && tag_match) {
 		if (event->ev_attributes & ISC_EVENTATTR_NOPURGE) {
 			t_info("event %p,%d,%p matched but was not purgable\n",
-				event->ev_sender, (int)event->ev_type,
+			       event->ev_sender, (int)event->ev_type,
 			       event->ev_tag);
 			++T10_eventcnt;
 		} else {

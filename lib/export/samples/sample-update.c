@@ -238,7 +238,7 @@ main(int argc, char *argv[]) {
 	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_lib_init failed: %d\n", result);
+		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
 	result = isc_mem_create(0, 0, &umctx);
@@ -249,7 +249,7 @@ main(int argc, char *argv[]) {
 
 	result = dns_client_create(&client, 0);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %d\n", result);
+		fprintf(stderr, "dns_client_create failed: %u\n", result);
 		exit(1);
 	}
 
@@ -263,7 +263,7 @@ main(int argc, char *argv[]) {
 		zname = dns_fixedname_name(&zname0);
 		result = dns_name_fromtext(zname, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS)
-			fprintf(stderr, "failed to convert zone name: %d\n",
+			fprintf(stderr, "failed to convert zone name: %u\n",
 				result);
 	}
 

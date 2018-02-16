@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007, 2013-2015  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2013-2015, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -85,7 +85,7 @@ main(int argc, char *argv[]) {
 			workers = 8192;
 	} else
 		workers = 2;
-	printf("%d workers\n", workers);
+	printf("%u workers\n", workers);
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 

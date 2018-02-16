@@ -7794,7 +7794,7 @@ ns_server_setdebuglevel(ns_server_t *server, isc_lex_t *lex) {
 	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "debug level is now %d", ns_g_debuglevel);
+		      "debug level is now %u", ns_g_debuglevel);
 	return (ISC_R_SUCCESS);
 }
 
@@ -8111,7 +8111,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "UDP listeners per interface: %u\n"
 #endif
 		     "number of zones: %u\n"
-		     "debug level: %d\n"
+		     "debug level: %u\n"
 		     "xfers running: %u\n"
 		     "xfers deferred: %u\n"
 		     "soa queries in progress: %u\n"
@@ -8202,11 +8202,11 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 isc_result_t
 ns_server_tsigdelete(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	isc_result_t result;
-	unsigned int n;
 	dns_view_t *view;
 	unsigned int foundkeys = 0;
 	char *ptr, *viewname;
 	char target[DNS_NAME_FORMATSIZE];
+	char fbuf[16];
 
 	(void)next_token(lex, text);  /* skip command name */
 
@@ -8236,14 +8236,14 @@ ns_server_tsigdelete(ns_server_t *server, isc_lex_t *lex, isc_buffer_t *text) {
 	}
 	isc_task_endexclusive(server->task);
 
-	n = snprintf((char *)isc_buffer_used(text),
-		     isc_buffer_availablelength(text),
-		     "%d tsig keys deleted.\n", foundkeys);
-	if (n >= isc_buffer_availablelength(text))
-		return (ISC_R_NOSPACE);
-	isc_buffer_add(text, n);
+	snprintf(fbuf, sizeof(fbuf), "%u", foundkeys);
 
-	return (ISC_R_SUCCESS);
+	CHECK(putstr(text, fbuf));
+	CHECK(putstr(text, " tsig keys deleted."));
+	CHECK(putnull(text));
+
+ cleanup:
+	return (result);
 }
 
 static isc_result_t
