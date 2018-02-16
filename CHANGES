@@ -1,4 +1,4 @@
-4893.	[bug]		Address various issues reported by cppchecker.
+4893.	[bug]		Address various issues reported by cppchecker. [GL #51]
 
 4892.	[bug]		named could leak memory when "rndc reload" was invoked
 			before all zone loading actions triggered by a previous
