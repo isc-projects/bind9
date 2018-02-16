@@ -108,6 +108,12 @@
 	  [RT #43670]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>dig +nssearch</command> will now list name servers
+	  that have timed out, in addition to those that respond. [GL #64]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
