@@ -1889,39 +1889,25 @@ static void
 zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	dns_asyncload_t *asl = event->ev_arg;
 	dns_zone_t *zone = asl->zone;
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t load_pending;
+	isc_result_t result;
 
 	UNUSED(task);
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0)
-		result = ISC_R_CANCELED;
 	isc_event_free(&event);
 
-	if (result == ISC_R_CANCELED)
-		goto cleanup;
-
-	/* Make sure load is still pending */
 	LOCK_ZONE(zone);
-	load_pending = ISC_TF(DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING));
-
-	if (!load_pending) {
-		UNLOCK_ZONE(zone);
-		goto cleanup;
+	result = zone_load(zone, 0, ISC_TRUE);
+	if (result != DNS_R_CONTINUE) {
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	}
-
-	zone_load(zone, 0, ISC_TRUE);
-
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	UNLOCK_ZONE(zone);
 
 	/* Inform the zone table we've finished loading */
 	if (asl->loaded != NULL)
 		(asl->loaded)(asl->loaded_arg, zone, task);
 
- cleanup:
 	isc_mem_put(zone->mctx, asl, sizeof (*asl));
 	dns_zone_idetach(&zone);
 }
@@ -1938,8 +1924,11 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 		return (ISC_R_FAILURE);
 
 	/* If we already have a load pending, stop now */
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING)) {
+		UNLOCK_ZONE(zone);
 		return (ISC_R_ALREADYRUNNING);
+	}
 
 	asl = isc_mem_get(zone->mctx, sizeof (*asl));
 	if (asl == NULL)
@@ -1956,7 +1945,6 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 	if (e == NULL)
 		CHECK(ISC_R_NOMEMORY);
 
-	LOCK_ZONE(zone);
 	zone_iattach(zone, &asl->zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	isc_task_send(zone->loadtask, &e);
@@ -1967,6 +1955,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
   failure:
 	if (asl != NULL)
 		isc_mem_put(zone->mctx, asl, sizeof (*asl));
+	UNLOCK_ZONE(zone);
 	return (result);
 }
 
