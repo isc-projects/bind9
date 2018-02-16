@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -3436,7 +3436,7 @@ static void
 dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
 	if (value == INT_MAX)
 		return;
-	fprintf(f, " [%s TTL %d]", legend, value - now);
+	fprintf(f, " [%s TTL %d]", legend, (int)(value - now));
 }
 
 static void
@@ -3467,7 +3467,7 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug, isc_stdtime_t now) {
 		if (name == NULL)
 			continue;
 		if (debug)
-			fprintf(f, "; bucket %d\n", i);
+			fprintf(f, "; bucket %u\n", i);
 		for (;
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, plink))
@@ -3554,7 +3554,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry,
 		fprintf(f, "]");
 	}
 	if (entry->expires != 0)
-		fprintf(f, " [ttl %d]", entry->expires - now);
+		fprintf(f, " [ttl %d]", (int)(entry->expires - now));
 
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
 		fprintf(f, " [atr %0.2f] [quota %u]",
@@ -3570,7 +3570,7 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry,
 		print_dns_name(f, &li->qname);
 		dns_rdatatype_format(li->qtype, typebuf, sizeof(typebuf));
 		fprintf(f, " %s [lame TTL %d]\n", typebuf,
-			li->lame_timer - now);
+			(int)(li->lame_timer - now));
 	}
 }
 

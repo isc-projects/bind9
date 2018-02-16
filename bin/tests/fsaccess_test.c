@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001, 2004, 2005, 2007, 2012, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2004, 2005, 2007, 2012, 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -54,11 +54,11 @@ main(void) {
 			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
 			 &access);
 
-	printf("fsaccess=%d\n", access);
+	printf("fsaccess=%u\n", access);
 
 	isc_fsaccess_add(ISC_FSACCESS_OTHER, ISC_FSACCESS_READ, &access);
 
-	printf("fsaccess=%d\n", access);
+	printf("fsaccess=%u\n", access);
 
 	result = isc_fsaccess_set(PATH, access);
 	if (result != ISC_R_SUCCESS)

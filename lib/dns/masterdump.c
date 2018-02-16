@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2009, 2011-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2009, 2011-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1566,7 +1566,7 @@ writeheader(dns_dumpctx_t *dctx) {
 		 */
 		if (dctx->do_date) {
 			fprintf(dctx->f,
-				"; using a %d second stale ttl\n",
+				"; using a %u second stale ttl\n",
 				dctx->tctx.serve_stale_ttl);
 			result = dns_time32_totext(dctx->now, &buffer);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);

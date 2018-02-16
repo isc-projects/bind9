@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 1999-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1823,7 +1823,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	fprintf(fp, " ");
 
 	if (key->key_ttl != 0)
-		fprintf(fp, "%d ", key->key_ttl);
+		fprintf(fp, "%u ", key->key_ttl);
 
 	isc_buffer_usedregion(&classb, &r);
 	if ((unsigned) fwrite(r.base, 1, r.length, fp) != r.length)

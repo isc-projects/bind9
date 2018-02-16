@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001, 2004, 2005, 2007, 2009, 2011, 2012, 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2001, 2004, 2005, 2007, 2009, 2011, 2012, 2014-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -177,7 +177,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 		printf("\n  result from dns_rbtnodechain_current: %s\n",
 		       dns_result_totext(result));
 
-	printf("  level_matches = %d, level_count = %d\n",
+	printf("  level_matches = %u, level_count = %u\n",
 	       chain.level_matches, chain.level_count);
 }
 

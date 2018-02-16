@@ -10827,7 +10827,7 @@ named_server_setdebuglevel(named_server_t *server, isc_lex_t *lex) {
 	isc_log_setdebuglevel(named_g_lctx, named_g_debuglevel);
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "debug level is now %d", named_g_debuglevel);
+		      "debug level is now %u", named_g_debuglevel);
 	return (ISC_R_SUCCESS);
 }
 
@@ -11216,7 +11216,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		     zonecount, automatic);
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "debug level: %d\n", named_g_debuglevel);
+	snprintf(line, sizeof(line), "debug level: %u\n", named_g_debuglevel);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "xfers running: %u\n", xferrunning);
@@ -11383,7 +11383,7 @@ named_server_tsigdelete(named_server_t *server, isc_lex_t *lex,
 	}
 	isc_task_endexclusive(server->task);
 
-	snprintf(fbuf, sizeof(fbuf), "%d", foundkeys);
+	snprintf(fbuf, sizeof(fbuf), "%u", foundkeys);
 
 	CHECK(putstr(text, fbuf));
 	CHECK(putstr(text, " tsig keys deleted."));
@@ -14813,9 +14813,11 @@ named_server_dnstap(named_server_t *server, isc_lex_t *lex,
 		unsigned int n;
 		ptr = next_token(lex, text);
 		if (ptr != NULL) {
-			n = sscanf(ptr, "%u", &backups);
-			if (n != 1U)
+			unsigned int u;
+			n = sscanf(ptr, "%u", &u);
+			if (n != 1U || u > INT_MAX)
 				return (ISC_R_BADNUMBER);
+			backups = u;
 		} else {
 			backups = ISC_LOG_ROLLINFINITE;
 		}
