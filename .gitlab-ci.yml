@@ -101,31 +101,81 @@ stages:
 build:debian:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
 
 build:debian:jessie:i386:
   <<: *debian_jessie_i386_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
 
 build:debian:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
 
 build:debian:buster:i386:
   <<: *debian_buster_i386_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
 
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
-
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
+    - branches
+    
 build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
+    - branches
 
 build:ubuntu:trusty:amd64:
   <<: *ubuntu_trusty_amd64_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
 
 build:ubuntu:xenial:i386:
   <<: *ubuntu_xenial_i386_image
   <<: *build_job
+  only:
+    - master
+    - tags
+    - triggers
+    - schedules
+    - /^v9_.*$/
