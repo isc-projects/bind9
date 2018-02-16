@@ -201,10 +201,12 @@ echo "I:check flushtree clears adb correctly"
 ret=0
 load_cache
 dump_cache
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db || ret=1
+mv ns2/named_dump.db ns2/named_dump.1.db
+awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.1.db || ret=1
 $RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db || ret=1
+mv ns2/named_dump.db ns2/named_dump.2.db
+awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.2.db || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
