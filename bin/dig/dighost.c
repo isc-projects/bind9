@@ -2980,7 +2980,15 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			check_next_lookup(l);
 		}
 	} else {
-		if (!l->ns_search_only) {
+		if (l->ns_search_only) {
+			isc_netaddr_t netaddr;
+			char buf[ISC_NETADDR_FORMATSIZE];
+
+			isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
+			isc_netaddr_format(&netaddr, buf, sizeof(buf));
+
+			printf(";; no response from %s\n", buf);
+		} else {
 			fputs(l->cmdline, stdout);
 			printf(";; connection timed out; no servers could be "
 			       "reached\n");
