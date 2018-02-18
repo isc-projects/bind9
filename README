@@ -78,8 +78,7 @@ mailman/listinfo/bind-workers.
 Contributing to BIND
 
 ISC maintains a public git repository for BIND; details can be found at
-http://www.isc.org/git/, and also on Github at https://github.com/
-isc-projects.
+http://www.isc.org/git/.
 
 Information for BIND contributors can be found in the following files: -
 General information: doc/dev/contrib.md - BIND 9 code style: doc/dev/
