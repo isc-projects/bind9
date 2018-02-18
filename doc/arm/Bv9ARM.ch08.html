@@ -122,6 +122,20 @@
 	  address. [RT #45999]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> could crash due to a race condition when
+	  rolling <span class="command"><strong>dnstap</strong></span> log files. [RT #46942]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>rndc reload</strong></span> could cause <span class="command"><strong>named</strong></span>
+	  to leak memory if it was invoked before the zone loading actions
+	  from a previous <span class="command"><strong>rndc reload</strong></span> command were
+	  completed. [RT #47076]
+	</p>
+      </li>
 </ul></div>
   </div>
 
