@@ -2695,7 +2695,7 @@
 ./contrib/dlz/bin/.gitignore			X	2014
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012,2015,2016,2017
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005,2016
-./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011,2014,2016,2017
+./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011,2014,2016,2017,2018
 ./contrib/dlz/drivers/.gitignore		X	2012
 ./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005,2008,2010,2011,2012,2016,2017
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005,2010,2011,2012,2016,2017
@@ -3364,7 +3364,7 @@
 ./lib/dns/include/dns/dns64.h			C	2010,2014,2016
 ./lib/dns/include/dns/dnsrps.h			C	2017
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006,2007,2009,2010,2011,2012,2013,2014,2015,2016
-./lib/dns/include/dns/dnstap.h			C	2015,2016,2017
+./lib/dns/include/dns/dnstap.h			C	2015,2016,2017,2018
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006,2007,2010,2012,2014,2016
 ./lib/dns/include/dns/dsdigest.h		C	2012,2016
 ./lib/dns/include/dns/dyndb.h			C	2015,2016
