@@ -52,15 +52,18 @@
 #include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
+#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/dnstap.h>
+#include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
@@ -100,6 +103,10 @@ struct dns_dtenv {
 
 	struct fstrm_iothr *iothr;
 	struct fstrm_iothr_options *fopt;
+
+	isc_task_t *reopen_task;
+	isc_mutex_t reopen_lock;	/* locks 'reopen_queued' */
+	isc_boolean_t reopen_queued;
 
 	isc_region_t identity;
 	isc_region_t version;
@@ -177,6 +184,14 @@ isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp)
 {
+	return (dns_dt_create2(mctx, mode, path, foptp, NULL, envp));
+}
+
+isc_result_t
+dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
+	       struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	       dns_dtenv_t **envp)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
 	struct fstrm_unix_writer_options *fuwopt = NULL;
@@ -250,6 +265,10 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env->fopt = *foptp;
 	*foptp = NULL;
 
+	env->reopen_task = reopen_task;
+	isc_mutex_init(&env->reopen_lock);
+	env->reopen_queued = ISC_FALSE;
+
 	isc_mem_attach(mctx, &env->mctx);
 
 	env->magic = DTENV_MAGIC;
@@ -267,6 +286,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	if (result != ISC_R_SUCCESS) {
 		if (env != NULL) {
+			isc_mutex_destroy(&env->reopen_lock);
 			if (env->mctx != NULL)
 				isc_mem_detach(&env->mctx);
 			if (env->path != NULL)
@@ -320,10 +340,17 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	REQUIRE(VALID_DTENV(env));
 
 	/*
+	 * Run in task-exclusive mode.
+	 */
+	result = isc_task_beginexclusive(env->reopen_task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/*
 	 * Check that we can create a new fw object.
 	 */
 	fwopt = fstrm_writer_options_init();
 	if (fwopt == NULL) {
+		isc_task_endexclusive(env->reopen_task);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -411,6 +438,8 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 
 	if (fuwopt != NULL)
 		fstrm_unix_writer_options_destroy(&fuwopt);
+
+	isc_task_endexclusive(env->reopen_task);
 
 	return (result);
 }
@@ -715,6 +744,91 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
 	*has_port = 1;
 }
 
+/*%
+ * Invoke dns_dt_reopen() and re-allow dnstap output file rolling.  This
+ * function is run in the context of the task stored in the 'reopen_task' field
+ * of the dnstap environment structure.
+ */
+static void
+perform_reopen(isc_task_t *task, isc_event_t *event) {
+	dns_dtenv_t *env;
+
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_type == DNS_EVENT_FREESTORAGE);
+
+	env = (dns_dtenv_t *)event->ev_arg;
+
+	REQUIRE(VALID_DTENV(env));
+	REQUIRE(task == env->reopen_task);
+
+	/*
+	 * Roll output file in the context of env->reopen_task.
+	 */
+	dns_dt_reopen(env, env->rolls);
+
+	/*
+	 * Clean up.
+	 */
+	isc_event_free(&event);
+	isc_task_detach(&task);
+
+	/*
+	 * Re-allow output file rolling.
+	 */
+	LOCK(&env->reopen_lock);
+	env->reopen_queued = ISC_FALSE;
+	UNLOCK(&env->reopen_lock);
+}
+
+/*%
+ * Check whether a dnstap output file roll is due and if so, initiate it (the
+ * actual roll happens asynchronously).
+ */
+static void
+check_file_size_and_maybe_reopen(dns_dtenv_t *env) {
+	isc_task_t *reopen_task = NULL;
+	isc_event_t *event;
+	struct stat statbuf;
+
+	/*
+	 * If the task from which the output file should be reopened was not
+	 * specified, abort.
+	 */
+	if (env->reopen_task == NULL) {
+		return;
+	}
+
+	/*
+	 * If an output file roll is not currently queued, check the current
+	 * size of the output file to see whether a roll is needed.  Return if
+	 * it is not.
+	 */
+	LOCK(&env->reopen_lock);
+	if (env->reopen_queued || stat(env->path, &statbuf) < 0 ||
+	    statbuf.st_size <= env->max_size)
+	{
+		goto unlock_and_return;
+	}
+
+	/*
+	 * We need to roll the output file, but it needs to be done in the
+	 * context of env->reopen_task.  Allocate and send an event to achieve
+	 * that, then disallow output file rolling until the roll we queue is
+	 * completed.
+	 */
+	event = isc_event_allocate(env->mctx, NULL, DNS_EVENT_FREESTORAGE,
+				   perform_reopen, env, sizeof(*event));
+	if (event == NULL) {
+		goto unlock_and_return;
+	}
+	isc_task_attach(env->reopen_task, &reopen_task);
+	isc_task_send(reopen_task, &event);
+	env->reopen_queued = ISC_TRUE;
+
+ unlock_and_return:
+	UNLOCK(&env->reopen_lock);
+}
+
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	    isc_sockaddr_t *qaddr, isc_sockaddr_t *raddr,
@@ -735,12 +849,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	REQUIRE(VALID_DTENV(view->dtenv));
 
 	if (view->dtenv->max_size != 0) {
-		struct stat statbuf;
-		if (stat(view->dtenv->path, &statbuf) >= 0 &&
-		    statbuf.st_size > view->dtenv->max_size)
-		{
-			dns_dt_reopen(view->dtenv, view->dtenv->rolls);
-		}
+		check_file_size_and_maybe_reopen(view->dtenv);
 	}
 
 	TIME_NOW(&now);
@@ -1247,7 +1356,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 
 	/* Message size */
 	if (d->msgdata.base != NULL) {
-		snprintf(buf, sizeof(buf), "%zdb ", (size_t) d->msgdata.length);
+		snprintf(buf, sizeof(buf), "%zub ", (size_t) d->msgdata.length);
 		CHECK(putstr(dest, buf));
 	} else
 		CHECK(putstr(dest, "0b "));

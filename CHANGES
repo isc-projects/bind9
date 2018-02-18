@@ -1,3 +1,12 @@
+4894.	[bug]		named could crash while rolling a dnstap output file.
+			[RT #46942]
+
+4893.	[bug]		Address various issues reported by cppcheck. [GL #51]
+
+4892.	[bug]		named could leak memory when "rndc reload" was invoked
+			before all zone loading actions triggered by a previous
+			"rndc reload" command were completed. [RT #47076]
+
 4891.	[placeholder]
 
 4890.	[func]		Remove unused ondestroy callback from libisc.

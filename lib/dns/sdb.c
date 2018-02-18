@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001, 2003-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2003-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -104,10 +104,10 @@ typedef struct sdb_rdatasetiter {
 #define VALID_SDBNODE(sdbn)	VALID_SDBLOOKUP(sdbn)
 
 /* These values are taken from RFC1537 */
-#define SDB_DEFAULT_REFRESH	(60 * 60 * 8)
-#define SDB_DEFAULT_RETRY	(60 * 60 * 2)
-#define SDB_DEFAULT_EXPIRE	(60 * 60 * 24 * 7)
-#define SDB_DEFAULT_MINIMUM	(60 * 60 * 24)
+#define SDB_DEFAULT_REFRESH	28800U		/* 8 hours */
+#define SDB_DEFAULT_RETRY	7200U		/* 2 hours */
+#define SDB_DEFAULT_EXPIRE	604800U		/* 7 days */
+#define SDB_DEFAULT_MINIMUM	86400U		/* 1 day */
 
 /* This is a reasonable value */
 #define SDB_DEFAULT_TTL		(60 * 60 * 24)

@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 1998-2001, 2003-2005, 2007, 2009, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1998-2001, 2003-2005, 2007, 2009, 2015-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-/* $Id: name_test.c,v 1.43 2009/09/02 23:48:01 tbox Exp $ */
 
 #include <config.h>
 
@@ -123,8 +121,8 @@ main(int argc, char *argv[]) {
 						   dns_rootname, 0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
-					"dns_name_fromtext() failed: %d\n",
-					result);
+					"dns_name_fromtext() failed: %s\n",
+					dns_result_totext(result));
 				exit(1);
 			}
 			origin = &oname.name;
@@ -147,8 +145,8 @@ main(int argc, char *argv[]) {
 						   0, NULL);
 			if (result != 0) {
 				fprintf(stderr,
-					"dns_name_fromtext() failed: %d\n",
-					result);
+					"dns_name_fromtext() failed: %s\n",
+					dns_result_totext(result));
 				exit(1);
 			}
 		}

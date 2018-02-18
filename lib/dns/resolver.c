@@ -3970,10 +3970,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 	if (addrinfo == NULL) {
 		/* We have no more addresses.  Start over. */
 		fctx_cancelqueries(fctx, ISC_TRUE, ISC_FALSE);
-		fctx_cleanupfinds(fctx);
-		fctx_cleanupaltfinds(fctx);
-		fctx_cleanupforwaddrs(fctx);
-		fctx_cleanupaltaddrs(fctx);
+		fctx_cleanupall(fctx);
 		result = fctx_getaddresses(fctx, badcache);
 		if (result == DNS_R_WAIT) {
 			/*
@@ -9028,10 +9025,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		fctx->ns_ttl = fctx->nameservers.ttl;
 		fctx->ns_ttl_ok = ISC_TRUE;
 		fctx_cancelqueries(fctx, ISC_TRUE, ISC_FALSE);
-		fctx_cleanupfinds(fctx);
-		fctx_cleanupaltfinds(fctx);
-		fctx_cleanupforwaddrs(fctx);
-		fctx_cleanupaltaddrs(fctx);
+		fctx_cleanupall(fctx);
 	}
 
 	/*
@@ -9348,9 +9342,10 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		}
 	} else if (fctx->rmessage->rcode == dns_rcode_badvers) {
 		unsigned int version;
-		isc_boolean_t setnocookie = ISC_FALSE;
 #if DNS_EDNS_VERSION > 0
 		unsigned int flags, mask;
+#else
+		isc_boolean_t setnocookie = ISC_FALSE;
 #endif
 
 		/*
@@ -9362,8 +9357,10 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		 */
 		if (dns_adb_getcookie(fctx->adb, query->addrinfo,
 				      cookie, sizeof(cookie)) == 0U) {
+#if DNS_EDNS_VERSION <= 0
 			if (!NOCOOKIE(query->addrinfo))
 				setnocookie = ISC_TRUE;
+#endif
 			dns_adb_changeflags(fctx->adb, query->addrinfo,
 					    FCTX_ADDRINFO_NOCOOKIE,
 					    FCTX_ADDRINFO_NOCOOKIE);
@@ -11101,7 +11098,7 @@ dns_resolver_dumpfetches(dns_resolver_t *resolver,
 		     fc = ISC_LIST_NEXT(fc, link))
 		{
 			dns_name_print(fc->domain, fp);
-			fprintf(fp, ": %d active (%d spilled, %d allowed)\n",
+			fprintf(fp, ": %u active (%u spilled, %u allowed)\n",
 				fc->count, fc->dropped, fc->allowed);
 		}
 		UNLOCK(&resolver->dbuckets[i].lock);

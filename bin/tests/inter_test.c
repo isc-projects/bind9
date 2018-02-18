@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2000, 2001, 2003-2005, 2007, 2008, 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2003-2005, 2007, 2008, 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-/* $Id: inter_test.c,v 1.16 2008/03/20 23:47:00 tbox Exp $ */
 
 /*! \file */
 #include <config.h>
@@ -42,7 +40,7 @@ main(int argc, char **argv) {
 				isc_result_totext(result));
 			continue;
 		}
-		fprintf(stdout, "%s %d %x\n", ifdata.name, ifdata.af,
+		fprintf(stdout, "%s %u %x\n", ifdata.name, ifdata.af,
 			ifdata.flags);
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,
@@ -89,7 +87,7 @@ main(int argc, char **argv) {
 				isc_result_totext(result));
 			continue;
 		}
-		fprintf(stdout, "%s %d %x\n", ifdata.name, ifdata.af,
+		fprintf(stdout, "%s %u %x\n", ifdata.name, ifdata.af,
 			ifdata.flags);
 		INSIST(ifdata.af == AF_INET || ifdata.af == AF_INET6);
 		res = inet_ntop(ifdata.af, &ifdata.address.type, buf,

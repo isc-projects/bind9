@@ -1545,9 +1545,9 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 * use the DSCP value set for the first master
 	 */
 	if (entry->opts.masters.count > 0 &&
-	    entry->opts.masters.dscps[0] != -1) {
+	    entry->opts.masters.dscps[0] >= 0) {
 		isc_buffer_putstr(buffer, " dscp ");
-		snprintf(pbuf, sizeof(pbuf), "%u",
+		snprintf(pbuf, sizeof(pbuf), "%d",
 			 entry->opts.masters.dscps[0]);
 		isc_buffer_putstr(buffer, pbuf);
 	}
