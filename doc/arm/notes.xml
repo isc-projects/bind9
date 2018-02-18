@@ -162,6 +162,14 @@
 	  in readable format.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>rndc reload</command> could cause <command>named</command>
+	  to leak memory if it was invoked before the zone loading actions
+	  from a previous <command>rndc reload</command> command were
+	  completed. [RT #47076]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
