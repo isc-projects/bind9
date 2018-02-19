@@ -5,6 +5,7 @@ variables:
   CI_REGISTRY_IMAGE: oerdnj/bind9
 
 stages:
+  - precheck
   - build
   - test
 
@@ -99,6 +100,19 @@ stages:
     - make -k check V=1
   artifacts:
     untracked: true
+    expire_in: '1 week'
+    when: on_failure
+
+precheck:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - perl -w util/merge_copyrights
+    - diff -urNap util/copyrights util/newcopyrights
+    - rm util/newcopyrights
+  artifacts:
+    paths:
+    - util/newcopyrights
     expire_in: '1 week'
     when: on_failure
 
