@@ -1,9 +1,12 @@
 /*
- * Copyright (C) 1998-2001, 2004, 2007, 2008, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
  */
 
 /* $Id: sock_test.c,v 1.55 2008/07/23 23:27:54 marka Exp $ */

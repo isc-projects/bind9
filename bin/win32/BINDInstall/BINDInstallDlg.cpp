@@ -1,9 +1,12 @@
 /*
- * Portions Copyright (C) 2001, 2003-2010, 2013-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
  */
 
 /* $Id: BINDInstallDlg.cpp,v 1.48 2010/01/07 23:48:54 tbox Exp $ */
