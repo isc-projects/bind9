@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -41,8 +41,8 @@ isc_once_do(isc_once_t *controller, void(*function)(void)) {
 		} else {
 			while (controller->status == ISC_ONCE_INIT_NEEDED) {
 				/*
-				 * Sleep(0) indicates that this thread 
-				 * should be suspended to allow other 
+				 * Sleep(0) indicates that this thread
+				 * should be suspended to allow other
 				 * waiting threads to execute.
 				 */
 				Sleep(0);

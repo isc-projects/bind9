@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -27,7 +27,7 @@
  *
  * \li fmt is the location of the format string parameter.
  * \li args is the location of the first argument (or 0 for no argument checking).
- * 
+ *
  * Note:
  * \li The first parameter is 1, not 0.
  */

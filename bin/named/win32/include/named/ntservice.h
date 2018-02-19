@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -29,7 +29,7 @@ void
 ntservice_init();
 void UpdateSCM(DWORD);
 void ServiceControl(DWORD dwCtrlCode);
-void 
+void
 ntservice_shutdown();
 BOOL ntservice_isservice();
 #endif

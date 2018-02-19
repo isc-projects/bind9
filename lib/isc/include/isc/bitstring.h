@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -61,7 +61,7 @@
  * \verbatim
  *             Octet 0           Octet 1
  *                         |
- *         p p p p p 1 1 0 | 1 0 0 0 1 1 1 1 
+ *         p p p p p 1 1 0 | 1 0 0 0 1 1 1 1
  *         ^               |               ^
  *         |                               |
  *         bit 15                          bit 0

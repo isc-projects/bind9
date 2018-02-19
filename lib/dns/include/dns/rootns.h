@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -30,7 +30,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-                  const char *filename, dns_db_t **target);
+		  const char *filename, dns_db_t **target);
 
 void
 dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db);
