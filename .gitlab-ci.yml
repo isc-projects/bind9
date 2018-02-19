@@ -5,6 +5,7 @@ variables:
   CI_REGISTRY_IMAGE: oerdnj/bind9
 
 stages:
+  - precheck
   - build
 
 .debian-jessie-amd64: &debian_jessie_amd64_image
@@ -96,6 +97,19 @@ stages:
     - bin/named/named
     - bin/tests/
     expire_in: '1 day'
+    when: on_failure
+
+precheck:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - perl -w util/merge_copyrights
+    - diff -urNap util/copyrights util/newcopyrights
+    - rm util/newcopyrights
+  artifacts:
+    paths:
+    - util/newcopyrights
+    expire_in: '1 week'
     when: on_failure
 
 build:debian:jessie:amd64:
