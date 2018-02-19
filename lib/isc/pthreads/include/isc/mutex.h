@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -72,7 +72,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 #else
 #if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
 #define isc_mutex_init(mp) \
-        isc_mutex_init_errcheck((mp))
+	isc_mutex_init_errcheck((mp))
 #else
 #define isc_mutex_init(mp) \
 	isc__mutex_init((mp), __FILE__, __LINE__)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -20,7 +20,7 @@
 
 /* $Id: dname_39.h,v 1.21 2007/06/19 23:47:17 tbox Exp $ */
 
-/*! 
+/*!
  *  \brief per RFC2672 */
 
 typedef struct dns_rdata_dname {

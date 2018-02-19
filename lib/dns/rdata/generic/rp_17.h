@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -24,10 +24,10 @@
  *  \brief Per RFC1183 */
 
 typedef struct dns_rdata_rp {
-        dns_rdatacommon_t       common;
-        isc_mem_t               *mctx;
-        dns_name_t              mail;
-        dns_name_t              text;
+	dns_rdatacommon_t       common;
+	isc_mem_t               *mctx;
+	dns_name_t              mail;
+	dns_name_t              text;
 } dns_rdata_rp_t;
 
 

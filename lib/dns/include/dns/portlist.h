@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007, 2018  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -31,7 +31,7 @@ isc_result_t
 dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp);
 /*%<
  * Create a port list.
- * 
+ *
  * Requires:
  *\li	'mctx' to be valid.
  *\li	'portlistp' to be non NULL and '*portlistp' to be NULL;
