@@ -6,6 +6,7 @@ variables:
 
 stages:
   - build
+  - test
 
 .debian-jessie-amd64: &debian_jessie_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
@@ -82,100 +83,65 @@ stages:
 .build: &build_job
   stage: build
   before_script:
-    - whoami
-    - ip a s
-    - ip r s
-    - bash -x bin/tests/system/ifconfig.sh up
     - ./autogen.sh
   script:
     - ./configure
     - make -k all V=1
+  artifacts:
+    expire_in: '1 hour'
+    untracked: true
+
+.test: &test_job
+  stage: test
+  before_script:
+    - bash -x bin/tests/system/ifconfig.sh up
+  script:
     - make -k check V=1
   artifacts:
-    paths:
-    - bin/named/named
-    - bin/tests/
-    expire_in: '1 day'
+    untracked: true
+    expire_in: '1 week'
     when: on_failure
 
 build:debian:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
 
 build:debian:jessie:i386:
   <<: *debian_jessie_i386_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
 
 build:debian:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
 
 build:debian:buster:i386:
   <<: *debian_buster_i386_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
 
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
-    - branches
     
 build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
-    - branches
+
+test:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *test_job
+  dependencies:
+    - build:debian:sid:amd64
+    
+test:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *test_job
+  dependencies:
+    - build:debian:sid:i386
 
 build:ubuntu:trusty:amd64:
   <<: *ubuntu_trusty_amd64_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
 
 build:ubuntu:xenial:i386:
   <<: *ubuntu_xenial_i386_image
   <<: *build_job
-  only:
-    - master
-    - tags
-    - triggers
-    - schedules
-    - /^v9_.*$/
