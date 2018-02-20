@@ -6,13 +6,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -23,20 +30,28 @@ options {
 	allow-query-on { 10.53.0.2; };
 };
 
-include "../../common/controls.conf";
+view one {
+	match-clients { ecs 192.0.2/24; };
 
-zone "." {
-	type hint;
-	file "../../common/root.hint";
+	zone "." {
+		type hint;
+		file "../../common/root.hint";
+	};
+
+	zone "example" {
+		type master;
+		file "example.db";
+	};
 };
 
-zone "example" {
-	type master;
-	file "example.db";
-};
+view two {
+	zone "." {
+		type hint;
+		file "../../common/root.hint";
+	};
 
-zone "tsigzone" {
-	type master;
-	file "tsigzone.db";
-	allow-transfer { ecs 10.53/16; !10/8; };
+	zone "example" {
+		type master;
+		file "example.db";
+	};
 };

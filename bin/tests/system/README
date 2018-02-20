@@ -334,7 +334,7 @@ are:
 
     PORT                     Number to be used for the query port.
     CONTROLPORT              Number to be used as the RNDC control port.
-    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be use as needed.
+    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be used as needed.
 
 Two other environment variables are defined:
 

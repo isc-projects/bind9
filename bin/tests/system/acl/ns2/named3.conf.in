@@ -6,15 +6,20 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named3.conf,v 1.2 2008/01/10 01:10:01 marka Exp $ */
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
 
-controls { /* empty */ };
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -23,8 +28,6 @@ options {
 	ixfr-from-differences yes;
 	check-integrity no;
 };
-
-include "../../common/controls.conf";
 
 key one {
 	algorithm hmac-md5;
