@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.19 2011/11/30 00:48:51 marka Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -57,13 +55,6 @@
 
 #ifdef GSSAPI
 #include ISC_PLATFORM_GSSAPIHEADER
-
-struct dst_context {
-	unsigned int magic;
-	dst_key_t *key;
-	isc_mem_t *mctx;
-	void *opaque;
-};
 
 #define CHECK(str, x) { \
 	if ((x) != ISC_R_SUCCESS) { \
