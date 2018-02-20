@@ -56,9 +56,9 @@ EOF
 }
 
 dump_cache () {
-        rm -f ns2/named_dump.db
         $RNDC $RNDCOPTS dumpdb -cache _default
         sleep 1
+        mv ns2/named_dump.db ns2/named_dump.db.$n
 }
 
 clear_cache () {
@@ -94,7 +94,7 @@ echo "I:reset and check that records are correctly cached initially ($n)"
 ret=0
 load_cache
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | egrep '(TXT|ANY)'|  wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)'|  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo "I: found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -104,7 +104,7 @@ echo "I:check flushing of the full cache ($n)"
 ret=0
 clear_cache
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | wc -l`
 [ $nrecords -eq 0 ] || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -188,7 +188,7 @@ n=`expr $n + 1`
 echo "I:check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo "I: found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -206,7 +206,7 @@ n=`expr $n + 1`
 echo "I:check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
+nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 1 ] || { ret=1; echo "I: found $nrecords records expected 1"; }
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
@@ -216,10 +216,12 @@ echo "I:check flushtree clears adb correctly ($n)"
 ret=0
 load_cache
 dump_cache
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db || ret=1
+mv ns2/named_dump.db.$n ns2/named_dump.db.$n.a
+awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db.$n.a || ret=1
 $RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db || ret=1
+mv ns2/named_dump.db.$n ns2/named_dump.db.$n.b
+awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db.$n.b || ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
