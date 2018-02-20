@@ -9,7 +9,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGOPTS="+tcp"
+DIGOPTS="+tcp -p ${PORT}"
 
 status=0
 n=0
@@ -21,7 +21,7 @@ do
   ret=0
   for zone in example.com example.net
   do
-    $DIG $DIGOPTS -p 5300 @10.53.0.2 soa $zone > dig.out.test$n || ret=1
+    $DIG $DIGOPTS @10.53.0.2 soa $zone > dig.out.test$n || ret=1
     grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
   done
   [ $ret -eq 0 ] && break
@@ -37,7 +37,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that cross-zone CNAME record does not return target data (rd=0/ra=0) ($n)"
 ret=0
-$DIG $DIGOPTS +norec -p 5300 @10.53.0.1 www.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +norec @10.53.0.1 www.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa;" dig.out.test$n > /dev/null || ret=1
 grep "www.example.com.*CNAME.*server.example.net" dig.out.test$n > /dev/null || ret=1
@@ -48,7 +48,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that cross-zone CNAME record does not return target data (rd=1/ra=0) ($n)"
 ret=0
-$DIG $DIGOPTS +rec -p 5300 @10.53.0.1 www.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +rec @10.53.0.1 www.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa rd;" dig.out.test$n > /dev/null || ret=1
 grep "www.example.com.*CNAME.*server.example.net" dig.out.test$n > /dev/null || ret=1
@@ -59,7 +59,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that cross-zone CNAME record does not return target data (rd=0/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS +norec -p 5300 @10.53.0.2 www.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +norec @10.53.0.2 www.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa ra;" dig.out.test$n > /dev/null || ret=1
 grep "www.example.com.*CNAME.*server.example.net" dig.out.test$n > /dev/null || ret=1
@@ -70,7 +70,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that cross-zone CNAME records returns target data (rd=1/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS -p 5300 @10.53.0.2 www.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 www.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa rd ra;" dig.out.test$n > /dev/null || ret=1
 grep "www.example.com.*CNAME.*server.example.net" dig.out.test$n > /dev/null || ret=1
@@ -84,7 +84,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that in-zone CNAME records returns target data (rd=0/ra=0) ($n)"
 ret=0
-$DIG $DIGOPTS +norec -p 5300 @10.53.0.1 inzone.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +norec @10.53.0.1 inzone.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa;" dig.out.test$n > /dev/null || ret=1
 grep "inzone.example.com.*CNAME.*a.example.com" dig.out.test$n > /dev/null || ret=1
@@ -95,7 +95,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that in-zone CNAME records returns target data (rd=1/ra=0) ($n)"
 ret=0
-$DIG $DIGOPTS +rec -p 5300 @10.53.0.1 inzone.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +rec @10.53.0.1 inzone.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa rd;" dig.out.test$n > /dev/null || ret=1
 grep "inzone.example.com.*CNAME.*a.example.com" dig.out.test$n > /dev/null || ret=1
@@ -106,7 +106,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that in-zone CNAME records returns target data (rd=0/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS +norec -p 5300 @10.53.0.2 inzone.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS +norec @10.53.0.2 inzone.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa ra;" dig.out.test$n > /dev/null || ret=1
 grep "inzone.example.com.*CNAME.*a.example.com" dig.out.test$n > /dev/null || ret=1
@@ -117,7 +117,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo "I:check that in-zone CNAME records returns target data (rd=1/ra=1) ($n)"
 ret=0
-$DIG $DIGOPTS -p 5300 @10.53.0.2 inzone.example.com > dig.out.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 inzone.example.com > dig.out.test$n || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
 grep "flags: qr aa rd ra;" dig.out.test$n > /dev/null || ret=1
 grep "inzone.example.com.*CNAME.*a.example.com" dig.out.test$n > /dev/null || ret=1

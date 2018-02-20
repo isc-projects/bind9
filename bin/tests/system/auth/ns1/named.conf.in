@@ -6,28 +6,24 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
-
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
-	recursion yes;
-	notify no;
+	recursion no;
+	notify yes;
 };
 
 zone example.net {
-	type slave;
-	masters { 10.53.0.1; };
-	file "example.net.bk";
+	type master;
+	file "example.net.db";
 };
 
 zone example.com {
-	type slave;
-	masters { 10.53.0.1; };
-	file "example.com.bk";
+	type master;
+	file "example.com.db";
 };
