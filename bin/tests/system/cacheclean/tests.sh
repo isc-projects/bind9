@@ -228,11 +228,11 @@ ret=0
 load_cache
 dump_cache
 mv ns2/named_dump.db.$n ns2/named_dump.db.$n.a
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(0); exit(1); }' ns2/named_dump.db.$n.a || ret=1
+sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.a | grep 'ns.flushtest.example' > /dev/null 2>&1 || ret=1
 $RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
 mv ns2/named_dump.db.$n ns2/named_dump.db.$n.b
-awk '/plain success\/timeout/ {getline; getline; if ($2 == "ns.flushtest.example") exit(1); exit(0); }' ns2/named_dump.db.$n.b || ret=1
+sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.b | grep 'ns.flushtest.example' > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
