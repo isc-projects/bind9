@@ -64,7 +64,11 @@ EOF
 
 dump_cache () {
         $RNDC $RNDCOPTS dumpdb -cache _default
-        sleep 1
+        for i in 0 1 2 3 4 5 6 7 8 9
+        do
+                grep '^; Dump complete$' ns2/named_dump.db > /dev/null && break
+                sleep 1
+        done
         mv ns2/named_dump.db ns2/named_dump.db.$n
 }
 
