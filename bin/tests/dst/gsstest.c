@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2006, 2007, 2009-2011, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2009-2011, 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-/* $Id: gsstest.c,v 1.19 2011/11/30 00:48:51 marka Exp $ */
 
 #include <config.h>
 
@@ -49,13 +47,6 @@
 
 #ifdef GSSAPI
 #include ISC_PLATFORM_GSSAPIHEADER
-
-struct dst_context {
-	unsigned int magic;
-	dst_key_t *key;
-	isc_mem_t *mctx;
-	void *opaque;
-};
 
 #define CHECK(str, x) { \
 	if ((x) != ISC_R_SUCCESS) { \
