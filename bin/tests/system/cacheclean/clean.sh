@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.8 2011/08/03 23:47:48 tbox Exp $
-
 #
 # Clean up after cache cleaner tests.
 #
@@ -24,4 +22,4 @@
 rm -f dig.out.ns2
 rm -f */named.memstats
 rm -f */named.run
-rm -f ns2/named_dump.db
+rm -f ns2/named_dump.db.*
