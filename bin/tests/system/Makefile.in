@@ -46,7 +46,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # Define the tests that can be run in parallel.  This should be identical to
 # the definition of PARALLELDIRS in conf.sh.
 
-PARALLEL = acl allow_query catz rpzrecurse serve-stale
+PARALLEL = acl allow_query catz checkconf rpzrecurse serve-stale
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
@@ -57,7 +57,7 @@ PARALLEL = acl allow_query catz rpzrecurse serve-stale
 # between a target name and a directory name (.PHONY is not supported).
 
 parallel.mk:
-	@ ns2/named.confPARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
+	PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
 	echo ".PHONY: $$PARALLEL_SANITIZED" > $@ ; \
 	echo "" >> $@ ; \
 	echo "test check: $$PARALLEL_SANITIZED" >> $@ ; \
