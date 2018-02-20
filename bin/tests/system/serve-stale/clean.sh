@@ -10,3 +10,4 @@ rm -f ans2/ans.pl
 rm -f ns3/named.conf
 rm -f ns3/root.bk
 rm -f rndc.out.test*
+rm -f */named.run */named.memstats
