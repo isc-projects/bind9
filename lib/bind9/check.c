@@ -891,11 +891,13 @@ typedef struct {
 	unsigned int max;
 } intervaltable;
 
+#if HAVE_DNSTAP
 typedef struct {
 	const char *name;
 	unsigned int min;
 	unsigned int max;
 } fstrmtable;
+#endif
 
 typedef enum {
 	optlevel_config,
