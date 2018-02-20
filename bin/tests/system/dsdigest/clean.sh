@@ -12,6 +12,7 @@ rm -f ns1/root.db
 rm -f ns1/signer.err
 rm -f ns2/good.db ns2/bad.db
 rm -f dig.out*
+rm -f */named.conf
 rm -f */named.run
 rm -f */named.memstats
 rm -f ns*/named.lock

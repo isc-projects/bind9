@@ -16,6 +16,7 @@ rm -f ns1/session.key
 rm -f dig.out.*
 rm -f dig.out
 rm -f */named.memstats
+rm -f */named.conf
 rm -f */named.run
 rm -f ns2/example.db
 rm -f ns2/transfer.db.*

@@ -11,7 +11,7 @@
 ; Separate update requests for distinct TLDs with blank lines or 'send'
 ; End the file with a blank line or 'send'
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ; QNAME tests
 

@@ -12,110 +12,113 @@ SYSTEMTESTTOP=..
 n=0
 status=0
 
+DIGOPTS="-p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+
 getcookie() {
 	awk '$2 == "COOKIE:" {
 		print $3;
 	}' < $1
 }
 
-echo "I:checking that dig handles padding ($n)"
+echo_i "checking that dig handles padding ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +qr +padding=128 foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +qr +padding=128 foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null || ret=1
 grep "; QUERY SIZE: 128" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that dig added padding ($n)"
+echo_i "checking that dig added padding ($n)"
 ret=0
 n=`expr $n + 1`
-$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats
+$RNDCCMD 10.53.0.2 stats
 grep "EDNS padding option received" ns2/named.stats > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that padding is added for TCP responses ($n)"
+echo_i "checking that padding is added for TCP responses ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc +padding=128 foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +padding=128 foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null || ret=1
 grep "rcvd: 128" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that padding is added to valid cookie responses ($n)"
+echo_i "checking that padding is added to valid cookie responses ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +cookie foo.example @10.53.0.2 -p 5300 > dig.out.testc
+$DIG $DIGOPTS +cookie foo.example @10.53.0.2 > dig.out.testc
 cookie=`getcookie dig.out.testc`
-$DIG +cookie=$cookie +padding=128 foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +cookie=$cookie +padding=128 foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null || ret=1
 grep "rcvd: 128" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that padding must be requested (TCP) ($n)"
+echo_i "checking that padding must be requested (TCP) ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that padding must be requested (valid cookie) ($n)"
+echo_i "checking that padding must be requested (valid cookie) ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +cookie=$cookie foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +cookie=$cookie foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that padding can be filtered out ($n)"
+echo_i "checking that padding can be filtered out ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc +padding=128 -b 10.53.0.8 foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +padding=128 -b 10.53.0.8 foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that a TCP and padding server config enables padding ($n)"
+echo_i "checking that a TCP and padding server config enables padding ($n)"
 ret=0
 n=`expr $n + 1`
-$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats
+$RNDCCMD 10.53.0.2 stats
 opad=`grep  "EDNS padding option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
-$DIG foo.example @10.53.0.3 -p 5300 > dig.out.test$n
-$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats
+$DIG $DIGOPTS foo.example @10.53.0.3 > dig.out.test$n
+$RNDCCMD 10.53.0.2 stats
 npad=`grep  "EDNS padding option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
 if [ "$opad" -eq "$npad" ]; then ret=1; fi
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that a padding server config should enforce TCP ($n)"
+echo_i "checking that a padding server config should enforce TCP ($n)"
 ret=0
 n=`expr $n + 1`
-$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats
+$RNDCCMD 10.53.0.2 stats
 opad=`grep  "EDNS padding option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
-$DIG foo.example @10.53.0.4 -p 5300 > dig.out.test$n
-$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats
+$DIG $DIGOPTS foo.example @10.53.0.4 > dig.out.test$n
+$RNDCCMD 10.53.0.2 stats
 npad=`grep  "EDNS padding option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
 if [ "$opad" -ne "$npad" ]; then ret=1; fi
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that zero-length padding option has no effect ($n)"
+echo_i "checking that zero-length padding option has no effect ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +qr +ednsopt=12 foo.example @10.53.0.2 -p 5300 > dig.out.test$n.1
+$DIG $DIGOPTS +qr +ednsopt=12 foo.example @10.53.0.2 > dig.out.test$n.1
 grep "; PAD" dig.out.test$n.1 > /dev/null || ret=1
-$DIG +qr +ednsopt=12:00 foo.example @10.53.0.2 -p 5300 > dig.out.test$n.2
+$DIG $DIGOPTS +qr +ednsopt=12:00 foo.example @10.53.0.2 > dig.out.test$n.2
 grep "; PAD" dig.out.test$n.2 > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

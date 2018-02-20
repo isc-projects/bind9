@@ -11,5 +11,5 @@ rm -f ans?/ans.run
 rm -f ans2/ans.limit
 rm -f ns?/named.memstats
 rm -f ns?/named.run
-rm -f ns3/named.conf
+rm -f ns*/named.conf
 rm -f ns*/named.lock

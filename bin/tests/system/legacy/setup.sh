@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C)  2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,4 +9,13 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-cp -f ns1/named1.conf ns1/named.conf
+$SHELL clean.sh
+
+copy_setports ns1/named1.conf.in ns1/named.conf
+
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf

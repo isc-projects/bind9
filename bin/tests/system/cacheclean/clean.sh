@@ -15,5 +15,6 @@ rm -f dig.out.expire
 rm -f sed.out.*
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
 rm -f ns2/named_dump.db.*
 rm -f ns*/named.lock

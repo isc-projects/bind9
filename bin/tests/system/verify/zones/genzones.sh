@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -14,7 +12,7 @@ dumpit () {
 	cat "${1}" | sed 's/^/D:/'
 }
 setup () {
-	echo "I:setting up $2 zone: $1"
+	echo_i "setting up $2 zone: $1"
 	debug="$1"
 	zone="$1"
 	file="$1.$2"

@@ -22,7 +22,10 @@ $SIG{INT} = \&rmpid;
 $SIG{TERM} = \&rmpid;
 
 my $localaddr = "10.53.0.3";
-my $localport = 5300;
+
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $verbose = 0;
 my $ttl = 60;
 my $zone = "example.broken";
