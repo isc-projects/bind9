@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: entropy.c,v 1.82 2008/12/01 23:47:45 tbox Exp $ */
-
 /* \file unix/entropy.c
  * \brief
  * This is the system dependent part of the ISC entropy API.
@@ -449,11 +447,14 @@ destroyusocketsource(isc_entropyusocketsource_t *source) {
 static isc_result_t
 make_nonblock(int fd) {
 	int ret;
-	int flags;
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef USE_FIONBIO_IOCTL
 	int on = 1;
+#else
+	int flags;
+#endif
 
+#ifdef USE_FIONBIO_IOCTL
 	ret = ioctl(fd, FIONBIO, (char *)&on);
 #else
 	flags = fcntl(fd, F_GETFL, 0);
