@@ -21,6 +21,7 @@
 #include <isc/win32os.h>
 #else
 #include <stdio.h>
+#include <isc/util.h>
 #endif
 #include <isc/print.h>
 
@@ -107,6 +108,7 @@ main(int argc, char **argv) {
 	}
 	if (argc > 1) {
 		--argc;
+		POST(argc);
 		++argv;
 		spminor = (unsigned int) atoi(argv[0]);
 	}
