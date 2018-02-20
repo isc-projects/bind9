@@ -457,7 +457,6 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	isc_uint32_t mwords;
 	isc_uint32_t numblocks;
 	double *pi;
-	isc_uint32_t cur_word;
 	double chi_square;
 	double p_value;
 
@@ -479,7 +478,6 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	pi = isc_mem_get(mctx, numblocks * sizeof(double));
 	ATF_REQUIRE(pi != NULL);
 
-	cur_word = 0;
 	for (i = 0; i < numblocks; i++) {
 		isc_uint32_t j;
 		pi[i] = 0.0;
@@ -488,7 +486,6 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 
 			idx = i * mwords + j;
 			pi[i] += bitcounts_table[values[idx]];
-			cur_word++;
 		}
 		pi[i] /= mbits;
 	}
