@@ -9835,7 +9835,11 @@ dns_resolver_create(dns_view_t *view,
 #if USE_MBSLOCK
 	result = isc_rwlock_init(&res->mbslock, 0, 0);
 	if (result != ISC_R_SUCCESS)
+#if USE_ALGLOCK
 		goto cleanup_alglock;
+#else
+		goto cleanup_spillattimer;
+#endif
 #endif
 
 	res->magic = RES_MAGIC;
@@ -9844,12 +9848,11 @@ dns_resolver_create(dns_view_t *view,
 
 	return (ISC_R_SUCCESS);
 
-#if USE_MBSLOCK
+#if USE_ALGLOCK && USE_MBSLOCK
  cleanup_alglock:
-#if USE_ALGLOCK
 	isc_rwlock_destroy(&res->alglock);
 #endif
-#endif
+
 #if USE_ALGLOCK || USE_MBSLOCK
  cleanup_spillattimer:
 	isc_timer_detach(&res->spillattimer);
