@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002, 2004, 2007, 2013-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2002, 2004, 2007, 2013-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,6 +12,7 @@
 #include <isc/win32os.h>
 #else
 #include <stdio.h>
+#include <isc/util.h>
 #endif
 #include <isc/print.h>
 
@@ -98,6 +99,7 @@ main(int argc, char **argv) {
 	}
 	if (argc > 1) {
 		--argc;
+		POST(argc);
 		++argv;
 		spminor = (unsigned int) atoi(argv[0]);
 	}
