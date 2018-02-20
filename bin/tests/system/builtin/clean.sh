@@ -8,6 +8,7 @@
 
 rm -f ns?/named.run
 rm -f ns?/named.memstats
+rm -f ns?/named.conf
 rm -f rndc.status.ns*
 rm -f dig.out.ns*
 rm -f ns*/named.lock

@@ -14,3 +14,5 @@ rm -f */named.memstats */named.run */named.stats */session.key
 rm -f */*.jnl */*.core */*.pid
 rm -f */policy2.db
 rm -f ns*/named.lock
+rm -f ns*/named.conf
+rm -f tmp

@@ -9,7 +9,7 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "I:sign edns512"
+echo_i "sign edns512"
 
 zone=edns512
 infile=edns512.db.in

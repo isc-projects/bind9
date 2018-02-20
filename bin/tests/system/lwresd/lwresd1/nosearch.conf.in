@@ -1,0 +1,24 @@
+/*
+ * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/* $Id: lwresd.conf,v 1.8 2007/06/19 23:47:04 tbox Exp $ */
+
+controls { /* empty */ };
+
+options {
+	port 5300;
+	pid-file "lwresd.pid";
+	forwarders {10.53.0.1;};
+	forward only;
+};
+
+lwres {
+	listen-on {10.53.0.1 port 9210;};
+	view "_default";
+	ndots 1;
+};

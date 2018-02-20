@@ -7,6 +7,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 rm -f ns*/named.run
+rm -f ns*/named.conf
 rm -f ns1/K*
 rm -f ns1/*.db
 rm -f ns1/*.signed

@@ -13,6 +13,9 @@ $SHELL clean.sh
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+
 $SHELL ../genzone.sh 1 > ns1/master.db
 $SHELL ../genzone.sh 1 > ns1/duplicate.db
 cp bigserial.db ns1/

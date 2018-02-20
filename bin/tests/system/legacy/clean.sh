@@ -5,7 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 rm -f dig.out.*
-rm -f ns1/named.conf
+rm -f ns?/named.conf
 rm -f ns?/named.memstats
 rm -f ns?/named.run
 rm -f ns*/named.lock

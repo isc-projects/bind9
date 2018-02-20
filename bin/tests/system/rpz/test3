@@ -13,7 +13,7 @@
 
 ; NSDNAME tests
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ;	3, 4, 5
 ; NXDOMAIN for *.sub1.tld2 by NSDNAME
