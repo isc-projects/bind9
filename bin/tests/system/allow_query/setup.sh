@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) 2010, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
 #
@@ -8,4 +8,8 @@
 
 # $Id: setup.sh,v 1.2 2010/11/16 01:37:36 sar Exp $
 
-cp -f ns2/named01.conf ns2/named.conf
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+copy_setports ../common/controls.conf.in ns2/controls.conf
+copy_setports  ns2/named01.conf.in ns2/named.conf
