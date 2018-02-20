@@ -95,7 +95,7 @@ SEQUENTIALDIRS="additional addzone auth autosign builtin \
 # tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="acl allow_query catz rpzrecurse serve-stale"
+PARALLELDIRS="acl allow_query catz checkconf rpzrecurse serve-stale"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
