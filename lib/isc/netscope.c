@@ -17,11 +17,6 @@
 
 /*! \file */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-	"$Id: netscope.c,v 1.13 2007/06/19 23:47:17 tbox Exp $";
-#endif /* LIBC_SCCS and not lint */
-
 #include <config.h>
 
 #include <isc/string.h>
@@ -34,16 +29,14 @@ isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 	char *ep;
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 	unsigned int ifid;
-#endif
 	struct in6_addr *in6;
+#endif
 	isc_uint32_t zone;
 	isc_uint64_t llz;
 
 	/* at this moment, we only support AF_INET6 */
 	if (af != AF_INET6)
 		return (ISC_R_FAILURE);
-
-	in6 = (struct in6_addr *)addr;
 
 	/*
 	 * Basically, "names" are more stable than numeric IDs in terms of
@@ -54,6 +47,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 	 * interfaces and links.
 	 */
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
+	in6 = (struct in6_addr *)addr;
 	if (IN6_IS_ADDR_LINKLOCAL(in6) &&
 	    (ifid = if_nametoindex((const char *)scopename)) != 0)
 		zone = (isc_uint32_t)ifid;
