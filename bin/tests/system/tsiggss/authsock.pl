@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: authsock.pl,v 1.3 2011/01/07 23:47:07 tbox Exp $
-
 # test the update-policy external protocol
 
 require 5.6.0;

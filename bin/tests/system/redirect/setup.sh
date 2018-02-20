@@ -13,6 +13,11 @@ $SHELL clean.sh
 
 test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
+
 cp ns2/redirect.db.in ns2/redirect.db
 cp ns2/example.db.in ns2/example.db
 ( cd ns1 && $SHELL sign.sh )

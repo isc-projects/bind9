@@ -10,7 +10,7 @@ rm -f dig.out.*
 rm -f rndc.out*
 rm -f showzone.out*
 rm -f zonestatus.out*
-rm -f ns2/named.conf
+rm -f */named.conf
 rm -f */named.memstats
 rm -f ns1/*.nzf ns1/*.nzf~
 rm -f ns1/*.nzd ns1/*.nzd-lock

@@ -16,7 +16,7 @@ test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 pzone=parent.nil
 czone=child.parent.nil
 
-echo "I:generating keys"
+echo_i "generating keys"
 
 # active zsk
 zsk=`$KEYGEN -q -a rsasha1 -r $RANDFILE $czone`

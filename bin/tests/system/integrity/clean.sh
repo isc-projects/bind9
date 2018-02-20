@@ -7,3 +7,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 rm -f dig.out.test*
+rm -f */named.memstats
+rm -f */named.conf
+rm -f */named.run

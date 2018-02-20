@@ -21,7 +21,5 @@ rm -f ns2/named.conf.header
 
 rm -f ns3/named2.conf
 
-rm -f ans4/ans.pl
-
 rm -f dnsrps*.conf dnsrpzd*
 rm -f ns*/session.key

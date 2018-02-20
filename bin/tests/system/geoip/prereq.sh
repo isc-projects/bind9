@@ -10,7 +10,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $FEATURETEST --have-geoip || {
-	echo "I:This test requires GeoIP support." >&2
+	echo_i "This test requires GeoIP support." >&2
 	exit 255
 }
 exit 0

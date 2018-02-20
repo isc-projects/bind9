@@ -10,7 +10,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $FEATURETEST --have-dlopen ||  {
-        echo "I:dlopen() not supported - skipping dlzexternal test"
+        echo_i "dlopen() not supported - skipping dlzexternal test"
         exit 255
 }
 exit 0

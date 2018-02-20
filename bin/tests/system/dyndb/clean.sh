@@ -9,6 +9,8 @@
 #
 # Clean up after dyndb tests.
 #
+rm -f */named.conf
+rm -f */named.run
 rm -f ns1/named.memstats
 rm -f ns1/update.txt
 rm -f added.a.out.*

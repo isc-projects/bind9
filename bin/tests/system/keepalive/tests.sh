@@ -9,84 +9,85 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RNDCCMD="$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p 9953"
+DIGOPTS="-p ${PORT}"
+RNDCCMD="$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"
 
 n=0
 status=0
 
-echo "I:checking that dig handles TCP keepalive ($n)"
+echo_i "checking that dig handles TCP keepalive ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +qr +keepalive foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +qr +keepalive foo.example @10.53.0.2 > dig.out.test$n
 grep "; TCP KEEPALIVE" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that dig added TCP keepalive ($n)"
+echo_i "checking that dig added TCP keepalive ($n)"
 ret=0
 n=`expr $n + 1`
 $RNDCCMD stats
 grep "EDNS TCP keepalive option received" ns2/named.stats > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that TCP keepalive is added for TCP responses ($n)"
+echo_i "checking that TCP keepalive is added for TCP responses ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc +keepalive foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 > dig.out.test$n
 grep "; TCP KEEPALIVE" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking that TCP keepalive requires TCP ($n)"
+echo_i "checking that TCP keepalive requires TCP ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +keepalive foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +keepalive foo.example @10.53.0.2 > dig.out.test$n
 grep "; TCP KEEPALIVE" dig.out.test$n > /dev/null && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking default value ($n)"
+echo_i "checking default value ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc +keepalive foo.example @10.53.0.3 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.3 > dig.out.test$n
 grep "; TCP KEEPALIVE: 30.0 secs" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking configured value ($n)"
+echo_i "checking configured value ($n)"
 ret=0
 n=`expr $n + 1`
-$DIG +vc +keepalive foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 > dig.out.test$n
 grep "; TCP KEEPALIVE: 15.0 secs" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking re-configured value ($n)"
+echo_i "checking re-configured value ($n)"
 ret=0
 n=`expr $n + 1`
 $RNDCCMD tcp-timeouts 300 300 300 200 > output
 diff -b output expected || ret=1
-$DIG +vc +keepalive foo.example @10.53.0.2 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 > dig.out.test$n
 grep "; TCP KEEPALIVE: 20.0 secs" dig.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking server config entry ($n)"
+echo_i "checking server config entry ($n)"
 ret=0
 n=`expr $n + 1`
 $RNDCCMD stats
 oka=`grep  "EDNS TCP keepalive option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
-$DIG bar.example @10.53.0.3 -p 5300 > dig.out.test$n
+$DIG $DIGOPTS bar.example @10.53.0.3 > dig.out.test$n
 $RNDCCMD stats
 nka=`grep  "EDNS TCP keepalive option received" ns2/named.stats | \
     tail -1 | awk '{ print $1}'`
 #echo oka ':' $oka
 #echo nka ':' $nka
 if [ "$oka" -eq "$nka" ]; then ret=1; fi
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

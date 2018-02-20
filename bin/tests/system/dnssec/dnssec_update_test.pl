@@ -23,8 +23,6 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: dnssec_update_test.pl,v 1.7 2010/08/13 23:47:03 tbox Exp $
-#
 
 use Getopt::Std;
 use Net::DNS;
@@ -51,7 +49,7 @@ my $failures = 0;
 sub assert {
     my ($cond, $explanation) = @_;
     if (!$cond) {
-	print "I:Test Failed: $explanation ***\n";
+	print "Test Failed: $explanation ***\n";
 	$failures++
     }
 }
@@ -72,13 +70,13 @@ sub test {
 	my $rcode = $reply->header->rcode;
         assert($rcode eq $expected, "expected $expected, got $rcode");
     } else {
-	print "I:Update failed: ", $res->errorstring, "\n";
+	print "Update failed: ", $res->errorstring, "\n";
     }
 }
 
 sub section {
     my ($msg) = @_;
-    print "I:$msg\n";
+    print "$msg\n";
 }
 
 section("Add a name");
@@ -88,9 +86,9 @@ section("Delete the name");
 test("NOERROR", ["update", rr_del("a.$zone")]);
 
 if ($failures) {
-    print "I:$failures update tests failed.\n";
+    print "$failures update tests failed.\n";
 } else {
-    print "I:All update tests successful.\n";
+    print "All update tests successful.\n";
 }
 
 exit $failures;

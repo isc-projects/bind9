@@ -8,5 +8,6 @@ rm -f dig.out.*
 rm -f output
 rm -f ns*/named.memstats
 rm -f ns*/named.run
+rm -f ns*/named.conf
 rm -f ns*/named.stats
 rm -f ns*/named.lock
