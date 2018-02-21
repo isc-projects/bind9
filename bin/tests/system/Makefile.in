@@ -56,7 +56,8 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   fetchlimit filter-aaaa formerr forward \
 	   geoip glue integrity ixfr keepalive \
 	   legacy limits masterfile masterformat metadata mkeys \
-	   nsupdate reclimit rndc rpzrecurse rrchecker rrl serve-stale
+	   nsupdate reclimit rndc rpzrecurse rrchecker rrl \
+	   serve-stale smartsign
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
