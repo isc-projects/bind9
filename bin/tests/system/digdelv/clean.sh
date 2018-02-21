@@ -8,6 +8,7 @@
 
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
 rm -f delv.out.test*
 rm -f dig.out.*test*
 rm -f dig.out.mm.*
