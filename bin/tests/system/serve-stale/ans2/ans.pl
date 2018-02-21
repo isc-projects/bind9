@@ -25,7 +25,10 @@ $SIG{TERM} = \&rmpid;
 my $send_response = 1;
 
 my $localaddr = "10.53.0.2";
-my $localport = @PORT@;
+
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $verbose = 0;
 
 #
