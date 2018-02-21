@@ -12,7 +12,8 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
-DIGOPTS="@10.53.0.1 -p 5300"
+DIGOPTS="@10.53.0.1 -p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
 	n=`expr $n + 1`
@@ -26,7 +27,7 @@ test_add() {
     ip="$3"
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 ttl 86400
 update add $host $type $ip
 send
@@ -67,7 +68,7 @@ test_del() {
     ip=`$DIG $DIGOPTS +short $host $type`
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 update del $host $type
 send
 EOF
@@ -130,7 +131,7 @@ grep "loading params for dyndb 'sample2' from .*named.conf:34" ns1/named.run > /
 status=`expr $status + $ret`
 
 echo "I:checking dyndb still works after reload"
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/I:ns1 /'
 
 test_add test5.ipv4.example.nil. A "10.53.0.10" || ret=1
 status=`expr $status + $ret`
