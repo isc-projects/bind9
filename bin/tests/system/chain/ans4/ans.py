@@ -266,16 +266,21 @@ def sigterm(signum, frame):
 ############################################################################
 ip4 = "10.53.0.4"
 ip6 = "fd92:7065:b8e:ffff::4"
-sock = 5300
+
+try: port=int(os.environ['PORT'])
+except: port=5300
+
+try: ctrlport=int(os.environ['EXTRAPORT1'])
+except: ctrlport=5300
 
 query4_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-query4_socket.bind((ip4, sock))
+query4_socket.bind((ip4, port))
 
 havev6 = True
 try:
     query6_socket = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     try:
-        query6_socket.bind((ip6, sock))
+        query6_socket.bind((ip6, port))
     except:
         query6_socket.close()
         havev6 = False
@@ -283,7 +288,7 @@ except:
     havev6 = False
 
 ctrl_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ctrl_socket.bind((ip4, sock + 1))
+ctrl_socket.bind((ip4, ctrlport))
 ctrl_socket.listen(5)
 
 signal.signal(signal.SIGTERM, sigterm)
@@ -295,10 +300,10 @@ f.close()
 
 running = True
 
-print ("Listening on %s port %d" % (ip4, sock))
+print ("Listening on %s port %d" % (ip4, port))
 if havev6:
-    print ("Listening on %s port %d" % (ip6, sock))
-print ("Control channel on %s port %d" % (ip4, sock + 1))
+    print ("Listening on %s port %d" % (ip6, port))
+print ("Control channel on %s port %d" % (ip4, ctrlport))
 print ("Ctrl-c to quit")
 
 if havev6:
