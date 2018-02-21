@@ -6,12 +6,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: clean.sh,v 1.10 2012/02/07 23:47:24 tbox Exp $
-
-rm -f ns1/named.conf ns1/myftp.db
+rm -f ns1/myftp.db
 rm -f ns3/*.jnl ns3/mytest.db ns3/subtest.db
 rm -f ns4/*.jnl ns4/*.db
 rm -f */named.memstats
+rm -f */named.conf
 rm -f */named.run
 rm -f */ans.run
 rm -f dig.out dig.out1 dig.out2 dig.out3
