@@ -215,7 +215,7 @@ dotests
 
 echo_i "reconfiguring server: minimal-responses no"
 copy_setports ns1/named2.conf.in ns1/named.conf
-$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/ns1 /' | cat_i
 sleep 2
 
 echo_i "testing with 'minimal-responses no;'"
@@ -233,7 +233,7 @@ fi
 
 echo_i "reconfiguring server: minimal-any yes"
 copy_setports ns1/named3.conf.in ns1/named.conf
-$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/ns1 /' | cat_i
 sleep 2
 
 n=`expr $n + 1`
@@ -269,7 +269,7 @@ dotests
 
 echo_i "reconfiguring server: minimal-responses no-auth-recursive"
 copy_setports ns1/named4.conf.in ns1/named.conf
-$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/ns1 /' | cat_i
 sleep 2
 
 echo_i "testing with 'minimal-responses no-auth-recursive;'"
@@ -300,7 +300,7 @@ fi
 
 echo_i "reconfiguring server: minimal-responses no"
 copy_setports ns1/named2.conf.in ns1/named.conf
-$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 reconfig 2>&1 | sed 's/^/ns1 /' | cat_i
 sleep 2
 
 n=`expr $n + 1`

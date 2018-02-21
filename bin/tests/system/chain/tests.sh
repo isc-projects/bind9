@@ -162,27 +162,27 @@ echo "cname,cname,cname|1,2,3,4,s1,s2,s3,s4" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 grep 'status: NOERROR' dig.out.1.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.1.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "cname,cname,cname|1,1,2,2,3,4,s4,s3,s1" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.2.$n 2>&1
 grep 'status: NOERROR' dig.out.2.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.2.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "cname,cname,cname|2,1,3,4,s3,s1,s2,s4" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.3.$n 2>&1
 grep 'status: NOERROR' dig.out.3.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.3.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "cname,cname,cname|4,3,2,1,s4,s3,s2,s1" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.4.$n 2>&1
 grep 'status: NOERROR' dig.out.4.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.4.$n > /dev/null 2>&1 || ret=1
 echo "cname,cname,cname|4,3,2,1,s4,s3,s2,s1" | $SEND
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.5.$n 2>&1
 grep 'status: NOERROR' dig.out.5.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.5.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "cname,cname,cname|4,3,3,3,s1,s1,1,3,4" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.6.$n 2>&1
 grep 'status: NOERROR' dig.out.6.$n > /dev/null 2>&1 || ret=1
@@ -193,7 +193,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that only the initial CNAME is cached ($n)"
 ret=0
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "cname,cname,cname|1,2,3,4,s1,s2,s3,s4" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 sleep 1
@@ -206,22 +206,22 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking DNAME chains in various orders ($n)"
 ret=0
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "dname,dname|5,4,3,2,1,s5,s4,s3,s2,s1" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 grep 'status: NOERROR' dig.out.1.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 3' dig.out.1.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "dname,dname|5,4,3,2,1,s5,s4,s3,s2,s1" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.2.$n 2>&1
 grep 'status: NOERROR' dig.out.2.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 3' dig.out.2.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "dname,dname|2,3,s1,s2,s3,s4,1" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.3.$n 2>&1
 grep 'status: NOERROR' dig.out.3.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 3' dig.out.3.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -232,16 +232,16 @@ echo "xname,dname|1,2,3,4,s1,s2,s3,s4" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 grep 'status: NOERROR' dig.out.1.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.1.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "xname,dname|s2,2,s1,1,4,s4,3" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.2.$n 2>&1
 grep 'status: NOERROR' dig.out.2.$n > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 2' dig.out.2.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 echo "xname,dname|s2,2,2,2" | $SEND
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.3.$n 2>&1
 grep 'status: SERVFAIL' dig.out.3.$n > /dev/null 2>&1 || ret=1
-$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/I:ns7 /'
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

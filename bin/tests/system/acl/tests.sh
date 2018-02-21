@@ -30,7 +30,7 @@ $DIG $DIGOPTS tsigzone. \
 grep "^;" dig.out.${t} > /dev/null 2>&1 && { echo_i "test $t failed" ; status=1; }
 
 copy_setports ns2/named2.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 
 # prefix 10/8 should fail
@@ -53,7 +53,7 @@ grep "^;" dig.out.${t} > /dev/null 2>&1 && { echo_i "test $t failed" ; status=1;
 echo_i "testing nested ACL processing"
 # all combinations of 10.53.0.{1|2} with key {one|two}, should succeed
 copy_setports ns2/named3.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 
 # should succeed
@@ -99,7 +99,7 @@ grep "^;" dig.out.${t} > /dev/null 2>&1 || { echo_i "test $t failed" ; status=1;
 
 # now we only allow 10.53.0.1 *and* key one, or 10.53.0.2 *and* key two
 copy_setports ns2/named4.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 
 # should succeed
@@ -134,7 +134,7 @@ grep "^;" dig.out.${t} > /dev/null 2>&1 || { echo_i "test $t failed" ; status=1;
 
 echo_i "testing allow-query-on ACL processing"
 copy_setports ns2/named5.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 t=`expr $t + 1`
 $DIG -p ${PORT} +tcp soa example. \
@@ -143,7 +143,7 @@ grep "status: NOERROR" dig.out.${t} > /dev/null 2>&1 || { echo_i "test $t failed
 
 echo_i "testing EDNS client-subnet ACL processing"
 copy_setports ns2/named6.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 
 # should fail
@@ -160,7 +160,7 @@ grep "^;" dig.out.${t} > /dev/null 2>&1 && { echo_i "test $t failed" ; status=1;
 
 echo_i "testing EDNS client-subnet response scope"
 copy_setports ns2/named7.conf.in ns2/named.conf
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 5
 
 t=`expr $t + 1`
@@ -188,7 +188,7 @@ grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 || ret=1
 status=`expr $status + $ret`
 
 echo_i "calling rndc reconfig"
-$RNDCCMD 10.53.0.3 reconfig 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
 
 sleep 1
 
@@ -217,7 +217,7 @@ grep "Transfer failed." dig.out.${t} >/dev/null 2>&1 || ret=1
 status=`expr $status + $ret`
 
 echo_i "calling rndc reconfig"
-$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/I:ns4 /'
+$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 
 sleep 1
 

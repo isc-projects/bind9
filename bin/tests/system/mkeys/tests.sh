@@ -26,27 +26,27 @@ wait_for_log() {
 
 mkeys_reconfig_on() {
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} reconfig . | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} reconfig . | sed "s/^/ns${nsidx} /" | cat_i
 }
 
 mkeys_reload_on() {
 	nsidx=$1
 	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} reload . | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} reload . | sed "s/^/ns${nsidx} /" | cat_i
 	wait_for_log "loaded serial" ns${nsidx}/named.run
 }
 
 mkeys_loadkeys_on() {
 	nsidx=$1
 	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} loadkeys . | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} loadkeys . | sed "s/^/ns${nsidx} /" | cat_i
 	wait_for_log "next key event" ns${nsidx}/named.run
 }
 
 mkeys_refresh_on() {
 	nsidx=$1
 	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} managed-keys refresh | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} managed-keys refresh | sed "s/^/ns${nsidx} /" | cat_i
 	wait_for_log "Returned from key fetch in keyfetch_done()" ns${nsidx}/named.run
 }
 
@@ -57,7 +57,7 @@ mkeys_sync_on() {
 	# dns_zone_flush(), which also attempts to take that zone's lock
 	nsidx=$1
 	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} managed-keys sync | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} managed-keys sync | sed "s/^/ns${nsidx} /" | cat_i
 	wait_for_log "dump_done" ns${nsidx}/named.run
 }
 
@@ -73,12 +73,12 @@ mkeys_status_on() {
 
 mkeys_flush_on() {
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} flush | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} flush | sed "s/^/ns${nsidx} /" | cat_i
 }
 
 mkeys_secroots_on() {
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} secroots | sed "s/^/I:ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} secroots | sed "s/^/ns${nsidx} /" | cat_i
 }
 
 status=0
@@ -674,7 +674,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check 'rndc-managed-keys destroy' ($n)"
 ret=0
-$RNDCCMD 10.53.0.2 managed-keys destroy | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 managed-keys destroy | sed 's/^/ns2 /' | cat_i
 mkeys_status_on 2 > rndc.out.$n 2>&1
 grep "no views with managed keys" rndc.out.$n > /dev/null || ret=1
 mkeys_reconfig_on 2

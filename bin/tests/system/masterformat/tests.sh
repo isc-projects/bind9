@@ -201,7 +201,7 @@ grep "added text" dig.out.dynamic.3.1 > /dev/null 2>&1 || ret=1
 $DIG $DIGOPTS +comm @10.53.0.3 added.dynamic txt > dig.out.dynamic.3.2
 grep "NXDOMAIN"  dig.out.dynamic.3.2 > /dev/null 2>&1 || ret=1
 # using "rndc halt" ensures that we don't dump the zone file
-$RNDCCMD 10.53.0.3 halt 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 halt 2>&1 | sed 's/^/ns3 /' | cat_i
 restart
 for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0
@@ -226,7 +226,7 @@ END
 $DIG $DIGOPTS @10.53.0.3 moretext.dynamic txt > dig.out.dynamic.3.5
 grep "more text" dig.out.dynamic.3.5 > /dev/null 2>&1 || ret=1
 # using "rndc stop" will cause the zone file to flush before shutdown
-$RNDCCMD 10.53.0.3 stop 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 stop 2>&1 | sed 's/^/ns3 /' | cat_i
 rm ns3/*.jnl
 restart
 for i in 0 1 2 3 4 5 6 7 8 9; do

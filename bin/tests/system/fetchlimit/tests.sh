@@ -113,7 +113,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 copy_setports ns3/named2.conf.in ns3/named.conf
-$RNDCCMD reconfig 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
 
 echo_i "checking lame server clients are dropped at the per-domain limit"
 ret=0
@@ -129,7 +129,7 @@ for try in 1 2 3 4 5; do
             fail=`expr $fail + 1`
     stat 50 || ret=1
     [ $ret -eq 1 ] && break
-    $RNDCCMD recursing 2>&1 | sed 's/^/I:ns3 /'
+    $RNDCCMD recursing 2>&1 | sed 's/^/ns3 /' | cat_i
     sleep 1
 done
 echo_i "$success successful valid queries, $fail SERVFAIL"
@@ -152,7 +152,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 copy_setports ns3/named3.conf.in ns3/named.conf
-$RNDCCMD reconfig 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
 
 echo_i "checking lame server clients are dropped at the soft limit"
 ret=0
