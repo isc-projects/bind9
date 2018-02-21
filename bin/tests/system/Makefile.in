@@ -49,7 +49,7 @@ feature-test@EXEEXT@: feature-test.@O@
 PARALLEL = acl additional addzone allow_query auth autosign \
 	   builtin cacheclean case catz cds chain \
 	   checkconf checknames checkzone \
-	   database digdelv \
+	   cookie database digdelv \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   rpzrecurse serve-stale
 
