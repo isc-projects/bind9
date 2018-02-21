@@ -46,7 +46,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # Define the tests that can be run in parallel.  This should be identical to
 # the definition of PARALLELDIRS in conf.sh.
 
-PARALLEL = acl additional allow_query auth catz checkconf \
+PARALLEL = acl additional addzone allow_query auth catz checkconf \
 	   rpzrecurse serve-stale
 
 # Produce intermediate makefile that assigns unique port numbers to each
