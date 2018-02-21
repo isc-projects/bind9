@@ -1,3 +1,6 @@
+4902.	[test]		Improved the reliability of the 'ixfr' system
+			test. [GL #66]
+
 4896.	[test]		cacheclean system test was not robust. [GL #82]
 
 4895.	[test]		Allow some system tests to run in parallel.
