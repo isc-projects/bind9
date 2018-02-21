@@ -6,6 +6,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: setup.sh,v 1.3 2011/03/01 23:48:05 tbox Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
-cp ns1/named.conf1 ns1/named.conf
+$SHELL clean.sh
+copy_setports ns1/named1.conf.in ns1/named.conf
