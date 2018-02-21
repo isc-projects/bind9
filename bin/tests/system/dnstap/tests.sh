@@ -9,7 +9,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-RNDCCMD="$RNDC -p 9953 -c ../common/rndc.conf"
+DIGOPTS="+short -p ${PORT}"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 status=0
 
@@ -31,7 +32,7 @@ do
 	status=`expr $status + $ret`
 done
 
-$DIG +short @10.53.0.3 -p 5300 a.example > dig.out
+$DIG $DIGOPTS @10.53.0.3 a.example > dig.out
 
 # check three different dnstap reopen/roll methods:
 # ns1: dnstap-reopen; ns2: dnstap -reopen; ns3: dnstap -roll
@@ -49,7 +50,7 @@ $RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/I:ns2 /'
 $RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/I:ns3 /'
 $RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/I:ns4 /'
 
-$DIG +short @10.53.0.3 -p 5300 a.example > dig.out
+$DIG $DIGOPTS @10.53.0.3 a.example > dig.out
 
 # XXX: file output should be flushed once a second according
 # to the libfstrm source, but it doesn't seem to happen until
@@ -415,7 +416,7 @@ if [ $ret != 0 ]; then echo "I: failed"; fi
 status=`expr $status + $ret`
 
 if [ -n "$FSTRM_CAPTURE" ] ; then
-	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
+	$DIG $DIGOPTS @10.53.0.4 a.example > dig.out
 
 	echo "I:checking unix socket message counts"
 	sleep 2
@@ -504,7 +505,7 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 		-w dnstap.out > fstrm_capture.out 2>&1 &
 	fstrm_capture_pid=$!
 	$RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/I:ns4 /'
-	$DIG +short @10.53.0.4 -p 5300 a.example > dig.out
+	$DIG $DIGOPTS @10.53.0.4 a.example > dig.out
 
 	echo "I:checking reopened unix socket message counts"
 	sleep 2
