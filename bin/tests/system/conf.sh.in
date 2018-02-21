@@ -81,7 +81,7 @@ SEQUENTIALDIRS="dnssec ecdsa eddsa \
 	logfileconfig masterfile masterformat metadata mkeys \
 	names notify nslookup nsupdate nzd2nzf padding pending \
 	pipelined @PKCS11_TEST@ reclimit redirect resolver rndc \
-	rpz rrchecker rrl rrsetorder rsabigexponent \
+	rpz rrl rrsetorder rsabigexponent \
 	runtime sfcache smartsign sortlist spf staticstub \
 	statistics statschannel stub synthfromdnssec tcp tkey tools \
 	tsig tsiggss unknown upforwd verify views wildcard xfer \
@@ -100,7 +100,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
                 fetchlimit filter-aaaa formerr forward \
                 geoip glue integrity \
                 @CHECKDS@ @COVERAGE@ @KEYMGR@ \
-                rpzrecurse serve-stale"
+                rpzrecurse rrchecker serve-stale"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
