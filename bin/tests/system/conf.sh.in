@@ -96,7 +96,7 @@ SEQUENTIALDIRS="autosign builtin \
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
 PARALLELDIRS="acl additional addzone allow_query auth \
-                case catz checkconf rpzrecurse serve-stale"
+                builtin case catz checkconf rpzrecurse serve-stale"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
