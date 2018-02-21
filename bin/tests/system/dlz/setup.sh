@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C)  2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,8 +9,5 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if [ "@DLZ_SYSTEM_TEST@" != "filesystem" ]; then
-        echo_i "DLZ filesystem driver not supported"
-        exit 255
-fi
-exit 0
+$SHELL clean.sh
+copy_setports ns1/named.conf.in ns1/named.conf
