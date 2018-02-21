@@ -52,7 +52,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   cookie database digdelv dlv dlz \
 	   dns64 @DNSTAP@ dscp dsdigest dyndb \
 	   ednscompliance emptyzones \
-	   fetchlimit filter-aaaa forward geoip \
+	   fetchlimit filter-aaaa formerr forward geoip \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   rpzrecurse serve-stale
 
