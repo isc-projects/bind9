@@ -6,14 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
-
 options {
 	dscp 47;
 	query-source dscp 46 address 10.53.0.4;
 	notify-source 10.53.0.4 dscp 46;
 	transfer-source 10.53.0.4 dscp 46;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on dscp 46 { 10.53.0.4; };
 	listen-on-v6 { none; };
