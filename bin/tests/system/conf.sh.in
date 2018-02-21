@@ -71,12 +71,12 @@ KRB5_CONFIG=/dev/null
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# "delzone" is also not run by default because it takes a very long
-# time to complete.
+# The "dialup" and "delzone" tests are also not run by default because
+# they take a very long time to complete.
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
-SEQUENTIALDIRS="dlv dlz dlzexternal \
+SEQUENTIALDIRS="dlz dlzexternal \
 	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
 	emptyzones fetchlimit filter-aaaa formerr geoip glue gost \
 	inline integrity ixfr keepalive legacy limits \
@@ -96,7 +96,7 @@ SEQUENTIALDIRS="dlv dlz dlzexternal \
 PARALLELDIRS="acl additional addzone allow_query auth autosign \
                 builtin cacheclean case catz cds chain \
                 checkconf checknames checkzone \
-                cookie database digdelv \
+                cookie database digdelv dlv \
                 @CHECKDS@ @COVERAGE@ @KEYMGR@ \
                 rpzrecurse serve-stale"
 

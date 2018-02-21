@@ -29,4 +29,4 @@ $SIGNER -r $RANDFILE -l $dlvzone -g -o $zone -f $outfile $zonefile > /dev/null 2
 $CHECKZONE -q -D -i none druz druz.pre |
 sed '/IN DNSKEY/s/\([a-z0-9A-Z/]\{10\}\)[a-z0-9A-Z/]\{16\}/\1XXXXXXXXXXXXXXXX/'> druz.signed
 
-echo "I: signed $zone"
+echo "I:signed $zone"
