@@ -6,10 +6,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: clean.sh,v 1.7 2010/09/15 12:38:35 tbox Exp $
-
 rm -f dig.out.*
 rm -f */named.memstats
+rm -f */named.conf
 rm -f */named.run
 rm -f ns*/named.lock
 rm -f checkzone.out*

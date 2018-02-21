@@ -6,16 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.1.4.3 2012/02/07 23:53:43 each Exp $ */
-
 // NS3
-
-controls { /* empty */ };
 
 options {
 	pid-file "named.pid";
-	listen-on port 5300 { 10.53.0.3; };
-	port 5300;
+	listen-on port @PORT@ { 10.53.0.3; };
+	port @PORT@;
 	listen-on-v6 { none; };
 	recursion no;
 	notify no;
@@ -28,7 +24,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.3 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "example" {
@@ -43,4 +39,3 @@ zone "dynamic" {
 	file "dynamic.db.map";
 	allow-update { any; };
 };
-
