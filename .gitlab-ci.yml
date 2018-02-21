@@ -96,6 +96,8 @@ stages:
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
+    - bin/named/named -V
+    - ls -l1 bin/named/named
     - make -k check V=1
   artifacts:
     untracked: true
