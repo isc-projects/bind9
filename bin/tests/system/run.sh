@@ -23,8 +23,13 @@ SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
 stopservers=true
-clean=true
 baseport=5300
+
+if [ ${SYSTEMTEST_NO_CLEAN:-0} -eq 1 ]; then
+	clean=false
+else
+	clean=true
+fi
 
 while getopts "knp:r" flag; do
     case "$flag" in
