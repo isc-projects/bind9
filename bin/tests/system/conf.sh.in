@@ -76,7 +76,7 @@ KRB5_CONFIG=/dev/null
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
-SEQUENTIALDIRS="dlzexternal dnssec ecdsa eddsa \
+SEQUENTIALDIRS="dnssec ecdsa eddsa \
 	gost inline ixfr keepalive legacy limits \
 	logfileconfig masterfile masterformat metadata mkeys \
 	names notify nslookup nsupdate nzd2nzf padding pending \
@@ -94,7 +94,7 @@ SEQUENTIALDIRS="dlzexternal dnssec ecdsa eddsa \
 PARALLELDIRS="acl additional addzone allow_query auth autosign \
                 builtin cacheclean case catz cds chain \
                 checkconf checknames checkzone \
-                cookie database digdelv dlv dlz \
+                cookie database digdelv dlv dlz dlzexternal \
                 dns64 @DNSTAP@ dscp dsdigest dyndb \
                 ednscompliance emptyzones \
                 fetchlimit filter-aaaa formerr forward \
