@@ -47,7 +47,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # the definition of PARALLELDIRS in conf.sh.
 
 PARALLEL = acl additional addzone allow_query auth \
-	   builtin ccacheclean case catz cds checkconf \
+	   builtin cacheclean case catz cds checkconf \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   rpzrecurse serve-stale
 
