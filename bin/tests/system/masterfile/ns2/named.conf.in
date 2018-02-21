@@ -6,17 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.2 2010/09/15 03:32:34 marka Exp $ */
-
 // NS2
-
-controls { /* empty */ };
 
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -40,4 +36,3 @@ zone "missing" {
 	type master;
 	file "missing.db";
 };
-

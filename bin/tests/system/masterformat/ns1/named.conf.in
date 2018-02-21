@@ -8,12 +8,10 @@
 
 // NS1
 
-controls { /* empty */ };
-
 options {
 	pid-file "named.pid";
-	listen-on port 5300 { 10.53.0.1; };
-	port 5300;
+	listen-on port @PORT@ { 10.53.0.1; };
+	port @PORT@;
 	listen-on-v6 { none; };
 	recursion no;
 	notify no;
@@ -28,7 +26,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "example" {
