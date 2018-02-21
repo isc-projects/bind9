@@ -8,11 +8,9 @@
 
 // NS1
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.1;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { fd92:7065:b8e:ffff::1; };
@@ -26,4 +24,3 @@ zone "." {
 	type master;
 	file "root.db";
 };
-
