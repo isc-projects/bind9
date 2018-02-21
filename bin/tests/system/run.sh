@@ -178,7 +178,6 @@ else
     echopass "R:$systest:PASS"
     if $clean
     then
-	rm -f $SYSTEMTESTTOP/random.data
 	$SHELL clean.sh $runall $systest "$@"
 	if test -d ../../../.git
 	then
