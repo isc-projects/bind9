@@ -77,7 +77,7 @@ KRB5_CONFIG=/dev/null
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
 SEQUENTIALDIRS="dlzexternal dnssec ecdsa eddsa \
-	glue gost \
+	gost \
 	inline integrity ixfr keepalive legacy limits \
 	logfileconfig masterfile masterformat metadata mkeys \
 	names notify nslookup nsupdate nzd2nzf padding pending \
@@ -98,7 +98,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
                 cookie database digdelv dlv dlz \
                 dns64 @DNSTAP@ dscp dsdigest dyndb \
                 ednscompliance emptyzones \
-                fetchlimit filter-aaaa formerr forward geoip \
+                fetchlimit filter-aaaa formerr forward geoip glue \
                 @CHECKDS@ @COVERAGE@ @KEYMGR@ \
                 rpzrecurse serve-stale"
 
