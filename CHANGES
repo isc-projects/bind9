@@ -1,3 +1,6 @@
+4895.	[test]		Allow some system tests to run in parallel.
+			[RT #46602]
+
 	--- 9.12.1rc1 released ---
 
 4894.	[bug]		named could crash while rolling a dnstap output file.

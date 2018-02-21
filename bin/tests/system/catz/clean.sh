@@ -9,10 +9,11 @@ rm -f ns*/*.jnl
 rm -f ns*/*.nzf
 rm -f ns*/named.lock
 rm -f ns*/named.memstats
+rm -f ns*/named.conf
 rm -f ns*/named.run
 rm -f ns1/*dom*example.db
 rm -f ns2/__catz__*db
-rm -f ns2/named.conf
+rm -f ns2/named.conf.tmp
 rm -f ns3/dom{13,14}.example.db
 rm -f nsupdate.out.*
 rm -f ns{1,2,3}/catalog{1,2,3,4}.example.db
