@@ -96,7 +96,7 @@ SEQUENTIALDIRS="dlz dlzexternal \
 PARALLELDIRS="acl additional addzone allow_query auth autosign \
                 builtin cacheclean case catz cds chain \
                 checkconf checknames checkzone \
-                cookie database digdelv dlv \
+                cookie database digdelv dlv dlz \
                 @CHECKDS@ @COVERAGE@ @KEYMGR@ \
                 rpzrecurse serve-stale"
 
