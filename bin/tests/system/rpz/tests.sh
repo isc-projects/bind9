@@ -26,6 +26,7 @@ ns7=$ns.7		# another rewriting resolver
 HAVE_CORE=
 
 status=0
+t=0
 
 DEBUG=
 SAVE_RESULTS=
@@ -291,7 +292,8 @@ ckstatsrange () {
 # $1=message  $2=optional test file name
 start_group () {
     ret=0
-    test -n "$1" && date "+I:${TS}checking $1"
+    t=`expr $t + 1`
+    test -n "$1" && date "+I:${TS}checking $1 (${t})"
     TEST_FILE=$2
     if test -n "$TEST_FILE"; then
 	GROUP_NM="-$TEST_FILE"
@@ -730,12 +732,14 @@ if test -n "$EMSGS"; then
     egrep 'invalid rpz|rpz.*failed' ns*/named.run | sed -e '10,$d' -e 's/^/I:  /'
 fi
 
-echo "I:checking that ttl values are not zeroed when qtype is '*'"
-$DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
-ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
+t=`expr $t + 1`
+echo "I:checking that ttl values are not zeroed when qtype is '*' (${t})"
+$DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.$t
+ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.$t`
 if test ${ttl:=0} -eq 0; then setret I:failed; fi
 
 
+t=`expr $t + 1`
 echo "I:checking rpz updates/transfers with parent nodes added after children" \
     | tr -d '\n'
 # regression test for RT #36272: the success condition
@@ -762,22 +766,24 @@ for i in 1 2 3 4 5; do
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
     echo . | tr -d '\n'
 done
-echo
+echo " (${t})"
 
 
-echo "I:checking that going from an empty policy zone works"
+t=`expr $t + 1`
+echo "I:checking that going from an empty policy zone works (${t})"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
 sleep 1
 $RNDCCMD $ns7 reload policy2
-$DIG z.x.servfail -p 5300 @$ns7 > dig.out.ns7
-grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed
+$DIG z.x.servfail -p 5300 @$ns7 > dig.out.${t}
+grep NXDOMAIN dig.out.${t} > /dev/null || setret I:failed
 
 # dnsrps does not allow NS RRs in policy zones, so this check
 # with dnsrps results in no rewriting.
 if [ "$DNSRPS_TEST_MODE" = 1 ]; then
-    echo "I:checking rpz with delegation fails correctly"
-    $DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
-    grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+    t=`expr $t + 1`
+    echo "I:checking rpz with delegation fails correctly (${t})"
+    $DIG -p 5300 @$ns3 ns example.com > dig.out.$t
+    grep "status: SERVFAIL" dig.out.$t > /dev/null || setret "I:failed"
 fi
 
 [ $status -ne 0 ] && pf=fail || pf=pass
