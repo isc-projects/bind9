@@ -9,10 +9,12 @@
 #
 # Clean up after log file tests
 #
+rm -f ns1/rndc.conf
+rm -f ns1/controls.conf
+rm -f ns1/named.conf
 rm -f ns1/named.pid ns1/named.run
 rm -f ns1/named.memstats ns1/dig.out
 rm -f ns1/named_log ns1/named_pipe ns1/named_sym
-rm -f ns1/named.conf
 rm -rf ns1/named_dir
 rm -f ns1/named_deflog
 rm -f ns*/named.lock

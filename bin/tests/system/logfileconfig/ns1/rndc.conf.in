@@ -12,7 +12,7 @@ options {
 
 server 127.0.0.1 {
 	key "rndc-key";
-	addresses   { 127.0.0.1 port 9593; };
+	addresses   { 127.0.0.1 port @CONTROLPORT@; };
 };
 
 key "rndc-key" {
