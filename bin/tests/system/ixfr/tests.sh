@@ -6,9 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: tests.sh,v 1.11 2012/02/22 14:22:54 marka Exp $
-
-
 # WARNING: The test labelled "testing request-ixfr option in view vs zone"
 #          is fragile because it depends upon counting instances of records
 #          in the log file - need a better approach <sdm> - until then,
@@ -141,15 +138,32 @@ if [ $? -ne 0 ]
 then
     echo "I:named-checkzone returned failure on ns3/mytest.db"
 fi
-# modify the master
 #echo "I: digging against master: "
 #$DIG $DIGOPTS @10.53.0.3 -p 5300 a host1.test.
 #echo "I: digging against slave: "
 #$DIG $DIGOPTS @10.53.0.4 -p 5300 a host1.test.
 
+# wait for slave to be stable
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
+	grep -i "hostmaster\.test\..1" dig.out > /dev/null && break
+	sleep 1
+done
+
+# modify the master
 cp ns3/mytest1.db ns3/mytest.db
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
 
+#wait for master to reload load
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.3 SOA test > dig.out
+	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
+	sleep 1
+done
+
+#wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
@@ -181,6 +195,15 @@ echo "I: this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
 
+#wait for master to reload zone
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.3 SOA sub.test > dig.out
+	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
+	sleep 1
+done
+
+#wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG +tcp -p 5300 @10.53.0.4 SOA sub.test > dig.out
@@ -207,6 +230,15 @@ echo "I: this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
 $RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
 
+# wait for master to reload zone
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.3 SOA test > dig.out
+	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
+	sleep 1
+done
+
+# wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
