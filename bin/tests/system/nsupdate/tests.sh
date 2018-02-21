@@ -247,10 +247,14 @@ serial=`$DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 | awk '{print $3}'` ||
 $PERL -e 'exit 1 if abs($ARGV[1] - $ARGV[0]) > 2;' $now $serial || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+ret=0
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     echo_i "running update.pl test"
-    $PERL update_test.pl -s 10.53.0.1 -p ${PORT} update.nil. || status=1
+    {
+      $PERL update_test.pl -s 10.53.0.1 -p ${PORT} update.nil. || ret=1
+    } | cat_i
+    [ $ret -eq 1 ] && { echo_i "failed"; status=1; }
 else
     echo_i "The second part of this test requires the Net::DNS library." >&2
 fi

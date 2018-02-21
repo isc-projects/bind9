@@ -230,6 +230,12 @@ echo_i() {
     done
 }
 
+cat_i() {
+    while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
 #
 # Useful functions in test scripts
 #
