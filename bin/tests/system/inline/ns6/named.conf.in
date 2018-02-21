@@ -6,19 +6,19 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.2 2011/10/25 01:54:21 marka Exp $ */
-
 // NS6
 
 include "../../common/rndc.key";
 
-controls { inet 10.53.0.6 port 9953 allow { any; } keys { rndc_key; }; };
+controls {
+	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 options {
 	query-source address 10.53.0.6;
 	notify-source 10.53.0.6;
 	transfer-source 10.53.0.6;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.6; };
 	listen-on-v6 { none; };

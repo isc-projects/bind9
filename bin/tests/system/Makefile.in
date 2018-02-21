@@ -54,7 +54,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
 	   ednscompliance emptyzones \
 	   fetchlimit filter-aaaa formerr forward \
-	   geoip glue integrity ixfr keepalive \
+	   geoip glue inline integrity ixfr keepalive \
 	   legacy limits logfileconfig \
 	   masterfile masterformat metadata mkeys \
 	   nsupdate reclimit rndc rpzrecurse rrchecker rrl \
