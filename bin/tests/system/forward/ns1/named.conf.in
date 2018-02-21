@@ -1,28 +1,24 @@
 /*
- * Copyright (C) 2000, 2001, 2004, 2007, 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2000, 2001, 2004, 2007, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.11 2007/06/19 23:47:03 tbox Exp $ */
-
-controls { /* empty */ };
-
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
 };
 
 zone "." {
-	type hint;
+	type master;
 	file "root.db";
 };
 
@@ -46,12 +42,12 @@ zone "example4." {
 	file "example.db";
 };
 
-zone "grafted." {
+zone "example5." {
 	type master;
 	file "example.db";
 };
 
-zone "1.0.10.in-addr.arpa." {
-	type master;
-	file "example.db";
+/* A forward zone without forwarders. */
+zone "example6" {
+	type forward;
 };
