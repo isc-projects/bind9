@@ -47,7 +47,8 @@ feature-test@EXEEXT@: feature-test.@O@
 # the definition of PARALLELDIRS in conf.sh.
 
 PARALLEL = acl additional addzone allow_query auth autosign \
-	   builtin cacheclean case catz cds chain checkconf checkzone \
+	   builtin cacheclean case catz cds chain \
+	   checkconf checknames checkzone \
 	   database digdelv \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   rpzrecurse serve-stale
