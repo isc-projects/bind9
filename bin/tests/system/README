@@ -124,7 +124,10 @@ Running All The System Tests
 ---
 To run all the system tests, enter the command:
 
-    sh runall.sh [-n] [numproc]
+    sh runall.sh [-c] [-n] [numproc]
+
+The optional flag "-c" forces colored output (by default system test output is
+not printed in color due to run.sh being piped through "tee").
 
 The optional flag "-n" has the same effect as it does for "run.sh" - it causes
 the retention of all output files from all tests.
@@ -153,6 +156,8 @@ to running make, e.g.
 
     SYSTEMTEST_NO_CLEAN=1 make [-j numproc] test
 
+while setting environment variable SYSTEMTEST_FORCE_COLOR to 1 forces system
+test output to be printed in color.
 
 
 Running Multiple System Test Suites Simultaneously

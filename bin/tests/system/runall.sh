@@ -18,7 +18,9 @@
 # Run all the system tests.
 #
 # Usage:
-#    runall.sh [-n] [numprocesses]
+#    runall.sh [-c] [-n] [numprocesses]
+#
+#   -c          Force colored output.
 #
 #   -n          Noclean.  Keep all output files produced by all tests.  These
 #               can later be removed by running "cleanall.sh".
@@ -31,14 +33,16 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-usage="Usage: ./runall.sh [-n] [numprocesses]"
+usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 
+SYSTEMTEST_FORCE_COLOR=0
 SYSTEMTEST_NO_CLEAN=0
 
-# Handle "-n" switch if present.
+# Handle command line switches if present.
 
-while getopts "n" flag; do
+while getopts "cn" flag; do
     case "$flag" in
+        c) SYSTEMTEST_FORCE_COLOR=1 ;;
         n) SYSTEMTEST_NO_CLEAN=1 ;;
     esac
 done
@@ -64,6 +68,7 @@ fi
 
 # Run the tests.
 
+export SYSTEMTEST_FORCE_COLOR
 export SYSTEMTEST_NO_CLEAN
 
 status=0
