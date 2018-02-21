@@ -1,21 +1,24 @@
 /*
- * Copyright (C) 2010, 2011, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
+include "../../common/rndc.key";
 
-include "../../common/controls.conf";
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 options {
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; 10.53.0.4; };
+	listen-on { 10.53.0.2; 10.53.0.4; 10.53.0.5; };
 	listen-on-v6 { none; };
 	recursion no;
+	new-zones-directory "new-zones";
 };
 
 view internal {
@@ -33,6 +36,16 @@ view internal {
 	zone "policy" {
 		type master;
 		file "normal.db";
+	};
+};
+
+view directory {
+	match-clients { 10.53.0.5; };
+	allow-new-zones yes;
+
+	zone "." {
+		type hint;
+		file "../../common/root.hint";
 	};
 };
 
