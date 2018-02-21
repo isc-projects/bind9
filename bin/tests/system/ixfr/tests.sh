@@ -147,9 +147,27 @@ fi
 #echo_i "digging against slave: "
 #$DIG $DIGOPTS @10.53.0.4 a host1.test.
 
+# wait for slave to be stable
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
+	grep -i "hostmaster\.test\..1" dig.out > /dev/null && break
+	sleep 1
+done
+
+# modify the master
 cp ns3/mytest1.db ns3/mytest.db
 $RNDCCMD 10.53.0.3 reload
 
+#wait for master to reload load
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS +tcp @10.53.0.3 SOA test > dig.out
+	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
+	sleep 1
+done
+
+#wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
@@ -181,6 +199,15 @@ echo_i " this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
 $RNDCCMD 10.53.0.3 reload
 
+#wait for master to reload zone
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG $DIGOPTS +tcp @10.53.0.3 SOA sub.test > dig.out
+	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
+	sleep 1
+done
+
+#wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA sub.test > dig.out
@@ -207,6 +234,15 @@ echo_i " this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
 $RNDCCMD 10.53.0.3 reload
 
+# wait for master to reload zone
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	$DIG +tcp -p 5300 @10.53.0.3 SOA test > dig.out
+	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
+	sleep 1
+done
+
+# wait for slave to transfer zone
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
