@@ -4,11 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
 # test response rate limiting
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
+
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 #set -x
 
@@ -37,7 +38,7 @@ trap 'exit 1' 1 2 15
 ret=0
 setret () {
     ret=1
-    echo "$*"
+    echo_i "$*"
 }
 
 
@@ -77,7 +78,7 @@ burst () {
         eval BURST_DOM="$BURST_DOM_BASE"
         DOMS="$DOMS $BURST_DOM"
     done
-    ARGS="+nocookie +continue +time=1 +tries=1 -p 5300 $* @$ns2 $DOMS"
+    ARGS="+nocookie +continue +time=1 +tries=1 -p ${PORT} $* @$ns2 $DOMS"
     $MDIG $ARGS 2>&1 | tee -a full-$FILENAME | sed -n -e '/^;; AUTHORITY/,/^$/d'			\
 		-e '/^;; ADDITIONAL/,/^$/d'				\
 		-e 's/^[^;].*	\([^	 ]\{1,\}\)$/\1/p'		\
@@ -109,27 +110,27 @@ ck_result() {
     NOERROR=`egrep "^NOERROR$" mdig.out-$1			2>/dev/null | wc -l`
     
     range $ADDRS "$3" 1 ||
-    setret "I:"$ADDRS" instead of $3 '$2' responses for $1" &&
+    setret "$ADDRS instead of $3 '$2' responses for $1" &&
     BAD=yes
     
     range $TC "$4" 1 ||
-    setret "I:"$TC" instead of $4 truncation responses for $1" &&
+    setret "$TC instead of $4 truncation responses for $1" &&
     BAD=yes
     
     range $DROP "$5" 1 ||
-    setret "I:"$DROP" instead of $5 dropped responses for $1" &&
+    setret "$DROP instead of $5 dropped responses for $1" &&
     BAD=yes
     
     range $NXDOMAIN "$6" 1 ||
-    setret "I:"$NXDOMAIN" instead of $6 NXDOMAIN responses for $1" &&
+    setret "$NXDOMAIN instead of $6 NXDOMAIN responses for $1" &&
     BAD=yes
     
     range $SERVFAIL "$7" 1 ||
-    setret "I:"$SERVFAIL" instead of $7 error responses for $1" &&
+    setret "$SERVFAIL instead of $7 error responses for $1" &&
     BAD=yes
 
     range $NOERROR "$8" 1 ||
-    setret "I:"$NOERROR" instead of $8 NOERROR responses for $1" &&
+    setret "$NOERROR instead of $8 NOERROR responses for $1" &&
     BAD=yes
     
     if test -z "$BAD"; then
@@ -147,7 +148,7 @@ ckstats () {
     C=`expr 0$C + 0`
     
     range "$C" $EXPECTED 1 ||
-    setret "I:wrong $LABEL $TYPE statistics of $C instead of $EXPECTED"
+    setret "wrong $LABEL $TYPE statistics of $C instead of $EXPECTED"
 }
 
 
@@ -198,7 +199,7 @@ ck_result 'y*.a3.tld3'	192.0.3.3	10	0	0	0	0	10
 #   as both truncated and NXDOMAIN.
 ck_result 'z*.a4.tld2'	x		0	3	5	5	0	0
 
-$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
+$RNDCCMD $ns2 stats
 ckstats first dropped 36
 ckstats first truncated 21
 
@@ -226,7 +227,7 @@ ck_result a7.tld4	x		0	0	8	0	2	0
 # NODATA responses are counted as the same regardless of qtype.
 ck_result a8.tld2	x		0	2	2	0	0	4
 
-$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
+$RNDCCMD $ns2 stats
 ckstats second dropped 46
 ckstats second truncated 23
 
@@ -242,38 +243,37 @@ burst 60 'all$CNT.a9.tld2'
 
 ck_result 'a*.a9.tld2'	192.0.2.8	50	0	10	0	0	50
 
-$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s $ns2 stats
+$RNDCCMD $ns2 stats
 ckstats final dropped 56
 ckstats final truncated 23
 
 #########
 sec_start
 
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
-$DIG +nocookie +nosearch +time=1 +tries=1 +ignore -p 5300 @$ns4 A a7.tld4 > /dev/null 2>&1
+DIGOPTS="+nocookie +nosearch +time=1 +tries=1 +ignore -p ${PORT}"
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
+$DIG $DIGOPTS @$ns4 A a7.tld4 > /dev/null 2>&1
 
 grep "would limit" ns4/named.run >/dev/null 2>&1 ||
-setret "I: \"would limit\" not found in log file."
+setret "\"would limit\" not found in log file."
 
 $NAMED -gc broken.conf > broken.out 2>&1 & 
 sleep 2
-grep "min-table-size 1" broken.out > /dev/null || setret "I: min-table-size 0 was not changed to 1"
+grep "min-table-size 1" broken.out > /dev/null || setret "min-table-size 0 was not changed to 1"
 
 if [ -f named.pid ]; then
     $KILL `cat named.pid`
-    setret "I: named should not have started, but did"
+    setret "named should not have started, but did"
 fi
 
-echo "I:exit status: $ret"
+echo_i "exit status: $ret"
 [ $ret -eq 0 ] || exit 1
-#[ $ret -ne 0 ] && echo "I:test failure overridden"
-#[ $status -eq 0 ] || exit 1
