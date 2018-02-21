@@ -95,6 +95,9 @@ stages:
   stage: test
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
+    - bin/named/named -V
+    - ls -l1 bin/named/named
+    - find . -name 'lib*.so.*'
   script:
     - make -k check V=1
   artifacts:
