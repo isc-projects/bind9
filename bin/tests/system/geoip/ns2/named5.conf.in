@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,19 +8,16 @@
 
 // NS2
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 127.0.0.1; 10.53.0.2; };
+	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
 	recursion no;
 	geoip-directory "../data";
-	geoip-use-ecs no;
 };
 
 key rndc_key {
@@ -29,19 +26,11 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-acl gAU { geoip db country country AU; };
-acl gUS { geoip db country country US; };
-acl gGB { geoip db country country GB; };
-acl gCA { geoip db country country CA; };
-acl gCL { geoip db country country CL; };
-acl gDE { geoip db country country DE; };
-acl gEH { geoip db country country EH; };
-
 view one {
-	match-clients { gAU; };
+	match-clients { geoip db region region "California"; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -49,7 +38,7 @@ view one {
 };
 
 view two {
-	match-clients { gUS; };
+	match-clients { geoip db region region "British Columbia"; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -57,7 +46,7 @@ view two {
 };
 
 view three {
-	match-clients { gGB; };
+	match-clients { geoip db region region "Oklahoma"; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -65,7 +54,7 @@ view three {
 };
 
 view four {
-	match-clients { gCA; };
+	match-clients { geoip db region country AU; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -73,7 +62,7 @@ view four {
 };
 
 view five {
-	match-clients { gCL; };
+	match-clients { geoip db region region "Colorado"; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -81,7 +70,7 @@ view five {
 };
 
 view six {
-	match-clients { gDE; };
+	match-clients { geoip db region region "Ontario"; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -89,7 +78,7 @@ view six {
 };
 
 view seven {
-	match-clients { gEH; };
+	match-clients { geoip db region country NL; };
 	zone "example" {
 		type master;
 		file "example7.db";
@@ -100,6 +89,6 @@ view none {
 	match-clients { any; };
 	zone "example" {
 		type master;
-		file "examplebogus.db";
+		file "example.db.in";
 	};
 };

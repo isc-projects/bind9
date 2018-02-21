@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,16 +8,14 @@
 
 // NS2
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
-	listen-on-v6 { none; };
+	listen-on-v6 { fd92:7065:b8e:ffff::1; };
 	recursion no;
 	geoip-directory "../data";
 };
@@ -28,11 +26,11 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 view one {
-	match-clients { geoip db country country Australia; };
+	match-clients { geoip city "Redwood City"; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -40,7 +38,7 @@ view one {
 };
 
 view two {
-	match-clients { geoip db country country "United States"; };
+	match-clients { geoip city "Santa Cruz"; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -48,7 +46,7 @@ view two {
 };
 
 view three {
-	match-clients { geoip db country country "United Kingdom"; };
+	match-clients { geoip city "Oklahoma City"; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -56,7 +54,7 @@ view three {
 };
 
 view four {
-	match-clients { geoip db country country Canada; };
+	match-clients { geoip city "Ashland"; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -64,7 +62,7 @@ view four {
 };
 
 view five {
-	match-clients { geoip db country country Chile; };
+	match-clients { geoip city "Atlanta"; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -72,7 +70,7 @@ view five {
 };
 
 view six {
-	match-clients { geoip db country country Germany; };
+	match-clients { geoip city "Morrison"; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -80,7 +78,7 @@ view six {
 };
 
 view seven {
-	match-clients { geoip db country country "Western Sahara"; };
+	match-clients { geoip city "Ketchikan"; };
 	zone "example" {
 		type master;
 		file "example7.db";

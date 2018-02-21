@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,13 +8,11 @@
 
 // NS2
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -28,11 +26,11 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 view one {
-	match-clients { geoip db country country AUS; };
+	match-clients { geoip domain one.de; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -40,7 +38,7 @@ view one {
 };
 
 view two {
-	match-clients { geoip db country country USA; };
+	match-clients { geoip domain two.com; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -48,7 +46,7 @@ view two {
 };
 
 view three {
-	match-clients { geoip db country country GBR; };
+	match-clients { geoip domain three.com; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -56,7 +54,7 @@ view three {
 };
 
 view four {
-	match-clients { geoip db country country CAN; };
+	match-clients { geoip domain four.com; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -64,7 +62,7 @@ view four {
 };
 
 view five {
-	match-clients { geoip db country country CHL; };
+	match-clients { geoip domain five.es; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -72,7 +70,7 @@ view five {
 };
 
 view six {
-	match-clients { geoip db country country DEU; };
+	match-clients { geoip domain six.it; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -80,7 +78,7 @@ view six {
 };
 
 view seven {
-	match-clients { geoip db country country ESH; };
+	match-clients { geoip domain seven.org; };
 	zone "example" {
 		type master;
 		file "example7.db";

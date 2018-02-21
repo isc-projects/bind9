@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,18 +8,17 @@
 
 // NS2
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
-	listen-on-v6 { fd92:7065:b8e:ffff::1; };
+	listen-on { 127.0.0.1; 10.53.0.2; };
+	listen-on-v6 { none; };
 	recursion no;
 	geoip-directory "../data";
+	geoip-use-ecs no;
 };
 
 key rndc_key {
@@ -28,11 +27,19 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+acl gAU { geoip db country country AU; };
+acl gUS { geoip db country country US; };
+acl gGB { geoip db country country GB; };
+acl gCA { geoip db country country CA; };
+acl gCL { geoip db country country CL; };
+acl gDE { geoip db country country DE; };
+acl gEH { geoip db country country EH; };
+
 view one {
-	match-clients { geoip city "Redwood City"; };
+	match-clients { gAU; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -40,7 +47,7 @@ view one {
 };
 
 view two {
-	match-clients { geoip city "Santa Cruz"; };
+	match-clients { gUS; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -48,7 +55,7 @@ view two {
 };
 
 view three {
-	match-clients { geoip city "Oklahoma City"; };
+	match-clients { gGB; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -56,7 +63,7 @@ view three {
 };
 
 view four {
-	match-clients { geoip city "Ashland"; };
+	match-clients { gCA; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -64,7 +71,7 @@ view four {
 };
 
 view five {
-	match-clients { geoip city "Atlanta"; };
+	match-clients { gCL; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -72,7 +79,7 @@ view five {
 };
 
 view six {
-	match-clients { geoip city "Morrison"; };
+	match-clients { gDE; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -80,7 +87,7 @@ view six {
 };
 
 view seven {
-	match-clients { geoip city "Ketchikan"; };
+	match-clients { gEH; };
 	zone "example" {
 		type master;
 		file "example7.db";
@@ -91,6 +98,6 @@ view none {
 	match-clients { any; };
 	zone "example" {
 		type master;
-		file "example.db.in";
+		file "examplebogus.db";
 	};
 };
