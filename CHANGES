@@ -1,3 +1,5 @@
+4896	[test]		Cacheclean system test was not robust. [GL #82]
+
 4895.	[test]		Allow some system tests to run in parallel.
 			[RT #46602]
 
