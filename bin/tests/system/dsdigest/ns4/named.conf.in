@@ -6,39 +6,28 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
-// NS2
+// NS3
 
 controls { /* empty */ };
 
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.4;
+	notify-source 10.53.0.4;
+	transfer-source 10.53.0.4;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
-	recursion no;
-	notify yes;
+	recursion yes;
 	dnssec-enable yes;
 	dnssec-validation yes;
+	/* only SHA-256 is enabled */
+	disable-ds-digests . { SHA-1; GOST; SHA-384; 5; 6; 7; 8; 9; };
 };
 
 zone "." {
 	type hint;
 	file "../../common/root.hint";
-};
-
-zone "good" {
-	type master;
-	file "good.db.signed";
-};
-
-zone "bad" {
-	type master;
-	file "bad.db.signed";
 };
 
 include "trusted.conf";
