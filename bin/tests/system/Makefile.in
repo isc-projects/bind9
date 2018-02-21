@@ -54,7 +54,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   ednscompliance emptyzones \
 	   fetchlimit filter-aaaa formerr forward \
 	   geoip glue integrity ixfr keepalive \
-	   legacy limits masterfile masterformat metadata \
+	   legacy limits masterfile masterformat metadata mkeys \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   rpzrecurse rrchecker serve-stale
 
