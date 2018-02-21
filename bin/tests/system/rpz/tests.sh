@@ -67,7 +67,7 @@ if [ -z "$DNSRPS_TEST_MODE" ]; then
         echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
     else
         echo "I:running native RPZ sub-test"
-	$SHELL ./$0 -D1 $ARGS || status=1
+	$SHELL ./$0 -Dnative $ARGS || status=1
     fi
 
     if [ -e dnsrps-off ]; then
@@ -84,7 +84,7 @@ if [ -z "$DNSRPS_TEST_MODE" ]; then
 	if test -z "`grep '^#skip' dnsrps.conf`"; then
 	    echo "I:running DNSRPS sub-test"
 	    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart .
-	    $SHELL ./$0 $ARGS -D2 || status=1
+	    $SHELL ./$0 $ARGS -Ddnsrps || status=1
         else
             echo "I:DNSRPS sub-test skipped"
 	fi
@@ -160,7 +160,7 @@ get_sn_fast () {
 # $1=domain  $2=DNS server IP address
 FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
 dnsrps_loaded() {
-    test "$DNSRPS_TEST_MODE" = 2 || return
+    test "$DNSRPS_TEST_MODE" = dnsrps || return
     n=0
     for V in $FZONES; do
 	eval "$V"
@@ -187,7 +187,7 @@ dnsrps_loaded() {
 ck_soa() {
     n=0
     while true; do
-	if test "$DNSRPS_TEST_MODE" = 2; then
+	if test "$DNSRPS_TEST_MODE" = dnsrps; then
 	    get_sn_fast "$2"
 	    test "$RSN" -eq "$1" && return
 	else
@@ -560,11 +560,11 @@ addr 12.12.12.12 a4-1.tld2		# 9 prefer QNAME policy to NSDNAME
 addr 127.0.0.1 a3-1.sub3.tld2		# 10 prefer policy for largest NSDNAME
 addr 127.0.0.2 a3-1.subsub.sub3.tld2
 nxdomain xxx.crash1.tld2		# 12 dns_db_detachnode() crash
-if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
     addr 12.12.12.12 as-ns.tld5.	# 13 qname-as-ns
 fi
 end_group
-if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
     ckstats $ns3 test3 ns3 8
 else
     ckstats $ns3 test3 ns3 7
@@ -576,7 +576,7 @@ nxdomain a3-1.tld2			# 1 NXDOMAIN for all of tld2
 nochange a3-2.tld2.			# 2 exempt rewrite by name
 nochange a0-1.tld2.			# 3 exempt rewrite by address block
 nochange a3-1.tld4			# 4 different NS IP address
-if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
     addr 12.12.12.12 as-ns.tld5.	# 5 ip-as-ns
 fi
 end_group
@@ -589,7 +589,7 @@ here a3-1.tld2 TXT <<'EOF'		# 3 text message for all of tld2
     a3-1.tld2.	    x	IN	TXT   "NSIP walled garden"
 EOF
 end_group
-if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
     ckstats $ns3 test4 ns3 5
 else
     ckstats $ns3 test4 ns3 4
@@ -695,7 +695,7 @@ else
     echo "I:performance not checked; queryperf not available"
 fi
 
-if [ "$DNSRPS_TEST_MODE" = 2 ]; then
+if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
     echo "I:checking that dnsrpzd is automatically restarted"
     OLD_PID=`cat dnsrpzd.pid`
     $KILL "$OLD_PID"
@@ -779,7 +779,7 @@ grep NXDOMAIN dig.out.${t} > /dev/null || setret I:failed
 
 # dnsrps does not allow NS RRs in policy zones, so this check
 # with dnsrps results in no rewriting.
-if [ "$DNSRPS_TEST_MODE" = 1 ]; then
+if [ "$DNSRPS_TEST_MODE" = native ]; then
     t=`expr $t + 1`
     echo "I:checking rpz with delegation fails correctly (${t})"
     $DIG -p 5300 @$ns3 ns example.com > dig.out.$t
@@ -788,8 +788,8 @@ fi
 
 [ $status -ne 0 ] && pf=fail || pf=pass
 case $DNSRPS_TEST_MODE in
-        1) echo "I:status (native RPZ sub-test): $status ($pf)";;
-        2) echo "I:status (DNSRPS sub-test): $status ($pf)";;
+        native) echo "I:status (native RPZ sub-test): $status ($pf)";;
+        dnsrps) echo "I:status (DNSRPS sub-test): $status ($pf)";;
     *) echo "I:invalid test mode";;
 esac
 [ $status -eq 0 ] || exit 1
