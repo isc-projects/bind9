@@ -35,8 +35,10 @@ SYSTEMTESTTOP=.
 
 usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 
-SYSTEMTEST_FORCE_COLOR=0
-SYSTEMTEST_NO_CLEAN=0
+# Preserve values of environment variables which are already set.
+
+SYSTEMTEST_FORCE_COLOR=${SYSTEMTEST_FORCE_COLOR:-0}
+SYSTEMTEST_NO_CLEAN=${SYSTEMTEST_NO_CLEAN:-0}
 
 # Handle command line switches if present.
 
