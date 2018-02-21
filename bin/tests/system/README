@@ -151,10 +151,10 @@ A run of all the system tests can also be initiated via make:
     make [-j numproc] test
 
 In this case, retention of the output files after a test completes successfully
-is specified by setting the environment variable NOCLEAN to "-n" prior to
-running make, e.g.
+is specified by setting the environment variable SYSTEMTEST_NO_CLEAN to 1 prior
+to running make, e.g.
 
-    NOCLEAN=-n make [-j numproc] test
+    SYSTEMTEST_NO_CLEAN=1 make [-j numproc] test
 
 
 
@@ -712,7 +712,7 @@ the ports are assigned when the tests are run.  This is achieved by having the
 when "make check" is run, and contains a target for each test of the form:
 
     <test-name>:
-        @$(SHELL) run.sh $$NOCLEAN -r -p <baseport> <test-name>
+        @$(SHELL) run.sh -r -p <baseport> <test-name>
 
 The <baseport> is unique and the values of <baseport> for each test are
 separated by at least 100 ports.
