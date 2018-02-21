@@ -6,17 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.5 2011/02/03 12:18:11 tbox Exp $ */
-
 // NS3
-
-controls { /* empty */ };
 
 options {
 	query-source address 10.53.0.3 dscp 7;
 	notify-source 10.53.0.3 dscp 8;
 	transfer-source 10.53.0.3 dscp 9;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
@@ -25,15 +21,6 @@ options {
 	dnssec-enable yes;
 	dnssec-validation yes;
 };
-
-/*
-zone "." {
-	type master;
-	file "root.db.signed";
-};
-*/
-
-// include "trusted.conf";
 
 zone "example" {
 	type master;

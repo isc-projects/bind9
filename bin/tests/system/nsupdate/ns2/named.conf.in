@@ -6,15 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.16 2011/05/06 23:47:29 tbox Exp $ */
-
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2 dscp 4;
 	notify-source 10.53.0.2 dscp 5;
 	transfer-source 10.53.0.2 dscp 6;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };

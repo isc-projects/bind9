@@ -78,7 +78,7 @@ KRB5_CONFIG=/dev/null
 # be run sequentially.
 SEQUENTIALDIRS="dnssec ecdsa eddsa gost inline \
 	logfileconfig \
-	names notify nslookup nsupdate nzd2nzf padding pending \
+	names notify nslookup nzd2nzf padding pending \
 	pipelined @PKCS11_TEST@ reclimit redirect resolver rndc \
 	rpz rrl rrsetorder rsabigexponent \
 	runtime sfcache smartsign sortlist spf staticstub \
@@ -93,13 +93,14 @@ SEQUENTIALDIRS="dnssec ecdsa eddsa gost inline \
 PARALLELDIRS="acl additional addzone allow_query auth autosign \
 	builtin cacheclean case catz cds chain \
 	checkconf checknames checkzone \
+	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
 	dns64 @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue integrity ixfr keepalive \
         legacy limits masterfile masterformat metadata mkeys \
-	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
+        nsupdate \
 	rpzrecurse rrchecker serve-stale"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
