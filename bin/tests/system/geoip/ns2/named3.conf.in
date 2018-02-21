@@ -8,13 +8,11 @@
 
 // NS2
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -28,11 +26,11 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.2 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 view one {
-	match-clients { geoip org "One Systems, Inc."; };
+	match-clients { geoip db country country Australia; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -40,7 +38,7 @@ view one {
 };
 
 view two {
-	match-clients { geoip org "Two Technology Ltd."; };
+	match-clients { geoip db country country "United States"; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -48,7 +46,7 @@ view two {
 };
 
 view three {
-	match-clients { geoip org "Three Network Labs"; };
+	match-clients { geoip db country country "United Kingdom"; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -56,7 +54,7 @@ view three {
 };
 
 view four {
-	match-clients { geoip org "Four University"; };
+	match-clients { geoip db country country Canada; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -64,7 +62,7 @@ view four {
 };
 
 view five {
-	match-clients { geoip org "Five Telecom"; };
+	match-clients { geoip db country country Chile; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -72,7 +70,7 @@ view five {
 };
 
 view six {
-	match-clients { geoip org "Six Company"; };
+	match-clients { geoip db country country Germany; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -80,7 +78,7 @@ view six {
 };
 
 view seven {
-	match-clients { geoip org "Seven Communications"; };
+	match-clients { geoip db country country "Western Sahara"; };
 	zone "example" {
 		type master;
 		file "example7.db";
