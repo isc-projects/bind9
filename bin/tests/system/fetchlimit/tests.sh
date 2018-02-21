@@ -9,8 +9,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGCMD="$DIG @10.53.0.3 -p 5300 +tries=1 +time=1"
-RNDCCMD="$RNDC -p 9953 -s 10.53.0.3 -c ../common/rndc.conf"
+DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tries=1 +time=1"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -s 10.53.0.3 -c ../common/rndc.conf"
 
 burst() {
     num=${3:-20}
@@ -19,21 +19,21 @@ burst() {
         num=`expr $num - 1`
         echo "${num}${1}${2}.lamesub.example A" >> burst.input.$$
     done
-    $PERL ../ditch.pl -p 5300 -s 10.53.0.3 burst.input.$$
+    $PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
     rm -f burst.input.$$
 }
 
 stat() {
     clients=`$RNDCCMD status | grep "recursive clients" | 
             sed 's;.*: \([^/][^/]*\)/.*;\1;'`
-    echo "I: clients: $clients"
+    echo_i "clients: $clients"
     [ "$clients" = "" ] && return 1
     [ "$clients" -le $1 ]
 }
 
 status=0
 
-echo "I: checking recursing clients are dropped at the per-server limit"
+echo_i "checking recursing clients are dropped at the per-server limit"
 ret=0
 # make the server lame and restart
 $RNDCCMD flush
@@ -47,18 +47,19 @@ for try in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
     [ $ret -eq 1 ] && break
     sleep 1
 done
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I: dumping ADB data"
+echo_i "dumping ADB data"
 $RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/I: \1 \2/'`
-echo $info
+info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+echo_i $info
 set -- $info
 quota=$5
 [ ${5:-200} -lt 200 ] || ret=1
 
-echo "I: checking servfail statistics"
+echo_i "checking servfail statistics"
+ret=0
 rm -f ns3/named.stats
 $RNDCCMD stats
 for try in 1 2 3 4 5; do
@@ -70,10 +71,10 @@ sspill=`grep 'spilled due to server' ns3/named.stats | sed 's/\([0-9][0-9]*\) sp
 fails=`grep 'queries resulted in SERVFAIL' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
 [ -z "$fails" ] && fails=0
 [ "$fails" -ge "$sspill" ] || ret=1
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I: checking lame server recovery"
+echo_i "checking lame server recovery"
 ret=0
 rm -f ans4/norespond
 for try in 1 2 3 4 5; do
@@ -83,10 +84,10 @@ for try in 1 2 3 4 5; do
     sleep 1
 done
 
-echo "I: dumping ADB data"
+echo_i "dumping ADB data"
 $RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/I: \1 \2/'`
-echo $info
+info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+echo_i $info
 set -- $info
 [ ${5:-${quota}} -lt $quota ] || ret=1
 quota=$5
@@ -98,23 +99,23 @@ for try in 1 2 3 4 5 6 7 8 9 10; do
     sleep 1
 done
 
-echo "I: dumping ADB data"
+echo_i "dumping ADB data"
 $RNDCCMD dumpdb -adb
-info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/I: \1 \2/'`
-echo $info
+info=`grep '10.53.0.4' ns3/named_dump.db | sed 's/.*\(atr [.0-9]*\).*\(quota [0-9]*\).*/\1 \2/'`
+echo_i $info
 set -- $info
 [ ${5:-${quota}} -gt $quota ] || ret=1
 quota=$5
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-cp -f ns3/named2.conf ns3/named.conf
+copy_setports ns3/named2.conf.in ns3/named.conf
 $RNDCCMD reconfig 2>&1 | sed 's/^/I:ns3 /'
 
-echo "I: checking lame server clients are dropped at the per-domain limit"
+echo_i "checking lame server clients are dropped at the per-domain limit"
 ret=0
 fail=0
 success=0
@@ -131,11 +132,11 @@ for try in 1 2 3 4 5; do
     $RNDCCMD recursing 2>&1 | sed 's/^/I:ns3 /'
     sleep 1
 done
-echo "I: $success successful valid queries, $fail SERVFAIL"
-if [ $ret != 0 ]; then echo "I: failed"; fi
+echo_i "$success successful valid queries, $fail SERVFAIL"
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I: checking drop statistics"
+echo_i "checking drop statistics"
 rm -f ns3/named.stats
 $RNDCCMD stats
 for try in 1 2 3 4 5; do
@@ -147,20 +148,20 @@ zspill=`grep 'spilled due to zone' ns3/named.stats | sed 's/\([0-9][0-9]*\) spil
 drops=`grep 'queries dropped' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
 [ -z "$drops" ] && drops=0
 [ "$drops" -ge "$zspill" ] || ret=1
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-cp -f ns3/named3.conf ns3/named.conf
+copy_setports ns3/named3.conf.in ns3/named.conf
 $RNDCCMD reconfig 2>&1 | sed 's/^/I:ns3 /'
 
-echo "I: checking lame server clients are dropped at the soft limit"
+echo_i "checking lame server clients are dropped at the soft limit"
 ret=0
 fail=0
 success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
-    $DIG @10.53.0.3 -p 5300 a ${try}.example > dig.out.ns3.$try
+    $DIG @10.53.0.3 -p ${PORT}  a ${try}.example > dig.out.ns3.$try
     stat 360 || ret=1
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=`expr $success + 1`
@@ -169,10 +170,10 @@ for try in 1 2 3 4 5; do
     [ $ret -eq 1 ] && break
     sleep 1
 done
-echo "I: $success successful valid queries, $fail SERVFAIL"
+echo_i "$success successful valid queries, $fail SERVFAIL"
 [ "$success" -eq 5 ] || ret=1
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
