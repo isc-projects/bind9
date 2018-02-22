@@ -82,7 +82,7 @@ SEQUENTIALDIRS="ecdsa eddsa gost \
 	rpz rrsetorder rsabigexponent \
 	sortlist spf staticstub \
 	statistics statschannel stub synthfromdnssec tcp tkey tools \
-	tsiggss unknown upforwd verify wildcard xfer \
+	tsiggss unknown upforwd verify wildcard \
 	xferquota zero zonechecks"
 
 # List of tests that use ports assigned by caller (other than 5300
@@ -103,7 +103,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
         masterfile masterformat metadata mkeys \
         names notify nslookup nsupdate \
         reclimit redirect resolver rndc rpzrecurse rrchecker rrl runtime \
-        serve-stale sfcache smartsign tsig views"
+        serve-stale sfcache smartsign tsig views xfer"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
