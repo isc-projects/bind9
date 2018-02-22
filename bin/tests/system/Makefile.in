@@ -56,7 +56,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   fetchlimit filter-aaaa formerr forward \
 	   geoip glue inline integrity ixfr keepalive \
 	   legacy limits logfileconfig \
-	   masterfile masterformat metadata mkeys nsupdate \
+	   masterfile masterformat metadata mkeys names nsupdate \
 	   reclimit redirect resolver rndc rpzrecurse rrchecker rrl runtime \
 	   serve-stale sfcache smartsign views
 
