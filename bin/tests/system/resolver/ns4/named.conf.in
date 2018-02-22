@@ -6,17 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.6 2012/02/09 23:47:18 tbox Exp $ */
-
 // NS4
-
-controls { /* empty */ };
 
 options {
 	query-source address 10.53.0.4 dscp 4;
 	notify-source 10.53.0.4 dscp 5;
 	transfer-source 10.53.0.4 dscp 6;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
@@ -57,5 +53,5 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.4 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
