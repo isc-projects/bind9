@@ -1,4 +1,4 @@
-XXXX.   [func]          Remove libseccomp based system-call filtering [GL #93]
+4898.	[func]		Remove libseccomp based system-call filtering. [GL #93]
 
 4897.	[test]		Update to rpz system test so that it doesn't recurse.
 			[GL #68]

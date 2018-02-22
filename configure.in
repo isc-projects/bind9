@@ -106,8 +106,6 @@ yes)
 	;;
 esac
 
-AC_CHECK_FUNCS(getrandom)
-
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
