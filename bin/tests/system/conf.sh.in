@@ -74,10 +74,10 @@ KRB5_CONFIG=/dev/null
 # The "dialup" and "delzone" tests are also not run by default because
 # they take a very long time to complete.
 #
-# List of tests that use ports 5300 and 9953.  For this reason, these must
-# be run sequentially.
+# List of tests hard-coded to use ports 5300 and 9953. For this
+# reason, these must be run sequentially.
 SEQUENTIALDIRS="ecdsa eddsa gost \
-	notify nslookup nzd2nzf padding pending \
+	nslookup nzd2nzf padding pending \
 	pipelined @PKCS11_TEST@ \
 	rpz rrsetorder rsabigexponent \
 	sortlist spf staticstub \
@@ -85,8 +85,9 @@ SEQUENTIALDIRS="ecdsa eddsa gost \
 	tsiggss unknown upforwd verify wildcard xfer \
 	xferquota zero zonechecks"
 
-# List of tests that use unique ports (other than 5300 and 9953). These
-# tests can be run in parallel.
+# List of tests that use ports assigned by caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
 PARALLELDIRS="acl additional addzone allow_query auth autosign \
@@ -99,7 +100,8 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue inline integrity ixfr keepalive \
 	legacy limits logfileconfig \
-        masterfile masterformat metadata mkeys names nsupdate \
+        masterfile masterformat metadata mkeys \
+        names notify nsupdate \
         reclimit redirect resolver rndc rpzrecurse rrchecker rrl runtime \
         serve-stale sfcache smartsign tsig views"
 

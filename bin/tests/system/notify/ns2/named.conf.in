@@ -6,13 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -21,7 +19,14 @@ options {
 	startup-notify-rate 5;
 };
 
-include "../../common/controls.conf";
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 zone "." {
 	type hint;
@@ -37,7 +42,7 @@ zone "example" {
 
 masters noport { 10.53.0.4; };
 
-masters x21 port 5301 { noport; };
+masters x21 port @EXTRAPORT1@ { noport; };
 
 zone x1 { type master; file "generic.db"; also-notify { 10.53.0.3; }; };
 zone x2 { type master; file "generic.db"; also-notify { 10.53.0.3; }; };
