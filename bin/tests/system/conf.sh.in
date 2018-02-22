@@ -76,7 +76,7 @@ KRB5_CONFIG=/dev/null
 #
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
-SEQUENTIALDIRS="ecdsa eddsa gost @PKCS11_TEST@ rpz tkey"
+SEQUENTIALDIRS="ecdsa eddsa gost @PKCS11_TEST@ tkey"
 
 # List of tests that use ports assigned by caller (other than 5300
 # and 9953). Because separate blocks of ports can be used for teach
@@ -96,7 +96,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
         masterfile masterformat metadata mkeys \
         names notify nslookup nsupdate nzd2nzf \
         padding pending pipelined \
-        reclimit redirect resolver rndc rpzrecurse \
+        reclimit redirect resolver rndc rpz rpzrecurse \
         rrchecker rrlrrsetorder rsabigexponent runtime \
         serve-stale sfcache smartsign sortlist \
         spf staticstub statistics statschannel stub synthfromdnssec \

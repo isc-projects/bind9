@@ -33,6 +33,16 @@ fi
 
 [ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
 
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf
+
+copy_setports dnsrpzd.conf.in dnsrpzd.conf
+
 # decide whether to test DNSRPS
 # Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
 # and differ from dnsrpz.conf which is used by dnsrpzd.

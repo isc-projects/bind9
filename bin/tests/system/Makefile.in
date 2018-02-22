@@ -62,7 +62,7 @@ PARALLEL = allow_query rpzrecurse serve-stale \
 	   masterfile masterformat metadata mkeys \
 	   names notify nslookup nsupdate nzd2nzf \
 	   padding pending pipelined \
-	   reclimit redirect resolver rndc \
+	   reclimit redirect resolver rndc rpz \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
 	   sfcache smartsign sortlist \
 	   spf staticstub statistics statschannel stub synthfromdnssec \

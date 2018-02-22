@@ -10,7 +10,7 @@ options {
 	query-source address 10.53.0.7;
 	notify-source 10.53.0.7;
 	transfer-source 10.53.0.7;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	statistics-file "named.stats";
 	session-keyfile "session.key";
@@ -36,7 +36,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.7 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.7 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 include "../trusted.conf";
@@ -45,7 +45,7 @@ zone "policy2" {
 	type slave;
 	masters { 10.53.0.5; };
 	file "policy2.db";
-	also-notify { 10.53.0.3 port 5301; };
+	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
 	notify-delay 0;
 	allow-transfer  { any; };
 	request-ixfr no; // force axfr on rndc reload

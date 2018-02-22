@@ -10,7 +10,7 @@ options {
 	query-source address 10.53.0.6;
 	notify-source 10.53.0.6;
 	transfer-source 10.53.0.6;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	statistics-file "named.stats";
 	session-keyfile "session.key";
@@ -37,7 +37,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.6 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 include "../trusted.conf";
@@ -46,7 +46,7 @@ zone "policy1" {
 	type slave;
 	masters { 10.53.0.5; };
 	file "empty.db";
-	also-notify { 10.53.0.3 port 5301; };
+	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
 	notify-delay 0;
 	allow-transfer  { any; };
 };

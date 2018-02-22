@@ -14,5 +14,8 @@ rm -f */named.memstats */*.run */named.stats */session.key
 rm -f */*.log */*.jnl */*core */*.pid
 rm -f */policy2.db
 rm -f ns*/named.lock
+rm -f ns*/named.conf
 rm -f dnsrps*.conf
+rm -f dnsrpzd.conf
 rm -f dnsrpzd-license-cur.conf dnsrpzd.rpzf dnsrpzd.sock dnsrpzd.pid
+rm -f tmp

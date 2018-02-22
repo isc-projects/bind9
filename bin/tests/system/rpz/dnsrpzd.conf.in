@@ -13,8 +13,8 @@ pid-file ../dnsrpzd.pid
 include ../dnsrpzd-license-cur.conf
 
 # configure NOTIFY and zone transfers
-port 5301;
-listen-on port 5301 { 10.53.0.3; };
+port @EXTRAPORT1@;
+listen-on port @EXTRAPORT1@ { 10.53.0.3; };
 allow-notify { 10.53.0.0/24; };
 
 zone "bl0"		{type master; file "../ns5/bl.db"; };
@@ -38,20 +38,20 @@ zone "bl17"		{type master; file "../ns5/bl.db"; };
 zone "bl18"		{type master; file "../ns5/bl.db"; };
 zone "bl19"		{type master; file "../ns5/bl.db"; };
 
-zone "bl"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-2"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-given"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-passthru"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-no-op"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-disabled"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-nodata"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-nxdomain"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-cname"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-wildcname"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-garden"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-drop"		{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl-tcp-only"	{type slave; masters port 5300 { 10.53.0.3; }; };
-zone "bl.tld2"		{type slave; masters port 5300 { 10.53.0.3; }; };
+zone "bl"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-2"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-given"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-passthru"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-no-op"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-disabled"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-nodata"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-nxdomain"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-cname"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-wildcname"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-garden"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-drop"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl-tcp-only"	{type slave; masters port @PORT@ { 10.53.0.3; }; };
+zone "bl.tld2"		{type slave; masters port @PORT@ { 10.53.0.3; }; };
 
-zone "policy1"		{type slave; masters port 5300 { 10.53.0.6; }; };
-zone "policy2"		{type slave; masters port 5300 { 10.53.0.7; }; };
+zone "policy1"		{type slave; masters port @PORT@ { 10.53.0.6; }; };
+zone "policy2"		{type slave; masters port @PORT@ { 10.53.0.7; }; };
