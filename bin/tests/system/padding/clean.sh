@@ -9,3 +9,4 @@ rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns*/named.stats
 rm -f ns*/named.lock
+rm -f ns*/named.conf

@@ -6,18 +6,22 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
-
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	port 5300;
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
+	port @PORT@;
+	directory ".";
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
-	recursion no;
+	recursion yes;
 	notify yes;
+};
+
+server 10.53.0.2 {
+	tcp-only yes;
+	padding 64;
 };
 
 key rndc_key {
@@ -26,10 +30,10 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." {
-	type master;
-	file "root.db";
+	type hint;
+	file "../../common/root.hint";
 };
