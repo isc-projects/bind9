@@ -64,7 +64,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   serve-stale sfcache smartsign sortlist \
 	   spf staticstub statistics statschannel stub synthfromdnssec \
 	   tcp tsig tsiggss unknown upforwd verify views wildcard \
-	   xfer xferquota
+	   xfer xferquota zero
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
