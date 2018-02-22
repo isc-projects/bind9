@@ -222,19 +222,5 @@ nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(T
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-n=`expr $n + 1`
-echo "I:check flushtree clears adb correctly ($n)"
-ret=0
-load_cache
-dump_cache
-mv ns2/named_dump.db.$n ns2/named_dump.db.$n.a
-sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.a | grep 'ns.flushtest.example' > /dev/null 2>&1 || ret=1
-$RNDC $RNDCOPTS flushtree flushtest.example || ret=1
-dump_cache
-mv ns2/named_dump.db.$n ns2/named_dump.db.$n.b
-sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.b | grep 'ns.flushtest.example' > /dev/null 2>&1 && ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
-status=`expr $status + $ret`
-
 echo "I:exit status: $status"
 [ $status -eq 0 ] || exit 1
