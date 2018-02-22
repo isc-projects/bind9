@@ -57,7 +57,7 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   geoip glue inline integrity ixfr keepalive \
 	   legacy limits logfileconfig \
 	   masterfile masterformat metadata mkeys \
-	   names notify nslookup nsupdate padding pending \
+	   names notify nslookup nsupdate padding pending pipelined \
 	   reclimit redirect resolver rndc rpzrecurse rrchecker rrl runtime \
 	   serve-stale sfcache smartsign tsig views xfer
 
