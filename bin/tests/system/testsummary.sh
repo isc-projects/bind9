@@ -39,7 +39,7 @@ fi
 
 status=0
 echo "I:System test result summary:"
-grep '^R:' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'
-grep '^R:[^:]*:FAIL' systests.output > /dev/null && status=1
+grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'
+grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output > /dev/null && status=1
 
 exit $status
