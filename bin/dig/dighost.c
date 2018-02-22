@@ -160,10 +160,6 @@ static void idn_initialize(void);
 static isc_result_t idn_locale_to_ace(const char *from,
 		char *to,
 		size_t tolen);
-
-#ifdef WITH_IDNKIT
-static isc_result_t idnkit_initialize(void);
-#endif
 #endif /* WITH_IDN_SUPPORT */
 
 #ifdef WITH_IDN_OUT_SUPPORT
@@ -178,9 +174,6 @@ static isc_result_t output_filter(isc_buffer_t *buffer,
 #ifdef WITH_IDNKIT
 int idnoptions = 0;
 #endif
-static isc_result_t idn_ace_to_locale(const char *from,
-		char *to,
-		size_t tolen);
 #endif /* WITH_IDN_OUT_SUPPORT */
 
 isc_socket_t *keep = NULL;
@@ -1542,6 +1535,11 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 
 		copy_server_list(lwconf, &server_list);
 	}
+
+#ifdef HAVE_SETLOCALE
+	/* Set locale */
+	(void)setlocale(LC_ALL, "");
+#endif
 
 #ifdef WITH_IDN_SUPPORT
 	idn_initialize();
@@ -4646,25 +4644,6 @@ destroy_libs(void) {
 		isc_mem_destroy(&mctx);
 }
 
-#ifdef WITH_IDN_SUPPORT
-static void
-idn_initialize(void) {
-#ifdef WITH_IDNKIT
-	isc_result_t result;
-#endif
-
-#ifdef HAVE_SETLOCALE
-	/* Set locale */
-	(void)setlocale(LC_ALL, "");
-#endif
-
-#ifdef WITH_IDNKIT
-	/* Create configuration context. */
-	result = idnkit_initialize();
-	check_result(result, "idnkit initializationt");
-#endif
-}
-
 #ifdef WITH_IDN_OUT_SUPPORT
 static isc_result_t
 output_filter(isc_buffer_t *buffer, unsigned int used_org,
@@ -4722,6 +4701,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 }
 #endif
 
+#ifdef WITH_IDN_SUPPORT
 #ifdef WITH_IDNKIT
 static void
 idnkit_check_result(idn_result_t result, const char *msg) {
@@ -4730,10 +4710,11 @@ idnkit_check_result(idn_result_t result, const char *msg) {
 	}
 }
 
-static isc_result_t
-idnkit_initialize(void) {
+static void
+idn_initialize(void) {
 	idn_result_t result;
 
+	/* Create configuration context. */
 	result = idn_nameinit(1);
 	idnkit_check_result(result, "idnkit api initialization failed");
 	return (ISC_R_SUCCESS);
@@ -4770,6 +4751,10 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 #endif /* WITH_IDNKIT */
 
 #ifdef WITH_LIBIDN2
+static void
+idn_initialize(void) {
+}
+
 static isc_result_t
 idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	int res;
