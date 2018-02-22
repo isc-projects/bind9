@@ -8,7 +8,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 if [ -z "$NZD" ]; then
-        echo "I:This test requires LMBD support (--with-lmdb)"
+        echo_i "This test requires LMDB support (--with-lmdb)"
         exit 255
 fi
 
