@@ -52,6 +52,12 @@ EOF
 status=0
 echo "I:System test result summary:"
 grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'
-grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output > /dev/null && status=1
+
+FAILED_TESTS=`grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/      /'`
+if [ -n "${FAILED_TESTS}" ]; then
+	echo "I:The following system tests failed:"
+	echo "${FAILED_TESTS}" | sed -e 's/^/I:/'
+	status=1
+fi
 
 exit $status
