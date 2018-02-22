@@ -44,7 +44,7 @@ parser_test@EXEEXT@: parser_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS
 				${ISCLIBS} ${LIBS}
 
 unit::
-	sh ${top_srcdir}/unit/unittest.sh
+	sh ${top_builddir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}
