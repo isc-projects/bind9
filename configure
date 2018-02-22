@@ -989,7 +989,6 @@ enable_warn_shadow
 enable_warn_error
 enable_developer
 enable_afl
-enable_seccomp
 with_python
 with_python_install_dir
 enable_kqueue
@@ -1699,8 +1698,6 @@ Optional Features:
   --enable-warn-error     turn on -Werror when compiling
   --enable-developer      enable developer build settings
   --enable-afl            enable American Fuzzy Lop test harness [default=no]
-  --enable-seccomp        enable support for libseccomp system call filtering
-                          [default=no]
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
@@ -12014,8 +12011,6 @@ yes)
 	;;
 esac
 
-
-#libseccomp sandboxing
 for ac_func in getrandom
 do :
   ac_fn_c_check_func "$LINENO" "getrandom" "ac_cv_func_getrandom"
@@ -12027,141 +12022,6 @@ _ACEOF
 fi
 done
 
-# Check whether --enable-seccomp was given.
-if test "${enable_seccomp+set}" = set; then :
-  enableval=$enable_seccomp;
-fi
-
-case "$enable_seccomp" in
-	yes)
-	case $host_os in
-	linux*)
-		;;
-	*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: seccomp is not supported on non-linux platforms; disabling it" >&5
-$as_echo "$as_me: WARNING: seccomp is not supported on non-linux platforms; disabling it" >&2;}
-		enable_seccomp=no
-		;;
-	esac
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing seccomp_init" >&5
-$as_echo_n "checking for library containing seccomp_init... " >&6; }
-if ${ac_cv_search_seccomp_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char seccomp_init ();
-int
-main ()
-{
-return seccomp_init ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' seccomp; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_seccomp_init=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_seccomp_init+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_seccomp_init+:} false; then :
-
-else
-  ac_cv_search_seccomp_init=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_seccomp_init" >&5
-$as_echo "$ac_cv_search_seccomp_init" >&6; }
-ac_res=$ac_cv_search_seccomp_init
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-	if test "X$ac_cv_search_seccomp_init" = "X-lseccomp" ; then
-		if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-		#include <stdio.h>
-		#include <stdlib.h>
-		#include <errno.h>
-		#include <sys/prctl.h>
-		#include <linux/seccomp.h>
-
-		int main(void)
-		{
-			int ret;
-
-			ret = prctl(PR_GET_SECCOMP, 0, 0, 0, 0);
-			if (ret < 0) {
-				switch (errno) {
-				case ENOSYS:
-					return 1;
-				case EINVAL:
-					return 1;
-				default:
-					return 1;
-				}
-			}
-			ret =
-			prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
-			if (ret < 0) {
-				switch (errno) {
-				case EINVAL:
-					return 1;
-				case EFAULT:
-					return 0;
-				default:
-					return 1;
-			}
-		}
-	return 1;
-	}
-
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-
-$as_echo "#define HAVE_LIBSECCOMP 1" >>confdefs.h
-
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-	fi
-		;;
-	*)
-		;;
-esac
 
 #
 # Make very sure that these are the first files processed by
@@ -26725,8 +26585,6 @@ report() {
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-    test "yes" = "$enable_seccomp" && \
-	echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
     test "minimal" = "$want_symtable" && \
@@ -26793,8 +26651,6 @@ report() {
     test "yes" = "$want_crypto_rand" || \
 	echo "    Crypto provider entropy source (--enable-crypto-rand)"
 
-    test "yes" = "$enable_seccomp" || \
-	echo "    Use libseccomp system call filtering (--enable-seccomp)"
     test "yes" = "$want_backtrace" || \
 	echo "    Print backtrace on crash (--enable-backtrace)"
     test "yes" = "$want_querytrace" || \
