@@ -44,9 +44,12 @@ feature-test@EXEEXT@: feature-test.@O@
 # used.
 
 # Define the tests that can be run in parallel.  This should be identical to
-# the definition of PARALLELDIRS in conf.sh.
+# the definition of PARALLELDIRS in conf.sh. Note: long-running tests
+# such as allow_query and serve-stale are scheduled first to get more
+# benefit from parallelism.
 
-PARALLEL = acl additional addzone allow_query auth autosign \
+PARALLEL = allow_query rpzrecurse serve-stale \
+	   acl additional addzone auth autosign \
 	   builtin cacheclean case catz cds chain \
 	   checkconf checknames checkzone \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
@@ -59,9 +62,9 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   masterfile masterformat metadata mkeys \
 	   names notify nslookup nsupdate nzd2nzf \
 	   padding pending pipelined \
-	   reclimit redirect resolver rndc rpz rpzrecurse \
+	   reclimit redirect resolver rndc rpz \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
-	   serve-stale sfcache smartsign sortlist \
+	   sfcache smartsign sortlist \
 	   spf staticstub statistics statschannel stub synthfromdnssec \
 	   tcp tools tsig tsiggss \
 	   unknown upforwd verify views wildcard \
