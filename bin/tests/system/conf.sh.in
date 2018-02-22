@@ -79,7 +79,7 @@ KRB5_CONFIG=/dev/null
 SEQUENTIALDIRS="ecdsa eddsa gost \
 	@PKCS11_TEST@ rpz \
 	tkey tools \
-	verify wildcard \
+	verify \
 	xferquota zero zonechecks"
 
 # List of tests that use ports assigned by caller (other than 5300
@@ -104,7 +104,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
         rrchecker rrlrrsetorder rsabigexponent runtime \
         serve-stale sfcache smartsign sortlist \
         spf staticstub statistics statschannel stub synthfromdnssec \
-        tcp tsig tsiggss unknown upforwd views xfer"
+        tcp tsig tsiggss unknown upforwd verify views wildcard xfer"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
