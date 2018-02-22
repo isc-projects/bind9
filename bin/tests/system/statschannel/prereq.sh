@@ -12,7 +12,7 @@ if $PERL -e 'use File::Fetch;' 2>/dev/null
 then
         :
 else
-    echo "I:This test requires the File::Fetch library." >&2
+    echo_i "This test requires the File::Fetch library." >&2
     fail=1
 fi
 

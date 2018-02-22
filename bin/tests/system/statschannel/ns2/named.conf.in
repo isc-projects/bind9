@@ -6,13 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
 	transfer-source 10.53.0.2;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
@@ -22,9 +20,16 @@ options {
 	version none;  // make statistics independent of the version number
 };
 
-statistics-channels { inet 10.53.0.2 port 8853 allow { localhost; }; };
+statistics-channels { inet 10.53.0.2 port @EXTRAPORT1@ allow { localhost; }; };
 
-include "../../common/controls.conf";
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 zone "example" {
 	type master;
