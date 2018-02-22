@@ -78,6 +78,13 @@
 	  to generate these keys. [RT #46404]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>configure --enable-seccomp</command> option,
+	  which formerly turned on system-call filtering on Linux, has
+	  been removed. [GL #93]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

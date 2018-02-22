@@ -1163,7 +1163,6 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, ISC_TRUE);
 
 	named_g_server->sctx->delay = delay;
-
 }
 
 static void
