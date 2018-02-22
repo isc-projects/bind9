@@ -61,7 +61,8 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   padding pending pipelined \
 	   reclimit redirect resolver rndc rpzrecurse \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
-	   serve-stale sfcache smartsign tsig views xfer
+	   serve-stale sfcache smartsign sortlist \
+	   tsig views xfer
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just
