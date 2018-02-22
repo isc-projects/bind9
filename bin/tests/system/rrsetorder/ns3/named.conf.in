@@ -6,15 +6,11 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.5 2007/06/18 23:47:30 tbox Exp $ */
-
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
 	transfer-source 10.53.0.3;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
@@ -33,4 +29,3 @@ zone "." {
 	type hint;
 	file "../../common/root.hint";
 };
-

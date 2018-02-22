@@ -1,26 +1,21 @@
 /*
- * Copyright (C) 2006, 2007, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2006, 2007, 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.4 2007/06/19 23:47:05 tbox Exp $ */
-
-controls { /* empty */ };
-
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
-	notify yes;
-	// flush-zones-on-shutdown yes;
+	notify no;
 	rrset-order {
 		name "fixed.example" order fixed;
 		name "random.example" order random;
@@ -31,7 +26,8 @@ options {
 };
 
 zone "." {
-	type slave;
-	masters { 10.53.0.1; };
-	file "root.bk";
+	type master;
+	file "root.db";
+	notify explicit;
+	also-notify { 10.53.0.2; };
 };
