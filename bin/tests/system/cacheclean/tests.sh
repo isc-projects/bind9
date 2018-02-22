@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: tests.sh,v 1.10 2011/09/01 05:28:14 marka Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -221,11 +219,19 @@ ret=0
 load_cache
 dump_cache
 mv ns2/named_dump.db.$n ns2/named_dump.db.$n.a
-sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.a | grep 'ns.flushtest.example' > /dev/null 2>&1 || ret=1
+sed -n '/plain success\/timeout/,/Unassociated entries/p' \
+	ns2/named_dump.db.$n.a > sed.out.$n.a
+grep 'plain success/timeout' sed.out.$n.a > /dev/null 2>&1 || ret=1
+grep 'Unassociated entries' sed.out.$n.a > /dev/null 2>&1 || ret=1
+grep 'ns.flushtest.example' sed.out.$n.a > /dev/null 2>&1 || ret=1
 $RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
 mv ns2/named_dump.db.$n ns2/named_dump.db.$n.b
-sed -n '/plain success\/timeout/,/Unassociated entries/p' ns2/named_dump.db.$n.b | grep 'ns.flushtest.example' > /dev/null 2>&1 && ret=1
+sed -n '/plain success\/timeout/,/Unassociated entries/p' \
+	ns2/named_dump.db.$n.b > sed.out.$n.b
+grep 'plain success/timeout' sed.out.$n.b > /dev/null 2>&1 || ret=1
+grep 'Unassociated entries' sed.out.$n.b > /dev/null 2>&1 || ret=1
+grep 'ns.flushtest.example' sed.out.$n.b > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
