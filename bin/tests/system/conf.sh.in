@@ -77,8 +77,7 @@ KRB5_CONFIG=/dev/null
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
 SEQUENTIALDIRS="ecdsa eddsa gost \
-	@PKCS11_TEST@ \
-	rpz staticstub \
+	@PKCS11_TEST@ rpz \
 	statschannel stub synthfromdnssec tcp tkey tools \
 	tsiggss unknown upforwd verify wildcard \
 	xferquota zero zonechecks"
@@ -103,7 +102,8 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
         padding pending pipelined \
         reclimit redirect resolver rndc rpzrecurse \
         rrchecker rrlrrsetorder rsabigexponent runtime \
-        serve-stale sfcache smartsign sortlist spf statistics \
+        serve-stale sfcache smartsign sortlist \
+        spf staticstub statistics \
         tsig views xfer"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"

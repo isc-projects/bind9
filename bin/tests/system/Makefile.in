@@ -61,7 +61,8 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   padding pending pipelined \
 	   reclimit redirect resolver rndc rpzrecurse \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
-	   serve-stale sfcache smartsign sortlist spf statistics \
+	   serve-stale sfcache smartsign sortlist \
+	   spf staticstub statistics \
 	   tsig views xfer
 
 # Produce intermediate makefile that assigns unique port numbers to each
