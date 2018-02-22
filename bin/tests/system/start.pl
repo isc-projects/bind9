@@ -331,7 +331,6 @@ sub verify_server {
 		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
-			print `grep ";" dig.out > /dev/null`;
 			print "I:no response from $server\n";
 			print "I:failed\n";
 			system("$PERL $topdir/stop.pl $testdir");
