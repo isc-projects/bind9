@@ -15,7 +15,7 @@ if $BIGKEY > /dev/null 2>&1
 then
     rm -f Kexample.*
 else
-    echo "I:This test requires cryptography" >&2
-    echo "I:configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
+    echo_i "This test requires cryptography" >&2
+    echo_i "configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
     exit 255
 fi

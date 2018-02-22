@@ -78,8 +78,7 @@ KRB5_CONFIG=/dev/null
 # reason, these must be run sequentially.
 SEQUENTIALDIRS="ecdsa eddsa gost nzd2nzf \
 	@PKCS11_TEST@ \
-	rpz rsabigexponent \
-	sortlist spf staticstub \
+	rpz sortlist spf staticstub \
 	statistics statschannel stub synthfromdnssec tcp tkey tools \
 	tsiggss unknown upforwd verify wildcard \
 	xferquota zero zonechecks"
@@ -102,7 +101,7 @@ PARALLELDIRS="acl additional addzone allow_query auth autosign \
         masterfile masterformat metadata mkeys \
         names notify nslookup nsupdate padding pending pipelined \
         reclimit redirect resolver rndc rpzrecurse \
-        rrchecker rrlrrsetorder runtime \
+        rrchecker rrlrrsetorder rsabigexponent runtime \
         serve-stale sfcache smartsign tsig views xfer"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
