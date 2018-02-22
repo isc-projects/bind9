@@ -15,76 +15,147 @@ SYSTEMTESTTOP=.
 
 stopservers=true
 clean=true
+baseport=5300
 
-case $1 in
-   --keep|-k) stopservers=false; shift ;;
-   --noclean|-n) clean=false; shift ;;
-esac
+while getopts "knp:r" flag; do
+    case "$flag" in
+	k) stopservers=false ;;
+	n) clean=false ;;
+	p) baseport=$OPTARG ;;
+	r) runall="-r" ;;
+    esac
+done
+shift `expr $OPTIND - 1`
 
-test $# -gt 0 || { echo "usage: $0 [--keep|--noclean] test-directory" >&2; exit 1; }
+if [ $# -eq 0 ]; then
+    echofail "Usage: $0 [-k] [-n] [-p <PORT>] [-r] test-directory [test-options]" >&2;
+    exit 1
+fi
 
-test=$1
+systest=$1
 shift
 
-test -d $test || { echo "$0: $test: no such test" >&2; exit 1; }
+if [ ! -d $systest ]; then
+    echofail "$0: $systest: no such test" >&2
+    exit 1
+fi
 
-echoinfo "S:$test:`date`" >&2
-echoinfo "T:$test:1:A" >&2
-echoinfo "A:System test $test" >&2
+# Define the number of ports allocated for each test, and the lowest and
+# highest valid values for the "-p" option.
+#
+# The lowest valid value is one more than the highest privileged port number
+# (1024).
+#
+# The highest valid value is calculated by noting that the value passed on the
+# command line is the lowest port number in a block of "numports" consecutive
+# ports and that the highest valid port number is 65,535.
+numport=100
+minvalid=`expr 1024 + 1`
+maxvalid=`expr 65535 - $numport + 1`
+
+test "$baseport" -eq "$baseport" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echofail "$0: $systest: must specify a numeric value for the port" >&2
+    exit 1
+elif [ $baseport -lt $minvalid -o $baseport -gt $maxvalid  ]; then
+    echofail "$0: $systest: the specified port must be in the range $minvalid to $maxvalid" >&2
+    exit 1
+fi
+
+# Name the first 10 ports in the set (it is assumed that each test has access
+# to ten or more ports): the query port, the control port and eight extra
+# ports.  Since the lowest numbered port (specified in the command line)
+# will usually be a multiple of 10, the names are chosen so that if this is
+# true, the last digit of EXTRAPORTn is "n".
+PORT=$baseport
+EXTRAPORT1=`expr $baseport + 1`
+EXTRAPORT2=`expr $baseport + 2`
+EXTRAPORT3=`expr $baseport + 3`
+EXTRAPORT4=`expr $baseport + 4`
+EXTRAPORT5=`expr $baseport + 5`
+EXTRAPORT6=`expr $baseport + 6`
+EXTRAPORT7=`expr $baseport + 7`
+EXTRAPORT8=`expr $baseport + 8`
+CONTROLPORT=`expr $baseport + 9`
+
+LOWPORT=$baseport
+HIGHPORT=`expr $baseport + $numport - 1`
+
+export PORT
+export EXTRAPORT1
+export EXTRAPORT2
+export EXTRAPORT3
+export EXTRAPORT4
+export EXTRAPORT5
+export EXTRAPORT6
+export EXTRAPORT7
+export EXTRAPORT8
+export CONTROLPORT
+
+export LOWPORT
+export HIGHPORT
+
+echostart "S:$systest:`date`"
+echoinfo  "T:$systest:1:A"
+echoinfo  "A:$systest:System test $systest"
+echoinfo  "I:$systest:PORTRANGE:${LOWPORT} - ${HIGHPORT}"
 
 if [ x${PERL:+set} = x ]
 then
-    echowarn "I:Perl not available.  Skipping test." >&2
-    echowarn "R:UNTESTED" >&2
-    echoinfo "E:$test:`date`" >&2
+    echowarn "I:$systest:Perl not available.  Skipping test."
+    echowarn "R:$systest:UNTESTED"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0;
 fi
 
-$PERL testsock.pl || {
-    echowarn "I:Network interface aliases not set up.  Skipping test." >&2;
-    echowarn "R:UNTESTED" >&2;
-    echoinfo "E:$test:`date`" >&2;
+$PERL testsock.pl -p $PORT  || {
+    echowarn "I:$systest:Network interface aliases not set up.  Skipping test."
+    echowarn "R:$systest:UNTESTED"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0;
 }
 
-
 # Check for test-specific prerequisites.
-test ! -f $test/prereq.sh || ( cd $test && $SHELL prereq.sh "$@" )
+test ! -f $systest/prereq.sh || ( cd $systest && $SHELL prereq.sh "$@" )
 result=$?
 
 if [ $result -eq 0 ]; then
     : prereqs ok
 else
-    echowarn "I:Prerequisites for $test missing, skipping test." >&2
-    [ $result -eq 255 ] && echowarn "R:SKIPPED" || echowarn "R:UNTESTED"
-    echoinfo "E:$test:`date`" >&2
+    echowarn "I:$systest:Prerequisites missing, skipping test."
+    [ $result -eq 255 ] && echowarn "R:$systest:SKIPPED" || echowarn "R:$systest:UNTESTED"
+    echoend "E:$systest:`date $dateargs`"
     exit 0
 fi
 
 # Check for PKCS#11 support
 if
-    test ! -f $test/usepkcs11 || $SHELL cleanpkcs11.sh
+    test ! -f $systest/usepkcs11 || $SHELL cleanpkcs11.sh
 then
     : pkcs11 ok
 else
-    echowarn "I:Need PKCS#11 for $test, skipping test." >&2
-    echowarn "R:PKCS11ONLY" >&2
-    echoinfo "E:$test:`date`" >&2
+    echowarn "I:$systest:Need PKCS#11, skipping test."
+    echowarn "R:$systest:PKCS11ONLY"
+    echoend  "E:$systest:`date $dateargs`"
     exit 0
 fi
 
 # Set up any dynamically generated test data
-if test -f $test/setup.sh
+if test -f $systest/setup.sh
 then
-   ( cd $test && $SHELL setup.sh "$@" )
+   ( cd $systest && $SHELL setup.sh "$@" )
 fi
 
 # Start name servers running
-$PERL start.pl $test || { echofail "R:FAIL"; echoinfo "E:$test:`date`"; exit 1; }
+$PERL start.pl --port $PORT $systest
+if [ $? -ne 0 ]; then
+    echofail "R:$systest:FAIL"
+    echoend  "E:$systest:`date $dateargs`"
+    exit 1
+fi
 
 # Run the tests
-( cd $test ; $SHELL tests.sh )
-
+( cd $systest ; $SHELL tests.sh "$@" )
 status=$?
 
 if $stopservers
@@ -95,34 +166,30 @@ else
 fi
 
 # Shutdown
-$PERL stop.pl $test
+$PERL stop.pl $systest
 
 status=`expr $status + $?`
 
 if [ $status != 0 ]; then
-    echofail "R:FAIL"
-    # Don't clean up - we need the evidence.
+    echofail "R:$systest:FAIL"
+    # Do not clean up - we need the evidence.
     find . -name core -exec chmod 0644 '{}' \;
 else
-    echopass "R:PASS"
-
+    echopass "R:$systest:PASS"
     if $clean
     then
 	rm -f $SYSTEMTESTTOP/random.data
-	if test -f $test/clean.sh
-	then
-	    ( cd $test && $SHELL clean.sh "$@" )
-	fi
+	$SHELL clean.sh $runall $systest "$@"
 	if test -d ../../../.git
 	then
-	    git status -su --ignored $test |
+	    git status -su --ignored $systest | \
 	    sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
-		-e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
-		-e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
+	    -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
+	    -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
 	fi
     fi
 fi
 
-echoinfo "E:$test:`date`"
+echoend "E:$systest:`date $dateargs`"
 
 exit $status

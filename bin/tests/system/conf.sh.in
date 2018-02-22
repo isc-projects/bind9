@@ -73,19 +73,33 @@ KRB5_CONFIG=/dev/null
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="acl additional addzone allow_query autosign builtin
-	 cacheclean case catz chain checkconf @CHECKDS@ checknames checkzone
-	 cookie @COVERAGE@ database digdelv dlv dlz dlzexternal
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa
-	 ednscompliance emptyzones fetchlimit filter-aaaa formerr
-	 forward geoip glue gost inline integrity ixfr @KEYMGR@
-	 legacy limits logfileconfig lwresd masterfile masterformat
-	 metadata mkeys names notify nslookup nsupdate nzd2nzf
-	 pending @PKCS11_TEST@ pipelined reclimit redirect resolver
-	 rndc rpz rpzrecurse rrchecker rrl rrsetorder rsabigexponent
-	 runtime sfcache smartsign sortlist spf staticstub statistics
-	 statschannel stub tcp tkey tsig tsiggss unknown upforwd
-	 verify views wildcard xfer xferquota zero zonechecks"
+#
+# List of tests that use ports 5300 and 9953.  For this reason, these must
+# be run sequentially.
+SEQUENTIALDIRS="acl additional addzone auth autosign builtin \
+	cacheclean case cds chain \
+	checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
+	database digdelv dlv dlz dlzexternal \
+	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
+	emptyzones fetchlimit filter-aaaa formerr geoip glue gost \
+	inline integrity ixfr keepalive @KEYMGR@ legacy limits \
+	logfileconfig masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf padding pending \
+	pipelined @PKCS11_TEST@ reclimit redirect resolver rndc \
+	rpz rrchecker rrl rrsetorder rsabigexponent \
+	runtime sfcache smartsign sortlist spf staticstub \
+	statistics statschannel stub synthfromdnssec tcp tkey tools \
+	tsig tsiggss unknown upforwd verify views wildcard xfer \
+	xferquota zero zonechecks"
+
+# List of tests that use unique ports (other than 5300 and 9953). These
+# tests can be run in parallel.
+#
+# This symbol must be kept in step with the PARALLEL macro in Makefile.in
+PARALLELDIRS="allow_query catz rpzrecurse serve-stale"
+
+SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
+
 
 # Things that are different on Windows
 KILL=kill
@@ -142,18 +156,22 @@ NZD=@NZD_TOOLS@
 # Set up color-coded test output
 #
 if test -t 1 && type tput > /dev/null 2>&1 ; then
+    COLOR_END=`tput setaf 4`    # blue
     COLOR_FAIL=`tput setaf 1`   # red
-    COLOR_WARN=`tput setaf 3`   # yellow
-    COLOR_PASS=`tput setaf 2`   # green
     COLOR_INFO=`tput bold`      # bold
     COLOR_NONE=`tput sgr0`
+    COLOR_PASS=`tput setaf 2`   # green
+    COLOR_START=`tput setaf 4`  # blue
+    COLOR_WARN=`tput setaf 3`   # yellow
 else
     # set to empty strings so printf succeeds
+    COLOR_END=''
     COLOR_FAIL=''
-    COLOR_WARN=''
-    COLOR_PASS=''
     COLOR_INFO=''
     COLOR_NONE=''
+    COLOR_PASS=''
+    COLOR_START=''
+    COLOR_WARN=''
 fi
 
 if type printf > /dev/null 2>&1
@@ -170,6 +188,12 @@ then
 	echoinfo () {
 		printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
 	}
+	echostart () {
+		printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
+	}
+	echoend () {
+		printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
+	}
 else
 	echofail () {
 		echo "$*"
@@ -183,7 +207,21 @@ else
 	echoinfo () {
 		echo "$*"
 	}
+	echostart () {
+		echo "$*"
+	}
+	echoend () {
+		echo "$*"
+	}
 fi
+
+SYSTESTDIR="`basename $PWD`"
+
+echo_i() {
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
 
 #
 # Useful functions in test scripts
@@ -196,6 +234,29 @@ nextpart () {
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
          END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+}
+
+# copy_setports - Copy Configuration File and Replace Ports
+#
+# Convenience function to copy a configuration file, replacing the tokens
+# QUERYPORT, CONTROLPORT and EXTRAPORT[1-8] with the values of the equivalent
+# environment variables. (These values are set by "run.sh", which calls the
+# scripts invoking this function.)
+#
+# Usage:
+#   copy_setports infile outfile
+
+copy_setports() {
+    sed -e "s/@PORT@/${PORT}/g" \
+        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
 }
 
 #
