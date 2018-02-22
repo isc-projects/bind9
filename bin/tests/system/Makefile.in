@@ -46,7 +46,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # Define the tests that can be run in parallel.  This should be identical to
 # the definition of PARALLELDIRS in conf.sh.
 
-PARALLEL = allow_query catz rpzrecurse serve-stale
+PARALLEL = allow_query catz rpzrecurse
 
 # Produce intermediate makefile that assigns unique port numbers to each
 # parallel test.  The start port number of 5,000 is arbitrary - it must just

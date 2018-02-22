@@ -14,7 +14,6 @@ DEBUG=
 while getopts "xD" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
-	D) TEST_DNSRPS="-D";;
 	N) NOCLEAN=set;;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
@@ -41,25 +40,3 @@ copy_setports ns3/named2.conf.in ns3/named2.conf
 copy_setports ns4/named.conf.in ns4/named.conf
 
 copy_setports ans5/ans.pl.in ans5/ans.pl
-
-# decide whether to test DNSRPS
-$SHELL ../rpz/ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
-
-CWD=`pwd`
-cat <<EOF >dnsrpzd.conf
-PID-FILE $CWD/dnsrpzd.pid;
-
-include $CWD/dnsrpzd-license-cur.conf
-
-zone "policy" { type master; file "`pwd`/ns3/policy.db"; };
-EOF
-sed -n -e 's/^ *//' -e "/zone.*.*master/s@file \"@&$CWD/ns2/@p" ns2/*.conf \
-    >>dnsrpzd.conf
-
-# Run dnsrpzd to get the license and prime the static policy zones
-if test -n "$TEST_DNSRPS"; then
-    DNSRPZD="`../rpz/dnsrps -p`"
-    "$DNSRPZD" -D./dnsrpzd.rpzf -S./dnsrpzd.sock -C./dnsrpzd.conf \
-		-w 0 -dddd -L stdout >./dnsrpzd.run 2>&1
-fi

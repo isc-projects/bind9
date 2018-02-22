@@ -3,9 +3,6 @@
 4895.	[test]		Allow some system tests to run in parallel.
 			[RT #46602]
 
-4894.	[bug]		named could crash while rolling a dnstap output file.
-			[RT #46942]
-
 4893.	[bug]		Address various issues reported by cppcheck. [GL #51]
 
 4892.	[bug]		named could leak memory when "rndc reload" was invoked
