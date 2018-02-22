@@ -1,3 +1,8 @@
+4899.	[test]		Convert most of the remaining system tests to be able
+			to run in parallel, continuing the work from change
+			#4895. To take advantage of this, use "make -jN check",
+			where N is the number of processors to use. [GL #91]
+
 4898.	[func]		Remove libseccomp based system-call filtering. [GL #93]
 
 4897.	[test]		Update to rpz system test so that it doesn't recurse.
