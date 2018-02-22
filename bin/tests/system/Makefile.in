@@ -56,8 +56,8 @@ PARALLEL = acl additional addzone allow_query auth autosign \
 	   fetchlimit filter-aaaa formerr forward \
 	   geoip glue inline integrity ixfr keepalive \
 	   legacy limits logfileconfig \
-	   masterfile masterformat metadata mkeys \
-	   nsupdate reclimit rndc rpzrecurse rrchecker rrl \
+	   masterfile masterformat metadata mkeys nsupdate \
+	   reclimit redirect rndc rpzrecurse rrchecker rrl \
 	   serve-stale smartsign
 
 # Produce intermediate makefile that assigns unique port numbers to each
