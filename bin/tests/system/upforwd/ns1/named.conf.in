@@ -6,20 +6,16 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.11 2007/06/18 23:47:31 tbox Exp $ */
-
 key "update.example." {
 	algorithm "hmac-md5";
 	secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.1;
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
