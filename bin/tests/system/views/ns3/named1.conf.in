@@ -6,23 +6,27 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named1.conf,v 1.20 2007/06/19 23:47:07 tbox Exp $ */
-
-controls { /* empty */ };
-
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
+	port @PORT@;
+	directory ".";
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion yes;
 	notify yes;
 };
 
-include "../../common/controls.conf";
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
 
 zone "." {
 	type hint;
@@ -31,6 +35,11 @@ zone "." {
 
 zone "example" {
 	type master;
-	file "example.db";
 	allow-update { any; };
+	file "internal.db";
+};
+
+zone "child.clone" {
+	type master;
+	file "child.clone.db";
 };
