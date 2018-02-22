@@ -58,7 +58,7 @@ query_test@EXEEXT@: query_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDE
 				${ISCLIBS} ${LIBS}
 
 unit::
-	sh ${top_srcdir}/unit/unittest.sh
+	sh ${top_builddir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}
