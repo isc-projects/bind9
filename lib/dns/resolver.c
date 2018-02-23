@@ -3735,10 +3735,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 	if (addrinfo == NULL) {
 		/* We have no more addresses.  Start over. */
 		fctx_cancelqueries(fctx, ISC_TRUE, ISC_FALSE);
-		fctx_cleanupfinds(fctx);
-		fctx_cleanupaltfinds(fctx);
-		fctx_cleanupforwaddrs(fctx);
-		fctx_cleanupaltaddrs(fctx);
+		fctx_cleanupall(fctx);
 		result = fctx_getaddresses(fctx, badcache);
 		if (result == DNS_R_WAIT) {
 			/*
