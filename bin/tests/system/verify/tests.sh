@@ -4,13 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id$
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 failed () {
 	cat verify.out.$n | sed 's/^/D:/';
-	echo "I:failed";
+	echo_i "failed";
 	status=1;
 }
 
@@ -21,7 +19,7 @@ for file in zones/*.good
 do
 	n=`expr $n + 1`
 	zone=`expr "$file" : 'zones/\(.*\).good'`
-	echo "I:checking supposedly good zone: $zone ($n)"
+	echo_i "checking supposedly good zone: $zone ($n)"
 	ret=0
 	case $zone in
 	zsk-only.*) only=-z;;
@@ -36,7 +34,7 @@ for file in zones/*.bad
 do
 	n=`expr $n + 1`
 	zone=`expr "$file" : 'zones/\(.*\).bad'`
-	echo "I:checking supposedly bad zone: $zone ($n)"
+	echo_i "checking supposedly bad zone: $zone ($n)"
 	ret=0
 	dumpit=0
 	case $zone in
@@ -87,7 +85,7 @@ do
 done
 
 n=`expr $n + 1`
-echo "I:checking error message when -o is not used and a SOA record not at top of zone is found ($n)"
+echo_i "checking error message when -o is not used and a SOA record not at top of zone is found ($n)"
 ret=0
 # When -o is not used, origin is set to zone file name, which should cause an error in this case
 $VERIFY zones/ksk+zsk.nsec.good > verify.out.$n 2>&1 && ret=1
@@ -96,12 +94,12 @@ grep "use -o to specify a different zone origin" verify.out.$n > /dev/null || re
 [ $ret = 0 ] || failed
 
 n=`expr $n + 1`
-echo "I:checking error message when an invalid -o is specified and a SOA record not at top of zone is found ($n)"
+echo_i "checking error message when an invalid -o is specified and a SOA record not at top of zone is found ($n)"
 ret=0
 $VERIFY -o invalid.origin zones/ksk+zsk.nsec.good > verify.out.$n 2>&1 && ret=1
 grep "not at top of zone" verify.out.$n > /dev/null || ret=1
 grep "use -o to specify a different zone origin" verify.out.$n > /dev/null && ret=1
 [ $ret = 0 ] || failed
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

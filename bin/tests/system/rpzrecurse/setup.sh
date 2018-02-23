@@ -38,5 +38,3 @@ copy_setports ns3/named1.conf.in ns3/named.conf
 copy_setports ns3/named2.conf.in ns3/named2.conf
 
 copy_setports ns4/named.conf.in ns4/named.conf
-
-copy_setports ans5/ans.pl.in ans5/ans.pl

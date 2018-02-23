@@ -6,12 +6,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: setup.sh,v 1.15 2007/06/19 23:47:07 tbox Exp $
-
 #
 # Set up test data for zone transfer quota tests.
 #
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
+
 $PERL setup.pl
 
 cp -f ns1/changing1.db ns1/changing.db
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf

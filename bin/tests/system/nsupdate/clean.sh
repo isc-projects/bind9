@@ -10,8 +10,10 @@
 # Clean up after zone transfer tests.
 #
 
+rm -f verylarge
 rm -f */named.memstats
 rm -f */named.run */ans.run
+rm -f */named.conf
 rm -f Kxxx.*
 rm -f dig.out.*
 rm -f jp.out.ns3.*

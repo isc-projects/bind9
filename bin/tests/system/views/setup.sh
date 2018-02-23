@@ -6,9 +6,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
+
+test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+
 cp -f ns2/example1.db ns2/example.db
-cp -f ns2/named1.conf ns2/named.conf
-cp -f ns3/named1.conf ns3/named.conf
 rm -f ns2/external/K*
 rm -f ns2/external/inline.db.signed
 rm -f ns2/external/inline.db.signed.jnl
@@ -16,10 +21,10 @@ rm -f ns2/internal/K*
 rm -f ns2/internal/inline.db.signed
 rm -f ns2/internal/inline.db.signed.jnl
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
-
-test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
+copy_setports ns3/named1.conf.in ns3/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
 
 #
 # We remove k1 and k2 as KEYGEN is deterministic when given the

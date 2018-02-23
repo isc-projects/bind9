@@ -1480,7 +1480,7 @@ ret=0
 cat ns2/named.conf.in | sed -e "s/^#T2//" > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
 $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 reconfig > /dev/null 2>&1 && ret=1
-if [ $ret != 0 ]; then echo_ "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`

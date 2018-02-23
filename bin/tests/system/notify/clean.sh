@@ -12,6 +12,8 @@
 
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
+rm -f */named.port
 rm -f dig.out.?.ns5.test*
 rm -f dig.out.ns2.test*
 rm -f dig.out.ns3.test*

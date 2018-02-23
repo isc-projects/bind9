@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
 rm -f */trusted.conf
@@ -75,7 +76,6 @@ rm -f ns4/K*
 rm -f ns4/noixfr.db
 rm -f ns4/noixfr.db.jnl
 rm -f ns5/K*
-rm -f ns5/named.conf
 rm -f ns5/bits.bk
 rm -f ns5/bits.bk.jnl
 rm -f ns5/bits.bk.signed

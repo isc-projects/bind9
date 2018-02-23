@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: ans.pl,v 1.15 2010/05/19 09:33:50 tbox Exp $
-
 #
 # Ad hoc name server
 #
@@ -17,8 +15,11 @@ use IO::Socket;
 use Net::DNS;
 use Net::DNS::Packet;
 
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.2",
-   LocalPort => 5300, Proto => "udp") or die "$!";
+   LocalPort => $localport, Proto => "udp") or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";
