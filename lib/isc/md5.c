@@ -98,7 +98,8 @@ do_detect_available() {
 	ctx->ctx = EVP_MD_CTX_new();
 	RUNTIME_CHECK(ctx->ctx != NULL);
 	available = ISC_TF(EVP_DigestInit(ctx->ctx, EVP_md5()) == 1);
-	(void)EVP_DigestFinal(ctx->ctx, digest, NULL);
+	if (available)
+		(void)EVP_DigestFinal(ctx->ctx, digest, NULL);
 	EVP_MD_CTX_free(ctx->ctx);
 	ctx->ctx = NULL;
 }
