@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: clean.sh,v 1.4 2011/03/22 16:51:50 smann Exp $
-
 #
 # Clean up after log file tests
 #

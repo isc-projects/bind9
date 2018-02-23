@@ -8,8 +8,6 @@
 
 // NS4
 
-controls { /* empty */ };
-
 options {
 	query-source address 10.53.0.4;
 	notify-source 10.53.0.4;

@@ -292,7 +292,7 @@ echo_i "testing logging functionality"
 
 n=`expr $n + 1`
 echo_i "testing explicit versions ($n)"
-cp $VERSCONF named.conf
+copy_setports $VERSCONF named.conf
 # a seconds since epoch version number
 touch $VERSFILE.1480039317
 t1=`$PERL -e 'print time()."\n";'`
@@ -328,7 +328,7 @@ fi
 
 n=`expr $n + 1`
 echo_i "testing unlimited versions ($n)"
-cp $UNLIMITEDCONF named.conf
+copy_setports $UNLIMITEDCONF named.conf
 # a seconds since epoch version number
 touch $UNLIMITEDFILE.1480039317
 t1=`$PERL -e 'print time()."\n";'`

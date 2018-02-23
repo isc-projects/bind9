@@ -219,7 +219,7 @@ main(int argc, char *argv[]) {
 	UNUSED(argv);
 
 	isc_commandline_errprint = ISC_FALSE;
-	while ((c = isc_commandline_parse(argc, argv, "p:r:")) != -1) {
+	while ((c = isc_commandline_parse(argc, argv, "p:")) != -1) {
 		switch (c) {
 		case 'p':
 			result = isc_parse_uint16(&port,
@@ -229,9 +229,6 @@ main(int argc, char *argv[]) {
 					isc_commandline_argument);
 				exit(1);
 			}
-			break;
-		case 'r':
-			randomfile = isc_commandline_argument;
 			break;
 		case '?':
 			fprintf(stderr, "%s: invalid argument '%c'",

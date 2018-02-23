@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: child.db.in,v 1.6 2010/05/27 23:51:08 tbox Exp $
-
 $TTL	120
 @		SOA	ns hostmaster.ns 1 3600 1200 604800 60
 @		NS	ns

@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named.conf,v 1.10 2011/08/02 23:47:52 tbox Exp $ */
-
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;

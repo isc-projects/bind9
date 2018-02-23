@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: named1.conf,v 1.3 2011/01/04 23:47:13 tbox Exp $ */
-
 // NS4
 
 options {
