@@ -83,6 +83,7 @@ stages:
 .build: &build_job
   stage: build
   before_script:
+    - pwd
     - ./autogen.sh
   script:
     - ./configure --with-libtool
@@ -94,7 +95,8 @@ stages:
 .test: &test_job
   stage: test
   before_script:
-    - bash -x bin/tests/system/ifconfig.sh up
+    - pwd
+    - bash bin/tests/system/ifconfig.sh up
     - bash -x bin/tools/genrandom
   script:
     - make -j5 -k check V=1
