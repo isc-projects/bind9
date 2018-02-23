@@ -1,3 +1,5 @@
+4900.	[cleanup]	Remove all uses of inet_aton(). [GL #13]
+
 4899.	[test]		Convert most of the remaining system tests to be able
 			to run in parallel, continuing the work from change
 			#4895. To take advantage of this, use "make -jN check",
