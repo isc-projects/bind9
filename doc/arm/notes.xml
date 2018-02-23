@@ -76,6 +76,24 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The <command>configure --disable-threads</command> compile-time
+	  option has been removed. Non-threaded builds of BIND are no
+	  longer supported.
+	</para>
+	<para>
+	  Very old operating systems without pthread support will
+	  unfortunately not be able to build BIND 9.13 and higher.
+	  To our knowledge, all such systems are past end of life.
+	</para>
+	<para>
+	  Other systems, including older versions of NetBSD, OpenBSD,
+	  FreeBSD and macOS, do support threads, but may have unexpected
+	  behavior because previously the default on those platforms
+	  was to disable threads. [GL #62]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>dnssec-keygen</command> can no longer generate HMAC
 	  keys for TSIG authentication. Use <command>tsig-keygen</command>
 	  to generate these keys. [RT #46404]

@@ -361,23 +361,23 @@
         <term>-u <replaceable class="parameter">user</replaceable></term>
         <listitem>
           <para>Setuid
-            to <replaceable class="parameter">user</replaceable> after completing
-            privileged operations, such as creating sockets that
-            listen on privileged ports.
+	    to <replaceable class="parameter">user</replaceable> after
+	    completing privileged operations, such as creating sockets
+	    that listen on privileged ports.
           </para>
           <note>
             <para>
               On Linux, <command>named</command> uses the kernel's
-                        capability mechanism to drop all root privileges
+	      capability mechanism to drop all root privileges
               except the ability to <function>bind(2)</function> to
-              a
-              privileged port and set process resource limits.
-              Unfortunately, this means that the <option>-u</option>
-              option only works when <command>named</command> is
-              run
-              on kernel 2.2.18 or later, or kernel 2.3.99-pre3 or
-              later, since previous kernels did not allow privileges
-              to be retained after <function>setuid(2)</function>.
+              a privileged port and set process resource limits.
+	      Because of the Linux thread model, this dropping of
+	      privileges has to occur before threads are spawned.
+	      As a result, on Linux, <command>named</command> is
+	      unable to use files and directories owned by arbitrary
+	      users when loading its configuration. If files or
+	      directories are not owned by root, the
+              <command>-u</command> option will be necessary.
             </para>
           </note>
         </listitem>

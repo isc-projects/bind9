@@ -3436,7 +3436,6 @@ exit 0;
 #  --enable-crypto-rand supported
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported
-#  --enable-threads included without a way to disable it
 #  --enable-backtrace backtrace included without a way to disable it
 #  --enable-symtable incompatible with DLLs (or libtool)
 #  --enable-ipv6 included without a way to disable it

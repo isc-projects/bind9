@@ -1,3 +1,7 @@
+XXXX.	[func]		The "configure --disable-threads" configure option
+			has been removed. Non-threaded operation is no
+			longer supported. [GL #62]
+
 4900.	[cleanup]	Remove all uses of inet_aton(). [GL #13]
 
 4899.	[test]		Convert most of the remaining system tests to be able

@@ -151,16 +151,6 @@ Compile-time options
 
 To see a full list of configuration options, run configure --help.
 
-On most platforms, BIND 9 is built with multithreading support, allowing
-it to take advantage of multiple CPUs. You can configure this by
-specifying --enable-threads or --disable-threads on the configure command
-line. The default is to enable threads, except on some older operating
-systems on which threads are known to have had problems in the past.
-(Note: Prior to BIND 9.10, the default was to disable threads on Linux
-systems; this has now been reversed. On Linux systems, the threaded build
-is known to change BIND's behavior with respect to file permissions; it
-may be necessary to specify a user with the -u option when running named.)
-
 To build shared libraries, specify --with-libtool on the configure command
 line.
 

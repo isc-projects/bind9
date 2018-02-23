@@ -17956,9 +17956,7 @@ fi
 
 
 #
-# flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.  getc_unlocked might also not
-# be defined.
+# flockfile is usually provided by pthreads
 #
 ac_fn_c_check_func "$LINENO" "flockfile" "ac_cv_func_flockfile"
 if test "x$ac_cv_func_flockfile" = xyes; then :

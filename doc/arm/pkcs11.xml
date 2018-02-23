@@ -361,8 +361,7 @@ $ <userinput>./Configure linux-x86_64 -pthread \
       </para>
       <screen>
 $ <userinput>cd ../bind9</userinput>
-$ <userinput>./configure --enable-threads \
-	   --with-openssl=/opt/pkcs11/usr \
+$ <userinput>./configure --with-openssl=/opt/pkcs11/usr \
 	   --with-pkcs11=/opt/pkcs11/usr/lib/libpkcs11.so</userinput>
 </screen>
     </section>
@@ -375,7 +374,7 @@ $ <userinput>./configure --enable-threads \
       </para>
       <screen>
 $ <userinput>cd ../bind9</userinput>
-$ <userinput>./configure CC="cc -xarch=amd64" --enable-threads \
+$ <userinput>./configure CC="cc -xarch=amd64" \
 	    --with-openssl=/opt/pkcs11/usr \
 	    --with-pkcs11=/usr/lib/64/libpkcs11.so</userinput>
 </screen>
@@ -393,8 +392,7 @@ $ <userinput>./configure CC="cc -xarch=amd64" --enable-threads \
 
       <screen>
 $ <userinput>cd ../bind9</userinput>
-$ <userinput>./configure --enable-threads \
-	   --with-openssl=/opt/pkcs11/usr \
+$ <userinput>./configure --with-openssl=/opt/pkcs11/usr \
 	   --with-pkcs11=/opt/pkcs11/usr/lib/libsofthsm.so</userinput>
 </screen>
     </section>
