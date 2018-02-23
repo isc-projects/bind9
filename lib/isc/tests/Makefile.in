@@ -143,7 +143,7 @@ time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 			time_test.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
-	sh ${top_srcdir}/unit/unittest.sh
+	sh ${top_builddir}/unit/unittest.sh
 
 clean distclean::
 	rm -f ${TARGETS}
