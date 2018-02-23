@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -137,7 +137,7 @@ void clear_DNSConf(DNSConf *ctx) {
 
 
 void delete_DNSConf(DNSConf *ctx) {
- 	DBGPRINT("inside delete_DNSConf\n");
+	DBGPRINT("inside delete_DNSConf\n");
 
 	clear_DNSConf(ctx);
 
@@ -318,7 +318,7 @@ INT_FIELD_DEFS(maxcachettl)
 }
 
 %typemap(perl5,in) FILE * {
-        $target = IoIFP(sv_2io($source));
+	$target = IoIFP(sv_2io($source));
 }
 
 

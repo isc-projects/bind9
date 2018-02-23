@@ -1,7 +1,7 @@
 #!/bin/sh
 #
-# Portions Copyright (C) 2004, 2006, 2007, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
-# Portions Copyright (C) 1999-2001  Internet Software Consortium.
+# Portions Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+# Portions Copyright (C) Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above

@@ -1,5 +1,4 @@
-Copyright (C) 2004, 2005, 2007-2009, 2012-2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
-Copyright (C) 2001, 2003  Internet Software Consortium.
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 NOTES ON BIND 9.9 FOR WINDOWS:
