@@ -96,7 +96,7 @@ stages:
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - make -j5 -k check V=1
+    - make -j6 -k check V=1
   artifacts:
     untracked: true
     expire_in: '1 week'
