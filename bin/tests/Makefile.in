@@ -36,6 +36,8 @@ SUBDIRS =	atomic db dst master mem hashes names \
 		net rbt resolver sockaddr tasks timers system \
 		@PKCS11_TOOLS@
 
+TESTDIRS =	system
+
 # Test programs that are built by default:
 # cfg_test is needed for regenerating doc/misc/options
 # makejournal is needed by system tests
@@ -282,7 +284,7 @@ clean distclean::
 check: test
 
 test:
-	@for dir in $(SUBDIRS) ;\
+	@for dir in $(TESTDIRS) ;\
 	do \
 		( cd $$dir; $(MAKE) test ) ;\
 	done
