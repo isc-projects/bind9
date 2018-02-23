@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,7 @@ SYSTEMTESTTOP=../..
 
 (cd ../ns2 && $SHELL -e ./sign.sh || exit 1)
 
-echo "I:dlv/ns1/sign.sh"
+echo_i "dlv/ns1/sign.sh"
 
 zone=.
 infile=root.db.in
@@ -25,7 +25,7 @@ cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -g -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 grep -v '^;' $keyname2.key | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;

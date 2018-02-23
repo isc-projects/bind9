@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2010, 2012-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010, 2012-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@ rm -f dig.out.*
 rm -f rndc.out*
 rm -f showzone.out*
 rm -f zonestatus.out*
-rm -f ns2/named.conf
+rm -f */named.conf
 rm -f */named.memstats
 rm -f ns1/*.nzf ns1/*.nzf~
 rm -f ns1/*.nzd ns1/*.nzd-lock

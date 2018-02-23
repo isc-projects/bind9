@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2016-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,7 +15,7 @@ $SHELL clean.sh
 
 # Test 1: KSK goes inactive before successor is active
 dir=01-ksk-inactive
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
@@ -26,7 +26,7 @@ zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
 
 # Test 2: ZSK goes inactive before successor is active
 dir=02-zsk-inactive
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
@@ -37,7 +37,7 @@ ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
 
 # Test 3: KSK is unpublished before its successor is published
 dir=03-ksk-unpublished
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
@@ -48,7 +48,7 @@ zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
 
 # Test 4: ZSK is unpublished before its successor is published
 dir=04-zsk-unpublished
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
@@ -60,7 +60,7 @@ ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
 # Test 5: KSK deleted and successor published before KSK is deactivated
 # and successor activated.
 dir=05-ksk-unpub-active
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
@@ -71,7 +71,7 @@ zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
 # Test 6: ZSK deleted and successor published before ZSK is deactivated
 # and successor activated.
 dir=06-zsk-unpub-active
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
@@ -81,7 +81,7 @@ ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
 
 # Test 7: KSK rolled with insufficient delay after prepublication.
 dir=07-ksk-ttl
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
@@ -92,7 +92,7 @@ zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
 
 # Test 8: ZSK rolled with insufficient delay after prepublication.
 dir=08-zsk-ttl
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
@@ -108,7 +108,7 @@ rm -f $dir/K*.private
 
 # Test 10: Valid key set, but rollover period has changed
 dir=10-change-roll
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
@@ -118,7 +118,7 @@ zsk2=`$KEYGEN -K $dir -S $zsk1`
 
 # Test 11: Many keys all simultaneously scheduled to be active in the future
 dir=11-many-simul
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -q3fk -P now+1mo -A now+1mo example.com`
@@ -129,7 +129,7 @@ z4=`$KEYGEN -K $dir -a rsasha1 -q3 -P now+1mo -A now+1mo example.com`
 
 # Test 12: Many keys all simultaneously scheduled to be active in the past
 dir=12-many-active
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -q3fk example.com`
@@ -140,7 +140,7 @@ z4=`$KEYGEN -K $dir -a rsasha1 -q3 example.com`
 
 # Test 13: Multiple simultaneous keys with no configured roll period
 dir=13-noroll
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -q3fk example.com`
@@ -150,7 +150,7 @@ z1=`$KEYGEN -K $dir -a rsasha1 -q3 example.com`
 
 # Test 14: Keys exist but have the wrong algorithm
 dir=14-wrongalg
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -qfk example.com`
@@ -164,7 +164,7 @@ z4=`$KEYGEN -K $dir -q -S ${z3}.key`
 
 # Test 15: No zones specified; just search the directory for keys
 dir=15-unspec
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -q3fk example.com`
@@ -179,7 +179,7 @@ z4=`$KEYGEN -K $dir -q -S ${z3}.key`
 # Test 16: No zones specified; search the directory for keys;
 # keys have the wrong algorithm for their policies
 dir=16-wrongalg-unspec
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -qfk example.com`
@@ -194,7 +194,7 @@ z4=`$KEYGEN -K $dir -q -S ${z3}.key`
 # Test 17: Keys are simultaneously active but we run with no force
 # flag (this should fail)
 dir=17-noforce
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 k1=`$KEYGEN -K $dir -a rsasha1 -q3fk example.com`
@@ -205,7 +205,7 @@ z4=`$KEYGEN -K $dir -a rsasha1 -q3 example.com`
 
 # Test 18: Prepublication interval is set to a nonstandard value
 dir=18-nonstd-prepub
-echo I:set up $dir
+echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`

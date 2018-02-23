@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-cp ns2/named1.conf ns2/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
 
 for i in 1 2 3 4 5 6 7 other bogus; do
         cp ns2/example.db.in ns2/example${i}.db

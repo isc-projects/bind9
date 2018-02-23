@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,11 +15,11 @@ then
     then
 	:
     else
-	echo "I:Net::DNS version 0.76 and 0.77 have a bug that causes this test to fail: please update." >&2
+	echo_i "Net::DNS version 0.76 and 0.77 have a bug that causes this test to fail: please update." >&2
 	exit 1
     fi
 else
-    echo "I:This test requires the Net::DNS library." >&2
+    echo_i "This test requires the Net::DNS library." >&2
     exit 1
 fi
 

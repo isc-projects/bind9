@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2015, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,11 +12,12 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 
-DIGOPTS="@10.53.0.1 -p 5300"
+DIGOPTS="@10.53.0.1 -p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
 	n=`expr $n + 1`
-	echo "${1} (${n})"
+	echo_i "${1} (${n})"
 	ret=0
 }
 
@@ -26,16 +27,16 @@ test_add() {
     ip="$3"
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 ttl 86400
 update add $host $type $ip
 send
 EOF
 
-    newtest "I:adding $host $type $ip"
+    newtest "adding $host $type $ip"
     $NSUPDATE ns1/update.txt > /dev/null 2>&1 || {
 	[ "$should_fail" ] || \
-             echo "I:update failed for $host $type $ip"
+             echo_i "update failed for $host $type $ip"
 	return 1
     }
 
@@ -44,7 +45,7 @@ EOF
     lines=`echo "$out" | grep "$ip" | wc -l`
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
-            echo "I:dig output incorrect for $host $type $cmd: $out"
+            echo_i "dig output incorrect for $host $type $cmd: $out"
 	return 1
     }
 
@@ -53,7 +54,7 @@ EOF
     lines=`echo "$out" | grep "$host" | wc -l`
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
-            echo "I:dig reverse output incorrect for $host $type $cmd: $out"
+            echo_i "dig reverse output incorrect for $host $type $cmd: $out"
 	return 1
     }
 
@@ -67,15 +68,15 @@ test_del() {
     ip=`$DIG $DIGOPTS +short $host $type`
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 update del $host $type
 send
 EOF
 
-    newtest "I:deleting $host $type (was $ip)"
+    newtest "deleting $host $type (was $ip)"
     $NSUPDATE ns1/update.txt > /dev/null 2>&1 || {
 	[ "$should_fail" ] || \
-             echo "I:update failed deleting $host $type"
+             echo_i "update failed deleting $host $type"
 	return 1
     }
 
@@ -84,7 +85,7 @@ EOF
     lines=`echo "$out" | grep "$ip" | wc -l`
     [ $lines -eq 0 ] || {
 	[ "$should_fail" ] || \
-            echo "I:dig output incorrect for $host $type $cmd: $out"
+            echo_i "dig output incorrect for $host $type $cmd: $out"
 	return 1
     }
 
@@ -93,7 +94,7 @@ EOF
     lines=`echo "$out" | grep "$host" | wc -l`
     [ $lines -eq 0 ] || {
 	[ "$should_fail" ] || \
-            echo "I:dig reverse output incorrect for $host $type $cmd: $out"
+            echo_i "dig reverse output incorrect for $host $type $cmd: $out"
 	return 1
     }
 
@@ -124,13 +125,13 @@ status=`expr $status + $ret`
 test_del test4.ipv6.example.nil. AAAA || ret=1
 status=`expr $status + $ret`
 
-newtest "I:checking parameter logging"
+newtest "checking parameter logging"
 grep "loading params for dyndb 'sample' from .*named.conf:33" ns1/named.run > /dev/null || ret=1
 grep "loading params for dyndb 'sample2' from .*named.conf:34" ns1/named.run > /dev/null || ret=1
 status=`expr $status + $ret`
 
-echo "I:checking dyndb still works after reload"
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
+echo_i "checking dyndb still works after reload"
+$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/ns1 /' | cat_i
 
 test_add test5.ipv4.example.nil. A "10.53.0.10" || ret=1
 status=`expr $status + $ret`
@@ -144,5 +145,5 @@ status=`expr $status + $ret`
 test_del test6.ipv6.example.nil. AAAA || ret=1
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

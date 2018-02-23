@@ -86,7 +86,7 @@ stages:
     - ./autogen.sh
   script:
     - ./configure --with-libtool
-    - make -k all V=1
+    - make -j6 -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -96,7 +96,7 @@ stages:
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - make -k check V=1
+    - make -j5 -k check V=1
   artifacts:
     untracked: true
     expire_in: '1 week'

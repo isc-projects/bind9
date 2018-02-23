@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001, 2004, 2007, 2012, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,8 +28,6 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.10 2007/06/19 23:47:04 tbox Exp $
-#
 
 use Getopt::Std;
 use Net::DNS;
@@ -56,7 +54,7 @@ my $failures = 0;
 sub assert {
     my ($cond, $explanation) = @_;
     if (!$cond) {
-	print "I:Test Failed: $explanation ***\n";
+	print "Test Failed: $explanation ***\n";
 	$failures++
     }
 }
@@ -77,13 +75,13 @@ sub test {
 	my $rcode = $reply->header->rcode;
         assert($rcode eq $expected, "expected $expected, got $rcode");
     } else {
-	print "I:Update failed: ", $res->errorstring, "\n";
+	print "Update failed: ", $res->errorstring, "\n";
     }
 }
 
 sub section {
     my ($msg) = @_;
-    print "I:$msg\n";
+    print "$msg\n";
 }
 
 section("Delete any leftovers from previous tests");
@@ -410,8 +408,8 @@ test("NOERROR", ["update", rr_add("u.$zone 300 NS ns.u.$zone")]);
 test("NOERROR", ["update", rr_del("u.$zone NS ns.u.$zone")]);
 
 if ($failures) {
-    print "I:$failures tests failed.\n";
+    print "$failures tests failed.\n";
 } else {
-    print "I:All tests successful.\n";
+    print "All tests successful.\n";
 }
 exit $failures;

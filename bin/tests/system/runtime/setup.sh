@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,11 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh 
 
-cp ns2/named1.conf ns2/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
+
+copy_setports ns2/named-alt1.conf.in ns2/named-alt1.conf
+copy_setports ns2/named-alt2.conf.in ns2/named-alt2.conf
+copy_setports ns2/named-alt3.conf.in ns2/named-alt3.conf
 
 mkdir ns2/nope
 

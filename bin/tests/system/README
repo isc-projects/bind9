@@ -1,9 +1,8 @@
-Copyright (C) 2000, 2001, 2004, 2010, 2011, 2013, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2000, 2001, 2004, 2010, 2011, 2013, 2015-2018  Internet Systems Consortium, Inc. ("ISC")
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 
 Introduction
 ===
@@ -334,7 +333,7 @@ are:
 
     PORT                     Number to be used for the query port.
     CONTROLPORT              Number to be used as the RNDC control port.
-    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be use as needed.
+    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be used as needed.
 
 Two other environment variables are defined:
 
