@@ -102,21 +102,21 @@ stages:
     expire_in: '1 week'
     when: on_failure
 
-build:debian:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *build_job
-
-build:debian:jessie:i386:
-  <<: *debian_jessie_i386_image
-  <<: *build_job
-
-build:debian:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *build_job
-
-build:debian:buster:i386:
-  <<: *debian_buster_i386_image
-  <<: *build_job
+#build:debian:jessie:amd64:
+#  <<: *debian_jessie_amd64_image
+#  <<: *build_job
+#
+#build:debian:jessie:i386:
+#  <<: *debian_jessie_i386_image
+#  <<: *build_job
+#
+#build:debian:stretch:amd64:
+#  <<: *debian_stretch_amd64_image
+#  <<: *build_job
+#
+#build:debian:buster:i386:
+#  <<: *debian_buster_i386_image
+#  <<: *build_job
 
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -138,10 +138,10 @@ test:debian:sid:i386:
   dependencies:
     - build:debian:sid:i386
 
-build:ubuntu:trusty:amd64:
-  <<: *ubuntu_trusty_amd64_image
-  <<: *build_job
-
-build:ubuntu:xenial:i386:
-  <<: *ubuntu_xenial_i386_image
-  <<: *build_job
+#build:ubuntu:trusty:amd64:
+#  <<: *ubuntu_trusty_amd64_image
+#  <<: *build_job
+#
+#build:ubuntu:xenial:i386:
+#  <<: *ubuntu_xenial_i386_image
+#  <<: *build_job
