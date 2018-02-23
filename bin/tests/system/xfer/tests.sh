@@ -119,7 +119,22 @@ status=`expr $status + $tmp`
 n=`expr $n + 1`
 echo_i "testing ixfr-from-differences yes;"
 tmp=0
-for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	a=0 b=0 c=0 d=0
+	echo_i "wait for reloads..."
+	$DIG $DIGOPTS @10.53.0.6 +noall +answer soa master > dig.out.soa1.ns6
+	grep "1397051953" dig.out.soa1.ns6 > /dev/null && a=1
+	$DIG $DIGOPTS @10.53.0.1 +noall +answer soa slave  > dig.out.soa2.ns1
+	grep "1397051953" dig.out.soa2.ns1 > /dev/null && b=1
+	$DIG $DIGOPTS @10.53.0.2 +noall +answer soa example > dig.out.soa3.ns2
+	grep "1397051953" dig.out.soa3.ns2 > /dev/null && c=1
+	[ $a -eq 1 -a $b -eq 1 -a $c -eq 1 ] && break
+	sleep 2
+done
+
+for i in 0 1 2 3 4 5 6 7 8 9
 do
 	a=0 b=0 c=0 d=0
 	echo_i "wait for transfers..."
@@ -127,9 +142,14 @@ do
 	grep "1397051953" dig.out.soa1.ns3 > /dev/null && a=1
 	$DIG $DIGOPTS @10.53.0.3 +noall +answer soa master > dig.out.soa2.ns3
 	grep "1397051953" dig.out.soa2.ns3 > /dev/null && b=1
-	$DIG $DIGOPTS @10.53.0.6 +noall +answer soa slave  > dig.out.soa3.ns3
-	grep "1397051953" dig.out.soa3.ns3 > /dev/null && c=1
+	$DIG $DIGOPTS @10.53.0.6 +noall +answer soa slave  > dig.out.soa3.ns6
+	grep "1397051953" dig.out.soa3.ns6 > /dev/null && c=1
 	[ $a -eq 1 -a $b -eq 1 -a $c -eq 1 ] && break
+
+	# re-notify if necessary
+	$RNDCCMD 10.53.0.6 notify master 2>&1 | sed 's/^/ns6 /' | cat_i
+	$RNDCCMD 10.53.0.1 notify slave 2>&1 | sed 's/^/ns1 /' | cat_i
+	$RNDCCMD 10.53.0.2 notify example 2>&1 | sed 's/^/ns2 /' | cat_i
 	sleep 2
 done
 
