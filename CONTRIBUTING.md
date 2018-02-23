@@ -75,7 +75,7 @@ The branch in which the next major release is being developed is called
 
 Reports of flaws in the BIND package, including software bugs, errors
 in the documentation, missing files in the tarball, suggested changes
-or requests for new features, etc, can be filled using
+or requests for new features, etc, can be filed using
 [https://gitlab.isc.org/isc-projects/bind9/issues](https://gitlab.isc.org/isc-projects/bind9/issues).
 
 Due to a large ticket backlog, we are sometimes slow to respond,
@@ -84,34 +84,43 @@ low in priority, but we will try at least to acknowledge legitimate
 bug reports within a week.
 
 ISC's ticketing system is publicly readable, however you need a create
-an account to fill a new issue.
+an account to file a new issue.
 
-FIXME: Add a section on filling security issues.
+### Reporting possible security issues
+If you think you may be seeing a potential security vulnerability in BIND 
+(for example, a crash with REQUIRE, INSIST, or ASSERT failure), please 
+report it immediately by emailing to security-officer@isc.org. Plain-text 
+e-mail is not a secure choice for communications concerning undisclosed 
+security issues so please encrypt your communications to us if possible, 
+using the [ISC Security Officer public key](https://www.isc.org/downloads/software-support-policy/openpgp-key/).
+
+Do not discuss undisclosed security vulnerabilites on any public mailing list.
+ISC has a long history of handling reported vulnerabilities promptly and 
+effectively and we respect and acknowledge responsible reporters.
+
+ISC's Security Vulnerability Disclosure Policy is documented at [https://kb.isc.org/article/AA-00861/0](https://kb.isc.org/article/AA-00861/0).
+ 
+If you have a crash, you may want to consult 
+[‘What to do if your BIND or DHCP server has crashed.’](https://kb.isc.org/article/AA-00340/89/What-to-do-if-your-BIND-or-DHCP-server-has-crashed.html)
 
 ### <a name="bugs"></a>Contributing code
 
-FIXME: BIND is licensed under Mozilla Public License version 2.0.
-
-FIXME: FIXME
-
-#### <a name="bind"></a>BIND code
-
-Patches for BIND itself may be submitted using the same methods as bug
-reports or suggestions.  When submitting a patch, please prepend the
-subject header with "`[PATCH]`" so it will be easier for us to find.  If
-your patch introduces a new feature in BIND, please submit it to
-`bind-suggest@isc.org`; if it fixes a bug, please submit it to
-`bind9-bugs@isc.org`.
+BIND is licensed under the
+[Mozilla Public License 2.0](http://www.isc.org/downloads/software-support-policy/isc-license/).
+Earier versions (BIND 9.10 and earlier) were licensed under the [ISC License](http://www.isc.org/downloads/software-support-policy/isc-license/)
 
 ISC does not require an explicit copyright assignment for patch
 contributions.  However, by submitting a patch to ISC, you implicitly
 certify that you are the author of the code, that you intend to reliquish
 exclusive copyright, and that you grant permission to publish your work
-under the
-[Mozilla Public License 2.0](http://www.isc.org/downloads/software-support-policy/isc-license/)
-for BIND 9.11 and higher, and the
-[ISC License](http://www.isc.org/downloads/software-support-policy/isc-license/)
-for BIND 9.10 and earlier.
+under the open source license used for the BIND version(s) your patch 
+applies to.
+
+
+#### <a name="bind"></a>BIND code
+
+Patches for BIND may be submitted using merge requests in [ISC's Gitlab](https://gitlab.isc.org/isc-projects/bind9/)
+source repository for BIND.
 
 Patches should be submitted as diffs against a specific version of BIND --
 preferably the current top of the `master` branch.  Diffs may be
@@ -174,5 +183,6 @@ change is merged to a release branch.
 
 ##### Tests
 
-FIXME: Add a section on having tests as a hard requirement for
-accepting any new code.
+BIND is a large and complex project. We rely heavily on continuous automated
+testing and cannot merge any new code without adequate test coverage. See [Testing](doc/dev/dev.md#testing)
+for more information.
