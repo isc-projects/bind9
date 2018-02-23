@@ -12,7 +12,9 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=${SYSTEMTESTTOP:=.}/../../..
+TOP=@abs_top_builddir@
+SRCTOP=@abs_top_srcdir@
+SYSTEMTESTTOP=@abs_srcdir@
 
 # Make it absolute so that it continues to work after we cd.
 TOP=`cd $TOP && pwd`
@@ -139,7 +141,7 @@ HAVEJSONSTATS=@JSONSTATS@
 ZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
 
-. ${TOP}/version
+. $SRCTOP/version
 
 #
 # Set up color-coded test output
