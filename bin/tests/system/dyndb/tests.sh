@@ -129,8 +129,8 @@ test_del test4.ipv6.example.nil. AAAA || ret=1
 status=`expr $status + $ret`
 
 newtest "checking parameter logging"
-grep "loading params for dyndb 'sample' from .*named.conf:33" ns1/named.run > /dev/null || ret=1
-grep "loading params for dyndb 'sample2' from .*named.conf:34" ns1/named.run > /dev/null || ret=1
+grep "loading params for dyndb 'sample' from .*named.conf:36" ns1/named.run > /dev/null || ret=1
+grep "loading params for dyndb 'sample2' from .*named.conf:37" ns1/named.run > /dev/null || ret=1
 status=`expr $status + $ret`
 
 echo_i "checking dyndb still works after reload"
