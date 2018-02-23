@@ -1,3 +1,7 @@
+XXXX.	[func]		The "configure --disable-threads" configure option
+			has been removed. Non-threaded operation is no
+			longer supported. [GL #62]
+
 4950.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
 
 4949.	[placeholder]

@@ -1933,7 +1933,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			{
 				debug("config line %s", batchline);
 				bargc = split_batchline(batchline, bargv, 62,
-						        ".digrc argv");
+							".digrc argv");
 				bargv[0] = argv[0];
 				argv0 = argv[0];
 				parse_args(ISC_TRUE, ISC_TRUE,

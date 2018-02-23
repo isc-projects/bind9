@@ -5,7 +5,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.
 
-
 * How things work
 
 The scripts driving the build system are in ~wpk/b9t.  They are now

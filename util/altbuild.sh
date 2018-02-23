@@ -69,7 +69,7 @@ cd $builddir || exit 1
 
 CFLAGS="-g -DISC_CHECK_NONE -DISC_LIST_CHECKINIT" \
     sh $srcdir/bind-*/configure --with-libtool \
-	--disable-threads --with-openssl --prefix=$instdir
+	--with-openssl --prefix=$instdir
 gmake clean
 gmake
 gmake install
@@ -79,7 +79,7 @@ gmake install
 
 cd $srcdir/bind-* || exit 1
 CFLAGS="-g -DISC_CHECK_NONE -DISC_LIST_CHECKINIT" \
-    sh configure --with-libtool --disable-threads --prefix=$instdir
+    sh configure --with-libtool --prefix=$instdir
 make
 make install
 
