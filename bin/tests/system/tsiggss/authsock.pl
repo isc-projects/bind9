@@ -1,12 +1,10 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2011, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-# $Id: authsock.pl,v 1.3 2011/01/07 23:47:07 tbox Exp $
 
 # test the update-policy external protocol
 

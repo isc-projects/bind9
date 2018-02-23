@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,7 +24,8 @@ $SIG{TERM} = \&rmpid;
 my $count = 0;
 
 my $localaddr = "10.53.0.7";
-my $localport = 5300;
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
 my $verbose = 0;
 
 sub reply_handler {

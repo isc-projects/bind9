@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,8 +16,11 @@ use IO::Socket;
 use Net::DNS;
 use Net::DNS::Packet;
 
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.5",
-   LocalPort => 5300, Proto => "udp") or die "$!";
+   LocalPort => $localport, Proto => "udp") or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,7 @@ rm -f */core
 rm -f */example.bk
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
 rm -f */trusted.conf */private.conf
 rm -f activate-now-publish-1day.key
 rm -f active.key inact.key del.key unpub.key standby.key rev.key

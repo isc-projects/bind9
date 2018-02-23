@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2015, 2015-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014, 2015, 2015-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,11 +14,13 @@
 
 #include <isc/app.h>
 #include <isc/base64.h>
+#include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/parseint.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -212,18 +214,40 @@ main(int argc, char *argv[]) {
 	unsigned int attrs, attrmask;
 	dns_dispatch_t *dispatchv4;
 	dns_view_t *view;
+	isc_uint16_t port = PORT;
+	int c;
 
 	RUNCHECK(isc_app_start());
 
-	if ((argc == 2) || (argc == 4))
-		have_src = ISC_TRUE;
+	isc_commandline_errprint = ISC_FALSE;
+	while ((c = isc_commandline_parse(argc, argv, "p:r:")) != -1) {
+		switch (c) {
+		case 'p':
+			result = isc_parse_uint16(&port,
+						  isc_commandline_argument, 10);
+			if (result != ISC_R_SUCCESS) {
+				fprintf(stderr, "bad port '%s'\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+		case 'r':
+			randomfile = isc_commandline_argument;
+			break;
+		case '?':
+			fprintf(stderr, "%s: invalid argument '%c'",
+				argv[0], c);
+			break;
+		default:
+			break;
+		}
+	}
 
-	if ((argc > 2) && (strcmp(argv[1], "-r") == 0)) {
-		randomfile = argv[2];
-		argv += 2;
-		argc -= 2;
-		POST(argv);
-		POST(argc);
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+
+	if (argc > 0) {
+		have_src = ISC_TRUE;
 	}
 
 	dns_result_register();
@@ -238,7 +262,7 @@ main(int argc, char *argv[]) {
 	result = ISC_R_FAILURE;
 	if (inet_pton(AF_INET, "10.53.0.4", &inaddr) != 1)
 		CHECK("inet_pton", result);
-	isc_sockaddr_fromin(&dstaddr, &inaddr, PORT);
+	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
 	mctx = NULL;
 	RUNCHECK(isc_mem_create(0, 0, &mctx));

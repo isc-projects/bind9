@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,10 +21,13 @@ if (@ARGV > 0) {
 	$server_addr = @ARGV[0];
 }
 
-my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
 
-print "listening on $server_addr:5300.\n";
+my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
+   LocalPort => $localport, Proto => "udp", Reuse => 1) or die "$!";
+
+print "listening on $server_addr:$localport.\n";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

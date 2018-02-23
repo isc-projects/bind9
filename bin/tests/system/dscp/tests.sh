@@ -1,4 +1,4 @@
-# Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,7 +7,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest"
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest -p ${PORT}"
 
 status=0
 
@@ -19,17 +19,17 @@ status=0
 for server in 10.53.0.1 10.53.0.2 10.53.0.3 10.53.0.4 10.53.0.5 \
 	      10.53.0.6 10.53.0.7
 do
-	echo "I:testing root SOA lookup at $server"
+	echo_i "testing root SOA lookup at $server"
 	for i in 0 1 2 3 4 5 6 7 8 9
 	do
 		ret=0
-		$DIG -p 5300 @$server $DIGOPTS soa . > dig.out.$server
+		$DIG $DIGOPTS @$server soa . > dig.out.$server
 		grep "status: NOERROR" dig.out.$server > /dev/null || ret=1
 		test $ret = 0 && break
 		sleep 1
 	done
-	test $ret = 0 || { echo "I:failed"; status=`expr $status + $ret`; }
+	test $ret = 0 || { echo_i "failed"; status=`expr $status + $ret`; }
 done
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

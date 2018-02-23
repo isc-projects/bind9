@@ -71,31 +71,38 @@ KRB5_CONFIG=/dev/null
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# v6synth
+# The "dialup" and "delzone" tests are also not run by default because
+# they take a very long time to complete.
 #
-# List of tests that use ports 5300 and 9953.  For this reason, these must
-# be run sequentially.
-SEQUENTIALDIRS="acl additional addzone auth autosign builtin \
-	cacheclean case cds chain \
-	checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
-	database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
-	emptyzones fetchlimit filter-aaaa formerr geoip glue gost \
-	inline integrity ixfr keepalive @KEYMGR@ legacy limits \
-	logfileconfig masterfile masterformat metadata mkeys \
-	names notify nslookup nsupdate nzd2nzf padding pending \
-	pipelined @PKCS11_TEST@ reclimit redirect resolver rndc \
-	rpz rrchecker rrl rrsetorder rsabigexponent \
-	runtime sfcache smartsign sortlist spf staticstub \
-	statistics statschannel stub synthfromdnssec tcp tkey tools \
-	tsig tsiggss unknown upforwd verify views wildcard xfer \
-	xferquota zero zonechecks"
+# List of tests hard-coded to use ports 5300 and 9953. For this
+# reason, these must be run sequentially.
+SEQUENTIALDIRS="ecdsa eddsa gost @PKCS11_TEST@ tkey"
 
-# List of tests that use unique ports (other than 5300 and 9953). These
-# tests can be run in parallel.
+# List of tests that use ports assigned by caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query catz rpzrecurse serve-stale"
+PARALLELDIRS="acl additional addzone allow_query auth autosign \
+	builtin cacheclean case catz cds chain \
+	checkconf checknames checkzone \
+	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
+	cookie database digdelv dlv dlz dlzexternal \
+	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	ednscompliance emptyzones \
+	fetchlimit filter-aaaa formerr forward \
+	geoip glue inline integrity ixfr keepalive \
+	legacy limits logfileconfig \
+        masterfile masterformat metadata mkeys \
+        names notify nslookup nsupdate nzd2nzf \
+        padding pending pipelined \
+        reclimit redirect resolver rndc rpz rpzrecurse \
+        rrchecker rrlrrsetorder rsabigexponent runtime \
+        serve-stale sfcache smartsign sortlist \
+        spf staticstub statistics statschannel stub synthfromdnssec \
+        tcp tools tsig tsiggss \
+        unknown upforwd verify views wildcard \
+        xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
@@ -220,6 +227,12 @@ SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
     echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+cat_i() {
+    while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
     done
 }

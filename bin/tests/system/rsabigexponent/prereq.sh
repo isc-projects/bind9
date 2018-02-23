@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,7 +15,7 @@ if $BIGKEY > /dev/null 2>&1
 then
     rm -f Kexample.*
 else
-    echo "I:This test requires cryptography" >&2
-    echo "I:configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
+    echo_i "This test requires cryptography" >&2
+    echo_i "configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
     exit 255
 fi

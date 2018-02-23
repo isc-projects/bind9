@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,21 +10,15 @@ options {
 	query-source address 10.53.0.1;
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
-	port 5300;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on port 5300 {
-		10.53.0.1;
-	};
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion no;
 	notify yes;
 };
 
-controls {
-    inet 127.0.0.1 port 9593 allow {
-			 127.0.0.1/32; ::1/128; }
-			 keys { "rndc-key"; };
-};
+include "controls.conf";
 
 key "rndc-key" {
 	algorithm hmac-sha256;

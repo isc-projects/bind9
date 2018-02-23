@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,15 +14,15 @@ status=0
 checkout() {
 	case $? in
 	0) : ok ;;
-	*) echo "I:failed"
+	*) echo_i "failed"
 	   status=`expr $status + 1`
 	   return 1 ;;
 	esac
 	case $out in
 	*$hash*) : ok ;;
-	*) echo "I:expect $hash"
-	   echo "I:output $out"
-	   echo "I:failed"
+	*) echo_i "expect $hash"
+	   echo_i "output $out"
+	   echo_i "failed"
 	   status=`expr $status + 1` ;;
 	esac
 }
@@ -31,11 +31,11 @@ checkout() {
 algo=1 flags=0 iters=12 salt="aabbccdd"
 while	read name hash
 do
-	echo "I:checking $NSEC3HASH $name"
+	echo_i "checking $NSEC3HASH $name"
 	out=`$NSEC3HASH $salt $algo $iters $name`
 	checkout
 
-	echo "I:checking $NSEC3HASH -r $name"
+	echo_i "checking $NSEC3HASH -r $name"
 	out=`$NSEC3HASH -r $algo $flags $iters $salt $name`
 	checkout
 
@@ -60,41 +60,41 @@ checkempty() {
 	hash=- checkout
 }
 name=com algo=1 flags=1 iters=0
-echo "I:checking $NSEC3HASH '' $name"
+echo_i "checking $NSEC3HASH '' $name"
 out=`$NSEC3HASH '' $algo $iters $name`
 checkempty
-echo "I:checking $NSEC3HASH - $name"
+echo_i "checking $NSEC3HASH - $name"
 out=`$NSEC3HASH - $algo $iters $name`
 checkempty
-echo "I:checking $NSEC3HASH -- '' $name"
+echo_i "checking $NSEC3HASH -- '' $name"
 out=`$NSEC3HASH -- '' $algo $iters $name`
 checkempty
-echo "I:checking $NSEC3HASH -- - $name"
+echo_i "checking $NSEC3HASH -- - $name"
 out=`$NSEC3HASH -- - $algo $iters $name`
 checkempty
-echo "I:checking $NSEC3HASH -r '' $name"
+echo_i "checking $NSEC3HASH -r '' $name"
 out=`$NSEC3HASH -r $algo $flags $iters '' $name`
 checkempty
-echo "I:checking $NSEC3HASH -r - $name"
+echo_i "checking $NSEC3HASH -r - $name"
 out=`$NSEC3HASH -r $algo $flags $iters - $name`
 checkempty
 
 checkfail() {
 	case $? in
-	0) echo "I:failed to fail"
+	0) echo_i "failed to fail"
 	   status=`expr $status + 1`
 	   return 1 ;;
 	esac
 }
-echo "I:checking $NSEC3HASH missing args"
+echo_i "checking $NSEC3HASH missing args"
 out=`$NSEC3HASH 00 1 0 2>&1`
 checkfail
-echo "I:checking $NSEC3HASH extra args"
+echo_i "checking $NSEC3HASH extra args"
 out=`$NSEC3HASH 00 1 0 two names 2>&1`
 checkfail
-echo "I:checking $NSEC3HASH bad option"
+echo_i "checking $NSEC3HASH bad option"
 out=`$NSEC3HASH -? 2>&1`
 checkfail
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

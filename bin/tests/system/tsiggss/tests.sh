@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2010, 2011, 2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010, 2011, 2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +13,7 @@ SYSTEMTESTTOP=..
 
 status=0
 
-DIGOPTS="@10.53.0.1 -p 5300"
+DIGOPTS="@10.53.0.1 -p ${PORT}"
 
 test_update() {
     host="$1"
@@ -22,7 +22,7 @@ test_update() {
     digout="$4"
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 update add $host $cmd
 send
 EOF
@@ -67,7 +67,7 @@ test_update testcname.example.nil. TXT "86400 A 10.53.0.13" "10.53.0.13" > /dev/
 echo "I:testing external policy with SIG(0) key"
 ret=0
 $NSUPDATE -R $RANDFILE -k ns1/Kkey.example.nil.*.private <<END > /dev/null 2>&1 || ret=1
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 zone example.nil
 update add fred.example.nil 120 cname foo.bar.
 send

@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,13 @@ touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db
 rm -f ns4/noixfr.db.jnl
 
-cp ns5/named.conf.pre ns5/named.conf
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
+copy_setports ns5/named.conf.pre ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf
 
 (cd ns3; $SHELL -e sign.sh)
 (cd ns1; $SHELL -e sign.sh)

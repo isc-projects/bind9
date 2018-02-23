@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,11 +22,11 @@ matchall () {
     done
 }
 
-echo "I:checking for DNSSEC key coverage issues"
+echo_i "checking for DNSSEC key coverage issues"
 ret=0
 for dir in [0-9][0-9]-*; do
         ret=0
-        echo "I:$dir ($n)"
+        echo_i "$dir ($n)"
         kargs= cargs= kmatch= cmatch= kret= cret=0 warn= error= ok=
         . $dir/expect
 
@@ -91,18 +91,18 @@ for dir in [0-9][0-9]-*; do
         fi
 
         n=`expr $n + 1`
-        if [ $ret != 0 ]; then echo "I:failed"; fi
+        if [ $ret != 0 ]; then echo_i "failed"; fi
         status=`expr $status + $ret`
 done
 
-echo "I:checking policy.conf parser ($n)"
+echo_i "checking policy.conf parser ($n)"
 ret=0
 ${PYTHON} testpolicy.py policy.sample > policy.out
 $DOS2UNIX policy.out > /dev/null
 cmp -s policy.good policy.out || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
