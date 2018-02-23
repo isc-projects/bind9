@@ -17,7 +17,7 @@ test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 prog=$0
 
 args="-r $RANDFILE"
-alg="-a RSAMD5 -b 1024"
+alg="-a RSASHA1 -b 1024"
 quiet=0
 
 msg1="cryptography"
