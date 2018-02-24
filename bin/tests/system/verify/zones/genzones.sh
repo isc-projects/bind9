@@ -15,6 +15,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=verify
+
 dumpit () {
 	echo "D:${debug}: dumping ${1}"
 	cat "${1}" | sed 's/^/D:/'

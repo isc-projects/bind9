@@ -46,9 +46,9 @@ done
 if test $tmp -eq 1 ; then status=1; fi
 grep "^;" dig.out.ns3 | cat_i
 
-{ $PERL ../digcomp.pl dig1.good dig.out.ns2 || status=1; } | cat_i
+digcomp dig1.good dig.out.ns2 || status=1
 
-{ $PERL ../digcomp.pl dig1.good dig.out.ns3 || status=1; } | cat_i
+digcomp dig1.good dig.out.ns3 || status=1
 
 n=`expr $n + 1`
 echo_i "testing TSIG signed zone transfers"
@@ -70,7 +70,7 @@ done
 if test $tmp -eq 1 ; then status=1; fi
 grep "^;" dig.out.ns3 | cat_i
 
-{ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1; } | cat_i
+digcomp dig.out.ns2 dig.out.ns3 || status=1
 
 echo_i "reload servers for in preparation for ixfr-from-differences tests"
 
@@ -163,7 +163,7 @@ $DIG $DIGOPTS example. \
 	@10.53.0.3 axfr > dig.out.ns3 || tmp=1
 grep "^;" dig.out.ns3 | cat_i
 
-{ $PERL ../digcomp.pl dig2.good dig.out.ns3 || tmp=1; } | cat_i
+digcomp dig2.good dig.out.ns3 || tmp=1
 
 # ns3 has a journal iff it received an IXFR.
 test -f ns3/example.bk || tmp=1
@@ -184,7 +184,7 @@ $DIG $DIGOPTS master. \
 	@10.53.0.3 axfr > dig.out.ns3 || tmp=1
 grep "^;" dig.out.ns3 > /dev/null && cat_i dig.out.ns3
 
-{ $PERL ../digcomp.pl dig.out.ns6 dig.out.ns3 || tmp=1; } | cat_i
+digcomp dig.out.ns6 dig.out.ns3 || tmp=1
 
 # ns3 has a journal iff it received an IXFR.
 test -f ns3/master.bk || tmp=1
@@ -205,7 +205,7 @@ $DIG $DIGOPTS slave. \
 	@10.53.0.1 axfr > dig.out.ns1 || tmp=1
 grep "^;" dig.out.ns1 | cat_i
 
-{ $PERL ../digcomp.pl dig.out.ns6 dig.out.ns1 || tmp=1; } | cat_i
+digcomp dig.out.ns6 dig.out.ns1 || tmp=1
 
 # ns6 has a journal iff it received an IXFR.
 test -f ns6/slave.bk || tmp=1
@@ -237,7 +237,7 @@ $DIG $DIGOPTS slave. \
 	@10.53.0.7 axfr > dig.out.ns7 || tmp=1
 grep "^;" dig.out.ns1 | cat_i
 
-{ $PERL ../digcomp.pl dig.out.ns7 dig.out.ns1 || tmp=1; } | cat_i
+digcomp dig.out.ns7 dig.out.ns1 || tmp=1
 
 # ns7 has a journal iff it generates an IXFR.
 test -f ns7/slave.bk || tmp=1

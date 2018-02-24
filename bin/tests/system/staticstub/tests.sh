@@ -82,7 +82,7 @@ n=`expr $n + 1`
 echo_i "look for static-stub zone data with recursion (should be found) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp data.example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
-$PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns2.test$n || ret=1
+digcomp knowngood.dig.out.rec dig.out.ns2.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

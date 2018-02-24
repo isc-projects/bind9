@@ -61,7 +61,7 @@ for zone in example example-explicit example-compat; do
 		echo
 	done > dig.out.$zone.$server
     done
-    $PERL ../digcomp.pl dig.out.$zone.1 dig.out.$zone.2 || ret=1
+    digcomp dig.out.$zone.1 dig.out.$zone.2 || ret=1
 done
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
