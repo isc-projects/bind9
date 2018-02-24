@@ -90,7 +90,7 @@ ISC maintains a public git repository for BIND; details can be found
 at [http://www.isc.org/git/](http://www.isc.org/git/).
 
 Information for BIND contributors can be found in the following files:
-- General information: [doc/dev/contrib.md](doc/dev/contrib.md)
+- General information: [CONTRIBUTING.md](CONTRIBUTING)
 - BIND 9 code style: [doc/dev/style.md](doc/dev/style.md)
 - BIND architecture and developer guide: [doc/dev/dev.md](doc/dev/dev.md)
 
