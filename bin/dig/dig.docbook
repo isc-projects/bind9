@@ -877,7 +877,8 @@
 	      attempts to find the authoritative name servers for
 	      the zone containing the name being looked up and
 	      display the SOA record that each name server has for
-	      the zone.
+	      the zone. Addresses of servers that that did not
+	      respond are also printed.
 	    </para>
 	  </listitem>
 	</varlistentry>
