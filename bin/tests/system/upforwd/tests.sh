@@ -61,9 +61,9 @@ n=`expr $n + 1`
 
 echo_i "comparing pre-update copies to known good data ($n)"
 ret=0
-$PERL ../digcomp.pl knowngood.before dig.out.ns1 || ret=1
-$PERL ../digcomp.pl knowngood.before dig.out.ns2 || ret=1
-$PERL ../digcomp.pl knowngood.before dig.out.ns3 || ret=1
+digcomp knowngood.before dig.out.ns1 || ret=1
+digcomp knowngood.before dig.out.ns2 || ret=1
+digcomp knowngood.before dig.out.ns3 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "updating zone (signed) ($n)"
@@ -102,9 +102,9 @@ n=`expr $n + 1`
 
 echo_i "comparing post-update copies to known good data ($n)"
 ret=0
-$PERL ../digcomp.pl knowngood.after1 dig.out.ns1 || ret=1
-$PERL ../digcomp.pl knowngood.after1 dig.out.ns2 || ret=1
-$PERL ../digcomp.pl knowngood.after1 dig.out.ns3 || ret=1
+digcomp knowngood.after1 dig.out.ns1 || ret=1
+digcomp knowngood.after1 dig.out.ns2 || ret=1
+digcomp knowngood.after1 dig.out.ns3 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "checking 'forwarding update for zone' is logged ($n)"
@@ -148,9 +148,9 @@ if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "comparing post-update copies to known good data ($n)"
 ret=0
-$PERL ../digcomp.pl knowngood.after2 dig.out.ns1 || ret=1
-$PERL ../digcomp.pl knowngood.after2 dig.out.ns2 || ret=1
-$PERL ../digcomp.pl knowngood.after2 dig.out.ns3 || ret=1
+digcomp knowngood.after2 dig.out.ns1 || ret=1
+digcomp knowngood.after2 dig.out.ns2 || ret=1
+digcomp knowngood.after2 dig.out.ns3 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
 

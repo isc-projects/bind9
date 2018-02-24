@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=legacy
+
 echo_i "sign edns512-notcp"
 
 zone=edns512-notcp
