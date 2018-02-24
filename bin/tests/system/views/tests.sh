@@ -55,13 +55,13 @@ echo_i "fetching a.example from ns3's 10.53.0.3, source address defaulted"
 $DIG $DIGOPTS @10.53.0.3 a.example. any > dig.out.ns3.2 || status=1
 
 echo_i "comparing ns3's initial a.example to one from reconfigured 10.53.0.2"
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2 || status=1
+{ $PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2 || status=1; } | cat_i
 
 echo_i "comparing ns3's initial a.example to one from reconfigured 10.53.0.3"
-$PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2 || status=1
+{ $PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2 || status=1; } | cat_i
 
 echo_i "comparing ns2's initial a.example to one from reconfigured 10.53.0.4"
-$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2 || status=1
+{ $PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2 || status=1; } | cat_i
 
 echo_i "comparing ns2's initial a.example to one from reconfigured 10.53.0.3"
 echo_i "(should be different)"

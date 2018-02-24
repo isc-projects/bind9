@@ -85,7 +85,7 @@ n=`expr $n + 1`
 echo_i "check correctness of routine cache cleaning ($n)"
 $DIG $DIGOPTS +tcp +keepopen -b 10.53.0.7 -f dig.batch > dig.out.ns2 || status=1
 
-$PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1
+{ $PERL ../digcomp.pl --lc dig.out.ns2 knowngood.dig.out || status=1; } | cat_i
 
 n=`expr $n + 1`
 echo_i "only one tcp socket was used ($n)"

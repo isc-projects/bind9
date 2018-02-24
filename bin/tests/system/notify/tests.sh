@@ -45,7 +45,7 @@ grep "10.0.0.1" dig.out.ns2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.1" dig.out.ns3.test$n > /dev/null || ret=1
 
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+{ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1; } | cat_i
 
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`
@@ -105,7 +105,7 @@ grep "10.0.0.2" dig.out.ns2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.2" dig.out.ns3.test$n > /dev/null || ret=1
 
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+{ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1; } | cat_i
 
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`
@@ -151,7 +151,7 @@ grep "10.0.0.4" dig.out.ns2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS a.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 grep "10.0.0.4" dig.out.ns3.test$n > /dev/null || ret=1
 
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
+{ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns3.test$n || ret=1; } | cat_i
 
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`

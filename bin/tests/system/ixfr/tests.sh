@@ -245,7 +245,7 @@ ret=0
 # Should be "switch to TCP" response
 $DIG $DIGOPTS +notcp ixfr=1 test @10.53.0.4 > dig.out1 || ret=1
 $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.4 > dig.out2 || ret=1
-$PERL ../digcomp.pl dig.out1 dig.out2 || ret=1
+{ $PERL ../digcomp.pl dig.out1 dig.out2 || ret=1; } | cat_i
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1 || ret=1
 awk '$4 == "SOA" { if ($7 == 4) exit(0); else exit(1);}' dig.out1 || ret=1
 # Should be incremental transfer.

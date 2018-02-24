@@ -63,7 +63,7 @@ n=`expr $n + 1`
 echo_i "testing load of dynamic zone with various \$ORIGIN values ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
-$PERL ../digcomp.pl dig.ns1.test$n dynamic.good || ret=1
+{ $PERL ../digcomp.pl dig.ns1.test$n dynamic.good || ret=1; } | cat_i
 
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
@@ -72,7 +72,7 @@ n=`expr $n + 1`
 echo_i "transfer of dynamic zone with various \$ORIGIN values ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
-$PERL ../digcomp.pl dig.ns2.test$n dynamic.good || ret=1
+{ $PERL ../digcomp.pl dig.ns2.test$n dynamic.good || ret=1; } | cat_i
 
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
@@ -86,7 +86,7 @@ update add dYNAMIc 0 SOA mname1. . 2000042408 20 20 1814400 3600
 send
 EOF
 $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
-$PERL ../digcomp.pl dig.ns1.test$n postupdate.good || ret=1
+{ $PERL ../digcomp.pl dig.ns1.test$n postupdate.good || ret=1; } | cat_i
 
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
@@ -101,7 +101,7 @@ n=`expr $n + 1`
 echo_i "check SOA owner case is transfered to slave ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
-$PERL ../digcomp.pl dig.ns2.test$n postupdate.good || ret=1
+{ $PERL ../digcomp.pl dig.ns2.test$n postupdate.good || ret=1; } | cat_i
 
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
@@ -116,7 +116,7 @@ update add Ns1.DyNaMIC. 300 IN A 10.53.0.1
 send
 EOF
 $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
-$PERL ../digcomp.pl dig.ns1.test$n postns1.good || ret=1
+{ $PERL ../digcomp.pl dig.ns1.test$n postns1.good || ret=1; } | cat_i
 
 test $ret -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
@@ -131,7 +131,7 @@ n=`expr $n + 1`
 echo_i "check A owner case is transfered to slave ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
-$PERL ../digcomp.pl dig.ns2.test$n postns1.good || ret=1
+{ $PERL ../digcomp.pl dig.ns2.test$n postns1.good || ret=1; } | cat_i
 status=`expr $status + $ret`
 
 echo_i "exit status: $status"
