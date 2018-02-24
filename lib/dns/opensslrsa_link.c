@@ -995,6 +995,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	if (RSA_generate_key_ex(rsa, key->key_size, e, cb)) {
 		BN_free(e);
 		BN_GENCB_free(cb);
+		cb = NULL;
 		SET_FLAGS(rsa);
 #if USE_EVP
 		key->keydata.pkey = pkey;
@@ -1017,8 +1018,10 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		BN_free(e);
 	if (rsa != NULL)
 		RSA_free(rsa);
-	if (cb != NULL)
+	if (cb != NULL) {
 		BN_GENCB_free(cb);
+		cb = NULL;
+	}
 	return (dst__openssl_toresult(ret));
 #else
 	RSA *rsa;
