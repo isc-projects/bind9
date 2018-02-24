@@ -87,7 +87,16 @@ parallel.mk:
 	PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
 	echo ".PHONY: $$PARALLEL_SANITIZED" > $@ ; \
 	echo "" >> $@ ; \
-	echo "test check: $$PARALLEL_SANITIZED" >> $@ ; \
+	echo "check_interfaces:" >> $@ ; \
+	echo "	@if ! ${PERL} testsock.pl > /dev/null 2>&1; then \\" >> $@ ; \
+	echo "		echo \"I:NOTE: System tests were skipped because they require that the\"; \\" >> $@ ; \
+	echo "		echo \"I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured\"; \\" >> $@ ; \
+	echo "		echo \"I:      as alias addresses on the loopback interface.  Please run\"; \\" >> $@ ; \
+	echo "		echo \"I:      \"bin/tests/system/ifconfig.sh up\" as root to configure them.\"; \\" >> $@ ; \
+	echo "		exit 1; \\" >> $@ ; \
+	echo "	fi" >> $@ ; \
+	echo "" >> $@ ; \
+	echo "test check: check_interfaces $$PARALLEL_SANITIZED" >> $@ ; \
 	port=$${STARTPORT:-5000} ; \
 	for directory in $(PARALLEL) ; do \
 		echo "" >> $@ ; \

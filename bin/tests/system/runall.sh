@@ -55,14 +55,25 @@ else
     exit 1
 fi
 
-# Run the tests.
+# Make sure interfaces are up.
+$PERL testsock.pl || {
+    cat <<EOF
+I:NOTE: System tests were skipped because they require that the
+I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured
+I:      as alias addresses on the loopback interface.  Please run
+I:      "bin/tests/system/ifconfig.sh up" as root to configure them.
+EOF
+    exit 1
+}
 
+# Run the tests.
 status=0
 if [ "$CYGWIN" = "" ]; then
     # Running on Unix, use "make" to run tests in parallel.
     make -j $numproc check
     status=$?
 else
+
     # Running on Windows: no "make" available, so run the tests sequentially.
     # (This is simpler than working out where "nmake" is likely to be found.
     # Besides, "nmake" does not support parallel execution so if "nmake" is
