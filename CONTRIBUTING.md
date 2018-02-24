@@ -59,7 +59,7 @@ To clone the repository, use:
 
 >       $ git clone https://gitlab.isc.org/isc-projects/bind9.git
 
-Branch names are of the form `v9_X`, where X represents the second
+Release branch names are of the form `v9_X`, where X represents the second
 number in the BIND 9 version number.  So, to check out the BIND 9.12
 branch, use:
 
@@ -83,8 +83,10 @@ especially if a bug is cosmetic or if a feature request is vague or
 low in priority, but we will try at least to acknowledge legitimate
 bug reports within a week.
 
-ISC's ticketing system is publicly readable, however you need a create
-an account to file a new issue.
+ISC's ticketing system is publicly readable; however, you must have
+an account to file a new issue. You can either register locally or
+use credentials from an existing account at GitHub, GitLab, Google,
+Twitter, or Facebook.
 
 ### Reporting possible security issues
 If you think you may be seeing a potential security vulnerability in BIND 
@@ -113,30 +115,31 @@ ISC does not require an explicit copyright assignment for patch
 contributions.  However, by submitting a patch to ISC, you implicitly
 certify that you are the author of the code, that you intend to reliquish
 exclusive copyright, and that you grant permission to publish your work
-under the open source license used for the BIND version(s) your patch 
-applies to.
-
+under the open source license used for the BIND version(s) to which your
+patch will be applied.
 
 #### <a name="bind"></a>BIND code
 
-Patches for BIND may be submitted using merge requests in [ISC's Gitlab](https://gitlab.isc.org/isc-projects/bind9/)
-source repository for BIND.
+Patches for BIND may be submitted directly via merge requests in
+[ISC's Gitlab](https://gitlab.isc.org/isc-projects/bind9/) source
+repository for BIND.
 
-Patches should be submitted as diffs against a specific version of BIND --
-preferably the current top of the `master` branch.  Diffs may be
-generated using either `git format-patch` or `git diff`.
+Patches can also be submitted as diffs against a specific version of
+BIND -- preferably the current top of the `master` branch.  Diffs may
+be generated using either `git format-patch` or `git diff`.
 
-Those wanting to write code for BIND may be interested in the [developer
-information](doc/dev/dev.md) page, which includes information about BIND design and
-coding practices, including discussion of internal APIs and overall system
-architecture.  (This is a work in progress, and still quite preliminary.)
+Those wanting to write code for BIND may be interested in the
+[developer information](doc/dev/dev.md) page, which includes information
+about BIND design and coding practices, including discussion of internal
+APIs and overall system architecture.  (This is a work in progress, and
+still quite preliminary.)
 
-Every patch submitted will be reviewed by ISC engineers following our [code
-review process](doc/dev/dev.md#reviews) before it is merged.
+Every patch submitted will be reviewed by ISC engineers following our
+[code review process](doc/dev/dev.md#reviews) before it is merged.
 
 It may take considerable time to review patch submissions, especially if
-they don't meet ISC style and quality guidelines.  If the patch is a good
-idea, we can and will do additional work to bring them up to par, but if
+they don't meet ISC style and quality guidelines.  If a patch is a good
+idea, we can and will do additional work to bring it up to par, but if
 we're busy with other work, it may take us a long time to get to it.
 
 To ensure your patch is acted on as promptly as possible, please:
@@ -158,9 +161,9 @@ directly; instead, edit `configure.in`, then run `autoconf`.  Similarly,
 instead of editing `config.h.in` directly, edit `configure.in` and run
 `autoheader`.
 
-When submitting your patch, it is fine to omit the `configure` diffs.
-Just send the `configure.in` diffs and we'll generate the new `configure`
-during the review process.
+When submitting a patch as a diff, it's fine to omit the `configure`
+diffs to save space.  Just send the `configure.in` diffs and we'll
+generate the new `configure` during the review process.
 
 ##### Documentation
 
@@ -176,13 +179,19 @@ of documentation in the BIND source tree:
 * API documentation is in the header file describing the API, in
   Doxygen-formatted comments.
 
-It is not necessary to edit any documentation files other than these; the
-PDF, HTML, and `nroff`-format files will be generated automatically
-from the `docbook` and `XML` files by a script whenever a documentation
-change is merged to a release branch.
+It is not necessary to edit any documentation files other than these;
+all PDF, HTML, and `nroff`-format man page files will be updated
+automatically from the `docbook` and `XML` files after merging.
+
+Patches to improve existing documentation are also very welcome!
 
 ##### Tests
 
-BIND is a large and complex project. We rely heavily on continuous automated
-testing and cannot merge any new code without adequate test coverage. See [Testing](doc/dev/dev.md#testing)
-for more information.
+BIND is a large and complex project. We rely heavily on continuous
+automated testing and cannot merge new code without adequate test coverage.
+See [Testing](doc/dev/dev.md#testing) for more information.
+
+#### Thanks
+
+Thank you for your interest in contributing to the ongoing development
+of BIND.
