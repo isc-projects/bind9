@@ -91,10 +91,10 @@ for zone in example example-explicit example-compat; do
 		echo
 	done > dig.out.$zone.$server
     done
-    $PERL ../digcomp.pl dig.out.$zone.1 dig.out.$zone.2 || ret=1
+    digcomp dig.out.$zone.1 dig.out.$zone.2 || ret=1
     if [ $zone = "example" ]; then
-            set -- 1 2
-            $PERL ../digcomp.pl dig.out.$zone.1 dig.out.$zone.3 || ret=1
+        set -- 1 2
+        digcomp dig.out.$zone.1 dig.out.$zone.3 || ret=1
     fi
 done
 [ $ret -eq 0 ] || echo_i "failed"

@@ -48,7 +48,7 @@ echo_i "check that 'check-names response warn;' works ($n)"
 ret=0
 $DIG $DIGOPTS +noauth yy_yy.ignore.example. @10.53.0.1 a > dig.out.ns1.test$n || ret=1
 $DIG $DIGOPTS +noauth yy_yy.ignore.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns1.test$n dig.out.ns2.test$n || ret=1
+digcomp dig.out.ns1.test$n dig.out.ns2.test$n || ret=1
 grep "check-names warning yy_yy.ignore.example/A/IN" ns2/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

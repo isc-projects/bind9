@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=wildcard
+
 dssets=
 
 zone=dlv.

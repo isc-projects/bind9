@@ -106,7 +106,7 @@ do
     else
 	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
     fi
-    $PERL ../digcomp.pl $nxdomain dig.out.ns${ns}.test$n || ret=1
+    digcomp $nxdomain dig.out.ns${ns}.test$n || ret=1
     n=`expr $n + 1`
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
@@ -123,7 +123,7 @@ do
     else
 	grep "example.*3600.IN.SOA" dig.out.ns${ns}.test$n > /dev/null || ret=1
     fi
-    $PERL ../digcomp.pl $nodata dig.out.ns${ns}.test$n || ret=1
+    digcomp $nodata dig.out.ns${ns}.test$n || ret=1
     n=`expr $n + 1`
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`

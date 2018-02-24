@@ -9,10 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: keygen.sh,v 1.15 2012/02/06 23:46:46 tbox Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
+
+SYSTESTDIR=autosign
 
 dumpit () {
 	echo "D:${debug}: dumping ${1}"
@@ -20,7 +20,7 @@ dumpit () {
 }
 
 setup () {
-	echo "I:setting up zone: $1"
+	echo_i "setting up zone: $1"
 	debug="$1"
 	zone="$1"
 	zonefile="${zone}.db"

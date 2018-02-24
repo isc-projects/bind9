@@ -99,10 +99,10 @@ echo_i "  resigned after the active KSK is deleted - stage 1: Verify that DNSKEY
 echo_i "  is initially signed with a KSK and not a ZSK. ($n)"
 ret=0
 
-$DIG  $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
-       $DSFROMKEY -A -2 -f - inacksk3.example | awk '{ print $4}' `
+       $DSFROMKEY -A -2 -f - inacksk3.example | awk '{ print $4}'`
 grep "DNSKEY 7 2 " dig.out.ns3.test$n > /dev/null || ret=1
 
 pattern="DNSKEY 7 2 [0-9]* [0-9]* [0-9]* ${zskid} "
@@ -121,8 +121,8 @@ test $count -eq 3 || ret=1
 awk='$4 == "RRSIG" && $5 == "DNSKEY" { printf "%05u\n", $11 }'
 id=`awk "${awk}" dig.out.ns3.test$n`
 
-$SETTIME -D now+5 ns3/Kinacksk3.example.+007+${id}
-$RNDCCMD 10.53.0.3 loadkeys inacksk3.example
+$SETTIME -D now+5 ns3/Kinacksk3.example.+007+${id} > /dev/null 2>&1
+$RNDCCMD 10.53.0.3 loadkeys inacksk3.example 2>&1 | sed 's/^/ns3 /' | cat_i
 
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -135,7 +135,7 @@ echo_i "check that zone with active and inactive ZSK and active KSK is properly"
 echo_i "  resigned after the active ZSK is deleted - stage 1: Verify that zone"
 echo_i "  is initially signed with a ZSK and not a KSK. ($n)"
 ret=0
-$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
 grep "CNAME 7 3 " dig.out.ns3.test$n > /dev/null || ret=1
@@ -149,8 +149,8 @@ count=`awk 'BEGIN { count = 0 }
        END {print count}' dig.out.ns3.test$n`
 test $count -eq 3 || ret=1
 id=`awk '$4 == "RRSIG" && $5 == "CNAME" { printf "%05u\n", $11 }' dig.out.ns3.test$n`
-$SETTIME -D now+5 ns3/Kinaczsk3.example.+007+${id}
-$RNDCCMD 10.53.0.3 loadkeys inaczsk3.example
+$SETTIME -D now+5 ns3/Kinaczsk3.example.+007+${id} > /dev/null 2>&1
+$RNDCCMD 10.53.0.3 loadkeys inaczsk3.example 2>&1 | sed 's/^/ns3 /' | cat_i
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -219,7 +219,7 @@ status=`expr $status + $ret`
 
 echo_i "checking for nsec3param signing record ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 signing -list autonsec3.example. > signing.out.test$n 2>&1
+$RNDCCMD 10.53.0.3 signing -list autonsec3.example. > signing.out.test$n 2>&1 | sed 's/^/ns3 /' | cat_i
 grep "Pending NSEC3 chain 1 0 20 DEAF" signing.out.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -248,7 +248,7 @@ zsk=`cat autozsk.key`
 ksk=`cat autoksk.key`
 $SETTIME -K ns3 -P now -A now $zsk > /dev/null 2>&1
 $SETTIME -K ns3 -P now -A now $ksk > /dev/null 2>&1
-$RNDCCMD 10.53.0.3 loadkeys autonsec3.example. 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 loadkeys autonsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i
 
 echo_i "waiting for changes to take effect"
 sleep 3
@@ -301,9 +301,9 @@ status=`expr $status + $ret`
 # Send rndc sync command to ns1, ns2 and ns3, to force the dynamically
 # signed zones to be dumped to their zone files
 echo_i "dumping zone files"
-$RNDCCMD 10.53.0.1 sync 2>&1 | sed 's/^/I:ns1 /'
-$RNDCCMD 10.53.0.2 sync 2>&1 | sed 's/^/I:ns2 /'
-$RNDCCMD 10.53.0.3 sync 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.1 sync 2>&1 | sed 's/^/ns1 /' | cat_i
+$RNDCCMD 10.53.0.2 sync 2>&1 | sed 's/^/ns2 /' | cat_i
+$RNDCCMD 10.53.0.3 sync 2>&1 | sed 's/^/ns3 /' | cat_i
 
 echo_i "checking expired signatures were updated ($n)"
 for i in 1 2 3 4 5 6 7 8 9
@@ -311,12 +311,11 @@ do
 	ret=0
 	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-	$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n > digcomp.out.test$n || ret=1
+        digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 	grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 	[ $ret = 0 ] && break
 	sleep 1
 done
-if [ $ret != 0 ]; then cat digcomp.out.test$n; echo_i "failed"; fi
 n=`expr $n + 1`
 status=`expr $status + $ret`
 
@@ -326,7 +325,7 @@ $DIG $DIGOPTS nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || re
 grep "status: NOERROR" dig.out.ns3.ok.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -340,7 +339,7 @@ $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.
 grep "NSEC3PARAM" dig.out.ns3.ok.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -361,7 +360,7 @@ $DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.
 grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
 $DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -377,7 +376,7 @@ $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.
 grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -388,7 +387,7 @@ echo_i "checking TTLs of imported DNSKEYs (no default) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl1.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-awk 'BEGIN {r=0} $2 != 300 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+awk 'BEGIN {r=0} $2 != 300 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1 | cat_i
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -397,7 +396,7 @@ echo_i "checking TTLs of imported DNSKEYs (with default) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl2.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-awk 'BEGIN {r=0} $2 != 60 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+awk 'BEGIN {r=0} $2 != 60 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1 | cat_i
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -406,7 +405,7 @@ echo_i "checking TTLs of imported DNSKEYs (mismatched) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl3.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-awk 'BEGIN {r=0} $2 != 30 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+awk 'BEGIN {r=0} $2 != 30 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1 | cat_i
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -415,7 +414,7 @@ echo_i "checking TTLs of imported DNSKEYs (existing RRset) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp +noall +answer dnskey ttl4.example. @10.53.0.3 > dig.out.ns3.test$n || ret=1
 [ -s dig.out.ns3.test$n ] || ret=1
-awk 'BEGIN {r=0} $2 != 30 {r=1; print "I:found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1
+awk 'BEGIN {r=0} $2 != 30 {r=1; print "found TTL " $2} END {exit r}' dig.out.ns3.test$n || ret=1 | cat_i
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -424,7 +423,7 @@ echo_i "checking positive validation NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth a.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -436,7 +435,7 @@ $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -448,7 +447,7 @@ $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -458,7 +457,7 @@ echo_i "checking negative validation NXDOMAIN NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth q.example. @10.53.0.2 a > dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth q.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -471,7 +470,7 @@ $DIG $DIGOPTS +noauth q.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -484,7 +483,7 @@ $DIG $DIGOPTS +noauth q.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -496,7 +495,7 @@ echo_i "checking negative validation NODATA NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth a.example. @10.53.0.4 txt > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
@@ -510,7 +509,7 @@ $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.3 txt > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.4 txt > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
@@ -524,7 +523,7 @@ $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.3 txt > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.4 txt > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
@@ -538,7 +537,7 @@ echo_i "checking 1-server insecurity proof NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.insecure.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.insecure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -552,7 +551,7 @@ $DIG $DIGOPTS q.insecure.example. a @10.53.0.3 \
 	> dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS q.insecure.example. a @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -568,7 +567,7 @@ $DIG $DIGOPTS +noauth a.secure.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.secure.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -581,7 +580,7 @@ $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -594,7 +593,7 @@ $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -607,7 +606,7 @@ $DIG $DIGOPTS +noauth a.secure.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.secure.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -620,7 +619,7 @@ $DIG $DIGOPTS +noauth a.nsec3.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.nsec3.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -633,7 +632,7 @@ $DIG $DIGOPTS +noauth a.optout.nsec3.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.optout.nsec3.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -646,7 +645,7 @@ $DIG $DIGOPTS +noauth a.secure.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.secure.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -659,7 +658,7 @@ $DIG $DIGOPTS +noauth a.nsec3.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.nsec3.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -672,7 +671,7 @@ $DIG $DIGOPTS +noauth a.optout.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.optout.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -685,7 +684,7 @@ $DIG $DIGOPTS +noauth empty.optout.example. \
 	@10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth empty.optout.example. \
 	@10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 #grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -700,7 +699,7 @@ $DIG $DIGOPTS +noauth a.insecure.secure.example. @10.53.0.2 a \
 	> dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth a.insecure.secure.example. @10.53.0.4 a \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -716,7 +715,7 @@ $DIG $DIGOPTS q.insecure.secure.example. @10.53.0.2 a > dig.out.ns2.test$n \
 	|| ret=1
 $DIG $DIGOPTS q.insecure.secure.example. @10.53.0.4 a > dig.out.ns4.test$n \
 	|| ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -737,7 +736,7 @@ echo_i "checking positive validation RSASHA256 NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.rsasha256.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -747,7 +746,7 @@ echo_i "checking positive validation RSASHA512 NSEC ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth a.rsasha512.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -759,7 +758,7 @@ $DIG $DIGOPTS +noauth a.private.secure.example. a @10.53.0.2 \
 	> dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth a.private.secure.example. a @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -772,7 +771,7 @@ $DIG $DIGOPTS +noauth q.private.secure.example. a @10.53.0.2 \
 	> dig.out.ns2.test$n || ret=1
 $DIG $DIGOPTS +noauth q.private.secure.example. a @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
-$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
@@ -909,7 +908,7 @@ file="ns3/`cat del1.key`.key"
 $SETTIME -I now -D now $file > /dev/null
 file="ns3/`cat del2.key`.key"
 $SETTIME -I now -D now $file > /dev/null
-$RNDCCMD 10.53.0.3 sign secure-to-insecure2.example. 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 sign secure-to-insecure2.example. 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	ret=0
 	$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
@@ -929,7 +928,7 @@ oldinception=`$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {p
 
 $KEYGEN -a rsasha1 -3 -q -r $RANDFILE -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
 
-$RNDCCMD 10.53.0.3 sign prepub.example 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.3 sign prepub.example 2>&1 | sed 's/^/ns1 /' | cat_i
 newserial=$oldserial
 try=0
 while [ $oldserial -eq $newserial -a $try -lt 42 ]
@@ -966,13 +965,13 @@ $SETTIME -K ns1 -i 0 -S $oldfile $newfile > /dev/null
 # note previous zone serial number
 oldserial=`$DIG $DIGOPTS +short soa . @10.53.0.1 | awk '{print $3}'`
 
-$RNDCCMD 10.53.0.1 loadkeys . 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 loadkeys . 2>&1 | sed 's/^/ns1 /' | cat_i
 sleep 4
 
 echo_i "revoking key to duplicated key ID"
-$SETTIME -R now -K ns2 Kbar.+005+30676.key > /dev/null
+$SETTIME -R now -K ns2 Kbar.+005+30676.key > /dev/null 2>&1
 
-$RNDCCMD 10.53.0.2 loadkeys bar. 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 loadkeys bar. 2>&1 | sed 's/^/ns2 /' | cat_i
 
 echo_i "waiting for changes to take effect"
 sleep 5
@@ -1025,7 +1024,7 @@ n=`expr $n + 1`
 status=`expr $status + $ret`
 
 echo_i "forcing full sign"
-$RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/ns1 /' | cat_i
 
 echo_i "waiting for change to take effect"
 sleep 5
@@ -1064,7 +1063,7 @@ echo_i "checking scheduled key publication, not activation ($n)"
 ret=0
 $SETTIME -K ns3 -P now+3s -A none $zsk > /dev/null 2>&1
 $SETTIME -K ns3 -P now+3s -A none $ksk > /dev/null 2>&1
-$RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/ns2 /' | cat_i
 
 echo_i "waiting for changes to take effect"
 sleep 5
@@ -1082,7 +1081,7 @@ echo_i "checking scheduled key activation ($n)"
 ret=0
 $SETTIME -K ns3 -A now+3s $zsk > /dev/null 2>&1
 $SETTIME -K ns3 -A now+3s $ksk > /dev/null 2>&1
-$RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.3 loadkeys delay.example. 2>&1 | sed 's/^/ns2 /' | cat_i
 
 echo_i "waiting for changes to take effect"
 sleep 5
@@ -1196,7 +1195,7 @@ status=`expr $status + $ret`
 echo_i "forcing full sign with unreadable keys ($n)"
 ret=0
 chmod 0 ns1/K.+*+*.key ns1/K.+*+*.private || ret=1
-$RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/ns1 /' | cat_i
 $DIG $DIGOPTS . @10.53.0.1 dnskey > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
@@ -1206,12 +1205,12 @@ status=`expr $status + $ret`
 echo_i "test turning on auto-dnssec during reconfig ($n)"
 ret=0
 # first create a zone that doesn't have auto-dnssec
-$RNDCCMD 10.53.0.3 addzone reconf.example '{ type master; file "reconf.example.db"; };' 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 addzone reconf.example '{ type master; file "reconf.example.db"; };' 2>&1 | sed 's/^/ns3 /' | cat_i
 rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
 [ "$rekey_calls" -eq 0 ] || ret=1
 # ...then we add auto-dnssec and reconfigure
-$RNDCCMD 10.53.0.3 modzone reconf.example '{ type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' 2>&1 | sed 's/^/I:ns3 /'
-$RNDCCMD 10.53.0.3 reconfig 2>&1 | sed 's/^/I:ns3 /'
+$RNDCCMD 10.53.0.3 modzone reconf.example '{ type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' 2>&1 | sed 's/^/ns3 /' | cat_i
+$RNDCCMD 10.53.0.3 reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0
     rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
@@ -1268,7 +1267,7 @@ status=`expr $status + $ret`
 
 echo_i "setting CDS and CDNSKEY deletion times and calling 'rndc loadkeys'"
 $SETTIME -D sync now+2 `cat sync.key` > /dev/null
-$RNDCCMD 10.53.0.3 loadkeys sync.example
+$RNDCCMD 10.53.0.3 loadkeys sync.example | sed 's/^/ns3 /' | cat_i
 echo_i "waiting for deletion to occur"
 sleep 3
 
@@ -1303,7 +1302,7 @@ status=`expr $status + $ret`
 
 echo_i "check that zone with inactive KSK and active ZSK is properly autosigned ($n)"
 ret=0
-$DIG  $DIGOPTS @10.53.0.3 axfr inacksk2.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inacksk2.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -A -2 -f - inacksk2.example | awk '{ print $4}' `
@@ -1321,7 +1320,7 @@ status=`expr $status + $ret`
 
 echo_i "check that zone with inactive ZSK and active KSK is properly autosigned ($n)"
 ret=0
-$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inaczsk2.example > dig.out.ns3.test$n
 grep "SOA 7 2" dig.out.ns3.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1335,7 +1334,7 @@ echo_i "  resigned after the active KSK is deleted - stage 2: Verify that DNSKEY
 echo_i "  is now signed with the ZSK. ($n)"
 ret=0
 
-$DIG  $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inacksk3.example > dig.out.ns3.test$n
 
 zskid=`awk '$4 == "DNSKEY" && $5 == 256 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -A -2 -f - inacksk3.example | awk '{ print $4}' `
@@ -1363,7 +1362,7 @@ echo_i "check that zone with active and inactive ZSK and active KSK is properly"
 echo_i "  resigned after the active ZSK is deleted - stage 2: Verify that zone"
 echo_i "  is now signed with the KSK. ($n)"
 ret=0
-$DIG  $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inaczsk3.example > dig.out.ns3.test$n
 kskid=`awk '$4 == "DNSKEY" && $5 == 257 { print }' dig.out.ns3.test$n |
        $DSFROMKEY -2 -f - inaczsk3.example | awk '{ print $4}' `
 grep "CNAME 7 3 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null || ret=1
