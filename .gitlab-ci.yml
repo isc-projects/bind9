@@ -85,7 +85,7 @@ stages:
   before_script:
     - ./autogen.sh
   script:
-    - ./configure --with-libtool
+    - ./configure --with-libtool --disable-static
     - make -j6 -k all V=1
   artifacts:
     expire_in: '1 hour'
@@ -96,7 +96,7 @@ stages:
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - make -j6 -k check V=1
+    - make -j8 -k check V=1
   artifacts:
     untracked: true
     expire_in: '1 week'
@@ -116,6 +116,14 @@ stages:
 #
 #build:debian:buster:i386:
 #  <<: *debian_buster_i386_image
+#  <<: *build_job
+#
+#build:ubuntu:trusty:amd64:
+#  <<: *ubuntu_trusty_amd64_image
+#  <<: *build_job
+#
+#build:ubuntu:xenial:i386:
+#  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
 
 build:debian:sid:amd64:
@@ -137,11 +145,3 @@ test:debian:sid:i386:
   <<: *test_job
   dependencies:
     - build:debian:sid:i386
-
-#build:ubuntu:trusty:amd64:
-#  <<: *ubuntu_trusty_amd64_image
-#  <<: *build_job
-#
-#build:ubuntu:xenial:i386:
-#  <<: *ubuntu_xenial_i386_image
-#  <<: *build_job
