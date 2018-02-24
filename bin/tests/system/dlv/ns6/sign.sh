@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=dlv
+
 echo_i "dlv/ns6/sign.sh"
 
 zone=grand.child1.utld.

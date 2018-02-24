@@ -54,7 +54,7 @@ zone "nil" {
 };
 EOF
 
-$RNDCCMD 10.53.0.1 reload
+$RNDCCMD 10.53.0.1 reload | sed 's/^/ns1 /' | cat_i
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -148,7 +148,7 @@ fi
 #$DIG $DIGOPTS @10.53.0.4 a host1.test.
 
 cp ns3/mytest1.db ns3/mytest.db
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -179,7 +179,7 @@ echo_i "testing request-ixfr option in view vs zone"
 
 echo_i " this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -205,7 +205,7 @@ fi
 
 echo_i " this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
