@@ -81,14 +81,23 @@ PARALLEL = allow_query rpzrecurse acl additional addzone autosign \
 .PHONY: parallel.mk
 
 parallel.mk:
-	PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
+	@PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
 	echo ".PHONY: $$PARALLEL_SANITIZED" > $@ ; \
+	echo "" >> $@ ; \
+	echo "check_interfaces:" >> $@ ; \
+	echo "	@${PERL} testsock.pl > /dev/null 2>&1 || { \\" >> $@ ; \
+	echo "		echo \"I:NOTE: System tests were skipped because they require that the\"; \\" >> $@ ; \
+	echo "		echo \"I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured\"; \\" >> $@ ; \
+	echo "		echo \"I:      as alias addresses on the loopback interface.  Please run\"; \\" >> $@ ; \
+	echo "		echo \"I:      \"bin/tests/system/ifconfig.sh up\" as root to configure them.\"; \\" >> $@ ; \
+	echo "		exit 1; \\" >> $@ ; \
+	echo "	}" >> $@ ; \
 	echo "" >> $@ ; \
 	echo "test check: $$PARALLEL_SANITIZED" >> $@ ; \
 	port=$${STARTPORT:-5000} ; \
 	for directory in $(PARALLEL) ; do \
 		echo "" >> $@ ; \
-		echo "test-`echo $$directory | tr _ -`:" >> $@ ; \
+		echo "test-`echo $$directory | tr _ -`: check_interfaces" >> $@ ; \
 		echo "	@$(SHELL) ./run.sh -r -p $$port $$directory 2>&1 | tee $$directory/test.output" >> $@ ; \
 		port=`expr $$port + 100` ; \
 	done
@@ -96,13 +105,6 @@ parallel.mk:
 # Targets to run the tests.
 
 test: parallel.mk subdirs
-	@if ! ${PERL} testsock.pl > /dev/null 2>&1; then					  \
-		echo "I:NOTE: System tests were skipped because they require that the"		; \
-		echo "I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured"		; \
-		echo "I:      as alias addresses on the loopback interface.  Please run"	; \
-		echo "I:      \"bin/tests/system/ifconfig.sh up\" as root to configure them."	; \
-		exit 1										; \
-	fi
 	@$(MAKE) -f parallel.mk check
 	@$(SHELL) ./runsequential.sh -r
 	@$(SHELL) ./testsummary.sh

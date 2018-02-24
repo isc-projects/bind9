@@ -79,10 +79,20 @@ if [ "$CYGWIN" = "" ]; then
     make -j $numproc check
     status=$?
 else
-    # Running on Windows: no "make" available, so run the tests sequentially.
-    # (This is simpler than working out where "nmake" is likely to be found.
-    # Besides, "nmake" does not support parallel execution so if "nmake" is
-    # used, the tests would be run sequentially anyway.)
+    # Running on Windows: no "make" available, so ensure test interfaces are up
+    # and then run the tests sequentially.  (This is simpler than working out
+    # where "nmake" is likely to be found.  Besides, "nmake" does not support
+    # parallel execution so if "nmake" is used, the tests would be run
+    # sequentially anyway.)
+    $PERL testsock.pl || {
+        cat <<-EOF
+	I:NOTE: System tests were skipped because they require that the
+	I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured
+	I:      as alias addresses on the loopback interface.  Please run
+	I:      "bin/tests/system/ifconfig.sh up" as root to configure them.
+	EOF
+        exit 1
+    }
     {
         for testdir in $SUBDIRS; do
             $SHELL run.sh $testdir || status=1
