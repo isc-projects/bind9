@@ -25,7 +25,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.20 2011/01/11 23:47:13 tbox Exp $
  */
 
 #ifdef OPENSSL
@@ -308,6 +307,7 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 					DST_R_OPENSSLFAILURE));
 		}
 		BN_GENCB_free(cb);
+		cb = NULL;
 #else
 		dh = DH_generate_parameters(key->key_size, generator,
 					    NULL, NULL);
