@@ -9,6 +9,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=legacy
+
 echo_i "sign edns512"
 
 zone=edns512

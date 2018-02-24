@@ -6,8 +6,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: tests.sh,v 1.6 2007/06/19 23:47:01 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -31,7 +29,7 @@ do
 		try=`expr $try + 1`
 		sleep 1
 	else
-		$PERL ../digcomp.pl dig.out.ns1.test dig.out.ns2.test || ret=1
+                digcomp dig.out.ns1.test dig.out.ns2.test || ret=1
 		break;
 	fi
 done
@@ -50,7 +48,7 @@ do
 		try=`expr $try + 1`
 		sleep 1
 	else
-		$PERL ../digcomp.pl dig.out.ns1.test dig.out.ns3.test || ret=1
+                digcomp dig.out.ns1.test dig.out.ns3.test || ret=1
 		break;
 	fi
 done

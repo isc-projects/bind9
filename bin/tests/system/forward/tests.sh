@@ -20,7 +20,7 @@ echo_i "checking that a forward zone overrides global forwarders"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$f1 > dig.out.f1 || ret=1
-$PERL ../digcomp.pl dig.out.hidden dig.out.f1 || ret=1
+digcomp dig.out.hidden dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -28,7 +28,7 @@ echo_i "checking that a forward first zone no forwarders recurses"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f1 > dig.out.f1 || ret=1
-$PERL ../digcomp.pl dig.out.root dig.out.f1 || ret=1
+digcomp dig.out.root dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -36,7 +36,7 @@ echo_i "checking that a forward only zone no forwarders fails"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f1 > dig.out.f1 || ret=1
-$PERL ../digcomp.pl dig.out.root dig.out.f1 || ret=1
+digcomp dig.out.root dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -44,7 +44,7 @@ echo_i "checking that global forwarders work"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example4. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example4. txt @$f1 > dig.out.f1 || ret=1
-$PERL ../digcomp.pl dig.out.hidden dig.out.f1 || ret=1
+digcomp dig.out.hidden dig.out.f1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -52,7 +52,7 @@ echo_i "checking that a forward zone works"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example1. txt @$f2 > dig.out.f2 || ret=1
-$PERL ../digcomp.pl dig.out.hidden dig.out.f2 || ret=1
+digcomp dig.out.hidden dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -60,7 +60,7 @@ echo_i "checking that forwarding doesn't spontaneously happen"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$root > dig.out.root || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example2. txt @$f2 > dig.out.f2 || ret=1
-$PERL ../digcomp.pl dig.out.root dig.out.f2 || ret=1
+digcomp dig.out.root dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -68,7 +68,7 @@ echo_i "checking that a forward zone with no specified policy works"
 ret=0
 $DIG $DIGOPTS +noadd +noauth txt.example3. txt @$hidden > dig.out.hidden || ret=1
 $DIG $DIGOPTS +noadd +noauth txt.example3. txt @$f2 > dig.out.f2 || ret=1
-$PERL ../digcomp.pl dig.out.hidden dig.out.f2 || ret=1
+digcomp dig.out.hidden dig.out.f2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

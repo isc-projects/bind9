@@ -207,6 +207,19 @@ echo_i() {
     done
 }
 
+cat_i() {
+    while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+digcomp() {
+    output=`$PERL $SYSTEMTESTTOP/digcomp.pl "$@"`
+    result=$?
+    [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
+    return $result
+}
+
 #
 # Useful functions in test scripts
 #
