@@ -56,8 +56,8 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 ret=0
 echo_i "comparing pre-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns1 || ret=1
-$PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || ret=1
+digcomp knowngood.ns1.before dig.out.ns1 || ret=1
+digcomp knowngood.ns1.before dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
@@ -89,8 +89,8 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 ret=0
 echo_i "comparing post-update copies to known good data"
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || ret=1
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns2 || ret=1
+digcomp knowngood.ns1.after dig.out.ns1 || ret=1
+digcomp knowngood.ns1.after dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
@@ -120,7 +120,7 @@ post=`$DIG $DIGOPTS +short new.other.nil. @10.53.0.1 a` || ret=1
 
 ret=0
 echo_i "comparing post-update copy to known good data"
-$PERL ../digcomp.pl knowngood.ns1.after dig.out.ns1 || ret=1
+digcomp knowngood.ns1.after dig.out.ns1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
@@ -314,7 +314,7 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 ret=0
 echo_i "comparing zones"
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || ret=1
+digcomp dig.out.ns1 dig.out.ns2 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 echo_i "SIGKILL and restart server ns1"
@@ -341,7 +341,7 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 ret=0
 echo_i "comparing zones"
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || ret=1
+digcomp dig.out.ns1 dig.out.ns1.after || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 echo_i "begin RT #482 regression test"
@@ -500,7 +500,7 @@ rm -f ns1/*jnl
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd updated4.example.nil.\
 	@10.53.0.1 a > dig.out.ns1 || status=1
-$PERL ../digcomp.pl knowngood.ns1.afterstop dig.out.ns1 || ret=1
+digcomp knowngood.ns1.afterstop dig.out.ns1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0

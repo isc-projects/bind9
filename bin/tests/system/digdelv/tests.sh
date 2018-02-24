@@ -157,7 +157,7 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
-  echo "I:checking dig +subnet with various prefix lengths ($n)"
+  echo_i "checking dig +subnet with various prefix lengths ($n)"
   ret=0
   for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24; do
       $DIG $DIGOPTS +tcp +qr @10.53.0.2 +subnet=255.255.255.255/$i A a.example > dig.out.$i.test$n 2>&1 || ret=1
