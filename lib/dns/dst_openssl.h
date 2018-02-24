@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dst_openssl.h,v 1.11 2011/03/12 04:59:48 tbox Exp $ */
-
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
 
@@ -41,7 +39,7 @@
  *     	 _cb;
  * #endif
  */
-#define BN_GENCB_free(x) (x = NULL);
+#define BN_GENCB_free(x) ((void)0)
 #define BN_GENCB_new() (&_cb)
 #define BN_GENCB_get_arg(x) ((x)->arg)
 #endif
