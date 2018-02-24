@@ -462,7 +462,6 @@ isc_msgcat_get
 isc_msgcat_open
 isc_mutexblock_destroy
 isc_mutexblock_init
-isc_net_aton
 isc_net_disableipv4
 isc_net_disableipv6
 isc_net_enableipv4
