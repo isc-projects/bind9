@@ -1,3 +1,7 @@
+4901.	[func]		"dig +nssearch" now lists the name servers
+			for a domain that time out, as well as the servers
+			that respond. [GL #64]
+
 4900.	[cleanup]	Remove all uses of inet_aton(). [GL #13]
 
 4899.	[test]		Convert most of the remaining system tests to be able
