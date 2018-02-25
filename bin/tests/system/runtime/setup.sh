@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,11 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-cp ns2/named1.conf ns2/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
+
+copy_setports ns2/named-alt1.conf.in ns2/named-alt1.conf
+copy_setports ns2/named-alt2.conf.in ns2/named-alt2.conf
+copy_setports ns2/named-alt3.conf.in ns2/named-alt3.conf
 
 mkdir ns2/nope
 

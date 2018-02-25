@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -25,3 +25,4 @@ rm -rf ns1/root.db
 rm -rf ns2/example.db
 rm -rf ns2/example.com.db
 rm -rf nsupdate.out.test
+rm -f ns*/named.conf

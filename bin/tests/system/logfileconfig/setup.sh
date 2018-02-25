@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,4 +19,6 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-cp ns1/named.plain ns1/named.conf
+copy_setports ns1/named.plain ns1/named.conf
+copy_setports ns1/rndc.conf.in ns1/rndc.conf
+copy_setports ns1/controls.conf.in ns1/controls.conf

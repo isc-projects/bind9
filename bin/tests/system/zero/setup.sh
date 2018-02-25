@@ -1,4 +1,4 @@
-# Copyright (C) 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,5 +14,12 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
 
 $SHELL ../genzone.sh 2 4 | sed -e 's/^$TTL 3600$/$TTL 0 ; force TTL to zero/' -e 's/86400.IN SOA/0 SOA/' > ns2/example.db

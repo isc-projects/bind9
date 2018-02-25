@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -21,3 +21,6 @@ rm -f ns5/requests ns5/example.db ns5/bl.db ns5/*.perf
 rm -f */named.memstats */named.run */named.stats */session.key
 rm -f */*.jnl */*.core */*.pid
 rm -f */policy2.db
+rm -f ns*/named.lock
+rm -f ns*/named.conf
+rm -f tmp

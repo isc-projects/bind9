@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -20,7 +20,7 @@ if $PERL -e 'use File::Fetch;' 2>/dev/null
 then
         :
 else
-    echo "I:This test requires the File::Fetch library." >&2
+    echo_i "This test requires the File::Fetch library." >&2
     fail=1
 fi
 

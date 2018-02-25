@@ -1,4 +1,4 @@
-# Copyright (C) 2011-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -49,53 +49,11 @@ TS='%H:%M:%S '
 TS=
 comment () {
     if test -n "$TS"; then
-	date "+I:${TS}$*"
+	date "+${TS}$*" | cat_i
     fi
 }
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
-
-# Run the tests twice, first without DNSRPS and then with if it is available
-if [ -z "$DNSRPS_TEST_MODE" ]; then
-    if [ -e dnsrps-only ]; then
-        echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
-    else
-        echo "I:running native RPZ sub-test"
-	$SHELL ./$0 -D1 $ARGS || status=1
-    fi
-
-    if [ -e dnsrps-off ]; then
-	echo "I:'dnsrps-off' found: skipping DNSRPS sub-test"
-    else
-	echo "I:attempting to configure servers with DNSRPS..."
-	$PERL $SYSTEMTESTTOP/stop.pl .
-	$SHELL ./setup.sh -D $DEBUG
-	sed -n 's/^## /I:/p' dnsrps.conf
-	if grep '^#fail' dnsrps.conf >/dev/null; then
-	    echo "I:exit status: 1"
-	    exit 1
-	fi
-	if test -z "`grep '^#skip' dnsrps.conf`"; then
-	    echo "I:running DNSRPS sub-test"
-	    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart .
-	    $SHELL ./$0 $ARGS -D2 || status=1
-        else
-            echo "I:DNSRPS sub-test skipped"
-	fi
-    fi
-
-    echo "I:exit status: $status"
-    exit $status
-fi
-
-if test -x $DNSRPSCMD; then
-    # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
-    WAIT_CMD="$DNSRPSCMD -w 0.1"
-    TEN_SECS=100
-else
-    WAIT_CMD="sleep 1"
-    TEN_SECS=10
-fi
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 digcmd () {
     if test "$1" = TCP; then
@@ -104,11 +62,11 @@ digcmd () {
     # Default to +noauth and @$ns3
     # Also default to -bX where X is the @value so that OS X will choose
     #	    the right IP source address.
-    digcmd_args=`echo "+noadd +time=2 +tries=1 -p 5300 $*" |	\
+    digcmd_args=`echo "+noadd +time=2 +tries=1 -p ${PORT} $*" |	\
 	    sed -e "/@/!s/.*/& @$ns3/"				\
 		-e '/-b/!s/@\([^ ]*\)/@\1 -b\1/'		\
 		-e '/+n?o?auth/!s/.*/+noauth &/'`
-    #echo I:dig $digcmd_args 1>&2
+    #echo_i "dig $digcmd_args 1>&2
     $DIG $digcmd_args
 }
 
@@ -127,19 +85,21 @@ make_dignm () {
 setret () {
     ret=1
     status=`expr $status + 1`
-    echo "$*"
+    echo_i "$*"
 }
 
 # (re)load the reponse policy zones with the rules in the file $TEST_FILE
 load_db () {
     if test -n "$TEST_FILE"; then
-	if $NSUPDATE -v $TEST_FILE; then :
+        copy_setports $TEST_FILE tmp
+	if $NSUPDATE -v tmp; then :
 	    $RNDCCMD $ns3 sync
 	else
-	    echo "I:failed to update policy zone with $TEST_FILE"
+	    echo_i "failed to update policy zone with $TEST_FILE"
 	    $RNDCCMD $ns3 sync
 	    exit 1
 	fi
+        rm -f tmp
     fi
 }
 
@@ -152,7 +112,7 @@ restart () {
 	    sleep 1
 	    PID=`cat ns$1/named.pid 2>/dev/null`
 	    if test -n "$PID"; then
-		echo "I:killing ns$1 server $PID"
+		echo_i "killing ns$1 server $PID"
 		$KILL -9 $PID
 	    fi
 	fi
@@ -163,7 +123,7 @@ restart () {
 	    cp -f ns$1/base.db $NM
 	done
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart . ns$1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns$1
     load_db
 }
 
@@ -193,7 +153,7 @@ ckstats () {
     eval "OLD_CNT=0\$${NSDIR}_CNT"
     GOT=`expr $NEW_CNT - $OLD_CNT`
     if test "$GOT" -ne "$EXPECTED"; then
-	setret "I:wrong $LABEL $NSDIR statistics of $GOT instead of $EXPECTED"
+	setret "wrong $LABEL $NSDIR statistics of $GOT instead of $EXPECTED"
     fi
     eval "${NSDIR}_CNT=$NEW_CNT"
 }
@@ -210,7 +170,7 @@ ckstatsrange () {
     eval "OLD_CNT=0\$${NSDIR}_CNT"
     GOT=`expr $NEW_CNT - $OLD_CNT`
     if test "$GOT" -lt "$MIN" -o "$GOT" -gt "$MAX"; then
-	setret "I:wrong $LABEL $NSDIR statistics of $GOT instead of ${MIN}..${MAX}"
+	setret "wrong $LABEL $NSDIR statistics of $GOT instead of ${MIN}..${MAX}"
     fi
     eval "${NSDIR}_CNT=$NEW_CNT"
 }
@@ -218,7 +178,8 @@ ckstatsrange () {
 # $1=message  $2=optional test file name
 start_group () {
     ret=0
-    test -n "$1" && date "+I:${TS}checking $1"
+    t=`expr $t + 1`
+    test -n "$1" && date "+${TS}checking $1 (${t})" | cat_i
     TEST_FILE=$2
     if test -n "$TEST_FILE"; then
 	GROUP_NM="-$TEST_FILE"
@@ -232,10 +193,12 @@ start_group () {
 end_group () {
     if test -n "$TEST_FILE"; then
 	# remove the previous set of test rules
-	sed -e 's/[	 ]add[	 ]/ delete /' $TEST_FILE | $NSUPDATE
+        copy_setports $TEST_FILE tmp
+	sed -e 's/[	 ]add[	 ]/ delete /' tmp | $NSUPDATE
+        rm -f tmp
 	TEST_FILE=
     fi
-    ckalive $ns3 "I:failed; ns3 server crashed and restarted"
+    ckalive $ns3 "failed; ns3 server crashed and restarted"
     GROUP_NM=
 }
 
@@ -247,23 +210,23 @@ clean_result () {
 
 # $1=dig args $2=other dig output file
 ckresult () {
-    #ckalive "$1" "I:server crashed by 'dig $1'" || return 1
+    #ckalive "$1" "server crashed by 'dig $1'" || return 1
     if grep "flags:.* aa .*ad;" $DIGNM; then
-	setret "I:'dig $1' AA and AD set;"
+	setret "'dig $1' AA and AD set;"
     elif grep "flags:.* aa .*ad;" $DIGNM; then
-	setret "I:'dig $1' AD set;"
+	setret "'dig $1' AD set;"
     fi
     if $PERL $SYSTEMTESTTOP/digcomp.pl $DIGNM $2 >/dev/null; then
 	NEED_TCP=`echo "$1" | sed -n -e 's/[Tt][Cc][Pp].*/TCP/p'`
 	RESULT_TCP=`sed -n -e 's/.*Truncated, retrying in TCP.*/TCP/p' $DIGNM`
 	if test "$NEED_TCP" != "$RESULT_TCP"; then
-	    setret "I:'dig $1' wrong; no or unexpected truncation in $DIGNM"
+	    setret "'dig $1' wrong; no or unexpected truncation in $DIGNM"
 	    return 1
 	fi
 	clean_result ${DIGNM}*
 	return 0
     fi
-    setret "I:'dig $1' wrong; diff $DIGNM $2"
+    setret "'dig $1' wrong; diff $DIGNM $2"
     return 1
 }
 
@@ -271,7 +234,7 @@ ckresult () {
 # $1=target domain  $2=optional query type
 nocrash () {
     digcmd $* >/dev/null
-    ckalive "$*" "I:server crashed by 'dig $*'"
+    ckalive "$*" "server crashed by 'dig $*'"
 }
 
 
@@ -302,15 +265,15 @@ addr () {
     ADDR=$1
     make_dignm
     digcmd $2 >$DIGNM
-    #ckalive "$2" "I:server crashed by 'dig $2'" || return 1
+    #ckalive "$2" "server crashed by 'dig $2'" || return 1
     ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
     ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}	*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
     if test -z "$ADDR_TTL"; then
-	setret "I:'dig $2' wrong; no address $ADDR record in $DIGNM"
+	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
     fi
     if test -n "$3" && test "$ADDR_TTL" -ne "$3"; then
-	setret "I:'dig $2' wrong; TTL=$ADDR_TTL instead of $3 in $DIGNM"
+	setret "'dig $2' wrong; TTL=$ADDR_TTL instead of $3 in $DIGNM"
 	return 1
     fi
     clean_result ${DIGNM}*
@@ -344,7 +307,7 @@ drop () {
 	clean_result ${DIGNM}*
 	return 0
     fi
-    setret "I:'dig $1' wrong; response in $DIGNM"
+    setret "'dig $1' wrong; response in $DIGNM"
     return 1
 }
 
@@ -450,7 +413,7 @@ $RNDCCMD 10.53.0.2 reload bl.tld2
 goodsoa="rpz.tld2. hostmaster.ns.tld2. 2 3600 1200 604800 60"
 for i in 0 1 2 3 4 5 6 7 8 9 10
 do
-	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
+	soa=`$DIG -p ${PORT} +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
 	test "$soa" = "$goodsoa" && break
 	sleep 1
 done
@@ -461,7 +424,7 @@ goodsoa="rpz.tld2. hostmaster.ns.tld2. 3 3600 1200 604800 60"
 $RNDCCMD 10.53.0.2 reload bl.tld2
 for i in 0 1 2 3 4 5 6 7 8 9 10
 do
-	soa=`$DIG -p 5300 +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
+	soa=`$DIG -p ${PORT} +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
 	test "$soa" = "$goodsoa" && break
 	sleep 1
 done
@@ -503,7 +466,7 @@ if $FEATURETEST --rpz-nsdname; then
     end_group
     ckstats $ns3 test3 ns3 7
 else
-    echo "I:NSDNAME not checked; named configured with --disable-rpz-nsdname"
+    echo_i "NSDNAME not checked; named configured with --disable-rpz-nsdname"
 fi
 
 if $FEATURETEST --rpz-nsip; then
@@ -525,7 +488,7 @@ EOF
     end_group
     ckstats $ns3 test4 ns3 4
 else
-    echo "I:NSIP not checked; named configured with --disable-rpz-nsip"
+    echo_i "NSIP not checked; named configured with --disable-rpz-nsip"
 fi
 
 # policies in ./test5 overridden by response-policy{} in ns3/named.conf
@@ -582,21 +545,21 @@ ckstats $ns3 bugs ns3 8
 QPERF=`sh qperf.sh`
 if test -n "$QPERF"; then
     perf () {
-	date "+I:${TS}checking performance $1"
+	date "+${TS}checking performance $1" | cat_i
 	# Dry run to prime everything
 	comment "before dry run $1"
-	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p 5300 >/dev/null
+	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p ${PORT} >/dev/null
 	comment "before real test $1"
 	PFILE="ns5/$2.perf"
 	$RNDCCMD $ns5 notrace
-	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p 5300 >$PFILE
+	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p ${PORT} >$PFILE
 	comment "after test $1"
 	X=`sed -n -e 's/.*Returned *\([^ ]*:\) *\([0-9]*\) .*/\1\2/p' $PFILE \
 		| tr '\n' ' '`
 	if test "$X" != "$3"; then
-	    setret "I:wrong results '$X' in $PFILE"
+	    setret "wrong results '$X' in $PFILE"
 	fi
-	ckalive $ns5 "I:failed; server #5 crashed"
+	ckalive $ns5 "failed; server #5 crashed"
     }
     trim () {
 	sed -n -e 's/.*Queries per second: *\([0-9]*\).*/\1/p' ns5/$1.perf
@@ -613,21 +576,20 @@ if test -n "$QPERF"; then
     NORPZ=`trim norpz`
 
     PERCENT=`expr \( "$RPZ" \* 100 + \( $NORPZ / 2 \) \) / $NORPZ`
-    echo "I:$RPZ qps with RPZ is $PERCENT% of $NORPZ qps without RPZ"
+    echo_i "$RPZ qps with RPZ is $PERCENT% of $NORPZ qps without RPZ"
 
     MIN_PERCENT=30
     if test "$PERCENT" -lt $MIN_PERCENT; then
-	echo "I:$RPZ qps with rpz or $PERCENT% is below $MIN_PERCENT% of $NORPZ qps"
+	echo_i "$RPZ qps with rpz or $PERCENT% is below $MIN_PERCENT% of $NORPZ qps"
     fi
 
     if test "$PERCENT" -ge 100; then
-	echo "I:$RPZ qps with RPZ or $PERCENT% of $NORPZ qps without RPZ is too high"
+	echo_i "$RPZ qps with RPZ or $PERCENT% of $NORPZ qps without RPZ is too high"
     fi
 
     ckstats $ns5 performance ns5 200
-
 else
-    echo "I:performance not checked; queryperf not available"
+    echo_i "performance not checked; queryperf not available"
 fi
 
 
@@ -636,26 +598,26 @@ if test -z "$HAVE_CORE"; then
     $PERL $SYSTEMTESTTOP/stop.pl . ns3
     restart 3
     HAVE_CORE=`find ns* -name '*core*' -print`
-    test -z "$HAVE_CORE" || setret "I:found $HAVE_CORE; memory leak?"
+    test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
 fi
 
 # look for complaints from lib/dns/rpz.c and bin/name/query.c
 EMSGS=`egrep -l 'invalid rpz|rpz.*failed' ns*/named.run`
 if test -n "$EMSGS"; then
-    setret "I:error messages in $EMSGS starting with:"
-    egrep 'invalid rpz|rpz.*failed' ns*/named.run | sed -e '10,$d' -e 's/^/I:  /'
+    setret "error messages in $EMSGS starting with:"
+    egrep 'invalid rpz|rpz.*failed' ns*/named.run | sed -e '10,$d' | cat_i
 fi
 
-echo "I:checking that ttl values are not zeroed when qtype is '*'"
-$DIG +noall +answer -p 5300 @$ns3 any a3-2.tld2 > dig.out.any
+echo_i "checking that ttl values are not zeroed when qtype is '*'"
+$DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 > dig.out.any
 ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.any`
-if test ${ttl:=0} -eq 0; then setret I:failed; fi
+if test ${ttl:=0} -eq 0; then setret "failed"; fi
 
-echo "I:checking rpz updates/transfers with parent nodes added after children"
+echo_i "checking rpz updates/transfers with parent nodes added after children"
 # regression test for RT #36272: the success condition
 # is the slave server not crashing.
 nsd() {
-    $NSUPDATE -p 5300 << EOF
+    $NSUPDATE -p ${PORT} << EOF
 server $1
 ttl 300
 update $2 $3 IN CNAME .
@@ -674,16 +636,16 @@ for i in 1 2 3 4 5; do
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
 done
 
-echo "I:checking that going from a empty policy zone works"
+echo_i "checking that going from a empty policy zone works"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
 sleep 1
 $RNDCCMD $ns7 reload policy2
-$DIG z.x.servfail -p 5300 @$ns7 > dig.out.ns7
+$DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.ns7
 grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed;
 
-echo "I:checking rpz with delegation fails correctly"
-$DIG -p 5300 @$ns3 ns example.com > dig.out.delegation
+echo_i "checking rpz with delegation fails correctly"
+$DIG -p ${PORT} @$ns3 ns example.com > dig.out.delegation
 grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

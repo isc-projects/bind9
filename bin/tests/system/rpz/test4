@@ -1,4 +1,4 @@
-; Copyright (C) 2011, 2013  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2011, 2013, 2018  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@
 
 ; NSIP tests
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ; NXDOMAIN for all of tld2 based on its server IP address
 update add  32.2.0.53.10.rpz-nsip.bl.	300 CNAME .

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,31 +19,31 @@ SYSTEMTESTTOP=..
 
 status=0
 
-echo "I:test name to long"
-$PERL formerr.pl -a 10.53.0.1 -p 5300 nametoolong > nametoolong.out
+echo_i "test name to long"
+$PERL formerr.pl -a 10.53.0.1 -p ${PORT} nametoolong > nametoolong.out
 ans=`grep got: nametoolong.out`
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
-	echo "I:failed"; status=`expr $status + 1`;
+	echo_i "failed"; status=`expr $status + 1`;
 fi
 
-echo "I:two questions"
-$PERL formerr.pl -a 10.53.0.1 -p 5300 twoquestions > twoquestions.out
+echo_i "two questions"
+$PERL formerr.pl -a 10.53.0.1 -p ${PORT} twoquestions > twoquestions.out
 ans=`grep got: twoquestions.out`
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
-	echo "I:failed"; status=`expr $status + 1`;
+	echo_i "failed"; status=`expr $status + 1`;
 fi
 
 # this one arguable could be NOERORR.
-echo "I:no questions"
-$PERL formerr.pl -a 10.53.0.1 -p 5300 noquestions > noquestions.out
+echo_i "no questions"
+$PERL formerr.pl -a 10.53.0.1 -p ${PORT} noquestions > noquestions.out
 ans=`grep got: noquestions.out`
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
-	echo "I:failed"; status=`expr $status + 1`;
+	echo_i "failed"; status=`expr $status + 1`;
 fi
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 
 [ $status -eq 0 ] || exit 1

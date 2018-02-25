@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2008, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2008, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,6 +17,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
 $SHELL ../genzone.sh 2 3 >ns2/example.db
 $SHELL ../genzone.sh 2 3 >ns2/tsigzone.db
-cp -f ns2/named1.conf ns2/named.conf
+copy_setports ns2/named1.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf

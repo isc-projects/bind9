@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007-2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -19,6 +19,7 @@ rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */example.bk
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
 rm -f */named.secroots
 rm -f */tmp* */*.jnl */*.bk */*.jbk
 rm -f */trusted.conf */managed.conf */revoked.conf
@@ -81,8 +82,6 @@ rm -f ns3/unsecure.example.db ns3/bogus.example.db ns3/keyless.example.db
 rm -f ns3/revkey.example.db
 rm -f ns3/managed-future.example.db
 rm -f ns4/managed-keys.bind*
-rm -f ns4/named.conf
-rm -f ns4/named.conf ns5/named.conf
 rm -f ns4/named_dump.db
 rm -f ns6/optout-tld.db
 rm -f ns7/multiple.example.bk ns7/nsec3.example.bk ns7/optout.example.bk

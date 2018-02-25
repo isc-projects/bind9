@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2009, 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009, 2011, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -24,7 +24,7 @@ test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 pzone=parent.nil
 czone=child.parent.nil
 
-echo "I:generating keys"
+echo_i "generating keys"
 
 # active zsk
 zsk=`$KEYGEN -q -r $RANDFILE $czone`

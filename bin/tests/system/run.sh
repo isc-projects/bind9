@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2010, 2012, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010, 2012, 2014-2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -187,7 +187,6 @@ else
     echopass "R:$systest:PASS"
     if $clean
     then
-	rm -f $SYSTEMTESTTOP/random.data
 	$SHELL clean.sh $runall $systest "$@"
 	if test -d ../../../.git
 	then

@@ -1,4 +1,4 @@
-; Copyright (C) 2011, 2013  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2011, 2013, 2018  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@
 
 ; NSDNAME tests
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ;	3, 4, 5
 ; NXDOMAIN for *.sub1.tld2 by NSDNAME

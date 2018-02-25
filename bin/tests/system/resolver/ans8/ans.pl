@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -28,12 +28,16 @@ local $SIG{PIPE} = 'IGNORE';
 local $| = 1;
 
 my $server_addr = "10.53.0.8";
-my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
-my $tcpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
 
-print "listening on $server_addr:5300.\n";
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
+my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
+   LocalPort => $localport, Proto => "udp", Reuse => 1) or die "$!";
+my $tcpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
+   LocalPort => $localport, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
+
+print "listening on $server_addr:$localport.\n";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

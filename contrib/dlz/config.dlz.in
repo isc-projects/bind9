@@ -158,8 +158,8 @@ then
 				break
 			fi
 			break
-		fi
-	done
+		done
+	fi
 elif test "$use_dlz_mysql" != "no"
 then
 	d=$use_dlz_mysql

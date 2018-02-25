@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -23,7 +23,7 @@ if $BIGKEY > /dev/null 2>&1
 then
     rm -f Kexample.*
 else
-    echo "I:This test requires cryptography" >&2
-    echo "I:configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
+    echo_i "This test requires cryptography" >&2
+    echo_i "configure with --with-openssl, or --with-pkcs11 and --enable-native-pkcs11" >&2
     exit 255
 fi

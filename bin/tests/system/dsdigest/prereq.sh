@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -24,7 +24,7 @@ $SHELL ../testcrypto.sh -q ecdsa || ecdsafail=1
 if [ $gostfail = 0 -a $ecdsafail = 0 ]; then
 	echo both > supported
 elif [ $gostfail = 1 -a $ecdsafail = 1 ]; then
-	echo "I:This test requires support for ECDSA or GOST cryptography." >&2
+	echo_i "This test requires support for ECDSA or GOST cryptography." >&2
 	exit 255
 elif [ $gostfail = 0 ]; then
 	echo gost > supported

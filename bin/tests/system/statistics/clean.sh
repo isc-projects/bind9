@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,14 +14,13 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 #
 # Clean up after zone transfer tests.
 #
 
 rm -f ns3/example.bk
 rm -f ns3/internal.bk
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
 rm -f */ans.run

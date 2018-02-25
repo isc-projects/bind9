@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2012, 2014, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -30,6 +30,8 @@ find . -type f \( \
     -o -name '*-valgrind-*.log' \) -print | xargs rm -f
 
 status=0
+
+rm -f $SYSTEMTESTTOP/random.data
 
 for d in $SUBDIRS
 do

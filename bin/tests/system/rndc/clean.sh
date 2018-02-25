@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -22,10 +22,10 @@ rm -f ns2/named.stats
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl
 rm -f ns2/session.key
 rm -f ns3/named_dump.db
-rm -f ns4/*.conf
 rm -f ns4/*.nta
+rm -f ns4/key?.conf
 rm -f ns6/huge.zone.db
-rm -f ns6/named.conf
+rm -f ns*/named.conf
 rm -f nsupdate.out.*.test*
 rm -f python.out.*.test*
 rm -f rndc.out.*.test*

@@ -1,4 +1,4 @@
-; Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2013, 2018  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@
 ; Separate update requests for distinct TLDs with blank lines or 'send'
 ; End the file with a blank line or 'send'
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ; Poke the radix tree a little.
 update add  128.1111.2222.3333.4444.5555.6666.7777.8888.rpz-ip.bl. 300 CNAME .

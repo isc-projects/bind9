@@ -1,4 +1,4 @@
-# Copyright (C) 2013, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -16,3 +16,4 @@ rm -f */root.bk
 rm -f dig.out.10.53.0.?
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf

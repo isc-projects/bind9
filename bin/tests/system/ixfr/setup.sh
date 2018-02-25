@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2011-2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -25,7 +25,7 @@ options {
 	query-source address 10.53.0.1;
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
-	port 5300;
+	port ${PORT};
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
@@ -39,9 +39,12 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.1 port 9953 allow { any; } keys { rndc_key; };
+	inet 10.53.0.1 port ${CONTROLPORT} allow { any; } keys { rndc_key; };
 };
 EOF
+
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
 
 # Setup initial db files for ns3
 cp ns3/mytest0.db ns3/mytest.db

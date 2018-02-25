@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2011, 2012, 2014, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,14 +14,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.6 2012/02/22 23:47:34 tbox Exp $
-
 #
 # This is the name server from hell.  It provides canned
 # responses based on pattern matching the queries, and
 # can be reprogrammed on-the-fly over a TCP connection.
 #
-# The server listens for control connections on port 5301.
+# The server listens for queries on port 5300 (or PORT).
+#
+# The server listens for control connections on port 5301 (or EXTRAPORT1).
+#
 # A control connection is a TCP stream of lines like
 #
 #  /pattern/
@@ -88,17 +89,22 @@ if (@ARGV > 0) {
 	$server_addr = @ARGV[0];
 }
 
+my $mainport = int($ENV{'PORT'});
+if (!$mainport) { $mainport = 5300; }
+my $ctrlport = int($ENV{'EXTRAPORT1'});
+if (!$ctrlport) { $ctrlport = 5301; }
+
 # XXX: we should also be able to set the port numbers to listen on.
 my $ctlsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5301, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
+   LocalPort => $ctrlport, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
 
 my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
+   LocalPort => $mainport, Proto => "udp", Reuse => 1) or die "$!";
 
 my $tcpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
+   LocalPort => $mainport, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
 
-print "listening on $server_addr:5300,5301.\n";
+print "listening on $server_addr:$mainport,$ctrlport.\n";
 print "Using Net::DNS $Net::DNS::VERSION\n";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";

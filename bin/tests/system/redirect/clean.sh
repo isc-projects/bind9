@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,6 +19,7 @@ rm -f ns1/signed.db*
 rm -f ns1/nsec3.db*
 rm -f ns1/dsset-signed.
 rm -f ns1/dsset-nsec3.
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
 rm -f */named.stats
