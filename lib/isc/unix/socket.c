@@ -1145,11 +1145,14 @@ select_poke(isc__socketmgr_t *manager, int fd, int msg) {
 static isc_result_t
 make_nonblock(int fd) {
 	int ret;
-	int flags;
 	char strbuf[ISC_STRERRORSIZE];
 #ifdef USE_FIONBIO_IOCTL
 	int on = 1;
+#else
+	int flags;
+#endif
 
+#ifdef USE_FIONBIO_IOCTL
 	ret = ioctl(fd, FIONBIO, (char *)&on);
 #else
 	flags = fcntl(fd, F_GETFL, 0);
@@ -1231,6 +1234,7 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
  */
 static void
 process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
+#ifdef ISC_NET_BSD44MSGHDR
 #ifdef USE_CMSG
 	struct cmsghdr *cmsgp;
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
@@ -1238,6 +1242,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #endif
 #ifdef SO_TIMESTAMP
 	void *timevalp;
+#endif
 #endif
 #endif
 
@@ -1668,7 +1673,7 @@ dump_msg(struct msghdr *msg) {
 	printf("\tiov %p, iovlen %ld\n", msg->msg_iov,
 	       (long) msg->msg_iovlen);
 	for (i = 0; i < (unsigned int)msg->msg_iovlen; i++)
-		printf("\t\t%d\tbase %p, len %ld\n", i,
+		printf("\t\t%u\tbase %p, len %ld\n", i,
 		       msg->msg_iov[i].iov_base,
 		       (long) msg->msg_iov[i].iov_len);
 #ifdef ISC_NET_BSD44MSGHDR
