@@ -15,34 +15,47 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-#
 # Run all the system tests.
 #
+# Usage:
+#    runall.sh [-n] [numprocesses]
+#
+#   -n          Noclean.  Keep all output files produced by all tests.  These
+#               can later be removed by running "cleanall.sh".
+#
+#   numprocess  Number of concurrent processes to use when running the tests.
+#               The default is one, which causes the tests to run sequentially.
 
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-status=0
+usage="Usage: ./runall.sh [-n] [numprocesses]"
 
-{
-    for d in $SUBDIRS
-    do
-            $SHELL run.sh "${@}" $d || status=1
-    done
-} 2>&1 | tee "systests.output"
+NOCLEAN=""
 
-$PERL testsock.pl || {
-    cat <<EOF >&2
-I:
-I:NOTE: System tests were skipped because they require that the
-I:      IP addresses 10.53.0.1 through 10.53.0.8 be configured
-I:      as alias addresses on the loopback interface.  Please run
-I:      "bin/tests/system/ifconfig.sh up" as root to configure them.
-EOF
-}
+while getopts "n" flag; do
+    case "$flag" in
+	n) NOCLEAN="-n" ;;
+    esac
+done
+shift `expr $OPTIND - 1`
 
-echo "I:System test result summary:"
-grep '^R:' systests.output | sort | uniq -c | sed -e 's/^/I: /' -e 's/R://'
-grep '^R:FAIL' systests.output > /dev/null && status=1
+if [ $# -eq 0 ]; then
+    numproc=1
+elif [ $# -eq 1 ]; then
+    test "$1" -eq "$1" > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        # Value passed is not numeric
+        echo "$usage" >&2
+        exit 1
+    fi
+    numproc=$1
+else
+    echo "$usage" >&2
+    exit 1
+fi
 
-exit $status
+export NOCLEAN
+make -j $numproc check
+
+exit $?

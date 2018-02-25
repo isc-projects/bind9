@@ -12,9 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
-
 # test response policy zones (RPZ)
 
 SYSTEMTESTTOP=..
@@ -56,6 +53,48 @@ comment () {
 }
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p 9953 -s"
+
+# Run the tests twice, first without DNSRPS and then with if it is available
+if [ -z "$DNSRPS_TEST_MODE" ]; then
+    if [ -e dnsrps-only ]; then
+        echo "I:'dnsrps-only' found: skipping native RPZ sub-test"
+    else
+        echo "I:running native RPZ sub-test"
+	$SHELL ./$0 -D1 $ARGS || status=1
+    fi
+
+    if [ -e dnsrps-off ]; then
+	echo "I:'dnsrps-off' found: skipping DNSRPS sub-test"
+    else
+	echo "I:attempting to configure servers with DNSRPS..."
+	$PERL $SYSTEMTESTTOP/stop.pl .
+	$SHELL ./setup.sh -D $DEBUG
+	sed -n 's/^## /I:/p' dnsrps.conf
+	if grep '^#fail' dnsrps.conf >/dev/null; then
+	    echo "I:exit status: 1"
+	    exit 1
+	fi
+	if test -z "`grep '^#skip' dnsrps.conf`"; then
+	    echo "I:running DNSRPS sub-test"
+	    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart .
+	    $SHELL ./$0 $ARGS -D2 || status=1
+        else
+            echo "I:DNSRPS sub-test skipped"
+	fi
+    fi
+
+    echo "I:exit status: $status"
+    exit $status
+fi
+
+if test -x $DNSRPSCMD; then
+    # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
+    WAIT_CMD="$DNSRPSCMD -w 0.1"
+    TEN_SECS=100
+else
+    WAIT_CMD="sleep 1"
+    TEN_SECS=10
+fi
 
 digcmd () {
     # Default to +noauth and @$ns3

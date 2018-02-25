@@ -21,11 +21,36 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-test $# -gt 0 || { echo "usage: $0 test-directory" >&2; exit 1; }
+# See if the "-r" flag is present.  This will usually be set when all the tests
+# are run (e.g. from "runall.sh") and tells the script not to delete the
+# test.output file created by run.sh.  This is because the script running all
+# the tests will call "testsummary.sh", which will concatenate all test output
+# files into a single systests.output.
 
-test=$1
+runall=0
+
+while getopts "r" flag; do
+    case $flag in
+	r) runall=1 ;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
+if [ $# -eq 0 ]; then
+    echo "usage: $0 [-r] test-directory" >&2
+    exit 1
+fi
+
+systest=$1
 shift
 
-if test -f $test/clean.sh; then
-    ( cd $test && $SHELL clean.sh "$@" )
+if [ $runall -eq 0 ]; then
+    rm -f $systest/test.output
+fi
+
+if [ -f $systest/clean.sh ]; then
+    ( cd $systest && $SHELL clean.sh "$@" )
+else
+    echo "Test directory $systest does not exist" >&2
+    exit 1
 fi
