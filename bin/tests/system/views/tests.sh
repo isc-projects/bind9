@@ -26,11 +26,9 @@ status=0
 
 echo_i "fetching a.example from ns2's initial configuration"
 $DIG $DIGOPTS a.example. @10.53.0.2 any > dig.out.ns2.1 || status=1
-grep ";" dig.out.ns2.1	# XXXDCL why is this here?
 
 echo_i "fetching a.example from ns3's initial configuration"
 $DIG $DIGOPTS a.example. @10.53.0.3 any > dig.out.ns3.1 || status=1
-grep ";" dig.out.ns3.1	# XXXDCL why is this here?
 
 echo_i "copying in new configurations for ns2 and ns3"
 rm -f ns2/named.conf ns3/named.conf ns2/example.db
@@ -55,15 +53,12 @@ done
 
 echo_i "fetching a.example from ns2's 10.53.0.4, source address 10.53.0.4"
 $DIG $DIGOPTS -b 10.53.0.4 a.example. @10.53.0.4 any > dig.out.ns4.2 || status=1
-grep ";" dig.out.ns4.2	# XXXDCL why is this here?
 
 echo_i "fetching a.example from ns2's 10.53.0.2, source address 10.53.0.2"
 $DIG $DIGOPTS -b 10.53.0.2 a.example. @10.53.0.2 any > dig.out.ns2.2 || status=1
-grep ";" dig.out.ns2.2	# XXXDCL why is this here?
 
 echo_i "fetching a.example from ns3's 10.53.0.3, source address defaulted"
 $DIG $DIGOPTS @10.53.0.3 a.example. any > dig.out.ns3.2 || status=1
-grep ";" dig.out.ns3.2	# XXXDCL why is this here?
 
 echo_i "comparing ns3's initial a.example to one from reconfigured 10.53.0.2"
 $PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns2.2 || status=1
