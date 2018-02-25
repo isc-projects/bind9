@@ -177,7 +177,6 @@ BOOL CVersionInfo::CopyFileCheckVersion(CVersionInfo &originalFile)
 
 BOOL CVersionInfo::CopyFileNoVersion(CVersionInfo &originalFile)
 {
-	int x = 7;
 	return(CopyFile(originalFile.GetFilename(), m_filename, FALSE));
 }
 
