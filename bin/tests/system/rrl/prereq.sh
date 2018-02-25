@@ -21,6 +21,7 @@ if $FEATURETEST --enable-rrl
 then
     :
 else
-    echo "I:This test requires --enable-rrl at compile time." >&2
+    echo_i "This test requires --enable-rrl at compile time." >&2
     exit 255
 fi
+exit 0

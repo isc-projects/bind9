@@ -31,6 +31,8 @@ find . -type f \( \
 
 status=0
 
+rm -f $SYSTEMTESTTOP/random.data
+
 for d in $SUBDIRS
 do
    test ! -f $d/clean.sh || ( cd $d && $SHELL clean.sh )

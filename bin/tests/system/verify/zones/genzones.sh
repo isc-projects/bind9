@@ -12,8 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -22,7 +20,7 @@ dumpit () {
 	cat "${1}" | sed 's/^/D:/'
 }
 setup () {
-	echo "I:setting up $2 zone: $1"
+	echo_i "setting up $2 zone: $1"
 	debug="$1"
 	zone="$1"
 	file="$1.$2"

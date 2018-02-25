@@ -18,118 +18,118 @@ SYSTEMTESTTOP=..
 status=0
 n=0
 # using dig insecure mode as not testing dnssec here
-DIGOPTS="-i -p 5300"
-SENDCMD="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.4 5301"
+DIGOPTS="-i -p ${PORT}"
+SENDCMD="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.4 ${EXTRAPORT1}"
 
 if [ -x ${DIG} ] ; then
   n=`expr $n + 1`
-  echo "I:checking dig short form works ($n)"
+  echo_i "checking dig short form works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +short a a.example > dig.out.test$n || ret=1
   if test `wc -l < dig.out.test$n` != 1 ; then ret=1 ; fi
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig split width works ($n)"
+  echo_i "checking dig split width works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +split=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig with reverse lookup works ($n)"
+  echo_i "checking dig with reverse lookup works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 -x 127.0.0.1 > dig.out.test$n 2>&1 || ret=1
   # doesn't matter if has answer
   grep -i "127\.in-addr\.arpa\." < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig over TCP works ($n)"
+  echo_i "checking dig over TCP works ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 a a.example > dig.out.test$n || ret=1
   grep "10\.0\.0\.1$" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
+  echo_i "checking dig +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +multi +norrcomments works for soa (when default is rrcomments)($n)"
+  echo_i "checking dig +multi +norrcomments works for soa (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +rrcomments works for DNSKEY($n)"
+  echo_i "checking dig +rrcomments works for DNSKEY($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +short +rrcomments works for DNSKEY ($n)"
+  echo_i "checking dig +short +rrcomments works for DNSKEY ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +short +nosplit works($n)"
+  echo_i "checking dig +short +nosplit works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +nosplit DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=$" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +short +rrcomments works($n)"
+  echo_i "checking dig +short +rrcomments works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +short +rrcomments works($n)"
+  echo_i "checking dig +short +rrcomments works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
 #  n=`expr $n + 1`
-#  echo "I:checking dig +zflag works, and that BIND properly ignores it ($n)"
+#  echo_i "checking dig +zflag works, and that BIND properly ignores it ($n)"
 #  ret=0
 #  $DIG $DIGOPTS +tcp @10.53.0.3 +zflag +qr A example > dig.out.test$n || ret=1
 #  sed -n '/Sending:/,/Got answer:/p' dig.out.test$n | grep "^;; flags: rd ad; MBZ: 0x4;" > /dev/null || ret=1
 #  sed -n '/Got answer:/,/AUTHORITY SECTION:/p' dig.out.test$n | grep "^;; flags: qr rd ra; QUERY: 1" > /dev/null || ret=1
-#  if [ $ret != 0 ]; then echo "I:failed"; fi
+#  if [ $ret != 0 ]; then echo_i "failed"; fi
 #  status=`expr $status + $ret`
 
 # n=`expr $n + 1`
-# echo "I:checking dig +qr +ednsopt=08 does not cause an INSIST failure ($n)"
+# echo_i "checking dig +qr +ednsopt=08 does not cause an INSIST failure ($n)"
 # ret=0
 # $DIG $DIGOPTS @10.53.0.3 +ednsopt=08 +qr a a.example > dig.out.test$n || ret=1
 # grep "INSIST" < dig.out.test$n > /dev/null && ret=1
 # grep "FORMERR" < dig.out.test$n > /dev/null || ret=1
-# if [ $ret != 0 ]; then echo "I:failed"; fi
+# if [ $ret != 0 ]; then echo_i "failed"; fi
 # status=`expr $status + $ret`
 
-# echo "I:checking dig +ttlunits works ($n)"
+# echo_i "checking dig +ttlunits works ($n)"
 # ret=0
 # $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A weeks.example > dig.out.test$n || ret=1
 # grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
@@ -141,11 +141,11 @@ if [ -x ${DIG} ] ; then
 # grep "^minutes.example.	45m" < dig.out.test$n > /dev/null || ret=1
 # $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A seconds.example > dig.out.test$n || ret=1
 # grep "^seconds.example.	45s" < dig.out.test$n > /dev/null || ret=1
-# if [ $ret != 0 ]; then echo "I:failed"; fi
+# if [ $ret != 0 ]; then echo_i "failed"; fi
 # status=`expr $status + $ret`
 
 # n=`expr $n + 1`
-# echo "I:checking dig respects precedence of options with +ttlunits ($n)"
+# echo_i "checking dig respects precedence of options with +ttlunits ($n)"
 # ret=0
 # $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits +nottlid A weeks.example > dig.out.test$n || ret=1
 # grep "^weeks.example.		IN" < dig.out.test$n > /dev/null || ret=1
@@ -153,11 +153,11 @@ if [ -x ${DIG} ] ; then
 # grep "^weeks.example.		3w" < dig.out.test$n > /dev/null || ret=1
 # $DIG $DIGOPTS +tcp @10.53.0.2 +nottlid +nottlunits A weeks.example > dig.out.test$n || ret=1
 # grep "^weeks.example.		1814400" < dig.out.test$n > /dev/null || ret=1
-# if [ $ret != 0 ]; then echo "I:failed"; fi
+# if [ $ret != 0 ]; then echo_i "failed"; fi
 # status=`expr $status + $ret`
   
   n=`expr $n + 1`
-  echo "I:checking dig preserves origin on TCP retries ($n)"
+  echo_i "checking dig preserves origin on TCP retries ($n)"
   ret=0
   # Ask ans4 to still accept TCP connections, but not respond to queries
   echo "//" | $SENDCMD
@@ -165,32 +165,32 @@ if [ -x ${DIG} ] ; then
   l=`grep "trying origin bar" dig.out.test$n | wc -l`
   [ ${l:-0} -eq 2 ] || ret=1
   grep "using root origin" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig +ednsopt=8:00000000 (family=0, source=0, scope=0) ($n)"
+  echo_i "checking dig +ednsopt=8:00000000 (family=0, source=0, scope=0) ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 -4 -6 A a.example > dig.out.test$n 2>&1 && ret=1
   grep "only one of -4 and -6 allowed" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
   
   n=`expr $n + 1`
-  echo "I:checking dig @IPv6addr -4 A a.example ($n)"
+  echo_i "checking dig @IPv6addr -4 A a.example ($n)"
   if $TESTSOCK6 fd92:7065:b8e:ffff::2
   then
     ret=0
     $DIG $DIGOPTS +tcp @fd92:7065:b8e:ffff::2 -4 A a.example > dig.out.test$n 2>&1 && ret=1
     grep "address family not supported" < dig.out.test$n > /dev/null || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
   else
-    echo "I:IPv6 unavailable; skipping"
+    echo_i "IPv6 unavailable; skipping"
   fi
   
   n=`expr $n + 1`
-  echo "I:checking dig @IPv4addr -6 A a.example ($n)"
+  echo_i "checking dig @IPv4addr -6 A a.example ($n)"
   if $TESTSOCK6 fd92:7065:b8e:ffff::2
   then
     ret=0
@@ -202,32 +202,32 @@ if [ -x ${DIG} ] ; then
       $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 && ret=1
       grep "::ffff:10.53.0.2" < dig.out.test$n > /dev/null || ret=1
     fi
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
   else
-    echo "I:IPv6 unavailable; skipping"
+    echo_i "IPv6 unavailable; skipping"
   fi
   
   n=`expr $n + 1`
-  echo "I:checking dig +sp works as an abbreviated form of split ($n)"
+  echo_i "checking dig +sp works as an abbreviated form of split ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo "I:checking dig -c works ($n)"
+  echo_i "checking dig -c works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 -c CHAOS -t txt version.bind > dig.out.test$n || ret=1
   grep "version.bind.		0	CH	TXT" < dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
   if $FEATURETEST --with-idn
   then
-    echo "I:checking dig +idnout ($n)"
+    echo_i "checking dig +idnout ($n)"
     ret=0
     $DIG $DIGOPTS @10.53.0.3 +noidnout xn--caf-dma.example. > dig.out.1.test$n 2>&1 || ret=1
     $DIG $DIGOPTS @10.53.0.3 +idnout xn--caf-dma.example. > dig.out.2.test$n 2>&1 || ret=1
@@ -235,170 +235,48 @@ if [ -x ${DIG} ] ; then
     grep "^xn--caf-dma.example" dig.out.2.test$n > /dev/null && ret=1
     grep 10.1.2.3 dig.out.1.test$n > /dev/null || ret=1
     grep 10.1.2.3 dig.out.2.test$n > /dev/null || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
   else
-    echo "I:skipping 'dig +idnout' as IDN support is not enabled ($n)"
+    echo_i "skipping 'dig +idnout' as IDN support is not enabled ($n)"
   fi
 
   n=`expr $n + 1`
-  echo "I:checking that dig warns about .local queries ($n)"
+  echo_i "checking that dig warns about .local queries ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 local soa > dig.out.test$n 2>&1 || ret=1
   grep ";; WARNING: .local is reserved for Multicast DNS" dig.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
+  if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   #n=`expr $n + 1`
-  #echo "I:check that dig processes +ednsopt=14 (key tag) and FORMERR is returned ($n)"
+  #echo_i "check that dig processes +ednsopt=14 (key tag) and FORMERR is returned ($n)"
   #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14 a.example +qr > dig.out.test$n 2>&1 || ret=1
   #grep "; KEY-TAG$" dig.out.test$n > /dev/null || ret=1
   #grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
-  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #if [ $ret != 0 ]; then echo_i "failed"; fi
   #status=`expr $status + $ret`
 
   #n=`expr $n + 1`
-  #echo "I:check that dig processes +ednsopt=14:<value-list> (keytag) ($n)"
+  #echo_i "check that dig processes +ednsopt=14:<value-list> (keytag) ($n)"
   #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14:00010002 a.example +qr > dig.out.test$n 2>&1 || ret=1
   #grep "; KEY-TAG: 1, 2$" dig.out.test$n > /dev/null || ret=1
   #grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
-  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #if [ $ret != 0 ]; then echo_i "failed"; fi
   #status=`expr $status + $ret`
 
   #n=`expr $n + 1`
-  #echo "I:check that dig processes +ednsopt=14:<malformed-value-list> (keytag) and FORMERR is returned ($n)"
+  #echo_i "check that dig processes +ednsopt=14:<malformed-value-list> (keytag) and FORMERR is returned ($n)"
   #ret=0
   #$DIG $DIGOPTS @10.53.0.3 +ednsopt=14:0001000201 a.example +qr > dig.out.test$n 2>&1 || ret=1
   #grep "; KEY-TAG: 00 01 00 02 01" dig.out.test$n > /dev/null || ret=1
   #grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
-  #if [ $ret != 0 ]; then echo "I:failed"; fi
+  #if [ $ret != 0 ]; then echo_i "failed"; fi
   #status=`expr $status + $ret`
 
 else
-  echo "$DIG is needed, so skipping these dig tests"
+  echo_i "$DIG is needed, so skipping these dig tests"
 fi
 
-# using delv insecure mode as not testing dnssec here
-DELVOPTS="-i -p 5300"
-
-if [ -n "${DELV}" -a -x "${DELV}" ] ; then
-  n=`expr $n + 1`
-  echo "I:checking delv short form works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +short a a.example > delv.out.test$n || ret=1
-  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv split width works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +split=4 -t sshfp foo.example > delv.out.test$n || ret=1
-  grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv with IPv6 on IPv4 does not work ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::3
-  then
-    ret=0
-    # following should fail because @IPv4 overrides earlier @IPv6 above
-    # and -6 forces IPv6 so this should fail, such as:
-    # ;; getaddrinfo failed: hostname nor servname provided, or not known
-    # ;; resolution failed: not found
-    # note that delv returns success even on lookup failure
-    $DELV $DELVOPTS @fd92:7065:b8e:ffff::3 @10.53.0.3 -6 -t txt foo.example > delv.out.test$n 2>&1 || ret=1
-    # it should have no results but error output
-    grep "testing" < delv.out.test$n > /dev/null && ret=1
-    grep "getaddrinfo failed:" < delv.out.test$n > /dev/null || ret=1
-    if [ $ret != 0 ]; then echo "I:failed"; fi 
-    status=`expr $status + $ret`
-  else
-    echo "I:IPv6 unavailable; skipping"
-  fi
-
-  n=`expr $n + 1`
-  echo "I:checking delv with reverse lookup works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 -x 127.0.0.1 > delv.out.test$n 2>&1 || ret=1
-  # doesn't matter if has answer
-  grep -i "127\.in-addr\.arpa\." < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi 
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv over TCP works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 a a.example > delv.out.test$n || ret=1
-  grep "10\.0\.0\.1$" < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +multi +norrcomments works for soa (when default is rrcomments)($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +multi +norrcomments SOA example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +rrcomments works for DNSKEY($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +short +rrcomments works for DNSKEY ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +short +rrcomments works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < delv.out.test$n > /dev/null || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +short +nosplit works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +short +nosplit DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=" < delv.out.test$n > /dev/null || ret=1
-  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
-  f=`awk '{print NF}' < delv.out.test$n`
-  test "${f:-0}" -eq 14 || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-
-  n=`expr $n + 1`
-  echo "I:checking delv +short +nosplit +norrcomments works ($n)"
-  ret=0
-  $DELV $DELVOPTS @10.53.0.3 +short +nosplit +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=$" < delv.out.test$n > /dev/null || ret=1
-  if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
-  f=`awk '{print NF}' < delv.out.test$n`
-  test "${f:-0}" -eq 4 || ret=1
-  if [ $ret != 0 ]; then echo "I:failed"; fi
-  status=`expr $status + $ret`
-else
-  echo "${DELV:-delv} is not available, so skipping these delv tests"
-fi
-
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

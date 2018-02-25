@@ -22,7 +22,7 @@
 
 ; IP tests
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ; NODATA a3-1.tld2
 ;	1

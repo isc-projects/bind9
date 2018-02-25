@@ -19,4 +19,6 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-cp ns1/named.plain ns1/named.conf
+copy_setports ns1/named.plain ns1/named.conf
+copy_setports ns1/rndc.conf.in ns1/rndc.conf
+copy_setports ns1/controls.conf.in ns1/controls.conf

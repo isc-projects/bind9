@@ -17,4 +17,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 $SHELL ../genzone.sh 1 >ns1/example.db
+
+copy_setports ns1/named.conf.in ns1/named.conf

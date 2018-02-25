@@ -27,8 +27,11 @@ my $no_more_waiting = 0;
 my @delayed_response;
 my $timeout;
 
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $udpsock = IO::Socket::INET->new(LocalAddr => "$localaddr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
+   LocalPort => $localport, Proto => "udp", Reuse => 1) or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

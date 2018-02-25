@@ -15,6 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.6 2007/06/19 23:47:03 tbox Exp $
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
+copy_setports ns1/named.conf.in ns1/named.conf
 
 cd ns1 && cp -f cache.in cache

@@ -14,11 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+rm -f tmp
 rm -f dig.out.*
 rm -f ns*/named.lock
-rm -f ns2/named.conf
+rm -f ns*/named.conf
 rm -f ns3/example.db
-rm -f ns3/named.conf
 rm -f ns3/undelegated.db
 rm -f ns4/sub.example.db
 rm -f ns?/named.memstats

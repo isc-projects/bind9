@@ -18,11 +18,14 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 cp -f ns1/example1.db ns1/example.db
-rm -f ns1/example.db.jnl ns2/example.bk ns2/example.bk.jnl
-rm -f ns1/example2.db.jnl ns2/example2.bk ns2/example2.bk.jnl
 cp -f ns3/nomaster.db ns3/nomaster1.db
-rm -f Ksig0.example2.*
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
 
 #
 # SIG(0) required cryptographic support which may not be configured.

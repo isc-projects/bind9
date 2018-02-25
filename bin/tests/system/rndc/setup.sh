@@ -22,3 +22,7 @@ $SHELL clean.sh
 $SHELL ../genzone.sh 2 >ns2/nil.db
 $SHELL ../genzone.sh 2 >ns2/other.db
 $SHELL ../genzone.sh 2 >ns2/static.db
+
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf

@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ans.pl,v 1.2 2011/08/31 06:49:10 marka Exp $
-
 #
 # This is the name server from hell.  It provides canned
 # responses based on pattern matching the queries, and
@@ -78,13 +76,16 @@ local $| = 1;
 
 my $server_addr = "10.53.0.4";
 
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
+   LocalPort => $localport, Proto => "udp", Reuse => 1) or die "$!";
 
 my $tcpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
+   LocalPort => $localport, Proto => "tcp", Listen => 5, Reuse => 1) or die "$!";
 
-print "listening on $server_addr:5300.\n";
+print "listening on $server_addr:$localport.\n";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

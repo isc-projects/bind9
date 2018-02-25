@@ -21,15 +21,15 @@ status=0
 n=0
 
 n=`expr $n + 1`
-echo "Check that domain names that are too big when applying a search list entry are handled cleanly ($n)"
+echo_i "Check that domain names that are too big when applying a search list entry are handled cleanly ($n)"
 ret=0
 l=012345678901234567890123456789012345678901234567890123456789012
 t=0123456789012345678901234567890123456789012345678901234567890
 d=$l.$l.$l.$t
-$NSLOOKUP -port=5300 -domain=$d -type=soa example 10.53.0.1 > nslookup.out${n} || ret=1
+$NSLOOKUP -port=${PORT} -domain=$d -type=soa example 10.53.0.1 > nslookup.out${n} || ret=1
 grep "origin = ns1.example" nslookup.out${n} > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

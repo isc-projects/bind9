@@ -17,4 +17,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-cp -f ns3/named1.conf ns3/named.conf
+$SHELL clean.sh
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns3/named1.conf.in ns3/named.conf

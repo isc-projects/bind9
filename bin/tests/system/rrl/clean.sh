@@ -12,10 +12,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-
-
 # Clean up after rrl tests.
 
 rm -f dig.out* *mdig.out*
 rm -f  */named.memstats */named.run */named.stats */log-* */session.key
 rm -f ns3/bl*.db */*.jnl */*.core */*.pid
+rm -f ns*/named.conf

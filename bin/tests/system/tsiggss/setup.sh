@@ -17,9 +17,11 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-rm -f ns1/*.jnl ns1/K*.key ns1/K*.private ns1/_default.tsigkeys
+copy_setports ns1/named.conf.in ns1/named.conf
 
 key=`$KEYGEN -Cq -K ns1 -a DSA -b 512 -r $RANDFILE -n HOST -T KEY key.example.nil.`
 cat ns1/example.nil.db.in ns1/${key}.key > ns1/example.nil.db

@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.14 2007/09/26 03:22:44 marka Exp $
-
 #
 # Clean up after zone transfer quota tests.
 #
@@ -26,4 +24,5 @@ rm -f ns2/zone*.example.bk ns2/zones.conf
 rm -f dig.out.* ns2/changing.bk
 rm -f ns1/changing.db
 rm -f */named.memstats
+rm -f */named.conf
 rm -f */named.run

@@ -19,7 +19,7 @@ SYSTEMTESTTOP=..
 
 # enable the tsiggss test only if gssapi was enabled
 $FEATURETEST --gssapi ||  {
-        echo "I:gssapi and krb5 not supported - skipping tsiggss test"
+        echo_i "gssapi and krb5 not supported - skipping tsiggss test"
         exit 255
 }
 

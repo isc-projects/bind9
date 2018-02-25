@@ -15,9 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
-
 # WARNING: The test labelled "testing request-ixfr option in view vs zone"
 #          is fragile because it depends upon counting instances of records
 #          in the log file - need a better approach <sdm> - until then,
@@ -28,12 +25,11 @@ SYSTEMTESTTOP=..
 
 status=0
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
-DIGCMD="$DIG $DIGOPTS @10.53.0.1 -p 5300"
-SENDCMD="$PERL ../send.pl 10.53.0.2 5301"
-RNDCCMD="$RNDC -s 10.53.0.1 -p 9953 -c ../common/rndc.conf"
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
+SENDCMD="$PERL ../send.pl 10.53.0.2 ${EXTRAPORT1}"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf -s"
 
-echo "I:testing initial AXFR"
+echo_i "testing initial AXFR"
 
 $SENDCMD <<EOF
 /SOA/
@@ -63,21 +59,21 @@ zone "nil" {
 };
 EOF
 
-$RNDCCMD reload
+$RNDCCMD 10.53.0.1 reload
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
-	$DIGCMD nil. SOA > dig.out
+	$DIG $DIGOPTS @10.53.0.1 nil. SOA > dig.out
 	grep "SOA" dig.out > /dev/null && break
 	sleep 1
 done
 
-$DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
-    echo "I:failed"
+$DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'initial AXFR' >/dev/null || {
+    echo_i "failed"
     status=1
 }
 
-echo "I:testing successful IXFR"
+echo_i "testing successful IXFR"
 
 # We change the IP address of a.nil., and the TXT record at the apex.
 # Then we do a SOA-only update.
@@ -100,16 +96,16 @@ EOF
 
 sleep 1
 
-$RNDCCMD refresh nil
+$RNDCCMD 10.53.0.1 refresh nil
 
 sleep 2
 
-$DIGCMD nil. TXT | grep 'successful IXFR' >/dev/null || {
-    echo "I:failed"
+$DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'successful IXFR' >/dev/null || {
+    echo_i "failed"
     status=1
 }
 
-echo "I:testing AXFR fallback after IXFR failure"
+echo_i "testing AXFR fallback after IXFR failure"
 
 # Provide a broken IXFR response and a working fallback AXFR response
 
@@ -134,34 +130,34 @@ EOF
 
 sleep 1
 
-$RNDCCMD refresh nil
+$RNDCCMD 10.53.0.1 refresh nil
 
 sleep 2
 
-$DIGCMD nil. TXT | grep 'fallback AXFR' >/dev/null || {
-    echo "I:failed"
+$DIG $DIGOPTS @10.53.0.1 nil. TXT | grep 'fallback AXFR' >/dev/null || {
+    echo_i "failed"
     status=1
 }
 
-echo "I:testing ixfr-from-differences option"
-# ns3 is master; ns4 is slave 
+echo_i "testing ixfr-from-differences option"
+# ns3 is master; ns4 is slave
 $CHECKZONE test. ns3/mytest.db > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
-    echo "I:named-checkzone returned failure on ns3/mytest.db"
+    echo_i "named-checkzone returned failure on ns3/mytest.db"
 fi
 # modify the master
-#echo "I: digging against master: "
-#$DIG $DIGOPTS @10.53.0.3 -p 5300 a host1.test.
-#echo "I: digging against slave: "
-#$DIG $DIGOPTS @10.53.0.4 -p 5300 a host1.test.
+#echo_i "digging against master: "
+#$DIG $DIGOPTS @10.53.0.3 a host1.test.
+#echo_i "digging against slave: "
+#$DIG $DIGOPTS @10.53.0.4 a host1.test.
 
 cp ns3/mytest1.db ns3/mytest.db
-$RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
+$RNDCCMD 10.53.0.3 reload
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
-	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
+	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
 	sleep 1
 done
@@ -176,28 +172,28 @@ do
 done
 if [ $INCR -ne 1 ]
 then
-    echo "I:failed to get incremental response"
+    echo_i "failed to get incremental response"
     status=1
 fi
 
-echo "I:testing request-ixfr option in view vs zone"
+echo_i "testing request-ixfr option in view vs zone"
 # There's a view with 2 zones. In the view, "request-ixfr yes"
 # but in the zone "sub.test", request-ixfr no"
 # we want to make sure that a change to sub.test results in AXFR, while
 # changes to test. result in IXFR
 
-echo "I: this result should be AXFR"
+echo_i " this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
-$RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
+$RNDCCMD 10.53.0.3 reload
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
-	$DIG +tcp -p 5300 @10.53.0.4 SOA sub.test > dig.out
+	$DIG $DIGOPTS +tcp @10.53.0.4 SOA sub.test > dig.out
 	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
 	sleep 1
 done
 
-echo "I: this result should be AXFR"
+echo_i " this result should be AXFR"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	NONINCR=`grep 'sub\.test/IN/primary' ns4/named.run|grep "got nonincremental" | wc -l`
@@ -206,19 +202,19 @@ do
 done
 if [ $NONINCR -ne 2 ]
 then
-    echo "I:failed to get nonincremental response in 2nd AXFR test"
+    echo_i "failed to get nonincremental response in 2nd AXFR test"
     status=1
 else
-    echo "I:  success: AXFR it was"
+    echo_i "  success: AXFR it was"
 fi
 
-echo "I: this result should be IXFR"
+echo_i " this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
-$RNDC -s 10.53.0.3 -p 9953 -c ../common/rndc.conf reload
+$RNDCCMD 10.53.0.3 reload
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
-	$DIG +tcp -p 5300 @10.53.0.4 SOA test > dig.out
+	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
 	sleep 1
 done
@@ -231,39 +227,39 @@ do
 done
 if [ $INCR -ne 2 ]
 then
-    echo "I:failed to get incremental response in 2nd IXFR test"
+    echo_i "failed to get incremental response in 2nd IXFR test"
     status=1
 else
-    echo "I:  success: IXFR it was"
+    echo_i "  success: IXFR it was"
 fi
 
-echo "I:testing DiG's handling of a multi message AXFR style IXFR response" 
+echo_i "testing DiG's handling of a multi message AXFR style IXFR response"
 (
 (sleep 10 && kill $$) 2>/dev/null &
 sub=$!
-$DIG ixfr=0 large -p 5300 @10.53.0.3 > dig.out
+$DIG -p ${PORT} ixfr=0 large @10.53.0.3 > dig.out
 kill $sub
 )
 lines=`grep hostmaster.large dig.out | wc -l`
-test ${lines:-0} -eq 2 || { echo "I:failed"; status=1; }
+test ${lines:-0} -eq 2 || { echo_i "failed"; status=1; }
 messages=`sed -n 's/^;;.*messages \([0-9]*\),.*/\1/p' dig.out`
-test ${messages:-0} -gt 1 || { echo "I:failed"; status=1; }
+test ${messages:-0} -gt 1 || { echo_i "failed"; status=1; }
 
-echo "I:test 'dig +notcp ixfr=<value>' vs 'dig ixfr=<value> +notcp' vs 'dig ixfr=<value>'"
+echo_i "test 'dig +notcp ixfr=<value>' vs 'dig ixfr=<value> +notcp' vs 'dig ixfr=<value>'"
 ret=0
 # Should be "switch to TCP" response
-$DIG +notcp ixfr=1 test -p 5300 @10.53.0.4 > dig.out1 || ret=1
-$DIG ixfr=1 +notcp test -p 5300 @10.53.0.4 > dig.out2 || ret=1
+$DIG $DIGOPTS +notcp ixfr=1 test @10.53.0.4 > dig.out1 || ret=1
+$DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.4 > dig.out2 || ret=1
 $PERL ../digcomp.pl dig.out1 dig.out2 || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1 || ret=1
 awk '$4 == "SOA" { if ($7 == 4) exit(0); else exit(1);}' dig.out1 || ret=1
 # Should be incremental transfer.
-$DIG ixfr=1 test -p 5300 @10.53.0.4 > dig.out3 || ret=1
+$DIG $DIGOPTS ixfr=1 test @10.53.0.4 > dig.out3 || ret=1
 awk '$4 == "SOA" { soacnt++} END { if (soacnt == 6) exit(0); else exit(1);}' dig.out3 || ret=1
 if [ ${ret} != 0 ]; then
-	echo "I:failed";
+	echo_i "failed";
 	status=1;
 fi
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -23,6 +23,13 @@ QPERF=`$SHELL qperf.sh`
 
 $SHELL clean.sh
 
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+copy_setports ns4/named.conf.in ns4/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
+
 # set up test policy zones.  bl-2 is used to check competing zones.
 #	bl-{given,disabled,passthru,no-data,nxdomain,cname,wildcard,garden}
 #	are used to check policy overrides in named.conf.

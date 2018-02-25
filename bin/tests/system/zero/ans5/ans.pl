@@ -24,8 +24,11 @@ use IO::Socket;
 use Net::DNS;
 use Net::DNS::Packet;
 
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.5",
-   LocalPort => 5300, Proto => "udp") or die "$!";
+   LocalPort => $localport, Proto => "udp") or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";
