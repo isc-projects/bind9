@@ -9,7 +9,9 @@
 # Run all the system tests.
 #
 # Usage:
-#    runall.sh [-n] [numprocesses]
+#    runall.sh [-c] [-n] [numprocesses]
+#
+#   -c          Force colored output.
 #
 #   -n          Noclean.  Keep all output files produced by all tests.  These
 #               can later be removed by running "cleanall.sh".
@@ -22,14 +24,19 @@
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 
-usage="Usage: ./runall.sh [-n] [numprocesses]"
+usage="Usage: ./runall.sh [-c] [-n] [numprocesses]"
 
-# Handle "-n" switch if present.
+# Preserve values of environment variables which are already set.
 
-NOCLEAN=""
-while getopts "n" flag; do
+SYSTEMTEST_FORCE_COLOR=${SYSTEMTEST_FORCE_COLOR:-0}
+SYSTEMTEST_NO_CLEAN=${SYSTEMTEST_NO_CLEAN:-0}
+
+# Handle command line switches if present.
+
+while getopts "cn" flag; do
     case "$flag" in
-        n) NOCLEAN="-n" ;;
+        c) SYSTEMTEST_FORCE_COLOR=1 ;;
+        n) SYSTEMTEST_NO_CLEAN=1 ;;
     esac
 done
 export NOCLEAN
@@ -54,6 +61,9 @@ fi
 
 # Run the tests.
 
+export SYSTEMTEST_FORCE_COLOR
+export SYSTEMTEST_NO_CLEAN
+
 status=0
 if [ "$CYGWIN" = "" ]; then
     # Running on Unix, use "make" to run tests in parallel.
@@ -66,7 +76,7 @@ else
     # used, the tests would be run sequentially anyway.)
     {
         for testdir in $SUBDIRS; do
-            $SHELL run.sh $NOCLEAN $testdir || status=1
+            $SHELL run.sh $testdir || status=1
         done
     } 2>&1 | tee "systests.output"
 fi
