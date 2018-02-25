@@ -31,11 +31,11 @@ $DIG $DIGOPTS @10.53.0.1 foo.bar.fi. A >dig.out || status=1
 $PERL ../digcomp.pl --lc fi.good dig.out || status=1
 
 echo_i "testing that we find glue A RRs we are authoritative for"
-$DIG +norec @10.53.0.1 -p 5300 foo.bar.xx. a >dig.out || status=1
+$DIG +norec @10.53.0.1 -p ${PORT} foo.bar.xx. a >dig.out || status=1
 $PERL ../digcomp.pl xx.good dig.out || status=1
 
 echo_i "testing that we find glue A/AAAA RRs in the cache"
-$DIG +norec @10.53.0.1 -p 5300 foo.bar.yy. a >dig.out || status=1
+$DIG +norec @10.53.0.1 -p ${PORT} foo.bar.yy. a >dig.out || status=1
 $PERL ../digcomp.pl yy.good dig.out || status=1
 
 echo_i "testing that we don't find out-of-zone glue"

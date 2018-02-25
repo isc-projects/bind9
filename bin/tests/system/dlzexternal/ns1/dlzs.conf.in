@@ -6,6 +6,14 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+dlz "example one" {
+	database "dlopen ../driver.@SO@ example.nil";
+};
+
+dlz "example two" {
+	database "dlopen ../driver.@SO@ alternate.nil";
+};
+
 dlz "unsearched1" {
 	database "dlopen ../driver.@SO@ other.nil";
 	search no;

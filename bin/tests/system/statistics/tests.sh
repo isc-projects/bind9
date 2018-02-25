@@ -34,7 +34,7 @@ ret=0
 echo_i "verifying adb records in named.stats"
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
-echo_i checking for 1 entry in adb hash table"
+echo_i "checking for 1 entry in adb hash table"
 grep "1 Addresses in hash table" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -84,7 +84,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 ret=0
-echo "I: verifying active sockets output"
+echo_i "verifying active sockets output"
 if [ ! "$CYGWIN" ]; then
     nsock1=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
     [ `expr $nsock1 - $nsock0` -eq 1 ] || ret=1

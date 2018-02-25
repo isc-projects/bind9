@@ -30,3 +30,4 @@ rm -f ns1/named_vers
 rm -f ns1/named_vers.*
 rm -f ns1/named_unlimited
 rm -f ns1/named_unlimited.*
+rm -f ns1/query_log
