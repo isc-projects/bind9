@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
 #ifndef RDATA_IN_1_WKS_11_C
@@ -19,6 +17,16 @@
 #include <isc/net.h>
 #include <isc/netdb.h>
 #include <isc/once.h>
+
+/*
+ * Redefine CHECK here so cppcheck "sees" the define.
+ */
+#ifndef CHECK
+#define CHECK(op)						\
+	do { result = (op);					\
+		if (result != ISC_R_SUCCESS) goto cleanup;	\
+	} while (0)
+#endif
 
 #define RRTYPE_WKS_ATTRIBUTES (0)
 

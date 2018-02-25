@@ -1511,7 +1511,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
 	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
 	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 	isc_uint64_t dnstapstat_values[dns_dnstapcounter_max];
 #endif
 	isc_result_t result;
@@ -1630,7 +1630,7 @@ generatexml(ns_server_t *server, isc_uint32_t flags,
 			goto error;
 		TRY0(xmlTextWriterEndElement(writer)); /* resstat */
 
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 		if (server->dtenv != NULL) {
 			isc_stats_t *dnstapstats = NULL;
 			TRY0(xmlTextWriterStartElement(writer,
@@ -2266,7 +2266,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 	isc_uint64_t udpoutsizestat_values[dns_sizecounter_out_max];
 	isc_uint64_t tcpinsizestat_values[dns_sizecounter_in_max];
 	isc_uint64_t tcpoutsizestat_values[dns_sizecounter_out_max];
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 	isc_uint64_t dnstapstat_values[dns_dnstapcounter_max];
 #endif
 	stats_dumparg_t dumparg;
@@ -2431,7 +2431,7 @@ generatejson(ns_server_t *server, size_t *msglen,
 		else
 			json_object_put(counters);
 
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 		/* dnstap stat counters */
 		if (ns_g_server->dtenv != NULL) {
 			isc_stats_t *dnstapstats = NULL;

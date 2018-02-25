@@ -14027,7 +14027,7 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 
 isc_result_t
 ns_server_dnstap(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 	char *ptr;
 	isc_result_t result;
 	isc_boolean_t reopen = ISC_FALSE;
