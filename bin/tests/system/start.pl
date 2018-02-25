@@ -15,8 +15,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.30 2012/02/06 23:46:44 tbox Exp $
-
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
 # temporary files, start the server, and verify that the server is running.
@@ -340,7 +338,6 @@ sub verify_server {
 		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
-			print `grep ";" dig.out > /dev/null`;
 			print "I:no response from $server\n";
 			print "I:failed\n";
 			system("$PERL $topdir/stop.pl $testdir");
