@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2008, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,21 +38,21 @@ options {
 };
 
 key one {
-        algorithm hmac-md5;
-        secret "1234abcd8765";
+	algorithm hmac-md5;
+	secret "1234abcd8765";
 };
 
 key two {
-        algorithm hmac-md5;
-        secret "1234abcd8765";
+	algorithm hmac-md5;
+	secret "1234abcd8765";
 };
 
 acl rejectkeys {
-        !key one; !key two; any;
+	!key one; !key two; any;
 };
 
 acl rejectaddrs {
-        !10.53.0.1; !10.53.0.2; any;
+	!10.53.0.1; !10.53.0.2; any;
 };
 
 acl check1 { !key one; 10.53.0.1; };
@@ -72,5 +72,5 @@ zone "example" {
 zone "tsigzone" {
 	type master;
 	file "tsigzone.db";
-        allow-transfer { !rejectkeys; !rejectaddrs; !check1; !check2; any; };
+	allow-transfer { !rejectkeys; !rejectaddrs; !check1; !check2; any; };
 };

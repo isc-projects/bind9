@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2004-2007, 2012, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007, 2012, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -14,8 +14,6 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
-
-# $Id: stop.pl,v 1.12 2007/06/19 23:47:00 tbox Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
