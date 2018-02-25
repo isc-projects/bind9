@@ -17,34 +17,35 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGCMD="$DIG @10.53.0.2 -p 5300"
+DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 if [ ! "$HAVEJSONSTATS" ]
 then
     unset PERL_JSON
-    echo "I:JSON was not configured; skipping" >&2
+    echo_i "JSON was not configured; skipping" >&2
 elif $PERL -e 'use JSON;' 2>/dev/null
 then
     PERL_JSON=1
 else
     unset PERL_JSON
-    echo "I:JSON tests require JSON library; skipping" >&2
+    echo_i "JSON tests require JSON library; skipping" >&2
 fi
 
 if [ ! "$HAVEXMLSTATS" ]
 then
     unset PERL_XML
-    echo "I:XML was not configured; skipping" >&2
+    echo_i "XML was not configured; skipping" >&2
 elif $PERL -e 'use XML::Simple;' 2>/dev/null
 then
     PERL_XML=1
 else
     unset PERL_XML
-    echo "I:XML tests require XML::Simple; skipping" >&2
+    echo_i "XML tests require XML::Simple; skipping" >&2
 fi
 
 if [ ! "$PERL_JSON" -a ! "$PERL_XML" ]; then
-    echo "I:skipping all tests"
+    echo_i "skipping all tests"
     exit 0
 fi
 
@@ -52,14 +53,14 @@ status=0
 n=1
 
 ret=0
-echo "I:checking consistency between named.stats and xml/json ($n)"
+echo_i "checking consistency between named.stats and xml/json ($n)"
 rm -f ns2/named.stats
 $DIGCMD +tcp example ns > dig.out.$n || ret=1
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p 9953 stats 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.2 stats 2>&1 | sed 's/^/ns1 /' | cat_i
 query_count=`awk '/QUERY/ {print $1}' ns2/named.stats`
 txt_count=`awk '/TXT/ {print $1}' ns2/named.stats`
 if [ $PERL_XML ]; then
-    file=`$PERL fetch.pl xml/v3/server`
+    file=`$PERL fetch.pl -p ${EXTRAPORT1} xml/v3/server`
     mv $file xml.stats
     $PERL server-xml.pl > xml.fmtstats 2> /dev/null
     xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats`
@@ -70,7 +71,7 @@ if [ $PERL_XML ]; then
     [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
 fi
 if [ $PERL_JSON ]; then
-    file=`$PERL fetch.pl json/v1/server`
+    file=`$PERL fetch.pl -p ${EXTRAPORT1} json/v1/server`
     mv $file json.stats
     $PERL server-json.pl > json.fmtstats 2> /dev/null
     json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats`
@@ -80,9 +81,9 @@ if [ $PERL_JSON ]; then
     json_txt_count=${json_txt_count:-0}
     [ "$txt_count" -eq "$json_txt_count" ] || ret=1
 fi
-if [ $ret != 0 ]; then echo "I: failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

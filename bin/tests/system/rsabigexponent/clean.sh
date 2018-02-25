@@ -21,3 +21,4 @@ rm -f ns*/named.memstats
 rm -f ns1/root.db
 rm -f ns2/signer.err
 rm -f dig.out.*
+rm -f ns*/named.conf

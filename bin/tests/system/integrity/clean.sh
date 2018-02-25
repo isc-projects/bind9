@@ -15,3 +15,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.out.test*
+rm -f */named.memstats
+rm -f */named.conf
+rm -f */named.run

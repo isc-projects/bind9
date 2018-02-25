@@ -12,6 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
+rm -f ns*/named.conf
 rm -f dig.out.*
 rm -f ns1/named_dump.db
 rm -f ns*/named.memstats

@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2011/03/01 23:48:05 tbox Exp $
-
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -24,23 +22,23 @@ n=0
 
 rm -f dig.out.*
 
-DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
-RNDCCMD="$RNDC -s 10.53.0.1 -p 9953 -c ../common/rndc.conf"
+DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
+RNDCCMD="$RNDC -s 10.53.0.1 -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 # Check the example. domain
 
-echo "I:checking pre reload zone ($n)"
+echo_i "checking pre reload zone ($n)"
 ret=0
 $DIG $DIGOPTS soa database. @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "hostmaster\.isc\.org" dig.out.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-cp ns1/named.conf2 ns1/named.conf
+copy_setports ns1/named2.conf.in ns1/named.conf
 $RNDCCMD reload 2>&1 >/dev/null
 
-echo "I:checking post reload zone ($n)"
+echo_i "checking post reload zone ($n)"
 ret=1
 try=0
 while test $try -lt 6
@@ -53,8 +51,8 @@ do
 	test $ret -eq 0 && break
 done
 n=`expr $n + 1`
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -14,8 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.6 2007/09/26 03:22:43 marka Exp $
-
+rm -f ns*/named.conf
 rm -f dig.out.ns?.test*
 rm -f nsupdate.out.test*
 rm -f ns1/*.example.db

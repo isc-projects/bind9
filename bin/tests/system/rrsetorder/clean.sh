@@ -14,8 +14,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.10 2011/12/23 23:47:13 tbox Exp $
-
 rm -f dig.out.test*
 rm -f dig.out.cyclic dig.out.fixed dig.out.random
 rm -f dig.out.0 dig.out.1 dig.out.2 dig.out.3
@@ -23,3 +21,4 @@ rm -f dig.out.cyclic2
 rm -f ns2/root.bk
 rm -f ns?/named.run ns?/named.core
 rm -f */named.memstats
+rm -f ns*/named.conf

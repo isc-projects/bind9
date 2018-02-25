@@ -20,5 +20,5 @@
 
 rm -f dig.out.*
 rm -f */named.memstats
-rm -f ns1/named.conf
+rm -f */named.conf
 rm -f */named.run

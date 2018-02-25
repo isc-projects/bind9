@@ -19,6 +19,7 @@ rm -f ns1/signed.db*
 rm -f ns1/nsec3.db*
 rm -f ns1/dsset-signed.
 rm -f ns1/dsset-nsec3.
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
 rm -f */named.stats

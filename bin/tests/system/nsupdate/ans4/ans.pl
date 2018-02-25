@@ -29,10 +29,13 @@ if (@ARGV > 0) {
 	$server_addr = @ARGV[0];
 }
 
-my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
-   LocalPort => 5300, Proto => "udp", Reuse => 1) or die "$!";
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
 
-print "listening on $server_addr:5300.\n";
+my $udpsock = IO::Socket::INET->new(LocalAddr => "$server_addr",
+   LocalPort => $localport, Proto => "udp", Reuse => 1) or die "$!";
+
+print "listening on $server_addr:$localport.\n";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";

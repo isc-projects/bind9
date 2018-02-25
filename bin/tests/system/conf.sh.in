@@ -75,22 +75,39 @@ KRB5_CONFIG=/dev/null
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# v6synth
+# The "dialup" and "delzone" tests are also not run by default because
+# they take a very long time to complete.
 #
-# List of tests that use ports 5300 and 9953.  For this reason, these must
-# be run sequentially.
-SEQUENTIALDIRS="acl additional addzone autosign builtin
-	 cacheclean case chain checkconf @CHECKDS@ checknames
-	 checkzone cookie @COVERAGE@ database digdelv dlv
-	 dlz dlzexternal dlzredir dns64 dnssec dsdigest
-	 dscp ecdsa eddsa ednscompliance emptyzones fetchlimit filter-aaaa
-	 formerr forward geoip glue gost ixfr inline integrity
-	 legacy limits logfileconfig lwresd masterfile masterformat
-	 metadata notify nslookup nsupdate pending @PKCS11_TEST@
-	 reclimit redirect resolver rndc rpz rrl rrchecker
-	 rrsetorder rsabigexponent runtime smartsign sortlist spf staticstub
-	 statistics statschannel stub tcp tkey tsig tsiggss unknown
-	 upforwd verify views wildcard xfer xferquota zero zonechecks"
+# List of tests hard-coded to use ports 5300 and 9953. For this
+# reason, these must be run sequentially.
+SEQUENTIALDIRS="dlzredir ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
+
+# List of tests that use ports assigned by caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
+#
+# This symbol must be kept in step with the PARALLEL macro in Makefile.in
+PARALLELDIRS="acl additional addzone allow_query autosign
+        builtin cacheclean chain
+        checkconf checknames checkzone
+        @CHECKDS@ @COVERAGE@
+        cookie database digdelv dlv dlz dlzexternal
+        dns64 dnssec dscp dsdigest
+        ednscompliance emptyzones
+        fetchlimit filter-aaaa formerr forward
+        geoip glue inline integrity ixfr
+        legacy limits logfileconfig
+        masterfile masterformat metadata
+        notify nslookup nsupdate pending
+        reclimit redirect resolver rndc rpz rpzrecurse
+        rrchecker rrl rrsetorder rsabigexponent runtime
+        smartsign sortlist
+        spf staticstub statistics statschannel stub
+        tcp tsig tsiggss
+        unknown upforwd verify views wildcard
+        xfer xferquota zero zonechecks"
+
+SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
 # List of tests that use unique ports (other than 5300 and 9953). These
 # tests can be run in parallel.
@@ -218,6 +235,12 @@ SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
     echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+cat_i() {
+    while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
     done
 }

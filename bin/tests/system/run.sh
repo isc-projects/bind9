@@ -187,8 +187,10 @@ else
     echopass "R:$systest:PASS"
     if $clean
     then
-	rm -f $SYSTEMTESTTOP/random.data
-	$SHELL clean.sh $runall $systest "$@"
+	if test -f $test/clean.sh
+	then
+	    ( cd $test && $SHELL clean.sh "$@" )
+	fi
 	if test -d ../../../.git
 	then
 	    git status -su --ignored $systest | \

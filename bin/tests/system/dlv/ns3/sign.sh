@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009-2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@ SYSTEMTESTTOP=../..
 
 (cd ../ns6 && $SHELL -e ./sign.sh)
 
-echo "I:dlv/ns3/sign.sh"
+echo_i "dlv/ns3/sign.sh"
 
 dlvzone=dlv.utld.
 dlvsets=
@@ -38,7 +38,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child3.utld.
@@ -54,7 +54,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child4.utld.
@@ -69,7 +69,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child5.utld.
@@ -85,7 +85,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child7.utld.
@@ -100,7 +100,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child8.utld.
@@ -114,7 +114,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child9.utld.
@@ -129,7 +129,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 zone=child10.utld.
 infile=child.db.in
@@ -143,7 +143,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 zone=child1.druz.
 infile=child.db.in
@@ -159,7 +159,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child3.druz.
@@ -176,7 +176,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child4.druz.
@@ -192,7 +192,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child5.druz.
@@ -209,7 +209,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child7.druz.
@@ -225,7 +225,7 @@ dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
 
 $SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child8.druz.
@@ -239,7 +239,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=child9.druz.
@@ -254,7 +254,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 zone=child10.druz.
 infile=child.db.in
@@ -269,7 +269,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -l $dlvzone -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 zone=dlv.utld.
@@ -283,7 +283,7 @@ keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 768 -n zone $zone 2> /dev/null`
 cat $infile $dlvsets $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 
 grep -v '^;' $keyname2.key | $PERL -n -e '

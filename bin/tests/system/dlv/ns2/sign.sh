@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@ SYSTEMTESTTOP=../..
 
 (cd ../ns3 && $SHELL -e ./sign.sh || exit 1)
 
-echo "I:dlv/ns2/sign.sh"
+echo_i "dlv/ns2/sign.sh"
 
 zone=druz.
 infile=druz.db.in
@@ -37,4 +37,4 @@ $SIGNER -r $RANDFILE -l $dlvzone -g -o $zone -f $outfile $zonefile > /dev/null 2
 $CHECKZONE -q -D -i none druz druz.pre |
 sed '/IN DNSKEY/s/\([a-z0-9A-Z/]\{10\}\)[a-z0-9A-Z/]\{16\}/\1XXXXXXXXXXXXXXXX/'> druz.signed
 
-echo "I: signed $zone"
+echo_i "signed $zone"
