@@ -894,7 +894,7 @@ typedef struct {
 	unsigned int max;
 } intervaltable;
 
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 typedef struct {
 	const char *name;
 	unsigned int min;
@@ -978,7 +978,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		NULL
 	};
 
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 	static fstrmtable fstrm[] = {
 		{
 			"fstrm-set-buffer-hint",
@@ -1459,7 +1459,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 	}
 
-#if HAVE_DNSTAP
+#ifdef HAVE_DNSTAP
 	for (i = 0; i < sizeof(fstrm) / sizeof(fstrm[0]); i++) {
 		isc_uint32_t value;
 
