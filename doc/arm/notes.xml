@@ -96,6 +96,12 @@
 	  completed. [RT #47076]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> could crash when rolling a
+	  <command>dnstap</command> log file. [RT #46942]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
