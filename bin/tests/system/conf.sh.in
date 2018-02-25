@@ -87,7 +87,8 @@ SEQUENTIALDIRS="dlzredir ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 # test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="acl additional addzone allow_query autosign
+PARALLELDIRS="allow_query rpzrecurse \
+        acl additional addzone autosign
         builtin cacheclean chain
         checkconf checknames checkzone
         @CHECKDS@ @COVERAGE@
@@ -99,7 +100,7 @@ PARALLELDIRS="acl additional addzone allow_query autosign
         legacy limits logfileconfig
         masterfile masterformat metadata
         notify nslookup nsupdate pending
-        reclimit redirect resolver rndc rpz rpzrecurse
+        reclimit redirect resolver rndc rpz
         rrchecker rrl rrsetorder rsabigexponent runtime
         smartsign sortlist
         spf staticstub statistics statschannel stub
