@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2005, 2007, 2011, 2012  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2005, 2007, 2011, 2012, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -39,26 +39,26 @@ zone "compat-example" {
 };
 
 zone "transfer1" {
-        type master;
-        file "example.db";
-        allow-transfer { any; };
+	type master;
+	file "example.db";
+	allow-transfer { any; };
 };
 
 zone "transfer2" {
-        type master;
-        file "example.db";
-        allow-transfer { any; };
+	type master;
+	file "example.db";
+	allow-transfer { any; };
 };
 
 zone "transfer3" {
-        type master;
-        file "example.db";
-        allow-transfer { any; };
+	type master;
+	file "example.db";
+	allow-transfer { any; };
 };
 
 zone "large" {
-        type master;
-        file "large.db.raw";
+	type master;
+	file "large.db.raw";
 	masterfile-format raw;
-        allow-transfer { any; };
+	allow-transfer { any; };
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,19 +27,19 @@ options {
 };
 
 logging {
-        channel default_log {
-          file "named_dir";
-          print-time yes;
-        };
-        category default { default_log; default_debug; };
-        category lame-servers { null; };
+	channel default_log {
+	  file "named_dir";
+	  print-time yes;
+	};
+	category default { default_log; default_debug; };
+	category lame-servers { null; };
 };
 
 include "controls.conf";
 
 key "rndc-key" {
-        algorithm hmac-md5;
-        secret "Am9vCg==";
+	algorithm hmac-md5;
+	secret "Am9vCg==";
 };
 
 zone "." {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,8 +27,8 @@ options {
 };
 
 key rndc_key {
-        secret "1234abcd8765";
-        algorithm hmac-md5;
+	secret "1234abcd8765";
+	algorithm hmac-md5;
 };
 
 controls {
@@ -36,17 +36,17 @@ controls {
 };
 
 view "primary" {
-        ixfr-from-differences yes;
+	ixfr-from-differences yes;
 	request-ixfr yes;
-        zone "test" IN {
-                type slave;
-                file "mytest.db";
-	        masters { 10.53.0.3; };
-        };
-        zone "sub.test" IN {
-                type slave;
-                file "subtest.db";
-                request-ixfr no;
-	        masters { 10.53.0.3; };
-        };
+	zone "test" IN {
+		type slave;
+		file "mytest.db";
+		masters { 10.53.0.3; };
+	};
+	zone "sub.test" IN {
+		type slave;
+		file "subtest.db";
+		request-ixfr no;
+		masters { 10.53.0.3; };
+	};
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -30,17 +30,17 @@ options {
 	dnssec-validation yes;
 	dnssec-must-be-secure mustbesecure.example yes;
 
-        # Note: We only reference the bind.keys file here to confirm that it
-        # is *not* being used.  It contains the real root key, and we're
-        # using a local toy root zone for the tests, so it wouldn't work.
-        # But since dnssec-validation is set to "yes" not "auto", that
-        # won't matter.
-        bindkeys-file "../../../../../bind.keys";
+	# Note: We only reference the bind.keys file here to confirm that it
+	# is *not* being used.  It contains the real root key, and we're
+	# using a local toy root zone for the tests, so it wouldn't work.
+	# But since dnssec-validation is set to "yes" not "auto", that
+	# won't matter.
+	bindkeys-file "../../../../../bind.keys";
 };
 
 key rndc_key {
-        secret "1234abcd8765";
-        algorithm hmac-md5;
+	secret "1234abcd8765";
+	algorithm hmac-md5;
 };
 
 controls {
