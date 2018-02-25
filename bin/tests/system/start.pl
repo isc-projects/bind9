@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2004-2008, 2010-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2008, 2010-2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -205,8 +205,14 @@ sub start_server {
 				if (-e "$testdir/$server/named.nosoa");
 			$command .= "-T noaa "
 				if (-e "$testdir/$server/named.noaa");
+			$command .= "-T noedns "
+				if (-e "$testdir/$server/named.noedns");
 			$command .= "-T dropedns "
 				if (-e "$testdir/$server/named.dropedns");
+			$command .= "-T maxudp512 "
+				if (-e "$testdir/$server/named.maxudp512");
+			$command .= "-T maxudp1460 "
+				if (-e "$testdir/$server/named.maxudp1460");
 			$command .= "-c named.conf -d 99 -g -U 4";
 		}
 		$command .= " -T notcp"
@@ -331,7 +337,6 @@ sub verify_server {
 		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
-			print `grep ";" dig.out > /dev/null`;
 			print "I:no response from $server\n";
 			print "I:failed\n";
 			system("$PERL $topdir/stop.pl $testdir");

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2010, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2010, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,9 +17,16 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-sed 's/SERVER_CONFIG_PLACEHOLDER/server-names { "ns.example.net"; };/' ns2/named.conf.in > ns2/named.conf
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in tmp
+sed 's/SERVER_CONFIG_PLACEHOLDER/server-names { "ns.example.net"; };/' tmp > ns2/named.conf
 
-sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' ns3/named.conf.in > ns3/named.conf
+copy_setports ns3/named.conf.in tmp
+sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' tmp > ns3/named.conf
+
+rm -f tmp
+
+copy_setports ns4/named.conf.in ns4/named.conf
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 

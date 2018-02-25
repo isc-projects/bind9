@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,3 +15,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.out.test*
+rm -f */named.memstats
+rm -f */named.conf
+rm -f */named.run

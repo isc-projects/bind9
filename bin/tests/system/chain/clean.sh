@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,5 +15,6 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f dig.out.* named*.pid
+rm -f ns*/named.conf
 rm -f */named.memstats */named.recursing */named.lock */named.run */ans.run
 rm -f ns2/K* ns2/dsset-* ns2/example.db.signed

@@ -1,4 +1,4 @@
-# Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,10 +12,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-
-
 # Clean up after rrl tests.
 
 rm -f dig.out* *mdig.out*
 rm -f  */named.memstats */named.run */named.stats */log-* */session.key
 rm -f ns3/bl*.db */*.jnl */*.core */*.pid
+rm -f ns*/named.conf

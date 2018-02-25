@@ -1,3 +1,8 @@
+4899.	[test]		Convert most of the remaining system tests to be able
+			to run in parallel, continuing the work from change
+			#4895. To take advantage of this, use "make -jN check",
+			where N is the number of processors to use. [GL #91]
+
 4895.	[test]		Allow some system tests to run in parallel.
 			[RT #46602]
 

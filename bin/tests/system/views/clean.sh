@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2005, 2007, 2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2005, 2007, 2012, 2014, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,16 +15,15 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.14 2007/09/26 03:22:44 marka Exp $
-
 #
 # Clean up after zone transfer tests.
 #
 
+rm -f ns*/named.conf
 rm -f ns3/example.bk dig.out.ns?.?
-rm -f ns2/named.conf ns2/example.db ns3/named.conf ns3/internal.bk
+rm -f ns2/example.db ns3/named.conf ns3/internal.bk
 rm -f */named.memstats
-rm -f */named.run
+rm -f */named.run */named.run.prev
 rm -f ns2/external/K*
 rm -f ns2/external/inline.db.jbk
 rm -f ns2/external/inline.db.signed

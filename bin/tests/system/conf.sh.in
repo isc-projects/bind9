@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -66,29 +66,30 @@ KRB5_CONFIG=/dev/null
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# v6synth
+# The "dialup" and "delzone" tests are also not run by default because
+# they take a very long time to complete.
 #
-# List of tests that use ports 5300 and 9953.  For this reason, these must
-# be run sequentially.
-SEQUENTIALDIRS="acl additional addzone autosign builtin
-	 cacheclean case chain checkconf @CHECKDS@ checknames
-         checkzone @COVERAGE@ database digdelv dlv dlz dlzexternal
-	 dns64 dnssec ecdsa eddsa emptyzones fetchlimit filter-aaaa
-	 formerr forward glue gost inline integrity ixfr legacy
-	 limits logfileconfig lwresd masterfile masterformat metadata
-	 notify nslookup nsupdate pending pkcs11 reclimit redirect
-	 resolver rndc rpz rrl rrsetorder rsabigexponent runtime smartsign
-	 sortlist spf staticstub stub tkey tsig tsiggss unknown
-	 upforwd verify views wildcard xfer xferquota zero zonechecks"
+# List of tests hard-coded to use ports 5300 and 9953. For this
+# reason, these must be run sequentially.
+SEQUENTIALDIRS="ecdsa eddsa gost lwresd pkcs11 tkey"
 
-# List of tests that use unique ports (other than 5300 and 9953). These
-# tests can be run in parallel.
+# List of tests that use ports assigned by caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query"
+PARALLELDIRS="allow_query acl additional addzone autosign builtin
+	 cacheclean chain checkconf @CHECKDS@ checknames
+         checkzone @COVERAGE@ database digdelv dlv dlz dlzexternal
+	 dns64 dnssec emptyzones fetchlimit filter-aaaa
+	 formerr forward glue inline integrity ixfr legacy
+	 limits logfileconfig masterfile masterformat metadata
+	 notify nslookup nsupdate pending reclimit redirect
+	 resolver rndc rpz rrl rrsetorder rsabigexponent runtime smartsign
+	 sortlist spf staticstub stub tsig tsiggss unknown
+	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
 
 # Things that are different on Windows
 KILL=kill
@@ -199,6 +200,12 @@ SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
     echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+cat_i() {
+    while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
     done
 }

@@ -1,4 +1,4 @@
-Copyright (C) 2004, 2010, 2011, 2013, 2015  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2010, 2011, 2013, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
@@ -332,7 +332,7 @@ are:
 
     PORT                     Number to be used for the query port.
     CONTROLPORT              Number to be used as the RNDC control port.
-    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be use as needed.
+    EXTRAPORT1 - EXTRAPORT8  Eight port numbers that can be used as needed.
 
 Two other environment variables are defined:
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2012-2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +15,7 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 rm -f ns*/named.run
+rm -f ns*/named.conf
 rm -f ns1/K*
 rm -f ns1/*.db
 rm -f ns1/*.signed

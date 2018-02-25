@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,7 @@ SYSTEMTESTTOP=../..
 
 (cd ../ns2 && $SHELL -e ./sign.sh || exit 1)
 
-echo "I:dlv/ns1/sign.sh"
+echo_i "dlv/ns1/sign.sh"
 
 zone=.
 infile=root.db.in
@@ -33,7 +33,7 @@ cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -r $RANDFILE -g -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 
-echo "I: signed $zone"
+echo_i "signed $zone"
 
 grep -v '^;' $keyname2.key | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;

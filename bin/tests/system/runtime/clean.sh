@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f ns2/named.conf
+rm -f ns2/named.conf ns2/named-alt*.conf
 rm -f */named.memstats
 rm -f */named*.run
 rm -f ns*/named.lock ns*/named*.pid ns*/other.lock

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2011, 2012, 2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011, 2012, 2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -16,6 +16,7 @@
 
 rm -f dig.out.*.test*
 rm -f ns*/named.memstats
+rm -f ns*/named.conf
 rm -f ns*/named.run
 rm -f ns2/named.stats
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl

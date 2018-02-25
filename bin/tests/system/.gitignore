@@ -1,13 +1,11 @@
-feature-test
-systests.output
 random.data
 named.memstats
 named.run
+ans.run
 dig.out*
 rndc.out*
 nsupdate.out*
 named.pid
-named.run
 /feature-test
 **/test.output
 /systests.output

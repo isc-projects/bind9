@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2005, 2007, 2011, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005, 2007, 2011, 2012, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +13,6 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
-
-# $Id$
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -49,26 +47,26 @@ sourceserial () {
              }' < $1
 }
 
-DIGOPTS="+tcp +noauth +noadd +nosea +nostat +noquest +nocomm +nocmd"
+DIGOPTS="+tcp +noauth +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 
 status=0
 
-echo "I:checking that master files in raw format loaded"
+echo_i "checking that master files in raw format loaded"
 ret=0
 for zone in example example-explicit example-compat; do
     for server in 1 2; do
 	for name in ns mx a aaaa cname dname txt rrsig nsec \
 		    dnskey ds cdnskey cds; do
-		$DIG $DIGOPTS $name.$zone. $name @10.53.0.$server -p 5300
+		$DIG $DIGOPTS $name.$zone. $name @10.53.0.$server
 		echo
 	done > dig.out.$zone.$server
     done
     $PERL ../digcomp.pl dig.out.$zone.1 dig.out.$zone.2 || ret=1
 done
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:checking raw format versions"
+echo_i "checking raw format versions"
 ret=0
 israw ns1/example.db.raw || ret=1
 israw ns1/example.db.raw1 || ret=1
@@ -76,36 +74,36 @@ israw ns1/example.db.compat || ret=1
 [ "`rawversion ns1/example.db.raw`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.raw1`" = 1 ] || ret=1
 [ "`rawversion ns1/example.db.compat`" = 0 ] || ret=1
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:checking source serial numbers"
+echo_i "checking source serial numbers"
 ret=0
 [ "`sourceserial ns1/example.db.raw`" = "UNSET" ] || ret=1
 [ "`sourceserial ns1/example.db.serial.raw`" = "3333" ] || ret=1
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:waiting for transfers to complete"
+echo_i "waiting for transfers to complete"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	test -f ns2/transfer.db.raw -a -f ns2/transfer.db.txt && break
 	sleep 1
 done
 
-echo "I:checking that slave was saved in raw format by default"
+echo_i "checking that slave was saved in raw format by default"
 ret=0
 israw ns2/transfer.db.raw || ret=1
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:checking that slave was saved in text format when configured"
+echo_i "checking that slave was saved in text format when configured"
 ret=0
 israw ns2/transfer.db.txt && ret=1
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:checking that slave formerly in text format is now raw"
+echo_i "checking that slave formerly in text format is now raw"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
     ret=0
@@ -114,23 +112,23 @@ do
     [ $ret -eq 0 ] && break
     sleep 1
 done
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:checking that large rdatasets loaded"
+echo_i "checking that large rdatasets loaded"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 ret=0
 for a in a b c
 do
-	$DIG +tcp txt ${a}.large @10.53.0.2 -p 5300 > dig.out
+	$DIG +tcp txt ${a}.large @10.53.0.2 -p ${PORT} > dig.out
 	grep "status: NOERROR" dig.out > /dev/null || ret=1
 done
 [ $ret -eq 0 ] && break
 sleep 1
 done
-[ $ret -eq 0 ] || echo "I:failed"
+[ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

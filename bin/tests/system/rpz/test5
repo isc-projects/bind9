@@ -1,4 +1,4 @@
-; Copyright (C) 2011-2013  Internet Systems Consortium, Inc. ("ISC")
+; Copyright (C) 2011-2013, 2018  Internet Systems Consortium, Inc. ("ISC")
 ;
 ; Permission to use, copy, modify, and/or distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -21,7 +21,7 @@
 
 ; the policies or replacements specified in ns3/named.conf override these
 
-server 10.53.0.3 5300
+server 10.53.0.3 @PORT@
 
 ;	1
 update add  a3-1.tld2.bl-given.	    300 A 127.0.0.1

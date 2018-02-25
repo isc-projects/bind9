@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -32,11 +32,11 @@ matchall () {
     done
 }
 
-echo "I:checking for DNSSEC key coverage issues"
+echo_i "checking for DNSSEC key coverage issues"
 ret=0
 for dir in [0-9][0-9]-*; do
         ret=0
-        echo "I:$dir"
+        echo_i "$dir"
         args= warn= error= ok= retcode= match=
         . $dir/expect
         $COVERAGE $args -K $dir example.com > coverage.$n 2>&1
@@ -60,9 +60,9 @@ for dir in [0-9][0-9]-*; do
         [ "$found" = "FAIL" ] && ret=1
 
         n=`expr $n + 1`
-        if [ $ret != 0 ]; then echo "I:failed"; fi
+        if [ $ret != 0 ]; then echo_i "failed"; fi
         status=`expr $status + $ret`
 done
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2012  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2012, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -15,12 +15,18 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.15 2007/06/19 23:47:07 tbox Exp $
-
 #
 # Set up test data for zone transfer quota tests.
 #
 
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+$SHELL clean.sh
+
 $PERL setup.pl
 
 cp -f ns1/changing1.db ns1/changing.db
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf

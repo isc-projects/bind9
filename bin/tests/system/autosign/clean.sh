@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2009-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2009-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,6 +19,7 @@ rm -f */core
 rm -f */example.bk
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.conf
 rm -f activate-now-publish-1day.key
 rm -f active.key inact.key del.key unpub.key standby.key rev.key
 rm -f delayksk.key delayzsk.key autoksk.key autozsk.key

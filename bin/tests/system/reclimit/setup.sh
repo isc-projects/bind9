@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,4 +17,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-cp -f ns3/named1.conf ns3/named.conf
+$SHELL clean.sh
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns3/named1.conf.in ns3/named.conf

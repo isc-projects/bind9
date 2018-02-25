@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,8 +14,8 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-rm -f */named.memstats */ans.run */named.recursing */named.run
+rm -f */named.conf */named.memstats */ans.run */named.recursing */named.run
 rm -f dig.out*
 rm -f ans4/norespond
-rm -f ns3/named.conf ns3/named.stats ns3/named_dump.db
+rm -f ns3/named.stats ns3/named_dump.db
 rm -f burst.input.*

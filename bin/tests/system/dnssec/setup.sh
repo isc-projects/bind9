@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2004, 2007, 2009, 2011-2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009, 2011-2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -22,14 +22,24 @@ $SHELL clean.sh
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
 
-cd ns1 && $SHELL sign.sh
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
+
+copy_setports ns4/named1.conf.in ns4/named.conf
+copy_setports ns5/named1.conf.in ns5/named.conf
+
+copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf
+
+cd ns1
+$SHELL sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed
 
-cd ../ns3 && cp -f siginterval1.conf siginterval.conf
-cd ../ns4 && cp -f named1.conf named.conf
-cd ../ns5 && {
-    cp -f trusted.conf.bad trusted.conf
-    cp -f named1.conf named.conf
-    $SHELL sign.sh
-}
+cd ../ns3
+cp -f siginterval1.conf siginterval.conf
+
+cd ../ns5
+cp -f trusted.conf.bad trusted.conf
+$SHELL sign.sh

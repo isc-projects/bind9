@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009-2012, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009-2012, 2014-2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -19,8 +19,10 @@
 # Clean up after zone transfer tests.
 #
 
+rm -f verylarge
 rm -f */named.memstats
 rm -f */named.run */ans.run
+rm -f */named.conf
 rm -f Kxxx.*
 rm -f dig.out.*
 rm -f jp.out.ns3.*

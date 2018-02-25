@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2010, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,22 +14,18 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named40.conf,v 1.2 2010/11/16 01:37:39 sar Exp $ */
+acl accept { 10.53.0.2; };
 
-controls { /* empty */ };
-
-acl accept { 10.53.0.2; }; 
-
-acl badaccept { 10.53.0.1; }; 
+acl badaccept { 10.53.0.1; };
 
 key one {
-        algorithm hmac-md5;
-        secret "1234abcd8765";
+	algorithm hmac-md5;
+	secret "1234abcd8765";
 };
 
 key two {
-        algorithm hmac-md5;
-        secret "1234efgh8765";
+	algorithm hmac-md5;
+	secret "1234efgh8765";
 };
 
 options {
@@ -37,7 +33,7 @@ options {
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
-        recursion no;
+	recursion no;
 };
 
 include "controls.conf";
@@ -112,5 +108,3 @@ zone "keydisallow.example" {
 	file "keydisallow.db";
 	allow-query { ! key one; };
 };
-
-

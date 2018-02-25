@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2009, 2012, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2009, 2012, 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -17,154 +17,157 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+DIGOPTS="-p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+
 status=0
 
 #
-echo "I: checking that we detect a NS which refers to a CNAME"
+echo_i "checking that we detect a NS which refers to a CNAME"
 if $CHECKZONE . cname.db > cname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "is a CNAME" cname.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which is below a DNAME"
+echo_i "checking that we detect a NS which is below a DNAME"
 if $CHECKZONE . dname.db > dname.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "is below a DNAME" dname.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which has no address records (A/AAAA)"
+echo_i "checking that we detect a NS which has no address records (A/AAAA)"
 if $CHECKZONE . noaddress.db > noaddress.out
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which has no records"
+echo_i "checking that we detect a NS which has no records"
 if $CHECKZONE . nxdomain.db > nxdomain.out
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a A record (fail)"
+echo_i "checking that we detect a NS which looks like a A record (fail)"
 if $CHECKZONE -n fail . a.db > a.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "appears to be an address" a.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a A record (warn=default)"
+echo_i "checking that we detect a NS which looks like a A record (warn=default)"
 if $CHECKZONE . a.db > a.out 2>&1
 then
 	if grep "appears to be an address" a.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a A record (ignore)"
+echo_i "checking that we detect a NS which looks like a A record (ignore)"
 if $CHECKZONE -n ignore . a.db > a.out 2>&1
 then
 	if grep "appears to be an address" a.out > /dev/null
 	then
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	else
 		:
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a AAAA record (fail)"
+echo_i "checking that we detect a NS which looks like a AAAA record (fail)"
 if $CHECKZONE -n fail . aaaa.db > aaaa.out 2>&1
 then
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 else
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a AAAA record (warn=default)"
+echo_i "checking that we detect a NS which looks like a AAAA record (warn=default)"
 if $CHECKZONE . aaaa.db > aaaa.out 2>&1
 then
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
 		:
 	else
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 fi
 
 #
-echo "I: checking that we detect a NS which looks like a AAAA record (ignore)"
+echo_i "checking that we detect a NS which looks like a AAAA record (ignore)"
 if $CHECKZONE -n ignore . aaaa.db > aaaa.out 2>&1
 then
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
-		echo "I:failed (message)"; status=1
+		echo_i "failed (message)"; status=1
 	else
 		:
 	fi
 else
-	echo "I:failed (status)"; status=1
+	echo_i "failed (status)"; status=1
 fi
 
-echo "I: checking 'rdnc zonestatus' with duplicated zone name"
+echo_i "checking 'rdnc zonestatus' with duplicated zone name"
 ret=0 
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload duplicate.example > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 reload duplicate.example > rndc.out.duplicate 2>&1
 grep "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate > /dev/null || ret=1
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

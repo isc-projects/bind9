@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright (C) 2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -30,7 +30,10 @@ $SIG{INT} = \&rmpid;
 $SIG{TERM} = \&rmpid;
 
 my $localaddr = "10.53.0.3";
-my $localport = 5300;
+
+my $localport = int($ENV{'PORT'});
+if (!$localport) { $localport = 5300; }
+
 my $verbose = 0;
 my $ttl = 60;
 my $zone = "example.broken";

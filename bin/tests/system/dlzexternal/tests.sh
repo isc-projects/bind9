@@ -6,7 +6,8 @@ SYSTEMTESTTOP=..
 
 status=0
 
-DIGOPTS="@10.53.0.1 -p 5300"
+DIGOPTS="@10.53.0.1 -p ${PORT}"
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 test_update() {
     host="$1"
@@ -16,15 +17,15 @@ test_update() {
     should_fail="$5"
 
     cat <<EOF > ns1/update.txt
-server 10.53.0.1 5300
+server 10.53.0.1 ${PORT}
 update add $host $cmd
 send
 EOF
 
-    echo "I:testing update for $host $type $cmd $comment"
+    echo_i "testing update for $host $type $cmd $comment"
     $NSUPDATE -k ns1/ddns.key ns1/update.txt > /dev/null 2>&1 || {
 	[ "$should_fail" ] || \
-             echo "I:update failed for $host $type $cmd"
+             echo_i "update failed for $host $type $cmd"
 	return 1
     }
 
@@ -32,7 +33,7 @@ EOF
     lines=`echo "$out" | grep "$digout" | wc -l`
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
-            echo "I:dig output incorrect for $host $type $cmd: $out"
+            echo_i "dig output incorrect for $host $type $cmd: $out"
 	return 1
     }
     return 0
@@ -52,24 +53,24 @@ status=`expr $status + $ret`
 test_update deny.example.nil. TXT "86400 TXT helloworld" "helloworld" should_fail && ret=1
 status=`expr $status + $ret`
 
-echo "I:testing passing client info into DLZ driver"
+echo_i "testing passing client info into DLZ driver"
 ret=0
 out=`$DIG $DIGOPTS +short -t txt -q source-addr.example.nil | grep -v '^;'`
 addr=`eval echo "$out" | cut -f1 -d'#'`
 [ "$addr" = "10.53.0.1" ] || ret=1
-[ "$ret" -eq 0 ] || echo "I:failed"
+[ "$ret" -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:testing DLZ driver is cleaned up on reload"
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p 9953 reload 2>&1 | sed 's/^/I:ns1 /'
+ccho_i "testing DLZ driver is cleaned up on reload"
+$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/I:ns1 /'
 for i in 0 1 2 3 4 5 6 7 8 9; do
     ret=0
     grep 'dlz_example: shutting down zone example.nil' ns1/named.run > /dev/null 2>&1 || ret=1
     [ "$ret" -eq 0 ] && break
     sleep 1
 done
-[ "$ret" -eq 0 ] || echo "I:failed"
+[ "$ret" -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

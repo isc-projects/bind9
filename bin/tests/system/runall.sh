@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004, 2007, 2010-2012, 2014, 2015  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007, 2010-2012, 2014, 2015, 2018  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -31,14 +31,18 @@ SYSTEMTESTTOP=.
 
 usage="Usage: ./runall.sh [-n] [numprocesses]"
 
-NOCLEAN=""
+# Handle "-n" switch if present.
 
+NOCLEAN=""
 while getopts "n" flag; do
     case "$flag" in
-	n) NOCLEAN="-n" ;;
+        n) NOCLEAN="-n" ;;
     esac
 done
+export NOCLEAN
 shift `expr $OPTIND - 1`
+
+# Obtain number of processes to use.
 
 if [ $# -eq 0 ]; then
     numproc=1
@@ -55,7 +59,22 @@ else
     exit 1
 fi
 
-export NOCLEAN
-make -j $numproc check
+# Run the tests.
 
-exit $?
+status=0
+if [ "$CYGWIN" = "" ]; then
+    # Running on Unix, use "make" to run tests in parallel.
+    make -j $numproc check
+    status=$?
+else
+    # Running on Windows: no "make" available, so run the tests sequentially.
+    # (This is simpler than working out where "nmake" is likely to be found.
+    # Besides, "nmake" does not support parallel execution so if "nmake" is
+    # used, the tests would be run sequentially anyway.)
+    {
+        for testdir in $SUBDIRS; do
+            $SHELL run.sh $NOCLEAN $testdir || status=1
+        done
+    } 2>&1 | tee "systests.output"
+fi
+exit $status

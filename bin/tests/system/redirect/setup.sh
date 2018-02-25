@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (C) 2011-2014  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2011-2014, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -20,6 +20,9 @@ SYSTEMTESTTOP=..
 $SHELL clean.sh
 
 test -r $RANDFILE || $GENRANDOM 400 $RANDFILE
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
 
 cp ns2/redirect.db.in ns2/redirect.db
 cp ns2/example.db.in ns2/example.db
