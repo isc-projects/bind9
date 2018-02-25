@@ -2541,12 +2541,14 @@ set_sndbuf(void) {
 		}
 	}
 #endif
-	if (fd == -1)
+	if (fd == -1) {
 		return;
+	}
 
 	len = sizeof(min);
 	if (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&min, &len) == 0 &&
-	    min < sndbuf) {
+	    min < sndbuf)
+	{
  again:
 		if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf,
 			       sizeof(sndbuf)) == -1) {
@@ -2558,8 +2560,9 @@ set_sndbuf(void) {
 				sndbuf = min;
 				goto cleanup;
 			}
-		} else
+		} else {
 			min = sndbuf;
+		}
 		if (min != max) {
 			sndbuf = max;
 			goto again;
