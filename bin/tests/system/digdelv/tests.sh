@@ -197,7 +197,7 @@ if [ -x ${DIG} ] ; then
     if $FEATURETEST --ipv6only=no
     then
       $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
-      grep "SERVER: ::ffff:10.53.0.2#5300" < dig.out.test$n > /dev/null || ret=1
+      grep "SERVER: ::ffff:10.53.0.2#${PORT}" < dig.out.test$n > /dev/null || ret=1
     else
       $DIG $DIGOPTS +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 && ret=1
       grep "::ffff:10.53.0.2" < dig.out.test$n > /dev/null || ret=1

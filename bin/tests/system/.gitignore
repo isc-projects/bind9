@@ -3,3 +3,7 @@ systests.output
 random.data
 named.memstats
 named.run
+**/test.output
+/systests.output
+/random.data
+parallel.mk

@@ -57,16 +57,16 @@ feature-test@EXEEXT@: feature-test.@O@
 
 PARALLEL = allow_query acl additional addzone autosign \
 	   builtin cacheclean chain checkconf checknames \
-	   checkzone @CHECKDS@ @COVERAGE@ cookie database \
-	   digdelv dlv dlz dlzexternal dns64 dnssec dscp dsdigest \
-	   ednscompliance emptyzones fetchlimit filter-aaaa \
-	   formerr forward geoip glue inline integrity ixfr \
+	   checkzone @CHECKDS@ @COVERAGE@ database \
+	   digdelv dlv dlz dlzexternal dns64 dnssec \
+	   emptyzones fetchlimit filter-aaaa \
+	   formerr forward glue inline integrity ixfr \
 	   legacy limits logfileconfig masterfile masterformat \
 	   metadata notify nslookup nsupdate pending reclimit \
-	   redirect resolver rndc rpz rpzrecurse rrchecker rrl \
+	   redirect resolver rndc rpz rrl \
 	   rrsetorder rsabigexponent runtime smartsign sortlist \
-	   spf staticstub statistics statschannel stub \
-	   tcp tsig tsiggss unknown upforwd verify views wildcard \
+	   spf staticstub stub \
+	   tsig tsiggss unknown upforwd verify views wildcard \
 	   xfer xferquota zero zonechecks
 
 # Produce intermediate makefile that assigns unique port numbers to each
@@ -80,7 +80,7 @@ PARALLEL = allow_query acl additional addzone autosign \
 .PHONY: parallel.mk
 
 parallel.mk:
-	PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
+	@PARALLEL_SANITIZED=`echo $(PARALLEL) | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -` ; \
 	echo ".PHONY: $$PARALLEL_SANITIZED" > $@ ; \
 	echo "" >> $@ ; \
 	echo "test check: $$PARALLEL_SANITIZED" >> $@ ; \

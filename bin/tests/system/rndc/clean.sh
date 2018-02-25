@@ -16,6 +16,7 @@
 
 rm -f dig.out.*.test*
 rm -f ns*/named.memstats
+rm -f ns*/named.conf
 rm -f ns*/named.run
 rm -f ns2/named.stats
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl
