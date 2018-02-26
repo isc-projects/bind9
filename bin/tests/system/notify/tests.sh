@@ -62,6 +62,8 @@ awk '$1 > 5 { exit(1) }' log.out || ret=1
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`
 
+nextpart ns3/named.run > /dev/null
+
 sleep 1 # make sure filesystem time stamp is newer for reload.
 rm -f ns2/example.db
 cp -f ns2/example2.db ns2/example.db
@@ -72,11 +74,13 @@ else
     echo_i "reloading with example2 using rndc and waiting up to 45 seconds"
     $RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
 fi
+
 try=0
 while test $try -lt 45
 do
+    nextpart ns3/named.run > tmp
+    grep 'transfer of .example/IN. from 10.53.0.2#.*success' tmp > /dev/null && break
     sleep 1
-    grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 2$' ns3/named.run > /dev/null && break
     try=`expr $try + 1`
 done
 
@@ -121,8 +125,9 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
 try=0
 while test $try -lt 45
 do
+    nextpart ns3/named.run > tmp
+    grep 'transfer of .example/IN. from 10.53.0.2#.*success' tmp > /dev/null && break
     sleep 1
-    grep 'notify from 10.53.0.2#[0-9][0-9]*: serial 4$' ns3/named.run > /dev/null && break
     try=`expr $try + 1`
 done
 
