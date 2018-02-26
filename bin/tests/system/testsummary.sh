@@ -32,9 +32,14 @@ while getopts "n" flag; do
     esac
 done
 
-cat */test.output > systests.output 2> /dev/null
-if [ $keepfile -eq 0 ]; then
-    rm -f */test.output
+if [ `ls */test.output 2> /dev/null | wc -l` -eq 0 ]; then
+    echowarn "I:No 'test.output' files were found."
+    echowarn "I:Printing summary from pre-existing 'systests.output'."
+else
+    cat */test.output > systests.output
+    if [ $keepfile -eq 0 ]; then
+        rm -f */test.output
+    fi
 fi
 
 status=0
