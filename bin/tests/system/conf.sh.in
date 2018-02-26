@@ -241,9 +241,9 @@ cat_i() {
 }
 
 digcomp() {
-    output=`$PERL $SYSTEMTESTTOP/digcomp.pl $1 $2`
+    output=`$PERL $SYSTEMTESTTOP/digcomp.pl "$@"`
     result=$?
-    [ -n "$output" ] && echo "$output" | cat_i
+    [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
     return $result
 }
 

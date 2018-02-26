@@ -311,12 +311,11 @@ do
 	ret=0
 	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 	$DIG $DIGOPTS +noauth a.oldsigs.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-        digcomp dig.out.ns3.test$n dig.out.ns4.test$n > digcomp.out.test$n || ret=1
+        digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
 	grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
 	[ $ret = 0 ] && break
 	sleep 1
 done
-if [ $ret != 0 ]
 n=`expr $n + 1`
 status=`expr $status + $ret`
 
