@@ -173,8 +173,8 @@ do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
 
-        # re-notify if we've been waiting a long time
-	if [ $try -ge 5 ]; then
+	# re-notify if we've been waiting a long time
+	if [ $i -ge 5 ]; then
 	    $RNDCCMD 10.53.0.3 notify test | set 's/^/ns3 /' | cat_i
 	fi
 	sleep 1
@@ -218,9 +218,9 @@ do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA sub.test > dig.out
 	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
 
-        # re-notify if we've been waiting a long time
-	if [ $try -ge 5 ]; then
-            $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
+	# re-notify if we've been waiting a long time
+	if [ $i -ge 5 ]; then
+	    $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
 	fi
 	sleep 1
 done
@@ -258,8 +258,8 @@ do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
 
-        # re-notify if we've been waiting a long time
-	if [ $try -ge 5 ]; then
+	# re-notify if we've been waiting a long time
+	if [ $i -ge 5 ]; then
 	    $RNDCCMD 10.53.0.3 notify test | set 's/^/ns3 /' | cat_i
 	fi
 	sleep 1
