@@ -88,6 +88,12 @@ ATF_TC_BODY(irs_resconf_load, tc) {
 			"testdata/options.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {
+			"testdata/options-bad-ndots.conf", ISC_R_RANGE,
+			NULL, ISC_R_SUCCESS
+		}, {
+			"testdata/options-empty.conf", ISC_R_UNEXPECTEDEND,
+			NULL, ISC_R_SUCCESS
+		}, {
 			"testdata/port.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {

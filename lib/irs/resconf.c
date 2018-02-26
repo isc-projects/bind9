@@ -508,6 +508,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 
 	conf->mctx = mctx;
 	ISC_LIST_INIT(conf->nameservers);
+	ISC_LIST_INIT(conf->searchlist);
 	conf->numns = 0;
 	conf->domainname = NULL;
 	conf->searchnxt = 0;
@@ -562,6 +563,10 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		}
 	}
 
+	if (ret != ISC_R_SUCCESS) {
+		goto error;
+	}
+
 	/* If we don't find a nameserver fall back to localhost */
 	if (conf->numns == 0U) {
 		INSIST(ISC_LIST_EMPTY(conf->nameservers));
@@ -575,7 +580,6 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 	 * Construct unified search list from domain or configured
 	 * search list
 	 */
-	ISC_LIST_INIT(conf->searchlist);
 	if (conf->domainname != NULL) {
 		ret = add_search(conf, conf->domainname);
 	} else if (conf->searchnxt > 0) {
@@ -586,6 +590,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		}
 	}
 
+ error:
 	conf->magic = IRS_RESCONF_MAGIC;
 
 	if (ret != ISC_R_SUCCESS)
