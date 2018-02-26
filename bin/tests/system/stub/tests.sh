@@ -42,13 +42,13 @@ do
 	[ $ret = 0 ] && break
 	sleep 1
 done
-{ $PERL ../digcomp.pl knowngood.dig.out.norec dig.out.ns3 || ret=1; } | cat_i
+digcomp knowngood.dig.out.norec dig.out.ns3 || ret=1
 [ $ret = 0 ] || { status=1;  echo_i "failed"; }
 
 echo_i "look for stub zone data with recursion (should be found) (pass=$pass)"
 ret=0
 $DIG $DIGOPTS +noauth +noadd data.child.example. @10.53.0.3 txt > dig.out.ns3 || ret=1
-{ $PERL ../digcomp.pl knowngood.dig.out.rec dig.out.ns3 || ret=1; } | cat_i
+digcomp knowngood.dig.out.rec dig.out.ns3 || ret=1
 [ $ret = 0 ] || { status=1;  echo_i "failed"; }
 
 [ $pass = 1 ] && {

@@ -100,7 +100,7 @@ $RNDCCMD 10.53.0.2 addzone 'missing.example { type master; file "missing.db"; };
 grep "file not found" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS +all @10.53.0.2 a.missing.example a > dig.out.ns2.post.$n || ret=1
 grep "status: REFUSED" dig.out.ns2.post.$n > /dev/null || ret=1
-{ $PERL ../digcomp.pl dig.out.ns2.pre.$n dig.out.ns2.post.$n || ret=1; } | cat_i
+digcomp dig.out.ns2.pre.$n dig.out.ns2.post.$n || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

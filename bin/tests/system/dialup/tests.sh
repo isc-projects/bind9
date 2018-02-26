@@ -32,7 +32,7 @@ do
 		try=`expr $try + 1`
 		sleep 1
 	else
-                { $PERL ../digcomp.pl dig.out.ns1.test dig.out.ns2.test || ret=1; } | cat_i
+                digcomp dig.out.ns1.test dig.out.ns2.test || ret=1
 		break;
 	fi
 done
@@ -51,7 +51,7 @@ do
 		try=`expr $try + 1`
 		sleep 1
 	else
-                { $PERL ../digcomp.pl dig.out.ns1.test dig.out.ns3.test || ret=1; } | cat_i
+                digcomp dig.out.ns1.test dig.out.ns3.test || ret=1
 		break;
 	fi
 done

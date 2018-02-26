@@ -240,6 +240,13 @@ cat_i() {
     done
 }
 
+digcomp() {
+    output=`$PERL $SYSTEMTESTTOP/digcomp.pl $1 $2`
+    result=$?
+    [ -n "$output" ] && echo "$output" | cat_i
+    return $result
+}
+
 #
 # Useful functions in test scripts
 #

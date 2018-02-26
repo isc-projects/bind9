@@ -19,28 +19,28 @@ status=0
 echo_i "1000 A records"
 $DIG $DIGOPTS +tcp +norec 1000.example. @10.53.0.1 a > dig.out.1000 || status=1
 # $DIG $DIGOPTS 1000.example. @10.53.0.1 a > knowngood.dig.out.1000
-{ $PERL ../digcomp.pl knowngood.dig.out.1000 dig.out.1000 || status=1; } | cat_i
+digcomp knowngood.dig.out.1000 dig.out.1000 || status=1
 
 echo_i "2000 A records"
 $DIG $DIGOPTS +tcp +norec 2000.example. @10.53.0.1 a > dig.out.2000 || status=1
 # $DIG $DIGOPTS 2000.example. @10.53.0.1 a > knowngood.dig.out.2000
-{ $PERL ../digcomp.pl knowngood.dig.out.2000 dig.out.2000 || status=1; } | cat_i
+digcomp knowngood.dig.out.2000 dig.out.2000 || status=1
 
 echo_i "3000 A records"
 $DIG $DIGOPTS +tcp +norec 3000.example. @10.53.0.1 a > dig.out.3000 || status=1
 # $DIG $DIGOPTS 3000.example. @10.53.0.1 a > knowngood.dig.out.3000
-{ $PERL ../digcomp.pl knowngood.dig.out.3000 dig.out.3000 || status=1; } | cat_i
+digcomp knowngood.dig.out.3000 dig.out.3000 || status=1
 
 echo_i "4000 A records"
 $DIG $DIGOPTS +tcp +norec 4000.example. @10.53.0.1 a > dig.out.4000 || status=1
 # $DIG $DIGOPTS 4000.example. @10.53.0.1 a > knowngood.dig.out.4000
-{ $PERL ../digcomp.pl knowngood.dig.out.4000 dig.out.4000 || status=1; } | cat_i
+digcomp knowngood.dig.out.4000 dig.out.4000 || status=1
 
 echo_i "exactly maximum rrset"
 $DIG $DIGOPTS +tcp +norec +noedns a-maximum-rrset.example. @10.53.0.1 a > dig.out.a-maximum-rrset \
 	|| status=1
 # $DIG $DIGOPTS a-maximum-rrset.example. @10.53.0.1 a > knowngood.dig.out.a-maximum-rrset
-{ $PERL ../digcomp.pl knowngood.dig.out.a-maximum-rrset dig.out.a-maximum-rrset || status=1; } | cat_i
+digcomp knowngood.dig.out.a-maximum-rrset dig.out.a-maximum-rrset || status=1
 
 echo_i "exceed maximum rrset (5000 A records)"
 $DIG $DIGOPTS +tcp +norec +noadd 5000.example. @10.53.0.1 a > dig.out.exceed || status=1
