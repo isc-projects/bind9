@@ -1472,7 +1472,6 @@ then
 fi
 
 AC_MSG_CHECKING(for OpenSSL library)
-OPENSSL_WARNING=
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
 if test "yes" = "$want_native_pkcs11"
 then
@@ -2319,6 +2318,15 @@ AC_SUBST(PKCS11_ECDSA)
 AC_SUBST(PKCS11_GOST)
 AC_SUBST(PKCS11_ED25519)
 AC_SUBST(PKCS11_TEST)
+
+if test "X$CRYPTO" = "X"; then
+#        cat << \EOF
+AC_MSG_ERROR([No cryptography library has been found or provided.
+You must use --with-openssl, or --with-pkcs11 and --enable-native-pkcs11,
+to enable cryptography.])
+#EOF
+        exit 1
+fi
 
 # for PKCS11 benchmarks
 
@@ -5452,14 +5460,6 @@ report() {
 
 if test "yes" != "$silent"; then
 	report
-fi
-
-if test "X$CRYPTO" = "X"; then
-cat << \EOF                                                             
-BIND 9 is being built without cryptography support. This means it will
-not have DNSSEC support. Use --with-openssl, or --with-pkcs11 and
---enable-native-pkcs11 to enable cryptography.
-EOF
 fi
 
 # Tell Emacs to edit this file in shell mode.
