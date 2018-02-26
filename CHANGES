@@ -1,3 +1,7 @@
+4903.	[bug]		irs_resconf_load() ignored resolv.conf syntax errors
+			when "domain" or "search" options were present in that
+			file. [GL #110]
+
 4902.	[test]		Improved the reliability of the 'ixfr' system
 			test. [GL #66]
 
