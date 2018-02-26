@@ -53,9 +53,6 @@ ATF_TC_BODY(irs_resconf_load, tc) {
 		isc_result_t checkres;
 	} tests[] = {
 		{
-			"testdata/sortlist-v4.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
 			"testdata/domain.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {
