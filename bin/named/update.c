@@ -1729,7 +1729,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		dns_name_format(&mx.mx, namebuf, sizeof(namebuf));
 		dns_name_format(&t->name, ownerbuf, sizeof(ownerbuf));
 		isaddress = ISC_FALSE;
-		if ((options & DNS_RDATA_CHECKMX) != 0 &&
+		if ((options & DNS_ZONEOPT_CHECKMX) != 0 &&
 		    strlcpy(tmp, namebuf, sizeof(tmp)) < sizeof(tmp)) {
 			if (tmp[strlen(tmp) - 1] == '.')
 				tmp[strlen(tmp) - 1] = '\0';
@@ -1738,7 +1738,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 				isaddress = ISC_TRUE;
 		}
 
-		if (isaddress && (options & DNS_RDATA_CHECKMXFAIL) != 0) {
+		if (isaddress && (options & DNS_ZONEOPT_CHECKMXFAIL) != 0) {
 			update_log(client, zone, ISC_LOG_ERROR,
 				   "%s/MX: '%s': %s",
 				   ownerbuf, namebuf,

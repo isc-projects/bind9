@@ -39,6 +39,7 @@ zone "example.nil" {
 	type master;
 	file "example.db";
 	check-integrity no;
+	check-mx ignore;
 	update-policy {
 		grant ddns-key.example.nil subdomain example.nil ANY;
 	};
@@ -58,6 +59,7 @@ zone "other.nil" {
 	type master;
 	file "other.db";
 	check-integrity no;
+	check-mx warn;
 	update-policy local;
 	allow-query-on { 10.53.0.1; 127.0.0.1; };
 	allow-transfer { any; };
@@ -72,6 +74,7 @@ zone "update.nil" {
 	type master;
 	file "update.db";
 	check-integrity no;
+	check-mx fail;
 	allow-update { any; };
 	allow-transfer { any; };
 	also-notify { othermasters; };
