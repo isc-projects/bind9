@@ -1,3 +1,10 @@
+4903.	[bug]		"check-mx fail;" did not prevent MX records containing
+			IP addresses from being added to a zone by a dynamic
+			update. [GL #112]
+
+4902.	[test]		Improved the reliability of the 'ixfr' system
+			test. [GL #66]
+
 4899.	[test]		Convert most of the remaining system tests to be able
 			to run in parallel, continuing the work from change
 			#4895. To take advantage of this, use "make -jN check",
