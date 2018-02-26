@@ -15,9 +15,9 @@
 # if not, prints a warning.
 #
 # Usage:
-#    testsummary.sh [-n]
+#    testsummary.sh [-k|--keep]
 #
-# -n	Do NOT delete the individual test.output files after concatenating
+# -k	Keep the individual test.output files in place after concatenating
 #	them into systests.output.
 #
 # Status return:
@@ -29,15 +29,31 @@ SYSTEMTESTTOP=.
 
 keepfile=0
 
-while getopts "n" flag; do
+usage="Usage: testsummary.sh [-k|--keep]"
+while getopts "n-:" flag; do
     case $flag in
+	-) case "${OPTARG}" in
+	       keep) keepfile=1 ;;
+	       *) echo "$usage" >&2
+                  exit 1
+                  ;;
+	   esac
+           ;;
 	n) keepfile=1 ;;
+	*) echo "$usage" >&2
+           exit 1
+           ;;
     esac
 done
 
-cat */test.output > systests.output 2> /dev/null
-if [ $keepfile -eq 0 ]; then
-    rm -f */test.output
+if ! ls -1 */test.output; then
+    echo "I:WARNING:No 'test.output' files were found."
+    echo "I:Summary from pre-existing 'systests.output':"
+else
+    cat */test.output > systests.output 2> /dev/null
+    if [ $keepfile -eq 0 ]; then
+        rm -f */test.output
+    fi
 fi
 
 $PERL testsock.pl || {
