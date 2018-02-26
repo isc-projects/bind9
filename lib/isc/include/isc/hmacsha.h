@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hmacsha.h,v 1.9 2009/02/06 23:47:42 tbox Exp $ */
-
 /*! \file isc/hmacsha.h
  * This is the header file for the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256,
  * HMAC-SHA334 and HMAC-SHA512 hash algorithm described in RFC 2104.
@@ -58,31 +56,7 @@ typedef pk11_context_t isc_hmacsha384_t;
 typedef pk11_context_t isc_hmacsha512_t;
 
 #else
-
-typedef struct {
-	isc_sha1_t sha1ctx;
-	unsigned char key[ISC_HMACSHA1_KEYLENGTH];
-} isc_hmacsha1_t;
-
-typedef struct {
-	isc_sha224_t sha224ctx;
-	unsigned char key[ISC_HMACSHA224_KEYLENGTH];
-} isc_hmacsha224_t;
-
-typedef struct {
-	isc_sha256_t sha256ctx;
-	unsigned char key[ISC_HMACSHA256_KEYLENGTH];
-} isc_hmacsha256_t;
-
-typedef struct {
-	isc_sha384_t sha384ctx;
-	unsigned char key[ISC_HMACSHA384_KEYLENGTH];
-} isc_hmacsha384_t;
-
-typedef struct {
-	isc_sha512_t sha512ctx;
-	unsigned char key[ISC_HMACSHA512_KEYLENGTH];
-} isc_hmacsha512_t;
+#error No crypto provider defined
 #endif
 
 ISC_LANG_BEGINDECLS

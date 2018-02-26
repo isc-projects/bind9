@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hmacmd5.h,v 1.14 2009/02/06 23:47:42 tbox Exp $ */
-
 /*! \file isc/hmacmd5.h
  * \brief This is the header file for the HMAC-MD5 keyed hash algorithm
  * described in RFC2104.
@@ -47,11 +45,7 @@ typedef struct {
 typedef pk11_context_t isc_hmacmd5_t;
 
 #else
-
-typedef struct {
-	isc_md5_t md5ctx;
-	unsigned char key[ISC_HMACMD5_KEYLENGTH];
-} isc_hmacmd5_t;
+#error No crypto provider defined
 #endif
 
 ISC_LANG_BEGINDECLS
