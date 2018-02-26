@@ -1,0 +1,107 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+options {
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	recursion no;
+};
+
+view normal {
+	match-clients { 10.53.0.1; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+
+view allow {
+	match-clients { 10.53.0.2; };
+
+	allow-query { any; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+view none {
+	match-clients { 10.53.0.3; };
+
+	allow-query { none; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+view byip {
+	match-clients { 10.53.0.4; };
+
+	allow-query { 10.53.0.4; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+view block {
+	match-clients { 10.53.0.5; };
+
+	allow-query { 10.53.0.1; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+view neg-exclude {
+	match-clients { 10.53.0.6; };
+
+	allow-query {! 10.53.0.2; };
+
+	zone "normal.example" {
+		type master;
+		file "generic.db";
+	};
+};
+
+acl accept7 { 10.53.0.7; };
+
+view named-allow {
+	match-clients { 10.53.0.7; };
+
+	allow-query { accept7; };
+
+        zone "normal.example" {
+                type master;
+                file "generic.db";
+        };
+};
+
+view named-exclude {
+	match-clients { 10.53.0.8; };
+
+	allow-query { accept7; };
+
+        zone "normal.example" {
+                type master;
+                file "generic.db";
+        };
+};
