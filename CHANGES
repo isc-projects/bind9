@@ -1,3 +1,6 @@
+4902.	[test]		Improved the reliability of the 'ixfr' system
+			test. [GL #66]
+
 4901.	[func]		"dig +nssearch" now lists the name servers
 			for a domain that time out, as well as the servers
 			that respond. [GL #64]
