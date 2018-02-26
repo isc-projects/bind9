@@ -1,3 +1,6 @@
+4903.	[test]		Improved the reliabilty of the 'notify' system
+			test. [GL #59]
+
 4902.	[test]		Improved the reliability of the 'ixfr' system
 			test. [GL #66]
 
