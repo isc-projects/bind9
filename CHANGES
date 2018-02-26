@@ -1,4 +1,8 @@
-4904.   [bug]           Temporarily revert change #4859. [GL #124]
+4905.	[bug]		irs_resconf_load() ignored resolv.conf syntax errors
+			when "domain" or "search" options were present in that
+			file. [GL #110]
+
+4904.	[bug]		Temporarily revert change #4859. [GL #124]
 
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
