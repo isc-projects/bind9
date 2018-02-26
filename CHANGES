@@ -1,3 +1,6 @@
+4904.	[test]		Eliminate unnecessary waiting in the allow_query
+			system test and change name to allow-query. [GL #81]
+
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
 			update. [GL #112]
