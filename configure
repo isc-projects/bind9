@@ -942,6 +942,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1102,6 +1103,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1354,6 +1356,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1491,7 +1502,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1644,6 +1655,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -16229,7 +16241,6 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL library" >&5
 $as_echo_n "checking for OpenSSL library... " >&6; }
-OPENSSL_WARNING=
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
 if test "yes" = "$want_native_pkcs11"
 then
@@ -17304,6 +17315,15 @@ esac
 
 
 
+
+if test "X$CRYPTO" = "X"; then
+#        cat << \EOF
+as_fn_error $? "No cryptography library has been found or provided.
+You must use --with-openssl, or --with-pkcs11 and --enable-native-pkcs11,
+to enable cryptography." "$LINENO" 5
+#EOF
+        exit 1
+fi
 
 # for PKCS11 benchmarks
 
@@ -26574,14 +26594,6 @@ report() {
 
 if test "yes" != "$silent"; then
 	report
-fi
-
-if test "X$CRYPTO" = "X"; then
-cat << \EOF
-BIND 9 is being built without cryptography support. This means it will
-not have DNSSEC support. Use --with-openssl, or --with-pkcs11 and
---enable-native-pkcs11 to enable cryptography.
-EOF
 fi
 
 # Tell Emacs to edit this file in shell mode.
