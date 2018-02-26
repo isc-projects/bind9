@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sha2.h,v 1.12 2009/10/22 02:21:31 each Exp $ */
-
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.h,v 1.1.2.1 2001/07/03 11:01:36 ume Exp $	*/
 /*	$KAME: sha2.h,v 1.3 2001/03/12 08:27:48 itojun Exp $	*/
 
@@ -98,24 +96,7 @@ typedef pk11_context_t isc_sha256_t;
 typedef pk11_context_t isc_sha512_t;
 
 #else
-
-/*
- * Keep buffer immediately after bitcount to preserve alignment.
- */
-typedef struct {
-	isc_uint32_t	state[8];
-	isc_uint64_t	bitcount;
-	isc_uint8_t	buffer[ISC_SHA256_BLOCK_LENGTH];
-} isc_sha256_t;
-
-/*
- * Keep buffer immediately after bitcount to preserve alignment.
- */
-typedef struct {
-	isc_uint64_t	state[8];
-	isc_uint64_t	bitcount[2];
-	isc_uint8_t	buffer[ISC_SHA512_BLOCK_LENGTH];
-} isc_sha512_t;
+#error No crypto provider defined
 #endif
 
 typedef isc_sha256_t isc_sha224_t;

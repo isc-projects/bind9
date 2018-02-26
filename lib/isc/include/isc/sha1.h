@@ -12,8 +12,6 @@
 #ifndef ISC_SHA1_H
 #define ISC_SHA1_H 1
 
-/* $Id: sha1.h,v 1.19 2009/02/06 23:47:42 tbox Exp $ */
-
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
 /*! \file isc/sha1.h
@@ -46,12 +44,7 @@ typedef struct {
 typedef pk11_context_t isc_sha1_t;
 
 #else
-
-typedef struct {
-	isc_uint32_t state[5];
-	isc_uint32_t count[2];
-	unsigned char buffer[ISC_SHA1_BLOCK_LENGTH];
-} isc_sha1_t;
+#error No crypto provider defined
 #endif
 
 ISC_LANG_BEGINDECLS
