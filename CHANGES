@@ -1,3 +1,6 @@
+4907.	[test]		Improved the reliabilty of the 'notify' system
+			test. [GL #59]
+
 4906.	[func]		Replace getquad() with inet_pton(), completing
 			change #4900. [GL #56]
 
