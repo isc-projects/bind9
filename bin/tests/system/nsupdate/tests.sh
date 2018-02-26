@@ -163,6 +163,38 @@ grep ns6.other.nil dig.out.ns1 > /dev/null 2>&1 || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
+echo_i "ensure 'check-mx ignore' allows adding MX records containing an address without a warning"
+$NSUPDATE -k ns1/ddns.key > nsupdate.out 2>&1 << END || ret=1
+server 10.53.0.1 ${PORT}
+update add mx03.example.nil 600 IN MX 10 10.53.0.1
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 && ret=1
+grep "mx03.example.nil/MX:.*MX is an address" ns1/named.run > /dev/null 2>&1 && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+ret=0
+echo_i "ensure 'check-mx warn' allows adding MX records containing an address with a warning"
+$NSUPDATE -4 -l -p ${PORT} -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
+update add mx03.other.nil 600 IN MX 10 10.53.0.1
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 && ret=1
+grep "mx03.other.nil/MX:.*MX is an address" ns1/named.run > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+ret=0
+echo_i "ensure 'check-mx fail' prevents adding MX records containing an address with a warning"
+$NSUPDATE > nsupdate.out 2>&1 << END && ret=1
+server 10.53.0.1 ${PORT}
+update add mx03.update.nil 600 IN MX 10 10.53.0.1
+send
+END
+grep REFUSED nsupdate.out > /dev/null 2>&1 || ret=1
+grep "mx03.update.nil/MX:.*MX is an address" ns1/named.run > /dev/null 2>&1 || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+ret=0
 echo_i "check SIG(0) key is accepted"
 key=`$KEYGEN -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -T KEY -n ENTITY xxx`
 echo "" | $NSUPDATE -k ${key}.private > /dev/null 2>&1 || ret=1
