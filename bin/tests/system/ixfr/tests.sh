@@ -168,13 +168,15 @@ do
 done
 
 #wait for slave to transfer zone
-for i in 0 1 2 3 4 5 6 7 8 9
+for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..2" dig.out > /dev/null && break
 
-        # re-notify if necessary
-        $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
+        # re-notify if we've been waiting a long time
+	if [ $try -ge 5 ]; then
+	    $RNDCCMD 10.53.0.3 notify test | set 's/^/ns3 /' | cat_i
+	fi
 	sleep 1
 done
 
@@ -211,13 +213,15 @@ do
 done
 
 #wait for slave to transfer zone
-for i in 0 1 2 3 4 5 6 7 8 9
+for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA sub.test > dig.out
 	grep -i "hostmaster\.test\..3" dig.out > /dev/null && break
 
-        # re-notify if necessary
-        $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
+        # re-notify if we've been waiting a long time
+	if [ $try -ge 5 ]; then
+            $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
+	fi
 	sleep 1
 done
 
@@ -249,13 +253,15 @@ do
 done
 
 # wait for slave to transfer zone
-for i in 0 1 2 3 4 5 6 7 8 9
+for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
 do
 	$DIG $DIGOPTS +tcp @10.53.0.4 SOA test > dig.out
 	grep -i "hostmaster\.test\..4" dig.out > /dev/null && break
 
-        # re-notify if necessary
-        $RNDCCMD 10.53.0.3 notify sub.test | set 's/^/ns3 /' | cat_i
+        # re-notify if we've been waiting a long time
+	if [ $try -ge 5 ]; then
+	    $RNDCCMD 10.53.0.3 notify test | set 's/^/ns3 /' | cat_i
+	fi
 	sleep 1
 done
 
