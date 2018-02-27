@@ -351,6 +351,8 @@ case "$use_dlz_filesystem" in
 		;;
 	*)
 		DLZ_ADD_DRIVER(FILESYSTEM, dlz_filesystem_driver)
+		AC_DEFINE(HAVE_DLZ_FILESYSTEM, 1,
+			  [DLZ filesystem driver is available.])
 		DLZ_SYSTEM_TEST=filesystem
 		AC_MSG_RESULT(yes)
 		;;

@@ -12,6 +12,16 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+checkdsa () {
+    if [ "$CHECK_DSA" -eq 0 ]; then
+        return 1
+    fi
+    if [ ! -r /dev/random -o ! -r /dev/urandom ]; then
+        return 1
+    fi
+    return 0
+}
+
 zone=bits
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
@@ -117,7 +127,7 @@ for alg in ECCGOST ECDSAP256SHA256 NSEC3RSASHA1 DSA
 do
     case $alg in
         DSA)
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
+            checkdsa || continue
             checkfile=../checkdsa
             touch $checkfile ;;
         ECCGOST) 
@@ -132,7 +142,7 @@ do
             $KEYGEN -q -r $RANDFILE -a ecdsap256sha256 test > /dev/null 2>&1 || fail=1
             rm -f Ktest*
             [ $fail != 0 ] && continue
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
+            checkdsa || continue
             checkfile=../checkecdsa
             touch $checkfile ;;
         *) ;;
