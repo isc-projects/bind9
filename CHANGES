@@ -1,3 +1,5 @@
+5027.	[func]		Set SO_SNDBUF size on sockets. [GL #74]
+
 5026.	[bug]		rndc reconfig should not touch already loaded zones.
 			[GL #276]
 
