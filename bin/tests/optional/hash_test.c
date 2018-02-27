@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hash_test.c,v 1.19 2007/06/19 23:46:59 tbox Exp $ */
-
 /*! \file */
 #include <config.h>
 
