@@ -633,14 +633,6 @@
 ./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004,2007,2011,2013,2017,2018
 ./bin/tests/sig0_test.c				C	2000,2001,2004,2005,2007,2008,2009,2012,2015
 ./bin/tests/sock_test.c				C	1998,1999,2000,2001,2004,2007,2008,2012,2013,2014,2015,2017,2018
-./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000,2001,2002,2004,2007,2009,2012
-./bin/tests/sockaddr/t_sockaddr.c		C	1999,2000,2001,2004,2007,2013
-./bin/tests/sockaddr/win32/t_sockaddr.dsp.in	X	2013
-./bin/tests/sockaddr/win32/t_sockaddr.dsw	X	2013
-./bin/tests/sockaddr/win32/t_sockaddr.mak.in	X	2013
-./bin/tests/sockaddr/win32/t_sockaddr.vcxproj.filters.in	X	2013,2015
-./bin/tests/sockaddr/win32/t_sockaddr.vcxproj.in	X	2013,2015,2016,2017
-./bin/tests/sockaddr/win32/t_sockaddr.vcxproj.user	X	2013
 ./bin/tests/startperf/README			X	2011
 ./bin/tests/startperf/clean.sh			SH	2011,2012
 ./bin/tests/startperf/makenames.pl		PERL	2011,2012
