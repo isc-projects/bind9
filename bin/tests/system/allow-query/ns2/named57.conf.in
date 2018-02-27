@@ -28,12 +28,12 @@ view "internal" {
 
 	zone "normal.example" {
 		type master;
-		file "normal.db";
+		file "generic.db";
 	};
 
 	zone "aclnotallow.example" {
 		type master;
-		file "aclnotallow.db";
+		file "generic.db";
 		allow-query-on { none; };
 	};
 };
