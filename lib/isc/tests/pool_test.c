@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -60,7 +58,7 @@ ATF_TC_BODY(create_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_pool_create(mctx, 8, poolfree, poolinit, taskmgr, &pool);
@@ -84,7 +82,7 @@ ATF_TC_BODY(expand_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_pool_create(mctx, 10, poolfree, poolinit, taskmgr, &pool1);
@@ -138,7 +136,7 @@ ATF_TC_BODY(get_objects, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_pool_create(mctx, 2, poolfree, poolinit, taskmgr, &pool);
