@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -63,7 +61,7 @@ ATF_TC_BODY(queue_valid, tc) {
 	item_init(&four, 4);
 	item_init(&five, 5);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK(ISC_QUEUE_EMPTY(queue));
