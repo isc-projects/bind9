@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -19,6 +17,7 @@
 
 #include <unistd.h>
 
+#include <isc/netaddr.h>
 #include <isc/sockaddr.h>
 #include <isc/print.h>
 
@@ -120,12 +119,47 @@ ATF_TC_BODY(sockaddr_isnetzero, tc) {
 	}
 }
 
+ATF_TC(sockaddr_eqaddrprefix);
+ATF_TC_HEAD(sockaddr_eqaddrprefix, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "isc_sockaddr_eqaddrprefix() returns ISC_TRUE when "
+			  "prefixes of a and b are equal, and ISC_FALSE when "
+			  "they are not equal");
+}
+ATF_TC_BODY(sockaddr_eqaddrprefix, tc) {
+	struct in_addr ina_a;
+	struct in_addr ina_b;
+	struct in_addr ina_c;
+	isc_sockaddr_t isa_a;
+	isc_sockaddr_t isa_b;
+	isc_sockaddr_t isa_c;
+
+	UNUSED(tc);
+
+	ATF_CHECK(inet_pton(AF_INET, "194.100.32.87", &ina_a) >= 0);
+	ATF_CHECK(inet_pton(AF_INET, "194.100.32.80", &ina_b) >= 0);
+	ATF_CHECK(inet_pton(AF_INET, "194.101.32.87", &ina_c) >= 0);
+
+	isc_sockaddr_fromin(&isa_a, &ina_a, 0);
+	isc_sockaddr_fromin(&isa_b, &ina_b, 42);
+	isc_sockaddr_fromin(&isa_c, &ina_c, 0);
+
+	ATF_CHECK(isc_sockaddr_eqaddrprefix(&isa_a, &isa_b, 0));
+	ATF_CHECK(isc_sockaddr_eqaddrprefix(&isa_a, &isa_b, 29));
+	ATF_CHECK(isc_sockaddr_eqaddrprefix(&isa_a, &isa_c, 8));
+
+	ATF_CHECK(! isc_sockaddr_eqaddrprefix(&isa_a, &isa_b, 30));
+	ATF_CHECK(! isc_sockaddr_eqaddrprefix(&isa_a, &isa_b, 32));
+	ATF_CHECK(! isc_sockaddr_eqaddrprefix(&isa_a, &isa_c, 16));
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, sockaddr_hash);
 	ATF_TP_ADD_TC(tp, sockaddr_isnetzero);
+	ATF_TP_ADD_TC(tp, sockaddr_eqaddrprefix);
 
 	return (atf_no_error());
 }

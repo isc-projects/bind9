@@ -19,6 +19,8 @@
 #include <string.h>
 
 #include <isc/netaddr.h>
+#include <isc/sockaddr.h>
+#include <isc/util.h>
 
 ATF_TC(isc_netaddr_isnetzero);
 ATF_TC_HEAD(isc_netaddr_isnetzero, tc) {
@@ -54,12 +56,58 @@ ATF_TC_BODY(isc_netaddr_isnetzero, tc) {
 	}
 }
 
+ATF_TC(netaddr_masktoprefixlen);
+ATF_TC_HEAD(netaddr_masktoprefixlen, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "isc_netaddr_masktoprefixlen() "
+			  "calculates correct prefix lengths ");
+}
+ATF_TC_BODY(netaddr_masktoprefixlen, tc) {
+	struct in_addr na_a;
+	struct in_addr na_b;
+	struct in_addr na_c;
+	struct in_addr na_d;
+	isc_netaddr_t ina_a;
+	isc_netaddr_t ina_b;
+	isc_netaddr_t ina_c;
+	isc_netaddr_t ina_d;
+	unsigned int plen;
+
+	UNUSED(tc);
+
+	ATF_CHECK(inet_pton(AF_INET, "0.0.0.0", &na_a) >= 0);
+	ATF_CHECK(inet_pton(AF_INET, "255.255.255.254", &na_b) >= 0);
+	ATF_CHECK(inet_pton(AF_INET, "255.255.255.255", &na_c) >= 0);
+	ATF_CHECK(inet_pton(AF_INET, "255.255.255.0", &na_d) >= 0);
+
+	isc_netaddr_fromin(&ina_a, &na_a);
+	isc_netaddr_fromin(&ina_b, &na_b);
+	isc_netaddr_fromin(&ina_c, &na_c);
+	isc_netaddr_fromin(&ina_d, &na_d);
+
+	ATF_CHECK_EQ(isc_netaddr_masktoprefixlen(&ina_a, &plen),
+		     ISC_R_SUCCESS);
+	ATF_CHECK_EQ(plen, 0);
+
+	ATF_CHECK_EQ(isc_netaddr_masktoprefixlen(&ina_b, &plen),
+		     ISC_R_SUCCESS);
+	ATF_CHECK_EQ(plen, 31);
+
+	ATF_CHECK_EQ(isc_netaddr_masktoprefixlen(&ina_c, &plen),
+		     ISC_R_SUCCESS);
+	ATF_CHECK_EQ(plen, 32);
+
+	ATF_CHECK_EQ(isc_netaddr_masktoprefixlen(&ina_d, &plen),
+		     ISC_R_SUCCESS);
+	ATF_CHECK_EQ(plen, 24);
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-
 	ATF_TP_ADD_TC(tp, isc_netaddr_isnetzero);
+	ATF_TP_ADD_TC(tp, netaddr_masktoprefixlen);
 
 	return (atf_no_error());
 }
