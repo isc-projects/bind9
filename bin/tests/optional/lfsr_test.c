@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lfsr_test.c,v 1.16 2007/06/19 23:46:59 tbox Exp $ */
-
 /*! \file */
 #include <config.h>
 
