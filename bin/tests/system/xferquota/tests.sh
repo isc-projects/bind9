@@ -50,7 +50,7 @@ $DIG $DIGOPTS zone000099.example. @10.53.0.1 axfr > dig.out.ns1 || status=1
 
 $DIG $DIGOPTS zone000099.example. @10.53.0.2 axfr > dig.out.ns2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
+digcomp dig.out.ns1 dig.out.ns2 || status=1
 
 sleep 15
 
@@ -58,7 +58,7 @@ $DIG $DIGOPTS a.changing. @10.53.0.1 a > dig.out.ns1 || status=1
 
 $DIG $DIGOPTS a.changing. @10.53.0.2 a > dig.out.ns2 || status=1
 
-$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
+digcomp dig.out.ns1 dig.out.ns2 || status=1
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

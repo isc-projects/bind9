@@ -21,7 +21,7 @@ if $FEATURETEST --enable-fetchlimit
 then
     :
 else
-    echo "I:This test requires --enable-fetchlimit at compile time." >&2
+    echo_i "This test requires --enable-fetchlimit at compile time." >&2
     exit 255
 fi
 
@@ -31,10 +31,10 @@ then
     then
 	:
     else
-	echo "I:Net::DNS version 0.76 and 0.77 have a bug that causes this test to fail: please update." >&2
+	echo_i "Net::DNS version 0.76 and 0.77 have a bug that causes this test to fail: please update." >&2
 	exit 1
     fi
 else
-    echo "I:This test requires the Net::DNS library." >&2
+    echo_i "This test requires the Net::DNS library." >&2
     exit 1
 fi
