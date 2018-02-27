@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keyboard_test.c,v 1.13 2007/06/19 23:46:59 tbox Exp $ */
-
 /*! \file */
 #include <config.h>
 
@@ -67,4 +65,3 @@ main(int argc, char **argv) {
 
 	return (0);
 }
-
