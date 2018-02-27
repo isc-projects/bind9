@@ -69,7 +69,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking response size without COOKIE ($n)"
 ret=0
-$DIG $DIGOPTSlarge.example txt @10.53.0.1 +ignore > dig.out.test$n
+$DIG $DIGOPTS large.example txt @10.53.0.1 +ignore > dig.out.test$n
 havetc dig.out.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
