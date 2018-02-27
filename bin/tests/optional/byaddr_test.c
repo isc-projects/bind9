@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: byaddr_test.c,v 1.28 2007/06/19 23:46:59 tbox Exp $ */
-
 /*! \file
  * \author
  * Principal Author: Bob Halley
