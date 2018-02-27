@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sig0_test.c,v 1.19 2009/09/02 23:48:01 tbox Exp $ */
-
 #include <config.h>
 
 #include <stddef.h>
