@@ -5,7 +5,6 @@ nxtify
 sdig
 t_journal
 *_test
-t_atomic
 t_db
 gsstest
 t_dst
