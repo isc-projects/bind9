@@ -15,7 +15,7 @@ SYSTEMTESTTOP=.
 
 
 find . -type f \( \
-    -name 'K*' -o -name '*~' -o -name 'core' -o -name '*.core' \
+    -name '*~' -o -name 'core' -o -name '*.core' \
     -o -name '*.log' -o -name '*.pid' -o -name '*.keyset' \
     -o -name named.run -o -name lwresd.run -o -name ans.run \
     -o -name '*-valgrind-*.log' \) -print | xargs rm -f
