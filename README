@@ -80,8 +80,8 @@ ISC maintains a public git repository for BIND; details can be found at
 http://www.isc.org/git/.
 
 Information for BIND contributors can be found in the following files: -
-General information: doc/dev/contrib.md - BIND 9 code style: doc/dev/
-style.md - BIND architecture and developer guide: doc/dev/dev.md
+General information: CONTRIBUTING.md - BIND 9 code style: doc/dev/style.md
+- BIND architecture and developer guide: doc/dev/dev.md
 
 Patches for BIND may be submitted either as Github pull requests or via
 email. When submitting a patch via email, please prepend the subject

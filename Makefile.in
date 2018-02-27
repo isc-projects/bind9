@@ -22,7 +22,7 @@ MANPAGES =	isc-config.sh.1
 
 HTMLPAGES =	isc-config.sh.html
 
-MANOBJS =	README HISTORY OPTIONS ${MANPAGES} ${HTMLPAGES}
+MANOBJS =	README HISTORY OPTIONS CONTRIBUTING ${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
@@ -104,6 +104,10 @@ HISTORY: HISTORY.md
 
 OPTIONS: OPTIONS.md
 	${PANDOC} --email-obfuscation=none -s -t html OPTIONS.md | \
+		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+
+CONTRIBUTING: CONTRIBUTING.md
+	${PANDOC} --email-obfuscation=none -s -t html CONTRIBUTING.md | \
 		${W3M} -dump -cols 75 -O ascii -T text/html > $@
 
 unit::
