@@ -10,7 +10,6 @@ t_db
 gsstest
 t_dst
 t_hashes
-t_master
 t_mem
 t_names
 t_net
