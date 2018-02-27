@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -79,7 +77,7 @@ ATF_TC_BODY(create_task, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
@@ -110,7 +108,7 @@ ATF_TC_BODY(all_events, tc) {
 	result = isc_mutex_init(&set_lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
@@ -166,7 +164,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	result = isc_mutex_init(&set_lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef ISC_PLATFORM_USETHREADS
@@ -295,7 +293,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	result = isc_mutex_init(&set_lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef ISC_PLATFORM_USETHREADS

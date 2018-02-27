@@ -5187,7 +5187,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/cookie/prereq.sh
 	bin/tests/system/tkey/Makefile
 	bin/tests/tasks/Makefile
-	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile
 	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile

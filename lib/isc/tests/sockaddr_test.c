@@ -46,7 +46,7 @@ ATF_TC_BODY(sockaddr_hash, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");

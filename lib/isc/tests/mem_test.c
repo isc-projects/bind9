@@ -63,7 +63,7 @@ ATF_TC_BODY(isc_mem, tc) {
 	unsigned int i, j;
 	int rval;
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_mem_create(0, 0, &localmctx);
@@ -155,7 +155,7 @@ ATF_TC_BODY(isc_mem_total, tc) {
 	ssize_t diff;
 	int i;
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* Local alloc, free */
@@ -222,7 +222,7 @@ ATF_TC_BODY(isc_mem_inuse, tc) {
 	ssize_t diff;
 	void *ptr;
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	mctx2 = NULL;
