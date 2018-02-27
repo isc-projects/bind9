@@ -60,7 +60,7 @@ zone "nil" {
 };
 EOF
 
-$RNDCCMD 10.53.0.1 reload
+$RNDCCMD 10.53.0.1 reload | sed 's/^/ns1 /' | cat_i
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do
@@ -163,7 +163,7 @@ done
 
 # modify the master
 cp ns3/mytest1.db ns3/mytest.db
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 #wait for master to reload load
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -208,7 +208,7 @@ echo_i "testing request-ixfr option in view vs zone"
 
 echo_i " this result should be AXFR"
 cp ns3/subtest1.db ns3/subtest.db # change to sub.test zone, should be AXFR
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 #wait for master to reload zone
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -248,7 +248,7 @@ fi
 
 echo_i " this result should be IXFR"
 cp ns3/mytest2.db ns3/mytest.db # change to test zone, should be IXFR
-$RNDCCMD 10.53.0.3 reload
+$RNDCCMD 10.53.0.3 reload | sed 's/^/ns3 /' | cat_i
 
 # wait for master to reload zone
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -302,7 +302,7 @@ ret=0
 # Should be "switch to TCP" response
 $DIG $DIGOPTS +notcp ixfr=1 test @10.53.0.4 > dig.out1 || ret=1
 $DIG $DIGOPTS ixfr=1 +notcp test @10.53.0.4 > dig.out2 || ret=1
-$PERL ../digcomp.pl dig.out1 dig.out2 || ret=1
+digcomp dig.out1 dig.out2 || ret=1
 awk '$4 == "SOA" { soacnt++} END {if (soacnt == 1) exit(0); else exit(1);}' dig.out1 || ret=1
 awk '$4 == "SOA" { if ($7 == 4) exit(0); else exit(1);}' dig.out1 || ret=1
 # Should be incremental transfer.
