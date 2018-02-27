@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: master_test.c,v 1.32 2009/09/02 23:48:01 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>

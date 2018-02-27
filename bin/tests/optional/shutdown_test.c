@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: shutdown_test.c,v 1.25 2011/08/28 23:46:41 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
