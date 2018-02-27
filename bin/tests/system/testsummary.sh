@@ -35,14 +35,25 @@ while getopts "n" flag; do
     esac
 done
 
-cat */test.output > systests.output 2> /dev/null
-if [ $keepfile -eq 0 ]; then
-    rm -f */test.output
+if [ `ls */test.output 2> /dev/null | wc -l` -eq 0 ]; then
+    echowarn "I:No 'test.output' files were found."
+    echowarn "I:Printing summary from pre-existing 'systests.output'."
+else
+    cat */test.output > systests.output
+    if [ $keepfile -eq 0 ]; then
+        rm -f */test.output
+    fi
 fi
 
 status=0
-echo "I:System test result summary:"
-grep '^R:' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'
-grep '^R:[^:]*:FAIL' systests.output > /dev/null && status=1
+echoinfo "I:System test result summary:"
+echoinfo "`grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'`"
+
+FAILED_TESTS=`grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/I:      /'`
+if [ -n "${FAILED_TESTS}" ]; then
+	echoinfo "I:The following system tests failed:"
+	echoinfo "${FAILED_TESTS}"
+	status=1
+fi
 
 exit $status
