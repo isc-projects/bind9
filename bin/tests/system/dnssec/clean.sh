@@ -92,4 +92,7 @@ rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
 rm -f signer/nsec3param.out
 rm -f signer/signer.out.*
+rm -f signer/general/signed.zone
+rm -f signer/general/signer.out.*
+rm -f signer/general/dsset*
 rm -f signing.out*
