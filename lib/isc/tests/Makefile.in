@@ -34,7 +34,8 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
 SRCS =		isctest.c counter_test.c errno_test.c hash_test.c \
-		heap_test.c inet_ntop_test.c lex_test.c netaddr_test.c \
+		heap_test.c inet_ntop_test.c lex_test.c \
+		mem_test.c netaddr_test.c \
 		parse_test.c pool_test.c print_test.c queue_test.c \
 		radix_test.c regex_test.c safe_test.c sockaddr_test.c \
 		socket_test.c symtab_test.c task_test.c taskpool_test.c \
@@ -43,7 +44,8 @@ SRCS =		isctest.c counter_test.c errno_test.c hash_test.c \
 SUBDIRS =
 TARGETS =	counter_test@EXEEXT@ errno_test@EXEEXT@ hash_test@EXEEXT@ \
 		heap_test@EXEEXT@ inet_ntop_test@EXEEXT@ lex_test@EXEEXT@ \
-		netaddr_test@EXEEXT@ parse_test@EXEEXT@ pool_test@EXEEXT@ \
+		mem_test@ExEEXT@ netaddr_test@EXEEXT@ \
+		parse_test@EXEEXT@ pool_test@EXEEXT@ \
 		print_test@EXEEXT@ queue_test@EXEEXT@ radix_test@EXEEXT@ \
 		regex_test@EXEEXT@ safe_test@EXEEXT@ sockaddr_test@EXEEXT@ \
 		socket_test@EXEEXT@ socket_test@EXEEXT@ symtab_test@EXEEXT@ \
@@ -75,6 +77,10 @@ inet_ntop_test@EXEEXT@: inet_ntop_test.@O@ ${ISCDEPLIBS}
 lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			lex_test.@O@ ${ISCLIBS} ${LIBS}
+
+mem_test@EXEEXT@: mem_test.@O@ isctest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			mem_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 netaddr_test@EXEEXT@: netaddr_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
