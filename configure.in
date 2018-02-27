@@ -4351,7 +4351,6 @@ AC_CONFIG_FILES([
 	bin/tests/headerdep_test.sh
 	bin/tests/mem/Makefile
 	bin/tests/names/Makefile
-	bin/tests/net/Makefile
 	bin/tests/optional/Makefile
 	bin/tests/rbt/Makefile
 	bin/tests/resolver/Makefile
