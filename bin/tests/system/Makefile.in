@@ -53,13 +53,11 @@ feature-test@EXEEXT@: feature-test.@O@
 
 # Define the tests that can be run in parallel.  This should be identical to
 # the definition of PARALLELDIRS in conf.sh. Note: long-running tests
-# such as allow_query and serve-stale are scheduled first to get more
-# benefit from parallelism.
-
-PARALLEL = allow_query acl additional addzone autosign \
+# are scheduled first to get more benefit from parallelism.
+PARALLEL = dnssec acl additional addzone allow-query autosign \
 	   builtin cacheclean chain checkconf checknames \
 	   checkzone @CHECKDS@ @COVERAGE@ database \
-	   digdelv dlv dlz dlzexternal dns64 dnssec \
+	   digdelv dlv dlz dlzexternal dns64 \
 	   emptyzones fetchlimit filter-aaaa \
 	   formerr forward glue inline integrity ixfr \
 	   legacy limits logfileconfig masterfile masterformat \

@@ -78,7 +78,7 @@ SEQUENTIALDIRS="ecdsa eddsa gost lwresd pkcs11 tkey"
 # test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query acl additional addzone autosign builtin
+PARALLELDIRS="acl additional addzone allow-query autosign builtin
 	 cacheclean chain checkconf @CHECKDS@ checknames
          checkzone @COVERAGE@ database digdelv dlv dlz dlzexternal
 	 dns64 dnssec emptyzones fetchlimit filter-aaaa
