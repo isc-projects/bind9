@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rwlock_test.c,v 1.26 2007/06/19 23:46:59 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdio.h>

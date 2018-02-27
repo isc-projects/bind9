@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: nsecify.c,v 1.12 2011/08/29 23:46:44 tbox Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: db_test.c,v 1.70 2011/08/29 23:46:44 tbox Exp $ */
-
 /*! \file
  * \author
  * Principal Author: Bob Halley
