@@ -5443,7 +5443,6 @@ AC_CONFIG_FILES([
 	bin/tests/dst/t2_data_2
 	bin/tests/dst/t2_dsasig
 	bin/tests/dst/t2_rsasig
-	bin/tests/hashes/Makefile
 	bin/tests/headerdep_test.sh
 	bin/tests/mem/Makefile
 	bin/tests/names/Makefile
