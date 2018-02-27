@@ -38,13 +38,13 @@ if [ $keepfile -eq 0 ]; then
 fi
 
 status=0
-echo "I:System test result summary:"
-grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'
+echoinfo "I:System test result summary:"
+echoinfo "`grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'`"
 
 FAILED_TESTS=`grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/I:      /'`
 if [ -n "${FAILED_TESTS}" ]; then
-	echo "I:The following system tests failed:"
-	echo "${FAILED_TESTS}"
+	echoinfo "I:The following system tests failed:"
+	echoinfo "${FAILED_TESTS}"
 	status=1
 fi
 
