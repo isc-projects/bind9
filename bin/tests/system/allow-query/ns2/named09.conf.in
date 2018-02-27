@@ -34,5 +34,5 @@ zone "." {
 
 zone "normal.example" {
 	type master;
-	file "normal.db";
+	file "generic.db";
 };
