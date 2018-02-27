@@ -8,7 +8,6 @@ t_atomic
 t_db
 gsstest
 t_dst
-t_mem
 t_names
 t_rbt
 t_resolver
