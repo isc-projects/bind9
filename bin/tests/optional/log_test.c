@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: log_test.c,v 1.29 2011/08/28 23:46:51 marka Exp $ */
-
 /* Principal Authors: DCL */
 
 #include <config.h>
