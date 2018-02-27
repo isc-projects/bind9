@@ -32,7 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIR =	atomic db dst mem names net rbt resolver \
+SUBDIR =	atomic db dst mem names rbt resolver \
 		tasks timers system @PKCS11_TOOLS@ optional
 
 TESTDIRS =	system
