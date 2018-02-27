@@ -19,6 +19,10 @@ TOP=@abs_top_builddir@
 SRCTOP=@abs_top_srcdir@
 SYSTEMTESTTOP=@abs_srcdir@
 
+export TOP
+export SRCTOP
+export SYSTEMTESTTOP
+
 # Make it absolute so that it continues to work after we cd.
 TOP=`cd $TOP && pwd`
 
@@ -269,6 +273,9 @@ nextpart () {
 # environment variables. (These values are set by "run.sh", which calls the
 # scripts invoking this function.)
 #
+# For use in tests that need to locate files in other parts of the
+# tree, we also replace @TOP@, @SRCTOP@, and @SYSTEMTESTTOP@.
+#
 # Usage:
 #   copy_setports infile outfile
 
@@ -282,7 +289,10 @@ copy_setports() {
         -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
         -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
         -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+        -e "s#@TOP@#${TOP}#g" \
+        -e "s#@SRCTOP@#${SRCTOP}#g" \
+        -e "s#@SYSTEMTESTTOP@#${SYSTEMTESTTOP}#g" $1 > $2
 }
 
 #

@@ -620,8 +620,10 @@ if [ -x "$PYTHON" ]; then
     echo_i "test rndc python bindings ($n)"
     ret=0
     $PYTHON > python.out.1.test$n << EOF
-import sys
-sys.path.insert(0, '../../../../bin/python')
+import sys, os
+try: pdir = os.environ['TOP'] + '/bin/python'
+except: pdir = '../../../python'
+sys.path.insert(0, pdir)
 from isc import *
 r = rndc(('10.53.0.5', ${CONTROLPORT}), 'hmac-sha256', '1234abcd8765')
 result = r.call('status')
