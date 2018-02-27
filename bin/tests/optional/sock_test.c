@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sock_test.c,v 1.55 2008/07/23 23:27:54 marka Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
