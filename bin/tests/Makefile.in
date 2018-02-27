@@ -32,8 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	db dst names \
-		rbt resolver tasks timers system \
+SUBDIRS =	db dst names rbt resolver tasks system \
 		@PKCS11_TOOLS@ optional
 
 TESTDIRS =	system
