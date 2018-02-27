@@ -91,7 +91,7 @@ ATF_TC_BODY(udp_sendto, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
@@ -162,7 +162,7 @@ ATF_TC_BODY(udp_dup, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*

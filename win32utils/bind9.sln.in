@@ -441,12 +441,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "t_tasks", "..\bin\tests\tas
 		{F6F08940-7597-4FEE-9CE0-E09A009C45A3} = {F6F08940-7597-4FEE-9CE0-E09A009C45A3}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "t_timers", "..\bin\tests\timers\win32\t_timers.vcxproj", "{4E6F5A7C-89AA-4259-99DB-F89DAE418B3F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3840E563-D180-4761-AA9C-E6155F02EAFF} = {3840E563-D180-4761-AA9C-E6155F02EAFF}
-		{F6F08940-7597-4FEE-9CE0-E09A009C45A3} = {F6F08940-7597-4FEE-9CE0-E09A009C45A3}
-	EndProjectSection
-EndProject
 @END TESTS
 @IF XTESTS
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "backtrace_test", "..\bin\tests\win32\backtrace_test.vcxproj", "{14751171-C40E-40EE-A2F0-37FFC3CCD4A2}"

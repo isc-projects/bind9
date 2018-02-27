@@ -40,7 +40,7 @@ SRCS =		isctest.c atomic_test.c \
 		parse_test.c pool_test.c print_test.c queue_test.c \
 		radix_test.c regex_test.c safe_test.c sockaddr_test.c \
 		socket_test.c symtab_test.c task_test.c taskpool_test.c \
-		time_test.c
+		time_test.c timer_test.c
 
 SUBDIRS =
 TARGETS =	atomic_test@EXEEXT@ counter_test@EXEEXT@ \
@@ -51,7 +51,8 @@ TARGETS =	atomic_test@EXEEXT@ counter_test@EXEEXT@ \
 		print_test@EXEEXT@ queue_test@EXEEXT@ radix_test@EXEEXT@ \
 		regex_test@EXEEXT@ safe_test@EXEEXT@ sockaddr_test@EXEEXT@ \
 		socket_test@EXEEXT@ socket_test@EXEEXT@ symtab_test@EXEEXT@ \
-		task_test@EXEEXT@ taskpool_test@EXEEXT@ time_test@EXEEXT@
+		task_test@EXEEXT@ taskpool_test@EXEEXT@ time_test@EXEEXT@ \
+		timer_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
@@ -144,6 +145,10 @@ taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			time_test.@O@ ${ISCLIBS} ${LIBS}
+
+timer_test@EXEEXT@: timer_test.@O@ isctest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			timer_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh

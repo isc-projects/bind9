@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -48,7 +46,18 @@ extern isc_socketmgr_t *socketmgr;
 extern int ncpus;
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers);
+isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
+	       unsigned int workers);
+/*%<
+ * Begin test, logging to 'logfile' or default if not specified.
+ *
+ * If 'start_managers' is set, start a task manager, timer manager,
+ * and socket manager.
+ *
+ * If 'workers' is zero, use the number of CPUs on the system as a default;
+ * otherwise, set up the task manager with the specified number of worker
+ * threads. The environment variable ISC_TASK_WORKERS overrides this value.
+ */
 
 void
 isc_test_end(void);

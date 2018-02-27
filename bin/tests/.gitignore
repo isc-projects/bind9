@@ -17,4 +17,3 @@ keycreate
 keydelete
 gssapi_krb
 t_tasks
-t_timers

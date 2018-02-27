@@ -43,7 +43,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_radix_create(mctx, &radix, 32);
