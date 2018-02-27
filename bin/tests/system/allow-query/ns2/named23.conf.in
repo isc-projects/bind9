@@ -33,4 +33,3 @@ view "internal" {
 		file "normal.db";
 	};
 };
-

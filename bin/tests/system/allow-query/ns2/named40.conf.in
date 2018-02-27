@@ -103,5 +103,3 @@ zone "keydisallow.example" {
 	file "keydisallow.db";
 	allow-query { ! key one; };
 };
-
-
