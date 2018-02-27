@@ -19,8 +19,9 @@ TOP=@abs_top_builddir@
 SRCTOP=@abs_top_srcdir@
 SYSTEMTESTTOP=@abs_srcdir@
 
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
+export TOP
+export SRCTOP
+export SYSTEMTESTTOP
 
 ARPANAME=$TOP/bin/tools/arpaname
 CDS=$TOP/bin/dnssec/dnssec-cds
@@ -70,6 +71,9 @@ KEYDELETE=$TOP/bin/tests/system/tkey/keydelete
 MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
 SAMPLEUPDATE=$TOP/lib/samples/sample-update
+
+# extension for shared objects
+SOEXT=@SO@
 
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
@@ -164,6 +168,78 @@ ZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
 
 . $SRCTOP/version
+
+#
+# Export all command paths and variables set above
+#
+export ARPANAME
+export BIGKEY
+export CDS
+export CHECKCONF
+export CHECKDS
+export CHECK_DSA
+export CHECKZONE
+export COVERAGE
+export CURL
+export DDNSCONFGEN
+export DELV
+export DESCRIPTION
+export DIFF
+export DIG
+export DNSTAPREAD
+export DOS2UNIX
+export DSFROMKEY
+export FEATURETEST
+export FSTRM_CAPTURE
+export GENCHECK
+export GENRANDOM
+export HAVEJSONSTATS
+export HAVEXMLSTATS
+export IMPORTKEY
+export JOURNALPRINT
+export KEYCREATE
+export KEYDELETE
+export KEYFRLAB
+export KEYGEN
+export KEYMGR
+export KEYSETTOOL
+export KEYSIGNER
+export KILL
+export KRB5_CONFIG
+export MAKEJOURNAL
+export MDIG
+export NAMED
+export NSEC3HASH
+export NSLOOKUP
+export NSUPDATE
+export NZD
+export NZD2NZF
+export PERL
+export PIPEQUERIES
+export PK11DEL
+export PK11GEN
+export PK11LIST
+export PSSUSPEND
+export PYTHON
+export RANDFILE
+export RESOLVE
+export REVOKE
+export RNDC
+export RNDCCONFGEN
+export RRCHECKER
+export SAMPLEUPDATE
+export SETTIME
+export SHELL
+export SIGNER
+export SOEXT
+export SUBDIRS
+export TESTSOCK6
+export TP
+export TSIGKEYGEN
+export VERIFY
+export WIRETEST
+export XMLLINT
+export ZLIB
 
 #
 # Set up color-coded test output
@@ -269,6 +345,9 @@ nextpart () {
 # environment variables. (These values are set by "run.sh", which calls the
 # scripts invoking this function.)
 #
+# For use in tests that need to locate files in other parts of the
+# tree, we also replace @TOP@, @SRCTOP@, and @SYSTEMTESTTOP@.
+#
 # Usage:
 #   copy_setports infile outfile
 
@@ -282,50 +361,9 @@ copy_setports() {
         -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
         -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
         -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+        -e "s#@TOP@#${TOP}#g" \
+        -e "s#@SRCTOP@#${SRCTOP}#g" \
+        -e "s#@SYSTEMTESTTOP@#${SYSTEMTESTTOP}#g" \
+        -e "s#@SOEXT@#${SOEXT}#g" $1 > $2
 }
-
-#
-# Export command paths
-#
-export ARPANAME
-export BIGKEY
-export CDS
-export CHECKZONE
-export DESCRIPTION
-export DIG
-export FEATURETEST
-export FSTRM_CAPTURE
-export GENCHECK
-export JOURNALPRINT
-export KEYCREATE
-export KEYDELETE
-export KEYFRLAB
-export KEYGEN
-export KEYSETTOOL
-export KEYSIGNER
-export KRB5_CONFIG
-export MAKEJOURNAL
-export MDIG
-export NAMED
-export NSEC3HASH
-export NSLOOKUP
-export NSUPDATE
-export NZD2NZF
-export PERL
-export PIPEQUERIES
-export PK11DEL
-export PK11GEN
-export PK11LIST
-export PSSUSPEND
-export PYTHON
-export RANDFILE
-export RESOLVE
-export RNDC
-export RRCHECKER
-export SAMPLEUPDATE
-export SIGNER
-export SUBDIRS
-export TESTSOCK6
-export TSIGKEYGEN
-export WIRETEST

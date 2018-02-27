@@ -1,17 +1,19 @@
-sinclude(libtool.m4/libtool.m4)dnl
-sinclude(libtool.m4/ltoptions.m4)dnl
-sinclude(libtool.m4/ltsugar.m4)dnl
-sinclude(libtool.m4/ltversion.m4)dnl
-sinclude(libtool.m4/lt~obsolete.m4)dnl
+# generated automatically by aclocal 1.15 -*- Autoconf -*-
 
-m4_divert_text(HELP_CANON, [[
-  NOTE: If PREFIX is not set, then the default values for --sysconfdir
-  and --localstatedir are /etc and /var, respectively.]])
-m4_divert_text(HELP_END, [[
-Professional support for BIND is provided by Internet Systems Consortium,
-Inc.  Information about paid support and training options is available at
-https://www.isc.org/support.
+# Copyright (C) 1996-2014 Free Software Foundation, Inc.
 
-Help can also often be found on the BIND Users mailing list
-(https://lists.isc.org/mailman/listinfo/bind-users) or in the #bind
-channel of the Freenode IRC service.]])
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+m4_ifndef([AC_CONFIG_MACRO_DIRS], [m4_defun([_AM_CONFIG_MACRO_DIRS], [])m4_defun([AC_CONFIG_MACRO_DIRS], [_AM_CONFIG_MACRO_DIRS($@)])])
+m4_include([libtool.m4/libtool.m4])
+m4_include([libtool.m4/ltoptions.m4])
+m4_include([libtool.m4/ltsugar.m4])
+m4_include([libtool.m4/ltversion.m4])
+m4_include([libtool.m4/lt~obsolete.m4])
