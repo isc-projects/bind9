@@ -1,5 +1,5 @@
 ;
-;	This is a zone which has two DNSKEY records, none of which have 
+;	This is a zone which has two DNSKEY records, none of which have
 ; existing private key files available.  The resulting zone should fail
 ; the consistancy tests.
 ;
