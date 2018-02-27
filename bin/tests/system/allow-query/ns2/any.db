@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: any.db,v 1.2 2010/11/16 01:37:37 sar Exp $
-
 $ORIGIN any.example.
 $TTL 300	; 5 minutes
 @                       IN SOA	mname1. . (

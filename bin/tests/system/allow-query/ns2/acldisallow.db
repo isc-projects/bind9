@@ -7,9 +7,7 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: aclallow.db,v 1.2 2010/11/16 01:37:37 sar Exp $
-
-$ORIGIN aclallow.example.
+$ORIGIN acldisallow.example.
 $TTL 300	; 5 minutes
 @                       IN SOA	mname1. . (
 				1          ; serial
@@ -22,5 +20,5 @@ $TTL 300	; 5 minutes
 ns2			A	10.53.0.2
 			MX	10 mail
 
-a			A	10.0.7.1
-mail			A	10.0.7.2
+a			A	10.0.9.1
+mail			A	10.0.9.2
