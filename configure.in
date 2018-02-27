@@ -4354,6 +4354,7 @@ AC_CONFIG_FILES([
 	bin/tests/mem/Makefile
 	bin/tests/names/Makefile
 	bin/tests/net/Makefile
+	bin/tests/optional/Makefile
 	bin/tests/rbt/Makefile
 	bin/tests/resolver/Makefile
 	bin/tests/sockaddr/Makefile

@@ -3,7 +3,6 @@ genrandom
 headerdep_test.sh
 nxtify
 sdig
-t_journal
 *_test
 t_atomic
 t_db
