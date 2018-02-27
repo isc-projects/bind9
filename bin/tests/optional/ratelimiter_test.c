@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ratelimiter_test.c,v 1.18 2007/06/19 23:46:59 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/app.h>
