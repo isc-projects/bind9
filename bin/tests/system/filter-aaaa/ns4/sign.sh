@@ -9,6 +9,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=filter-aaaa
+
 dlvsets=
 
 zone=signed.

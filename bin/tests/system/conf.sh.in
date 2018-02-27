@@ -236,6 +236,13 @@ cat_i() {
     done
 }
 
+digcomp() {
+    output=`$PERL $SYSTEMTESTTOP/digcomp.pl "$@"`
+    result=$?
+    [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
+    return $result
+}
+
 #
 # Useful functions in test scripts
 #

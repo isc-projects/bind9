@@ -56,7 +56,7 @@ mkeys_sync_on() {
 	# managed-keys zone is already locked and the command below calls
 	# dns_zone_flush(), which also attempts to take that zone's lock
 	nsidx=$1
-	$RNDCCMD 10.53.0.${nsidx} managed-keys sync | sed "s/^/I: ns${nsidx} /"
+	$RNDCCMD 10.53.0.${nsidx} managed-keys sync | sed "s/^/ns${nsidx} /" | cat_i
 }
 
 mkeys_status_on() {

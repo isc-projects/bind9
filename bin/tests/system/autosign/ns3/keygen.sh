@@ -6,10 +6,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: keygen.sh,v 1.15 2012/02/06 23:46:46 tbox Exp $
-
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
+
+SYSTESTDIR=autosign
 
 dumpit () {
 	echo "D:${debug}: dumping ${1}"
@@ -17,7 +17,7 @@ dumpit () {
 }
 
 setup () {
-	echo "I:setting up zone: $1"
+	echo_i "setting up zone: $1"
 	debug="$1"
 	zone="$1"
 	zonefile="${zone}.db"
