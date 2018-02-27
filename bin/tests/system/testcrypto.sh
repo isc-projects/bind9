@@ -9,8 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=${SYSTEMTESTTOP:=..}
-. $SYSTEMTESTTOP/conf.sh
+# NOTE: the caller must load conf.sh before running this, so that
+# GENRANDOM, RANDFILE and KEYGEN will have been set already
 
 prog=$0
 
