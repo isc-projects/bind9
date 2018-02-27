@@ -4,8 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# $Id: Makefile.in,v 1.52 2010/12/24 23:47:05 tbox Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -13,9 +11,9 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} \
-		${ISC_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
+		${ISC_INCLUDES} @DST_OPENSSL_INC@
 
-CDEFINES =	@CRYPTO@ @USE_GSSAPI@
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
@@ -30,23 +28,15 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 
-TARGETS =	dst_test@EXEEXT@ t_dst@EXEEXT@ gsstest@EXEEXT@
+TARGETS =	t_dst@EXEEXT@
 
-SRCS =		dst_test.c t_dst.c gsstest.c
+SRCS =		t_dst.c
 
 @BIND9_MAKE_RULES@
-
-dst_test@EXEEXT@: dst_test.@O@ ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-		dst_test.@O@ ${LIBS}
 
 t_dst@EXEEXT@: t_dst.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 		t_dst.@O@ ${TLIB} ${LIBS}
-
-gsstest@EXEEXT@: gsstest.@O@ ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-		gsstest.@O@ ${LIBS}
 
 test: t_dst@EXEEXT@ randomfile
 	../../tools/genrandom@EXEEXT@ 100 randomfile
