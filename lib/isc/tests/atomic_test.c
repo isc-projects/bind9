@@ -64,7 +64,7 @@ ATF_TC_BODY(atomic_xadd, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -126,7 +126,7 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -196,7 +196,7 @@ ATF_TC_BODY(atomic_store, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -273,7 +273,7 @@ ATF_TC_BODY(atomic_storeq, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
