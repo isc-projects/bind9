@@ -1,3 +1,5 @@
+4902.	[func]		Set SO_SNDBUF size on sockets. [GL #74]
+
 4901.	[func]		"dig +nssearch" now lists the name servers
 			for a domain that time out, as well as the servers
 			that respond. [GL #64]
