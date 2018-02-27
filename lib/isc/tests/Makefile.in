@@ -33,7 +33,8 @@ ISCDEPLIBS =	../libisc.@A@
 LIBS =		@LIBS@ @ATFLIBS@
 
 OBJS =		isctest.@O@
-SRCS =		isctest.c aes_test.c counter_test.c errno_test.c \
+SRCS =		isctest.c aes_test.c atomic_test.c \
+		counter_test.c errno_test.c \
 		hash_test.c heap_test.c inet_ntop_test.c lex_test.c \
 		mem_test.c netaddr_test.c parse_test.c pool_test.c \
 		print_test.c queue_test.c radix_test.c regex_test.c \
@@ -41,7 +42,8 @@ SRCS =		isctest.c aes_test.c counter_test.c errno_test.c \
 		symtab_test.c task_test.c taskpool_test.c time_test.c
 
 SUBDIRS =
-TARGETS =	aes_test@EXEEXT@ counter_test@EXEEXT@ errno_test@EXEEXT@ \
+TARGETS =	aes_test@EXEEXT@ atomic_test@EXEEXT@ \
+		counter_test@EXEEXT@ errno_test@EXEEXT@ \
 		hash_test@EXEEXT@ heap_test@EXEEXT@ inet_ntop_test@EXEEXT@ \
 		lex_test@EXEEXT@ mem_test@EXEEXT@ netaddr_test@EXEEXT@ \
 		parse_test@EXEEXT@ pool_test@EXEEXT@ print_test@EXEEXT@ \
@@ -51,6 +53,10 @@ TARGETS =	aes_test@EXEEXT@ counter_test@EXEEXT@ errno_test@EXEEXT@ \
 		taskpool_test@EXEEXT@ time_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
+
+atomic_test@EXEEXT@: atomic_test.@O@ isctest.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			atomic_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 aes_test@EXEEXT@: aes_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
