@@ -17,29 +17,29 @@
 # expected match.
 # Test list:
 # In options:
-# default (any), any, none, [localhost, localnets], 
+# default (any), any, none, [localhost, localnets],
 # allowed address, not allowed address, denied address,
-# allowed key, not allowed key, denied key 
-# allowed acl, not allowed acl, denied acl (acls pointing to addresses) 
+# allowed key, not allowed key, denied key
+# allowed acl, not allowed acl, denied acl (acls pointing to addresses)
 #
 # Each of these tests requires changing to a new configuration
 # file and using rndc to update the server
 #
 # In view, with nothing in options (default to any)
-# default (any), any, none, [localhost, localnets], 
+# default (any), any, none, [localhost, localnets],
 # allowed address, not allowed address, denied address,
-# allowed key, not allowed key, denied key 
-# allowed acl, not allowed acl, denied acl (acls pointing to addresses) 
+# allowed key, not allowed key, denied key
+# allowed acl, not allowed acl, denied acl (acls pointing to addresses)
 #
 # In view, with options set to none, view set to any
 # In view, with options set to any, view set to none
 #
 # In zone, with nothing in options (default to any)
-# any, none, [localhost, localnets], 
-# allowed address, denied address, 
+# any, none, [localhost, localnets],
+# allowed address, denied address,
 # allowed key, not allowed key, denied key
 # allowed acl, not allowed acl, denied acl (acls pointing to addresses),
-# 
+#
 # In zone, with options set to none, zone set to any
 # In zone, with options set to any, zone set to none
 # In zone, with view set to none, zone set to any
@@ -47,7 +47,7 @@
 #
 # zone types of master, slave and stub can be tested in parallel by using
 # multiple instances (ns2 as master, ns3 as slave, ns4 as stub) and querying
-# as necessary. 
+# as necessary.
 #
 
 SYSTEMTESTTOP=..
