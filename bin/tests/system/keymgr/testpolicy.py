@@ -9,8 +9,10 @@
 # information regarding copyright ownership.
 ############################################################################
 
-import sys
-sys.path.insert(0, '../../../python')
+import sys, os
+try: pdir = os.environ['TOP'] + '/bin/python'
+except: pdir = '../../../python'
+sys.path.insert(0, pdir)
 from isc import *
 
 pp = policy.dnssec_policy()

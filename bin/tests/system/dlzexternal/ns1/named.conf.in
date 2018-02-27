@@ -33,7 +33,28 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-include "dlzs.conf";
+dlz "example one" {
+	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ example.nil";
+};
+
+dlz "example two" {
+	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ alternate.nil";
+};
+
+dlz "unsearched1" {
+	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ other.nil";
+	search no;
+};
+
+dlz "unsearched2" {
+	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ zone.nil";
+	search no;
+};
+
+dlz redzone {
+	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ .";
+	search no;
+};
 
 zone zone.nil {
 	type master;
