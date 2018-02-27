@@ -27,6 +27,6 @@ zone "." {
 
 zone "normal.example" {
 	type master;
-	file "normal.db";
+	file "generic.db";
 	allow-query { any; };
 };

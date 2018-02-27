@@ -1,3 +1,7 @@
+4908.	[test]		Eliminated unnecessary waiting in the allow_query
+			system test. Also changed its name to allow-query.
+			[GL #81]
+
 4907.	[test]		Improved the reliabilty of the 'notify' system
 			test. [GL #59]
 
