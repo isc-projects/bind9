@@ -1,6 +1,6 @@
 ;
 ;	This is a zone which has three DNSKEY records, two (KSK + ZSK) of
-; which have existing private key files available.  The third is a 
+; which have existing private key files available.  The third is a
 ; pre-published ZSK.
 ;
 $TTL 3600
