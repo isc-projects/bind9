@@ -40,7 +40,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	db dst names rbt resolver tasks system \
+SUBDIRS =	db dst names rbt tasks system \
 		@PKCS11_TOOLS@ optional
 
 # Test programs that are built by default:
