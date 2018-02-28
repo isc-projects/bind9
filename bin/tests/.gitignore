@@ -8,7 +8,6 @@ t_db
 gsstest
 t_dst
 t_names
-t_rbt
 conf.sh
 dlopen
 keycreate
