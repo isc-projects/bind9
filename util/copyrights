@@ -647,14 +647,8 @@
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005,2007,2009,2011,2012,2014,2015,2016,2018
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012,2016
-./bin/tests/resolver/Makefile.in		MAKE	2011,2012,2014,2016
-./bin/tests/resolver/t_resolver.c		C	2011,2012,2013,2014,2016
-./bin/tests/resolver/win32/t_resolver.dsp.in	X	2013,2016
-./bin/tests/resolver/win32/t_resolver.dsw	X	2013
-./bin/tests/resolver/win32/t_resolver.mak.in	X	2013,2016
-./bin/tests/resolver/win32/t_resolver.vcxproj.filters.in	X	2013,2015
-./bin/tests/resolver/win32/t_resolver.vcxproj.in	X	2013,2015,2016,2017
-./bin/tests/resolver/win32/t_resolver.vcxproj.user	X	2013
+./bin/tests/rbt_test.out			X	1999,2000,2001,2018
+./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004,2007,2012,2016,2018
 ./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005,2007,2013,2016,2017,2018
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004,2007,2015,2016
 ./bin/tests/shutdown_test.c			C	1998,1999,2000,2001,2004,2007,2011,2013,2016,2017,2018
