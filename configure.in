@@ -5461,7 +5461,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/rndc/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
-	bin/tests/tasks/Makefile
 	bin/tests/virtual-time/Makefile
 	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile
