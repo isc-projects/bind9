@@ -15,6 +15,7 @@ tp: nsec3_test
 tp: private_test
 tp: rdata_test
 tp: rdataset_test
+tp: resolver_test
 tp: time_test
 tp: tsig_test
 tp: update_test

@@ -9,7 +9,6 @@ gsstest
 t_dst
 t_names
 t_rbt
-t_resolver
 conf.sh
 dlopen
 lwtest
