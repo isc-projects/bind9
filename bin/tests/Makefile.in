@@ -40,7 +40,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	db dst names rbt system optional
+SUBDIRS =	db dst names system optional
 
 # Test programs that are built by default:
 # cfg_test is needed for regenerating doc/misc/options
