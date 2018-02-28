@@ -14,5 +14,4 @@ dlopen
 keycreate
 keydelete
 gssapi_krb
-t_tasks
 makejournal
