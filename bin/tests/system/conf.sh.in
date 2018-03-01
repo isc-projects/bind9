@@ -23,9 +23,6 @@ export TOP
 export SRCTOP
 export SYSTEMTESTTOP
 
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
-
 ARPANAME=$TOP/bin/tools/arpaname
 CDS=$TOP/bin/dnssec/dnssec-cds
 CHECKCONF=$TOP/bin/check/named-checkconf

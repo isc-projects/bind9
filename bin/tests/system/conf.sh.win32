@@ -18,10 +18,14 @@
 CYGWIN=1
 
 # Find the top of the BIND9 tree.
-TOP=${SYSTEMTESTTOP:=.}/../../..
+TOP=@abs_top_builddir@
+SRCTOP=@abs_top_srcdir@
+SYSTEMTESTTOP=@abs_srcdir@
 
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
+export TOP
+export SRCTOP
+export SYSTEMTESTTOP
+
 
 # Visual Studio build configurations are Release and Debug
 VSCONF=Debug
@@ -263,7 +267,10 @@ copy_setports() {
         -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
         -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
         -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" $1 > $2
+        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
+        -e "s#${atsign}TOP${atsign}#${TOP}#g" \
+        -e "s#${atsign}SRCTOP${atsign}#${SRCTOP}#g" \
+        -e "s#${atsign}SYSTEMTESTTOP${atsign}#${SYSTEMTESTTOP}#g" $1 > $2
 }
 
 #
