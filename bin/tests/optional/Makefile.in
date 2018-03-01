@@ -14,9 +14,10 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@DST_OPENSSL_INC@
+		@DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
-CDEFINES =	@CRYPTO@
+CDEFINES =	@CRYPTO@ @USE_GSSAPI@
+
 CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
 
@@ -45,8 +46,10 @@ XTARGETS =	adb_test@EXEEXT@ \
 		backtrace_test_nosymtbl@EXEEXT@ \
 		byname_test@EXEEXT@ \
 		db_test@EXEEXT@ \
+		dst_test@EXEEXT@ \
 		entropy_test@EXEEXT@ \
 		entropy2_test@EXEEXT@ \
+		gsstest@EXEEXT@ \
 		hash_test@EXEEXT@ \
 		fsaccess_test@EXEEXT@ \
 		inter_test@EXEEXT@ \
@@ -76,10 +79,12 @@ XSRCS =		adb_test.c \
 		backtrace_test.c \
 		byname_test.c \
 		db_test.c \
+		dst_test.c \
 		entropy_test.c \
 		entropy2_test.c \
 		hash_test.c \
 		fsaccess_test.c \
+		gsstest.c \
 		inter_test.c \
 		keyboard_test.c \
 		lex_test.c \
@@ -246,6 +251,14 @@ keyboard_test@EXEEXT@: keyboard_test.@O@ ${ISCDEPLIBS}
 sig0_test@EXEEXT@: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ sig0_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+dst_test@EXEEXT@: dst_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
+		-o $@ dst_test.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+gsstest@EXEEXT@: gsstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} \
+		-o $@ gsstest.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS} ${XTARGETS}
