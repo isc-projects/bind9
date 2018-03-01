@@ -5,7 +5,6 @@ nxtify
 sdig
 *_test
 gsstest
-t_dst
 conf.sh
 dlopen
 lwtest
