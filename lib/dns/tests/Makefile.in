@@ -41,6 +41,7 @@ SRCS =		acl_test.c \
 		dbiterator_test.c \
 		dh_test.c \
 		dispatch_test.c \
+		dst_test.c \
 		dnstest.c \
 		master_test.c \
 		name_test.c \
@@ -64,6 +65,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		dbversion_test@EXEEXT@ \
 		dh_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
+		dst_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		name_test@EXEEXT@ \
 		nsec3_test@EXEEXT@ \
@@ -182,6 +184,11 @@ db_test@EXEEXT@: db_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 dh_test@EXEEXT@: dh_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dh_test.@O@ dnstest.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
+
+dst_test@EXEEXT@: dst_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dst_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
 tsig_test@EXEEXT@: tsig_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

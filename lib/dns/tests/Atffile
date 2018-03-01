@@ -9,6 +9,7 @@ tp: dbiterator_test
 tp: dbversion_test
 tp: dh_test
 tp: dispatch_test
+tp: dst_test
 tp: master_test
 tp: name_test
 tp: nsec3_test
