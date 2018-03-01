@@ -7,7 +7,6 @@ sdig
 t_db
 gsstest
 t_dst
-t_names
 conf.sh
 dlopen
 lwtest
