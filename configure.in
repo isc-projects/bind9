@@ -5462,9 +5462,6 @@ AC_CONFIG_FILES([
 	lib/ns/include/Makefile
 	lib/ns/include/ns/Makefile
 	lib/ns/tests/Makefile
-	lib/tests/Makefile
-	lib/tests/include/Makefile
-	lib/tests/include/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
 	unit/Makefile
