@@ -38,6 +38,7 @@ SRCS =		acl_test.c \
 		dh_test.c \
 		dispatch_test.c \
 		dnstap_test.c \
+		dst_test.c \
 		dnstest.c \
 		dstrandom_test.c \
 		geoip_test.c \
@@ -70,6 +71,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		dh_test@EXEEXT@ \
 		dispatch_test@EXEEXT@ \
 		dnstap_test@EXEEXT@ \
+		dst_test@EXEEXT@ \
 		dstrandom_test@EXEEXT@ \
 		geoip_test@EXEEXT@ \
 		gost_test@EXEEXT@ \
@@ -133,6 +135,11 @@ dnstap_test@EXEEXT@: dnstap_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			dnstap_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
+
+dst_test@EXEEXT@: dst_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dst_test.@O@ dnstest.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
 
 geoip_test@EXEEXT@: geoip_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
