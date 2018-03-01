@@ -5151,7 +5151,6 @@ AC_CONFIG_FILES([
 	bin/python/isc/tests/dnskey_test.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
-	bin/tests/db/Makefile
 	bin/tests/dst/Makefile
 	bin/tests/dst/Kdh.+002+18602.key
 	bin/tests/dst/Kdh.+002+18602.private
