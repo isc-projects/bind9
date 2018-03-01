@@ -5403,6 +5403,7 @@ query_lookup(query_ctx_t *qctx) {
 		    STALE(qctx->rdataset)) {
 			qctx->rdataset->ttl =
 					 qctx->client->view->staleanswerttl;
+			inc_stats(qctx->client, ns_statscounter_usedstale);
 			success = ISC_TRUE;
 		} else {
 			success = ISC_FALSE;
