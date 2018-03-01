@@ -172,7 +172,7 @@ grep "mx03.example.nil/MX:.*MX is an address" ns1/named.run > /dev/null 2>&1 && 
 
 ret=0
 echo_i "ensure 'check-mx warn' allows adding MX records containing an address with a warning"
-$NSUPDATE -4 -l -p ${PORT} -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
+$NSUPDATE -l -p ${PORT} -k ns1/session.key > nsupdate.out 2>&1 << END || ret=1
 update add mx03.other.nil 600 IN MX 10 10.53.0.1
 send
 END
