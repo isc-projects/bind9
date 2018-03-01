@@ -3320,7 +3320,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	if (STALE(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
-		rdataset->ttl = 0;
 	}
 	rdataset->private1 = rbtdb;
 	rdataset->private2 = node;
@@ -5653,7 +5652,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		  isc_rwlocktype_write);
 
 	for (header = rbtnode->data; header != NULL; header = header->next)
-		if (header->rdh_ttl <= now - RBTDB_VIRTUAL) {
+		if (header->rdh_ttl + rbtdb->serve_stale_ttl <=
+		    now - RBTDB_VIRTUAL) {
 			/*
 			 * We don't check if refcurrent(rbtnode) == 0 and try
 			 * to free like we do in cache_find(), because
@@ -5909,7 +5909,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (!ACTIVE(header, now)) {
-			if ((header->rdh_ttl < now - RBTDB_VIRTUAL) &&
+			if ((header->rdh_ttl + rbtdb->serve_stale_ttl <
+			     now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -6951,9 +6952,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			cleanup_dead_nodes(rbtdb, rbtnode->locknum);
 
 		header = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
-		if (header && header->rdh_ttl < now - RBTDB_VIRTUAL)
+		if (header && header->rdh_ttl +
+		    rbtdb->serve_stale_ttl < now - RBTDB_VIRTUAL) {
 			expire_header(rbtdb, header, tree_locked,
 				      expire_ttl);
+		}
 
 		/*
 		 * If we've been holding a write lock on the tree just for
