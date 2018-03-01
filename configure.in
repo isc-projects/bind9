@@ -5237,9 +5237,6 @@ AC_CONFIG_FILES([
 	lib/lwres/unix/Makefile
 	lib/lwres/unix/include/Makefile
 	lib/lwres/unix/include/lwres/Makefile
-	lib/tests/Makefile
-	lib/tests/include/Makefile
-	lib/tests/include/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
 	unit/Makefile
