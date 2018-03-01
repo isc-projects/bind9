@@ -157,6 +157,12 @@
 	  <command>dnstap</command> log file. [RT #46942]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Validation could fail for unsigned domains if there was a
+	  CNAME at the domain apex. [GL #124]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

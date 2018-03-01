@@ -1,3 +1,6 @@
+4904.	[bug]		Validation could fail for unsigned domains if there
+			was a CNAME at the domain apex. [GL #124]
+
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
 			update. [GL #112]

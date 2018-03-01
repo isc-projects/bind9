@@ -3404,5 +3404,13 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check that apex CNAME in an insecure zone does not abort validation ($n)"
+ret=0
+$DIG $DIGOPTS apex-cname a @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep SERVFAIL dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

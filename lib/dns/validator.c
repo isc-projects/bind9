@@ -1104,7 +1104,8 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	for (parent = val; parent != NULL; parent = parent->parent) {
 		if (parent->event != NULL &&
 		    (parent->event->type == type ||
-		     parent->event->type == dns_rdatatype_cname) &&
+		     (parent->event->type == dns_rdatatype_cname &&
+		      !dns_rdatatype_atparent(type))) &&
 		    dns_name_equal(parent->event->name, name) &&
 		    /*
 		     * As NSEC3 records are meta data you sometimes
