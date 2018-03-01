@@ -32,7 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIR =	db dst names system @PKCS11_TOOLS@ optional
+SUBDIR =	db dst system @PKCS11_TOOLS@ optional
 
 TESTDIRS =	system
 
