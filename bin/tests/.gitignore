@@ -4,7 +4,6 @@ headerdep_test.sh
 nxtify
 sdig
 *_test
-t_db
 gsstest
 t_dst
 conf.sh
