@@ -283,12 +283,10 @@ zbit_to_num(dns_rpz_zbits_t zbit) {
 
 	REQUIRE(zbit != 0);
 	rpz_num = 0;
-#if DNS_RPZ_MAX_ZONES > 32
-	if ((zbit & 0xffffffff00000000L) != 0) {
+	if ((zbit & 0xffffffff00000000ULL) != 0) {
 		zbit >>= 32;
 		rpz_num += 32;
 	}
-#endif
 	if ((zbit & 0xffff0000) != 0) {
 		zbit >>= 16;
 		rpz_num += 16;
@@ -505,9 +503,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 		req_mask |= req_mask >> 4;
 		req_mask |= req_mask >> 8;
 		req_mask |= req_mask >> 16;
-#if DNS_RPZ_MAX_ZONES > 32
 		req_mask |= req_mask >> 32;
-#endif
 
 		/*
 		 * There's no point in skipping recursion for a later
