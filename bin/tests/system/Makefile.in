@@ -39,9 +39,10 @@ TARGETS =	feature-test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
+subdirs: ${TARGETS}
+
 feature-test@EXEEXT@: feature-test.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
-
 
 # Running the scripts below is bypassed when a separate build directory is
 # used.
