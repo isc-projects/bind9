@@ -32,8 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	system @PKCS11_TOOLS@ optional
-
+SUBDIRS =	system @PKCS11_TOOLS@
 TESTDIRS =	system
 
 # Test programs that are built by default:
@@ -43,14 +42,20 @@ TESTDIRS =	system
 # other opptional test programs have been moved to ./optional
 
 # Alphabetically
+XTARGETS =	all_tests
 TARGETS =	cfg_test@EXEEXT@ makejournal@EXEEXT@ \
-		wire_test@EXEEXT@
+		wire_test@EXEEXT@ @XTARGETS@
 
 SRCS =		cfg_test.c makejournal.c wire_test.c
 
 @BIND9_MAKE_RULES@
 
-all_tests: subdirs
+.NOTPARALLEL:
+
+.PHONY:
+all_tests:
+	echo "making depend in `pwd`/optional"; \
+	(cd optional; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@)
 
 wire_test@EXEEXT@: wire_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ wire_test.@O@ \
@@ -69,6 +74,7 @@ distclean::
 
 clean distclean::
 	rm -f ${TARGETS}
+	( cd optional; $(MAKE) $@)
 
 check: test
 
