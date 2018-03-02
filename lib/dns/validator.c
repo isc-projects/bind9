@@ -15,8 +15,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #include <isc/base32.h>
@@ -1110,8 +1108,7 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 
 	for (parent = val; parent != NULL; parent = parent->parent) {
 		if (parent->event != NULL &&
-		    (parent->event->type == type ||
-		     parent->event->type == dns_rdatatype_cname) &&
+		    parent->event->type == type &&
 		    dns_name_equal(parent->event->name, name) &&
 		    /*
 		     * As NSEC3 records are meta data you sometimes
