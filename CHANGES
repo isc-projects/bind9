@@ -145,11 +145,7 @@
 
 4860.	[bug]		isc_int8_t should be signed char.  [RT #46973]
 
-4859.	[bug]		A loop was possible when attempting to validate
-			unsigned CNAME responses from secure zones;
-			this caused a delay in returning SERVFAIL and
-			also increased the chances of encountering
-			CVE-2017-3145. [RT #46839]
+4859.   [placeholder]
 
 4858.	[security]	Addresses could be referenced after being freed
 			in resolver.c, causing an assertion failure.
