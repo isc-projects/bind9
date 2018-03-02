@@ -1,3 +1,5 @@
+4904.	[bug]		Temporarily revert change #4859. [GL #124]
+
 	--- 9.11.3rc1 released ---
 
 4889.	[func]		Warn about the use of old root keys without the new
