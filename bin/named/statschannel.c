@@ -3256,7 +3256,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_task_setname(task, "statchannel", NULL);
 
 	result = isc_socket_create(named_g_socketmgr, isc_sockaddr_pf(addr),
-				   isc_sockettype_tcp, &sock);
+				   isc_sockettype_tcp, 0, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	isc_socket_setname(sock, "statchannel", NULL);

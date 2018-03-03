@@ -941,7 +941,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	CHECK(isc_socket_create(xfr->socketmgr,
 				isc_sockaddr_pf(&xfr->sourceaddr),
-				isc_sockettype_tcp,
+				isc_sockettype_tcp, 0,
 				&xfr->socket));
 	isc_socket_setname(xfr->socket, "xfrin", NULL);
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT

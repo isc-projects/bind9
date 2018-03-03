@@ -335,6 +335,7 @@ struct isc__socket {
 	isc__socketmgr_t	*manager;
 	isc_mutex_t		lock;
 	isc_sockettype_t	type;
+	unsigned int		options;
 	const isc_statscounter_t	*statsindex;
 
 	/* Locked by socket lock. */
@@ -471,14 +472,15 @@ static isc__socketmgr_t *socketmgr = NULL;
 
 static isc_result_t socket_create(isc_socketmgr_t *manager0, int pf,
 				  isc_sockettype_t type,
-				  isc_socket_t **socketp,
-				  isc_socket_t *dup_socket);
+				  unsigned int options,
+				  isc_socket_t *dup_socket,
+				  isc_socket_t **socketp);
 static void send_recvdone_event(isc__socket_t *, isc_socketevent_t **);
 static void send_senddone_event(isc__socket_t *, isc_socketevent_t **);
 static void send_connectdone_event(isc__socket_t *, isc_socket_connev_t **);
 static void free_socket(isc__socket_t **);
 static isc_result_t allocate_socket(isc__socketmgr_t *, isc_sockettype_t,
-				    isc__socket_t **);
+				    unsigned int, isc__socket_t **);
 static void destroy(isc__socket_t **);
 static void internal_accept(isc_task_t *, isc_event_t *);
 static void internal_connect(isc_task_t *, isc_event_t *);
@@ -508,7 +510,7 @@ isc_result_t
 isc__socket_close(isc_socket_t *sock0);
 isc_result_t
 isc__socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
-		   isc_socket_t **socketp);
+		   unsigned int options, isc_socket_t **socketp);
 void
 isc__socket_attach(isc_socket_t *sock, isc_socket_t **socketp);
 void
@@ -2292,7 +2294,7 @@ destroy(isc__socket_t **sockp) {
 
 static isc_result_t
 allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
-		isc__socket_t **socketp)
+		unsigned int options, isc__socket_t **socketp)
 {
 	isc__socket_t *sock;
 	isc_result_t result;
@@ -2309,6 +2311,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 	sock->manager = manager;
 	sock->type = type;
+	sock->options = options;
 	sock->fd = -1;
 	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
 	sock->dupped = 0;
@@ -2979,7 +2982,8 @@ setup_done:
  */
 static isc_result_t
 socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
-	      isc_socket_t **socketp, isc_socket_t *dup_socket)
+	      unsigned int options, isc_socket_t *dup_socket,
+	      isc_socket_t **socketp)
 {
 	isc__socket_t *sock = NULL;
 	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
@@ -2989,8 +2993,10 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 	REQUIRE(type != isc_sockettype_fdwatch);
+	REQUIRE(((options & ISC_SOCKET_TLS) == 0U) ||
+		(type == isc_sockettype_tcp));
 
-	result = allocate_socket(manager, type, &sock);
+	result = allocate_socket(manager, type, options, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -3067,9 +3073,9 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
  */
 isc_result_t
 isc__socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
-		   isc_socket_t **socketp)
+		   unsigned int options, isc_socket_t **socketp)
 {
-	return (socket_create(manager0, pf, type, socketp, NULL));
+	return (socket_create(manager0, pf, type, options, NULL, socketp));
 }
 
 /*%
@@ -3084,8 +3090,8 @@ isc__socket_dup(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	return (socket_create((isc_socketmgr_t *) sock->manager,
-			      sock->pf, sock->type, socketp,
-			      sock0));
+			      sock->pf, sock->type, sock->options,
+			      sock0, socketp));
 }
 
 isc_result_t
@@ -3157,7 +3163,7 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	if (fd < 0 || (unsigned int)fd >= manager->maxsocks)
 		return (ISC_R_RANGE);
 
-	result = allocate_socket(manager, isc_sockettype_fdwatch, &sock);
+	result = allocate_socket(manager, isc_sockettype_fdwatch, 0, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -5821,7 +5827,7 @@ isc__socket_accept(isc_socket_t *sock0,
 	}
 	ISC_LINK_INIT(dev, ev_link);
 
-	result = allocate_socket(manager, sock->type, &nsock);
+	result = allocate_socket(manager, sock->type, 0, &nsock);
 	if (result != ISC_R_SUCCESS) {
 		isc_event_free(ISC_EVENT_PTR(&dev));
 		UNLOCK(&sock->lock);

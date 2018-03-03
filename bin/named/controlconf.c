@@ -1215,7 +1215,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	if (result == ISC_R_SUCCESS)
 		result = isc_socket_create(named_g_socketmgr,
 					   isc_sockaddr_pf(&listener->address),
-					   type, &listener->sock);
+					   type, 0, &listener->sock);
 	if (result == ISC_R_SUCCESS)
 		isc_socket_setname(listener->sock, "control", NULL);
 

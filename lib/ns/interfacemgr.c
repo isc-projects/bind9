@@ -241,7 +241,7 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 #ifdef USE_ROUTE_SOCKET
 	mgr->route = NULL;
 	result = isc_socket_create(mgr->socketmgr, ROUTE_SOCKET_PROTOCOL,
-				   isc_sockettype_raw, &mgr->route);
+				   isc_sockettype_raw, 0, &mgr->route);
 	switch (result) {
 	case ISC_R_NOPERM:
 	case ISC_R_SUCCESS:
@@ -525,7 +525,7 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 	 */
 	result = isc_socket_create(ifp->mgr->socketmgr,
 				   isc_sockaddr_pf(&ifp->addr),
-				   isc_sockettype_tcp,
+				   isc_sockettype_tcp, 0,
 				   &ifp->tcpsocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,

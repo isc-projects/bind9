@@ -306,7 +306,7 @@ main(int argc, char *argv[]) {
 
 	sock = NULL;
 	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
-				   &sock));
+				   0, &sock));
 
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 

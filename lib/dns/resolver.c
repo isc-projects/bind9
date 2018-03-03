@@ -1964,7 +1964,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 		result = isc_socket_create(res->socketmgr, pf,
 					   isc_sockettype_tcp,
-					   &query->tcpsocket);
+					   0, &query->tcpsocket);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_query;
 
