@@ -1701,7 +1701,7 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 		return (ISC_R_SUCCESS);
 	} else {
 		result = isc_socket_create(mgr, isc_sockaddr_pf(local),
-					   isc_sockettype_udp, &sock);
+					   isc_sockettype_udp, 0, &sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}

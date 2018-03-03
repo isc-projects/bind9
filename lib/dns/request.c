@@ -562,7 +562,7 @@ create_tcp_dispatch(isc_boolean_t newtcp, isc_boolean_t share,
 
 	result = isc_socket_create(requestmgr->socketmgr,
 				   isc_sockaddr_pf(destaddr),
-				   isc_sockettype_tcp, &sock);
+				   isc_sockettype_tcp, 0, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 #ifndef BROKEN_TCP_BIND_BEFORE_CONNECT

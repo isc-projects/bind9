@@ -522,7 +522,7 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 		type = isc_sockettype_tcp;
 	else
 		type = isc_sockettype_unix;
-	DO("create socket", isc_socket_create(socketmgr, pf, type, &sock));
+	DO("create socket", isc_socket_create(socketmgr, pf, type, 0, &sock));
 	switch (isc_sockaddr_pf(addr)) {
 	case AF_INET:
 		DO("bind socket", isc_socket_bind(sock, &local4, 0));

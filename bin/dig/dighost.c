@@ -2776,7 +2776,7 @@ send_tcp_connect(dig_query_t *query) {
 
 	result = isc_socket_create(socketmgr,
 				   isc_sockaddr_pf(&query->sockaddr),
-				   isc_sockettype_tcp, &query->sock);
+				   isc_sockettype_tcp, 0, &query->sock);
 	check_result(result, "isc_socket_create");
 	sockcount++;
 	debug("sockcount=%d", sockcount);
@@ -2880,7 +2880,7 @@ send_udp(dig_query_t *query) {
 
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
-					   isc_sockettype_udp, &query->sock);
+					   isc_sockettype_udp, 0, &query->sock);
 		check_result(result, "isc_socket_create");
 		sockcount++;
 		debug("sockcount=%d", sockcount);

@@ -129,6 +129,13 @@ ISC_LANG_BEGINDECLS
 #define ISC_SOCKET_REUSEADDRESS		0x01U
 
 /*%
+ * Indicates whether TLS must be used on this socket for all
+ * communications. This option is to be passed only with
+ * `isc_sockettype_tcp` type sockets.
+ */
+#define ISC_SOCKET_TLS 0x00000001U
+
+/*%
  * Statistics counters.  Used as isc_statscounter_t values.
  */
 enum {
@@ -327,6 +334,7 @@ typedef struct isc_socketmgrmethods {
 	void		(*destroy)(isc_socketmgr_t **managerp);
 	isc_result_t	(*socketcreate)(isc_socketmgr_t *manager, int pf,
 					isc_sockettype_t type,
+					unsigned int options,
 					isc_socket_t **socketp);
 	isc_result_t    (*fdwatchcreate)(isc_socketmgr_t *manager, int fd,
 					 int flags,
@@ -498,6 +506,7 @@ isc_result_t
 isc_socket_create(isc_socketmgr_t *manager,
 		  int pf,
 		  isc_sockettype_t type,
+		  unsigned int options,
 		  isc_socket_t **socketp);
 /*%<
  * Create a new 'type' socket managed by 'manager'.

@@ -512,7 +512,7 @@ main(int argc, char *argv[]) {
 	dns_view_setkeyring(view, ring);
 
 	sock = NULL;
-	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp,
+	RUNCHECK(isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, 0,
 				   &sock));
 
 	setup();

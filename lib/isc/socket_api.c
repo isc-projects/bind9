@@ -95,14 +95,18 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 
 isc_result_t
 isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
-		  isc_socket_t **socketp)
+		  unsigned int options, isc_socket_t **socketp)
 {
 	REQUIRE(ISCAPI_SOCKETMGR_VALID(manager));
+	REQUIRE(((options & ISC_SOCKET_TLS) == 0U) ||
+		(type == isc_sockettype_tcp));
 
 	if (isc_bind9)
-		return (isc__socket_create(manager, pf, type, socketp));
+		return (isc__socket_create(manager, pf, type, options,
+					   socketp));
 
-	return (manager->methods->socketcreate(manager, pf, type, socketp));
+	return (manager->methods->socketcreate(manager, pf, type, options,
+					       socketp));
 }
 
 void

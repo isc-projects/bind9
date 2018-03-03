@@ -277,7 +277,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	 * Create a local udp nameserver on the loopback.
 	 */
 	result = isc_socket_create(socketmgr, AF_INET, isc_sockettype_udp,
-				   &sock);
+				   0, &sock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ina.s_addr = htonl(INADDR_LOOPBACK);
