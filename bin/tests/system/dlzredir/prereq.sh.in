@@ -14,10 +14,11 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-TOP=${SYSTEMTESTTOP:=.}/../../../..
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 if [ "@DLZ_SYSTEM_TEST@" != "filesystem" ]; then
-        echo_i" DLZ filesystem driver not supported"
+        echo_i "DLZ filesystem driver not supported"
         exit 255
 fi
 exit 0
