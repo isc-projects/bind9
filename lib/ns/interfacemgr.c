@@ -522,10 +522,14 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 
 	/*
 	 * Open a TCP socket.
+	 *
+	 * XXXMUKS: The following isc_socket_create() enforces TLS for
+	 * all TCP connections (which is clearly not for production). It
+	 * is to develop the TLS feature. It needs fixing.
 	 */
 	result = isc_socket_create(ifp->mgr->socketmgr,
 				   isc_sockaddr_pf(&ifp->addr),
-				   isc_sockettype_tcp, 0,
+				   isc_sockettype_tcp, ISC_SOCKET_TLS,
 				   &ifp->tcpsocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
