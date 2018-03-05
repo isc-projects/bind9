@@ -3,8 +3,12 @@ variables:
   LC_ALL: C
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: oerdnj/bind9
+  ATF_VERSION: "0.21"
+  LUTOK_VERSION: "0.4"
+  KYUA_VERSION: "0.13"
 
 stages:
+  - prepare
   - build
   - test
 
@@ -45,13 +49,17 @@ stages:
     - docker
 
 .debian-sid-amd64: &debian_sid_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
+  variables:
+    CI_REGISTRY_IMAGE_TAG: "debian-sid-amd64"
+  image: "$CI_REGISTRY_IMAGE:$CI_REGISTRY_IMAGE_TAG"
   tags:
     - linux
     - docker
 
 .debian-sid-i386: &debian_sid_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
+  variables:
+    CI_REGISTRY_IMAGE_TAG: "debian-sid-i386"
+  image: "$CI_REGISTRY_IMAGE:$CI_REGISTRY_IMAGE_TAG"
   tags:
     - linux
     - docker
@@ -80,13 +88,38 @@ stages:
     - linux
     - docker
 
+.prepare: &prepare_job
+  stage: prepare
+  before_script:
+    - export PATH="$CI_PROJECT_DIR/.local/bin:$PATH"
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/.local/lib:$LD_LIBRARY_PATH"
+    - export PKG_CONFIG_PATH="$CI_PROJECT_DIR/.local/lib/pkgconfig:$PKG_CONFIG_PATH"
+  script:
+    - ls "$CI_PROJECT_DIR/.local/atf-$ATF_VERSION.stamp" || true; if test ! -f "$CI_PROJECT_DIR/.local/atf-$ATF_VERSION.stamp"; then cd /tmp && curl -sSL https://github.com/jmmv/atf/releases/download/atf-$ATF_VERSION/atf-$ATF_VERSION.tar.gz | tar -xz && cd atf-$ATF_VERSION && ./configure --prefix $CI_PROJECT_DIR/.local && make && make install && touch "$CI_PROJECT_DIR/.local/atf-$ATF_VERSION.stamp"; fi
+    - ls "$CI_PROJECT_DIR/.local/lutok-$LUTOK_VERSION.stamp" || true; if test ! -f "$CI_PROJECT_DIR/.local/lutok-$LUTOK_VERSION.stamp"; then cd /tmp && curl -sSL https://github.com/jmmv/lutok/releases/download/lutok-$LUTOK_VERSION/lutok-$LUTOK_VERSION.tar.gz | tar -xz && cd lutok-$LUTOK_VERSION && ./configure --prefix $CI_PROJECT_DIR/.local && make && make install && touch "$CI_PROJECT_DIR/.local/lutok-$LUTOK_VERSION.stamp"; fi
+    - ls "$CI_PROJECT_DIR/.local/kyua-$KYUA_VERSION.stamp" || true; if test ! -f "$CI_PROJECT_DIR/.local/kyua-$KYUA_VERSION.stamp"; then cd /tmp && curl -sSL https://github.com/jmmv/kyua/releases/download/kyua-$KYUA_VERSION/kyua-$KYUA_VERSION.tar.gz | tar -xz && cd kyua-$KYUA_VERSION && ./configure --prefix $CI_PROJECT_DIR/.local && make && make install && touch "$CI_PROJECT_DIR/.local/kyua-$KYUA_VERSION.stamp"; fi
+#  only:
+#    - schedules
+#    - web
+  cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
+    paths:
+      - .local/
+
 .build: &build_job
   stage: build
   before_script:
+    - export PATH="$CI_PROJECT_DIR/.local/bin:$PATH"
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/.local/lib:$LD_LIBRARY_PATH"
     - ./autogen.sh
   script:
-    - ./configure --with-libtool --disable-static
+    - ./configure --with-libtool --disable-static --with-atf=$CI_PROJECT_DIR/.local
     - make -j6 -k all V=1
+  cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
+    paths:
+      - .local/
+    policy: pull
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -94,9 +127,16 @@ stages:
 .test: &test_job
   stage: test
   before_script:
+    - export PATH="$CI_PROJECT_DIR/.local/bin:$PATH"
+    - export LD_LIBRARY_PATH="$CI_PROJECT_DIR/.local/lib:$LD_LIBRARY_PATH"
     - bash -x bin/tests/system/ifconfig.sh up
   script:
     - make -j8 -k check V=1
+  cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
+    paths:
+      - .local/
+    policy: pull
   artifacts:
     untracked: true
     expire_in: '1 week'
@@ -125,6 +165,14 @@ stages:
 #build:ubuntu:xenial:i386:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
+
+prepare:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *prepare_job
+    
+prepare:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *prepare_job
 
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
