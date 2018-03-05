@@ -183,6 +183,12 @@
 	  completed. [RT #47076]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  IPv4 addresses in forms other than dotted-quad are no longer
+	  accepted in master files. [GL #13] [GL #56]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

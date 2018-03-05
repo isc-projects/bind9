@@ -1137,6 +1137,20 @@ ATF_TC_HEAD(wks, tc) {
 	atf_tc_set_md_var(tc, "descr", "WKS RDATA manipulations");
 }
 ATF_TC_BODY(wks, tc) {
+	text_ok_t text_ok[] = {
+		/*
+		 * Valid, IPv4 address in dotted-quad form.
+		 */
+		TEXT_VALID("127.0.0.1 6"),
+		/*
+		 * Invalid, IPv4 address not in dotted-quad form.
+		 */
+		TEXT_INVALID("127.1 6"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
 	wire_ok_t wire_ok[] = {
 		/*
 		 * Too short.
@@ -1162,7 +1176,7 @@ ATF_TC_BODY(wks, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
