@@ -1634,6 +1634,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 #define DELEGATIONZONE	32
 #define STATICSTUBZONE	64
 #define REDIRECTZONE	128
+#define INVIEWZONE	256
 #define STREDIRECTZONE	0	/* Set to REDIRECTZONE to allow xfr-in. */
 #define CHECKACL	512
 
@@ -1672,7 +1673,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *znamestr;
-	const char *typestr;
+	const char *typestr = NULL;
 	unsigned int ztype;
 	const cfg_obj_t *zoptions, *goptions = NULL;
 	const cfg_obj_t *obj = NULL;
@@ -1777,81 +1778,65 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	obj = NULL;
 	(void)cfg_map_get(zoptions, "in-view", &obj);
 	if (obj != NULL) {
-		const cfg_obj_t *fwd = NULL;
-		unsigned int maxopts = 1;
-		(void)cfg_map_get(zoptions, "forward", &fwd);
-		if (fwd != NULL)
-			maxopts++;
-		fwd = NULL;
-		(void)cfg_map_get(zoptions, "forwarders", &fwd);
-		if (fwd != NULL)
-			maxopts++;
-		if (cfg_map_count(zoptions) > maxopts) {
+		ztype = INVIEWZONE;
+	} else {
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "type", &obj);
+		if (obj == NULL) {
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': 'in-view' used "
-				    "with incompatible zone options",
-				    znamestr);
+				    "zone '%s': type not present", znamestr);
 			return (ISC_R_FAILURE);
 		}
-		return (ISC_R_SUCCESS);
-	}
 
-	obj = NULL;
-	(void)cfg_map_get(zoptions, "type", &obj);
-	if (obj == NULL) {
-		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "zone '%s': type not present", znamestr);
-		return (ISC_R_FAILURE);
-	}
-
-	typestr = cfg_obj_asstring(obj);
-	if (strcasecmp(typestr, "master") == 0)
-		ztype = MASTERZONE;
-	else if (strcasecmp(typestr, "slave") == 0)
-		ztype = SLAVEZONE;
-	else if (strcasecmp(typestr, "stub") == 0)
-		ztype = STUBZONE;
-	else if (strcasecmp(typestr, "static-stub") == 0)
-		ztype = STATICSTUBZONE;
-	else if (strcasecmp(typestr, "forward") == 0)
-		ztype = FORWARDZONE;
-	else if (strcasecmp(typestr, "hint") == 0)
-		ztype = HINTZONE;
-	else if (strcasecmp(typestr, "delegation-only") == 0)
-		ztype = DELEGATIONZONE;
-	else if (strcasecmp(typestr, "redirect") == 0)
-		ztype = REDIRECTZONE;
-	else {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "zone '%s': invalid type %s",
-			    znamestr, typestr);
-		return (ISC_R_FAILURE);
-	}
-
-	if (ztype == REDIRECTZONE && strcmp(znamestr, ".") != 0) {
-		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-			    "redirect zones must be called \".\"");
-		return (ISC_R_FAILURE);
-	}
-	obj = cfg_tuple_get(zconfig, "class");
-	if (cfg_obj_isstring(obj)) {
-		isc_textregion_t r;
-
-		DE_CONST(cfg_obj_asstring(obj), r.base);
-		r.length = strlen(r.base);
-		result = dns_rdataclass_fromtext(&zclass, &r);
-		if (result != ISC_R_SUCCESS) {
+		typestr = cfg_obj_asstring(obj);
+		if (strcasecmp(typestr, "master") == 0) {
+			ztype = MASTERZONE;
+		} else if (strcasecmp(typestr, "slave") == 0) {
+			ztype = SLAVEZONE;
+		} else if (strcasecmp(typestr, "stub") == 0) {
+			ztype = STUBZONE;
+		} else if (strcasecmp(typestr, "static-stub") == 0) {
+			ztype = STATICSTUBZONE;
+		} else if (strcasecmp(typestr, "forward") == 0) {
+			ztype = FORWARDZONE;
+		} else if (strcasecmp(typestr, "hint") == 0) {
+			ztype = HINTZONE;
+		} else if (strcasecmp(typestr, "delegation-only") == 0) {
+			ztype = DELEGATIONZONE;
+		} else if (strcasecmp(typestr, "redirect") == 0) {
+			ztype = REDIRECTZONE;
+		} else {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "zone '%s': invalid class %s",
-				    znamestr, r.base);
+				    "zone '%s': invalid type %s",
+				    znamestr, typestr);
 			return (ISC_R_FAILURE);
 		}
-		if (zclass != defclass) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "zone '%s': class '%s' does not "
-				    "match view/default class",
-				    znamestr, r.base);
+
+		if (ztype == REDIRECTZONE && strcmp(znamestr, ".") != 0) {
+			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "redirect zones must be called \".\"");
 			return (ISC_R_FAILURE);
+		}
+		obj = cfg_tuple_get(zconfig, "class");
+		if (cfg_obj_isstring(obj)) {
+			isc_textregion_t r;
+
+			DE_CONST(cfg_obj_asstring(obj), r.base);
+			r.length = strlen(r.base);
+			result = dns_rdataclass_fromtext(&zclass, &r);
+			if (result != ISC_R_SUCCESS) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "zone '%s': invalid class %s",
+					    znamestr, r.base);
+				return (ISC_R_FAILURE);
+			}
+			if (zclass != defclass) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "zone '%s': class '%s' does not "
+					    "match view/default class",
+					    znamestr, r.base);
+				return (ISC_R_FAILURE);
+			}
 		}
 	}
 
@@ -1886,6 +1871,28 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			rfc1918 = ISC_TRUE;
 		else if (dns_name_isula(zname))
 			ula = ISC_TRUE;
+	}
+
+	if (ztype == INVIEWZONE) {
+		const cfg_obj_t *fwd = NULL;
+		unsigned int maxopts = 1;
+
+		(void)cfg_map_get(zoptions, "forward", &fwd);
+		if (fwd != NULL)
+			maxopts++;
+		fwd = NULL;
+		(void)cfg_map_get(zoptions, "forwarders", &fwd);
+		if (fwd != NULL)
+			maxopts++;
+		if (cfg_map_count(zoptions) > maxopts) {
+			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+				    "zone '%s': 'in-view' used "
+				    "with incompatible zone options",
+				    znamestr);
+			if (result == ISC_R_SUCCESS)
+				result = ISC_R_FAILURE;
+		}
+		return (result);
 	}
 
 	/*
