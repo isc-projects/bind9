@@ -46,13 +46,17 @@ stages:
     - docker
 
 .debian-sid-amd64: &debian_sid_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
+  variables:
+    CI_REGISTRY_IMAGE_TAG: debian-sid-amd64
+  image: "$CI_REGISTRY_IMAGE:$CI_REGISTRY_IMAGE_TAG"
   tags:
     - linux
     - docker
 
 .debian-sid-i386: &debian_sid_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
+  variables:
+    CI_REGISTRY_IMAGE_TAG: debian-sid-i386
+  image: "$CI_REGISTRY_IMAGE:$CI_REGISTRY_IMAGE_TAG"
   tags:
     - linux
     - docker
@@ -84,10 +88,11 @@ stages:
 .prepare: &prepare_job
   stage: prepare
   script:
-    - cd unit/atf-src && ./configure --prefix $CI_PROJECT_DIR/.local && make -j6 && make install
+    - if [ ! -d "$CI_PROJECT_DIR/.local/tests/atf/"; then cd unit/atf-src && ./configure --prefix $CI_PROJECT_DIR/.local && make -j6 && make install; fi
   cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
     paths:
-    - .local/
+      - .local/
 
 .build: &build_job
   stage: build
@@ -97,8 +102,10 @@ stages:
     - ./configure --with-libtool --disable-static --with-atf=$CI_PROJECT_DIR/.local
     - make -j6 -k all V=1
   cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
     paths:
       - .local/
+    policy: pull
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -110,8 +117,10 @@ stages:
   script:
     - make -j8 -k check V=1
   cache:
+    key: "$CI_REGISTRY_IMAGE_TAG"
     paths:
       - .local/
+    policy: pull
   artifacts:
     untracked: true
     expire_in: '1 week'
