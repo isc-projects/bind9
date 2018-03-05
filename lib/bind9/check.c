@@ -1893,7 +1893,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *znamestr;
-	const char *typestr;
+	const char *typestr = NULL;
 	unsigned int ztype;
 	const cfg_obj_t *zoptions, *goptions = NULL;
 	const cfg_obj_t *obj = NULL;
