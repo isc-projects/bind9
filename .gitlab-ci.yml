@@ -114,6 +114,8 @@ stages:
   stage: test
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
+    - ls -ld unit/unittest.sh
+    - find .local
   script:
     - make -j8 -k check V=1
   cache:
