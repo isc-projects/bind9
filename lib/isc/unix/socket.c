@@ -392,6 +392,9 @@ struct isc__socket {
 	unsigned int		dscp;
 #ifdef OPENSSL
 	SSL_CTX			*tls_ctx;
+	SSL                     *tls;
+	BIO                     *tls_rbio;
+	BIO                     *tls_wbio;
 #endif
 };
 
@@ -2333,6 +2336,9 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 #ifdef OPENSSL
 	sock->tls_ctx = NULL;
+	sock->tls = NULL;
+	sock->tls_rbio = NULL;
+	sock->tls_wbio = NULL;
 #endif
 	/*
 	 * Set up cmsg buffers.
@@ -2460,6 +2466,12 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(!ISC_LINK_LINKED(sock, link));
 
 #ifdef OPENSSL
+	if (sock->tls != NULL) {
+		/*
+		 * This also takes care of freeing any linked BIOs.
+		 */
+		SSL_free(sock->tls);
+	}
 	if (sock->tls_ctx != NULL) {
 		SSL_CTX_free(sock->tls_ctx);
 	}
@@ -5877,7 +5889,7 @@ isc__socket_accept(isc_socket_t *sock0,
 	isc_socket_newconnev_t *dev;
 	isc__socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
-	isc__socket_t *nsock;
+	isc__socket_t *nsock = NULL;
 	isc_result_t result;
 	isc_boolean_t do_poke = ISC_FALSE;
 
@@ -5898,16 +5910,14 @@ isc__socket_accept(isc_socket_t *sock0,
 		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
 				   action, arg, sizeof(*dev));
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
+		result = ISC_R_NOMEMORY;
+		goto failure;
 	}
 	ISC_LINK_INIT(dev, ev_link);
 
 	result = allocate_socket(manager, sock->type, 0, &nsock);
 	if (result != ISC_R_SUCCESS) {
-		isc_event_free(ISC_EVENT_PTR(&dev));
-		UNLOCK(&sock->lock);
-		return (result);
+		goto failure;
 	}
 
 	/*
@@ -5915,12 +5925,45 @@ isc__socket_accept(isc_socket_t *sock0,
 	 */
 	isc_task_attach(task, &ntask);
 	if (isc_task_exiting(ntask)) {
-		free_socket(&nsock);
-		isc_task_detach(&ntask);
-		isc_event_free(ISC_EVENT_PTR(&dev));
-		UNLOCK(&sock->lock);
-		return (ISC_R_SHUTTINGDOWN);
+		result = ISC_R_SHUTTINGDOWN;
+		goto failure;
 	}
+
+#ifdef OPENSSL
+	/*
+	 * Be careful here to separate TLS session specific stuff
+	 * (nsock) and TLS listening interface specific stuff (sock).
+	 */
+	if (SOCK_TLS(sock)) {
+		nsock->tls_rbio = BIO_new(BIO_s_mem());
+		if (nsock->tls_rbio == NULL) {
+			result = ISC_R_TLSSESSIONFAILURE;
+			goto failure;
+		}
+
+		nsock->tls_wbio = BIO_new(BIO_s_mem());
+		if (nsock->tls_wbio == NULL) {
+			BIO_free(nsock->tls_rbio);
+			nsock->tls_rbio = NULL;
+			result = ISC_R_TLSSESSIONFAILURE;
+			goto failure;
+		}
+
+		nsock->tls = SSL_new(sock->tls_ctx);
+		if (nsock->tls == NULL) {
+			BIO_free(nsock->tls_rbio);
+			nsock->tls_rbio = NULL;
+			BIO_free(nsock->tls_wbio);
+			nsock->tls_wbio = NULL;
+			result = ISC_R_TLSSESSIONFAILURE;
+			goto failure;
+		}
+
+		SSL_set_accept_state(nsock->tls);
+		SSL_set_bio(nsock->tls, nsock->tls_rbio, nsock->tls_wbio);
+	}
+#endif
+
 	nsock->references++;
 	nsock->statsindex = sock->statsindex;
 
@@ -5942,6 +5985,16 @@ isc__socket_accept(isc_socket_t *sock0,
 
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
+
+failure:
+	if (nsock != NULL)
+		free_socket(&nsock);
+	if (ntask != NULL)
+		isc_task_detach(&ntask);
+	if (dev != NULL)
+		isc_event_free(ISC_EVENT_PTR(&dev));
+	UNLOCK(&sock->lock);
+	return (result);
 }
 
 isc_result_t
