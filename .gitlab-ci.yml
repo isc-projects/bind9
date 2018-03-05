@@ -88,7 +88,7 @@ stages:
     - export CCACHE_DIR="$CI_PROJECT_DIR/.ccache"
     - ./autogen.sh
   script:
-    - ./configure --with-libtool --disable-static
+    - ./configure --with-libtool --disable-static --with-atf=/usr/local
     - make -j6 -k all V=1
   artifacts:
     expire_in: '1 hour'
