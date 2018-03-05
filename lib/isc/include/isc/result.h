@@ -87,9 +87,10 @@
 #define ISC_R_COMPLETE			64	/*%< complete */
 #define ISC_R_TLSCONTEXTFAILURE         65      /*%< TLS context creation failure */
 #define ISC_R_TLSCERTIFICATEFAILURE     66      /*%< TLS certificate load failure */
+#define ISC_R_TLSSESSIONFAILURE         67      /*%< TLS session creation failure */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 			67
+#define ISC_R_NRESULTS 			68
 
 ISC_LANG_BEGINDECLS
 

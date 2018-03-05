@@ -102,6 +102,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	"complete",				/*%< 64 */
 	"TLS context creation failure",		/*%< 65 */
 	"TLS certificate load failure",		/*%< 66 */
+	"TLS session creation failure",		/*%< 67 */
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -172,6 +173,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	"ISC_R_COMPLETE",
 	"ISC_R_TLSCONTEXTFAILURE",
 	"ISC_R_TLSCERTIFICATEFAILURE",
+	"ISC_R_TLSSESSIONFAILURE",
 };
 
 #define ISC_RESULT_RESULTSET			2
