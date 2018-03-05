@@ -378,26 +378,6 @@ locator_pton(const char *src, unsigned char *dst) {
 	return (1);
 }
 
-static inline int
-getquad(const void *src, struct in_addr *dst,
-	isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks)
-{
-	int result;
-	struct in_addr tmp;
-
-	result = inet_aton(src, dst);
-	if (result == 1 && callbacks != NULL &&
-	    inet_pton(AF_INET, src, &tmp) != 1) {
-		const char *name = isc_lex_getsourcename(lexer);
-		if (name == NULL)
-			name = "UNKNOWN";
-		(*callbacks->warn)(callbacks, "%s:%lu: \"%s\" "
-				   "is not a decimal dotted quad", name,
-				   isc_lex_getsourceline(lexer), src);
-	}
-	return (result);
-}
-
 static inline isc_result_t
 name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
