@@ -5935,6 +5935,12 @@ isc__socket_accept(isc_socket_t *sock0,
 	 * (nsock) and TLS listening interface specific stuff (sock).
 	 */
 	if (SOCK_TLS(sock)) {
+		/*
+		 * For the accepted socket, this context must not be set
+		 * (it is only for the listening socket).
+		 */
+		INSIST(nsock->tls_ctx == NULL);
+
 		nsock->tls_rbio = BIO_new(BIO_s_mem());
 		if (nsock->tls_rbio == NULL) {
 			result = ISC_R_TLSSESSIONFAILURE;
