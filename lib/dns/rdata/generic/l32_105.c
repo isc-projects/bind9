@@ -41,7 +41,7 @@ fromtext_l32(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
 
-	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
+	if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
 	isc_buffer_availableregion(target, &region);
 	if (region.length < 4)
