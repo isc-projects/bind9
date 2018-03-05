@@ -100,6 +100,8 @@ static const char *description[ISC_R_NRESULTS] = {
 	"multiple",				/*%< 62 */
 	"would block",				/*%< 63 */
 	"complete",				/*%< 64 */
+	"TLS context creation failure",		/*%< 65 */
+	"TLS certificate load failure",		/*%< 66 */
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -168,6 +170,8 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	"ISC_R_MULTIPLE",
 	"ISC_R_WOULDBLOCK",
 	"ISC_R_COMPLETE",
+	"ISC_R_TLSCONTEXTFAILURE",
+	"ISC_R_TLSCERTIFICATEFAILURE",
 };
 
 #define ISC_RESULT_RESULTSET			2

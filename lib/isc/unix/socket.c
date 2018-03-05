@@ -80,6 +80,10 @@
 #endif
 #endif
 
+#ifdef OPENSSL
+#include <openssl/ssl.h>
+#endif
+
 #include <netinet/tcp.h>
 
 #include "errno2result.h"
@@ -386,6 +390,9 @@ struct isc__socket {
 	int			fdwatchflags;
 	isc_task_t		*fdwatchtask;
 	unsigned int		dscp;
+#ifdef OPENSSL
+	SSL_CTX			*tls_ctx;
+#endif
 };
 
 #define SOCKET_MANAGER_MAGIC	ISC_MAGIC('I', 'O', 'm', 'g')
@@ -677,6 +684,7 @@ static isc_socketmgrmethods_t socketmgrmethods = {
 #define SELECT_POKE_CLOSE		(-5)
 
 #define SOCK_DEAD(s)			((s)->references == 0)
+#define SOCK_TLS(s)			(((s)->options & ISC_SOCKET_TLS) != 0U)
 
 /*%
  * Shortcut index arrays to get access to statistics counters.
@@ -2323,6 +2331,9 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->recvcmsgbuf = NULL;
 	sock->sendcmsgbuf = NULL;
 
+#ifdef OPENSSL
+	sock->tls_ctx = NULL;
+#endif
 	/*
 	 * Set up cmsg buffers.
 	 */
@@ -2447,6 +2458,12 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(!ISC_LINK_LINKED(sock, link));
+
+#ifdef OPENSSL
+	if (sock->tls_ctx != NULL) {
+		SSL_CTX_free(sock->tls_ctx);
+	}
+#endif
 
 	if (sock->recvcmsgbuf != NULL)
 		isc_mem_put(sock->manager->mctx, sock->recvcmsgbuf,
@@ -2996,6 +3013,11 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	REQUIRE(((options & ISC_SOCKET_TLS) == 0U) ||
 		(type == isc_sockettype_tcp));
 
+#ifndef OPENSSL
+	if ((options & ISC_SOCKET_TLS) != 0U)
+		return (ISC_R_NOTIMPLEMENTED);
+#endif /* OPENSSL */
+
 	result = allocate_socket(manager, type, options, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -3023,10 +3045,59 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 
 	sock->pf = pf;
 
+#ifdef OPENSSL
+	/*
+	 * Setup the TLS context. This context is shared by all TCP
+	 * connections that use this listening socket (i.e., it is not
+	 * for accepted connections).
+	 *
+	 * XXXMUKS: This is currently written for server code and
+	 * hardwired certificates. It'll need some tweaking for client
+	 * code and named certificate options (that'll come later).
+	 */
+	if (SOCK_TLS(sock)) {
+		int err;
+
+		sock->tls_ctx = SSL_CTX_new(TLS_method());
+		if (sock->tls_ctx == NULL) {
+			result = ISC_R_TLSCONTEXTFAILURE;
+			goto failure;
+		}
+
+		err = SSL_CTX_use_certificate_file(sock->tls_ctx,
+						   "server.crt",
+						   SSL_FILETYPE_PEM);
+		if (err != 1) {
+			result = ISC_R_TLSCERTIFICATEFAILURE;
+			goto failure;
+		}
+
+		err = SSL_CTX_use_PrivateKey_file(sock->tls_ctx,
+						  "server.key",
+						  SSL_FILETYPE_PEM);
+		if (err != 1) {
+			result = ISC_R_TLSCERTIFICATEFAILURE;
+			goto failure;
+		}
+
+		err = SSL_CTX_check_private_key(sock->tls_ctx);
+		if (err != 1) {
+			result = ISC_R_TLSCERTIFICATEFAILURE;
+			goto failure;
+		}
+
+		/*
+		 * XXXMUKS: Set TLS options as necessary based on named
+		 * config options here.
+		 */
+		SSL_CTX_set_options(sock->tls_ctx,
+				    SSL_OP_ALL|SSL_OP_NO_SSLv2|SSL_OP_NO_SSLv3);
+	}
+#endif /* OPENSSL */
+
 	result = opensocket(manager, sock, (isc__socket_t *)dup_socket);
 	if (result != ISC_R_SUCCESS) {
-		free_socket(&sock);
-		return (result);
+		goto failure;
 	}
 
 	sock->common.methods = (isc_socketmethods_t *)&socketmethods;
@@ -3063,6 +3134,11 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		   ISC_MSG_CREATED, dup_socket != NULL ? "dupped" : "created");
 
 	return (ISC_R_SUCCESS);
+
+failure:
+	if (sock != NULL)
+		free_socket(&sock);
+	return (result);
 }
 
 /*%
