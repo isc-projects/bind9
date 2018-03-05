@@ -93,6 +93,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	UNUSED(origin);
 	UNUSED(options);
 	UNUSED(rdclass);
+	UNUSED(callbacks);
 
 	RUNTIME_CHECK(isc_once_do(&once, init_lock) == ISC_R_SUCCESS);
 
@@ -117,7 +118,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 
 	isc_buffer_availableregion(target, &region);
-	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
+	if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1)
 		CHECKTOK(DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (ISC_R_NOSPACE);

@@ -77,7 +77,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 		break;
 
 	case 1:
-		if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
+		if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1)
 			RETTOK(DNS_R_BADDOTTEDQUAD);
 		isc_buffer_availableregion(target, &region);
 		if (region.length < 4)
