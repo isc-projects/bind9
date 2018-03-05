@@ -3878,6 +3878,10 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	rpz_ver = rpzs->rpz_ver;
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
+#ifndef USE_DNSRPS
+	INSIST(!popt.dnsrps_enabled);
+#endif
+
 	if (st == NULL) {
 		st = isc_mem_get(client->mctx, sizeof(*st));
 		if (st == NULL)
@@ -3903,8 +3907,8 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 		st->popt = popt;
 		st->rpz_ver = rpz_ver;
 		client->query.rpz_st = st;
-		if (popt.dnsrps_enabled) {
 #ifdef USE_DNSRPS
+		if (popt.dnsrps_enabled) {
 			if (st->rpsdb != NULL) {
 				dns_db_detach(&st->rpsdb);
 			}
@@ -3919,10 +3923,8 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 				st->m.policy = DNS_RPZ_POLICY_ERROR;
 				return (ISC_R_SUCCESS);
 			}
-#else
-			INSIST(0);
-#endif
 		}
+#endif
 	}
 
 	/*
