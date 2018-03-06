@@ -1,6 +1,7 @@
-4905.	[cleanup]	Replace getquad() with inet_pton(). [GL #56]
+4905.	[func]		Replace getquad() with inet_pton(), completing
+			change #4900. [GL #56]
 
-4904.   [bug]           Temporarily revert change #4859. [GL #124]
+4904.	[bug]		Temporarily revert change #4859. [GL #124]
 
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
@@ -13,7 +14,9 @@
 			for a domain that time out, as well as the servers
 			that respond. [GL #64]
 
-4900.	[cleanup]	Remove all uses of inet_aton(). [GL #13]
+4900.	[func]		Remove all uses of inet_aton(). As a result of this
+			change, IPv4 addresses are now only accepted in
+			dotted-quad format. [GL #13]
 
 4899.	[test]		Convert most of the remaining system tests to be able
 			to run in parallel, continuing the work from change
@@ -149,11 +152,11 @@
 
 4860.	[bug]		isc_int8_t should be signed char.  [RT #46973]
 
-4859.   [bug]           A loop was possible when attempting to validate
-                        unsigned CNAME responses from secure zones;
-                        this caused a delay in returning SERVFAIL and
-                        also increased the chances of encountering
-                        CVE-2017-3145. [RT #46839]
+4859.	[bug]		A loop was possible when attempting to validate
+			unsigned CNAME responses from secure zones;
+			this caused a delay in returning SERVFAIL and
+			also increased the chances of encountering
+			CVE-2017-3145. [RT #46839]
 
 4858.	[security]	Addresses could be referenced after being freed
 			in resolver.c, causing an assertion failure.
