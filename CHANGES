@@ -1,3 +1,6 @@
+4907.	[test]		Improved the reliabilty of the 'notify' system
+			test. [GL #59]
+
 4905.	[bug]		irs_resconf_load() ignored resolv.conf syntax errors
 			when "domain" or "search" options were present in that
 			file. [GL #110]
