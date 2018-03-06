@@ -56,9 +56,6 @@ ATF_TC_BODY(irs_resconf_load, tc) {
 		isc_result_t checkres;
 	} tests[] = {
 		{
-			"testdata/sortlist-v4.conf", ISC_R_SUCCESS,
-			NULL, ISC_R_SUCCESS
-		}, {
 			"testdata/domain.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {
@@ -81,6 +78,12 @@ ATF_TC_BODY(irs_resconf_load, tc) {
 			NULL, ISC_R_SUCCESS
 		}, {
 			"testdata/options.conf", ISC_R_SUCCESS,
+			NULL, ISC_R_SUCCESS
+		}, {
+			"testdata/options-bad-ndots.conf", ISC_R_RANGE,
+			NULL, ISC_R_SUCCESS
+		}, {
+			"testdata/options-empty.conf", ISC_R_UNEXPECTEDEND,
 			NULL, ISC_R_SUCCESS
 		}, {
 			"testdata/port.conf", ISC_R_SUCCESS,
