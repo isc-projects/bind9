@@ -1,3 +1,5 @@
+#!/bin/sh
+#
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -7,11 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-if [ "@CHECK_DSA@" -eq 0 ]; then
-	exit 1
-fi
-if [ ! -r /dev/random -o ! -r /dev/urandom ]; then
-	exit 1
-fi
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
+$FEATURETEST --with-dlz-filesystem ||  {
+        echo_i "DLZ filesystem driver not supported"
+        exit 255
+}
 exit 0
