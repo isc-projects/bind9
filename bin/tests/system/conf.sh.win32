@@ -170,6 +170,78 @@ NZD=@NZD_TOOLS@
 . ${TOP}/version
 
 #
+# Export all command paths and variables set above
+#
+export ARPANAME
+export BIGKEY
+export CDS
+export CHECKCONF
+export CHECKDS
+export CHECK_DSA
+export CHECKZONE
+export COVERAGE
+export CURL
+export DDNSCONFGEN
+export DELV
+export DESCRIPTION
+export DIFF
+export DIG
+export DNSTAPREAD
+export DOS2UNIX
+export DSFROMKEY
+export FEATURETEST
+export FSTRM_CAPTURE
+export GENCHECK
+export GENRANDOM
+export HAVEJSONSTATS
+export HAVEXMLSTATS
+export IMPORTKEY
+export JOURNALPRINT
+export KEYCREATE
+export KEYDELETE
+export KEYFRLAB
+export KEYGEN
+export KEYMGR
+export KEYSETTOOL
+export KEYSIGNER
+export KILL
+export KRB5_CONFIG
+export MAKEJOURNAL
+export MDIG
+export NAMED
+export NSEC3HASH
+export NSLOOKUP
+export NSUPDATE
+export NZD
+export NZD2NZF
+export PERL
+export PIPEQUERIES
+export PK11DEL
+export PK11GEN
+export PK11LIST
+export PSSUSPEND
+export PYTHON
+export RANDFILE
+export RESOLVE
+export REVOKE
+export RNDC
+export RNDCCONFGEN
+export RRCHECKER
+export SAMPLEUPDATE
+export SETTIME
+export SHELL
+export SIGNER
+export SOEXT
+export SUBDIRS
+export TESTSOCK6
+export TP
+export TSIGKEYGEN
+export VERIFY
+export WIRETEST
+export XMLLINT
+export ZLIB
+
+#
 # Set up color-coded test output
 #
 if test -t 1 && type tput > /dev/null; then
@@ -276,44 +348,3 @@ copy_setports() {
 	-e "s#${atsign}SYSTEMTESTTOP${atsign}#${SYSTEMTESTTOP}#g" \
 	-e "s#${atsign}SOEXT${atsign}#${SOEXT}#g" $1 > $2
 }
-
-#
-# Export command paths
-#
-export ARPANAME
-export BIGKEY
-export CHECKZONE
-export DESCRIPTION
-export DIG
-export FEATURETEST
-export FSTRM_CAPTURE
-export GENCHECK
-export JOURNALPRINT
-export KEYCREATE
-export KEYDELETE
-export KEYFRLAB
-export KEYGEN
-export KEYSETTOOL
-export KEYSIGNER
-export KRB5_CONFIG
-export MAKEJOURNAL
-export MDIG
-export NAMED
-export NSLOOKUP
-export NSUPDATE
-export NZD2NZF
-export PERL
-export PIPEQUERIES
-export PK11DEL
-export PK11GEN
-export PK11LIST
-export PSSUSPEND
-export PYTHON
-export RANDFILE
-export RESOLVE
-export RNDC
-export RRCHECKER
-export SAMPLEUPDATE
-export SIGNER
-export SUBDIRS
-export TESTSOCK6
