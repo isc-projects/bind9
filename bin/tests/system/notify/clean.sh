@@ -11,7 +11,7 @@
 #
 
 rm -f */named.memstats
-rm -f */named.run
+rm -f */named.run */named.run.prev
 rm -f */named.conf
 rm -f */named.port
 rm -f dig.out.?.ns5.test*
@@ -29,3 +29,4 @@ rm -f ns5/x21.bk-b.jnl
 rm -f ns5/x21.bk-c
 rm -f ns5/x21.bk-c.jnl
 rm -f ns5/x21.db.jnl
+rm -f tmp
