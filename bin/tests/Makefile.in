@@ -32,9 +32,8 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	atomic db dst master mem hashes names \
-		net rbt resolver sockaddr tasks timers system \
-		@PKCS11_TOOLS@
+SUBDIR =	atomic db dst master mem hashes names net rbt resolver \
+		sockaddr tasks timers system @PKCS11_TOOLS@
 
 # Test programs that are built by default:
 # cfg_test is needed for regenerating doc/misc/options
