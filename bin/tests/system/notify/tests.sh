@@ -79,7 +79,7 @@ try=0
 while test $try -lt 45
 do
     nextpart ns3/named.run > tmp
-    grep 'transfer of 'example/IN' from 10.53.0.2#.*success' tmp > /dev/null && break
+    grep "transfer of 'example/IN' from 10.53.0.2#.*success" tmp > /dev/null && break
     sleep 1
     try=`expr $try + 1`
 done
@@ -126,7 +126,7 @@ try=0
 while test $try -lt 45
 do
     nextpart ns3/named.run > tmp
-    grep 'transfer of 'example/IN' from 10.53.0.2#.*success' tmp > /dev/null && break
+    grep "transfer of 'example/IN' from 10.53.0.2#.*success" tmp > /dev/null && break
     sleep 1
     try=`expr $try + 1`
 done
