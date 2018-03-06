@@ -72,6 +72,9 @@ MAKEJOURNAL=$TOP/bin/tests/makejournal
 PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
 SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
+# extension for shared objects
+SOEXT=@SO@
+
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
 
@@ -289,7 +292,8 @@ copy_setports() {
         -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
         -e "s#@TOP@#${TOP}#g" \
         -e "s#@SRCTOP@#${SRCTOP}#g" \
-        -e "s#@SYSTEMTESTTOP@#${SYSTEMTESTTOP}#g" $1 > $2
+        -e "s#@SYSTEMTESTTOP@#${SYSTEMTESTTOP}#g" \
+        -e "s#@SOEXT@#${SOEXT}#g" $1 > $2
 }
 
 #

@@ -80,6 +80,9 @@ MAKEJOURNAL=$TOP/Build/$VSCONF/makejournal@EXEEXT@
 PIPEQUERIES=$TOP/Build/$VSCONF/pipequeries@EXEEXT@
 # to port SAMPLEUPDATE=$TOP/lib/samples/sample-update
 
+# extension for shared objects
+SOEXT=@SO@
+
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=NUL
 
@@ -259,18 +262,19 @@ copy_setports() {
     # tokens when it processes this file and produces conf.sh.
     atsign="@"
     sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
-        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
-        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
-        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
-        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
-        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
-        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
-        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
-        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
-        -e "s#${atsign}TOP${atsign}#${TOP}#g" \
-        -e "s#${atsign}SRCTOP${atsign}#${SRCTOP}#g" \
-        -e "s#${atsign}SYSTEMTESTTOP${atsign}#${SYSTEMTESTTOP}#g" $1 > $2
+	-e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
+	-e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
+	-e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
+	-e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
+	-e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
+	-e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
+	-e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
+	-e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
+	-e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
+	-e "s#${atsign}TOP${atsign}#${TOP}#g" \
+	-e "s#${atsign}SRCTOP${atsign}#${SRCTOP}#g" \
+	-e "s#${atsign}SYSTEMTESTTOP${atsign}#${SYSTEMTESTTOP}#g" \
+	-e "s#${atsign}SOEXT${atsign}#${SOEXT}#g" $1 > $2
 }
 
 #
