@@ -395,6 +395,9 @@ struct isc__socket {
 	SSL                     *tls;
 	BIO                     *tls_rbio;
 	BIO                     *tls_wbio;
+	unsigned char           *tls_writebuf;
+	size_t                  tls_writebuf_len;
+	isc_socketevent_t       *tls_wdev;
 #endif
 };
 
@@ -2280,6 +2283,9 @@ destroy(isc__socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
+#ifdef OPENSSL
+	INSIST(sock->tls_writebuf_len == 0U);
+#endif
 	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
 	if (sock->fd >= 0) {
@@ -2339,6 +2345,9 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->tls = NULL;
 	sock->tls_rbio = NULL;
 	sock->tls_wbio = NULL;
+	sock->tls_writebuf = NULL;
+	sock->tls_writebuf_len = 0U;
+	sock->tls_wdev = NULL;
 #endif
 	/*
 	 * Set up cmsg buffers.
@@ -2461,11 +2470,18 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(!sock->pending_accept);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
+#ifdef OPENSSL
+	INSIST(sock->tls_writebuf_len == 0U);
+#endif
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(!ISC_LINK_LINKED(sock, link));
 
 #ifdef OPENSSL
+	if (sock->tls_writebuf == NULL) {
+		isc_mem_free(sock->manager->mctx, sock->tls_writebuf);
+		sock->tls_writebuf = NULL;
+	}
 	if (sock->tls != NULL) {
 		/*
 		 * This also takes care of freeing any linked BIOs.
@@ -3987,6 +4003,136 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 		return;
 	}
 
+#ifdef OPENSSL
+	/*
+	 * TLS: First, send all of the SSL library's output for this
+	 * socket that's pending from the last send to the TCP stream.
+	 */
+	if (sock->tls_writebuf_len > 0U) {
+		ssize_t n;
+		int send_errno;
+		int attempts = 0;
+		int status;
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+		char strbuf[ISC_STRERRORSIZE];
+
+		INSIST(sock->type == isc_sockettype_tcp);
+		INSIST(SOCK_TLS(sock));
+		INSIST(sock->tls_writebuf != NULL);
+
+	resend:
+		n = send(sock->fd, sock->tls_writebuf,
+			 sock->tls_writebuf_len, 0);
+		send_errno = errno;
+
+		/*
+		 * Check for error or block condition.
+		 */
+		if (n < 0) {
+			if (send_errno == EINTR && ++attempts < NRETRIES)
+				goto resend;
+
+			if (SOFT_ERROR(send_errno)) {
+				if (errno == EWOULDBLOCK || errno == EAGAIN)
+					sock->tls_wdev->result = ISC_R_WOULDBLOCK;
+				status = DOIO_SOFT;
+				goto next;
+			}
+
+#define SOFT_OR_HARD(_system, _isc)					\
+			if (send_errno == _system) {			\
+				if (sock->connected) {			\
+					sock->tls_wdev->result = _isc;		\
+					inc_stats(sock->manager->stats, \
+						  sock->statsindex[STATID_SENDFAIL]); \
+					status = DOIO_HARD;		\
+					goto next;			\
+				}					\
+				status = DOIO_SOFT;			\
+				goto next;				\
+			}
+#define ALWAYS_HARD(_system, _isc)					\
+			if (send_errno == _system) {			\
+				sock->tls_wdev->result = _isc;			\
+				inc_stats(sock->manager->stats,		\
+					  sock->statsindex[STATID_SENDFAIL]); \
+				status = DOIO_HARD;			\
+				goto next;				\
+			}
+
+			SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
+			ALWAYS_HARD(EACCES, ISC_R_NOPERM);
+			ALWAYS_HARD(EAFNOSUPPORT, ISC_R_ADDRNOTAVAIL);
+			ALWAYS_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
+			ALWAYS_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+#ifdef EHOSTDOWN
+			ALWAYS_HARD(EHOSTDOWN, ISC_R_HOSTUNREACH);
+#endif
+			ALWAYS_HARD(ENETUNREACH, ISC_R_NETUNREACH);
+			ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
+			ALWAYS_HARD(EPERM, ISC_R_HOSTUNREACH);
+			ALWAYS_HARD(EPIPE, ISC_R_NOTCONNECTED);
+			ALWAYS_HARD(ECONNRESET, ISC_R_CONNECTIONRESET);
+
+#undef SOFT_OR_HARD
+#undef ALWAYS_HARD
+
+			/*
+			 * The other error types depend on whether or not the
+			 * socket is UDP or TCP.  If it is UDP, some errors
+			 * that we expect to be fatal under TCP are merely
+			 * annoying, and are really soft errors.
+			 *
+			 * However, these soft errors are still returned as
+			 * a status.
+			 */
+			isc_sockaddr_format(&sock->tls_wdev->address, addrbuf, sizeof(addrbuf));
+			isc__strerror(send_errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__, "internal_send: %s: %s",
+					 addrbuf, strbuf);
+			sock->tls_wdev->result = isc__errno2result(send_errno);
+			inc_stats(sock->manager->stats,
+				  sock->statsindex[STATID_SENDFAIL]);
+			status = DOIO_HARD;
+
+		next:
+			if (status == DOIO_HARD) {
+				send_senddone_event(sock, &sock->tls_wdev);
+			}
+		} else if (n == 0) {
+			inc_stats(sock->manager->stats,
+				  sock->statsindex[STATID_SENDFAIL]);
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_send: send() %s 0",
+					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+							ISC_MSG_RETURNED, "returned"));
+		} else {
+			unsigned char *tmp;
+
+			tmp = isc_mem_allocate(sock->manager->mctx, sock->tls_writebuf_len - n);
+			if (tmp == NULL) {
+				sock->tls_wdev->result = ISC_R_NOMEMORY;
+				send_senddone_event(sock, &sock->tls_wdev);
+				goto poke;
+			}
+			memmove(tmp, sock->tls_writebuf + n, sock->tls_writebuf_len - n);
+			isc_mem_free(sock->manager->mctx, sock->tls_writebuf);
+
+			sock->tls_writebuf = tmp;
+			sock->tls_writebuf_len -= n;
+		}
+
+		/*
+		 * If there's more SSL encrypted output to be written to
+		 * the TCP, it has to go out on the socket first before
+		 * we'll send any more unencrypted data to the SSL
+		 * library.
+		 */
+		if (sock->tls_writebuf_len != 0U) {
+			goto poke;
+		}
+	}
+#endif
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
 	 * limits here, currently.
@@ -4007,9 +4153,14 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	}
 
  poke:
-	if (!ISC_LIST_EMPTY(sock->send_list))
+	if (!ISC_LIST_EMPTY(sock->send_list)) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
-
+	}
+#ifdef OPENSSL
+	else if (sock->tls_writebuf_len > 0U) {
+		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+	}
+#endif
 	UNLOCK(&sock->lock);
 }
 
@@ -6384,24 +6535,37 @@ isc__socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		}
 	}
 
-	if (((how & ISC_SOCKCANCEL_SEND) == ISC_SOCKCANCEL_SEND)
-	    && !ISC_LIST_EMPTY(sock->send_list)) {
-		isc_socketevent_t      *dev;
-		isc_socketevent_t      *next;
-		isc_task_t	       *current_task;
+	if ((how & ISC_SOCKCANCEL_SEND) == ISC_SOCKCANCEL_SEND) {
+		if (!ISC_LIST_EMPTY(sock->send_list)) {
+			isc_socketevent_t      *dev;
+			isc_socketevent_t      *next;
+			isc_task_t	       *current_task;
 
-		dev = ISC_LIST_HEAD(sock->send_list);
+			dev = ISC_LIST_HEAD(sock->send_list);
 
-		while (dev != NULL) {
-			current_task = dev->ev_sender;
-			next = ISC_LIST_NEXT(dev, ev_link);
+			while (dev != NULL) {
+				current_task = dev->ev_sender;
+				next = ISC_LIST_NEXT(dev, ev_link);
 
-			if ((task == NULL) || (task == current_task)) {
-				dev->result = ISC_R_CANCELED;
-				send_senddone_event(sock, &dev);
+				if ((task == NULL) || (task == current_task)) {
+					dev->result = ISC_R_CANCELED;
+					send_senddone_event(sock, &dev);
+				}
+				dev = next;
 			}
-			dev = next;
 		}
+#ifdef OPENSSL
+		sock->tls_writebuf_len = 0U;
+		if (sock->tls_wdev != NULL) {
+			if ((task == NULL) ||
+			    (task == sock->tls_wdev->ev_sender))
+			{
+				sock->tls_wdev->result = ISC_R_CANCELED;
+				send_senddone_event(sock, &sock->tls_wdev);
+			}
+			sock->tls_wdev = NULL;
+		}
+#endif
 	}
 
 	if (((how & ISC_SOCKCANCEL_ACCEPT) == ISC_SOCKCANCEL_ACCEPT)
