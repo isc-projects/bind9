@@ -83,6 +83,8 @@ stages:
 .build: &build_job
   stage: build
   before_script:
+    - export PATH="/usr/lib/ccache:$PATH"
+    - export CCACHE_DIR="$CI_PROJECT_DIR/.ccache"
     - ./autogen.sh
   script:
     - ./configure --with-libtool --disable-static
@@ -90,6 +92,10 @@ stages:
   artifacts:
     expire_in: '1 hour'
     untracked: true
+  cache:
+    key: ccache
+    paths:
+    - .ccache/
 
 .test: &test_job
   stage: test
