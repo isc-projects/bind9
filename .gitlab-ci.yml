@@ -90,6 +90,10 @@ stages:
   artifacts:
     expire_in: '1 hour'
     untracked: true
+  cache:
+    key: ccache
+    paths:
+    - .ccache/
 
 .test: &test_job
   stage: test
