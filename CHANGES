@@ -1,3 +1,6 @@
+4905.	[bug]		named-checkconf did not detect in-view zone collisions.
+			[GL #125]
+
 4908.	[test]		Eliminated unnecessary waiting in the allow_query
 			system test. Also changed its name to allow-query.
 			[GL #81]
