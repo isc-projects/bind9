@@ -2311,7 +2311,7 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	if (dnsrps_enabled) {
 		cfg_obj_log(rpz_obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
 			    "\"dnsrps-enable yes\" but"
-			    " with `./configure --enable-dnsrps`");
+			    " without `./configure --enable-dnsrps`");
 		return (ISC_R_FAILURE);
 	}
 #else
