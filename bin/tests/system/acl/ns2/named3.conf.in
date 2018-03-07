@@ -33,17 +33,17 @@ options {
 };
 
 key one {
-	algorithm hmac-md5;
+	algorithm hmac-sha256;
 	secret "1234abcd8765";
 };
 
 key two {
-	algorithm hmac-md5;
+	algorithm hmac-sha256;
 	secret "1234abcd8765";
 };
 
 key three {
-	algorithm hmac-md5;
+	algorithm hmac-sha256;
 	secret "1234abcd8765";
 };
 

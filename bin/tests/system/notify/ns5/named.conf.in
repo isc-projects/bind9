@@ -10,17 +10,17 @@
  */
 
 key "a" {
-	algorithm "hmac-md5";
+	algorithm "hmac-sha256";
 	secret "aaaaaaaaaaaaaaaaaaaa";
 };
 
 key "b" {
-	algorithm "hmac-md5";
+	algorithm "hmac-sha256";
 	secret "bbbbbbbbbbbbbbbbbbbb";
 };
 
 key "c" {
-	algorithm "hmac-md5";
+	algorithm "hmac-sha256";
 	secret "cccccccccccccccccccc";
 };
 

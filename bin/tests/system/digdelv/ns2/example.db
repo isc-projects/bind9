@@ -38,12 +38,15 @@ foo			SSHFP	2 1 123456789abcdef67890123456789abcdef67890
 ;;
 ;; we are not testing DNSSEC behavior, so we don't care about the semantics
 ;; of the following records.
-dnskey                  300     DNSKEY  256 3 1 (
-                                        AQPTpWyReB/e9Ii6mVGnakS8hX2zkh/iUYAg
-                                        +Ge4noWROpTWOIBvm76zeJPWs4Zfqa1IsswD
-                                        Ix5Mqeg0zwclz59uecKsKyx5w9IhtZ8plc4R
-                                        b9VIE5x7KNHAYTvTO5d4S8M=
-                                        )
+dnskey                  300     DNSKEY 256 3 8 (
+                    AwEAAaWmCoDpj2K59zcpqnmnQM7IC/XbjS6jIP7uTBR4X7p1bdQJzAeo
+                    EnMhnpnxPp0j+20eZm4847DB2U+HuHy79Mvqd3aozTmfBJvzjKs9qyba
+                    zY/ZHn6BDYxNJiFfjSS/VJ1KuQPDbpCzhm2hbvT5s9nSOaG0WyRk+d+R
+                    qEca11E7ZKkmmNiGlyzMAgfmTTBwgxWBAAhvd9nU1GqD6eQ6Z63hpTc/
+                    KDIHnFTo7pOcZ4z5urIKUMCMcFytedETlEoR5CIWGPdQq2eIEEMfn5ld
+                    QqdEZRHVErD9og8aluJ2s767HZb8LzjCfYgBFoT9/n48T75oZLEKtSkG
+                    /idCeeQlaLU=
+                    )
 
 ; TTL of 3 weeks
 weeks		1814400	A	10.53.0.2

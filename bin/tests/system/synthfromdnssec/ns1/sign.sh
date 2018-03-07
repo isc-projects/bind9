@@ -25,7 +25,7 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-keyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA512 -b 1024 -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 

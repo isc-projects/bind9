@@ -62,7 +62,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -70,7 +70,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +multi +norrcomments works for soa (when default is rrcomments)($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -78,7 +78,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +rrcomments works for DNSKEY($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895$" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -86,7 +86,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +short +rrcomments works for DNSKEY ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895$" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -94,7 +94,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +short +nosplit works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +nosplit DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=$" < dig.out.test$n > /dev/null || ret=1
+  grep "T9/n48T75oZLEKtSkG/idCeeQlaLU=$" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -102,7 +102,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +short +rrcomments works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
+  grep "aLU=  ; ZSK; alg = RSASHA256 ; key id = 36895$" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -136,7 +136,7 @@ if [ -x ${DIG} ] ; then
   echo_i "checking dig +short +rrcomments works($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < dig.out.test$n > /dev/null || ret=1
+  grep "aLU=  ; ZSK; alg = RSASHA256 ; key id = 36895$" < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -583,7 +583,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < delv.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -591,7 +591,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +multi +norrcomments works for soa (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < delv.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -599,7 +599,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +rrcomments works for DNSKEY($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -607,7 +607,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +short +rrcomments works for DNSKEY ($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
+  grep "; ZSK; alg = RSASHA256 ; key id = 36895" < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -615,7 +615,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +short +rrcomments works ($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +short +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "S8M=  ; ZSK; alg = RSAMD5 ; key id = 30795$" < delv.out.test$n > /dev/null || ret=1
+  grep "aLU=  ; ZSK; alg = RSASHA256 ; key id = 36895$" < delv.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -623,7 +623,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +short +nosplit works ($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +short +nosplit DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=" < delv.out.test$n > /dev/null || ret=1
+  grep "T9/n48T75oZLEKtSkG/idCeeQlaLU=" < delv.out.test$n > /dev/null || ret=1
   if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
   f=`awk '{print NF}' < delv.out.test$n`
   test "${f:-0}" -eq 14 || ret=1
@@ -634,7 +634,7 @@ if [ -x ${DELV} ] ; then
   echo_i "checking delv +short +nosplit +norrcomments works ($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +short +nosplit +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "Z8plc4Rb9VIE5x7KNHAYTvTO5d4S8M=$" < delv.out.test$n > /dev/null || ret=1
+  grep "T9/n48T75oZLEKtSkG/idCeeQlaLU=$" < delv.out.test$n > /dev/null || ret=1
   if test `wc -l < delv.out.test$n` != 1 ; then ret=1 ; fi
   f=`awk '{print NF}' < delv.out.test$n`
   test "${f:-0}" -eq 4 || ret=1

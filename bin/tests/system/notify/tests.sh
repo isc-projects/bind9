@@ -186,17 +186,17 @@ ret=0
 $NSUPDATE << EOF
 server 10.53.0.5 ${PORT}
 zone x21
-key a aaaaaaaaaaaaaaaaaaaa
+key hmac-sha256:a aaaaaaaaaaaaaaaaaaaa
 update add added.x21 0 in txt "test string"
 send
 EOF
 
 for i in 1 2 3 4 5 6 7 8 9
 do
-	$DIG $DIGOPTS added.x21. -y b:bbbbbbbbbbbbbbbbbbbb @10.53.0.5 \
-		txt > dig.out.b.ns5.test$n || ret=1
-	$DIG $DIGOPTS added.x21. -y c:cccccccccccccccccccc @10.53.0.5 \
-		txt > dig.out.c.ns5.test$n || ret=1
+	$DIG $DIGOPTS added.x21. -y hmac-sha256:b:bbbbbbbbbbbbbbbbbbbb \
+		@10.53.0.5 txt > dig.out.b.ns5.test$n || ret=1
+	$DIG $DIGOPTS added.x21. -y hmac-sha256:c:cccccccccccccccccccc \
+		@10.53.0.5 txt > dig.out.c.ns5.test$n || ret=1
 	grep "test string" dig.out.b.ns5.test$n > /dev/null &&
 	grep "test string" dig.out.c.ns5.test$n > /dev/null &&
         break
