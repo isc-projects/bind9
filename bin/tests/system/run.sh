@@ -31,8 +31,13 @@ else
 	clean=true
 fi
 
-while getopts "knp:r" flag; do
+while getopts "knp:r-:" flag; do
     case "$flag" in
+	-) case "${OPTARG}" in
+               keep) stopservers=false ;;
+               noclean) clean=false ;;
+           esac
+           ;;
 	k) stopservers=false ;;
 	n) clean=false ;;
 	p) baseport=$OPTARG ;;
