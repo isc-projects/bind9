@@ -191,7 +191,7 @@ sub start_server {
 			close FH;
 			$command .= "$options";
 		} else {
-			$command .= "-D $server ";
+			$command .= "-D $test-$server ";
 			$command .= "-X named.lock ";
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
