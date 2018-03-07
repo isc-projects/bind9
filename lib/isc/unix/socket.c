@@ -395,8 +395,9 @@ struct isc__socket {
 	SSL                     *tls;
 	BIO                     *tls_rbio;
 	BIO                     *tls_wbio;
-	unsigned char           *tls_writebuf;
-	size_t                  tls_writebuf_len;
+	unsigned char           *tls_wbuf;
+	size_t                  tls_wbuf_length;
+	size_t                  tls_wbuf_allocation;
 	isc_socketevent_t       *tls_wdev;
 #endif
 };
@@ -2070,6 +2071,79 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	return (DOIO_SUCCESS);
 }
 
+#ifdef OPENSSL
+
+static isc_result_t
+doio_tls_encryptbuffer(isc__socket_t *sock, void *data, size_t length) {
+	int n;
+
+	while (length > 0) {
+		n = SSL_write(sock->tls, data, length);
+	}
+}
+
+static int
+doio_tls_send(isc__socket_t *sock, isc_socketevent_t *dev) {
+	isc_buffer_t *buffer;
+	isc_region_t used;
+
+	/*
+	 * XXXMUKS: Carefully handle ISC_SOCKFLAG_NORETRY case. We
+	 * should not queue encrypted data in that case.
+	 */
+
+	/*
+	 * If TLS session is not yet ready, queue the new request.
+	 */
+	if (!SSL_is_init_finished(sock->tls)) {
+		dev->result = ISC_R_WOULDBLOCK;
+		return (DOIO_SOFT);
+	}
+
+	/*
+	 * If there is already encrypted data waiting to be sent, queue
+	 * the new request.
+	 */
+	if (sock->tls_wbuf_length > 0) {
+		dev->result = ISC_R_WOULDBLOCK;
+		return (DOIO_SOFT);
+	}
+
+	/*
+	 * Process the event's buffers entirely via OpenSSL and queue it
+	 * to be sent out.
+	 */
+
+	INSIST(dev->n == 0);
+
+	buffer = ISC_LIST_HEAD(dev->bufferlist);
+	if (buffer == NULL) {
+		doio_tls_encryptbuffer(sock, dev->region.base,
+				       dev->region.length);
+	} else {
+		while (buffer != NULL) {
+			isc_buffer_usedregion(buffer, &used);
+			doio_tls_encryptbuffer(sock, used.base, used.length);
+			buffer = ISC_LIST_NEXT(buffer, link);
+		}
+	}
+
+	/*
+	 * Attempt to send the encrypted data synchronously here. For
+	 * what doesn't succeed, we'll send it later.
+	 */
+
+	/*
+	 * Set ->tls_wdev if queuing it. In this case, return a
+	 * DOIO_STATUS that will not cause dev to be queued to the
+	 * waiting list (because we handle it in tls->wdev.
+	 */
+
+	return (0);
+}
+
+#endif /* OPENSSL */
+
 /*
  * Returns:
  *	DOIO_SUCCESS	The operation succeeded.  dev->result contains
@@ -2093,6 +2167,12 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	int attempts = 0;
 	int send_errno;
 	char strbuf[ISC_STRERRORSIZE];
+
+#ifdef OPENSSL
+	if (SOCK_TLS(sock)) {
+		return (doio_tls_send(sock, dev));
+	}
+#endif /* OPENSSL */
 
 	build_msghdr_send(sock, dev, &msghdr, iov, &write_count);
 
@@ -2284,7 +2364,7 @@ destroy(isc__socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 #ifdef OPENSSL
-	INSIST(sock->tls_writebuf_len == 0U);
+	INSIST(sock->tls_wbuf_length == 0U);
 #endif
 	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
@@ -2345,8 +2425,8 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->tls = NULL;
 	sock->tls_rbio = NULL;
 	sock->tls_wbio = NULL;
-	sock->tls_writebuf = NULL;
-	sock->tls_writebuf_len = 0U;
+	sock->tls_wbuf = NULL;
+	sock->tls_wbuf_length = 0U;
 	sock->tls_wdev = NULL;
 #endif
 	/*
@@ -2471,16 +2551,16 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 #ifdef OPENSSL
-	INSIST(sock->tls_writebuf_len == 0U);
+	INSIST(sock->tls_wbuf_length == 0U);
 #endif
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(!ISC_LINK_LINKED(sock, link));
 
 #ifdef OPENSSL
-	if (sock->tls_writebuf == NULL) {
-		isc_mem_free(sock->manager->mctx, sock->tls_writebuf);
-		sock->tls_writebuf = NULL;
+	if (sock->tls_wbuf == NULL) {
+		isc_mem_free(sock->manager->mctx, sock->tls_wbuf);
+		sock->tls_wbuf = NULL;
 	}
 	if (sock->tls != NULL) {
 		/*
@@ -4008,7 +4088,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	 * TLS: First, send all of the SSL library's output for this
 	 * socket that's pending from the last send to the TCP stream.
 	 */
-	if (sock->tls_writebuf_len > 0U) {
+	if (sock->tls_wbuf_length > 0U) {
 		ssize_t n;
 		int send_errno;
 		int attempts = 0;
@@ -4018,12 +4098,17 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 
 		INSIST(sock->type == isc_sockettype_tcp);
 		INSIST(SOCK_TLS(sock));
-		INSIST(sock->tls_writebuf != NULL);
+		INSIST(sock->tls_wbuf != NULL);
 
 	resend:
-		n = send(sock->fd, sock->tls_writebuf,
-			 sock->tls_writebuf_len, 0);
+		n = send(sock->fd, sock->tls_wbuf,
+			 sock->tls_wbuf_length, 0);
 		send_errno = errno;
+
+		/*
+		 * XXXMUKS: there may be no ->tls_wdev here (during TLS
+		 * handshake or negotiation).
+		 */
 
 		/*
 		 * Check for error or block condition.
@@ -4096,7 +4181,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 			status = DOIO_HARD;
 
 		next:
-			if (status == DOIO_HARD) {
+			if (status == DOIO_HARD && sock->tls_wdev != NULL) {
 				send_senddone_event(sock, &sock->tls_wdev);
 			}
 		} else if (n == 0) {
@@ -4107,19 +4192,8 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 							ISC_MSG_RETURNED, "returned"));
 		} else {
-			unsigned char *tmp;
-
-			tmp = isc_mem_allocate(sock->manager->mctx, sock->tls_writebuf_len - n);
-			if (tmp == NULL) {
-				sock->tls_wdev->result = ISC_R_NOMEMORY;
-				send_senddone_event(sock, &sock->tls_wdev);
-				goto poke;
-			}
-			memmove(tmp, sock->tls_writebuf + n, sock->tls_writebuf_len - n);
-			isc_mem_free(sock->manager->mctx, sock->tls_writebuf);
-
-			sock->tls_writebuf = tmp;
-			sock->tls_writebuf_len -= n;
+			memmove(sock->tls_wbuf, sock->tls_wbuf + n, sock->tls_wbuf_length - n);
+			sock->tls_wbuf_length -= n;
 		}
 
 		/*
@@ -4128,8 +4202,18 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 		 * we'll send any more unencrypted data to the SSL
 		 * library.
 		 */
-		if (sock->tls_writebuf_len != 0U) {
+		if (sock->tls_wbuf_length != 0U) {
 			goto poke;
+		}
+
+		/*
+		 * XXXMUKS: We're done sending encrypted data. Post its
+		 * completion event (if there is one; during the TLS
+		 * handshake, there's none).
+		 */
+		if (sock->tls_wdev != NULL) {
+			sock->tls_wdev->result = ISC_R_SUCCESS;
+			send_senddone_event(sock, &sock->tls_wdev);
 		}
 	}
 #endif
@@ -4157,7 +4241,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
 	}
 #ifdef OPENSSL
-	else if (sock->tls_writebuf_len > 0U) {
+	else if (sock->tls_wbuf_length > 0U) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
 	}
 #endif
@@ -6555,7 +6639,7 @@ isc__socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 			}
 		}
 #ifdef OPENSSL
-		sock->tls_writebuf_len = 0U;
+		sock->tls_wbuf_length = 0U;
 		if (sock->tls_wdev != NULL) {
 			if ((task == NULL) ||
 			    (task == sock->tls_wdev->ev_sender))
