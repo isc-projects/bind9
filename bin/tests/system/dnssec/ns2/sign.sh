@@ -29,8 +29,8 @@ do
 	cp ../ns3/dsset-$subdomain.example$TP .
 done
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 1024 -n zone $zone`
+keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 1024 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -89,8 +89,8 @@ zone=in-addr.arpa.
 infile=in-addr.arpa.db.in
 zonefile=in-addr.arpa.db
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 1024 -n zone $zone`
+keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 1024 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
