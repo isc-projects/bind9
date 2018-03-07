@@ -1,3 +1,6 @@
+4908.	[test]		Re-implemented older unit tests in bin/tests to ATF,
+			removed the lib/tests unit testing library. [GL #115]
+
 4907.	[test]		Improved the reliabilty of the 'notify' system
 			test. [GL #59]
 
