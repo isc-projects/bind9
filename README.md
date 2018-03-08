@@ -64,18 +64,15 @@ For up-to-date release notes and errata, see
 Please report assertion failure errors and suspected security issues to
 [security-officer@isc.org](mailto:security-officer@isc.org).
 
-General bug reports can be sent to
-[bind9-bugs@isc.org](mailto:bind9-bugs@isc.org).
+General bug reports and feature requests can be filled at
+[https://gitlab.isc.org/isc-projects/bind9](https://gitlab.isc.org/isc-projects/bind9).
 
-Feature requests can be sent to
-[bind-suggest@isc.org](mailto:bind-suggest@isc.org).
-
-Please note that, while tickets submitted to ISC's ticketing system
-are not initially publicly readable by default, they can be made publicly
-acessible afterward.  Please do not include information in bug reports that
-you consider to be confidential. In particular, when sending the contents of
-your configuration file, it is advisable to obscure key secrets: this can
-be done automatically by using `named-checkconf -px`.
+Please note that, unless you explicitly select the newly created issue
+as confidential, the issues will be publicly readable. Please do not
+include information in bug reports that you consider to be confidential.
+In particular, when sending the contents of your configuration file,
+it is advisable to obscure key secrets: this can be done automatically
+by using named-checkconf -px.
 
 Professional support and training for BIND are available from
 ISC at [https://www.isc.org/support](https://www.isc.org/support).
@@ -97,12 +94,11 @@ Information for BIND contributors can be found in the following files:
 - BIND 9 code style: [doc/dev/style.md](doc/dev/style.md)
 - BIND architecture and developer guide: [doc/dev/dev.md](doc/dev/dev.md)
 
-Patches for BIND may be submitted either as Github pull requests
-or via email.  When submitting a patch via email, please prepend the
-subject header with "`[PATCH]`" so it will be easier for us to find. 
-If your patch introduces a new feature in BIND, please submit it to
-[bind-suggest@isc.org](mailto:bind-suggest@isc.org); if it fixes a bug,
-please submit it to [bind9-bugs@isc.org](mailto:bind9-bugs@isc.org).
+Patches for BIND may be submitted as GitLab [Merge Requests](https://gitlab.isc.org/isc-projects/bind9/merge_requests).
+By default, external contributors doesn't have ability to fork BIND in
+the ISC's GitLab.  If you want to contribute code to BIND, please ask
+us to give you to the permissions to create projects in the
+[GitLab](https://gitlab.isc.org).
 
 ### <a name="features"/> BIND 9.13 features
 
