@@ -1647,6 +1647,20 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
  */
 
 isc_result_t
+dns__zone_find_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		    isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
+		    dst_key_t **keys, unsigned int *nkeys);
+/*<%
+ * 	Find up to 'maxkeys' DNSSEC keys used for signing version 'ver' of
+ * 	database 'db' for zone 'zone' in its key directory, then load these
+ * 	keys into 'keys'.  Only load the public part of a given key if it is
+ * 	not active at timestamp 'now'.  Store the number of keys found in
+ * 	'nkeys'.
+ *
+ *	(Not intended for use outside this module and associated tests.)
+ */
+
+isc_result_t
 dns__zone_update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		      dst_key_t *zone_keys[], unsigned int nkeys,
 		      dns_zone_t *zone, isc_stdtime_t inception,
