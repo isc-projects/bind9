@@ -504,3 +504,73 @@ dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 	return (result);
 }
+
+isc_result_t
+dns_test_diff_fromchanges(dns_diff_t *diff, const zonechange_t *changes) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned char rdata_buf[1024];
+	dns_difftuple_t *tuple = NULL;
+	isc_consttextregion_t region;
+	dns_rdatatype_t rdatatype;
+	dns_fixedname_t fixedname;
+	dns_rdata_t rdata;
+	dns_name_t *name;
+	size_t i;
+
+	REQUIRE(diff != NULL);
+	REQUIRE(changes != NULL);
+
+	dns_diff_init(mctx, diff);
+
+	for (i = 0; changes[i].owner != NULL; i++) {
+		/*
+		 * Parse owner name.
+		 */
+		dns_fixedname_init(&fixedname);
+		name = dns_fixedname_name(&fixedname);
+		result = dns_name_fromstring(name, changes[i].owner, 0, mctx);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Parse RDATA type.
+		 */
+		region.base = changes[i].type;
+		region.length = strlen(changes[i].type);
+		result = dns_rdatatype_fromtext(&rdatatype,
+						(isc_textregion_t *)&region);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Parse RDATA.
+		 */
+		dns_rdata_init(&rdata);
+		result = dns_test_rdata_fromstring(&rdata, dns_rdataclass_in,
+						   rdatatype, rdata_buf,
+						   sizeof(rdata_buf),
+						   changes[i].rdata);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Create a diff tuple for the parsed change and append it to
+		 * the diff.
+		 */
+		result = dns_difftuple_create(mctx, changes[i].op, name,
+					      changes[i].ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+		dns_diff_append(diff, &tuple);
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		dns_diff_clear(diff);
+	}
+
+	return (result);
+}
