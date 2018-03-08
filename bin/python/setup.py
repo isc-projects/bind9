@@ -20,6 +20,6 @@ setup(name='isc',
       description='Python functions to support BIND utilities',
       url='https://www.isc.org/bind',
       author='Internet Systems Consortium, Inc',
-      author_email='bind9-bugs@isc.org',
+      author_email='info@isc.org',
       license='ISC',
       packages=['isc'])
