@@ -26,8 +26,8 @@ $\ = "\n";		# set output record separator
 
 line: while (<>) {
     ($Fld1,$Fld2,$Fld3,$Fld4) = split(' ', $_, 9999);
-    $change = 0 if (!$master && $Fld1 == "---" &&
-		    $Fld3 == "released" && Fld4 == "---");
+    $change = 0 if (!$master && $Fld1 eq "---" &&
+		    $Fld3 eq "released" && Fld4 eq "---");
     if ($Fld1 =~ /^[1-9][0-9]*\.$/ && $Fld2 =~ /^\[.*\]$/) {
 	if ($change != 0 && $Fld1 >= $change) {
 	    print 'bad change number', $Fld1;
