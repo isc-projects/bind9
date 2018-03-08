@@ -25,6 +25,7 @@
 #include <isc/rwlock.h>
 
 #include <dns/catz.h>
+#include <dns/diff.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
@@ -48,6 +49,11 @@ typedef enum {
 	dns_zonestat_terse,
 	dns_zonestat_full
 } dns_zonestat_level_t;
+
+typedef struct {
+	dns_diff_t	*diff;
+	isc_boolean_t	offline;
+} dns_zonediff_t;
 
 #define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */
 #define DNS_ZONEOPT_PARENTS	  0x00000002U	/*%< perform parent checks */
