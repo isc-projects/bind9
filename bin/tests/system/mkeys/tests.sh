@@ -685,7 +685,7 @@ rm -f ns5/managed-keys.bind*
 cp ns5/named2.args ns5/named.args
 nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns5
-wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
+wait_for_log "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run
 # ns1 should still REFUSE queries from ns5, so resolving should be impossible
 $DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.a.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns5.a.test$n > /dev/null && ret=1
@@ -694,9 +694,9 @@ grep "status: SERVFAIL" dig.out.ns5.a.test$n > /dev/null || ret=1
 # Allow queries from ns5 to ns1
 copy_setports ns1/named3.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
-mkeys_reconfig_on 1
 nextpart ns5/named.run > /dev/null
-wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
+mkeys_reconfig_on 1
+wait_for_log "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
 # correctly refreshed and resolving should succeed
 $DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
