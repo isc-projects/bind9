@@ -1646,6 +1646,21 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
  *	Pointer to null-terminated file name, or NULL.
  */
 
+isc_result_t
+dns__zone_update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
+		      dst_key_t *zone_keys[], unsigned int nkeys,
+		      dns_zone_t *zone, isc_stdtime_t inception,
+		      isc_stdtime_t expire, isc_stdtime_t now,
+		      isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
+		      dns_zonediff_t *zonediff);
+/*%<
+ *	Add/remove DNSSEC signatures for the list of "raw" zone changes
+ *	supplied in 'diff'.  Gradually remove tuples from 'diff' and append
+ *	them to 'zonediff' along with tuples representing relevant signature
+ *	changes.
+ *
+ *	(Not intended for use outside this module and associated tests.)
+ */
 
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
