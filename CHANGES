@@ -1,3 +1,6 @@
+4910.	[func]		Update util/check-changes to work on release branches.
+			[GL #113]
+
 4908.	[test]		Eliminated unnecessary waiting in the allow_query
 			system test. Also changed its name to allow-query.
 			[GL #81]
