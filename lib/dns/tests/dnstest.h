@@ -54,6 +54,22 @@ dns_test_end(void);
 isc_result_t
 dns_test_makeview(const char *name, dns_view_t **viewp);
 
+/*%
+ * Create a zone with origin 'name', return a pointer to the zone object in
+ * 'zonep'.
+ *
+ * If 'view' is set, 'createview' must be false; this will cause the returned
+ * zone to be assigned to the passed view.
+ *
+ * If 'view' is not set and 'createview' is true, create a new view and add the
+ * returned zone to it.  This imposes two requirements on the caller: 1) the
+ * returned zone has to be subsequently assigned to a zone manager, otherwise
+ * its cleanup will fail, 2) the created view has to be cleaned up by the
+ * caller.
+ *
+ * If 'view' is not set and 'createview' is false, the returned zone will not
+ * be assigned to any view.
+ */
 isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 				  isc_boolean_t keepview);
