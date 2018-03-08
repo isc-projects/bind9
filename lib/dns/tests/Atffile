@@ -25,6 +25,7 @@ tp: rdata_test
 tp: rdataset_test
 tp: rdatasetstats_test
 tp: rsa_test
+tp: sigs_test
 tp: time_test
 tp: tsig_test
 tp: update_test
