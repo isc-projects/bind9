@@ -15,8 +15,6 @@
 			when "domain" or "search" options were present in that
 			file. [GL #110]
 
-4904.	[bug]		Temporarily revert change #4859. [GL #124]
-
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
 			update. [GL #112]
@@ -39,6 +37,11 @@
 4892.	[bug]		named could leak memory when "rndc reload" was invoked
 			before all zone loading actions triggered by a previous
 			"rndc reload" command were completed. [RT #47076]
+
+	--- 9.10.7 released ---
+	--- 9.10.7rc2 released ---
+
+4904.	[bug]		Temporarily revert change #4859. [GL #124]
 
 	--- 9.10.7rc1 released ---
 
