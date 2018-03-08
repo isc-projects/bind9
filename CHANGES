@@ -1,3 +1,6 @@
+4911.	[test]		Improved the reliability of the 'mkeys' system test.
+			[GL #128]
+
 4910.	[func]		Update util/check-changes to work on release branches.
 			[GL #113]
 
@@ -8,7 +11,7 @@
 			system test. Also changed its name to allow-query.
 			[GL #81]
 
-4907.	[test]		Improved the reliabilty of the 'notify' system
+4907.	[test]		Improved the reliability of the 'notify' system
 			test. [GL #59]
 
 4905.	[bug]		irs_resconf_load() ignored resolv.conf syntax errors
