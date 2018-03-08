@@ -1,3 +1,6 @@
+4910.	[func]		Update util/check-changes to work in release branches.
+			[GL #113]
+
 4909.	[bug]		named-checkconf did not detect in-view zone collisions.
 			[GL #125]
 
