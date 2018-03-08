@@ -503,9 +503,6 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(seteuid setresuid)
 AC_CHECK_FUNCS(setegid setresgid)
 
-# BSDI doesn't have ftello fseeko
-AC_CHECK_FUNCS(ftello fseeko)
-
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
 # is reported to not support "static inline" (RT #1212).
