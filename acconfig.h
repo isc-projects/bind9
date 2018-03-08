@@ -6,8 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: acconfig.h,v 1.53 2008/12/01 23:47:44 tbox Exp $ */
-
 /*! \file */
 
 /***

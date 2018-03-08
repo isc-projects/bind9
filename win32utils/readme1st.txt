@@ -163,5 +163,5 @@ server on the localhost.
 
 PROBLEMS:
 
-Please report bugs to bind9-bugs@isc.org. Other questions can go
-to the bind-users@isc.org mailing list.
+Please report bugs at https://gitlab.isc.org/isc-projects/bind9.
+Other questions can go to the bind-users@isc.org mailing list.
