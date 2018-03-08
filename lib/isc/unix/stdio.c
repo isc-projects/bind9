@@ -48,11 +48,7 @@ isc_result_t
 isc_stdio_seek(FILE *f, off_t offset, int whence) {
 	int r;
 
-#ifdef HAVE_FSEEKO
 	r = fseeko(f, offset, whence);
-#else
-	r = fseek(f, offset, whence);
-#endif
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else
@@ -65,11 +61,7 @@ isc_stdio_tell(FILE *f, off_t *offsetp) {
 
 	REQUIRE(offsetp != NULL);
 
-#ifdef HAVE_FTELLO
 	r = ftello(f);
-#else
-	r = ftell(f);
-#endif
 	if (r >= 0) {
 		*offsetp = r;
 		return (ISC_R_SUCCESS);
