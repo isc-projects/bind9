@@ -54,6 +54,7 @@ SRCS =		acl_test.c \
 		rdataset_test.c \
 		rdatasetstats_test.c \
 		rsa_test.c \
+		sigs_test.c \
 		time_test.c \
 		tsig_test.c \
 		update_test.c \
@@ -84,6 +85,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		rdataset_test@EXEEXT@ \
 		rdatasetstats_test@EXEEXT@ \
 		rsa_test@EXEEXT@ \
+		sigs_test@EXEEXT@ \
 		time_test@EXEEXT@ \
 		tsig_test@EXEEXT@ \
 		update_test@EXEEXT@ \
@@ -208,6 +210,11 @@ rdatasetstats_test@EXEEXT@: rdatasetstats_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${D
 rsa_test@EXEEXT@: rsa_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			rsa_test.@O@ dnstest.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
+
+sigs_test@EXEEXT@: sigs_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			sigs_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
 time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
