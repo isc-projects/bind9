@@ -91,15 +91,23 @@ test-force:
 
 README: README.md
 	${PANDOC} --email-obfuscation=none -s -t html README.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		sed -e '$${/^$$/d;}' > $@
 
 HISTORY: HISTORY.md
 	${PANDOC} --email-obfuscation=none -s -t html HISTORY.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		sed -e '$${/^$$/d;}' > $@
 
 OPTIONS: OPTIONS.md
 	${PANDOC} --email-obfuscation=none -s -t html OPTIONS.md | \
-		${W3M} -dump -cols 75 -O ascii -T text/html > $@
+		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		sed -e '$${/^$$/d;}' > $@
+
+CONTRIBUTING: CONTRIBUTING.md
+	${PANDOC} --email-obfuscation=none -s -t html CONTRIBUTING.md | \
+		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		sed -e '$${/^$$/d;}' > $@
 
 unit::
 	sh ${top_srcdir}/unit/unittest.sh
