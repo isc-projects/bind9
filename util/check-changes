@@ -9,12 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 eval 'exec /usr/bin/perl -S $0 ${1+"$@"}'
     if $running_under_some_shell;
 			# this emulates #! processing on NIH machines.
 			# (remove #! line above if indigestible)
+
+$master = 1;
 
 eval '$'.$1.'$2;' while $ARGV[0] =~ /^([A-Za-z_0-9]+=)(.*)/ && shift;
 			# process any FOO=bar switches
@@ -26,9 +26,15 @@ $change = 0;
 $status = 0;
 
 line: while (<>) {
-    ($Fld1,$Fld2) = split(' ', $_, 9999);
+    ($Fld1,$Fld2,$Fld3,$Fld4) = split(' ', $_, 9999);
+    $change = 0 if (!$master && $Fld1 eq "---" &&
+		    $Fld3 eq "released" && $Fld4 eq "---");
     if ($Fld1 =~ /^[1-9][0-9]*\.$/ && $Fld2 =~ /^\[.*\]$/) {
-	if ($change != 0 && $Fld1 + 1 != $change) {
+	if ($change != 0 && $Fld1 >= $change) {
+	    print 'bad change number', $Fld1;
+	    $status = 1;
+	}
+	if ($master && $change != 0 && $Fld1 + 1 != $change) {
 	    print 'bad change number', $Fld1;
 	    $status = 1;
 	}
