@@ -1,3 +1,6 @@
+4920.	[test]		Enable "make test" to run from an out-of-tree build
+			directory. [GL #114]
+
 4919.	[cleanup]	Clean up the isc_hash_* namespace and leave only
 			the FNV-1a hash implementation. [GL #178]
 
