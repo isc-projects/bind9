@@ -10,7 +10,7 @@ if [ -n "@UNITTESTS@" -a -x "$ATFRUN" -a -f Atffile ]
 then
 	echo "S:unit:`date`"
 	echo "T:unit:1:A"
-	echo "I: unit tests"
+	echo "I: unit tests (using atf-run)"
 	atf-run > atf.out
 	status=$?
 
@@ -29,11 +29,11 @@ elif [ -n "@UNITTESTS@" -a -x "$KYUA" -a -f Kyuafile ]
 then
 	echo "S:unit:`date`"
 	echo "T:unit:1:A"
-	echo "I: unit tests"
-	kyua --logfile kyua.log test
+	echo "I: unit tests (using kyua)"
+	kyua -v parallelism=${TEST_PARALLEL_JOBS:-1} --logfile kyua.log --loglevel debug test --results-file ${KYUA_RESULT:-NEW}
 	status=$?
 
-	kyua report
+	kyua report --results-file ${KYUA_RESULT:-LATEST}
 
 	if [ $status -eq 0 ]
 	then
