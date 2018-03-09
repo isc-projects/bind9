@@ -1033,8 +1033,9 @@ pg_sde(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 }
+
 static void
-test_purge(int sender, int type, int tag, int exp_nevents) {
+test_purge(int sender, int type, int tag, int exp_purged) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 	isc_event_t *eventtab[NEVENTS];
@@ -1042,8 +1043,11 @@ test_purge(int sender, int type, int tag, int exp_nevents) {
 	isc_interval_t interval;
 	isc_time_t now;
 	int sender_cnt, type_cnt, tag_cnt, event_cnt, i;
+	int purged = 0;
 
-	nevents = eventcnt = 0;
+	started = ISC_FALSE;
+	done = ISC_FALSE;
+	eventcnt = 0;
 
 	result = isc_test_begin(NULL, ISC_TRUE, 2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -1089,10 +1093,14 @@ test_purge(int sender, int type, int tag, int exp_nevents) {
 					(void *)((uintptr_t)tag + tag_cnt);
 
 				/*
-				 * Make all odd message non-purgeable.
+				 * Mark events as non-purgeable if
+				 * sender, type and tag are all
+				 * odd-numbered. (There should be 4
+				 * of these out of 60 events total.)
 				 */
-				if ((sender_cnt % 2) && (type_cnt %2) &&
-				    (tag_cnt %2))
+				if (((sender_cnt % 2) != 0) &&
+				    ((type_cnt % 2) != 0) &&
+				    ((tag_cnt % 2) != 0))
 				{
 					eventtab[event_cnt]->ev_attributes |=
 						ISC_EVENTATTR_NOPURGE;
@@ -1110,25 +1118,28 @@ test_purge(int sender, int type, int tag, int exp_nevents) {
 		/*
 		 * We're testing isc_task_purgerange.
 		 */
-		nevents = isc_task_purgerange(task, purge_sender,
-					     (isc_eventtype_t)purge_type_first,
-					     (isc_eventtype_t)purge_type_last,
-					     purge_tag);
-		ATF_REQUIRE_EQ(nevents, exp_nevents);
+		purged  = isc_task_purgerange(task, purge_sender,
+					      (isc_eventtype_t)purge_type_first,
+					      (isc_eventtype_t)purge_type_last,
+					      purge_tag);
+		ATF_CHECK_EQ(purged, exp_purged);
 	} else {
 		/*
 		 * We're testing isc_task_purge.
 		 */
-		nevents = isc_task_purge(task, purge_sender,
+		printf("purge events %p,%d,%p\n",
+		       purge_sender, purge_type_first, purge_tag);
+		purged = isc_task_purge(task, purge_sender,
 					(isc_eventtype_t)purge_type_first,
 					purge_tag);
-		ATF_REQUIRE_EQ(nevents, exp_nevents);
+		printf("purged %d expected %d\n", purged, exp_purged);
+		ATF_CHECK_EQ(purged, exp_purged);
 	}
 
-	LOCK(&lock);
 	/*
 	 * Unblock the task, allowing event processing.
 	 */
+	LOCK(&lock);
 	started = ISC_TRUE;
 	SIGNAL(&cv);
 
@@ -1154,7 +1165,7 @@ test_purge(int sender, int type, int tag, int exp_nevents) {
 	DESTROYLOCK(&lock);
 	(void) isc_condition_destroy(&cv);
 
-	ATF_REQUIRE_EQ((eventcnt + nevents), event_cnt);
+	ATF_CHECK_EQ(eventcnt, event_cnt - exp_purged);
 }
 
 /*
@@ -1313,7 +1324,7 @@ pge_sde(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-try_purge(isc_boolean_t purgeable) {
+try_purgeevent(isc_boolean_t purgeable) {
 	isc_result_t	result;
 	isc_task_t *task = NULL;
 	isc_boolean_t purged;
@@ -1411,7 +1422,7 @@ ATF_TC_HEAD(purgeevent, tc) {
 	atf_tc_set_md_var(tc, "descr", "purge-event");
 }
 ATF_TC_BODY(purgeevent, tc) {
-	try_purge(ISC_TRUE);
+	try_purgeevent(ISC_TRUE);
 }
 
 /*
@@ -1426,7 +1437,7 @@ ATF_TC_HEAD(purgeevent_notpurge, tc) {
 	atf_tc_set_md_var(tc, "descr", "purge-event");
 }
 ATF_TC_BODY(purgeevent_notpurge, tc) {
-	try_purge(ISC_FALSE);
+	try_purgeevent(ISC_FALSE);
 }
 
 /*
