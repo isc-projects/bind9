@@ -2,6 +2,7 @@ syntax(2)
 test_suite('bind9')
 
 atf_test_program{name='aes_test'}
+atf_test_program{name='atomic_test'}
 atf_test_program{name='buffer_test'}
 atf_test_program{name='counter_test'}
 atf_test_program{name='errno_test'}
@@ -28,3 +29,4 @@ atf_test_program{name='symtab_test'}
 atf_test_program{name='task_test'}
 atf_test_program{name='taskpool_test'}
 atf_test_program{name='time_test'}
+atf_test_program{name='timer_test'}

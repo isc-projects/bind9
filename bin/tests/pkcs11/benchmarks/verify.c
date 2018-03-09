@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,8 +29,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/* $Id$ */
 
 /* verify [-m module] [-s $slot] [-p pin] [-t] [-n count] */
 
