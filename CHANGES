@@ -1,3 +1,6 @@
+4914.	[test]		Enable "make test" to run from an out-of-tree build
+			directory. [GL #114]
+
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
 
