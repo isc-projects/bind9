@@ -85,7 +85,7 @@ stages:
   stage: build
   before_script:
     - export PATH="/usr/lib/ccache:$PATH"
-    - export CCACHE_DIR="$CI_PROJECT_DIR/.ccache"
+    - export CCACHE_DIR="$CI_PROJECT_DIR/../.ccache"
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
@@ -96,7 +96,7 @@ stages:
   cache:
     key: ccache
     paths:
-    - .ccache/
+    - ../.ccache/
 
 .system_test: &system_test_job
   stage: test
@@ -115,6 +115,8 @@ stages:
     - make unit
   artifacts:
     untracked: true
+    paths:
+    - atf.out
     expire_in: '1 week'
     when: on_failure
 
