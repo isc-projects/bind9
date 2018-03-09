@@ -1,3 +1,6 @@
+4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
+			removed the lib/tests unit testing library. [GL #115]
+
 4912.	[test]		Improved the reliability of the 'cds' system test.
 			[GL #136]
 
