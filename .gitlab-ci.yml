@@ -3,6 +3,7 @@ variables:
   LC_ALL: C
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: oerdnj/bind9
+  CCACHE_DIR=/ccache
 
 stages:
   - precheck
@@ -85,7 +86,6 @@ stages:
   stage: build
   before_script:
     - export PATH="/usr/lib/ccache:$PATH"
-    - export CCACHE_DIR="$CI_PROJECT_DIR/.ccache"
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
@@ -93,10 +93,6 @@ stages:
   artifacts:
     expire_in: '1 hour'
     untracked: true
-  cache:
-    key: ccache
-    paths:
-    - .ccache/
 
 .system_test: &system_test_job
   stage: test
