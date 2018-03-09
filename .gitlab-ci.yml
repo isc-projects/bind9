@@ -3,6 +3,7 @@ variables:
   LC_ALL: C
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: oerdnj/bind9
+  CCACHE_DIR: "/ccache"
 
 stages:
   - precheck
@@ -85,25 +86,29 @@ stages:
   stage: build
   before_script:
     - export PATH="/usr/lib/ccache:$PATH"
-    - export CCACHE_DIR="$CI_PROJECT_DIR/.ccache"
     - ./autogen.sh
   script:
-    - ./configure --with-libtool --disable-static
-    - make -j6 -k all V=1
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
+    - make -j${BUILD_PARALLEL_JOBS:-2} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
-  cache:
-    key: ccache
-    paths:
-    - .ccache/
 
-.test: &test_job
+.system_test: &system_test_job
   stage: test
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - make -j8 -k check V=1
+    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-4} -k test V=1
+  artifacts:
+    untracked: true
+    expire_in: '1 week'
+    when: on_failure
+
+.unit_test: &unit_test_job
+  stage: test
+  script:
+    - make unit
   artifacts:
     untracked: true
     expire_in: '1 week'
@@ -155,14 +160,26 @@ build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
 
-test:debian:sid:amd64:
+unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
-  <<: *test_job
+  <<: *unit_test_job
   dependencies:
     - build:debian:sid:amd64
     
-test:debian:sid:i386:
+unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
-  <<: *test_job
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:sid:i386
+
+systemtest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:sid:amd64
+    
+systemtest:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *system_test_job
   dependencies:
     - build:debian:sid:i386
