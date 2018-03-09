@@ -3141,6 +3141,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	unsigned int num_zones = 0;
 
 	if (viewname == NULL) {
 		viewname = "";
@@ -3151,9 +3152,18 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
+
 	for (element = cfg_list_first(obj);
 	     element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
+		if (++num_zones > 64) {
+			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
+				    "more than 64 response policy zones "
+				    "in view '%s'", viewname);
+			return (ISC_R_FAILURE);
+		}
+
 		obj = cfg_listelt_value(element);
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
