@@ -1,3 +1,6 @@
+4984.	[test]		Enable "make test" to run from an out-of-tree build
+			directory. [GL #114]
+
 4983.	[func]		Add the ability to not return a DNS COOKIE option
 			when one is present in the request (answer-cookie no;).
 			[GL #173]
