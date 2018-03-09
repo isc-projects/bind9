@@ -85,7 +85,7 @@ stages:
 .build: &build_job
   stage: build
   before_script:
-    - export PATH="/usr/lib/ccache:$PATH"
+    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
