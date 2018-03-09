@@ -30,7 +30,7 @@ then
 	echo "S:unit:`date`"
 	echo "T:unit:1:A"
 	echo "I: unit tests (using kyua)"
-	kyua --logfile kyua.log --loglevel debug test --results-file ${KYUA_RESULT:-NEW}
+	kyua -v parallelism=${TEST_PARALLEL_JOBS:-1} --logfile kyua.log --loglevel debug test --results-file ${KYUA_RESULT:-NEW}
 	status=$?
 
 	kyua report --results-file ${KYUA_RESULT:-LATEST}
