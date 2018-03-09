@@ -85,11 +85,11 @@ stages:
 .build: &build_job
   stage: build
   before_script:
-    - export PATH="/usr/lib/ccache:$PATH"
+    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
-    - make -j${BUILD_PARALLEL_JOBS:-2} -k all V=1
+    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -99,7 +99,7 @@ stages:
   before_script:
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-4} -k test V=1
+    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1
   artifacts:
     untracked: true
     expire_in: '1 week'
