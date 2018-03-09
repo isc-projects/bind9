@@ -1,3 +1,6 @@
+4977.	[test]		Enable "make test" to run from an out-of-tree build
+			directory. [GL #114]
+
 4976.	[bug]		Log the label with invalid prefix length correctly
 			when loading RPZ zones. [GL #254]
 
