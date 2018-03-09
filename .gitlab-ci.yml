@@ -112,12 +112,18 @@ stages:
 
 .unit_test: &unit_test_job
   stage: test
+  before_script:
+    - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
   script:
     - make unit
+  after_script:
+    - kyua report-html --force --results-filter "" output kyua_html
   artifacts:
     paths:
     - atf.out
     - kyua.log
+    - kyua.results
+    - kyua_html/
     expire_in: '1 week'
     when: on_failure
 
