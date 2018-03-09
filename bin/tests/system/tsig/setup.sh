@@ -20,7 +20,6 @@ test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
 
 if $FEATURETEST --md5
 then
-	cat ns1/named.conf.in ns1/keys-md5.conf > ns1/named.conf
-else
-	cat ns1/named.conf.in > ns1/named.conf
+	# Include MD5 keys only if it is 
+	cat ns1/rndc5.conf >> ns1/named.conf
 fi
