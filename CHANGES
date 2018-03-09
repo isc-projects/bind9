@@ -1,3 +1,5 @@
+4914.	[func]		Support 64 RPZ policy zones by default. [GL #123]
+
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
 
