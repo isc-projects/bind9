@@ -115,6 +115,8 @@ stages:
     - make unit
   artifacts:
     untracked: true
+    paths:
+    - atf.out
     expire_in: '1 week'
     when: on_failure
 
