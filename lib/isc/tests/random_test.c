@@ -6,6 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+/*
+ * IMPORTANT NOTE:
+ * These tests work by generating a large number of pseudo-random numbers
+ * and then statistically analyzing them to determine whether they seem
+ * random. The test is expected to fail on occasion by random happenstance.
+ */
+
 #include <config.h>
 
 #include <isc/random.h>
@@ -19,6 +26,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+
+#define REPS 25000
 
 typedef double (pvalue_func_t)(isc_mem_t *mctx,
 			       isc_uint16_t *values, size_t length);
@@ -269,13 +278,13 @@ random_test(pvalue_func_t *func) {
 
 	for (j = 0; j < m; j++) {
 		isc_uint32_t i;
-		isc_uint16_t values[128000];
+		isc_uint16_t values[REPS];
 		double p_value;
 
-		for (i = 0; i < 128000; i++)
+		for (i = 0; i < REPS; i++)
 			values[i] = isc_rng_random(rng);
 
-		p_value = (*func)(mctx, values, 128000);
+		p_value = (*func)(mctx, values, REPS);
 		if (p_value >= 0.01)
 			passed++;
 
@@ -394,7 +403,7 @@ runs(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	numbits = length * 16;
 	bcount = 0;
 
-	for (i = 0; i < 128000; i++)
+	for (i = 0; i < REPS; i++)
 		bcount += bitcounts_table[values[i]];
 
 	/* Debug message, not displayed when running via atf-run */
