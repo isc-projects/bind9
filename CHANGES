@@ -1,3 +1,5 @@
+4904.	[func]		Support 64 RPZ policy zones by default. [GL #123]
+
 4903.	[bug]		"check-mx fail;" did not prevent MX records containing
 			IP addresses from being added to a zone by a dynamic
 			update. [GL #112]
