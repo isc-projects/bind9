@@ -90,13 +90,15 @@ stages:
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
     - make -j6 -k all V=1
-  artifacts:
-    expire_in: '1 hour'
-    untracked: true
   cache:
     key: ccache
     paths:
     - .ccache/
+  after_script:
+    - rm -rf .ccache
+  artifacts:
+    expire_in: '1 hour'
+    untracked: true
 
 .system_test: &system_test_job
   stage: test
@@ -115,6 +117,8 @@ stages:
     - make unit
   artifacts:
     untracked: true
+    paths:
+    - atf.out
     expire_in: '1 week'
     when: on_failure
 

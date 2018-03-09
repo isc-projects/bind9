@@ -21,9 +21,10 @@ ans.run
 named.run
 named.memstats
 gen.dSYM/
-.libs/
+.ccache/
 .deps/
 .dirstamp
+.libs/
 unit/atf-src/atf-c++/atf-c++.pc
 unit/atf-src/atf-c/atf-c.pc
 unit/atf-src/atf-c/defs.h
