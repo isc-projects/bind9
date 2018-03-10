@@ -2,12 +2,14 @@ Content-Type: application/X-atf-atffile; version="1"
 
 prop: test-suite = bind9
 
+tp: atomic_test
 tp: counter_test
 tp: errno_test
 tp: hash_test
 tp: heap_test
 tp: inet_ntop_test
 tp: lex_test
+tp: mem_test
 tp: netaddr_test
 tp: parse_test
 tp: pool_test
@@ -21,4 +23,5 @@ tp: socket_test
 tp: symtab_test
 tp: task_test
 tp: taskpool_test
+tp: timer_test
 tp: time_test

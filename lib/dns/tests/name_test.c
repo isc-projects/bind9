@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -118,6 +116,338 @@ ATF_TC_BODY(fullcompare, tc) {
 		ATF_REQUIRE_EQ(relation, data[i].relation);
 		ATF_REQUIRE_EQ(order, data[i].order);
 		ATF_REQUIRE_EQ(nlabels, data[i].nlabels);
+	}
+}
+
+ATF_TC(init);
+ATF_TC_HEAD(init, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_init");
+}
+ATF_TC_BODY(init, tc) {
+	dns_name_t name;
+	unsigned char offsets[1];
+
+	dns_name_init(&name, offsets);
+
+	ATF_CHECK_EQ(name.ndata, NULL);
+	ATF_CHECK_EQ(name.length, 0);
+	ATF_CHECK_EQ(name.labels, 0);
+	ATF_CHECK_EQ(name.attributes, 0);
+	ATF_CHECK_EQ(name.offsets, offsets);
+	ATF_CHECK_EQ(name.buffer, NULL);
+}
+
+ATF_TC(invalidate);
+ATF_TC_HEAD(invalidate, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_invalidate");
+}
+ATF_TC_BODY(invalidate, tc) {
+	dns_name_t name;
+	unsigned char offsets[1];
+
+	dns_name_init(&name, offsets);
+	dns_name_invalidate(&name);
+
+	ATF_CHECK_EQ(name.ndata, NULL);
+	ATF_CHECK_EQ(name.length, 0);
+	ATF_CHECK_EQ(name.labels, 0);
+	ATF_CHECK_EQ(name.attributes, 0);
+	ATF_CHECK_EQ(name.offsets, NULL);
+	ATF_CHECK_EQ(name.buffer, NULL);
+}
+
+ATF_TC(buffer);
+ATF_TC_HEAD(buffer, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_setbuffer/hasbuffer");
+}
+ATF_TC_BODY(buffer, tc) {
+	dns_name_t name;
+	unsigned char buf[BUFSIZ];
+	isc_buffer_t b;
+
+	isc_buffer_init(&b, buf, BUFSIZ);
+	dns_name_init(&name, NULL);
+	dns_name_setbuffer(&name, &b);
+	ATF_CHECK_EQ(name.buffer, &b);
+	ATF_CHECK(dns_name_hasbuffer(&name));
+}
+
+ATF_TC(isabsolute);
+ATF_TC_HEAD(isabsolute, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_isabsolute");
+}
+ATF_TC_BODY(isabsolute, tc) {
+	struct {
+		const char *namestr;
+		isc_boolean_t expect;
+	} testcases[] = {
+		{ "x", ISC_FALSE },
+		{ "a.b.c.d.", ISC_TRUE },
+		{ "x.z", ISC_FALSE}
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_name_t name;
+		unsigned char data[BUFSIZ];
+		isc_buffer_t b, nb;
+		size_t len;
+
+		len = strlen(testcases[i].namestr);
+		isc_buffer_constinit(&b, testcases[i].namestr, len);
+		isc_buffer_add(&b, len);
+
+		dns_name_init(&name, NULL);
+		isc_buffer_init(&nb, data, BUFSIZ);
+		dns_name_setbuffer(&name, &nb);
+		result = dns_name_fromtext(&name, &b, NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		ATF_CHECK_EQ(dns_name_isabsolute(&name), testcases[i].expect);
+	}
+}
+
+ATF_TC(hash);
+ATF_TC_HEAD(hash, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_hash");
+}
+ATF_TC_BODY(hash, tc) {
+	struct {
+		const char *name1;
+		const char *name2;
+		isc_boolean_t expect;
+		isc_boolean_t expecti;
+	} testcases[] = {
+		{ "a.b.c.d", "A.B.C.D", ISC_TRUE, ISC_FALSE },
+		{ "a.b.c.d.", "A.B.C.D.", ISC_TRUE, ISC_FALSE },
+		{ "a.b.c.d", "a.b.c.d", ISC_TRUE, ISC_TRUE },
+		{ "A.B.C.D.", "A.B.C.D.", ISC_TRUE, ISC_FALSE },
+		{ "x.y.z.w", "a.b.c.d", ISC_FALSE, ISC_FALSE },
+		{ "x.y.z.w.", "a.b.c.d.", ISC_FALSE, ISC_FALSE },
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_fixedname_t f1, f2;
+		dns_name_t *n1, *n2;
+		unsigned int h1, h2;
+
+		dns_fixedname_init(&f1);
+		n1 = dns_fixedname_name(&f1);
+		dns_fixedname_init(&f2);
+		n2 = dns_fixedname_name(&f2);
+
+		result = dns_name_fromstring2(n1, testcases[i].name1,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		result = dns_name_fromstring2(n2, testcases[i].name2,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		/* Check case-insensitive hashing first */
+		h1 = dns_name_hash(n1, ISC_FALSE);
+		h2 = dns_name_hash(n2, ISC_FALSE);
+
+		printf("%s hashes to %u, %s to %u, case insensitive\n",
+		       testcases[i].name1, h1, testcases[i].name2, h2);
+
+		ATF_REQUIRE_EQ(ISC_TF(h1 == h2), testcases[i].expect);
+
+		/* Now case-sensitive */
+		h1 = dns_name_hash(n1, ISC_FALSE);
+		h2 = dns_name_hash(n2, ISC_FALSE);
+
+		printf("%s hashes to %u, %s to %u, case sensitive\n",
+		       testcases[i].name1, h1, testcases[i].name2, h2);
+
+		ATF_REQUIRE_EQ(ISC_TF(h1 == h2), testcases[i].expect);
+	}
+}
+
+ATF_TC(issubdomain);
+ATF_TC_HEAD(issubdomain, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_issubdomain");
+}
+ATF_TC_BODY(issubdomain, tc) {
+	struct {
+		const char *name1;
+		const char *name2;
+		isc_boolean_t expect;
+	} testcases[] = {
+		{ "c.d", "a.b.c.d", ISC_FALSE },
+		{ "c.d.", "a.b.c.d.", ISC_FALSE },
+		{ "b.c.d", "c.d", ISC_TRUE },
+		{ "a.b.c.d.", "c.d.", ISC_TRUE },
+		{ "a.b.c", "a.b.c", ISC_TRUE },
+		{ "a.b.c.", "a.b.c.", ISC_TRUE },
+		{ "x.y.z", "a.b.c", ISC_FALSE}
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_fixedname_t f1, f2;
+		dns_name_t *n1, *n2;
+
+		dns_fixedname_init(&f1);
+		n1 = dns_fixedname_name(&f1);
+		dns_fixedname_init(&f2);
+		n2 = dns_fixedname_name(&f2);
+
+		result = dns_name_fromstring2(n1, testcases[i].name1,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		result = dns_name_fromstring2(n2, testcases[i].name2,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		printf("check: %s %s a subdomain of %s\n",
+		       testcases[i].name1,
+		       testcases[i].expect ? "is" : "is not",
+		       testcases[i].name2);
+
+		ATF_CHECK_EQ(dns_name_issubdomain(n1, n2),
+			     testcases[i].expect);
+	}
+}
+
+ATF_TC(countlabels);
+ATF_TC_HEAD(countlabels, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_countlabels");
+}
+ATF_TC_BODY(countlabels, tc) {
+	struct {
+		const char *namestr;
+		unsigned int expect;
+	} testcases[] = {
+		{ "c.d", 2 },
+		{ "c.d.", 3 },
+		{ "a.b.c.d.", 5 },
+		{ "a.b.c.d", 4 },
+		{ "a.b.c", 3 },
+		{ ".", 1 },
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_fixedname_t fname;
+		dns_name_t *name;
+
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+
+		result = dns_name_fromstring2(name, testcases[i].namestr,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		printf("%s: expect %d labels\n",
+		       testcases[i].namestr, testcases[i].expect);
+
+		ATF_REQUIRE_EQ(dns_name_countlabels(name),
+			       testcases[i].expect);
+	}
+}
+
+ATF_TC(getlabel);
+ATF_TC_HEAD(getlabel, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_getlabel");
+}
+ATF_TC_BODY(getlabel, tc) {
+	struct {
+		const char *name1;
+		unsigned int pos1;
+		const char *name2;
+		unsigned int pos2;
+	} testcases[] = {
+		{ "c.d", 	1, "a.b.c.d", 	3 },
+		{ "a.b.c.d", 	3, "c.d", 	1 },
+		{ "a.b.c.", 	3, "A.B.C.", 	3 },
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_fixedname_t f1, f2;
+		dns_name_t *n1, *n2;
+		dns_label_t l1, l2;
+		unsigned char *p1, *p2;
+		unsigned int j;
+
+		dns_fixedname_init(&f1);
+		n1 = dns_fixedname_name(&f1);
+		dns_fixedname_init(&f2);
+		n2 = dns_fixedname_name(&f2);
+
+		result = dns_name_fromstring2(n1, testcases[i].name1,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		result = dns_name_fromstring2(n2, testcases[i].name2,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		dns_name_getlabel(n1, testcases[i].pos1, &l1);
+		dns_name_getlabel(n2, testcases[i].pos2, &l2);
+		ATF_CHECK_EQ(l1.length, l2.length);
+
+		p1 = l1.base;
+		p2 = l2.base;
+		for (j = 0; j < l1.length; j++) {
+			ATF_REQUIRE_EQ(*p1++, *p2++);
+		}
+	}
+}
+
+ATF_TC(getlabelsequence);
+ATF_TC_HEAD(getlabelsequence, tc) {
+	atf_tc_set_md_var(tc, "descr", "dns_nane_getlabelsequence");
+}
+ATF_TC_BODY(getlabelsequence, tc) {
+	struct {
+		const char *name1;
+		unsigned int pos1;
+		const char *name2;
+		unsigned int pos2;
+		unsigned int range;
+	} testcases[] = {
+		{ "c.d",	1,	"a.b.c.d",	3,	1 },
+		{ "a.b.c.d.e",	2,	"c.d",		0,	2 },
+		{ "a.b.c",	0,	"a.b.c",	0,	3 },
+
+	};
+	unsigned int i;
+
+	for (i = 0; i < (sizeof(testcases)/sizeof(testcases[0])); i++) {
+		isc_result_t result;
+		dns_name_t t1, t2;
+		dns_fixedname_t f1, f2;
+		dns_name_t *n1, *n2;
+
+		/* target names */
+		dns_name_init(&t1, NULL);
+		dns_name_init(&t2, NULL);
+
+		/* source names */
+		dns_fixedname_init(&f1);
+		n1 = dns_fixedname_name(&f1);
+		dns_fixedname_init(&f2);
+		n2 = dns_fixedname_name(&f2);
+
+		result = dns_name_fromstring2(n1, testcases[i].name1,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		result = dns_name_fromstring2(n2, testcases[i].name2,
+					      NULL, 0, NULL);
+		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+		dns_name_getlabelsequence(n1, testcases[i].pos1,
+					  testcases[i].range, &t1);
+		dns_name_getlabelsequence(n2, testcases[i].pos2,
+					  testcases[i].range, &t2);
+
+		ATF_REQUIRE(dns_name_equal(&t1, &t2));
 	}
 }
 
@@ -224,6 +554,15 @@ ATF_TC_BODY(benchmark, tc) {
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, fullcompare);
+	ATF_TP_ADD_TC(tp, init);
+	ATF_TP_ADD_TC(tp, invalidate);
+	ATF_TP_ADD_TC(tp, buffer);
+	ATF_TP_ADD_TC(tp, isabsolute);
+	ATF_TP_ADD_TC(tp, hash);
+	ATF_TP_ADD_TC(tp, issubdomain);
+	ATF_TP_ADD_TC(tp, countlabels);
+	ATF_TP_ADD_TC(tp, getlabel);
+	ATF_TP_ADD_TC(tp, getlabelsequence);
 #ifdef ISC_PLATFORM_USETHREADS
 #ifdef DNS_BENCHMARK_TESTS
 	ATF_TP_ADD_TC(tp, benchmark);

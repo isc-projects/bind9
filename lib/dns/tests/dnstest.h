@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012, 2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012, 2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -57,6 +57,9 @@ void
 dns_test_end(void);
 
 isc_result_t
+dns_test_makeview(const char *name, dns_view_t **viewp);
+
+isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 				  isc_boolean_t keepview);
 
@@ -91,3 +94,6 @@ isc_result_t
 dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			  dns_rdatatype_t rdtype, unsigned char *dst,
 			  size_t dstlen, const char *src);
+
+void
+dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);

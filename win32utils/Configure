@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2013-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2013-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -237,30 +237,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tools\\win32\\journalprint.vcxproj.filters",
                    "..\\bin\\tools\\win32\\nsec3hash.vcxproj",
                    "..\\bin\\tools\\win32\\nsec3hash.vcxproj.filters",
-                   "..\\bin\\tests\\atomic\\win32\\t_atomic.vcxproj",
-                   "..\\bin\\tests\\atomic\\win32\\t_atomic.vcxproj.filters",
-                   "..\\bin\\tests\\db\\win32\\t_db.vcxproj",
-                   "..\\bin\\tests\\db\\win32\\t_db.vcxproj.filters",
-                   "..\\bin\\tests\\dst\\win32\\t_dst.vcxproj",
-                   "..\\bin\\tests\\dst\\win32\\t_dst.vcxproj.filters",
-                   "..\\bin\\tests\\master\\win32\\t_master.vcxproj",
-                   "..\\bin\\tests\\master\\win32\\t_master.vcxproj.filters",
-                   "..\\bin\\tests\\mem\\win32\\t_mem.vcxproj",
-                   "..\\bin\\tests\\mem\\win32\\t_mem.vcxproj.filters",
-                   "..\\bin\\tests\\hashes\\win32\\t_hashes.vcxproj",
-                   "..\\bin\\tests\\hashes\\win32\\t_hashes.vcxproj.filters",
-                   "..\\bin\\tests\\names\\win32\\t_names.vcxproj",
-                   "..\\bin\\tests\\names\\win32\\t_names.vcxproj.filters",
-                   "..\\bin\\tests\\rbt\\win32\\t_rbt.vcxproj",
-                   "..\\bin\\tests\\rbt\\win32\\t_rbt.vcxproj.filters",
-                   "..\\bin\\tests\\resolver\\win32\\t_resolver.vcxproj",
-                   "..\\bin\\tests\\resolver\\win32\\t_resolver.vcxproj.filters",
-                   "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj",
-                   "..\\bin\\tests\\sockaddr\\win32\\t_sockaddr.vcxproj.filters",
-                   "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj",
-                   "..\\bin\\tests\\tasks\\win32\\t_tasks.vcxproj.filters",
-                   "..\\bin\\tests\\timers\\win32\\t_timers.vcxproj",
-                   "..\\bin\\tests\\timers\\win32\\t_timers.vcxproj.filters",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj",
