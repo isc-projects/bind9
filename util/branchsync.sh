@@ -116,10 +116,14 @@ if [ -z "$continuing" ]; then
 fi
 
 # loop through commits looking for ones that should be cherry-picked
-git log $SOURCEBRANCH --reverse --format='%H %aN' $LASTHASH..$SOURCEBRANCH | \
+git log $SOURCEBRANCH --first-parent --reverse --format='%H %aN' $LASTHASH..$SOURCEBRANCH | \
   awk '$0 !~ /Tinderbox/ {print $1}' | {
     while read hash; do
-        if git cherry-pick -xn ${hash}; then
+        mainline=
+        if [ `git cat-file -p ${hash} | grep '^parent [0-9a-f][0-9a-f]*$' | wc -l` -gt 1 ]; then
+            mainline="-m 1 "
+        fi
+        if git cherry-pick ${mainline} -xn ${hash}; then
             # cherry-pick was clean
             # restore the files that we don't want updated automatically
             restore_files
