@@ -134,6 +134,12 @@
 	  with IDN support.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Up to 64 <command>response-policy</command> zones are now
+	  supported by default; previously the limit was 32. [GL #123]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
