@@ -1,17 +1,16 @@
 /*
- * Copyright (C) 2011-2014, 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2014, 2016-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
 
+#include <stdlib.h>
 #include <time.h>
 
 #include <isc/app.h>
@@ -67,15 +66,24 @@ cleanup_managers(void) {
 }
 
 static isc_result_t
-create_managers(void) {
+create_managers(unsigned int workers) {
 	isc_result_t result;
-#ifdef ISC_PLATFORM_USETHREADS
-	ncpus = isc_os_ncpus();
-#else
-	ncpus = 1;
-#endif
+	char *p;
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
+	if (workers == 0) {
+#ifdef ISC_PLATFORM_USETHREADS
+		workers = isc_os_ncpus();
+#else
+		workers = 1;
+#endif
+	}
+
+	p = getenv("ISC_TASK_WORKERS");
+	if (p != NULL) {
+		workers = atoi(p);
+	}
+
+	CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
@@ -89,7 +97,9 @@ create_managers(void) {
 }
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
+isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
+	       unsigned int workers)
+{
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
@@ -124,8 +134,9 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	ncpus = 1;
 #endif
 
-	if (start_managers)
-		CHECK(create_managers());
+	if (start_managers) {
+		CHECK(create_managers(workers));
+	}
 
 	return (ISC_R_SUCCESS);
 

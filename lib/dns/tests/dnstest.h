@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011, 2012, 2014-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011, 2012, 2014-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -90,3 +90,6 @@ isc_result_t
 dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			  dns_rdatatype_t rdtype, unsigned char *dst,
 			  size_t dstlen, const char *src);
+
+void
+dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);

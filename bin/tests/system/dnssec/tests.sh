@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000-2002, 2004-2017  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000-2002, 2004-2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1266,6 +1266,103 @@ ret=0
 $DIG $DIGOPTS rfc2535.example. SOA @10.53.0.3 \
 	> dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "basic dnssec-signzone checks:"
+echo_i " two DNSKEYs ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test1.zone > signer.out.$n 2>&1
+test -f signed.zone
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " one non-KSK DNSKEY ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test2.zone > signer.out.$n 2>&1
+test -f signed.zone
+) && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " one KSK DNSKEY ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test3.zone > signer.out.$n 2>&1
+test -f signed.zone
+) && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " three DNSKEY ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test4.zone > signer.out.$n 2>&1
+test -f signed.zone
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " three DNSKEY, one private key missing ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test5.zone > signer.out.$n 2>&1
+test -f signed.zone
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " four DNSKEY ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test6.zone > signer.out.$n 2>&1
+test -f signed.zone
+) || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " two DNSKEY, both private keys missing ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test7.zone > signer.out.$n 2>&1
+test -f signed.zone
+) && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i " two DNSKEY, one private key missing ($n)"
+ret=0
+(
+cd signer/general
+rm -f signed.zone
+$SIGNER -f signed.zone -o example.com. test8.zone > signer.out.$n 2>&1
+test -f signed.zone
+) && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

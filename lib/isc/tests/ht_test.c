@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2016-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -295,12 +295,12 @@ static void test_ht_iterator() {
 
 ATF_TC(isc_ht_20);
 ATF_TC_HEAD(isc_ht_20, tc) {
-	atf_tc_set_md_var(tc, "descr", "20 bit, 2M elements test");
+	atf_tc_set_md_var(tc, "descr", "20 bit, 200K elements test");
 }
 
 ATF_TC_BODY(isc_ht_20, tc) {
 	UNUSED(tc);
-	test_ht_full(20, 2000000);
+	test_ht_full(20, 200000);
 }
 
 

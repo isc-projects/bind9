@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2011-2013, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2013, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-/* $Id$ */
 
 /*! \file */
 
@@ -47,7 +45,7 @@ ATF_TC_BODY(symtab_grow, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_symtab_create(mctx, 3, undefine, NULL, ISC_FALSE, &st);

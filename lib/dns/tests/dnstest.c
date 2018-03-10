@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -489,4 +489,26 @@ dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_lex_destroy(&lex);
 
 	return (result);
+}
+
+void
+dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
+	size_t length;
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+	dns_name_t *name;
+
+	length = strlen(namestr);
+
+	result = isc_buffer_allocate(mctx, &b, length);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
+
+	dns_fixedname_init(fname);
+	name = dns_fixedname_name(fname);
+	ATF_REQUIRE(name != NULL);
+	result = dns_name_fromtext(name, b, dns_rootname, 0, NULL);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	isc_buffer_free(&b);
 }

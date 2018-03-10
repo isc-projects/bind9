@@ -1,4 +1,4 @@
-# Copyright (C) 2000, 2001, 2004, 2007, 2008, 2010-2016  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2000, 2001, 2004, 2007, 2008, 2010-2016, 2018  Internet Systems Consortium, Inc. ("ISC")
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,9 +36,10 @@ TARGETS =	feature-test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
+subdirs: ${TARGETS}
+
 feature-test@EXEEXT@: feature-test.@O@
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ feature-test.@O@ ${ISCLIBS} ${LIBS}
-
 
 # Running the scripts below is bypassed when a separate build directory is
 # used.
@@ -49,7 +50,7 @@ feature-test@EXEEXT@: feature-test.@O@
 # benefit from parallelism.
 PARALLEL = rpzrecurse dnssec \
 	   acl additional addzone allow-query autosign \
-	   builtin cacheclean case catz cds chain \
+	   builtin cacheclean case catz chain \
 	   checkconf checknames checkzone \
 	   @CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	   cookie database digdelv dlv dlz dlzexternal \

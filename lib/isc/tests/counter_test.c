@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2014, 2016, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,7 +25,7 @@ ATF_TC_BODY(isc_counter, tc) {
 	isc_counter_t *counter = NULL;
 	int i;
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_counter_create(mctx, 0, &counter);

@@ -7,7 +7,7 @@
  */
 
 controls {
-        inet 127.0.0.1 port @CONTROLPORT@
-                allow { 127.0.0.1/32; ::1/128; }
-                keys { "rndc-key"; };
+	inet 127.0.0.1 port @CONTROLPORT@
+		allow { 127.0.0.1/32; ::1/128; }
+		keys { "rndc-key"; };
 };
