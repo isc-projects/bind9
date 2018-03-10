@@ -27,6 +27,11 @@
 #include "isctest.h"
 
 /*
+ * This entire test requires threads.
+ */
+#ifdef ISC_PLATFORM_USETHREADS
+
+/*
  * Helper functions
  */
 #define	FUDGE_SECONDS	0	     /* in absence of clock_getres() */
@@ -556,6 +561,16 @@ ATF_TC_BODY(purge, tc) {
 
 	isc_test_end();
 }
+#else
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+        atf_tc_set_md_var(tc, "descr", "skipping nsec3 test");
+}
+ATF_TC_BODY(untested, tc) {
+        UNUSED(tc);
+        atf_tc_skip("DNSSEC not available");
+}
+#endif
 
 /*
  * Main
@@ -567,6 +582,8 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, once_idle);
 	ATF_TP_ADD_TC(tp, reset);
 	ATF_TP_ADD_TC(tp, purge);
+#else
+	ATF_TP_ADD_TC(tp, untested);
 #endif
 
 	return (atf_no_error());
