@@ -15,6 +15,7 @@
 #include <atf-c.h>
 
 #include <isc/atomic.h>
+#include <isc/print.h>
 #include <isc/result.h>
 
 #include "isctest.h"
