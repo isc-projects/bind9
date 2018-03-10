@@ -10,10 +10,7 @@
 # Clean up after zone transfer tests.
 #
 
-rm -f dig.out.ns1 dig.out.ns2 dig.out.ns3 dig.out.ns4
-rm -f dig.out.ns5 dig.out.ns6 dig.out.ns7
-rm -f dig.out.soa.ns3
-rm -f dig.out.msgsize
+rm -f dig.out.*
 rm -f axfr.out
 rm -f ns1/slave.db ns2/slave.db
 rm -f ns1/edns-expire.db
@@ -32,5 +29,4 @@ rm -f */ans.run
 rm -f ns*/named.lock
 rm -f ns2/mapped.db
 rm -f ns3/mapped.bk
-rm -f dig.out.?.*
 rm -f ns1/ixfr-too-big.db ns1/ixfr-too-big.db.jnl
