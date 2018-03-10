@@ -37,10 +37,13 @@
  */
 
 static isc_mutex_t lock;
-static isc_condition_t cv;
 int counter = 0;
 static int active[10];
 static isc_boolean_t done = ISC_FALSE;
+
+#ifdef ISC_PLATFORM_USETHREADS
+static isc_condition_t cv;
+#endif
 
 static void
 set(isc_task_t *task, isc_event_t *event) {
@@ -643,6 +646,10 @@ ATF_TC_BODY(task_exclusive, tc) {
 	isc_test_end();
 }
 
+/*
+ * The remainder of these tests require threads
+ */
+#ifdef ISC_PLATFORM_USETHREADS
 /*
  * Max tasks test:
  * The task system can create and execute many tasks. Tests with 10000.
@@ -1440,6 +1447,7 @@ ATF_TC_HEAD(purgeevent_notpurge, tc) {
 ATF_TC_BODY(purgeevent_notpurge, tc) {
 	try_purgeevent(ISC_FALSE);
 }
+#endif
 
 /*
  * Main
