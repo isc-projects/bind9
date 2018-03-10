@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +13,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id$ */
 
 /*! \file */
 
@@ -191,6 +189,25 @@ dns_test_end(void) {
 
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
+}
+
+/*
+ * Create a view.
+ */
+isc_result_t
+dns_test_makeview(const char *name, dns_view_t **viewp) {
+	isc_result_t result;
+	dns_view_t *view = NULL;
+
+	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
+	*viewp = view;
+
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	if (view != NULL)
+		dns_view_detach(&view);
+	return (result);
 }
 
 /*
@@ -407,4 +424,26 @@ dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_lex_destroy(&lex);
 
 	return (result);
+}
+
+void
+dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
+	size_t length;
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+	dns_name_t *name;
+
+	length = strlen(namestr);
+
+	result = isc_buffer_allocate(mctx, &b, length);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
+
+	dns_fixedname_init(fname);
+	name = dns_fixedname_name(fname);
+	ATF_REQUIRE(name != NULL);
+	result = dns_name_fromtext(name, b, dns_rootname, 0, NULL);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	isc_buffer_free(&b);
 }

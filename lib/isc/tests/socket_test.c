@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2015, 2017  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2011-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -162,7 +162,7 @@ ATF_TC_BODY(udp_sendto, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
@@ -237,7 +237,7 @@ ATF_TC_BODY(udp_dup, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
@@ -339,7 +339,7 @@ ATF_TC_BODY(udp_dscp_v4, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
@@ -444,7 +444,7 @@ ATF_TC_BODY(udp_dscp_v6, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);
@@ -549,7 +549,7 @@ ATF_TC_BODY(tcp_dscp_v4, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	in.s_addr = inet_addr("127.0.0.1");
@@ -649,7 +649,7 @@ ATF_TC_BODY(tcp_dscp_v6, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	n = inet_pton(AF_INET6, "::1", &in6.s6_addr);

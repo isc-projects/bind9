@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2012, 2013, 2018  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -13,8 +13,6 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
-/* $Id$ */
 
 /*! \file */
 
@@ -43,7 +41,7 @@ ATF_TC_BODY(parse_overflow, tc) {
 	isc_uint32_t output;
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE);
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_parse_uint32(&output, "1234567890", 10);

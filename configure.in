@@ -5151,35 +5151,10 @@ AC_CONFIG_FILES([
 	bin/python/isc/tests/dnskey_test.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
-	bin/tests/atomic/Makefile
-	bin/tests/db/Makefile
-	bin/tests/dst/Makefile
-	bin/tests/dst/Kdh.+002+18602.key
-	bin/tests/dst/Kdh.+002+18602.private
-	bin/tests/dst/Kdh.+002+48957.key
-	bin/tests/dst/Kdh.+002+48957.private
-	bin/tests/dst/Ktest.+001+00002.key
-	bin/tests/dst/Ktest.+001+54622.key
-	bin/tests/dst/Ktest.+001+54622.private
-	bin/tests/dst/Ktest.+003+23616.key
-	bin/tests/dst/Ktest.+003+23616.private
-	bin/tests/dst/Ktest.+003+49667.key
-	bin/tests/dst/dst_2_data
-	bin/tests/dst/t2_data_1
-	bin/tests/dst/t2_data_2
-	bin/tests/dst/t2_dsasig
-	bin/tests/dst/t2_rsasig
-	bin/tests/hashes/Makefile
 	bin/tests/headerdep_test.sh
-	bin/tests/master/Makefile
-	bin/tests/mem/Makefile
-	bin/tests/names/Makefile
-	bin/tests/net/Makefile
+	bin/tests/optional/Makefile
 	bin/tests/pkcs11/Makefile
 	bin/tests/pkcs11/benchmarks/Makefile
-	bin/tests/rbt/Makefile
-	bin/tests/resolver/Makefile
-	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/dlz/prereq.sh
@@ -5191,8 +5166,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/cookie/prereq.sh
 	bin/tests/system/tkey/Makefile
-	bin/tests/tasks/Makefile
-	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile
 	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile
@@ -5264,9 +5237,6 @@ AC_CONFIG_FILES([
 	lib/lwres/unix/Makefile
 	lib/lwres/unix/include/Makefile
 	lib/lwres/unix/include/lwres/Makefile
-	lib/tests/Makefile
-	lib/tests/include/Makefile
-	lib/tests/include/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
 	unit/Makefile

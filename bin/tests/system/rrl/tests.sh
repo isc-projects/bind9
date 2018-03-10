@@ -255,5 +255,4 @@ ckstats final dropped 56
 ckstats final truncated 23
 
 echo_i "exit status: $ret"
-#[ $status -eq 0 ] || exit 1
-[ $ret -eq 0 ] || echo_i "test failure overridden"
+[ $ret -eq 0 ] || exit 1
