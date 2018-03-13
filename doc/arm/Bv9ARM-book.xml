@@ -8974,10 +8974,33 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  for a limited amount of clock skew.
 		</para>
 		<para>
+		  The <command>sig-validity-interval</command> can be
+		  overridden for DNSKEY records by setting
+		  <command>dnskey-sig-validity</command>.
+		</para>
+		<para>
 		  The <command>sig-validity-interval</command>
 		  should be, at least, several multiples of the SOA
 		  expire interval to allow for reasonable interaction
 		  between the various timer and expiry dates.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>dnskey-sig-validity</command></term>
+	      <listitem>
+		<para>
+		  Specifies the number of days into the future when
+		  DNSSEC signatures that are automatically generated
+		  for DNSKEY RRsets as a result of dynamic updates
+		  (<xref linkend="dynamic_update"/>) will expire.
+		  If set to a non-zero value, this overrides the
+		  value set by <command>sig-validity-interval</command>.
+		  The default is zero, meaning
+		  <command>sig-validity-interval</command> is used.
+		  The maximum value is 3660 days (10 years), and
+		  higher values will be rejected.
 		</para>
 	      </listitem>
 	    </varlistentry>

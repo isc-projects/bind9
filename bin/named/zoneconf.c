@@ -1441,6 +1441,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
 
 		obj = NULL;
+		result = named_config_get(maps, "dnskey-sig-validity", &obj);
+		INSIST(result == ISC_R_SUCCESS && obj != NULL);
+		seconds = cfg_obj_asuint32(obj) * 86400;
+		dns_zone_setkeyvalidityinterval(zone, seconds);
+
+		obj = NULL;
 		result = named_config_get(maps, "sig-validity-interval", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		{

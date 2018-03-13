@@ -1,3 +1,7 @@
+4928.	[func]		The "dnskey-sig-validity" option allows
+			"sig-validity-interval" to be overriden for signatures
+			covering DNSKEY RRsets. [GL #145]
+
 4927.	[placeholder]
 
 4926.	[func]		Add root key sentinel support.  To disable, add
