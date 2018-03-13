@@ -1907,6 +1907,7 @@ view_clauses[] = {
 	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
 	{ "glue-cache", &cfg_type_boolean, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
+	{ "kskroll-sentinel-enable", &cfg_type_boolean, 0 },
 	{ "lame-ttl", &cfg_type_ttlval, 0 },
 #ifdef HAVE_LMDB
 	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },

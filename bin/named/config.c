@@ -167,6 +167,7 @@ options {\n\
 "	geoip-use-ecs yes;\n"
 #endif
 "	glue-cache yes;\n\
+	kskroll-sentinel-enable yes;\n\
 	lame-ttl 600;\n"
 #ifdef HAVE_LMDB
 "	lmdb-mapsize 32M;\n"
