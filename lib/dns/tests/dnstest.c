@@ -42,6 +42,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
+#include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -481,7 +482,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
 		/*
 		 * Parse owner name.
 		 */
-		name = dns_fixedname_initname(&fixedname);
+		dns_fixedname_init(&fixedname);
+		name = dns_fixedname_name(&fixedname);
 		result = dns_name_fromstring(name, changes[i].owner, 0, mctx);
 		if (result != ISC_R_SUCCESS) {
 			break;
