@@ -1,3 +1,7 @@
+4914.	[func]		The "dnskey-sig-validity" option allows
+			"sig-validity-interval" to be overriden for signatures
+			covering DNSKEY RRsets. [GL #145]
+
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
 
