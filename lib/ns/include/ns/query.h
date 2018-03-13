@@ -144,6 +144,10 @@ typedef struct query_ctx {
 
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
+
+	isc_uint16_t kskroll_keyid;
+	isc_boolean_t kskroll_is_ta;
+	isc_boolean_t kskroll_not_ta;
 } query_ctx_t;
 
 isc_result_t

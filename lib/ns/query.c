@@ -36,6 +36,7 @@
 #include <dns/dnsrps.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
+#include <dns/keytable.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
@@ -4997,6 +4998,9 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->want_stale = ISC_FALSE;
 	qctx->answer_has_ns = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
+	qctx->kskroll_keyid = 0;
+	qctx->kskroll_is_ta = ISC_FALSE;
+	qctx->kskroll_not_ta = ISC_FALSE;
 }
 
 /*%
@@ -5132,6 +5136,41 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	return (ns__query_start(&qctx));
 }
 
+static void
+kskroll_sentinal(query_ctx_t *qctx) {
+	const char *ndata = (const char *)qctx->client->query.qname->ndata;
+	unsigned int v = 0;
+	int i;
+
+	if (qctx->client->query.qname->length > 29 && ndata[0] == 28 &&
+	    strncasecmp(ndata + 1, "kskroll-sentinel-is-ta-", 23) == 0)
+	{
+		ndata += 24;
+		for (i = 0; i < 5; i++) {
+			if (ndata[i] < '0' || ndata[i] > '9')
+				return;
+			v *= 10;
+			v += ndata[i] - '0';
+		}
+		qctx->kskroll_keyid = v;
+		qctx->kskroll_is_ta = ISC_TRUE;
+	} else if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
+	           strncasecmp(ndata + 1, "kskroll-sentinel-not-ta-", 24) == 0)
+	{
+		ndata += 25;
+		for (i = 0; i < 5; i++) {
+			if (ndata[i] < '0' || ndata[i] > '9')
+				return;
+			v *= 10;
+			v += ndata[i] - '0';
+		}
+		qctx->kskroll_keyid = v;
+		qctx->kskroll_not_ta = ISC_TRUE;
+	}
+fprintf(stderr, "kskroll kskroll_keyid=%u kskroll_is_ta=%u kskroll_not_ta=%u\n",
+	qctx->kskroll_keyid, qctx->kskroll_is_ta, qctx->kskroll_not_ta);
+}
+
 /*%
  * Starting point for a client query or a chaining query.
  *
@@ -5170,6 +5209,11 @@ ns__query_start(query_ctx_t *qctx) {
 			      typename, classname);
 		QUERY_ERROR(qctx, DNS_R_REFUSED);
 		return (query_done(qctx));
+	}
+
+	if (qctx->qtype == dns_rdatatype_a ||
+	    qctx->qtype == dns_rdatatype_aaaa) {
+		 kskroll_sentinal(qctx);
 	}
 
 	/*
@@ -5313,6 +5357,37 @@ ns__query_start(query_ctx_t *qctx) {
 	return (query_lookup(qctx));
 }
 
+static isc_boolean_t
+has_ta(query_ctx_t *qctx) {
+	isc_result_t result;
+	dns_keytable_t *keytable = NULL;
+	dns_keynode_t *keynode = NULL;
+
+	result = dns_view_getsecroots(qctx->client->view, &keytable);
+	if (result != ISC_R_SUCCESS) {
+fprintf(stderr, "has_ta -> ISC_FALSE (not keytable)\n");
+		return (ISC_FALSE);
+	}
+
+	result = dns_keytable_find(keytable, dns_rootname, &keynode);
+	while (result == ISC_R_SUCCESS) {
+		dns_keynode_t *nextnode = NULL;
+		isc_uint16_t keyid = dst_key_id(dns_keynode_key(keynode));
+		if (keyid == qctx->kskroll_keyid) {
+			dns_keytable_detachkeynode(keytable, &keynode);
+			dns_keytable_detach(&keytable);
+fprintf(stderr, "has_ta -> ISC_TRUE\n");
+			return (ISC_TRUE);
+		}
+		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
+		dns_keytable_detachkeynode(keytable, &keynode);
+		keynode = nextnode;
+	}
+	dns_keytable_detach(&keytable);
+fprintf(stderr, "has_ta -> ISC_FALSE\n");
+	return (ISC_FALSE);
+}
+
 /*%
  * Perform a local database lookup, in either an authoritative or
  * cache database. If unable to answer, call query_done(); otherwise
@@ -5404,6 +5479,28 @@ query_lookup(query_ctx_t *qctx) {
 
 	if (!qctx->is_zone) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
+	}
+
+fprintf(stderr, "qctx->is_zone=%u, trust=%u result=%s\n",
+	qctx->is_zone, qctx->rdataset->trust == dns_trust_secure,
+	dns_result_totext(result));
+	if (!qctx->is_zone &&
+	    (qctx->kskroll_is_ta || qctx->kskroll_not_ta) &&
+	    qctx->rdataset->trust == dns_trust_secure)
+	{
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case DNS_R_CNAME:
+		case DNS_R_DNAME:
+		case DNS_R_NCACHENXDOMAIN:
+		case DNS_R_NCACHENXRRSET:
+			if ((qctx->kskroll_is_ta && has_ta(qctx)) ||
+			    (qctx->kskroll_not_ta && !has_ta(qctx)))
+			{
+				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				return (query_done(qctx));
+			}
+		}
 	}
 
 	if (qctx->want_stale) {
