@@ -5846,6 +5846,17 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>root-key-sentinel</command></term>
+	      <listitem>
+		<para>
+		  Respond to root key sentinel probes as described in
+		  draft-ietf-dnsop-kskroll-sentinel-08. The default is
+		  <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>maintain-ixfr-base</command></term>
 	      <listitem>
 		<para>
