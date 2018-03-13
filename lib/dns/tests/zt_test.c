@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -222,13 +220,13 @@ ATF_TC_BODY(asyncload_zt, tc) {
 			 dns_masterformat_text, &dns_master_style_default);
 	view = dns_zone_getview(zone1);
 
-	result = dns_test_makezone("bar", &zone2, view, ISC_TRUE);
+	result = dns_test_makezone("bar", &zone2, view, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_zone_setfile(zone2, "testdata/zt/zone1.db",
 			 dns_masterformat_text, &dns_master_style_default);
 
 	/* This one will fail to load */
-	result = dns_test_makezone("fake", &zone3, view, ISC_TRUE);
+	result = dns_test_makezone("fake", &zone3, view, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_zone_setfile(zone3, "testdata/zt/nonexistent.db",
 			 dns_masterformat_text, &dns_master_style_default);
