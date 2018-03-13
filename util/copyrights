@@ -3490,6 +3490,7 @@
 ./lib/dns/tests/rdatasetstats_test.c		C	2012,2015,2016,2018
 ./lib/dns/tests/resolver_test.c			C	2018
 ./lib/dns/tests/rsa_test.c			C	2016,2018
+./lib/dns/tests/sigs_test.c			C	2018
 ./lib/dns/tests/testdata/db/data.db		ZONE	2018
 ./lib/dns/tests/testdata/dbiterator/zone1.data	ZONE	2011,2012,2016,2018
 ./lib/dns/tests/testdata/dbiterator/zone2.data	X	2011,2018
@@ -3523,6 +3524,7 @@
 ./lib/dns/tests/testdata/master/master15.data	X	2012,2018
 ./lib/dns/tests/testdata/master/master16.data	X	2012,2018
 ./lib/dns/tests/testdata/master/master17.data	X	2012,2018
+./lib/dns/tests/testdata/master/master18.data	X	2018
 ./lib/dns/tests/testdata/master/master2.data	X	2011,2018
 ./lib/dns/tests/testdata/master/master3.data	X	2011,2018
 ./lib/dns/tests/testdata/master/master4.data	X	2011,2018
@@ -3537,6 +3539,10 @@
 ./lib/dns/tests/testdata/nsec3/min-1024.db	ZONE	2012,2016,2018
 ./lib/dns/tests/testdata/nsec3/min-2048.db	ZONE	2012,2016,2018
 ./lib/dns/tests/testdata/zt/zone1.db		ZONE	2011,2012,2016,2018
+./lib/dns/tests/testkeys/Kexample.+008+20386.key	X	2018
+./lib/dns/tests/testkeys/Kexample.+008+20386.private	X	2018
+./lib/dns/tests/testkeys/Kexample.+008+37464.key	X	2018
+./lib/dns/tests/testkeys/Kexample.+008+37464.private	X	2018
 ./lib/dns/tests/time_test.c			C	2011,2012,2016,2018
 ./lib/dns/tests/tsig_test.c			C	2017,2018
 ./lib/dns/tests/update_test.c			C	2011,2012,2014,2016,2017,2018
