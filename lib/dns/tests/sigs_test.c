@@ -207,8 +207,83 @@ ATF_TC_BODY(update_sigs, tc) {
 	 * contents introduced by each test are preserved between tests.
 	 */
 
+	const zonechange_t changes_add[] = {
+		{ DNS_DIFFOP_ADD, "foo.example", 300, "TXT", "foo" },
+		{ DNS_DIFFOP_ADD, "bar.example", 300, "TXT", "bar" },
+		ZONECHANGE_SENTINEL,
+	};
+	const update_sigs_test_params_t test_add = {
+		.description = "add new RRsets",
+		.changes = changes_add,
+		.rrsigs_added = 2,
+		.non_rrsigs_added = 2,
+		.rrsigs_deleted = 0,
+		.non_rrsigs_deleted = 0,
+	};
+
+	const zonechange_t changes_append[] = {
+		{ DNS_DIFFOP_ADD, "foo.example", 300, "TXT", "foo1" },
+		{ DNS_DIFFOP_ADD, "foo.example", 300, "TXT", "foo2" },
+		ZONECHANGE_SENTINEL,
+	};
+	const update_sigs_test_params_t test_append = {
+		.description = "append multiple RRs to an existing RRset",
+		.changes = changes_append,
+		.rrsigs_added = 1,
+		.non_rrsigs_added = 2,
+		.rrsigs_deleted = 1,
+		.non_rrsigs_deleted = 0,
+	};
+
+	const zonechange_t changes_replace[] = {
+		{ DNS_DIFFOP_DEL, "bar.example", 300, "TXT", "bar" },
+		{ DNS_DIFFOP_ADD, "bar.example", 300, "TXT", "rab" },
+		ZONECHANGE_SENTINEL,
+	};
+	const update_sigs_test_params_t test_replace = {
+		.description = "replace an existing RRset",
+		.changes = changes_replace,
+		.rrsigs_added = 1,
+		.non_rrsigs_added = 1,
+		.rrsigs_deleted = 1,
+		.non_rrsigs_deleted = 1,
+	};
+
+	const zonechange_t changes_delete[] = {
+		{ DNS_DIFFOP_DEL, "bar.example", 300, "TXT", "rab" },
+		ZONECHANGE_SENTINEL,
+	};
+	const update_sigs_test_params_t test_delete = {
+		.description = "delete an existing RRset",
+		.changes = changes_delete,
+		.rrsigs_added = 0,
+		.non_rrsigs_added = 0,
+		.rrsigs_deleted = 1,
+		.non_rrsigs_deleted = 1,
+	};
+
+	const zonechange_t changes_mixed[] = {
+		{ DNS_DIFFOP_ADD, "baz.example", 300, "TXT", "baz1" },
+		{ DNS_DIFFOP_ADD, "baz.example", 300, "A", "127.0.0.1" },
+		{ DNS_DIFFOP_ADD, "baz.example", 300, "TXT", "baz2" },
+		{ DNS_DIFFOP_ADD, "baz.example", 300, "AAAA", "::1" },
+		ZONECHANGE_SENTINEL,
+	};
+	const update_sigs_test_params_t test_mixed = {
+		.description = "add different RRsets with common owner name",
+		.changes = changes_mixed,
+		.rrsigs_added = 3,
+		.non_rrsigs_added = 4,
+		.rrsigs_deleted = 0,
+		.non_rrsigs_deleted = 0,
+	};
+
 	const update_sigs_test_params_t *tests[] = {
-		NULL,
+		&test_add,
+		&test_append,
+		&test_replace,
+		&test_delete,
+		&test_mixed,
 	};
 
 	/*
