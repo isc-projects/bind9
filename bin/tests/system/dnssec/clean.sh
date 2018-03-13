@@ -93,3 +93,4 @@ rm -f signer/general/dsset*
 rm -f signing.out*
 rm -f signer/*.signed.pre*
 rm -f signer/*.signed.post*
+rm -f python.out.*

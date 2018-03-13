@@ -1500,9 +1500,9 @@ dns_zone_getmgr(dns_zone_t *zone);
 void
 dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 /*%<
- * Set the zone's RRSIG validity interval.  This is the length of time
- * for which DNSSEC signatures created as a result of dynamic updates
- * to secure zones will remain valid, in seconds.
+ * Set the zone's general signature validity interval.  This is the length
+ * of time for which DNSSEC signatures created as a result of dynamic
+ * updates to secure zones will remain valid, in seconds.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
@@ -1511,7 +1511,33 @@ dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 isc_uint32_t
 dns_zone_getsigvalidityinterval(dns_zone_t *zone);
 /*%<
- * Get the zone's RRSIG validity interval.
+ * Get the zone's general signature validity interval.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setkeyvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
+/*%<
+ * Set the zone's DNSKEY signature validity interval.  This is the length
+ * of time for which DNSSEC signatures created for DNSKEY records
+ * will remain valid, in seconds.
+ *
+ * If this value is set to zero, then the regular signature validity
+ * interval (see dns_zone_setsigvalidityinterval(), above) is used
+ * for all RRSIGs. However, if this value is nonzero, then it is used
+ * as the validity interval for RRSIGs covering DNSKEY and CDNSKEY
+ * RRsets.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
+isc_uint32_t
+dns_zone_getkeyvalidityinterval(dns_zone_t *zone);
+/*%<
+ * Get the zone's DNSKEY signature validity interval.
  *
  * Requires:
  * \li	'zone' to be a valid zone.
