@@ -240,6 +240,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->requireservercookie = ISC_FALSE;
 	view->synthfromdnssec = ISC_TRUE;
 	view->trust_anchor_telemetry = ISC_TRUE;
+	view->root_key_sentinel = ISC_TRUE;
 	view->new_zone_dir = NULL;
 	view->new_zone_file = NULL;
 	view->new_zone_db = NULL;
