@@ -433,14 +433,9 @@ struct dns_zone {
 	isc_stats_t             *gluecachestats;
 };
 
-typedef struct {
-	dns_diff_t	*diff;
-	isc_boolean_t	offline;
-} zonediff_t;
-
 #define zonediff_init(z, d) \
 	do { \
-		zonediff_t *_z = (z); \
+		dns__zonediff_t *_z = (z); \
 		(_z)->diff = (d); \
 		(_z)->offline = ISC_FALSE; \
 	} while (0)
@@ -6066,7 +6061,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 }
 
 static isc_result_t
-offline(dns_db_t *db, dns_dbversion_t *ver, zonediff_t *zonediff,
+offline(dns_db_t *db, dns_dbversion_t *ver, dns__zonediff_t *zonediff,
 	dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	isc_result_t result;
@@ -6175,7 +6170,7 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
  */
 static isc_result_t
 del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	 dns_rdatatype_t type, zonediff_t *zonediff, dst_key_t **keys,
+	 dns_rdatatype_t type, dns__zonediff_t *zonediff, dst_key_t **keys,
 	 unsigned int nkeys, isc_stdtime_t now, isc_boolean_t incremental)
 {
 	isc_result_t result;
@@ -6468,7 +6463,7 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t _sig_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
@@ -7357,7 +7352,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	    dst_key_t *zone_keys[], unsigned int nkeys, dns_zone_t *zone,
 	    isc_stdtime_t inception, isc_stdtime_t expire, isc_stdtime_t now,
 	    isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
-	    zonediff_t *zonediff)
+	    dns__zonediff_t *zonediff)
 {
 	dns_difftuple_t *tuple;
 	isc_result_t result;
@@ -7414,7 +7409,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_diff_t nsec_diff;
 	dns_diff_t nsec3_diff;
 	dns_diff_t param_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name, *nextname;
@@ -8310,7 +8305,7 @@ zone_sign(dns_zone_t *zone) {
 	dns_dbversion_t *version = NULL;
 	dns_diff_t _sig_diff;
 	dns_diff_t post_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name, *nextname;
@@ -17592,7 +17587,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 static isc_result_t
 sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	  isc_stdtime_t now, dns_diff_t *diff, zonediff_t *zonediff)
+	  isc_stdtime_t now, dns_diff_t *diff, dns__zonediff_t *zonediff)
 {
 	isc_result_t result;
 	isc_stdtime_t inception, soaexpire;
@@ -17811,7 +17806,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t diff, _sig_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	isc_boolean_t commit = ISC_FALSE, newactive = ISC_FALSE;
 	isc_boolean_t newalg = ISC_FALSE;
 	isc_boolean_t fullsign;
