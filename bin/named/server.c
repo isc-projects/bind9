@@ -4682,6 +4682,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->trust_anchor_telemetry = cfg_obj_asboolean(obj);
 
+	obj = NULL;
+	result = named_config_get(maps, "root-key-sentinel", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->root_key_sentinel = cfg_obj_asboolean(obj);
+
 	CHECK(configure_view_acl(vconfig, config, named_g_config,
 				 "allow-query-cache-on", NULL, actx,
 				 named_g_mctx, &view->cacheonacl));
