@@ -1055,7 +1055,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	cfg_map_get(options, "sig-validity-interval", &obj);
 	if (obj != NULL) {
-		isc_uint32_t validity, resign = 0;
+		isc_uint32_t validity, keyvalidity, resign = 0;
 
 		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
 		resignobj = cfg_tuple_get(obj, "re-sign");
@@ -1086,6 +1086,22 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				result = ISC_R_RANGE;
 			}
 		}
+	}
+
+	obj = NULL;
+	cfg_map_get(options, "dnskey-sig-validity", &obj);
+	if (obj != NULL) {
+		isc_uint32_t keyvalidity;
+
+		keyvalidity = cfg_obj_asuint32(obj);
+		if (keyvalidity > 3660 || keyvalidity == 0) { /* 10 years */
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "%s '%u' is out of range (1..3660)",
+				    "dnskey-sig-validity",
+				    keyvalidity);
+			result = ISC_R_RANGE;
+		}
+
 	}
 
 	obj = NULL;

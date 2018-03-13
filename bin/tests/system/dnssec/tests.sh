@@ -2997,6 +2997,25 @@ n=`expr $n + 1`
 if test "$before" = "$after" ; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+if [ -x "$PYTHON" ]; then
+    echo_i "check dnskey-sig-validity sets longer expiry for DNSKEY ($n)"
+    ret=0
+    $RNDCCMD 10.53.0.3 sign siginterval.example 2>&1 | sed 's/^/ns3 /' | cat_i
+    soaexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 soa siginterval.example | awk '$1 ~ /SOA/ { print $5 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/'`
+    dnskeyexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 dnskey siginterval.example | awk '$1 ~ /DNSKEY/ { print $5; exit 0 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/'`
+    $PYTHON > python.out.$n <<EOF
+from datetime import date;
+ke=date($dnskeyexpire)
+se=date($soaexpire)
+print((ke-se).days);
+EOF
+    diff=`cat python.out.$n`
+    [ "$diff" -ge 55 ] || ret=1
+    n=`expr $n + 1`
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=`expr $status + $ret`
+fi
+
 copy_setports ns4/named4.conf.in ns4/named.conf
 $RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 3
