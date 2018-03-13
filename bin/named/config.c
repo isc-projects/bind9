@@ -177,6 +177,7 @@ options {\n\
 	recursion true;\n\
 	request-ixfr true;\n\
 	rfc2308-type1 no;\n\
+	root-key-sentinel yes;\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
 	transfer-format many-answers;\n\
