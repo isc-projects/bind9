@@ -301,6 +301,7 @@ struct dns_zone {
 	isc_event_t		ctlevent;
 	dns_ssutable_t		*ssutable;
 	isc_uint32_t		sigvalidityinterval;
+	isc_uint32_t		keyvalidityinterval;
 	isc_uint32_t		sigresigninginterval;
 	dns_view_t		*view;
 	dns_view_t		*prev_view;
@@ -1013,6 +1014,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->ssutable = NULL;
 	zone->sigvalidityinterval = 30 * 24 * 3600;
+	zone->keyvalidityinterval = 0;
 	zone->sigresigninginterval = 7 * 24 * 3600;
 	zone->view = NULL;
 	zone->prev_view = NULL;
@@ -7286,7 +7288,8 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 static isc_result_t
 update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	    dst_key_t *zone_keys[], unsigned int nkeys, dns_zone_t *zone,
-	    isc_stdtime_t inception, isc_stdtime_t expire, isc_stdtime_t now,
+	    isc_stdtime_t inception, isc_stdtime_t expire,
+	    isc_stdtime_t keyexpire, isc_stdtime_t now,
 	    isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
 	    zonediff_t *zonediff)
 {
@@ -7296,6 +7299,16 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL;
 	     tuple = ISC_LIST_HEAD(diff->tuples)) {
+		isc_stdtime_t exp = expire;
+
+		if (keyexpire != 0 &&
+		    (tuple->rdata.type == dns_rdatatype_dnskey ||
+		     tuple->rdata.type == dns_rdatatype_cdnskey ||
+		     tuple->rdata.type == dns_rdatatype_cds))
+		{
+			exp = keyexpire;
+		}
+
 		result = del_sigs(zone, db, version, &tuple->name,
 				  tuple->rdata.type, zonediff,
 				  zone_keys, nkeys, now, ISC_FALSE);
@@ -7308,7 +7321,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		result = add_sigs(db, version, &tuple->name,
 				  tuple->rdata.type, zonediff->diff,
 				  zone_keys, nkeys, zone->mctx, inception,
-				  expire, check_ksk, keyset_kskonly);
+				  exp, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "update_sigs:add_sigs -> %s",
@@ -7961,7 +7974,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	if (nsec3chain != NULL)
 		dns_dbiterator_pause(nsec3chain->dbiterator);
 	result = update_sigs(&nsec3_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
+			     nkeys, zone, inception, expire, 0, now,
 			     check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
@@ -7974,7 +7987,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 * above so we need to update the signatures.
 	 */
 	result = update_sigs(&param_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
+			     nkeys, zone, inception, expire, 0, now,
 			     check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
@@ -7994,7 +8007,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	result = update_sigs(&nsec_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
+			     nkeys, zone, inception, expire, 0, now,
 			     check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
@@ -8577,7 +8590,7 @@ zone_sign(dns_zone_t *zone) {
 
 	if (ISC_LIST_HEAD(post_diff.tuples) != NULL) {
 		result = update_sigs(&post_diff, db, version, zone_keys,
-				     nkeys, zone, inception, expire, now,
+				     nkeys, zone, inception, expire, 0, now,
 				     check_ksk, keyset_kskonly, &zonediff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
@@ -15334,6 +15347,20 @@ dns_zone_getsigvalidityinterval(dns_zone_t *zone) {
 }
 
 void
+dns_zone_setkeyvalidityinterval(dns_zone_t *zone, isc_uint32_t interval) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->keyvalidityinterval = interval;
+}
+
+isc_uint32_t
+dns_zone_getkeyvalidityinterval(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->keyvalidityinterval);
+}
+
+void
 dns_zone_setsigresigninginterval(dns_zone_t *zone, isc_uint32_t interval) {
 	isc_time_t now;
 
@@ -17477,7 +17504,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	  isc_stdtime_t now, dns_diff_t *diff, zonediff_t *zonediff)
 {
 	isc_result_t result;
-	isc_stdtime_t inception, soaexpire;
+	isc_stdtime_t inception, soaexpire, keyexpire;
 	isc_boolean_t check_ksk, keyset_kskonly;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
@@ -17494,6 +17521,13 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+
+	keyexpire = dns_zone_getkeyvalidityinterval(zone);
+	if (keyexpire == 0) {
+		keyexpire = soaexpire;
+	} else {
+		keyexpire += now;
+	}
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -17523,7 +17557,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		}
 		result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey,
 				  zonediff->diff, zone_keys, nkeys, zone->mctx,
-				  inception, soaexpire, check_ksk,
+				  inception, keyexpire, check_ksk,
 				  keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
@@ -17534,8 +17568,8 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	}
 
 	result = update_sigs(diff, db, ver, zone_keys, nkeys, zone,
-			     inception, soaexpire, now, check_ksk,
-			     keyset_kskonly, zonediff);
+			     inception, soaexpire, keyexpire, now,
+			     check_ksk, keyset_kskonly, zonediff);
 
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
