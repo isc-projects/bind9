@@ -311,6 +311,8 @@ init_desc(void) {
 		       "QryUsedStale");
 	SET_NSSTATDESC(prefetch, "queries triggered prefetch", "Prefetch");
 	SET_NSSTATDESC(keytagopt, "Keytag option received", "KeyTagOpt");
+	SET_NSSTATDESC(rootkeysentinel, "Root key sentinel queries",
+		       "RootKeySentinel");
 	INSIST(i == ns_statscounter_max);
 
 	/* Initialize resolver statistics */

@@ -75,6 +75,10 @@ struct ns_query {
 		isc_boolean_t		authoritative;
 		isc_boolean_t		is_zone;
 	} redirect;
+
+	dns_keytag_t root_key_sentinel_keyid;
+	isc_boolean_t root_key_sentinel_is_ta;
+	isc_boolean_t root_key_sentinel_not_ta;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001
