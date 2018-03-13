@@ -66,6 +66,9 @@ struct ns_query {
 	unsigned int			dns64_aaaaoklen;
 	unsigned int			dns64_options;
 	unsigned int			dns64_ttl;
+	dns_keytag_t root_key_sentinel_keyid;
+	isc_boolean_t root_key_sentinel_is_ta;
+	isc_boolean_t root_key_sentinel_not_ta;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001
