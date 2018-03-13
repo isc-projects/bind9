@@ -1358,7 +1358,7 @@ struct dns_update_state {
 	dns_diff_t work;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys;
-	isc_stdtime_t inception, expire;
+	isc_stdtime_t inception, expire, keyexpire;
 	dns_ttl_t nsecttl;
 	isc_boolean_t check_ksk, keyset_kskonly, build_nsec3;
 	enum { sign_updates, remove_orphaned, build_chain, process_nsec,
@@ -1419,6 +1419,12 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		isc_stdtime_get(&now);
 		state->inception = now - 3600; /* Allow for some clock skew. */
 		state->expire = now + sigvalidityinterval;
+		state->keyexpire = dns_zone_getkeyvalidityinterval(zone);
+		if (state->keyexpire == 0) {
+			state->keyexpire = state->expire;
+		} else {
+			state->keyexpire += now;
+		}
 
 		/*
 		 * Do we look at the KSK flag on the DNSKEY to determining which
@@ -1514,13 +1520,22 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				CHECK(rrset_visible(db, newver, name, type,
 						   &flag));
 				if (flag) {
+					isc_stdtime_t exp;
+					if (type == dns_rdatatype_dnskey ||
+					    type == dns_rdatatype_cdnskey ||
+					    type == dns_rdatatype_cds)
+					{
+						exp = state->keyexpire;
+					} else {
+						exp = state->expire;
+					}
+
 					CHECK(add_sigs(log, zone, db, newver,
 						       name, type,
 						       &state->sig_diff,
 						       state->zone_keys,
 						       state->nkeys,
-						       state->inception,
-						       state->expire,
+						       state->inception, exp,
 						       state->check_ksk,
 						       state->keyset_kskonly));
 					sigs++;
