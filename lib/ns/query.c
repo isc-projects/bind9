@@ -5243,7 +5243,8 @@ ns__query_start(query_ctx_t *qctx) {
 	/*
 	 * Setup for root key sentinel processing.
 	 */
-	if (qctx->client->query.restarts == 0 &&
+	if (qctx->client->view->root_key_sentinel &&
+	    qctx->client->query.restarts == 0 &&
 	    (qctx->qtype == dns_rdatatype_a ||
 	     qctx->qtype == dns_rdatatype_aaaa) &&
 	    (qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
