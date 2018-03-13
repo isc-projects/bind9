@@ -238,7 +238,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 * Check whether dns__zone_updatesigs() behaves as expected.
 	 */
 	result = dns__zone_updatesigs(&raw_diff, db, version, zone_keys, nkeys,
-				      zone, now - 3600, now + 3600, now,
+				      zone, now - 3600, now + 3600, 0, now,
 				      ISC_TRUE, ISC_FALSE, &zonediff);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
 			 "test \"%s\": expected success, got %s",
