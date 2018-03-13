@@ -7,6 +7,7 @@ EXPORTS
 dns__rbt_checkproperties
 dns__rbt_getheight
 dns__rbtnode_getdistance
+dns__zone_find_keys
 dns__zone_loadpending
 dns__zone_update_sigs
 
