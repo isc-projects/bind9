@@ -5844,6 +5844,17 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>kskroll-sentinal-enable</command></term>
+	      <listitem>
+		<para>
+		  Respond to KSK roll sentinal probes as described in
+		  draft-ietf-dnsop-kskroll-sentinel-06. The default is
+		  <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>maintain-ixfr-base</command></term>
 	      <listitem>
 		<para>
