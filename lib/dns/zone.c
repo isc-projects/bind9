@@ -10360,7 +10360,7 @@ dump_done(void *arg, isc_result_t result) {
 			dns_db_t *zdb = NULL;
 			if (dns_zone_getdb(zone, &zdb) == ISC_R_SUCCESS) {
 				zone_journal_compact(zone, zdb, serial);
-				dns_db_detach(&db);
+				dns_db_detach(&zdb);
 			}
 		} else if (tresult == ISC_R_SUCCESS) {
 			compact = ISC_TRUE;
