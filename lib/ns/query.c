@@ -5161,6 +5161,12 @@ kskroll_sentinal(query_ctx_t *qctx) {
 		}
 		qctx->kskroll_keyid = v;
 		qctx->kskroll_is_ta = ISC_TRUE;
+		qctx->kskroll_not_ta = ISC_FALSE;
+		/*
+		 * Simplify processing by disabling agressive
+		 * negative caching
+		 */
+		qctx->findcoveringnsec = ISC_FALSE;
 	} else if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
 	           strncasecmp(ndata + 1, "kskroll-sentinel-not-ta-", 24) == 0)
 	{
@@ -5172,7 +5178,13 @@ kskroll_sentinal(query_ctx_t *qctx) {
 			v += ndata[i] - '0';
 		}
 		qctx->kskroll_keyid = v;
+		qctx->kskroll_is_ta = ISC_FALSE;
 		qctx->kskroll_not_ta = ISC_TRUE;
+		/*
+		 * Simplify processing by disabling agressive
+		 * negative caching
+		 */
+		qctx->findcoveringnsec = ISC_FALSE;
 	}
 fprintf(stderr, "kskroll kskroll_keyid=%u kskroll_is_ta=%u kskroll_not_ta=%u\n",
 	qctx->kskroll_keyid, qctx->kskroll_is_ta, qctx->kskroll_not_ta);
