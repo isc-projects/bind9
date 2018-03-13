@@ -5136,6 +5136,13 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	return (ns__query_start(&qctx));
 }
 
+/*
+ * Find out if the query is for a ksk roll sentinal and if so record the
+ * type of ksk roll sentinal query and the key id that is being checked
+ * for.
+ *
+ * The code is assuming a zero padded decimal field of width 5.
+ */
 static void
 kskroll_sentinal(query_ctx_t *qctx) {
 	const char *ndata = (const char *)qctx->client->query.qname->ndata;
