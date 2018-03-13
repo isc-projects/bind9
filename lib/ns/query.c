@@ -946,6 +946,9 @@ ns_query_init(ns_client_t *client) {
 	client->query.redirect.sigrdataset = NULL;
 	client->query.redirect.authoritative = ISC_FALSE;
 	client->query.redirect.is_zone = ISC_FALSE;
+	client->query.kskroll_keyid = 0;
+	client->query.kskroll_is_ta = ISC_FALSE;
+	client->query.kskroll_not_ta = ISC_FALSE;
 	dns_fixedname_init(&client->query.redirect.fixed);
 	client->query.redirect.fname =
 		dns_fixedname_name(&client->query.redirect.fixed);
@@ -4998,9 +5001,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->want_stale = ISC_FALSE;
 	qctx->answer_has_ns = ISC_FALSE;
 	qctx->authoritative = ISC_FALSE;
-	qctx->kskroll_keyid = 0;
-	qctx->kskroll_is_ta = ISC_FALSE;
-	qctx->kskroll_not_ta = ISC_FALSE;
 }
 
 /*%
@@ -5159,9 +5159,8 @@ kskroll_sentinal(query_ctx_t *qctx) {
 			v *= 10;
 			v += ndata[i] - '0';
 		}
-		qctx->kskroll_keyid = v;
-		qctx->kskroll_is_ta = ISC_TRUE;
-		qctx->kskroll_not_ta = ISC_FALSE;
+		qctx->client->query.kskroll_keyid = v;
+		qctx->client->query.kskroll_is_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
 		 * negative caching
@@ -5177,9 +5176,8 @@ kskroll_sentinal(query_ctx_t *qctx) {
 			v *= 10;
 			v += ndata[i] - '0';
 		}
-		qctx->kskroll_keyid = v;
-		qctx->kskroll_is_ta = ISC_FALSE;
-		qctx->kskroll_not_ta = ISC_TRUE;
+		qctx->client->query.kskroll_keyid = v;
+		qctx->client->query.kskroll_not_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
 		 * negative caching
@@ -5187,7 +5185,7 @@ kskroll_sentinal(query_ctx_t *qctx) {
 		qctx->findcoveringnsec = ISC_FALSE;
 	}
 fprintf(stderr, "kskroll kskroll_keyid=%u kskroll_is_ta=%u kskroll_not_ta=%u\n",
-	qctx->kskroll_keyid, qctx->kskroll_is_ta, qctx->kskroll_not_ta);
+	qctx->client->query.kskroll_keyid, qctx->client->query.kskroll_is_ta, qctx->client->query.kskroll_not_ta);
 }
 
 /*%
@@ -5392,7 +5390,7 @@ fprintf(stderr, "has_ta -> ISC_FALSE (not keytable)\n");
 	while (result == ISC_R_SUCCESS) {
 		dns_keynode_t *nextnode = NULL;
 		isc_uint16_t keyid = dst_key_id(dns_keynode_key(keynode));
-		if (keyid == qctx->kskroll_keyid) {
+		if (keyid == qctx->client->query.kskroll_keyid) {
 			dns_keytable_detachkeynode(keytable, &keynode);
 			dns_keytable_detach(&keytable);
 fprintf(stderr, "has_ta -> ISC_TRUE\n");
@@ -5498,28 +5496,6 @@ query_lookup(query_ctx_t *qctx) {
 
 	if (!qctx->is_zone) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
-	}
-
-fprintf(stderr, "qctx->is_zone=%u, trust=%u result=%s\n",
-	qctx->is_zone, qctx->rdataset->trust == dns_trust_secure,
-	dns_result_totext(result));
-	if (!qctx->is_zone &&
-	    (qctx->kskroll_is_ta || qctx->kskroll_not_ta) &&
-	    qctx->rdataset->trust == dns_trust_secure)
-	{
-		switch (result) {
-		case ISC_R_SUCCESS:
-		case DNS_R_CNAME:
-		case DNS_R_DNAME:
-		case DNS_R_NCACHENXDOMAIN:
-		case DNS_R_NCACHENXRRSET:
-			if ((qctx->kskroll_is_ta && has_ta(qctx)) ||
-			    (qctx->kskroll_not_ta && !has_ta(qctx)))
-			{
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-				return (query_done(qctx));
-			}
-		}
 	}
 
 	if (qctx->want_stale) {
@@ -6490,6 +6466,36 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		result = query_checkrpz(qctx, result);
 		if (result == ISC_R_COMPLETE)
 			return (query_done(qctx));
+	}
+
+fprintf(stderr, "qctx->is_zone=%u, kskroll_is_ta=%u, kskroll_not_ta=%u trust=%u result=%s\n",
+	qctx->is_zone, qctx->client->query.kskroll_is_ta,
+	qctx->client->query.kskroll_not_ta,
+	qctx->rdataset->trust == dns_trust_secure,
+	dns_result_totext(result));
+	if (qctx->client->query.kskroll_is_ta ||
+	    qctx->client->query.kskroll_not_ta)
+	{
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case DNS_R_CNAME:
+		case DNS_R_DNAME:
+		case DNS_R_NCACHENXDOMAIN:
+		case DNS_R_NCACHENXRRSET:
+			if (!qctx->is_zone &&
+			    qctx->rdataset->trust == dns_trust_secure &&
+			    ((qctx->client->query.kskroll_is_ta &&
+			     has_ta(qctx)) ||
+			    (qctx->client->query.kskroll_not_ta &&
+			     !has_ta(qctx))))
+			{
+				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				return (query_done(qctx));
+			} else {
+				qctx->client->query.kskroll_is_ta = ISC_FALSE;
+				qctx->client->query.kskroll_not_ta = ISC_FALSE;
+			}
+		}
 	}
 
 	switch (result) {
