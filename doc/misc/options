@@ -197,6 +197,7 @@ options {
             <boolean> );
         keep-response-order { <address_match_element>; ... };
         key-directory <quoted_string>;
+        kskroll-sentinel-enable <boolean>;
         lame-ttl <ttlval>;
         listen-on [ port <integer> ] [ dscp
             <integer> ] {
@@ -539,6 +540,7 @@ view <string> [ <class> ] {
                 secret <string>;
         }; // may occur multiple times
         key-directory <quoted_string>;
+        kskroll-sentinel-enable <boolean>;
         lame-ttl <ttlval>;
         lmdb-mapsize <sizeval>; // non-operational
         maintain-ixfr-base <boolean>; // obsolete

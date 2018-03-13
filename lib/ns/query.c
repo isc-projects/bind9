@@ -5226,8 +5226,12 @@ ns__query_start(query_ctx_t *qctx) {
 		return (query_done(qctx));
 	}
 
-	if (qctx->qtype == dns_rdatatype_a ||
-	    qctx->qtype == dns_rdatatype_aaaa) {
+	/*
+	 * Setup for KSK roll sentinal processing.
+	 */
+	if (qctx->client->view->kskroll_sentinel &&
+	    (qctx->qtype == dns_rdatatype_a ||
+	     qctx->qtype == dns_rdatatype_aaaa)) {
 		 kskroll_sentinel(qctx);
 	}
 
