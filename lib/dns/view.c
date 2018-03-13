@@ -202,6 +202,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->managed_keys = NULL;
 	view->redirect = NULL;
 #ifdef BIND9
+	view->root_key_sentinel = ISC_TRUE;
 	view->new_zone_file = NULL;
 	view->new_zone_config = NULL;
 	view->cfg_destroy = NULL;

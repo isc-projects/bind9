@@ -3115,6 +3115,15 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	else
 		INSIST(0);
 
+	obj = NULL;
+	result = ns_config_get(maps, "root-key-sentinel", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->root_key_sentinel = cfg_obj_asboolean(obj);
+
+	CHECK(configure_view_acl(vconfig, config, ns_g_config,
+				 "allow-query-cache-on", NULL, actx,
+				 ns_g_mctx, &view->cacheonacl));
+
 	/*
 	 * Set sources where additional data and CNAME/DNAME
 	 * targets for authoritative answers may be found.
