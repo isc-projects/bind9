@@ -28,6 +28,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/diff.h>
 #include <dns/result.h>
 #include <dns/zone.h>
 
@@ -37,6 +38,16 @@
 		if (result != ISC_R_SUCCESS) \
 			goto cleanup; \
 	} while (0)
+
+typedef struct {
+	dns_diffop_t op;
+	const char *owner;
+	dns_ttl_t ttl;
+	const char *type;
+	const char *rdata;
+} zonechange_t;
+
+#define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
 
 extern isc_mem_t *mctx;
 extern isc_entropy_t *ectx;
@@ -113,3 +124,10 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 void
 dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);
+
+/*%
+ * Given a pointer to an uninitialized dns_diff_t structure in 'diff', make it
+ * contain diff tuples representing zone database changes listed in 'changes'.
+ */
+isc_result_t
+dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes);
