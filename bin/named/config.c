@@ -193,6 +193,7 @@ options {\n\
 	request-ixfr true;\n\
 	require-server-cookie no;\n\
 #	rfc2308-type1 <obsolete>;\n\
+	root-key-sentinel yes;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 #	topology <none>\n\
