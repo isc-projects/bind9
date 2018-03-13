@@ -5473,10 +5473,16 @@ was_dumping(dns_zone_t *zone) {
 	return (dumping);
 }
 
-static isc_result_t
-find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       isc_mem_t *mctx, unsigned int maxkeys,
-	       dst_key_t **keys, unsigned int *nkeys)
+/*%
+ * Find up to 'maxkeys' DNSSEC keys used for signing version 'ver' of database
+ * 'db' for zone 'zone' in its key directory, then load these keys into 'keys'.
+ * Only load the public part of a given key if it is not active at timestamp
+ * 'now'.  Store the number of keys found in 'nkeys'.
+ */
+isc_result_t
+dns__zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		   isc_mem_t *mctx, unsigned int maxkeys,
+		   dst_key_t **keys, unsigned int *nkeys)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -5934,11 +5940,11 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:find_zone_keys -> %s",
+			     "zone_resigninc:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -6907,11 +6913,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
-				DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:find_zone_keys -> %s",
+			     "zone_nsec3chain:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7794,11 +7800,11 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
-				DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:find_zone_keys -> %s",
+			     "zone_sign:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -16790,11 +16796,11 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	unsigned int nkeys = 0, i;
 	dns_difftuple_t *tuple;
 
-	result = find_zone_keys(zone, db, ver, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, ver, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:find_zone_keys -> %s",
+			     "sign_apex:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		return (result);
 	}
