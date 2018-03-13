@@ -24,6 +24,10 @@
 4990.	[bug]		Prevent a possible NULL reference in pkcs11-keygen.
 			[GL #401]
 
+4928.	[func]		The "dnskey-sig-validity" option allows
+			"sig-validity-interval" to be overriden for signatures
+			covering DNSKEY RRsets. [GL #145]
+
 	--- 9.11.4 released ---
 
 	--- 9.11.4rc2 released ---

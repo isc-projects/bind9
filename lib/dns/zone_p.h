@@ -35,9 +35,9 @@ isc_result_t
 dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		     dst_key_t *zone_keys[], unsigned int nkeys,
 		     dns_zone_t *zone, isc_stdtime_t inception,
-		     isc_stdtime_t expire, isc_stdtime_t now,
-		     isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
-		     dns__zonediff_t *zonediff);
+		     isc_stdtime_t expire, isc_stdtime_t keyexpire,
+		     isc_stdtime_t now, isc_boolean_t check_ksk,
+		     isc_boolean_t keyset_kskonly, dns__zonediff_t *zonediff);
 
 ISC_LANG_ENDDECLS
 
