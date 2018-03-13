@@ -208,57 +208,68 @@ dns_test_makeview(const char *name, dns_view_t **viewp) {
 	return (result);
 }
 
-/*
- * Create a zone with origin 'name', return a pointer to the zone object in
- * 'zonep'.  If 'view' is set, add the zone to that view; otherwise, create
- * a new view for the purpose.
- *
- * If the created view is going to be needed by the caller subsequently,
- * then 'keepview' should be set to true; this will prevent the view
- * from being detached.  In this case, the caller is responsible for
- * detaching the view.
- */
 isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		  isc_boolean_t keepview)
+		  isc_boolean_t createview)
 {
-	isc_result_t result;
+	dns_fixedname_t fixed_origin;
 	dns_zone_t *zone = NULL;
-	isc_buffer_t buffer;
-	dns_fixedname_t fixorigin;
+	isc_result_t result;
 	dns_name_t *origin;
 
-	if (view == NULL)
-		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	else if (!keepview)
-		keepview = ISC_TRUE;
+	REQUIRE(view == NULL || !createview);
 
-	zone = *zonep;
-	if (zone == NULL)
-		CHECK(dns_zone_create(&zone, mctx));
+	/*
+	 * Create the zone structure.
+	 */
+	result = dns_zone_create(&zone, mctx);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
-	isc_buffer_constinit(&buffer, name, strlen(name));
-	isc_buffer_add(&buffer, strlen(name));
-	origin = dns_fixedname_initname(&fixorigin);
-	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
-	CHECK(dns_zone_setorigin(zone, origin));
-	dns_zone_setview(zone, view);
+	/*
+	 * Set zone type and origin.
+	 */
 	dns_zone_settype(zone, dns_zone_master);
-	dns_zone_setclass(zone, view->rdclass);
-	dns_view_addzone(view, zone);
+	origin = dns_fixedname_initname(&fixed_origin);
+	result = dns_name_fromstring(origin, name, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_zone;
+	}
+	result = dns_zone_setorigin(zone, origin);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_zone;
+	}
 
-	if (!keepview)
-		dns_view_detach(&view);
+	/*
+	 * If requested, create a view.
+	 */
+	if (createview) {
+		result = dns_test_makeview("view", &view);
+		if (result != ISC_R_SUCCESS) {
+			goto detach_zone;
+		}
+	}
+
+	/*
+	 * If a view was passed as an argument or created above, attach the
+	 * created zone to it.  Otherwise, set the zone's class to IN.
+	 */
+	if (view != NULL) {
+		dns_zone_setview(zone, view);
+		dns_zone_setclass(zone, view->rdclass);
+		dns_view_addzone(view, zone);
+	} else {
+		dns_zone_setclass(zone, dns_rdataclass_in);
+	}
 
 	*zonep = zone;
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
-	if (zone != NULL)
-		dns_zone_detach(&zone);
-	if (view != NULL)
-		dns_view_detach(&view);
+ detach_zone:
+	dns_zone_detach(&zone);
+
 	return (result);
 }
 
