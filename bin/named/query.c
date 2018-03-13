@@ -7080,7 +7080,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * Setup for root key sentinel processing.
 	 */
-	if (client->query.restarts == 0 &&
+	if (client->view->root_key_sentinel &&
+	    client->query.restarts == 0 &&
 	    (qtype == dns_rdatatype_a ||
 	     qtype == dns_rdatatype_aaaa) &&
 	    (client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
