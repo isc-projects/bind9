@@ -1,3 +1,6 @@
+4915.	[func]		Add root key sentinel support.  To disable, add
+			'root-key-sentinel no;' to named.conf. [GL #37]
+
 4914.	[bug]		A bug in zone database reference counting could lead to
 			a crash when multiple versions of a slave zone were
 			transferred from a master in close succession.
