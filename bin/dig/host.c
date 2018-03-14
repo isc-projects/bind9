@@ -19,13 +19,6 @@
 #include <locale.h>
 #endif
 
-#ifdef WITH_IDNKIT
-#include <idn/result.h>
-#include <idn/log.h>
-#include <idn/resconf.h>
-#include <idn/api.h>
-#endif
-
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/netaddr.h>
@@ -721,9 +714,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = rdtype;
 			lookup->rdtypeset = ISC_TRUE;
-#ifdef WITH_IDNKIT
-			idnoptions = 0;
-#endif
 			if (rdtype == dns_rdatatype_axfr) {
 				/* -l -t any -v */
 				list_type = dns_rdatatype_any;
@@ -736,13 +726,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			} else if (rdtype == dns_rdatatype_any) {
 				if (!lookup->tcp_mode_set)
 					lookup->tcp_mode = ISC_TRUE;
-#ifdef WITH_IDNKIT
-			} else if (rdtype == dns_rdatatype_a ||
-				   rdtype == dns_rdatatype_aaaa ||
-				   rdtype == dns_rdatatype_mx) {
-				idnoptions = IDN_ASCCHECK;
-				list_type = rdtype;
-#endif
 			} else
 				list_type = rdtype;
 			list_addresses = ISC_FALSE;
@@ -771,9 +754,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = dns_rdatatype_any;
-#ifdef WITH_IDNKIT
-			idnoptions = 0;
-#endif
 			list_type = dns_rdatatype_any;
 			list_addresses = ISC_FALSE;
 			lookup->rdtypeset = ISC_TRUE;
@@ -885,9 +865,6 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	fatalexit = 1;
-#ifdef WITH_IDNKIT
-	idnoptions = IDN_ASCCHECK;
-#endif
 
 	/* setup dighost callbacks */
 	dighost_printmessage = printmessage;

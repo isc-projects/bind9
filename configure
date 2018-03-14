@@ -683,7 +683,6 @@ ATFBIN
 ATFBUILD
 LIBIDN2_LIBS
 LIBIDN2_CFLAGS
-IDNKIT_LIBS
 XSLT_DBLATEX_FASTBOOK
 XSLT_DBLATEX_STYLE
 XSLT_DOCBOOK_MAKETOC_XHTML
@@ -1042,10 +1041,6 @@ enable_dnstap
 with_protobuf_c
 with_libfstrm
 with_docbook_xsl
-with_idnkit
-with_libiconv
-with_iconv
-with_idnlib
 with_libidn2
 with_atf
 with_tuning
@@ -1777,10 +1772,6 @@ Optional Packages:
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
-  --with-idnkit=PATH      enable IDN support using idnkit [yes|no|path]
-  --with-libiconv=IPREFIX GNU libiconv are in IPREFIX [default PREFIX]
-  --with-iconv=LIBSPEC    specify iconv library [default -liconv]
-  --with-idnlib=ARG       specify libidnkit
   --with-libidn2=PATH     enable IDN support using GNU libidn2 [yes|no|path]
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
@@ -22544,99 +22535,6 @@ fi
 
 
 #
-# IDN support using idnkit
-#
-
-# Check whether --with-idnkit was given.
-if test "${with_idnkit+set}" = set; then :
-  withval=$with_idnkit; use_idnkit="$withval"
-else
-  use_idnkit="no"
-fi
-
-case "$use_idnkit" in
-yes)
-	if test X$prefix = XNONE ; then
-		idnkit_path=/usr/local
-	else
-		idnkit_path=$prefix
-	fi
-	;;
-no)
-	;;
-*)
-	idnkit_path="$use_idnkit"
-	;;
-esac
-
-iconvinc=
-iconvlib=
-
-# Check whether --with-libiconv was given.
-if test "${with_libiconv+set}" = set; then :
-  withval=$with_libiconv; use_libiconv="$withval"
-else
-  use_libiconv="no"
-fi
-
-case "$use_libiconv" in
-yes)
-	if test X$prefix = XNONE ; then
-		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
-	else
-		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
-	fi
-	;;
-no)
-	iconvlib=
-	;;
-*)
-	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
-	;;
-esac
-
-
-# Check whether --with-iconv was given.
-if test "${with_iconv+set}" = set; then :
-  withval=$with_iconv; iconvlib="$withval"
-fi
-
-case "$iconvlib" in
-no)
-	iconvlib=
-	;;
-yes)
-	iconvlib=-liconv
-	;;
-esac
-
-
-# Check whether --with-idnlib was given.
-if test "${with_idnlib+set}" = set; then :
-  withval=$with_idnlib; idnlib="$withval"
-else
-  idnlib="no"
-fi
-
-if test "yes" = "$idnlib"; then
-	as_fn_error $? "You must specify ARG for --with-idnlib." "$LINENO" 5
-fi
-
-IDNKIT_LIBS=
-if test "no" != "$use_idnkit"; then
-
-$as_echo "#define WITH_IDNKIT 1" >>confdefs.h
-
-	STD_CINCLUDES="$STD_CINCLUDES -I$idnkit_path/include"
-	if test "no" != "$idnlib"; then
-		IDNKIT_LIBS="$idnlib $iconvlib"
-	else
-		IDNKIT_LIBS="-L$idnkit_path/lib -lidnkit $iconvlib"
-	fi
-fi
-
-
-#
 # IDN support using libidn2
 #
 
@@ -22721,6 +22619,9 @@ ac_res=$ac_cv_search_idn2_to_ascii_8z
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
+$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
+
+
 $as_echo "#define WITH_LIBIDN2 1" >>confdefs.h
 
 else
@@ -22756,26 +22657,6 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 
-
-#
-# IDN support in general
-#
-
-# check if idnkit and libidn2 are not used at the same time
-if test "$use_idnkit" != no && test "$use_libidn2" != no; then
-    as_fn_error $? "idnkit and libidn2 cannot be used at the same time." "$LINENO" 5
-fi
-# the IDN support is on
-if test "$use_idnkit" != no || test "$use_libidn2" != no; then
-
-$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
-
-	if test "$use_libidn2" = no || test "$use_libidn2_out" != no; then
-
-$as_echo "#define WITH_IDN_OUT_SUPPORT 1" >>confdefs.h
-
-	fi
-fi
 
 #
 # Check whether to build Automated Test Framework unit tests
