@@ -96,16 +96,16 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr keepalive \
 	legacy limits logfileconfig \
-        masterfile masterformat metadata mkeys \
-        names notify nslookup nsupdate nzd2nzf \
-        padding pending pipelined \
-        reclimit redirect resolver rndc rpz rpzrecurse \
-        rrchecker rrl rrsetorder rsabigexponent runtime \
-        serve-stale sfcache smartsign sortlist \
-        spf staticstub statistics statschannel stub synthfromdnssec \
-        tcp tools tsig tsiggss \
-        unknown upforwd verify views wildcard \
-        xfer xferquota zero zonechecks"
+	masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf \
+	padding pending pipelined \
+	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	serve-stale sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub synthfromdnssec \
+	tcp tools tsig tsiggss \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
@@ -231,6 +231,12 @@ SYSTESTDIR="`basename $PWD`"
 echo_i() {
     echo "$@" | while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+echo_ic() {
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:  $LINE"
     done
 }
 
