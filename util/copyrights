@@ -3569,7 +3569,7 @@
 ./lib/isc/task_p.h				C	2000,2001,2004,2005,2007,2009,2011,2012,2013
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2013
 ./lib/isc/tests/Atffile				X	2011,2017,2018
-./lib/isc/tests/Kyuafile			X	2017
+./lib/isc/tests/Kyuafile			X	2017,2018
 ./lib/isc/tests/Makefile.in			MAKE	2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/isc/tests/aes_test.c			C	2014
 ./lib/isc/tests/atomic_test.c			C	2018
