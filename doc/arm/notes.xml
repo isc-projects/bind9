@@ -61,6 +61,20 @@
 	  [RT #43670]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  BIND now can be compiled against libidn2 library to add
+	  IDNA2008 support.  Previously BIND only supported IDNA2003
+	  using (now obsolete) idnkit-1 library.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig +noidnin</command> can be used to disable IDN
+	  processing on the input domain name, when BIND is compiled
+	  with IDN support.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
