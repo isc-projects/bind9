@@ -1,0 +1,193 @@
+variables:
+  DEBIAN_FRONTEND: noninteractive
+  LC_ALL: C
+  DOCKER_DRIVER: overlay2
+  CI_REGISTRY_IMAGE: oerdnj/bind9
+  CCACHE_DIR: "/ccache"
+
+stages:
+  - precheck
+  - build
+  - test
+
+.debian-jessie-amd64: &debian_jessie_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
+  tags:
+    - linux
+    - docker
+
+.debian-jessie-i386: &debian_jessie_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-jessie-i386"
+  tags:
+    - linux
+    - docker
+
+.debian-stretch-amd64: &debian_stretch_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
+  tags:
+    - linux
+    - docker
+
+.debian-stretch-i386:: &debian_stretch_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
+  tags:
+    - linux
+    - docker
+
+.debian-buster-amd64: &debian_buster_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
+  tags:
+    - linux
+    - docker
+
+.debian-buster-i386:: &debian_buster_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-buster-i386"
+  tags:
+    - linux
+    - docker
+
+.debian-sid-amd64: &debian_sid_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
+  tags:
+    - linux
+    - docker
+
+.debian-sid-i386: &debian_sid_i386_image
+  image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-trusty-amd64: &ubuntu_trusty_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-amd64"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-trusty-i386: &ubuntu_trusty_i386_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-i386"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
+  tags:
+    - linux
+    - docker
+
+.ubuntu-xenial-i386: &ubuntu_xenial_i386_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
+  tags:
+    - linux
+    - docker
+
+.build: &build_job
+  stage: build
+  before_script:
+    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - autoreconf -fi
+  script:
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local
+    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+  artifacts:
+    expire_in: '1 hour'
+    untracked: true
+
+.system_test: &system_test_job
+  stage: test
+  before_script:
+    - rm -rf .ccache
+    - bash -x bin/tests/system/ifconfig.sh up
+  script:
+    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1
+  artifacts:
+    untracked: true
+    expire_in: '1 week'
+    when: on_failure
+
+.unit_test: &unit_test_job
+  stage: test
+  before_script:
+    - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+  script:
+    - make unit
+  after_script:
+    - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
+  artifacts:
+    paths:
+    - atf.out
+    - kyua.log
+    - kyua.results
+    - kyua_html/
+    expire_in: '1 week'
+    when: on_failure
+
+precheck:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - perl -w util/merge_copyrights
+    - diff -urNap util/copyrights util/newcopyrights
+    - rm util/newcopyrights
+  artifacts:
+    paths:
+    - util/newcopyrights
+    expire_in: '1 week'
+    when: on_failure
+
+#build:debian:jessie:amd64:
+#  <<: *debian_jessie_amd64_image
+#  <<: *build_job
+#
+#build:debian:jessie:i386:
+#  <<: *debian_jessie_i386_image
+#  <<: *build_job
+#
+#build:debian:stretch:amd64:
+#  <<: *debian_stretch_amd64_image
+#  <<: *build_job
+#
+#build:debian:buster:i386:
+#  <<: *debian_buster_i386_image
+#  <<: *build_job
+#
+#build:ubuntu:trusty:amd64:
+#  <<: *ubuntu_trusty_amd64_image
+#  <<: *build_job
+#
+#build:ubuntu:xenial:i386:
+#  <<: *ubuntu_xenial_i386_image
+#  <<: *build_job
+
+build:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+    
+build:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *build_job
+
+unittest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:sid:amd64
+    
+unittest:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:sid:i386
+
+systemtest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:sid:amd64
+    
+systemtest:debian:sid:i386:
+  <<: *debian_sid_i386_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:sid:i386
