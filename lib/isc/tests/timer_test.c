@@ -572,11 +572,11 @@ ATF_TC_BODY(purge, tc) {
 #else
 ATF_TC(untested);
 ATF_TC_HEAD(untested, tc) {
-        atf_tc_set_md_var(tc, "descr", "skipping nsec3 test");
+	atf_tc_set_md_var(tc, "descr", "skipping nsec3 test");
 }
 ATF_TC_BODY(untested, tc) {
-        UNUSED(tc);
-        atf_tc_skip("DNSSEC not available");
+	UNUSED(tc);
+	atf_tc_skip("DNSSEC not available");
 }
 #endif
 
