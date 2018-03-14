@@ -4,6 +4,9 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+See the COPYRIGHT file distributed with this work for additional
+information regarding copyright ownership.
+
        BIND 9.10 for Win32 Source Build Instructions.  17-Apr-2015
 
 Building BIND 9.10 on Windows has the following prerequisites:
