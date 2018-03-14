@@ -22,6 +22,9 @@
 			logged even when an error occurred while updating
 			signatures. [GL #159]
 
+4926.	[func]		Add root key sentinel support.  To disable, add
+			'root-key-sentinel no;' to named.conf. [GL #37]
+
 4918.	[bug]		Fix double free after keygen error in dnssec-keygen
 			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
 			fails. [GL #109]
