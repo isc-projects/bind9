@@ -66,7 +66,9 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  BIND now can be compiled against libidn2 library to add
+	  IDNA2008 support.  Previously BIND only supported IDNA2003
+	  using (now obsolete) idnkit-1 library.
 	</para>
       </listitem>
     </itemizedlist>
@@ -118,6 +120,13 @@
 	<para>
 	  <command>dig +nssearch</command> will now list name servers
 	  that have timed out, in addition to those that respond. [GL #64]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig +noidnin</command> can be used to disable IDN
+	  processing on the input domain name, when BIND is compiled
+	  with IDN support.
 	</para>
       </listitem>
     </itemizedlist>
