@@ -31,10 +31,11 @@ options {
 	ixfr-from-differences yes;
 	check-integrity no;
 	allow-query-on { 10.53.0.2; };
+	ecs-enable yes;
 };
 
 view one {
-	match-clients { ecs 192.0.2/24; };
+	match-ecs-clients { ecs 192.0.2/24; };
 
 	zone "." {
 		type hint;

@@ -21,7 +21,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	geoip-directory "../data";
-	geoip-use-ecs no;
+	ecs-enable yes;
 };
 
 key rndc_key {

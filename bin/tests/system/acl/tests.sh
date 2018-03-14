@@ -168,7 +168,7 @@ sleep 5
 
 t=`expr $t + 1`
 $DIG -p ${PORT} example. soa @10.53.0.2 +subnet="10.53.0.1/32" > dig.out.${t}
-grep "CLIENT-SUBNET.*10.53.0.1/32/0" dig.out.${t} > /dev/null || { echo_i "test $t failed" ; status=1; }
+grep "CLIENT-SUBNET.*10.53.0.1/32/32" dig.out.${t} > /dev/null || { echo_i "test $t failed" ; status=1; }
 
 t=`expr $t + 1`
 $DIG -p ${PORT} example. soa @10.53.0.2 +subnet="192.0.2.128/32" > dig.out.${t}

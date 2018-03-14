@@ -159,6 +159,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
+	view->match_ecs_clients = NULL;
 	view->matchdestinations = NULL;
 	view->matchrecursiveonly = ISC_FALSE;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
@@ -417,6 +418,8 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->nocasecompress);
 	if (view->matchclients != NULL)
 		dns_acl_detach(&view->matchclients);
+	if (view->match_ecs_clients != NULL)
+		dns_acl_detach(&view->match_ecs_clients);
 	if (view->matchdestinations != NULL)
 		dns_acl_detach(&view->matchdestinations);
 	if (view->cacheacl != NULL)

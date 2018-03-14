@@ -189,6 +189,7 @@ struct dns_view {
 	 * locked by server configuration lock.
 	 */
 	dns_acl_t *			matchclients;
+	dns_acl_t *			match_ecs_clients;
 	dns_acl_t *			matchdestinations;
 	isc_boolean_t			matchrecursiveonly;
 

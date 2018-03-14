@@ -62,6 +62,7 @@ options {\n\
 #	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
 	dump-file \"named_dump.db\";\n\
+	ecs-enable false;\n\
 	edns-udp-size 4096;\n\
 #	fake-iquery <obsolete>;\n"
 #ifndef WIN32
@@ -163,9 +164,6 @@ options {\n\
 	filter-aaaa-on-v4 no;\n\
 	filter-aaaa-on-v6 no;\n\
 	filter-aaaa { any; };\n"
-#ifdef HAVE_GEOIP
-"	geoip-use-ecs yes;\n"
-#endif
 "	glue-cache yes;\n\
 	lame-ttl 600;\n"
 #ifdef HAVE_LMDB

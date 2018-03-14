@@ -1055,6 +1055,8 @@ options_clauses[] = {
 #endif
 	{ "dscp", &cfg_type_uint32, 0 },
 	{ "dump-file", &cfg_type_qstring, 0 },
+	{ "ecs-enable", &cfg_type_boolean, 0 },
+	{ "ecs-enable-from", &cfg_type_bracketed_aml, 0 },
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "files", &cfg_type_size, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
@@ -1084,12 +1086,11 @@ options_clauses[] = {
 #endif /* HAVE_DNSTAP */
 #ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
-	{ "geoip-use-ecs", &cfg_type_boolean, 0 },
 #else
 	{ "geoip-directory", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_GEOIP */
+	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
@@ -1983,6 +1984,7 @@ static cfg_clausedef_t
 view_only_clauses[] = {
 	{ "match-clients", &cfg_type_bracketed_aml, 0 },
 	{ "match-destinations", &cfg_type_bracketed_aml, 0 },
+	{ "match-ecs-clients", &cfg_type_bracketed_aml, 0 },
 	{ "match-recursive-only", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };

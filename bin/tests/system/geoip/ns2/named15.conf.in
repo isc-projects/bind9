@@ -34,6 +34,7 @@ controls {
 
 view two {
 	match-clients { geoip country US; };
+	match-ecs-clients { geoip country US; };
 	zone "example" {
 		type master;
 		file "../ns2/example2.db";

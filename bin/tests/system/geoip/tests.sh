@@ -432,16 +432,18 @@ $RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 3
 
 n=`expr $n + 1`
-echo_i "checking geoip-use-ecs ($n)"
+echo_i "checking with match-clients only (and no match-ecs-clients) ($n)"
 ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
-    $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
+    $DIG $DIGOPTS +nord txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
+    $DIG +tcp -p 5300 @10.53.0.2 +nord txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i.full || lret=1
     j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 
-    $DIG $DIGOPTS txt example -b 127.0.0.1 +subnet="10.53.0.$i/32" > dig.out.ns2.test$n.ecs.$i || lret=1
+    $DIG $DIGOPTS +nord txt example -b 127.0.0.1 +subnet="10.53.0.$i/32" > dig.out.ns2.test$n.ecs.$i || lret=1
+    $DIG +tcp -p 5300 @10.53.0.2 +nord txt example -b 127.0.0.1 +subnet="10.53.0.$i/32" > dig.out.ns2.test$n.ecs.$i.full || lret=1
     j=`cat dig.out.ns2.test$n.ecs.$i | tr -d '"'`
     [ "$j" = "bogus" ] || lret=1
     [ $lret -eq 1 ] && break

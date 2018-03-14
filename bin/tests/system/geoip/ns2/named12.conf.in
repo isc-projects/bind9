@@ -21,6 +21,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	geoip-directory "../data";
+	ecs-enable yes;
 };
 
 key rndc_key {
@@ -34,6 +35,7 @@ controls {
 
 view one {
 	match-clients { geoip netspeed 0; };
+	match-ecs-clients { geoip netspeed 0; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -42,6 +44,7 @@ view one {
 
 view two {
 	match-clients { geoip netspeed 1; };
+	match-ecs-clients { geoip netspeed 1; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -50,6 +53,7 @@ view two {
 
 view three {
 	match-clients { geoip netspeed 2; };
+	match-ecs-clients { geoip netspeed 2; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -58,6 +62,7 @@ view three {
 
 view four {
 	match-clients { geoip netspeed 3; };
+	match-ecs-clients { geoip netspeed 3; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -66,6 +71,7 @@ view four {
 
 view none {
 	match-clients { any; };
+	match-ecs-clients { any; };
 	zone "example" {
 		type master;
 		file "example.db.in";

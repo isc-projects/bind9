@@ -1683,6 +1683,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_uint8_t addr[16];
 		isc_uint32_t plen, addrl;
 		isc_uint16_t family;
+		isc_uint8_t scope;
 
 		/* Add CLIENT-SUBNET option. */
 
@@ -1715,8 +1716,23 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_putuint16(&buf, family);
 		/* source prefix-length */
 		isc_buffer_putuint8(&buf, client->ecs.source);
+
 		/* scope prefix-length */
-		isc_buffer_putuint8(&buf, client->ecs.scope);
+		scope = client->ecs.scope;
+
+		/*
+		 * XXXMUKS: Ideally, here we should send scope=0 for
+		 * non-successful answers (rcode != dns_rcode_noerror)
+		 * and for types in the answer that are unscoped (e.g.,
+		 * DNSKEY). But in many codepaths, this function is
+		 * called before the rcode for the message is ready. As
+		 * this requirement is treated as a SHOULD for ECS
+		 * authoritative servers, and an ECS resolver is not
+		 * expected to attach any scope to such answers anyway,
+		 * we let this slide here. :(
+		 */
+
+		isc_buffer_putuint8(&buf, scope);
 
 		/* address */
 		if (addrl > 0) {
@@ -2097,10 +2113,26 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		}
 	}
 
-	memmove(&client->ecs.addr, &caddr, sizeof(caddr));
-	client->ecs.source = addrlen;
-	client->ecs.scope = 0;
-	client->attributes |= NS_CLIENTATTR_HAVEECS;
+	if (client->sctx->ecsenable) {
+		dns_aclenv_t *env;
+		isc_netaddr_t netaddr;
+		int match;
+
+		env = ns_interfacemgr_getaclenv(client->interface->mgr);
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+		if ((client->sctx->ecsenablefromacl == NULL) ||
+		    (dns_acl_match(&netaddr, NULL,
+				   client->sctx->ecsenablefromacl,
+				   env, &match, NULL) == ISC_R_SUCCESS &&
+		     match > 0))
+		{
+			memmove(&client->ecs.addr, &caddr, sizeof(caddr));
+			client->ecs.source = addrlen;
+			client->ecs.scope = 0;
+			client->attributes |= NS_CLIENTATTR_HAVEECS;
+		}
+	}
 
 	isc_buffer_forward(buf, (unsigned int)optlen);
 	return (ISC_R_SUCCESS);
@@ -2661,7 +2693,9 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(1),
 			      "no matching view in class '%s'", classname);
 		ns_client_dumpmessage(client, "no matching view in class");
-		ns_client_error(client, notimp ? DNS_R_NOTIMP : DNS_R_REFUSED);
+		ns_client_error(client, notimp ? DNS_R_NOTIMP :
+				(result == DNS_R_SERVFAIL ?
+				 DNS_R_SERVFAIL : DNS_R_REFUSED));
 		return;
 	}
 

@@ -1,0 +1,48 @@
+/*
+ * Copyright (C) 2013, 2014, 2016  Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+// NS1
+
+options {
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	recursion no;
+	ecs-enable yes;
+};
+
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
+view v1 {
+	match-clients { none; };
+	match-ecs-clients { any; };
+	zone "example" {
+		type master;
+		file "example-1.db";
+	};
+};
+
+view v2 {
+	match-clients { none; };
+	match-ecs-clients { ecs 10.53.0.0/24; };
+	zone "example" {
+		type master;
+		file "example-2.db";
+	};
+};

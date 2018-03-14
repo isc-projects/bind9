@@ -95,7 +95,6 @@ struct dns_aclenv {
 	isc_boolean_t match_mapped;
 #ifdef HAVE_GEOIP
 	dns_geoip_databases_t *geoip;
-	isc_boolean_t geoip_use_ecs;
 #endif
 };
 

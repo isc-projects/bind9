@@ -208,6 +208,10 @@
 			fatal(msg, result);			  \
 	} while (0)						  \
 
+#define CHECKRECURSIVEONLY(view, message) \
+	((!(view)->matchrecursiveonly) || \
+	 (((message)->flags & DNS_MESSAGEFLAG_RD) != 0))
+
 /*%
  * Maximum ADB size for views that share a cache.  Use this limit to suppress
  * the total of memory footprint, which should be the main reason for sharing
@@ -4612,14 +4616,24 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr));
 
 	/*
-	 * Configure the "match-clients" and "match-destinations" ACL.
-	 * (These are only meaningful at the view level, but 'config'
-	 * must be passed so that named ACLs defined at the global level
-	 * can be retrieved.)
+	 * Configure the "match-clients", "match-ecs-clients" and
+	 * "match-destinations" ACL. (These are only meaningful at the
+	 * view level, but 'config' must be passed so that named ACLs
+	 * defined at the global level can be retrieved.)
 	 */
 	CHECK(configure_view_acl(vconfig, config, NULL, "match-clients",
 				 NULL, actx, named_g_mctx,
 				 &view->matchclients));
+	CHECK(configure_view_acl(vconfig, config, NULL, "match-ecs-clients",
+				 NULL, actx, named_g_mctx,
+				 &view->match_ecs_clients));
+	if (view->match_ecs_clients == NULL) {
+		/*
+		 * If "match-ecs-clients" hasn't been set at the view
+		 * level, set it to none.
+		 */
+		CHECK(dns_acl_none(named_g_mctx, &view->match_ecs_clients));
+	}
 	CHECK(configure_view_acl(vconfig, config, NULL, "match-destinations",
 				 NULL, actx, named_g_mctx,
 				 &view->matchdestinations));
@@ -7919,11 +7933,6 @@ load_configuration(const char *filename, named_server_t *server,
 		named_geoip_load(NULL);
 	}
 	named_g_aclconfctx->geoip = named_g_geoip;
-
-	obj = NULL;
-	result = named_config_get(maps, "geoip-use-ecs", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	env->geoip_use_ecs = cfg_obj_asboolean(obj);
 #endif /* HAVE_GEOIP */
 
 	/*
@@ -8828,6 +8837,22 @@ load_configuration(const char *filename, named_server_t *server,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	obj = NULL;
+	result = named_config_get(maps, "ecs-enable", &obj);
+	if (result == ISC_R_SUCCESS) {
+		server->sctx->ecsenable = cfg_obj_asboolean(obj);
+	} else {
+		server->sctx->ecsenable = ISC_FALSE;
+	}
+
+	/*
+	 * Set "ecs-enable-from" ACL. Only legal at options level; there
+	 * is no default.
+	 */
+	CHECK(configure_view_acl(NULL, config, NULL, "ecs-enable-from", NULL,
+				 named_g_aclconfctx, named_g_mctx,
+				 &server->sctx->ecsenablefromacl));
+
+	obj = NULL;
 	result = named_config_get(maps, "flush-zones-on-shutdown", &obj);
 	if (result == ISC_R_SUCCESS) {
 		server->flushonshutdown = cfg_obj_asboolean(obj);
@@ -9346,19 +9371,22 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-/*%
- * Find a view that matches the source and destination addresses of a query.
- */
 static isc_result_t
-get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_aclenv_t *env, dns_ecs_t *ecs,
-		  isc_result_t *sigresult, dns_view_t **viewp)
+get_matching_ecs_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+		      dns_message_t *message, dns_aclenv_t *env,
+		      dns_ecs_t *ecs,
+		      isc_result_t *sigresultp, dns_view_t **viewp)
 {
-	dns_view_t *view;
+	dns_view_t *view, *any_view = NULL, *ecs_view = NULL;
+	isc_boolean_t has_other_ecs_views = ISC_FALSE;
+	isc_result_t sigresult, any_sigresult, ecs_sigresult;
 
 	REQUIRE(message != NULL);
-	REQUIRE(sigresult != NULL);
+	REQUIRE(sigresultp != NULL);
 	REQUIRE(viewp != NULL && *viewp == NULL);
+
+	ecs->scope = 0;
+	any_sigresult = ISC_R_FAILURE; /* silence gcc warning */
 
 	for (view = ISC_LIST_HEAD(named_g_server->viewlist);
 	     view != NULL;
@@ -9368,31 +9396,179 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		    message->rdclass == dns_rdataclass_any)
 		{
 			dns_name_t *tsig = NULL;
-			isc_netaddr_t *addr = NULL;
-			isc_uint8_t *scope = NULL;
-			isc_uint8_t source = 0;
 
-			*sigresult = dns_message_rechecksig(message, view);
-			if (*sigresult == ISC_R_SUCCESS) {
+			sigresult = dns_message_rechecksig(message, view);
+			if (sigresult == ISC_R_SUCCESS) {
 				dns_tsigkey_t *tsigkey;
 
 				tsigkey = message->tsigkey;
 				tsig = dns_tsigkey_identity(tsigkey);
 			}
 
-			if (ecs != NULL) {
-				addr = &ecs->addr;
-				source = ecs->source;
-				scope = &ecs->scope;
+			if (CHECKRECURSIVEONLY(view, message) &&
+			    dns_acl_allowed(destaddr, tsig, NULL, 0, NULL,
+					    view->matchdestinations, env))
+			{
+				isc_uint8_t scope = 0;
+
+				if (dns_acl_allowed (srcaddr, tsig, &ecs->addr,
+						     ecs->source, &scope,
+						     view->match_ecs_clients,
+						     env))
+				{
+					/*
+					 * Check if this view has a longer
+					 * scope match.
+					 */
+					if ((ecs_view == NULL) ||
+					    (scope > ecs->scope))
+					{
+						ecs->scope = scope;
+						ecs_sigresult = sigresult;
+						ecs_view = view;
+					}
+				} else if (!dns_acl_isnone
+					   (view->match_ecs_clients))
+				{
+					has_other_ecs_views = ISC_TRUE;
+				}
+
+				/*
+				 * If there's a view with no
+				 * match-clients option or
+				 * match-clients {any;}, cache
+				 * it for the code below.
+				 */
+				if (any_view == NULL &&
+				    (view->matchclients == NULL ||
+				     dns_acl_isany(view->matchclients)))
+				{
+					any_sigresult = sigresult;
+					any_view = view;
+				}
+			}
+		}
+	}
+
+	if (ecs_view != NULL) {
+		/*
+		 * Don't output ECS scope=0 for views with
+		 * match-ecs-clients {any;}; when other
+		 * match-ecs-clients{} views are present.
+		 */
+		if (has_other_ecs_views && (ecs->scope == 0) &&
+		    dns_acl_isany(ecs_view->match_ecs_clients))
+		{
+			switch (ecs->addr.family) {
+			case AF_INET:
+				ecs->scope = 32;
+				break;
+			case AF_INET6:
+				ecs->scope = 128;
+				break;
+			default:
+				ecs->scope = 0xff;
+			}
+		}
+
+		*sigresultp = ecs_sigresult;
+		dns_view_attach(ecs_view, viewp);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * If ECS was specified and the address prefix has not
+	 * matched any view's match-ecs-clients, then attempt to
+	 * send a global ECS answer to the client.
+	 *
+	 * NOTE: We should not return a view with
+	 * match-clients{} here that isn't
+	 * match-clients { any; } or unspecified.
+	 */
+	if (any_view != NULL) {
+		/*
+		 * Don't output ECS scope=0 if there were any
+		 * views with match-ecs-clients.
+		 */
+		if (!has_other_ecs_views) {
+			ecs->scope = 0;
+		} else {
+			switch (ecs->addr.family) {
+			case AF_INET:
+				ecs->scope = 32;
+				break;
+			case AF_INET6:
+				ecs->scope = 128;
+				break;
+			default:
+				ecs->scope = 0xff;
+			}
+		}
+
+		*sigresultp = any_sigresult;
+		dns_view_attach(any_view, viewp);
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * We should not return a subnet specific non-ECS answer
+	 * for the /0 scope, so bail out.
+	 */
+	return (DNS_R_SERVFAIL);
+}
+
+/*%
+ * Find a view that matches the source and destination addresses of a query.
+ */
+static isc_result_t
+get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+		  dns_message_t *message, dns_aclenv_t *env,
+		  dns_ecs_t *ecs,
+		  isc_result_t *sigresultp, dns_view_t **viewp)
+{
+	dns_view_t *view;
+	isc_result_t sigresult;
+
+	REQUIRE(message != NULL);
+	REQUIRE(sigresultp != NULL);
+	REQUIRE(viewp != NULL && *viewp == NULL);
+
+	/*
+	 * If this is a ECS query call get_matching_ecs_view.
+	 */
+	if (ecs != NULL) {
+		return (get_matching_ecs_view(srcaddr, destaddr, message, env,
+					      ecs, sigresultp, viewp));
+	}
+
+	/*
+	 * Scan all views, checking if any views with match-clients
+	 * match the client address.
+	 */
+	for (view = ISC_LIST_HEAD(named_g_server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		if (message->rdclass == view->rdclass ||
+		    message->rdclass == dns_rdataclass_any)
+		{
+			dns_name_t *tsig = NULL;
+
+			sigresult = dns_message_rechecksig(message, view);
+			if (sigresult == ISC_R_SUCCESS) {
+				dns_tsigkey_t *tsigkey;
+
+				tsigkey = message->tsigkey;
+				tsig = dns_tsigkey_identity(tsigkey);
 			}
 
-			if (dns_acl_allowed(srcaddr, tsig, addr, source,
-					    scope, view->matchclients, env) &&
+			if (CHECKRECURSIVEONLY(view, message) &&
 			    dns_acl_allowed(destaddr, tsig, NULL, 0, NULL,
 					    view->matchdestinations, env) &&
-			    !(view->matchrecursiveonly &&
-			      (message->flags & DNS_MESSAGEFLAG_RD) == 0))
+			    dns_acl_allowed(srcaddr, tsig, NULL, 0, NULL,
+					    view->matchclients, env))
 			{
+				*sigresultp = sigresult;
 				dns_view_attach(view, viewp);
 				return (ISC_R_SUCCESS);
 			}

@@ -5803,20 +5803,6 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>geoip-use-ecs</command></term>
-	      <listitem>
-		<para>
-		  When BIND is compiled with GeoIP support and configured
-		  with "geoip" ACL elements, this option indicates whether
-		  the EDNS Client Subnet option, if present in a request,
-		  should be used for matching against the GeoIP database.
-		  The default is
-		  <command>geoip-use-ecs</command> <userinput>yes</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>has-old-clients</command></term>
 	      <listitem>
 		<para>
@@ -11105,6 +11091,7 @@ example.com                 CNAME   rpz-tcp-only.
 
 <programlisting><command>view</command> <replaceable>view_name</replaceable> [ <replaceable>class</replaceable> ] <command>{</command>
     <command>match-clients {</command> <replaceable>address_match_list</replaceable> <command>}</command> ;
+    <command>match-ecs-clients {</command> <replaceable>address_match_list</replaceable> <command>}</command> ;
     <command>match-destinations {</command> <replaceable>address_match_list</replaceable> <command>}</command> ;
     <command>match-recursive-only</command> <replaceable>yes_or_no</replaceable> ;
   [ <replaceable>view_option</replaceable> ; ... ]
@@ -11152,6 +11139,18 @@ example.com                 CNAME   rpz-tcp-only.
 	    significant —
 	    a client request will be resolved in the context of the first
 	    <command>view</command> that it matches.
+	  </para>
+
+	  <para>
+	    A client may also match a view if the address prefix in the
+	    EDNS client-subnet (ECS) option matches the <command>ecs
+	    <replaceable>address_match_list</replaceable></command> of
+	    the view's <command>match-ecs-clients</command> clause and
+	    its destination IP address matches the
+	    <varname>address_match_list</varname> of the view's
+	    <command>match-destinations</command> clause. If not
+	    specified, <command>match-ecs-clients</command> defaults to
+	    the <command>none</command> ACL setting.
 	  </para>
 
 	  <para>
@@ -16611,7 +16610,7 @@ HOST-127.EXAMPLE. MX 0 .
 	  ACLs match clients on the basis of up to three characteristics:
 	  1) The client's IP address; 2) the TSIG or SIG(0) key that was
 	  used to sign the request, if any; and 3) an address prefix
-	  encoded in an EDNS Client Subnet option, if any.
+	  encoded in an EDNS client-subnet (ECS) option, if any.
 	</para>
 	<para>
 	  Here is an example of ACLs based on client addresses:
@@ -16658,11 +16657,11 @@ zone "example.com" {
 	  may include <option>key</option> elements, which specify the
 	  name of a TSIG or SIG(0) key, or <option>ecs</option>
 	  elements, which specify a network prefix but are only matched
-	  if that prefix matches an EDNS client subnet option included
-	  in the request.
+	  if that prefix matches an EDNS client-subnet (ECS) option
+	  included in the request.
 	</para>
 	<para>
-	  The EDNS Client Subnet (ECS) option is used by a recursive
+	  The EDNS client-subnet (ECS) option is used by a recursive
 	  resolver to inform an authoritative name server of the network
 	  address block from which the original query was received, enabling
 	  authoritative servers to give different answers to the same
@@ -16677,14 +16676,21 @@ zone "example.com" {
 	</para>
 	<note>
 	  <simpara>
-	    (Note: The authoritative ECS implementation in
-	    <command>named</command> is based on an early version of the
-	    specification, and is known to have incompatibilities with
-	    other implementations.  It is also inefficient, requiring
-	    a separate view for each client subnet to be sent different
-	    answers, and it is unable to correct for overlapping subnets in
-	    the configuration.  It can be used for testing purposes, but is
-	    not recommended for production use.)
+	    The syntax for authoritative ECS implementation in
+	    <command>named</command> is known to be cumbersome,
+	    requiring a separate view for each client-subnet to be sent
+	    different answers, and it is unable to automatically
+	    deaggregate overlapping subnets in the configuration. For
+	    serving ECS queries so that they are cached correctly by a
+	    downstream ECS resolver, it is essential that the
+	    administrator manually de-aggregates all network prefixes so
+	    that there are no overlapping <varname>ecs</varname> subnets
+	    in the <command>match-ecs-clients</command> ACL. For
+	    example, for a 10.0.0.0/24 subnet and a global 0.0.0.0/0
+	    subnet that overlap, the admin would have to create (2*24)+1
+	    = 49 different ACLs that do not intersect.
+	  </simpara>
+	  <simpara>
 	  </simpara>
 	</note>
 	<para>
@@ -16732,12 +16738,12 @@ zone "example.com" {
 	  installed, or the "country" database, in that order.
 	</para>
 	<para>
-	  By default, if a DNS query includes an EDNS Client Subnet (ECS)
-	  option which encodes a non-zero address prefix, then GeoIP ACLs
-	  will be matched against that address prefix.  Otherwise, they
-	  are matched against the source address of the query.  To
-	  prevent GeoIP ACLs from matching against ECS options, set
-	  the <command>geoip-use-ecs</command> to <literal>no</literal>.
+	  If a DNS query includes an EDNS client-subnet (ECS) option
+	  which encodes a non-zero address prefix, then it will be
+	  matched against GeoIP ACLs provided in the
+	  <command>match-ecs-clients</command> option. Otherwise, the
+	  source address of the query is matched against GeoIP ACLs
+	  provided in the <command>match-clients</command> option.
 	</para>
 	<para>
 	  Some example GeoIP ACLs:

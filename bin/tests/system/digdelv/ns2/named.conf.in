@@ -20,6 +20,7 @@ options {
 	recursion no;
 	dnssec-enable no;
 	dnssec-validation no;
+	ecs-enable yes;
 };
 
 zone "." {

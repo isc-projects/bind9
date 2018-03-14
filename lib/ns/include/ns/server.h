@@ -109,6 +109,10 @@ struct ns_server {
 	/*% Callback to find a matching view for a query */
 	ns_matchview_t		matchingview;
 
+	/*% ECS */
+	isc_boolean_t           ecsenable;
+	dns_acl_t		*ecsenablefromacl;
+
 	/*% Stats counters */
 	ns_stats_t *		nsstats;
 	dns_stats_t *		rcvquerystats;

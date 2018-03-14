@@ -107,6 +107,9 @@ ns_server_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 
 	ISC_LIST_INIT(sctx->altsecrets);
 
+	sctx->ecsenable = ISC_FALSE;
+	sctx->ecsenablefromacl = NULL;
+
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
 
@@ -157,6 +160,8 @@ ns_server_detach(ns_server_t **sctxp) {
 
 		if (sctx->blackholeacl != NULL)
 			dns_acl_detach(&sctx->blackholeacl);
+		if (sctx->ecsenablefromacl != NULL)
+			dns_acl_detach(&sctx->ecsenablefromacl);
 		if (sctx->keepresporder != NULL)
 			dns_acl_detach(&sctx->keepresporder);
 		if (sctx->rngctx != NULL)

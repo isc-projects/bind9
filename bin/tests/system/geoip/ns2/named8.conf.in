@@ -21,6 +21,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	geoip-directory "../data";
+	ecs-enable yes;
 };
 
 key rndc_key {
@@ -34,6 +35,7 @@ controls {
 
 view one {
 	match-clients { geoip org "One Systems, Inc."; };
+	match-ecs-clients { geoip org "One Systems, Inc."; };
 	zone "example" {
 		type master;
 		file "example1.db";
@@ -42,6 +44,7 @@ view one {
 
 view two {
 	match-clients { geoip org "Two Technology Ltd."; };
+	match-ecs-clients { geoip org "Two Technology Ltd."; };
 	zone "example" {
 		type master;
 		file "example2.db";
@@ -50,6 +53,7 @@ view two {
 
 view three {
 	match-clients { geoip org "Three Network Labs"; };
+	match-ecs-clients { geoip org "Three Network Labs"; };
 	zone "example" {
 		type master;
 		file "example3.db";
@@ -58,6 +62,7 @@ view three {
 
 view four {
 	match-clients { geoip org "Four University"; };
+	match-ecs-clients { geoip org "Four University"; };
 	zone "example" {
 		type master;
 		file "example4.db";
@@ -66,6 +71,7 @@ view four {
 
 view five {
 	match-clients { geoip org "Five Telecom"; };
+	match-ecs-clients { geoip org "Five Telecom"; };
 	zone "example" {
 		type master;
 		file "example5.db";
@@ -74,6 +80,7 @@ view five {
 
 view six {
 	match-clients { geoip org "Six Company"; };
+	match-ecs-clients { geoip org "Six Company"; };
 	zone "example" {
 		type master;
 		file "example6.db";
@@ -82,6 +89,7 @@ view six {
 
 view seven {
 	match-clients { geoip org "Seven Communications"; };
+	match-ecs-clients { geoip org "Seven Communications"; };
 	zone "example" {
 		type master;
 		file "example7.db";
@@ -90,6 +98,7 @@ view seven {
 
 view none {
 	match-clients { any; };
+	match-ecs-clients { any; };
 	zone "example" {
 		type master;
 		file "example.db.in";

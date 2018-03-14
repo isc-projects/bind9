@@ -448,11 +448,11 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 	dns_acl_t *inner = NULL;
 	int indirectmatch;
 	isc_result_t result;
-#ifdef HAVE_GEOIP
 	const isc_netaddr_t *addr = NULL;
-#endif
 
 	REQUIRE(ecs != NULL || scope == NULL);
+
+	addr = ecs != NULL ? ecs : reqaddr;
 
 	switch (e->type) {
 	case dns_aclelementtype_keyname:
@@ -484,7 +484,6 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 	case dns_aclelementtype_geoip:
 		if (env == NULL || env->geoip == NULL)
 			return (ISC_FALSE);
-		addr = (env->geoip_use_ecs && ecs != NULL) ? ecs : reqaddr;
 		return (dns_geoip_match(addr, scope, env->geoip,
 					&e->geoip_elem));
 #endif
@@ -493,7 +492,7 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 		INSIST(0);
 	}
 
-	result = dns_acl_match2(reqaddr, reqsigner, ecs, ecslen, scope,
+	result = dns_acl_match2(addr, reqsigner, ecs, ecslen, scope,
 				inner, env, &indirectmatch, matchelt);
 	INSIST(result == ISC_R_SUCCESS);
 
@@ -712,7 +711,6 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	env->match_mapped = ISC_FALSE;
 #ifdef HAVE_GEOIP
 	env->geoip = NULL;
-	env->geoip_use_ecs = ISC_FALSE;
 #endif
 	return (ISC_R_SUCCESS);
 
@@ -731,7 +729,6 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 	t->match_mapped = s->match_mapped;
 #ifdef HAVE_GEOIP
 	t->geoip = s->geoip;
-	t->geoip_use_ecs = s->geoip_use_ecs;
 #endif
 }
 

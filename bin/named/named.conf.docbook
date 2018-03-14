@@ -294,7 +294,6 @@ options {
 	fstrm-set-output-queue-size <replaceable>integer</replaceable>;
 	fstrm-set-reopen-interval <replaceable>integer</replaceable>;
 	geoip-directory ( <replaceable>quoted_string</replaceable> | none );
-	geoip-use-ecs <replaceable>boolean</replaceable>;
 	glue-cache <replaceable>boolean</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
 	hostname ( <replaceable>quoted_string</replaceable> | none );
@@ -646,6 +645,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	masterfile-style ( full | relative );
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
 	match-destinations { <replaceable>address_match_element</replaceable>; ... };
+	match-ecs-clients { <replaceable>address_match_element</replaceable>; ... };
 	match-recursive-only <replaceable>boolean</replaceable>;
 	max-cache-size ( default | unlimited | <replaceable>sizeval</replaceable> | <replaceable>percentage</replaceable> );
 	max-cache-ttl <replaceable>integer</replaceable>;
