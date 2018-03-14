@@ -3001,17 +3001,17 @@ root_key_sentinel_detect(ns_client_t *client) {
 			return;
 		}
 		client->query.root_key_sentinel_is_ta = ISC_TRUE;
-		ns_client_log(client, NS_LOGCATEGORY_TAT,
+		ns_client_log(client, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-is-ta query label found");
 	} else if (client->query.qname->length > 31 && ndata[0] == 30 &&
-	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
+		   strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
 	{
 		if (!get_root_key_sentinel_id(client, ndata + 26)) {
 			return;
 		}
 		client->query.root_key_sentinel_not_ta = ISC_TRUE;
-		ns_client_log(client, NS_LOGCATEGORY_TAT,
+		ns_client_log(client, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-not-ta query label found");
 	}

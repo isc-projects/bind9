@@ -62,7 +62,7 @@ PARALLEL = dnssec acl additional addzone allow-query autosign \
 	   formerr forward glue inline integrity ixfr \
 	   legacy limits logfileconfig masterfile masterformat \
 	   metadata notify nslookup nsupdate pending reclimit \
-	   redirect resolver rndc rpz rrl \
+	   redirect resolver rndc rootkeysentinel rpz rrl \
 	   rrsetorder rsabigexponent runtime smartsign sortlist \
 	   spf staticstub stub \
 	   tsig tsiggss unknown upforwd verify views wildcard \
