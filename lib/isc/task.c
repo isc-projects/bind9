@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004-2015, 2017, 2018  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2003  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

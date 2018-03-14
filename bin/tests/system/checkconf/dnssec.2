@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,20 +17,20 @@
 /* $Id: dnssec.2,v 1.5 2011/11/07 00:14:11 marka Exp $ */
 
 options {
-        dnssec-enable no;
+	dnssec-enable no;
 };
 
 view view1 {
-        match-clients { any; };
-        dnssec-validation yes;
+	match-clients { any; };
+	dnssec-validation yes;
 };
 
 view view2 {
-        match-clients { none; };
-        dnssec-validation auto;
+	match-clients { none; };
+	dnssec-validation auto;
 };
 
 view view3 {
-        match-clients { none; };
-        auto-dnssec maintain;
+	match-clients { none; };
+	auto-dnssec maintain;
 };
