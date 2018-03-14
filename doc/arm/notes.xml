@@ -17,7 +17,7 @@
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
       This document summarizes changes since the last production
-      release on the BIND 9.11 branch.
+      release on the BIND 9.11 (Extended Support Version) branch.
       Please see the <filename>CHANGES</filename> file for a further
       list of bug fixes and other changes.
     </para>
@@ -30,34 +30,6 @@
       There you will find additional information about each release,
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
-    </para>
-  </section>
-
-  <section xml:id="root_key"><info><title>New DNSSEC Root Key</title></info>
-    <para>
-      ICANN is in the process of introducing a new Key Signing Key (KSK) for
-      the global root zone. BIND has multiple methods for managing DNSSEC
-      trust anchors, with somewhat different behaviors. If the root
-      key is configured using the <command>managed-keys</command>
-      statement, or if the pre-configured root key is enabled by using
-      <command>dnssec-validation auto</command>, then BIND can keep keys up
-      to date automatically. Servers configured in this way should have
-      begun the process of rolling to the new key when it was published in
-      the root zone in July 2017. However, keys configured using the
-      <command>trusted-keys</command> statement are not automatically
-      maintained. If your server is performing DNSSEC validation and is
-      configured using <command>trusted-keys</command>, you are advised to
-      change your configuration before the root zone begins signing with
-      the new KSK. This is currently scheduled for October 11, 2017.
-    </para>
-    <para>
-      This release includes an updated version of the
-      <filename>bind.keys</filename> file containing the new root
-      key. This file can also be downloaded from
-      <link xmlns:xlink="http://www.w3.org/1999/xlink"
-	xlink:href="https://www.isc.org/bind-keys">
-	https://www.isc.org/bind-keys
-      </link>.
     </para>
   </section>
 
@@ -343,9 +315,9 @@
 
   <section xml:id="end_of_life"><info><title>End of Life</title></info>
     <para>
-      The end of life for BIND 9.11 is yet to be determined but
-      will not be before BIND 9.13.0 has been released for 6 months.
-      <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
+      BIND 9.11 (Extended Support Version) will be supported until at
+      least December, 2021.
+      See <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link> for details of ISC's software support policy.
     </para>
   </section>
   <section xml:id="relnotes_thanks"><info><title>Thank You</title></info>
