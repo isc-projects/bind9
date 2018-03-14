@@ -95,7 +95,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue inline integrity ixfr keepalive \
-	legacy limits logfileconfig \
+	kskrollsent legacy limits logfileconfig \
         masterfile masterformat metadata mkeys \
         names notify nslookup nsupdate nzd2nzf \
         padding pending pipelined \
