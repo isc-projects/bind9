@@ -346,8 +346,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\lib\\samples\\win32\\request.vcxproj.filters",
                    "..\\lib\\samples\\win32\\nsprobe.vcxproj",
                    "..\\lib\\samples\\win32\\nsprobe.vcxproj.filters",
-                   "..\\lib\\tests\\win32\\libtests.vcxproj",
-                   "..\\lib\\tests\\win32\\libtests.vcxproj.filters",
                    "..\\lib\\win32\\bindevt\\bindevt.vcxproj",
                    "..\\lib\\win32\\bindevt\\bindevt.vcxproj.filters",
                    "bind9.sln");
