@@ -2,7 +2,6 @@
 <!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) Internet Software Consortium.
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -35,6 +34,8 @@
 
   <docinfo>
     <copyright>
+      <year>2000</year>
+      <year>2001</year>
       <year>2004</year>
       <year>2005</year>
       <year>2007</year>
@@ -43,11 +44,6 @@
       <year>2016</year>
       <year>2018</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
-    </copyright>
-    <copyright>
-      <year>2000</year>
-      <year>2001</year>
-      <holder>Internet Software Consortium.</holder>
     </copyright>
   </docinfo>
 
