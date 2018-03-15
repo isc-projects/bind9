@@ -1,5 +1,7 @@
 Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
 	  CDS / CDNSKEY Child side processing.
 
 * We need a mechanism to say that key should have a cds publish
