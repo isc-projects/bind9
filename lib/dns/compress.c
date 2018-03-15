@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) Internet Software Consortium.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -260,7 +260,7 @@ dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
 		/*
 		 * This relies on nodes with greater offsets being
 		 * closer to the beginning of the list, and the
-		 * items with the greatest offsets being at the end 
+		 * items with the greatest offsets being at the end
 		 * of the initialnodes[] array.
 		 */
 		while (node != NULL && node->offset >= offset) {
