@@ -4485,6 +4485,7 @@ rpz_find(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qnamef,
 		/*
 		 * Fall through to treat it as a miss.
 		 */
+		__attribute__ ((fallthrough));
 	case DNS_R_NXDOMAIN:
 	case DNS_R_EMPTYNAME:
 		/*
