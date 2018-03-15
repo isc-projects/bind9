@@ -2,7 +2,7 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   LC_ALL: C
   DOCKER_DRIVER: overlay2
-  CI_REGISTRY_IMAGE: oerdnj/bind9
+  CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images
   CCACHE_DIR: "/ccache"
 
 stages:
