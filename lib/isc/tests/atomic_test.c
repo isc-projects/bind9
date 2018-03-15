@@ -318,6 +318,19 @@ ATF_TC_BODY(atomic_storeq, tc) {
 }
 #endif
 
+#if !defined(ISC_PLATFORM_HAVEXADD) && \
+    !defined(ISC_PLATFORM_HAVEXADDQ) && \
+    !defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+	atf_tc_set_md_var(tc, "descr", "skipping aes test");
+}
+ATF_TC_BODY(untested, tc) {
+	UNUSED(tc);
+	atf_tc_skip("AES not available");
+}
+#endif /* !HAVEXADD, !HAVEXADDQ, !HAVEATOMICSTOREQ */
+
 /*
  * Main
  */
@@ -334,5 +347,11 @@ ATF_TP_ADD_TCS(tp) {
 #if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
 	ATF_TP_ADD_TC(tp, atomic_storeq);
 #endif
+#if !defined(ISC_PLATFORM_HAVEXADD) && \
+    !defined(ISC_PLATFORM_HAVEXADDQ) && \
+    !defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
+	ATF_TP_ADD_TC(tp, untested);
+#endif
+
 	return (atf_no_error());
 }
