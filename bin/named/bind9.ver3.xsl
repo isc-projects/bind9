@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- - Copyright (C) 2012-2014  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -61,7 +61,7 @@
           }
         }
 
-        // Server Incoming Query Types         
+        // Server Incoming Query Types
         graphs.push({
                      'title' : "Server Incoming Query Types",
                      'target': 'chart_incoming_qtypes',
