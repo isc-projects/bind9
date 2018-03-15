@@ -1,8 +1,7 @@
 <!DOCTYPE book [
 <!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004-2011, 2013-2018  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000-2003  Internet Software Consortium.
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -40,6 +39,10 @@
 
   <docinfo>
     <copyright>
+      <year>2000</year>
+      <year>2001</year>
+      <year>2002</year>
+      <year>2003</year>
       <year>2004</year>
       <year>2005</year>
       <year>2006</year>
@@ -55,13 +58,6 @@
       <year>2017</year>
       <year>2018</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
-    </copyright>
-    <copyright>
-      <year>2000</year>
-      <year>2001</year>
-      <year>2002</year>
-      <year>2003</year>
-      <holder>Internet Software Consortium.</holder>
     </copyright>
   </docinfo>
 

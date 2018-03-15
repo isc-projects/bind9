@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,9 +21,9 @@
 /* $Id: ptr_12.h,v 1.27 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_ptr {
-        dns_rdatacommon_t       common;
-        isc_mem_t               *mctx;
-        dns_name_t              ptr;
+	dns_rdatacommon_t       common;
+	isc_mem_t               *mctx;
+	dns_name_t              ptr;
 } dns_rdata_ptr_t;
 
 #endif /* GENERIC_PTR_12_H */

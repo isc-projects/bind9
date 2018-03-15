@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2003  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -161,7 +160,7 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
  * set.  'options' are the same as for dns_byaddr_create().
  *
  * Requires:
- * 
+ *
  * \li	'address' is a valid address.
  * \li	'name' is a valid name with a dedicated buffer.
  */

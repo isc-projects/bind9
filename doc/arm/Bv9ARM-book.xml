@@ -1,6 +1,5 @@
 <!--
- - Copyright (C) 2004-2018  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000-2003  Internet Software Consortium.
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -21,6 +20,10 @@
     <title>BIND 9 Administrator Reference Manual</title>
     <!-- insert copyright start -->
     <copyright>
+      <year>2000</year>
+      <year>2001</year>
+      <year>2002</year>
+      <year>2003</year>
       <year>2004</year>
       <year>2005</year>
       <year>2006</year>
@@ -37,13 +40,6 @@
       <year>2017</year>
       <year>2018</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
-    </copyright>
-    <copyright>
-      <year>2000</year>
-      <year>2001</year>
-      <year>2002</year>
-      <year>2003</year>
-      <holder>Internet Software Consortium.</holder>
     </copyright>
     <!-- insert copyright end -->
     <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="releaseinfo.xml"/>

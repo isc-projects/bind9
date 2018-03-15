@@ -1,6 +1,8 @@
 /*
- * Copyright (C) 2004-2008, 2012, 2014  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
  *
  * This code is derived from software contributed to ISC by
  * Berkeley Software Design, Inc.

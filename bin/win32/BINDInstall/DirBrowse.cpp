@@ -1,6 +1,5 @@
 /*
- * Portions Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Portions Copyright (C) 2001  Internet Software Consortium.
+ * Portions Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -77,17 +76,17 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CDirBrowse message handlers
 
-BOOL CDirBrowse::OnInitDialog() 
+BOOL CDirBrowse::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	
+
 	DlgDirList((LPTSTR)(LPCTSTR)m_selectedDir, IDC_DIRLIST, IDC_CURDIR, DDL_DIRECTORY);
-	
+
 	return TRUE;  // return TRUE unless you set the focus to a control
-	              // EXCEPTION: OCX Property Pages should return FALSE
+		      // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CDirBrowse::OnDblclkDirlist() 
+void CDirBrowse::OnDblclkDirlist()
 {
 	CListBox *lb = (CListBox *)GetDlgItem(IDC_DIRLIST);
 	CString curSel;
@@ -96,8 +95,8 @@ void CDirBrowse::OnDblclkDirlist()
 	DlgDirList((LPTSTR)(LPCTSTR)curSel, IDC_DIRLIST, IDC_CURDIR, DDL_DIRECTORY);
 }
 
-void CDirBrowse::OnSelchangeDirlist() 
+void CDirBrowse::OnSelchangeDirlist()
 {
 	// TODO: Add your control notification handler code here
-	
+
 }

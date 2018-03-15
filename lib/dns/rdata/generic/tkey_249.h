@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,17 +23,17 @@
  *  \brief Per draft-ietf-dnsind-tkey-00.txt */
 
 typedef struct dns_rdata_tkey {
-        dns_rdatacommon_t	common;
-        isc_mem_t *		mctx;
-        dns_name_t		algorithm;
-        isc_uint32_t		inception;
-        isc_uint32_t		expire;
-        isc_uint16_t		mode;
-        isc_uint16_t		error;
-        isc_uint16_t		keylen;
-        unsigned char *		key;
-        isc_uint16_t		otherlen;
-        unsigned char *		other;
+	dns_rdatacommon_t	common;
+	isc_mem_t *		mctx;
+	dns_name_t		algorithm;
+	isc_uint32_t		inception;
+	isc_uint32_t		expire;
+	isc_uint16_t		mode;
+	isc_uint16_t		error;
+	isc_uint16_t		keylen;
+	unsigned char *		key;
+	isc_uint16_t		otherlen;
+	unsigned char *		other;
 } dns_rdata_tkey_t;
 
 
