@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -89,9 +88,9 @@ isc__strerror(int num, char *buf, size_t size) {
 char *
 FormatError(int error) {
 	LPVOID lpMsgBuf = NULL;
-	FormatMessage( 
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-		FORMAT_MESSAGE_FROM_SYSTEM | 
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
 		FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL,
 		error,
@@ -99,7 +98,7 @@ FormatError(int error) {
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(LPTSTR) &lpMsgBuf,
 		0,
-		NULL); 
+		NULL);
 
 	return (lpMsgBuf);
 }
@@ -113,8 +112,8 @@ char *
 NTstrerror(int err, BOOL *bfreebuf) {
 	char *retmsg = NULL;
 
-	/* Copy the error value first in case of other errors */	
-	DWORD errval = err; 
+	/* Copy the error value first in case of other errors */
+	DWORD errval = err;
 
 	*bfreebuf = FALSE;
 
@@ -142,7 +141,7 @@ NTstrerror(int err, BOOL *bfreebuf) {
 void __cdecl
 NTperror(char *errmsg) {
 	/* Copy the error value first in case of other errors */
-	int errval = errno; 
+	int errval = errno;
 	BOOL bfreebuf = FALSE;
 	char *msg;
 

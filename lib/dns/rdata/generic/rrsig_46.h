@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2003  Internet Software Consortium.
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,7 +31,7 @@ typedef struct dns_rdata_rrsig {
 	isc_uint32_t		timeexpire;
 	isc_uint32_t		timesigned;
 	isc_uint16_t		keyid;
-        dns_name_t		signer;
+	dns_name_t		signer;
 	isc_uint16_t		siglen;
 	unsigned char *		signature;
 } dns_rdata_rrsig_t;
