@@ -15,13 +15,10 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id$
-
 use strict;
 
 my %file_types = ();
 my %file_years = ();
-my %exists = ();
 
 open(COPYRIGHTS, "<util/copyrights") || die "can't open ./util/copyrights: $!";
 while (<COPYRIGHTS>) {
@@ -36,19 +33,9 @@ my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime(time());
 $sec = $min = $hour = $mday = $mon = $wday = $yday = $isdst = 0;
 $year += 1900;
 
-open(FILES, "git ls-files | sed 's;^;./;' |") || die "git ls-files: $!";
-while (<FILES>) {
-    chomp;
-    $exists{$_} = 1;
-}
-close(FILES);
-
-open(CHANGES, "sh util/recent_changes.sh |") || die "recent_changes.sh: $!";
+open(CHANGES, "git ls-files | sed 's;^;./;' | sort |") || die "git ls-files: $!";
 while (<CHANGES>) {
     chomp;
-
-    # this file isn't in the repository now
-    next unless ($exists{$_});
 
     next if (m%/\.\# |		# CVS old conflict file
 	       /CVS/ |		# CVS directory
@@ -144,13 +131,9 @@ while (<CHANGES>) {
 	} else {
 	    $file_types{$_} = "?";
 	}
-	my $m_year = int(`sh util/file_year.sh $_`);
 	if (($file_types{$_} eq "MAN" || $file_types{$_} eq "HTML") &&
 	    $base =~ /\.docbook$/ && -e $base) {
 	   $file_years{$_} = "DOCBOOK";
-	} elsif ($m_year != $year) {
-	    print "$_: must set copyright year(s) manually\n";
-	    $file_years{$_} = "????";
 	} else {
 	    $file_years{$_} = "$year";
 	}

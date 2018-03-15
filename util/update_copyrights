@@ -42,11 +42,11 @@ my %owner2text = ();
 my $keyword_pat = '\$(Id:.*|Revision:.*|Id|Revision)\$';
 
 foreach $owner (keys %owner2filename) {
-        my $f = $owner2filename{$owner};
-        open(COPYRIGHT, "<$f") || die "can't open $f: $!";
-        @copyright_text = <COPYRIGHT>;
-        close(COPYRIGHT);
-        $owner2text{$owner} = [ @copyright_text ];
+	my $f = $owner2filename{$owner};
+	open(COPYRIGHT, "<$f") || die "can't open $f: $!";
+	@copyright_text = <COPYRIGHT>;
+	close(COPYRIGHT);
+	$owner2text{$owner} = [ @copyright_text ];
 }
 
 my %file_types = ();
@@ -92,24 +92,21 @@ sub copyright {
 }
 
 sub copyrights {
-	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")",
-		   grep({ $_ >= 2004} @_));
-	my $b = copyright("Internet Software Consortium.",
-		   grep({ $_ < 2004} @_));
-	return "$a$b";
+	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")", @_);
+	return "$a";
 }
 
 foreach $file (keys %file_types) {
 	$typeandowner = $file_types{$file};
 	$years_list = $file_years{$file};
 
-        if ( ! -f $file ) {
-                print "$file: missing\n";
-                next;
-        }
+	if ( ! -f $file ) {
+		print "$file: missing\n";
+		next;
+	}
 	# print "Doing: $file";
 
-        if ($years_list =~ /PARENT:/) {
+	if ($years_list =~ /PARENT:/) {
 		getyears($years_list);
 		if (!defined $years_list) {
 			print "$file: has bad parent $parent\n";
@@ -128,16 +125,16 @@ foreach $file (keys %file_types) {
 		}
 	}
 
-        @years = split(/,/, $years_list);
+	@years = split(/,/, $years_list);
 
-        my ($type, $owner) = split(/\./, $typeandowner);
-        $owner = "" if !defined $owner;
+	my ($type, $owner) = split(/\./, $typeandowner);
+	$owner = "" if !defined $owner;
 
-        $textp = $owner2text{$owner};
-        if (!defined $textp) {
-                print "$file: unknown copyright owner $owner\n";
-                next;
-        }
+	$textp = $owner2text{$owner};
+	if (!defined $textp) {
+		print "$file: unknown copyright owner $owner\n";
+		next;
+	}
 
 	if ($file eq "./CHANGES" || $file eq "./EXCLUDED" ||
 	    $file eq "./CHANGES.SE")
@@ -171,159 +168,159 @@ foreach $file (keys %file_types) {
 		}
 	}
 
-        next if $type eq "X" or $type eq "BAT";
+	next if $type eq "X" or $type eq "BAT";
 
-        $before_copyright = "";
-        $c_comment = 0;
-        $shell_comment = 0;
-        $m4_comment = 0;
-        $sgml_comment = 0;
-        $mkd_comment = 0;
-        $zone_comment = 0;
-        $man_comment = 0;
-        $python_comment = 0;
-        $python_bin_comment = 0;
-        $start_comment = "";
-        $end_comment = "";
-        $first = "";
-        if ($type =~ /^(C|YACC|CONF-C)$/) {
-                $c_comment = 1;
-                $start_comment = "/*\n";
-                $prefix = " * ";
-                $end_comment = " */\n";
-        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
-                $shell_comment = 1;
+	$before_copyright = "";
+	$c_comment = 0;
+	$shell_comment = 0;
+	$m4_comment = 0;
+	$sgml_comment = 0;
+	$mkd_comment = 0;
+	$zone_comment = 0;
+	$man_comment = 0;
+	$python_comment = 0;
+	$python_bin_comment = 0;
+	$start_comment = "";
+	$end_comment = "";
+	$first = "";
+	if ($type =~ /^(C|YACC|CONF-C)$/) {
+		$c_comment = 1;
+		$start_comment = "/*\n";
+		$prefix = " * ";
+		$end_comment = " */\n";
+	} elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
+		$shell_comment = 1;
 		$prefix = "# ";
-        } elsif ($type =~ /^PYTHON-BIN$/) {
-                $python_bin_comment = 1;
-                $start_comment = "############################################################################\n";
-                $prefix = "# ";
+	} elsif ($type =~ /^PYTHON-BIN$/) {
+		$python_bin_comment = 1;
+		$start_comment = "############################################################################\n";
+		$prefix = "# ";
 		$end_comment = "############################################################################\n"
-        } elsif ($type =~ /^PYTHON$/) {
-                $python_comment = 1;
-                $start_comment = "############################################################################\n";
-                $prefix = "# ";
+	} elsif ($type =~ /^PYTHON$/) {
+		$python_comment = 1;
+		$start_comment = "############################################################################\n";
+		$prefix = "# ";
 		$end_comment = "############################################################################\n"
-        } elsif ($type eq "ZONE" || $type eq "MC") {
-                $zone_comment = 1;
-                $prefix = "; ";
-        } elsif ($type eq "MAN") {
-                $man_comment = 1;
-                $prefix = ".\\\" ";
-        } elsif ($type eq "M4") {
-                $m4_comment = 1;
-                $prefix = "dnl ";
-        } elsif ($type eq "HTML" || $type eq "SGML") {
-                $sgml_comment = 1;
-                $start_comment = "<!--\n";
-                $prefix = " - ";
-                $end_comment = "-->\n";
-        } elsif ($type eq "MKD") {
-                $mkd_comment = 1;
-                $start_comment = "<!--\n";
-                $prefix = " - ";
-                $end_comment = "-->";
-        } elsif ($type eq "TXT") {
-                $prefix = "";
-        } else {
-                print "$file: type '$type' not supported yet; skipping\n";
-                next;
-        }
+	} elsif ($type eq "ZONE" || $type eq "MC") {
+		$zone_comment = 1;
+		$prefix = "; ";
+	} elsif ($type eq "MAN") {
+		$man_comment = 1;
+		$prefix = ".\\\" ";
+	} elsif ($type eq "M4") {
+		$m4_comment = 1;
+		$prefix = "dnl ";
+	} elsif ($type eq "HTML" || $type eq "SGML") {
+		$sgml_comment = 1;
+		$start_comment = "<!--\n";
+		$prefix = " - ";
+		$end_comment = "-->\n";
+	} elsif ($type eq "MKD") {
+		$mkd_comment = 1;
+		$start_comment = "<!--\n";
+		$prefix = " - ";
+		$end_comment = "-->";
+	} elsif ($type eq "TXT") {
+		$prefix = "";
+	} else {
+		print "$file: type '$type' not supported yet; skipping\n";
+		next;
+	}
 
-        ($nonspaceprefix = $prefix) =~ s/\s+$//;
+	($nonspaceprefix = $prefix) =~ s/\s+$//;
 
-        open(SOURCE, "<$file") || die "can't open $file: $!";
-        $_ = <SOURCE>;
-        if ($type eq "YACC") {
-                unless ($_ eq "%{\n") {
-                        print "$file: unexpected yacc file start ",
-                              "(expected \"%{\\n\")\n";
-                        close(SOURCE);
-                        next;
-                }
-                $before_copyright = "$_";
-                $_ = <SOURCE>;
-        }
-        if ($c_comment && /^\/\*/) {
-                $_ = <SOURCE>;
-                if ($_ !~ /[Cc]opyright/) {
-                        print "$file: non-copyright comment\n";
-                        close(SOURCE);
-                        next;
-                }
-                if ($_ !~ /\*\//) {
-                        while (<SOURCE>) {
-                                last if $_ =~ /\*\//;
-                        }
-                }
-        } elsif ($shell_comment) {
-                if (/^\#\!/) {
-                        $before_copyright = "$_#\n";
-                        $_ = <SOURCE>;
-                        $_ = <SOURCE> if $_ eq "#\n";
-                }
-                if (/^\#/) {
-                        if ($_ !~ /[Cc]opyright/) {
-                                print "$file: non-copyright comment\n";
-                                close(SOURCE);
-                                next;
-                        }
-                        while (<SOURCE>) {
-                                if ($_ !~ /^\#/) {
-                                        $first = $_;
-                                        last;
-                                }
-                        }
-                } else {
-                        $first = $_;
-                }
-        } elsif ($python_comment || $python_bin_comment) {
-                if ($python_bin_comment && /^\#\!/) {
-                        $before_copyright = "$_";
-                        $_ = <SOURCE>;
-                        $_ = <SOURCE> if $_ eq "#\n";
-                        $_ = <SOURCE> if $_ eq "############################################################################\n";
-                } elsif ($python_comment && /^\#/) {
-                        $_ = <SOURCE> if $_ eq "#\n";
-                        $_ = <SOURCE> if $_ eq "############################################################################\n";
-                }
-                if (/^\#/) {
-                        if ($_ !~ /[Cc]opyright/) {
-                                print "$file: non-copyright comment\n";
-                                close(SOURCE);
-                                next;
-                        }
-                        while (<SOURCE>) {
-                                if ($_ !~ /^\#/) {
-                                        $first = $_;
-                                        last;
-                                }
-                        }
-                } else {
-                        $first = $_;
-                }
-        } elsif (($m4_comment || $zone_comment || $man_comment) &&
-                 /^\Q$nonspaceprefix\E/) {
+	open(SOURCE, "<$file") || die "can't open $file: $!";
+	$_ = <SOURCE>;
+	if ($type eq "YACC") {
+		unless ($_ eq "%{\n") {
+			print "$file: unexpected yacc file start ",
+			      "(expected \"%{\\n\")\n";
+			close(SOURCE);
+			next;
+		}
+		$before_copyright = "$_";
+		$_ = <SOURCE>;
+	}
+	if ($c_comment && /^\/\*/) {
+		$_ = <SOURCE>;
+		if ($_ !~ /[Cc]opyright/) {
+			print "$file: non-copyright comment\n";
+			close(SOURCE);
+			next;
+		}
+		if ($_ !~ /\*\//) {
+			while (<SOURCE>) {
+				last if $_ =~ /\*\//;
+			}
+		}
+	} elsif ($shell_comment) {
+		if (/^\#\!/) {
+			$before_copyright = "$_#\n";
+			$_ = <SOURCE>;
+			$_ = <SOURCE> if $_ eq "#\n";
+		}
+		if (/^\#/) {
+			if ($_ !~ /[Cc]opyright/) {
+				print "$file: non-copyright comment\n";
+				close(SOURCE);
+				next;
+			}
+			while (<SOURCE>) {
+				if ($_ !~ /^\#/) {
+					$first = $_;
+					last;
+				}
+			}
+		} else {
+			$first = $_;
+		}
+	} elsif ($python_comment || $python_bin_comment) {
+		if ($python_bin_comment && /^\#\!/) {
+			$before_copyright = "$_";
+			$_ = <SOURCE>;
+			$_ = <SOURCE> if $_ eq "#\n";
+			$_ = <SOURCE> if $_ eq "############################################################################\n";
+		} elsif ($python_comment && /^\#/) {
+			$_ = <SOURCE> if $_ eq "#\n";
+			$_ = <SOURCE> if $_ eq "############################################################################\n";
+		}
+		if (/^\#/) {
+			if ($_ !~ /[Cc]opyright/) {
+				print "$file: non-copyright comment\n";
+				close(SOURCE);
+				next;
+			}
+			while (<SOURCE>) {
+				if ($_ !~ /^\#/) {
+					$first = $_;
+					last;
+				}
+			}
+		} else {
+			$first = $_;
+		}
+	} elsif (($m4_comment || $zone_comment || $man_comment) &&
+		 /^\Q$nonspaceprefix\E/) {
 
-                while (/^\Q$nonspaceprefix\E\s*$/) {
-                        $_ = <SOURCE>;
-                }
+		while (/^\Q$nonspaceprefix\E\s*$/) {
+			$_ = <SOURCE>;
+		}
 
-                if ($_ !~ /[Cc]opyright/) {
-                        print "$file: non-copyright comment\n";
-                        close(SOURCE);
-                        next;
-                }
-                while (<SOURCE>) {
-                        if ($_ !~ /^\Q$nonspaceprefix\E/ ||
-                            $_ =~ /$keyword_pat/) {
-                                $first = $_;
-                                last;
-                        }
-                }
-        } elsif ($sgml_comment) {
+		if ($_ !~ /[Cc]opyright/) {
+			print "$file: non-copyright comment\n";
+			close(SOURCE);
+			next;
+		}
+		while (<SOURCE>) {
+			if ($_ !~ /^\Q$nonspaceprefix\E/ ||
+			    $_ =~ /$keyword_pat/) {
+				$first = $_;
+				last;
+			}
+		}
+	} elsif ($sgml_comment) {
 		$before_copyright = "";
-                while (/^<!DOCTYPE/ || /^<!ENTITY/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
+		while (/^<!DOCTYPE/ || /^<!ENTITY/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
 			# print "SGML: $_";
 			$before_copyright = "$before_copyright$_";
 			if (/\]>$/ ) {
@@ -359,198 +356,165 @@ foreach $file (keys %file_types) {
 				close(SOURCE);
 				next;
 			}
-                }
-                if (/^<!--/) {
-                        $_ = <SOURCE> if $_ eq "<!--\n";
-                        if ($_ !~ /[Cc]opyright/) {
-                                print "$file: non-copyright comment\n";
-                                close(SOURCE);
-                                next;
-                        }
-                        while (defined($_)) {
-                                last if s/.*-->//;
-                                $_ = <SOURCE>;
-                        }
-                        print "$file: unterminated comment\n"
-                          unless defined($_);
-                        if ($_ ne "\n") {
-                                $first = $_;
-                        } else {
-                                $first = <SOURCE>;
-                        }
-                } else {
-                        $first = $_;
-                }
-        } elsif ($mkd_comment) {
+		}
+		if (/^<!--/) {
+			$_ = <SOURCE> if $_ eq "<!--\n";
+			if ($_ !~ /[Cc]opyright/) {
+				print "$file: non-copyright comment\n";
+				close(SOURCE);
+				next;
+			}
+			while (defined($_)) {
+				last if s/.*-->//;
+				$_ = <SOURCE>;
+			}
+			print "$file: unterminated comment\n"
+			  unless defined($_);
+			if ($_ ne "\n") {
+				$first = $_;
+			} else {
+				$first = <SOURCE>;
+			}
+		} else {
+			$first = $_;
+		}
+	} elsif ($mkd_comment) {
 		$before_copyright = "";
-                if (/^<!/) {
-                        $_ = <SOURCE> if $_ eq "<!--\n";
-                        if ($_ !~ /[Cc]opyright/) {
-                                print "$file: non-copyright comment\n";
-                                close(SOURCE);
-                                next;
-                        }
-                        while (defined($_)) {
-                                last if s/.*-->//;
-                                $_ = <SOURCE>;
-                        }
-                        print "$file: unterminated comment\n"
-                          unless defined($_);
-                        if ($_ ne "\n") {
-                                $first = $_;
-                        } else {
-                                $first = <SOURCE>;
-                        }
-                } else {
-                        $first = $_;
-                }
-        } elsif ($type eq "TXT") {
-                if ($_ =~ /[Cc]opyright/) {
-                        $/ = "";            # paragraph at a time
-                        while (<SOURCE>) {
-                                # Not very maintainable, but ok enough for now.
+		if (/^<!/) {
+			$_ = <SOURCE> if $_ eq "<!--\n";
+			if ($_ !~ /[Cc]opyright/) {
+				print "$file: non-copyright comment\n";
+				close(SOURCE);
+				next;
+			}
+			while (defined($_)) {
+				last if s/.*-->//;
+				$_ = <SOURCE>;
+			}
+			print "$file: unterminated comment\n"
+			  unless defined($_);
+			if ($_ ne "\n") {
+				$first = $_;
+			} else {
+				$first = <SOURCE>;
+			}
+		} else {
+			$first = $_;
+		}
+	} elsif ($type eq "TXT") {
+		if ($_ =~ /[Cc]opyright/) {
+			$/ = "";            # paragraph at a time
+			while (<SOURCE>) {
+				# Not very maintainable, but ok enough for now.
 				last if /Portions of this code/;
-                                last unless
-                                  /[Cc]opyright/ ||
-                                  /See COPYRIGHT in the source root/ ||
-                                  /Permission to use, copy, modify, and / ||
-                                  /THE SOFTWARE IS PROVIDED "AS IS" AND /;
-                        }
-                        $/ = "\n";
-                }
-                $first = $_;
-        } else {
-                $first = $_;
-        }
+				last unless
+				  /[Cc]opyright/ ||
+                                  /This Source Code Form is subject to the terms of the Mozilla Public/ ||
+                                  /If a copy of the MPL was not distributed with this/ ||
+                                  /You can obtain one at http:\/\/mozilla.org\/MPL\/2.0\// ||
+				  /See COPYRIGHT in the source root/ ||
+				  /Permission to use, copy, modify, and / ||
+				  /THE SOFTWARE IS PROVIDED "AS IS" AND /;
+			}
+			$/ = "\n";
+		}
+		$first = $_;
+	} else {
+		$first = $_;
+	}
 
-        $first = "" if ! defined($first);
+	$first = "" if ! defined($first);
 
-        open(TARGET, ">$file.new") || die "can't open $file.new: $!";
-        print TARGET $before_copyright if $before_copyright;
-        print TARGET $start_comment if $start_comment;
+	open(TARGET, ">$file.new") || die "can't open $file.new: $!";
+	print TARGET $before_copyright if $before_copyright;
+	print TARGET $start_comment if $start_comment;
 
-        $sysyears = "";
-        $sftyears = "";
-        $nomyears = "";
-
-	#
-	# Internet Software Consortium: up to 2003
-	#
-        $last_year = 0;
-        $anchor_year = 0;
-	$years = "";
-        foreach $year (@years) {
-		if ($year >= 2004) { next; }
-                if ($last_year != 0 && $year == $last_year + 1) {
-                        if ($year > $anchor_year + 1) {
-                                substr($years, $anchor_end) = "-$year";
-                        } else {
-                                $years .= ", $year";
-                        }
-                } else {
-                        $years .= $last_year == 0 ? "$year" : ", $year";
-                        #if ($anchor_year != 0) {
-                        #        print "$file: noncontiguous year: ",
-                        #              "$year != $last_year + 1\n";
-                        #}
-                        $anchor_year = $year;
-                        $anchor_end = length($years);
-                }
-
-                $last_year = $year;
-        }
-	$sftyears = $years;
+	$sysyears = "";
+	$nomyears = "";
 
 	#
 	# Nominum: up to 2001.
 	#
-        $last_year = 0;
-        $anchor_year = 0;
+	$last_year = 0;
+	$anchor_year = 0;
 	$years = "";
-        foreach $year (@years) {
+	foreach $year (@years) {
 		if ($year >= 2002) { next; }
-                if ($last_year != 0 && $year == $last_year + 1) {
-                        if ($year > $anchor_year + 1) {
-                                substr($years, $anchor_end) = "-$year";
-                        } else {
-                                $years .= ", $year";
-                        }
-                } else {
-                        $years .= $last_year == 0 ? "$year" : ", $year";
-                        #if ($anchor_year != 0) {
-                        #        print "$file: noncontiguous year: ",
-                        #              "$year != $last_year + 1\n";
-                        #}
-                        $anchor_year = $year;
-                        $anchor_end = length($years);
-                }
+		if ($last_year != 0 && $year == $last_year + 1) {
+			if ($year > $anchor_year + 1) {
+				substr($years, $anchor_end) = "-$year";
+			} else {
+				$years .= ", $year";
+			}
+		} else {
+			$years .= $last_year == 0 ? "$year" : ", $year";
+			#if ($anchor_year != 0) {
+			#        print "$file: noncontiguous year: ",
+			#              "$year != $last_year + 1\n";
+			#}
+			$anchor_year = $year;
+			$anchor_end = length($years);
+		}
 
-                $last_year = $year;
-        }
+		$last_year = $year;
+	}
 	$nomyears = $years;
 
 	#
 	# Internet Systems Consortium: 2004 onwards.
 	#
-        $last_year = 0;
-        $anchor_year = 0;
+	$last_year = 0;
+	$anchor_year = 0;
 	$years = "";
 	$anchor_end = length($years);
 	my $andor = 0;
 	my $noid = 0;
-        foreach $year (@years) {
-		if ($year < 2004) { next; }
+	foreach $year (@years) {
 		$andor = 1 if ($year >= 2007);
 		$noid = 1 if ($year > 2012 || ($year == 2012 && $this_month >= 5) );
-                if ($last_year != 0 && $year == $last_year + 1) {
-                        if ($year > $anchor_year + 1) {
-                                substr($years, $anchor_end) = "-$year";
-                        } else {
-                                $years .= ", $year";
-                        }
-                } else {
-                        $years .= $last_year == 0 ? "$year" : ", $year";
-                        #if ($anchor_year != 0) {
-                        #        print "$file: noncontiguous year: ",
-                        #              "$year != $last_year + 1\n";
-                        #}
-                        $anchor_year = $year;
-                        $anchor_end = length($years);
-                }
+		if ($last_year != 0 && $year == $last_year + 1) {
+			if ($year > $anchor_year + 1) {
+				substr($years, $anchor_end) = "-$year";
+			} else {
+				$years .= ", $year";
+			}
+		} else {
+			$years .= $last_year == 0 ? "$year" : ", $year";
+			#if ($anchor_year != 0) {
+			#        print "$file: noncontiguous year: ",
+			#              "$year != $last_year + 1\n";
+			#}
+			$anchor_year = $year;
+			$anchor_end = length($years);
+		}
 
-                $last_year = $year;
-        }
+		$last_year = $year;
+	}
 	$sysyears = $years;
 
-        ($firstline, $secondline, @otherlines) = @$textp;
+	# make a copy
+	@lines = @$textp;
 
-        $firstline =~ s/\@SYSYEARS\@/$sysyears/;
-        $secondline =~ s/\@SFTYEARS\@/$sftyears/;
+	foreach $_ (@lines) {
+		next if (/\@SYSYEARS\@/ && $sysyears eq "");
+		s:modify, and distribute:modify, and/or distribute: if ($andor);
+		print TARGET (/^$/ ? $nonspaceprefix : $prefix);
+		s/\@SYSYEARS\@/$sysyears/;
+		s/\@NOMYEARS\@/$nomyears/;
+		print TARGET "$_";
+	}
+	print TARGET $end_comment if $end_comment;
 
-        print TARGET "$prefix$firstline";
-	if ($sftyears ne "" ) {
-		print TARGET $secondline =~ /^$/ ? $nonspaceprefix : $prefix;
-		print TARGET "$secondline";
+	if ($first eq "") {
+		$first = <SOURCE>;
 	}
 
-        foreach $_ (@otherlines) {
-		s:modify, and distribute:modify, and/or distribute: if ($andor);
-                print TARGET (/^$/ ? $nonspaceprefix : $prefix);
-		s/\@NOMYEARS\@/$nomyears/;
-                print TARGET "$_";
-        }
-        print TARGET $end_comment if $end_comment;
-
-        if ($first eq "") {
-                $first = <SOURCE>;
-        }
-
-        if (defined($first)) {
-          	if ($type eq 'MAN') {
-                	print TARGET "$nonspaceprefix\n";
+	if (defined($first)) {
+		if ($type eq 'MAN') {
+			print TARGET "$nonspaceprefix\n";
 		} else {
-	                print TARGET "\n";
-                }
+			print TARGET "\n";
+		}
 
 		if (($type eq "C" || $type eq "CONF-C") &&
 		    $sysyears =~ /$this_year/) {
@@ -570,7 +534,7 @@ foreach $file (keys %file_types) {
 			$_ = $body;
 		} elsif (($type eq "SGML" || $type eq "HTML" ||
 			  $type eq "MAKE") &&
-		         $sysyears =~ /$this_year/) {
+			 $sysyears =~ /$this_year/) {
 			my $body = "";
 			while (<SOURCE>) {
 			# Remove trailing white space.
@@ -605,42 +569,42 @@ foreach $file (keys %file_types) {
 			s:<!-- insert copyright start -->.*?<!-- insert copyright end -->:<!-- insert copyright start -->\n$r    <!-- insert copyright end -->:s;
 		}
 
-                my ($start, $end);
+		my ($start, $end);
 		if ($type =~ /^PYTHON(|-BIN)$/) {
-                        ($start = $prefix) =~ s/\s*\n//;
+			($start = $prefix) =~ s/\s*\n//;
 			$end = "\n";
-                } elsif ($start_comment ne "") {
-                        ($start = $start_comment) =~ s/\s*\n/ /;
-                        ($end = $end_comment) =~ s/^\s*(.*)\n/ $1\n/;
-                } elsif ($prefix ne "") {
-                        ($start = $prefix) =~ s/\s*\n//;
-                        $end = "\n";
-                } else {
-                        $start = "";
-                        $end = "\n";
-                }
+		} elsif ($start_comment ne "") {
+			($start = $start_comment) =~ s/\s*\n/ /;
+			($end = $end_comment) =~ s/^\s*(.*)\n/ $1\n/;
+		} elsif ($prefix ne "") {
+			($start = $prefix) =~ s/\s*\n//;
+			$end = "\n";
+		} else {
+			$start = "";
+			$end = "\n";
+		}
 
-                if (!$noid && $first !~ /$keyword_pat/ && 
+		if (!$noid && $first !~ /$keyword_pat/ &&
 		    (!defined($_) || $_ !~ /$keyword_pat/)) {
 			$end = "\n$nonspaceprefix" if ($type eq "MAN");
-                        print TARGET "$start\$";
-                        print TARGET "Id";
-                        print TARGET "\$$end\n";
-                }
+			print TARGET "$start\$";
+			print TARGET "Id";
+			print TARGET "\$$end\n";
+		}
 
-                print TARGET $first if $first !~ /^\s*$/;
-                print TARGET $_ if (defined($_));
-        }
-        close(TARGET);
-        close(SOURCE);
+		print TARGET $first if $first !~ /^\s*$/;
+		print TARGET $_ if (defined($_));
+	}
+	close(TARGET);
+	close(SOURCE);
 
-        $mode = (stat $file)[2]&511;
-        chmod $mode, "$file.new";
+	$mode = (stat $file)[2]&511;
+	chmod $mode, "$file.new";
 
-        if (system("cmp -s $file.new $file") == 0) {
-                unlink("$file.new");
-        } else {
-                rename("$file.new", "$file")
-                  or die "rename($file.new, $file): $!";
-        }
+	if (system("cmp -s $file.new $file") == 0) {
+		unlink("$file.new");
+	} else {
+		rename("$file.new", "$file")
+		  or die "rename($file.new, $file): $!";
+	}
 }
