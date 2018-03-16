@@ -132,3 +132,19 @@ zone "inactivezsk" {
 	auto-dnssec maintain;
 	file "inactivezsk.bk";
 };
+
+zone "nokeys" {
+	type slave;
+	masters { 10.53.0.2; };
+	inline-signing yes;
+	auto-dnssec maintain;
+	file "nokeys.bk";
+};
+
+zone "removedkeys" {
+	type slave;
+	masters { 10.53.0.2; };
+	inline-signing yes;
+	auto-dnssec maintain;
+	file "removedkeys.bk";
+};

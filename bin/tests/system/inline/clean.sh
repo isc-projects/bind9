@@ -10,6 +10,7 @@
 rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.run.prev
 rm -f */trusted.conf
 rm -f ns1/K*
 rm -f ns1/dsset-*
@@ -23,6 +24,10 @@ rm -f ns2/inactiveksk.db
 rm -f ns2/inactiveksk.db.jnl
 rm -f ns2/inactivezsk.db
 rm -f ns2/inactivezsk.db.jnl
+rm -f ns2/nokeys.db
+rm -f ns2/nokeys.db.jnl
+rm -f ns2/removedkeys.db
+rm -f ns2/removedkeys.db.jnl
 rm -f ns2/retransfer.db
 rm -f ns2/retransfer.db.jnl
 rm -f ns2/retransfer3.db
@@ -60,6 +65,14 @@ rm -f ns3/inactivezsk.bk
 rm -f ns3/inactivezsk.bk.jnl
 rm -f ns3/inactivezsk.bk.signed
 rm -f ns3/inactivezsk.bk.signed.jnl
+rm -f ns3/nokeys.bk
+rm -f ns3/nokeys.bk.jnl
+rm -f ns3/nokeys.bk.signed
+rm -f ns3/nokeys.bk.signed.jnl
+rm -f ns3/removedkeys.bk
+rm -f ns3/removedkeys.bk.jnl
+rm -f ns3/removedkeys.bk.signed
+rm -f ns3/removedkeys.bk.signed.jnl
 rm -f ns3/nsec3.db
 rm -f ns3/nsec3.db.jnl
 rm -f ns3/nsec3.db.signed
