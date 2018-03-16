@@ -14160,6 +14160,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	dns_zone_t *zone;
 	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
 	dns_update_log_t log = { update_log_cb, NULL };
+	isc_uint32_t newserial = 0, desired = 0;
 	isc_time_t timenow;
 
 	UNUSED(task);
@@ -14267,7 +14268,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 				     zone->rss_newver));
 
 		if (soatuple != NULL) {
-			isc_uint32_t oldserial, newserial, desired;
+			isc_uint32_t oldserial;
 
 			CHECK(dns_db_createsoatuple(zone->rss_db,
 						    zone->rss_oldver,
@@ -14286,9 +14287,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 					   zone->rss_newver, &zone->rss_diff));
 			CHECK(do_one_tuple(&soatuple, zone->rss_db,
 					   zone->rss_newver, &zone->rss_diff));
-			dns_zone_log(zone, ISC_LOG_INFO,
-				     "serial %u (unsigned %u)",
-				     newserial, desired);
 		} else
 			CHECK(update_soa_serial(zone->rss_db, zone->rss_newver,
 						&zone->rss_diff, zone->mctx,
@@ -14333,6 +14331,11 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 	dns_db_closeversion(zone->rss_db, &zone->rss_oldver, ISC_FALSE);
 	dns_db_closeversion(zone->rss_db, &zone->rss_newver, ISC_TRUE);
+
+	if (newserial != 0) {
+		dns_zone_log(zone, ISC_LOG_INFO, "serial %u (unsigned %u)",
+			     newserial, desired);
+	}
 
  failure:
 	isc_event_free(&zone->rss_event);
