@@ -1088,14 +1088,173 @@ grep "DNSKEY 8 1 [0-9]* [0-9]* [0-9]* ${kskid} " dig.out.ns3.test$n > /dev/null 
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Wait until an update to the raw part of a given inline signed zone is fully
+# processed.  As waiting for a fixed amount of time is suboptimal and there is
+# no single message that would signify both a successful modification and an
+# error in a race-free manner, instead wait until either notifies are sent
+# (which means the secure zone was modified) or a receive_secure_serial() error
+# is logged (which means the zone was not modified and will not be modified any
+# further in response to the relevant raw zone update).
+wait_until_raw_zone_update_is_processed() {
+	zone="$1"
+	for i in 1 2 3 4 5 6 7 8 9 10
+	do
+		if nextpart ns3/named.run | egrep "zone ${zone}.*(sending notifies|receive_secure_serial)" > /dev/null; then
+			return
+		fi
+		sleep 1
+	done
+}
+
+n=`expr $n + 1`
+echo_i "checking that changes to raw zone are applied to a previously unsigned secure zone ($n)"
+ret=0
+# Query for bar.nokeys/A and ensure the response is negative.  As this zone
+# does not have any signing keys set up, the response must be unsigned.
+$DIG $DIGOPTS @10.53.0.3 bar.nokeys. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
+grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null && ret=1
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
+nextpart ns3/named.run > /dev/null
+# Add a record to the raw zone on the master.
+$NSUPDATE << EOF || ret=1
+zone nokeys.
+server 10.53.0.2 ${PORT}
+update add bar.nokeys. 0 A 127.0.0.1
+send
+EOF
+wait_until_raw_zone_update_is_processed "nokeys"
+# Query for bar.nokeys/A again and ensure the signer now returns a positive,
+# yet still unsigned response.
+$DIG $DIGOPTS @10.53.0.3 bar.nokeys. A > dig.out.ns3.post.test$n 2>&1
+grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that changes to raw zone are not applied to a previously signed secure zone with no keys available (primary) ($n)"
+ret=0
+# Query for bar.removedkeys-primary/A and ensure the response is negative.  As
+# this zone has signing keys set up, the response must be signed.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
+grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
+# Remove the signing keys for this zone.
+mv -f ns3/Kremovedkeys-primary* ns3/removedkeys
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
+nextpart ns3/named.run > /dev/null
+# Add a record to the raw zone on the master.
+$NSUPDATE << EOF || ret=1
+zone removedkeys-primary.
+server 10.53.0.3 ${PORT}
+update add bar.removedkeys-primary. 0 A 127.0.0.1
+send
+EOF
+wait_until_raw_zone_update_is_processed "removedkeys-primary"
+# Query for bar.removedkeys-primary/A again and ensure the signer still returns
+# a negative, signed response.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.post.test$n 2>&1
+grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null && ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that backlogged changes to raw zone are applied after keys become available (primary) ($n)"
+ret=0
+# Restore the signing keys for this zone.
+mv ns3/removedkeys/Kremovedkeys-primary* ns3
+$RNDCCMD 10.53.0.3 loadkeys removedkeys-primary > /dev/null 2>&1
+# Determine what a SOA record with a bumped serial number should look like.
+BUMPED_SOA=`sed -n 's/.*\(add removedkeys-primary.*IN.*SOA\)/\1/p;' ns3/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
+nextpart ns3/named.run > /dev/null
+# Bump the SOA serial number of the raw zone.
+$NSUPDATE << EOF || ret=1
+zone removedkeys-primary.
+server 10.53.0.3 ${PORT}
+update del removedkeys-primary. SOA
+update ${BUMPED_SOA}
+send
+EOF
+wait_until_raw_zone_update_is_processed "removedkeys-primary"
+# Query for bar.removedkeys-primary/A again and ensure the signer now returns a
+# positive, signed response.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.test$n 2>&1
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that changes to raw zone are not applied to a previously signed secure zone with no keys available (secondary) ($n)"
+ret=0
+# Query for bar.removedkeys-secondary/A and ensure the response is negative.  As this
+# zone does have signing keys set up, the response must be signed.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
+grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
+# Remove the signing keys for this zone.
+mv -f ns3/Kremovedkeys-secondary* ns3/removedkeys
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
+nextpart ns3/named.run > /dev/null
+# Add a record to the raw zone on the master.
+$NSUPDATE << EOF || ret=1
+zone removedkeys-secondary.
+server 10.53.0.2 ${PORT}
+update add bar.removedkeys-secondary. 0 A 127.0.0.1
+send
+EOF
+wait_until_raw_zone_update_is_processed "removedkeys-secondary"
+# Query for bar.removedkeys-secondary/A again and ensure the signer still returns a
+# negative, signed response.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.post.test$n 2>&1
+grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null && ret=1
+grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that backlogged changes to raw zone are applied after keys become available (secondary) ($n)"
+ret=0
+# Restore the signing keys for this zone.
+mv ns3/removedkeys/Kremovedkeys-secondary* ns3
+$RNDCCMD 10.53.0.3 loadkeys removedkeys-secondary > /dev/null 2>&1
+# Determine what a SOA record with a bumped serial number should look like.
+BUMPED_SOA=`sed -n 's/.*\(add removedkeys-secondary.*IN.*SOA\)/\1/p;' ns2/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
+nextpart ns3/named.run > /dev/null
+# Bump the SOA serial number of the raw zone on the master.
+$NSUPDATE << EOF || ret=1
+zone removedkeys-secondary.
+server 10.53.0.2 ${PORT}
+update del removedkeys-secondary. SOA
+update ${BUMPED_SOA}
+send
+EOF
+wait_until_raw_zone_update_is_processed "removedkeys-secondary"
+# Query for bar.removedkeys-secondary/A again and ensure the signer now returns
+# a positive, signed response.
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.test$n 2>&1
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 n=`expr $n + 1`
 echo_i "check that zonestatus reports 'type: master' for a inline master zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 zonestatus master > rndc.out.ns3.test$n
 grep "type: master" rndc.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-
 status=`expr $status + $ret`
+
 n=`expr $n + 1`
 echo_i "check that zonestatus reports 'type: slave' for a inline slave zone ($n)"
 ret=0
