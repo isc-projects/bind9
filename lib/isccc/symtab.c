@@ -16,7 +16,7 @@
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  *
- * Portions Copyright (C) Nominum, Inc.
+ * Portions Copyright (C) 2001  Nominum, Inc.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
