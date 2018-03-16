@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2001, 2003-2010, 2013-2018  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
