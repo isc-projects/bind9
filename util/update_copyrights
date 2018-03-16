@@ -21,6 +21,7 @@ require 5.002;
 
 my %owner2filename = (
 	"" => "util/COPYRIGHT",
+        TOP => "util/COPYRIGHT.TOP",
 	"NAI" => "util/COPYRIGHT.NAI",
 	"NOM" => "util/COPYRIGHT.NOM",
 	"BSDI" => "util/COPYRIGHT.BSDI",
@@ -442,10 +443,6 @@ foreach $file (keys %file_types) {
                         }
                 } else {
                         $years .= $last_year == 0 ? "$year" : ", $year";
-                        #if ($anchor_year != 0) {
-                        #        print "$file: noncontiguous year: ",
-                        #              "$year != $last_year + 1\n";
-                        #}
                         $anchor_year = $year;
                         $anchor_end = length($years);
                 }
@@ -454,9 +451,6 @@ foreach $file (keys %file_types) {
         }
 	$nomyears = $years;
 
-	#
-	# Internet Systems Consortium: 2004 onwards.
-	#
         $last_year = 0;
         $anchor_year = 0;
 	$years = "";
