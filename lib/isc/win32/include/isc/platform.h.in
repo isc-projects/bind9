@@ -88,30 +88,6 @@
 @ISC_PLATFORM_WANTAES@
 
 /*
- * If the "xadd" operation is available on this architecture,
- * ISC_PLATFORM_HAVEXADD will be defined.
- */
-@ISC_PLATFORM_HAVEXADD@
-
-/*
- * If the "xaddq" operation (64bit xadd) is available on this architecture,
- * ISC_PLATFORM_HAVEXADDQ will be defined.
- */
-@ISC_PLATFORM_HAVEXADDQ@
-
-/*
- * If the "atomic swap" operation is available on this architecture,
- * ISC_PLATFORM_HAVEATOMICSTORE" will be defined.
- */
-@ISC_PLATFORM_HAVEATOMICSTORE@
-
-/*
- * If the "compare-and-exchange" operation is available on this architecture,
- * ISC_PLATFORM_HAVECMPXCHG will be defined.
- */
-@ISC_PLATFORM_HAVECMPXCHG@
-
-/*
  * Define with the busy wait nop asm or function call.
  */
 @ISC_PLATFORM_BUSYWAITNOP@
