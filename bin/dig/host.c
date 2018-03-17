@@ -19,7 +19,7 @@
 #include <locale.h>
 #endif
 
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 #include <idn/result.h>
 #include <idn/log.h>
 #include <idn/resconf.h>
@@ -723,7 +723,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = rdtype;
 			lookup->rdtypeset = ISC_TRUE;
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 			idnoptions = 0;
 #endif
 			if (rdtype == dns_rdatatype_axfr) {
@@ -738,7 +738,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			} else if (rdtype == dns_rdatatype_any) {
 				if (!lookup->tcp_mode_set)
 					lookup->tcp_mode = ISC_TRUE;
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 			} else if (rdtype == dns_rdatatype_a ||
 				   rdtype == dns_rdatatype_aaaa ||
 				   rdtype == dns_rdatatype_mx) {
@@ -770,7 +770,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (!lookup->rdtypeset ||
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = dns_rdatatype_any;
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 			idnoptions = 0;
 #endif
 			list_type = dns_rdatatype_any;
@@ -884,7 +884,7 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 	fatalexit = 1;
-#ifdef WITH_IDN
+#ifdef WITH_IDNKIT
 	idnoptions = IDN_ASCCHECK;
 #endif
 

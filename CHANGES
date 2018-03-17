@@ -1,3 +1,9 @@
+4915.	[func]		Implement IDNA2008 support in dig by adding support
+			for libidn2.  New dig option +idnin has been added,
+			which allows to process invalid domain names much
+			like dig without IDN support.  libidn2 version 2.0
+			or higher is needed for +idnout enabled by default.
+
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
 
