@@ -673,7 +673,7 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 	dispsocket_t *dispsock;
 	unsigned int nports;
 	in_port_t *ports;
-	unsigned int bindoptions;
+	isc_socket_options_t bindoptions;
 	dispportentry_t *portentry = NULL;
 	dns_qid_t *qid;
 

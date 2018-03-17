@@ -123,10 +123,11 @@ ISC_LANG_BEGINDECLS
 #define ISC_SOCKET_MAXSCATTERGATHER	8
 
 /*%
- * In isc_socket_bind() set socket option SO_REUSEADDR prior to calling
- * bind() if a non zero port is specified (AF_INET and AF_INET6).
+ * Socket options:
  */
-#define ISC_SOCKET_REUSEADDRESS		0x01U
+typedef enum {
+	ISC_SOCKET_REUSEADDRESS	= (1<<0)  /*! In isc_socket_bind() set socket option SO_REUSEADDR prior to calling bind() if a non zero port is specified (AF_INET and AF_INET6). */
+} isc_socket_options_t;
 
 /*%
  * Statistics counters.  Used as isc_statscounter_t values.
@@ -691,7 +692,7 @@ isc_socket_close(isc_socket_t *sock);
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, const isc_sockaddr_t *addressp,
-		unsigned int options);
+		isc_socket_options_t options);
 /*%<
  * Bind 'socket' to '*addressp'.
  *
