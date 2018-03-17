@@ -92,42 +92,40 @@ ISC_LANG_BEGINDECLS
  */
 #ifdef ISC_PLATFORM_USETHREADS
 
-typedef struct isc_refcount {
-	atomic_int_fast32_t refs;
-} isc_refcount_t;
+typedef atomic_int_fast32_t isc_refcount_t;
 
-#define isc_refcount_current(rp)					\
-	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
+#define isc_refcount_current(ref)					\
+	((unsigned int)(atomic_load_explicit(ref,			\
 					     memory_order_relaxed)))
-#define isc_refcount_destroy(rp) ISC_REQUIRE(isc_refcount_current(rp) == 0)
+#define isc_refcount_destroy(ref) ISC_REQUIRE(isc_refcount_current(ref) == 0)
 
-#define isc_refcount_increment0(rp, tp)				\
+#define isc_refcount_increment0(ref, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(ref, 1, memory_order_relaxed); 		\
 		if (_tmp != NULL)				\
 			*_tmp = prev + 1;			\
 	} while (0)
 
-#define isc_refcount_increment(rp, tp)				\
+#define isc_refcount_increment(ref, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(ref, 1, memory_order_relaxed); 		\
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev + 1;			\
 	} while (0)
 
-#define isc_refcount_decrement(rp, tp)				\
+#define isc_refcount_decrement(ref, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_sub_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(ref, 1, memory_order_relaxed);		\
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev - 1;			\
@@ -139,41 +137,46 @@ typedef struct isc_refcount {
 	int refs;
 } isc_refcount_t;
 
-#define isc_refcount_destroy(rp) ISC_REQUIRE((rp)->refs == 0)
-#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
+#define isc_refcount_destroy(ref) ISC_REQUIRE(ref == 0)
+#define isc_refcount_current(ref) ((unsigned int)(ref)
 
-#define isc_refcount_increment0(rp, tp)					\
+#define isc_refcount_increment0(ref, tp)					\
 	do {								\
 		unsigned int *_tmp = (unsigned int *)(tp);		\
-		int _n = ++(rp)->refs;					\
+		int _n = ++ref;						\
 		if (_tmp != NULL)					\
 			*_tmp = _n;					\
 	} while (0)
 
-#define isc_refcount_increment(rp, tp)					\
+#define isc_refcount_increment(ref, tp)					\
 	do {								\
 		unsigned int *_tmp = (unsigned int *)(tp);		\
 		int _n;							\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		_n = ++(rp)->refs;					\
+		ISC_REQUIRE(ref > 0);					\
+		_n = ++ref;						\
 		if (_tmp != NULL)					\
 			*_tmp = _n;					\
 	} while (0)
 
-#define isc_refcount_decrement(rp, tp)					\
+#define isc_refcount_decrement(ref, tp)					\
 	do {								\
 		unsigned int *_tmp = (unsigned int *)(tp);		\
 		int _n;							\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		_n = --(rp)->refs;					\
+		ISC_REQUIRE((ref) > 0);					\
+		_n = --ref;						\
 		if (_tmp != NULL)					\
 			*_tmp = _n;					\
 	} while (0)
 
 #endif /* ISC_PLATFORM_USETHREADS */
 
+static inline
 isc_result_t
-isc_refcount_init(isc_refcount_t *ref, unsigned int n);
+isc_refcount_init(isc_refcount_t *ref, isc_refcount_t n) {
+	ISC_REQUIRE(ref);
+	*ref = n;
+	return (ISC_R_SUCCESS);
+}
 
 ISC_LANG_ENDDECLS
 
