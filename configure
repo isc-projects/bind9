@@ -681,7 +681,9 @@ UNITTESTS
 ATFLIBS
 ATFBIN
 ATFBUILD
-IDNLIBS
+LIBIDN2_LIBS
+LIBIDN2_CFLAGS
+IDNKIT_LIBS
 XSLT_DBLATEX_FASTBOOK
 XSLT_DBLATEX_STYLE
 XSLT_DOCBOOK_MAKETOC_XHTML
@@ -941,7 +943,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1040,10 +1041,11 @@ enable_dnstap
 with_protobuf_c
 with_libfstrm
 with_docbook_xsl
-with_idn
+with_idnkit
 with_libiconv
 with_iconv
 with_idnlib
+with_libidn2
 with_atf
 with_tuning
 enable_querytrace
@@ -1105,7 +1107,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1358,15 +1359,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1504,7 +1496,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1657,7 +1649,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1783,10 +1774,11 @@ Optional Packages:
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
-  --with-idn=MPREFIX      enable IDN support using idnkit [default PREFIX]
+  --with-idnkit=PATH      enable IDN support using idnkit [yes|no|path]
   --with-libiconv=IPREFIX GNU libiconv are in IPREFIX [default PREFIX]
   --with-iconv=LIBSPEC    specify iconv library [default -liconv]
   --with-idnlib=ARG       specify libidnkit
+  --with-libidn2=PATH     enable IDN support using GNU libidn2 [yes|no|path]
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ drivers
@@ -22209,28 +22201,28 @@ fi
 
 
 #
-# IDN support
+# IDN support using idnkit
 #
 
-# Check whether --with-idn was given.
-if test "${with_idn+set}" = set; then :
-  withval=$with_idn; use_idn="$withval"
+# Check whether --with-idnkit was given.
+if test "${with_idnkit+set}" = set; then :
+  withval=$with_idnkit; use_idnkit="$withval"
 else
-  use_idn="no"
+  use_idnkit="no"
 fi
 
-case "$use_idn" in
+case "$use_idnkit" in
 yes)
 	if test X$prefix = XNONE ; then
-		idn_path=/usr/local
+		idnkit_path=/usr/local
 	else
-		idn_path=$prefix
+		idnkit_path=$prefix
 	fi
 	;;
 no)
 	;;
 *)
-	idn_path="$use_idn"
+	idnkit_path="$use_idnkit"
 	;;
 esac
 
@@ -22287,19 +22279,160 @@ if test "yes" = "$idnlib"; then
 	as_fn_error $? "You must specify ARG for --with-idnlib." "$LINENO" 5
 fi
 
-IDNLIBS=
-if test "no" != "$use_idn"; then
+IDNKIT_LIBS=
+if test "no" != "$use_idnkit"; then
 
-$as_echo "#define WITH_IDN 1" >>confdefs.h
+$as_echo "#define WITH_IDNKIT 1" >>confdefs.h
 
-	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
+	STD_CINCLUDES="$STD_CINCLUDES -I$idnkit_path/include"
 	if test "no" != "$idnlib"; then
-		IDNLIBS="$idnlib $iconvlib"
+		IDNKIT_LIBS="$idnlib $iconvlib"
 	else
-		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
+		IDNKIT_LIBS="-L$idnkit_path/lib -lidnkit $iconvlib"
 	fi
 fi
 
+
+#
+# IDN support using libidn2
+#
+
+LIBIDN2_CFLAGS=
+LIBIDN2_LIBS=
+
+# Check whether --with-libidn2 was given.
+if test "${with_libidn2+set}" = set; then :
+  withval=$with_libidn2; use_libidn2="$withval"
+else
+  use_libidn2="no"
+fi
+
+case $use_libidn2 in #(
+  no) :
+    : ;; #(
+  yes) :
+
+	    LIBIDN2_LIBS="-lidn2"
+	 ;; #(
+  *) :
+
+	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
+	    LIBIDN2_LIBS="-L$use_libidn2/lib -lidn2"
+	 ;; #(
+  *) :
+     ;;
+esac
+
+if test "$use_libidn2" != "no"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_8z" >&5
+$as_echo_n "checking for library containing idn2_to_ascii_8z... " >&6; }
+if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char idn2_to_ascii_8z ();
+int
+main ()
+{
+return idn2_to_ascii_8z ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' idn2; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_idn2_to_ascii_8z=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+
+else
+  ac_cv_search_idn2_to_ascii_8z=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_idn2_to_ascii_8z" >&5
+$as_echo "$ac_cv_search_idn2_to_ascii_8z" >&6; }
+ac_res=$ac_cv_search_idn2_to_ascii_8z
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+$as_echo "#define WITH_LIBIDN2 1" >>confdefs.h
+
+else
+  as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
+fi
+
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libidn2 supports idn2_to_unicode_8zlz" >&5
+$as_echo_n "checking whether libidn2 supports idn2_to_unicode_8zlz... " >&6; }
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <idn2.h>
+int
+main ()
+{
+idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define WITH_IDN_OUT_SUPPORT 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+
+
+
+#
+# IDN support in general
+#
+
+# check if idnkit and libidn2 are not used at the same time
+if test "$use_idnkit" != no && test "$use_libidn2" != no; then
+    as_fn_error $? "idnkit and libidn2 cannot be used at the same time." "$LINENO" 5
+fi
+# the IDN support is on
+if test "$use_idnkit" != no || test "$use_libidn2" != no; then
+
+$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
+
+	if test "$use_libidn2" = no || test "$use_libidn2_out" != no; then
+
+$as_echo "#define WITH_IDN_OUT_SUPPORT 1" >>confdefs.h
+
+	fi
+fi
 
 #
 # Check whether to build Automated Test Framework unit tests
