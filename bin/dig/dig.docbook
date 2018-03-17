@@ -777,6 +777,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]idnin</option></term>
+	  <listitem>
+	    <para>
+	      Process [do not process] IDN domain names on input.
+	      This requires IDN SUPPORT to have been enabled at
+	      compile time.  The default is to process IDN input.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]idnout</option></term>
 	  <listitem>
 	    <para>
@@ -1287,10 +1298,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       <command>dig</command> appropriately converts character encoding of
       domain name before sending a request to DNS server or displaying a
       reply from the server.
-      If you'd like to turn off the IDN support for some reason, defines
-      the <envar>IDN_DISABLE</envar> environment variable.
-      The IDN support is disabled if the variable is set when
-      <command>dig</command> runs.
+      If you'd like to turn off the IDN support for some reason, use 
+      parameters <parameter>+noidnin</parameter> and
+      <parameter>+noidnout</parameter>.
     </para>
   </refsection>
 
