@@ -156,18 +156,6 @@ isc_stats_ncounters(isc_stats_t *stats) {
 	return (stats->ncounters);
 }
 
-static inline void
-incrementcounter(isc_stats_t *stats, int counter) {
-	atomic_fetch_add_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
-}
-
-static inline void
-decrementcounter(isc_stats_t *stats, int counter) {
-	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
-}
-
 static void
 copy_counters(isc_stats_t *stats) {
 	int i;
@@ -191,7 +179,8 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	incrementcounter(stats, (int)counter);
+	atomic_fetch_add_explicit(&stats->counters[counter], 1,
+				  memory_order_relaxed);
 }
 
 void
@@ -199,7 +188,8 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	decrementcounter(stats, (int)counter);
+	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
+				  memory_order_relaxed);
 }
 
 void
