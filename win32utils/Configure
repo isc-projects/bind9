@@ -233,11 +233,6 @@ my %configdefp;
 
 my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_CRYPTORANDOM",
-                 "ISC_PLATFORM_HAVEATOMICSTORE",
-                 "ISC_PLATFORM_HAVEATOMICSTOREQ",
-                 "ISC_PLATFORM_HAVECMPXCHG",
-                 "ISC_PLATFORM_HAVEXADD",
-                 "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
                  "ISC_PLATFORM_USEBACKTRACE",
                  "ISC_PLATFORM_WANTAES");
@@ -342,7 +337,6 @@ my @substdefd = ("CRYPTO",
 my %configcond;
 
 my @substcond = ("AES",
-                 "ATOMIC",
                  "GSSAPI",
                  "GEOIP",
                  "IDNKIT",
@@ -1303,16 +1297,8 @@ EOF
 
 # enable-intrinsics
 if ($enable_intrinsics eq "yes") {
-    $configcond{"ATOMIC"} = 1;
     $configvar{"INTRINSIC"} = "true";
     $configvar{"COPTI"} = "/Oi";
-    $configdefp{"ISC_PLATFORM_HAVEXADD"} = 1;
-    if ($want_x64 eq "yes") {
-        $configdefp{"ISC_PLATFORM_HAVEXADDQ"} = 1;
-        $configdefp{"ISC_PLATFORM_HAVEATOMICSTOREQ"} = 1;
-    }
-    $configdefp{"ISC_PLATFORM_HAVEATOMICSTORE"} = 1;
-    $configdefp{"ISC_PLATFORM_HAVECMPXCHG"} = 1;
 } else {
     $configvar{"INTRINSIC"} = "false";
 }
