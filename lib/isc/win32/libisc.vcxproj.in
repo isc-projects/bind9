@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|@PLATFORM@">
@@ -388,11 +388,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\pkcs11\pkcs11f.h" />
     <ClInclude Include="..\include\pkcs11\pkcs11t.h" />
 @END PKCS11
-@IF ATOMIC
-    <ClInclude Include="include\isc\atomic.h" />
-@ELSE ATOMIC
-    <ClInclude Include="..\noatomic\include\isc\atomic.h" />
-@END ATOMIC
     <ClInclude Include="errno2result.h" />
     <ClInclude Include="include\isc\bindevt.h" />
     <ClInclude Include="include\isc\bind_registry.h" />
@@ -467,7 +462,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\radix.c" />
     <ClCompile Include="..\random.c" />
     <ClCompile Include="..\ratelimiter.c" />
-    <ClCompile Include="..\refcount.c" />
     <ClCompile Include="..\regex.c" />
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\result.c" />

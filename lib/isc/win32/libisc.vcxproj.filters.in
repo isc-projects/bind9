@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Library Header Files">
@@ -377,11 +377,6 @@
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
 @END PKCS11
-@IF ATOMIC
-    <ClInclude Include="include\isc\atomic.h">
-@ELSE ATOMIC
-    <ClInclude Include="..\noatomic\include\isc\atomic.h">
-@END ATOMIC
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\config.h">
@@ -601,9 +596,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ratelimiter.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\refcount.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\regex.c">
