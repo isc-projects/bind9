@@ -96,6 +96,11 @@
 	  accepted in master files. [GL #13] [GL #56]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  IDNA2003 support via (bundled) idnkit-1.0 has been removed.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
