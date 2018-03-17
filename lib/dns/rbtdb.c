@@ -327,11 +327,6 @@ typedef isc_uint32_t                    rbtdb_rdatatype_t;
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
-#define RBTDB_INITLOCK(l)       isc_rwlock_init((l), 0, 0)
-#define RBTDB_DESTROYLOCK(l)    isc_rwlock_destroy(l)
-#define RBTDB_LOCK(l, t)        RWLOCK((l), (t))
-#define RBTDB_UNLOCK(l, t)      RWUNLOCK((l), (t))
-
 /*
  * Since node locking is sensitive to both performance and memory footprint,
  * we need some trick here.  If we have both high-performance rwlock and
@@ -1355,12 +1350,12 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 	}
 
 	if (inactive != 0) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 		rbtdb->active -= inactive;
 		if (rbtdb->active == 0) {
 			want_free = ISC_TRUE;
 		}
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 		if (want_free) {
 			char buf[DNS_NAME_FORMATSIZE];
 			if (dns_name_dynamic(&rbtdb->common.origin)) {
@@ -1400,10 +1395,10 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_read);
 	version = rbtdb->current_version;
 	isc_refcount_increment(&version->references, &refs);
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	*versionp = (dns_dbversion_t *)version;
 }
@@ -1466,7 +1461,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	REQUIRE(versionp != NULL && *versionp == NULL);
 	REQUIRE(rbtdb->future_version == NULL);
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 	RUNTIME_CHECK(rbtdb->next_serial != 0);         /* XXX Error? */
 	version = allocate_version(rbtdb->common.mctx, rbtdb->next_serial, 1,
 				   ISC_TRUE);
@@ -1511,7 +1506,7 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 		}
 	} else
 		result = ISC_R_NOMEMORY;
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	if (version == NULL)
 		return (result);
@@ -1552,7 +1547,7 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 
 	changed = isc_mem_get(rbtdb->common.mctx, sizeof(*changed));
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	REQUIRE(version->writer);
 
@@ -1565,7 +1560,7 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	} else
 		version->commit_ok = ISC_FALSE;
 
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	return (changed);
 }
@@ -2255,9 +2250,9 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 				 * Caller doesn't know the least serial.
 				 * Get it.
 				 */
-				RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+				RWLOCK(&rbtdb->lock, isc_rwlocktype_read);
 				least_serial = rbtdb->least_serial;
-				RBTDB_UNLOCK(&rbtdb->lock,
+				RWUNLOCK(&rbtdb->lock,
 					     isc_rwlocktype_read);
 			}
 			clean_zone_node(rbtdb, node, least_serial);
@@ -2690,9 +2685,9 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	isc_refcount_decrement(&version->references, &refs);
 	if (refs > 0) {         /* typical and easy case first */
 		if (commit) {
-			RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
+			RWLOCK(&rbtdb->lock, isc_rwlocktype_read);
 			INSIST(!version->writer);
-			RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+			RWUNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 		}
 		goto end;
 	}
@@ -2704,7 +2699,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	if (version->writer && commit && !IS_CACHE(rbtdb))
 		iszonesecure(db, version, rbtdb->origin_node);
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 	serial = version->serial;
 	if (version->writer) {
 		if (commit) {
@@ -2837,7 +2832,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 		UNLINK(rbtdb->open_versions, version, link);
 	}
 	least_serial = rbtdb->least_serial;
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	if (cleanup_version != NULL) {
 		INSIST(EMPTY(cleanup_version->changed_list));
@@ -5531,11 +5526,11 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	*targetp = NULL;
 
 	if (inactive) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 		rbtdb->active--;
 		if (rbtdb->active == 0)
 			want_free = ISC_TRUE;
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+		RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 		if (want_free) {
 			char buf[DNS_NAME_FORMATSIZE];
 			if (dns_name_dynamic(&rbtdb->common.origin))
@@ -7608,13 +7603,13 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	else
 		loadctx->now = 0;
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	REQUIRE((rbtdb->attributes & (RBTDB_ATTR_LOADED|RBTDB_ATTR_LOADING))
 		== 0);
 	rbtdb->attributes |= RBTDB_ATTR_LOADING;
 
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	callbacks->add = loading_addrdataset;
 	callbacks->add_private = loadctx;
@@ -7635,7 +7630,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(loadctx != NULL);
 	REQUIRE(loadctx->rbtdb == rbtdb);
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	REQUIRE((rbtdb->attributes & RBTDB_ATTR_LOADING) != 0);
 	REQUIRE((rbtdb->attributes & RBTDB_ATTR_LOADED) == 0);
@@ -7643,7 +7638,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	rbtdb->attributes &= ~RBTDB_ATTR_LOADING;
 	rbtdb->attributes |= RBTDB_ATTR_LOADED;
 
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	/*
 	 * If there's a KEY rdataset at the zone origin containing a
@@ -7979,12 +7974,12 @@ settask(dns_db_t *db, isc_task_t *task) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWLOCK(&rbtdb->lock, isc_rwlocktype_write);
 	if (rbtdb->task != NULL)
 		isc_task_detach(&rbtdb->task);
 	if (task != NULL)
 		isc_task_attach(task, &rbtdb->task);
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+	RWUNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
 
 static isc_boolean_t
@@ -8448,7 +8443,7 @@ dns_rbtdb_create
 
 	ISC_LIST_INIT(rbtdb->common.update_listeners);
 
-	result = RBTDB_INITLOCK(&rbtdb->lock);
+	result = isc_rwlock_init(&rbtdb->lock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_rbtdb;
 
@@ -8749,7 +8744,7 @@ dns_rbtdb_create
 	isc_rwlock_destroy(&rbtdb->tree_lock);
 
  cleanup_lock:
-	RBTDB_DESTROYLOCK(&rbtdb->lock);
+	isc_rwlock_destroy(&rbtdb->lock);
 
  cleanup_rbtdb:
 	isc_mem_put(mctx, rbtdb,  sizeof(*rbtdb));
