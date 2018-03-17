@@ -4814,24 +4814,24 @@ NOM_PATH_FILE(XSLT_DBLATEX_STYLE, xsl/docbook.xsl, $dblatex_xsl_trees)
 NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees)
 
 #
-# IDN support
+# IDN support using idnkit
 #
-AC_ARG_WITH(idn,
-	    AS_HELP_STRING([--with-idn[=MPREFIX]],
-			   [enable IDN support using idnkit [default PREFIX]]),
-	use_idn="$withval", use_idn="no")
-case "$use_idn" in
+AC_ARG_WITH(idnkit,
+	    AS_HELP_STRING([--with-idnkit[=PATH]],
+			   [enable IDN support using idnkit [yes|no|path]]),
+	use_idnkit="$withval", use_idnkit="no")
+case "$use_idnkit" in
 yes)
 	if test X$prefix = XNONE ; then
-		idn_path=/usr/local
+		idnkit_path=/usr/local
 	else
-		idn_path=$prefix
+		idnkit_path=$prefix
 	fi
 	;;
 no)
 	;;
 *)
-	idn_path="$use_idn"
+	idnkit_path="$use_idnkit"
 	;;
 esac
 
@@ -4877,17 +4877,66 @@ if test "yes" = "$idnlib"; then
 	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
 fi
 
-IDNLIBS=
-if test "no" != "$use_idn"; then
-	AC_DEFINE(WITH_IDN, 1, [define if idnkit support is to be included.])
-	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
+IDNKIT_LIBS=
+if test "no" != "$use_idnkit"; then
+	AC_DEFINE(WITH_IDNKIT, 1, [define if idnkit support is to be included.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$idnkit_path/include"
 	if test "no" != "$idnlib"; then
-		IDNLIBS="$idnlib $iconvlib"
+		IDNKIT_LIBS="$idnlib $iconvlib"
 	else
-		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
+		IDNKIT_LIBS="-L$idnkit_path/lib -lidnkit $iconvlib"
 	fi
 fi
-AC_SUBST(IDNLIBS)
+AC_SUBST(IDNKIT_LIBS)
+
+#
+# IDN support using libidn2
+#
+
+LIBIDN2_CFLAGS=
+LIBIDN2_LIBS=
+AC_ARG_WITH(libidn2,
+	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no|path]]),
+	use_libidn2="$withval", use_libidn2="no")
+AS_CASE([$use_libidn2],
+	[no],[:],
+	[yes],[
+	    LIBIDN2_LIBS="-lidn2"
+	],
+	[*],[
+	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
+	    LIBIDN2_LIBS="-L$use_libidn2/lib -lidn2"
+	])
+
+AS_IF([test "$use_libidn2" != "no"],
+      [AC_SEARCH_LIBS([idn2_to_ascii_8z], [idn2],
+		      [AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])],
+		      [AC_MSG_ERROR([libidn2 requested, but not found])])
+       AC_MSG_CHECKING(whether libidn2 supports idn2_to_unicode_8zlz)
+       AC_TRY_LINK([#include <idn2.h>],
+		   [idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);],
+		   [AC_MSG_RESULT(yes)
+		    AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])],
+		   [AC_MSG_RESULT([no])])
+      ])
+AC_SUBST([LIBIDN2_CFLAGS])
+AC_SUBST([LIBIDN2_LIBS])
+
+#
+# IDN support in general
+#
+
+# check if idnkit and libidn2 are not used at the same time
+if test "$use_idnkit" != no && test "$use_libidn2" != no; then
+    AC_MSG_ERROR([idnkit and libidn2 cannot be used at the same time.])
+fi
+# the IDN support is on
+if test "$use_idnkit" != no || test "$use_libidn2" != no; then
+	AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN input support is to be included.])
+	if test "$use_libidn2" = no || test "$use_libidn2_out" != no; then
+		AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])
+	fi
+fi
 
 #
 # Check whether to build Automated Test Framework unit tests

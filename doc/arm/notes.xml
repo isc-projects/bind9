@@ -141,6 +141,14 @@
 	  [RT #43670]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> will now log a warning if the old
+	  BIND now can be compiled against libidn2 library to add
+	  IDNA2008 support.  Previously BIND only supported IDNA2003
+	  using (now obsolete) idnkit-1 library.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
@@ -223,6 +231,13 @@
 	<para>
 	  DiG now warns about .local queries which are reserved for
 	  Multicast DNS. [RT #44783]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig +noidnin</command> can be used to disable IDN
+	  processing on the input domain name, when BIND is compiled
+	  with IDN support.
 	</para>
       </listitem>
     </itemizedlist>
