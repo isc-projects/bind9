@@ -219,7 +219,7 @@ typedef struct query {
 	isc_dscp_t			dscp;
 	int 				ednsversion;
 	unsigned int			options;
-	unsigned int			attributes;
+	isc_sockeventattr_t		attributes;
 	unsigned int			sends;
 	unsigned int			connects;
 	unsigned int			udpsize;

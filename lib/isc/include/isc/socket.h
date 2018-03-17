@@ -210,6 +210,31 @@ enum {
 	isc_sockstatscounter_max = 62
 };
 
+/*@{*/
+/*!
+ * _ATTACHED:	Internal use only.
+ * _TRUNC:	Packet was truncated on receive.
+ * _CTRUNC:	Packet control information was truncated.  This can
+ *		indicate that the packet is not complete, even though
+ *		all the data is valid.
+ * _TIMESTAMP:	The timestamp member is valid.
+ * _PKTINFO:	The pktinfo member is valid.
+ * _MULTICAST:	The UDP packet was received via a multicast transmission.
+ * _DSCP:	The UDP DSCP value is valid.
+ * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
+ */
+typedef enum {
+	ISC_SOCKEVENTATTR_ATTACHED	=	0x80000000U, /* internal */
+	ISC_SOCKEVENTATTR_TRUNC		=	0x00800000U, /* public */
+	ISC_SOCKEVENTATTR_CTRUNC	=	0x00400000U, /* public */
+	ISC_SOCKEVENTATTR_TIMESTAMP	=	0x00200000U, /* public */
+	ISC_SOCKEVENTATTR_PKTINFO	=	0x00100000U, /* public */
+	ISC_SOCKEVENTATTR_MULTICAST	=	0x00080000U, /* public */
+	ISC_SOCKEVENTATTR_DSCP		=	0x00040000U, /* public */
+	ISC_SOCKEVENTATTR_USEMINMTU	=	0x00020000U /* public */
+} isc_sockeventattr_t;
+/*@}*/
+
 /***
  *** Types
  ***/
@@ -225,7 +250,7 @@ struct isc_socketevent {
 	isc_sockaddr_t		address;	/*%< source address */
 	isc_time_t		timestamp;	/*%< timestamp of packet recv */
 	struct in6_pktinfo	pktinfo;	/*%< ipv6 pktinfo */
-	isc_uint32_t		attributes;	/*%< see below */
+	isc_sockeventattr_t	attributes;	/*%< see isc_sockeventattr_t enum */
 	isc_eventdestructor_t   destroy;	/*%< original destructor */
 	unsigned int		dscp;		/*%< UDP dscp value */
 };
@@ -243,29 +268,6 @@ struct isc_socket_connev {
 	ISC_EVENT_COMMON(isc_socket_connev_t);
 	isc_result_t		result;		/*%< OK, EOF, whatever else */
 };
-
-/*@{*/
-/*!
- * _ATTACHED:	Internal use only.
- * _TRUNC:	Packet was truncated on receive.
- * _CTRUNC:	Packet control information was truncated.  This can
- *		indicate that the packet is not complete, even though
- *		all the data is valid.
- * _TIMESTAMP:	The timestamp member is valid.
- * _PKTINFO:	The pktinfo member is valid.
- * _MULTICAST:	The UDP packet was received via a multicast transmission.
- * _DSCP:	The UDP DSCP value is valid.
- * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
- */
-#define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
-#define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
-#define ISC_SOCKEVENTATTR_CTRUNC		0x00400000U /* public */
-#define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */
-#define ISC_SOCKEVENTATTR_PKTINFO		0x00100000U /* public */
-#define ISC_SOCKEVENTATTR_MULTICAST		0x00080000U /* public */
-#define ISC_SOCKEVENTATTR_DSCP			0x00040000U /* public */
-#define ISC_SOCKEVENTATTR_USEMINMTU		0x00020000U /* public */
-/*@}*/
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
