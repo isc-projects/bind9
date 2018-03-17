@@ -14,17 +14,14 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
+#include <stdatomic.h>
+
 #include <isc/assertions.h>
-#include <isc/atomic.h>
 #include <isc/error.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
-
-#if defined(ISC_PLATFORM_HAVESTDATOMIC)
-#include <stdatomic.h>
-#endif
 
 /*! \file isc/refcount.h
  * \brief Implements a locked reference counter.
@@ -94,21 +91,10 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 #ifdef ISC_PLATFORM_USETHREADS
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD)
-#define ISC_REFCOUNT_HAVEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
-#define ISC_REFCOUNT_HAVESTDATOMIC 1
-#endif
 
 typedef struct isc_refcount {
-#if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 	atomic_int_fast32_t refs;
-#else
-	isc_int32_t refs;
-#endif
 } isc_refcount_t;
-
-#if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 
 #define isc_refcount_current(rp)					\
 	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
@@ -147,111 +133,6 @@ typedef struct isc_refcount {
 			*_tmp = prev - 1;			\
 	} while (0)
 
-#else /* ISC_REFCOUNT_HAVESTDATOMIC */
-
-#define isc_refcount_current(rp)				\
-	((unsigned int)(isc_atomic_xadd(&(rp)->refs, 0)))
-#define isc_refcount_destroy(rp) ISC_REQUIRE(isc_refcount_current(rp) == 0)
-
-#define isc_refcount_increment0(rp, tp)				\
-	do {							\
-		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
-		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
-		if (_tmp != NULL)				\
-			*_tmp = prev + 1;			\
-	} while (0)
-
-#define isc_refcount_increment(rp, tp)				\
-	do {							\
-		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
-		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
-		ISC_REQUIRE(prev > 0);				\
-		if (_tmp != NULL)				\
-			*_tmp = prev + 1;			\
-	} while (0)
-
-#define isc_refcount_decrement(rp, tp)				\
-	do {							\
-		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
-		prev = isc_atomic_xadd(&(rp)->refs, -1);	\
-		ISC_REQUIRE(prev > 0);				\
-		if (_tmp != NULL)				\
-			*_tmp = prev - 1;			\
-	} while (0)
-
-#endif /* ISC_REFCOUNT_HAVESTDATOMIC */
-
-#else  /* ISC_PLATFORM_HAVEXADD */
-
-typedef struct isc_refcount {
-	int refs;
-	isc_mutex_t lock;
-} isc_refcount_t;
-
-/*% Destroys a reference counter. */
-#define isc_refcount_destroy(rp)					\
-	do {								\
-		isc_result_t _result;					\
-		ISC_REQUIRE((rp)->refs == 0);				\
-		_result = isc_mutex_destroy(&(rp)->lock);		\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-	} while (0)
-
-#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
-
-/*%
- * Increments the reference count, returning the new value in
- * 'tp' if it's not NULL.
- */
-#define isc_refcount_increment0(rp, tp)					\
-	do {								\
-		isc_result_t _result;					\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		_result = isc_mutex_lock(&(rp)->lock);			\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-		++((rp)->refs);						\
-		if (_tmp != NULL)					\
-			*_tmp = ((rp)->refs);				\
-		_result = isc_mutex_unlock(&(rp)->lock);		\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-	} while (0)
-
-#define isc_refcount_increment(rp, tp)					\
-	do {								\
-		isc_result_t _result;					\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		_result = isc_mutex_lock(&(rp)->lock);			\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		++((rp)->refs);						\
-		if (_tmp != NULL)					\
-			*_tmp = ((rp)->refs);				\
-		_result = isc_mutex_unlock(&(rp)->lock);		\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-	} while (0)
-
-/*%
- * Decrements the reference count, returning the new value in 'tp'
- * if it's not NULL.
- */
-#define isc_refcount_decrement(rp, tp)					\
-	do {								\
-		isc_result_t _result;					\
-		unsigned int *_tmp = (unsigned int *)(tp);		\
-		_result = isc_mutex_lock(&(rp)->lock);			\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-		ISC_REQUIRE((rp)->refs > 0);				\
-		--((rp)->refs);						\
-		if (_tmp != NULL)					\
-			*_tmp = ((rp)->refs);				\
-		_result = isc_mutex_unlock(&(rp)->lock);		\
-		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
-	} while (0)
-
-#endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD) */
 #else  /* ISC_PLATFORM_USETHREADS */
 
 typedef struct isc_refcount {

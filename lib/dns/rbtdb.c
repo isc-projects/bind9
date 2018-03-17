@@ -327,31 +327,10 @@ typedef isc_uint32_t                    rbtdb_rdatatype_t;
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
-/*
- * We use rwlock for DB lock only when ISC_RWLOCK_USEATOMIC is non 0.
- * Using rwlock is effective with regard to lookup performance only when
- * it is implemented in an efficient way.
- * Otherwise, it is generally wise to stick to the simple locking since rwlock
- * would require more memory or can even make lookups slower due to its own
- * overhead (when it internally calls mutex locks).
- */
-#ifdef ISC_RWLOCK_USEATOMIC
-#define DNS_RBTDB_USERWLOCK 1
-#else
-#define DNS_RBTDB_USERWLOCK 0
-#endif
-
-#if DNS_RBTDB_USERWLOCK
 #define RBTDB_INITLOCK(l)       isc_rwlock_init((l), 0, 0)
 #define RBTDB_DESTROYLOCK(l)    isc_rwlock_destroy(l)
 #define RBTDB_LOCK(l, t)        RWLOCK((l), (t))
 #define RBTDB_UNLOCK(l, t)      RWUNLOCK((l), (t))
-#else
-#define RBTDB_INITLOCK(l)       isc_mutex_init(l)
-#define RBTDB_DESTROYLOCK(l)    DESTROYLOCK(l)
-#define RBTDB_LOCK(l, t)        LOCK(l)
-#define RBTDB_UNLOCK(l, t)      UNLOCK(l)
-#endif
 
 /*
  * Since node locking is sensitive to both performance and memory footprint,
@@ -372,7 +351,6 @@ typedef isc_uint32_t                    rbtdb_rdatatype_t;
  * Note that we cannot use NODE_LOCK()/NODE_UNLOCK() wherever the protected
  * section is also protected by NODE_STRONGLOCK().
  */
-#if defined(ISC_RWLOCK_USEATOMIC) && defined(DNS_RBT_USEISCREFCOUNT)
 typedef isc_rwlock_t nodelock_t;
 
 #define NODE_INITLOCK(l)        isc_rwlock_init((l), 0, 0)
@@ -386,21 +364,6 @@ typedef isc_rwlock_t nodelock_t;
 #define NODE_WEAKLOCK(l, t)     NODE_LOCK(l, t)
 #define NODE_WEAKUNLOCK(l, t)   NODE_UNLOCK(l, t)
 #define NODE_WEAKDOWNGRADE(l)   isc_rwlock_downgrade(l)
-#else
-typedef isc_mutex_t nodelock_t;
-
-#define NODE_INITLOCK(l)        isc_mutex_init(l)
-#define NODE_DESTROYLOCK(l)     DESTROYLOCK(l)
-#define NODE_LOCK(l, t)         LOCK(l)
-#define NODE_UNLOCK(l, t)       UNLOCK(l)
-#define NODE_TRYUPGRADE(l)      ISC_R_SUCCESS
-
-#define NODE_STRONGLOCK(l)      LOCK(l)
-#define NODE_STRONGUNLOCK(l)    UNLOCK(l)
-#define NODE_WEAKLOCK(l, t)     ((void)0)
-#define NODE_WEAKUNLOCK(l, t)   ((void)0)
-#define NODE_WEAKDOWNGRADE(l)   ((void)0)
-#endif
 
 /*%
  * Whether to rate-limit updating the LRU to avoid possible thread contention.
@@ -659,11 +622,7 @@ struct dns_rbtdb {
 	/* Unlocked. */
 	dns_db_t                        common;
 	/* Locks the data in this struct */
-#if DNS_RBTDB_USERWLOCK
 	isc_rwlock_t                    lock;
-#else
-	isc_mutex_t                     lock;
-#endif
 	/* Locks the tree structure (prevents nodes appearing/disappearing) */
 	isc_rwlock_t                    tree_lock;
 	/* Locks for individual tree nodes */
@@ -4682,11 +4641,6 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		   isc_rwlocktype_t *locktype, nodelock_t *lock,
 		   rbtdb_search_t *search, rdatasetheader_t **header_prev)
 {
-
-#if !defined(ISC_RWLOCK_USEATOMIC) || !defined(DNS_RBT_USEISCREFCOUNT)
-	UNUSED(lock);
-#endif
-
 	if (!ACTIVE(header, search->now)) {
 		dns_ttl_t stale = header->rdh_ttl +
 				  search->rbtdb->serve_stale_ttl;

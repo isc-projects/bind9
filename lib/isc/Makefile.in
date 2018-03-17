@@ -21,7 +21,6 @@ PROVIDER =	@PKCS11_PROVIDER@
 
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
-		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
 		-I${srcdir}/include ${DNS_INCLUDES} @ISC_OPENSSL_INC@
 CDEFINES =	@CRYPTO@ -DPK11_LIB_LOCATION=\"${PROVIDER}\"
@@ -83,13 +82,13 @@ SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
 		strtoul.c symtab.c task.c taskpool.c timer.c \
 		tm.c version.c
 
-LIBS =		@ISC_OPENSSL_LIBS@ @LIBS@
+LIBS =		@ISC_OPENSSL_LIBS@ @ISC_ATOMIC_LIBS@ @LIBS@
 
 # Note: the order of SUBDIRS is important.
 # Attempt to disable parallel processing.
 .NOTPARALLEL:
 .NO_PARALLEL:
-SUBDIRS =	include unix nls @ISC_THREAD_DIR@ @ISC_ARCH_DIR@
+SUBDIRS =	include unix nls @ISC_THREAD_DIR@
 TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 
