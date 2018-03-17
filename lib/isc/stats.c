@@ -45,6 +45,7 @@ struct isc_stats {
 	 * Locked by counterlock or unlocked if efficient rwlock is not
 	 * available.
 	 */
+	isc_rwlock_t	counterlock;
 	isc_stat_t	*counters;
 
 	/*%
@@ -81,13 +82,19 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 		result = ISC_R_NOMEMORY;
 		goto clean_mutex;
 	}
+
 	stats->copiedcounters = isc_mem_get(mctx,
 					    sizeof(isc_uint64_t) * ncounters);
 	if (stats->copiedcounters == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto clean_counters;
 	}
-
+	
+	result = isc_rwlock_init(&stats->counterlock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
+		goto clean_copiedcounters;
+	}
+	
 	stats->references = 1;
 	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
 	stats->mctx = NULL;
@@ -99,6 +106,10 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 
 	return (result);
 
+clean_copiedcounters:
+	isc_mem_put(mctx, stats->copiedcounters,
+		    sizeof(isc_stat_t) * ncounters);
+	
 clean_counters:
 	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
 
@@ -142,6 +153,7 @@ isc_stats_detach(isc_stats_t **statsp) {
 			    sizeof(isc_stat_t) * stats->ncounters);
 		UNLOCK(&stats->lock);
 		DESTROYLOCK(&stats->lock);
+		isc_rwlock_destroy(&stats->counterlock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 		return;
 	}
@@ -156,17 +168,6 @@ isc_stats_ncounters(isc_stats_t *stats) {
 	return (stats->ncounters);
 }
 
-static void
-copy_counters(isc_stats_t *stats) {
-	int i;
-
-	for (i = 0; i < stats->ncounters; i++) {
-		stats->copiedcounters[i] =
-			atomic_load_explicit(&stats->counters[i],
-					     memory_order_relaxed);
-	}
-}
-
 isc_result_t
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
@@ -178,9 +179,15 @@ void
 isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
-
+	/*
+	 * We use a "read" lock to prevent other threads from reading the
+	 * counter while we "writing" a counter field.  The write access itself
+	 * is protected by the atomic operation.
+	 */
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
 	atomic_fetch_add_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
 }
 
 void
@@ -188,8 +195,10 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
 	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
 }
 
 void
@@ -200,7 +209,17 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 
 	REQUIRE(ISC_STATS_VALID(stats));
 
-	copy_counters(stats);
+	/*
+	 * We use a "write" lock before "reading" the statistics counters as
+	 * an exclusive lock.
+	 */
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+	for (i = 0; i < stats->ncounters; i++) {
+		stats->copiedcounters[i] =
+			atomic_load_explicit(&stats->counters[i],
+					     memory_order_relaxed);
+	}
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 
 	for (i = 0; i < stats->ncounters; i++) {
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 &&
