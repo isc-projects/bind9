@@ -13535,20 +13535,6 @@ fi
 done
 
 
-# BSDI doesn't have ftello fseeko
-for ac_func in ftello fseeko
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
 # is reported to not support "static inline" (RT #1212).
