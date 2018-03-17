@@ -31,12 +31,6 @@
 #endif
 
 #ifdef WITH_IDN_SUPPORT
-#ifdef WITH_IDNKIT
-#include <idn/result.h>
-#include <idn/log.h>
-#include <idn/resconf.h>
-#include <idn/api.h>
-#endif
 
 #ifdef WITH_LIBIDN2
 #include <idn2.h>
@@ -157,9 +151,6 @@ static isc_result_t output_filter(isc_buffer_t *buffer,
 		isc_boolean_t absolute);
 #define MAXDLEN 256
 
-#ifdef WITH_IDNKIT
-int idnoptions = 0;
-#endif
 #endif /* WITH_IDN_OUT_SUPPORT */
 
 isc_socket_t *keep = NULL;
@@ -4304,54 +4295,6 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 #endif
 
 #ifdef WITH_IDN_SUPPORT
-#ifdef WITH_IDNKIT
-static void
-idnkit_check_result(idn_result_t result, const char *msg) {
-	if (result != idn_success) {
-		fatal("%s: %s", msg, idn_result_tostring(result));
-	}
-}
-
-static void
-idn_initialize(void) {
-	idn_result_t result;
-
-	/* Create configuration context. */
-	result = idn_nameinit(1);
-	idnkit_check_result(result, "idnkit api initialization failed");
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-idn_locale_to_ace(const char *from, char *to, size_t tolen) {
-	char utf8_textname[MXNAME];
-	idn_result_t result;
-
-	result = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP, from,
-	                        utf8_textname, sizeof(utf8_textname));
-	idnkit_check_result(result, "idnkit idn_encodename to utf8 failed");
-
-	result = idn_encodename(idnoptions | IDN_LOCALMAP | IDN_NAMEPREP |
-		                IDN_IDNCONV | IDN_LENCHECK,
-		                utf8_textname, to, tolen);
-	idnkit_check_result(result, "idnkit idn_encodename to idn failed");
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-idn_ace_to_locale(const char *from, char *to, size_t tolen) {
-	idn_result_t result;
-
-	result = idn_decodename(IDN_DECODE_APP, from, to, tolen);
-	if (result != idn_success) {
-		debug("idnkit idn_decodename failed: %s",
-		      idn_result_tostring(result));
-		return (ISC_R_FAILURE);
-	}
-	return (ISC_R_SUCCESS);
-}
-#endif /* WITH_IDNKIT */
-
 #ifdef WITH_LIBIDN2
 static void
 idn_initialize(void) {
