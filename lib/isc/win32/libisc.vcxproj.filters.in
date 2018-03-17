@@ -374,11 +374,6 @@
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
 @END PKCS11
-@IF ATOMIC
-    <ClInclude Include="include\isc\atomic.h">
-@ELSE ATOMIC
-    <ClInclude Include="..\noatomic\include\isc\atomic.h">
-@END ATOMIC
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\config.h">
@@ -595,9 +590,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ratelimiter.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\refcount.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\regex.c">
