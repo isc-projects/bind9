@@ -3984,28 +3984,25 @@ AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 #
 # Machine architecture dependent features
 #
-have_stdatomic=no
-AC_MSG_CHECKING(for usable stdatomic.h)
-AC_TRY_COMPILE([
-#include <stdio.h>
-#include <stdatomic.h>
-],
-[
-atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
-],
+
+ISC_ATOMIC_LIBS=
+if test "$use_threads" = "yes"; then
+	AC_MSG_CHECKING(for usable stdatomic.h)
+	AC_TRY_COMPILE([#include <stdatomic.h>],
+		       [atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);],
         [AC_MSG_RESULT(yes)],
 	[AC_MSG_ERROR([a compiler with atomics support is required])])
 
-ISC_ATOMIC_LIBS=
-AC_MSG_CHECKING(if -latomic is needed to use 64-bit stdatomic.h primitives)
-AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM([#include <stdatomic.h>],
-			 [atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);])],
-	[AC_MSG_RESULT(no)
-	 ISC_ATOMIC_LIBS=""],
-	[AC_MSG_RESULT(yes)
-	 ISC_ATOMIC_LIBS="-latomic"]
-    )
+	AC_MSG_CHECKING(if -latomic is needed to use 64-bit stdatomic.h primitives)
+	AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([#include <stdatomic.h>],
+				 [atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);])],
+		[AC_MSG_RESULT(no)
+		 ISC_ATOMIC_LIBS=""],
+		[AC_MSG_RESULT(yes)
+		 ISC_ATOMIC_LIBS="-latomic"]
+	)
+fi # use_threads
 AC_SUBST([ISC_ATOMIC_LIBS])
 
 #
