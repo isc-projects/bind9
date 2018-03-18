@@ -3409,6 +3409,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	} else {
 		enablevalidation = ISC_TRUE;
 		valstr = "auto";
+		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+			    "'dnssec-validation auto;' has been deprecated, use 'dnssec validation yes;'");
 	}
 
 	if (enablevalidation && !enablednssec)
