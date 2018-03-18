@@ -14,7 +14,11 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
+#if defined(_WIN32) || defined(WIN32)
+#include <atomic.h>
+#else
 #include <stdatomic.h>
+#endif
 
 #include <isc/assertions.h>
 #include <isc/error.h>
