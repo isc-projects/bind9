@@ -774,7 +774,7 @@ print_boolorauto(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 static void
 doc_boolorauto(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
-	cfg_print_cstr(pctx, "( yes | no | auto )");
+	cfg_print_cstr(pctx, "( yes | no | auto (DEPRECATED) )");
 }
 
 static cfg_type_t cfg_type_boolorauto = {

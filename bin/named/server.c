@@ -919,7 +919,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 static isc_result_t
 configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
-			  isc_boolean_t auto_root, isc_mem_t *mctx)
+			  isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
@@ -978,7 +978,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	if (auto_root && view->rdclass == dns_rdataclass_in) {
+	if (view->rdclass == dns_rdataclass_in) {
 		const cfg_obj_t *builtin_keys = NULL;
 		const cfg_obj_t *builtin_managed_keys = NULL;
 
@@ -1004,7 +1004,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 					      DNS_LOGCATEGORY_SECURITY,
 					      NAMED_LOGMODULE_SERVER,
 					      ISC_LOG_WARNING,
-					      "dnssec-validation auto: "
+					      "dnssec-validation yes: "
 					      "WARNING: root zone key "
 					      "not found");
 		}
@@ -3684,7 +3684,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
 	dns_stats_t *resquerystats = NULL;
-	isc_boolean_t auto_root = ISC_FALSE;
 	named_cache_t *nsc;
 	isc_boolean_t zero_no_soattl;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
@@ -4073,7 +4072,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	} else {
 		/* If dnssec-validation is not boolean, it must be "auto" */
 		view->enablevalidation = ISC_TRUE;
-		auto_root = ISC_TRUE;
+		/* dnssec-validation auto and yes behave the same now */
+		isc_log_write(named_g_lctx,
+			      DNS_LOGCATEGORY_SECURITY,
+			      NAMED_LOGMODULE_SERVER,
+			      ISC_LOG_WARNING,
+			      "dnssec-validation auto: "
+			      "WARNING: 'auto' option has been deprecated and will be removed in next BIND version,"
+			      "use dnssec-validation yes; for automatic DNSSEC management");
 	}
 
 	obj = NULL;
@@ -5064,7 +5070,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_root, mctx));
+				        mctx));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
