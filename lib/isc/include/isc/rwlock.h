@@ -17,7 +17,9 @@
 /*! \file isc/rwlock.h */
 
 #include <stdint.h>
+#if !defined(_WIN32)
 #include <stdatomic.h>
+#endif
 
 #include <isc/condition.h>
 #include <isc/lang.h>

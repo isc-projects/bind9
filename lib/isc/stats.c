@@ -16,7 +16,9 @@
 #include <config.h>
 
 #include <string.h>
+#if !defined(_WIN32)
 #include <stdatomic.h>
+#endif
 
 #include <isc/buffer.h>
 #include <isc/magic.h>
