@@ -9751,7 +9751,7 @@ deny-answer-aliases { "example.net"; };
 	    multiple policy zones.  To maximize performance, a radix
 	    tree is used to quickly identify response policy zones
 	    containing triggers that match the current query.  This
-	    imposes an upper limit of 32 on the number of policy zones
+	    imposes an upper limit of 64 on the number of policy zones
 	    in a single <command>response-policy</command> option; more
 	    than that is a configuration error.
 	  </para>

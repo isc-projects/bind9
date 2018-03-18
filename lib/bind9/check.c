@@ -3128,9 +3128,15 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 	return (result);
 }
 
+typedef enum {
+	special_zonetype_rpz,
+	special_zonetype_catz
+} special_zonetype_t;
+
 static isc_result_t
 check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
-	       const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx)
+	       const char *viewname, isc_symtab_t *symtab, isc_log_t *logctx,
+	       special_zonetype_t specialzonetype)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj, *nameobj, *zoneobj;
@@ -3141,6 +3147,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	unsigned int num_zones = 0;
 
 	if (viewname == NULL) {
 		viewname = "";
@@ -3151,13 +3158,24 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	dns_fixedname_init(&fixed);
 	name = dns_fixedname_name(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
+
 	for (element = cfg_list_first(obj);
 	     element != NULL;
-	     element = cfg_list_next(element)) {
+	     element = cfg_list_next(element))
+	{
 		obj = cfg_listelt_value(element);
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
 		zonetype = "";
+
+		if (specialzonetype == special_zonetype_rpz) {
+			if (++num_zones > 64) {
+				cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
+					    "more than 64 response policy "
+					    "zones in view '%s'", viewname);
+				return (ISC_R_FAILURE);
+			}
+		}
 
 		tresult = dns_name_fromstring(name, zonename, 0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
@@ -3278,15 +3296,24 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 */
 	if (opts != NULL) {
 		obj = NULL;
-		if (cfg_map_get(opts, "response-policy", &obj) == ISC_R_SUCCESS
-		    && check_rpz_catz("response-policy zone", obj,
-				 viewname, symtab, logctx) != ISC_R_SUCCESS)
+		if ((cfg_map_get(opts, "response-policy",
+				 &obj) == ISC_R_SUCCESS) &&
+		    (check_rpz_catz("response-policy zone", obj,
+				    viewname, symtab, logctx,
+				    special_zonetype_rpz) != ISC_R_SUCCESS))
+		{
 			result = ISC_R_FAILURE;
+		}
+
 		obj = NULL;
-		if (cfg_map_get(opts, "catalog-zones", &obj) == ISC_R_SUCCESS
-		    && check_rpz_catz("catalog zone", obj,
-				  viewname, symtab, logctx) != ISC_R_SUCCESS)
+		if ((cfg_map_get(opts, "catalog-zones",
+				 &obj) == ISC_R_SUCCESS) &&
+		    (check_rpz_catz("catalog zone", obj,
+				    viewname, symtab, logctx,
+				    special_zonetype_catz) != ISC_R_SUCCESS))
+		{
 			result = ISC_R_FAILURE;
+		}
 	}
 
 	isc_symtab_destroy(&symtab);

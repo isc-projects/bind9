@@ -76,15 +76,12 @@ typedef enum {
 
 typedef isc_uint8_t	    dns_rpz_num_t;
 
-#define DNS_RPZ_MAX_ZONES   32
-#if DNS_RPZ_MAX_ZONES > 32
-# if DNS_RPZ_MAX_ZONES > 64
-#  error "rpz zone bit masks must fit in a word"
-# endif
+#define DNS_RPZ_MAX_ZONES   64
+/*
+ * Type dns_rpz_zbits_t must be an unsigned int wide enough to contain
+ * at least DNS_RPZ_MAX_ZONES bits.
+ */
 typedef isc_uint64_t	    dns_rpz_zbits_t;
-#else
-typedef isc_uint32_t	    dns_rpz_zbits_t;
-#endif
 
 #define DNS_RPZ_ALL_ZBITS   ((dns_rpz_zbits_t)-1)
 

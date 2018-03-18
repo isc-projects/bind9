@@ -346,6 +346,22 @@ do
     }
   fi
 
+  # Check maximum number of RPZ zones (64)
+  t=`expr $t + 1`
+  echo_i "testing maximum number of RPZ zones (${t})"
+  add_test_marker 10.53.0.2
+  run_server max
+  i=1
+  while test $i -le 64
+  do
+      $DIG $DIGOPTS name$i a @10.53.0.2 -p ${PORT} -b 10.53.0.1 > dig.out.${t}.${i}
+      grep "^name$i.[ 	]*[0-9]*[ 	]*IN[ 	]*A[ 	]*10.53.0.$i" dig.out.${t}.${i} > /dev/null 2>&1 || {
+	  echo_i "test $t failed: didn't get expected answer from policy zone $i"
+	  status=1
+      }
+      i=`expr $i + 1`
+  done
+
   # Check CLIENT-IP behavior
   t=`expr $t + 1`
   echo_i "testing CLIENT-IP behavior (${t})"
