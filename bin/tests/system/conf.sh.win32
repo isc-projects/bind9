@@ -85,27 +85,33 @@ KRB5_CONFIG=NUL
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
-SEQUENTIALDIRS="acl additional addzone autosign builtin \
-	 cacheclean case \
-	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
-	 database digdelv dlv dlvauto dlz dlzexternal dname \
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
-	 ednscompliance emptyzones \
-	 fetchlimit filter-aaaa formerr forward geoip glue gost inline ixfr \
-	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile \
-	 masterformat metadata mkeys names notify nslookup nsupdate \
-	 nzd2nzf padding pending pipelined @PKCS11_TEST@ reclimit \
-	 redirect resolver rndc rpz rrchecker rrl \
-	 rrsetorder rsabigexponent runtime sfcache smartsign sortlist \
-	 spf staticstub statistics statschannel stub tcp tkey tsig \
-	 tsiggss unknown upforwd verify views wildcard xfer xferquota \
-	 zero zonechecks"
+SEQUENTIALDIRS="ecdsa eddsa gost @PKCS11_TEST@ tkey"
 
-# List of tests that use unique ports (other than 5300 and 9953). These
-# tests can be run in parallel.
+# List of tests that use ports assigned by caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
 #
 # This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query catz rpzrecurse serve-stale"
+PARALLELDIRS="acl additional addzone allow-query aname auth autosign \
+	builtin cacheclean case catz cds chain \
+	checkconf checknames checkzone \
+	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
+	cookie database digdelv dlv dlz dlzexternal \
+	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	ednscompliance emptyzones \
+	fetchlimit filter-aaaa formerr forward \
+	geoip glue inline integrity ixfr keepalive \
+	legacy limits logfileconfig \
+	masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf \
+	padding pending pipelined \
+	reclimit redirect resolver rndc rpz rpzrecurse \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	serve-stale sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub synthfromdnssec \
+	tcp tools tsig tsiggss \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
@@ -139,9 +145,9 @@ else
 fi
 
 if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-        TESTSOCK6="$TESTSOCK6"
+	TESTSOCK6="$TESTSOCK6"
 else
-        TESTSOCK6=false
+	TESTSOCK6=false
 fi
 
 #
@@ -185,22 +191,22 @@ else
 fi
 
 echofail () {
-        printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
 }
 echowarn () {
-        printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
 }
 echopass () {
-        printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
 }
 echoinfo () {
-        printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
 }
 echostart () {
-        printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
 }
 echoend () {
-        printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 }
 
 TESTNAME="`basename $PWD`"
@@ -234,7 +240,7 @@ nextpart () {
     [ -f $1.prev ] || echo "0" > $1.prev
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+	 END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
 # copy_setports - Copy Configuration File and Replace Ports
@@ -255,15 +261,15 @@ copy_setports() {
     # tokens when it processes this file and produces conf.sh.
     atsign="@"
     sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
-        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
-        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
-        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
-        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
-        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
-        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
-        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
-        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" $1 > $2
+	-e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
+	-e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
+	-e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
+	-e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
+	-e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
+	-e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
+	-e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
+	-e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
+	-e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" $1 > $2
 }
 
 #

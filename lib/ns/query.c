@@ -162,6 +162,9 @@ do { \
 #define STALE(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_STALE) != 0)
 
+#define ANAME(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_ANAME) != 0)
+
 #ifdef WANT_QUERYTRACE
 static inline void
 client_trace(ns_client_t *client, int level, const char *message) {
@@ -1595,46 +1598,41 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 static isc_result_t
 query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
-	isc_result_t result, eresult;
-	dns_dbnode_t *node;
-	dns_db_t *db;
-	dns_name_t *fname, *mname;
-	dns_rdataset_t *rdataset, *sigrdataset, *trdataset;
-	isc_buffer_t *dbuf;
+	isc_result_t result, eresult = ISC_R_SUCCESS;
+	dns_dbnode_t *node = NULL;
+	dns_db_t *db = NULL;
+	dns_name_t *fname = NULL, *mname = NULL;
+	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
+	dns_rdataset_t *trdataset = NULL;
+	isc_buffer_t *dbuf = NULL;
 	isc_buffer_t b;
-	ns_dbversion_t *dbversion;
-	dns_dbversion_t *version;
-	isc_boolean_t added_something, need_addname;
+	ns_dbversion_t *dbversion = NULL;
+	dns_dbversion_t *version = NULL;
+	isc_boolean_t added_something = ISC_FALSE;
+	isc_boolean_t need_addname = ISC_FALSE;
 	dns_rdatatype_t type;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
-	dns_rdatasetadditional_t additionaltype;
+	dns_rdatasetadditional_t additionaltype =
+		dns_rdatasetadditional_fromauth;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(qtype != dns_rdatatype_any);
+
 
 	if (!WANTDNSSEC(client) && dns_rdatatype_isdnssec(qtype))
 		return (ISC_R_SUCCESS);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addadditional");
 
-	/*
-	 * Initialization.
-	 */
-	eresult = ISC_R_SUCCESS;
-	fname = NULL;
-	rdataset = NULL;
-	sigrdataset = NULL;
-	trdataset = NULL;
-	db = NULL;
-	version = NULL;
-	node = NULL;
-	added_something = ISC_FALSE;
-	need_addname = ISC_FALSE;
-	additionaltype = dns_rdatasetadditional_fromauth;
-
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
+
+	if (qtype == dns_rdatatype_aname) {
+		client->query.attributes |= NS_QUERYATTR_ANAME;
+		return (query_addadditional(arg, client->query.qname,
+					    dns_rdatatype_a));
+	}
 
 	/*
 	 * We treat type A additional section processing as if it
@@ -1642,10 +1640,11 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	 * To avoid multiple lookups, we do an 'any' database
 	 * lookup and iterate over the node.
 	 */
-	if (qtype == dns_rdatatype_a)
+	if (qtype == dns_rdatatype_a) {
 		type = dns_rdatatype_any;
-	else
+	} else {
 		type = qtype;
+	}
 
 	/*
 	 * Get some resources.
@@ -1664,11 +1663,14 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 
 	/*
-	 * If we want only minimal responses and are here, then it must
+	 * If we want only jinimal responses and are here, then it must
 	 * be for glue.
 	 */
-	if (client->view->minimalresponses == dns_minimal_yes)
+	if (client->view->minimalresponses == dns_minimal_yes &&
+	    !ANAME(client))
+	{
 		goto try_glue;
+	}
 
 	/*
 	 * Look within the same zone database for authoritative
@@ -2015,15 +2017,22 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 
  cleanup:
 	CTRACE(ISC_LOG_DEBUG(3), "query_addadditional: cleanup");
+	if (ANAME(client)) {
+		client->query.attributes &= ~NS_QUERYATTR_ANAME;
+	}
 	query_putrdataset(client, &rdataset);
-	if (sigrdataset != NULL)
+	if (sigrdataset != NULL) {
 		query_putrdataset(client, &sigrdataset);
-	if (fname != NULL)
+	}
+	if (fname != NULL) {
 		query_releasename(client, &fname);
-	if (node != NULL)
+	}
+	if (node != NULL) {
 		dns_db_detachnode(db, &node);
-	if (db != NULL)
+	}
+	if (db != NULL) {
 		dns_db_detach(&db);
+	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addadditional: done");
 	return (eresult);
@@ -2050,8 +2059,9 @@ query_addrdataset(ns_client_t *client, dns_section_t section,
 						       rdataset->rdclass);
 	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 
-	if (NOADDITIONAL(client))
+	if (NOADDITIONAL(client) && rdataset->type != dns_rdatatype_aname) {
 		return;
+	}
 
 	/*
 	 * Try to process glue directly.
