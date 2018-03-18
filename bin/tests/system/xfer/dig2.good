@@ -9,6 +9,10 @@ a601.example.		3600	IN	A6	127 ::1 foo.
 a601.example.		3600	IN	A6	128  .
 aaaa01.example.		3600	IN	AAAA	::1
 aaaa02.example.		3600	IN	AAAA	fd92:7065:b8e:ffff::5
+aname01.example.	3600    IN      ANAME	aname-target.
+aname02.example.	3600    IN      ANAME	aname-target.example.
+aname03.example.	3600    IN      ANAME	aname.example.
+aname04.example.	3600    IN      ANAME	.
 afsdb01.example.	3600	IN	AFSDB	0 hostname.example.
 afsdb02.example.	3600	IN	AFSDB	65535 .
 apl01.example.		3600	IN	APL	!1:10.0.0.1/32 1:10.0.0.1/24

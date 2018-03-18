@@ -457,6 +457,10 @@ dlv			DLV	30795 1 1 (
 ; type 32770 -- 65279 (unassigned)
 
 ; type 65280-65534 (private use)
+aname01			ANAME	aname-target.
+aname02			ANAME	aname-target
+aname03			ANAME	aname.example.
+aname04			ANAME	.
 
 ; keydata (internal type used for managed-keys)
 keydata			TYPE65533	\# 0
