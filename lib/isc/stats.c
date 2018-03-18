@@ -30,6 +30,13 @@
 #define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
+/*%
+ * `ISC_STATS_LOCKCOUNTERS` indicates if the complete set of statistics
+ * counters have to be locked before update, so that an instantaneous
+ * snapshot of them can be dumped.
+ */
+#define ISC_STATS_LOCKCOUNTERS 0
+
 typedef atomic_int_fast64_t isc_stat_t;
 
 struct isc_stats {
@@ -42,10 +49,11 @@ struct isc_stats {
 	unsigned int	references; /* locked by lock */
 
 	/*%
-	 * Locked by counterlock or unlocked if efficient rwlock is not
-	 * available.
+	 * Locked by counterlock or unlocked.
 	 */
+#if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_t	counterlock;
+#endif
 	isc_stat_t	*counters;
 
 	/*%
@@ -61,66 +69,6 @@ struct isc_stats {
 	 */
 	isc_uint64_t	*copiedcounters;
 };
-
-static isc_result_t
-create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
-	isc_stats_t *stats;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(statsp != NULL && *statsp == NULL);
-
-	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
-
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
-
-	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
-	if (stats->counters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_mutex;
-	}
-
-	stats->copiedcounters = isc_mem_get(mctx,
-					    sizeof(isc_uint64_t) * ncounters);
-	if (stats->copiedcounters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_counters;
-	}
-	
-	result = isc_rwlock_init(&stats->counterlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto clean_copiedcounters;
-	}
-	
-	stats->references = 1;
-	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
-	stats->mctx = NULL;
-	isc_mem_attach(mctx, &stats->mctx);
-	stats->ncounters = ncounters;
-	stats->magic = ISC_STATS_MAGIC;
-
-	*statsp = stats;
-
-	return (result);
-
-clean_copiedcounters:
-	isc_mem_put(mctx, stats->copiedcounters,
-		    sizeof(isc_stat_t) * ncounters);
-	
-clean_counters:
-	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
-
-clean_mutex:
-	DESTROYLOCK(&stats->lock);
-
-clean_stats:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
-}
 
 void
 isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
@@ -153,7 +101,9 @@ isc_stats_detach(isc_stats_t **statsp) {
 			    sizeof(isc_stat_t) * stats->ncounters);
 		UNLOCK(&stats->lock);
 		DESTROYLOCK(&stats->lock);
+#if ISC_STATS_LOCKCOUNTERS
 		isc_rwlock_destroy(&stats->counterlock);
+#endif
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 		return;
 	}
@@ -170,9 +120,66 @@ isc_stats_ncounters(isc_stats_t *stats) {
 
 isc_result_t
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
+	isc_stats_t *stats;
+	isc_result_t result = ISC_R_SUCCESS;
+
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, ncounters, statsp));
+	stats = isc_mem_get(mctx, sizeof(*stats));
+	if (stats == NULL)
+		return (ISC_R_NOMEMORY);
+
+	result = isc_mutex_init(&stats->lock);
+	if (result != ISC_R_SUCCESS)
+		goto clean_stats;
+
+	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
+	if (stats->counters == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto clean_mutex;
+	}
+
+	stats->copiedcounters = isc_mem_get(mctx,
+					    sizeof(isc_uint64_t) * ncounters);
+	if (stats->copiedcounters == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto clean_counters;
+	}
+
+#if ISC_STATS_LOCKCOUNTERS
+	result = isc_rwlock_init(&stats->counterlock, 0, 0);
+	if (result != ISC_R_SUCCESS) {
+		goto clean_copiedcounters;
+	}
+#endif
+
+	stats->references = 1;
+	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
+	stats->mctx = NULL;
+	isc_mem_attach(mctx, &stats->mctx);
+	stats->ncounters = ncounters;
+	stats->magic = ISC_STATS_MAGIC;
+
+	*statsp = stats;
+
+	return (result);
+
+#if ISC_STATS_LOCKCOUNTERS
+clean_copiedcounters:
+	isc_mem_put(mctx, stats->copiedcounters,
+		    sizeof(isc_stat_t) * ncounters);
+#endif
+
+clean_counters:
+	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
+
+clean_mutex:
+	DESTROYLOCK(&stats->lock);
+
+clean_stats:
+	isc_mem_put(mctx, stats, sizeof(*stats));
+
+	return (result);
 }
 
 void
@@ -184,10 +191,16 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	 * counter while we "writing" a counter field.  The write access itself
 	 * is protected by the atomic operation.
 	 */
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
 	atomic_fetch_add_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
 }
 
 void
@@ -195,10 +208,16 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
 	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
 }
 
 void
@@ -213,13 +232,19 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 	 * We use a "write" lock before "reading" the statistics counters as
 	 * an exclusive lock.
 	 */
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
+#endif
+
 	for (i = 0; i < stats->ncounters; i++) {
 		stats->copiedcounters[i] =
 			atomic_load_explicit(&stats->counters[i],
 					     memory_order_relaxed);
 	}
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
+#endif
 
 	for (i = 0; i < stats->ncounters; i++) {
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 &&
@@ -236,6 +261,14 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
 	atomic_store_explicit(&stats->counters[counter], val,
 			      memory_order_relaxed);
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
 }
