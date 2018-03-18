@@ -19928,7 +19928,9 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include <stdio.h>
+#if !defined(_WIN32)
 #include <stdatomic.h>
+#endif
 
 int
 main ()
