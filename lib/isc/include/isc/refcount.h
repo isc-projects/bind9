@@ -14,14 +14,16 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
-#include <stdatomic.h>
-
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
+
+#ifdef ISC_PLATFORM_USETHREADS
+#include <stdatomic.h>
+#endif
 
 /*! \file isc/refcount.h
  * \brief Implements a locked reference counter.

@@ -16,7 +16,6 @@
 #include <config.h>
 
 #include <string.h>
-#include <stdatomic.h>
 
 #include <isc/buffer.h>
 #include <isc/magic.h>
@@ -26,6 +25,10 @@
 #include <isc/rwlock.h>
 #include <isc/stats.h>
 #include <isc/util.h>
+
+#ifdef ISC_PLATFORM_USETHREADS
+#include <stdatomic.h>
+#endif
 
 #define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
@@ -37,7 +40,11 @@
  */
 #define ISC_STATS_LOCKCOUNTERS 0
 
+#ifdef ISC_PLATFORM_USETHREADS
 typedef atomic_int_fast64_t isc_stat_t;
+#else
+typedef isc_int64_t isc_stat_t;
+#endif
 
 struct isc_stats {
 	/*% Unlocked */
@@ -186,6 +193,7 @@ void
 isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
+#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * We use a "read" lock to prevent other threads from reading the
 	 * counter while we "writing" a counter field.  The write access itself
@@ -201,6 +209,9 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 #endif
+#else /* ISC_PLATFORM_USETHREADS */
+	stats->counters[counter]++;
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 void
@@ -208,6 +219,7 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
+#ifdef ISC_PLATFORM_USETHREADS
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
 #endif
@@ -218,6 +230,9 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 #endif
+#else /* ISC_PLATFORM_USETHREADS */
+	stats->counters[counter]--;
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 void
@@ -228,6 +243,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 
 	REQUIRE(ISC_STATS_VALID(stats));
 
+#ifdef ISC_PLATFORM_USETHREADS
 	/*
 	 * We use a "write" lock before "reading" the statistics counters as
 	 * an exclusive lock.
@@ -252,6 +268,14 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 				continue;
 		dump_fn((isc_statscounter_t)i, stats->copiedcounters[i], arg);
 	}
+#else /* ISC_PLATFORM_USETHREADS */
+	for (i = 0; i < stats->ncounters; i++) {
+		if ((options & ISC_STATSDUMP_VERBOSE) == 0 &&
+		    stats->counters[i] == 0)
+				continue;
+		dump_fn((isc_statscounter_t)i, stats->counters[i], arg);
+	}
+#endif /* ISC_PLATFORM_USETHREADS */
 }
 
 void
@@ -261,6 +285,7 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
+#ifdef ISC_PLATFORM_USETHREADS
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
 #endif
@@ -271,4 +296,7 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 #endif
+#else /* ISC_PLATFORM_USETHREADS */
+	stats->counters[counter] = val;
+#endif /* ISC_PLATFORM_USETHREADS */
 }

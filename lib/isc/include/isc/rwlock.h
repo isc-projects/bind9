@@ -17,13 +17,15 @@
 /*! \file isc/rwlock.h */
 
 #include <stdint.h>
-#include <stdatomic.h>
 
 #include <isc/condition.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 
+#ifdef ISC_PLATFORM_USETHREADS
+#include <stdatomic.h>
+#endif
 
 ISC_LANG_BEGINDECLS
 
