@@ -17,7 +17,9 @@
 /*! \file isc/rwlock.h */
 
 #include <stdint.h>
+#ifdef ISC_PLATFORM_USETHREADS
 #include <stdatomic.h>
+#endif
 
 #include <isc/condition.h>
 #include <isc/lang.h>

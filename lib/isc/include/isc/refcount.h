@@ -14,7 +14,9 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
+#ifdef ISC_PLATFORM_USETHREADS
 #include <stdatomic.h>
+#endif
 
 #include <isc/assertions.h>
 #include <isc/error.h>
