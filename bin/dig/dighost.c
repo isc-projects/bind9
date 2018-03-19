@@ -176,7 +176,7 @@ unsigned char cookie[8];
 const dns_name_t *hmacname = NULL;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
-dns_tsigkey_t *key = NULL;
+dns_tsigkey_t *tsigkey = NULL;
 isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
@@ -905,13 +905,13 @@ setup_text_key(void) {
 
 	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
 				    (int)secretsize, ISC_FALSE, NULL, 0, 0,
-				    mctx, NULL, &key);
+				    mctx, NULL, &tsigkey);
  failure:
 	if (result != ISC_R_SUCCESS)
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
 	else
-		dst_key_setbits(key->key, digestbits);
+		dst_key_setbits(tsigkey->key, digestbits);
 
 	isc_mem_free(mctx, secretstore);
 	dns_name_invalidate(&keyname);
@@ -1198,7 +1198,7 @@ setup_file_key(void) {
 	}
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmacname,
 					   dstkey, ISC_FALSE, NULL, 0, 0,
-					   mctx, NULL, &key);
+					   mctx, NULL, &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
@@ -2286,9 +2286,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	/* XXX Insist this? */
 	lookup->tsigctx = NULL;
 	lookup->querysig = NULL;
-	if (key != NULL) {
+	if (tsigkey != NULL) {
 		debug("initializing keys");
-		result = dns_message_settsigkey(lookup->sendmsg, key);
+		result = dns_message_settsigkey(lookup->sendmsg, tsigkey);
 		check_result(result, "dns_message_settsigkey");
 	}
 
@@ -3653,7 +3653,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	check_result(result, "dns_message_create");
 
-	if (key != NULL) {
+	if (tsigkey != NULL) {
 		if (l->querysig == NULL) {
 			debug("getting initial querysig");
 			result = dns_message_getquerytsig(l->sendmsg, mctx,
@@ -3662,7 +3662,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		}
 		result = dns_message_setquerytsig(msg, l->querysig);
 		check_result(result, "dns_message_setquerytsig");
-		result = dns_message_settsigkey(msg, key);
+		result = dns_message_settsigkey(msg, tsigkey);
 		check_result(result, "dns_message_settsigkey");
 		msg->tsigctx = l->tsigctx;
 		l->tsigctx = NULL;
@@ -3838,7 +3838,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	if (key != NULL) {
+	if (tsigkey != NULL) {
 		result = dns_tsig_verify(&query->recvbuf, msg, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't verify signature: %s\n",
@@ -4205,9 +4205,9 @@ destroy_libs(void) {
 		debug("freeing timermgr");
 		isc_timermgr_destroy(&timermgr);
 	}
-	if (key != NULL) {
-		debug("freeing key %p", key);
-		dns_tsigkey_detach(&key);
+	if (tsigkey != NULL) {
+		debug("freeing key %p", tsigkey);
+		dns_tsigkey_detach(&tsigkey);
 	}
 	if (namebuf != NULL)
 		isc_buffer_free(&namebuf);
