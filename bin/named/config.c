@@ -99,6 +99,7 @@ options {\n\
 	request-nsid false;\n\
 	reserved-sockets 512;\n\
 	resolver-query-timeout 10;\n\
+	return-cookie true;\n\
 	secroots-file \"named.secroots\";\n\
 	send-cookie true;\n\
 #	serial-queries <obsolete>;\n\
