@@ -124,6 +124,7 @@ struct ns_server {
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
 	ns_altsecretlist_t	altsecrets;
 	ns_cookiealg_t		cookiealg;
+	isc_boolean_t		answercookie;
 
 	dns_dtenv_t		*dtenv;		/*%< Dnstap environment */
 

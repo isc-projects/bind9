@@ -8328,6 +8328,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	obj = NULL;
+	result = ns_config_get(maps, "answer-cookie", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->answercookie = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = ns_config_get(maps, "cookie-algorithm", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
@@ -9033,6 +9038,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->lockfile = NULL;
 
 	server->dtenv = NULL;
+	server->answercookie = ISC_TRUE;
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;

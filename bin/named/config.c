@@ -47,6 +47,7 @@
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
+	answer-cookie true;\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NS_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
