@@ -4306,9 +4306,21 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	char *tmp_str = NULL;
 
 	res = idn2_lookup_ul(from, &tmp_str, IDN2_NONTRANSITIONAL);
-	if (res == IDN2_DISALLOWED)
+	if (res == IDN2_DISALLOWED) {
 		res = idn2_lookup_ul(from, &tmp_str, IDN2_TRANSITIONAL);
+	}
 
+	if (strlen(from) == strlen(tmp_str)) {
+		if (strlen(from) >= tolen) {
+			debug("ACE string is too long");
+			idn2_free(tmp_str);
+			return ISC_R_NOSPACE;
+		}
+		idn2_free(tmp_str);
+		(void) strlcpy(to, from, tolen);
+		return ISC_R_SUCCESS;
+	}
+	
 	if (res == IDN2_OK) {
 		/* check the length */
 		if (strlen(tmp_str) >= tolen) {
@@ -4322,7 +4334,7 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 		return ISC_R_SUCCESS;
 	}
 
-	fatal("idn2_lookup_ul failed: %s", idn2_strerror(res));
+	debug("idn2_to_ascii_lz failed: %s", idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 
@@ -4347,7 +4359,7 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 		free(tmp_str);
 		return ISC_R_SUCCESS;
 	} else {
-		debug("idn2_to_unicode_8zlz failed: %s",
+		fatal("idn2_to_unicode_8zlz failed: %s",
 		      idn2_strerror(res));
 	}
 
