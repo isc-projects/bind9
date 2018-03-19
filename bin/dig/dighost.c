@@ -4306,10 +4306,21 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	char *tmp_str = NULL;
 
 	res = idn2_lookup_ul(from, &tmp_str, IDN2_NONTRANSITIONAL);
-	if (res == IDN2_DISALLOWED)
+	if (res == IDN2_DISALLOWED) {
 		res = idn2_lookup_ul(from, &tmp_str, IDN2_TRANSITIONAL);
+	}
 
 	if (res == IDN2_OK) {
+		if (!strcasecmp(from, tmp_str)) {
+			if (strlen(from) >= tolen) {
+				debug("from string is too long");
+				idn2_free(tmp_str);
+				return ISC_R_NOSPACE;
+			}
+			idn2_free(tmp_str);
+			(void) strlcpy(to, from, tolen);
+			return ISC_R_SUCCESS;
+		}
 		/* check the length */
 		if (strlen(tmp_str) >= tolen) {
 			debug("ACE string is too long");
@@ -4322,7 +4333,7 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 		return ISC_R_SUCCESS;
 	}
 
-	fatal("idn2_lookup_ul failed: %s", idn2_strerror(res));
+	debug("idn2_lookup_ul failed: %s", idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 
