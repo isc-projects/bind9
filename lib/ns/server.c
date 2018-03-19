@@ -104,6 +104,7 @@ ns_server_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	sctx->gethostname = NULL;
 
 	sctx->matchingview = matchingview;
+	sctx->returncookie = ISC_TRUE;
 
 	ISC_LIST_INIT(sctx->altsecrets);
 

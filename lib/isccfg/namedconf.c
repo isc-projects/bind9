@@ -1958,6 +1958,7 @@ view_clauses[] = {
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
+	{ "return-cookie", &cfg_type_boolean, 0 },
 	{ "servfail-ttl", &cfg_type_ttlval, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
