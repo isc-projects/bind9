@@ -8830,6 +8830,11 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "answer-cookie", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->sctx->answercookie = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = named_config_get(maps, "cookie-algorithm", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
