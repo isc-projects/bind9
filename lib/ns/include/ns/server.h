@@ -75,6 +75,7 @@ struct ns_server {
 	unsigned char		secret[32];
 	ns_cookiealg_t		cookiealg;
 	ns_altsecretlist_t	altsecrets;
+	isc_boolean_t		returncookie;
 
 	/*% Quotas */
 	isc_quota_t		recursionquota;

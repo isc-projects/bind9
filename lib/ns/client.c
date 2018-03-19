@@ -1912,7 +1912,9 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	/*
 	 * If we have already seen a cookie option skip this cookie option.
 	 */
-	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
+	if ((!client->sctx->returncookie) ||
+	    (client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0)
+	{
 		isc_buffer_forward(buf, (unsigned int)optlen);
 		return;
 	}
@@ -2556,7 +2558,8 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (client->message->rdclass == 0) {
-		if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0 ||
+		if ((client->sctx->returncookie &&
+		     (client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) ||
 		    (client->message->opcode == dns_opcode_query &&
 		     client->message->counts[DNS_SECTION_QUESTION] == 0U)) {
 			result = dns_message_reply(client->message, ISC_TRUE);
