@@ -2422,8 +2422,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	textname = lookup->textname;
 #ifdef WITH_IDN_SUPPORT
 	if (lookup->idnin) {
-		result = idn_locale_to_ace(lookup->textname, idn_textname,
-					    sizeof(idn_textname));
+		result = idn_locale_to_ace(textname, idn_textname, sizeof(idn_textname));
 		check_result(result, "convert textname to IDN encoding");
 		debug("idn_textname: %s", idn_textname);
 		textname = idn_textname;
@@ -2459,8 +2458,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		origin = lookup->origin->origin;
 #ifdef WITH_IDN_SUPPORT
 		if (lookup->idnin) {
-			result = idn_locale_to_ace(lookup->origin->origin,
-						idn_origin, sizeof(idn_origin));
+			result = idn_locale_to_ace(origin, idn_origin, sizeof(idn_origin));
 			check_result(result, "convert origin to IDN encoding");
 			debug("trying idn origin %s", idn_origin);
 			origin = idn_origin;
@@ -4680,21 +4678,19 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
 	}
-	strlcpy(tmp1, tmp2, MAXDLEN);
-
 	/*
 	 * Copy the converted contents in 'tmp1' back to 'buffer'.
 	 * If we have appended trailing dot, remove it.
 	 */
-	tolen = strlen(tmp1);
-	if (absolute && !end_with_dot && tmp1[tolen - 1] == '.')
+	tolen = strlen(tmp2);
+	if (absolute && !end_with_dot && tmp2[tolen - 1] == '.')
 		tolen--;
 
 	if (isc_buffer_length(buffer) < used_org + tolen)
 		return (ISC_R_NOSPACE);
 
 	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
-	memmove(isc_buffer_used(buffer), tmp1, tolen);
+	memmove(isc_buffer_used(buffer), tmp2, tolen);
 	isc_buffer_add(buffer, (unsigned int)tolen);
 
 	return (ISC_R_SUCCESS);
@@ -4760,11 +4756,28 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	int res;
 	char *tmp_str = NULL;
 
-	res = idn2_lookup_ul(from, &tmp_str, IDN2_NONTRANSITIONAL);
-	if (res == IDN2_DISALLOWED)
-		res = idn2_lookup_ul(from, &tmp_str, IDN2_TRANSITIONAL);
+	res = idn2_to_ascii_lz(from, &tmp_str, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
+	if (res == IDN2_DISALLOWED) {
+		res = idn2_to_ascii_lz(from, &tmp_str, IDN2_TRANSITIONAL|IDN2_NFC_INPUT);
+	}
 
 	if (res == IDN2_OK) {
+		/*
+		 * idn2_to_ascii_lz() normalizes all strings to lowerl case,
+		 * but we generally don't want to lowercase all input strings;
+		 * make sure to return the original case if the two strings
+		 * differ only in case
+		 */
+		if (!strcasecmp(from, tmp_str)) {
+			if (strlen(from) >= tolen) {
+				debug("from string is too long");
+				idn2_free(tmp_str);
+				return ISC_R_NOSPACE;
+			}
+			idn2_free(tmp_str);
+			(void) strlcpy(to, from, tolen);
+			return ISC_R_SUCCESS;
+		}
 		/* check the length */
 		if (strlen(tmp_str) >= tolen) {
 			debug("ACE string is too long");
@@ -4777,7 +4790,7 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 		return ISC_R_SUCCESS;
 	}
 
-	fatal("idn2_lookup_ul failed: %s", idn2_strerror(res));
+	fatal("'%s' is not a legal IDN name (%s), use +noidnin", from, idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 
@@ -4788,7 +4801,7 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	char *tmp_str = NULL;
 
 	res = idn2_to_unicode_8zlz(from, &tmp_str,
-			       IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
+				   IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
 
 	if (res == IDN2_OK) {
 		/* check the length */
@@ -4798,14 +4811,12 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 			return ISC_R_FAILURE;
 		}
 
-		(void) strncpy(to, tmp_str, tolen);
-		free(tmp_str);
+		(void) strlcpy(to, tmp_str, tolen);
+		idn2_free(tmp_str);
 		return ISC_R_SUCCESS;
-	} else {
-		debug("idn2_to_unicode_8zlz failed: %s",
-		      idn2_strerror(res));
 	}
 
+	fatal("'%s' is not a legal IDN name (%s), use +noidnout", from, idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 #endif /* WITH_IDN_OUT_SUPPORT */
