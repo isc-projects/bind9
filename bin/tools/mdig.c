@@ -492,13 +492,13 @@ cleanup:
  */
 static void
 add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
-	unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
+	unsigned int flags, dns_ednsopt_t *opts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
 
 	result = dns_message_buildopt(msg, &rdataset, edns, udpsize, flags,
-				      ednsopts, count);
+				      opts, count);
 	CHECK("dns_message_buildopt", result);
 	result = dns_message_setopt(msg, rdataset);
 	CHECK("dns_message_setopt", result);
