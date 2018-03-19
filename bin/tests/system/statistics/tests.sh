@@ -22,9 +22,10 @@ DIGCMD="$DIG $DIGOPTS -p ${PORT}"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 status=0
-n=1
 
 ret=0
+n=1
+
 echo_i "fetching a.example from ns2's initial configuration ($n)"
 $DIGCMD +noauth a.example. @10.53.0.2 any > dig.out.ns2.1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -53,7 +54,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo_i "verifying cache statistics in named.stats"
+echo_i "verifying cache statistics in named.stats ($n)"
 grep "Cache Statistics" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -93,14 +94,14 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo_i "verifying recursing clients output"
+echo_i "verifying recursing clients output in named.stats ($n)"
 grep "2 recursing clients" ns3/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo_i "verifying active fetches output"
+echo_i "verifying active fetches output in named.stats ($n)"
 grep "1 active fetches" ns3/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
