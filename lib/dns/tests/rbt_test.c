@@ -167,11 +167,13 @@ test_context_setup(void) {
 		name = dns_fixedname_name(&fname);
 
 		n = isc_mem_get(mctx, sizeof(size_t));
+		ATF_REQUIRE(n != NULL);
 		*n = i + 1;
 		result = dns_rbt_addname(ctx->rbt, name, n);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		n = isc_mem_get(mctx, sizeof(size_t));
+		ATF_REQUIRE(n != NULL);
 		*n = node_distances[i];
 		result = dns_rbt_addname(ctx->rbt_distances, name, n);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -355,6 +357,7 @@ ATF_TC_BODY(rbt_check_distance_random, tc) {
 		char namebuf[34];
 
 		n = isc_mem_get(mctx, sizeof(size_t));
+		ATF_REQUIRE(n != NULL);
 		*n = i + 1;
 
 		while (1) {
@@ -431,6 +434,7 @@ ATF_TC_BODY(rbt_check_distance_ordered, tc) {
 		dns_name_t *name;
 
 		n = isc_mem_get(mctx, sizeof(size_t));
+		ATF_REQUIRE(n != NULL);
 		*n = i + 1;
 
 		snprintf(namebuf, sizeof(namebuf), "name%08x.", i);
@@ -707,6 +711,7 @@ ATF_TC_BODY(rbt_remove, tc) {
 			ATF_REQUIRE_EQ(node->data, NULL);
 
 			n = isc_mem_get(mctx, sizeof(size_t));
+			ATF_REQUIRE(n != NULL);
 			*n = i;
 
 			node->data = n;
@@ -1099,6 +1104,7 @@ ATF_TC_BODY(rbt_addname, tc) {
 	ctx = test_context_setup();
 
 	n = isc_mem_get(mctx, sizeof(size_t));
+	ATF_REQUIRE(n != NULL);
 	*n = 1;
 
 	dns_test_namefromstring("d.e.f.g.h.i.j.k", &fname);
@@ -1110,6 +1116,7 @@ ATF_TC_BODY(rbt_addname, tc) {
 
 	/* Now add again, should get ISC_R_EXISTS */
 	n = isc_mem_get(mctx, sizeof(size_t));
+	ATF_REQUIRE(n != NULL);
 	*n = 2;
 	result = dns_rbt_addname(ctx->rbt, name, n);
 	ATF_REQUIRE_EQ(result, ISC_R_EXISTS);
