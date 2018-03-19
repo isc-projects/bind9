@@ -286,7 +286,7 @@ extern unsigned int digestbits;
 #ifdef DIG_SIGCHASE
 extern char trustedkey[MXNAME];
 #endif
-extern dns_tsigkey_t *key;
+extern dns_tsigkey_t *tsigkey;
 extern isc_boolean_t validated;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
