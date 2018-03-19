@@ -60,6 +60,10 @@ $RNDCCMD -s 10.53.0.3 stats > /dev/null 2>&1
 [ -f ns3/named.stats ] || ret=1
 [ "$CYGWIN" ] || \
 nsock0nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
+[ 0 -ne ${nsock0nstat:-0} ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
 
 echo_i "sending queries to ns3"
 $DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1
