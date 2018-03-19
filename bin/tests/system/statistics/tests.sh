@@ -28,9 +28,21 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo_i "verifying adb records in named.stats ($n)"
+echo_i "dumping initial stats for ns2 ($n)"
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
-echo_i "checking for 1 entry in adb hash table in named.stats"
+[ -f ns2/named.stats ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+ret=0
+echo_i "verifying adb records in named.stats ($n)"
+grep "ADB stats" ns2/named.stats > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo_i "checking for 1 entry in adb hash table in named.stats ($n)"
 grep "1 Addresses in hash table" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -43,10 +55,9 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-echo_i "checking for 2 entries in adb hash table in named.stats"
-$DIGCMD a.example.info. @10.53.0.2 any > /dev/null 2>&1
-
 ret=0
+echo_i "checking for 2 entries in adb hash table in named.stats ($n)"
+$DIGCMD a.example.info. @10.53.0.2 any > /dev/null 2>&1
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
 grep "2 Addresses in hash table" ns2/named.stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -54,16 +65,21 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-echo_i "dumping initial stats for ns3"
+echo_i "dumping initial stats for ns3 ($n)"
 rm -f ns3/named.stats
 $RNDCCMD -s 10.53.0.3 stats > /dev/null 2>&1
 [ -f ns3/named.stats ] || ret=1
 [ "$CYGWIN" ] || \
 nsock0nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
+[ 0 -ne ${nsock0nstat:0} ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
 
 echo_i "sending queries to ns3"
 $DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1
-#$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any
+
+ret=0
 echo_i "dumping updated stats for ns3 ($n)"
 rm -f ns3/named.stats
 $RNDCCMD -s 10.53.0.3 stats > /dev/null 2>&1
@@ -87,19 +103,18 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 if [ ! "$CYGWIN" ]; then
-    echo_i "verifying active sockets output in named.stats"
-    nsock1nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
-
     ret=0
+    echo_i "verifying active sockets output in named.stats ($n)"
+    nsock1nstat=`grep "UDP/IPv4 sockets active" ns3/named.stats | awk '{print $1}'`
     [ `expr $nsock1nstat - $nsock0nstat` -eq 1 ] || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=`expr $status + $ret`
     n=`expr $n + 1`
 fi
 
-ret=0
 # there should be 1 UDP and no TCP queries.  As the TCP counter is zero
 # no status line is emitted.
+ret=0
 echo_i "verifying queries in progress in named.stats ($n)"
 grep "1 UDP queries in progress" ns3/named.stats > /dev/null || ret=1
 grep "TCP queries in progress" ns3/named.stats > /dev/null && ret=1
@@ -115,7 +130,6 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 
 ret=0
-n=`expr $n + 1`
 echo_i "checking that zones with slash are properly shown in XML output ($n)"
 if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:${EXTRAPORT1}/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
@@ -125,9 +139,9 @@ else
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+n=`expr $n + 1`
 
 ret=0
-n=`expr $n + 1`
 echo_i "checking that zones return their type ($n)"
 if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:${EXTRAPORT1}/xml/v3/zones > curl.out.${t} 2>/dev/null || ret=1
@@ -137,6 +151,14 @@ else
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+n=`expr $n + 1`
+
+ret=0
+echo_i "checking priming queries are counted ($n)"
+grep "1 priming queries" ns3/named.stats
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
