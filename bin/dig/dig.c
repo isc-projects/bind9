@@ -287,12 +287,12 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		} else {
 			printf(";; MSG SIZE  rcvd: %u\n", bytes);
 		}
-		if (key != NULL) {
+		if (tsigkey != NULL) {
 			if (!validated)
 				puts(";; WARNING -- Some TSIG could not "
 				     "be validated");
 		}
-		if ((key == NULL) && (keysecret[0] != 0)) {
+		if ((tsigkey == NULL) && (keysecret[0] != 0)) {
 			puts(";; WARNING -- TSIG key was not used.");
 		}
 		puts("");
