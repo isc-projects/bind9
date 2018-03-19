@@ -1909,7 +1909,9 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	/*
 	 * If we have already seen a cookie option skip this cookie option.
 	 */
-	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
+	if ((!client->sctx->answercookie) ||
+	    (client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0)
+	{
 		isc_buffer_forward(buf, (unsigned int)optlen);
 		return;
 	}
