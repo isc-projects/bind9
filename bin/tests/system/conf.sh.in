@@ -94,7 +94,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
-	geoip glue inline integrity ixfr keepalive \
+	geoip glue idna inline integrity ixfr keepalive \
 	legacy limits logfileconfig \
         masterfile masterformat metadata mkeys \
         names notify nslookup nsupdate nzd2nzf \
