@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -1342,8 +1340,9 @@ load_text(dns_loadctx_t *lctx) {
 					if (MANYERRS(lctx, result)) {
 						SETRESULT(lctx, result);
 						lctx->ttl = 0;
-					} else if (result != ISC_R_SUCCESS)
+					} else {
 						goto insist_and_cleanup;
+					}
 				} else if (!explicit_ttl &&
 					   lctx->default_ttl_known) {
 					lctx->ttl = lctx->default_ttl;
@@ -1374,8 +1373,9 @@ load_text(dns_loadctx_t *lctx) {
 				result = DNS_R_SYNTAX;
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
-				} else if (result != ISC_R_SUCCESS)
+				} else {
 					goto insist_and_cleanup;
+				}
 			}
 
 			/*
@@ -1546,8 +1546,9 @@ load_text(dns_loadctx_t *lctx) {
 				SETRESULT(lctx, result);
 				LOGIT(result);
 				continue;
-			} else if (result != ISC_R_SUCCESS)
+			} else {
 				goto insist_and_cleanup;
+			}
 		}
 
 		/*
@@ -1586,8 +1587,9 @@ load_text(dns_loadctx_t *lctx) {
 					SETRESULT(lctx, result);
 					read_till_eol = ISC_TRUE;
 					continue;
-				} else if (result != ISC_R_SUCCESS)
+				} else {
 					goto insist_and_cleanup;
+				}
 			}
 
 			if (ictx->origin_changed) {
@@ -1630,8 +1632,9 @@ load_text(dns_loadctx_t *lctx) {
 				SETRESULT(lctx, result);
 				read_till_eol = ISC_TRUE;
 				continue;
-			} else if (result != ISC_R_SUCCESS)
+			} else {
 				goto insist_and_cleanup;
+			}
 		}
 
 		if (rdclass == 0 &&
@@ -1648,8 +1651,9 @@ load_text(dns_loadctx_t *lctx) {
 				SETRESULT(lctx, result);
 				read_till_eol = ISC_TRUE;
 				continue;
-			} else if (result != ISC_R_SUCCESS)
+			} else {
 				goto insist_and_cleanup;
+			}
 		}
 
 		result = dns_rdatatype_fromtext(&type,
@@ -1689,8 +1693,9 @@ load_text(dns_loadctx_t *lctx) {
 				SETRESULT(lctx, result);
 				read_till_eol = ISC_TRUE;
 				continue;
-			} else if (result != ISC_R_SUCCESS)
+			} else {
 				goto insist_and_cleanup;
+			}
 		}
 
 		if (type == dns_rdatatype_ns && ictx->glue == NULL)
@@ -1802,8 +1807,9 @@ load_text(dns_loadctx_t *lctx) {
 							    namebuf, desc);
 					if (MANYERRS(lctx, result)) {
 						SETRESULT(lctx, result);
-					} else if (result != ISC_R_SUCCESS)
+					} else {
 						goto cleanup;
+					}
 				} else {
 					(*callbacks->warn)(callbacks,
 							   "%s:%lu: %s: %s",
@@ -1854,8 +1860,9 @@ load_text(dns_loadctx_t *lctx) {
 				read_till_eol = ISC_TRUE;
 				target = target_ft;
 				continue;
-			} else if (result != ISC_R_SUCCESS)
+			} else {
 				goto insist_and_cleanup;
+			}
 		}
 
 		if (type == dns_rdatatype_rrsig ||
