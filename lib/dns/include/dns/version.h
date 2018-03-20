@@ -14,9 +14,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.9 2007/06/19 23:47:17 tbox Exp $ */
-
 /*! \file dns/version.h */
+
+#ifndef DNS_VERSION_H
+#define DNS_VERSION_H 1
 
 #include <isc/platform.h>
 
@@ -25,3 +26,5 @@ LIBDNS_EXTERNAL_DATA extern const char dns_version[];
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_libinterface;
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_librevision;
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_libage;
+
+#endif /* DNS_VERSION_H */

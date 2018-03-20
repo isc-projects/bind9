@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.h,v 1.9 2007/06/19 23:47:17 tbox Exp $ */
-
 /*! \file dns/portlist.h */
 
 #include <isc/lang.h>
@@ -23,6 +21,9 @@
 #include <isc/types.h>
 
 #include <dns/types.h>
+
+#ifndef DNS_PORTLIST_H
+#define DNS_PORTLIST_H 1
 
 ISC_LANG_BEGINDECLS
 
@@ -98,3 +99,5 @@ dns_portlist_detach(dns_portlist_t **portlistp);
  */
 
 ISC_LANG_ENDDECLS
+
+#endif /* DNS_PORTLIST_H */
