@@ -2085,14 +2085,6 @@ if ($enable_crypto_rand eq "yes") {
 }
 print "Cryptographic library for DNSSEC: $cryptolib\n";
 
-# enable-openssl-hash
-if ($enable_openssl_hash eq "yes") {
-    if ($use_openssl eq "no") {
-        die "No OpenSSL for hash functions\n";
-    }
-    $configdefp{"ISC_PLATFORM_OPENSSLHASH"} = 1;
-}
-
 # with-pkcs11
 if ($use_pkcs11 ne "no") {
     $configcond{"PKCS11"} = 1;

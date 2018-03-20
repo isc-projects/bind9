@@ -21,8 +21,7 @@
 #include <isc/hash.h>
 
 #include <isc/crc64.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
@@ -1773,7 +1772,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 		isc_hmacmd5_update(&hmacmd5,
 				   (const isc_uint8_t *) testcase->input,
 				   testcase->input_len);
-		isc_hmacmd5_sign(&hmacmd5, digest);
+		isc_hmacmd5_sign(&hmacmd5, digest, ISC_MD5_DIGESTLENGTH);
 		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
 		ATF_CHECK_STREQ(str, testcase->result);
 
@@ -1973,12 +1972,6 @@ ATF_TC_BODY(md5_check, tc) {
 
 	ATF_REQUIRE(isc_md5_check(ISC_FALSE));
 	ATF_CHECK(!isc_md5_check(ISC_TRUE));
-
-	ATF_REQUIRE(isc_hmacmd5_check(0));
-	ATF_CHECK(!isc_hmacmd5_check(1));
-	ATF_CHECK(!isc_hmacmd5_check(2));
-	ATF_CHECK(!isc_hmacmd5_check(3));
-	ATF_CHECK(!isc_hmacmd5_check(4));
 }
 #endif
 
@@ -1991,12 +1984,6 @@ ATF_TC_BODY(sha1_check, tc) {
 
 	ATF_REQUIRE(isc_sha1_check(ISC_FALSE));
 	ATF_CHECK(!isc_sha1_check(ISC_TRUE));
-
-	ATF_REQUIRE(isc_hmacsha1_check(0));
-	ATF_CHECK(!isc_hmacsha1_check(1));
-	ATF_CHECK(!isc_hmacsha1_check(2));
-	ATF_CHECK(!isc_hmacsha1_check(3));
-	ATF_CHECK(!isc_hmacsha1_check(4));
 }
 
 /*
