@@ -29,6 +29,7 @@ int EVP_MD_CTX_reset(EVP_MD_CTX *ctx);
 HMAC_CTX *HMAC_CTX_new(void);
 void HMAC_CTX_free(HMAC_CTX *ctx);
 int HMAC_CTX_reset(HMAC_CTX *ctx);
+const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx);
 
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L ||
 	* defined(LIBRESSL_VERSION_NUMBER) */

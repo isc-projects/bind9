@@ -38,8 +38,7 @@
 #include <isc/types.h>
 #include <isc/refcount.h>
 #include <isc/stdtime.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 
 #if USE_PKCS11
 #include <pk11/pk11.h>
@@ -72,12 +71,7 @@ LIBDNS_EXTERNAL_DATA extern isc_mem_t *dst__memory_pool;
 
 typedef struct dst_func dst_func_t;
 
-typedef struct dst_hmacmd5_key	  dst_hmacmd5_key_t;
-typedef struct dst_hmacsha1_key   dst_hmacsha1_key_t;
-typedef struct dst_hmacsha224_key dst_hmacsha224_key_t;
-typedef struct dst_hmacsha256_key dst_hmacsha256_key_t;
-typedef struct dst_hmacsha384_key dst_hmacsha384_key_t;
-typedef struct dst_hmacsha512_key dst_hmacsha512_key_t;
+typedef struct dst_hmac_key	  dst_hmac_key_t;
 
 /*%
  * Indicate whether a DST context will be used for signing
@@ -113,13 +107,7 @@ struct dst_key {
 #if USE_PKCS11
 		pk11_object_t *pkey;
 #endif
-		dst_hmacmd5_key_t *hmacmd5;
-		dst_hmacsha1_key_t *hmacsha1;
-		dst_hmacsha224_key_t *hmacsha224;
-		dst_hmacsha256_key_t *hmacsha256;
-		dst_hmacsha384_key_t *hmacsha384;
-		dst_hmacsha512_key_t *hmacsha512;
-
+		dst_hmac_key_t *hmac_key;
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
 
 	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< timing metadata */
@@ -146,12 +134,7 @@ struct dst_context {
 	union {
 		void *generic;
 		dst_gssapi_signverifyctx_t *gssctx;
-		isc_hmacmd5_t *hmacmd5ctx;
-		isc_hmacsha1_t *hmacsha1ctx;
-		isc_hmacsha224_t *hmacsha224ctx;
-		isc_hmacsha256_t *hmacsha256ctx;
-		isc_hmacsha384_t *hmacsha384ctx;
-		isc_hmacsha512_t *hmacsha512ctx;
+		isc_hmac_t *hmac_ctx;
 		EVP_MD_CTX *evp_md_ctx;
 #if USE_PKCS11
 		pk11_context_t *pk11_ctx;
