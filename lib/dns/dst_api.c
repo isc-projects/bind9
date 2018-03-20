@@ -35,7 +35,6 @@
 #include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/fsaccess.h>
-#include <isc/hmacsha.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>

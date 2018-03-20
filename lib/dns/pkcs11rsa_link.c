@@ -18,7 +18,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/hmacmd5.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/string.h>
