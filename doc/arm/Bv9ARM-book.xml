@@ -6075,6 +6075,20 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>return-cookie</command></term>
+	      <listitem>
+		<para>
+		  If <userinput>yes</userinput>, then a COOKIE EDNS
+		  option is returned, if applicable, in replies to
+		  client queries. If <userinput>no</userinput>, COOKIE
+		  EDNS option is not returned in replies to client
+		  queries. This is a server-level option. The default is
+		  <userinput>yes</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>send-cookie</command></term>
 	      <listitem>
 		<para>
