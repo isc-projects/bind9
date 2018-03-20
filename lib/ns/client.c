@@ -14,7 +14,7 @@
 #include <isc/aes.h>
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/platform.h>

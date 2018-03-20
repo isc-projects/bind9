@@ -42,8 +42,7 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/region.h>
@@ -388,7 +387,7 @@ hmac_sign(perf_dnstsigkey_t *tsigkey, hmac_ctx_t *ctx, unsigned char *digest,
 {
 	switch (tsigkey->hmactype) {
 	case TSIG_HMACMD5:
-		isc_hmacmd5_sign(&ctx->hmacmd5, digest);
+		isc_hmacmd5_sign(&ctx->hmacmd5, digest, digestlen);
 		break;
 	case TSIG_HMACSHA1:
 		isc_hmacsha1_sign(&ctx->hmacsha1, digest, digestlen);

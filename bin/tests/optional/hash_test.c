@@ -15,8 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
@@ -105,7 +104,7 @@ main(int argc, char **argv) {
 	isc_hmacmd5_init(&hmacmd5, key, 16);
 	memmove(buffer, s, strlen(s));
 	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
+	isc_hmacmd5_sign(&hmacmd5, digest, ISC_MD5_DIGESTLENGTH);
 	print_digest(s, "hmacmd5", digest, 4);
 
 	s = "what do ya want for nothing?";
@@ -113,7 +112,7 @@ main(int argc, char **argv) {
 	isc_hmacmd5_init(&hmacmd5, key, 4);
 	memmove(buffer, s, strlen(s));
 	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
+	isc_hmacmd5_sign(&hmacmd5, digest, ISC_MD5_DIGESTLENGTH);
 	print_digest(s, "hmacmd5", digest, 4);
 
 	s = "\335\335\335\335\335\335\335\335\335\335"
@@ -125,7 +124,7 @@ main(int argc, char **argv) {
 	isc_hmacmd5_init(&hmacmd5, key, 16);
 	memmove(buffer, s, strlen(s));
 	isc_hmacmd5_update(&hmacmd5, buffer, strlen(s));
-	isc_hmacmd5_sign(&hmacmd5, digest);
+	isc_hmacmd5_sign(&hmacmd5, digest, ISC_MD5_DIGESTLENGTH);
 	print_digest(s, "hmacmd5", digest, 4);
 #endif
 
