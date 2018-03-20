@@ -1,3 +1,5 @@
+#ifndef BIND_KEYS_H
+#define BIND_KEYS_H 1
 #define TRUSTED_KEYS "\
 # The bind.keys file is used to override the built-in DNSSEC trust anchors\n\
 # which are included as part of BIND 9.  The only trust anchors it contains\n\
@@ -103,3 +105,4 @@ managed-keys {\n\
                 R1AkUTV74bU=\";\n\
 };\n\
 "
+#endif /* BIND_KEYS_H */
