@@ -30,7 +30,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/meminfo.h>
