@@ -39,8 +39,7 @@
 #include <isc/sha1.h>
 #include <isc/sha2.h>
 #include <isc/stdtime.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 
 #include <pk11/site.h>
 

@@ -30,8 +30,7 @@
 #include <config.h>
 
 #include <isc/buffer.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/mem.h>
@@ -109,7 +108,7 @@ hmacmd5_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	if (isc_buffer_availablelength(sig) < ISC_MD5_DIGESTLENGTH)
 		return (ISC_R_NOSPACE);
 	digest = isc_buffer_used(sig);
-	isc_hmacmd5_sign(hmacmd5ctx, digest);
+	isc_hmacmd5_sign(hmacmd5ctx, digest, ISC_MD5_DIGESTLENGTH);
 	isc_buffer_add(sig, ISC_MD5_DIGESTLENGTH);
 
 	return (ISC_R_SUCCESS);
@@ -122,7 +121,7 @@ hmacmd5_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	if (sig->length > ISC_MD5_DIGESTLENGTH)
 		return (DST_R_VERIFYFAILURE);
 
-	if (isc_hmacmd5_verify2(hmacmd5ctx, sig->base, sig->length))
+	if (isc_hmacmd5_verify(hmacmd5ctx, sig->base, sig->length))
 		return (ISC_R_SUCCESS);
 	else
 		return (DST_R_VERIFYFAILURE);
@@ -362,7 +361,6 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	 */
 
 	RUNTIME_CHECK(isc_md5_check(ISC_FALSE));
-	RUNTIME_CHECK(isc_hmacmd5_check(0));
 
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
@@ -654,7 +652,6 @@ dst__hmacsha1_init(dst_func_t **funcp) {
 	 * Prevent use of incorrect crypto
 	 */
 	RUNTIME_CHECK(isc_sha1_check(ISC_FALSE));
-	RUNTIME_CHECK(isc_hmacsha1_check(0));
 
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)

@@ -39,7 +39,7 @@
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/fsaccess.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
