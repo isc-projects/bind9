@@ -29,7 +29,7 @@
 #ifdef AES_CC
 #include <isc/aes.h>
 #else
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #endif
 
 #include <dns/acl.h>

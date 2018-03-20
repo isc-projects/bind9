@@ -320,8 +320,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\hash.h" />
     <ClInclude Include="..\include\isc\heap.h" />
     <ClInclude Include="..\include\isc\hex.h" />
-    <ClInclude Include="..\include\isc\hmacmd5.h" />
-    <ClInclude Include="..\include\isc\hmacsha.h" />
+    <ClInclude Include="..\include\isc\hmac.h" />
     <ClInclude Include="..\include\isc\ht.h" />
     <ClInclude Include="..\include\isc\httpd.h" />
     <ClInclude Include="..\include\isc\interfaceiter.h" />
@@ -442,8 +441,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\hash.c" />
     <ClCompile Include="..\heap.c" />
     <ClCompile Include="..\hex.c" />
-    <ClCompile Include="..\hmacmd5.c" />
-    <ClCompile Include="..\hmacsha.c" />
+    <ClCompile Include="..\hmac.c" />
     <ClCompile Include="..\ht.c" />
     <ClCompile Include="..\httpd.c" />
     <ClCompile Include="..\inet_ntop.c" />
