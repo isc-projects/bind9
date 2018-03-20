@@ -17,7 +17,7 @@
 #include <isc/aes.h>
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/nonce.h>
@@ -1824,74 +1824,52 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		break;
 	}
 
-	case ns_cookiealg_sha1: {
-		unsigned char digest[ISC_SHA1_DIGESTLENGTH];
-		isc_netaddr_t netaddr;
-		unsigned char *cp;
-		isc_hmacsha1_t hmacsha1;
-		unsigned int length = 0;
-
-		cp = isc_buffer_used(buf);
-		isc_buffer_putmem(buf, client->cookie, 8);
-		isc_buffer_putuint32(buf, nonce);
-		isc_buffer_putuint32(buf, when);
-
-		isc_hmacsha1_init(&hmacsha1, secret, ISC_SHA1_DIGESTLENGTH);
-		isc_hmacsha1_update(&hmacsha1, cp, 16);
-		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-		switch (netaddr.family) {
-		case AF_INET:
-			cp = (unsigned char *)&netaddr.type.in;
-			length = 4;
-			break;
-		case AF_INET6:
-			cp = (unsigned char *)&netaddr.type.in6;
-			length = 16;
-			break;
-		default:
-			INSIST(0);
-		}
-		isc_hmacsha1_update(&hmacsha1, cp, length);
-		isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-		isc_buffer_putmem(buf, digest, 8);
-		isc_hmacsha1_invalidate(&hmacsha1);
-		break;
-	}
-
+	case ns_cookiealg_sha1:
 	case ns_cookiealg_sha256: {
-		unsigned char digest[ISC_SHA256_DIGESTLENGTH];
+		unsigned char digest[ISC_MAX_MD_SIZE];
+		unsigned char input[8 + 4 + 4 + 16];
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
-		isc_hmacsha256_t hmacsha256;
 		unsigned int length = 0;
+		isc_md_type_t md_type =
+			(client->sctx->cookiealg == ns_cookiealg_sha1)
+			? ISC_MD_SHA1
+			: ISC_MD_SHA256;
+		unsigned int secret_len =
+			(client->sctx->cookiealg == ns_cookiealg_sha1)
+			? ISC_SHA1_DIGESTLENGTH
+			: ISC_SHA256_DIGESTLENGTH;
 
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
 		isc_buffer_putuint32(buf, nonce);
 		isc_buffer_putuint32(buf, when);
+		memmove(input, cp, 16);
 
-		isc_hmacsha256_init(&hmacsha256, secret,
-				    ISC_SHA256_DIGESTLENGTH);
-		isc_hmacsha256_update(&hmacsha256, cp, 16);
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		switch (netaddr.family) {
 		case AF_INET:
-			cp = (unsigned char *)&netaddr.type.in;
-			length = 4;
+			memmove(input + 16, (unsigned char *)&netaddr.type.in, 4);
+			length = 16 + 4;
 			break;
 		case AF_INET6:
-			cp = (unsigned char *)&netaddr.type.in6;
-			length = 16;
+			memmove(input + 16, (unsigned char *)&netaddr.type.in6, 16);
+			length = 16 + 16;
 			break;
 		default:
 			INSIST(0);
 		}
-		isc_hmacsha256_update(&hmacsha256, cp, length);
-		isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
+
+		/* XXXOND: Feels wrong to assert on cookie calculation failure */
+		RUNTIME_CHECK(isc_hmac(md_type,
+				       secret, secret_len,
+				       input, length,
+				       digest, NULL) == ISC_R_SUCCESS);
+
 		isc_buffer_putmem(buf, digest, 8);
-		isc_hmacsha256_invalidate(&hmacsha256);
 		break;
 	}
+
 	default:
 		INSIST(0);
 	}
