@@ -34,8 +34,7 @@
 #include <errno.h>
 
 #include <isc/assertions.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/print.h>
 #include <isc/safe.h>
 
@@ -249,78 +248,46 @@ static isc_result_t
 sign(unsigned char *data, unsigned int length, unsigned char *hmac,
      uint32_t algorithm, isccc_region_t *secret)
 {
-	union {
-		isc_hmacmd5_t hmd5;
-		isc_hmacsha1_t hsha;
-		isc_hmacsha224_t h224;
-		isc_hmacsha256_t h256;
-		isc_hmacsha384_t h384;
-		isc_hmacsha512_t h512;
-	} ctx;
+	isc_md_type_t md_type;
 	isc_result_t result;
 	isccc_region_t source, target;
-	unsigned char digest[ISC_SHA512_DIGESTLENGTH];
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen;
 	unsigned char digestb64[HSHA_LENGTH + 4];
 
 	source.rstart = digest;
 
 	switch (algorithm) {
 	case ISCCC_ALG_HMACMD5:
-		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
-				 REGION_SIZE(*secret));
-		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
-		source.rend = digest + ISC_MD5_DIGESTLENGTH;
+		md_type = ISC_MD_MD5;
 		break;
-
 	case ISCCC_ALG_HMACSHA1:
-		isc_hmacsha1_init(&ctx.hsha, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha1_update(&ctx.hsha, data, length);
-		isc_hmacsha1_sign(&ctx.hsha, digest,
-				    ISC_SHA1_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA1_DIGESTLENGTH;
+		md_type = ISC_MD_SHA1;
 		break;
-
 	case ISCCC_ALG_HMACSHA224:
-		isc_hmacsha224_init(&ctx.h224, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha224_update(&ctx.h224, data, length);
-		isc_hmacsha224_sign(&ctx.h224, digest,
-				    ISC_SHA224_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA224_DIGESTLENGTH;
+		md_type = ISC_MD_SHA224;
 		break;
-
 	case ISCCC_ALG_HMACSHA256:
-		isc_hmacsha256_init(&ctx.h256, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha256_update(&ctx.h256, data, length);
-		isc_hmacsha256_sign(&ctx.h256, digest,
-				    ISC_SHA256_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA256_DIGESTLENGTH;
+		md_type = ISC_MD_SHA256;
 		break;
-
 	case ISCCC_ALG_HMACSHA384:
-		isc_hmacsha384_init(&ctx.h384, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha384_update(&ctx.h384, data, length);
-		isc_hmacsha384_sign(&ctx.h384, digest,
-				    ISC_SHA384_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA384_DIGESTLENGTH;
+		md_type = ISC_MD_SHA384;
 		break;
-
 	case ISCCC_ALG_HMACSHA512:
-		isc_hmacsha512_init(&ctx.h512, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha512_update(&ctx.h512, data, length);
-		isc_hmacsha512_sign(&ctx.h512, digest,
-				    ISC_SHA512_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA512_DIGESTLENGTH;
+		md_type = ISC_MD_SHA512;
 		break;
-
 	default:
-		return (ISC_R_FAILURE);
+		return (ISC_R_NOTIMPLEMENTED);
 	}
+
+	result = isc_hmac(md_type,
+			  secret->rstart, REGION_SIZE(*secret),
+			  data, length,
+			  digest, &digestlen);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	source.rend = digest + digestlen;
 
 	memset(digestb64, 0, sizeof(digestb64));
 	target.rstart = digestb64;
@@ -401,19 +368,13 @@ static isc_result_t
 verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
        uint32_t algorithm, isccc_region_t *secret)
 {
-	union {
-		isc_hmacmd5_t hmd5;
-		isc_hmacsha1_t hsha;
-		isc_hmacsha224_t h224;
-		isc_hmacsha256_t h256;
-		isc_hmacsha384_t h384;
-		isc_hmacsha512_t h512;
-	} ctx;
+	isc_md_type_t md_type;
 	isccc_region_t source;
 	isccc_region_t target;
 	isc_result_t result;
 	isccc_sexpr_t *_auth, *hmac;
 	unsigned char digest[ISC_SHA512_DIGESTLENGTH];
+	unsigned int digestlen;
 	unsigned char digestb64[HSHA_LENGTH * 4];
 
 	/*
@@ -432,64 +393,39 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	 * Compute digest.
 	 */
 	source.rstart = digest;
-	target.rstart = digestb64;
+
 	switch (algorithm) {
 	case ISCCC_ALG_HMACMD5:
-		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
-				 REGION_SIZE(*secret));
-		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
-		source.rend = digest + ISC_MD5_DIGESTLENGTH;
+		md_type = ISC_MD_MD5;
 		break;
-
 	case ISCCC_ALG_HMACSHA1:
-		isc_hmacsha1_init(&ctx.hsha, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha1_update(&ctx.hsha, data, length);
-		isc_hmacsha1_sign(&ctx.hsha, digest,
-				    ISC_SHA1_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA1_DIGESTLENGTH;
+		md_type = ISC_MD_SHA1;
 		break;
-
 	case ISCCC_ALG_HMACSHA224:
-		isc_hmacsha224_init(&ctx.h224, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha224_update(&ctx.h224, data, length);
-		isc_hmacsha224_sign(&ctx.h224, digest,
-				    ISC_SHA224_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA224_DIGESTLENGTH;
+		md_type = ISC_MD_SHA224;
 		break;
-
 	case ISCCC_ALG_HMACSHA256:
-		isc_hmacsha256_init(&ctx.h256, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha256_update(&ctx.h256, data, length);
-		isc_hmacsha256_sign(&ctx.h256, digest,
-				    ISC_SHA256_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA256_DIGESTLENGTH;
+		md_type = ISC_MD_SHA256;
 		break;
-
 	case ISCCC_ALG_HMACSHA384:
-		isc_hmacsha384_init(&ctx.h384, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha384_update(&ctx.h384, data, length);
-		isc_hmacsha384_sign(&ctx.h384, digest,
-				    ISC_SHA384_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA384_DIGESTLENGTH;
+		md_type = ISC_MD_SHA384;
 		break;
-
 	case ISCCC_ALG_HMACSHA512:
-		isc_hmacsha512_init(&ctx.h512, secret->rstart,
-				    REGION_SIZE(*secret));
-		isc_hmacsha512_update(&ctx.h512, data, length);
-		isc_hmacsha512_sign(&ctx.h512, digest,
-				    ISC_SHA512_DIGESTLENGTH);
-		source.rend = digest + ISC_SHA512_DIGESTLENGTH;
+		md_type = ISC_MD_SHA512;
 		break;
-
 	default:
-		return (ISC_R_FAILURE);
+		return (ISC_R_NOTIMPLEMENTED);
 	}
+
+	result = isc_hmac(md_type,
+			  secret->rstart, REGION_SIZE(*secret),
+			  data, length,
+			  digest, &digestlen);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	source.rend = digest + digestlen;
+
 	target.rstart = digestb64;
 	target.rend = digestb64 + sizeof(digestb64);
 	memset(digestb64, 0, sizeof(digestb64));
