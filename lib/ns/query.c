@@ -5136,7 +5136,7 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	return (ns__query_start(&qctx));
 }
 
-/*
+/*%
  * Find out if the query is for a ksk roll sentinel and if so record the
  * type of ksk roll sentinel query and the key id that is being checked
  * for.
@@ -5154,8 +5154,9 @@ kskroll_sentinel(query_ctx_t *qctx) {
 	{
 		ndata += 24;
 		for (i = 0; i < 5; i++) {
-			if (ndata[i] < '0' || ndata[i] > '9')
+			if (ndata[i] < '0' || ndata[i] > '9') {
 				return;
+			}
 			v *= 10;
 			v += ndata[i] - '0';
 		}
@@ -5163,7 +5164,7 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		qctx->client->query.kskroll_is_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
-		 * negative caching
+		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
 	} else if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
@@ -5171,8 +5172,9 @@ kskroll_sentinel(query_ctx_t *qctx) {
 	{
 		ndata += 25;
 		for (i = 0; i < 5; i++) {
-			if (ndata[i] < '0' || ndata[i] > '9')
+			if (ndata[i] < '0' || ndata[i] > '9') {
 				return;
+			}
 			v *= 10;
 			v += ndata[i] - '0';
 		}
@@ -5180,7 +5182,7 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		qctx->client->query.kskroll_not_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
-		 * negative caching
+		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
 	}
@@ -5227,11 +5229,12 @@ ns__query_start(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * Setup for KSK roll sentinal processing.
+	 * Setup for KSK roll sentinel processing.
 	 */
 	if (qctx->client->view->kskroll_sentinel &&
 	    (qctx->qtype == dns_rdatatype_a ||
-	     qctx->qtype == dns_rdatatype_aaaa)) {
+	     qctx->qtype == dns_rdatatype_aaaa))
+	{
 		 kskroll_sentinel(qctx);
 	}
 
@@ -5384,9 +5387,9 @@ ns__query_start(query_ctx_t *qctx) {
  */
 static isc_boolean_t
 has_ta(query_ctx_t *qctx) {
-	isc_result_t result;
 	dns_keytable_t *keytable = NULL;
 	dns_keynode_t *keynode = NULL;
+	isc_result_t result;
 
 	result = dns_view_getsecroots(qctx->client->view, &keytable);
 	if (result != ISC_R_SUCCESS) {
@@ -5407,6 +5410,7 @@ has_ta(query_ctx_t *qctx) {
 		keynode = nextnode;
 	}
 	dns_keytable_detach(&keytable);
+
 	return (ISC_FALSE);
 }
 
