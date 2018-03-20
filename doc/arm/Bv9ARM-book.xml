@@ -6104,10 +6104,25 @@ options {
 	      <term><command>answer-cookie</command></term>
 	      <listitem>
 		<para>
-		  <emphasis>This option is obsolete</emphasis>.
-		  This option was used to prevent the sending of
-		  a DNS COOKIE option in response to a request with
-		  one present in BIND 9.11 and BIND 9.12.
+		  When set to the default value of <userinput>yes</userinput>,
+		  COOKIE EDNS options will be sent when applicable in
+		  replies to client queries. If set to
+		  <userinput>no</userinput>, COOKIE EDNS options will not
+		  be sent in replies.  This can only be set at the global
+		  options level, not per-view.
+		</para>
+		<para>
+		  <command>answer-cookie</command> is only available
+		  as a temporary measure, for use when
+		  <command>named</command> shares an IP address
+		  with other servers that do not yet support DNS
+		  COOKIE.  A mismatch between servers on the same
+		  address is not expected to cause operational
+		  problems, but the option to disable COOKIE responses
+		  so that all servers have the same behavior is
+		  provided out of an abundance of caution. DNS COOKIE
+		  is an important security mechanism and should not be
+		  disabled unless absolutely necessary.
 		</para>
 	      </listitem>
 	    </varlistentry>
