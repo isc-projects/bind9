@@ -101,5 +101,9 @@ HMAC_CTX_reset(HMAC_CTX *ctx) {
 	return (1);
 }
 
+const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx) {
+	return ctx->md;
+}
+
 #endif /* OPENSSL_VERSION_NUMBER < 0x10100000L ||
 	* defined(LIBRESSL_VERSION_NUMBER) */
