@@ -32,8 +32,7 @@
 #include <errno.h>
 
 #include <isc/assertions.h>
-#include <isc/hmacmd5.h>
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #include <isc/print.h>
 #include <isc/safe.h>
 #include <isc/stdlib.h>
@@ -273,7 +272,7 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
 				 REGION_SIZE(*secret));
 		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
+		isc_hmacmd5_sign(&ctx.hmd5, digest, ISC_MD5_DIGESTLENGTH);
 		source.rend = digest + ISC_MD5_DIGESTLENGTH;
 		break;
 #endif
@@ -458,7 +457,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
 				 REGION_SIZE(*secret));
 		isc_hmacmd5_update(&ctx.hmd5, data, length);
-		isc_hmacmd5_sign(&ctx.hmd5, digest);
+		isc_hmacmd5_sign(&ctx.hmd5, digest, ISC_MD5_DIGESTLENGTH);
 		source.rend = digest + ISC_MD5_DIGESTLENGTH;
 		break;
 #endif
