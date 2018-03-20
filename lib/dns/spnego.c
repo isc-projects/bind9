@@ -865,20 +865,20 @@ der_get_octet_string(const unsigned char *p, size_t len,
 }
 
 static int
-der_get_oid(const unsigned char *p, size_t len,
-	    oid *data, size_t *size)
-{
+der_get_oid(const unsigned char *p, size_t len, oid *data, size_t *size) {
 	int n;
 	size_t oldlen = len;
 
 	data->components = NULL;
 	data->length = 0;
-	if (len < 1U)
+	if (len < 1U) {
 		return (ASN1_OVERRUN);
+	}
 
 	data->components = malloc(len * sizeof(*data->components));
-	if (data->components == NULL && len != 0U)
+	if (data->components == NULL) {
 		return (ENOMEM);
+	}
 	data->components[0] = (*p) / 40;
 	data->components[1] = (*p) % 40;
 	--len;
@@ -897,8 +897,9 @@ der_get_oid(const unsigned char *p, size_t len,
 		return (ASN1_OVERRUN);
 	}
 	data->length = n;
-	if (size)
+	if (size) {
 		*size = oldlen;
+	}
 	return (0);
 }
 
