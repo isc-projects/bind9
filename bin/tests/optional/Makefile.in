@@ -49,7 +49,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		db_test@EXEEXT@ \
 		dst_test@EXEEXT@ \
 		gsstest@EXEEXT@ \
-		hash_test@EXEEXT@ \
 		fsaccess_test@EXEEXT@ \
 		inter_test@EXEEXT@ \
 		lex_test@EXEEXT@ \
@@ -78,7 +77,6 @@ XSRCS =		adb_test.c \
 		byname_test.c \
 		db_test.c \
 		dst_test.c \
-		hash_test.c \
 		fsaccess_test.c \
 		gsstest.c \
 		inter_test.c \
@@ -166,10 +164,6 @@ log_test@EXEEXT@: log_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 name_test@EXEEXT@: name_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ name_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ hash_test.@O@ \
-		${ISCLIBS} ${LIBS}
 
 entropy_test@EXEEXT@: entropy_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ entropy_test.@O@ \
