@@ -98,10 +98,7 @@
     <ClInclude Include="..\include\isc\hex.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\hmacmd5.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\hmacsha.h">
+    <ClInclude Include="..\include\isc\hmac.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\ht.h">
@@ -514,10 +511,7 @@
     <ClCompile Include="..\hex.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\hmacmd5.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hmacsha.c">
+    <ClCompile Include="..\hmac.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ht.c">
