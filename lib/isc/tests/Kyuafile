@@ -8,6 +8,7 @@ atf_test_program{name='errno_test'}
 atf_test_program{name='file_test'}
 atf_test_program{name='hash_test'}
 atf_test_program{name='heap_test'}
+tap_test_program{name='hmac_test'}
 atf_test_program{name='ht_test'}
 atf_test_program{name='lex_test'}
 tap_test_program{name='md_test'}
