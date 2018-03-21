@@ -6467,8 +6467,8 @@ static isc_boolean_t
 kskroll_return_servfail(query_ctx_t *qctx) {
 	if (!qctx->is_zone &&
 	    qctx->rdataset->trust == dns_trust_secure &&
-	    ((qctx->client->query.kskroll_is_ta && has_ta(qctx)) ||
-	     (qctx->client->query.kskroll_not_ta && !has_ta(qctx))))
+	    ((qctx->client->query.kskroll_is_ta && !has_ta(qctx)) ||
+	     (qctx->client->query.kskroll_not_ta && has_ta(qctx))))
 	{
 		return (ISC_TRUE);
 	}
