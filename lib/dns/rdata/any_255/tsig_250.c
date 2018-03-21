@@ -52,7 +52,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	sigtime = isc_string_touint64(DNS_AS_STR(token), &e, 10);
+	sigtime = strtoull(DNS_AS_STR(token), &e, 10);
 	if (*e != 0)
 		RETTOK(DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
