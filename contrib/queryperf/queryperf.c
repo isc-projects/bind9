@@ -1184,7 +1184,7 @@ identify_directive(char *dir) {
  */
 void
 update_config(char *config_change_desc) {
-	char *directive, *config_value, *trailing_garbage;
+	char *directive, *config_value, *trailing_garbage, *last;
 	char conf_copy[MAX_INPUT_LEN + 1];
 	unsigned int uint_val;
 	int directive_number;
@@ -1213,9 +1213,9 @@ update_config(char *config_change_desc) {
 		return;
 	}
 
-	directive = strtok(config_change_desc, WHITESPACE);
-	config_value = strtok(NULL, WHITESPACE);
-	trailing_garbage = strtok(NULL, WHITESPACE);
+	directive = strtok_r(config_change_desc, WHITESPACE, &last);
+	config_value = strtok_r(NULL, WHITESPACE, &last);
+	trailing_garbage = strtok_r(NULL, WHITESPACE, &last);
 
 	if ((directive_number = identify_directive(directive)) == -1) {
 		fprintf(stderr, "Invalid config: Bad directive: %s\n",
@@ -1349,7 +1349,7 @@ parse_query(char *input, char *qname, unsigned int qnlen, int *qtype) {
 	unsigned int num_types, index;
 	int found = FALSE;
 	char incopy[MAX_INPUT_LEN + 1];
-	char *domain_str, *type_str;
+	char *domain_str, *type_str, *last;
 
 	num_types = sizeof(qtype_strings) / sizeof(qtype_strings[0]);
 	if (num_types > (sizeof(qtype_codes) / sizeof(int)))
@@ -1357,8 +1357,8 @@ parse_query(char *input, char *qname, unsigned int qnlen, int *qtype) {
 
 	strcpy(incopy, input);
 
-	domain_str = strtok(incopy, WHITESPACE);
-	type_str = strtok(NULL, WHITESPACE);
+	domain_str = strtok_r(incopy, WHITESPACE, &last);
+	type_str = strtok_r(NULL, WHITESPACE, &last);
 
 	if ((domain_str == NULL) || (type_str == NULL)) {
 		fprintf(stderr, "Invalid query input format: %s\n", input);
