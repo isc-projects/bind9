@@ -33,7 +33,7 @@ newid=`expr ${oldid} + 1000 % 65536`
 newid=`expr "0000${newid}" : '.*\(.....\)$'`
 badid=`expr ${oldid} + 7777 % 65536`
 badid=`expr "0000${badid}" : '.*\(.....\)$'`
-echo_i "test ids: oldid=${oldid} newid=${newid} badid=${badid}"
+echo_i "test ids: oldid=${oldid} (configured) newid=${newid} (not configured) badid=${badid}"
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
