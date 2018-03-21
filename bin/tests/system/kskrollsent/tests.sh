@@ -38,8 +38,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 newtest "check authoritative server"
-$DIG $DIGOPTS @10.53.0.3 example SOA > dig.out.ns3.test$n
-grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+$DIG $DIGOPTS @10.53.0.2 example SOA > dig.out.ns2.test$n
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
