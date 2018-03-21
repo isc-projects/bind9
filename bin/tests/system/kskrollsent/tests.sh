@@ -112,13 +112,13 @@ $DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-${newid}.example A > dig.out.ns
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check kskroll-sentinel-is-ta with bad ta and 'kskroll-sentinel-enable yes;'"
+newtest "check kskroll-sentinel-is-ta with bad ta and 'kskroll-sentinel-enable no;'"
 $DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-${badid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with bad ta and 'kskroll-sentinel-enable yes;'"
+newtest "check kskroll-sentinel-not-ta with bad ta and 'kskroll-sentinel-enable no;'"
 $DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-${bad}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
