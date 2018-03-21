@@ -258,37 +258,37 @@ reverse_from_address(dns_name_t *tcpself, const isc_netaddr_t *tcpaddr) {
 	switch (tcpaddr->family) {
 	case AF_INET:
 		l = ntohl(tcpaddr->type.in.s_addr);
-		result = isc_string_printf(buf, sizeof(buf),
-					   "%lu.%lu.%lu.%lu.IN-ADDR.ARPA.",
-					   (l >> 0) & 0xff, (l >> 8) & 0xff,
-					   (l >> 16) & 0xff, (l >> 24) & 0xff);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		result = snprintf(buf, sizeof(buf),
+				  "%lu.%lu.%lu.%lu.IN-ADDR.ARPA.",
+				  (l >> 0) & 0xff, (l >> 8) & 0xff,
+				  (l >> 16) & 0xff, (l >> 24) & 0xff);
+		RUNTIME_CHECK(result < sizeof(buf));
 		break;
 	case AF_INET6:
 		ap = tcpaddr->type.in6.s6_addr;
-		result = isc_string_printf(buf, sizeof(buf),
-					   "%x.%x.%x.%x.%x.%x.%x.%x."
-					   "%x.%x.%x.%x.%x.%x.%x.%x."
-					   "%x.%x.%x.%x.%x.%x.%x.%x."
-					   "%x.%x.%x.%x.%x.%x.%x.%x."
-					   "IP6.ARPA.",
-					   ap[15] & 0x0f, (ap[15] >> 4) & 0x0f,
-					   ap[14] & 0x0f, (ap[14] >> 4) & 0x0f,
-					   ap[13] & 0x0f, (ap[13] >> 4) & 0x0f,
-					   ap[12] & 0x0f, (ap[12] >> 4) & 0x0f,
-					   ap[11] & 0x0f, (ap[11] >> 4) & 0x0f,
-					   ap[10] & 0x0f, (ap[10] >> 4) & 0x0f,
-					   ap[9] & 0x0f, (ap[9] >> 4) & 0x0f,
-					   ap[8] & 0x0f, (ap[8] >> 4) & 0x0f,
-					   ap[7] & 0x0f, (ap[7] >> 4) & 0x0f,
-					   ap[6] & 0x0f, (ap[6] >> 4) & 0x0f,
-					   ap[5] & 0x0f, (ap[5] >> 4) & 0x0f,
-					   ap[4] & 0x0f, (ap[4] >> 4) & 0x0f,
-					   ap[3] & 0x0f, (ap[3] >> 4) & 0x0f,
-					   ap[2] & 0x0f, (ap[2] >> 4) & 0x0f,
-					   ap[1] & 0x0f, (ap[1] >> 4) & 0x0f,
-					   ap[0] & 0x0f, (ap[0] >> 4) & 0x0f);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		result = snprintf(buf, sizeof(buf),
+				  "%x.%x.%x.%x.%x.%x.%x.%x."
+				  "%x.%x.%x.%x.%x.%x.%x.%x."
+				  "%x.%x.%x.%x.%x.%x.%x.%x."
+				  "%x.%x.%x.%x.%x.%x.%x.%x."
+				  "IP6.ARPA.",
+				  ap[15] & 0x0f, (ap[15] >> 4) & 0x0f,
+				  ap[14] & 0x0f, (ap[14] >> 4) & 0x0f,
+				  ap[13] & 0x0f, (ap[13] >> 4) & 0x0f,
+				  ap[12] & 0x0f, (ap[12] >> 4) & 0x0f,
+				  ap[11] & 0x0f, (ap[11] >> 4) & 0x0f,
+				  ap[10] & 0x0f, (ap[10] >> 4) & 0x0f,
+				  ap[9] & 0x0f, (ap[9] >> 4) & 0x0f,
+				  ap[8] & 0x0f, (ap[8] >> 4) & 0x0f,
+				  ap[7] & 0x0f, (ap[7] >> 4) & 0x0f,
+				  ap[6] & 0x0f, (ap[6] >> 4) & 0x0f,
+				  ap[5] & 0x0f, (ap[5] >> 4) & 0x0f,
+				  ap[4] & 0x0f, (ap[4] >> 4) & 0x0f,
+				  ap[3] & 0x0f, (ap[3] >> 4) & 0x0f,
+				  ap[2] & 0x0f, (ap[2] >> 4) & 0x0f,
+				  ap[1] & 0x0f, (ap[1] >> 4) & 0x0f,
+				  ap[0] & 0x0f, (ap[0] >> 4) & 0x0f);
+		RUNTIME_CHECK(result < sizeof(buf));
 		break;
 	default:
 		INSIST(0);
@@ -310,27 +310,27 @@ stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
 	switch(tcpaddr->family) {
 	case AF_INET:
 		l = ntohl(tcpaddr->type.in.s_addr);
-		result = isc_string_printf(buf, sizeof(buf),
-					   "%lx.%lx.%lx.%lx.%lx.%lx.%lx.%lx"
-					   "2.0.0.2.IP6.ARPA.",
-					   l & 0xf, (l >> 4) & 0xf,
-					   (l >> 8) & 0xf, (l >> 12) & 0xf,
-					   (l >> 16) & 0xf, (l >> 20) & 0xf,
-					   (l >> 24) & 0xf, (l >> 28) & 0xf);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		result = snprintf(buf, sizeof(buf),
+				  "%lx.%lx.%lx.%lx.%lx.%lx.%lx.%lx"
+				  "2.0.0.2.IP6.ARPA.",
+				  l & 0xf, (l >> 4) & 0xf,
+				  (l >> 8) & 0xf, (l >> 12) & 0xf,
+				  (l >> 16) & 0xf, (l >> 20) & 0xf,
+				  (l >> 24) & 0xf, (l >> 28) & 0xf);
+		RUNTIME_CHECK(result < sizeof(buf));
 		break;
 	case AF_INET6:
 		ap = tcpaddr->type.in6.s6_addr;
-		result = isc_string_printf(buf, sizeof(buf),
-					   "%x.%x.%x.%x.%x.%x.%x.%x."
-					   "%x.%x.%x.%x.IP6.ARPA.",
-					   ap[5] & 0x0f, (ap[5] >> 4) & 0x0f,
-					   ap[4] & 0x0f, (ap[4] >> 4) & 0x0f,
-					   ap[3] & 0x0f, (ap[3] >> 4) & 0x0f,
-					   ap[2] & 0x0f, (ap[2] >> 4) & 0x0f,
-					   ap[1] & 0x0f, (ap[1] >> 4) & 0x0f,
-					   ap[0] & 0x0f, (ap[0] >> 4) & 0x0f);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		result = snprintf(buf, sizeof(buf),
+				  "%x.%x.%x.%x.%x.%x.%x.%x."
+				  "%x.%x.%x.%x.IP6.ARPA.",
+				  ap[5] & 0x0f, (ap[5] >> 4) & 0x0f,
+				  ap[4] & 0x0f, (ap[4] >> 4) & 0x0f,
+				  ap[3] & 0x0f, (ap[3] >> 4) & 0x0f,
+				  ap[2] & 0x0f, (ap[2] >> 4) & 0x0f,
+				  ap[1] & 0x0f, (ap[1] >> 4) & 0x0f,
+				  ap[0] & 0x0f, (ap[0] >> 4) & 0x0f);
+		RUNTIME_CHECK(result < sizeof(buf));
 		break;
 	default:
 		INSIST(0);
