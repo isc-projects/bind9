@@ -51,44 +51,6 @@
 #include <isc/util.h>
 
 isc_result_t
-isc_string_copy(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0U);
-
-	if (strlcpy(target, source, size) >= size) {
-		memset(target, ISC_STRING_MAGIC, size);
-		return (ISC_R_NOSPACE);
-	}
-
-	ENSURE(strlen(target) < size);
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-isc_string_copy_truncate(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0U);
-
-	strlcpy(target, source, size);
-
-	ENSURE(strlen(target) < size);
-}
-
-isc_result_t
-isc_string_append(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0U);
-	REQUIRE(strlen(target) < size);
-
-	if (strlcat(target, source, size) >= size) {
-		memset(target, ISC_STRING_MAGIC, size);
-		return (ISC_R_NOSPACE);
-	}
-
-	ENSURE(strlen(target) < size);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
 isc_string_printf(char *target, size_t size, const char *format, ...) {
 	va_list args;
 	size_t n;
