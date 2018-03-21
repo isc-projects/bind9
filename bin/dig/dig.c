@@ -729,28 +729,25 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
  */
 
 static void
-plus_option(const char *option, isc_boolean_t is_batchfile,
+plus_option(char *option, isc_boolean_t is_batchfile,
 	    dig_lookup_t *lookup)
 {
 	isc_result_t result;
-	char option_store[256];
-	char *cmd, *value, *ptr, *code;
+	char *cmd, *value, *last, *code;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
-	strlcpy(option_store, option, sizeof(option_store));
-	ptr = option_store;
-	cmd = next_token(&ptr, "=");
-	if (cmd == NULL) {
-		printf(";; Invalid option %s\n", option_store);
+	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
+		printf(";; Invalid option %s\n", option);
 		return;
 	}
-	value = ptr;
 	if (strncasecmp(cmd, "no", 2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;
 	}
+	/* parse the rest of the string */
+	value = strtok_r(NULL, "", &last);
 
 #define FULLCHECK(A) \
 	do { \
@@ -1006,8 +1003,10 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 							     "specified");
 							goto exit_or_usage;
 						}
-						code = next_token(&value, ":");
-						save_opt(lookup, code, value);
+						char *extra;
+						code = strtok_r(value, ":", &last);
+						extra = strtok_r(NULL, "\0", &last);
+						save_opt(lookup, code, extra);
 						break;
 					default:
 						goto invalid_option;
@@ -1524,7 +1523,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    isc_boolean_t config_only, int argc, char **argv,
 	    isc_boolean_t *firstarg)
 {
-	char opt, *value, *ptr, *ptr2, *ptr3;
+	char opt, *value, *ptr, *ptr2, *ptr3, *last;
 	isc_result_t result;
 	isc_boolean_t value_from_next;
 	isc_textregion_t tr;
@@ -1738,15 +1737,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				 value);
 		return (value_from_next);
 	case 'y':
-		ptr = next_token(&value, ":");	/* hmac type or name */
-		if (ptr == NULL) {
+		if ((ptr = strtok_r(value, ":", &last)) == NULL) {
 			usage();
 		}
-		ptr2 = next_token(&value, ":");	/* name or secret */
-		if (ptr2 == NULL)
+		if ((ptr2 = strtok_r(NULL, ":", &last)) == NULL) {	/* name or secret */
 			usage();
-		ptr3 = next_token(&value, ":"); /* secret or NULL */
-		if (ptr3 != NULL) {
+		}
+		if ((ptr3 = strtok_r(NULL, ":", &last)) != NULL) { /* secret or NULL */
 			parse_hmac(ptr);
 			ptr = ptr2;
 			ptr2 = ptr3;
@@ -1758,6 +1755,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 #endif
 			digestbits = 0;
 		}
+		/* XXXONDREJ: FIXME */
 		strlcpy(keynametext, ptr, sizeof(keynametext));
 		strlcpy(keysecret, ptr2, sizeof(keysecret));
 		return (value_from_next);
@@ -1859,10 +1857,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char **rv;
 #ifndef NOPOSIX
 	char *homedir;
-	char rcfile[256];
+	char rcfile[PATH_MAX];
 #endif
-	char *input;
-	int i;
+	char *last;
 	isc_boolean_t need_clone = ISC_TRUE;
 
 	/*
@@ -1892,32 +1889,23 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		homedir = getenv("HOME");
 		if (homedir != NULL) {
 			unsigned int n;
-			n = snprintf(rcfile, sizeof(rcfile), "%s/.digrc",
-				     homedir);
-			if (n < sizeof(rcfile))
+			n = snprintf(rcfile, sizeof(rcfile), "%s/.digrc", homedir);
+			if (n < sizeof(rcfile)) {
 				batchfp = fopen(rcfile, "r");
+			}
 		}
 		if (batchfp != NULL) {
-			while (fgets(batchline, sizeof(batchline),
-				     batchfp) != 0) {
+			while (fgets(batchline, sizeof(batchline), batchfp) != 0) {
 				debug("config line %s", batchline);
-				bargc = 1;
-				input = batchline;
-				bargv[bargc] = next_token(&input, " \t\r\n");
-				while ((bargc < 62) && (bargv[bargc] != NULL)) {
-					bargc++;
-					bargv[bargc] =
-						next_token(&input, " \t\r\n");
+				for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
+				     bargc < 62 && bargv[bargc];
+				     bargv[++bargc] = strtok_r(NULL,  " \t\r\n", &last))
+				{
+					debug(".digrc argv %d: %s", bargc, bargv[bargc]);
 				}
-
 				bargv[0] = argv[0];
 				argv0 = argv[0];
-
-				for(i = 0; i < bargc; i++)
-					debug(".digrc argv %d: %s",
-					      i, bargv[i]);
-				parse_args(ISC_TRUE, ISC_TRUE, bargc,
-					   (char **)bargv);
+				parse_args(ISC_TRUE, ISC_TRUE, bargc, (char **)bargv);
 			}
 			fclose(batchfp);
 		}
@@ -1928,8 +1916,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		/* Processing '-f batchfile'. */
 		lookup = clone_lookup(default_lookup, ISC_TRUE);
 		need_clone = ISC_FALSE;
-	} else
+	} else {
 		lookup = default_lookup;
+	}
 
 	rc = argc;
 	rv = argv;
@@ -2101,18 +2090,15 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (batchline[0] == '\r' || batchline[0] == '\n'
 			    || batchline[0] == '#' || batchline[0] == ';')
 				goto next_line;
-			input = batchline;
-			bargv[bargc] = next_token(&input, " \t\r\n");
-			while ((bargc < 14) && (bargv[bargc] != NULL)) {
-				bargc++;
-				bargv[bargc] = next_token(&input, " \t\r\n");
+			for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
+			     (bargc < 14) && bargv[bargc];
+			     bargc++, bargv[bargc] = strtok_r(NULL, " \t\r\n", &last)) {
+				debug("batch argv %d: %s", bargc, bargv[bargc]);
 			}
 
 			bargv[0] = argv[0];
 			argv0 = argv[0];
 
-			for(i = 0; i < bargc; i++)
-				debug("batch argv %d: %s", i, bargv[i]);
 			parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 			return;
 		}
@@ -2151,8 +2137,6 @@ query_finished(void) {
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
-	char *input;
-	int i;
 
 	if (batchname == NULL) {
 		isc_app_shutdown();
@@ -2169,19 +2153,17 @@ query_finished(void) {
 	}
 
 	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
+		char *last;
 		debug("batch line %s", batchline);
-		bargc = 1;
-		input = batchline;
-		bargv[bargc] = next_token(&input, " \t\r\n");
-		while ((bargc < 14) && (bargv[bargc] != NULL)) {
-			bargc++;
-			bargv[bargc] = next_token(&input, " \t\r\n");
+		for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
+		     bargc < 14 && bargv[bargc];
+		     bargc++, bargv[bargc] = strtok_r(NULL, " \t\r\n", &last))
+		{
+			debug("batch argv %d: %s", bargc, bargv[bargc]);
 		}
 
 		bargv[0] = argv0;
 
-		for(i = 0; i < bargc; i++)
-			debug("batch argv %d: %s", i, bargv[i]);
 		parse_args(ISC_TRUE, ISC_FALSE, bargc, (char **)bargv);
 		start_lookup();
 	} else {

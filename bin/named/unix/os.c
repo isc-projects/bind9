@@ -1003,36 +1003,24 @@ named_os_gethostname(char *buf, size_t len) {
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
-static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
-
 void
 named_os_shutdownmsg(char *command, isc_buffer_t *text) {
-	char *input, *ptr;
+	char *last, *ptr;
 	pid_t pid;
 
-	input = command;
 
 	/* Skip the command name. */
-	ptr = next_token(&input, " \t");
-	if (ptr == NULL)
+	if ((ptr = strtok_r(command, " \t", &last)) == NULL) {
 		return;
+	}
 
-	ptr = next_token(&input, " \t");
-	if (ptr == NULL)
+	if ((ptr = strtok_r(NULL, " \t", &last)) == NULL) {
 		return;
+	}
 
-	if (strcmp(ptr, "-p") != 0)
+	if (strcmp(ptr, "-p") != 0) {
 		return;
+	}
 
 #ifdef HAVE_LINUXTHREADS
 	pid = mainpid;
