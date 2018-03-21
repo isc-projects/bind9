@@ -158,9 +158,9 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		 * split string at the first "$". set query segment to
 		 * left portion
 		 */
+		char *last = NULL;
 		tseg->sql = isc_mem_strdup(mctx,
-					   isc_string_separate(&right_str,
-							       "$"));
+					   strtok_r(right_str, "$", &last));
 		if (tseg->sql == NULL) {
 			/* no memory, clean everything up. */
 			result = ISC_R_NOMEMORY;
