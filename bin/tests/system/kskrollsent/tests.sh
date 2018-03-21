@@ -104,6 +104,17 @@ $DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-72345.example A > dig.out.ns3.t
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
+newtest "check kskroll-sentinel-is-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-1234.example A > dig.out.ns3.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+newtest "check kskroll-sentinel-not-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-1234.example A > dig.out.ns3.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
 newtest "check test zone resolves with 'kskroll-sentinel-enable no;'" " (expect NOERROR)"
 $DIG $DIGOPTS @10.53.0.4 example SOA > dig.out.ns4.test$n
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
@@ -152,6 +163,17 @@ status=`expr $status + $ret`
 
 newtest "check kskroll-sentinel-not-ta with out-of-range ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
 $DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-72345.example A > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
+newtest "check kskroll-sentinel-is-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-1234.example A > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+newtest "check kskroll-sentinel-not-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-1234.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
