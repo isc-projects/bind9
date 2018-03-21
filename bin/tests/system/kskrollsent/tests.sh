@@ -18,9 +18,6 @@ n=0
 rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
-ANSWEROPTS="+noall +answer +dnssec -p ${PORT}"
-DELVOPTS="-a ns1/trusted.conf -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
 	n=`expr $n + 1`
