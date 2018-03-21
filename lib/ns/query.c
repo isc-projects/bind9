@@ -5184,6 +5184,9 @@ kskroll_sentinel(query_ctx_t *qctx) {
 			v *= 10;
 			v += ndata[i] - '0';
 		}
+		if (v > 65535U) {
+			return;
+		}
 		qctx->client->query.kskroll_keyid = v;
 		qctx->client->query.kskroll_not_ta = ISC_TRUE;
 		/*
