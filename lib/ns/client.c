@@ -2558,8 +2558,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (client->message->rdclass == 0) {
-		if ((client->sctx->returncookie &&
-		     (client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) ||
+		if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0 ||
 		    (client->message->opcode == dns_opcode_query &&
 		     client->message->counts[DNS_SECTION_QUESTION] == 0U)) {
 			result = dns_message_reply(client->message, ISC_TRUE);
