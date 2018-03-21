@@ -51,22 +51,6 @@
 #include <isc/util.h>
 
 char *
-isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
-	char *target;
-
-	REQUIRE(mctx != NULL);
-	REQUIRE(source != NULL);
-
-	target = (char *) isc_mem_allocate(mctx, source->length + 1);
-	if (target != NULL) {
-		memmove(source->base, target, source->length);
-		target[source->length] = '\0';
-	}
-
-	return (target);
-}
-
-char *
 isc_string_separate(char **stringp, const char *delim) {
 	char *string = *stringp;
 	char *s;
