@@ -286,47 +286,24 @@ quit(1);
 
 int
 getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey) {
-	char *tmp;
-	char *left;
-	char *right;
-	int result=0;
+	char *token, *last;
 
 	UNUSED(dbp);
 	UNUSED(pkey);
 
-	/* Allocate memory to use in parsing the string */
-	tmp = right = malloc(pdata->size + 1);
-
-	/* verify memory was allocated */
-	if (right == NULL) {
-		result = BDBparseErr;
-		goto getzone_cleanup;
-	}		
-
-	/* copy data string into newly allocated memory */
-	strncpy(right, pdata->data, pdata->size);
-	right[pdata->size] = '\0';
-
-	/* split string at the first space */
-	left = isc_string_separate(&right, " ");
+	if ((token = strtok_r(pdata->data, " ", &last)) == NULL) {
+		return BDBparseErr;
+	}
 
 	/* copy string for "zone" secondary index */
-	skey->data = strdup(left);
-	if (skey->data == NULL) {
-		result = BDBparseErr;
-		goto getzone_cleanup;
+	if ((skey->data = strdup(token)) == NULL) {
+		return BDBparseErr;
 	}
 	/* set required values for BDB */
 	skey->size = strlen(skey->data);
 	skey->flags = DB_DBT_APPMALLOC;
 
- getzone_cleanup:
-
-	/* cleanup memory */
-	if (tmp != NULL)
-		free(tmp);
-	
-	return result;
+	return 0;
 }
 
 /*%
@@ -335,56 +312,30 @@ getzone(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey) {
 
 int
 gethost(DB *dbp, const DBT *pkey, const DBT *pdata, DBT *skey) {
-	char *tmp;
-	char *left;
-	char *right;
-	int result=0;
+	char *token, *last;
 
 	UNUSED(dbp);
 	UNUSED(pkey);
 
-	/* allocate memory to use in parsing the string */
-	tmp = right = malloc(pdata->size + 1);
-
-	/* verify memory was allocated */
-	if (tmp == NULL) {
-		result = BDBparseErr;
-		goto gethost_cleanup;
-	}		
-
-	/* copy data string into newly allocated memory */
-	strncpy(right, pdata->data, pdata->size);
-	right[pdata->size] = '\0';
-
-	/* we don't care about left string. */
-	/* memory of left string will be freed when tmp is freed. */
-	isc_string_separate(&right, " ");
-
-	/* verify right still has some characters left */
-	if (right == NULL) {
-		result = BDBparseErr;
-		goto gethost_cleanup;
+	/* we don't care about first token. */
+	if ((token = strtok_r(right, " ", &last)) == NULL) {
+		return BDBparseErr;
 	}
 
 	/* get "host" from data string */
-	left = isc_string_separate(&right, " ");
+	if ((token = strtok_r(NULL, " ", &last)) == NULL) {
+		return BDBparseErr;
+	}
+		
 	/* copy string for "host" secondary index */
-	skey->data = strdup(left);
-	if (skey->data == NULL) {
-		result = BDBparseErr;
-		goto gethost_cleanup;
+	if ((skey->data = strdup(token)) == NULL) {
+		return BDBparseErr;
 	}
 	/* set required values for BDB */
 	skey->size = strlen(skey->data);
 	skey->flags = DB_DBT_APPMALLOC;
 
- gethost_cleanup:
-
-	/* cleanup memory */
-	if (tmp != NULL)
-		free(tmp);
-	
-	return result;
+	return 0;
 }
 
 /*%
