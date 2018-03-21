@@ -747,7 +747,6 @@ ISC_PLATFORM_NEEDSTRLCPY
 GENRANDOMLIB
 ISC_PLATFORM_NEEDSTRTOUL
 ISC_PLATFORM_NEEDMEMMOVE
-ISC_PLATFORM_NEEDSTRSEP
 ISC_IRS_GETNAMEINFOSOCKLEN
 ISC_IRS_NEEDADDRINFO
 ISC_PLATFORM_HAVETFO
@@ -19428,36 +19427,6 @@ esac
 #
 # Check for some other useful functions that are not ever-present.
 #
-
-# We test for strsep() using AC_TRY_LINK instead of AC_CHECK_FUNC
-# because AIX 4.3.3 with patches for bos.adt.include to version 4.3.3.77
-# reportedly defines strsep() without declaring it in <string.h> when
-# -D_LINUX_SOURCE_COMPAT is not defined [RT #2190], and
-# AC_CHECK_FUNC() incorrectly succeeds because it declares
-# the function itself.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for correctly declared strsep()" >&5
-$as_echo_n "checking for correctly declared strsep()... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <string.h>
-int
-main ()
-{
-char *sp; char *foo = strsep(&sp, ".");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }; ISC_PLATFORM_NEEDSTRSEP="#undef ISC_PLATFORM_NEEDSTRSEP"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }; ISC_PLATFORM_NEEDSTRSEP="#define ISC_PLATFORM_NEEDSTRSEP 1"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
 
 ac_fn_c_check_func "$LINENO" "memmove" "ac_cv_func_memmove"
 if test "x$ac_cv_func_memmove" = xyes; then :
