@@ -25,11 +25,12 @@
  */
 
 #if defined(_WIN32) || defined(_WIN64)
+/* We are on Windows */
+# define strtok_r strtok_s
 
 #ifndef strtoull
 #define strtoull _stroui64
 #endif
-
 #endif
 
 /***
