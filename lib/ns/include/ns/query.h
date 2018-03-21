@@ -76,7 +76,7 @@ struct ns_query {
 		isc_boolean_t		is_zone;
 	} redirect;
 
-	isc_uint16_t kskroll_keyid;
+	dns_keytag_t kskroll_keyid;
 	isc_boolean_t kskroll_is_ta;
 	isc_boolean_t kskroll_not_ta;
 };

@@ -5405,7 +5405,7 @@ has_ta(query_ctx_t *qctx) {
 	result = dns_keytable_find(keytable, dns_rootname, &keynode);
 	while (result == ISC_R_SUCCESS) {
 		dns_keynode_t *nextnode = NULL;
-		isc_uint16_t keyid = dst_key_id(dns_keynode_key(keynode));
+		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
 		if (keyid == qctx->client->query.kskroll_keyid) {
 			dns_keytable_detachkeynode(keytable, &keynode);
 			dns_keytable_detach(&keytable);
