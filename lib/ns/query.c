@@ -701,6 +701,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.isreferral = ISC_FALSE;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = ISC_UINT32_MAX;
+	client->query.kskroll_keyid = 0;
+	client->query.kskroll_is_ta = ISC_FALSE;
+	client->query.kskroll_not_ta = ISC_FALSE;
 }
 
 static void
@@ -946,9 +949,6 @@ ns_query_init(ns_client_t *client) {
 	client->query.redirect.sigrdataset = NULL;
 	client->query.redirect.authoritative = ISC_FALSE;
 	client->query.redirect.is_zone = ISC_FALSE;
-	client->query.kskroll_keyid = 0;
-	client->query.kskroll_is_ta = ISC_FALSE;
-	client->query.kskroll_not_ta = ISC_FALSE;
 	dns_fixedname_init(&client->query.redirect.fixed);
 	client->query.redirect.fname =
 		dns_fixedname_name(&client->query.redirect.fixed);
@@ -5112,9 +5112,6 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	query_ctx_t qctx;
 
 	qctx_init(client, NULL, qtype, &qctx);
-	client->query.kskroll_keyid = 0;
-	client->query.kskroll_is_ta = ISC_FALSE;
-	client->query.kskroll_not_ta = ISC_FALSE;
 	query_trace(&qctx);
 
 	/*
