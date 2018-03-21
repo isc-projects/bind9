@@ -58,6 +58,12 @@ stages:
     - linux
     - docker
 
+.debian-experimental-amd64: &debian_experimental_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-experimental-amd64"
+  tags:
+    - linux
+    - docker
+
 .ubuntu-trusty-amd64: &ubuntu_trusty_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-amd64"
   tags:
@@ -169,12 +175,22 @@ build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
 
+build:debian:experimental:amd64:
+  <<: *debian_experimental_amd64_image
+  <<: *build_job
+
 unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
+unittest:debian:experimental:amd64:
+  <<: *debian_experimental_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:experimental:amd64
+
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
@@ -186,7 +202,13 @@ systemtest:debian:sid:amd64:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
+systemtest:debian:experimental:amd64:
+  <<: *debian_experimental_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:experimental:amd64
+
 systemtest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *system_test_job
