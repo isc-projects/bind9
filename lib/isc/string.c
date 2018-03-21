@@ -50,42 +50,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-isc_result_t
-isc_string_printf(char *target, size_t size, const char *format, ...) {
-	va_list args;
-	size_t n;
-
-	REQUIRE(size > 0U);
-
-	va_start(args, format);
-	n = vsnprintf(target, size, format, args);
-	va_end(args);
-
-	if (n >= size) {
-		memset(target, ISC_STRING_MAGIC, size);
-		return (ISC_R_NOSPACE);
-	}
-
-	ENSURE(strlen(target) < size);
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
-{
-	va_list args;
-
-	REQUIRE(size > 0U);
-
-	va_start(args, format);
-	/* check return code? */
-	(void)vsnprintf(target, size, format, args);
-	va_end(args);
-
-	ENSURE(strlen(target) < size);
-}
-
 char *
 isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
 	char *target;
