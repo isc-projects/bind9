@@ -369,9 +369,6 @@ destroy_libs(void);
 void
 set_search_domain(char *domain);
 
-char *
-next_token(char **stringp, const char *delim);
-
 /*
  * Routines to be defined in dig.c, host.c, and nslookup.c. and
  * then assigned to the appropriate function pointer
