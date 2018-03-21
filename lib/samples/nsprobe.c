@@ -468,22 +468,21 @@ set_nextqname(struct probe_trans *trans) {
 	char buf[4096];	/* XXX ad-hoc constant, but should be enough */
 
 	if (*trans->qlabel == NULL)
-		return (ISC_R_NOMORE);
+		return ISC_R_NOMORE;
 
-	result = isc_string_copy(buf, sizeof(buf), *trans->qlabel);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	result = isc_string_append(buf, sizeof(buf), trans->domain);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (strlcpy(buf, *trans->qlabel, sizeof(buf)) >= sizeof(buf)) {
+		return ISC_R_NOSPACE;
+	}
 
-	domainlen = strlen(buf);
+	if ((domainlen = strlcat(buf, trans->domain, sizeof(buf))) >= sizeof(buf)) {
+		return ISC_R_NOSPACE;
+	}
+	
 	isc_buffer_init(&b, buf, domainlen);
 	isc_buffer_add(&b, domainlen);
 	dns_fixedname_init(&trans->fixedname);
 	trans->qname = dns_fixedname_name(&trans->fixedname);
-	result = dns_name_fromtext(trans->qname, &b, dns_rootname,
-				   0, NULL);
+	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
 
 	trans->qlabel++;
 

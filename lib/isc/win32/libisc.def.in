@@ -645,9 +645,6 @@ isc_stdio_sync
 isc_stdio_tell
 isc_stdio_write
 isc_stdtime_get
-isc_string_append
-isc_string_copy
-isc_string_copy_truncate
 isc_string_printf
 isc_string_printf_truncate
 isc_string_regiondup
