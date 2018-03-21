@@ -47,7 +47,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 		zone = (isc_uint32_t)ifid;
 	else {
 #endif
-		llz = isc_string_touint64(scopename, &ep, 10);
+		llz = strtoull(scopename, &ep, 10);
 		if (ep == scopename)
 			return (ISC_R_FAILURE);
 
