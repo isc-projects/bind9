@@ -6461,6 +6461,21 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 }
 
 /*%
+ * Check if a kskroll SERVFAIL should be returned.
+ */
+static isc_boolean_t
+kskroll_return_servfail(query_ctx_t *qctx) {
+	if (!qctx->is_zone &&
+	    qctx->rdataset->trust == dns_trust_secure &&
+	    ((qctx->client->query.kskroll_is_ta && has_ta(qctx)) ||
+	     (qctx->client->query.kskroll_not_ta && !has_ta(qctx))))
+	{
+		return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
+/*%
  * Continue after doing a database lookup or returning from
  * recursion, and call out to the next function depending on the
  * result from the search.
@@ -6492,13 +6507,7 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		case DNS_R_DNAME:
 		case DNS_R_NCACHENXDOMAIN:
 		case DNS_R_NCACHENXRRSET:
-			if (!qctx->is_zone &&
-			    qctx->rdataset->trust == dns_trust_secure &&
-			    ((qctx->client->query.kskroll_is_ta &&
-			     has_ta(qctx)) ||
-			    (qctx->client->query.kskroll_not_ta &&
-			     !has_ta(qctx))))
-			{
+			if (kskroll_return_servfail(qctx)) {
 				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 				return (query_done(qctx));
 			} else {
