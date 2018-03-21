@@ -32,13 +32,6 @@
 
 ISC_LANG_BEGINDECLS
 
-char *
-isc_string_separate(char **stringp, const char *delim);
-
-#ifdef ISC_PLATFORM_NEEDSTRSEP
-#define strsep isc_string_separate
-#endif
-
 #ifdef ISC_PLATFORM_NEEDMEMMOVE
 #define memmove(a,b,c) bcopy(b,a,c)
 #endif

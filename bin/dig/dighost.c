@@ -242,18 +242,6 @@ check_next_lookup(dig_lookup_t *lookup);
 static isc_boolean_t
 next_origin(dig_lookup_t *oldlookup);
 
-char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
-
 static int
 count_dots(char *string) {
 	char *s;
