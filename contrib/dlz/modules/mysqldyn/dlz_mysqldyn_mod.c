@@ -179,14 +179,6 @@
 	"DELETE FROM ZoneData WHERE zone_id = %s AND " \
 	"LOWER(name) = LOWER('%s') AND UPPER(type) = UPPER('%s')"
 
-#ifdef WIN32
-#define STRTOK_R(a, b, c)       strtok_s(a, b, c)
-#elif defined(_REENTRANT)
-#define STRTOK_R(a, b, c)       strtok_r(a, b, c)
-#else
-#define STRTOK_R(a, b, c)       strtok(a, b)
-#endif
-
 /*
  * Number of concurrent database connections we support
  * - equivalent to maxmium number of concurrent transactions
@@ -837,23 +829,23 @@ makerecord(mysql_data_t *state, const char *name, const char *rdatastr) {
 	 * The DATA field is space separated, and is in the data format
 	 * for the type used by dig
 	 */
-	real_name = STRTOK_R(buf, "\t", &saveptr);
+	real_name = strtok_r(buf, "\t", &saveptr);
 	if (real_name == NULL)
 		goto error;
 
-	ttlstr = STRTOK_R(NULL, "\t", &saveptr);
+	ttlstr = strtok_r(NULL, "\t", &saveptr);
 	if (ttlstr == NULL || sscanf(ttlstr, "%d", &ttlvalue) != 1)
 		goto error;
 
-	dclass = STRTOK_R(NULL, "\t", &saveptr);
+	dclass = strtok_r(NULL, "\t", &saveptr);
 	if (dclass == NULL)
 		goto error;
 
-	type = STRTOK_R(NULL, "\t", &saveptr);
+	type = strtok_r(NULL, "\t", &saveptr);
 	if (type == NULL)
 		goto error;
 
-	data = STRTOK_R(NULL, "\t", &saveptr);
+	data = strtok_r(NULL, "\t", &saveptr);
 	if (data == NULL)
 		goto error;
 
