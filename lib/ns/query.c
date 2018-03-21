@@ -5173,6 +5173,9 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
+		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "kskroll-sentinel-is-ta query label found");
 	} else if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
 	           strncasecmp(ndata + 1, "kskroll-sentinel-not-ta-", 24) == 0)
 	{
@@ -5194,6 +5197,9 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
+		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "kskroll-sentinel-not-ta query label found");
 	}
 }
 
