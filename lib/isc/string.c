@@ -50,72 +50,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-static const char digits[] = "0123456789abcdefghijklmnoprstuvwxyz";
-
-isc_uint64_t
-isc_string_touint64(char *source, char **end, int base) {
-	isc_uint64_t tmp;
-	isc_uint64_t overflow;
-	char *s = source;
-	const char *o;
-	char c;
-
-	if ((base < 0) || (base == 1) || (base > 36)) {
-		*end = source;
-		return (0);
-	}
-
-	while (*s != 0 && isascii(*s&0xff) && isspace(*s&0xff))
-		s++;
-	if (*s == '+' /* || *s == '-' */)
-		s++;
-	if (base == 0) {
-		if (*s == '0' && (*(s+1) == 'X' || *(s+1) == 'x')) {
-			s += 2;
-			base = 16;
-		} else if (*s == '0')
-			base = 8;
-		else
-			base = 10;
-	}
-	if (*s == 0) {
-		*end = source;
-		return (0);
-	}
-	overflow = ~0;
-	overflow /= base;
-	tmp = 0;
-
-	while ((c = *s) != 0) {
-		c = tolower(c&0xff);
-		/* end ? */
-		if ((o = strchr(digits, c)) == NULL) {
-			*end = s;
-			return (tmp);
-		}
-		/* end ? */
-		if ((o - digits) >= base) {
-			*end = s;
-			return (tmp);
-		}
-		/* overflow ? */
-		if (tmp > overflow) {
-			*end = source;
-			return (0);
-		}
-		tmp *= base;
-		/* overflow ? */
-		if ((tmp + (o - digits)) < tmp) {
-			*end = source;
-			return (0);
-		}
-		tmp += o - digits;
-		s++;
-	}
-	*end = s;
-	return (tmp);
-}
-
 isc_result_t
 isc_string_copy(char *target, size_t size, const char *source) {
 	REQUIRE(size > 0U);
@@ -152,16 +86,6 @@ isc_string_append(char *target, size_t size, const char *source) {
 	ENSURE(strlen(target) < size);
 
 	return (ISC_R_SUCCESS);
-}
-
-void
-isc_string_append_truncate(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0U);
-	REQUIRE(strlen(target) < size);
-
-	strlcat(target, source, size);
-
-	ENSURE(strlen(target) < size);
 }
 
 isc_result_t
