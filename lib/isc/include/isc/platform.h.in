@@ -183,14 +183,6 @@
  */
 @ISC_PLATFORM_QUADFORMAT@
 
-/***
- *** String functions.
- ***/
-/*
- * If the system needs strsep(), ISC_PLATFORM_NEEDSTRSEP will be defined.
- */
-@ISC_PLATFORM_NEEDSTRSEP@
-
 /*
  * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
  */

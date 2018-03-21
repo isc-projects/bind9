@@ -132,14 +132,16 @@ build_querylist(const char *query_str, char **zone, char **record,
 	}
 
 	/* loop through the string and chop it up */
-	while (right_str != NULL) {
+	for (token = strtok_r(right_str, "$", &temp_str);
+	     token;
+	     token = strtok_r(NULL, "$", &temp_str))
+	{
 		/* allocate memory for tseg */
 		tseg = calloc(1, sizeof(query_segment_t));
 		if (tseg  == NULL) {	/* no memory, clean everything up. */
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-		tseg->cmd = NULL;
 		tseg->direct = ISC_FALSE;
 		/* initialize the query segment link */
 		DLZ_LINK_INIT(tseg, link);
@@ -150,7 +152,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 		 * split string at the first "$". set query segment to
 		 * left portion
 		 */
-		tseg->cmd = strdup(strsep(&right_str, "$"));
+		tseg->cmd = strdup(token);
 		if (tseg->cmd == NULL) {
 			/* no memory, clean everything up. */
 			result = ISC_R_NOMEMORY;
@@ -203,7 +205,8 @@ build_querylist(const char *query_str, char **zone, char **record,
 	}
 
 	/* we don't need temp_str any more */
-	free(temp_str);
+	free(right_str);
+	right_str = NULL;
 	/*
 	 * add checks later to verify zone and record are found if
 	 * necessary.
@@ -246,8 +249,9 @@ build_querylist(const char *query_str, char **zone, char **record,
 
  cleanup:
 	/* get rid of temp_str */
-	if (temp_str != NULL)
-		free(temp_str);
+	if (right_str != NULL) {
+		free(right_str);
+	}
 
  flag_fail:
 	/* get rid of what was build of the query list */
