@@ -2910,33 +2910,31 @@ start_gssrequest(dns_name_t *master) {
 	if (realm == NULL)
 		get_ticket_realm(gmctx);
 
-	result = isc_string_printf(servicename, sizeof(servicename),
-				   "DNS/%s%s", namestr, realm ? realm : "");
-	if (result != ISC_R_SUCCESS)
-		fatal("isc_string_printf(servicename) failed: %s",
-		      isc_result_totext(result));
+	result = snprintf(servicename, sizeof(servicename), "DNS/%s%s", namestr, realm ? realm : "");
+	RUNTIME_CHECK(result < sizeof(servicename));
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
 	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("dns_name_fromtext(servname) failed: %s",
 		      isc_result_totext(result));
+	}
 
 	keyname = dns_fixedname_initname(&fkname);
 
 	isc_random_get(&val);
-	result = isc_string_printf(mykeystr, sizeof(mykeystr), "%u.sig-%s",
-				   val, namestr);
-	if (result != ISC_R_SUCCESS)
-		fatal("isc_string_printf(mykeystr) failed: %s",
-		      isc_result_totext(result));
+
+	result = snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val, namestr);
+	RUNTIME_CHECK(result <= sizeof(mykeystr));
+
 	isc_buffer_init(&buf, mykeystr, strlen(mykeystr));
 	isc_buffer_add(&buf, strlen(mykeystr));
 
 	result = dns_name_fromtext(keyname, &buf, dns_rootname, 0, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("dns_name_fromtext(keyname) failed: %s",
 		      isc_result_totext(result));
+	}
 
 	/* Windows doesn't recognize name compression in the key name. */
 	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;

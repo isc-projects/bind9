@@ -32,50 +32,6 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
-isc_string_printf(char *target, size_t size, const char *format, ...)
-	ISC_FORMAT_PRINTF(3, 4);
-/*
- * Print 'format' to 'target' which is a pointer to a string of at least
- * 'size' bytes.
- *
- * Requires:
- *	'target' is a pointer to a char[] of at least 'size' bytes.
- *	'size' an integer > 0.
- *	'format' == NULL or points to a NUL terminated string.
- *
- * Ensures:
- *	If result == ISC_R_SUCCESS
- *		'target' will be a NUL terminated string of no more
- *		than 'size' bytes (including NUL).
- *
- *	If result == ISC_R_NOSPACE
- *		'target' is undefined.
- *
- * Returns:
- *	ISC_R_SUCCESS  -- 'format' was successfully printed to 'target'.
- *	ISC_R_NOSPACE  -- 'format' could not be printed to 'target' since it
- *	                  is too small.
- */
-
-void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
-	ISC_FORMAT_PRINTF(3, 4);
-/*
- * Print 'format' to 'target' which is a pointer to a string of at least
- * 'size' bytes.
- *
- * Requires:
- *	'target' is a pointer to a char[] of at least 'size' bytes.
- *	'size' an integer > 0.
- *	'format' == NULL or points to a NUL terminated string.
- *
- * Ensures:
- *	'target' will be a NUL terminated string of no more
- *	than 'size' bytes (including NUL).
- */
-
-
 char *
 isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
 /*
