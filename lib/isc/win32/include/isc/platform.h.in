@@ -20,6 +20,18 @@
 
 #define ISC_PLATFORM_USETHREADS 1
 
+/*
+ * Some compatibility cludges
+ */
+
+#if defined(_WIN32) || defined(_WIN64)
+
+#ifndef strtoull
+#define strtoull _strtoui64
+#endif
+
+#endif
+
 /***
  *** Network.
  ***/

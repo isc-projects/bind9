@@ -646,7 +646,6 @@ isc_stdio_tell
 isc_stdio_write
 isc_stdtime_get
 isc_string_append
-isc_string_append_truncate
 isc_string_copy
 isc_string_copy_truncate
 isc_string_printf
@@ -656,7 +655,6 @@ isc_string_separate
 isc_string_strcasestr
 isc_string_strlcat
 isc_string_strlcpy
-isc_string_touint64
 isc_symtab_count
 isc_symtab_create
 isc_symtab_define
