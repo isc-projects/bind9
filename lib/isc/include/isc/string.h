@@ -32,21 +32,6 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_uint64_t
-isc_string_touint64(char *source, char **endp, int base);
-/*%<
- * Convert the string pointed to by 'source' to isc_uint64_t.
- *
- * On successful conversion 'endp' points to the first character
- * after conversion is complete.
- *
- * 'base': 0 or 2..36
- *
- * If base is 0 the base is computed from the string type.
- *
- * On error 'endp' points to 'source'.
- */
-
 isc_result_t
 isc_string_copy(char *target, size_t size, const char *source);
 /*
@@ -112,23 +97,6 @@ isc_string_append(char *target, size_t size, const char *source);
  *	ISC_R_SUCCESS  -- 'source' was successfully appended to 'target'.
  *	ISC_R_NOSPACE  -- 'source' could not be appended since 'target'
  *	                  is too small.
- */
-
-void
-isc_string_append_truncate(char *target, size_t size, const char *source);
-/*
- * Append the string pointed to by 'source' to 'target' which is a
- * pointer to a NUL terminated string of at least 'size' bytes.
- *
- * Requires:
- *	'target' is a pointer to a NUL terminated char[] of at
- *	least 'size' bytes.
- *	'size' an integer > 0.
- *	'source' == NULL or points to a NUL terminated string.
- *
- * Ensures:
- *	'target' will be a NUL terminated string of no more
- *	than 'size' bytes (including NUL).
  */
 
 isc_result_t

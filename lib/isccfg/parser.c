@@ -752,7 +752,7 @@ cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 
-	percent = isc_string_touint64(TOKEN_STRING(pctx), &endp, 10);
+	percent = strtoull(TOKEN_STRING(pctx), &endp, 10);
 	if (*endp != '%' || *(endp+1) != 0) {
 		cfg_parser_error(pctx, CFG_LOG_NEAR,
 				 "expected percentage");
