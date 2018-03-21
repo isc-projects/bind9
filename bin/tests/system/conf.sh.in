@@ -234,6 +234,12 @@ echo_i() {
     done
 }
 
+echo_ic() {
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:  $LINE"
+    done
+}
+
 cat_i() {
     while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
