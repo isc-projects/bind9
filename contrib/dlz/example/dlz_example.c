@@ -27,14 +27,6 @@
 
 #include "../modules/include/dlz_minimal.h"
 
-#ifdef WIN32
-#define STRTOK_R(a, b, c)	strtok_s(a, b, c)
-#elif defined(_REENTRANT)
-#define STRTOK_R(a, b, c)       strtok_r(a, b, c)
-#else
-#define STRTOK_R(a, b, c)       strtok(a, b)
-#endif
-
 #define CHECK(x) \
 	do { \
 		result = (x); \
@@ -675,23 +667,23 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	 * for the type used by dig
 	 */
 
-	full_name = STRTOK_R(buf, "\t", &saveptr);
+	full_name = strtok_r(buf, "\t", &saveptr);
 	if (full_name == NULL)
 		goto error;
 
-	ttlstr = STRTOK_R(NULL, "\t", &saveptr);
+	ttlstr = strtok_r(NULL, "\t", &saveptr);
 	if (ttlstr == NULL)
 		goto error;
 
-	dclass = STRTOK_R(NULL, "\t", &saveptr);
+	dclass = strtok_r(NULL, "\t", &saveptr);
 	if (dclass == NULL)
 		goto error;
 
-	type = STRTOK_R(NULL, "\t", &saveptr);
+	type = strtok_r(NULL, "\t", &saveptr);
 	if (type == NULL)
 		goto error;
 
-	data = STRTOK_R(NULL, "\t", &saveptr);
+	data = strtok_r(NULL, "\t", &saveptr);
 	if (data == NULL)
 		goto error;
 
