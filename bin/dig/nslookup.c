@@ -814,12 +814,12 @@ addlookup(char *opt) {
 
 static void
 do_next_command(char *input) {
-	char *ptr, *arg;
+	char *ptr, *arg, *last;
 
-	ptr = next_token(&input, " \t\r\n");
-	if (ptr == NULL)
+	if ((ptr = strtok_r(input, " \t\r\n", &last)) == NULL) {
 		return;
-	arg = next_token(&input, " \t\r\n");
+	}
+	arg = strtok_r(NULL, " \t\r\n", &last);
 	if ((strcasecmp(ptr, "set") == 0) &&
 	    (arg != NULL))
 		setoption(arg);
