@@ -33,24 +33,6 @@
 ISC_LANG_BEGINDECLS
 
 char *
-isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
-/*
- * Copy the region pointed to by r to a NUL terminated string
- * allocated from the memory context pointed to by mctx.
- *
- * The result should be deallocated using isc_mem_free()
- *
- * Requires:
- *	'mctx' is a point to a valid memory context.
- *	'source' is a pointer to a valid region.
- *
- * Returns:
- *	a pointer to a NUL terminated string or
- *	NULL if memory for the copy could not be allocated
- *
- */
-
-char *
 isc_string_separate(char **stringp, const char *delim);
 
 #ifdef ISC_PLATFORM_NEEDSTRSEP
