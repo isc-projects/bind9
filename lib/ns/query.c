@@ -5379,6 +5379,12 @@ ns__query_start(query_ctx_t *qctx) {
 	return (query_lookup(qctx));
 }
 
+/*%
+ * Check the configured trust anchors for a root zone trust anchor
+ * with a key id that matches qctx->client->query.kskroll_keyid.
+ *
+ *  Return ISC_TRUE when found otherwise return ISC_FALSE.
+ */
 static isc_boolean_t
 has_ta(query_ctx_t *qctx) {
 	dns_keytable_t *keytable = NULL;
