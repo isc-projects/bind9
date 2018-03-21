@@ -55,7 +55,7 @@ do
 done
 
 n=`expr $n + 1`
-echo_i "checking COOKIE token returned to empty COOKIE option ($n)"
+echo_i "checking COOKIE token is returned to empty COOKIE option ($n)"
 ret=0
 $DIG $DIGOPTS +cookie version.bind txt ch @10.53.0.1 > dig.out.test$n
 grep COOKIE: dig.out.test$n > /dev/null || ret=1
