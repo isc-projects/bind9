@@ -1280,8 +1280,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 			    dir.entry.name[bnamelen] == '.')
 			{
 				char *ename = &dir.entry.name[bnamelen + 1];
-				version = isc_string_touint64(ename,
-							      &digit_end, 10);
+				version = strtoull(ename, &digit_end, 10);
 				if (*digit_end == '\0') {
 					int i = 0;
 					while (i < versions &&
@@ -1316,7 +1315,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 		    dir.entry.name[bnamelen] == '.')
 		{
 			char *ename = &dir.entry.name[bnamelen + 1];
-			version = isc_string_touint64(ename, &digit_end, 10);
+			version = strtoull(ename, &digit_end, 10);
 			/*
 			 * Remove any backup files that exceed versions.
 			 */
