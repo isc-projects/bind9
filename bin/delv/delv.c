@@ -943,18 +943,6 @@ cleanup:
 	return (result);
 }
 
-static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
-
 static isc_result_t
 parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 	   const char *desc) {
@@ -974,22 +962,20 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 static void
 plus_option(char *option) {
 	isc_result_t result;
-	char option_store[256];
-	char *cmd, *value, *ptr;
+	char *cmd, *value, *last;
 	isc_boolean_t state = ISC_TRUE;
 
-	strlcpy(option_store, option, sizeof(option_store));
-	ptr = option_store;
-	cmd = next_token(&ptr,"=");
+	cmd = strtok_r(option, "=", &last);
 	if (cmd == NULL) {
-		printf(";; Invalid option %s\n", option_store);
+		printf(";; Invalid option %s\n", option);
 		return;
-	}
-	value = ptr;
+	}	
 	if (strncasecmp(cmd, "no", 2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;
 	}
+
+	value = strtok_r(NULL, "\0", &last);
 
 #define FULLCHECK(A) \
 	do { \
