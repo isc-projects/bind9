@@ -5112,6 +5112,9 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	query_ctx_t qctx;
 
 	qctx_init(client, NULL, qtype, &qctx);
+	client->query.kskroll_keyid = 0;
+	client->query.kskroll_is_ta = ISC_FALSE;
+	client->query.kskroll_not_ta = ISC_FALSE;
 	query_trace(&qctx);
 
 	/*
