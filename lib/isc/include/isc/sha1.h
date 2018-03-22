@@ -34,9 +34,6 @@
 
 typedef struct {
 	EVP_MD_CTX *ctx;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	EVP_MD_CTX _ctx;
-#endif
 } isc_sha1_t;
 
 #elif HAVE_PKCS11
