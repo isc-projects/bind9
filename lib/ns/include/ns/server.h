@@ -76,6 +76,10 @@ struct ns_server {
 	ns_cookiealg_t		cookiealg;
 	ns_altsecretlist_t	altsecrets;
 
+	/*% Additional truncated response */
+	isc_uint32_t		atrsize;
+	isc_uint32_t		atrdelay;
+
 	/*% Quotas */
 	isc_quota_t		recursionquota;
 	isc_quota_t		tcpquota;

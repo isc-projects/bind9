@@ -8836,6 +8836,22 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "atr-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->sctx->atrsize = cfg_obj_asuint32(obj);
+	if (server->sctx->atrsize > 65536U) {
+		server->sctx->atrsize = 65536U;
+	}
+
+	obj = NULL;
+	result = named_config_get(maps, "atr-delay", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	server->sctx->atrdelay = cfg_obj_asuint32(obj);
+	if (server->sctx->atrdelay > 4000U) {
+		server->sctx->atrdelay = 4000U;
+	}
+
+	obj = NULL;
 	result = named_config_get(maps, "cookie-algorithm", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {

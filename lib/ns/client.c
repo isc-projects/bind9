@@ -238,6 +238,7 @@ LIBNS_EXTERNAL_DATA unsigned int ns_client_requests;
 static void read_settimeout(ns_client_t *client, isc_boolean_t newconn);
 static void client_read(ns_client_t *client, isc_boolean_t newconn);
 static void client_accept(ns_client_t *client);
+static void client_send(ns_client_t *client);
 static void client_udprecv(ns_client_t *client);
 static void clientmgr_destroy(ns_clientmgr_t *manager);
 static isc_boolean_t exit_check(ns_client_t *client);
@@ -612,6 +613,9 @@ exit_check(ns_client_t *client) {
 		if (client->delaytimer != NULL)
 			isc_timer_detach(&client->delaytimer);
 
+		if (client->atrdelaytimer != NULL)
+			isc_timer_detach(&client->atrdelaytimer);
+
 		if (client->tcpbuf != NULL)
 			isc_mem_put(client->mctx, client->tcpbuf,
 				    TCP_BUFFER_SIZE);
@@ -824,6 +828,39 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	(void)exit_check(client);
 }
 
+/*
+ * Completes the sending of a delayed additional truncated response.
+ */
+static void
+client_atrdelay(isc_task_t *task, isc_event_t *event) {
+	ns_client_t *client;
+
+	REQUIRE(event != NULL);
+	REQUIRE(event->ev_type == ISC_TIMEREVENT_LIFE ||
+		event->ev_type == ISC_TIMEREVENT_IDLE);
+	client = event->ev_arg;
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(task == client->task);
+	REQUIRE(client->atrdelaytimer != NULL);
+
+	UNUSED(task);
+
+	CTRACE("client_atrdelay");
+
+	isc_event_free(&event);
+	isc_timer_detach(&client->atrdelaytimer);
+
+	/*
+	 * Here, set TC=1 so that the reply sent does not have any
+	 * answer, auth sections, and also ensures that we don't loop
+	 * and send ATR again.
+	 */
+	client->message->flags |= DNS_MESSAGEFLAG_TC;
+
+	client_send(client);
+
+	ns_client_detach(&client);
+}
 
 static void
 client_senddone(isc_task_t *task, isc_event_t *event) {
@@ -856,7 +893,39 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 		client->tcpbuf = NULL;
 	}
 
-	ns_client_next(client, ISC_R_SUCCESS);
+	/*
+	 * If the successfully sent reply message over UDP was not
+	 * truncated and also too large, send additional truncated
+	 * response (draft-song-atr-large-resp-00).
+	 */
+	if ((sevent->result == ISC_R_SUCCESS) && (!TCP_CLIENT(client)) &&
+	    ((client->message->flags & DNS_MESSAGEFLAG_TC) == 0) &&
+	    (client->respsize > client->sctx->atrsize))
+	{
+		ns_client_t *dummy = NULL;
+		isc_result_t result;
+		isc_interval_t interval;
+
+		ns_client_attach(client, &dummy);
+		if (client->sctx->atrdelay >= 1000)
+			isc_interval_set(&interval,
+					 client->sctx->atrdelay / 1000U,
+					 ((client->sctx->atrdelay % 1000U) *
+					  1000000U));
+		else
+			isc_interval_set(&interval, 0,
+					 client->sctx->atrdelay * 1000000U);
+		result = isc_timer_create(client->manager->timermgr,
+					  isc_timertype_once, NULL, &interval,
+					  client->task, client_atrdelay,
+					  client, &client->atrdelaytimer);
+		if (result != ISC_R_SUCCESS) {
+			ns_client_detach(&dummy);
+			ns_client_next(client, ISC_R_SUCCESS);
+		}
+	} else {
+		ns_client_next(client, ISC_R_SUCCESS);
+	}
 }
 
 /*%
@@ -979,6 +1048,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	}
 
 	isc_buffer_usedregion(buffer, &r);
+	client->respsize = r.length;
 
 	/*
 	 * If this is a UDP client and the IPv6 packet can't be
@@ -2968,6 +3038,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->timerset = ISC_FALSE;
 
 	client->delaytimer = NULL;
+	client->atrdelaytimer = NULL;
 
 	client->message = NULL;
 	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
@@ -3011,6 +3082,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->nctls = 0;
 	client->references = 0;
 	client->attributes = 0;
+	client->respsize = 0U;
 	client->view = NULL;
 	client->dispatch = NULL;
 	client->udpsocket = NULL;

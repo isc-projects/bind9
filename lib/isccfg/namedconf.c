@@ -1857,6 +1857,8 @@ view_clauses[] = {
 	{ "allow-recursion-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
 	  CFG_CLAUSEFLAG_OBSOLETE },
+	{ "atr-size", &cfg_type_uint32, 0 },
+	{ "atr-delay", &cfg_type_uint32, 0 },
 	{ "attach-cache", &cfg_type_astring, 0 },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },
 	{ "cache-file", &cfg_type_qstring, 0 },
