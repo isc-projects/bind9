@@ -307,14 +307,14 @@ idna_enabled_test() {
 
 idna_disabled_test() {
     echo_i "IDNA is disabled, only case mapping tests will be performed"
-    case_preservation_test
+    ascii_case_preservation_test
 }
 
 
 # Main test begins here
 
 $FEATURETEST --with-idn
-if [ $? -eq 1 ]; then
+if [ $? -eq 0 ]; then
     idna_enabled_test
 else
     idna_disabled_test
