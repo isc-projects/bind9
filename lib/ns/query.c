@@ -6470,13 +6470,32 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
  * Check if a kskroll SERVFAIL should be returned.
  */
 static isc_boolean_t
-kskroll_return_servfail(query_ctx_t *qctx) {
-	if (!qctx->is_zone &&
-	    qctx->rdataset->trust == dns_trust_secure &&
-	    ((qctx->client->query.kskroll_is_ta && !has_ta(qctx)) ||
-	     (qctx->client->query.kskroll_not_ta && has_ta(qctx))))
+kskroll_return_servfail(query_ctx_t *qctx, isc_result_t result) {
+
+	if (!qctx->client->query.kskroll_is_ta &&
+	    !qctx->client->query.kskroll_not_ta)
 	{
-		return (ISC_TRUE);
+		return (ISC_FALSE);
+	}
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		if (!qctx->is_zone &&
+		    qctx->rdataset->trust == dns_trust_secure &&
+		    ((qctx->client->query.kskroll_is_ta && !has_ta(qctx)) ||
+		     (qctx->client->query.kskroll_not_ta && has_ta(qctx))))
+		{
+			return (ISC_TRUE);
+		}
+		/*
+		 * Disable special processing after following a CNAME/DNAME.
+		 */
+		qctx->client->query.kskroll_is_ta = ISC_FALSE;
+		qctx->client->query.kskroll_not_ta = ISC_FALSE;
 	}
 	return (ISC_FALSE);
 }
@@ -6504,23 +6523,14 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			return (query_done(qctx));
 	}
 
-	if (qctx->client->query.kskroll_is_ta ||
-	    qctx->client->query.kskroll_not_ta)
-	{
-		switch (result) {
-		case ISC_R_SUCCESS:
-		case DNS_R_CNAME:
-		case DNS_R_DNAME:
-		case DNS_R_NCACHENXDOMAIN:
-		case DNS_R_NCACHENXRRSET:
-			if (kskroll_return_servfail(qctx)) {
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-				return (query_done(qctx));
-			} else {
-				qctx->client->query.kskroll_is_ta = ISC_FALSE;
-				qctx->client->query.kskroll_not_ta = ISC_FALSE;
-			}
-		}
+	/*
+	 * Perform special handling of "kskroll-sentinel-is-ta-<keyid>"
+	 * and "kskroll-sentinel-not-ta-<keyid>" labels if required by
+	 * returning SERVFAIL.
+	 */
+	if (kskroll_return_servfail(qctx, result)) {
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		return (query_done(qctx));
 	}
 
 	switch (result) {
