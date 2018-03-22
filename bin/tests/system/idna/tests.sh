@@ -52,8 +52,28 @@ SYSTEMTESTTOP=..
 # 1. http://www.unicode.org/reports/tr46/#Deviations
 # 2. http://www.unicode.org/reports/tr46/#IDNAComparison
 
+# Setup UTF-8
+if test -z "$LC_ALL" || test "$LC_ALL" = "C"; then
+    # try C.UTF-8
+    LOCALE="$(locale -a | grep -E "^C\\.(UTF-8|utf8)$")"
+
+    # try en_US.UTF-8
+    if [ -z "$LOCALE" ]; then
+	LOCALE="$(locale -a | grep -E "^en_US\\.(UTF-8|utf8)$")"
+    fi
+
+    # try any UTF-8 locale
+    if [ -z "$LOCALE" ]; then
+	LOCALE="$(locale -a | grep -E "(UTF-8|utf8)$" | head -1)"
+    fi
+
+    if [ -n "$LOCALE" ]; then
+	export LC_ALL="$LOCALE"
+    fi
+fi
+
 # Using dig insecure mode as we are not testing DNSSEC here
-DIGCMD="$DIG -i -p ${PORT} @10.53.0.1"
+DIGCMD="LC_ALL=C.UTF-8 $DIG -i -p ${PORT} @10.53.0.1"
 
 # Initialize test count and status return
 n=0

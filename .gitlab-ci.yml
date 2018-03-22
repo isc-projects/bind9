@@ -1,6 +1,6 @@
 variables:
   DEBIAN_FRONTEND: noninteractive
-  LC_ALL: C
+  LC_ALL: C.UTF-8
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: oerdnj/bind9
   CCACHE_DIR: "/ccache"
