@@ -4213,6 +4213,35 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 
 	<variablelist>
 
+	  <varlistentry>
+	    <term><command>atr-size</command></term>
+	    <listitem>
+	      <para>
+		For UDP, specifies the minimum size of the DNS reply
+		message for which an additional truncated response (ATR)
+		will be sent after a delay of
+		<command>atr-delay</command> milliseconds. If a large
+		DNS response message is lost somehow, this feature the
+		delayed truncated response would still come through,
+		enabling quick progress to TCP. The default value is
+		65536 which effectively disables this facility.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><command>atr-delay</command></term>
+	    <listitem>
+	      <para>
+		Specifies the delay in milliseconds after which
+		additional truncated messages (ATR) are sent. See
+		<command>atr-size</command> for more details. The
+		default value is 100ms, and the maximum allowed is
+		4000ms.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
 	    <varlistentry>
 	      <term><command>attach-cache</command></term>
 	      <listitem>
