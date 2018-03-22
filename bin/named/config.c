@@ -46,6 +46,8 @@
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
+	atr-size 65536;\n\
+	atr-delay 100;\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"

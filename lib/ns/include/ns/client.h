@@ -111,6 +111,8 @@ struct ns_client {
 	isc_boolean_t		tcpmsg_valid;
 	isc_timer_t *		timer;
 	isc_timer_t *		delaytimer;
+	isc_timer_t *		atrdelaytimer;
+	isc_uint32_t            respsize;
 	isc_boolean_t 		timerset;
 	dns_message_t *		message;
 	isc_socketevent_t *	sendevent;

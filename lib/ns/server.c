@@ -105,6 +105,9 @@ ns_server_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 
 	sctx->matchingview = matchingview;
 
+	sctx->atrsize = 65536;
+	sctx->atrdelay = 100;
+
 	ISC_LIST_INIT(sctx->altsecrets);
 
 	sctx->magic = SCTX_MAGIC;
