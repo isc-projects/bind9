@@ -10,6 +10,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+# Set known locale for the tests
+LC_ALL="en_US.UTF-8"
+export LC_ALL
 
 
 # This set of tests check the behavior of the IDNA options in "dig".
