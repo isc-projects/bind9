@@ -5149,10 +5149,10 @@ kskroll_sentinel(query_ctx_t *qctx) {
 	unsigned int v = 0;
 	int i;
 
-	if (qctx->client->query.qname->length > 29 && ndata[0] == 28 &&
-	    strncasecmp(ndata + 1, "kskroll-sentinel-is-ta-", 23) == 0)
+	if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
+	    strncasecmp(ndata + 1, "root-key-sentinel-is-ta-", 24) == 0)
 	{
-		ndata += 24;
+		ndata += 25;
 		for (i = 0; i < 5; i++) {
 			if (ndata[i] < '0' || ndata[i] > '9') {
 				return;
@@ -5172,11 +5172,11 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		qctx->findcoveringnsec = ISC_FALSE;
 		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-			      "kskroll-sentinel-is-ta query label found");
-	} else if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
-	           strncasecmp(ndata + 1, "kskroll-sentinel-not-ta-", 24) == 0)
+			      "root-key-sentinel-is-ta query label found");
+	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
+	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
 	{
-		ndata += 25;
+		ndata += 26;
 		for (i = 0; i < 5; i++) {
 			if (ndata[i] < '0' || ndata[i] > '9') {
 				return;
@@ -5196,7 +5196,7 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		qctx->findcoveringnsec = ISC_FALSE;
 		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-			      "kskroll-sentinel-not-ta query label found");
+			      "root-key-sentinel-not-ta query label found");
 	}
 }
 
@@ -6524,8 +6524,8 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	/*
-	 * Perform special handling of "kskroll-sentinel-is-ta-<keyid>"
-	 * and "kskroll-sentinel-not-ta-<keyid>" labels if required by
+	 * Perform special handling of "root-key-sentinel-is-ta-<keyid>"
+	 * and "root-key-sentinel-not-ta-<keyid>" labels if required by
 	 * returning SERVFAIL.
 	 */
 	if (kskroll_return_servfail(qctx, result)) {
