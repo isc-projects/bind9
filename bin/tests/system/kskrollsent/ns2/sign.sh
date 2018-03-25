@@ -24,9 +24,9 @@ keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
 keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
-echo kskroll-sentinel-is-ta-$oldid A 10.53.0.1 >> $zonefile
-echo kskroll-sentinel-not-ta-$oldid A 10.53.0.2 >> $zonefile
-echo kskroll-sentinel-is-ta-$newid A 10.53.0.3 >> $zonefile
-echo kskroll-sentinel-not-ta-$newid A 10.53.0.4 >> $zonefile
+echo root-key-sentinel-is-ta-$oldid A 10.53.0.1 >> $zonefile
+echo root-key-sentinel-not-ta-$oldid A 10.53.0.2 >> $zonefile
+echo root-key-sentinel-is-ta-$newid A 10.53.0.3 >> $zonefile
+echo root-key-sentinel-not-ta-$newid A 10.53.0.4 >> $zonefile
 
 $SIGNER -P -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null

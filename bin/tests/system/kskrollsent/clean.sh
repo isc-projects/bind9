@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+rm -f dig.out.ns?.test*
 rm -f */dsset-*
 rm -f */named.conf
 rm -f */named.memstats
