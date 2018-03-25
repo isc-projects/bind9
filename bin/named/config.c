@@ -167,7 +167,6 @@ options {\n\
 "	geoip-use-ecs yes;\n"
 #endif
 "	glue-cache yes;\n\
-	kskroll-sentinel-enable yes;\n\
 	lame-ttl 600;\n"
 #ifdef HAVE_LMDB
 "	lmdb-mapsize 32M;\n"
@@ -196,6 +195,7 @@ options {\n\
 	resolver-nonbackoff-tries 3;\n\
 	resolver-retry-interval 800; /* in milliseconds */\n\
 #	rfc2308-type1 <obsolete>;\n\
+	root-key-sentinel-enable yes;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\

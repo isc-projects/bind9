@@ -4692,7 +4692,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->trust_anchor_telemetry = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = named_config_get(maps, "kskroll-sentinel-enable", &obj);
+	result = named_config_get(maps, "root-key-sentinel-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->kskroll_sentinel = cfg_obj_asboolean(obj);
 

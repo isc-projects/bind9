@@ -197,7 +197,6 @@ options {
             <boolean> );
         keep-response-order { <address_match_element>; ... };
         key-directory <quoted_string>;
-        kskroll-sentinel-enable <boolean>;
         lame-ttl <ttlval>;
         listen-on [ port <integer> ] [ dscp
             <integer> ] {
@@ -319,6 +318,7 @@ options {
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-key-sentinel-enable <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         secroots-file <quoted_string>;
@@ -540,7 +540,6 @@ view <string> [ <class> ] {
                 secret <string>;
         }; // may occur multiple times
         key-directory <quoted_string>;
-        kskroll-sentinel-enable <boolean>;
         lame-ttl <ttlval>;
         lmdb-mapsize <sizeval>; // non-operational
         maintain-ixfr-base <boolean>; // obsolete
@@ -645,6 +644,7 @@ view <string> [ <class> ] {
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
+        root-key-sentinel-enable <boolean>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
