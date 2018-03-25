@@ -53,127 +53,127 @@ grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check test zone resolves with 'kskroll-sentinel-enable yes;'" " (expect NOERROR)"
+newtest "check test zone resolves with 'root-key-sentinel-enable yes;'" " (expect NOERROR)"
 $DIG $DIGOPTS @10.53.0.3 example SOA > dig.out.ns3.test$n
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-is-ta with old ta and" " 'kskroll-sentinel-enable yes;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-${oldid}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with old ta and" " 'root-key-sentinel-enable yes;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-${oldid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with old ta and" " 'kskroll-sentinel-enable yes;' (expect SERVFAIL)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-${oldid}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with old ta and" " 'root-key-sentinel-enable yes;' (expect SERVFAIL)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${oldid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-is-ta with new ta and" " 'kskroll-sentinel-enable yes;' (expect SERVFAIL)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with new ta and" " 'root-key-sentinel-enable yes;' (expect SERVFAIL)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with new ta and" " 'kskroll-sentinel-enable yes;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with new ta and" " 'root-key-sentinel-enable yes;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check kskroll-sentinel-is-ta with bad ta and" " 'kskroll-sentinel-enable yes;' (expect SERVFAIL)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-${badid}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with bad ta and" " 'root-key-sentinel-enable yes;' (expect SERVFAIL)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-${badid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with bad ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-${bad}.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with bad ta and" " 'root-key-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${bad}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check kskroll-sentinel-is-ta with out-of-range ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-72345.example A > dig.out.ns3.test$n || ret=1
-grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-newtest "check kskroll-sentinel-not-ta with out-of-range ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-72345.example A > dig.out.ns3.test$n || ret=1
-grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-
-newtest "check kskroll-sentinel-is-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-is-ta-1234.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with out-of-range ta and" " 'root-key-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-72345.example A > dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 kskroll-sentinel-not-ta-1234.example A > dig.out.ns3.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with out-of-range ta and" " 'root-key-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-72345.example A > dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check test zone resolves with 'kskroll-sentinel-enable no;'" " (expect NOERROR)"
+newtest "check root-key-sentinel-is-ta with no-zero-pad ta and" " 'root-key-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-1234.example A > dig.out.ns3.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+newtest "check root-key-sentinel-not-ta with no-zero-pad ta and" " 'root-key-sentinel-enable yes;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-1234.example A > dig.out.ns3.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
+newtest "check test zone resolves with 'root-key-sentinel-enable no;'" " (expect NOERROR)"
 $DIG $DIGOPTS @10.53.0.4 example SOA > dig.out.ns4.test$n
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-is-ta with old ta and" " 'kskroll-sentinel-enable no;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-${oldid}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with old ta and" " 'root-key-sentinel-enable no;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-is-ta-${oldid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with old ta and" " 'kskroll-sentinel-enable no;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-${oldid}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with old ta and" " 'root-key-sentinel-enable no;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-not-ta-${oldid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-is-ta with new ta and" " 'kskroll-sentinel-enable no;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-${newid}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with new ta and" " 'root-key-sentinel-enable no;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-is-ta-${newid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with new ta and" " 'kskroll-sentinel-enable no;' (expect NOERROR)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-${newid}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with new ta and" " 'root-key-sentinel-enable no;' (expect NOERROR)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-not-ta-${newid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check kskroll-sentinel-is-ta with bad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-${badid}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with bad ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-is-ta-${badid}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with bad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-${bad}.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with bad ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-not-ta-${bad}.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
-newtest "check kskroll-sentinel-is-ta with out-of-range ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-72345.example A > dig.out.ns4.test$n || ret=1
-grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-newtest "check kskroll-sentinel-not-ta with out-of-range ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-72345.example A > dig.out.ns4.test$n || ret=1
-grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-
-newtest "check kskroll-sentinel-is-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-is-ta-1234.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-is-ta with out-of-range ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-is-ta-72345.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check kskroll-sentinel-not-ta with no-zero-pad ta and" " 'kskroll-sentinel-enable no;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.4 kskroll-sentinel-not-ta-1234.example A > dig.out.ns4.test$n || ret=1
+newtest "check root-key-sentinel-not-ta with out-of-range ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-not-ta-72345.example A > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
+newtest "check root-key-sentinel-is-ta with no-zero-pad ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-is-ta-1234.example A > dig.out.ns4.test$n || ret=1
+grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+newtest "check root-key-sentinel-not-ta with no-zero-pad ta and" " 'root-key-sentinel-enable no;' (expect NXDOMAIN)"
+$DIG $DIGOPTS @10.53.0.4 root-key-sentinel-not-ta-1234.example A > dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
