@@ -1,5 +1,5 @@
-4915.	[func]		Add KSK roll sentinel support. To disable, add
-			'kskroll-sentinel-enable no;' to named.conf. [GL #37]
+4915.	[func]		Add root key sentinel support. To disable, add
+			'root-key-sentinel-enable no;' to named.conf. [GL #37]
 
 4914.	[bug]		A bug in zone database reference counting could lead to
 			a crash when multiple versions of a slave zone were
