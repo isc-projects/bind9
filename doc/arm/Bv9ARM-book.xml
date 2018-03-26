@@ -5844,7 +5844,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>root-key-sentinel-enable</command></term>
+	      <term><command>root-key-sentinel</command></term>
 	      <listitem>
 		<para>
 		  Respond to root key sentinel probes as described in
