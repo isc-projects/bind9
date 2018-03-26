@@ -95,17 +95,17 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue inline integrity ixfr keepalive \
-	kskrollsent legacy limits logfileconfig \
-        masterfile masterformat metadata mkeys \
-        names notify nslookup nsupdate nzd2nzf \
-        padding pending pipelined \
-        reclimit redirect resolver rndc rpz rpzrecurse \
-        rrchecker rrl rrsetorder rsabigexponent runtime \
-        serve-stale sfcache smartsign sortlist \
-        spf staticstub statistics statschannel stub synthfromdnssec \
-        tcp tools tsig tsiggss \
-        unknown upforwd verify views wildcard \
-        xfer xferquota zero zonechecks"
+	legacy limits logfileconfig \
+	masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf \
+	padding pending pipelined \
+	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	serve-stale sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub synthfromdnssec \
+	tcp tools tsig tsiggss \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
