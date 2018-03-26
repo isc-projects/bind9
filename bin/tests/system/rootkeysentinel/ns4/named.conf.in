@@ -21,7 +21,7 @@ options {
 	notify yes;
 	dnssec-enable yes;
 	dnssec-validation yes;
-	root-key-sentinel-enable no;
+	root-key-sentinel no;
 };
 
 zone "." {
