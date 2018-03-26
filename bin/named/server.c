@@ -4694,7 +4694,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "root-key-sentinel-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->kskroll_sentinel = cfg_obj_asboolean(obj);
+	view->root_key_sentinel = cfg_obj_asboolean(obj);
 
 	CHECK(configure_view_acl(vconfig, config, named_g_config,
 				 "allow-query-cache-on", NULL, actx,

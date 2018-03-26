@@ -701,9 +701,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.isreferral = ISC_FALSE;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = ISC_UINT32_MAX;
-	client->query.kskroll_keyid = 0;
-	client->query.kskroll_is_ta = ISC_FALSE;
-	client->query.kskroll_not_ta = ISC_FALSE;
+	client->query.root_key_sentinel_keyid = 0;
+	client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	client->query.root_key_sentinel_not_ta = ISC_FALSE;
 }
 
 static void
@@ -5137,14 +5137,14 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 }
 
 /*%
- * Find out if the query is for a ksk roll sentinel and if so record the
+ * Find out if the query is for a root key sentinel and if so record the
  * type of ksk roll sentinel query and the key id that is being checked
  * for.
  *
  * The code is assuming a zero padded decimal field of width 5.
  */
 static void
-kskroll_sentinel(query_ctx_t *qctx) {
+root_key_sentinel(query_ctx_t *qctx) {
 	const char *ndata = (const char *)qctx->client->query.qname->ndata;
 	unsigned int v = 0;
 	int i;
@@ -5163,8 +5163,8 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		if (v > 65535U) {
 			return;
 		}
-		qctx->client->query.kskroll_keyid = v;
-		qctx->client->query.kskroll_is_ta = ISC_TRUE;
+		qctx->client->query.root_key_sentinel_keyid = v;
+		qctx->client->query.root_key_sentinel_is_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
 		 * negative caching.
@@ -5187,8 +5187,8 @@ kskroll_sentinel(query_ctx_t *qctx) {
 		if (v > 65535U) {
 			return;
 		}
-		qctx->client->query.kskroll_keyid = v;
-		qctx->client->query.kskroll_not_ta = ISC_TRUE;
+		qctx->client->query.root_key_sentinel_keyid = v;
+		qctx->client->query.root_key_sentinel_not_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
 		 * negative caching.
@@ -5243,11 +5243,11 @@ ns__query_start(query_ctx_t *qctx) {
 	/*
 	 * Setup for KSK roll sentinel processing.
 	 */
-	if (qctx->client->view->kskroll_sentinel &&
+	if (qctx->client->view->root_key_sentinel &&
 	    (qctx->qtype == dns_rdatatype_a ||
 	     qctx->qtype == dns_rdatatype_aaaa))
 	{
-		 kskroll_sentinel(qctx);
+		 root_key_sentinel(qctx);
 	}
 
 	/*
@@ -5393,7 +5393,7 @@ ns__query_start(query_ctx_t *qctx) {
 
 /*%
  * Check the configured trust anchors for a root zone trust anchor
- * with a key id that matches qctx->client->query.kskroll_keyid.
+ * with a key id that matches qctx->client->query.root_key_sentinel_keyid.
  *
  *  Return ISC_TRUE when found otherwise return ISC_FALSE.
  */
@@ -5412,7 +5412,7 @@ has_ta(query_ctx_t *qctx) {
 	while (result == ISC_R_SUCCESS) {
 		dns_keynode_t *nextnode = NULL;
 		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
-		if (keyid == qctx->client->query.kskroll_keyid) {
+		if (keyid == qctx->client->query.root_key_sentinel_keyid) {
 			dns_keytable_detachkeynode(keytable, &keynode);
 			dns_keytable_detach(&keytable);
 			return (ISC_TRUE);
@@ -6467,36 +6467,52 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 }
 
 /*%
- * Check if a kskroll SERVFAIL should be returned.
+ * Check if a root key sentinel SERVFAIL should be returned.
  */
 static isc_boolean_t
-kskroll_return_servfail(query_ctx_t *qctx, isc_result_t result) {
+root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 
-	if (!qctx->client->query.kskroll_is_ta &&
-	    !qctx->client->query.kskroll_not_ta)
+	/*
+	 * Are we looking at a "root-key-sentinel" query?
+	 */
+	if (!qctx->client->query.root_key_sentinel_is_ta &&
+	    !qctx->client->query.root_key_sentinel_not_ta)
 	{
 		return (ISC_FALSE);
 	}
 
+	/*
+	 * We only care about the query if result indicate a we have a
+	 * cached answer.
+	 */
 	switch (result) {
 	case ISC_R_SUCCESS:
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
-		if (!qctx->is_zone &&
-		    qctx->rdataset->trust == dns_trust_secure &&
-		    ((qctx->client->query.kskroll_is_ta && !has_ta(qctx)) ||
-		     (qctx->client->query.kskroll_not_ta && has_ta(qctx))))
-		{
-			return (ISC_TRUE);
-		}
-		/*
-		 * Disable special processing after following a CNAME/DNAME.
-		 */
-		qctx->client->query.kskroll_is_ta = ISC_FALSE;
-		qctx->client->query.kskroll_not_ta = ISC_FALSE;
+		break;
+	default:
+		return (ISC_FALSE);
 	}
+
+	/*
+	 * Do we meet the specified conditions to return SERVFAIL?
+	 */
+	if (!qctx->is_zone &&
+	    qctx->rdataset->trust == dns_trust_secure &&
+	    ((qctx->client->query.root_key_sentinel_is_ta && !has_ta(qctx)) ||
+	     (qctx->client->query.root_key_sentinel_not_ta && has_ta(qctx))))
+	{
+		return (ISC_TRUE);
+	}
+
+	/*
+	 * Disable special processing after following a CNAME/DNAME.
+	 */
+	qctx->client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	qctx->client->query.root_key_sentinel_not_ta = ISC_FALSE;
+
 	return (ISC_FALSE);
 }
 
@@ -6528,7 +6544,7 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	 * and "root-key-sentinel-not-ta-<keyid>" labels if required by
 	 * returning SERVFAIL.
 	 */
-	if (kskroll_return_servfail(qctx, result)) {
+	if (root_key_sentinel_return_servfail(qctx, result)) {
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 		return (query_done(qctx));
 	}
