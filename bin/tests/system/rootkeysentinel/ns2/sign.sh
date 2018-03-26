@@ -10,7 +10,7 @@
 # information regarding copyright ownership.
 
 oldid=${1:-00000}
-newid=`expr ${oldid} + 1000 % 65536`
+newid=`expr \( ${oldid} + 1000 \) % 65536`
 newid=`expr "0000${newid}" : '.*\(.....\)$'`
 
 SYSTEMTESTTOP=../..
