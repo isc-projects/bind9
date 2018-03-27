@@ -3080,7 +3080,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 #ifdef DNS_RBT_USEHASH
 			node->locknum = node->hashval % rbtdb->node_lock_count;
 #else
-			node->locknum = dns_name_hash(&nodename, ISC_TRUE) %
+			node->locknum = dns_name_hash(&nodename, ISC_FALSE) %
 				rbtdb->node_lock_count;
 #endif
 			if (tree == rbtdb->tree) {
@@ -7397,7 +7397,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 #ifdef DNS_RBT_USEHASH
 		node->locknum = node->hashval % rbtdb->node_lock_count;
 #else
-		node->locknum = dns_name_hash(&foundname, ISC_TRUE) %
+		node->locknum = dns_name_hash(&foundname, ISC_FALSE) %
 			rbtdb->node_lock_count;
 #endif
 	}
@@ -8654,7 +8654,7 @@ dns_rbtdb_create
 			rbtdb->node_lock_count;
 #else
 		rbtdb->origin_node->locknum =
-			dns_name_hash(&name, ISC_TRUE) %
+			dns_name_hash(&name, ISC_FALSE) %
 			rbtdb->node_lock_count;
 #endif
 		/*
@@ -8682,7 +8682,7 @@ dns_rbtdb_create
 			rbtdb->node_lock_count;
 #else
 		rbtdb->nsec3_origin_node->locknum =
-			dns_name_hash(&name, ISC_TRUE) %
+			dns_name_hash(&name, ISC_FALSE) %
 			rbtdb->node_lock_count;
 #endif
 	}
