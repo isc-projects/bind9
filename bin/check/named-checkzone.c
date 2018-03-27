@@ -523,8 +523,6 @@ main(int argc, char **argv) {
 		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx)
 			      == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
-		      == ISC_R_SUCCESS);
 
 	dns_result_register();
 
@@ -556,7 +554,6 @@ main(int argc, char **argv) {
 	destroy();
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
-	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 	isc_mem_destroy(&mctx);
 #ifdef _WIN32

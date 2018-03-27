@@ -852,15 +852,6 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = isc_hash_create(named_g_mctx, named_g_entropy,
-				 DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_hash_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -872,13 +863,6 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&named_g_taskmgr);
 	isc_timermgr_destroy(&named_g_timermgr);
 	isc_socketmgr_destroy(&named_g_socketmgr);
-
-	/*
-	 * isc_hash_destroy() cannot be called as long as a resolver may be
-	 * running.  Calling this after isc_taskmgr_destroy() ensures the
-	 * call is safe.
-	 */
-	isc_hash_destroy();
 }
 
 static void

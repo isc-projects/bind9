@@ -58,7 +58,7 @@ isc_boolean_t app_running = ISC_FALSE;
 int ncpus;
 isc_boolean_t debug_mem_record = ISC_TRUE;
 
-static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
+static isc_boolean_t dst_active = ISC_FALSE;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -123,9 +123,6 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
@@ -169,10 +166,6 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 
 void
 dns_test_end(void) {
-	if (hash_active) {
-		isc_hash_destroy();
-		hash_active = ISC_FALSE;
-	}
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = ISC_FALSE;

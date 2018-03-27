@@ -306,9 +306,6 @@ main(int argc, char **argv) {
 
 	result = isc_entropy_create(mctx, &ectx);
 	check_result(result, "isc_entropy_create()");
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	check_result(result, "isc_hash_create()");
-
 	result = isc_log_create(mctx, &lctx, &lcfg);
 	check_result(result, "isc_log_create()");
 	isc_log_setcontext(lctx);
@@ -418,7 +415,6 @@ main(int argc, char **argv) {
 
 	isc_log_destroy(&lctx);
 
-	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 
 	isc_mempool_destroy(&cmp);
