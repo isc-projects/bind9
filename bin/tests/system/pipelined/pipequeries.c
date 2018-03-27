@@ -285,7 +285,6 @@ main(int argc, char *argv[]) {
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
 	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
-	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -338,7 +337,6 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);
 
-	isc_hash_destroy();
 	dst_lib_destroy();
 	isc_entropy_detach(&ectx);
 

@@ -265,7 +265,6 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_log_create(mctx, &log, &logconfig));
 
 	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
-	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -344,7 +343,6 @@ main(int argc, char *argv[]) {
 
 	isc_log_destroy(&log);
 
-	isc_hash_destroy();
 	dst_lib_destroy();
 	isc_entropy_detach(&ectx);
 

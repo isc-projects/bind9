@@ -1234,10 +1234,6 @@ main(int argc, char *argv[]) {
 	if (ectx == NULL) {
 		setup_entropy(mctx, NULL, &ectx);
 	}
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS) {
-		fatal("could not initialize hash");
-	}
 	result = dst_lib_init(mctx, ectx,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS) {
@@ -1394,7 +1390,6 @@ main(int argc, char *argv[]) {
 	free_all_sets();
 	cleanup_logging(&lctx);
 	dst_lib_destroy();
-	isc_hash_destroy();
 	cleanup_entropy(&ectx);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);

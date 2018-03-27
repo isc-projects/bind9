@@ -161,9 +161,6 @@ main(int argc, char **argv) {
 	result = isc_entropy_create(mctx, &ectx);
 	check_result(result, "isc_entropy_create");
 
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	check_result(result, "isc_hash_create");
-
 	isc_buffer_init(&b, porigin, strlen(porigin));
 	isc_buffer_add(&b, strlen(porigin));
 	dns_fixedname_init(&forigin);
@@ -278,7 +275,6 @@ main(int argc, char **argv) {
 	PQclear(res);
 	dns_dbiterator_destroy(&dbiter);
 	dns_db_detach(&db);
-	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 	isc_mem_destroy(&mctx);
 	closeandexit(0);

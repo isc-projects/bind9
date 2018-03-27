@@ -594,7 +594,6 @@ dns_name_getlabel
 dns_name_getlabelsequence
 dns_name_hasbuffer
 dns_name_hash
-dns_name_hashbylabel
 dns_name_init
 dns_name_internalwildcard
 dns_name_invalidate
