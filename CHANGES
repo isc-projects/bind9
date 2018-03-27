@@ -1,3 +1,6 @@
+4918.	[cleanup]	Clean up the isc_hash_* namespace and leave only
+			the FNV-1a hash implementation. [GL #188]
+
 4917.	[func]		Support 64 RPZ policy zones by default. [GL #123]
 
 4916.	[func]		Remove IDNA2003 support and the bundled idnkit-1.0
