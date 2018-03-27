@@ -40,7 +40,7 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_entropy_t *ectx = NULL;
 
-static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
+static isc_boolean_t dst_active = ISC_FALSE;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -104,9 +104,6 @@ main(int argc, char **argv) {
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));
 	isc_log_registercategories(lctx, categories);
 	isc_log_setcontext(lctx);
@@ -152,10 +149,6 @@ main(int argc, char **argv) {
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = ISC_FALSE;
-	}
-	if (hash_active) {
-		isc_hash_destroy();
-		hash_active = ISC_FALSE;
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
