@@ -9,6 +9,10 @@
  * information regarding copyright ownership.
  */
 
+/*
+ * 32 bit Fowler/Noll/Vo FNV-1a hash code with modification for BIND
+ */
+
 #include <config.h>
 #include <isc/entropy.h>
 #include <isc/hash.h>
@@ -96,6 +100,8 @@ isc_hash_set_initializer(const void *initializer) {
 	fnv_offset_basis = *((const unsigned int *) initializer);
 }
 
+#define FNV_32_PRIME ((isc_uint32_t)0x01000193)
+
 isc_uint32_t
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,
@@ -107,14 +113,16 @@ isc_hash_function(const void *data, size_t length,
 
 	REQUIRE(length == 0 || data != NULL);
 
-	if (ISC_UNLIKELY(!fnv_initialized))
+	if (ISC_UNLIKELY(!fnv_initialized)) {
 		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+	}
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
 		*previous_hashp : fnv_offset_basis;
 
-	if (length == 0)
+	if (length == 0) {
 		return (hval);
+	}
 
 	bp = (const unsigned char *) data;
 	be = bp + length;
@@ -129,36 +137,14 @@ isc_hash_function(const void *data, size_t length,
 	 */
 
 	if (case_sensitive) {
-		while (bp <= be - 4) {
-			hval ^= bp[0];
-			hval *= 16777619;
-			hval ^= bp[1];
-			hval *= 16777619;
-			hval ^= bp[2];
-			hval *= 16777619;
-			hval ^= bp[3];
-			hval *= 16777619;
-			bp += 4;
-		}
 		while (bp < be) {
 			hval ^= *bp++;
-			hval *= 16777619;
+			hval *= FNV_32_PRIME;
 		}
 	} else {
-		while (bp <= be - 4) {
-			hval ^= maptolower[bp[0]];
-			hval *= 16777619;
-			hval ^= maptolower[bp[1]];
-			hval *= 16777619;
-			hval ^= maptolower[bp[2]];
-			hval *= 16777619;
-			hval ^= maptolower[bp[3]];
-			hval *= 16777619;
-			bp += 4;
-		}
 		while (bp < be) {
 			hval ^= maptolower[*bp++];
-			hval *= 16777619;
+			hval *= FNV_32_PRIME;
 		}
 	}
 
@@ -176,14 +162,16 @@ isc_hash_function_reverse(const void *data, size_t length,
 
 	REQUIRE(length == 0 || data != NULL);
 
-	if (ISC_UNLIKELY(!fnv_initialized))
+	if (ISC_UNLIKELY(!fnv_initialized)) {
 		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+	}
 
 	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
 		*previous_hashp : fnv_offset_basis;
 
-	if (length == 0)
+	if (length == 0) {
 		return (hval);
+	}
 
 	bp = (const unsigned char *) data;
 	be = bp + length;
@@ -198,36 +186,14 @@ isc_hash_function_reverse(const void *data, size_t length,
 	 */
 
 	if (case_sensitive) {
-		while (be >= bp + 4) {
-			be -= 4;
-			hval ^= be[3];
-			hval *= 16777619;
-			hval ^= be[2];
-			hval *= 16777619;
-			hval ^= be[1];
-			hval *= 16777619;
-			hval ^= be[0];
-			hval *= 16777619;
-		}
 		while (--be >= bp) {
 			hval ^= *be;
-			hval *= 16777619;
+			hval *= FNV_32_PRIME;
 		}
 	} else {
-		while (be >= bp + 4) {
-			be -= 4;
-			hval ^= maptolower[be[3]];
-			hval *= 16777619;
-			hval ^= maptolower[be[2]];
-			hval *= 16777619;
-			hval ^= maptolower[be[1]];
-			hval *= 16777619;
-			hval ^= maptolower[be[0]];
-			hval *= 16777619;
-		}
 		while (--be >= bp) {
 			hval ^= maptolower[*be];
-			hval *= 16777619;
+			hval *= FNV_32_PRIME;
 		}
 	}
 
