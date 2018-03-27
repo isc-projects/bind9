@@ -161,9 +161,6 @@ static dns_name_t const wild =
 
 LIBDNS_EXTERNAL_DATA const dns_name_t *dns_wildcardname = &wild;
 
-unsigned int
-dns_fullname_hash(const dns_name_t *name, isc_boolean_t case_sensitive);
-
 /*
  * dns_name_t to text post-conversion procedure.
  */
@@ -487,52 +484,6 @@ dns_name_fullhash(const dns_name_t *name, isc_boolean_t case_sensitive) {
 
 	return (isc_hash_function_reverse(name->ndata, name->length,
 					  case_sensitive, NULL));
-}
-
-unsigned int
-dns_fullname_hash(const dns_name_t *name, isc_boolean_t case_sensitive) {
-	/*
-	 * This function was deprecated due to the breakage of the name space
-	 * convention.	We only keep this internally to provide binary backward
-	 * compatibility.
-	 */
-	return (dns_name_fullhash(name, case_sensitive));
-}
-
-unsigned int
-dns_name_hashbylabel(const dns_name_t *name, isc_boolean_t case_sensitive) {
-	unsigned char *offsets;
-	dns_offsets_t odata;
-	dns_name_t tname;
-	unsigned int h = 0;
-	unsigned int i;
-
-	/*
-	 * Provide a hash value for 'name'.
-	 */
-	REQUIRE(VALID_NAME(name));
-
-	if (name->labels == 0)
-		return (0);
-	else if (name->labels == 1)
-		return (isc_hash_function_reverse(name->ndata, name->length,
-						  case_sensitive, NULL));
-
-	SETUP_OFFSETS(name, offsets, odata);
-	DNS_NAME_INIT(&tname, NULL);
-	tname.labels = 1;
-	h = 0;
-	for (i = 0; i < name->labels; i++) {
-		tname.ndata = name->ndata + offsets[i];
-		if (i == name->labels - 1)
-			tname.length = name->length - offsets[i];
-		else
-			tname.length = offsets[i + 1] - offsets[i];
-		h += isc_hash_function_reverse(tname.ndata, tname.length,
-					       case_sensitive, NULL);
-	}
-
-	return (h);
 }
 
 dns_namereln_t

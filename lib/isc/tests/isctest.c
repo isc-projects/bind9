@@ -39,8 +39,6 @@ isc_socketmgr_t *socketmgr = NULL;
 isc_task_t *maintask = NULL;
 int ncpus;
 
-static isc_boolean_t hash_active = ISC_FALSE;
-
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
  */
@@ -109,9 +107,6 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(isc_hash_create(mctx, ectx, 255));
-	hash_active = ISC_TRUE;
-
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
@@ -154,10 +149,6 @@ isc_test_end(void) {
 		isc_task_detach(&maintask);
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
-	if (hash_active) {
-		isc_hash_destroy();
-		hash_active = ISC_FALSE;
-	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
 

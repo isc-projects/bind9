@@ -217,9 +217,6 @@ main (int argc, char **argv)
   result = isc_entropy_create(mctx, &ectx);
   isc_result_check (result, "isc_entropy_create");
 
-  result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-  isc_result_check (result, "isc_hash_create");
-
   isc_buffer_init (&buff, argzone, strlen (argzone));
   isc_buffer_add (&buff, strlen (argzone));
   dns_fixedname_init (&fixedzone);
@@ -348,7 +345,6 @@ main (int argc, char **argv)
 	printf("Operation Complete.\n");
 
   /* Cleanup */
-  isc_hash_destroy();
   isc_entropy_detach(&ectx);
   isc_mem_destroy(&mctx);
   if (zonefile)

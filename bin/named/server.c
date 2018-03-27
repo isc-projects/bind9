@@ -9247,8 +9247,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(load_configuration(named_g_conffile, server, ISC_TRUE),
 		   "loading configuration");
 
-	isc_hash_init();
-
 	CHECKFATAL(load_zones(server, ISC_TRUE, ISC_FALSE), "loading zones");
 #ifdef ENABLE_AFL
 	named_g_run_done = ISC_TRUE;

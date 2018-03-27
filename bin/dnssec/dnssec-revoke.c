@@ -187,9 +187,6 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("Could not initialize dst: %s",
 		      isc_result_totext(result));
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("Could not initialize hash");
 	isc_entropy_stopcallbacksources(ectx);
 
 	result = dst_key_fromnamedfile(filename, dir,
@@ -271,7 +268,6 @@ main(int argc, char **argv) {
 
 cleanup:
 	dst_key_free(&key);
-	isc_hash_destroy();
 	dst_lib_destroy();
 	cleanup_entropy(&ectx);
 	if (verbose > 10)
