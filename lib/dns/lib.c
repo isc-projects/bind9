@@ -90,19 +90,15 @@ initialize(void) {
 	result = isc_entropy_create(dns_g_mctx, &ectx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
-	result = isc_hash_create(dns_g_mctx, NULL, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_ectx;
 
 	result = dst_lib_init(dns_g_mctx, ectx, 0);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_hash;
+		goto cleanup_ectx;
 
 	result = isc_mutex_init(&reflock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dst;
 
-	isc_hash_init();
 	isc_entropy_detach(&ectx);
 
 	initialize_done = ISC_TRUE;
@@ -113,8 +109,6 @@ initialize(void) {
   cleanup_ectx:
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
-  cleanup_hash:
-	isc_hash_destroy();
   cleanup_db:
 	if (dbimp != NULL)
 		dns_ecdb_unregister(&dbimp);
@@ -160,8 +154,6 @@ dns_lib_shutdown(void) {
 
 	dst_lib_destroy();
 
-	if (isc_hashctx != NULL)
-		isc_hash_destroy();
 	if (dbimp != NULL)
 		dns_ecdb_unregister(&dbimp);
 	if (dns_g_mctx != NULL)

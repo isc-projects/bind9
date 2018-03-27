@@ -209,8 +209,6 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
-		      == ISC_R_SUCCESS);
 
 	while ((ch = isc_commandline_parse(argc, argv, "d:vw:")) != -1) {
 		switch (ch) {
@@ -356,7 +354,6 @@ main(int argc, char *argv[]) {
 
 	isc_log_destroy(&lctx);
 
-	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 
 	if (verbose)

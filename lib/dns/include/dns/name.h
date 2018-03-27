@@ -372,26 +372,6 @@ dns_name_fullhash(const dns_name_t *name, isc_boolean_t case_sensitive);
  *\li	A hash value
  */
 
-unsigned int
-dns_name_hashbylabel(const dns_name_t *name, isc_boolean_t case_sensitive);
-/*%<
- * Provide a hash value for 'name', where the hash value is the sum
- * of the hash values of each label.  This function should only be used
- * when incremental hashing is necessary, for example, during RBT
- * traversal. It is not currently used in BIND. Generally,
- * dns_name_fullhash() is the correct function to use for name
- * hashing.
- *
- * Note: if 'case_sensitive' is ISC_FALSE, then names which differ only in
- * case will have the same hash value.
- *
- * Requires:
- *\li	'name' is a valid name
- *
- * Returns:
- *\li	A hash value
- */
-
 /*
  *** Comparisons
  ***/

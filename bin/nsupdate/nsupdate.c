@@ -971,9 +971,6 @@ setup_system(void) {
 	if (entropy == NULL)
 		setup_entropy(gmctx, NULL, &entropy);
 
-	result = isc_hash_create(gmctx, entropy, DNS_NAME_MAXWIRE);
-	check_result(result, "isc_hash_create");
-
 	result = dns_dispatchmgr_create(gmctx, entropy, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
@@ -995,9 +992,6 @@ setup_system(void) {
 	result = dst_lib_init(gmctx, entropy, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
-
-	/* moved after dst_lib_init() */
-	isc_hash_init();
 
 	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
@@ -3304,9 +3298,6 @@ cleanup(void) {
 
 	ddebug("Shutting down timer manager");
 	isc_timermgr_destroy(&timermgr);
-
-	ddebug("Destroying hash context");
-	isc_hash_destroy();
 
 	ddebug("Destroying name state");
 	dns_name_destroy();

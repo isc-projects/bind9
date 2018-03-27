@@ -656,9 +656,6 @@ main(int argc, char **argv) {
 	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
-		      == ISC_R_SUCCESS);
-
 	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
@@ -689,7 +686,6 @@ main(int argc, char **argv) {
 
 	isc_log_destroy(&logc);
 
-	isc_hash_destroy();
 	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
