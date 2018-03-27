@@ -3508,10 +3508,6 @@ main(int argc, char *argv[]) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
 
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create hash context");
-
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
@@ -3925,7 +3921,6 @@ main(int argc, char *argv[]) {
 	dns_master_styledestroy(&dsstyle, mctx);
 
 	cleanup_logging(&log);
-	isc_hash_destroy();
 	dst_lib_destroy();
 	cleanup_entropy(&ectx);
 	dns_name_destroy();
