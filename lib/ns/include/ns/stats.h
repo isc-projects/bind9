@@ -101,8 +101,9 @@ enum {
 
 	ns_statscounter_prefetch = 63,
 	ns_statscounter_keytagopt = 64,
+	ns_statscounter_rootkeysentinel = 65,
 
-	ns_statscounter_max = 65
+	ns_statscounter_max = 66
 };
 
 void

@@ -5173,6 +5173,7 @@ root_key_sentinel(query_ctx_t *qctx) {
 		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-is-ta query label found");
+		inc_stats(qctx->client, ns_statscounter_rootkeysentinel);
 	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
 	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
 	{
@@ -5197,6 +5198,7 @@ root_key_sentinel(query_ctx_t *qctx) {
 		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-not-ta query label found");
+		inc_stats(qctx->client, ns_statscounter_rootkeysentinel);
 	}
 }
 
