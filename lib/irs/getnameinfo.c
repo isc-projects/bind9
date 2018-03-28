@@ -290,8 +290,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 
 		/* Make query name */
 		isc_netaddr_fromsockaddr(&netaddr, (const isc_sockaddr_t *)sa);
-		dns_fixedname_init(&ptrfname);
-		ptrname = dns_fixedname_name(&ptrfname);
+		ptrname = dns_fixedname_initname(&ptrfname);
 		iresult = dns_byaddr_createptrname2(&netaddr, 0, ptrname);
 		if (iresult != ISC_R_SUCCESS)
 			ERR(EAI_FAIL);

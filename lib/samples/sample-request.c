@@ -84,8 +84,7 @@ make_querymessage(dns_message_t *message, const char *namestr,
 	namelen = strlen(namestr);
 	isc_buffer_constinit(&b, namestr, namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&fixedqname);
-	qname0 = dns_fixedname_name(&fixedqname);
+	qname0 = dns_fixedname_initname(&fixedqname);
 	result = dns_name_fromtext(qname0, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "failed to convert qname: %u\n", result);

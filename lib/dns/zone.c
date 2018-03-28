@@ -2580,8 +2580,7 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	else
 		level = ISC_LOG_WARNING;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
 			     0, 0, NULL, foundname, NULL, NULL);
@@ -2669,8 +2668,7 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	else
 		level = ISC_LOG_WARNING;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
 			     0, 0, NULL, foundname, NULL, NULL);
@@ -2754,8 +2752,7 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	else
 		level = ISC_LOG_WARNING;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 	dns_rdataset_init(&a);
 	dns_rdataset_init(&aaaa);
 
@@ -2929,8 +2926,7 @@ zone_check_dup(dns_zone_t *zone, dns_db_t *db) {
 	isc_boolean_t ok = ISC_TRUE;
 	isc_result_t result;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	dns_rdataset_init(&rdataset);
 
 	result = dns_db_createiterator(db, 0, &dbiterator);
@@ -3011,10 +3007,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result;
 	isc_boolean_t ok = ISC_TRUE, have_spf, have_txt;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&fixedbottom);
-	bottom = dns_fixedname_name(&fixedbottom);
+	name = dns_fixedname_initname(&fixed);
+	bottom = dns_fixedname_initname(&fixedbottom);
 	dns_rdataset_init(&rdataset);
 	dns_rdata_init(&rdata);
 
@@ -4826,8 +4820,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			dns_rdataset_t next;
 
 			dns_rdataset_init(&next);
-			dns_fixedname_init(&fixed);
-			name = dns_fixedname_name(&fixed);
+			name = dns_fixedname_initname(&fixed);
 
 			result = dns_db_getsigningtime(db, &next, name);
 			if (result == ISC_R_SUCCESS) {
@@ -4969,8 +4962,7 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	else
 		level = ISC_LOG_WARNING;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	result = dns_db_find(db, name, version, dns_rdatatype_a,
 			     0, 0, NULL, foundname, NULL, NULL);
@@ -6473,7 +6465,6 @@ zone_resigninc(dns_zone_t *zone) {
 	ENTER;
 
 	dns_rdataset_init(&rdataset);
-	dns_fixedname_init(&fixed);
 	dns_diff_init(zone->mctx, &_sig_diff);
 	zonediff_init(&zonediff, &_sig_diff);
 
@@ -6525,7 +6516,7 @@ zone_resigninc(dns_zone_t *zone) {
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	result = dns_db_getsigningtime(db, &rdataset, name);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
@@ -6742,8 +6733,7 @@ add_nsec(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	isc_result_t result;
 	unsigned char nsecbuffer[DNS_NSEC_BUFFERSIZE];
 
-	dns_fixedname_init(&fixed);
-	next = dns_fixedname_name(&fixed);
+	next = dns_fixedname_initname(&fixed);
 
 	CHECK(next_active(db, version, name, next, bottom));
 	CHECK(dns_nsec_buildrdata(db, version, node, next, nsecbuffer,
@@ -7433,10 +7423,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	ENTER;
 
 	dns_rdataset_init(&rdataset);
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&nextfixed);
-	nextname = dns_fixedname_name(&nextfixed);
+	name = dns_fixedname_initname(&fixed);
+	nextname = dns_fixedname_initname(&nextfixed);
 	dns_diff_init(zone->mctx, &param_diff);
 	dns_diff_init(zone->mctx, &nsec3_diff);
 	dns_diff_init(zone->mctx, &nsec_diff);
@@ -7580,8 +7568,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (first) {
 			dns_fixedname_t ffound;
 			dns_name_t *found;
-			dns_fixedname_init(&ffound);
-			found = dns_fixedname_name(&ffound);
+			found = dns_fixedname_initname(&ffound);
 			result = dns_db_find(db, name, version,
 					     dns_rdatatype_soa,
 					     DNS_DBFIND_NOWILD, 0, NULL, found,
@@ -7829,8 +7816,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		if (first) {
 			dns_fixedname_t ffound;
 			dns_name_t *found;
-			dns_fixedname_init(&ffound);
-			found = dns_fixedname_name(&ffound);
+			found = dns_fixedname_initname(&ffound);
 			result = dns_db_find(db, name, version,
 					     dns_rdatatype_soa,
 					     DNS_DBFIND_NOWILD, 0, NULL, found,
@@ -8329,10 +8315,8 @@ zone_sign(dns_zone_t *zone) {
 	ENTER;
 
 	dns_rdataset_init(&rdataset);
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&nextfixed);
-	nextname = dns_fixedname_name(&nextfixed);
+	name = dns_fixedname_initname(&fixed);
+	nextname = dns_fixedname_initname(&nextfixed);
 	dns_diff_init(zone->mctx, &_sig_diff);
 	dns_diff_init(zone->mctx, &post_diff);
 	zonediff_init(&zonediff, &_sig_diff);
@@ -8465,8 +8449,7 @@ zone_sign(dns_zone_t *zone) {
 		if (first) {
 			dns_fixedname_t ffound;
 			dns_name_t *found;
-			dns_fixedname_init(&ffound);
-			found = dns_fixedname_name(&ffound);
+			found = dns_fixedname_initname(&ffound);
 			result = dns_db_find(db, name, version,
 					     dns_rdatatype_soa,
 					     DNS_DBFIND_NOWILD, 0, NULL, found,
@@ -9753,8 +9736,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 		kfetch->zone = zone;
 		zone->irefs++;
 		INSIST(zone->irefs != 0);
-		dns_fixedname_init(&kfetch->name);
-		kname = dns_fixedname_name(&kfetch->name);
+		kname = dns_fixedname_initname(&kfetch->name);
 		dns_name_dup(name, zone->mctx, kname);
 		dns_rdataset_init(&kfetch->dnskeyset);
 		dns_rdataset_init(&kfetch->dnskeysigset);
@@ -14441,8 +14423,7 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	result = dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	result = dns_db_nodefullname(db, node, name);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_getownercase(rdataset, name);
@@ -14678,8 +14659,7 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	rawdb = ((struct secure_event *)event)->db;
 	isc_event_free(&event);
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	dns_rdataset_init(&rdataset);
 
 	LOCK_ZONE(zone);

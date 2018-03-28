@@ -195,8 +195,7 @@ check_test_data(dns_rbt_t *rbt) {
 	dns_name_t *foundname;
 	size_t i;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	for (i = 0; i < domain_names_count; i++) {
 		dns_fixedname_t fname;
@@ -1087,8 +1086,7 @@ ATF_TC_BODY(rbt_findname, tc) {
 	dns_test_namefromstring("d.e.f", &fname);
 	name = dns_fixedname_name(&fname);
 
-	dns_fixedname_init(&found);
-	foundname = dns_fixedname_name(&found);
+	foundname = dns_fixedname_initname(&found);
 
 	result = dns_rbt_findname(ctx->rbt, name,
 				  DNS_RBTFIND_EMPTYDATA,
@@ -1233,8 +1231,7 @@ ATF_TC_BODY(rbt_nodechain, tc) {
 				  &node, &chain, 0, NULL, NULL);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 
-	dns_fixedname_init(&found);
-	foundname = dns_fixedname_name(&found);
+	foundname = dns_fixedname_initname(&found);
 
 	dns_test_namefromstring("a", &expect);
 	expected = dns_fixedname_name(&expect);

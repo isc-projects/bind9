@@ -198,8 +198,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 		send_event = ISC_TRUE;
 
 		if (event == NULL && !lookup->canceled) {
-			dns_fixedname_init(&foundname);
-			fname = dns_fixedname_name(&foundname);
+			fname = dns_fixedname_initname(&foundname);
 			INSIST(!dns_rdataset_isassociated(&lookup->rdataset));
 			INSIST(!dns_rdataset_isassociated
 						(&lookup->sigrdataset));
@@ -295,8 +294,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			/*
 			 * Construct the new query name and start over.
 			 */
-			dns_fixedname_init(&fixed);
-			prefix = dns_fixedname_name(&fixed);
+			prefix = dns_fixedname_initname(&fixed);
 			dns_name_split(name, nlabels, prefix, NULL);
 			result = dns_name_concatenate(prefix, &dname.dname,
 						      name, NULL);

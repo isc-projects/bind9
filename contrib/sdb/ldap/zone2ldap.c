@@ -222,8 +222,7 @@ main (int argc, char **argv)
 
   isc_buffer_init (&buff, argzone, strlen (argzone));
   isc_buffer_add (&buff, strlen (argzone));
-  dns_fixedname_init (&fixedzone);
-  zone = dns_fixedname_name (&fixedzone);
+  zone = dns_fixedname_initname(&fixedzone);
   result = dns_name_fromtext (zone, &buff, dns_rootname, 0, NULL);
   isc_result_check (result, "dns_name_fromtext");
 
@@ -240,8 +239,7 @@ main (int argc, char **argv)
   result = dns_dbiterator_first (dbit);
   isc_result_check (result, "dns_dbiterator_first");
 
-  dns_fixedname_init (&fixedname);
-  name = dns_fixedname_name (&fixedname);
+  name = dns_fixedname_initname(&fixedname);
   dns_rdataset_init (&rdataset);
   dns_rdata_init (&rdata);
 

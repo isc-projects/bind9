@@ -1002,8 +1002,7 @@ get_reverse(char *reverse, size_t len, const char *value,
 
 		if (ip6_int)
 			options |= DNS_BYADDROPT_IPV6INT;
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		CHECK("dns_byaddr_createptrname2", result);
 		dns_name_format(name, reverse, (unsigned int)len);
