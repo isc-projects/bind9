@@ -5394,41 +5394,6 @@ ns__query_start(query_ctx_t *qctx) {
 }
 
 /*%
- * Check the configured trust anchors for a root zone trust anchor
- * with a key id that matches qctx->client->query.root_key_sentinel_keyid.
- *
- *  Return ISC_TRUE when found otherwise return ISC_FALSE.
- */
-static isc_boolean_t
-has_ta(query_ctx_t *qctx) {
-	dns_keytable_t *keytable = NULL;
-	dns_keynode_t *keynode = NULL;
-	isc_result_t result;
-
-	result = dns_view_getsecroots(qctx->client->view, &keytable);
-	if (result != ISC_R_SUCCESS) {
-		return (ISC_FALSE);
-	}
-
-	result = dns_keytable_find(keytable, dns_rootname, &keynode);
-	while (result == ISC_R_SUCCESS) {
-		dns_keynode_t *nextnode = NULL;
-		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
-		if (keyid == qctx->client->query.root_key_sentinel_keyid) {
-			dns_keytable_detachkeynode(keytable, &keynode);
-			dns_keytable_detach(&keytable);
-			return (ISC_TRUE);
-		}
-		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		dns_keytable_detachkeynode(keytable, &keynode);
-		keynode = nextnode;
-	}
-	dns_keytable_detach(&keytable);
-
-	return (ISC_FALSE);
-}
-
-/*%
  * Perform a local database lookup, in either an authoritative or
  * cache database. If unable to answer, call query_done(); otherwise
  * hand off processing to query_gotanswer().
@@ -6466,6 +6431,41 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 				NS_CLIENTATTR_WANTAD);
 
 	return (ISC_R_SUCCESS);
+}
+
+/*%
+ * Check the configured trust anchors for a root zone trust anchor
+ * with a key id that matches qctx->client->query.root_key_sentinel_keyid.
+ *
+ *  Return ISC_TRUE when found otherwise return ISC_FALSE.
+ */
+static isc_boolean_t
+has_ta(query_ctx_t *qctx) {
+	dns_keytable_t *keytable = NULL;
+	dns_keynode_t *keynode = NULL;
+	isc_result_t result;
+
+	result = dns_view_getsecroots(qctx->client->view, &keytable);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_FALSE);
+	}
+
+	result = dns_keytable_find(keytable, dns_rootname, &keynode);
+	while (result == ISC_R_SUCCESS) {
+		dns_keynode_t *nextnode = NULL;
+		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
+		if (keyid == qctx->client->query.root_key_sentinel_keyid) {
+			dns_keytable_detachkeynode(keytable, &keynode);
+			dns_keytable_detach(&keytable);
+			return (ISC_TRUE);
+		}
+		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
+		dns_keytable_detachkeynode(keytable, &keynode);
+		keynode = nextnode;
+	}
+	dns_keytable_detach(&keytable);
+
+	return (ISC_FALSE);
 }
 
 /*%
