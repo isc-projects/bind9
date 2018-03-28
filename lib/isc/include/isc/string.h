@@ -16,8 +16,9 @@
 
 /*! \file isc/string.h */
 
+#include <inttypes.h>
+
 #include <isc/formatcheck.h>
-#include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
@@ -32,10 +33,10 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_uint64_t
+uint64_t
 isc_string_touint64(char *source, char **endp, int base);
 /*%<
- * Convert the string pointed to by 'source' to isc_uint64_t.
+ * Convert the string pointed to by 'source' to uint64_t.
  *
  * On successful conversion 'endp' points to the first character
  * after conversion is complete.

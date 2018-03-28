@@ -41,7 +41,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_buffer_t b;
 	lwres_gnbaresponse_t *gnba;
-	isc_uint16_t naliases;
+	uint16_t naliases;
 
 	UNUSED(task);
 

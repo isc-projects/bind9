@@ -13,7 +13,8 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
-#include <config.h>
+#include <inttypes.h>
+
 #include <isc/platform.h>
 #include <isc/types.h>
 
@@ -22,16 +23,16 @@
  * returns the previous value.
  */
 #ifdef ISC_PLATFORM_HAVEXADD
-static __inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	return (isc_int32_t) _InterlockedExchangeAdd((long *)p, (long)val);
+static __inline int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
+	return (int32_t) _InterlockedExchangeAdd((long *)p, (long)val);
 }
 #endif
 
 #ifdef ISC_PLATFORM_HAVEXADDQ
-static __inline isc_int64_t
-isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
-	return (isc_int64_t) _InterlockedExchangeAdd64((__int64 *)p,
+static __inline int64_t
+isc_atomic_xaddq(int64_t *p, int64_t val) {
+	return (int64_t) _InterlockedExchangeAdd64((__int64 *)p,
 						       (__int64) val);
 }
 #endif
@@ -41,7 +42,7 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
  */
 #ifdef ISC_PLATFORM_HAVEATOMICSTORE
 static __inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	(void) _InterlockedExchange((long *)p, (long)val);
 }
 #endif
@@ -51,7 +52,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  */
 #ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
 static __inline void
-isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+isc_atomic_storeq(int64_t *p, int64_t val) {
 	(void) _InterlockedExchange64((__int64 *)p, (__int64)val);
 }
 #endif
@@ -62,10 +63,10 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
  * case.
  */
 #ifdef ISC_PLATFORM_HAVECMPXCHG
-static __inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+static __inline int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 	/* beware: swap arguments */
-	return (isc_int32_t) _InterlockedCompareExchange((long *)p,
+	return (int32_t) _InterlockedCompareExchange((long *)p,
 							 (long)val,
 							 (long)cmpval);
 }

@@ -401,7 +401,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="include\isc\bind_registry.h" />
     <ClInclude Include="include\isc\condition.h" />
     <ClInclude Include="include\isc\dir.h" />
-    <ClInclude Include="include\isc\int.h" />
     <ClInclude Include="include\isc\ipv6.h" />
     <ClInclude Include="include\isc\keyboard.h" />
     <ClInclude Include="include\isc\mutex.h" />

@@ -72,6 +72,8 @@
 /***
  *** Imports.
  ***/
+#include <inttypes.h>
+
 #include <isc/platform.h>
 
 /*
@@ -124,7 +126,7 @@ struct in6_pktinfo {
  * Ensure type in_port_t is defined.
  */
 #ifdef ISC_PLATFORM_NEEDPORTT
-typedef isc_uint16_t in_port_t;
+typedef uint16_t in_port_t;
 #endif
 
 /*
@@ -136,14 +138,14 @@ typedef isc_uint16_t in_port_t;
 #define ISC_PLATFORM_RECVOVERFLOW
 #endif
 
-#define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
+#define ISC__IPADDR(x)	((uint32_t)htonl((uint32_t)(x)))
 
 #define ISC_IPADDR_ISMULTICAST(i) \
-		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xf0000000))
 
 /*

@@ -12,6 +12,8 @@
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
 
+#include <inttypes.h>
+
 #include <isc/lang.h>
 #include <isc/region.h>
 
@@ -49,9 +51,9 @@ typedef struct dns_compressnode dns_compressnode_t;
 
 struct dns_compressnode {
 	isc_region_t		r;
-	isc_uint16_t		offset;
-	isc_uint16_t		count;
-	isc_uint8_t		labels;
+	uint16_t		offset;
+	uint16_t		count;
+	uint8_t			labels;
 	dns_compressnode_t	*next;
 };
 
@@ -63,7 +65,7 @@ struct dns_compress {
 	dns_compressnode_t	*table[DNS_COMPRESS_TABLESIZE];
 	/*% Preallocated nodes for the table. */
 	dns_compressnode_t	initialnodes[DNS_COMPRESS_INITIALNODES];
-	isc_uint16_t		count;		/*%< Number of nodes. */
+	uint16_t		count;		/*%< Number of nodes. */
 	isc_mem_t		*mctx;		/*%< Memory context. */
 };
 
@@ -177,7 +179,7 @@ dns_compress_getedns(dns_compress_t *cctx);
 
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, isc_uint16_t *offset);
+			dns_name_t *prefix, uint16_t *offset);
 /*%<
  *	Finds longest possible match of 'name' in the global compression table.
  *
@@ -185,7 +187,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
  *\li		'cctx' to be initialized.
  *\li		'name' to be a absolute name.
  *\li		'prefix' to be initialized.
- *\li		'offset' to point to an isc_uint16_t.
+ *\li		'offset' to point to an uint16_t.
  *
  *	Ensures:
  *\li		'prefix' and 'offset' are valid if ISC_TRUE is 	returned.
@@ -196,7 +198,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 
 void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, isc_uint16_t offset);
+		 const dns_name_t *prefix, uint16_t offset);
 /*%<
  *	Add compression pointers for 'name' to the compression table,
  *	not replacing existing pointers.
@@ -212,7 +214,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
  */
 
 void
-dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset);
+dns_compress_rollback(dns_compress_t *cctx, uint16_t offset);
 
 /*%<
  *	Remove any compression pointers from global table >= offset.

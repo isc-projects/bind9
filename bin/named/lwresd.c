@@ -785,7 +785,7 @@ ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t *addrs = NULL;
 	ns_lwresd_t *lwresd = NULL;
-	isc_uint32_t count = 0;
+	uint32_t count = 0;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(config != NULL);
@@ -831,7 +831,7 @@ ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config) {
 			CHECK(configure_listener(&address, lwresd, mctx,
 						 &newlisteners));
 		} else {
-			isc_uint32_t i;
+			uint32_t i;
 
 			CHECK(ns_config_getiplist(config, listenerslist,
 						  port, mctx, &addrs, NULL,

@@ -13,6 +13,8 @@
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
 
+#include <inttypes.h>
+
 #include <isc/lang.h>
 
 #include <isccfg/cfg.h>
@@ -66,7 +68,7 @@ isc_result_t
 cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		   isc_log_t *lctx, cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx, unsigned int nest_level,
-		   isc_uint16_t family, dns_acl_t **target);
+		   uint16_t family, dns_acl_t **target);
 /*
  * Construct a new dns_acl_t from configuration data in 'caml' and
  * 'cctx'.  Memory is allocated through 'mctx'.

@@ -467,7 +467,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.authdbset = ISC_FALSE;
 	client->query.isreferral = ISC_FALSE;
 	client->query.dns64_options = 0;
-	client->query.dns64_ttl = ISC_UINT32_MAX;
+	client->query.dns64_ttl = UINT32_MAX;
 	client->query.root_key_sentinel_keyid = 0;
 	client->query.root_key_sentinel_is_ta = ISC_FALSE;
 	client->query.root_key_sentinel_not_ta = ISC_FALSE;
@@ -6221,7 +6221,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 {
 	unsigned char salt[256];
 	size_t salt_length;
-	isc_uint16_t iterations;
+	uint16_t iterations;
 	isc_result_t result;
 	unsigned int dboptions;
 	dns_fixedname_t fixed;
@@ -6330,14 +6330,14 @@ is_v6_client(ns_client_t *client) {
 }
 #endif
 
-static isc_uint32_t
+static uint32_t
 dns64_ttl(dns_db_t *db, dns_dbversion_t *version) {
 	dns_dbnode_t *node = NULL;
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
-	isc_uint32_t ttl = ISC_UINT32_MAX;
+	uint32_t ttl = ISC_UINT32_MAX;
 
 	dns_rdataset_init(&rdataset);
 
@@ -6748,7 +6748,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	dns_section_t section;
 	dns_ttl_t ttl;
 	isc_boolean_t failcache;
-	isc_uint32_t flags;
+	uint32_t flags;
 #ifdef WANT_QUERYTRACE
 	char mbuf[BUFSIZ];
 	char qbuf[DNS_NAME_FORMATSIZE];
@@ -9014,7 +9014,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 			if (dns_zone_gettype(mayberaw) == dns_zone_slave) {
 				isc_time_t expiretime;
-				isc_uint32_t secs;
+				uint32_t secs;
 				dns_zone_getexpiretime(zone, &expiretime);
 				secs = isc_time_seconds(&expiretime);
 				if (secs >= client->now &&
@@ -9258,7 +9258,7 @@ log_tat(ns_client_t *client) {
 			      sizeof(classname));
 
 	if (client->query.qtype == dns_rdatatype_dnskey) {
-		isc_uint16_t keytags = client->keytag_len / 2;
+		uint16_t keytags = client->keytag_len / 2;
 		size_t len = taglen = sizeof("65000") * keytags + 1;
 		char *cp = tags = isc_mem_get(client->mctx, taglen);
 		int i = 0;
@@ -9267,7 +9267,7 @@ log_tat(ns_client_t *client) {
 		if (tags != NULL) {
 			while (keytags-- > 0U) {
 				int n;
-				isc_uint16_t keytag;
+				uint16_t keytag;
 				keytag = (client->keytag[i * 2] << 8) |
 					 client->keytag[i * 2 + 1];
 				n = snprintf(cp, len, " %u", keytag);

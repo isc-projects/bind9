@@ -271,7 +271,7 @@ static isc_result_t
 add_alias(ns_lwdclient_t *client) {
 	isc_buffer_t b;
 	isc_result_t result;
-	isc_uint16_t naliases;
+	uint16_t naliases;
 
 	b = client->recv_buffer;
 

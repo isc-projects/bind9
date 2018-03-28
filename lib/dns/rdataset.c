@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -414,7 +415,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			 * 'Random' order.
 			 */
 			for (i = 0; i < count; i++) {
-				isc_uint32_t val;
+				uint32_t val;
 
 				isc_random_get(&val);
 				choice = i + (val % (count - i));
@@ -432,7 +433,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			/*
 			 * "Cyclic" order.
 			 */
-			isc_uint32_t val;
+			uint32_t val;
 			unsigned int j;
 
 			val = rdataset->count;
@@ -515,7 +516,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			INSIST((target->used >= rdlen.used + 2) &&
 			       (target->used - rdlen.used - 2 < 65536));
 			isc_buffer_putuint16(&rdlen,
-					     (isc_uint16_t)(target->used -
+					     (uint16_t)(target->used -
 							    rdlen.used - 2));
 			added++;
 		}
@@ -542,13 +543,13 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
  rollback:
 	if (partial && result == ISC_R_NOSPACE) {
 		INSIST(rrbuffer.used < 65536);
-		dns_compress_rollback(cctx, (isc_uint16_t)rrbuffer.used);
+		dns_compress_rollback(cctx, (uint16_t)rrbuffer.used);
 		*countp += added;
 		*target = rrbuffer;
 		goto cleanup;
 	}
 	INSIST(savedbuffer.used < 65536);
-	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
+	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 
@@ -810,7 +811,7 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_rdata_rrsig_t *rrsig, isc_stdtime_t now,
 		     isc_boolean_t acceptexpired)
 {
-	isc_uint32_t ttl = 0;
+	uint32_t ttl = 0;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(DNS_RDATASET_VALID(sigrdataset));

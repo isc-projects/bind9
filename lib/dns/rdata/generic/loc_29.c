@@ -666,7 +666,7 @@ compare_loc(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_loc(ARGS_FROMSTRUCT) {
 	dns_rdata_loc_t *loc = source;
-	isc_uint8_t c;
+	uint8_t c;
 
 	REQUIRE(type == dns_rdatatype_loc);
 	REQUIRE(source != NULL);
@@ -711,7 +711,7 @@ static inline isc_result_t
 tostruct_loc(ARGS_TOSTRUCT) {
 	dns_rdata_loc_t *loc = target;
 	isc_region_t r;
-	isc_uint8_t version;
+	uint8_t version;
 
 	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(target != NULL);
