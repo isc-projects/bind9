@@ -44,7 +44,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>

@@ -16,7 +16,7 @@
 #ifndef CH_3_A_1_H
 #define CH_3_A_1_H 1
 
-typedef isc_uint16_t ch_addr_t;
+typedef uint16_t ch_addr_t;
 
 typedef struct dns_rdata_ch_a {
 	dns_rdatacommon_t	common;

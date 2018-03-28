@@ -10,7 +10,7 @@ diff -ruN dists/GeoIP-1.5.1/libGeoIP/GeoIP.c dev/GeoIP-1.5.1/libGeoIP/GeoIP.c
  static geoipv6_t IPV6_NULL;
  
 @@ -44,6 +45,10 @@
- #include <stdint.h>     /* For uint32_t */
+ #include <inttypes.h>     /* For uint32_t */
  #endif
  
 +#if defined(_WIN32)
@@ -81,7 +81,7 @@ diff -ruN dists/GeoIP-1.5.1/libGeoIP/GeoIPCity.c dev/GeoIP-1.5.1/libGeoIP/GeoIPC
 --- dists/GeoIP-1.5.1/libGeoIP/GeoIPCity.c	2013-03-23 03:26:09.000000000 +0100
 +++ dev/GeoIP-1.5.1/libGeoIP/GeoIPCity.c	2013-07-19 15:41:05.000000000 +0200
 @@ -35,6 +35,10 @@
- #include <stdint.h>	/* For uint32_t */
+ #include <inttypes.h>	/* For uint32_t */
  #endif
  
 +#if defined(_WIN32)

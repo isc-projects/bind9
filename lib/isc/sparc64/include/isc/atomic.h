@@ -48,6 +48,8 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
+#include <inttypes.h>
+
 #include <isc/platform.h>
 #include <isc/types.h>
 
@@ -59,11 +61,11 @@
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
  */
-static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t prev, swapped;
+static inline int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
+	int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile int32_t *)p; ; prev = swapped) {
 		swapped = prev + val;
 		__asm__ volatile(
 			"casa [%2] %3, %4, %0"
@@ -80,10 +82,10 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
  * This routine atomically stores the value 'val' in 'p'.
  */
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t prev, swapped;
+isc_atomic_store(int32_t *p, int32_t val) {
+	int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile int32_t *)p; ; prev = swapped) {
 		swapped = val;
 		__asm__ volatile(
 			"casa [%2] %3, %4, %0"
@@ -99,9 +101,9 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
-	isc_int32_t temp = val;
+static inline int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
+	int32_t temp = val;
 
 	__asm__ volatile(
 		"casa [%2] %3, %4, %0"

@@ -1,4 +1,4 @@
-/*
+lib/isc/include/isc/sha1.h/*
  * Copyright (C) 2002 Stichting NLnet, Netherlands, stichting@nlnet.nl.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -49,7 +49,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #include <dlz_minimal.h>

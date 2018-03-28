@@ -20,7 +20,6 @@
 #include <atf-c.h>
 
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "isctest.h"
 

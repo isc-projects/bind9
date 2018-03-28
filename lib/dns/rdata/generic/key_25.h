@@ -19,10 +19,10 @@
 typedef struct dns_rdata_key {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;
-	isc_uint16_t		flags;
-	isc_uint8_t		protocol;
-	isc_uint8_t		algorithm;
-	isc_uint16_t		datalen;
+	uint16_t		flags;
+	uint8_t		protocol;
+	uint8_t		algorithm;
+	uint16_t		datalen;
 	unsigned char *		data;
 } dns_rdata_key_t;
 

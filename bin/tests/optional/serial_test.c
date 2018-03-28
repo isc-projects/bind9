@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <isc/print.h>
 #include <isc/serial.h>
@@ -19,7 +20,7 @@
 
 int
 main() {
-	isc_uint32_t a, b;
+	uint32_t a, b;
 	char buf[1024];
 	char *s, *e;
 

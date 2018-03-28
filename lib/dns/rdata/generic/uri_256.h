@@ -16,10 +16,10 @@
 typedef struct dns_rdata_uri {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;
-	isc_uint16_t		priority;
-	isc_uint16_t		weight;
+	uint16_t		priority;
+	uint16_t		weight;
 	unsigned char *		target;
-	isc_uint16_t		tgt_len;
+	uint16_t		tgt_len;
 } dns_rdata_uri_t;
 
 #endif /* GENERIC_URI_256_H */
