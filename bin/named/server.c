@@ -656,8 +656,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(obj);
 	     element != NULL;
 	     element = cfg_list_next(element)) {
@@ -1095,8 +1094,7 @@ mustbesecure(const cfg_obj_t *mbs, dns_resolver_t *resolver) {
 	isc_result_t result;
 	isc_buffer_t b;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(mbs);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -1532,8 +1530,7 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	dns_name_t *name;
 	isc_buffer_t b;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
 	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
@@ -1578,8 +1575,7 @@ disable_ds_digests(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	dns_name_t *name;
 	isc_buffer_t b;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	str = cfg_obj_asstring(cfg_tuple_get(disabled, "name"));
 	isc_buffer_constinit(&b, str, strlen(str));
 	isc_buffer_add(&b, strlen(str));
@@ -1620,8 +1616,7 @@ on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
 	const char *str;
 	isc_buffer_t b;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	for (element = cfg_list_first(disablelist);
 	     element != NULL;
@@ -1815,8 +1810,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 		dns64_dbtype[2] = server;
 	if (contact != NULL)
 		dns64_dbtype[3] = contact;
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	isc_buffer_constinit(&b, reverse, strlen(reverse));
 	isc_buffer_add(&b, strlen(reverse));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
@@ -3228,12 +3222,9 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	int order;
 	unsigned int nlabels;
 
-	dns_fixedname_init(&fixed);
-	zname = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&nsfixed);
-	ns = dns_fixedname_name(&nsfixed);
-	dns_fixedname_init(&cfixed);
-	contact = dns_fixedname_name(&cfixed);
+	zname = dns_fixedname_initname(&fixed);
+	ns = dns_fixedname_initname(&nsfixed);
+	contact = dns_fixedname_initname(&cfixed);
 
 	/*
 	 * Look for forward "zones" beneath this empty zone and if so
@@ -5030,10 +5021,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	if (result == ISC_R_SUCCESS) {
 		dns_name_t *dlv, *iscdlv;
 		dns_fixedname_t f;
-		dns_fixedname_init(&f);
 
 		/* Also log a warning if manually configured to dlv.isc.org */
-		iscdlv = dns_fixedname_name(&f);
+		iscdlv = dns_fixedname_initname(&f);
 		CHECK(dns_name_fromstring(iscdlv, "dlv.isc.org", 0, NULL));
 
 		for (element = cfg_list_first(obj);
@@ -5103,8 +5093,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		dns_fixedname_t fixed;
 		dns_name_t *name;
 
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		for (element = cfg_list_first(obj);
 		     element != NULL;
 		     element = cfg_list_next(element))
@@ -5179,8 +5168,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		int empty_dbtypec = 4;
 		dns_zonestat_level_t statlevel;
 
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 
 		obj = NULL;
 		result = named_config_get(maps, "empty-server", &obj);
@@ -5423,8 +5411,7 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 
 			isc_buffer_constinit(&buffer, str, strlen(str));
 			isc_buffer_add(&buffer, strlen(str));
-			dns_fixedname_init(&fixed);
-			name = dns_fixedname_name(&fixed);
+			name = dns_fixedname_initname(&fixed);
 			CHECK(dns_name_fromtext(name, &buffer, dns_rootname, 0,
 						NULL));
 
@@ -6538,8 +6525,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		}
 		isc_textregion_consume(&r, m);
 	}
-	dns_fixedname_init(&fixed);
-	tatname = dns_fixedname_name(&fixed);
+	tatname = dns_fixedname_initname(&fixed);
 	result = dns_name_fromstring2(tatname, label, name, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return;
@@ -6916,10 +6902,9 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 	result = named_config_get(maps, "session-keyname", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	keynamestr = cfg_obj_asstring(obj);
-	dns_fixedname_init(&fname);
 	isc_buffer_constinit(&buffer, keynamestr, strlen(keynamestr));
 	isc_buffer_add(&buffer, strlen(keynamestr));
-	keyname = dns_fixedname_name(&fname);
+	keyname = dns_fixedname_initname(&fname);
 	result = dns_name_fromtext(keyname, &buffer, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -7225,8 +7210,7 @@ configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
 	dns_zone_t *raw = NULL;
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
-	dns_fixedname_init(&fixorigin);
-	origin = dns_fixedname_name(&fixorigin);
+	origin = dns_fixedname_initname(&fixorigin);
 
 	result2 = dns_name_fromstring(origin, zname, 0, NULL);
 	if (result2 != ISC_R_SUCCESS) {
@@ -7574,8 +7558,7 @@ get_newzone_config(dns_view_t *view, const char *zonename,
 	/* Normalize zone name */
 	isc_buffer_constinit(&b, zonename, strlen(zonename));
 	isc_buffer_add(&b, strlen(zonename));
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	CHECK(dns_name_fromtext(name, &b, dns_rootname,
 				DNS_NAME_DOWNCASE, NULL));
 	dns_name_format(name, zname, sizeof(zname));
@@ -9911,8 +9894,7 @@ zone_from_args(named_server_t *server, isc_lex_t *lex, const char *zonetxt,
 		strlcpy(zonename, redirect ? "." : zonetxt,
 			DNS_NAME_FORMATSIZE);
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	CHECK(dns_name_fromstring(name, zonebuf, 0, NULL));
 
 	/* Look for the optional class name. */
@@ -11072,8 +11054,7 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex,
 	strlcpy(target, ptr, DNS_NAME_FORMATSIZE);
 	isc_buffer_constinit(&b, target, strlen(target));
 	isc_buffer_add(&b, strlen(target));
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -11298,8 +11279,7 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 	dns_tsigkey_t *tkey;
 
 	dns_name_init(&foundname, NULL);
-	dns_fixedname_init(&fixedorigin);
-	origin = dns_fixedname_name(&fixedorigin);
+	origin = dns_fixedname_initname(&fixedorigin);
 
  again:
 	dns_rbtnodechain_init(&chain, ring->mctx);
@@ -11417,8 +11397,7 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
 		viewname = "(global)";
 
 	dns_name_init(&foundname, NULL);
-	dns_fixedname_init(&fixedorigin);
-	origin = dns_fixedname_name(&fixedorigin);
+	origin = dns_fixedname_initname(&fixedorigin);
 	dns_rbtnodechain_init(&chain, ring->mctx);
 	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
 					origin);
@@ -12363,8 +12342,7 @@ migrate_nzf(dns_view_t *view) {
 		/* Normalize zone name */
 		isc_buffer_constinit(&b, origin, strlen(origin));
 		isc_buffer_add(&b, strlen(origin));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		CHECK(dns_name_fromtext(name, &b, dns_rootname,
 					DNS_NAME_DOWNCASE, NULL));
 		dns_name_format(name, zname, sizeof(zname));
@@ -12576,8 +12554,7 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx,
 
 	DE_CONST(&zl->value.list, list);
 
-	dns_fixedname_init(&myfixed);
-	myname = dns_fixedname_name(&myfixed);
+	myname = dns_fixedname_initname(&myfixed);
 
 	for (elt = ISC_LIST_HEAD(*list);
 	     elt != NULL;
@@ -13054,8 +13031,7 @@ named_server_changezone(named_server_t *server, char *command,
 	isc_buffer_constinit(&buf, zonename, strlen(zonename));
 	isc_buffer_add(&buf, strlen(zonename));
 
-	dns_fixedname_init(&fname);
-	dnsname = dns_fixedname_name(&fname);
+	dnsname = dns_fixedname_initname(&fname);
 	CHECK(dns_name_fromtext(dnsname, &buf, dns_rootname, 0, NULL));
 
 	if (redirect) {
@@ -13433,10 +13409,8 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 	isc_result_t result;
 
 	if (strcmp(map_key_for_list, "zone") == 0) {
-		dns_fixedname_init(&fixed1);
-		dns_fixedname_init(&fixed2);
-		name1 = dns_fixedname_name(&fixed1);
-		name2 = dns_fixedname_name(&fixed2);
+		name1 = dns_fixedname_initname(&fixed1);
+		name2 = dns_fixedname_initname(&fixed2);
 		result = dns_name_fromstring(name1, name, 0, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
@@ -14006,8 +13980,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		dns_rdataset_t next;
 
 		dns_rdataset_init(&next);
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 
 		result = dns_db_getsigningtime(db, &next, name);
 		if (result == ISC_R_SUCCESS) {
@@ -14189,8 +14162,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 
 	UNUSED(force);
 
-	dns_fixedname_init(&fn);
-	fname = dns_fixedname_name(&fn);
+	fname = dns_fixedname_initname(&fn);
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);

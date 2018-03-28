@@ -137,8 +137,7 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 				goto cleanup;
 
 			/* Configure key name */
-			dns_fixedname_init(&fkeyname);
-			keyname_base = dns_fixedname_name(&fkeyname);
+			keyname_base = dns_fixedname_initname(&fkeyname);
 			isc_buffer_constinit(&namebuf, keynamestr,
 					     strlen(keynamestr));
 			isc_buffer_add(&namebuf, strlen(keynamestr));

@@ -694,8 +694,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	if (rr_action == add_rr_prepare_action) {
 		add_rr_prepare_ctx_t *ctx = rr_action_data;
 
-		dns_fixedname_init(&fixed);
-		ctx->oldname = dns_fixedname_name(&fixed);
+		ctx->oldname = dns_fixedname_initname(&fixed);
 		dns_name_copy(name, ctx->oldname, NULL);
 		dns_rdataset_getownercase(&rdataset, ctx->oldname);
 	}
@@ -1716,8 +1715,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 	struct in_addr addr;
 	dns_zoneopt_t options;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 	dns_rdata_init(&rdata);
 	options = dns_zone_getoptions(zone);
 
@@ -2643,8 +2641,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			FAILC(result, "'RRset exists (value dependent)' "
 			      "prerequisite not satisfied");
 
-		dns_fixedname_init(&tmpnamefixed);
-		tmpname = dns_fixedname_name(&tmpnamefixed);
+		tmpname = dns_fixedname_initname(&tmpnamefixed);
 		result = temp_check(mctx, &temp, db, ver, tmpname, &type);
 		if (result != ISC_R_SUCCESS)
 			FAILNT(result, tmpname, type,
