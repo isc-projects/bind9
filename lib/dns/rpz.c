@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -554,7 +556,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
  set:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
 		      DNS_RPZ_DEBUG_QUIET,
-		      "computed RPZ qname_skip_recurse mask=0x%llx",
+		      "computed RPZ qname_skip_recurse mask=0x%" PRIx64,
 		      (isc_uint64_t) mask);
 	rpzs->have.qname_skip_recurse = mask;
 }
@@ -1622,7 +1624,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 				      "rpz: %s: new zone version came "
 				      "too soon, deferring update for "
-				      "%llu seconds", dname, defer);
+				      "%" PRIu64 " seconds", dname, defer);
 			isc_interval_set(&interval, (unsigned int)defer, 0);
 			dns_db_currentversion(zone->db, &zone->dbversion);
 			result = isc_timer_reset(zone->updatetimer,
@@ -1813,7 +1815,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 			      "rpz: %s: new zone version came "
 			      "too soon, deferring update for "
-			      "%llu seconds", dname, defer);
+			      "%" PRIu64 " seconds", dname, defer);
 		isc_interval_set(&interval, (unsigned int)defer, 0);
 		isc_timer_reset(rpz->updatetimer, isc_timertype_once,
 				NULL, &interval, ISC_TRUE);
