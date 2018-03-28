@@ -43,6 +43,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -97,7 +98,7 @@ struct irs_resconf {
 
 	char	       		*domainname;
 	char 	       		*search[RESCONFMAXSEARCH];
-	isc_uint8_t		searchnxt; /*%< index for next free slot */
+	uint8_t		searchnxt; /*%< index for next free slot */
 
 	irs_resconf_searchlist_t searchlist;
 
@@ -106,12 +107,12 @@ struct irs_resconf {
 		/*% mask has a non-zero 'family' if set */
 		isc_netaddr_t	mask;
 	} sortlist[RESCONFMAXSORTLIST];
-	isc_uint8_t		sortlistnxt;
+	uint8_t		sortlistnxt;
 
 	/*%< non-zero if 'options debug' set */
-	isc_uint8_t		resdebug;
+	uint8_t		resdebug;
 	/*%< set to n in 'options ndots:n' */
-	isc_uint8_t		ndots;
+	uint8_t		ndots;
 };
 
 static isc_result_t
@@ -453,7 +454,7 @@ resconf_parseoption(irs_resconf_t *conf,  FILE *fp) {
 				return (ISC_R_UNEXPECTEDTOKEN);
 			if (ndots < 0 || ndots > 0xff) /* Out of range. */
 				return (ISC_R_RANGE);
-			conf->ndots = (isc_uint8_t)ndots;
+			conf->ndots = (uint8_t)ndots;
 		}
 
 		if (delim == EOF || delim == '\n')

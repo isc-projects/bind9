@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -280,7 +282,7 @@ static void udp_shrecv(isc_task_t *, isc_event_t *);
 static void udp_recv(isc_event_t *, dns_dispatch_t *, dispsocket_t *);
 static void tcp_recv(isc_task_t *, isc_event_t *);
 static isc_result_t startrecv(dns_dispatch_t *, dispsocket_t *);
-static isc_uint32_t dns_hash(dns_qid_t *, const isc_sockaddr_t *,
+static uint32_t dns_hash(dns_qid_t *, const isc_sockaddr_t *,
 			     dns_messageid_t, in_port_t);
 static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_udp_buffer(dns_dispatch_t *disp);
@@ -411,14 +413,14 @@ request_log(dns_dispatch_t *disp, dns_dispentry_t *resp,
 /*
  * Return a hash of the destination and message id.
  */
-static isc_uint32_t
+static uint32_t
 dns_hash(dns_qid_t *qid, const isc_sockaddr_t *dest, dns_messageid_t id,
 	 in_port_t port)
 {
-	isc_uint32_t ret;
+	uint32_t ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
-	ret ^= ((isc_uint32_t)id << 16) | port;
+	ret ^= ((uint32_t)id << 16) | port;
 	ret %= qid->qid_nbuckets;
 
 	INSIST(ret < qid->qid_nbuckets);

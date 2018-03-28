@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -179,7 +181,7 @@ dns_rriterator_destroy(dns_rriterator_t *it) {
 
 void
 dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name,
-		       isc_uint32_t *ttl, dns_rdataset_t **rdataset,
+		       uint32_t *ttl, dns_rdataset_t **rdataset,
 		       dns_rdata_t **rdata)
 {
 	REQUIRE(name != NULL && *name == NULL);

@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/assertions.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
@@ -43,7 +45,7 @@ isc_sha224_invalidate(isc_sha224_t *context) {
 }
 
 void
-isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
+isc_sha224_update(isc_sha224_t *context, const uint8_t* data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
@@ -52,20 +54,20 @@ isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha224_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
-	REQUIRE(data != (isc_uint8_t*)0);
+	REQUIRE(data != (uint8_t*)0);
 
 	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
 void
-isc_sha224_final(isc_uint8_t digest[], isc_sha224_t *context) {
+isc_sha224_final(uint8_t digest[], isc_sha224_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha224_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0)
+	if (digest != (uint8_t*)0)
 		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
 					      digest, NULL) == 1);
 	EVP_MD_CTX_free(context->ctx);
@@ -91,7 +93,7 @@ isc_sha256_invalidate(isc_sha256_t *context) {
 }
 
 void
-isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
+isc_sha256_update(isc_sha256_t *context, const uint8_t *data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
@@ -100,20 +102,20 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha256_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
-	REQUIRE(data != (isc_uint8_t*)0);
+	REQUIRE(data != (uint8_t*)0);
 
 	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
 void
-isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
+isc_sha256_final(uint8_t digest[], isc_sha256_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha256_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0)
+	if (digest != (uint8_t*)0)
 		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
 					      digest, NULL) == 1);
 	EVP_MD_CTX_free(context->ctx);
@@ -138,7 +140,7 @@ isc_sha512_invalidate(isc_sha512_t *context) {
 	context->ctx = NULL;
 }
 
-void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t len) {
+void isc_sha512_update(isc_sha512_t *context, const uint8_t *data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
@@ -147,19 +149,19 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
-	REQUIRE(data != (isc_uint8_t*)0);
+	REQUIRE(data != (uint8_t*)0);
 
 	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
-void isc_sha512_final(isc_uint8_t digest[], isc_sha512_t *context) {
+void isc_sha512_final(uint8_t digest[], isc_sha512_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0)
+	if (digest != (uint8_t*)0)
 		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
 					      digest, NULL) == 1);
 	EVP_MD_CTX_free(context->ctx);
@@ -185,7 +187,7 @@ isc_sha384_invalidate(isc_sha384_t *context) {
 }
 
 void
-isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
+isc_sha384_update(isc_sha384_t *context, const uint8_t* data, size_t len) {
 	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
@@ -194,20 +196,20 @@ isc_sha384_update(isc_sha384_t *context, const isc_uint8_t* data, size_t len) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
-	REQUIRE(data != (isc_uint8_t*)0);
+	REQUIRE(data != (uint8_t*)0);
 
 	RUNTIME_CHECK(EVP_DigestUpdate(context->ctx,
 				       (const void *) data, len) == 1);
 }
 
 void
-isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
+isc_sha384_final(uint8_t digest[], isc_sha384_t *context) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha384_t *)0);
 	REQUIRE(context->ctx != (EVP_MD_CTX *)0);
 
 	/* If no digest buffer is passed, we don't bother doing this: */
-	if (digest != (isc_uint8_t*)0)
+	if (digest != (uint8_t*)0)
 		RUNTIME_CHECK(EVP_DigestFinal(context->ctx,
 					      digest, NULL) == 1);
 	EVP_MD_CTX_free(context->ctx);
@@ -222,7 +224,7 @@ static const char *sha2_hex_digits = "0123456789abcdef";
 
 char *
 isc_sha224_end(isc_sha224_t *context, char buffer[]) {
-	isc_uint8_t	digest[ISC_SHA224_DIGESTLENGTH], *d = digest;
+	uint8_t	digest[ISC_SHA224_DIGESTLENGTH], *d = digest;
 	unsigned int	i;
 
 	/* Sanity check: */
@@ -245,7 +247,7 @@ isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 }
 
 char *
-isc_sha224_data(const isc_uint8_t *data, size_t len,
+isc_sha224_data(const uint8_t *data, size_t len,
 		char digest[ISC_SHA224_DIGESTSTRINGLENGTH])
 {
 	isc_sha224_t context;
@@ -257,7 +259,7 @@ isc_sha224_data(const isc_uint8_t *data, size_t len,
 
 char *
 isc_sha256_end(isc_sha256_t *context, char buffer[]) {
-	isc_uint8_t	digest[ISC_SHA256_DIGESTLENGTH], *d = digest;
+	uint8_t	digest[ISC_SHA256_DIGESTLENGTH], *d = digest;
 	unsigned int	i;
 
 	/* Sanity check: */
@@ -280,7 +282,7 @@ isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 }
 
 char *
-isc_sha256_data(const isc_uint8_t* data, size_t len,
+isc_sha256_data(const uint8_t* data, size_t len,
 		char digest[ISC_SHA256_DIGESTSTRINGLENGTH])
 {
 	isc_sha256_t context;
@@ -292,7 +294,7 @@ isc_sha256_data(const isc_uint8_t* data, size_t len,
 
 char *
 isc_sha512_end(isc_sha512_t *context, char buffer[]) {
-	isc_uint8_t	digest[ISC_SHA512_DIGESTLENGTH], *d = digest;
+	uint8_t	digest[ISC_SHA512_DIGESTLENGTH], *d = digest;
 	unsigned int	i;
 
 	/* Sanity check: */
@@ -315,7 +317,7 @@ isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 }
 
 char *
-isc_sha512_data(const isc_uint8_t *data, size_t len,
+isc_sha512_data(const uint8_t *data, size_t len,
 		char digest[ISC_SHA512_DIGESTSTRINGLENGTH])
 {
 	isc_sha512_t 	context;
@@ -327,7 +329,7 @@ isc_sha512_data(const isc_uint8_t *data, size_t len,
 
 char *
 isc_sha384_end(isc_sha384_t *context, char buffer[]) {
-	isc_uint8_t	digest[ISC_SHA384_DIGESTLENGTH], *d = digest;
+	uint8_t	digest[ISC_SHA384_DIGESTLENGTH], *d = digest;
 	unsigned int	i;
 
 	/* Sanity check: */
@@ -350,7 +352,7 @@ isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 }
 
 char *
-isc_sha384_data(const isc_uint8_t *data, size_t len,
+isc_sha384_data(const uint8_t *data, size_t len,
 		char digest[ISC_SHA384_DIGESTSTRINGLENGTH])
 {
 	isc_sha384_t context;

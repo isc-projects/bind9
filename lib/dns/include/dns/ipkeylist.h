@@ -12,6 +12,8 @@
 #ifndef DNS_IPKEYLIST_H
 #define DNS_IPKEYLIST_H 1
 
+#include <inttypes.h>
+
 #include <isc/types.h>
 #include <dns/types.h>
 
@@ -24,8 +26,8 @@ struct dns_ipkeylist {
 	isc_dscp_t		*dscps;
 	dns_name_t		**keys;
 	dns_name_t		**labels;
-	isc_uint32_t		count;
-	isc_uint32_t		allocated;
+	uint32_t		count;
+	uint32_t		allocated;
 };
 
 void
