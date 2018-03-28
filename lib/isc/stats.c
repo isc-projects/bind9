@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <string.h>
 
 #include <isc/atomic.h>
@@ -86,15 +87,15 @@ typedef struct {
 	atomic_int_fast32_t hi;
 	atomic_int_fast32_t lo;
 #else
-	isc_uint32_t hi;
-	isc_uint32_t lo;
+	uint32_t hi;
+	uint32_t lo;
 #endif
 } isc_stat_t;
 #else
 #if defined(ISC_STATS_HAVESTDATOMICQ)
 typedef atomic_int_fast64_t isc_stat_t;
 #else
-typedef isc_uint64_t isc_stat_t;
+typedef uint64_t isc_stat_t;
 #endif
 #endif
 
@@ -127,7 +128,7 @@ struct isc_stats {
 	 * simplicity here, however, under the assumption that this function
 	 * should be only rarely called.
 	 */
-	isc_uint64_t	*copiedcounters;
+	uint64_t	*copiedcounters;
 };
 
 static isc_result_t
@@ -151,7 +152,7 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 		goto clean_mutex;
 	}
 	stats->copiedcounters = isc_mem_get(mctx,
-					    sizeof(isc_uint64_t) * ncounters);
+					    sizeof(uint64_t) * ncounters);
 	if (stats->copiedcounters == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto clean_counters;
@@ -242,7 +243,7 @@ isc_stats_ncounters(isc_stats_t *stats) {
 
 static inline void
 incrementcounter(isc_stats_t *stats, int counter) {
-	isc_int32_t prev;
+	int32_t prev;
 
 #if ISC_STATS_LOCKCOUNTERS
 	/*
@@ -258,7 +259,7 @@ incrementcounter(isc_stats_t *stats, int counter) {
 	prev = atomic_fetch_add_explicit(&stats->counters[counter].lo, 1,
 					 memory_order_relaxed);
 #else
-	prev = isc_atomic_xadd((isc_int32_t *)&stats->counters[counter].lo, 1);
+	prev = isc_atomic_xadd((int32_t *)&stats->counters[counter].lo, 1);
 #endif
 	/*
 	 * If the lower 32-bit field overflows, increment the higher field.
@@ -268,12 +269,12 @@ incrementcounter(isc_stats_t *stats, int counter) {
 	 * isc_stats_copy() is called where the whole process is protected
 	 * by the write (exclusive) lock.
 	 */
-	if (prev == (isc_int32_t)0xffffffff) {
+	if (prev == (int32_t)0xffffffff) {
 #if defined(ISC_STATS_HAVESTDATOMIC)
 		atomic_fetch_add_explicit(&stats->counters[counter].hi, 1,
 					  memory_order_relaxed);
 #else
-		isc_atomic_xadd((isc_int32_t *)&stats->counters[counter].hi, 1);
+		isc_atomic_xadd((int32_t *)&stats->counters[counter].hi, 1);
 #endif
 	}
 #elif ISC_STATS_HAVEATOMICQ
@@ -282,7 +283,7 @@ incrementcounter(isc_stats_t *stats, int counter) {
 	atomic_fetch_add_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
 #else
-	isc_atomic_xaddq((isc_int64_t *)&stats->counters[counter], 1);
+	isc_atomic_xaddq((int64_t *)&stats->counters[counter], 1);
 #endif
 #else
 	UNUSED(prev);
@@ -296,7 +297,7 @@ incrementcounter(isc_stats_t *stats, int counter) {
 
 static inline void
 decrementcounter(isc_stats_t *stats, int counter) {
-	isc_int32_t prev;
+	int32_t prev;
 
 #if ISC_STATS_LOCKCOUNTERS
 	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
@@ -307,14 +308,14 @@ decrementcounter(isc_stats_t *stats, int counter) {
 	prev = atomic_fetch_sub_explicit(&stats->counters[counter].lo, 1,
 					 memory_order_relaxed);
 #else
-	prev = isc_atomic_xadd((isc_int32_t *)&stats->counters[counter].lo, -1);
+	prev = isc_atomic_xadd((int32_t *)&stats->counters[counter].lo, -1);
 #endif
 	if (prev == 0) {
 #if defined(ISC_STATS_HAVESTDATOMIC)
 		atomic_fetch_sub_explicit(&stats->counters[counter].hi, 1,
 					  memory_order_relaxed);
 #else
-		isc_atomic_xadd((isc_int32_t *)&stats->counters[counter].hi,
+		isc_atomic_xadd((int32_t *)&stats->counters[counter].hi,
 				-1);
 #endif
 	}
@@ -324,7 +325,7 @@ decrementcounter(isc_stats_t *stats, int counter) {
 	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
 				  memory_order_relaxed);
 #else
-	isc_atomic_xaddq((isc_int64_t *)&stats->counters[counter], -1);
+	isc_atomic_xaddq((int64_t *)&stats->counters[counter], -1);
 #endif
 #else
 	UNUSED(prev);
@@ -351,7 +352,7 @@ copy_counters(isc_stats_t *stats) {
 	for (i = 0; i < stats->ncounters; i++) {
 #if ISC_STATS_USEMULTIFIELDS
 		stats->copiedcounters[i] =
-			(isc_uint64_t)(stats->counters[i].hi) << 32 |
+			(uint64_t)(stats->counters[i].hi) << 32 |
 			stats->counters[i].lo;
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)
@@ -361,7 +362,7 @@ copy_counters(isc_stats_t *stats) {
 #else
 		/* use xaddq(..., 0) as an atomic load */
 		stats->copiedcounters[i] =
-			(isc_uint64_t)isc_atomic_xaddq((isc_int64_t *)&stats->counters[i], 0);
+			(uint64_t)isc_atomic_xaddq((int64_t *)&stats->counters[i], 0);
 #endif
 #else
 		stats->copiedcounters[i] = stats->counters[i];
@@ -415,7 +416,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 }
 
 void
-isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+isc_stats_set(isc_stats_t *stats, uint64_t val,
 	      isc_statscounter_t counter)
 {
 	REQUIRE(ISC_STATS_VALID(stats));
@@ -430,14 +431,14 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	stats->counters[counter].hi = (isc_uint32_t)((val >> 32) & 0xffffffff);
-	stats->counters[counter].lo = (isc_uint32_t)(val & 0xffffffff);
+	stats->counters[counter].hi = (uint32_t)((val >> 32) & 0xffffffff);
+	stats->counters[counter].lo = (uint32_t)(val & 0xffffffff);
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)
 	atomic_store_explicit(&stats->counters[counter], val,
 			      memory_order_relaxed);
 #else
-	isc_atomic_storeq((isc_int64_t *)&stats->counters[counter], val);
+	isc_atomic_storeq((int64_t *)&stats->counters[counter], val);
 #endif
 #else
 	stats->counters[counter] = val;

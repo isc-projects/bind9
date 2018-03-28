@@ -20,7 +20,7 @@ typedef struct dns_rdata_in_nsap {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	unsigned char		*nsap;
-	isc_uint16_t		nsap_len;
+	uint16_t		nsap_len;
 } dns_rdata_in_nsap_t;
 
 #endif /* IN_1_NSAP_22_H */

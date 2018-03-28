@@ -22,6 +22,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>

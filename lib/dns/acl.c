@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/string.h>
@@ -187,7 +189,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	      int *match,
 	      const dns_aclelement_t **matchelt)
 {
-	isc_uint16_t bitlen;
+	uint16_t bitlen;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node = NULL;
 	const isc_netaddr_t *addr = reqaddr;
