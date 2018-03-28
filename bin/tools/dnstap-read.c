@@ -29,6 +29,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -314,7 +315,7 @@ main(int argc, char *argv[]) {
 
 	for (;;) {
 		isc_region_t input;
-		isc_uint8_t *data;
+		uint8_t *data;
 		size_t datalen;
 
 		result = dns_dt_getframe(handle, &data, &datalen);

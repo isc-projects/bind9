@@ -74,8 +74,8 @@ if advised of the possibility of such damage.
  * Types of random seed and hash accumulator.  Perhaps they can be system
  * dependent.
  */
-typedef isc_uint32_t hash_accum_t;
-typedef isc_uint16_t hash_random_t;
+typedef uint32_t hash_accum_t;
+typedef uint16_t hash_random_t;
 /*@}*/
 
 /*% isc hash structure */
@@ -244,7 +244,7 @@ isc_hash_ctxinit(isc_hash_t *hctx) {
 					     NULL, 0);
 		INSIST(result == ISC_R_SUCCESS);
 	} else {
-		isc_uint32_t pr;
+		uint32_t pr;
 		size_t i, copylen;
 		unsigned char *p;
 
@@ -385,7 +385,7 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 }
 
 void
-isc__hash_setvec(const isc_uint16_t *vec) {
+isc__hash_setvec(const uint16_t *vec) {
 	int i;
 	hash_random_t *p;
 
@@ -398,7 +398,7 @@ isc__hash_setvec(const isc_uint16_t *vec) {
 	}
 }
 
-static isc_uint32_t fnv_offset_basis;
+static uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
 static isc_boolean_t fnv_initialized = ISC_FALSE;
 
@@ -438,12 +438,12 @@ isc_hash_set_initializer(const void *initializer) {
 	fnv_offset_basis = *((const unsigned int *) initializer);
 }
 
-isc_uint32_t
+uint32_t
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,
-		  const isc_uint32_t *previous_hashp)
+		  const uint32_t *previous_hashp)
 {
-	isc_uint32_t hval;
+	uint32_t hval;
 	const unsigned char *bp;
 	const unsigned char *be;
 
@@ -507,12 +507,12 @@ isc_hash_function(const void *data, size_t length,
 	return (hval);
 }
 
-isc_uint32_t
+uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
 			  isc_boolean_t case_sensitive,
-			  const isc_uint32_t *previous_hashp)
+			  const uint32_t *previous_hashp)
 {
-	isc_uint32_t hval;
+	uint32_t hval;
 	const unsigned char *bp;
 	const unsigned char *be;
 

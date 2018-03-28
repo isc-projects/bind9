@@ -64,7 +64,7 @@ typedef struct {
 #include "../entropy.c"
 
 static unsigned int
-get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_filesource(isc_entropysource_t *source, uint32_t desired) {
 	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	int fd = source->sources.file.handle;
@@ -104,7 +104,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 }
 
 static unsigned int
-get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_usocketsource(isc_entropysource_t *source, uint32_t desired) {
 	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	int fd = source->sources.usocket.handle;

@@ -15,6 +15,8 @@
 
 /*! \file isc/stats.h */
 
+#include <inttypes.h>
+
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -27,7 +29,7 @@ ISC_LANG_BEGINDECLS
 /*%<
  * Dump callback type.
  */
-typedef void (*isc_stats_dumper_t)(isc_statscounter_t, isc_uint64_t, void *);
+typedef void (*isc_stats_dumper_t)(isc_statscounter_t, uint64_t, void *);
 
 isc_result_t
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters);
@@ -111,7 +113,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
  */
 
 void
-isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+isc_stats_set(isc_stats_t *stats, uint64_t val,
 	      isc_statscounter_t counter);
 /*%<
  * Set the given counter to the specfied value.
@@ -121,7 +123,7 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
  */
 
 void
-isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
+isc_stats_set(isc_stats_t *stats, uint64_t val,
 	      isc_statscounter_t counter);
 /*%<
  * Set the given counter to the specfied value.

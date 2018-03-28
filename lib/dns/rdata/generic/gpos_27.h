@@ -22,9 +22,9 @@ typedef struct dns_rdata_gpos {
 	char			*longitude;
 	char			*latitude;
 	char			*altitude;
-	isc_uint8_t		long_len;
-	isc_uint8_t		lat_len;
-	isc_uint8_t		alt_len;
+	uint8_t		long_len;
+	uint8_t		lat_len;
+	uint8_t		alt_len;
 } dns_rdata_gpos_t;
 
 #endif /* GENERIC_GPOS_27_H */

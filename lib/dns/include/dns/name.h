@@ -65,6 +65,7 @@
  ***/
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <isc/boolean.h>
 #include <isc/lang.h>

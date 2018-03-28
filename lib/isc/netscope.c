@@ -19,14 +19,14 @@
 #include <isc/result.h>
 
 isc_result_t
-isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
+isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
 	char *ep;
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
 	unsigned int ifid;
 	struct in6_addr *in6;
 #endif
-	isc_uint32_t zone;
-	isc_uint64_t llz;
+	uint32_t zone;
+	uint64_t llz;
 
 	/* at this moment, we only support AF_INET6 */
 	if (af != AF_INET6)
@@ -44,7 +44,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 	in6 = (struct in6_addr *)addr;
 	if (IN6_IS_ADDR_LINKLOCAL(in6) &&
 	    (ifid = if_nametoindex((const char *)scopename)) != 0)
-		zone = (isc_uint32_t)ifid;
+		zone = (uint32_t)ifid;
 	else {
 #endif
 		llz = isc_string_touint64(scopename, &ep, 10);
@@ -52,7 +52,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid) {
 			return (ISC_R_FAILURE);
 
 		/* check overflow */
-		zone = (isc_uint32_t)(llz & 0xffffffffUL);
+		zone = (uint32_t)(llz & 0xffffffffUL);
 		if (zone != llz)
 			return (ISC_R_FAILURE);
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX

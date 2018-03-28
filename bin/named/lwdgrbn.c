@@ -73,7 +73,7 @@ iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
 	lwres_uint16_t *lens = NULL, *oldlens = NULL, *newlens = NULL;
 	dns_rdatasetiter_t *iter = NULL;
 	dns_rdataset_t set;
-	dns_ttl_t ttl = ISC_INT32_MAX;
+	dns_ttl_t ttl = INT32_MAX;
 	lwres_uint32_t flags = LWRDATA_VALIDATED;
 	isc_result_t result = ISC_R_NOMEMORY;
 
