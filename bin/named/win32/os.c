@@ -55,7 +55,6 @@ named_paths_init(void) {
 		isc_ntpaths_init();
 
 	named_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
-	named_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
 	named_g_defaultpidfile = isc_ntpaths_get(NAMED_PID_PATH);
 	named_g_defaultlockfile = isc_ntpaths_get(NAMED_LOCK_PATH);
 	named_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
