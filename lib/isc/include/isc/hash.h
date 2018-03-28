@@ -12,7 +12,9 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
-#include <isc/types.h>
+#include "isc/lang.h"     // for ISC_LANG_BEGINDECLS, ISC_LANG_ENDDECLS
+#include "isc/boolean.h"  // for isc_boolean_t
+#include "isc/int.h"      // for isc_uint32_t
 
 /***
  *** Functions
