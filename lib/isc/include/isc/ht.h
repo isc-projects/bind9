@@ -14,7 +14,9 @@
 #ifndef ISC_HT_H
 #define ISC_HT_H 1
 
+#include <inttypes.h>
 #include <string.h>
+
 #include <isc/types.h>
 #include <isc/result.h>
 
@@ -35,7 +37,7 @@ typedef struct isc_ht_iter isc_ht_iter_t;
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
 isc_result_t
-isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits);
+isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits);
 
 /*%
  * Destroy hashtable, freeing everything
@@ -59,7 +61,7 @@ isc_ht_destroy(isc_ht_t **htp);
  *\li	#ISC_R_SUCCESS		-- all is well.
  */
 isc_result_t
-isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
+isc_ht_add(isc_ht_t *ht, const unsigned char *key, uint32_t keysize,
 		   void *value);
 
 /*%
@@ -77,7 +79,7 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize,
  */
 isc_result_t
 isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
-	    isc_uint32_t keysize, void **valuep);
+	    uint32_t keysize, void **valuep);
 
 /*%
  * Delete node from hashtable
@@ -89,7 +91,7 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
  *\li	#ISC_R_SUCCESS		-- all is well
  */
 isc_result_t
-isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize);
+isc_ht_delete(isc_ht_t *ht, const unsigned char *key, uint32_t keysize);
 
 /*%
  * Create an iterator for the hashtable; point '*itp' to it.

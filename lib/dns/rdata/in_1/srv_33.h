@@ -18,9 +18,9 @@
 typedef struct dns_rdata_in_srv {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
-	isc_uint16_t		priority;
-	isc_uint16_t		weight;
-	isc_uint16_t		port;
+	uint16_t		priority;
+	uint16_t		weight;
+	uint16_t		port;
 	dns_name_t		target;
 } dns_rdata_in_srv_t;
 

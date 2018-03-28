@@ -17,8 +17,8 @@
  *  \brief Per RFC2671 */
 
 typedef struct dns_rdata_opt_opcode {
-		isc_uint16_t	opcode;
-		isc_uint16_t	length;
+		uint16_t	opcode;
+		uint16_t	length;
 		unsigned char	*data;
 } dns_rdata_opt_opcode_t;
 
@@ -26,9 +26,9 @@ typedef struct dns_rdata_opt {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	unsigned char		*options;
-	isc_uint16_t		length;
+	uint16_t		length;
 	/* private */
-	isc_uint16_t		offset;
+	uint16_t		offset;
 } dns_rdata_opt_t;
 
 /*
