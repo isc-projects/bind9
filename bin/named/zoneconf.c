@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/mem.h>
@@ -1272,7 +1274,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				cfg_obj_log(obj, named_g_lctx,
 					    ISC_LOG_ERROR,
 					    "'max-journal-size "
-					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "%" PRId64 "' "
 					    "is too large",
 					    value);
 				RETERR(ISC_R_RANGE);
@@ -1405,7 +1407,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				cfg_obj_log(obj, named_g_lctx,
 					    ISC_LOG_ERROR,
 					    "'max-journal-size "
-					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "%" PRId64 "' "
 					    "is too large",
 					    value);
 				RETERR(ISC_R_RANGE);
