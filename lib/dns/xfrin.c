@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -1466,7 +1468,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 	persec = (xfr->nbytes * 1000) / msecs;
 	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
-		  "%" ISC_PRINT_QUADFORMAT "u bytes, "
+		  "%" PRIu64 " bytes, "
 		  "%u.%03u secs (%u bytes/sec)",
 		  xfr->nmsg, xfr->nrecs, xfr->nbytes,
 		  (unsigned int) (msecs / 1000), (unsigned int) (msecs % 1000),

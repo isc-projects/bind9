@@ -16,6 +16,7 @@
 #include <atf-c.h>
 
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -27,10 +28,6 @@
 #include "../tsig_p.h"
 
 #include "dnstest.h"
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
 
 #define TEST_ORIGIN	"test"
 
