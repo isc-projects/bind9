@@ -48,9 +48,9 @@ ATF_TC_HEAD(snprintf, tc) {
 }
 ATF_TC_BODY(snprintf, tc) {
 	char buf[10000];
-	isc_uint64_t ll = 8589934592ULL;
-	isc_uint64_t nn = 20000000000000ULL;
-	isc_uint64_t zz = 10000000000000000000ULL;
+	uint64_t ll = 8589934592ULL;
+	uint64_t nn = 20000000000000ULL;
+	uint64_t zz = 10000000000000000000ULL;
 	float pi = 3.141;
 	int n;
 	size_t size;

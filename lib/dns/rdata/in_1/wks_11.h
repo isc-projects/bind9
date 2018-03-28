@@ -17,9 +17,9 @@ typedef	struct dns_rdata_in_wks {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	struct in_addr		in_addr;
-	isc_uint16_t		protocol;
+	uint16_t		protocol;
 	unsigned char		*map;
-	isc_uint16_t		map_len;
+	uint16_t		map_len;
 } dns_rdata_in_wks_t;
 
 #endif /* IN_1_WKS_11_H */

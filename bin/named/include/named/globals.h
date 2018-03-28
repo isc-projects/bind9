@@ -106,7 +106,7 @@ EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
 							     "/resolv.conf");
 EXTERN isc_boolean_t		ns_g_conffileset	INIT(ISC_FALSE);
 EXTERN isc_boolean_t		lwresd_g_useresolvconf	INIT(ISC_FALSE);
-EXTERN isc_uint16_t		ns_g_udpsize		INIT(4096);
+EXTERN uint16_t		ns_g_udpsize		INIT(4096);
 EXTERN cfg_aclconfctx_t *	ns_g_aclconfctx		INIT(NULL);
 
 /*

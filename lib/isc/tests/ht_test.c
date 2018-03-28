@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,8 +26,6 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <inttypes.h>
 
 static void *
 default_memalloc(void *arg, size_t size) {
@@ -196,7 +195,7 @@ static void test_ht_iterator() {
 	uintptr_t i;
 	void *v;
 	uintptr_t count = 10000;
-	isc_uint32_t walked;
+	uint32_t walked;
 	unsigned char key[16];
 	unsigned char *tkey;
 	size_t tksize;

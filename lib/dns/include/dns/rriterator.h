@@ -27,6 +27,8 @@
  ***** Imports
  *****/
 
+#include <inttypes.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/ondestroy.h>
@@ -131,7 +133,7 @@ dns_rriterator_next(dns_rriterator_t *it);
 
 void
 dns_rriterator_current(dns_rriterator_t *it, dns_name_t **name,
-			  isc_uint32_t *ttl, dns_rdataset_t **rdataset,
+			  uint32_t *ttl, dns_rdataset_t **rdataset,
 			  dns_rdata_t **rdata);
 /*%<
  * Make '*name' refer to the current name.  If 'rdataset' is not NULL,

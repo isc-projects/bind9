@@ -11,6 +11,8 @@
 
 #include "config.h"
 
+#include <inttypes.h>
+
 #include <named/fuzz.h>
 
 #ifdef ENABLE_AFL

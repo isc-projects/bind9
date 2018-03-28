@@ -77,7 +77,7 @@ struct isc_socketevent {
         isc_sockaddr_t          address;        /*%< source address */
         isc_time_t              timestamp;      /*%< timestamp of packet recv */
         struct in6_pktinfo      pktinfo;        /*%< ipv6 pktinfo */
-        isc_uint32_t            attributes;     /*%< see below */
+        uint32_t            attributes;     /*%< see below */
         isc_eventdestructor_t   destroy;        /*%< original destructor */
         unsigned int            dscp;           /*%< UDP dscp value */
 };
