@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <isc/hash.h>
 
@@ -1839,7 +1840,7 @@ ATF_TC_BODY(isc_crc64, tc) {
 		}
 		isc_crc64_final(&crc);
 		snprintf(str, sizeof(str),
-			 "0x%016" ISC_PRINT_QUADFORMAT "X", crc);
+			 "0x%016" PRIX64, crc);
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;

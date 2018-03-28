@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -976,7 +977,7 @@ void
 cfg_print_uint64(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	char buf[32];
 
-	snprintf(buf, sizeof(buf), "%" ISC_PRINT_QUADFORMAT "u",
+	snprintf(buf, sizeof(buf), "%" PRIu64,
 		 obj->value.uint64);
 	cfg_print_cstr(pctx, buf);
 }
