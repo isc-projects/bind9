@@ -13,18 +13,19 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <isc/lfsr.h>
 #include <isc/print.h>
 #include <isc/util.h>
 
-isc_uint32_t state[1024 * 64];
+uint32_t state[1024 * 64];
 
 int
 main(int argc, char **argv) {
 	isc_lfsr_t lfsr1, lfsr2;
 	int i;
-	isc_uint32_t temp;
+	uint32_t temp;
 
 	UNUSED(argc);
 	UNUSED(argv);

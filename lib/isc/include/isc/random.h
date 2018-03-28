@@ -47,13 +47,13 @@ typedef struct isc_rng isc_rng_t;
  */
 
 void
-isc_random_seed(isc_uint32_t seed);
+isc_random_seed(uint32_t seed);
 /*%<
  * Set the initial seed of the random state.
  */
 
 void
-isc_random_get(isc_uint32_t *val);
+isc_random_get(uint32_t *val);
 /*%<
  * Get a random value.
  *
@@ -61,8 +61,8 @@ isc_random_get(isc_uint32_t *val);
  *	val != NULL.
  */
 
-isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter);
+uint32_t
+isc_random_jitter(uint32_t max, uint32_t jitter);
 /*%<
  * Get a random value between (max - jitter) and (max).
  * This is useful for jittering timer values.
@@ -121,7 +121,7 @@ isc_rng_randombytes(isc_rng_t *rngctx, void *output, size_t length);
  * Returns a pseudo random sequence of length octets in output.
  */
 
-isc_uint16_t
+uint16_t
 isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
 /*%<
  * Returns a pseudo random 16-bit unsigned integer.
@@ -130,8 +130,8 @@ isc_rng_random(isc_rng_t *rngctx) ISC_DEPRECATED;
  * instead.
  */
 
-isc_uint16_t
-isc_rng_uniformrandom(isc_rng_t *rngctx, isc_uint16_t upper_bound);
+uint16_t
+isc_rng_uniformrandom(isc_rng_t *rngctx, uint16_t upper_bound);
 /*%<
  * Returns a uniformly distributed pseudo-random 16-bit unsigned integer
  * less than 'upper_bound'.

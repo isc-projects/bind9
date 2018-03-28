@@ -16,7 +16,6 @@
 #include <atf-c.h>
 
 #include <unistd.h>
-#include <inttypes.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>

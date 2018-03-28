@@ -16,13 +16,15 @@
  * \brief CRC64 in C
  */
 
+#include <inttypes.h>
+
 #include <isc/lang.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
 void
-isc_crc64_init(isc_uint64_t *crc);
+isc_crc64_init(uint64_t *crc);
 /*%
  * Initialize a new CRC.
  *
@@ -31,7 +33,7 @@ isc_crc64_init(isc_uint64_t *crc);
  */
 
 void
-isc_crc64_update(isc_uint64_t *crc, const void *data, size_t len);
+isc_crc64_update(uint64_t *crc, const void *data, size_t len);
 /*%
  * Add data to the CRC.
  *
@@ -41,7 +43,7 @@ isc_crc64_update(isc_uint64_t *crc, const void *data, size_t len);
  */
 
 void
-isc_crc64_final(isc_uint64_t *crc);
+isc_crc64_final(uint64_t *crc);
 /*%
  * Finalize the CRC.
  *

@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -548,7 +549,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	isc_buffer_t querybuf;
 	dns_compress_t cctx;
 	isc_result_t result;
-	isc_uint32_t qid;
+	uint32_t qid;
 
 	REQUIRE(client != NULL);
 	REQUIRE(qnamestr != NULL);
@@ -822,7 +823,7 @@ ns_test_hook_catch_call(void *hook_data, void *callback_data,
  * Sleep for 'usec' microseconds.
  */
 void
-ns_test_nap(isc_uint32_t usec) {
+ns_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 
