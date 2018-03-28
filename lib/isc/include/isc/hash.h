@@ -12,7 +12,7 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
-#include <isc/types.h>
+#include "isc/int.h"      // for isc_uint32_t
 
 /***
  *** Functions
