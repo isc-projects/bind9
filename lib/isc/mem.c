@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
-
+#include <inttypes.h>
 #include <limits.h>
 
 #include <isc/bind9.h>
@@ -2383,33 +2383,33 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 	summary->total += ctx->total;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "total"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->total));
 	TRY0(xmlTextWriterEndElement(writer)); /* total */
 
 	summary->inuse += ctx->inuse;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "inuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* inuse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxinuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->maxinuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
 
 	summary->malloced += ctx->malloced;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->malloced));
 	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxmalloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->maxmalloced));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxmalloced */
 
@@ -2418,7 +2418,7 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 		summary->blocksize += ctx->basic_table_count *
 			NUM_BASIC_BLOCKS * ctx->mem_target;
 		TRY0(xmlTextWriterWriteFormatString(writer,
-					       "%" ISC_PRINT_QUADFORMAT "u",
+					       "%" PRIu64 "",
 					       (isc_uint64_t)
 					       ctx->basic_table_count *
 					       NUM_BASIC_BLOCKS *
@@ -2434,13 +2434,13 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->hi_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* hiwater */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "lowater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    (isc_uint64_t)ctx->lo_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* lowater */
 
@@ -2484,37 +2484,37 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "TotalUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    summary.total));
 	TRY0(xmlTextWriterEndElement(writer)); /* TotalUse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "InUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    summary.inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    summary.malloced));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "BlockSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    summary.blocksize));
 	TRY0(xmlTextWriterEndElement(writer)); /* BlockSize */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ContextSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    summary.contextsize));
 	TRY0(xmlTextWriterEndElement(writer)); /* ContextSize */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Lost"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    lost));
 	TRY0(xmlTextWriterEndElement(writer)); /* Lost */
 

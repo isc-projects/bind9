@@ -730,7 +730,6 @@ ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
-ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
@@ -19774,56 +19773,6 @@ $as_echo "using SPNEGO from GSSAPI library" >&6; }
 fi
 
 
-
-
-
-
-# Determine the printf format characters to use when printing
-# values of type isc_int64_t. This will normally be "ll", but where
-# the compiler treats "long long" as a alias for "long" and printf
-# doesn't know about "long long" use "l".  Hopefully the sprintf
-# will produce a inconsistent result in the later case.  If the compiler
-# fails due to seeing "%lld" we fall back to "l".
-#
-# Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
-# %ld even for (long long)/
-#
-# Win32 uses "%I64d", but that's defined elsewhere since we don't use
-# configure on Win32.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking printf format modifier for 64-bit integers" >&5
-$as_echo_n "checking printf format modifier for 64-bit integers... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform uses ll" >&5
-$as_echo "assuming target platform uses ll" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-main() {
-	long long int j = 0;
-	char buf[100];
-	buf[0] = 0;
-	sprintf(buf, "%lld", j);
-	exit((sizeof(long long int) != sizeof(long int))? 0 :
-	     (strcmp(buf, "0") != 0));
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ll" >&5
-$as_echo "ll" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: l" >&5
-$as_echo "l" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
 
 
 

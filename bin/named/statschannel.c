@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/httpd.h>
 #include <isc/json.h>
@@ -1106,7 +1108,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 		switch (dumparg.type) {
 		case isc_statsformat_file:
 			fp = arg;
-			fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+			fprintf(fp, "%20" PRIu64 " %s\n",
 				value, desc[idx]);
 			break;
 		case isc_statsformat_xml:
@@ -1134,7 +1136,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 							       ISC_XMLCHAR
 							       "counter"));
 				TRY0(xmlTextWriterWriteFormatString(writer,
-					"%" ISC_PRINT_QUADFORMAT "u", value));
+					"%" PRIu64, value));
 
 				TRY0(xmlTextWriterEndElement(writer));
 				/* </counter> */
@@ -1151,7 +1153,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 								 ISC_XMLCHAR
 								 desc[idx]));
 				TRY0(xmlTextWriterWriteFormatString(writer,
-					"%" ISC_PRINT_QUADFORMAT "u", value));
+					"%" PRIu64, value));
 				TRY0(xmlTextWriterEndElement(writer));
 				/* counter */
 			}
@@ -1203,7 +1205,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, typestr);
+		fprintf(fp, "%20" PRIu64 " %s\n", val, typestr);
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -1215,7 +1217,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 						 ISC_XMLCHAR typestr));
 
 		TRY0(xmlTextWriterWriteFormatString(writer,
-					       "%" ISC_PRINT_QUADFORMAT "u",
+					       "%" PRIu64,
 					       val));
 
 		TRY0(xmlTextWriterEndElement(writer)); /* type */
@@ -1282,7 +1284,7 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s%s%s\n", val,
+		fprintf(fp, "%20" PRIu64 " %s%s%s\n", val,
 			stale ? "#" : "", nxrrset ? "!" : "", typestr);
 		break;
 	case isc_statsformat_xml:
@@ -1298,7 +1300,7 @@ rdatasetstats_dump(dns_rdatastatstype_t type, isc_uint64_t val, void *arg) {
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
 		TRY0(xmlTextWriterWriteFormatString(writer,
-					       "%" ISC_PRINT_QUADFORMAT "u",
+					       "%" PRIu64,
 					       val));
 		TRY0(xmlTextWriterEndElement(writer)); /* counter */
 
@@ -1349,7 +1351,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, codebuf);
+		fprintf(fp, "%20" PRIu64 " %s\n", val, codebuf);
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -1358,7 +1360,7 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 						 ISC_XMLCHAR codebuf ));
 		TRY0(xmlTextWriterWriteFormatString(writer,
-						"%" ISC_PRINT_QUADFORMAT "u",
+						"%" PRIu64,
 						val));
 		TRY0(xmlTextWriterEndElement(writer)); /* counter */
 #endif
@@ -1406,7 +1408,7 @@ rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
 	switch (dumparg->type) {
 	case isc_statsformat_file:
 		fp = dumparg->arg;
-		fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n", val, codebuf);
+		fprintf(fp, "%20" PRIu64 " %s\n", val, codebuf);
 		break;
 	case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
@@ -1415,7 +1417,7 @@ rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 						 ISC_XMLCHAR codebuf ));
 		TRY0(xmlTextWriterWriteFormatString(writer,
-						"%" ISC_PRINT_QUADFORMAT "u",
+						"%" PRIu64,
 						val));
 		TRY0(xmlTextWriterEndElement(writer)); /* counter */
 #endif

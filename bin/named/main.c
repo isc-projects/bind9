@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/backtrace.h>
@@ -1061,8 +1062,8 @@ setup(void) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 			      "adjusted limit on open files from "
-			      "%" ISC_PRINT_QUADFORMAT "u to "
-			      "%" ISC_PRINT_QUADFORMAT "u",
+			      "%" PRIu64 " to "
+			      "%" PRIu64,
 			      old_openfiles, named_g_initopenfiles);
 	}
 

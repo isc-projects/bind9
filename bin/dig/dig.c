@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
@@ -279,7 +280,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 #endif
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
-			       "bytes %" ISC_PRINT_QUADFORMAT "u)\n",
+			       "bytes %" PRIu64 ")\n",
 			       query->rr_count, query->msg_count,
 			       query->byte_count);
 		} else {
@@ -297,14 +298,14 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (query->lookup->use_usec)
-			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
+			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
 				 ? query->byte_count
 				 : (isc_uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff);
 		else
-			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
+			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld ms\n\n",
 			       query->lookup->doing_xfr
 				 ?  query->byte_count
@@ -358,10 +359,11 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
-		if (query->lookup->use_usec)
-			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u us.", diff);
-		else
-			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u ms.", diff / 1000);
+		if (query->lookup->use_usec) {
+			snprintf(store, sizeof(store), " in %" PRIu64 " us.", diff);
+		} else {
+			snprintf(store, sizeof(store), " in %" PRIu64 " ms.", diff / 1000);
+		}
 		ADD_STRING(buf, store);
 	}
 	ADD_STRING(buf, "\n");
