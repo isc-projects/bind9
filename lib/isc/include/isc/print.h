@@ -50,11 +50,6 @@
 #endif
 
 /***
- *** Macros
- ***/
-#define ISC_PRINT_QUADFORMAT ISC_PLATFORM_QUADFORMAT
-
-/***
  *** Functions
  ***/
 
