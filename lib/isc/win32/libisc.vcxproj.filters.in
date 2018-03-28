@@ -312,9 +312,6 @@
     <ClInclude Include="include\isc\dir.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\isc\int.h">
-      <Filter>Win32 Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\isc\ipv6.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>

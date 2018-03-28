@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <limits.h>
+#include <inttypes.h>
 
 #ifdef HAVE_LMDB
  #include <lmdb.h>
@@ -1691,7 +1692,7 @@ isc_result_t
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t *item;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1726,7 +1727,7 @@ isc_result_t
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t *item;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1760,7 +1761,7 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 isc_boolean_t
 dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name) {
 	dns_name_t *item;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2050,7 +2051,7 @@ nz_legacy(const char *directory, const char *viewname,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
-		     void (*cfg_destroy)(void **), isc_uint64_t mapsize)
+		     void (*cfg_destroy)(void **), uint64_t mapsize)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	char buffer[1024];
@@ -2278,14 +2279,14 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 	return (ISC_R_NOTFOUND);
 }
 
-isc_uint32_t
+uint32_t
 dns_view_getfailttl(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->fail_ttl);
 }
 
 void
-dns_view_setfailttl(dns_view_t *view, isc_uint32_t fail_ttl) {
+dns_view_setfailttl(dns_view_t *view, uint32_t fail_ttl) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->fail_ttl = fail_ttl;
 }

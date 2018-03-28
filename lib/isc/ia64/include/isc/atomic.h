@@ -13,6 +13,8 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
+#include <inttypes.h>
+
 #include <isc/platform.h>
 #include <isc/types.h>
 
@@ -24,15 +26,15 @@
  * Open issue: can 'fetchadd' make the code faster for some particular values
  * (e.g., 1 and -1)?
  */
-static inline isc_int32_t
+static inline int32_t
 #ifdef __GNUC__
 __attribute__ ((unused))
 #endif
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val)
+isc_atomic_xadd(int32_t *p, int32_t val)
 {
-	isc_int32_t prev, swapped;
+	int32_t prev, swapped;
 
-	for (prev = *(volatile isc_int32_t *)p; ; prev = swapped) {
+	for (prev = *(volatile int32_t *)p; ; prev = swapped) {
 		swapped = prev + val;
 		__asm__ volatile(
 			"mov ar.ccv=%2;;"
@@ -54,7 +56,7 @@ static inline void
 #ifdef __GNUC__
 __attribute__ ((unused))
 #endif
-isc_atomic_store(isc_int32_t *p, isc_int32_t val)
+isc_atomic_store(int32_t *p, int32_t val)
 {
 	__asm__ volatile(
 		"st4.rel %0=%1"
@@ -69,13 +71,13 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val)
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static inline isc_int32_t
+static inline int32_t
 #ifdef __GNUC__
 __attribute__ ((unused))
 #endif
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val)
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val)
 {
-	isc_int32_t ret;
+	int32_t ret;
 
 	__asm__ volatile(
 		"mov ar.ccv=%2;;"

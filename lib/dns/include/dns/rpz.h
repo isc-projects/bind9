@@ -43,7 +43,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_RPZ_DROP_NAME	DNS_RPZ_PREFIX"drop"
 #define DNS_RPZ_TCP_ONLY_NAME	DNS_RPZ_PREFIX"tcp-only"
 
-typedef isc_uint8_t		dns_rpz_prefix_t;
+typedef uint8_t		dns_rpz_prefix_t;
 
 typedef enum {
 	DNS_RPZ_TYPE_BAD,
@@ -74,16 +74,16 @@ typedef enum {
 	DNS_RPZ_POLICY_ERROR
 } dns_rpz_policy_t;
 
-typedef isc_uint8_t	    dns_rpz_num_t;
+typedef uint8_t	    dns_rpz_num_t;
 
 #define DNS_RPZ_MAX_ZONES   32
 #if DNS_RPZ_MAX_ZONES > 32
 # if DNS_RPZ_MAX_ZONES > 64
 #  error "rpz zone bit masks must fit in a word"
 # endif
-typedef isc_uint64_t	    dns_rpz_zbits_t;
+typedef uint64_t	    dns_rpz_zbits_t;
 #else
-typedef isc_uint32_t	    dns_rpz_zbits_t;
+typedef uint32_t	    dns_rpz_zbits_t;
 #endif
 
 #define DNS_RPZ_ALL_ZBITS   ((dns_rpz_zbits_t)-1)
@@ -140,7 +140,7 @@ struct dns_rpz_zone {
 	dns_ttl_t	 max_policy_ttl;
 	dns_rpz_policy_t policy;	/* DNS_RPZ_POLICY_GIVEN or override */
 
-	isc_uint32_t	 min_update_interval;/* minimal interval between updates */
+	uint32_t	 min_update_interval;/* minimal interval between updates */
 	isc_ht_t	 *nodes;	/* entries in zone */
 	dns_rpz_zones_t	 *rpzs;		/* owner */
 	isc_time_t	 lastupdated;	/* last time the zone was processed */

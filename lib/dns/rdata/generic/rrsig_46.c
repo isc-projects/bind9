@@ -26,7 +26,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	isc_uint32_t time_signed, time_expire;
+	uint32_t time_signed, time_expire;
 
 	REQUIRE(type == dns_rdatatype_rrsig);
 
@@ -84,7 +84,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
 		char *end;
 		unsigned long u;
-		isc_uint64_t u64;
+		uint64_t u64;
 
 		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
 		if (u == ULONG_MAX || *end != 0)
@@ -105,7 +105,7 @@ fromtext_rrsig(ARGS_FROMTEXT) {
 	    *DNS_AS_STR(token) != '-' && *DNS_AS_STR(token) != '+') {
 		char *end;
 		unsigned long u;
-		isc_uint64_t u64;
+		uint64_t u64;
 
 		u64 = u = strtoul(DNS_AS_STR(token), &end, 10);
 		if (u == ULONG_MAX || *end != 0)

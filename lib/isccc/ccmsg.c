@@ -28,6 +28,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/task.h>
@@ -182,7 +184,7 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg,
 		       NULL, NULL);
 
 	region.base = (unsigned char *)&ccmsg->size;
-	region.length = 4;  /* isc_uint32_t */
+	region.length = 4;  /* uint32_t */
 	result = isc_socket_recv(ccmsg->sock, &region, 0,
 				 ccmsg->task, recv_length, ccmsg);
 
