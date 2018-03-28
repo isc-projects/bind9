@@ -221,8 +221,7 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 		str = cfg_obj_asstring(obj);
 		isc_buffer_constinit(&buffer, str, strlen(str));
 		isc_buffer_add(&buffer, strlen(str));
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		tresult = dns_name_fromtext(name, &buffer, dns_rootname,
 					    0, NULL);
 		if (tresult != ISC_R_SUCCESS) {
@@ -283,8 +282,7 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	dns_name_t *name;
 	const cfg_obj_t *obj;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(disabled, "name");
 	str = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, str, strlen(str));
@@ -330,8 +328,7 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 	dns_name_t *name;
 	const cfg_obj_t *obj;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(disabled, "name");
 	str = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, str, strlen(str));
@@ -413,8 +410,7 @@ mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 	isc_buffer_t b;
 	isc_result_t result = ISC_R_SUCCESS;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(secure, "name");
 	str = cfg_obj_asstring(obj);
 	isc_buffer_constinit(&b, str, strlen(str));
@@ -1156,8 +1152,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		}
 	}
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	/*
 	 * Check the DLV zone name.
@@ -1750,10 +1745,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		const cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
 		dns_ssumatchtype_t mtype;
 
-		dns_fixedname_init(&fixed_id);
-		dns_fixedname_init(&fixed_name);
-		id = dns_fixedname_name(&fixed_id);
-		name = dns_fixedname_name(&fixed_name);
+		id = dns_fixedname_initname(&fixed_id);
+		name = dns_fixedname_initname(&fixed_name);
 
 		tresult = dns_ssu_mtypefromstring(cfg_obj_asstring(matchtype),
 						  &mtype);
@@ -2404,10 +2397,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			obj = cfg_listelt_value(element);
 			snamestr = cfg_obj_asstring(obj);
 
-			dns_fixedname_init(&fixed_sname);
 			isc_buffer_constinit(&b2, snamestr, strlen(snamestr));
 			isc_buffer_add(&b2, strlen(snamestr));
-			sname = dns_fixedname_name(&fixed_sname);
+			sname = dns_fixedname_initname(&fixed_sname);
 			tresult = dns_name_fromtext(sname, &b2, dns_rootname,
 						    0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
@@ -2711,8 +2703,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 	isc_result_t tresult;
 	const cfg_listelt_t *element;
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	for (element = cfg_list_first(keys);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -2891,10 +2882,9 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			 * Normalize key name.
 			 */
 			keyval = cfg_obj_asstring(keys);
-			dns_fixedname_init(&fname);
 			isc_buffer_constinit(&b, keyval, strlen(keyval));
 			isc_buffer_add(&b, strlen(keyval));
-			keyname = dns_fixedname_name(&fname);
+			keyname = dns_fixedname_initname(&fname);
 			tresult = dns_name_fromtext(keyname, &b, dns_rootname,
 						    0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
@@ -2937,8 +2927,7 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
 	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
 
-	dns_fixedname_init(&fkeyname);
-	keyname = dns_fixedname_name(&fkeyname);
+	keyname = dns_fixedname_initname(&fkeyname);
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
 	isc_buffer_constinit(&b, keynamestr, strlen(keynamestr));
@@ -3144,8 +3133,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	}
 	result = ISC_R_SUCCESS;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	obj = cfg_tuple_get(rpz_obj, "zone list");
 	for (element = cfg_list_first(obj);
 	     element != NULL;

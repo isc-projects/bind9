@@ -256,8 +256,7 @@ main(void) {
 		return (1);
 	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&b, "test.", 5);
 	isc_buffer_add(&b, 5);
 	result = dns_name_fromtext(name, &b, NULL, 0, NULL);

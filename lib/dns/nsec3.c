@@ -236,8 +236,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 
 	memset(rethash, 0, NSEC3_MAX_HASH_LENGTH);
 
-	dns_fixedname_init(&fixed);
-	downcased = dns_fixedname_name(&fixed);
+	downcased = dns_fixedname_initname(&fixed);
 	dns_name_downcase(name, downcased, NULL);
 
 	/* hash the node name */
@@ -535,10 +534,8 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	unsigned int old_length;
 	unsigned int salt_length;
 
-	dns_fixedname_init(&fixed);
-	hashname = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&fprev);
-	prev = dns_fixedname_name(&fprev);
+	hashname = dns_fixedname_initname(&fixed);
+	prev = dns_fixedname_initname(&fprev);
 
 	dns_rdataset_init(&rdataset);
 
@@ -1343,10 +1340,8 @@ dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version,
 	size_t next_length;
 	unsigned int salt_length;
 
-	dns_fixedname_init(&fixed);
-	hashname = dns_fixedname_name(&fixed);
-	dns_fixedname_init(&fprev);
-	prev = dns_fixedname_name(&fprev);
+	hashname = dns_fixedname_initname(&fixed);
+	prev = dns_fixedname_initname(&fprev);
 
 	dns_rdataset_init(&rdataset);
 
@@ -1894,8 +1889,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 
 	(*logit)(arg, ISC_LOG_DEBUG(3), "looking for relevant NSEC3");
 
-	dns_fixedname_init(&fzone);
-	zone = dns_fixedname_name(&fzone);
+	zone = dns_fixedname_initname(&fzone);
 	zlabels = dns_name_countlabels(nsec3name);
 
 	/*
@@ -1967,8 +1961,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	/*
 	 * Prepare to compute all the hashes.
 	 */
-	dns_fixedname_init(&qfixed);
-	qname = dns_fixedname_name(&qfixed);
+	qname = dns_fixedname_initname(&qfixed);
 	dns_name_downcase(name, qname, NULL);
 	qlabels = dns_name_countlabels(qname);
 	first = ISC_TRUE;
