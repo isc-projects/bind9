@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /*
  * Workout if we need to force the inclusion of print.c so we can test
@@ -61,37 +62,22 @@ ATF_TC_BODY(snprintf, tc) {
 	 */
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", ll);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, ll);
 	ATF_CHECK_EQ(n, 10);
 	ATF_CHECK_STREQ(buf, "8589934592");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", ll);
-	ATF_CHECK_EQ(n, 10);
-	ATF_CHECK_STREQ(buf, "8589934592");
-
-	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", nn);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, nn);
 	ATF_CHECK_EQ(n, 14);
 	ATF_CHECK_STREQ(buf, "20000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", nn);
-	ATF_CHECK_EQ(n, 14);
-	ATF_CHECK_STREQ(buf, "20000000000000");
-
-	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, zz);
 	ATF_CHECK_EQ(n, 20);
 	ATF_CHECK_STREQ(buf, "10000000000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", zz);
-	ATF_CHECK_EQ(n, 20);
-	ATF_CHECK_STREQ(buf, "10000000000000000000");
-
-	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%lld", nn);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRId64, (int64_t)nn);
 	ATF_CHECK_EQ(n, 14);
 	ATF_CHECK_STREQ(buf, "20000000000000");
 
@@ -115,7 +101,7 @@ ATF_TC_BODY(snprintf, tc) {
 
 	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "0x%" PRIx64, zz);
 	ATF_CHECK_EQ(n, 18);
 	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
 }
