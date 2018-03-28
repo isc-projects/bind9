@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/serial.h>
@@ -3200,8 +3202,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (result == ISC_R_SUCCESS && records > maxrecords) {
 				update_log(client, zone, ISC_LOG_ERROR,
 					   "records in zone (%"
-					   ISC_PRINT_QUADFORMAT
-					   "u) exceeds max-records (%u)",
+					   PRIu64
+					   ") exceeds max-records (%u)",
 					   records, maxrecords);
 				result = DNS_R_TOOMANYRECORDS;
 				goto failure;
