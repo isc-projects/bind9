@@ -366,6 +366,12 @@
     <ClInclude Include="errno2result.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inttypes.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdint.h">
+      <Filter>Win32 Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="syslog.h">
       <Filter>Win32 Header Files</Filter>
     </ClInclude>
