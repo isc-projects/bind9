@@ -5136,6 +5136,25 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	return (ns__query_start(&qctx));
 }
 
+static isc_boolean_t
+get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
+	unsigned int v = 0;
+	int i;
+
+	for (i = 0; i < 5; i++) {
+		if (ndata[i] < '0' || ndata[i] > '9') {
+			return (ISC_FALSE);
+		}
+		v *= 10;
+		v += ndata[i] - '0';
+	}
+	if (v > 65535U) {
+		return (ISC_FALSE);
+	}
+	qctx->client->query.root_key_sentinel_keyid = v;
+	return (ISC_TRUE);
+}
+
 /*%
  * Find out if the query is for a root key sentinel and if so record the
  * type of root key sentinel query and the key id that is being checked
@@ -5146,24 +5165,13 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 static void
 root_key_sentinel(query_ctx_t *qctx) {
 	const char *ndata = (const char *)qctx->client->query.qname->ndata;
-	unsigned int v = 0;
-	int i;
 
 	if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
 	    strncasecmp(ndata + 1, "root-key-sentinel-is-ta-", 24) == 0)
 	{
-		ndata += 25;
-		for (i = 0; i < 5; i++) {
-			if (ndata[i] < '0' || ndata[i] > '9') {
+		if (!get_root_key_sentinel_id(qctx, ndata + 25)) {
 				return;
-			}
-			v *= 10;
-			v += ndata[i] - '0';
 		}
-		if (v > 65535U) {
-			return;
-		}
-		qctx->client->query.root_key_sentinel_keyid = v;
 		qctx->client->query.root_key_sentinel_is_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
@@ -5177,18 +5185,9 @@ root_key_sentinel(query_ctx_t *qctx) {
 	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
 	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
 	{
-		ndata += 26;
-		for (i = 0; i < 5; i++) {
-			if (ndata[i] < '0' || ndata[i] > '9') {
+		if (!get_root_key_sentinel_id(qctx, ndata + 26)) {
 				return;
-			}
-			v *= 10;
-			v += ndata[i] - '0';
 		}
-		if (v > 65535U) {
-			return;
-		}
-		qctx->client->query.root_key_sentinel_keyid = v;
 		qctx->client->query.root_key_sentinel_not_ta = ISC_TRUE;
 		/*
 		 * Simplify processing by disabling agressive
