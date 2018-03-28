@@ -13,17 +13,16 @@
  * 32 bit Fowler/Noll/Vo FNV-1a hash code with modification for BIND
  */
 
-#include <config.h>
-#include <isc/entropy.h>
-#include <isc/hash.h>
-#include <isc/mem.h>
-#include <isc/magic.h>
-#include <isc/mutex.h>
-#include <isc/once.h>
-#include <isc/random.h>
-#include <isc/refcount.h>
-#include <isc/string.h>
-#include <isc/util.h>
+#include <config.h>       // IWYU pragma: keep
+#include <stddef.h>
+#include "isc/once.h"
+#include "isc/random.h"
+#include "isc/util.h"
+#include "isc/boolean.h"
+#include "isc/int.h"
+#include "isc/likely.h"
+#include "isc/result.h"
+#include "isc/hash.h"     // IWYU pragma: keep
 
 static isc_uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
