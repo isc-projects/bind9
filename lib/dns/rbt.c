@@ -16,9 +16,7 @@
 #include <config.h>
 
 #include <sys/stat.h>
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h> /* uintptr_t */
-#endif
 
 #include <isc/crc64.h>
 #include <isc/file.h>
