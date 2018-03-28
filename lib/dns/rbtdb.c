@@ -19,9 +19,7 @@
 
 /* #define inline */
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
+#include <inttypes.h>
 
 #include <isc/crc64.h>
 #include <isc/event.h>
@@ -9876,8 +9874,8 @@ rehash_gluetable(rbtdb_version_t *version) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 		      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 		      "rehash_gluetable(): "
-		      "resized glue table from %"ISC_PRINT_QUADFORMAT"u to "
-		      "%"ISC_PRINT_QUADFORMAT"u",
+		      "resized glue table from %" PRIu64 " to "
+		      "%" PRIu64,
 		      (isc_uint64_t) oldsize,
 		      (isc_uint64_t) version->glue_table_size);
 

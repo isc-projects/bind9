@@ -10,7 +10,9 @@
  */
 
 #include <config.h>
+
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <atf-c.h>
 
@@ -149,8 +151,8 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 
 	isc_test_end();
 
-	printf("64-bit counter %"ISC_PRINT_QUADFORMAT"d, "
-	       "expected %"ISC_PRINT_QUADFORMAT"d\n",
+	printf("64-bit counter %" PRId64 ", "
+	       "expected %" PRId64 "\n",
 	       counter_64, EXPECTED_COUNT_64);
 
 	ATF_CHECK_EQ(counter_64, EXPECTED_COUNT_64);
@@ -304,8 +306,8 @@ ATF_TC_BODY(atomic_storeq, tc) {
 	       (isc_uint64_t) r);
 	val |= ((isc_uint64_t) val << 32);
 
-	printf("64-bit store 0x%"ISC_PRINT_QUADFORMAT"x, "
-	       "expected 0x%"ISC_PRINT_QUADFORMAT"x\n",
+	printf("64-bit store 0x%" PRIx64 ", "
+	       "expected 0x%" PRIx64 "\n",
 	       (isc_uint64_t) store_64, val);
 
 	ATF_CHECK_EQ((isc_uint64_t) store_64, val);
