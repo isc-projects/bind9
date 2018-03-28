@@ -156,8 +156,7 @@ main(int argc, char *argv[]) {
 	} else
 		comp = NULL;
 
-	dns_fixedname_init(&wname);
-	name = dns_fixedname_name(&wname);
+	name = dns_fixedname_initname(&wname);
 	dns_fixedname_init(&wname2);
 	while (fgets(s, sizeof(s), stdin) != NULL) {
 		len = strlen(s);
@@ -267,8 +266,7 @@ main(int argc, char *argv[]) {
 			if (inplace) {
 				down = name;
 			} else {
-				dns_fixedname_init(&downname);
-				down = dns_fixedname_name(&downname);
+				down = dns_fixedname_initname(&downname);
 			}
 			result = dns_name_downcase(name, down, NULL);
 			INSIST(result == ISC_R_SUCCESS);
@@ -321,10 +319,8 @@ main(int argc, char *argv[]) {
 
 		labels = dns_name_countlabels(name);
 		if (want_split && split_label < labels) {
-			dns_fixedname_init(&fprefix);
-			prefix = dns_fixedname_name(&fprefix);
-			dns_fixedname_init(&fsuffix);
-			suffix = dns_fixedname_name(&fsuffix);
+			prefix = dns_fixedname_initname(&fprefix);
+			suffix = dns_fixedname_initname(&fsuffix);
 			printf("splitting at label %u: ", split_label);
 			dns_name_split(name, split_label, prefix, suffix);
 			printf("\n    prefix = ");

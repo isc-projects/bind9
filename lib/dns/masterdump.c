@@ -500,8 +500,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	current_ttl_valid = ctx->current_ttl_valid;
 
 	if (owner_name != NULL) {
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		dns_name_copy(owner_name, name, NULL);
 		dns_rdataset_getownercase(rdataset, name);
 	}
@@ -1648,8 +1647,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
-	dns_fixedname_init(&fixname);
-	name = dns_fixedname_name(&fixname);
+	name = dns_fixedname_initname(&fixname);
 
 	if (dctx->first) {
 		CHECK(writeheader(dctx));

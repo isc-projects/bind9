@@ -550,8 +550,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 
 	isc_buffer_constinit(&b, text, len);
 	isc_buffer_add(&b, len);
-	dns_fixedname_init(fn);
-	n = dns_fixedname_name(fn);
+	n = dns_fixedname_initname(fn);
 
 	result = dns_name_fromtext(n, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -1538,8 +1537,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t strict) {
 		dns_name_t *name;
 		unsigned int options = 0;
 
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
