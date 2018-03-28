@@ -13,6 +13,7 @@
 
 #include <config.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include <isc/counter.h>
 #include <isc/log.h>
@@ -10462,8 +10463,8 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 		dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
 		isc_log_write(lctx, category, module, level,
 			      "fetch completed at %s:%d for %s in "
-			      "%" ISC_PRINT_QUADFORMAT "u."
-			      "%06" ISC_PRINT_QUADFORMAT "u: %s/%s "
+			      "%" PRIu64 "."
+			      "%06" PRIu64 ": %s/%s "
 			      "[domain:%s,referral:%u,restart:%u,qrysent:%u,"
 			      "timeout:%u,lame:%u,quota:%u,neterr:%u,"
 			      "badresp:%u,adberr:%u,findfail:%u,valfail:%u]",

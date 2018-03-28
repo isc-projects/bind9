@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <isc/aes.h>
 #include <isc/base64.h>
@@ -1565,7 +1566,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			cfg_obj_log(obj, logctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too small",
 				    mapsize);
 			if (result == ISC_R_SUCCESS)
@@ -1574,7 +1575,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			cfg_obj_log(obj, logctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too large",
 				    mapsize);
 			if (result == ISC_R_SUCCESS)
