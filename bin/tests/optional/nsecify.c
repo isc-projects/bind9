@@ -118,10 +118,8 @@ nsecify(char *filename) {
 	dns_dbiterator_t *dbiter;
 	char newfilename[1024];
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	dns_fixedname_init(&fnextname);
-	nextname = dns_fixedname_name(&fnextname);
+	name = dns_fixedname_initname(&fname);
+	nextname = dns_fixedname_initname(&fnextname);
 
 	origintext = strrchr(filename, '/');
 	if (origintext == NULL)

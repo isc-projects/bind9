@@ -553,8 +553,7 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 	namelen = strlen(domain);
 	isc_buffer_constinit(&b, domain, namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&fixeddomain);
-	qdomain = dns_fixedname_name(&fixeddomain);
+	qdomain = dns_fixedname_initname(&fixeddomain);
 	result = dns_name_fromtext(qdomain, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, state, sizeof(*state));
@@ -565,8 +564,7 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 	namelen = strlen(hostname);
 	isc_buffer_constinit(&b, hostname, namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&state->fixedname);
-	state->qname = dns_fixedname_name(&state->fixedname);
+	state->qname = dns_fixedname_initname(&state->fixedname);
 	result = dns_name_fromtext(state->qname, &b, qdomain, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, state, sizeof(*state));

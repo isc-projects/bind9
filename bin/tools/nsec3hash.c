@@ -109,8 +109,7 @@ nsec3hash(nsec3printer *nsec3print, const char *algostr, const char *flagstr,
 	if (iterations > 0xffffU)
 		fatal("iterations to large");
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	isc_buffer_constinit(&buffer, domain, strlen(domain));
 	isc_buffer_add(&buffer, strlen(domain));
 	result = dns_name_fromtext(name, &buffer, dns_rootname, 0, NULL);

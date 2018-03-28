@@ -251,8 +251,7 @@ main(int argc, char *argv[]) {
 	inaddr.s_addr = htonl(INADDR_LOOPBACK);
 	isc_sockaddr_fromin(&address, &inaddr, port);
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&b, "child.example.", strlen("child.example."));
 	isc_buffer_add(&b, strlen("child.example."));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
