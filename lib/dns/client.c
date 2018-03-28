@@ -850,8 +850,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 		want_restart = ISC_FALSE;
 
 		if (event == NULL && !rctx->canceled) {
-			dns_fixedname_init(&foundname);
-			fname = dns_fixedname_name(&foundname);
+			fname = dns_fixedname_initname(&foundname);
 			INSIST(!dns_rdataset_isassociated(rctx->rdataset));
 			INSIST(rctx->sigrdataset == NULL ||
 			       !dns_rdataset_isassociated(rctx->sigrdataset));
@@ -994,8 +993,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			/*
 			 * Construct the new query name and start over.
 			 */
-			dns_fixedname_init(&fixed);
-			prefix = dns_fixedname_name(&fixed);
+			prefix = dns_fixedname_initname(&fixed);
 			dns_name_split(name, nlabels, prefix, NULL);
 			tresult = dns_name_concatenate(prefix, &dname.dname,
 						      name, NULL);

@@ -372,8 +372,7 @@ main(int argc, char **argv) {
 		if (argc > isc_commandline_index + 1)
 			fatal("extraneous arguments");
 
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		isc_buffer_init(&buf, argv[isc_commandline_index],
 				strlen(argv[isc_commandline_index]));
 		isc_buffer_add(&buf, strlen(argv[isc_commandline_index]));

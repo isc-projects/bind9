@@ -598,8 +598,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	lctx->include_arg = include_arg;
 	isc_stdtime_get(&lctx->now);
 
-	dns_fixedname_init(&lctx->fixed_top);
-	lctx->top = dns_fixedname_name(&lctx->fixed_top);
+	lctx->top = dns_fixedname_initname(&lctx->fixed_top);
 	dns_name_toregion(top, &r);
 	dns_name_fromregion(lctx->top, &r);
 
@@ -797,8 +796,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 
 	ictx = lctx->inc;
 	callbacks = lctx->callbacks;
-	dns_fixedname_init(&ownerfixed);
-	owner = dns_fixedname_name(&ownerfixed);
+	owner = dns_fixedname_initname(&ownerfixed);
 	ISC_LIST_INIT(head);
 
 	target_mem = isc_mem_get(lctx->mctx, target_size);
@@ -1387,8 +1385,8 @@ load_text(dns_loadctx_t *lctx) {
 				if (!ictx->in_use[new_in_use])
 					break;
 			INSIST(new_in_use < NBUFS);
-			dns_fixedname_init(&ictx->fixed[new_in_use]);
-			new_name = dns_fixedname_name(&ictx->fixed[new_in_use]);
+			new_name =
+			      dns_fixedname_initname(&ictx->fixed[new_in_use]);
 			isc_buffer_init(&buffer, token.value.as_region.base,
 					token.value.as_region.length);
 			isc_buffer_add(&buffer, token.value.as_region.length);
@@ -2327,8 +2325,7 @@ load_raw(dns_loadctx_t *lctx) {
 	}
 	isc_buffer_init(&target, target_mem, target_size);
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	/*
 	 * In the following loop, we regard any error fatal regardless of

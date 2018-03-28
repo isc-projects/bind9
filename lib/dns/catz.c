@@ -1803,8 +1803,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		return;
 	}
 
-	dns_fixedname_init(&fixname);
-	name = dns_fixedname_name(&fixname);
+	name = dns_fixedname_initname(&fixname);
 
 	/*
 	 * Iterate over database to fill the new zone.

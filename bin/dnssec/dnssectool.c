@@ -1692,10 +1692,8 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 	 * present in the DNSKEY RRSET.
 	 */
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	dns_fixedname_init(&fnextname);
-	nextname = dns_fixedname_name(&fnextname);
+	name = dns_fixedname_initname(&fname);
+	nextname = dns_fixedname_initname(&fnextname);
 	dns_fixedname_init(&fprevname);
 	prevname = NULL;
 	dns_fixedname_init(&fzonecut);

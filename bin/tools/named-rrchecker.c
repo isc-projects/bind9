@@ -164,8 +164,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
 
 	if (origin != NULL) {
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		result = dns_name_fromstring(name, origin, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_name_fromstring: %s",

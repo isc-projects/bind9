@@ -493,8 +493,7 @@ configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(obj);
 
-		dns_fixedname_init(&fixed_name);
-		nsname = dns_fixedname_name(&fixed_name);
+		nsname = dns_fixedname_initname(&fixed_name);
 
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));

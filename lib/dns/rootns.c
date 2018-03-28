@@ -154,8 +154,7 @@ check_hints(dns_db_t *db) {
 
 	isc_stdtime_get(&now);
 
-	dns_fixedname_init(&fixname);
-	name = dns_fixedname_name(&fixname);
+	name = dns_fixedname_initname(&fixname);
 
 	dns_rdataset_init(&rootns);
 	(void)dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns, 0,
@@ -332,8 +331,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 
 	dns_rdataset_init(&hintrrset);
 	dns_rdataset_init(&rootrrset);
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	hresult = dns_db_find(hints, name, NULL, dns_rdatatype_a, 0,
 			      now, NULL, foundname, &hintrrset, NULL);
@@ -445,8 +443,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 
 	dns_rdataset_init(&hintns);
 	dns_rdataset_init(&rootns);
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	result = dns_db_find(hints, dns_rootname, NULL, dns_rdatatype_ns, 0,
 			     now, NULL, name, &hintns, NULL);

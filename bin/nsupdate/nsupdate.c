@@ -571,8 +571,7 @@ setup_keystr(void) {
 	dns_name_t *hmacname = NULL;
 	isc_uint16_t digestbits = 0;
 
-	dns_fixedname_init(&fkeyname);
-	mykeyname = dns_fixedname_name(&fkeyname);
+	mykeyname = dns_fixedname_initname(&fkeyname);
 
 	debug("Creating key...");
 
@@ -1596,8 +1595,7 @@ evaluate_key(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 
-	dns_fixedname_init(&fkeyname);
-	mykeyname = dns_fixedname_name(&fkeyname);
+	mykeyname = dns_fixedname_initname(&fkeyname);
 
 	n = strchr(namestr, ':');
 	if (n != NULL) {
@@ -1668,8 +1666,7 @@ evaluate_zone(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 
-	dns_fixedname_init(&fuserzone);
-	userzone = dns_fixedname_name(&fuserzone);
+	userzone = dns_fixedname_initname(&fuserzone);
 	isc_buffer_init(&b, word, strlen(word));
 	isc_buffer_add(&b, strlen(word));
 	result = dns_name_fromtext(userzone, &b, dns_rootname, 0, NULL);
@@ -1938,8 +1935,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			goto failure;
 		}
 
-		dns_fixedname_init(&fixed);
-		bad = dns_fixedname_name(&fixed);
+		bad = dns_fixedname_initname(&fixed);
 		if (!dns_rdata_checknames(rdata, name, bad)) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -2653,8 +2649,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		 * Save the zone name in case we need to try a second
 		 * address.
 		 */
-		dns_fixedname_init(&fzname);
-		zname = dns_fixedname_name(&fzname);
+		zname = dns_fixedname_initname(&fzname);
 		dns_name_copy(name, zname, NULL);
 	}
 
@@ -2860,8 +2855,7 @@ start_gssrequest(dns_name_t *master) {
 
 	memmove(kserver, &master_servers[master_inuse], sizeof(isc_sockaddr_t));
 
-	dns_fixedname_init(&fname);
-	servname = dns_fixedname_name(&fname);
+	servname = dns_fixedname_initname(&fname);
 
 	if (realm == NULL)
 		get_ticket_realm(gmctx);
@@ -2878,8 +2872,7 @@ start_gssrequest(dns_name_t *master) {
 		fatal("dns_name_fromtext(servname) failed: %s",
 		      isc_result_totext(result));
 
-	dns_fixedname_init(&fkname);
-	keyname = dns_fixedname_name(&fkname);
+	keyname = dns_fixedname_initname(&fkname);
 
 	isc_random_get(&val);
 	result = isc_string_printf(mykeystr, sizeof(mykeystr), "%u.sig-%s",
@@ -3052,8 +3045,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		fatal("response to GSS-TSIG query was unsuccessful");
 
 
-	dns_fixedname_init(&fname);
-	servname = dns_fixedname_name(&fname);
+	servname = dns_fixedname_initname(&fname);
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
 	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);

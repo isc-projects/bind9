@@ -532,8 +532,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 
 		if (ip6_int)
 			options |= DNS_BYADDROPT_IPV6INT;
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2259,8 +2258,7 @@ next_origin(dig_lookup_t *oldlookup) {
 	/*
 	 * Check for a absolute name or ndots being met.
 	 */
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	result = dns_name_fromstring2(name, oldlookup->textname, NULL,
 				      0, NULL);
 	if (result == ISC_R_SUCCESS &&
@@ -2484,8 +2482,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
 
-			dns_fixedname_init(&fixed);
-			name = dns_fixedname_name(&fixed);
+			name = dns_fixedname_initname(&fixed);
 			len = (unsigned int) strlen(textname);
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);

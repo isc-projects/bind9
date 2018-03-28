@@ -2481,8 +2481,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 	if (BINDABLE(target) && target->buffer != NULL)
 		name = target;
 	else {
-		dns_fixedname_init(&fn);
-		name = dns_fixedname_name(&fn);
+		name = dns_fixedname_initname(&fn);
 	}
 
 	result = dns_name_fromtext(name, &buf, origin, options, NULL);

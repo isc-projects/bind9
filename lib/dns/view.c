@@ -1927,8 +1927,7 @@ dns_view_issecuredomain(dns_view_t *view, dns_name_t *name,
 	if (view->secroots_priv == NULL)
 		return (ISC_R_NOTFOUND);
 
-	dns_fixedname_init(&fn);
-	anchor = dns_fixedname_name(&fn);
+	anchor = dns_fixedname_initname(&fn);
 
 	result = dns_keytable_issecuredomain(view->secroots_priv, name,
 					     anchor, &secure);
@@ -2133,8 +2132,7 @@ dns_view_searchdlz(dns_view_t *view, dns_name_t *name, unsigned int minlabels,
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
 	/* setup a "fixed" dns name */
-	dns_fixedname_init(&fname);
-	zonename = dns_fixedname_name(&fname);
+	zonename = dns_fixedname_initname(&fname);
 
 	/* count the number of labels in the name */
 	namelabels = dns_name_countlabels(name);
@@ -2298,8 +2296,7 @@ dns_view_loadnta(dns_view_t *view) {
 		if (strcmp(name, ".") == 0)
 			ntaname = dns_rootname;
 		else {
-			dns_fixedname_init(&fn);
-			ntaname = dns_fixedname_name(&fn);
+			ntaname = dns_fixedname_initname(&fn);
 
 			isc_buffer_init(&b, name, (unsigned int)len);
 			isc_buffer_add(&b, (unsigned int)len);

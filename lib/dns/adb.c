@@ -1427,10 +1427,8 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		/*
 		 * Construct the new target name.
 		 */
-		dns_fixedname_init(&fixed1);
-		prefix = dns_fixedname_name(&fixed1);
-		dns_fixedname_init(&fixed2);
-		new_target = dns_fixedname_name(&fixed2);
+		prefix = dns_fixedname_initname(&fixed1);
+		new_target = dns_fixedname_initname(&fixed2);
 		dns_name_split(name, nlabels, prefix, NULL);
 		result = dns_name_concatenate(prefix, &dname.dname, new_target,
 					      NULL);
@@ -3691,8 +3689,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
 
-	dns_fixedname_init(&foundname);
-	fname = dns_fixedname_name(&foundname);
+	fname = dns_fixedname_initname(&foundname);
 	dns_rdataset_init(&rdataset);
 
 	if (rdtype == dns_rdatatype_a)
@@ -4033,8 +4030,7 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 		DP(ENTER_LEVEL,
 		   "fetch_name: starting at zone for name %p",
 		   adbname);
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		result = dns_view_findzonecut2(adb->view, &adbname->name, name,
 					       0, 0, ISC_TRUE, ISC_FALSE,
 					       &rdataset, NULL);

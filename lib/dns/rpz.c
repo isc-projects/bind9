@@ -156,8 +156,7 @@ catch_name(const dns_name_t *src_name, const char *tgt, const char *str) {
 	dns_fixedname_t tgt_namef;
 	dns_name_t *tgt_name;
 
-	dns_fixedname_init(&tgt_namef);
-	tgt_name = dns_fixedname_name(&tgt_namef);
+	tgt_name = dns_fixedname_initname(&tgt_namef);
 	dns_name_fromstring(tgt_name, tgt, DNS_NAME_DOWNCASE, NULL);
 	if (dns_name_equal(src_name, tgt_name)) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
@@ -931,8 +930,7 @@ name2ipkey(int log_level,
 		 * Convert the address back to a canonical domain name
 		 * to ensure that the original name is in canonical form.
 		 */
-		dns_fixedname_init(&ip_name2f);
-		ip_name2 = dns_fixedname_name(&ip_name2f);
+		ip_name2 = dns_fixedname_initname(&ip_name2f);
 		result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num,
 				 NULL, ip_name2);
 		if (result != ISC_R_SUCCESS ||
@@ -1372,8 +1370,7 @@ add_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	 * because wildcard triggers are handled differently.
 	 */
 
-	dns_fixedname_init(&trig_namef);
-	trig_name = dns_fixedname_name(&trig_namef);
+	trig_name = dns_fixedname_initname(&trig_namef);
 	name2data(rpzs, rpz_num, rpz_type, src_name, trig_name, &new_data);
 
 	result = add_nm(rpzs, trig_name, &new_data);
@@ -2048,8 +2045,7 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	 * because wildcard triggers are handled differently.
 	 */
 
-	dns_fixedname_init(&trig_namef);
-	trig_name = dns_fixedname_name(&trig_namef);
+	trig_name = dns_fixedname_initname(&trig_namef);
 	name2data(rpzs, rpz_num, rpz_type, src_name, trig_name, &del_data);
 
 	nmnode = NULL;

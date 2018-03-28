@@ -242,8 +242,7 @@ print_yaml(dns_dtdata_t *dt) {
 		isc_buffer_t b;
 		dns_decompress_t dctx;
 
-		dns_fixedname_init(&fn);
-		name = dns_fixedname_name(&fn);
+		name = dns_fixedname_initname(&fn);
 
 		isc_buffer_init(&b, m->query_zone.data, m->query_zone.len);
 		isc_buffer_add(&b, m->query_zone.len);

@@ -462,8 +462,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		dns_name_t *name;
 
 		/* Add AAAA and MX lookups. */
-		dns_fixedname_init(&fixed);
-		name = dns_fixedname_name(&fixed);
+		name = dns_fixedname_initname(&fixed);
 		dns_name_copy(query->lookup->name, name, NULL);
 		chase_cnamechain(msg, name);
 		dns_name_format(name, namestr, sizeof(namestr));

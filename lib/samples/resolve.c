@@ -160,8 +160,7 @@ set_key(dns_client_t *client, char *keynamestr, char *keystr,
 	namelen = strlen(keynamestr);
 	isc_buffer_init(&b, keynamestr, namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&fkeyname);
-	keyname = dns_fixedname_name(&fkeyname);
+	keyname = dns_fixedname_initname(&fkeyname);
 	result = dns_name_fromtext(keyname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "failed to construct key name\n");
@@ -213,8 +212,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 		namelen = strlen(name_space);
 		isc_buffer_constinit(&b, name_space, namelen);
 		isc_buffer_add(&b, namelen);
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "failed to convert qname: %u\n",
@@ -445,8 +443,7 @@ main(int argc, char *argv[]) {
 	namelen = strlen(argv[0]);
 	isc_buffer_init(&b, argv[0], namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&qname0);
-	qname = dns_fixedname_name(&qname0);
+	qname = dns_fixedname_initname(&qname0);
 	result = dns_name_fromtext(qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "failed to convert qname: %u\n", result);
