@@ -994,8 +994,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	options = DNS_DBFIND_PENDINGOK;
 	if (type == dns_rdatatype_dlv)
 		options |= DNS_DBFIND_COVERINGNSEC;
-	dns_fixedname_init(&fixedname);
-	foundname = dns_fixedname_name(&fixedname);
+	foundname = dns_fixedname_initname(&fixedname);
 	result = dns_view_find(val->view, name, type, 0, options,
 			       ISC_FALSE, NULL, NULL, foundname,
 			       &val->frdataset, &val->fsigrdataset);
@@ -1506,8 +1505,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	dns_name_t *wild;
 
 	val->attributes |= VALATTR_TRIEDVERIFY;
-	dns_fixedname_init(&fixed);
-	wild = dns_fixedname_name(&fixed);
+	wild = dns_fixedname_initname(&fixed);
  again:
 	result = dns_dnssec_verify3(val->event->name, val->event->rdataset,
 				    key, ignore, val->view->maxbits,
@@ -1982,8 +1980,7 @@ validatezonekey(dns_validator_t *val) {
 			dns_fixedname_t fixed;
 			dns_name_t *found;
 
-			dns_fixedname_init(&fixed);
-			found = dns_fixedname_name(&fixed);
+			found = dns_fixedname_initname(&fixed);
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(val->event->sigrdataset,
 					     &sigrdata);
@@ -2493,12 +2490,9 @@ findnsec3proofs(dns_validator_t *val) {
 
 	dns_name_init(&tname, NULL);
 	dns_rdataset_init(&trdataset);
-	dns_fixedname_init(&fclosest);
-	dns_fixedname_init(&fnearest);
-	dns_fixedname_init(&fzonename);
-	closest = dns_fixedname_name(&fclosest);
-	nearest = dns_fixedname_name(&fnearest);
-	zonename = dns_fixedname_name(&fzonename);
+	closest = dns_fixedname_initname(&fclosest);
+	nearest = dns_fixedname_initname(&fnearest);
+	zonename = dns_fixedname_initname(&fzonename);
 
 	if (val->event->message == NULL) {
 		name = &tname;
@@ -2738,8 +2732,7 @@ validate_ncache(dns_validator_t *val, isc_boolean_t resume) {
 		if (dns_rdataset_isassociated(&val->fsigrdataset))
 			dns_rdataset_disassociate(&val->fsigrdataset);
 
-		dns_fixedname_init(&val->fname);
-		name = dns_fixedname_name(&val->fname);
+		name = dns_fixedname_initname(&val->fname);
 		rdataset = &val->frdataset;
 		dns_ncache_current(val->event->rdataset, name, rdataset);
 
@@ -3149,8 +3142,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 			return (DNS_R_MUSTBESECURE);
 		}
 
-		dns_fixedname_init(&val->dlvsep);
-		dlvsep = dns_fixedname_name(&val->dlvsep);
+		dlvsep = dns_fixedname_initname(&val->dlvsep);
 		dns_name_copy(val->event->name, dlvsep, NULL);
 		/*
 		 * If this is a response to a DS query, we need to look in
@@ -3169,8 +3161,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 		dns_name_getlabelsequence(dlvsep, 1, labels - 1, dlvsep);
 	}
 	dns_name_init(&noroot, NULL);
-	dns_fixedname_init(&dlvfixed);
-	dlvname = dns_fixedname_name(&dlvfixed);
+	dlvname = dns_fixedname_initname(&dlvfixed);
 	labels = dns_name_countlabels(dlvsep);
 	if (labels == 0)
 		return (ISC_R_NOTFOUND);
@@ -3283,10 +3274,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 	dns_name_t *found;
 	dns_fixedname_t fixedfound;
 
-	dns_fixedname_init(&fixedsecroot);
-	secroot = dns_fixedname_name(&fixedsecroot);
-	dns_fixedname_init(&fixedfound);
-	found = dns_fixedname_name(&fixedfound);
+	secroot = dns_fixedname_initname(&fixedsecroot);
+	found = dns_fixedname_initname(&fixedfound);
 	if (val->havedlvsep)
 		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
 	else {
@@ -3368,8 +3357,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 	     val->labels++)
 	{
 
-		dns_fixedname_init(&val->fname);
-		tname = dns_fixedname_name(&val->fname);
+		tname = dns_fixedname_initname(&val->fname);
 		if (val->labels == dns_name_countlabels(val->event->name))
 			dns_name_copy(val->event->name, tname, NULL);
 		else

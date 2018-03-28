@@ -90,11 +90,8 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name,
 		goto cleanup;
 	}
 
-	dns_fixedname_init(&inst->zone1_fn);
-	inst->zone1_name = dns_fixedname_name(&inst->zone1_fn);
-
-	dns_fixedname_init(&inst->zone2_fn);
-	inst->zone2_name = dns_fixedname_name(&inst->zone2_fn);
+	inst->zone1_name = dns_fixedname_initname(&inst->zone1_fn);
+	inst->zone2_name = dns_fixedname_initname(&inst->zone2_fn);
 
 	CHECK(parse_params(mctx, argc, argv,
 			   inst->zone1_name, inst->zone2_name));

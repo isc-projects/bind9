@@ -173,8 +173,7 @@ initname(char *setname) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	namestr = setname;
 
 	isc_buffer_init(&buf, setname, strlen(setname));

@@ -205,8 +205,7 @@ add_test_data(isc_mem_t *mymctx, dns_rbt_t *rbt) {
 
 		isc_buffer_init(&b, buffer, testdatap->name_len);
 		isc_buffer_add(&b, testdatap->name_len);
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			testdatap++;
@@ -239,8 +238,7 @@ check_test_data(dns_rbt_t *rbt) {
 	dns_name_t *foundname;
 	rbt_testdata_t *testdatap = testdata;
 
-	dns_fixedname_init(&fixed);
-	foundname = dns_fixedname_name(&fixed);
+	foundname = dns_fixedname_initname(&fixed);
 
 	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memmove(buffer, testdatap->name, testdatap->name_len + 1);
@@ -248,8 +246,7 @@ check_test_data(dns_rbt_t *rbt) {
 
 		isc_buffer_init(&b, arg, testdatap->name_len);
 		isc_buffer_add(&b, testdatap->name_len);
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			testdatap++;

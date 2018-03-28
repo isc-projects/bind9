@@ -260,8 +260,7 @@ main(int argc, char *argv[]) {
 		namelen = strlen(zonenamestr);
 		isc_buffer_init(&b, zonenamestr, namelen);
 		isc_buffer_add(&b, namelen);
-		dns_fixedname_init(&zname0);
-		zname = dns_fixedname_name(&zname0);
+		zname = dns_fixedname_initname(&zname0);
 		result = dns_name_fromtext(zname, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS)
 			fprintf(stderr, "failed to convert zone name: %u\n",
@@ -270,8 +269,7 @@ main(int argc, char *argv[]) {
 
 	/* Construct prerequisite name (if given) */
 	if (prereqstr != NULL) {
-		dns_fixedname_init(&pname0);
-		pname = dns_fixedname_name(&pname0);
+		pname = dns_fixedname_initname(&pname0);
 		evaluate_prereq(umctx, prereqstr, pname);
 		ISC_LIST_APPEND(prereqlist, pname, link);
 		prereqlistp = &prereqlist;
@@ -279,8 +277,7 @@ main(int argc, char *argv[]) {
 
 	/* Construct update name */
 	ISC_LIST_INIT(updatelist);
-	dns_fixedname_init(&uname0);
-	uname = dns_fixedname_name(&uname0);
+	uname = dns_fixedname_initname(&uname0);
 	update_addordelete(umctx, argv[1], isdelete, uname);
 	ISC_LIST_APPEND(updatelist, uname, link);
 

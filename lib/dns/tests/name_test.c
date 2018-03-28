@@ -627,10 +627,8 @@ ATF_TC_BODY(getlabelsequence, tc) {
 		dns_name_init(&t2, NULL);
 
 		/* source names */
-		dns_fixedname_init(&f1);
-		n1 = dns_fixedname_name(&f1);
-		dns_fixedname_init(&f2);
-		n2 = dns_fixedname_name(&f2);
+		n1 = dns_fixedname_initname(&f1);
+		n2 = dns_fixedname_initname(&f2);
 
 		result = dns_name_fromstring2(n1, testcases[i].name1,
 					      NULL, 0, NULL);

@@ -63,8 +63,7 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	result = dns_name_fromstring(name, origin, 0, NULL);
 	if (result != ISC_R_SUCCESS)
