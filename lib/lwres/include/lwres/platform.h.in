@@ -84,11 +84,6 @@
  */
 @LWRES_PLATFORM_NEEDSPRINTF@
 
-/*
- * The printf format string modifier to use with lwres_uint64_t values.
- */
-@LWRES_PLATFORM_QUADFORMAT@
-
 /*! \brief
  * Define if this system needs strtoul.
  */

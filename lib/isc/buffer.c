@@ -13,6 +13,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdarg.h>
+
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -474,7 +477,7 @@ isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 
 	/* xxxwpk do it more low-level way ? */
-	l = snprintf(buf, 21, "%" ISC_PRINT_QUADFORMAT "d", v);
+	l = snprintf(buf, 21, "%" PRId64, v);
 	RUNTIME_CHECK(l <= 21);
 	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, l);

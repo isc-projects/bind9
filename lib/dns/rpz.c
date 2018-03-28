@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -536,7 +538,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
  set:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
 		      DNS_RPZ_DEBUG_QUIET,
-		      "computed RPZ qname_skip_recurse mask=0x%llx",
+		      "computed RPZ qname_skip_recurse mask=0x%" PRIx64,
 		      (isc_uint64_t) mask);
 	rpzs->have.qname_skip_recurse = mask;
 }

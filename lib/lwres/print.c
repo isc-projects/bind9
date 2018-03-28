@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>		/* for sprintf */
 #include <string.h>
 
@@ -22,8 +23,6 @@
 
 #include "assert_p.h"
 #include "print_p.h"
-
-#define LWRES_PRINT_QUADFORMAT LWRES_PLATFORM_QUADFORMAT
 
 int
 lwres__print_sprintf(char *str, const char *format, ...) {
@@ -249,7 +248,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
-				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "u",
+				sprintf(buf, "%llu",
 					tmpui);
 				goto printint;
 			case 'o':
@@ -263,8 +262,8 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				else
 					tmpui = va_arg(ap, int);
 				sprintf(buf,
-					alt ? "%#" LWRES_PRINT_QUADFORMAT "o"
-					    : "%" LWRES_PRINT_QUADFORMAT "o",
+					alt ? "%#llo"
+					    : "%llo",
 					tmpui);
 				goto printint;
 			case 'u':
@@ -277,7 +276,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, unsigned int);
-				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "u",
+				sprintf(buf, "%llu",
 					tmpui);
 				goto printint;
 			case 'x':
@@ -295,7 +294,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "x",
+				sprintf(buf, "%llx",
 					tmpui);
 				goto printint;
 			case 'X':
@@ -313,7 +312,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "X",
+				sprintf(buf, "%llX",
 					tmpui);
 				goto printint;
 			printint:
