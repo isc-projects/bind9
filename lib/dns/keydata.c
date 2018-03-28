@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -54,8 +55,8 @@ dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
 		       dns_rdata_dnskey_t *dnskey,
-		       isc_uint32_t refresh, isc_uint32_t addhd,
-		       isc_uint32_t removehd, isc_mem_t *mctx)
+		       uint32_t refresh, uint32_t addhd,
+		       uint32_t removehd, isc_mem_t *mctx)
 {
 	REQUIRE(keydata != NULL && dnskey != NULL);
 

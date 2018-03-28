@@ -49,7 +49,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #include <sys/stat.h>
