@@ -67,6 +67,8 @@
  ***/
 #include <isc/platform.h>
 
+#include <inttypes.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>		/* Contractual promise. */
 
@@ -198,26 +200,26 @@ struct in6_pktinfo {
 
 #ifndef ISC_PLATFORM_HAVESOCKADDRSTORAGE
 #define _SS_MAXSIZE 128
-#define _SS_ALIGNSIZE  (sizeof (isc_uint64_t))
+#define _SS_ALIGNSIZE  (sizeof (uint64_t))
 #ifdef ISC_PLATFORM_HAVESALEN
-#define _SS_PAD1SIZE (_SS_ALIGNSIZE - (2 * sizeof(isc_uint8_t)))
+#define _SS_PAD1SIZE (_SS_ALIGNSIZE - (2 * sizeof(uint8_t)))
 #define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-		       + 2 * sizeof(isc_uint8_t)))
+		       + 2 * sizeof(uint8_t)))
 #else
-#define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof(isc_uint16_t))
+#define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof(uint16_t))
 #define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-			+ sizeof(isc_uint16_t)))
+			+ sizeof(uint16_t)))
 #endif
 
 struct sockaddr_storage {
 #ifdef ISC_PLATFORM_HAVESALEN
-       isc_uint8_t             ss_len;
-       isc_uint8_t             ss_family;
+       uint8_t             ss_len;
+       uint8_t             ss_family;
 #else
-       isc_uint16_t            ss_family;
+       uint16_t            ss_family;
 #endif
        char                    __ss_pad1[_SS_PAD1SIZE];
-       isc_uint64_t            __ss_align;  /* field to force desired structure */
+       uint64_t            __ss_align;  /* field to force desired structure */
        char                    __ss_pad2[_SS_PAD2SIZE];
 };
 #endif
@@ -260,7 +262,7 @@ extern const struct in6_addr isc_net_in6addrloop;
 /*%
  * Ensure type in_port_t is defined.
  */
-typedef isc_uint16_t in_port_t;
+typedef uint16_t in_port_t;
 #endif
 
 #ifndef MSG_TRUNC
@@ -273,15 +275,15 @@ typedef isc_uint16_t in_port_t;
 #endif
 
 /*% IP address. */
-#define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
+#define ISC__IPADDR(x)	((uint32_t)htonl((uint32_t)(x)))
 
 /*% Is IP address multicast? */
 #define ISC_IPADDR_ISMULTICAST(i) \
-		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-		(((isc_uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
+		(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) \
 		 == ISC__IPADDR(0xf0000000))
 
 /***

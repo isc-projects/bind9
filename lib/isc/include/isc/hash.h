@@ -182,7 +182,7 @@ isc_hash_calc(const unsigned char *key, unsigned int keylen,
 /*@}*/
 
 void
-isc__hash_setvec(const isc_uint16_t *vec)
+isc__hash_setvec(const uint16_t *vec)
 	ISC_DEPRECATED;
 
 /*!<
@@ -204,14 +204,14 @@ isc_hash_get_initializer(void);
 void
 isc_hash_set_initializer(const void *initializer);
 
-isc_uint32_t
+uint32_t
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,
-		  const isc_uint32_t *previous_hashp);
-isc_uint32_t
+		  const uint32_t *previous_hashp);
+uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
 			  isc_boolean_t case_sensitive,
-			  const isc_uint32_t *previous_hashp);
+			  const uint32_t *previous_hashp);
 /*!<
  * \brief Calculate a hash over data.
  *

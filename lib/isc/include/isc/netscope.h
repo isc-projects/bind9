@@ -15,6 +15,8 @@
 
 /*! \file isc/netscope.h */
 
+#include <inttypes.h>
+
 ISC_LANG_BEGINDECLS
 
 /*%
@@ -29,7 +31,7 @@ ISC_LANG_BEGINDECLS
  * \li	ISC_R_FAILURE: conversion fails
  */
 isc_result_t
-isc_netscope_pton(int af, char *scopename, void *addr, isc_uint32_t *zoneid);
+isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid);
 
 ISC_LANG_ENDDECLS
 

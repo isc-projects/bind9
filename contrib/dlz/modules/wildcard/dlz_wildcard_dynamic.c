@@ -46,6 +46,7 @@
  * This provides the externally loadable wildcard DLZ module.
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
