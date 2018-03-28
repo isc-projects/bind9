@@ -1,3 +1,8 @@
+4921.	[cleanup]	Add dns_fixedname_initname() and refactor the caller
+			code to make usage of the new function, as a part of
+			refactoring dns_fixedname_*() macros were turned into
+			functions. [GL #183]
+
 4918.	[bug]		Fix double free after keygen error in dnssec-keygen
 			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
 			fails. [GL #109]
