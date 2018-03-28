@@ -12,14 +12,16 @@
 #ifndef DNS_ECS_H
 #define DNS_ECS_H 1
 
+#include <inttypes.h>
+
 #include <isc/netaddr.h>
 #include <isc/types.h>
 #include <dns/types.h>
 
 struct dns_ecs {
 	isc_netaddr_t addr;
-	isc_uint8_t source;
-	isc_uint8_t scope;
+	uint8_t source;
+	uint8_t scope;
 };
 
 #define DNS_ECS_FORMATSIZE (ISC_NETADDR_FORMATSIZE + 8) /* <address>/NNN/NNN */

@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdio.h>		/* for sprintf() */
 #include <string.h>		/* for strlen() */
 #include <assert.h>		/* for assert() */
@@ -21,7 +22,6 @@
 #define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
 
 #include <isc/assertions.h>
-#include <isc/int.h>
 #include <isc/msgs.h>
 #include <isc/print.h>
 #include <isc/stdlib.h>
@@ -163,8 +163,8 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 	int plus;
 	int space;
 	int neg;
-	isc_int64_t tmpi;
-	isc_uint64_t tmpui;
+	int64_t tmpi;
+	uint64_t tmpui;
 	unsigned long width;
 	unsigned long precision;
 	unsigned int length;
@@ -333,7 +333,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			case 'i':
 			case 'd':
 				if (q)
-					tmpi = va_arg(ap, isc_int64_t);
+					tmpi = va_arg(ap, int64_t);
 				else if (l)
 					tmpi = va_arg(ap, long int);
 				else if (z)
@@ -375,7 +375,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				goto printint;
 			case 'o':
 				if (q)
-					tmpui = va_arg(ap, isc_uint64_t);
+					tmpui = va_arg(ap, uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, long int);
 				else if (z)
@@ -408,7 +408,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				goto printint;
 			case 'u':
 				if (q)
-					tmpui = va_arg(ap, isc_uint64_t);
+					tmpui = va_arg(ap, uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else if (z)
@@ -438,7 +438,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				goto printint;
 			case 'x':
 				if (q)
-					tmpui = va_arg(ap, isc_uint64_t);
+					tmpui = va_arg(ap, uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else if (z)
@@ -462,7 +462,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 				goto printint;
 			case 'X':
 				if (q)
-					tmpui = va_arg(ap, isc_uint64_t);
+					tmpui = va_arg(ap, uint64_t);
 				else if (l)
 					tmpui = va_arg(ap, unsigned long int);
 				else if (z)

@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -449,7 +450,7 @@ isc_result_t
 named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		    in_port_t defport, isc_mem_t *mctx,
 		    isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		    isc_uint32_t *countp)
+		    uint32_t *countp)
 {
 	int count, i = 0;
 	const cfg_obj_t *addrlist;
@@ -469,8 +470,8 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 	portobj = cfg_tuple_get(list, "port");
 	if (cfg_obj_isuint32(portobj)) {
-		isc_uint32_t val = cfg_obj_asuint32(portobj);
-		if (val > ISC_UINT16_MAX) {
+		uint32_t val = cfg_obj_asuint32(portobj);
+		if (val > UINT16_MAX) {
 			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			return (ISC_R_RANGE);
@@ -540,7 +541,7 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 void
 named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		       isc_dscp_t **dscpsp, isc_uint32_t count)
+		       isc_dscp_t **dscpsp, uint32_t count)
 {
 	INSIST(addrsp != NULL && *addrsp != NULL);
 	INSIST(dscpsp == NULL || *dscpsp != NULL);
@@ -586,9 +587,9 @@ isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			  isc_mem_t *mctx, dns_ipkeylist_t *ipkl)
 {
-	isc_uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
-	isc_uint32_t listcount = 0, l = 0, j;
-	isc_uint32_t stackcount = 0, pushed = 0;
+	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, i = 0;
+	uint32_t listcount = 0, l = 0, j;
+	uint32_t stackcount = 0, pushed = 0;
 	isc_result_t result;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *addrlist;
@@ -632,8 +633,8 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	dscpobj = cfg_tuple_get(list, "dscp");
 
 	if (cfg_obj_isuint32(portobj)) {
-		isc_uint32_t val = cfg_obj_asuint32(portobj);
-		if (val > ISC_UINT16_MAX) {
+		uint32_t val = cfg_obj_asuint32(portobj);
+		if (val > UINT16_MAX) {
 			cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			result = ISC_R_RANGE;
@@ -677,7 +678,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			/* Grow lists? */
 			if (listcount == l) {
 				void * tmp;
-				isc_uint32_t newlen = listcount + 16;
+				uint32_t newlen = listcount + 16;
 				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*lists);
@@ -712,7 +713,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 			/* Grow stack? */
 			if (stackcount == pushed) {
 				void * tmp;
-				isc_uint32_t newlen = stackcount + 16;
+				uint32_t newlen = stackcount + 16;
 				size_t newsize, oldsize;
 
 				newsize = newlen * sizeof(*stack);
@@ -740,7 +741,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 
 		if (i == addrcount) {
 			void * tmp;
-			isc_uint32_t newlen = addrcount + 16;
+			uint32_t newlen = addrcount + 16;
 			size_t newsize, oldsize;
 
 			newsize = newlen * sizeof(isc_sockaddr_t);
@@ -913,7 +914,7 @@ named_config_getport(const cfg_obj_t *config, in_port_t *portp) {
 
 	result = named_config_get(maps, "port", &portobj);
 	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_asuint32(portobj) >= ISC_UINT16_MAX) {
+	if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
 		cfg_obj_log(portobj, named_g_lctx, ISC_LOG_ERROR,
 			    "port '%u' out of range",
 			    cfg_obj_asuint32(portobj));
@@ -953,7 +954,7 @@ struct keyalgorithms {
 	enum { hmacnone, hmacmd5, hmacsha1, hmacsha224,
 	       hmacsha256, hmacsha384, hmacsha512 } hmac;
 	unsigned int type;
-	isc_uint16_t size;
+	uint16_t size;
 } algorithms[] = {
 #ifndef PK11_MD5_DISABLE
 	{ "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },
@@ -970,18 +971,18 @@ struct keyalgorithms {
 
 isc_result_t
 named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
-			     isc_uint16_t *digestbits)
+			     uint16_t *digestbits)
 {
 	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
 }
 
 isc_result_t
 named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
-			      unsigned int *typep, isc_uint16_t *digestbits)
+			      unsigned int *typep, uint16_t *digestbits)
 {
 	int i;
 	size_t len = 0;
-	isc_uint16_t bits;
+	uint16_t bits;
 	isc_result_t result;
 
 	for (i = 0; algorithms[i].str != NULL; i++) {
