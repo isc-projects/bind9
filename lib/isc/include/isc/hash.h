@@ -12,7 +12,8 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
-#include <isc/types.h>
+#include "isc/lang.h"
+#include "isc/types.h"
 
 /***
  *** Functions
