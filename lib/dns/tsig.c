@@ -11,6 +11,8 @@
 
 /*! \file */
 #include <config.h>
+
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -830,7 +832,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	{
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
-		isc_uint16_t digestbits;
+		uint16_t digestbits;
 
 		/*
 		 * If it is a response, we assume that the request MAC
@@ -1083,7 +1085,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dst_context_t *ctx = NULL;
 	isc_mem_t *mctx;
-	isc_uint16_t addcount, id;
+	uint16_t addcount, id;
 	unsigned int siglen;
 	unsigned int alg;
 	isc_boolean_t response;
@@ -1217,7 +1219,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	if (tsig.siglen > 0) {
-		isc_uint16_t addcount_n;
+		uint16_t addcount_n;
 
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
@@ -1256,7 +1258,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 */
 		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount_n = ntohs(addcount);
-		addcount = htons((isc_uint16_t)(addcount_n - 1));
+		addcount = htons((uint16_t)(addcount_n - 1));
 		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
@@ -1365,7 +1367,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	if (dns__tsig_algvalid(alg)) {
-		isc_uint16_t digestbits = dst_key_getbits(key);
+		uint16_t digestbits = dst_key_getbits(key);
 
 		/*
 		 * XXXRAY: Is this correct? What is the expected
@@ -1428,7 +1430,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dns_tsigkey_t *tsigkey;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
-	isc_uint16_t addcount, id;
+	uint16_t addcount, id;
 	isc_boolean_t has_tsig = ISC_FALSE;
 	isc_mem_t *mctx;
 	unsigned int siglen;
@@ -1557,11 +1559,11 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 * Decrement the additional field counter if necessary.
 	 */
 	if (has_tsig) {
-		isc_uint16_t addcount_n;
+		uint16_t addcount_n;
 
 		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount_n = ntohs(addcount);
-		addcount = htons((isc_uint16_t)(addcount_n - 1));
+		addcount = htons((uint16_t)(addcount_n - 1));
 		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
@@ -1669,7 +1671,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
 		if (dns__tsig_algvalid(alg)) {
-			isc_uint16_t digestbits = dst_key_getbits(key);
+			uint16_t digestbits = dst_key_getbits(key);
 
 			/*
 			 * XXXRAY: Is this correct? What is the

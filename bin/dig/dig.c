@@ -12,10 +12,11 @@
 /*! \file */
 
 #include <config.h>
+
+#include <inttypes.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
-#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/netaddr.h>
@@ -65,7 +66,7 @@ static char hexcookie[81];
 static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
-static isc_uint32_t splitwidth = 0xffffffff;
+static uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
 static const char * const opcodetext[] = {
@@ -241,7 +242,7 @@ help(void) {
  */
 static void
 received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
-	isc_uint64_t diff;
+	uint64_t diff;
 	time_t tnow;
 	struct tm tmnow;
 #ifdef WIN32
@@ -304,14 +305,14 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
 				 ? query->byte_count
-				 : (isc_uint64_t)bytes,
+				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff);
 		else
 			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld ms\n\n",
 			       query->lookup->doing_xfr
 				 ?  query->byte_count
-				 : (isc_uint64_t)bytes,
+				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff / 1000);
 	}
 }
@@ -333,7 +334,7 @@ trying(char *frm, dig_lookup_t *lookup) {
 static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
-	isc_uint64_t diff;
+	uint64_t diff;
 	char store[sizeof(" in 18446744073709551616 us.")];
 	unsigned int styleflags = 0;
 
@@ -738,7 +739,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 {
 	isc_result_t result;
 	char *cmd, *value, *last = NULL, *code, *extra;
-	isc_uint32_t num;
+	uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
@@ -1232,7 +1233,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			warn("Couldn't parse padding");
 			goto exit_or_usage;
 		}
-		lookup->padding = (isc_uint16_t)num;
+		lookup->padding = (uint16_t)num;
 		break;
 	case 'q':
 		switch (cmd[1]) {
@@ -1559,7 +1560,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	struct in6_addr in6;
 	in_port_t srcport;
 	char *hash, *cmd;
-	isc_uint32_t num;
+	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*
@@ -1731,7 +1732,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 						"extra type option\n");
 			}
 			if (rdtype == dns_rdatatype_ixfr) {
-				isc_uint32_t serial;
+				uint32_t serial;
 				(*lookup)->rdtype = dns_rdatatype_ixfr;
 				(*lookup)->rdtypeset = ISC_TRUE;
 				result = parse_uint(&serial, &value[5],
@@ -2034,7 +2035,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 							"extra type option\n");
 					}
 					if (rdtype == dns_rdatatype_ixfr) {
-						isc_uint32_t serial;
+						uint32_t serial;
 						lookup->rdtype =
 							dns_rdatatype_ixfr;
 						lookup->rdtypeset = ISC_TRUE;

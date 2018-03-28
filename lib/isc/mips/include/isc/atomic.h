@@ -13,6 +13,8 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
+#include <inttypes.h>
+
 #include <isc/platform.h>
 #include <isc/types.h>
 
@@ -21,9 +23,9 @@
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
  */
-static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, int val) {
-	isc_int32_t orig;
+static inline int32_t
+isc_atomic_xadd(int32_t *p, int val) {
+	int32_t orig;
 
 	__asm__ __volatile__ (
 	"	.set	push		\n"
@@ -47,7 +49,7 @@ isc_atomic_xadd(isc_int32_t *p, int val) {
  * This routine atomically stores the value 'val' in 'p'.
  */
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	*p = val;
 }
 
@@ -56,10 +58,10 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, int cmpval, int val) {
-	isc_int32_t orig;
-	isc_int32_t tmp;
+static inline int32_t
+isc_atomic_cmpxchg(int32_t *p, int cmpval, int val) {
+	int32_t orig;
+	int32_t tmp;
 
 	__asm__ __volatile__ (
 	"	.set	push		\n"
