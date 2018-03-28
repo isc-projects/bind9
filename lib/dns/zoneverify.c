@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -81,10 +82,10 @@ typedef struct vctx {
 } vctx_t;
 
 struct nsec3_chain_fixed {
-	isc_uint8_t		hash;
-	isc_uint8_t		salt_length;
-	isc_uint8_t		next_length;
-	isc_uint16_t		iterations;
+	uint8_t		hash;
+	uint8_t		salt_length;
+	uint8_t		next_length;
+	uint16_t		iterations;
 	/*
 	 * The following non-fixed-length data is stored in memory after the
 	 * fields declared above for each NSEC3 chain element:
@@ -135,7 +136,7 @@ zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
 
 static isc_boolean_t
 is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
-	      isc_uint32_t *ttlp)
+	      uint32_t *ttlp)
 {
 	dns_rdataset_t nsset;
 	isc_result_t result;

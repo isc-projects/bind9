@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -56,4 +58,4 @@ void
 isc_test_end(void);
 
 void
-isc_test_nap(isc_uint32_t usec);
+isc_test_nap(uint32_t usec);

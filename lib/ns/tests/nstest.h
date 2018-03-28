@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -103,7 +105,7 @@ void
 ns_test_cleanup_zone(void);
 
 void
-ns_test_nap(isc_uint32_t usec);
+ns_test_nap(uint32_t usec);
 
 isc_result_t
 ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,

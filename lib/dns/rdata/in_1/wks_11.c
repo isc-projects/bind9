@@ -293,7 +293,7 @@ compare_in_wks(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	dns_rdata_in_wks_t *wks = source;
-	isc_uint32_t a;
+	uint32_t a;
 
 	REQUIRE(type == dns_rdatatype_wks);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -315,7 +315,7 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_in_wks(ARGS_TOSTRUCT) {
 	dns_rdata_in_wks_t *wks = target;
-	isc_uint32_t n;
+	uint32_t n;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_wks);

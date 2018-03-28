@@ -33,6 +33,8 @@
  *** Imports
  ***/
 
+#include <inttypes.h>
+
 #include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/types.h>
@@ -47,7 +49,7 @@ struct isc_interface {
 	isc_netaddr_t address;		/*%< Local address. */
 	isc_netaddr_t netmask;		/*%< Network mask. */
 	isc_netaddr_t dstaddress; 	/*%< Destination address (point-to-point only). */
-	isc_uint32_t flags;		/*%< Flags; see INTERFACE flags. */
+	uint32_t flags;		/*%< Flags; see INTERFACE flags. */
 };
 
 /*@{*/

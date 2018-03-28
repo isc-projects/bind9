@@ -18,8 +18,8 @@ typedef struct dns_rdata_hinfo {
 	isc_mem_t		*mctx;
 	char			*cpu;
 	char			*os;
-	isc_uint8_t		cpu_len;
-	isc_uint8_t		os_len;
+	uint8_t		cpu_len;
+	uint8_t		os_len;
 } dns_rdata_hinfo_t;
 
 #endif /* GENERIC_HINFO_13_H */
