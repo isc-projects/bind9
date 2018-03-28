@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 /*
  * Workout if we need to force the inclusion of print.c so we can test
@@ -115,7 +116,7 @@ ATF_TC_BODY(snprintf, tc) {
 
 	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "0x%" PRIx64, zz);
 	ATF_CHECK_EQ(n, 18);
 	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
 }
