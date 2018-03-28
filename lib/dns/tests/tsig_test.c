@@ -23,9 +23,6 @@
 
 #include "dnstest.h"
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
 
 static int debug = 0;
 

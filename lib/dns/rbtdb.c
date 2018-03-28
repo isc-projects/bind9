@@ -15,9 +15,7 @@
 
 /* #define inline */
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
+#include <inttypes.h>
 
 #include <isc/crc64.h>
 #include <isc/event.h>

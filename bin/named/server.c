@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <inttypes.h>
 
 #include <isc/aes.h>
 #include <isc/app.h>
@@ -3362,7 +3363,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				cfg_obj_log(obj, ns_g_lctx,
 					    ISC_LOG_WARNING,
 					    "'max-acache-size "
-					    "%" ISC_PRINT_QUADFORMAT "u' "
+					    "%" PRIu64 "' "
 					    "is too large for this "
 					    "system; reducing to %lu",
 					    value, (unsigned long)SIZE_MAX);
@@ -3511,7 +3512,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_WARNING,
 				    "'max-cache-size "
-				    "%" ISC_PRINT_QUADFORMAT "u' "
+				    "%" PRIu64 "' "
 				    "is too large for this "
 				    "system; reducing to %lu",
 				    value, (unsigned long)SIZE_MAX);
@@ -3535,8 +3536,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				ISC_LOG_INFO,
 				"'max-cache-size %d%%' "
-				"- setting to %" ISC_PRINT_QUADFORMAT "uMB "
-				"(out of %" ISC_PRINT_QUADFORMAT "uMB)",
+				"- setting to %" PRIu64 "MB "
+				"(out of %" PRIu64 "MB)",
 				max_cache_size_percent,
 				(isc_uint64_t)(max_cache_size / (1024*1024)),
 				totalphys / (1024*1024));
@@ -6375,7 +6376,7 @@ set_limit(const cfg_obj_t **maps, const char *configname,
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      result == ISC_R_SUCCESS ?
 			ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
-		      "set maximum %s to %" ISC_PRINT_QUADFORMAT "u: %s",
+		      "set maximum %s to %" PRIu64 ": %s",
 		      description, value, isc_result_totext(result));
 }
 
@@ -6799,7 +6800,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too small",
 				    mapsize);
 			return (ISC_R_FAILURE);
@@ -6807,7 +6808,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too large",
 				    mapsize);
 			return (ISC_R_FAILURE);
@@ -7548,7 +7549,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (result == ISC_R_SUCCESS && (isc_resourcevalue_t)maxsocks > nfiles) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "max open files (%" ISC_PRINT_QUADFORMAT "u)"
+			      "max open files (%" PRIu64 ")"
 			      " is smaller than max sockets (%u)",
 			      nfiles, maxsocks);
 	}

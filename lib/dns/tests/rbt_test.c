@@ -19,9 +19,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h> /* uintptr_t */
-#endif
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
