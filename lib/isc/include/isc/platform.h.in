@@ -178,11 +178,6 @@
  */
 @ISC_PLATFORM_NEEDFPRINTF@
 
-/*! \brief
- * The printf format string modifier to use with isc_uint64_t values.
- */
-@ISC_PLATFORM_QUADFORMAT@
-
 /***
  *** String functions.
  ***/

@@ -15,11 +15,9 @@
 
 #include <atf-c.h>
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> 	/* uintptr_t */
-#endif
 #include <stdlib.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <isc/condition.h>
 #include <isc/mem.h>
