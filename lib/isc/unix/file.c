@@ -46,6 +46,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <time.h>		/* Required for utimes on some platforms. */
 #include <unistd.h>		/* Required for mkstemp on NetBSD. */
@@ -201,7 +202,7 @@ isc_file_settime(const char *file, isc_time_t *when) {
 	 * we can at least cast to signed so the IRIX compiler shuts up.
 	 */
 	times[0].tv_usec = times[1].tv_usec =
-		(isc_int32_t)(isc_time_nanoseconds(when) / 1000);
+		(int32_t)(isc_time_nanoseconds(when) / 1000);
 
 	if (utimes(file, times) < 0)
 		return (isc__errno2result(errno));
