@@ -480,8 +480,7 @@ set_nextqname(struct probe_trans *trans) {
 	domainlen = strlen(buf);
 	isc_buffer_init(&b, buf, domainlen);
 	isc_buffer_add(&b, domainlen);
-	dns_fixedname_init(&trans->fixedname);
-	trans->qname = dns_fixedname_name(&trans->fixedname);
+	trans->qname = dns_fixedname_initname(&trans->fixedname);
 	result = dns_name_fromtext(trans->qname, &b, dns_rootname,
 				   0, NULL);
 
@@ -929,9 +928,8 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 					goto cleanup;
 				}
 
-				dns_fixedname_init(&pns->fixedname);
 				pns->name =
-					dns_fixedname_name(&pns->fixedname);
+				       dns_fixedname_initname(&pns->fixedname);
 				ISC_LINK_INIT(pns, link);
 				ISC_LIST_APPEND(trans->nslist, pns, link);
 				ISC_LIST_INIT(pns->servers);
@@ -990,8 +988,7 @@ probe_domain(struct probe_trans *trans) {
 	domainlen = strlen(buf);
 	isc_buffer_init(&b, buf, domainlen);
 	isc_buffer_add(&b, domainlen);
-	dns_fixedname_init(&trans->fixedname);
-	trans->qname = dns_fixedname_name(&trans->fixedname);
+	trans->qname = dns_fixedname_initname(&trans->fixedname);
 	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

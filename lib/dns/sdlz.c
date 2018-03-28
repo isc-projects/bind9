@@ -912,8 +912,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	olabels = dns_name_countlabels(&db->origin);
 	nlabels = dns_name_countlabels(name);
 
-	dns_fixedname_init(&fname);
-	xname = dns_fixedname_name(&fname);
+	xname = dns_fixedname_initname(&fname);
 
 	if (rdataset == NULL) {
 		dns_rdataset_init(&xrdataset);
@@ -1975,8 +1974,7 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 	isc_buffer_t b;
 	isc_result_t result;
 
-	dns_fixedname_init(&fnewname);
-	newname = dns_fixedname_name(&fnewname);
+	newname = dns_fixedname_initname(&fnewname);
 
 	if ((sdlz->dlzimp->flags & DNS_SDLZFLAG_RELATIVERDATA) != 0)
 		origin = &sdlz->common.origin;

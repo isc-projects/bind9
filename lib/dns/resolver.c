@@ -1475,8 +1475,8 @@ fcount_incr(fetchctx_t *fctx, isc_boolean_t force) {
 			counter->logged = 0;
 			counter->allowed = 1;
 			counter->dropped = 0;
-			dns_fixedname_init(&counter->fdname);
-			counter->domain = dns_fixedname_name(&counter->fdname);
+			counter->domain =
+				dns_fixedname_initname(&counter->fdname);
 			dns_name_copy(&fctx->domain, counter->domain, NULL);
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
@@ -3519,8 +3519,7 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 			name = &suffix;
 		}
 
-		dns_fixedname_init(&fixed);
-		domain = dns_fixedname_name(&fixed);
+		domain = dns_fixedname_initname(&fixed);
 		result = dns_fwdtable_find(res->view->fwdtable, name,
 					   domain, &forwarders);
 		if (result == ISC_R_SUCCESS) {
@@ -4600,8 +4599,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		}
 
 		/* Find the forwarder for this name. */
-		dns_fixedname_init(&fixed);
-		fname = dns_fixedname_name(&fixed);
+		fname = dns_fixedname_initname(&fixed);
 		result = dns_fwdtable_find(fctx->res->view->fwdtable, fwdname,
 					   fname, &forwarders);
 		if (result == ISC_R_SUCCESS)
@@ -5084,8 +5082,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * destroy the fctx if necessary.  Save the wildcard name.
 	 */
 	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
-		dns_fixedname_init(&fwild);
-		wild = dns_fixedname_name(&fwild);
+		wild = dns_fixedname_initname(&fwild);
 		dns_name_copy(dns_fixedname_name(&vevent->validator->wild),
 			      wild, NULL);
 	}
@@ -5545,12 +5542,9 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	dns_fixedname_init(&fzonename);
-	zonename = dns_fixedname_name(&fzonename);
-	dns_fixedname_init(&fclosest);
-	closest = dns_fixedname_name(&fclosest);
-	dns_fixedname_init(&fnearest);
-	nearest = dns_fixedname_name(&fnearest);
+	zonename = dns_fixedname_initname(&fzonename);
+	closest = dns_fixedname_initname(&fclosest);
+	nearest = dns_fixedname_initname(&fnearest);
 
 #define NXND(x) ((x) == ISC_R_SUCCESS)
 
@@ -6588,8 +6582,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_name_init(&prefix, NULL);
-		dns_fixedname_init(&fixed);
-		tname = dns_fixedname_name(&fixed);
+		tname = dns_fixedname_initname(&fixed);
 		nlabels = dns_name_countlabels(qname) -
 			  dns_name_countlabels(rname);
 		dns_name_split(qname, nlabels, &prefix, NULL);
@@ -6820,8 +6813,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Retrieve state from fctx->nsfetch before we destroy it.
 		 */
-		dns_fixedname_init(&fixed);
-		domain = dns_fixedname_name(&fixed);
+		domain = dns_fixedname_initname(&fixed);
 		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
 		if (dns_name_equal(&fctx->nsname, domain)) {
 			if (dns_rdataset_isassociated(fevent->rdataset)) {
@@ -8983,8 +8975,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		dns_name_t *name, *fname;
 		unsigned int findoptions = 0;
 
-		dns_fixedname_init(&foundname);
-		fname = dns_fixedname_name(&foundname);
+		fname = dns_fixedname_initname(&foundname);
 
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);

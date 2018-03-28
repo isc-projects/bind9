@@ -131,11 +131,8 @@ ATF_TC_BODY(dns_dbfind_staleok, tc) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	dns_fixedname_init(&example_fixed);
-	example = dns_fixedname_name(&example_fixed);
-
-	dns_fixedname_init(&found_fixed);
-	found = dns_fixedname_name(&found_fixed);
+	example = dns_fixedname_initname(&example_fixed);
+	found = dns_fixedname_initname(&found_fixed);
 
 	result = dns_name_fromstring(example, "example", 0, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -349,8 +346,7 @@ ATF_TC_BODY(version, tc) {
 	dns_db_currentversion(db, &ver);
 	dns_test_namefromstring("b.test.test", &fname);
 	name = dns_fixedname_name(&fname);
-	dns_fixedname_init(&ffound);
-	foundname = dns_fixedname_name(&ffound);
+	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name , ver, dns_rdatatype_a, 0, 0, &node,
 			     foundname, &rdataset, NULL);
@@ -363,8 +359,7 @@ ATF_TC_BODY(version, tc) {
 	dns_db_currentversion(db, &ver);
 	dns_test_namefromstring("b.test.test", &fname);
 	name = dns_fixedname_name(&fname);
-	dns_fixedname_init(&ffound);
-	foundname = dns_fixedname_name(&ffound);
+	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
 	result = dns_db_find(db, name , ver, dns_rdatatype_a, 0, 0, &node,
 			     foundname, &rdataset, NULL);

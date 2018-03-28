@@ -259,8 +259,7 @@ perf_dns_parsetsigkey(const char *arg, isc_mem_t *mctx)
 
 	/* Name */
 
-	dns_fixedname_init(&tsigkey->fname);
-	tsigkey->name = dns_fixedname_name(&tsigkey->fname);
+	tsigkey->name = dns_fixedname_initname(&tsigkey->fname);
 	result = name_fromstring(tsigkey->name, dns_rootname, name, namelen,
 				 NULL, "TSIG key");
 	if (result != ISC_R_SUCCESS) {
@@ -663,12 +662,10 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 
 	/* Initialize */
 
-	dns_fixedname_init(&foname);
-	oname = dns_fixedname_name(&foname);
+	oname = dns_fixedname_initname(&foname);
 
 	/* Parse zone name */
-	dns_fixedname_init(&fzname);
-	zname = dns_fixedname_name(&fzname);
+	zname = dns_fixedname_initname(&fzname);
 	result = name_fromstring(zname, dns_rootname,
 				 input.base, strlen(input.base),
 				 NULL, "zone");

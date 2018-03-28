@@ -72,8 +72,7 @@ initname(char *setname) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	isc_buffer_init(&buf, setname, strlen(setname));
 	isc_buffer_add(&buf, strlen(setname));
@@ -181,8 +180,7 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 
 	rdclass = dst_key_class(key);
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	result = dns_name_copy(dst_key_name(key), name, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("can't copy name");
