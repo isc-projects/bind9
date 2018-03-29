@@ -22,8 +22,9 @@
  * \brief
  * Fixed-size Names
  *
- * dns_fixedname_t is a convenience type containing a name, an offsets table,
- * and a dedicated buffer big enough for the longest possible name.
+ * dns_fixedname_t is a convenience type containing a name, an offsets
+ * table, and a dedicated buffer big enough for the longest possible
+ * name. This is typically used for stack-allocated names.
  *
  * MP:
  *\li	The caller must ensure any required synchronization.
