@@ -1,3 +1,6 @@
+4918.	[bug]		Fix lock bucket selection when the RBT's aux hashtable
+			is not used. [GL #184]
+
 4917.	[func]		Support 64 RPZ policy zones by default. [GL #123]
 
 4916.	[func]		Remove IDNA2003 support and the bundled idnkit-1.0
