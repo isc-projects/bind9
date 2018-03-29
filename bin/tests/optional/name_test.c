@@ -120,15 +120,16 @@ main(int argc, char *argv[]) {
 			isc_buffer_init(&source, argv[0], len);
 			isc_buffer_add(&source, len);
 			dns_fixedname_init(&oname);
-			result = dns_name_fromtext(&oname.name, &source,
-						   dns_rootname, 0, NULL);
+			result = dns_name_fromtext(dns_fixedname_name(&oname),
+						   &source, dns_rootname, 0,
+						   NULL);
 			if (result != 0) {
 				fprintf(stderr,
 					"dns_name_fromtext() failed: %s\n",
 					dns_result_totext(result));
 				exit(1);
 			}
-			origin = &oname.name;
+			origin = dns_fixedname_name(&oname);
 		}
 	} else if (concatenate)
 		origin = NULL;
@@ -142,8 +143,7 @@ main(int argc, char *argv[]) {
 			len = strlen(argv[1]);
 			isc_buffer_init(&source, argv[1], len);
 			isc_buffer_add(&source, len);
-			dns_fixedname_init(&compname);
-			comp = &compname.name;
+			comp = dns_fixedname_initname(&compname);
 			result = dns_name_fromtext(comp, &source, origin,
 						   0, NULL);
 			if (result != 0) {
@@ -209,11 +209,12 @@ main(int argc, char *argv[]) {
 		if (concatenate) {
 			if (got_name) {
 				printf("Concatenating.\n");
-				result = dns_name_concatenate(&wname.name,
-							      &wname2.name,
-							      &wname2.name,
-							      NULL);
-				name = &wname2.name;
+				result = dns_name_concatenate(
+						   dns_fixedname_name(&wname),
+						   dns_fixedname_name(&wname2),
+						   dns_fixedname_name(&wname2),
+						   NULL);
+				name = dns_fixedname_name(&wname2);
 				if (result == ISC_R_SUCCESS) {
 					if (check_absolute &&
 					    dns_name_countlabels(name) > 0) {
@@ -331,9 +332,9 @@ main(int argc, char *argv[]) {
 
 		if (concatenate) {
 			if (got_name)
-				name = &wname2.name;
+				name = dns_fixedname_name(&wname2);
 			else
-				name = &wname.name;
+				name = dns_fixedname_name(&wname);
 		}
 	}
 
