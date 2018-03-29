@@ -5163,7 +5163,7 @@ get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
  * The code is assuming a zero padded decimal field of width 5.
  */
 static void
-root_key_sentinel(query_ctx_t *qctx) {
+root_key_sentinel_detect(query_ctx_t *qctx) {
 	const char *ndata = (const char *)qctx->client->query.qname->ndata;
 
 	if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
@@ -5249,7 +5249,7 @@ ns__query_start(query_ctx_t *qctx) {
 	    (qctx->qtype == dns_rdatatype_a ||
 	     qctx->qtype == dns_rdatatype_aaaa))
 	{
-		 root_key_sentinel(qctx);
+		 root_key_sentinel_detect(qctx);
 	}
 
 	/*
