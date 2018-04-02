@@ -5466,7 +5466,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx_done(fctx, result, __LINE__); /* Locks bucket. */
 
  cleanup_event:
-	INSIST(node == NULL);
+	ENSURE(node == NULL);
 	isc_event_free(&event);
 }
 
