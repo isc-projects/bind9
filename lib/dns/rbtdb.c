@@ -1947,9 +1947,6 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static void
 delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
-	dns_rbtnode_t *nsecnode;
-	dns_fixedname_t fname;
-	dns_name_t *name;
 	isc_result_t result = ISC_R_UNEXPECTED;
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
@@ -1969,17 +1966,13 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 
 	switch (node->nsec) {
 	case DNS_RBT_NSEC_NORMAL:
-		/*
-		 * Though this may be wasteful, it has to be done before
-		 * node is deleted.
-		 */
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
-		dns_rbt_fullnamefromnode(node, name);
-
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
-	case DNS_RBT_NSEC_HAS_NSEC:
+	case DNS_RBT_NSEC_HAS_NSEC: {
+		dns_rbtnode_t *nsecnode;
+		dns_fixedname_t fname;
+		dns_name_t *name;
+
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
 		dns_rbt_fullnamefromnode(node, name);
@@ -2012,6 +2005,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		}
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
+	}
 	case DNS_RBT_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, ISC_FALSE);
 		break;
@@ -2251,7 +2245,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	isc_result_t result;
 	isc_boolean_t write_locked;
 	rbtdb_nodelock_t *nodelock;
-	unsigned int refs, nrefs;
+	unsigned int nrefs;
 	int bucket = node->locknum;
 	isc_boolean_t no_reference = ISC_TRUE;
 
@@ -2264,10 +2258,8 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, rbtdb)) {
 		dns_rbtnode_refdecrement(node, &nrefs);
-		INSIST((int)nrefs >= 0);
 		if (nrefs == 0) {
-			isc_refcount_decrement(&nodelock->references, &refs);
-			INSIST((int)refs >= 0);
+			isc_refcount_decrement(&nodelock->references, NULL);
 		}
 		return ((nrefs == 0) ? ISC_TRUE : ISC_FALSE);
 	}
@@ -2279,7 +2271,6 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	}
 
 	dns_rbtnode_refdecrement(node, &nrefs);
-	INSIST((int)nrefs >= 0);
 	if (nrefs > 0) {
 		/* Restore the lock? */
 		if (nlock == isc_rwlocktype_read)
@@ -2328,8 +2319,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = ISC_TRUE;
 
-	isc_refcount_decrement(&nodelock->references, &refs);
-	INSIST((int)refs >= 0);
+	isc_refcount_decrement(&nodelock->references, NULL);
 
 	if (KEEP_NODE(node, rbtdb))
 		goto restore_locks;
