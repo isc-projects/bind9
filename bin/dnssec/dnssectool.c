@@ -506,6 +506,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	dns_secalg_t alg;
 	char filename[ISC_DIR_NAMEMAX];
 	isc_buffer_t fileb;
+	isc_stdtime_t now;
 
 	if (exact != NULL)
 		*exact = ISC_FALSE;
@@ -529,7 +530,8 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	}
 
 	ISC_LIST_INIT(matchkeys);
-	result = dns_dnssec_findmatchingkeys(name, dir, mctx, &matchkeys);
+	isc_stdtime_get(&now);
+	result = dns_dnssec_findmatchingkeys(name, dir, now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND)
 		return (ISC_FALSE);
 
@@ -624,10 +626,11 @@ goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 			continue;
 		}
 		result = dns_dnssec_verify(name, rdataset, dstkey, ISC_FALSE,
-					   mctx, sigrdata);
+					   0, mctx, sigrdata, NULL);
 		dst_key_free(&dstkey);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 			return(ISC_TRUE);
+		}
 	}
 	return (ISC_FALSE);
 }

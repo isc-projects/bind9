@@ -1051,11 +1051,14 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       dst_key_t **keys, unsigned int *nkeys)
 {
 	isc_result_t result;
+	isc_stdtime_t now;
 	dns_dbnode_t *node = NULL;
 	const char *directory = dns_zone_getkeydirectory(zone);
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
-	CHECK(dns_dnssec_findzonekeys2(db, ver, node, dns_db_origin(db),
-				       directory, mctx, maxkeys, keys, nkeys));
+	isc_stdtime_get(&now);
+	CHECK(dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
+				      directory, now, mctx, maxkeys, keys,
+				      nkeys));
  failure:
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
