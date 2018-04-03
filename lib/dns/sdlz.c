@@ -1126,7 +1126,8 @@ modrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_master_stylecreate(&style, 0, 0, 0, 0, 0, 0, 1, mctx);
+	result = dns_master_stylecreate(&style, 0, 0, 0, 0, 0, 0, 1,
+					0xffffffff, mctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

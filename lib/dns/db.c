@@ -329,9 +329,9 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	result = dns_db_beginload(db, &callbacks);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadfile2(filename, &db->origin, &db->origin,
-				      db->rdclass, options,
-				      &callbacks, db->mctx, format);
+	result = dns_master_loadfile(filename, &db->origin, &db->origin,
+				     db->rdclass, options, 0, &callbacks,
+				     NULL, NULL, db->mctx, format, 0);
 	eresult = dns_db_endload(db, &callbacks);
 	/*
 	 * We always call dns_db_endload(), but we only want to return its

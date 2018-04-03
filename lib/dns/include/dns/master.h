@@ -118,54 +118,12 @@ dns_master_loadfile(const char *master_file,
 		    dns_name_t *origin,
 		    dns_rdataclass_t zclass,
 		    unsigned int options,
+		    isc_uint32_t resign,
 		    dns_rdatacallbacks_t *callbacks,
-		    isc_mem_t *mctx);
-
-isc_result_t
-dns_master_loadfile2(const char *master_file,
-		     dns_name_t *top,
-		     dns_name_t *origin,
-		     dns_rdataclass_t zclass,
-		     unsigned int options,
-		     dns_rdatacallbacks_t *callbacks,
-		     isc_mem_t *mctx,
-		     dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfile3(const char *master_file,
-		     dns_name_t *top,
-		     dns_name_t *origin,
-		     dns_rdataclass_t zclass,
-		     unsigned int options,
-		     isc_uint32_t resign,
-		     dns_rdatacallbacks_t *callbacks,
-		     isc_mem_t *mctx,
-		     dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfile4(const char *master_file,
-		     dns_name_t *top,
-		     dns_name_t *origin,
-		     dns_rdataclass_t zclass,
-		     unsigned int options,
-		     isc_uint32_t resign,
-		     dns_rdatacallbacks_t *callbacks,
-		     dns_masterincludecb_t include_cb,
-		     void *include_arg, isc_mem_t *mctx,
-		     dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfile5(const char *master_file,
-		     dns_name_t *top,
-		     dns_name_t *origin,
-		     dns_rdataclass_t zclass,
-		     unsigned int options,
-		     isc_uint32_t resign,
-		     dns_rdatacallbacks_t *callbacks,
-		     dns_masterincludecb_t include_cb,
-		     void *include_arg, isc_mem_t *mctx,
-		     dns_masterformat_t format,
-		     dns_ttl_t maxttl);
+		    dns_masterincludecb_t include_cb,
+		    void *include_arg, isc_mem_t *mctx,
+		    dns_masterformat_t format,
+		    dns_ttl_t maxttl);
 
 isc_result_t
 dns_master_loadstream(FILE *stream,
@@ -200,64 +158,14 @@ dns_master_loadfileinc(const char *master_file,
 		       dns_name_t *origin,
 		       dns_rdataclass_t zclass,
 		       unsigned int options,
+		       isc_uint32_t resign,
 		       dns_rdatacallbacks_t *callbacks,
 		       isc_task_t *task,
 		       dns_loaddonefunc_t done, void *done_arg,
-		       dns_loadctx_t **ctxp, isc_mem_t *mctx);
-
-isc_result_t
-dns_master_loadfileinc2(const char *master_file,
-			dns_name_t *top,
-			dns_name_t *origin,
-			dns_rdataclass_t zclass,
-			unsigned int options,
-			dns_rdatacallbacks_t *callbacks,
-			isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp, isc_mem_t *mctx,
-			dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfileinc3(const char *master_file,
-			dns_name_t *top,
-			dns_name_t *origin,
-			dns_rdataclass_t zclass,
-			unsigned int options,
-			isc_uint32_t resign,
-			dns_rdatacallbacks_t *callbacks,
-			isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp, isc_mem_t *mctx,
-			dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfileinc4(const char *master_file,
-			dns_name_t *top,
-			dns_name_t *origin,
-			dns_rdataclass_t zclass,
-			unsigned int options,
-			isc_uint32_t resign,
-			dns_rdatacallbacks_t *callbacks,
-			isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp,
-			dns_masterincludecb_t include_cb, void *include_arg,
-			isc_mem_t *mctx, dns_masterformat_t format);
-
-isc_result_t
-dns_master_loadfileinc5(const char *master_file,
-			dns_name_t *top,
-			dns_name_t *origin,
-			dns_rdataclass_t zclass,
-			unsigned int options,
-			isc_uint32_t resign,
-			dns_rdatacallbacks_t *callbacks,
-			isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp,
-			dns_masterincludecb_t include_cb, void *include_arg,
-			isc_mem_t *mctx, dns_masterformat_t format,
-			isc_uint32_t maxttl);
+		       dns_loadctx_t **ctxp,
+		       dns_masterincludecb_t include_cb, void *include_arg,
+		       isc_mem_t *mctx, dns_masterformat_t format,
+		       isc_uint32_t maxttl);
 
 isc_result_t
 dns_master_loadstreaminc(FILE *stream,
