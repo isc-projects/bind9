@@ -508,7 +508,7 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 	blackhole = dns_dispatchmgr_getblackhole(dispatchmgr);
 	if (blackhole != NULL) {
 		isc_netaddr_fromsockaddr(&netaddr, destaddr);
-		if (dns_acl_match(&netaddr, NULL, blackhole,
+		if (dns_acl_match(&netaddr, NULL, NULL, 0, NULL, blackhole,
 				  NULL, &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
 			drop = ISC_TRUE;

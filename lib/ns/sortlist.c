@@ -64,8 +64,8 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env,
 			try_elt = e;
 		}
 
-		if (dns_aclelement_match(clientaddr, NULL, try_elt, env,
-					 &matched_elt))
+		if (dns_aclelement_match(clientaddr, NULL, NULL, 0, NULL,
+					 try_elt, env, &matched_elt))
 		{
 			if (order_elt != NULL) {
 				if (order_elt->type ==
@@ -115,7 +115,8 @@ ns_sortlist_addrorder2(const isc_netaddr_t *addr, const void *arg) {
 	const dns_acl_t *sortacl = sla->acl;
 	int match;
 
-	(void)dns_acl_match(addr, NULL, sortacl, env, &match, NULL);
+	(void)dns_acl_match(addr, NULL, NULL, 0, NULL, sortacl, env, &match,
+			     NULL);
 	if (match > 0)
 		return (match);
 	else if (match < 0)
@@ -130,7 +131,8 @@ ns_sortlist_addrorder1(const isc_netaddr_t *addr, const void *arg) {
 	const dns_aclenv_t *env = sla->env;
 	const dns_aclelement_t *element = sla->element;
 
-	if (dns_aclelement_match(addr, NULL, element, env, NULL)) {
+	if (dns_aclelement_match(addr, NULL, NULL, 0, NULL, element, env,
+				 NULL)) {
 		return (0);
 	}
 
