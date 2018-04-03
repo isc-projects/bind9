@@ -141,12 +141,8 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
  */
 
 isc_result_t
-dns_byaddr_createptrname(const isc_netaddr_t *address, isc_boolean_t nibble,
+dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 			 dns_name_t *name);
-
-isc_result_t
-dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
-			  dns_name_t *name);
 /*%<
  * Creates a name that would be used in a PTR query for this address.  The
  * nibble flag indicates that the 'nibble' format is to be used if an IPv6
