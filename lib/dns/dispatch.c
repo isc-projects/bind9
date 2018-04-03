@@ -2496,27 +2496,11 @@ dispatch_free(dns_dispatch_t **dispp) {
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
-		       isc_taskmgr_t *taskmgr, unsigned int buffersize,
+		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
+		       const isc_sockaddr_t *destaddr, unsigned int buffersize,
 		       unsigned int maxbuffers, unsigned int maxrequests,
 		       unsigned int buckets, unsigned int increment,
 		       unsigned int attributes, dns_dispatch_t **dispp)
-{
-
-	attributes |= DNS_DISPATCHATTR_PRIVATE;  /* XXXMLG */
-
-	return (dns_dispatch_createtcp2(mgr, sock, taskmgr, NULL, NULL,
-					buffersize, maxbuffers, maxrequests,
-					buckets, increment, attributes,
-					dispp));
-}
-
-isc_result_t
-dns_dispatch_createtcp2(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
-			isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
-			const isc_sockaddr_t *destaddr, unsigned int buffersize,
-			unsigned int maxbuffers, unsigned int maxrequests,
-			unsigned int buckets, unsigned int increment,
-			unsigned int attributes, dns_dispatch_t **dispp)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
@@ -2623,7 +2607,8 @@ dns_dispatch_createtcp2(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		    const isc_sockaddr_t *localaddr, dns_dispatch_t **dispp)
+		    const isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		    dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
 	isc_result_t result;
@@ -2636,6 +2621,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 	REQUIRE(destaddr != NULL);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
+	/* First pass  */
 	attributes = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_CONNECTED;
 	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
 	       DNS_DISPATCHATTR_EXCLUSIVE | DNS_DISPATCHATTR_CONNECTED;
@@ -2661,70 +2647,20 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 				disp->refcount++;
 				*dispp = disp;
 				match = ISC_TRUE;
+				if (connected != NULL) {
+					*connected = ISC_TRUE;
+				}
 			}
 		}
 		UNLOCK(&disp->lock);
 		disp = ISC_LIST_NEXT(disp, link);
 	}
-	UNLOCK(&mgr->lock);
-	return (match ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
-}
-
-isc_result_t
-dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		     const isc_sockaddr_t *localaddr, isc_boolean_t *connected,
-		     dns_dispatch_t **dispp)
-{
-	dns_dispatch_t *disp;
-	isc_result_t result;
-	isc_sockaddr_t peeraddr;
-	isc_sockaddr_t sockname;
-	unsigned int attributes, mask;
-	isc_boolean_t match = ISC_FALSE;
-
-	REQUIRE(VALID_DISPATCHMGR(mgr));
-	REQUIRE(destaddr != NULL);
-	REQUIRE(dispp != NULL && *dispp == NULL);
-	REQUIRE(connected != NULL);
-
-	/* First pass (same as dns_dispatch_gettcp()) */
-	attributes = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_CONNECTED;
-	mask = DNS_DISPATCHATTR_TCP | DNS_DISPATCHATTR_PRIVATE |
-	       DNS_DISPATCHATTR_EXCLUSIVE | DNS_DISPATCHATTR_CONNECTED;
-
-	LOCK(&mgr->lock);
-	disp = ISC_LIST_HEAD(mgr->list);
-	while (disp != NULL && !match) {
-		LOCK(&disp->lock);
-		if ((disp->shutting_down == 0) &&
-		    ATTRMATCH(disp->attributes, attributes, mask) &&
-		    (localaddr == NULL ||
-		     isc_sockaddr_eqaddr(localaddr, &disp->local))) {
-			result = isc_socket_getsockname(disp->socket,
-							&sockname);
-			if (result == ISC_R_SUCCESS)
-				result = isc_socket_getpeername(disp->socket,
-								&peeraddr);
-			if (result == ISC_R_SUCCESS &&
-			    isc_sockaddr_equal(destaddr, &peeraddr) &&
-			    (localaddr == NULL ||
-			     isc_sockaddr_eqaddr(localaddr, &sockname))) {
-				/* attach */
-				disp->refcount++;
-				*dispp = disp;
-				match = ISC_TRUE;
-				*connected = ISC_TRUE;
-			}
-		}
-		UNLOCK(&disp->lock);
-		disp = ISC_LIST_NEXT(disp, link);
-	}
-	if (match) {
+	if (match || connected == NULL) {
 		UNLOCK(&mgr->lock);
-		return (ISC_R_SUCCESS);
+		return (match ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 	}
 
-	/* Second pass */
+	/* Second pass, only if connected != NULL */
 	attributes = DNS_DISPATCHATTR_TCP;
 
 	disp = ISC_LIST_HEAD(mgr->list);
@@ -3175,21 +3111,11 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 }
 
 isc_result_t
-dns_dispatch_addresponse2(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
-			  isc_task_t *task, isc_taskaction_t action, void *arg,
-			  dns_messageid_t *idp, dns_dispentry_t **resp,
-			  isc_socketmgr_t *sockmgr)
-{
-	return (dns_dispatch_addresponse3(disp, 0, dest, task, action, arg,
-					  idp, resp, sockmgr));
-}
-
-isc_result_t
-dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
-			  const isc_sockaddr_t *dest, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_messageid_t *idp, dns_dispentry_t **resp,
-			  isc_socketmgr_t *sockmgr)
+dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
+			 const isc_sockaddr_t *dest, isc_task_t *task,
+			 isc_taskaction_t action, void *arg,
+			 dns_messageid_t *idp, dns_dispentry_t **resp,
+			 isc_socketmgr_t *sockmgr)
 {
 	dns_dispentry_t *res;
 	unsigned int bucket;
@@ -3381,18 +3307,6 @@ dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
 		INSIST(res->dispsocket != NULL);
 
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_dispatch_addresponse(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
-			 isc_task_t *task, isc_taskaction_t action, void *arg,
-			 dns_messageid_t *idp, dns_dispentry_t **resp)
-{
-	REQUIRE(VALID_DISPATCH(disp));
-	REQUIRE((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0);
-
-	return (dns_dispatch_addresponse3(disp, 0, dest, task, action, arg,
-					  idp, resp, NULL));
 }
 
 void

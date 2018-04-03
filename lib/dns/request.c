@@ -534,9 +534,9 @@ create_tcp_dispatch(isc_boolean_t newtcp, isc_boolean_t share,
 	isc_sockaddr_t bind_any;
 
 	if (!newtcp && share) {
-		result = dns_dispatch_gettcp2(requestmgr->dispatchmgr,
-					      destaddr, srcaddr,
-					      connected, dispatchp);
+		result = dns_dispatch_gettcp(requestmgr->dispatchmgr,
+					     destaddr, srcaddr,
+					     connected, dispatchp);
 		if (result == ISC_R_SUCCESS) {
 			char peer[ISC_SOCKADDR_FORMATSIZE];
 
@@ -548,7 +548,7 @@ create_tcp_dispatch(isc_boolean_t newtcp, isc_boolean_t share,
 		}
 	} else if (!newtcp) {
 		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
-					     srcaddr, dispatchp);
+					    srcaddr, NULL, dispatchp);
 		if (result == ISC_R_SUCCESS) {
 			char peer[ISC_SOCKADDR_FORMATSIZE];
 
@@ -588,11 +588,11 @@ create_tcp_dispatch(isc_boolean_t newtcp, isc_boolean_t share,
 	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 	isc_socket_dscp(sock, dscp);
-	result = dns_dispatch_createtcp2(requestmgr->dispatchmgr,
-					 sock, requestmgr->taskmgr,
-					 srcaddr, destaddr,
-					 4096, 32768, 32768, 16411, 16433,
-					 attrs, dispatchp);
+	result = dns_dispatch_createtcp(requestmgr->dispatchmgr,
+					sock, requestmgr->taskmgr,
+					srcaddr, destaddr,
+					4096, 32768, 32768, 16411, 16433,
+					attrs, dispatchp);
 cleanup:
 	isc_socket_detach(&sock);
 	return (result);
@@ -832,10 +832,10 @@ dns_request_createraw4(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		dispopt |= DNS_DISPATCHOPT_FIXEDID;
 	}
 
-	result = dns_dispatch_addresponse3(request->dispatch, dispopt,
-					   destaddr, task, req_response,
-					   request, &id, &request->dispentry,
-					   requestmgr->socketmgr);
+	result = dns_dispatch_addresponse(request->dispatch, dispopt,
+					  destaddr, task, req_response,
+					  request, &id, &request->dispentry,
+					  requestmgr->socketmgr);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = ISC_TRUE;
@@ -1060,10 +1060,10 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = dns_dispatch_addresponse2(request->dispatch, destaddr, task,
-					   req_response, request, &id,
-					   &request->dispentry,
-					   requestmgr->socketmgr);
+	result = dns_dispatch_addresponse(request->dispatch, 0, destaddr,
+					  task, req_response, request, &id,
+					  &request->dispentry,
+					  requestmgr->socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	sock = req_getsocket(request);
