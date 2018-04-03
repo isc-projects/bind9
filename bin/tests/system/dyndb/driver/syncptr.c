@@ -119,7 +119,7 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata,
 	 * @example
 	 * 192.168.0.1 -> 1.0.168.192.in-addr.arpa
 	 */
-	CHECK(dns_byaddr_createptrname2(&isc_ip, 0, name));
+	CHECK(dns_byaddr_createptrname(&isc_ip, 0, name));
 
 	/* Find a zone containing owner name of the PTR record. */
 	result = dns_zt_find(inst->view->zonetable, name, 0, NULL, zone);
