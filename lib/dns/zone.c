@@ -13245,9 +13245,9 @@ dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
 	tsigkey = dns_message_gettsigkey(msg);
 	tsig = dns_tsigkey_identity(tsigkey);
 	if (i >= zone->masterscnt && zone->notify_acl != NULL &&
-	    dns_acl_match(&netaddr, tsig, zone->notify_acl,
-			  &zone->view->aclenv,
-			  &match, NULL) == ISC_R_SUCCESS &&
+	    dns_acl_match(&netaddr, tsig, NULL, 0, NULL, zone->notify_acl,
+			  &zone->view->aclenv, &match,
+			  NULL) == ISC_R_SUCCESS &&
 	    match > 0)
 	{
 		/* Accept notify. */
