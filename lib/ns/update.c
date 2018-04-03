@@ -1714,7 +1714,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 	isc_result_t result;
 	struct in6_addr addr6;
 	struct in_addr addr;
-	unsigned int options;
+	dns_zoneopt_t options;
 
 	dns_fixedname_init(&fixed);
 	foundname = dns_fixedname_name(&fixed);
@@ -2503,7 +2503,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ssutable_t *ssutable = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
-	unsigned int options, options2;
+	dns_zoneopt_t options;
 	dns_difftuple_t *tuple;
 	dns_rdata_dnskey_t dnskey;
 	isc_boolean_t had_dnskey;
@@ -2782,7 +2782,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	options = dns_zone_getoptions(zone);
-	options2 = dns_zone_getoptions2(zone);
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
@@ -2911,7 +2910,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					   "a non-terminal wildcard", namestr);
 			}
 
-			if ((options2 & DNS_ZONEOPT2_CHECKTTL) != 0) {
+			if ((options & DNS_ZONEOPT_CHECKTTL) != 0) {
 				maxttl = dns_zone_getmaxttl(zone);
 				if (ttl > maxttl) {
 					ttl = maxttl;
