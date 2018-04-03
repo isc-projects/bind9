@@ -224,8 +224,9 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		 */
 		result = dns_master_loadfile(filename, &db->origin,
 					     &db->origin, db->rdclass,
-					     DNS_MASTER_HINT,
-					     &callbacks, db->mctx);
+					     DNS_MASTER_HINT, 0, &callbacks,
+					     NULL, NULL, db->mctx,
+					     dns_masterformat_text, 0);
 	} else if (rdclass == dns_rdataclass_in) {
 		/*
 		 * Default to using the Internet root servers.

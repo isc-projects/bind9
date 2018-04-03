@@ -2353,17 +2353,17 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	options = get_master_options(load->zone);
 
-	result = dns_master_loadfileinc5(load->zone->masterfile,
-					 dns_db_origin(load->db),
-					 dns_db_origin(load->db),
-					 load->zone->rdclass, options, 0,
-					 &load->callbacks, task,
-					 zone_loaddone, load,
-					 &load->zone->lctx,
-					 zone_registerinclude,
-					 load->zone, load->zone->mctx,
-					 load->zone->masterformat,
-					 load->zone->maxttl);
+	result = dns_master_loadfileinc(load->zone->masterfile,
+					dns_db_origin(load->db),
+					dns_db_origin(load->db),
+					load->zone->rdclass, options, 0,
+					&load->callbacks, task,
+					zone_loaddone, load,
+					&load->zone->lctx,
+					zone_registerinclude,
+					load->zone, load->zone->mctx,
+					load->zone->masterformat,
+					load->zone->maxttl);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 		goto fail;
@@ -2424,10 +2424,11 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 			output_style = zone->masterstyle;
 		else
 			output_style = &dns_master_style_default;
-		result = dns_master_dumpinc3(zone->mctx, zone->db, version,
-					     output_style, zone->masterfile,
-					     zone->task, dump_done, zone,						     &zone->dctx, zone->masterformat,
-					     &rawdata);
+		result = dns_master_dumpinc(zone->mctx, zone->db, version,
+					    output_style, zone->masterfile,
+					    zone->task, dump_done, zone,
+					    &zone->dctx, zone->masterformat,
+					    &rawdata);
 		dns_db_closeversion(zone->db, &version, ISC_FALSE);
 	} else
 		result = ISC_R_CANCELED;
@@ -2522,14 +2523,14 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			zone_idetach(&callbacks.zone);
 			return (result);
 		}
-		result = dns_master_loadfile5(zone->masterfile,
-					      &zone->origin, &zone->origin,
-					      zone->rdclass, options, 0,
-					      &callbacks,
-					      zone_registerinclude,
-					      zone, zone->mctx,
-					      zone->masterformat,
-					      zone->maxttl);
+		result = dns_master_loadfile(zone->masterfile,
+					     &zone->origin, &zone->origin,
+					     zone->rdclass, options, 0,
+					     &callbacks,
+					     zone_registerinclude,
+					     zone, zone->mctx,
+					     zone->masterformat,
+					     zone->maxttl);
 		tresult = dns_db_endload(db, &callbacks);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
@@ -10446,9 +10447,9 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 			output_style = &dns_master_style_keyzone;
 		else
 			output_style = &dns_master_style_default;
-		result = dns_master_dump3(zone->mctx, db, version,
-					  output_style, masterfile,
-					  masterformat, &rawdata);
+		result = dns_master_dump(zone->mctx, db, version,
+					 output_style, masterfile,
+					 masterformat, &rawdata);
 		dns_db_closeversion(db, &version, ISC_FALSE);
 	}
  fail:
@@ -10513,8 +10514,8 @@ dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style,
 		rawdata.flags = DNS_MASTERRAW_SOURCESERIALSET;
 		rawdata.sourceserial = zone->sourceserial;
 	}
-	result = dns_master_dumptostream3(zone->mctx, db, version, style,
-					  format, &rawdata, fd);
+	result = dns_master_dumptostream(zone->mctx, db, version, style,
+					 format, &rawdata, fd);
 	dns_db_closeversion(db, &version, ISC_FALSE);
 	dns_db_detach(&db);
 	return (result);
