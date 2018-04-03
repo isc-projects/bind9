@@ -1494,7 +1494,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer)); /* type */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial"));
-	if (dns_zone_getserial2(zone, &serial) == ISC_R_SUCCESS)
+	if (dns_zone_getserial(zone, &serial) == ISC_R_SUCCESS)
 		TRY0(xmlTextWriterWriteFormatString(writer, "%u", serial));
 	else
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
@@ -2271,7 +2271,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
 	class_only = classbuf;
 
-	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
+	if (dns_zone_getserial(zone, &serial) != ISC_R_SUCCESS)
 		zoneobj = addzone(zone_name_only, class_only,
 				  user_zonetype(zone), 0, ISC_FALSE);
 	else

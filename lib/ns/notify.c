@@ -148,8 +148,8 @@ ns_notify_start(ns_client_t *client) {
 			notify_log(client, ISC_LOG_INFO,
 				   "received notify for zone '%s'%s",
 				   namebuf, tsigbuf);
-			result = dns_zone_notifyreceive2(zone, from, to,
-							 request);
+			result = dns_zone_notifyreceive(zone, from, to,
+							request);
 			goto done;
 		}
 	}

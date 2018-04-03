@@ -1337,7 +1337,7 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
 }
 
 isc_result_t
-dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp) {
+dns_zone_getserial(dns_zone_t *zone, isc_uint32_t *serialp) {
 	isc_result_t result;
 	unsigned int soacount;
 
@@ -1358,18 +1358,6 @@ dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp) {
 	UNLOCK_ZONE(zone);
 
 	return (result);
-}
-
-isc_uint32_t
-dns_zone_getserial(dns_zone_t *zone) {
-	isc_result_t result;
-	isc_uint32_t serial;
-
-	result = dns_zone_getserial2(zone, &serial);
-	if (result != ISC_R_SUCCESS)
-		serial = 0; /* XXX: not really correct, but no other choice */
-
-	return (serial);
 }
 
 /*
@@ -1619,23 +1607,9 @@ dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
 }
 
 isc_result_t
-dns_zone_setfile(dns_zone_t *zone, const char *file) {
-	return (dns_zone_setfile3(zone, file, dns_masterformat_text,
-				  &dns_master_style_default));
-}
-
-isc_result_t
-dns_zone_setfile2(dns_zone_t *zone, const char *file,
-		  dns_masterformat_t format)
-{
-	return (dns_zone_setfile3(zone, file, format,
-				  &dns_master_style_default));
-}
-
-isc_result_t
-dns_zone_setfile3(dns_zone_t *zone, const char *file,
-		  dns_masterformat_t format,
-		  const dns_master_style_t *style)
+dns_zone_setfile(dns_zone_t *zone, const char *file,
+		 dns_masterformat_t format,
+		 const dns_master_style_t *style)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -10526,29 +10500,11 @@ dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style,
 }
 
 isc_result_t
-dns_zone_dumptostream3(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
-		       const dns_master_style_t *style,
-		       const isc_uint32_t rawversion)
+dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
+		      const dns_master_style_t *style,
+		      const isc_uint32_t rawversion)
 {
 	return (dumptostream(zone, fd, style, format, rawversion));
-}
-
-isc_result_t
-dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
-		       const dns_master_style_t *style) {
-	return (dumptostream(zone, fd, style, format, DNS_RAWFORMAT_VERSION));
-}
-
-isc_result_t
-dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
-	return (dumptostream(zone, fd, &dns_master_style_default,
-			     dns_masterformat_text, 0));
-}
-
-isc_result_t
-dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd) {
-	return (dumptostream(zone, fd, &dns_master_style_full,
-			     dns_masterformat_text, 0));
 }
 
 void
@@ -13141,14 +13097,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
-		       dns_message_t *msg)
-{
-	return (dns_zone_notifyreceive2(zone, from, NULL, msg));
-}
-
-isc_result_t
-dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
-			isc_sockaddr_t *to, dns_message_t *msg)
+		       isc_sockaddr_t *to, dns_message_t *msg)
 {
 	unsigned int i;
 	dns_rdata_soa_t soa;
@@ -13193,7 +13142,7 @@ dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
 	if (inline_secure(zone)) {
-		result = dns_zone_notifyreceive2(zone->raw, from, to, msg);
+		result = dns_zone_notifyreceive(zone->raw, from, to, msg);
 		UNLOCK_ZONE(zone);
 		return (result);
 	}
