@@ -138,7 +138,7 @@ nsecify(char *filename) {
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	check_result(result, "dns_db_create()");
-	result = dns_db_load(db, filename);
+	result = dns_db_load(db, filename, dns_masterformat_text, 0);
 	if (result == DNS_R_SEENINCLUDE)
 		result = ISC_R_SUCCESS;
 	check_result(result, "dns_db_load()");

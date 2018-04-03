@@ -142,7 +142,8 @@ main(int argc, char *argv[])
 			      dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			      &db) == ISC_R_SUCCESS);
 
-	REQUIRE(dns_db_load(db, argv[2]) == ISC_R_SUCCESS);
+	REQUIRE(dns_db_load(db, argv[2], dns_masterformat_text, 0)
+		== ISC_R_SUCCESS);
 
 	REQUIRE(dns_db_createiterator(db, 0, &dbiter) == ISC_R_SUCCESS);
 
