@@ -2387,14 +2387,15 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Get a query id from the dispatch.
 	 */
-	result = dns_dispatch_addresponse2(query->dispatch,
-					   &query->addrinfo->sockaddr,
-					   task,
-					   resquery_response,
-					   query,
-					   &query->id,
-					   &query->dispentry,
-					   res->socketmgr);
+	result = dns_dispatch_addresponse(query->dispatch,
+					  0,
+					  &query->addrinfo->sockaddr,
+					  task,
+					  resquery_response,
+					  query,
+					  &query->id,
+					  &query->dispentry,
+					  res->socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
 
@@ -2932,10 +2933,12 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 			result = dns_dispatch_createtcp(query->dispatchmgr,
-						     query->tcpsocket,
-						     query->fctx->res->taskmgr,
-						     4096, 2, 1, 1, 3, attrs,
-						     &query->dispatch);
+							query->tcpsocket,
+							query->fctx->res->taskmgr,
+							NULL, NULL,
+							4096, 2, 1, 1, 3,
+							attrs,
+							&query->dispatch);
 
 			/*
 			 * Regardless of whether dns_dispatch_create()
