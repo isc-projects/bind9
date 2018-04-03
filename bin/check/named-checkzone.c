@@ -260,7 +260,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'l':
-			zone_options2 |= DNS_ZONEOPT2_CHECKTTL;
+			zone_options |= DNS_ZONEOPT_CHECKTTL;
 			endp = NULL;
 			maxttl = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0') {

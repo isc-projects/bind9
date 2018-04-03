@@ -3350,7 +3350,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_db_closeversion(db, &version, ISC_TRUE);
 		CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
 	}
-	dns_zone_setoption2(zone, DNS_ZONEOPT2_AUTOEMPTY, ISC_TRUE);
+	dns_zone_setoption(zone, DNS_ZONEOPT_AUTOEMPTY, ISC_TRUE);
 	dns_zone_setview(zone, view);
 	CHECK(dns_view_addzone(view, zone));
 
