@@ -408,7 +408,7 @@ configure_zone(const char *vclass, const char *view,
 	obj = NULL;
 	if (get_maps(maps, "max-zone-ttl", &obj)) {
 		maxttl = cfg_obj_asuint32(obj);
-		zone_options2 |= DNS_ZONEOPT2_CHECKTTL;
+		zone_options |= DNS_ZONEOPT_CHECKTTL;
 	}
 
 	result = load_zone(mctx, zname, zfile, masterformat,

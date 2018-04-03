@@ -49,53 +49,42 @@ typedef enum {
 	dns_zonestat_full
 } dns_zonestat_level_t;
 
-#define DNS_ZONEOPT_SERVERS	  0x00000001U	/*%< perform server checks */
-#define DNS_ZONEOPT_PARENTS	  0x00000002U	/*%< perform parent checks */
-#define DNS_ZONEOPT_CHILDREN	  0x00000004U	/*%< perform child checks */
-#define DNS_ZONEOPT_NOTIFY	  0x00000008U	/*%< perform NOTIFY */
-#define DNS_ZONEOPT_MANYERRORS	  0x00000010U	/*%< return many errors on load */
-#define DNS_ZONEOPT_IXFRFROMDIFFS 0x00000020U	/*%< calculate differences */
-#define DNS_ZONEOPT_NOMERGE	  0x00000040U	/*%< don't merge journal */
-#define DNS_ZONEOPT_CHECKNS	  0x00000080U	/*%< check if NS's are addresses */
-#define DNS_ZONEOPT_FATALNS	  0x00000100U	/*%< DNS_ZONEOPT_CHECKNS is fatal */
-#define DNS_ZONEOPT_MULTIMASTER	  0x00000200U	/*%< this zone has multiple masters */
-#define DNS_ZONEOPT_USEALTXFRSRC  0x00000400U	/*%< use alternate transfer sources */
-#define DNS_ZONEOPT_CHECKNAMES	  0x00000800U	/*%< check-names */
-#define DNS_ZONEOPT_CHECKNAMESFAIL 0x00001000U	/*%< fatal check-name failures */
-#define DNS_ZONEOPT_CHECKWILDCARD 0x00002000U	/*%< check for internal wildcards */
-#define DNS_ZONEOPT_CHECKMX	  0x00004000U	/*%< check-mx */
-#define DNS_ZONEOPT_CHECKMXFAIL   0x00008000U	/*%< fatal check-mx failures */
-#define DNS_ZONEOPT_CHECKINTEGRITY 0x00010000U	/*%< perform integrity checks */
-#define DNS_ZONEOPT_CHECKSIBLING  0x00020000U	/*%< perform sibling glue checks */
-#define DNS_ZONEOPT_NOCHECKNS	  0x00040000U	/*%< disable IN NS address checks */
-#define DNS_ZONEOPT_WARNMXCNAME	  0x00080000U	/*%< warn on MX CNAME check */
-#define DNS_ZONEOPT_IGNOREMXCNAME 0x00100000U	/*%< ignore MX CNAME check */
-#define DNS_ZONEOPT_WARNSRVCNAME  0x00200000U	/*%< warn on SRV CNAME check */
-#define DNS_ZONEOPT_IGNORESRVCNAME 0x00400000U	/*%< ignore SRV CNAME check */
-#define DNS_ZONEOPT_UPDATECHECKKSK 0x00800000U	/*%< check dnskey KSK flag */
-#define DNS_ZONEOPT_TRYTCPREFRESH 0x01000000U	/*%< try tcp refresh on udp failure */
-#define DNS_ZONEOPT_NOTIFYTOSOA	  0x02000000U	/*%< Notify the SOA MNAME */
-#define DNS_ZONEOPT_NSEC3TESTZONE 0x04000000U	/*%< nsec3-test-zone */
-#define DNS_ZONEOPT_SECURETOINSECURE 0x08000000U /*%< dnssec-secure-to-insecure */
-#define DNS_ZONEOPT_DNSKEYKSKONLY 0x10000000U	/*%< dnssec-dnskey-kskonly */
-#define DNS_ZONEOPT_CHECKDUPRR	  0x20000000U   /*%< check-dup-records */
-#define DNS_ZONEOPT_CHECKDUPRRFAIL 0x40000000U	/*%< fatal check-dup-records failures */
-#define DNS_ZONEOPT_CHECKSPF	  0x80000000U	/*%< check SPF records */
-
-/*
- * The following zone options are shifted left into the
- * higher-order 32 bits of the options.
- */
-#define DNS_ZONEOPT2_CHECKTTL	  0x00000001U	/*%< check max-zone-ttl */
-#define DNS_ZONEOPT2_AUTOEMPTY	  0x00000002U	/*%< automatic empty zone */
-
-#ifndef NOMINUM_PUBLIC
-/*
- * Nominum specific options build down.
- */
-#define DNS_ZONEOPT_NOTIFYFORWARD 0x80000000U	/* forward notify to master */
-#endif /* NOMINUM_PUBLIC */
-
+typedef enum {
+	DNS_ZONEOPT_SERVERS          = 1<<0,  /*%< perform server checks */
+	DNS_ZONEOPT_PARENTS          = 1<<1,  /*%< perform parent checks */
+	DNS_ZONEOPT_CHILDREN         = 1<<2,  /*%< perform child checks */
+	DNS_ZONEOPT_NOTIFY           = 1<<3,  /*%< perform NOTIFY */
+	DNS_ZONEOPT_MANYERRORS       = 1<<4,  /*%< return many errors on load */
+	DNS_ZONEOPT_IXFRFROMDIFFS    = 1<<5,  /*%< calculate differences */
+	DNS_ZONEOPT_NOMERGE          = 1<<6,  /*%< don't merge journal */
+	DNS_ZONEOPT_CHECKNS          = 1<<7,  /*%< check if NS's are addresses */
+	DNS_ZONEOPT_FATALNS          = 1<<8,  /*%< DNS_ZONEOPT_CHECKNS is fatal */
+	DNS_ZONEOPT_MULTIMASTER      = 1<<9,  /*%< this zone has multiple masters */
+	DNS_ZONEOPT_USEALTXFRSRC     = 1<<10, /*%< use alternate transfer sources */
+	DNS_ZONEOPT_CHECKNAMES       = 1<<11, /*%< check-names */
+	DNS_ZONEOPT_CHECKNAMESFAIL   = 1<<12, /*%< fatal check-name failures */
+	DNS_ZONEOPT_CHECKWILDCARD    = 1<<13, /*%< check for internal wildcards */
+	DNS_ZONEOPT_CHECKMX          = 1<<14, /*%< check-mx */
+	DNS_ZONEOPT_CHECKMXFAIL      = 1<<15, /*%< fatal check-mx failures */
+	DNS_ZONEOPT_CHECKINTEGRITY   = 1<<16, /*%< perform integrity checks */
+	DNS_ZONEOPT_CHECKSIBLING     = 1<<17, /*%< perform sibling glue checks */
+	DNS_ZONEOPT_NOCHECKNS        = 1<<18, /*%< disable IN NS address checks */
+	DNS_ZONEOPT_WARNMXCNAME      = 1<<19, /*%< warn on MX CNAME check */
+	DNS_ZONEOPT_IGNOREMXCNAME    = 1<<20, /*%< ignore MX CNAME check */
+	DNS_ZONEOPT_WARNSRVCNAME     = 1<<21, /*%< warn on SRV CNAME check */
+	DNS_ZONEOPT_IGNORESRVCNAME   = 1<<22, /*%< ignore SRV CNAME check */
+	DNS_ZONEOPT_UPDATECHECKKSK   = 1<<23, /*%< check dnskey KSK flag */
+	DNS_ZONEOPT_TRYTCPREFRESH    = 1<<24, /*%< try tcp refresh on udp failure */
+	DNS_ZONEOPT_NOTIFYTOSOA      = 1<<25, /*%< Notify the SOA MNAME */
+	DNS_ZONEOPT_NSEC3TESTZONE    = 1<<26, /*%< nsec3-test-zone */
+	DNS_ZONEOPT_SECURETOINSECURE = 1<<27, /*%< dnssec-secure-to-insecure */
+	DNS_ZONEOPT_DNSKEYKSKONLY    = 1<<28, /*%< dnssec-dnskey-kskonly */
+	DNS_ZONEOPT_CHECKDUPRR       = 1<<29, /*%< check-dup-records */
+	DNS_ZONEOPT_CHECKDUPRRFAIL   = 1<<30, /*%< fatal check-dup-records failures */
+	DNS_ZONEOPT_CHECKSPF         = 1<<31, /*%< check SPF records */
+	DNS_ZONEOPT_CHECKTTL         = 1ULL<<32, /*%< check max-zone-ttl */
+	DNS_ZONEOPT_AUTOEMPTY        = 1ULL<<33 /*%< automatic empty zone */
+} dns_zoneopt_t;
 /*
  * Zone key maintenance options
  */
@@ -681,36 +670,20 @@ dns_zone_unload(dns_zone_t *zone);
  */
 
 void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option,
+dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
 		   isc_boolean_t value);
-void
-dns_zone_setoption2(dns_zone_t *zone, unsigned int option,
-		    isc_boolean_t value);
 /*%<
  *	Set the given options on ('value' == ISC_TRUE) or off
  *	('value' == #ISC_FALSE).
- *
- *	dns_zone_setoption2() has been introduced because the number
- *	of options needed now exceeds the 32 bits in the zone->options
- *	field; it should be used set options with names beginning
- *	with DNS_ZONEOPT2_.
  *
  * Require:
  *\li	'zone' to be a valid zone.
  */
 
-unsigned int
+dns_zoneopt_t
 dns_zone_getoptions(dns_zone_t *zone);
-unsigned int
-dns_zone_getoptions2(dns_zone_t *zone);
 /*%<
  *	Returns the current zone options.
- *
- *	Callers should be aware there is now more than one set of zone
- *	options.  dns_zone_getoptions2() has been introduced because the
- *	number of options needed now exceeds the 32 bits in the
- *	zone->options field. It returns the options whose names begin
- *	with DNS_ZONEOPT2_.
  *
  * Require:
  *\li	'zone' to be a valid zone.
