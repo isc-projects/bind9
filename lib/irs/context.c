@@ -254,7 +254,7 @@ irs_context_create(irs_context_t **contextp) {
 
 	/* Create a DNS client object */
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
-				    0, &client);
+				    0, &client, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 	context->dnsclient = client;
