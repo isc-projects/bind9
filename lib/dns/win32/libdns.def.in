@@ -1133,14 +1133,11 @@ dns_zone_dialup
 dns_zone_dlzpostload
 dns_zone_dump
 dns_zone_dumptostream
-dns_zone_dumptostream2
-dns_zone_dumptostream3
 dns_zone_expire
 dns_zone_first
 dns_zone_flush
 dns_zone_forcereload
 dns_zone_forwardupdate
-dns_zone_fulldumptostream
 dns_zone_get_parentcatz
 dns_zone_get_rpz_num
 dns_zone_getadded
@@ -1192,7 +1189,6 @@ dns_zone_getrequestexpire
 dns_zone_getrequestixfr
 dns_zone_getrequeststats
 dns_zone_getserial
-dns_zone_getserial2
 dns_zone_getserialupdatemethod
 dns_zone_getsignatures
 dns_zone_getsigresigninginterval
@@ -1229,7 +1225,6 @@ dns_zone_nameonly
 dns_zone_next
 dns_zone_notify
 dns_zone_notifyreceive
-dns_zone_notifyreceive2
 dns_zone_nscheck
 dns_zone_refresh
 dns_zone_rekey
@@ -1255,8 +1250,6 @@ dns_zone_setdb
 dns_zone_setdbtype
 dns_zone_setdialup
 dns_zone_setfile
-dns_zone_setfile2
-dns_zone_setfile3
 dns_zone_setflag
 dns_zone_setforwardacl
 dns_zone_setidlein
