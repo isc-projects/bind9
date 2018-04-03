@@ -851,13 +851,7 @@ dns_rdatatypestats_increment
 dns_request_cancel
 dns_request_create
 dns_request_createraw
-dns_request_createraw2
-dns_request_createraw3
-dns_request_createraw4
 dns_request_createvia
-dns_request_createvia2
-dns_request_createvia3
-dns_request_createvia4
 dns_request_destroy
 dns_request_getresponse
 dns_request_usedtcp
