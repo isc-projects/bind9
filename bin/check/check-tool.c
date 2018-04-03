@@ -99,18 +99,17 @@ isc_boolean_t docheckmx = ISC_FALSE;
 isc_boolean_t dochecksrv = ISC_FALSE;
 isc_boolean_t docheckns = ISC_FALSE;
 #endif
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
-			    DNS_ZONEOPT_CHECKMX |
-			    DNS_ZONEOPT_MANYERRORS |
-			    DNS_ZONEOPT_CHECKNAMES |
-			    DNS_ZONEOPT_CHECKINTEGRITY |
+unsigned long long zone_options = DNS_ZONEOPT_CHECKNS |
+				  DNS_ZONEOPT_CHECKMX |
+				  DNS_ZONEOPT_MANYERRORS |
+				  DNS_ZONEOPT_CHECKNAMES |
+				  DNS_ZONEOPT_CHECKINTEGRITY |
 #if CHECK_SIBLING
-			    DNS_ZONEOPT_CHECKSIBLING |
+				  DNS_ZONEOPT_CHECKSIBLING |
 #endif
-			    DNS_ZONEOPT_CHECKWILDCARD |
-			    DNS_ZONEOPT_WARNMXCNAME |
-			    DNS_ZONEOPT_WARNSRVCNAME;
-unsigned int zone_options2 = 0;
+				  DNS_ZONEOPT_CHECKWILDCARD |
+				  DNS_ZONEOPT_WARNMXCNAME |
+				  DNS_ZONEOPT_WARNSRVCNAME;
 
 /*
  * This needs to match the list in bin/named/log.c.
@@ -702,7 +701,6 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 	dns_zone_setclass(zone, rdclass);
 	dns_zone_setoption(zone, zone_options, ISC_TRUE);
-	dns_zone_setoption2(zone, zone_options2, ISC_TRUE);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
 
 	dns_zone_setmaxttl(zone, maxttl);

@@ -49,8 +49,7 @@ extern isc_boolean_t nomerge;
 extern isc_boolean_t docheckmx;
 extern isc_boolean_t docheckns;
 extern isc_boolean_t dochecksrv;
-extern unsigned int zone_options;
-extern unsigned int zone_options2;
+extern unsigned long long zone_options;
 
 ISC_LANG_ENDDECLS
 
