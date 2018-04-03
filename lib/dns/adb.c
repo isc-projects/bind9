@@ -2937,20 +2937,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target,
-		   in_port_t port, dns_adbfind_t **findp)
-{
-	return (dns_adb_createfind2(adb, task, action, arg, name,
-				    qname, qtype, options, now,
-				    target, port, 0, NULL, findp));
-}
-
-isc_result_t
-dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		    void *arg, const dns_name_t *name, const dns_name_t *qname,
-		    dns_rdatatype_t qtype, unsigned int options,
-		    isc_stdtime_t now, dns_name_t *target,
-		    in_port_t port, unsigned int depth, isc_counter_t *qc,
-		    dns_adbfind_t **findp)
+		   in_port_t port, unsigned int depth, isc_counter_t *qc,
+		   dns_adbfind_t **findp)
 {
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
@@ -4481,12 +4469,7 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 }
 
 unsigned int
-dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
-	return dns_adb_probesize2(adb, addr, 0);
-}
-
-unsigned int
-dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
+dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 	int bucket;
 	unsigned int size;
 

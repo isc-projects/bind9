@@ -2538,9 +2538,9 @@ resquery_send(resquery_t *query) {
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
-				udpsize = dns_adb_probesize2(fctx->adb,
-							     query->addrinfo,
-							     fctx->timeouts);
+				udpsize = dns_adb_probesize(fctx->adb,
+							    query->addrinfo,
+							    fctx->timeouts);
 				if (udpsize > res->udpsize)
 					udpsize = res->udpsize;
 			}
@@ -3346,13 +3346,13 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 * See what we know about this address.
 	 */
 	find = NULL;
-	result = dns_adb_createfind2(fctx->adb,
-				     res->buckets[fctx->bucketnum].task,
-				     fctx_finddone, fctx, name,
-				     &fctx->name, fctx->type,
-				     options, now, NULL,
-				     res->view->dstport,
-				     fctx->depth + 1, fctx->qc, &find);
+	result = dns_adb_createfind(fctx->adb,
+				    res->buckets[fctx->bucketnum].task,
+				    fctx_finddone, fctx, name,
+				    &fctx->name, fctx->type,
+				    options, now, NULL,
+				    res->view->dstport,
+				    fctx->depth + 1, fctx->qc, &find);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
