@@ -186,7 +186,6 @@ dns_db_detachnode
 dns_db_diff
 dns_db_diffx
 dns_db_dump
-dns_db_dump2
 dns_db_endload
 dns_db_expirenode
 dns_db_find
@@ -211,8 +210,6 @@ dns_db_issecure
 dns_db_isstub
 dns_db_iszone
 dns_db_load
-dns_db_load2
-dns_db_load3
 dns_db_newversion
 dns_db_nodecount
 dns_db_nodefullname
