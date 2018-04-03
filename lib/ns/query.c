@@ -5178,7 +5178,7 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
-		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
+		ns_client_log(qctx->client, NS_LOGCATEGORY_TAT,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-is-ta query label found");
 		inc_stats(qctx->client, ns_statscounter_rootkeysentinel);
@@ -5194,7 +5194,7 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 		 * negative caching.
 		 */
 		qctx->findcoveringnsec = ISC_FALSE;
-		ns_client_log(qctx->client, DNS_LOGCATEGORY_GENERAL,
+		ns_client_log(qctx->client, NS_LOGCATEGORY_TAT,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-not-ta query label found");
 		inc_stats(qctx->client, ns_statscounter_rootkeysentinel);
