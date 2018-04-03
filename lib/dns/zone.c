@@ -218,8 +218,7 @@ struct dns_zone {
 	dns_rdataclass_t	rdclass;
 	dns_zonetype_t		type;
 	unsigned int		flags;
-	unsigned int		options;
-	unsigned int		options2;
+	unsigned long long	options;
 	unsigned int		db_argc;
 	char			**db_argv;
 	isc_time_t		expiretime;
@@ -498,7 +497,6 @@ typedef struct {
 						   *   first time.  */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
-#define DNS_ZONE_OPTION2(z,o) (((z)->options2 & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
 
 /* Flags for zone_load() */
@@ -941,7 +939,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->type = dns_zone_none;
 	zone->flags = 0;
 	zone->options = 0;
-	zone->options2 = 0;
 	zone->keyopts = 0;
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
@@ -1648,9 +1645,9 @@ dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
 
 	LOCK_ZONE(zone);
 	if (maxttl != 0)
-		zone->options2 |= DNS_ZONEOPT2_CHECKTTL;
+		zone->options |= DNS_ZONEOPT_CHECKTTL;
 	else
-		zone->options2 &= ~DNS_ZONEOPT2_CHECKTTL;
+		zone->options &= ~DNS_ZONEOPT_CHECKTTL;
 	zone->maxttl = maxttl;
 	UNLOCK_ZONE(zone);
 
@@ -2269,7 +2266,7 @@ get_master_options(dns_zone_t *zone) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
-	if (DNS_ZONE_OPTION2(zone, DNS_ZONEOPT2_CHECKTTL))
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKTTL))
 		options |= DNS_MASTER_CHECKTTL;
 	return (options);
 }
@@ -5357,7 +5354,7 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value) {
 }
 
 void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option,
+dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
 		   isc_boolean_t value)
 {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -5370,32 +5367,11 @@ dns_zone_setoption(dns_zone_t *zone, unsigned int option,
 	UNLOCK_ZONE(zone);
 }
 
-void
-dns_zone_setoption2(dns_zone_t *zone, unsigned int option,
-		    isc_boolean_t value)
-{
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	if (value)
-		zone->options2 |= option;
-	else
-		zone->options2 &= ~option;
-	UNLOCK_ZONE(zone);
-}
-
-unsigned int
+dns_zoneopt_t
 dns_zone_getoptions(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->options);
-}
-
-unsigned int
-dns_zone_getoptions2(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->options2);
 }
 
 void
