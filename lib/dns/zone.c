@@ -9790,11 +9790,11 @@ zone_refreshkeys(dns_zone_t *zone) {
 		 */
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
-						  NULL, NULL, NULL,
-						  DNS_FETCHOPT_NOVALIDATE|
-						  DNS_FETCHOPT_UNSHARED|
+						  NULL, NULL, NULL, NULL, 0,
+						  DNS_FETCHOPT_NOVALIDATE |
+						  DNS_FETCHOPT_UNSHARED |
 						  DNS_FETCHOPT_NOCACHED,
-						  zone->task,
+						  0, NULL, zone->task,
 						  keyfetch_done, kfetch,
 						  &kfetch->dnskeyset,
 						  &kfetch->dnskeysigset,
