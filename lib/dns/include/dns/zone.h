@@ -178,15 +178,10 @@ dns_zone_getclass(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_getserial2(dns_zone_t *zone, isc_uint32_t *serialp);
-
-isc_uint32_t
-dns_zone_getserial(dns_zone_t *zone);
+dns_zone_getserial(dns_zone_t *zone, isc_uint32_t *serialp);
 /*%<
  *	Returns the current serial number of the zone.  On success, the SOA
  *	serial of the zone will be copied into '*serialp'.
- *	dns_zone_getserial() cannot catch failure cases and is deprecated by
- *	dns_zone_getserial2().
  *
  * Requires:
  *\li	'zone' to be a valid zone.
@@ -272,14 +267,8 @@ dns_zone_getorigin(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setfile(dns_zone_t *zone, const char *file);
-
-isc_result_t
-dns_zone_setfile2(dns_zone_t *zone, const char *file,
-		  dns_masterformat_t format);
-isc_result_t
-dns_zone_setfile3(dns_zone_t *zone, const char *file,
-		  dns_masterformat_t format, const dns_master_style_t *style);
+dns_zone_setfile(dns_zone_t *zone, const char *file,
+		 dns_masterformat_t format, const dns_master_style_t *style);
 /*%<
  *    Sets the name of the master file in the format of 'format' from which
  *    the zone loads its database to 'file'.
@@ -288,15 +277,6 @@ dns_zone_setfile3(dns_zone_t *zone, const char *file,
  *
  *	For zones with persistent databases, the file name
  *	setting is ignored.
- *
- *    dns_zone_setfile() is a backward-compatible form of
- *    dns_zone_setfile2(), which always specifies the
- *    dns_masterformat_text (RFC1035) format.
- *
- *    dns_zone_setfile2() is a backward-compatible form of
- *    dns_zone_setfile3(), which also specifies the style
- *    that should be used if a zone using the 'text'
- *    masterformat is ever dumped.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -602,15 +582,9 @@ dns_zone_dump(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
-
-isc_result_t
-dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
-		       const dns_master_style_t *style);
-isc_result_t
-dns_zone_dumptostream3(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
-		       const dns_master_style_t *style,
-		       const isc_uint32_t rawversion);
+dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
+		      const dns_master_style_t *style,
+		      const isc_uint32_t rawversion);
 /*%<
  *    Write the zone to stream 'fd' in the specified 'format'.
  *    If the 'format' is dns_masterformat_text (RFC1035), 'style' also
@@ -626,17 +600,6 @@ dns_zone_dumptostream3(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
  *
  *    Note that dns_zone_dumptostream3() is the most flexible form.  It
  *    can also provide the functionality of dns_zone_fulldumptostream().
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *\li	'fd' to be a stream open for writing.
- */
-
-isc_result_t
-dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd);
-/*%<
- *	The same as dns_zone_dumptostream, but dumps the zone with
- *	different dump settings (dns_master_style_full).
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -1266,10 +1229,7 @@ dns_zone_getjournalsize(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
-		       dns_message_t *msg);
-isc_result_t
-dns_zone_notifyreceive2(dns_zone_t *zone, isc_sockaddr_t *from,
-			isc_sockaddr_t *to, dns_message_t *msg);
+		       isc_sockaddr_t *to, dns_message_t *msg);
 /*%<
  *	Tell the zone that it has received a NOTIFY message from another
  *	server.  This may cause some zone maintenance activity to occur.
