@@ -4208,10 +4208,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			isc_mem_setname(cmctx, "cache", NULL);
 			CHECK(isc_mem_create(0, 0, &hmctx));
 			isc_mem_setname(hmctx, "cache_heap", NULL);
-			CHECK(dns_cache_create3(cmctx, hmctx, named_g_taskmgr,
-						named_g_timermgr, view->rdclass,
-						cachename, "rbt", 0, NULL,
-						&cache));
+			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
+					       named_g_timermgr, view->rdclass,
+					       cachename, "rbt", 0, NULL,
+					       &cache));
 			isc_mem_detach(&cmctx);
 			isc_mem_detach(&hmctx);
 		}

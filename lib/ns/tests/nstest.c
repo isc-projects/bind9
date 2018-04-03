@@ -321,8 +321,8 @@ ns_test_makeview(const char *name, isc_boolean_t with_cache,
 	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
 
 	if (with_cache) {
-		CHECK(dns_cache_create(mctx, taskmgr, timermgr,
-				       dns_rdataclass_in, "rbt", 0, NULL,
+		CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				       dns_rdataclass_in, "", "rbt", 0, NULL,
 				       &cache));
 		dns_view_setcache(view, cache);
 		/*
