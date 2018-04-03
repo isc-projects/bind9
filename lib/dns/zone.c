@@ -6043,9 +6043,9 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
 	memset(keys, 0, sizeof(*keys) * maxkeys);
-	result = dns_dnssec_findzonekeys3(db, ver, node, dns_db_origin(db),
-					  directory, now, mctx, maxkeys, keys,
-					  nkeys);
+	result = dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
+					 directory, now, mctx, maxkeys, keys,
+					 nkeys);
 	if (result == ISC_R_NOTFOUND)
 		result = ISC_R_SUCCESS;
  failure:
@@ -9036,10 +9036,11 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 		if (dst_key_alg(dstkey) == sig.algorithm &&
 		    dst_key_rid(dstkey) == sig.keyid)
 		{
-			result = dns_dnssec_verify2(keyname,
-					    &kfetch->dnskeyset,
-					    dstkey, ISC_FALSE, mctx, &sigrr,
-					    dns_fixedname_name(&fixed));
+			result = dns_dnssec_verify(keyname,
+						   &kfetch->dnskeyset,
+						   dstkey, ISC_FALSE, 0, mctx,
+						   &sigrr,
+						   dns_fixedname_name(&fixed));
 
 			dns_zone_log(kfetch->zone, ISC_LOG_DEBUG(3),
 				     "Confirm revoked DNSKEY is self-signed: "
@@ -9186,11 +9187,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			if (dst_key_alg(dstkey) == sig.algorithm &&
 			    dst_key_id(dstkey) == sig.keyid)
 			{
-				result = dns_dnssec_verify2(keyname,
-						    &kfetch->dnskeyset,
-						    dstkey, ISC_FALSE,
-						    zone->view->mctx, &sigrr,
-						    dns_fixedname_name(&fixed));
+				result = dns_dnssec_verify(keyname,
+							   &kfetch->dnskeyset,
+							   dstkey, ISC_FALSE,
+							   0,
+							   zone->view->mctx,
+							   &sigrr,
+							   dns_fixedname_name(
+							   &fixed));
 
 				dns_zone_log(zone, ISC_LOG_DEBUG(3),
 					     "Verifying DNSKEY set for zone "
@@ -17860,8 +17864,8 @@ zone_rekey(dns_zone_t *zone) {
 	 */
 	fullsign = ISC_TF(DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN) != 0);
 
-	result = dns_dnssec_findmatchingkeys2(&zone->origin, dir, now, mctx,
-					      &keys);
+	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, now, mctx,
+					     &keys);
 	if (result == ISC_R_SUCCESS) {
 		isc_boolean_t check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);

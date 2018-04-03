@@ -1470,10 +1470,10 @@ isselfsigned(dns_validator_t *val) {
 			if (result != ISC_R_SUCCESS)
 				continue;
 
-			result = dns_dnssec_verify3(name, rdataset, dstkey,
-						    ISC_TRUE,
-						    val->view->maxbits,
-						    mctx, &sigrdata, NULL);
+			result = dns_dnssec_verify(name, rdataset, dstkey,
+						   ISC_TRUE,
+						   val->view->maxbits,
+						   mctx, &sigrdata, NULL);
 			dst_key_free(&dstkey);
 			if (result != ISC_R_SUCCESS)
 				continue;
@@ -1509,9 +1509,9 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	dns_fixedname_init(&fixed);
 	wild = dns_fixedname_name(&fixed);
  again:
-	result = dns_dnssec_verify3(val->event->name, val->event->rdataset,
-				    key, ignore, val->view->maxbits,
-				    val->view->mctx, rdata, wild);
+	result = dns_dnssec_verify(val->event->name, val->event->rdataset,
+				   key, ignore, val->view->maxbits,
+				   val->view->mctx, rdata, wild);
 	if ((result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE) &&
 	    val->view->acceptexpired)
 	{
