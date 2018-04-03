@@ -379,9 +379,9 @@ formatset(dns_rdataset_t *rdataset) {
 	 * which just separates fields with spaces. The huge tab stop width
 	 * eliminates any tab characters.
 	 */
-	result = dns_master_stylecreate2(&style, styleflags,
-					 0, 0, 0, 0, 0, 1000000, 0,
-					 mctx);
+	result = dns_master_stylecreate(&style, styleflags,
+					0, 0, 0, 0, 0, 1000000, 0,
+					mctx);
 	check_result(result, "dns_master_stylecreate2 failed");
 
 	result = isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
