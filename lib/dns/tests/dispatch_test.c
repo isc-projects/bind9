@@ -294,8 +294,8 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	result = isc_socket_recv(sock, &region, 1, task, nameserver, sock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_dispatch_addresponse(dispatch, &local, task, response,
-					  NULL, &id, &dispentry);
+	result = dns_dispatch_addresponse(dispatch, 0, &local, task, response,
+					  NULL, &id, &dispentry, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(message, 0, sizeof(message));
