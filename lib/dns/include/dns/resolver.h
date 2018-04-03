@@ -267,35 +267,13 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_rdatatype_t type,
 			 const dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
-			 unsigned int options, isc_task_t *task,
+			 const isc_sockaddr_t *client, isc_uint16_t id,
+			 unsigned int options, unsigned int depth,
+			 isc_counter_t *qc, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp);
-
-isc_result_t
-dns_resolver_createfetch2(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, isc_uint16_t id,
-			  unsigned int options, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp);
-isc_result_t
-dns_resolver_createfetch3(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, isc_uint16_t id,
-			  unsigned int options, unsigned int depth,
-			  isc_counter_t *qc, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp);
 /*%<
  * Recurse to answer a question.
  *
