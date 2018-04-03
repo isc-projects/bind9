@@ -4043,12 +4043,12 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 	}
 	fetch->depth = depth;
 
-	result = dns_resolver_createfetch3(adb->view->resolver, &adbname->name,
-					   type, name, nameservers, NULL,
-					   NULL, 0, options, depth, qc,
-					   adb->task, fetch_callback, adbname,
-					   &fetch->rdataset, NULL,
-					   &fetch->fetch);
+	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
+					  type, name, nameservers, NULL,
+					  NULL, 0, options, depth, qc,
+					  adb->task, fetch_callback, adbname,
+					  &fetch->rdataset, NULL,
+					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
