@@ -500,7 +500,8 @@ dns_cache_load(dns_cache_t *cache) {
 		return (ISC_R_SUCCESS);
 
 	LOCK(&cache->filelock);
-	result = dns_db_load(cache->db, cache->filename);
+	result = dns_db_load(cache->db, cache->filename,
+			     dns_masterformat_text, 0);
 	UNLOCK(&cache->filelock);
 
 	return (result);
