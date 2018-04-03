@@ -22792,6 +22792,7 @@ fi
 #
 
 LIBIDN2_CFLAGS=
+LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
 
 # Check whether --with-libidn2 was given.
@@ -22805,20 +22806,23 @@ case $use_libidn2 in #(
   no) :
     : ;; #(
   yes) :
-
-	    LIBIDN2_LIBS="-lidn2"
-	 ;; #(
+    : ;; #(
   *) :
 
 	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LIBS="-L$use_libidn2/lib -lidn2"
+	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
 	 ;; #(
   *) :
      ;;
 esac
 
 if test "$use_libidn2" != "no"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_8z" >&5
+  save_CFLAGS="$CFLAGS"
+       save_LIBS="$LIBS"
+       save_LDFLAGS="$LDFLAGS"
+       CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+       LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_8z" >&5
 $as_echo_n "checking for library containing idn2_to_ascii_8z... " >&6; }
 if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -22872,14 +22876,16 @@ ac_res=$ac_cv_search_idn2_to_ascii_8z
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
+$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
+
+
 $as_echo "#define WITH_LIBIDN2 1" >>confdefs.h
 
+                       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"
 else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi
 
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether libidn2 supports idn2_to_unicode_8zlz" >&5
-$as_echo_n "checking whether libidn2 supports idn2_to_unicode_8zlz... " >&6; }
        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <idn2.h>
@@ -22903,6 +22909,9 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
+       CFLAGS="$save_CFLAGS"
+       LIBS="$save_LIBS"
+       LDFLAGS="$save_LDFLAGS"
 
 fi
 
