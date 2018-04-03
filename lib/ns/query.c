@@ -6548,6 +6548,10 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	 * returning SERVFAIL.
 	 */
 	if (root_key_sentinel_return_servfail(qctx, result)) {
+		/*
+		 * Don't record this response in the SERVFAIL cache.
+		 */
+		qctx->client->attributes |= NS_CLIENTATTR_NOSETFC;
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 		return (query_done(qctx));
 	}
@@ -11055,7 +11059,7 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
-	 * Set NS_CLIENTATTR_WANTDNSSEC if the client has set AD in the query.
+	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.
 	 * This allows AD to be returned on queries without DO set.
 	 */
 	if ((message->flags & DNS_MESSAGEFLAG_AD) != 0)
