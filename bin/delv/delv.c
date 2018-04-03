@@ -521,17 +521,17 @@ setup_style(dns_master_style_t **stylep) {
 	}
 
 	if (multiline || (nottl && noclass))
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 24, 32, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8,
+						splitwidth, mctx);
 	else if (nottl || noclass)
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 32, 40, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8,
+						splitwidth, mctx);
 	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 32, 40, 48, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8,
+						splitwidth, mctx);
 
 	if (result == ISC_R_SUCCESS)
 		*stylep = style;

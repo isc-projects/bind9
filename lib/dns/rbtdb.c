@@ -7931,9 +7931,9 @@ dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 	REQUIRE(VALID_RBTDB(rbtdb));
 	INSIST(rbtversion == NULL || rbtversion->rbtdb == rbtdb);
 
-	return (dns_master_dump2(rbtdb->common.mctx, db, version,
-				 &dns_master_style_default,
-				 filename, masterformat));
+	return (dns_master_dump(rbtdb->common.mctx, db, version,
+				&dns_master_style_default,
+				filename, masterformat, NULL));
 }
 
 static void
