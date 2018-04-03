@@ -180,8 +180,9 @@ create_view(void) {
 	 * Cache.
 	 */
 	cache = NULL;
-	result = dns_cache_create(mctx, taskmgr, timermgr, dns_rdataclass_in,
-				  "rbt", 0, NULL, &cache);
+	result = dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				  dns_rdataclass_in, "", "rbt", 0, NULL,
+				  &cache);
 	check_result(result, "dns_cache_create");
 	dns_view_setcache(view, cache);
 	dns_cache_detach(&cache);
