@@ -363,18 +363,9 @@ cleanup_signature:
 }
 
 isc_result_t
-dns_dnssec_verify2(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		   isc_boolean_t ignoretime, isc_mem_t *mctx,
-		   dns_rdata_t *sigrdata, dns_name_t *wild)
-{
-	return (dns_dnssec_verify3(name, set, key, ignoretime, 0, mctx,
-				   sigrdata, wild));
-}
-
-isc_result_t
-dns_dnssec_verify3(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		   isc_boolean_t ignoretime, unsigned int maxbits,
-		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild)
+dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
+		  isc_boolean_t ignoretime, unsigned int maxbits,
+		  isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild)
 {
 	dns_rdata_rrsig_t sig;
 	dns_fixedname_t fnewname;
@@ -590,20 +581,6 @@ cleanup_struct:
 	return (ret);
 }
 
-isc_result_t
-dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  isc_boolean_t ignoretime, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata)
-{
-	isc_result_t result;
-
-	result = dns_dnssec_verify2(name, set, key, ignoretime, mctx,
-				    sigrdata, NULL);
-	if (result == DNS_R_FROMWILDCARD)
-		result = ISC_R_SUCCESS;
-	return (result);
-}
-
 isc_boolean_t
 dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
@@ -730,11 +707,11 @@ syncdelete(dst_key_t *key, isc_stdtime_t now) {
 			  == DNS_KEYOWNER_ZONE)
 
 isc_result_t
-dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, const dns_name_t *name,
-			 const char *directory, isc_stdtime_t now,
-			 isc_mem_t *mctx, unsigned int maxkeys,
-			 dst_key_t **keys, unsigned int *nkeys)
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
+			dns_dbnode_t *node, const dns_name_t *name,
+			const char *directory, isc_stdtime_t now,
+			isc_mem_t *mctx, unsigned int maxkeys,
+			dst_key_t **keys, unsigned int *nkeys)
 {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -888,33 +865,6 @@ dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
 			dst_key_free(&keys[--count]);
 	*nkeys = count;
 	return (result);
-}
-
-isc_result_t
-dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, const dns_name_t *name,
-			 const char *directory, isc_mem_t *mctx,
-			 unsigned int maxkeys, dst_key_t **keys,
-			 unsigned int *nkeys)
-{
-	isc_stdtime_t now;
-
-	isc_stdtime_get(&now);
-	return (dns_dnssec_findzonekeys3(db, ver, node, name, directory, now,
-					 mctx, maxkeys, keys, nkeys));
-}
-
-isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
-			dns_dbnode_t *node, const dns_name_t *name,
-			isc_mem_t *mctx, unsigned int maxkeys,
-			dst_key_t **keys, unsigned int *nkeys)
-{
-	isc_stdtime_t now;
-
-	isc_stdtime_get(&now);
-	return (dns_dnssec_findzonekeys3(db, ver, node, name, NULL, now,
-					 mctx, maxkeys, keys, nkeys));
 }
 
 isc_result_t
@@ -1243,9 +1193,9 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 
 		if (sig.algorithm == key.algorithm &&
 		    sig.keyid == keytag) {
-			result = dns_dnssec_verify2(name, rdataset, dstkey,
-						    ignoretime, mctx,
-						    &sigrdata, NULL);
+			result = dns_dnssec_verify(name, rdataset, dstkey,
+						   ignoretime, 0, mctx,
+						   &sigrdata, NULL);
 			if (result == ISC_R_SUCCESS) {
 				dst_key_free(&dstkey);
 				return (ISC_TRUE);
@@ -1406,9 +1356,9 @@ get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
  * Get a list of DNSSEC keys from the key repository
  */
 isc_result_t
-dns_dnssec_findmatchingkeys2(const dns_name_t *origin, const char *directory,
-			     isc_stdtime_t now, isc_mem_t *mctx,
-			     dns_dnsseckeylist_t *keylist)
+dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
+			    isc_stdtime_t now, isc_mem_t *mctx,
+			    dns_dnsseckeylist_t *keylist)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t dir_open = ISC_FALSE;
@@ -1534,17 +1484,6 @@ dns_dnssec_findmatchingkeys2(const dns_name_t *origin, const char *directory,
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
 	return (result);
-}
-
-isc_result_t
-dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
-			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist)
-{
-	isc_stdtime_t now;
-
-	isc_stdtime_get(&now);
-	return (dns_dnssec_findmatchingkeys2(origin, directory, now, mctx,
-					     keylist));
 }
 
 /*%

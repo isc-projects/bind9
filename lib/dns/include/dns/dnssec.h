@@ -119,18 +119,8 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		  isc_boolean_t ignoretime, isc_mem_t *mctx,
-		  dns_rdata_t *sigrdata);
-
-isc_result_t
-dns_dnssec_verify2(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		   isc_boolean_t ignoretime, isc_mem_t *mctx,
-		   dns_rdata_t *sigrdata, dns_name_t *wild);
-
-isc_result_t
-dns_dnssec_verify3(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
-		   isc_boolean_t ignoretime, unsigned int maxbits,
-		   isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild);
+		  isc_boolean_t ignoretime, unsigned int maxbits,
+		  isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild);
 /*%<
  *	Verifies the RRSIG record covering this rdataset signed by a specific
  *	key.  This does not determine if the key's owner is authorized to sign
@@ -164,24 +154,11 @@ dns_dnssec_verify3(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 /*@{*/
 isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
-			const dns_name_t *name, isc_mem_t *mctx,
-			unsigned int maxkeys, dst_key_t **keys,
-			unsigned int *nkeys);
-
-isc_result_t
-dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, const dns_name_t *name,
-			 const char *directory, isc_mem_t *mctx,
-			 unsigned int maxkeys, dst_key_t **keys,
-			 unsigned int *nkeys);
-
-isc_result_t
-dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
-			 dns_dbnode_t *node, const dns_name_t *name,
-			 const char *directory, isc_stdtime_t now,
-			 isc_mem_t *mctx, unsigned int maxkeys,
-			 dst_key_t **keys, unsigned int *nkeys);
+dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
+			dns_dbnode_t *node, const dns_name_t *name,
+			const char *directory, isc_stdtime_t now,
+			isc_mem_t *mctx, unsigned int maxkeys,
+			dst_key_t **keys, unsigned int *nkeys);
 
 /*%<
  * 	Finds a set of zone keys.
@@ -291,12 +268,8 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp);
 
 isc_result_t
 dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
-			    isc_mem_t *mctx, dns_dnsseckeylist_t *keylist);
-
-isc_result_t
-dns_dnssec_findmatchingkeys2(const dns_name_t *origin, const char *directory,
-			     isc_stdtime_t now, isc_mem_t *mctx,
-			     dns_dnsseckeylist_t *keylist);
+			    isc_stdtime_t now, isc_mem_t *mctx,
+			    dns_dnsseckeylist_t *keylist);
 /*%<
  * Search 'directory' for K* key files matching the name in 'origin'.
  * Append all such keys, along with use hints gleaned from their
