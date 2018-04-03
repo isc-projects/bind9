@@ -168,7 +168,8 @@ ATF_TC_BODY(asyncload_zone, tc) {
 
 	ATF_CHECK(!dns__zone_loadpending(zone));
 	ATF_CHECK(!done);
-	dns_zone_setfile(zone, "testdata/zt/zone1.db");
+	dns_zone_setfile(zone, "testdata/zt/zone1.db", dns_masterformat_text,
+			 &dns_master_style_default);
 
 	args.arg1 = zone;
 	args.arg2 = &done;
@@ -216,17 +217,20 @@ ATF_TC_BODY(asyncload_zt, tc) {
 
 	result = dns_test_makezone("foo", &zone1, NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone1, "testdata/zt/zone1.db");
+	dns_zone_setfile(zone1, "testdata/zt/zone1.db",
+			 dns_masterformat_text, &dns_master_style_default);
 	view = dns_zone_getview(zone1);
 
 	result = dns_test_makezone("bar", &zone2, view, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone2, "testdata/zt/zone1.db");
+	dns_zone_setfile(zone2, "testdata/zt/zone1.db",
+			 dns_masterformat_text, &dns_master_style_default);
 
 	/* This one will fail to load */
 	result = dns_test_makezone("fake", &zone3, view, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	dns_zone_setfile(zone3, "testdata/zt/nonexistent.db");
+	dns_zone_setfile(zone3, "testdata/zt/nonexistent.db",
+			 dns_masterformat_text, &dns_master_style_default);
 
 	zt = view->zonetable;
 	ATF_REQUIRE(zt != NULL);

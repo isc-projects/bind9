@@ -1049,21 +1049,21 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		size_t signedlen = strlen(filename) + sizeof(SIGNED);
 		char *signedname;
 
-		RETERR(dns_zone_setfile3(raw, filename,
-					 masterformat, masterstyle));
+		RETERR(dns_zone_setfile(raw, filename,
+					masterformat, masterstyle));
 		signedname = isc_mem_get(mctx, signedlen);
 		if (signedname == NULL)
 			return (ISC_R_NOMEMORY);
 
 		(void)snprintf(signedname, signedlen, "%s" SIGNED, filename);
-		result = dns_zone_setfile3(zone, signedname,
-					   dns_masterformat_raw, NULL);
+		result = dns_zone_setfile(zone, signedname,
+					  dns_masterformat_raw, NULL);
 		isc_mem_put(mctx, signedname, signedlen);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	} else
-		RETERR(dns_zone_setfile3(zone, filename,
-					 masterformat, masterstyle));
+		RETERR(dns_zone_setfile(zone, filename,
+					masterformat, masterstyle));
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "journal", &obj);
