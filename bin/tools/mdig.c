@@ -684,12 +684,12 @@ sendquery(struct query *query, isc_task_t *task)
 	if (tcp_mode)
 		options |= DNS_REQUESTOPT_TCP | DNS_REQUESTOPT_SHARE;
 	request = NULL;
-	result = dns_request_createvia4(requestmgr, message,
-					have_src ? &srcaddr : NULL, &dstaddr,
-					dscp, options, NULL,
-					query->timeout, query->udptimeout,
-					query->udpretries, task,
-					recvresponse, message, &request);
+	result = dns_request_createvia(requestmgr, message,
+				       have_src ? &srcaddr : NULL, &dstaddr,
+				       dscp, options, NULL,
+				       query->timeout, query->udptimeout,
+				       query->udpretries, task,
+				       recvresponse, message, &request);
 	CHECK("dns_request_createvia4", result);
 
 	return ISC_R_SUCCESS;
