@@ -68,12 +68,14 @@ status=`expr $status + $ret`
 newtest "check root-key-sentinel-not-ta with old ta and" " 'root-key-sentinel yes;' (expect SERVFAIL)"
 $DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${oldid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 newtest "check root-key-sentinel-is-ta with new ta and" " 'root-key-sentinel yes;' (expect SERVFAIL)"
 $DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -85,6 +87,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 newtest "check root-key-sentinel-is-ta with bad ta and" " 'root-key-sentinel yes;' (expect SERVFAIL)"
 $DIG $DIGOPTS @10.53.0.3 root-key-sentinel-is-ta-${badid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: SERVFAIL" dig.out.ns3.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
