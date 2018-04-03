@@ -6855,8 +6855,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL,
-						  fctx->options, task,
+						  nsrdataset, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -9117,8 +9117,8 @@ rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result)
 
 	result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 					  dns_rdatatype_ns,
-					  NULL, NULL, NULL,
-					  fctx->options, rctx->task,
+					  NULL, NULL, NULL, NULL, 0,
+					  fctx->options, 0, NULL, rctx->task,
 					  resume_dslookup, fctx,
 					  &fctx->nsrrset, NULL,
 					  &fctx->nsfetch);
@@ -9982,7 +9982,8 @@ dns_resolver_prime(dns_resolver_t *res) {
 		LOCK(&res->primelock);
 		result = dns_resolver_createfetch(res, dns_rootname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL, 0,
+						  NULL, NULL, NULL, NULL, 0, 0,
+						  0, NULL,
 						  res->buckets[0].task,
 						  prime_done,
 						  res, rdataset, NULL,
@@ -10176,48 +10177,13 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_rdatatype_t type,
 			 const dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
-			 unsigned int options, isc_task_t *task,
+			 const isc_sockaddr_t *client, dns_messageid_t id,
+			 unsigned int options, unsigned int depth,
+			 isc_counter_t *qc, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp)
-{
-	return (dns_resolver_createfetch3(res, name, type, domain,
-					  nameservers, forwarders, NULL, 0,
-					  options, 0, NULL, task, action, arg,
-					  rdataset, sigrdataset, fetchp));
-}
-
-isc_result_t
-dns_resolver_createfetch2(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, dns_messageid_t id,
-			  unsigned int options, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp)
-{
-	return (dns_resolver_createfetch3(res, name, type, domain,
-					  nameservers, forwarders, client, id,
-					  options, 0, NULL, task, action, arg,
-					  rdataset, sigrdataset, fetchp));
-}
-
-isc_result_t
-dns_resolver_createfetch3(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, dns_messageid_t id,
-			  unsigned int options, unsigned int depth,
-			  isc_counter_t *qc, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp)
 {
 	dns_fetch_t *fetch;
 	fetchctx_t *fctx = NULL;
