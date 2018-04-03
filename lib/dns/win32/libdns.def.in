@@ -863,8 +863,6 @@ dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
 dns_resolver_createfetch
-dns_resolver_createfetch2
-dns_resolver_createfetch3
 dns_resolver_destroyfetch
 dns_resolver_detach
 dns_resolver_disable_algorithm
