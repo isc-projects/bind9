@@ -1077,7 +1077,7 @@ main(int argc, char *argv[]) {
 	isc_app_ctxstart(actx);
 
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr,
-				    timermgr, 0, &client);
+				    timermgr, 0, &client, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_createx failed: %u\n", result);
 		exit(1);
