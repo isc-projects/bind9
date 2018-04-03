@@ -6145,7 +6145,8 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 				defaultview ? "managed-keys" : view->name,
 				defaultview ? "bind" : "mkeys",
 				filename, sizeof(filename)));
-	CHECK(dns_zone_setfile(zone, filename));
+	CHECK(dns_zone_setfile(zone, filename, dns_masterformat_text,
+			       &dns_master_style_default));
 
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_key);
@@ -13938,10 +13939,18 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	}
 
 	/* Serial number */
-	serial = dns_zone_getserial(mayberaw);
+	result = dns_zone_getserial(mayberaw, &serial);
+	/* XXXWPK TODO this is to mirror old behavior with dns_zone_getserial */
+	if (result != ISC_R_SUCCESS) {
+		serial = 0;
+	}
 	snprintf(serbuf, sizeof(serbuf), "%u", serial);
 	if (hasraw) {
-		signed_serial = dns_zone_getserial(zone);
+		result = dns_zone_getserial(zone, &signed_serial);
+		/* XXXWPK TODO ut supra */
+		if (result != ISC_R_SUCCESS) {
+			serial = 0;
+		}
 		snprintf(sserbuf, sizeof(sserbuf), "%u", signed_serial);
 	}
 
