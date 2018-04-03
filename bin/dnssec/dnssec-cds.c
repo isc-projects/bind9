@@ -671,8 +671,11 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 			}
 
 			result = dns_dnssec_verify(name, rdataset, ki->dst,
-						   ISC_FALSE, mctx, &sigrdata);
-			if (result != ISC_R_SUCCESS) {
+						   ISC_FALSE, 0, mctx,
+						   &sigrdata, NULL);
+
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_FROMWILDCARD) {
 				vbprintf(1, "skip RRSIG by key %d:"
 					 " verification failed: %s\n",
 					 sig.keyid, isc_result_totext(result));
