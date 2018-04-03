@@ -177,8 +177,10 @@ sendquery(isc_task_t *task) {
 	request = NULL;
 	result = dns_request_createvia(requestmgr, message,
 				       have_src ? &srcaddr : NULL, &dstaddr,
-				       DNS_REQUESTOPT_TCP|DNS_REQUESTOPT_SHARE,
-				       NULL, TIMEOUT, task, recvresponse,
+				       -1,
+				       DNS_REQUESTOPT_TCP |
+				       DNS_REQUESTOPT_SHARE,
+				       NULL, TIMEOUT, 0, 0, task, recvresponse,
 				       message, &request);
 	CHECK("dns_request_create", result);
 
