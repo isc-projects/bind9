@@ -12,50 +12,45 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed -e 's/^/# /' -e '/Portions of this code/,$d' COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_INIT(BIND, [9.13], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
-AC_PREREQ(2.59)
-
+AC_INIT([BIND], [9.13], [bind9-bugs@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_CONFIG_SRCDIR([bin/named/main.c])
+AM_INIT_AUTOMAKE([gnits subdir-objects no-dist-gzip dist-xz -Wall -Wportability -Werror])
+AM_SILENT_RULES([yes])
 AC_CONFIG_HEADER(config.h)
-AC_CONFIG_MACRO_DIR([libtool.m4])
-
+AC_CONFIG_MACRO_DIR([m4])
+AC_USE_SYSTEM_EXTENSIONS
 AC_CANONICAL_HOST
+AC_PREREQ(2.59)
 
 AC_PROG_MAKE_SET
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-     
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
+# Set compiler compatibility flags
+AC_PROG_CC_C99
+AM_PROG_CC_C_O
+AC_PROG_CPP_WERROR
+
+# Default compiler flags
+CFLAGS="$CFLAGS -Wall -Werror=format-security -Werror=implicit -Wstrict-prototype"
+
+# Check for programs
+m4_ifdef([AM_PROG_AR],
+	 [AM_PROG_AR],
+	 [AC_PATH_PROG(AR, ar)
+	  AC_SUBST([AR])])
+ARFLAGS="cruv"
+AC_SUBST([ARFLAGS])
 
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+# FIXME
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
 AC_SUBST(BACKTRACECFLAGS)
-
-# Warn if the user specified libbind, which is now deprecated
-AC_ARG_ENABLE(libbind, AS_HELP_STRING([--enable-libbind], [deprecated]))
-
-case "$enable_libbind" in
-	yes)
-		AC_MSG_ERROR(['libbind' is no longer part of the BIND 9 distribution.
-It is available from http://www.isc.org as a separate download.])
-		;;
-	no|'')
-		;;
-esac
 
 AC_ARG_ENABLE(buffer_useinline,
 	      AS_HELP_STRING([--enable-buffer-useinline],
@@ -67,14 +62,6 @@ AC_ARG_ENABLE(buffer_useinline,
 			        [Define if you want to use inline buffers])
 	      fi,
 	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
-
-AC_ARG_ENABLE(warn_shadow,
-	      AS_HELP_STRING([--enable-warn-shadow],
-			     [turn on -Wshadow when compiling]))
-
-AC_ARG_ENABLE(warn_error,
-	      AS_HELP_STRING([--enable-warn-error],
-			    [turn on -Werror when compiling]))
 
 AC_ARG_ENABLE(developer,
 	      AS_HELP_STRING([--enable-developer],
@@ -103,38 +90,26 @@ AC_ARG_ENABLE(afl,
 				[default=no]]),
 	      [AC_DEFINE([ENABLE_AFL], [1],
 			 [Define to enable American Fuzzy Lop test harness])])
-case "$enable_afl" in
-yes)
-	LIBS="$LIBS -lpthread"
-	;;
-esac
 
-#
+AS_CASE([$enable_afl],
+	[yes], [
+	    AX_PTHREAD
+	    LIBS="$PTHREAD_LIBS $LIBS"
+	    CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+	    CC="$PTHREAD_CC"
+	])
+
+# FIXME
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
 # AC_SUBST_FILE() substitutions in other files.
 #
-AC_CONFIG_FILES([make/rules make/includes])
-
-AC_PATH_PROG(AR, ar)
-ARFLAGS="cruv"
-AC_SUBST(AR)
-AC_SUBST(ARFLAGS)
+# AC_CONFIG_FILES([make/rules make/includes])
 
 # The POSIX ln(1) program.  Non-POSIX systems may substitute
 # "copy" or something.
 LN=ln
 AC_SUBST(LN)
-
-case "$AR" in
-	"")
-		AC_MSG_ERROR([
-ar program not found.  Please fix your PATH to include the directory in
-which ar resides, or set AR in the environment with the full path to ar.
-])
-
-		;;
-esac
 
 #
 # Etags.
@@ -161,133 +136,30 @@ AC_SUBST(ETAGS)
 # Note: the backtrace feature (see below) uses perl to build the symbol table,
 # but it still compiles without perl, in which case an empty table will be used.
 #
-AC_PATH_PROGS(PERL, perl5 perl)
-AC_SUBST(PERL)
+AC_PATH_PROGS([PERL], [perl5 perl])
+AC_SUBST([PERL])
 
 #
 # Python is also optional; it is used by the tools in bin/python.
 # If python is unavailable, we simply don't build those.
 #
-AC_ARG_WITH(python,
-	    AS_HELP_STRING([--with-python=PATH],
-			   [specify path to python interpreter]),
-    use_python="$withval", use_python="unspec")
+AM_PATH_PYTHON([2.7],,[:])
+
+# FIXME
 AC_ARG_WITH(python-install-dir,
 	    AS_HELP_STRING([--with-python-install-dir=PATH],
 			   [installation directory for Python modules]),
 	    use_python_install_dir="$withval", use_python_install_dir="unspec")
 
-python="python python3 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
-
+# FIXME
 testargparse='try: import argparse
 except: exit(1)'
 
+# FIXME
 testply='try: from ply import *
 except: exit(1)'
 
-testminvers='import sys
-if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
-   exit(1)'
-
-case "$use_python" in
-	no)
-		AC_MSG_CHECKING([for python support])
-		AC_MSG_RESULT(disabled)
-		;;
-	unspec|yes|*)
-		case "$use_python" in
-		unspec|yes|'')
-			for p in $python
-			do
-				AC_PATH_PROGS(PYTHON, $p)
-				if test "X$PYTHON" = "X"; then
-					continue;
-				fi
-				AC_MSG_CHECKING([python2 version >= 2.7 or python3 version >= 3.2])
-				if ${PYTHON:-false} -c "$testminvers"; then
-					AC_MSG_RESULT([found])
-				else
-					AC_MSG_RESULT([not found])
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-					continue
-				fi
-				AC_MSG_CHECKING([python module 'argparse'])
-				if ${PYTHON:-false} -c "$testargparse"; then
-					AC_MSG_RESULT([found])
-				else
-					AC_MSG_RESULT([not found])
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-					continue
-				fi
-
-				AC_MSG_CHECKING([python module 'ply'])
-				if ${PYTHON:-false} -c "$testply"; then
-					AC_MSG_RESULT([found])
-					break
-				else
-					AC_MSG_RESULT([not found])
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-				fi
-			done
-			if test "X$PYTHON" != "X"
-			then
-				case "$use_python_install_dir" in
-				unspec)
-					PYTHON_INSTALL_DIR=""
-					PYTHON_INSTALL_LIB=""
-					;;
-				*)
-					PYTHON_INSTALL_DIR="$use_python_install_dir"
-					PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
-					;;
-				esac
-			else
-				AC_MSG_CHECKING([for python support])
-				case "$use_python" in
-				unspec)
-					AC_MSG_RESULT(disabled)
-					;;
-				yes)
-					AC_MSG_ERROR([missing python])
-					;;
-				esac
-			fi
-			;;
-		*)
-			case "$use_python" in
-			/*)
-				PYTHON="$use_python"
-				;;
-			*)
-				AC_PATH_PROGS(PYTHON, $use_python)
-				;;
-			esac
-			AC_MSG_CHECKING([python2 version >= 2.7 or python3 version >= 3.2])
-			if ${PYTHON:-false} -c "$testminvers"; then
-				AC_MSG_RESULT([found])
-			else
-				AC_MSG_ERROR([not found])
-			fi
-			AC_MSG_CHECKING([python module 'argparse'])
-			if ${PYTHON:-false} -c "$testargparse"; then
-				AC_MSG_RESULT([found, using $PYTHON])
-			else
-				AC_MSG_ERROR([not found])
-			fi
-			AC_MSG_CHECKING([python module 'ply'])
-			if ${PYTHON:-false} -c "$testply"; then
-				AC_MSG_RESULT([found, using $PYTHON])
-			else
-				AC_MSG_ERROR([not found])
-			fi
-			;;
-		esac
-		;;
-esac
-
+# FIXME
 PYTHON_TOOLS=''
 CHECKDS=''
 COVERAGE=''
@@ -305,6 +177,7 @@ AC_SUBST(PYTHON_TOOLS)
 AC_SUBST(PYTHON_INSTALL_DIR)
 AC_SUBST(PYTHON_INSTALL_LIB)
 
+# FIXME
 #
 # Special processing of paths depending on whether --prefix,
 # --sysconfdir or --localstatedir arguments were given.  What's
@@ -342,140 +215,9 @@ esac
 expanded_sysconfdir=`eval echo $sysconfdir`
 AC_SUBST(expanded_sysconfdir)
 
-#
-# Make sure INSTALL uses an absolute path, else it will be wrong in all
-# Makefiles, since they use make/rules.in and INSTALL will be adjusted by
-# configure based on the location of the file where it is substituted.
-# Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
-# subdirectory of install-sh, This relative path will be wrong for all
-# directories more than one level down from install-sh.
-#
-case "$INSTALL" in
-	/*)
-		;;
-	*)
-		#
-		# Not all systems have dirname.
-		#
-		changequote({, })
-		ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
-		changequote([, ])
-
-		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
-		test "X$ac_dir" = "X$ac_prog" && ac_dir=.
-		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
-		INSTALL="$ac_dir/$ac_prog"
-		;;
-esac
-
-#
-# On these hosts, we really want to use cc, not gcc, even if it is
-# found.  The gcc that these systems have will not correctly handle
-# pthreads.
-#
-# However, if the user sets $CC to be something, let that override
-# our change.
-#
-if test "X$CC" = "X" ; then
-	case "$host" in
-		*-dec-osf*)
-			CC="cc"
-			;;
-		*-solaris*)
-			# Use Sun's cc if it is available, but watch
-			# out for /usr/ucb/cc; it will never be the right
-			# compiler to use.
-			#
-			# If setting CC here fails, the AC_PROG_CC done
-			# below might still find gcc.
-			IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=":"
-			for ac_dir in $PATH; do
-				test -z "$ac_dir" && ac_dir=.
-				case "$ac_dir" in
-				/usr/ucb)
-					# exclude
-					;;
-				*)
-					if test -f "$ac_dir/cc"; then
-						CC="$ac_dir/cc"
-						break
-					fi
-					;;
-				esac
-			done
-			IFS="$ac_save_ifs"
-			;;
-		*-hp-hpux*)
-			CC="cc"
-			;;
-		mips-sgi-irix*)
-			CC="cc"
-			;;
-	esac
-fi
-
-AC_PROG_CC
-
-#
-# gcc's optimiser is broken at -02 for ultrasparc
-#
-if test "$ac_env_CFLAGS_set" != set -a "X$GCC" = "Xyes"; then
-	case "$host" in
-	sparc-*)
-		CCFLAGS="-g -O1"
-		;;
-	esac
-fi
-
-#
-# OS dependent CC flags
-#
-case "$host" in
-	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
-	# -D_XOPEN_SOURCE_EXTENDED.
-	*-dec-osf*)
-		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
-		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
-		;;
-	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
-	*-hp-hpux*)
-		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
-		LIBS="-lxnet $LIBS"
-		;;
-	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
-	*-solaris*)
-		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
-		CPPFLAGS="$CPPFLAGS -D_XPG4_2 -D__EXTENSIONS__"
-		;;
-	# POSIX doesn't include the IPv6 Advanced Socket API and glibc hides
-	# parts of the IPv6 Advanced Socket API as a result.  This is stupid
-	# as it breaks how the two halves (Basic and Advanced) of the IPv6
-	# Socket API were designed to be used but we have to live with it.
-	# Define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
-	*-linux* | *-kfreebsd*-gnu*)
-		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
-		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-		;;
-	#
-	# Starting with OSX 10.7 (Lion) we must choose which IPv6 API to use.
-	# Setting this is sufficient to select the correct behavior for BIND 9.
-	#
-	*-darwin*)
-	  STD_CDEFINES="$STD_CDEFINES -D__APPLE_USE_RFC_3542"
-	  CPPFLAGS="$CPPFLAGS -D__APPLE_USE_RFC_3542"
-	  ;;
-esac
-
-#
-# CCNOOPT defaults to -O0 on gcc and disables optimization when is last
-#
-if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
-	CCNOOPT="-O0"
-fi
-
 AC_HEADER_STDC
 
+# FIXME
 AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h,,,
 [$ac_includes_default
 #ifdef HAVE_SYS_PARAM_H
@@ -486,22 +228,17 @@ AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys
 #endif
 ])
 
-AC_C_CONST
-AC_C_INLINE
-AC_C_VOLATILE
+# FIXME
+# AC_C_CONST
+# AC_C_INLINE
+# AC_C_VOLATILE
 AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
-AC_C_FLEXIBLE_ARRAY_MEMBER
+# AC_C_FLEXIBLE_ARRAY_MEMBER (FIXME)
 
 #
 # Check for the existence of mmap to enable the fast format zones
 #
 AC_CHECK_FUNCS(mmap)
-
-#
-# Older versions of HP/UX don't define seteuid() and setegid()
-#
-AC_CHECK_FUNCS(seteuid setresuid)
-AC_CHECK_FUNCS(setegid setresgid)
 
 #
 # UnixWare 7.1.1 with the feature supplement to the UDK compiler
@@ -1685,6 +1422,43 @@ DSO_METHOD_dlfcn();
 		],
 		[AC_MSG_RESULT(assuming it does work on target platform)]
 		)
+		 
+AC_ARG_ENABLE(openssl-version-check,
+	      [AS_HELP_STRING([--enable-openssl-version-check],
+			      [check OpenSSL version @<:@default=yes@:>@])])
+case "$enable_openssl_version_check" in
+yes|'')
+		AC_MSG_CHECKING(OpenSSL library version)
+		AC_TRY_RUN([
+#include <stdio.h>
+#include <openssl/opensslv.h>
+int main() {
+	if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
+	     (OPENSSL_VERSION_NUMBER >= 0x0090804fL &&
+	     OPENSSL_VERSION_NUMBER < 0x10002000L) ||
+	     OPENSSL_VERSION_NUMBER >= 0x1000205fL)
+		return (0);
+	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010lx\n",
+		OPENSSL_VERSION_NUMBER);
+	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x1000000f or greater (1.0.0)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x1000100f or greater (1.0.1)\n"
+	       "Require OPENSSL_VERSION_NUMBER 0x1000205f or greater (1.0.2e)\n\n");
+	return (1);
+}
+		],
+		[AC_MSG_RESULT(ok)],
+		[AC_MSG_RESULT(not compatible)
+		 OPENSSL_WARNING=yes
+		],
+		[AC_MSG_RESULT(assuming target platform has compatible version)])
+;;
+no)
+	AC_MSG_RESULT(Skipped OpenSSL version check)
+;;
+esac
 
 	AC_MSG_CHECKING(for OpenSSL FIPS mode support)
 	have_fips_mode=""
@@ -4658,45 +4432,80 @@ NOM_PATH_FILE(XSLT_DBLATEX_STYLE, xsl/docbook.xsl, $dblatex_xsl_trees)
 NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees)
 
 #
-# IDN support using libidn2
+# IDN support
 #
+AC_ARG_WITH(idn,
+	    AS_HELP_STRING([--with-idn[=MPREFIX]],
+			   [enable IDN support using idnkit [default PREFIX]]),
+	use_idn="$withval", use_idn="no")
+case "$use_idn" in
+yes)
+	if test X$prefix = XNONE ; then
+		idn_path=/usr/local
+	else
+		idn_path=$prefix
+	fi
+	;;
+no)
+	;;
+*)
+	idn_path="$use_idn"
+	;;
+esac
 
-LIBIDN2_CFLAGS=
-LIBIDN2_LDFLAGS=
-LIBIDN2_LIBS=
-AC_ARG_WITH(libidn2,
-	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no|path]]),
-	use_libidn2="$withval", use_libidn2="no")
-AS_CASE([$use_libidn2],
-	[no],[:],
-	[yes],[:],
-	[*],[
-	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
-	])
+iconvinc=
+iconvlib=
+AC_ARG_WITH(libiconv,
+	    AS_HELP_STRING([--with-libiconv[=IPREFIX]],
+			   [GNU libiconv are in IPREFIX [default PREFIX]]),
+	use_libiconv="$withval", use_libiconv="no")
+case "$use_libiconv" in
+yes)
+	if test X$prefix = XNONE ; then
+		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
+	else
+		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
+	fi
+	;;
+no)
+	iconvlib=
+	;;
+*)
+	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
+	;;
+esac
 
-AS_IF([test "$use_libidn2" != "no"],
-      [save_CFLAGS="$CFLAGS"
-       save_LIBS="$LIBS"
-       save_LDFLAGS="$LDFLAGS"
-       CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-       LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
-       AC_SEARCH_LIBS([idn2_to_ascii_8z], [idn2],
-		      [AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN input support is to be included.])
-                       AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])
-                       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"],
-		      [AC_MSG_ERROR([libidn2 requested, but not found])])
-       AC_TRY_LINK([#include <idn2.h>],
-		   [idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);],
-		   [AC_MSG_RESULT(yes)
-		    AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])],
-		   [AC_MSG_RESULT([no])])
-       CFLAGS="$save_CFLAGS"
-       LIBS="$save_LIBS"
-       LDFLAGS="$save_LDFLAGS"
-      ])
-AC_SUBST([LIBIDN2_CFLAGS])
-AC_SUBST([LIBIDN2_LIBS])
+AC_ARG_WITH(iconv,
+	    AS_HELP_STRING([--with-iconv[=LIBSPEC]],
+			   [specify iconv library [default -liconv]]),
+	iconvlib="$withval")
+case "$iconvlib" in
+no)
+	iconvlib=
+	;;
+yes)
+	iconvlib=-liconv
+	;;
+esac
+
+AC_ARG_WITH(idnlib,
+	    AS_HELP_STRING([--with-idnlib=ARG], [specify libidnkit]),
+	    idnlib="$withval", idnlib="no")
+if test "yes" = "$idnlib"; then
+	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
+fi
+
+IDNLIBS=
+if test "no" != "$use_idn"; then
+	AC_DEFINE(WITH_IDN, 1, [define if idnkit support is to be included.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
+	if test "no" != "$idnlib"; then
+		IDNLIBS="$idnlib $iconvlib"
+	else
+		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
+	fi
+fi
+AC_SUBST(IDNLIBS)
 
 #
 # Check whether to build Automated Test Framework unit tests
@@ -5238,10 +5047,35 @@ AC_CONFIG_FILES([
 	bin/python/isc/tests/policy_test.py
 	bin/rndc/Makefile
 	bin/tests/Makefile
+	bin/tests/atomic/Makefile
+	bin/tests/db/Makefile
+	bin/tests/dst/Makefile
+	bin/tests/dst/Kdh.+002+18602.key
+	bin/tests/dst/Kdh.+002+18602.private
+	bin/tests/dst/Kdh.+002+48957.key
+	bin/tests/dst/Kdh.+002+48957.private
+	bin/tests/dst/Ktest.+001+00002.key
+	bin/tests/dst/Ktest.+001+54622.key
+	bin/tests/dst/Ktest.+001+54622.private
+	bin/tests/dst/Ktest.+003+23616.key
+	bin/tests/dst/Ktest.+003+23616.private
+	bin/tests/dst/Ktest.+003+49667.key
+	bin/tests/dst/dst_2_data
+	bin/tests/dst/t2_data_1
+	bin/tests/dst/t2_data_2
+	bin/tests/dst/t2_dsasig
+	bin/tests/dst/t2_rsasig
+	bin/tests/hashes/Makefile
 	bin/tests/headerdep_test.sh
-	bin/tests/optional/Makefile
+	bin/tests/master/Makefile
+	bin/tests/mem/Makefile
+	bin/tests/names/Makefile
+	bin/tests/net/Makefile
 	bin/tests/pkcs11/Makefile
 	bin/tests/pkcs11/benchmarks/Makefile
+	bin/tests/rbt/Makefile
+	bin/tests/resolver/Makefile
+	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
 	bin/tests/system/dlz/prereq.sh
@@ -5255,6 +5089,8 @@ AC_CONFIG_FILES([
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
+	bin/tests/tasks/Makefile
+	bin/tests/timers/Makefile
 	bin/tests/virtual-time/Makefile
 	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile
@@ -5321,6 +5157,9 @@ AC_CONFIG_FILES([
 	lib/ns/include/Makefile
 	lib/ns/include/ns/Makefile
 	lib/ns/tests/Makefile
+	lib/tests/Makefile
+	lib/tests/include/Makefile
+	lib/tests/include/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
 	unit/Makefile
@@ -5521,6 +5360,31 @@ cat << \EOF
 BIND 9 is being built without cryptography support. This means it will
 not have DNSSEC support. Use --with-openssl, or --with-pkcs11 and
 --enable-native-pkcs11 to enable cryptography.
+EOF
+fi
+
+if test "X$OPENSSL_WARNING" != "X"; then
+cat << \EOF
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING                                                                 WARNING
+WARNING         Your OpenSSL crypto library may be vulnerable to        WARNING
+WARNING         one or more of the the following known security         WARNING
+WARNING         flaws:                                                  WARNING
+WARNING                                                                 WARNING
+WARNING         CAN-2002-0659, CAN-2006-4339, CVE-2006-2937,            WARNING
+WARNING         CVE-2006-2940 and CVE-2015-3193.                        WARNING
+WARNING                                                                 WARNING
+WARNING         It is recommended that you upgrade to OpenSSL           WARNING
+WARNING         version 1.0.2e/1.0.1/1.0.0/0.9.9/0.9.8d/0.9.7l          WARNING
+WARNING		(or greater).                                           WARNING
+WARNING                                                                 WARNING
+WARNING         You can disable this warning by specifying:             WARNING
+WARNING                                                                 WARNING
+WARNING               --disable-openssl-version-check          	        WARNING
+WARNING                                                                 WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
 EOF
 fi
 

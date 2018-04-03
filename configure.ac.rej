@@ -1,0 +1,787 @@
+***************
+*** 13,42 ****
+  # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  # PERFORMANCE OF THIS SOFTWARE.
+  
+- # Copyright (C) 1998-2003  Internet Software Consortium.
+- #
+- # Permission to use, copy, modify, and/or distribute this software for any
+- # purpose with or without fee is hereby granted, provided that the above
+- # copyright notice and this permission notice appear in all copies.
+- #
+- # THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+- # REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+- # AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+- # INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+- # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+- # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+- # PERFORMANCE OF THIS SOFTWARE.
+- 
+- dnl
+- AC_DIVERT_PUSH(1)dnl
+- esyscmd([sed -e 's/^/# /' -e '/Portions of this code/,$d' COPYRIGHT])dnl
+- AC_DIVERT_POP()dnl
+- 
+- AC_INIT(BIND, [9.10], [bind9-bugs@isc.org], [], [https://www.isc.org/downloads/BIND/])
+- AC_PREREQ(2.59)
+- 
+- AC_CONFIG_HEADER(config.h)
+- AC_CONFIG_MACRO_DIR([libtool.m4])
+  
+  AC_CHECK_TOOL([RANLIB], [ranlib], [:])
+  
+--- 13,55 ----
+  # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+  # PERFORMANCE OF THIS SOFTWARE.
+  
++ AC_PREREQ(2.69)
++ 
++ m4_define([bind_version_major], [0])
++ m4_define([bind_version_minor], [0])
++ m4_define([bind_version_micro], [0])
++ m4_define([bind_version_libtool], [0:0:0])
++ m4_define([bind_version],
++           [bind_version_major.bind_version_minor.bind_version_micro])
++ m4_define([bind_version_api],
++           [bind_version_major.bind_version_minor])
++ 
++ AC_INIT(BIND, [bind_version], [bind9-bugs@isc.org], [bind], [https://www.isc.org/downloads/BIND/])
++ AM_INIT_AUTOMAKE([no-define foreign nostdinc dist-xz dist-bzip2])
++ AM_SILENT_RULES([yes])
++ 
++ BIND_VERSION_MAJOR=bind_version_major
++ BIND_VERSION_MINOR=bind_version_minor
++ BIND_VERSION_MICRO=bind_version_micro
++ BIND_VERSION_LIBTOOL=bind_version_libtool
++ BIND_VERSION=bind_version
++ BIND_VERSION_API=bind_version_api
++ 
++ AC_SUBST(BIND_VERSION_MAJOR)
++ AC_SUBST(BIND_VERSION_MINOR)
++ AC_SUBST(BIND_VERSION_MICRO)
++ AC_SUBST(BIND_VERSION_LIBTOOL)
++ AC_SUBST(BIND_VERSION)
++ AC_SUBST(BIND_VERSION_API)
++ 
++ AC_DEFINE(BIND_VERSION_MAJOR, bind_version_major, [BIND major version])
++ AC_DEFINE(BIND_VERSION_MINOR, bind_version_minor, [BIND minor version])
++ AC_DEFINE(BIND_VERSION_MICRO, bind_version_micro, [BIND micro version])
++ AC_DEFINE(BIND_VERSION, "bind_version", [BIND version])
++ AC_DEFINE(BIND_VERSION_API, "bind_version_api", [BIND API version])
++ 
++ AC_CONFIG_HEADERS([config.h])
++ AC_CONFIG_MACRO_DIR([m4macros])
+  
+  AC_CHECK_TOOL([RANLIB], [ranlib], [:])
+  
+***************
+*** 44,64 ****
+  
+  AC_PROG_MAKE_SET
+  
+- #
+- # GNU libtool support
+- #
+- case $build_os in
+- sunos*)
+-     # Just set the maximum command line length for sunos as it otherwise
+-     # takes a exceptionally long time to work it out. Required for libtool.
+-      
+-     lt_cv_sys_max_cmd_len=4096;
+-     ;;
+- esac
+- 
+- AC_PROG_LIBTOOL
+  AC_PROG_INSTALL
+  AC_PROG_LN_S
+  
+  AC_SUBST(STD_CINCLUDES)
+  AC_SUBST(STD_CDEFINES)
+--- 57,67 ----
+  
+  AC_PROG_MAKE_SET
+  
++ AC_PROG_CC
+  AC_PROG_INSTALL
+  AC_PROG_LN_S
++ AC_DISABLE_STATIC
++ LT_INIT([disable-static win32-dll])
+  
+  AC_SUBST(STD_CINCLUDES)
+  AC_SUBST(STD_CDEFINES)
+***************
+*** 66,82 ****
+  AC_SUBST(CCOPT)
+  AC_SUBST(CCNOOPT)
+  
+- # Warn if the user specified libbind, which is now deprecated
+- AC_ARG_ENABLE(libbind, [  --enable-libbind	  deprecated])
+  
+- case "$enable_libbind" in
+- 	yes)
+- 		AC_MSG_ERROR(['libbind' is no longer part of the BIND 9 distribution.
+- It is available from http://www.isc.org as a separate download.])
+- 		;;
+- 	no|'')
+- 		;;
+- esac
+  
+  AC_ARG_ENABLE(warn_shadow, [  --enable-warn-shadow	  turn on -Wshadow when compiling])
+  
+--- 69,85 ----
+  AC_SUBST(CCOPT)
+  AC_SUBST(CCNOOPT)
+  
++ dnl # Warn if the user specified libbind, which is now deprecated
++ dnl AC_ARG_ENABLE(libbind, [  --enable-libbind	  deprecated])
+  
++ dnl case "$enable_libbind" in
++ dnl 	yes)
++ dnl 		AC_MSG_ERROR(['libbind' is no longer part of the BIND 9 distribution.
++ dnl It is available from http://www.isc.org as a separate download.])
++ dnl 		;;
++ dnl 	no|'')
++ dnl 		;;
++ dnl esac
+  
+  AC_ARG_ENABLE(warn_shadow, [  --enable-warn-shadow	  turn on -Wshadow when compiling])
+  
+***************
+*** 161,212 ****
+  		;;
+  esac
+  
+- #
+- # Make very sure that these are the first files processed by
+- # config.status, since we use the processed output as the input for
+- # AC_SUBST_FILE() substitutions in other files.
+- #
+- AC_CONFIG_FILES([make/rules make/includes])
+- 
+- AC_PATH_PROG(AR, ar)
+- ARFLAGS="cruv"
+- AC_SUBST(AR)
+- AC_SUBST(ARFLAGS)
+- 
+- # The POSIX ln(1) program.  Non-POSIX systems may substitute
+- # "copy" or something.
+- LN=ln
+- AC_SUBST(LN)
+- 
+- case "$AR" in
+- 	"")
+- 		AC_MSG_ERROR([
+- ar program not found.  Please fix your PATH to include the directory in
+- which ar resides, or set AR in the environment with the full path to ar.
+- ])
+- 
+- 		;;
+- esac
+- 
+- #
+- # Etags.
+- #
+- AC_PATH_PROGS(ETAGS, etags emacs-etags)
+- 
+- #
+- # Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
+- # GNU emacs etags, and it requires the -L flag.
+- #
+- if test "X$ETAGS" != "X"; then
+- 	AC_MSG_CHECKING(for Exuberant Ctags etags)
+- 	if $ETAGS --version 2>&1 | grep 'Exuberant Ctags' >/dev/null 2>&1; then
+- 		AC_MSG_RESULT(yes)
+- 		ETAGS="$ETAGS -L"
+- 	else
+- 		AC_MSG_RESULT(no)
+- 	fi
+- fi
+- AC_SUBST(ETAGS)
+  
+  #
+  # Perl is optional; it is used only by some of the system test scripts.
+--- 164,215 ----
+  		;;
+  esac
+  
++ dnl dnl #
++ dnl dnl # Make very sure that these are the first files processed by
++ dnl dnl # config.status, since we use the processed output as the input for
++ dnl dnl # AC_SUBST_FILE() substitutions in other files.
++ dnl dnl #
++ dnl dnl AC_CONFIG_FILES([make/rules make/includes])
++ 
++ dnl AC_PATH_PROG(AR, ar)
++ dnl ARFLAGS="cruv"
++ dnl AC_SUBST(AR)
++ dnl AC_SUBST(ARFLAGS)
++ 
++ dnl # The POSIX ln(1) program.  Non-POSIX systems may substitute
++ dnl # "copy" or something.
++ dnl LN=ln
++ dnl AC_SUBST(LN)
++ 
++ dnl case "$AR" in
++ dnl 	"")
++ dnl 		AC_MSG_ERROR([
++ dnl ar program not found.  Please fix your PATH to include the directory in
++ dnl which ar resides, or set AR in the environment with the full path to ar.
++ dnl ])
++ 
++ dnl 		;;
++ dnl esac
++ 
++ dnl #
++ dnl # Etags.
++ dnl #
++ dnl AC_PATH_PROGS(ETAGS, etags emacs-etags)
++ 
++ dnl #
++ dnl # Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
++ dnl # GNU emacs etags, and it requires the -L flag.
++ dnl #
++ dnl if test "X$ETAGS" != "X"; then
++ dnl 	AC_MSG_CHECKING(for Exuberant Ctags etags)
++ dnl 	if $ETAGS --version 2>&1 | grep 'Exuberant Ctags' >/dev/null 2>&1; then
++ dnl 		AC_MSG_RESULT(yes)
++ dnl 		ETAGS="$ETAGS -L"
++ dnl 	else
++ dnl 		AC_MSG_RESULT(no)
++ dnl 	fi
++ dnl fi
++ dnl AC_SUBST(ETAGS)
+  
+  #
+  # Perl is optional; it is used only by some of the system test scripts.
+***************
+*** 370,424 ****
+  expanded_sysconfdir=`eval echo $sysconfdir`
+  AC_SUBST(expanded_sysconfdir)
+  
+- #
+- # Make sure INSTALL uses an absolute path, else it will be wrong in all
+- # Makefiles, since they use make/rules.in and INSTALL will be adjusted by
+- # configure based on the location of the file where it is substituted.
+- # Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
+- # subdirectory of install-sh, This relative path will be wrong for all
+- # directories more than one level down from install-sh.
+- #
+- case "$INSTALL" in
+- 	/*)
+- 		;;
+- 	*)
+- 		#
+- 		# Not all systems have dirname.
+- 		#
+- 		changequote({, })
+- 		ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
+- 		changequote([, ])
+- 
+- 		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
+- 		test "X$ac_dir" = "X$ac_prog" && ac_dir=.
+- 		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
+- 		INSTALL="$ac_dir/$ac_prog"
+- 		;;
+- esac
+- 
+- AC_PROG_CC
+  
+  #
+  # OS dependent CC flags
+  #
+  case "$host" in
+- 	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
+- 	# -D_XOPEN_SOURCE_EXTENDED.
+- 	*-dec-osf*)
+- 		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
+- 		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
+- 		;;
+- 	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
+- 	*-hp-hpux*)
+- 		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
+- 		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
+- 		LIBS="-lxnet $LIBS"
+- 		;;
+- 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
+- 	*-solaris*)
+- 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
+- 		CPPFLAGS="$CPPFLAGS -D_XPG4_2 -D__EXTENSIONS__"
+- 		;;
+  	# POSIX doesn't include the IPv6 Advanced Socket API and glibc hides
+  	# parts of the IPv6 Advanced Socket API as a result.  This is stupid
+  	# as it breaks how the two halves (Basic and Advanced) of the IPv6
+--- 373,425 ----
+  expanded_sysconfdir=`eval echo $sysconfdir`
+  AC_SUBST(expanded_sysconfdir)
+  
++ dnl #
++ dnl # Make sure INSTALL uses an absolute path, else it will be wrong in all
++ dnl # Makefiles, since they use make/rules.in and INSTALL will be adjusted by
++ dnl # configure based on the location of the file where it is substituted.
++ dnl # Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
++ dnl # subdirectory of install-sh, This relative path will be wrong for all
++ dnl # directories more than one level down from install-sh.
++ dnl #
++ dnl case "$INSTALL" in
++ dnl 	/*)
++ dnl 		;;
++ dnl 	*)
++ dnl 		#
++ dnl 		# Not all systems have dirname.
++ dnl 		#
++ dnl 		changequote({, })
++ dnl 		ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
++ dnl 		changequote([, ])
++ 
++ dnl 		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
++ dnl 		test "X$ac_dir" = "X$ac_prog" && ac_dir=.
++ dnl 		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
++ dnl 		INSTALL="$ac_dir/$ac_prog"
++ dnl 		;;
++ dnl esac
+  
+  #
+  # OS dependent CC flags
+  #
+  case "$host" in
++ 	dnl # OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
++ 	dnl # -D_XOPEN_SOURCE_EXTENDED.
++ 	dnl *-dec-osf*)
++ 	dnl 	STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
++ 	dnl 	CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
++ 	dnl 	;;
++ 	dnl #HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
++ 	dnl *-hp-hpux*)
++ 	dnl 	STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
++ 	dnl 	CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
++ 	dnl 	LIBS="-lxnet $LIBS"
++ 	dnl 	;;
++ 	dnl # Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
++ 	dnl *-solaris*)
++ 	dnl 	STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
++ 	dnl 	CPPFLAGS="$CPPFLAGS -D_XPG4_2 -D__EXTENSIONS__"
++ 	dnl 	;;
+  	# POSIX doesn't include the IPv6 Advanced Socket API and glibc hides
+  	# parts of the IPv6 Advanced Socket API as a result.  This is stupid
+  	# as it breaks how the two halves (Basic and Advanced) of the IPv6
+***************
+*** 460,466 ****
+  AC_C_CONST
+  AC_C_INLINE
+  AC_C_VOLATILE
+- AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+  AC_C_FLEXIBLE_ARRAY_MEMBER
+  
+  #
+--- 461,467 ----
+  AC_C_CONST
+  AC_C_INLINE
+  AC_C_VOLATILE
++ AC_CHECK_FUNCS(sysctlbyname)
+  AC_C_FLEXIBLE_ARRAY_MEMBER
+  
+  #
+***************
+*** 302,308 ****
+         uts.sysname, uts.release, uts.version, uts.machine);
+  ],
+  	[AC_MSG_RESULT(yes)
+-          AC_DEFINE(HAVE_UNAME)],
+          [AC_MSG_RESULT(no)
+           AC_MSG_WARN([uname is not correctly supported])])
+  
+--- 303,310 ----
+         uts.sysname, uts.release, uts.version, uts.machine);
+  ],
+  	[AC_MSG_RESULT(yes)
++          AC_DEFINE([HAVE_UNAME], 1,
++ 	 [Define to 1 if you have the uname library function.])],
+          [AC_MSG_RESULT(no)
+           AC_MSG_WARN([uname is not correctly supported])])
+  
+***************
+*** 1091,1139 ****
+  ISC_THREAD_DIR=$thread_dir
+  AC_SUBST(ISC_THREAD_DIR)
+  
+- AC_MSG_CHECKING(for libtool)
+- AC_ARG_WITH(libtool,
+- 	    [  --with-libtool          use GNU libtool],
+- 	    use_libtool="$withval", use_libtool="no")
+- 
+- case $use_libtool in
+- 	yes)
+- 		AC_MSG_RESULT(yes)
+- 		AM_PROG_LIBTOOL
+- 		O=lo
+- 		A=la
+- 		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+- 		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
+- 		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
+- 		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+- 		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
+- 		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
+- 		case "$host" in
+- 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
+- 		esac
+- 		case "$host" in
+- 		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
+- 		*) LIBTOOL_IN_MAIN= ;;
+- 		esac;
+- 		;;
+- 	*)
+- 		AC_MSG_RESULT(no)
+- 		O=o
+- 		A=a
+- 		LIBTOOL=
+- 		AC_SUBST(LIBTOOL)
+- 		LIBTOOL_MKDEP_SED=
+- 		LIBTOOL_MODE_COMPILE=
+- 		LIBTOOL_MODE_INSTALL=
+- 		LIBTOOL_MODE_LINK=
+- 		LIBTOOL_MODE_UNINSTALL=
+- 		LIBTOOL_ALLOW_UNDEFINED=
+- 		LIBTOOL_IN_MAIN=
+- 		INSTALL_LIBRARY='${INSTALL_DATA}'
+- 		;;
+- esac
+- AC_SUBST(INSTALL_LIBRARY)
+- 
+  #
+  # was --with-openssl specified?
+  #
+--- 1095,1100 ----
+  ISC_THREAD_DIR=$thread_dir
+  AC_SUBST(ISC_THREAD_DIR)
+  
+  #
+  # was --with-openssl specified?
+  #
+***************
+*** 1166,1173 ****
+  #
+  AC_MSG_CHECKING(for Source Identity Token support)
+  AC_ARG_ENABLE(sit,
+- 	[  --enable-sit            enable source identity token [[default=no]]],
+- 	enable_sit="$enableval", enable_sit="no")
+  HAVE_SIT=
+  ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
+  
+--- 1127,1134 ----
+  #
+  AC_MSG_CHECKING(for Source Identity Token support)
+  AC_ARG_ENABLE(sit,
++ 	[  --enable-sit            enable source identity token [[default=yes]]],
++ 	enable_sit="$enableval", enable_sit="yes")
+  HAVE_SIT=
+  ISC_PLATFORM_USESIT="#undef ISC_PLATFORM_USESIT"
+  
+***************
+*** 1737,1742 ****
+  #
+  
+  AC_SUBST(DST_OPENSSL_INC)
+  AC_SUBST(OPENSSLEDDSALINKOBJS)
+  AC_SUBST(OPENSSLEDDSALINKSRCS)
+  AC_SUBST(OPENSSLGOSTLINKOBJS)
+--- 1699,1705 ----
+  #
+  
+  AC_SUBST(DST_OPENSSL_INC)
++ AC_SUBST(DST_OPENSSL_LIBS)
+  AC_SUBST(OPENSSLEDDSALINKOBJS)
+  AC_SUBST(OPENSSLEDDSALINKSRCS)
+  AC_SUBST(OPENSSLGOSTLINKOBJS)
+***************
+*** 3216,3223 ****
+  [AC_MSG_RESULT(not match any subspecies; assume standard definition)
+  AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])])
+  
+- AC_CHECK_FUNC(getaddrinfo, AC_DEFINE(HAVE_GETADDRINFO))
+- AC_CHECK_FUNC(gai_strerror, AC_DEFINE(HAVE_GAISTRERROR))
+  
+  AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
+  
+--- 3166,3173 ----
+  [AC_MSG_RESULT(not match any subspecies; assume standard definition)
+  AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])])
+  
++ AC_CHECK_FUNCS(getaddrinfo)
++ AC_CHECK_FUNCS(gai_strerror)
+  
+  AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
+  
+***************
+*** 4509,4532 ****
+  AC_ARG_WITH(atf,
+  	[  --with-atf=ARG          support Automated Test Framework],
+  	atf="$withval", atf="no")
+- if test "yes" = "$atf"; then
+- 	atf=`pwd`/unit/atf
+- 	ATFBUILD=atf-src
+- 	AC_SUBST(ATFBUILD)
+- 	AC_CONFIG_COMMANDS([atf-config],
+- 		[(
+- 		 mkdir -p unit/atf-src;
+- 		 cd unit/atf-src;
+- 		 case "$srcdir" in
+- 		 /*) ;;
+- 		 *) srcdir="../../$srcdir";;
+- 		 esac
+- 		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
+- 		) ],
+- 		[atfdir=`pwd`/unit/atf])
+- 	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
+- fi
+- 
+  ATFLIBS=
+  if test "no" != "$atf"; then
+  	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
+--- 4422,4427 ----
+  AC_ARG_WITH(atf,
+  	[  --with-atf=ARG          support Automated Test Framework],
+  	atf="$withval", atf="no")
+  ATFLIBS=
+  if test "no" != "$atf"; then
+  	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
+***************
+*** 4819,4844 ****
+  AC_SUBST(SO_LD)
+  AC_SUBST(SO_TARGETS)
+  
+- sinclude(contrib/dlz/config.dlz.in)
+- AC_MSG_CHECKING(contributed DLZ drivers)
+- 
+- if test -n "$CONTRIB_DLZ"
+- then
+- 	AC_MSG_RESULT(yes)
+- 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
+- 	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
+- else
+- 	AC_MSG_RESULT(no)
+- 	DLZ_DRIVER_RULES=/dev/null
+- fi
+- 
+- AC_SUBST(CONTRIB_DLZ)
+- AC_SUBST(DLZ_DRIVER_INCLUDES)
+- AC_SUBST(DLZ_DRIVER_LIBS)
+- AC_SUBST(DLZ_DRIVER_SRCS)
+- AC_SUBST(DLZ_DRIVER_OBJS)
+- AC_SUBST(DLZ_SYSTEM_TEST)
+- AC_SUBST_FILE(DLZ_DRIVER_RULES)
+  
+  if test "yes" = "$cross_compiling"; then
+  	if test -z "$BUILD_CC"; then
+--- 4714,4739 ----
+  AC_SUBST(SO_LD)
+  AC_SUBST(SO_TARGETS)
+  
++ dnl sinclude(contrib/dlz/config.dlz.in)
++ dnl AC_MSG_CHECKING(contributed DLZ drivers)
++ 
++ dnl if test -n "$CONTRIB_DLZ"
++ dnl then
++ dnl 	AC_MSG_RESULT(yes)
++ dnl 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
++ dnl 	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
++ dnl else
++ dnl 	AC_MSG_RESULT(no)
++ dnl 	DLZ_DRIVER_RULES=/dev/null
++ dnl fi
++ 
++ dnl AC_SUBST(CONTRIB_DLZ)
++ dnl AC_SUBST(DLZ_DRIVER_INCLUDES)
++ dnl AC_SUBST(DLZ_DRIVER_LIBS)
++ dnl AC_SUBST(DLZ_DRIVER_SRCS)
++ dnl AC_SUBST(DLZ_DRIVER_OBJS)
++ dnl AC_SUBST(DLZ_SYSTEM_TEST)
++ dnl AC_SUBST_FILE(DLZ_DRIVER_RULES)
+  
+  if test "yes" = "$cross_compiling"; then
+  	if test -z "$BUILD_CC"; then
+***************
+*** 4995,5128 ****
+  #
+  
+  AC_CONFIG_FILES([
+- 	make/Makefile
+- 	make/mkdep
+  	Makefile
+  	bin/Makefile
+  	bin/check/Makefile
+  	bin/confgen/Makefile
+- 	bin/confgen/unix/Makefile
+  	bin/delv/Makefile
+  	bin/dig/Makefile
+  	bin/dnssec/Makefile
+  	bin/named/Makefile
+  	bin/named/unix/Makefile
+  	bin/nsupdate/Makefile
+- 	bin/python/Makefile
+- 	bin/python/isc/Makefile
+- 	bin/python/isc/utils.py
+- 	bin/python/isc/tests/Makefile
+- 	bin/python/dnssec-checkds.py
+- 	bin/python/dnssec-coverage.py
+- 	bin/python/isc/__init__.py
+- 	bin/python/isc/checkds.py
+- 	bin/python/isc/coverage.py
+- 	bin/python/isc/dnskey.py
+- 	bin/python/isc/eventlist.py
+- 	bin/python/isc/keydict.py
+- 	bin/python/isc/keyevent.py
+- 	bin/python/isc/keyzone.py
+- 	bin/python/isc/tests/dnskey_test.py
+  	bin/rndc/Makefile
+- 	bin/tests/Makefile
+- 	bin/tests/db/Makefile
+- 	bin/tests/dst/Makefile
+- 	bin/tests/dst/Kdh.+002+18602.key
+- 	bin/tests/dst/Kdh.+002+18602.private
+- 	bin/tests/dst/Kdh.+002+48957.key
+- 	bin/tests/dst/Kdh.+002+48957.private
+- 	bin/tests/dst/Ktest.+001+00002.key
+- 	bin/tests/dst/Ktest.+001+54622.key
+- 	bin/tests/dst/Ktest.+001+54622.private
+- 	bin/tests/dst/Ktest.+003+23616.key
+- 	bin/tests/dst/Ktest.+003+23616.private
+- 	bin/tests/dst/Ktest.+003+49667.key
+- 	bin/tests/dst/dst_2_data
+- 	bin/tests/dst/t2_data_1
+- 	bin/tests/dst/t2_data_2
+- 	bin/tests/dst/t2_dsasig
+- 	bin/tests/dst/t2_rsasig
+- 	bin/tests/hashes/Makefile
+- 	bin/tests/headerdep_test.sh
+- 	bin/tests/master/Makefile
+- 	bin/tests/mem/Makefile
+- 	bin/tests/names/Makefile
+- 	bin/tests/net/Makefile
+- 	bin/tests/rbt/Makefile
+- 	bin/tests/resolver/Makefile
+- 	bin/tests/sockaddr/Makefile
+- 	bin/tests/system/Makefile
+- 	bin/tests/system/conf.sh
+- 	bin/tests/system/dlz/prereq.sh
+- 	bin/tests/system/dlzexternal/Makefile
+- 	bin/tests/system/dlzexternal/ns1/named.conf
+- 	bin/tests/system/dlzredir/prereq.sh
+- 	bin/tests/system/inline/checkdsa.sh
+- 	bin/tests/system/rsabigexponent/Makefile
+- 	bin/tests/system/cookie/prereq.sh
+- 	bin/tests/system/tkey/Makefile
+- 	bin/tests/tasks/Makefile
+- 	bin/tests/timers/Makefile
+- 	bin/tests/virtual-time/Makefile
+- 	bin/tests/virtual-time/conf.sh
+  	bin/tools/Makefile
+- 	contrib/scripts/check-secure-delegation.pl
+- 	contrib/scripts/zone-edit.sh
+- 	doc/Makefile
+- 	doc/arm/Makefile
+-         doc/arm/noteversion.xml
+-         doc/arm/pkgversion.xml
+-         doc/arm/releaseinfo.xml
+- 	doc/doxygen/Doxyfile
+- 	doc/doxygen/Makefile
+- 	doc/doxygen/doxygen-input-filter
+- 	doc/misc/Makefile
+-         doc/tex/Makefile
+-         doc/tex/armstyle.sty
+- 	doc/xsl/Makefile
+- 	doc/xsl/isc-docbook-chunk.xsl
+- 	doc/xsl/isc-docbook-html.xsl
+- 	doc/xsl/isc-manpage.xsl
+- 	doc/xsl/isc-notes-html.xsl
+- 	isc-config.sh
+  	lib/Makefile
+- 	lib/bind9/Makefile
+- 	lib/bind9/include/Makefile
+- 	lib/bind9/include/bind9/Makefile
+  	lib/dns/Makefile
+  	lib/dns/include/Makefile
+  	lib/dns/include/dns/Makefile
+  	lib/dns/include/dst/Makefile
+- 	lib/dns/tests/Makefile
+  	lib/irs/Makefile
+  	lib/irs/include/Makefile
+  	lib/irs/include/irs/Makefile
+  	lib/irs/include/irs/netdb.h
+- 	lib/irs/include/irs/platform.h
+- 	lib/irs/tests/Makefile
+- 	lib/isc/$thread_dir/Makefile
+- 	lib/isc/$thread_dir/include/Makefile
+- 	lib/isc/$thread_dir/include/isc/Makefile
+  	lib/isc/Makefile
+- 	lib/isc/include/Makefile
+- 	lib/isc/include/isc/Makefile
+- 	lib/isc/include/isc/platform.h
+- 	lib/isc/tests/Makefile
+- 	lib/isc/nls/Makefile
+  	lib/isc/unix/Makefile
+  	lib/isc/unix/include/Makefile
+  	lib/isc/unix/include/isc/Makefile
+  	lib/isccc/Makefile
+  	lib/isccc/include/Makefile
+  	lib/isccc/include/isccc/Makefile
+  	lib/isccfg/Makefile
+  	lib/isccfg/include/Makefile
+  	lib/isccfg/include/isccfg/Makefile
+- 	lib/tests/Makefile
+- 	lib/tests/include/Makefile
+- 	lib/tests/include/tests/Makefile
+- 	lib/samples/Makefile
+- 	lib/samples/Makefile-postinstall
+  ])
+  
+  #
+--- 4890,4938 ----
+  #
+  
+  AC_CONFIG_FILES([
+  	Makefile
+  	bin/Makefile
+  	bin/check/Makefile
+  	bin/confgen/Makefile
+  	bin/delv/Makefile
+  	bin/dig/Makefile
+  	bin/dnssec/Makefile
++ 	bin/examples/Makefile
+  	bin/named/Makefile
+  	bin/named/unix/Makefile
+  	bin/nsupdate/Makefile
+  	bin/rndc/Makefile
+  	bin/tools/Makefile
+  	lib/Makefile
+  	lib/dns/Makefile
+  	lib/dns/include/Makefile
+  	lib/dns/include/dns/Makefile
+  	lib/dns/include/dst/Makefile
+  	lib/irs/Makefile
+  	lib/irs/include/Makefile
+  	lib/irs/include/irs/Makefile
+  	lib/irs/include/irs/netdb.h
+  	lib/isc/Makefile
++ 	lib/isc/platform.h
++ 	lib/isc/pthreads/Makefile
++ 	lib/isc/pthreads/include/Makefile
++ 	lib/isc/pthreads/include/isc/Makefile
+  	lib/isc/unix/Makefile
+  	lib/isc/unix/include/Makefile
+  	lib/isc/unix/include/isc/Makefile
++ 	lib/isc/win32/include/isc/platform.h
+  	lib/isccc/Makefile
+  	lib/isccc/include/Makefile
+  	lib/isccc/include/isccc/Makefile
+  	lib/isccfg/Makefile
+  	lib/isccfg/include/Makefile
+  	lib/isccfg/include/isccfg/Makefile
++ 	isc-config.sh
++ 	system/conf.sh
++ 	system/Makefile
++ 	system/checkzone/Makefile
++ 	system/rsabigexponent/Makefile
++ 	system/tkey/Makefile
+  ])
+  
+  #
