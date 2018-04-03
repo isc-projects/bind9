@@ -138,7 +138,6 @@ dns_client_cancelupdate
 dns_client_clearservers
 dns_client_create
 dns_client_createx
-dns_client_createx2
 dns_client_destroy
 dns_client_destroyreqtrans
 dns_client_destroyrestrans
