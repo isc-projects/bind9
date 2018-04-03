@@ -107,7 +107,8 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	result = dns_zone_setdbtype(zone, 1, &rbt);
 	ERRRET(result, "dns_zone_setdatabase");
 
-	result = dns_zone_setfile(zone, filename);
+	result = dns_zone_setfile(zone, filename, dns_masterformat_text,
+				  &dns_master_style_default);
 	ERRRET(result, "dns_zone_setfile");
 
 	region.base = classname;
@@ -190,7 +191,9 @@ query(void) {
 		if (s != NULL)
 			*s = '\0';
 		if (strcmp(buf, "dump") == 0) {
-			dns_zone_dumptostream(zone, stdout);
+			dns_zone_dumptostream(zone, stdout,
+					      dns_masterformat_text,
+					      &dns_master_style_default, 0);
 			continue;
 		}
 		if (strlen(buf) == 0U)
