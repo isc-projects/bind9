@@ -399,7 +399,7 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	isc_log_setdebuglevel(lctx, logdebuglevel);
 #endif
 	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
-				    options, clientp);
+				    options, clientp, NULL, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -425,22 +425,11 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 }
 
 isc_result_t
-dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx, isc_taskmgr_t *taskmgr,
-		   isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		   unsigned int options, dns_client_t **clientp)
-{
-	isc_result_t result;
-	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
-				     options, clientp, NULL, NULL);
-	return (result);
-}
-
-isc_result_t
-dns_client_createx2(isc_mem_t *mctx, isc_appctx_t *actx,
-		    isc_taskmgr_t *taskmgr, isc_socketmgr_t *socketmgr,
-		    isc_timermgr_t *timermgr, unsigned int options,
-		    dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
-		    const isc_sockaddr_t *localaddr6)
+dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
+		   isc_taskmgr_t *taskmgr, isc_socketmgr_t *socketmgr,
+		   isc_timermgr_t *timermgr, unsigned int options,
+		   dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
+		   const isc_sockaddr_t *localaddr6)
 {
 	dns_client_t *client;
 	isc_result_t result;

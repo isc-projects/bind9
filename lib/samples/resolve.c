@@ -393,7 +393,7 @@ main(int argc, char *argv[]) {
 		goto cleanup;
 
 	clientopt = 0;
-	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
+	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
 				    clientopt, &client, addr4, addr6);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,
