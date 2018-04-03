@@ -100,7 +100,7 @@ user_zonetype( dns_zone_t *zone ) {
 	};
 	const struct zt *tp;
 
-	if ((dns_zone_getoptions2(zone) & DNS_ZONEOPT2_AUTOEMPTY) != 0)
+	if ((dns_zone_getoptions(zone) & dns_zoneopt_autoempty) != 0)
 		return ("builtin");
 
 	view = dns_zone_getview(zone);

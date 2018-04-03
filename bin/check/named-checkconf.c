@@ -191,7 +191,7 @@ configure_zone(const char *vclass, const char *view,
 	dns_masterformat_t masterformat;
 	dns_ttl_t maxttl = 0;
 
-	zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_MANYERRORS;
+	zone_options = dns_zoneopt_checkns | dns_zoneopt_manyerrors;
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 	classobj = cfg_tuple_get(zconfig, "class");
@@ -275,120 +275,120 @@ configure_zone(const char *vclass, const char *view,
 	obj = NULL;
 	if (get_maps(maps, "check-dup-records", &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKDUPRR;
-			zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
+			zone_options |= dns_zoneopt_checkduprr;
+			zone_options &= ~dns_zoneopt_checkduprrfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKDUPRR;
-			zone_options |= DNS_ZONEOPT_CHECKDUPRRFAIL;
+			zone_options |= dns_zoneopt_checkduprr;
+			zone_options |= dns_zoneopt_checkduprrfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options &= ~DNS_ZONEOPT_CHECKDUPRR;
-			zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
+			zone_options &= ~dns_zoneopt_checkduprr;
+			zone_options &= ~dns_zoneopt_checkduprrfail;
 		} else
 			INSIST(0);
 	} else {
-		zone_options |= DNS_ZONEOPT_CHECKDUPRR;
-		zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
+		zone_options |= dns_zoneopt_checkduprr;
+		zone_options &= ~dns_zoneopt_checkduprrfail;
 	}
 
 	obj = NULL;
 	if (get_maps(maps, "check-mx", &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKMX;
-			zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
+			zone_options |= dns_zoneopt_checkmx;
+			zone_options &= ~dns_zoneopt_checkmxfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKMX;
-			zone_options |= DNS_ZONEOPT_CHECKMXFAIL;
+			zone_options |= dns_zoneopt_checkmx;
+			zone_options |= dns_zoneopt_checkmxfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options &= ~DNS_ZONEOPT_CHECKMX;
-			zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
+			zone_options &= ~dns_zoneopt_checkmx;
+			zone_options &= ~dns_zoneopt_checkmxfail;
 		} else
 			INSIST(0);
 	} else {
-		zone_options |= DNS_ZONEOPT_CHECKMX;
-		zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
+		zone_options |= dns_zoneopt_checkmx;
+		zone_options &= ~dns_zoneopt_checkmxfail;
 	}
 
 	obj = NULL;
 	if (get_maps(maps, "check-integrity", &obj)) {
 		if (cfg_obj_asboolean(obj))
-			zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+			zone_options |= dns_zoneopt_checkintegrity;
 		else
-			zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
+			zone_options &= ~dns_zoneopt_checkintegrity;
 	} else
-		zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+		zone_options |= dns_zoneopt_checkintegrity;
 
 	obj = NULL;
 	if (get_maps(maps, "check-mx-cname", &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_WARNMXCNAME;
-			zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+			zone_options |= dns_zoneopt_warnmxcname;
+			zone_options &= ~dns_zoneopt_ignoremxcname;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			zone_options &= ~DNS_ZONEOPT_WARNMXCNAME;
-			zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+			zone_options &= ~dns_zoneopt_warnmxcname;
+			zone_options &= ~dns_zoneopt_ignoremxcname;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options |= DNS_ZONEOPT_WARNMXCNAME;
-			zone_options |= DNS_ZONEOPT_IGNOREMXCNAME;
+			zone_options |= dns_zoneopt_warnmxcname;
+			zone_options |= dns_zoneopt_ignoremxcname;
 		} else
 			INSIST(0);
 	} else {
-		zone_options |= DNS_ZONEOPT_WARNMXCNAME;
-		zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+		zone_options |= dns_zoneopt_warnmxcname;
+		zone_options &= ~dns_zoneopt_ignoremxcname;
 	}
 
 	obj = NULL;
 	if (get_maps(maps, "check-srv-cname", &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
-			zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+			zone_options |= dns_zoneopt_warnsrvcname;
+			zone_options &= ~dns_zoneopt_ignoresrvcname;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			zone_options &= ~DNS_ZONEOPT_WARNSRVCNAME;
-			zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+			zone_options &= ~dns_zoneopt_warnsrvcname;
+			zone_options &= ~dns_zoneopt_ignoresrvcname;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
-			zone_options |= DNS_ZONEOPT_IGNORESRVCNAME;
+			zone_options |= dns_zoneopt_warnsrvcname;
+			zone_options |= dns_zoneopt_ignoresrvcname;
 		} else
 			INSIST(0);
 	} else {
-		zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
-		zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+		zone_options |= dns_zoneopt_warnsrvcname;
+		zone_options &= ~dns_zoneopt_ignoresrvcname;
 	}
 
 	obj = NULL;
 	if (get_maps(maps, "check-sibling", &obj)) {
 		if (cfg_obj_asboolean(obj))
-			zone_options |= DNS_ZONEOPT_CHECKSIBLING;
+			zone_options |= dns_zoneopt_checksibling;
 		else
-			zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
+			zone_options &= ~dns_zoneopt_checksibling;
 	}
 
 	obj = NULL;
 	if (get_maps(maps, "check-spf", &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKSPF;
+			zone_options |= dns_zoneopt_checkspf;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options &= ~DNS_ZONEOPT_CHECKSPF;
+			zone_options &= ~dns_zoneopt_checkspf;
 		} else
 			INSIST(0);
 	} else {
-		zone_options |= DNS_ZONEOPT_CHECKSPF;
+		zone_options |= dns_zoneopt_checkspf;
 	}
 
 	obj = NULL;
 	if (get_checknames(maps, &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKNAMES;
-			zone_options &= ~DNS_ZONEOPT_CHECKNAMESFAIL;
+			zone_options |= dns_zoneopt_checknames;
+			zone_options &= ~dns_zoneopt_checknamesfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			zone_options |= DNS_ZONEOPT_CHECKNAMES;
-			zone_options |= DNS_ZONEOPT_CHECKNAMESFAIL;
+			zone_options |= dns_zoneopt_checknames;
+			zone_options |= dns_zoneopt_checknamesfail;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			zone_options &= ~DNS_ZONEOPT_CHECKNAMES;
-			zone_options &= ~DNS_ZONEOPT_CHECKNAMESFAIL;
+			zone_options &= ~dns_zoneopt_checknames;
+			zone_options &= ~dns_zoneopt_checknamesfail;
 		} else
 			INSIST(0);
 	} else {
-	       zone_options |= DNS_ZONEOPT_CHECKNAMES;
-	       zone_options |= DNS_ZONEOPT_CHECKNAMESFAIL;
+	       zone_options |= dns_zoneopt_checknames;
+	       zone_options |= dns_zoneopt_checknamesfail;
 	}
 
 	masterformat = dns_masterformat_text;
@@ -408,7 +408,7 @@ configure_zone(const char *vclass, const char *view,
 	obj = NULL;
 	if (get_maps(maps, "max-zone-ttl", &obj)) {
 		maxttl = cfg_obj_asuint32(obj);
-		zone_options2 |= DNS_ZONEOPT2_CHECKTTL;
+		zone_options |= dns_zoneopt_checkttl;
 	}
 
 	result = load_zone(mctx, zname, zfile, masterformat,

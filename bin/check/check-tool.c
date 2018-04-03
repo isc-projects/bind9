@@ -99,18 +99,17 @@ isc_boolean_t docheckmx = ISC_FALSE;
 isc_boolean_t dochecksrv = ISC_FALSE;
 isc_boolean_t docheckns = ISC_FALSE;
 #endif
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
-			    DNS_ZONEOPT_CHECKMX |
-			    DNS_ZONEOPT_MANYERRORS |
-			    DNS_ZONEOPT_CHECKNAMES |
-			    DNS_ZONEOPT_CHECKINTEGRITY |
+dns_zoneopt_t zone_options = dns_zoneopt_checkns |
+			     dns_zoneopt_checkmx |
+			     dns_zoneopt_manyerrors |
+			     dns_zoneopt_checknames |
+			     dns_zoneopt_checkintegrity |
 #if CHECK_SIBLING
-			    DNS_ZONEOPT_CHECKSIBLING |
+			     dns_zoneopt_checksibling |
 #endif
-			    DNS_ZONEOPT_CHECKWILDCARD |
-			    DNS_ZONEOPT_WARNMXCNAME |
-			    DNS_ZONEOPT_WARNSRVCNAME;
-unsigned int zone_options2 = 0;
+			     dns_zoneopt_checkwildcard |
+			     dns_zoneopt_warnmxcname |
+			     dns_zoneopt_warnsrvcname;
 
 /*
  * This needs to match the list in bin/named/log.c.
@@ -417,9 +416,9 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 			cur = cur->ai_next;
 		if (cur != NULL && cur->ai_canonname != NULL &&
 		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
-			if ((zone_options & DNS_ZONEOPT_WARNMXCNAME) != 0)
+			if ((zone_options & dns_zoneopt_warnmxcname) != 0)
 				level = ISC_LOG_WARNING;
-			if ((zone_options & DNS_ZONEOPT_IGNOREMXCNAME) == 0) {
+			if ((zone_options & dns_zoneopt_ignoremxcname) == 0) {
 				if (!logged(namebuf, ERR_IS_MXCNAME)) {
 					dns_zone_log(zone, level,
 						     "%s/MX '%s' (out of zone)"
@@ -503,9 +502,9 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 			cur = cur->ai_next;
 		if (cur != NULL && cur->ai_canonname != NULL &&
 		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
-			if ((zone_options & DNS_ZONEOPT_WARNSRVCNAME) != 0)
+			if ((zone_options & dns_zoneopt_warnsrvcname) != 0)
 				level = ISC_LOG_WARNING;
-			if ((zone_options & DNS_ZONEOPT_IGNORESRVCNAME) == 0) {
+			if ((zone_options & dns_zoneopt_ignoresrvcname) == 0) {
 				if (!logged(namebuf, ERR_IS_SRVCNAME)) {
 					dns_zone_log(zone, level, "%s/SRV '%s'"
 						     " (out of zone) is a "
@@ -702,8 +701,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 	dns_zone_setclass(zone, rdclass);
 	dns_zone_setoption(zone, zone_options, ISC_TRUE);
-	dns_zone_setoption2(zone, zone_options2, ISC_TRUE);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
+	dns_zone_setoption(zone, dns_zoneopt_nomerge, nomerge);
 
 	dns_zone_setmaxttl(zone, maxttl);
 

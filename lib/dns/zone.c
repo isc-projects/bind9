@@ -218,8 +218,7 @@ struct dns_zone {
 	dns_rdataclass_t	rdclass;
 	dns_zonetype_t		type;
 	unsigned int		flags;
-	unsigned int		options;
-	unsigned int		options2;
+	unsigned long long	options;
 	unsigned int		db_argc;
 	char			**db_argv;
 	isc_time_t		expiretime;
@@ -498,7 +497,6 @@ typedef struct {
 						   *   first time.  */
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
-#define DNS_ZONE_OPTION2(z,o) (((z)->options2 & (o)) != 0)
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
 
 /* Flags for zone_load() */
@@ -941,7 +939,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->type = dns_zone_none;
 	zone->flags = 0;
 	zone->options = 0;
-	zone->options2 = 0;
 	zone->keyopts = 0;
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
@@ -1648,9 +1645,9 @@ dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
 
 	LOCK_ZONE(zone);
 	if (maxttl != 0)
-		zone->options2 |= DNS_ZONEOPT2_CHECKTTL;
+		zone->options |= dns_zoneopt_checkttl;
 	else
-		zone->options2 &= ~DNS_ZONEOPT2_CHECKTTL;
+		zone->options &= ~dns_zoneopt_checkttl;
 	zone->maxttl = maxttl;
 	UNLOCK_ZONE(zone);
 
@@ -2255,21 +2252,21 @@ get_master_options(dns_zone_t *zone) {
 		options |= DNS_MASTER_SLAVE;
 	if (zone->type == dns_zone_key)
 		options |= DNS_MASTER_KEY;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkns))
 		options |= DNS_MASTER_CHECKNS;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_fatalns))
 		options |= DNS_MASTER_FATALNS;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checknames))
 		options |= DNS_MASTER_CHECKNAMES;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checknamesfail))
 		options |= DNS_MASTER_CHECKNAMESFAIL;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKMX))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkmx))
 		options |= DNS_MASTER_CHECKMX;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKMXFAIL))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkmxfail))
 		options |= DNS_MASTER_CHECKMXFAIL;
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkwildcard))
 		options |= DNS_MASTER_CHECKWILDCARD;
-	if (DNS_ZONE_OPTION2(zone, DNS_ZONEOPT2_CHECKTTL))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkttl))
 		options |= DNS_MASTER_CHECKTTL;
 	return (options);
 }
@@ -2451,7 +2448,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	dns_zone_rpz_enable_db(zone, db);
 	dns_zone_catz_enable_db(zone, db);
 	options = get_master_options(zone);
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_manyerrors))
 		options |= DNS_MASTER_MANYERRORS;
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->loadtask != NULL) {
@@ -2574,7 +2571,7 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	dns_name_format(name, namebuf, sizeof namebuf);
 	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
 	    result == DNS_R_EMPTYNAME) {
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKMXFAIL))
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_checkmxfail))
 			level = ISC_LOG_WARNING;
 		dns_zone_log(zone, level,
 			     "%s/MX '%s' has no address records (A or AAAA)",
@@ -2583,10 +2580,10 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	}
 
 	if (result == DNS_R_CNAME) {
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNMXCNAME) ||
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_warnmxcname) ||
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_ignoremxcname))
 			level = ISC_LOG_WARNING;
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_ignoremxcname))
 			dns_zone_log(zone, level,
 				     "%s/MX '%s' is a CNAME (illegal)",
 				     ownerbuf, namebuf);
@@ -2594,10 +2591,10 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	}
 
 	if (result == DNS_R_DNAME) {
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNMXCNAME) ||
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_warnmxcname) ||
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_ignoremxcname))
 			level = ISC_LOG_WARNING;
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME)) {
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_ignoremxcname)) {
 			dns_name_format(foundname, altbuf, sizeof altbuf);
 			dns_zone_log(zone, level, "%s/MX '%s' is below a DNAME"
 				     " '%s' (illegal)", ownerbuf, namebuf,
@@ -2671,10 +2668,10 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	}
 
 	if (result == DNS_R_CNAME) {
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNSRVCNAME) ||
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_warnsrvcname) ||
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_ignoresrvcname))
 			level = ISC_LOG_WARNING;
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_ignoresrvcname))
 			dns_zone_log(zone, level,
 				     "%s/SRV '%s' is a CNAME (illegal)",
 				     ownerbuf, namebuf);
@@ -2682,10 +2679,10 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	}
 
 	if (result == DNS_R_DNAME) {
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNSRVCNAME) ||
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_warnsrvcname) ||
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_ignoresrvcname))
 			level = ISC_LOG_WARNING;
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME)) {
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_ignoresrvcname)) {
 			dns_name_format(foundname, altbuf, sizeof altbuf);
 			dns_zone_log(zone, level, "%s/SRV '%s' is below a "
 				     "DNAME '%s' (illegal)", ownerbuf, namebuf,
@@ -2801,7 +2798,7 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 			what = "";
 
 		if (result != DNS_R_DELEGATION || required ||
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSIBLING)) {
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_checksibling)) {
 			dns_zone_log(zone, level, "%s/NS '%s' has no %s"
 				     "address records (A or AAAA)",
 				     ownerbuf, namebuf, what);
@@ -2848,7 +2845,7 @@ zone_rrset_check_dup(dns_zone_t *zone, dns_name_t *owner,
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	unsigned int count1 = 0;
 
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRRFAIL))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checkduprrfail))
 		level = ISC_LOG_ERROR;
 
 	dns_rdataset_init(&tmprdataset);
@@ -3091,7 +3088,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 * Check if there is a type SPF record without an
 		 * SPF-formatted type TXT record also being present.
 		 */
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSPF))
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_checkspf))
 			goto next;
 		if (zone->rdclass != dns_rdataclass_in)
 			goto next;
@@ -3645,7 +3642,7 @@ check_nsec3param(dns_zone_t *zone, dns_db_t *db) {
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
 		dns_rdata_reset(&rdata);
 		INSIST(result == ISC_R_SUCCESS);
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NSEC3TESTZONE) &&
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_nsec3testzone) &&
 		    nsec3param.hash == DNS_NSEC3_UNKNOWNALG && !dynamic)
 		{
 			dns_zone_log(zone, ISC_LOG_WARNING,
@@ -4472,7 +4469,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * Apply update log, if any, on initial load.
 	 */
 	if (zone->journal != NULL &&
-	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOMERGE) &&
+	    ! DNS_ZONE_OPTION(zone, dns_zoneopt_nomerge) &&
 	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
 		if (zone->type == dns_zone_master &&
@@ -4527,7 +4524,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 * updates otherwise.
 	 */
 	if (zone->journal != NULL && dns_zone_isdynamic(zone, ISC_TRUE) &&
-	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
+	    ! DNS_ZONE_OPTION(zone, dns_zoneopt_ixfrfromdiffs)) {
 		isc_uint32_t jserial;
 		dns_journal_t *journal = NULL;
 		isc_boolean_t empty = ISC_FALSE;
@@ -4602,13 +4599,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				goto cleanup;
 		}
 		if (zone->type == dns_zone_master &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKINTEGRITY) &&
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_checkintegrity) &&
 		    !integrity_checks(zone, db)) {
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
 		if (zone->type == dns_zone_master &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKDUPRR) &&
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_checkduprr) &&
 		    !zone_check_dup(zone, db)) {
 			result = DNS_R_BADZONE;
 			goto cleanup;
@@ -4627,7 +4624,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 						  NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			RUNTIME_CHECK(soacount > 0U);
-			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
+			if (DNS_ZONE_OPTION(zone, dns_zoneopt_ixfrfromdiffs) &&
 			    !isc_serial_gt(serial, oldserial)) {
 				isc_uint32_t serialmin, serialmax;
 
@@ -4936,7 +4933,7 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 	dns_name_t *foundname;
 	int level;
 
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOCHECKNS))
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_nocheckns))
 		return (ISC_TRUE);
 
 	if (zone->type == dns_zone_master)
@@ -5357,7 +5354,7 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value) {
 }
 
 void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option,
+dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
 		   isc_boolean_t value)
 {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -5370,32 +5367,11 @@ dns_zone_setoption(dns_zone_t *zone, unsigned int option,
 	UNLOCK_ZONE(zone);
 }
 
-void
-dns_zone_setoption2(dns_zone_t *zone, unsigned int option,
-		    isc_boolean_t value)
-{
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	if (value)
-		zone->options2 |= option;
-	else
-		zone->options2 &= ~option;
-	UNLOCK_ZONE(zone);
-}
-
-unsigned int
+dns_zoneopt_t
 dns_zone_getoptions(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->options);
-}
-
-unsigned int
-dns_zone_getoptions2(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->options2);
 }
 
 void
@@ -6497,8 +6473,8 @@ zone_resigninc(dns_zone_t *zone) {
 	expire = soaexpire - jitter % 3600 - 1;
 	stop = now + 5;
 
-	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
+	check_ksk = DNS_ZONE_OPTION(zone, dns_zoneopt_updatecheckksk);
+	keyset_kskonly = DNS_ZONE_OPTION(zone, dns_zoneopt_dnskeykskonly);
 
 	name = dns_fixedname_name(&fixed);
 	result = dns_db_getsigningtime(db, &rdataset, name);
@@ -7475,8 +7451,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	isc_random_get(&jitter);
 	expire = soaexpire - jitter % 3600;
 
-	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
+	check_ksk = DNS_ZONE_OPTION(zone, dns_zoneopt_updatecheckksk);
+	keyset_kskonly = DNS_ZONE_OPTION(zone, dns_zoneopt_dnskeykskonly);
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until
@@ -8370,8 +8346,8 @@ zone_sign(dns_zone_t *zone) {
 	signing = ISC_LIST_HEAD(zone->signing);
 	first = ISC_TRUE;
 
-	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
+	check_ksk = DNS_ZONE_OPTION(zone, dns_zoneopt_updatecheckksk);
+	keyset_kskonly = DNS_ZONE_OPTION(zone, dns_zoneopt_dnskeykskonly);
 
 	/* Determine which type of chain to build */
 	CHECK(dns_private_chains(db, version, zone->privatetype,
@@ -11235,7 +11211,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		 * Don't notify the master server unless explicitly
 		 * configured to do so.
 		 */
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFYTOSOA) &&
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_notifytosoa) &&
 		    dns_name_compare(&master, &ns.name) == 0) {
 			result = dns_rdataset_next(&nsrdset);
 			continue;
@@ -11579,7 +11555,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (exiting || zone->curmaster >= zone->masterscnt) {
 		isc_boolean_t done = ISC_TRUE;
 		if (!exiting &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+		    DNS_ZONE_OPTION(zone, dns_zoneopt_usealtxfrsrc) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 			/*
 			 * Did we get a good answer from all the masters?
@@ -11779,7 +11755,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			/* Try with slave with TCP. */
 			if ((zone->type == dns_zone_slave ||
 			     zone->type == dns_zone_redirect) &&
-			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH)) {
+			    DNS_ZONE_OPTION(zone, dns_zoneopt_trytcprefresh)) {
 				if (!dns_zonemgr_unreachable(zone->zmgr,
 							     &zone->masteraddr,
 							     &zone->sourceaddr,
@@ -12033,7 +12009,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		zone->mastersok[zone->curmaster] = ISC_TRUE;
 		goto next_master;
 	} else {
-		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MULTIMASTER))
+		if (!DNS_ZONE_OPTION(zone, dns_zoneopt_multimaster))
 			dns_zone_log(zone, ISC_LOG_INFO, "serial number (%u) "
 				     "received from master %s < ours (%u)",
 				     soa.serial, master, oldserial);
@@ -12061,7 +12037,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (zone->curmaster >= zone->masterscnt) {
 		isc_boolean_t done = ISC_TRUE;
-		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+		if (DNS_ZONE_OPTION(zone, dns_zoneopt_usealtxfrsrc) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 			/*
 			 * Did we get a good answer from all the masters?
@@ -14879,7 +14855,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	 * is enabled in the configuration.
 	 */
 	if (zone->db != NULL && zone->journal != NULL &&
-	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
+	    DNS_ZONE_OPTION(zone, dns_zoneopt_ixfrfromdiffs) &&
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER))
 	{
 		isc_uint32_t serial, oldserial;
@@ -15201,7 +15177,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	same_master:
 		if (zone->curmaster >= zone->masterscnt) {
 			zone->curmaster = 0;
-			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+			if (DNS_ZONE_OPTION(zone, dns_zoneopt_usealtxfrsrc) &&
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
@@ -17116,11 +17092,11 @@ dns_zone_checknames(dns_zone_t *zone, const dns_name_t *name,
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES) &&
+	if (!DNS_ZONE_OPTION(zone, dns_zoneopt_checknames) &&
 	    rdata->type != dns_rdatatype_nsec3)
 		return (ISC_R_SUCCESS);
 
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL) ||
+	if (DNS_ZONE_OPTION(zone, dns_zoneopt_checknamesfail) ||
 	    rdata->type == dns_rdatatype_nsec3) {
 		level = ISC_LOG_ERROR;
 		fail = ISC_TRUE;
@@ -17539,8 +17515,8 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
 
-	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
+	check_ksk = DNS_ZONE_OPTION(zone, dns_zoneopt_updatecheckksk);
+	keyset_kskonly = DNS_ZONE_OPTION(zone, dns_zoneopt_dnskeykskonly);
 
 	/*
 	 * See if update_sigs will update DNSKEY signature and if not
@@ -17817,7 +17793,7 @@ zone_rekey(dns_zone_t *zone) {
 					     &keys);
 	if (result == ISC_R_SUCCESS) {
 		isc_boolean_t check_ksk;
-		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
+		check_ksk = DNS_ZONE_OPTION(zone, dns_zoneopt_updatecheckksk);
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,

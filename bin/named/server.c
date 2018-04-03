@@ -1834,7 +1834,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 		dns_zone_setqueryonacl(zone, view->queryonacl);
 	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	dns_zone_setoption(zone, dns_zoneopt_nocheckns, ISC_TRUE);
 	CHECK(setquerystats(zone, mctx, dns_zonestat_none));	/* XXXMPA */
 	CHECK(dns_view_addzone(view, zone));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -3326,8 +3326,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_zone_setstats(zone, named_g_server->zonestats);
 	}
 
-	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, ISC_FALSE);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	dns_zone_setoption(zone, ~dns_zoneopt_nocheckns, ISC_FALSE);
+	dns_zone_setoption(zone, dns_zoneopt_nocheckns, ISC_TRUE);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setautomatic(zone, ISC_TRUE);
@@ -3350,7 +3350,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_db_closeversion(db, &version, ISC_TRUE);
 		CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
 	}
-	dns_zone_setoption2(zone, DNS_ZONEOPT2_AUTOEMPTY, ISC_TRUE);
+	dns_zone_setoption(zone, dns_zoneopt_autoempty, ISC_TRUE);
 	dns_zone_setview(zone, view);
 	CHECK(dns_view_addzone(view, zone));
 
@@ -6161,7 +6161,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	dns_zone_setdialup(zone, dns_dialuptype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
-	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, ISC_TRUE);
+	dns_zone_setoption(zone, dns_zoneopt_nocheckns, ISC_TRUE);
 	dns_zone_setjournalsize(zone, 0);
 
 	dns_zone_setstats(zone, named_g_server->zonestats);

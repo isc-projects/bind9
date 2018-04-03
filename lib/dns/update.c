@@ -1434,9 +1434,9 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 * and one doesn't.
 		 */
 		state->check_ksk = ISC_TF((dns_zone_getoptions(zone) &
-				    DNS_ZONEOPT_UPDATECHECKKSK) != 0);
+				    dns_zoneopt_updatecheckksk) != 0);
 		state->keyset_kskonly = ISC_TF((dns_zone_getoptions(zone) &
-					DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
+					dns_zoneopt_dnskeykskonly) != 0);
 
 		/*
 		 * Get the NSEC/NSEC3 TTL from the SOA MINIMUM field.

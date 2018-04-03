@@ -1714,7 +1714,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 	isc_result_t result;
 	struct in6_addr addr6;
 	struct in_addr addr;
-	unsigned int options;
+	dns_zoneopt_t options;
 
 	dns_fixedname_init(&fixed);
 	foundname = dns_fixedname_name(&fixed);
@@ -1737,7 +1737,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		dns_name_format(&mx.mx, namebuf, sizeof(namebuf));
 		dns_name_format(&t->name, ownerbuf, sizeof(ownerbuf));
 		isaddress = ISC_FALSE;
-		if ((options & DNS_ZONEOPT_CHECKMX) != 0 &&
+		if ((options & dns_zoneopt_checkmx) != 0 &&
 		    strlcpy(tmp, namebuf, sizeof(tmp)) < sizeof(tmp)) {
 			if (tmp[strlen(tmp) - 1] == '.')
 				tmp[strlen(tmp) - 1] = '\0';
@@ -1746,7 +1746,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 				isaddress = ISC_TRUE;
 		}
 
-		if (isaddress && (options & DNS_ZONEOPT_CHECKMXFAIL) != 0) {
+		if (isaddress && (options & dns_zoneopt_checkmxfail) != 0) {
 			update_log(client, zone, ISC_LOG_ERROR,
 				   "%s/MX: '%s': %s",
 				   ownerbuf, namebuf,
@@ -1762,7 +1762,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		/*
 		 * Check zone integrity checks.
 		 */
-		if ((options & DNS_ZONEOPT_CHECKINTEGRITY) == 0)
+		if ((options & dns_zoneopt_checkintegrity) == 0)
 			continue;
 		result = dns_db_find(db, &mx.mx, newver, dns_rdatatype_a,
 				     0, 0, NULL, foundname, NULL, NULL);
@@ -2503,7 +2503,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ssutable_t *ssutable = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
-	unsigned int options, options2;
+	unsigned long long options;
 	dns_difftuple_t *tuple;
 	dns_rdata_dnskey_t dnskey;
 	isc_boolean_t had_dnskey;
@@ -2782,7 +2782,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	options = dns_zone_getoptions(zone);
-	options2 = dns_zone_getoptions2(zone);
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
@@ -2901,7 +2900,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				}
 			}
 
-			if ((options & DNS_ZONEOPT_CHECKWILDCARD) != 0 &&
+			if ((options & dns_zoneopt_checkwildcard) != 0 &&
 			    dns_name_internalwildcard(name)) {
 				char namestr[DNS_NAME_FORMATSIZE];
 				dns_name_format(name, namestr,
@@ -2911,7 +2910,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					   "a non-terminal wildcard", namestr);
 			}
 
-			if ((options2 & DNS_ZONEOPT2_CHECKTTL) != 0) {
+			if ((options & dns_zoneopt_checkttl) != 0) {
 				maxttl = dns_zone_getmaxttl(zone);
 				if (ttl > maxttl) {
 					ttl = maxttl;
@@ -3144,7 +3143,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				   0, &has_dnskey));
 
 #define ALLOW_SECURE_TO_INSECURE(zone) \
-	((dns_zone_getoptions(zone) & DNS_ZONEOPT_SECURETOINSECURE) != 0)
+	((dns_zone_getoptions(zone) & dns_zoneopt_securetoinsecure) != 0)
 
 		CHECK(rrset_exists(db, oldver, zonename, dns_rdatatype_dnskey,
 				   0, &had_dnskey));

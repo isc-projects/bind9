@@ -1231,7 +1231,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "notify-to-soa", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYTOSOA,
+		dns_zone_setoption(zone, dns_zoneopt_notifytosoa,
 				   cfg_obj_asboolean(obj));
 
 		dns_zone_setisself(zone, isself, named_g_server->interfacemgr);
@@ -1306,12 +1306,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			ixfrdiff = ISC_FALSE;
 		}
 		if (raw != NULL) {
-			dns_zone_setoption(raw, DNS_ZONEOPT_IXFRFROMDIFFS,
+			dns_zone_setoption(raw, dns_zoneopt_ixfrfromdiffs,
 					   ISC_TRUE);
-			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
+			dns_zone_setoption(zone, dns_zoneopt_ixfrfromdiffs,
 					   ISC_TRUE);
 		} else
-			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
+			dns_zone_setoption(zone, dns_zoneopt_ixfrfromdiffs,
 					   ixfrdiff);
 
 		obj = NULL;
@@ -1336,18 +1336,18 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		} else
 			INSIST(0);
 		if (raw != NULL) {
-			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNAMES,
+			dns_zone_setoption(raw, dns_zoneopt_checknames,
 					   check);
-			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNAMESFAIL,
+			dns_zone_setoption(raw, dns_zoneopt_checknamesfail,
 					   fail);
-			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES,
+			dns_zone_setoption(zone, dns_zoneopt_checknames,
 					   ISC_FALSE);
-			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMESFAIL,
+			dns_zone_setoption(zone, dns_zoneopt_checknamesfail,
 					   ISC_FALSE);
 		} else {
-			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES,
+			dns_zone_setoption(zone, dns_zoneopt_checknames,
 					   check);
-			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMESFAIL,
+			dns_zone_setoption(zone, dns_zoneopt_checknamesfail,
 					   fail);
 		}
 
@@ -1359,7 +1359,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "check-sibling", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSIBLING,
+		dns_zone_setoption(zone, dns_zoneopt_checksibling,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
@@ -1371,7 +1371,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			check = ISC_FALSE;
 		} else
 			INSIST(0);
-		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSPF, check);
+		dns_zone_setoption(zone, dns_zoneopt_checkspf, check);
 
 		obj = NULL;
 		result = named_config_get(maps, "zero-no-soa-ttl", &obj);
@@ -1381,7 +1381,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "nsec3-test-zone", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_NSEC3TESTZONE,
+		dns_zone_setoption(zone, dns_zoneopt_nsec3testzone,
 				   cfg_obj_asboolean(obj));
 	} else if (ztype == dns_zone_redirect) {
 		dns_zone_setnotifytype(zone, dns_notifytype_no);
@@ -1490,13 +1490,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "update-check-ksk", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
+		dns_zone_setoption(zone, dns_zoneopt_updatecheckksk,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "dnssec-dnskey-kskonly", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
+		dns_zone_setoption(zone, dns_zoneopt_dnskeykskonly,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
@@ -1540,7 +1540,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			check = cfg_obj_asboolean(obj);
 		else
 			check = ISC_FALSE;
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKWILDCARD, check);
+		dns_zone_setoption(mayberaw, dns_zoneopt_checkwildcard, check);
 
 		/*
 		 * With map files, the default is ignore duplicate
@@ -1572,8 +1572,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			fail = check = ISC_FALSE;
 		} else
 			INSIST(0);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRR, check);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRRFAIL, fail);
+		dns_zone_setoption(mayberaw, dns_zoneopt_checkduprr, check);
+		dns_zone_setoption(mayberaw, dns_zoneopt_checkduprrfail, fail);
 
 		obj = NULL;
 		result = named_config_get(maps, "check-mx", &obj);
@@ -1587,8 +1587,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			fail = check = ISC_FALSE;
 		} else
 			INSIST(0);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMX, check);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMXFAIL, fail);
+		dns_zone_setoption(mayberaw, dns_zoneopt_checkmx, check);
+		dns_zone_setoption(mayberaw, dns_zoneopt_checkmxfail, fail);
 
 		/*
 		 * With map files, the default is *not* to check
@@ -1600,7 +1600,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			result = named_config_get(maps, "check-integrity",
 						  &obj);
 			INSIST(result == ISC_R_SUCCESS && obj != NULL);
-			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
+			dns_zone_setoption(mayberaw, dns_zoneopt_checkintegrity,
 					   cfg_obj_asboolean(obj));
 		} else {
 			check = ISC_FALSE;
@@ -1608,7 +1608,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					       &obj);
 			if (result == ISC_R_SUCCESS)
 				check = cfg_obj_asboolean(obj);
-			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
+			dns_zone_setoption(mayberaw, dns_zoneopt_checkintegrity,
 					   check);
 		}
 
@@ -1624,8 +1624,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			warn = ignore = ISC_TRUE;
 		} else
 			INSIST(0);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNMXCNAME, warn);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNOREMXCNAME, ignore);
+		dns_zone_setoption(mayberaw, dns_zoneopt_warnmxcname, warn);
+		dns_zone_setoption(mayberaw, dns_zoneopt_ignoremxcname, ignore);
 
 		obj = NULL;
 		result = named_config_get(maps, "check-srv-cname", &obj);
@@ -1639,15 +1639,15 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			warn = ignore = ISC_TRUE;
 		} else
 			INSIST(0);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNSRVCNAME, warn);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNORESRVCNAME,
+		dns_zone_setoption(mayberaw, dns_zoneopt_warnsrvcname, warn);
+		dns_zone_setoption(mayberaw, dns_zoneopt_ignoresrvcname,
 				   ignore);
 
 		obj = NULL;
 		result = named_config_get(maps, "dnssec-secure-to-insecure",
 					  &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_SECURETOINSECURE,
+		dns_zone_setoption(mayberaw, dns_zoneopt_securetoinsecure,
 				   cfg_obj_asboolean(obj));
 
 		obj = NULL;
@@ -1711,7 +1711,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			INSIST(result == ISC_R_SUCCESS && obj != NULL);
 			multi = cfg_obj_asboolean(obj);
 		}
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_MULTIMASTER, multi);
+		dns_zone_setoption(mayberaw, dns_zoneopt_multimaster, multi);
 
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
@@ -1801,11 +1801,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				alt = ISC_FALSE;
 		} else
 			alt = cfg_obj_asboolean(obj);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_USEALTXFRSRC, alt);
+		dns_zone_setoption(mayberaw, dns_zoneopt_usealtxfrsrc, alt);
 
 		obj = NULL;
 		(void)named_config_get(maps, "try-tcp-refresh", &obj);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_TRYTCPREFRESH,
+		dns_zone_setoption(mayberaw, dns_zoneopt_trytcprefresh,
 				   cfg_obj_asboolean(obj));
 		break;
 

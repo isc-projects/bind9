@@ -1175,7 +1175,6 @@ dns_zone_getnotifysrc4dscp
 dns_zone_getnotifysrc6
 dns_zone_getnotifysrc6dscp
 dns_zone_getoptions
-dns_zone_getoptions2
 dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
@@ -1279,7 +1278,6 @@ dns_zone_setnotifysrc6dscp
 dns_zone_setnotifytype
 dns_zone_setnsec3param
 dns_zone_setoption
-dns_zone_setoption2
 dns_zone_setorigin
 dns_zone_setprivatetype
 dns_zone_setqueryacl
