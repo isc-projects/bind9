@@ -32,7 +32,6 @@ dns_adb_cancelfind
 dns_adb_changeflags
 dns_adb_create
 dns_adb_createfind
-dns_adb_createfind2
 dns_adb_destroyfind
 dns_adb_detach
 dns_adb_dump
@@ -50,7 +49,6 @@ dns_adb_marklame
 dns_adb_noedns
 dns_adb_plainresponse
 dns_adb_probesize
-dns_adb_probesize2
 dns_adb_setadbsize
 dns_adb_setcookie
 dns_adb_setquota
