@@ -4662,24 +4662,26 @@ NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees
 #
 
 LIBIDN2_CFLAGS=
+LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
 AC_ARG_WITH(libidn2,
 	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no|path]]),
 	use_libidn2="$withval", use_libidn2="no")
 AS_CASE([$use_libidn2],
 	[no],[:],
-	[yes],[
-	    LIBIDN2_LIBS="-lidn2"
-	],
+	[yes],[:],
 	[*],[
 	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LIBS="-L$use_libidn2/lib -lidn2"
+	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
 	])
 
 AS_IF([test "$use_libidn2" != "no"],
-      [AC_SEARCH_LIBS([idn2_to_ascii_8z], [idn2],
+      [LDFLAGS_ORIG="$LDFLAGS"
+       LDFLAGS="$LDFLAGS $LIBIDN2_LDFLAGS"
+       AC_CHECK_LIB([idn2], [idn2_to_ascii_8z],
 		      [AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN input support is to be included.])
 		       AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])],
+		       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"],
 		      [AC_MSG_ERROR([libidn2 requested, but not found])])
        AC_MSG_CHECKING(whether libidn2 supports idn2_to_unicode_8zlz)
        AC_TRY_LINK([#include <idn2.h>],
@@ -4687,6 +4689,7 @@ AS_IF([test "$use_libidn2" != "no"],
 		   [AC_MSG_RESULT(yes)
 		    AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])],
 		   [AC_MSG_RESULT([no])])
+       LDFLAGS="$LDFLAGS_ORIG"
       ])
 AC_SUBST([LIBIDN2_CFLAGS])
 AC_SUBST([LIBIDN2_LIBS])
