@@ -274,7 +274,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	}
 
 	printf("loading %s (%s)\n", filename, origintext);
-	result = dns_db_load(dbi->db, filename);
+	result = dns_db_load(dbi->db, filename, dns_masterformat_text, 0);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		dns_db_detach(&dbi->db);
 		isc_mem_put(mctx, dbi, sizeof(*dbi));

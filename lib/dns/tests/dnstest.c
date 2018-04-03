@@ -335,7 +335,7 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_load(*db, testfile);
+	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
 	return (result);
 }
 

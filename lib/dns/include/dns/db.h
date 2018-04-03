@@ -518,14 +518,8 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  */
 
 isc_result_t
-dns_db_load(dns_db_t *db, const char *filename);
-
-isc_result_t
-dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format);
-
-isc_result_t
-dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
-	     unsigned int options);
+dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
+	    unsigned int options);
 /*%<
  * Load master file 'filename' into 'db'.
  *
@@ -575,10 +569,6 @@ dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
 
 isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
-
-isc_result_t
-dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-	     dns_masterformat_t masterformat);
 /*%<
  * Dump version 'version' of 'db' to master file 'filename'.
  *
