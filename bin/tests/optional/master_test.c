@@ -79,8 +79,9 @@ main(int argc, char *argv[]) {
 		callbacks.add = print_dataset;
 
 		result = dns_master_loadfile(argv[1], &origin, &origin,
-					     dns_rdataclass_in, 0,
-					     &callbacks, mctx);
+					     dns_rdataclass_in, 0, 0,
+					     &callbacks, NULL, NULL, mctx,
+					     dns_masterformat_text, 0);
 		fprintf(stdout, "dns_master_loadfile: %s\n",
 			dns_result_totext(result));
 	}

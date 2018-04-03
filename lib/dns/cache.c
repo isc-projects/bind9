@@ -518,7 +518,8 @@ dns_cache_dump(dns_cache_t *cache) {
 
 	LOCK(&cache->filelock);
 	result = dns_master_dump(cache->mctx, cache->db, NULL,
-				 &dns_master_style_cache, cache->filename);
+				 &dns_master_style_cache, cache->filename,
+				 dns_masterformat_text, NULL);
 	UNLOCK(&cache->filelock);
 	return (result);
 

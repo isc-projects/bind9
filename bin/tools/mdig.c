@@ -268,17 +268,17 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	}
 	if (display_multiline || (!display_ttl && !display_class))
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 24, 32, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8,
+						display_splitwidth, mctx);
 	else if (!display_ttl || !display_class)
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 32, 40, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8,
+						display_splitwidth, mctx);
 	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 32, 40, 48, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8,
+						display_splitwidth, mctx);
 	CHECK("dns_master_stylecreate2", result);
 
 	flags = 0;

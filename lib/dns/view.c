@@ -1610,7 +1610,8 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 
 	(void)fprintf(fp, ";\n; Cache dump of view '%s'\n;\n", view->name);
 	result = dns_master_dumptostream(view->mctx, view->cachedb, NULL,
-					 &dns_master_style_cache, fp);
+					 &dns_master_style_cache,
+					 dns_masterformat_text, NULL, fp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_adb_dump(view->adb, fp);
