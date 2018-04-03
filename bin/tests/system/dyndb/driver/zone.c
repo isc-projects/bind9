@@ -154,7 +154,7 @@ load_zone(dns_zone_t *zone) {
 		goto cleanup;
 	zone_dynamic = (result == DNS_R_DYNAMIC);
 
-	CHECK(dns_zone_getserial2(zone, &serial));
+	CHECK(dns_zone_getserial(zone, &serial));
 	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", serial);
 
 	if (zone_dynamic)
