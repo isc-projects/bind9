@@ -295,8 +295,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
-					   ISC_TRUE, mctx, &trdata);
-		if (result == ISC_R_SUCCESS) {
+					   ISC_TRUE, 0, mctx, &trdata, NULL);
+		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 			vbprintf(3, "\tsignature verified\n");
 			INCSTAT(nverified);
 		} else {
@@ -456,8 +456,9 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	    dns_rdata_t *rrsig)
 {
 	isc_result_t result;
-	result = dns_dnssec_verify(name, set, key, ISC_FALSE, mctx, rrsig);
-	if (result == ISC_R_SUCCESS) {
+	result = dns_dnssec_verify(name, set, key, ISC_FALSE, 0, mctx, rrsig,
+				   NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 		INCSTAT(nverified);
 		return (ISC_TRUE);
 	} else {
@@ -2636,7 +2637,7 @@ build_final_keylist(void) {
 	 * Find keys that match this zone in the key repository.
 	 */
 	result = dns_dnssec_findmatchingkeys(gorigin, directory,
-					     mctx, &matchkeys);
+					     now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}
