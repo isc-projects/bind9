@@ -1624,8 +1624,8 @@ main(int argc, char *argv[]) {
 
 	/* Create client */
 	clopt = DNS_CLIENTCREATEOPT_USECACHE;
-	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
-				     clopt, &client, srcaddr4, srcaddr6);
+	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
+				    clopt, &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			  isc_result_totext(result));
