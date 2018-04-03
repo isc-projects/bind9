@@ -574,7 +574,8 @@ ATF_TC_BODY(dumpraw, tc) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_db_load(db, "testdata/master/master1.data");
+	result = dns_db_load(db, "testdata/master/master1.data",
+			     dns_masterformat_text, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_db_currentversion(db, &version);

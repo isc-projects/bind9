@@ -905,7 +905,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 			       rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load3(*dbp, filename, inputformat, DNS_MASTER_HINT);
+	result = dns_db_load(*dbp, filename, inputformat, DNS_MASTER_HINT);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		dns_db_detach(dbp);
 }
@@ -2470,7 +2470,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load2(*db, file, inputformat);
+	result = dns_db_load(*db, file, inputformat, 0);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));

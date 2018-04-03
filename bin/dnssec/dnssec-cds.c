@@ -254,8 +254,8 @@ load_db(const char *filename, dns_db_t **dbp, dns_dbnode_t **nodep) {
 			       rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load3(*dbp, filename,
-			      dns_masterformat_text, DNS_MASTER_HINT);
+	result = dns_db_load(*dbp, filename,
+			     dns_masterformat_text, DNS_MASTER_HINT);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		fatal("can't load %s: %s", filename,
 		      isc_result_totext(result));
