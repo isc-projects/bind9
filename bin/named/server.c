@@ -6565,9 +6565,9 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 
 	result = dns_resolver_createfetch(view->resolver, tatname,
 					  dns_rdatatype_null, NULL, NULL,
-					  NULL, 0, tat->task, tat_done, tat,
-					  &tat->rdataset, &tat->sigrdataset,
-					  &tat->fetch);
+					  NULL, NULL, 0, 0, 0, NULL, tat->task,
+					  tat_done, tat, &tat->rdataset,
+					  &tat->sigrdataset, &tat->fetch);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&tat->task);
