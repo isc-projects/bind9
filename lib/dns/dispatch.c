@@ -1138,7 +1138,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	 */
 	isc_netaddr_fromsockaddr(&netaddr, &ev->address);
 	if (disp->mgr->blackhole != NULL &&
-	    dns_acl_match(&netaddr, NULL, disp->mgr->blackhole,
+	    dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
+			  disp->mgr->blackhole,
 			  NULL, &match, NULL) == ISC_R_SUCCESS &&
 	    match > 0)
 	{

@@ -1049,8 +1049,9 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			 * See if the address matches the listen-on statement;
 			 * if not, ignore the interface.
 			 */
-			(void)dns_acl_match(&listen_netaddr, NULL, le->acl,
-					    &mgr->aclenv, &match, NULL);
+			(void)dns_acl_match(&listen_netaddr, NULL, NULL, 0,
+					    NULL, le->acl, &mgr->aclenv,
+					    &match, NULL);
 			if (match <= 0)
 				continue;
 
@@ -1082,8 +1083,10 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				     ele != NULL;
 				     ele = ISC_LIST_NEXT(ele, link)) {
 					(void)dns_acl_match(&listen_netaddr,
+							    NULL, NULL, 0,
 							    NULL, ele->acl,
-							    NULL, &match, NULL);
+							    NULL, &match,
+							     NULL);
 					if (match > 0 &&
 					    (ele->port == le->port ||
 					    ele->port == 0))
