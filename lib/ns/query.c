@@ -2280,9 +2280,9 @@ verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_fixedname_init(&fixed);
 
 again:
-	result = dns_dnssec_verify3(name, rdataset, key, ignore,
-				    client->view->maxbits, client->mctx,
-				    rdata, NULL);
+	result = dns_dnssec_verify(name, rdataset, key, ignore,
+				   client->view->maxbits, client->mctx,
+				   rdata, NULL);
 	if (result == DNS_R_SIGEXPIRED && client->view->acceptexpired) {
 		ignore = ISC_TRUE;
 		goto again;
