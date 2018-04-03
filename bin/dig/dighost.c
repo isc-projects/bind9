@@ -355,7 +355,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 			options |= DNS_BYADDROPT_IPV6INT;
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname2(&addr, options, name);
+		result = dns_byaddr_createptrname(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_format(name, reverse, (unsigned int)len);
