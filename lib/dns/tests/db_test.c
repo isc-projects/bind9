@@ -289,7 +289,8 @@ ATF_TC_BODY(class, tc) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_db_load(db, "testdata/db/data.db");
+	result = dns_db_load(db, "testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK_EQ(dns_db_class(db), dns_rdataclass_in);
@@ -312,7 +313,8 @@ ATF_TC_BODY(dbtype, tc) {
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = dns_db_load(db, "testdata/db/data.db");
+	result = dns_db_load(db, "testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(dns_db_iszone(db));
 	ATF_CHECK(!dns_db_iscache(db));
@@ -322,7 +324,8 @@ ATF_TC_BODY(dbtype, tc) {
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = dns_db_load(db, "testdata/db/data.db");
+	result = dns_db_load(db, "testdata/db/data.db",
+			     dns_masterformat_text, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(dns_db_iscache(db));
 	ATF_CHECK(!dns_db_iszone(db));

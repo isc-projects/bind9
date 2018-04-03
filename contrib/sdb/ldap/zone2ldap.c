@@ -231,7 +231,7 @@ main (int argc, char **argv)
 			  dns_rdataclass_in, 0, NULL, &db);
   isc_result_check (result, "dns_db_create");
 
-  result = dns_db_load (db, zonefile);
+  result = dns_db_load(db, zonefile, dns_masterformat_text, 0);
   isc_result_check (result, "Check Zone Syntax: dns_db_load");
 
   result = dns_db_createiterator (db, 0, &dbit);
