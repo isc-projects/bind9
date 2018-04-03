@@ -2985,7 +2985,8 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	check_result(result, "dns_diff_apply");
 	dns_diff_clear(&diff);
 
-	result = dns_master_dump(mctx, db, dbversion, style, filename);
+	result = dns_master_dump(mctx, db, dbversion, style, filename,
+				 dns_masterformat_text, NULL);
 	check_result(result, "dns_master_dump");
 
 	isc_mem_put(mctx, filename, filenamelen);
@@ -3637,8 +3638,8 @@ main(int argc, char *argv[]) {
 	if (output_dnssec_only && set_maxttl)
 		fatal("option -D cannot be used with -M");
 
-	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
-					0, 24, 0, 0, 0, 8, mctx);
+	result = dns_master_stylecreate(&dsstyle, DNS_STYLEFLAG_NO_TTL,
+					0, 24, 0, 0, 0, 8, 0xffffffff, mctx);
 	check_result(result, "dns_master_stylecreate");
 
 	gdb = NULL;
@@ -3882,9 +3883,9 @@ main(int argc, char *argv[]) {
 			header.flags = DNS_MASTERRAW_SOURCESERIALSET;
 			header.sourceserial = serialnum;
 		}
-		result = dns_master_dumptostream3(mctx, gdb, gversion,
-						  masterstyle, outputformat,
-						  &header, outfp);
+		result = dns_master_dumptostream(mctx, gdb, gversion,
+						 masterstyle, outputformat,
+						 &header, outfp);
 		check_result(result, "dns_master_dumptostream3");
 	}
 

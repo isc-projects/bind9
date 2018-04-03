@@ -267,20 +267,9 @@ dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
 isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
-			const dns_master_style_t *style, FILE *f);
-
-isc_result_t
-dns_master_dumptostream2(isc_mem_t *mctx, dns_db_t *db,
-			 dns_dbversion_t *version,
-			 const dns_master_style_t *style,
-			 dns_masterformat_t format, FILE *f);
-
-isc_result_t
-dns_master_dumptostream3(isc_mem_t *mctx, dns_db_t *db,
-			 dns_dbversion_t *version,
-			 const dns_master_style_t *style,
-			 dns_masterformat_t format,
-			 dns_masterrawheader_t *header, FILE *f);
+			const dns_master_style_t *style,
+			dns_masterformat_t format,
+			dns_masterrawheader_t *header, FILE *f);
 /*%<
  * Dump the database 'db' to the steam 'f' in the specified format by
  * 'format'.  If the format is dns_masterformat_text (the RFC1035 format),
@@ -311,40 +300,19 @@ dns_master_dumptostream3(isc_mem_t *mctx, dns_db_t *db,
 /*@}*/
 
 /*@{*/
+
 isc_result_t
 dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		   const dns_master_style_t *style, const char *filename,
-		   isc_task_t *task, dns_dumpdonefunc_t done, void *done_arg,
-		   dns_dumpctx_t **dctxp);
-
-isc_result_t
-dns_master_dumpinc2(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
-		    const dns_master_style_t *style, const char *filename,
-		    isc_task_t *task, dns_dumpdonefunc_t done, void *done_arg,			    dns_dumpctx_t **dctxp, dns_masterformat_t format);
-
-isc_result_t
-dns_master_dumpinc3(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
-		    const dns_master_style_t *style, const char *filename,
-		    isc_task_t *task, dns_dumpdonefunc_t done, void
-		    *done_arg, dns_dumpctx_t **dctxp,
-		    dns_masterformat_t format, dns_masterrawheader_t *header);
+		   isc_task_t *task, dns_dumpdonefunc_t done, void
+		   *done_arg, dns_dumpctx_t **dctxp,
+		   dns_masterformat_t format, dns_masterrawheader_t *header);
 
 isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 		dns_dbversion_t *version,
-		const dns_master_style_t *style, const char *filename);
-
-isc_result_t
-dns_master_dump2(isc_mem_t *mctx, dns_db_t *db,
-		 dns_dbversion_t *version,
-		 const dns_master_style_t *style, const char *filename,
-		 dns_masterformat_t format);
-
-isc_result_t
-dns_master_dump3(isc_mem_t *mctx, dns_db_t *db,
-		 dns_dbversion_t *version,
-		 const dns_master_style_t *style, const char *filename,
-		 dns_masterformat_t format, dns_masterrawheader_t *header);
+		const dns_master_style_t *style, const char *filename,
+		dns_masterformat_t format, dns_masterrawheader_t *header);
 
 /*%<
  * Dump the database 'db' to the file 'filename' in the specified format by
@@ -414,15 +382,7 @@ dns_master_stylecreate(dns_master_style_t **style,
 		       unsigned int ttl_column, unsigned int class_column,
 		       unsigned int type_column, unsigned int rdata_column,
 		       unsigned int line_length, unsigned int tab_width,
-		       isc_mem_t *mctx);
-
-isc_result_t
-dns_master_stylecreate2(dns_master_style_t **style,
-			dns_masterstyle_flags_t flags,
-			unsigned int ttl_column, unsigned int class_column,
-			unsigned int type_column, unsigned int rdata_column,
-			unsigned int line_length, unsigned int tab_width,
-			unsigned int split_width, isc_mem_t *mctx);
+		       unsigned int split_width, isc_mem_t *mctx);
 
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);

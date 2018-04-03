@@ -480,17 +480,17 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 	if (query->lookup->multiline ||
 	    (query->lookup->nottl && query->lookup->noclass))
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 24, 32, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8,
+						splitwidth, mctx);
 	else if (query->lookup->nottl || query->lookup->noclass)
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 32, 40, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8,
+						splitwidth, mctx);
 	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 32, 40, 48, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8,
+						splitwidth, mctx);
 	check_result(result, "dns_master_stylecreate");
 
 	if (query->lookup->cmdline[0] != 0) {
