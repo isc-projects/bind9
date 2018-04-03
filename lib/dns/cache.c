@@ -176,31 +176,10 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 }
 
 isc_result_t
-dns_cache_create(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
+dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		 const char *db_type, unsigned int db_argc, char **db_argv,
-		 dns_cache_t **cachep)
-{
-	return (dns_cache_create3(cmctx, cmctx, taskmgr, timermgr, rdclass, "",
-				  db_type, db_argc, db_argv, cachep));
-}
-
-isc_result_t
-dns_cache_create2(isc_mem_t *cmctx, isc_taskmgr_t *taskmgr,
-		  isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		  const char *cachename, const char *db_type,
-		  unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
-{
-	return (dns_cache_create3(cmctx, cmctx, taskmgr, timermgr, rdclass,
-				  cachename, db_type, db_argc, db_argv,
-				  cachep));
-}
-
-isc_result_t
-dns_cache_create3(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
-		  isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		  const char *cachename, const char *db_type,
-		  unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
+		 const char *cachename, const char *db_type,
+		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
 {
 	isc_result_t result;
 	dns_cache_t *cache;
