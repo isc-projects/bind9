@@ -268,8 +268,8 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 	nta_ref(nta);
 	result = dns_resolver_createfetch(view->resolver, nta->name,
 					  dns_rdatatype_nsec,
-					  NULL, NULL, NULL,
-					  DNS_FETCHOPT_NONTA,
+					  NULL, NULL, NULL, NULL, 0,
+					  DNS_FETCHOPT_NONTA, 0, NULL,
 					  task, fetch_done, nta,
 					  &nta->rdataset,
 					  &nta->sigrdataset,
