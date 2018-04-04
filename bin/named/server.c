@@ -10879,7 +10879,7 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 	{
 		if (ptr != NULL && strcasecmp(ptr, view->name) != 0)
 			continue;
-		CHECK(dns_view_flushcache(view));
+		CHECK(dns_view_flushcache(view, ISC_FALSE));
 
 		if (set) {
 			view->enablevalidation = enable;
@@ -10970,7 +10970,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 		if (ptr != NULL && !nsc->needflush)
 			continue;
 		nsc->needflush = ISC_TRUE;
-		result = dns_view_flushcache2(nsc->primaryview, ISC_FALSE);
+		result = dns_view_flushcache(nsc->primaryview, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -11001,7 +11001,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 		     nsc = ISC_LIST_NEXT(nsc, link)) {
 			if (!nsc->needflush || nsc->cache != view->cache)
 				continue;
-			result = dns_view_flushcache2(view, ISC_TRUE);
+			result = dns_view_flushcache(view, ISC_TRUE);
 			if (result != ISC_R_SUCCESS) {
 				flushed = ISC_FALSE;
 				isc_log_write(named_g_lctx,
