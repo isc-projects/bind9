@@ -1,3 +1,7 @@
+4919.	[func]		Remove support for OpenSSL < 1.0.0 and fix support
+			for LibreSSL >= 2.7.0 that added some OpenSSL 1.1.0
+			API functions. [GL #191]
+
 4918.	[bug]		Fix double free after keygen error in dnssec-keygen
 			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
 			fails. [GL #109]
