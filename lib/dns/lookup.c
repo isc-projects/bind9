@@ -166,9 +166,9 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 		type = lookup->type;
 
 	result = dns_view_find(lookup->view, name, type, 0, 0, ISC_FALSE,
-			       &lookup->event->db, &lookup->event->node,
-			       foundname, &lookup->rdataset,
-			       &lookup->sigrdataset);
+			       ISC_FALSE, &lookup->event->db,
+			       &lookup->event->node, foundname,
+			       &lookup->rdataset, &lookup->sigrdataset);
 	return (result);
 }
 
