@@ -103,7 +103,7 @@ grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check root-key-sentinel-is-ta with bad ta and" " 'root-key-sentinel yes;' (expect NXDOMAIN)"
+newtest "check root-key-sentinel-is-ta with bad ta, CD=1 and" " 'root-key-sentinel yes;' (expect NXDOMAIN)"
 $DIG $DIGOPTS @10.53.0.3 +cd root-key-sentinel-is-ta-${badid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
