@@ -652,7 +652,7 @@ dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, ISC_FALSE, NULL, dialup, NULL);
 }
 
 void
@@ -845,12 +845,7 @@ dns_view_createresolver(dns_view_t *view,
 }
 
 void
-dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
-	dns_view_setcache2(view, cache, ISC_FALSE);
-}
-
-void
-dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 

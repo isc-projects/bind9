@@ -307,13 +307,6 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
 }
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
-		 dst_key_t **keyp)
-{
-	return (dns_keytable_add2(keytable, managed, ISC_FALSE, keyp));
-}
-
-isc_result_t
 dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
 		  isc_boolean_t initial, dst_key_t **keyp)
 {
