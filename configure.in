@@ -1626,6 +1626,20 @@ If you do not want OpenSSL, use --without-openssl])
 		saved_libs="$LIBS"
 		CFLAGS="$DST_OPENSSL_INC $CFLAGS"
 		LIBS="$DST_OPENSSL_LIBS $LIBS"
+
+		AC_MSG_CHECKING(for OpenSSL >= 1.0.0 or LibreSSL)
+		AC_TRY_COMPILE([
+#include <openssl/opensslv.h>
+],
+[
+#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER < 0x1000000fL)
+#error OpenSSL >= 1.0.0 or LibreSSL needed
+#endif
+],
+			    [AC_MSG_RESULT([yes])],
+			    [AC_MSG_RESULT([no])
+			     AC_MSG_ERROR([OpenSSL >= 1.0.0 or LibreSSL not found])])
+
 		AC_MSG_CHECKING(whether linking with OpenSSL works)
 		AC_TRY_RUN([
 #include <openssl/err.h>
@@ -1710,8 +1724,6 @@ DSO_METHOD_dlfcn();
 		AC_MSG_RESULT(no)
 	fi
 
-	AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
-
 	AC_MSG_CHECKING(for OpenSSL ECDSA support)
 	have_ecdsa=""
 	AC_TRY_RUN([
@@ -1720,9 +1732,6 @@ DSO_METHOD_dlfcn();
 int main() {
 	EC_KEY *ec256, *ec384;
 
-#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
-	return (1);
-#endif
 	ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
 	if (ec256 == NULL || ec384 == NULL)

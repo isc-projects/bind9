@@ -13,10 +13,6 @@
 
 #if defined(OPENSSL) && defined(HAVE_OPENSSL_ECDSA)
 
-#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
-#error "ECDSA without EVP for SHA2?"
-#endif
-
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -45,7 +41,7 @@
 
 #define DST_RET(a) {ret = a; goto err;}
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || LIBRESSL_VERSION_NUMBER < 0x2070000fL
 /* From OpenSSL 1.1 */
 static void
 ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
