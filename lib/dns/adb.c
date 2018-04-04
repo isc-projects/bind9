@@ -3700,12 +3700,12 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	 * matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result = dns_view_find2(adb->view, &adbname->name, rdtype, now,
-				NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
-				ISC_TF(NAME_HINTOK(adbname)),
-				(adbname->flags & NAME_STARTATZONE) != 0 ?
-				ISC_TRUE : ISC_FALSE,
-				NULL, NULL, fname, &rdataset, NULL);
+	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
+			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
+			       ISC_TF(NAME_HINTOK(adbname)),
+			       (adbname->flags & NAME_STARTATZONE) != 0 ?
+			       ISC_TRUE : ISC_FALSE,
+			       NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {
@@ -4027,9 +4027,9 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 		   adbname);
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
-		result = dns_view_findzonecut2(adb->view, &adbname->name, name,
-					       0, 0, ISC_TRUE, ISC_FALSE,
-					       &rdataset, NULL);
+		result = dns_view_findzonecut(adb->view, &adbname->name, name,
+					      0, 0, ISC_TRUE, ISC_FALSE,
+					      &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;

@@ -991,20 +991,10 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      isc_stdtime_t now, unsigned int options,
+	      isc_boolean_t use_hints, isc_boolean_t use_static_stub,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
-	return (dns_view_find2(view, name, type, now, options, use_hints,
-			       ISC_FALSE, dbp, nodep, foundname, rdataset,
-			       sigrdataset));
-}
-
-isc_result_t
-dns_view_find2(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, unsigned int options,
-	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
-	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db, *zdb;
@@ -1223,8 +1213,9 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 	dns_fixedname_init(&foundname);
 	result = dns_view_find(view, name, type, now, options, use_hints,
-			       NULL, NULL, dns_fixedname_name(&foundname),
-			       rdataset, sigrdataset);
+			       ISC_FALSE, NULL, NULL,
+			       dns_fixedname_name(&foundname), rdataset,
+			       sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The rdataset and sigrdataset of the relevant NSEC record
@@ -1258,21 +1249,10 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
-		     dns_name_t *fname, isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	return(dns_view_findzonecut2(view, name, fname, now, options,
-				     use_hints, ISC_TRUE,
-				     rdataset, sigrdataset));
-}
-
-isc_result_t
-dns_view_findzonecut2(dns_view_t *view, const dns_name_t *name,
-		      dns_name_t *fname, isc_stdtime_t now,
-		      unsigned int options, isc_boolean_t use_hints,
-		      isc_boolean_t use_cache, dns_rdataset_t *rdataset,
-		      dns_rdataset_t *sigrdataset)
+		     dns_name_t *fname, isc_stdtime_t now,
+		     unsigned int options, isc_boolean_t use_hints,
+		     isc_boolean_t use_cache, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db;
@@ -1621,12 +1601,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 }
 
 isc_result_t
-dns_view_flushcache(dns_view_t *view) {
-	return (dns_view_flushcache2(view, ISC_FALSE));
-}
-
-isc_result_t
-dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
+dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));
