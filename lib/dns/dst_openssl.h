@@ -23,13 +23,6 @@
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
 
-#if !defined(OPENSSL_NO_ENGINE) && \
-    ((defined(CRYPTO_LOCK_ENGINE) && \
-      (OPENSSL_VERSION_NUMBER >= 0x0090707f)) || \
-     (OPENSSL_VERSION_NUMBER >= 0x10100000L))
-#define USE_ENGINE 1
-#endif
-
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 /*
  * These are new in OpenSSL 1.1.0.  BN_GENCB _cb needs to be declared in
@@ -65,7 +58,7 @@ isc_result_t
 dst__openssl_toresult3(isc_logcategory_t *category,
 		       const char *funcname, isc_result_t fallback);
 
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 ENGINE *
 dst__openssl_getengine(const char *engine);
 #else
