@@ -198,9 +198,6 @@ my @substdefh = ("AES_CC",
                  "DNS_RDATASET_FIXED",
                  "ENABLE_RPZ_NSDNAME",
                  "ENABLE_RPZ_NSIP",
-                 "HAVE_EVP_SHA256",
-                 "HAVE_EVP_SHA384",
-                 "HAVE_EVP_SHA512",
                  "HAVE_FIPS_MODE",
                  "HAVE_GEOIP",
                  "HAVE_GEOIP_CITY_V6",
@@ -1584,14 +1581,12 @@ if ($use_openssl eq "yes") {
 #include <openssl/opensslv.h>
 
 int main() {
-        if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
-             OPENSSL_VERSION_NUMBER < 0x00908000L) ||
-             OPENSSL_VERSION_NUMBER >= 0x0090804fL)
+        if (OPENSSL_VERSION_NUMBER >= 0x10000000L) {
                 return (0);
+        }
         printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
                OPENSSL_VERSION_NUMBER);
-        printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
-               "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n\n");
+        printf("Require OPENSSL_VERSION_NUMBER 0x10000000L or greater (1.0.0)\n\n");
         return (1);
 }
 EOF
@@ -1633,108 +1628,6 @@ EOF
             print "can't compile FIPS_mode test: $compret\n";
             print "disabling FIPS_mode\n";
         }
-    }
-}
-
-# check EVP_sha256 / EVP_sha384 / EVP_sha512
-
-if ($use_openssl eq "yes") {
-    if ($verbose) {
-        printf "checking for EVP_sha256\n";
-    }
-    open F, ">testsha256.c" || die $!;
-    print F << 'EOF';
-extern void *EVP_sha256();
-
-int main() {
-        return EVP_sha256() != 0;
-}
-EOF
-    close F;
-    my $library = $configlib{"OPENSSL_LIB"};
-    $compret = `cl /nologo /MD testsha256.c "$library"`;
-    if (grep { -f and -x } ".\\testsha256.exe") {
-        `.\\testsha256.exe`;
-        if ($? == 0) {
-            if ($verbose) {
-                print "EVP_sha256 test failed: disabling EVP_sha256\n";
-            }
-            $use_ecdsa = "no";
-            $enable_openssl_hash = "no";
-        } else {
-            $configdefh{"HAVE_EVP_SHA256"} = 1;
-        }
-    } else {
-        if ($verbose) {
-            print "can't compile EVP_sha256 test: $compret\n";
-            print "disabling EVP_sha256\n";
-        }
-        $use_ecdsa = "no";
-        $enable_openssl_hash = "no";
-    }
-
-    if ($verbose) {
-        printf "checking for EVP_sha384\n";
-    }
-    open F, ">testsha384.c" || die $!;
-    print F << 'EOF';
-extern void *EVP_sha384();
-
-int main() {
-        return EVP_sha384() != 0;
-}
-EOF
-    close F;
-    $compret = `cl /nologo /MD testsha384.c "$library"`;
-    if (grep { -f and -x } ".\\testsha384.exe") {
-        `.\\testsha384.exe`;
-        if ($? == 0) {
-            if ($verbose) {
-                print "EVP_sha384 test failed: disabling EVP_sha384\n";
-            }
-            $use_ecdsa = "no";
-            $enable_openssl_hash = "no";
-        } else {
-            $configdefh{"HAVE_EVP_SHA384"} = 1;
-        }
-    } else {
-        if ($verbose) {
-            print "can't compile EVP_sha384 test: $compret\n";
-            print "disabling EVP_sha384\n";
-        }
-        $use_ecdsa = "no";
-        $enable_openssl_hash = "no";
-    }
-
-    if ($verbose) {
-        printf "checking for EVP_sha512\n";
-    }
-    open F, ">testsha512.c" || die $!;
-    print F << 'EOF';
-extern void *EVP_sha512();
-
-int main() {
-        return EVP_sha512() != 0;
-}
-EOF
-    close F;
-    $compret = `cl /nologo /MD testsha512.c "$library"`;
-    if (grep { -f and -x } ".\\testsha512.exe") {
-        `.\\testsha512.exe`;
-        if ($? == 0) {
-            if ($verbose) {
-                print "EVP_sha512 test failed: disabling EVP_sha512\n";
-            }
-            $use_eddsa = "no";
-        } else {
-            $configdefh{"HAVE_EVP_SHA512"} = 1;
-        }
-    } else {
-        if ($verbose) {
-            print "can't compile EVP_sha512 test: $compret\n";
-            print "disabling EVP_sha512\n";
-        }
-        $use_eddsa = "no";
     }
 }
 

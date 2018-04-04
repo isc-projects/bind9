@@ -312,15 +312,6 @@ typedef __int64 off_t;
 /* Define to enable "rrset-order fixed" syntax. */
 @DNS_RDATASET_FIXED@
 
-/* Define to 1 if you have the `EVP_sha256' function. */
-@HAVE_EVP_SHA256@
-
-/* Define to 1 if you have the `EVP_sha384' function. */
-@HAVE_EVP_SHA384@
-
-/* Define to 1 if you have the `EVP_sha512' function. */
-@HAVE_EVP_SHA512@
-
 /* Define if OpenSSL provides FIPS_mode() */
 @HAVE_FIPS_MODE@
 
