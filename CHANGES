@@ -1,3 +1,10 @@
+4936.	[func]		Always use OpenSSL or PKCS#11 random data providers.
+			[GL #165]
+
+4935.	[func]		Remove support for OpenSSL < 1.0.0 and fix support
+			for LibreSSL >= 2.7.0 that added some OpenSSL 1.1.0
+			API functions. [GL #191]
+
 4934.	[placeholder]
 
 4933.	[bug]		Not creating signing keys for an inline signed zone
