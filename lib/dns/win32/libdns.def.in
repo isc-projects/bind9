@@ -1051,13 +1051,10 @@ dns_view_dialup
 dns_view_dumpdbtostream
 dns_view_excludedelegationonly
 dns_view_find
-dns_view_find2
 dns_view_findzone
 dns_view_findzonecut
-dns_view_findzonecut2
 dns_view_flushanddetach
 dns_view_flushcache
-dns_view_flushcache2
 dns_view_flushname
 dns_view_flushnode
 dns_view_freeze

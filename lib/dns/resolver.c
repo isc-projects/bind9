@@ -4617,6 +4617,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(res->view, name, fname,
 						      0, findoptions, ISC_TRUE,
+						      ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
@@ -8999,7 +9000,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		result = dns_view_findzonecut(fctx->res->view,
 					      name, fname,
 					      rctx->now, findoptions,
-					      ISC_TRUE,
+					      ISC_TRUE, ISC_TRUE,
 					      &fctx->nameservers,
 					      NULL);
 		if (result != ISC_R_SUCCESS) {
