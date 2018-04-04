@@ -99,6 +99,12 @@
       </listitem>
       <listitem>
 	<para>
+	  Support for OpenSSL 0.9.x was removed.  OpenSSL version
+	  1.0.0 or greater, or LibreSSL is now required.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The <command>configure --enable-seccomp</command> option,
 	  which formerly turned on system-call filtering on Linux, has
 	  been removed. [GL #93]
