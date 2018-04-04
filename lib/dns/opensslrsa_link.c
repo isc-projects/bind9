@@ -47,7 +47,7 @@
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 #include <openssl/bn.h>
 #endif
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
 #endif
 
@@ -1482,13 +1482,13 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	isc_result_t ret;
 	int i;
 	RSA *rsa = NULL, *pubrsa = NULL;
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 	ENGINE *ep = NULL;
 	const BIGNUM *ex = NULL;
 #endif
 	isc_mem_t *mctx = key->mctx;
 	const char *engine = NULL, *label = NULL;
-#if defined(USE_ENGINE) || USE_EVP
+#if !defined(OPENSSL_NO_ENGINE) || USE_EVP
 	EVP_PKEY *pkey = NULL;
 #endif
 	BIGNUM *n = NULL, *e = NULL, *d = NULL;
@@ -1541,7 +1541,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * See if we can fetch it.
 	 */
 	if (label != NULL) {
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 		if (engine == NULL)
 			DST_RET(DST_R_NOENGINE);
 		ep = dst__openssl_getengine(engine);
@@ -1690,7 +1690,7 @@ static isc_result_t
 opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		     const char *pin)
 {
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 	ENGINE *e = NULL;
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
