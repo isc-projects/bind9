@@ -3505,7 +3505,7 @@ main(int argc, char *argv[]) {
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
 
-	result = dst_lib_init2(mctx, ectx, engine, eflags);
+	result = dst_lib_init(mctx, ectx, engine, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));

@@ -475,7 +475,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
 	RUNCHECK(isc_entropy_createfilesource(ectx, "/dev/urandom"));
 
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));

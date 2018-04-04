@@ -496,8 +496,8 @@ main(int argc, char **argv) {
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
-	ret = dst_lib_init2(mctx, ectx, engine,
-			    ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	ret = dst_lib_init(mctx, ectx, engine,
+			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(ret));
@@ -862,15 +862,15 @@ main(int argc, char **argv) {
 
 		if (!quiet && show_progress) {
 			fprintf(stderr, "Generating key pair.");
-			ret = dst_key_generate2(name, alg, size, param, flags,
-						protocol, rdclass, mctx, &key,
-						&progress);
+			ret = dst_key_generate(name, alg, size, param, flags,
+					       protocol, rdclass, mctx, &key,
+					       &progress);
 			putc('\n', stderr);
 			fflush(stderr);
 		} else {
-			ret = dst_key_generate2(name, alg, size, param, flags,
-						protocol, rdclass, mctx, &key,
-						NULL);
+			ret = dst_key_generate(name, alg, size, param, flags,
+					       protocol, rdclass, mctx, &key,
+					       NULL);
 		}
 
 		isc_entropy_stopcallbacksources(ectx);
