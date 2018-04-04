@@ -630,54 +630,12 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 
 isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		 const isc_sockaddr_t *masteraddr, dns_tsigkey_t *tsigkey,
-		 isc_mem_t *mctx, isc_timermgr_t *timermgr,
-		 isc_socketmgr_t *socketmgr, isc_task_t *task,
-		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
-{
-	isc_sockaddr_t sourceaddr;
-	isc_dscp_t dscp;
-
-	switch (isc_sockaddr_pf(masteraddr)) {
-	case PF_INET:
-		sourceaddr = *dns_zone_getxfrsource4(zone);
-		dscp = dns_zone_getxfrsource4dscp(zone);
-		break;
-	case PF_INET6:
-		sourceaddr = *dns_zone_getxfrsource6(zone);
-		dscp = dns_zone_getxfrsource6dscp(zone);
-		break;
-	default:
-		INSIST(0);
-	}
-
-	return(dns_xfrin_create3(zone, xfrtype, masteraddr, &sourceaddr,
-				 dscp, tsigkey, mctx, timermgr, socketmgr,
-				 task, done, xfrp));
-}
-
-isc_result_t
-dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		  const isc_sockaddr_t *masteraddr,
-		  const isc_sockaddr_t *sourceaddr,
-		  dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
-		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		  isc_task_t *task, dns_xfrindone_t done,
-		  dns_xfrin_ctx_t **xfrp)
-{
-	return (dns_xfrin_create3(zone, xfrtype, masteraddr, sourceaddr, -1,
-				  tsigkey, mctx, timermgr, socketmgr, task,
-				  done, xfrp));
-}
-
-isc_result_t
-dns_xfrin_create3(dns_zone_t *zone, dns_rdatatype_t xfrtype,
-		  const isc_sockaddr_t *masteraddr,
-		  const isc_sockaddr_t *sourceaddr,
-		  isc_dscp_t dscp, dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
-		  isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		  isc_task_t *task, dns_xfrindone_t done,
-		  dns_xfrin_ctx_t **xfrp)
+		 const isc_sockaddr_t *masteraddr,
+		 const isc_sockaddr_t *sourceaddr,
+		 isc_dscp_t dscp, dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
+		 isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		 isc_task_t *task, dns_xfrindone_t done,
+		 dns_xfrin_ctx_t **xfrp)
 {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_ctx_t *xfr = NULL;

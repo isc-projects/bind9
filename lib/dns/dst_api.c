@@ -148,13 +148,8 @@ default_memfree(void *arg, void *ptr) {
 #endif
 
 isc_result_t
-dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
-	return (dst_lib_init2(mctx, ectx, NULL, eflags));
-}
-
-isc_result_t
-dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
-	      const char *engine, unsigned int eflags) {
+dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
+	     const char *engine, unsigned int eflags) {
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
@@ -339,31 +334,9 @@ dst_ds_digest_supported(unsigned int digest_type) {
 }
 
 isc_result_t
-dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
-	return (dst_context_create4(key, mctx, DNS_LOGCATEGORY_GENERAL,
-				    ISC_TRUE, 0, dctxp));
-}
-
-isc_result_t
-dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, dst_context_t **dctxp)
-{
-	return (dst_context_create4(key, mctx, category, ISC_TRUE, 0, dctxp));
-}
-
-isc_result_t
-dst_context_create3(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, isc_boolean_t useforsigning,
-		    dst_context_t **dctxp)
-{
-	return (dst_context_create4(key, mctx, category,
-				    useforsigning, 0, dctxp));
-}
-
-isc_result_t
-dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, isc_boolean_t useforsigning,
-		    int maxbits, dst_context_t **dctxp)
+dst_context_create(dst_key_t *key, isc_mem_t *mctx,
+		   isc_logcategory_t *category, isc_boolean_t useforsigning,
+		   int maxbits, dst_context_t **dctxp)
 {
 	dst_context_t *dctx;
 	isc_result_t result;
@@ -983,19 +956,8 @@ dst_key_generate(const dns_name_t *name, unsigned int alg,
 		 unsigned int bits, unsigned int param,
 		 unsigned int flags, unsigned int protocol,
 		 dns_rdataclass_t rdclass,
-		 isc_mem_t *mctx, dst_key_t **keyp)
-{
-	return (dst_key_generate2(name, alg, bits, param, flags, protocol,
-				  rdclass, mctx, keyp, NULL));
-}
-
-isc_result_t
-dst_key_generate2(const dns_name_t *name, unsigned int alg,
-		  unsigned int bits, unsigned int param,
-		  unsigned int flags, unsigned int protocol,
-		  dns_rdataclass_t rdclass,
-		  isc_mem_t *mctx, dst_key_t **keyp,
-		  void (*callback)(int))
+		 isc_mem_t *mctx, dst_key_t **keyp,
+		 void (*callback)(int))
 {
 	dst_key_t *key;
 	isc_result_t ret;
