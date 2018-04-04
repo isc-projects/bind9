@@ -13,8 +13,10 @@
 
 #include <config.h>
 
+#include <limits.h>
+
 #ifdef HAVE_LMDB
-#include <lmdb.h>
+ #include <lmdb.h>
 #endif
 
 #include <isc/file.h>
