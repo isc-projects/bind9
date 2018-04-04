@@ -760,7 +760,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	/* First add localhost address */
 	prefixlen = (netaddr->family == AF_INET) ? 32 : 128;
 	result = dns_iptable_addprefix(mgr->aclenv.localhost->iptable,
-				       netaddr, prefixlen, ISC_TRUE);
+				       netaddr, prefixlen, ISC_TRUE, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -790,7 +790,7 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 	}
 
 	result = dns_iptable_addprefix(mgr->aclenv.localnets->iptable,
-				       netaddr, prefixlen, ISC_TRUE);
+				       netaddr, prefixlen, ISC_TRUE, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
