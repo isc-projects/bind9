@@ -52,8 +52,8 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_usedregion(&databuf, &datareg);
 
-	ret = dst_context_create3(key, mctx,
-				  DNS_LOGCATEGORY_GENERAL, ISC_TRUE, &ctx);
+	ret = dst_context_create(key, mctx,
+				 DNS_LOGCATEGORY_GENERAL, ISC_TRUE, 0, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
@@ -73,8 +73,8 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
-	ret = dst_context_create3(key, mctx,
-				  DNS_LOGCATEGORY_GENERAL, ISC_FALSE, &ctx);
+	ret = dst_context_create(key, mctx,
+				 DNS_LOGCATEGORY_GENERAL, ISC_FALSE, 0, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
@@ -214,7 +214,7 @@ generate(int alg, isc_mem_t *mctx) {
 	dst_key_t *key = NULL;
 
 	ret = dst_key_generate(dns_rootname, alg, 512, 0, 0, 0,
-			       dns_rdataclass_in, mctx, &key);
+			       dns_rdataclass_in, mctx, &key, NULL);
 	printf("generate(%d) returned: %s\n", alg, isc_result_totext(ret));
 	if (ret != ISC_R_SUCCESS)
 		return;
@@ -254,7 +254,8 @@ main(void) {
 	result = isc_entropy_createfilesource(ectx, "randomfile");
 	if (result != ISC_R_SUCCESS)
 		return (1);
-	dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	dst_lib_init(mctx, ectx, NULL,
+		     ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
