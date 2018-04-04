@@ -208,8 +208,8 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	/* RSASHA1 */
 
-	ret = dst_context_create3(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				  ISC_FALSE, &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				 ISC_FALSE, 0, &ctx);
 	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
 	r.base = d;
@@ -229,8 +229,8 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 #ifndef PK11_MD5_DISABLE
 	key->key_alg = DST_ALG_RSAMD5;
 
-	ret = dst_context_create3(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				  ISC_FALSE, &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				 ISC_FALSE, 0, &ctx);
 	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
 	r.base = d;
@@ -250,8 +250,8 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	key->key_alg = DST_ALG_RSASHA256;
 
-	ret = dst_context_create3(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				  ISC_FALSE, &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				 ISC_FALSE, 0, &ctx);
 	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
 	r.base = d;
@@ -270,8 +270,8 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	key->key_alg = DST_ALG_RSASHA512;
 
-	ret = dst_context_create3(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				  ISC_FALSE, &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				 ISC_FALSE, 0, &ctx);
 	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
 	r.base = d;

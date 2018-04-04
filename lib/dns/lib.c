@@ -94,7 +94,7 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_ectx;
 
-	result = dst_lib_init(dns_g_mctx, ectx, 0);
+	result = dst_lib_init(dns_g_mctx, ectx, NULL, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_hash;
 

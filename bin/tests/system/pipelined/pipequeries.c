@@ -286,7 +286,7 @@ main(int argc, char *argv[]) {
 	if (randomfile != NULL)
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;

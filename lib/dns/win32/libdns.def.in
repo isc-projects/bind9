@@ -1110,8 +1110,6 @@ dns_viewlist_find
 dns_viewlist_findzone
 dns_xfrin_attach
 dns_xfrin_create
-dns_xfrin_create2
-dns_xfrin_create3
 dns_xfrin_detach
 dns_xfrin_shutdown
 dns_zone_addnsec3chain
@@ -1358,9 +1356,6 @@ dns_zt_unmount
 dst_algorithm_supported
 dst_context_adddata
 dst_context_create
-dst_context_create2
-dst_context_create3
-dst_context_create4
 dst_context_destroy
 dst_context_sign
 dst_context_verify
@@ -1391,7 +1386,6 @@ dst_key_fromgssapi
 dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
-dst_key_generate2
 dst_key_getbits
 dst_key_getfilename
 dst_key_getgssctx
@@ -1432,7 +1426,6 @@ dst_key_unsetnum
 dst_key_unsettime
 dst_lib_destroy
 dst_lib_init
-dst_lib_init2
 dst_lib_initmsgcat
 @IF PKCS11
 dst_random_getdata
