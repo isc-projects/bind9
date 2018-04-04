@@ -192,7 +192,7 @@ main(int argc, char **argv) {
 					"../random.data",
 					ISC_ENTROPY_KEYBOARDNO),
 	      "isc_entropy_usebestsource(\"../random.data\")");
-	CHECK(dst_lib_init2(mctx, ectx, NULL, 0), "dst_lib_init2()");
+	CHECK(dst_lib_init(mctx, ectx, NULL, 0), "dst_lib_init()");
 	CHECK(isc_log_create(mctx, &log_, &logconfig), "isc_log_create()");
 	isc_log_setcontext(log_);
 	dns_log_init(log_);

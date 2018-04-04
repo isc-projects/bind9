@@ -992,7 +992,7 @@ setup_system(void) {
 	result = isc_task_onshutdown(global_task, shutdown_program, NULL);
 	check_result(result, "isc_task_onshutdown");
 
-	result = dst_lib_init(gmctx, entropy, 0);
+	result = dst_lib_init(gmctx, entropy, NULL, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 

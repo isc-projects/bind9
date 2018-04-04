@@ -15546,10 +15546,10 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	};
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&masteraddr) == isc_sockaddr_pf(&sourceaddr));
-	result = dns_xfrin_create3(zone, xfrtype, &masteraddr, &sourceaddr,
-				   dscp, zone->tsigkey, zone->mctx,
-				   zone->zmgr->timermgr, zone->zmgr->socketmgr,
-				   zone->task, zone_xfrdone, &zone->xfr);
+	result = dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr,
+				  dscp, zone->tsigkey, zone->mctx,
+				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
+				  zone->task, zone_xfrdone, &zone->xfr);
 	if (result == ISC_R_SUCCESS) {
 		LOCK_ZONE(zone);
 		if (xfrtype == dns_rdatatype_axfr) {

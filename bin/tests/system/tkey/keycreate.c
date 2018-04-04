@@ -264,7 +264,7 @@ main(int argc, char *argv[]) {
 	logconfig = NULL;
 	RUNCHECK(isc_log_create(mctx, &log, &logconfig));
 
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 	RUNCHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 
 	taskmgr = NULL;
