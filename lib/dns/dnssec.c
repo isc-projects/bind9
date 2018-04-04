@@ -268,8 +268,8 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_databuf;
 
-	ret = dst_context_create3(key, mctx,
-				  DNS_LOGCATEGORY_DNSSEC, ISC_TRUE, &ctx);
+	ret = dst_context_create(key, mctx,
+				 DNS_LOGCATEGORY_DNSSEC, ISC_TRUE, 0, &ctx);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_databuf;
 
@@ -455,8 +455,8 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
  again:
-	ret = dst_context_create4(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				  ISC_FALSE, maxbits, &ctx);
+	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				 ISC_FALSE, maxbits, &ctx);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
@@ -919,8 +919,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	isc_buffer_init(&databuf, data, sizeof(data));
 
-	RETERR(dst_context_create3(key, mctx,
-				   DNS_LOGCATEGORY_DNSSEC, ISC_TRUE, &ctx));
+	RETERR(dst_context_create(key, mctx,
+				  DNS_LOGCATEGORY_DNSSEC, ISC_TRUE, 0, &ctx));
 
 	/*
 	 * Digest the fields of the SIG - we can cheat and use
@@ -1068,8 +1068,8 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
-	RETERR(dst_context_create3(key, mctx,
-				   DNS_LOGCATEGORY_DNSSEC, ISC_FALSE, &ctx));
+	RETERR(dst_context_create(key, mctx,
+				  DNS_LOGCATEGORY_DNSSEC, ISC_FALSE, 0, &ctx));
 
 	/*
 	 * Digest the SIG(0) record, except for the signature.

@@ -1241,7 +1241,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize hash");
 	}
-	result = dst_lib_init(mctx, ectx,
+	result = dst_lib_init(mctx, ectx, NULL,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",

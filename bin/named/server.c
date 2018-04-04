@@ -6820,7 +6820,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 	/* generate key */
 	result = dst_key_generate(keyname, algtype, bits, 1, 0,
 				  DNS_KEYPROTO_ANY, dns_rdataclass_in,
-				  mctx, &key);
+				  mctx, &key, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -9426,8 +9426,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->in_roothints = NULL;
 
 	/* Must be first. */
-	CHECKFATAL(dst_lib_init2(named_g_mctx, named_g_entropy,
-				 named_g_engine, ISC_ENTROPY_GOODONLY),
+	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_entropy,
+				named_g_engine, ISC_ENTROPY_GOODONLY),
 		   "initializing DST");
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,

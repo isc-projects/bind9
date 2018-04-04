@@ -177,8 +177,8 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 */
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
-	result = dst_context_create3(key, mctx, DNS_LOGCATEGORY_GENERAL,
-				     ISC_FALSE, &ctx);
+	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
+				    ISC_FALSE, 0, &ctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dst_context_adddata(ctx, &datareg);
