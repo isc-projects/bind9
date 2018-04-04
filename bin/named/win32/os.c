@@ -54,7 +54,6 @@ ns_paths_init(void) {
 	if (!Initialized)
 		isc_ntpaths_init();
 
-	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
 	lwresd_g_conffile = isc_ntpaths_get(LWRES_CONF_PATH);
 	lwresd_g_resolvconffile = isc_ntpaths_get(RESOLV_CONF_PATH);
 	ns_g_conffile = isc_ntpaths_get(NAMED_CONF_PATH);
