@@ -416,9 +416,7 @@ dns_view_createresolver(dns_view_t *view,
  */
 
 void
-dns_view_setcache(dns_view_t *view, dns_cache_t *cache);
-void
-dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared);
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared);
 /*%<
  * Set the view's cache database.  If 'shared' is true, this means the cache
  * is created by another view and is shared with that view.  dns_view_setcache()
