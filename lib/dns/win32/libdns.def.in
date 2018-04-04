@@ -339,7 +339,6 @@ dns_dsdigest_totext
 dns_dt_attach
 dns_dt_close
 dns_dt_create
-dns_dt_create2
 dns_dt_datatotext
 dns_dt_detach
 dns_dt_getframe
@@ -373,7 +372,6 @@ dns_fwdtable_create
 dns_fwdtable_delete
 dns_fwdtable_destroy
 dns_fwdtable_find
-dns_fwdtable_find2
 dns_generalstats_create
 dns_generalstats_dump
 dns_generalstats_increment
@@ -387,7 +385,6 @@ dns_ipkeylist_copy
 dns_ipkeylist_init
 dns_ipkeylist_resize
 dns_iptable_addprefix
-dns_iptable_addprefix2
 dns_iptable_attach
 dns_iptable_create
 dns_iptable_detach
@@ -423,7 +420,6 @@ dns_keynode_managed
 dns_keynode_trust
 dns_keyring_restore
 dns_keytable_add
-dns_keytable_add2
 dns_keytable_attach
 dns_keytable_attachkeynode
 dns_keytable_create
@@ -496,9 +492,7 @@ dns_message_gettimeadjust
 dns_message_gettsig
 dns_message_gettsigkey
 dns_message_logfmtpacket
-dns_message_logfmtpacket2
 dns_message_logpacket
-dns_message_logpacket2
 dns_message_movename
 dns_message_nextname
 dns_message_parse
@@ -979,7 +973,6 @@ dns_ssu_mtypefromstring
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules
-dns_ssutable_checkrules2
 dns_ssutable_create
 dns_ssutable_createdlz
 dns_ssutable_detach
@@ -1031,7 +1024,6 @@ dns_tsigrcode_fromtext
 dns_tsigrcode_totext
 dns_ttl_fromtext
 dns_ttl_totext
-dns_ttl_totext2
 dns_update_signatures
 dns_update_signaturesinc
 dns_update_soaserial
@@ -1085,7 +1077,6 @@ dns_view_saventa
 dns_view_searchdlz
 dns_view_setadbstats
 dns_view_setcache
-dns_view_setcache2
 dns_view_setdstport
 dns_view_setdynamickeyring
 dns_view_setfailttl
@@ -1336,7 +1327,6 @@ dns_zonemgr_unreachable
 dns_zonemgr_unreachableadd
 dns_zonemgr_unreachabledel
 dns_zt_apply
-dns_zt_apply2
 dns_zt_asyncload
 dns_zt_attach
 dns_zt_create

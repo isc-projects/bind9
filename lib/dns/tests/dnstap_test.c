@@ -72,7 +72,7 @@ ATF_TC_BODY(create, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, NULL, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
@@ -85,7 +85,7 @@ ATF_TC_BODY(create, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, &fopt, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_unix, TAPSOCK, &fopt, NULL, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	if (dtenv != NULL)
 		dns_dt_detach(&dtenv);
@@ -99,7 +99,7 @@ ATF_TC_BODY(create, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, 33, TAPSOCK, &fopt, &dtenv);
+	result = dns_dt_create(mctx, 33, TAPSOCK, &fopt, NULL, &dtenv);
 	ATF_CHECK_EQ(result, ISC_R_FAILURE);
 	ATF_CHECK_EQ(dtenv, NULL);
 	if (dtenv != NULL)
@@ -154,7 +154,7 @@ ATF_TC_BODY(send, tc) {
 	ATF_REQUIRE(fopt != NULL);
 	fstrm_iothr_options_set_num_input_queues(fopt, 1);
 
-	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, &dtenv);
+	result = dns_dt_create(mctx, dns_dtmode_file, TAPFILE, &fopt, NULL, &dtenv);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	dns_dt_attach(dtenv, &view->dtenv);
