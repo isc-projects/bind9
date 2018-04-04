@@ -1,3 +1,7 @@
+4918.	[bug]		Fix double free after keygen error in dnssec-keygen
+			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
+			fails. [GL #109]
+
 4917.	[func]		Support 64 RPZ policy zones by default. [GL #123]
 
 4916.	[func]		Remove IDNA2003 support and the bundled idnkit-1.0
