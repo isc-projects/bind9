@@ -16850,7 +16850,7 @@ fi
 		yes)
 
 $as_echo "#define HAVE_OPENSSL_ED448 1" >>confdefs.h
-],
+
 			;;
 		*)
 			;;
