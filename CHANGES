@@ -1,3 +1,7 @@
+4936.	[func]		Always use OpenSSL or PKCS#11 random data providers and
+			remove the configure option --{enable,disable}-crypto-rand.
+			[GL #165]
+
 4935.	[func]		Add support for LibreSSL >= 2.7.0 (some OpenSSL 1.1.0
 			call were added). [GL #191]
 
