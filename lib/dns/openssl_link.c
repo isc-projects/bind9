@@ -45,7 +45,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
 #endif
 
@@ -56,7 +56,7 @@ static isc_mutex_t *locks = NULL;
 static int nlocks;
 #endif
 
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 static ENGINE *e = NULL;
 #endif
 
@@ -236,7 +236,7 @@ dst__openssl_init(const char *engine) {
 	rm->pseudorand = entropy_getpseudo;
 	rm->status = entropy_status;
 
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
 #if !defined(CONF_MFLAGS_DEFAULT_SECTION)
 	OPENSSL_config(NULL);
 #else
@@ -282,10 +282,10 @@ dst__openssl_init(const char *engine) {
 		ENGINE_finish(re);
 #else
 	RAND_set_rand_method(rm);
-#endif /* USE_ENGINE */
+#endif /* !defined(OPENSSL_NO_ENGINE) */
 	return (ISC_R_SUCCESS);
 
-#ifdef USE_ENGINE
+#if !defined(OPENSSL_NO_ENGINE)
  cleanup_rm:
 	if (e != NULL)
 		ENGINE_free(e);
@@ -328,11 +328,11 @@ dst__openssl_destroy(void) {
 #endif
 	OBJ_cleanup();
 	EVP_cleanup();
-#if defined(USE_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE)
 	if (e != NULL)
 		ENGINE_free(e);
 	e = NULL;
-#if defined(USE_ENGINE) && OPENSSL_VERSION_NUMBER >= 0x00907000L
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_VERSION_NUMBER >= 0x00907000L
 	ENGINE_cleanup();
 #endif
 #endif
@@ -444,7 +444,7 @@ dst__openssl_toresult3(isc_logcategory_t *category,
 	return (result);
 }
 
-#if defined(USE_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE)
 ENGINE *
 dst__openssl_getengine(const char *engine) {
 
