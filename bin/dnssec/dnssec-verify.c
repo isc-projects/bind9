@@ -286,10 +286,6 @@ main(int argc, char *argv[]) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
 
-	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create hash context");
-
 	isc_stdtime_get(&now);
 
 	rdclass = strtoclass(classname);
@@ -340,7 +336,6 @@ main(int argc, char *argv[]) {
 
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	isc_hash_destroy();
 	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)

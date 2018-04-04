@@ -68,7 +68,7 @@ int ncpus;
 isc_boolean_t debug_mem_record = ISC_TRUE;
 isc_boolean_t run_managers = ISC_FALSE;
 
-static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
+static isc_boolean_t dst_active = ISC_FALSE;
 
 static dns_zone_t *served_zone = NULL;
 
@@ -248,9 +248,6 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
-
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
@@ -302,11 +299,6 @@ ns_test_end(void) {
 	}
 
 	cleanup_managers();
-
-	if (hash_active) {
-		isc_hash_destroy();
-		hash_active = ISC_FALSE;
-	}
 
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);
