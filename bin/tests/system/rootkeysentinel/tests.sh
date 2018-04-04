@@ -21,7 +21,7 @@ DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
 
 newtest() {
 	n=`expr $n + 1`
-        case $# in
+	case $# in
 	1)
 		echo_i "$1 ($n)"
 		;;
@@ -85,7 +85,7 @@ grep "ANSWER: 0," dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-newtest "check root-key-sentinel-is-ta with new ta, CD=1  and" " 'root-key-sentinel yes;' (expect NOERROR)"
+newtest "check root-key-sentinel-is-ta with new ta, CD=1 and" " 'root-key-sentinel yes;' (expect NOERROR)"
 $DIG $DIGOPTS @10.53.0.3 +cd root-key-sentinel-is-ta-${newid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi

@@ -5156,9 +5156,8 @@ get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
 }
 
 /*%
- * Find out if the query is for a root key sentinel and if so record the
- * type of root key sentinel query and the key id that is being checked
- * for.
+ * Find out if the query is for a root key sentinel and if so, record the type
+ * of root key sentinel query and the key id that is being checked for.
  *
  * The code is assuming a zero padded decimal field of width 5.
  */
@@ -6438,7 +6437,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
  * Check the configured trust anchors for a root zone trust anchor
  * with a key id that matches qctx->client->query.root_key_sentinel_keyid.
  *
- *  Return ISC_TRUE when found otherwise return ISC_FALSE.
+ * Return ISC_TRUE when found, otherwise return ISC_FALSE.
  */
 static isc_boolean_t
 has_ta(query_ctx_t *qctx) {
@@ -6474,7 +6473,6 @@ has_ta(query_ctx_t *qctx) {
  */
 static isc_boolean_t
 root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
-
 	/*
 	 * Are we looking at a "root-key-sentinel" query?
 	 */
@@ -6485,8 +6483,8 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	/*
-	 * We only care about the query if result indicate a we have a
-	 * cached answer.
+	 * We only care about the query if 'result' indicates we have a cached
+	 * answer.
 	 */
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -6511,7 +6509,8 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	/*
-	 * Disable special processing after following a CNAME/DNAME.
+	 * As special processing may only be triggered by the original QNAME,
+	 * disable it after following a CNAME/DNAME.
 	 */
 	qctx->client->query.root_key_sentinel_is_ta = ISC_FALSE;
 	qctx->client->query.root_key_sentinel_not_ta = ISC_FALSE;
@@ -6543,9 +6542,8 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	/*
-	 * Perform special handling of "root-key-sentinel-is-ta-<keyid>"
-	 * and "root-key-sentinel-not-ta-<keyid>" labels if required by
-	 * returning SERVFAIL.
+	 * If required, handle special "root-key-sentinel-is-ta-<keyid>" and
+	 * "root-key-sentinel-not-ta-<keyid>" labels by returning SERVFAIL.
 	 */
 	if (root_key_sentinel_return_servfail(qctx, result)) {
 		/*
