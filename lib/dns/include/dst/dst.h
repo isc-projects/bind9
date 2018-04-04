@@ -128,13 +128,9 @@ typedef struct dst_context 	dst_context_t;
 /***
  *** Functions
  ***/
-
 isc_result_t
-dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags);
-
-isc_result_t
-dst_lib_init2(isc_mem_t *mctx, isc_entropy_t *ectx,
-	      const char *engine, unsigned int eflags);
+dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
+	     const char *engine, unsigned int eflags);
 /*%<
  * Initializes the DST subsystem.
  *
@@ -196,21 +192,9 @@ dst_ds_digest_supported(unsigned int digest_type);
  */
 
 isc_result_t
-dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp);
-
-isc_result_t
-dst_context_create2(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, dst_context_t **dctxp);
-
-isc_result_t
-dst_context_create3(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, isc_boolean_t useforsigning,
-		    dst_context_t **dctxp);
-
-isc_result_t
-dst_context_create4(dst_key_t *key, isc_mem_t *mctx,
-		    isc_logcategory_t *category, isc_boolean_t useforsigning,
-		    int maxbits, dst_context_t **dctxp);
+dst_context_create(dst_key_t *key, isc_mem_t *mctx,
+		   isc_logcategory_t *category, isc_boolean_t useforsigning,
+		   int maxbits, dst_context_t **dctxp);
 /*%<
  * Creates a context to be used for a sign or verify operation.
  *
@@ -583,15 +567,8 @@ dst_key_generate(const dns_name_t *name, unsigned int alg,
 		 unsigned int bits, unsigned int param,
 		 unsigned int flags, unsigned int protocol,
 		 dns_rdataclass_t rdclass,
-		 isc_mem_t *mctx, dst_key_t **keyp);
-
-isc_result_t
-dst_key_generate2(const dns_name_t *name, unsigned int alg,
-		  unsigned int bits, unsigned int param,
-		  unsigned int flags, unsigned int protocol,
-		  dns_rdataclass_t rdclass,
-		  isc_mem_t *mctx, dst_key_t **keyp,
-		  void (*callback)(int));
+		 isc_mem_t *mctx, dst_key_t **keyp,
+		 void (*callback)(int));
 
 /*%<
  * Generate a DST key (or keypair) with the supplied parameters.  The

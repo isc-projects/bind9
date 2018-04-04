@@ -225,7 +225,7 @@ main(int argc, char *argv[]) {
 	}
 
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ent) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dst_lib_init(mctx, ent, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dst_lib_init(mctx, ent, NULL, 0) == ISC_R_SUCCESS);
 
 	dns_result_register();
 	dst_result_register();
