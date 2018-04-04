@@ -77,7 +77,7 @@ bdb_putrdata(DB *db, dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 
 	isc_buffer_init(&databuf, rdatatext, MAX_RDATATEXT);
 
-	dns_ttl_totext(ttl, ISC_FALSE, &databuf);
+	dns_ttl_totext(ttl, ISC_FALSE, ISC_TRUE, &databuf);
 	*(char *)isc_buffer_used(&databuf) = ' ';
 	isc_buffer_add(&databuf, 1);
 

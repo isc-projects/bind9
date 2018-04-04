@@ -895,10 +895,10 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	if (rrset->type == dns_rdatatype_rrsig ||
 	    rrset->type == dns_rdatatype_nsec)
 		return (ISC_R_SUCCESS);
-	result = dns_ssutable_checkrules2(ssuinfo->table, ssuinfo->signer,
-					  ssuinfo->name, ssuinfo->addr,
-					  ssuinfo->tcp, ssuinfo->aclenv,
-					  rrset->type, ssuinfo->key);
+	result = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
+					 ssuinfo->name, ssuinfo->addr,
+					 ssuinfo->tcp, ssuinfo->aclenv,
+					 rrset->type, ssuinfo->key);
 	return (result == ISC_TRUE ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
@@ -2750,10 +2750,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				tsigkey = client->message->tsigkey->key;
 
 			if (rdata.type != dns_rdatatype_any) {
-				if (!dns_ssutable_checkrules2
-				    (ssutable, client->signer, name, &netaddr,
-				     ISC_TF(TCPCLIENT(client)),
-				     env, rdata.type, tsigkey))
+				if (!dns_ssutable_checkrules
+				(ssutable, client->signer, name, &netaddr,
+				 ISC_TF(TCPCLIENT(client)),
+				 env, rdata.type, tsigkey))
 				{
 					FAILC(DNS_R_REFUSED,
 					      "rejected by secure update");

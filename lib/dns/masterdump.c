@@ -558,7 +558,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			INDENT_TO(ttl_column);
 			if ((ctx->style.flags & DNS_STYLEFLAG_TTL_UNITS) != 0) {
 				length = target->used;
-				result = dns_ttl_totext2(rdataset->ttl,
+				result = dns_ttl_totext(rdataset->ttl,
 							ISC_FALSE, ISC_FALSE,
 							target);
 				if (result != ISC_R_SUCCESS)
@@ -880,7 +880,8 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name,
 			{
 				isc_buffer_clear(buffer);
 				result = dns_ttl_totext(rdataset->ttl,
-							ISC_TRUE, buffer);
+							ISC_TRUE, ISC_TRUE,
+							buffer);
 				INSIST(result == ISC_R_SUCCESS);
 				isc_buffer_usedregion(buffer, &r);
 				fprintf(f, "$TTL %u\t; %.*s\n", rdataset->ttl,

@@ -192,14 +192,7 @@ dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name) {
 
 isc_result_t
 dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
-		  dns_forwarders_t **forwardersp)
-{
-	return (dns_fwdtable_find2(fwdtable, name, NULL, forwardersp));
-}
-
-isc_result_t
-dns_fwdtable_find2(dns_fwdtable_t *fwdtable, const dns_name_t *name,
-		   dns_name_t *foundname, dns_forwarders_t **forwardersp)
+		  dns_name_t *foundname, dns_forwarders_t **forwardersp)
 {
 	isc_result_t result;
 

@@ -100,7 +100,8 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
+	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg),
+				       ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_acl_detach(&acl);
 		return (result);
