@@ -218,7 +218,6 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	return (ISC_TRUE);
 }
 
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 static int
 progress_cb(int p, int n, BN_GENCB *cb) {
 	union {
@@ -233,12 +232,10 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 		u.fptr(p);
 	return (1);
 }
-#endif
 
 static isc_result_t
 openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	DH *dh = NULL;
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB *cb;
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	BN_GENCB _cb;
@@ -247,10 +244,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		void *dptr;
 		void (*fptr)(int);
 	} u;
-#else
-
-	UNUSED(callback);
-#endif
 
 	if (generator == 0) {
 		if (key->key_size == 768 ||
@@ -281,7 +274,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	}
 
 	if (generator != 0) {
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 		dh = DH_new();
 		if (dh == NULL)
 			return (dst__openssl_toresult(ISC_R_NOMEMORY));
@@ -308,14 +300,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 					DST_R_OPENSSLFAILURE));
 		}
 		BN_GENCB_free(cb);
-#else
-		dh = DH_generate_parameters(key->key_size, generator,
-					    NULL, NULL);
-		if (dh == NULL)
-			return (dst__openssl_toresult2(
-					"DH_generate_parameters",
-					DST_R_OPENSSLFAILURE));
-#endif
 	}
 
 	if (DH_generate_key(dh) == 0) {

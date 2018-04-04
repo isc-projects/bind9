@@ -16548,7 +16548,9 @@ if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
-
+ :
+else
+  as_fn_error $? "OpenSSL with SHA-2 support required" "$LINENO" 5
 fi
 done
 
@@ -16568,9 +16570,6 @@ else
 int main() {
 	EC_KEY *ec256, *ec384;
 
-#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
-	return (1);
-#endif
 	ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
 	if (ec256 == NULL || ec384 == NULL)

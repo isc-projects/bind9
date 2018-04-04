@@ -1710,7 +1710,8 @@ DSO_METHOD_dlfcn();
 		AC_MSG_RESULT(no)
 	fi
 
-	AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
+	AC_CHECK_FUNCS([EVP_sha256 EVP_sha384 EVP_sha512],[:],
+		      [AC_MSG_ERROR([OpenSSL with SHA-2 support required])])
 
 	AC_MSG_CHECKING(for OpenSSL ECDSA support)
 	have_ecdsa=""
@@ -1720,9 +1721,6 @@ DSO_METHOD_dlfcn();
 int main() {
 	EC_KEY *ec256, *ec384;
 
-#if !defined(HAVE_EVP_SHA256) || !defined(HAVE_EVP_SHA384)
-	return (1);
-#endif
 	ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 	ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
 	if (ec256 == NULL || ec384 == NULL)

@@ -25,10 +25,8 @@
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
 
-#if !defined(OPENSSL_NO_ENGINE) && \
-    ((defined(CRYPTO_LOCK_ENGINE) && \
-      (OPENSSL_VERSION_NUMBER >= 0x0090707f)) || \
-     (OPENSSL_VERSION_NUMBER >= 0x10100000L))
+#if !defined(OPENSSL_NO_ENGINE) || \
+    (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 #define USE_ENGINE 1
 #endif
 

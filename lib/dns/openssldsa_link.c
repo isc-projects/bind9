@@ -416,7 +416,6 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	return (ISC_TRUE);
 }
 
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 static int
 progress_cb(int p, int n, BN_GENCB *cb) {
 	union {
@@ -431,14 +430,12 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 		u.fptr(p);
 	return (1);
 }
-#endif
 
 static isc_result_t
 openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	DSA *dsa;
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
 	isc_result_t result;
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 	BN_GENCB *cb;
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	BN_GENCB _cb;
@@ -448,10 +445,6 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		void (*fptr)(int);
 	} u;
 
-#else
-
-	UNUSED(callback);
-#endif
 	UNUSED(unused);
 
 	result = dst__entropy_getdata(rand_array, sizeof(rand_array),
@@ -459,7 +452,6 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-#if OPENSSL_VERSION_NUMBER > 0x00908000L
 	dsa = DSA_new();
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -487,14 +479,6 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 					       DST_R_OPENSSLFAILURE));
 	}
 	BN_GENCB_free(cb);
-#else
-	dsa = DSA_generate_parameters(key->key_size, rand_array,
-				      ISC_SHA1_DIGESTLENGTH, NULL, NULL,
-				      NULL, NULL);
-	if (dsa == NULL)
-		return (dst__openssl_toresult2("DSA_generate_parameters",
-					       DST_R_OPENSSLFAILURE));
-#endif
 
 	if (DSA_generate_key(dsa) == 0) {
 		DSA_free(dsa);

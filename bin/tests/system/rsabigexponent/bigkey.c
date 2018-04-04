@@ -44,9 +44,6 @@
 
 #ifdef OPENSSL
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER <= 0x00908000L
-#define USE_FIX_KEY_FILES
-#endif
 #else
 #define USE_FIX_KEY_FILES
 #endif
