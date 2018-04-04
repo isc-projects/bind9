@@ -1064,13 +1064,19 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 
  err:
 #if USE_EVP
-	if (pkey != NULL)
+	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
+		pkey = NULL;
+	}
 #endif
-	if (e != NULL)
+	if (e != NULL) {
 		BN_free(e);
-	if (rsa != NULL)
+		e = NULL;
+	}
+	if (rsa != NULL) {
 		RSA_free(rsa);
+		rsa = NULL;
+	}
 	if (cb != NULL) {
 		BN_GENCB_free(cb);
 		cb = NULL;
