@@ -5247,7 +5247,8 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->client->view->root_key_sentinel &&
 	    qctx->client->query.restarts == 0 &&
 	    (qctx->qtype == dns_rdatatype_a ||
-	     qctx->qtype == dns_rdatatype_aaaa))
+	     qctx->qtype == dns_rdatatype_aaaa) &&
+	    (qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
 	{
 		 root_key_sentinel_detect(qctx);
 	}
