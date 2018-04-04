@@ -1,3 +1,7 @@
+4927.	[func]		Remove support for OpenSSL < 1.0.0 and fix support
+			for LibreSSL >= 2.7.0 that added some OpenSSL 1.1.0
+			API functions. [GL #191]
+
 4926.	[func]		Add root key sentinel support.  To disable, add
 			'root-key-sentinel no;' to named.conf. [GL #37]
 
