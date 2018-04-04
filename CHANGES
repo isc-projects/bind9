@@ -1,3 +1,7 @@
+4926.	[func]		Remove support for OpenSSL < 1.0.0 and fix support
+			for LibreSSL >= 2.7.0 that added some OpenSSL 1.1.0
+			API functions. [GL #191]
+
 4925.	[func]		Several configuration options that define intervals
 			can now take TTL value suffixes (for example, 2h or 1d)
 			in addition to integer parameters. These include
