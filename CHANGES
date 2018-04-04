@@ -1,3 +1,6 @@
+4918.	[bug]		Fix double free after keygen error in dnssec-keygen
+			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
+
 4915.	[func]		Implement IDNA2008 support in dig by adding support
 			for libidn2.  New dig option +idnin has been added,
 			which allows to process invalid domain names much
