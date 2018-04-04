@@ -997,7 +997,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	dns_fixedname_init(&fixedname);
 	foundname = dns_fixedname_name(&fixedname);
 	result = dns_view_find(val->view, name, type, 0, options,
-			       ISC_FALSE, NULL, NULL, foundname,
+			       ISC_FALSE, ISC_FALSE, NULL, NULL, foundname,
 			       &val->frdataset, &val->fsigrdataset);
 
 	if (result == DNS_R_NXDOMAIN) {
@@ -3409,9 +3409,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			 */
 			if (result == DNS_R_NXRRSET &&
 			    !dns_rdataset_isassociated(&val->frdataset) &&
-			    dns_view_findzonecut2(val->view, tname, found,
-						 0, 0, ISC_FALSE, ISC_FALSE,
-						 NULL, NULL) == ISC_R_SUCCESS &&
+			dns_view_findzonecut(val->view, tname, found,
+					     0, 0, ISC_FALSE, ISC_FALSE,
+					     NULL, NULL) == ISC_R_SUCCESS &&
 			    dns_name_equal(tname, found)) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
