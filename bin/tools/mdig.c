@@ -1934,7 +1934,7 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 	RUNCHECK(isc_entropy_getdata(ectx, cookie_secret,
 				     sizeof(cookie_secret), NULL, 0));
 

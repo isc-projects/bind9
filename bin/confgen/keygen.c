@@ -170,12 +170,12 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 
 	entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
 
-	DO("initialize dst library", dst_lib_init(mctx, ectx, entropy_flags));
+	DO("initialize dst library", dst_lib_init(mctx, ectx, NULL, entropy_flags));
 
 	DO("generate key", dst_key_generate(dns_rootname, alg,
-					    keysize, 0, 0,
-					    DNS_KEYPROTO_ANY,
-					    dns_rdataclass_in, mctx, &key));
+					    keysize, 0, 0, DNS_KEYPROTO_ANY,
+					    dns_rdataclass_in, mctx, &key,
+					    NULL));
 
 	isc_buffer_init(&key_rawbuffer, &key_rawsecret, sizeof(key_rawsecret));
 
