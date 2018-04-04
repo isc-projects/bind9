@@ -281,7 +281,7 @@ main(int argc, char *argv[]) {
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
 
-	result = dst_lib_init2(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
+	result = dst_lib_init(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));

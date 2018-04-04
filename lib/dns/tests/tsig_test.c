@@ -357,8 +357,8 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	isc_buffer_free(&buf);
 	dns_message_destroy(&msg);
 
-	result = dst_context_create3(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				     ISC_FALSE, &outctx);
+	result = dst_context_create(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
+				    ISC_FALSE, 0, &outctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(outctx != NULL);
 

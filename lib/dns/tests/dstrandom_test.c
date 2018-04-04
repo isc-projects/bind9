@@ -48,7 +48,7 @@ ATF_TC_BODY(isc_entropy_getdata, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = isc_entropy_create(mctx, &ectx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	result = dst_lib_init(mctx, ectx, 0);
+	result = dst_lib_init(mctx, ectx, NULL, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef ISC_PLATFORM_CRYPTORANDOM
