@@ -869,8 +869,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			 * initializing key; that's why 'managed'
 			 * is duplicated below.
 			 */
-			CHECK(dns_keytable_add2(secroots, managed,
-						managed, &dstkey));
+			CHECK(dns_keytable_add(secroots, managed,
+					       managed, &dstkey));
 		}
 	}
 
@@ -3615,8 +3615,8 @@ create_mapped_acl(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
-					ISC_TRUE, ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, &addr, 96,
+				       ISC_TRUE, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &named_g_mapped);
 	dns_acl_detach(&acl);
@@ -4229,7 +4229,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		ISC_LINK_INIT(nsc, link);
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
-	dns_view_setcache2(view, cache, shared_cache);
+	dns_view_setcache(view, cache, shared_cache);
 
 	/*
 	 * cache-file cannot be inherited if views are present, but this
@@ -5254,7 +5254,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			 * empty zone for it.
 			 */
 			result = dns_fwdtable_find(view->fwdtable, name,
-						   &dnsforwarders);
+						   NULL, &dnsforwarders);
 			if (result == ISC_R_SUCCESS &&
 			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 				continue;
@@ -6267,8 +6267,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		result = dns_iptable_addprefix(src_acl->iptable,
-					       &netaddr, 128, ISC_TRUE);
+		result = dns_iptable_addprefix(src_acl->iptable, &netaddr,
+					       128, ISC_TRUE, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 
@@ -9013,7 +9013,7 @@ load_configuration(const char *filename, named_server_t *server,
 		{
 			dns_view_setviewrevert(view);
 			(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-					   removed, view);
+					   NULL, removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -10382,7 +10382,7 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones)
-		result = dns_zt_apply(view->zonetable, ISC_TRUE,
+		result = dns_zt_apply(view->zonetable, ISC_TRUE, NULL,
 				      add_zone_tolist, dctx);
 	return (result);
 }
@@ -11624,7 +11624,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link)) {
 			result = dns_zt_apply(view->zonetable, ISC_FALSE,
-					      synczone, &cleanup);
+					      NULL, synczone, &cleanup);
 			if (result != ISC_R_SUCCESS &&
 			    tresult == ISC_R_SUCCESS)
 				tresult = result;

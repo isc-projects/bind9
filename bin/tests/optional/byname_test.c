@@ -324,7 +324,7 @@ main(int argc, char *argv[]) {
 			      == ISC_R_SUCCESS);
 	}
 
-	dns_view_setcache(view, cache);
+	dns_view_setcache(view, cache, ISC_FALSE);
 	dns_view_freeze(view);
 
 	dns_cache_detach(&cache);

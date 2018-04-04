@@ -172,12 +172,8 @@ dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
  */
 
 isc_result_t
-dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
+dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
-
-isc_result_t
-dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
-	      isc_result_t (*action)(dns_zone_t *, void *), void *uap);
 /*%<
  * Apply a given 'action' to all zone zones in the table.
  * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
