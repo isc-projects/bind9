@@ -1,3 +1,7 @@
+4918.	[bug]		Fix double free after keygen error in dnssec-keygen
+			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
+			fails. [GL #109]
+
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
 
