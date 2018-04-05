@@ -1,5 +1,5 @@
 4919.	[cleanup]	Clean up the isc_hash_* namespace and leave only
-			the FNV-1a hash implementation. [GL #188]
+			the FNV-1a hash implementation. [GL #178]
 
 4918.	[bug]		Fix double free after keygen error in dnssec-keygen
 			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
