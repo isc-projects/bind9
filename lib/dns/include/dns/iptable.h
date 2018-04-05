@@ -45,11 +45,8 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
 
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      isc_uint16_t bitlen, isc_boolean_t pos);
-isc_result_t
-dns_iptable_addprefix2(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		       isc_uint16_t bitlen, isc_boolean_t pos,
-		       isc_boolean_t is_ecs);
+		      isc_uint16_t bitlen, isc_boolean_t pos,
+		      isc_boolean_t is_ecs);
 /*
  * Add an IP prefix to an existing IP table
  */
