@@ -9,41 +9,23 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: string.h,v 1.23 2007/09/13 04:48:16 each Exp $ */
-
-#ifndef ISC_STRING_H
-#define ISC_STRING_H 1
+#pragma once
 
 /*! \file isc/string.h */
 
-#include <isc/formatcheck.h>
-#include <isc/int.h>
-#include <isc/lang.h>
-#include <isc/platform.h>
-#include <isc/types.h>
-
 #include <string.h>
 
-#ifdef ISC_PLATFORM_HAVESTRINGSH
-#include <strings.h>
-#endif
-
-#define ISC_STRING_MAGIC 0x5e
+#include "isc/platform.h"
+#include "isc/lang.h"
 
 ISC_LANG_BEGINDECLS
-
-#ifdef ISC_PLATFORM_NEEDMEMMOVE
-#define memmove(a,b,c) bcopy(b,a,c)
-#endif
 
 size_t
 isc_string_strlcpy(char *dst, const char *src, size_t size);
 
-
 #ifdef ISC_PLATFORM_NEEDSTRLCPY
 #define strlcpy isc_string_strlcpy
 #endif
-
 
 size_t
 isc_string_strlcat(char *dst, const char *src, size_t size);
@@ -52,13 +34,4 @@ isc_string_strlcat(char *dst, const char *src, size_t size);
 #define strlcat isc_string_strlcat
 #endif
 
-char *
-isc_string_strcasestr(const char *big, const char *little);
-
-#ifdef ISC_PLATFORM_NEEDSTRCASESTR
-#define strcasestr isc_string_strcasestr
-#endif
-
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_STRING_H */
