@@ -2762,13 +2762,13 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Log the outgoing packet.
 	 */
-	dns_message_logfmtpacket2(fctx->qmessage, "sending packet to",
-				  &query->addrinfo->sockaddr,
-				  DNS_LOGCATEGORY_RESOLVER,
-				  DNS_LOGMODULE_PACKETS,
-				  &dns_master_style_comment,
-				  ISC_LOG_DEBUG(11),
-				  fctx->res->mctx);
+	dns_message_logfmtpacket(fctx->qmessage, "sending packet to",
+				 &query->addrinfo->sockaddr,
+				 DNS_LOGCATEGORY_RESOLVER,
+				 DNS_LOGMODULE_PACKETS,
+				 &dns_master_style_comment,
+				 ISC_LOG_DEBUG(11),
+				 fctx->res->mctx);
 
 	/*
 	 * We're now done with the query message.
@@ -7692,13 +7692,13 @@ rctx_edns(respctx_t *rctx) {
 	     fctx->rmessage->rcode == dns_rcode_yxdomain) &&
 	     bad_edns(fctx, &query->addrinfo->sockaddr))
 	{
-		dns_message_logpacket2(fctx->rmessage,
-				       "received packet (bad edns) from",
-				       &query->addrinfo->sockaddr,
-				       DNS_LOGCATEGORY_RESOLVER,
-				       DNS_LOGMODULE_RESOLVER,
-				       ISC_LOG_DEBUG(3),
-				       fctx->res->mctx);
+		dns_message_logpacket(fctx->rmessage,
+				      "received packet (bad edns) from",
+				      &query->addrinfo->sockaddr,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3),
+				      fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -7720,12 +7720,12 @@ rctx_edns(respctx_t *rctx) {
 		 * should be safe to do for any rcode we limit it to NOERROR
 		 * and NXDOMAIN.
 		 */
-		dns_message_logpacket2(fctx->rmessage,
-				       "received packet (no opt) from",
-				       &query->addrinfo->sockaddr,
-				       DNS_LOGCATEGORY_RESOLVER,
-				       DNS_LOGMODULE_RESOLVER,
-				       ISC_LOG_DEBUG(3), fctx->res->mctx);
+		dns_message_logpacket(fctx->rmessage,
+				      "received packet (no opt) from",
+				      &query->addrinfo->sockaddr,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3), fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -9221,14 +9221,14 @@ rctx_logpacket(respctx_t *rctx) {
 	isc_buffer_t zb;
 #endif /* HAVE_DNSTAP */
 
-	dns_message_logfmtpacket2(rctx->fctx->rmessage,
-				  "received packet from",
-				  &rctx->query->addrinfo->sockaddr,
-				  DNS_LOGCATEGORY_RESOLVER,
-				  DNS_LOGMODULE_PACKETS,
-				  &dns_master_style_comment,
-				  ISC_LOG_DEBUG(10),
-				  rctx->fctx->res->mctx);
+	dns_message_logfmtpacket(rctx->fctx->rmessage,
+				 "received packet from",
+				 &rctx->query->addrinfo->sockaddr,
+				 DNS_LOGCATEGORY_RESOLVER,
+				 DNS_LOGMODULE_PACKETS,
+				 &dns_master_style_comment,
+				 ISC_LOG_DEBUG(10),
+				 rctx->fctx->res->mctx);
 
 #ifdef HAVE_DNSTAP
 	/*

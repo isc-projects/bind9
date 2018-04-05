@@ -324,7 +324,7 @@ ns_test_makeview(const char *name, isc_boolean_t with_cache,
 		CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
 				       dns_rdataclass_in, "", "rbt", 0, NULL,
 				       &cache));
-		dns_view_setcache(view, cache);
+		dns_view_setcache(view, cache, ISC_FALSE);
 		/*
 		 * Reference count for "cache" is now at 2, so decrement it in
 		 * order for the cache to be automatically freed when "view"

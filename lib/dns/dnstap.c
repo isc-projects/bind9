@@ -185,15 +185,8 @@ unlock:
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp)
-{
-	return (dns_dt_create2(mctx, mode, path, foptp, NULL, envp));
-}
-
-isc_result_t
-dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	       struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
-	       dns_dtenv_t **envp)
+	      struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	      dns_dtenv_t **envp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
