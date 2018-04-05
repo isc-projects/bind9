@@ -40,15 +40,11 @@
 
 /*! \file */
 
-#include <config.h>
+#include <config.h>      // IWYU pragma: keep
 
-#include <ctype.h>
+#include <string.h>
 
-#include <isc/mem.h>
-#include <isc/print.h>
-#include <isc/region.h>
-#include <isc/string.h>
-#include <isc/util.h>
+#include "isc/string.h"  // IWYU pragma: keep
 
 size_t
 isc_string_strlcpy(char *dst, const char *src, size_t size)
@@ -60,15 +56,17 @@ isc_string_strlcpy(char *dst, const char *src, size_t size)
 	/* Copy as many bytes as will fit */
 	if (n != 0U && --n != 0U) {
 		do {
-			if ((*d++ = *s++) == 0)
+			if ((*d++ = *s++) == 0) {
 				break;
+			}
 		} while (--n != 0U);
 	}
 
 	/* Not enough room in dst, add NUL and traverse rest of src */
 	if (n == 0U) {
-		if (size != 0U)
+		if (size != 0U) {
 			*d = '\0';		/* NUL-terminate dst */
+		}
 		while (*s++)
 			;
 	}
@@ -85,13 +83,15 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 	size_t dlen;
 
 	/* Find the end of dst and adjust bytes left but don't go past end */
-	while (n-- != 0U && *d != '\0')
+	while (n-- != 0U && *d != '\0') {
 		d++;
+	}
 	dlen = d - dst;
 	n = size - dlen;
 
-	if (n == 0U)
+	if (n == 0U) {
 		return(dlen + strlen(s));
+	}
 	while (*s != '\0') {
 		if (n != 1U) {
 			*d++ = *s;
@@ -102,25 +102,4 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 	*d = '\0';
 
 	return(dlen + (s - src));	/* count does not include NUL */
-}
-
-char *
-isc_string_strcasestr(const char *str, const char *search) {
-	char c, sc, *s;
-	size_t len;
-
-	if ((c = *search++) != 0) {
-		c = tolower((unsigned char) c);
-		len = strlen(search);
-		do {
-			do {
-				if ((sc = *str++) == 0)
-					return (NULL);
-			} while ((char) tolower((unsigned char) sc) != c);
-		} while (strncasecmp(str, search, len) != 0);
-		str--;
-	}
-	DE_CONST(str, s);
-	return (s);
-
 }
