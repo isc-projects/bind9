@@ -869,8 +869,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			 * initializing key; that's why 'managed'
 			 * is duplicated below.
 			 */
-			CHECK(dns_keytable_add2(secroots, managed,
-						managed, &dstkey));
+			CHECK(dns_keytable_add(secroots, managed,
+					       managed, &dstkey));
 		}
 	}
 
@@ -3615,8 +3615,8 @@ create_mapped_acl(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
-					ISC_TRUE, ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, &addr, 96,
+				       ISC_TRUE, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &named_g_mapped);
 	dns_acl_detach(&acl);
@@ -5254,7 +5254,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			 * empty zone for it.
 			 */
 			result = dns_fwdtable_find(view->fwdtable, name,
-						   &dnsforwarders);
+						   NULL, &dnsforwarders);
 			if (result == ISC_R_SUCCESS &&
 			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 				continue;
@@ -6267,8 +6267,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		result = dns_iptable_addprefix(src_acl->iptable,
-					       &netaddr, 128, ISC_TRUE);
+		result = dns_iptable_addprefix(src_acl->iptable, &netaddr,
+					       128, ISC_TRUE, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 
