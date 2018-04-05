@@ -1,3 +1,6 @@
+4921.	[cleanup]	Clean up the isc_string_* namespace and leave
+			only strlcpy and strlcat. [GL #178]
+
 4920.	[cleanup]	Clean up libdns removing most of the backwards
 			compatibility wrappers.
 
