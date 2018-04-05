@@ -372,7 +372,6 @@ dns_fwdtable_create
 dns_fwdtable_delete
 dns_fwdtable_destroy
 dns_fwdtable_find
-dns_fwdtable_find2
 dns_generalstats_create
 dns_generalstats_dump
 dns_generalstats_increment
@@ -386,7 +385,6 @@ dns_ipkeylist_copy
 dns_ipkeylist_init
 dns_ipkeylist_resize
 dns_iptable_addprefix
-dns_iptable_addprefix2
 dns_iptable_attach
 dns_iptable_create
 dns_iptable_detach
@@ -422,7 +420,6 @@ dns_keynode_managed
 dns_keynode_trust
 dns_keyring_restore
 dns_keytable_add
-dns_keytable_add2
 dns_keytable_attach
 dns_keytable_attachkeynode
 dns_keytable_create
