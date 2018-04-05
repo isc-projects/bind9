@@ -1916,7 +1916,7 @@ generatexml(named_server_t *server, isc_uint32_t flags,
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "zones"));
 			result = dns_zt_apply(view->zonetable, ISC_TRUE,
-					      zone_xmlrender, writer);
+					      NULL, zone_xmlrender, writer);
 			if (result != ISC_R_SUCCESS)
 				goto error;
 			TRY0(xmlTextWriterEndElement(writer)); /* /zones */
@@ -2609,8 +2609,10 @@ generatejson(named_server_t *server, size_t *msglen,
 			CHECKMEM(za);
 
 			if ((flags & STATS_JSON_ZONES) != 0) {
-				result = dns_zt_apply(view->zonetable, ISC_TRUE,
-						      zone_jsonrender, za);
+				result = dns_zt_apply(view->zonetable,
+						      ISC_TRUE,
+						      NULL, zone_jsonrender,
+						      za);
 				if (result != ISC_R_SUCCESS) {
 					goto error;
 				}

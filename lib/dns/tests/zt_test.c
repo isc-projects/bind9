@@ -118,7 +118,8 @@ ATF_TC_BODY(apply, tc) {
 	ATF_REQUIRE(view->zonetable != NULL);
 
 	ATF_CHECK_EQ(0, nzones);
-	result = dns_zt_apply(view->zonetable, ISC_FALSE, count_zone, &nzones);
+	result = dns_zt_apply(view->zonetable, ISC_FALSE, NULL, count_zone,
+			      &nzones);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK_EQ(1, nzones);
 
