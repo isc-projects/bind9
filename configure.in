@@ -4807,30 +4807,38 @@ AC_SUBST(IDNKIT_LIBS)
 #
 
 LIBIDN2_CFLAGS=
+LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
 AC_ARG_WITH(libidn2,
 	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no|path]]),
 	use_libidn2="$withval", use_libidn2="no")
 AS_CASE([$use_libidn2],
 	[no],[:],
-	[yes],[
-	    LIBIDN2_LIBS="-lidn2"
-	],
+	[yes],[:],
 	[*],[
 	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LIBS="-L$use_libidn2/lib -lidn2"
+	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
 	])
 
 AS_IF([test "$use_libidn2" != "no"],
-      [AC_SEARCH_LIBS([idn2_to_ascii_8z], [idn2],
-		      [AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])],
+      [save_CFLAGS="$CFLAGS"
+       save_LIBS="$LIBS"
+       save_LDFLAGS="$LDFLAGS"
+       CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+       LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+       AC_SEARCH_LIBS([idn2_to_ascii_8z], [idn2],
+		      [AC_DEFINE(WITH_IDN_SUPPORT, 1, [define if IDN input support is to be included.])
+                       AC_DEFINE(WITH_LIBIDN2, 1, [define if libidn2 support is to be included.])
+                       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"],
 		      [AC_MSG_ERROR([libidn2 requested, but not found])])
-       AC_MSG_CHECKING(whether libidn2 supports idn2_to_unicode_8zlz)
        AC_TRY_LINK([#include <idn2.h>],
 		   [idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);],
 		   [AC_MSG_RESULT(yes)
 		    AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])],
 		   [AC_MSG_RESULT([no])])
+       CFLAGS="$save_CFLAGS"
+       LIBS="$save_LIBS"
+       LDFLAGS="$save_LDFLAGS"
       ])
 AC_SUBST([LIBIDN2_CFLAGS])
 AC_SUBST([LIBIDN2_LIBS])
@@ -5544,6 +5552,7 @@ report() {
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
 	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+	test "no" = "$use_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
 
     if test "no" != "$use_pkcs11"; then
@@ -5648,6 +5657,7 @@ report() {
     test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
     test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+    test "no" = "$use_libidn2" && echo "    IDN support (--with-libidn2)"
 
     echo "-------------------------------------------------------------------------------"
     echo "Configured paths:"
