@@ -118,12 +118,8 @@ struct dns_dtdata {
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options **foptp, dns_dtenv_t **envp);
-
-isc_result_t
-dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	       struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
-	       dns_dtenv_t **envp);
+	      struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	      dns_dtenv_t **envp);
 /*%<
  * Create and initialize the dnstap environment.
  *

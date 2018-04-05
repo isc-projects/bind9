@@ -72,13 +72,8 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
  * Derived from bind8 ns_format_ttl().
  */
 isc_result_t
-dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
-	return (dns_ttl_totext2(src, verbose, ISC_TRUE, target));
-}
-
-isc_result_t
-dns_ttl_totext2(isc_uint32_t src, isc_boolean_t verbose,
-		isc_boolean_t upcase, isc_buffer_t *target)
+dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
+	       isc_boolean_t upcase, isc_buffer_t *target)
 {
 	unsigned secs, mins, hours, days, weeks, x;
 
