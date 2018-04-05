@@ -1375,25 +1375,17 @@ dns_message_gettimeadjust(dns_message_t *msg);
  */
 
 void
-dns_message_logpacket(dns_message_t *message, const char *description,
+dns_message_logpacket(dns_message_t *message,
+		      const char *description, const isc_sockaddr_t *address,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
 		      int level, isc_mem_t *mctx);
-void
-dns_message_logpacket2(dns_message_t *message,
-		       const char *description, const isc_sockaddr_t *address,
-		       isc_logcategory_t *category, isc_logmodule_t *module,
-		       int level, isc_mem_t *mctx);
+
 void
 dns_message_logfmtpacket(dns_message_t *message, const char *description,
+			 const isc_sockaddr_t *address,
 			 isc_logcategory_t *category, isc_logmodule_t *module,
 			 const dns_master_style_t *style, int level,
 			 isc_mem_t *mctx);
-void
-dns_message_logfmtpacket2(dns_message_t *message, const char *description,
-			  const isc_sockaddr_t *address,
-			  isc_logcategory_t *category, isc_logmodule_t *module,
-			  const dns_master_style_t *style, int level,
-			  isc_mem_t *mctx);
 /*%<
  * Log 'message' at the specified logging parameters.
  *

@@ -105,9 +105,6 @@ dns_keytable_detach(dns_keytable_t **keytablep);
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
-		 dst_key_t **keyp) ISC_DEPRECATED;
-isc_result_t
-dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
 		 isc_boolean_t initial, dst_key_t **keyp);
 /*%<
  * Add '*keyp' to 'keytable' (using the name in '*keyp').
