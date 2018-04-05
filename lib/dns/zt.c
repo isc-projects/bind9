@@ -199,7 +199,7 @@ flush(dns_zone_t *zone, void *uap) {
 static void
 zt_destroy(dns_zt_t *zt) {
 	if (zt->flush)
-		(void)dns_zt_apply(zt, ISC_FALSE, flush, NULL);
+		(void)dns_zt_apply(zt, ISC_FALSE, NULL, flush, NULL);
 	dns_rbt_destroy(&zt->table);
 	isc_rwlock_destroy(&zt->rwlock);
 	zt->magic = 0;
@@ -249,7 +249,7 @@ dns_zt_load(dns_zt_t *zt, isc_boolean_t stop) {
 	REQUIRE(VALID_ZT(zt));
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, stop, load, NULL);
+	result = dns_zt_apply(zt, stop, NULL, load, NULL);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 	return (result);
 }
@@ -277,7 +277,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 
 	INSIST(zt->loads_pending == 0);
-	result = dns_zt_apply2(zt, ISC_FALSE, NULL, asyncload, &dl);
+	result = dns_zt_apply(zt, ISC_FALSE, NULL, asyncload, &dl);
 
 	pending = zt->loads_pending;
 	if (pending != 0) {
@@ -328,7 +328,7 @@ dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop) {
 	REQUIRE(VALID_ZT(zt));
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, stop, loadnew, NULL);
+	result = dns_zt_apply(zt, stop, NULL, loadnew, NULL);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 	return (result);
 }
@@ -352,7 +352,7 @@ dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze) {
 	REQUIRE(VALID_ZT(zt));
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply2(zt, ISC_FALSE, &tresult, freezezones, &freeze);
+	result = dns_zt_apply(zt, ISC_FALSE, &tresult, freezezones, &freeze);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 	if (tresult == ISC_R_NOTFOUND)
 		tresult = ISC_R_SUCCESS;
@@ -475,15 +475,8 @@ dns_zt_setviewrevert(dns_zt_t *zt) {
 }
 
 isc_result_t
-dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
+dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap)
-{
-	return (dns_zt_apply2(zt, stop, NULL, action, uap));
-}
-
-isc_result_t
-dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
-	      isc_result_t (*action)(dns_zone_t *, void *), void *uap)
 {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;

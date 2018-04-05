@@ -4229,7 +4229,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		ISC_LINK_INIT(nsc, link);
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
-	dns_view_setcache2(view, cache, shared_cache);
+	dns_view_setcache(view, cache, shared_cache);
 
 	/*
 	 * cache-file cannot be inherited if views are present, but this
@@ -9013,7 +9013,7 @@ load_configuration(const char *filename, named_server_t *server,
 		{
 			dns_view_setviewrevert(view);
 			(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-					   removed, view);
+					   NULL, removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -10380,7 +10380,7 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones)
-		result = dns_zt_apply(view->zonetable, ISC_TRUE,
+		result = dns_zt_apply(view->zonetable, ISC_TRUE, NULL,
 				      add_zone_tolist, dctx);
 	return (result);
 }
@@ -11622,7 +11622,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link)) {
 			result = dns_zt_apply(view->zonetable, ISC_FALSE,
-					      synczone, &cleanup);
+					      NULL, synczone, &cleanup);
 			if (result != ISC_R_SUCCESS &&
 			    tresult == ISC_R_SUCCESS)
 				tresult = result;
