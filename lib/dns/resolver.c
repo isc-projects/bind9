@@ -3521,8 +3521,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 
 		dns_fixedname_init(&fixed);
 		domain = dns_fixedname_name(&fixed);
-		result = dns_fwdtable_find2(res->view->fwdtable, name,
-					    domain, &forwarders);
+		result = dns_fwdtable_find(res->view->fwdtable, name,
+					   domain, &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
@@ -4602,8 +4602,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		/* Find the forwarder for this name. */
 		dns_fixedname_init(&fixed);
 		fname = dns_fixedname_name(&fixed);
-		result = dns_fwdtable_find2(fctx->res->view->fwdtable, fwdname,
-					    fname, &forwarders);
+		result = dns_fwdtable_find(fctx->res->view->fwdtable, fwdname,
+					   fname, &forwarders);
 		if (result == ISC_R_SUCCESS)
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 
