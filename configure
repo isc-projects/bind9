@@ -26829,6 +26829,7 @@ report() {
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
 	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+	test "no" = "$use_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
 
     if test "no" != "$use_pkcs11"; then
@@ -26926,6 +26927,7 @@ report() {
     test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
     test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
+    test "no" = "$use_libidn2" && echo "    IDN support (--with-libidn2)"
 
     echo "-------------------------------------------------------------------------------"
     echo "Configured paths:"
