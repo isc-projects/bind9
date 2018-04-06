@@ -33,7 +33,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 LIBS =		@LIBS@
 
 SUBDIRS =	system @PKCS11_TOOLS@
-TESTDIRS =	system
+TESTDIRS =
 
 # Test programs that are built by default:
 # cfg_test is needed for regenerating doc/misc/options
