@@ -1043,6 +1043,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	if (RSA_generate_key_ex(rsa, key->key_size, e, cb)) {
 		BN_free(e);
 		BN_GENCB_free(cb);
+		cb = NULL;
 		SET_FLAGS(rsa);
 #if USE_EVP
 		key->keydata.pkey = pkey;
@@ -1053,21 +1054,28 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #endif
 		return (ISC_R_SUCCESS);
 	}
-	BN_GENCB_free(cb);
 	ret = dst__openssl_toresult2("RSA_generate_key_ex",
 				     DST_R_OPENSSLFAILURE);
 
  err:
 #if USE_EVP
-	if (pkey != NULL)
+	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
+		pkey = NULL;
+	}
 #endif
-	if (e != NULL)
+	if (e != NULL) {
 		BN_free(e);
-	if (rsa != NULL)
+		e = NULL;
+	}
+	if (rsa != NULL) {
 		RSA_free(rsa);
-	if (cb != NULL)
+		rsa = NULL;
+	}
+	if (cb != NULL) {
 		BN_GENCB_free(cb);
+		cb = NULL;
+	}
 	return (dst__openssl_toresult(ret));
 #else
 	RSA *rsa;
