@@ -77,7 +77,7 @@ bdb_putrdata(DB *db, dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 
 	isc_buffer_init(&databuf, rdatatext, MAX_RDATATEXT);
 
-	dns_ttl_totext(ttl, ISC_FALSE, &databuf);
+	dns_ttl_totext(ttl, ISC_FALSE, ISC_TRUE, &databuf);
 	*(char *)isc_buffer_used(&databuf) = ' ';
 	isc_buffer_add(&databuf, 1);
 
@@ -142,7 +142,8 @@ main(int argc, char *argv[])
 			      dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
 			      &db) == ISC_R_SUCCESS);
 
-	REQUIRE(dns_db_load(db, argv[2]) == ISC_R_SUCCESS);
+	REQUIRE(dns_db_load(db, argv[2], dns_masterformat_text, 0)
+		== ISC_R_SUCCESS);
 
 	REQUIRE(dns_db_createiterator(db, 0, &dbiter) == ISC_R_SUCCESS);
 

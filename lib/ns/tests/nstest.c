@@ -245,7 +245,7 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
+	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
 	if (logfile != NULL) {
@@ -321,10 +321,10 @@ ns_test_makeview(const char *name, isc_boolean_t with_cache,
 	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
 
 	if (with_cache) {
-		CHECK(dns_cache_create(mctx, taskmgr, timermgr,
-				       dns_rdataclass_in, "rbt", 0, NULL,
+		CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				       dns_rdataclass_in, "", "rbt", 0, NULL,
 				       &cache));
-		dns_view_setcache(view, cache);
+		dns_view_setcache(view, cache, ISC_FALSE);
 		/*
 		 * Reference count for "cache" is now at 2, so decrement it in
 		 * order for the cache to be automatically freed when "view"
@@ -471,7 +471,8 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Set path to the master file for the zone and then load it.
 	 */
-	dns_zone_setfile(served_zone, filename);
+	dns_zone_setfile(served_zone, filename, dns_masterformat_text,
+			 &dns_master_style_default);
 	result = dns_zone_load(served_zone);
 	if (result != ISC_R_SUCCESS) {
 		goto release_zone;
@@ -853,7 +854,7 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_load(*db, testfile);
+	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
 	return (result);
 }
 

@@ -310,18 +310,8 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 }
 
 isc_result_t
-dns_db_load(dns_db_t *db, const char *filename) {
-	return (dns_db_load3(db, filename, dns_masterformat_text, 0));
-}
-
-isc_result_t
-dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format) {
-	return (dns_db_load3(db, filename, format, 0));
-}
-
-isc_result_t
-dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
-	     unsigned int options)
+dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
+	    unsigned int options)
 {
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
@@ -339,9 +329,9 @@ dns_db_load3(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	result = dns_db_beginload(db, &callbacks);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadfile2(filename, &db->origin, &db->origin,
-				      db->rdclass, options,
-				      &callbacks, db->mctx, format);
+	result = dns_master_loadfile(filename, &db->origin, &db->origin,
+				     db->rdclass, options, 0, &callbacks,
+				     NULL, NULL, db->mctx, format, 0);
 	eresult = dns_db_endload(db, &callbacks);
 	/*
 	 * We always call dns_db_endload(), but we only want to return its
@@ -367,20 +357,6 @@ isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	return ((db->methods->dump)(db, version, filename,
 				    dns_masterformat_text));
-}
-
-isc_result_t
-dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-	     dns_masterformat_t masterformat) {
-	/*
-	 * Dump 'db' into master file 'filename' in the 'masterformat' format.
-	 * XXXJT: is it okay to modify the interface to the existing "dump"
-	 * method?
-	 */
-
-	REQUIRE(DNS_DB_VALID(db));
-
-	return ((db->methods->dump)(db, version, filename, masterformat));
 }
 
 /***

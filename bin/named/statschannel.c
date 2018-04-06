@@ -100,7 +100,7 @@ user_zonetype( dns_zone_t *zone ) {
 	};
 	const struct zt *tp;
 
-	if ((dns_zone_getoptions2(zone) & DNS_ZONEOPT2_AUTOEMPTY) != 0)
+	if ((dns_zone_getoptions(zone) & DNS_ZONEOPT_AUTOEMPTY) != 0)
 		return ("builtin");
 
 	view = dns_zone_getview(zone);
@@ -1494,7 +1494,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer)); /* type */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial"));
-	if (dns_zone_getserial2(zone, &serial) == ISC_R_SUCCESS)
+	if (dns_zone_getserial(zone, &serial) == ISC_R_SUCCESS)
 		TRY0(xmlTextWriterWriteFormatString(writer, "%u", serial));
 	else
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
@@ -1916,7 +1916,7 @@ generatexml(named_server_t *server, isc_uint32_t flags,
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "zones"));
 			result = dns_zt_apply(view->zonetable, ISC_TRUE,
-					      zone_xmlrender, writer);
+					      NULL, zone_xmlrender, writer);
 			if (result != ISC_R_SUCCESS)
 				goto error;
 			TRY0(xmlTextWriterEndElement(writer)); /* /zones */
@@ -2271,7 +2271,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 	dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
 	class_only = classbuf;
 
-	if (dns_zone_getserial2(zone, &serial) != ISC_R_SUCCESS)
+	if (dns_zone_getserial(zone, &serial) != ISC_R_SUCCESS)
 		zoneobj = addzone(zone_name_only, class_only,
 				  user_zonetype(zone), 0, ISC_FALSE);
 	else
@@ -2609,8 +2609,10 @@ generatejson(named_server_t *server, size_t *msglen,
 			CHECKMEM(za);
 
 			if ((flags & STATS_JSON_ZONES) != 0) {
-				result = dns_zt_apply(view->zonetable, ISC_TRUE,
-						      zone_jsonrender, za);
+				result = dns_zt_apply(view->zonetable,
+						      ISC_TRUE,
+						      NULL, zone_jsonrender,
+						      za);
 				if (result != ISC_R_SUCCESS) {
 					goto error;
 				}
@@ -3177,7 +3179,7 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	isc_netaddr_fromsockaddr(&netaddr, fromaddr);
 
 	LOCK(&listener->lock);
-	if (dns_acl_match(&netaddr, NULL, listener->acl, env,
+	if (dns_acl_match(&netaddr, NULL, NULL, 0, NULL, listener->acl, env,
 			  &match, NULL) == ISC_R_SUCCESS && match > 0)
 	{
 		UNLOCK(&listener->lock);

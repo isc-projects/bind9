@@ -123,9 +123,9 @@ test_master(const char *testfile, dns_masterformat_t format,
 	if (result != ISC_R_SUCCESS)
 		return(result);
 
-	result = dns_master_loadfile2(testfile, &dns_origin, &dns_origin,
-				      dns_rdataclass_in, ISC_TRUE,
-				      &callbacks, mctx, format);
+	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
+				     dns_rdataclass_in, ISC_TRUE, 0,
+				     &callbacks, NULL, NULL, mctx, format, 0);
 	return (result);
 }
 
@@ -378,11 +378,11 @@ ATF_TC_BODY(master_includelist, tc) {
 	result = setup_master(NULL, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_master_loadfile4("testdata/master/master8.data",
-				      &dns_origin, &dns_origin,
-				      dns_rdataclass_in, 0, ISC_TRUE,
-				      &callbacks, include_callback,
-				      &filename, mctx, dns_masterformat_text);
+	result = dns_master_loadfile("testdata/master/master8.data",
+				     &dns_origin, &dns_origin,
+				     dns_rdataclass_in, 0, ISC_TRUE,
+				     &callbacks, include_callback,
+				     &filename, mctx, dns_masterformat_text, 0);
 	ATF_CHECK_EQ(result, DNS_R_SEENINCLUDE);
 	ATF_CHECK(filename != NULL);
 	if (filename != NULL) {
@@ -574,14 +574,15 @@ ATF_TC_BODY(dumpraw, tc) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_db_load(db, "testdata/master/master1.data");
+	result = dns_db_load(db, "testdata/master/master1.data",
+			     dns_masterformat_text, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump2(mctx, db, version,
-				  &dns_master_style_default, "test.dump",
-				  dns_masterformat_raw);
+	result = dns_master_dump(mctx, db, version,
+				 &dns_master_style_default, "test.dump",
+				 dns_masterformat_raw, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("test.dump", dns_masterformat_raw, NULL, NULL);
@@ -594,9 +595,9 @@ ATF_TC_BODY(dumpraw, tc) {
 	header.flags |= DNS_MASTERRAW_SOURCESERIALSET;
 
 	unlink("test.dump");
-	result = dns_master_dump3(mctx, db, version,
-				  &dns_master_style_default, "test.dump",
-				  dns_masterformat_raw, &header);
+	result = dns_master_dump(mctx, db, version,
+				 &dns_master_style_default, "test.dump",
+				 dns_masterformat_raw, &header);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("test.dump", dns_masterformat_raw, NULL, NULL);

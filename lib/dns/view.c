@@ -652,7 +652,7 @@ dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	(void)dns_zt_apply(view->zonetable, ISC_FALSE, dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, ISC_FALSE, NULL, dialup, NULL);
 }
 
 void
@@ -845,12 +845,7 @@ dns_view_createresolver(dns_view_t *view,
 }
 
 void
-dns_view_setcache(dns_view_t *view, dns_cache_t *cache) {
-	dns_view_setcache2(view, cache, ISC_FALSE);
-}
-
-void
-dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
@@ -991,20 +986,10 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      isc_stdtime_t now, unsigned int options,
+	      isc_boolean_t use_hints, isc_boolean_t use_static_stub,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
-	return (dns_view_find2(view, name, type, now, options, use_hints,
-			       ISC_FALSE, dbp, nodep, foundname, rdataset,
-			       sigrdataset));
-}
-
-isc_result_t
-dns_view_find2(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, unsigned int options,
-	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
-	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db, *zdb;
@@ -1223,8 +1208,9 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 	dns_fixedname_init(&foundname);
 	result = dns_view_find(view, name, type, now, options, use_hints,
-			       NULL, NULL, dns_fixedname_name(&foundname),
-			       rdataset, sigrdataset);
+			       ISC_FALSE, NULL, NULL,
+			       dns_fixedname_name(&foundname), rdataset,
+			       sigrdataset);
 	if (result == DNS_R_NXDOMAIN) {
 		/*
 		 * The rdataset and sigrdataset of the relevant NSEC record
@@ -1258,21 +1244,10 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
-		     dns_name_t *fname, isc_stdtime_t now, unsigned int options,
-		     isc_boolean_t use_hints,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	return(dns_view_findzonecut2(view, name, fname, now, options,
-				     use_hints, ISC_TRUE,
-				     rdataset, sigrdataset));
-}
-
-isc_result_t
-dns_view_findzonecut2(dns_view_t *view, const dns_name_t *name,
-		      dns_name_t *fname, isc_stdtime_t now,
-		      unsigned int options, isc_boolean_t use_hints,
-		      isc_boolean_t use_cache, dns_rdataset_t *rdataset,
-		      dns_rdataset_t *sigrdataset)
+		     dns_name_t *fname, isc_stdtime_t now,
+		     unsigned int options, isc_boolean_t use_hints,
+		     isc_boolean_t use_cache, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
 	dns_db_t *db;
@@ -1610,7 +1585,8 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 
 	(void)fprintf(fp, ";\n; Cache dump of view '%s'\n;\n", view->name);
 	result = dns_master_dumptostream(view->mctx, view->cachedb, NULL,
-					 &dns_master_style_cache, fp);
+					 &dns_master_style_cache,
+					 dns_masterformat_text, NULL, fp);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dns_adb_dump(view->adb, fp);
@@ -1620,12 +1596,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp) {
 }
 
 isc_result_t
-dns_view_flushcache(dns_view_t *view) {
-	return (dns_view_flushcache2(view, ISC_FALSE));
-}
-
-isc_result_t
-dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly) {
+dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly) {
 	isc_result_t result;
 
 	REQUIRE(DNS_VIEW_VALID(view));

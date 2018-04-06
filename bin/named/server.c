@@ -869,8 +869,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			 * initializing key; that's why 'managed'
 			 * is duplicated below.
 			 */
-			CHECK(dns_keytable_add2(secroots, managed,
-						managed, &dstkey));
+			CHECK(dns_keytable_add(secroots, managed,
+					       managed, &dstkey));
 		}
 	}
 
@@ -3350,7 +3350,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_db_closeversion(db, &version, ISC_TRUE);
 		CHECK(dns_zone_replacedb(zone, db, ISC_FALSE));
 	}
-	dns_zone_setoption2(zone, DNS_ZONEOPT2_AUTOEMPTY, ISC_TRUE);
+	dns_zone_setoption(zone, DNS_ZONEOPT_AUTOEMPTY, ISC_TRUE);
 	dns_zone_setview(zone, view);
 	CHECK(dns_view_addzone(view, zone));
 
@@ -3615,8 +3615,8 @@ create_mapped_acl(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix2(acl->iptable, &addr, 96,
-					ISC_TRUE, ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, &addr, 96,
+				       ISC_TRUE, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &named_g_mapped);
 	dns_acl_detach(&acl);
@@ -4208,10 +4208,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			isc_mem_setname(cmctx, "cache", NULL);
 			CHECK(isc_mem_create(0, 0, &hmctx));
 			isc_mem_setname(hmctx, "cache_heap", NULL);
-			CHECK(dns_cache_create3(cmctx, hmctx, named_g_taskmgr,
-						named_g_timermgr, view->rdclass,
-						cachename, "rbt", 0, NULL,
-						&cache));
+			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
+					       named_g_timermgr, view->rdclass,
+					       cachename, "rbt", 0, NULL,
+					       &cache));
 			isc_mem_detach(&cmctx);
 			isc_mem_detach(&hmctx);
 		}
@@ -4229,7 +4229,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		ISC_LINK_INIT(nsc, link);
 		ISC_LIST_APPEND(*cachelist, nsc, link);
 	}
-	dns_view_setcache2(view, cache, shared_cache);
+	dns_view_setcache(view, cache, shared_cache);
 
 	/*
 	 * cache-file cannot be inherited if views are present, but this
@@ -5254,7 +5254,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			 * empty zone for it.
 			 */
 			result = dns_fwdtable_find(view->fwdtable, name,
-						   &dnsforwarders);
+						   NULL, &dnsforwarders);
 			if (result == ISC_R_SUCCESS &&
 			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 				continue;
@@ -6145,7 +6145,8 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 				defaultview ? "managed-keys" : view->name,
 				defaultview ? "bind" : "mkeys",
 				filename, sizeof(filename)));
-	CHECK(dns_zone_setfile(zone, filename));
+	CHECK(dns_zone_setfile(zone, filename, dns_masterformat_text,
+			       &dns_master_style_default));
 
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_key);
@@ -6266,8 +6267,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		result = dns_iptable_addprefix(src_acl->iptable,
-					       &netaddr, 128, ISC_TRUE);
+		result = dns_iptable_addprefix(src_acl->iptable, &netaddr,
+					       128, ISC_TRUE, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 
@@ -6565,9 +6566,9 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 
 	result = dns_resolver_createfetch(view->resolver, tatname,
 					  dns_rdatatype_null, NULL, NULL,
-					  NULL, 0, tat->task, tat_done, tat,
-					  &tat->rdataset, &tat->sigrdataset,
-					  &tat->fetch);
+					  NULL, NULL, 0, 0, 0, NULL, tat->task,
+					  tat_done, tat, &tat->rdataset,
+					  &tat->sigrdataset, &tat->fetch);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&tat->task);
@@ -6819,7 +6820,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 	/* generate key */
 	result = dst_key_generate(keyname, algtype, bits, 1, 0,
 				  DNS_KEYPROTO_ANY, dns_rdataclass_in,
-				  mctx, &key);
+				  mctx, &key, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -9012,7 +9013,7 @@ load_configuration(const char *filename, named_server_t *server,
 		{
 			dns_view_setviewrevert(view);
 			(void)dns_zt_apply(view->zonetable, ISC_FALSE,
-					   removed, view);
+					   NULL, removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -9423,8 +9424,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->in_roothints = NULL;
 
 	/* Must be first. */
-	CHECKFATAL(dst_lib_init2(named_g_mctx, named_g_entropy,
-				 named_g_engine, ISC_ENTROPY_GOODONLY),
+	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_entropy,
+				named_g_engine, ISC_ENTROPY_GOODONLY),
 		   "initializing DST");
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
@@ -10379,7 +10380,7 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones)
-		result = dns_zt_apply(view->zonetable, ISC_TRUE,
+		result = dns_zt_apply(view->zonetable, ISC_TRUE, NULL,
 				      add_zone_tolist, dctx);
 	return (result);
 }
@@ -10876,7 +10877,7 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 	{
 		if (ptr != NULL && strcasecmp(ptr, view->name) != 0)
 			continue;
-		CHECK(dns_view_flushcache(view));
+		CHECK(dns_view_flushcache(view, ISC_FALSE));
 
 		if (set) {
 			view->enablevalidation = enable;
@@ -10967,7 +10968,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 		if (ptr != NULL && !nsc->needflush)
 			continue;
 		nsc->needflush = ISC_TRUE;
-		result = dns_view_flushcache2(nsc->primaryview, ISC_FALSE);
+		result = dns_view_flushcache(nsc->primaryview, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -10998,7 +10999,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 		     nsc = ISC_LIST_NEXT(nsc, link)) {
 			if (!nsc->needflush || nsc->cache != view->cache)
 				continue;
-			result = dns_view_flushcache2(view, ISC_TRUE);
+			result = dns_view_flushcache(view, ISC_TRUE);
 			if (result != ISC_R_SUCCESS) {
 				flushed = ISC_FALSE;
 				isc_log_write(named_g_lctx,
@@ -11621,7 +11622,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link)) {
 			result = dns_zt_apply(view->zonetable, ISC_FALSE,
-					      synczone, &cleanup);
+					      NULL, synczone, &cleanup);
 			if (result != ISC_R_SUCCESS &&
 			    tresult == ISC_R_SUCCESS)
 				tresult = result;
@@ -13936,10 +13937,18 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	}
 
 	/* Serial number */
-	serial = dns_zone_getserial(mayberaw);
+	result = dns_zone_getserial(mayberaw, &serial);
+	/* XXXWPK TODO this is to mirror old behavior with dns_zone_getserial */
+	if (result != ISC_R_SUCCESS) {
+		serial = 0;
+	}
 	snprintf(serbuf, sizeof(serbuf), "%u", serial);
 	if (hasraw) {
-		signed_serial = dns_zone_getserial(zone);
+		result = dns_zone_getserial(zone, &signed_serial);
+		/* XXXWPK TODO ut supra */
+		if (result != ISC_R_SUCCESS) {
+			serial = 0;
+		}
 		snprintf(sserbuf, sizeof(sserbuf), "%u", signed_serial);
 	}
 

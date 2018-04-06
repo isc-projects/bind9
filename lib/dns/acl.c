@@ -100,7 +100,8 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg));
+	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg),
+				       ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		dns_acl_detach(&acl);
 		return (result);
@@ -178,28 +179,17 @@ dns_acl_isnone(dns_acl_t *acl)
  * return with a positive value in match; for a match with a negated ACL
  * element or radix entry, return with a negative value in match.
  */
+
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_name_t *reqsigner,
+	      const isc_netaddr_t *ecs,
+	      isc_uint8_t ecslen,
+	      isc_uint8_t *scope,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
 	      const dns_aclelement_t **matchelt)
-{
-	return (dns_acl_match2(reqaddr, reqsigner, NULL, 0, NULL, acl, env,
-			       match, matchelt));
-}
-
-isc_result_t
-dns_acl_match2(const isc_netaddr_t *reqaddr,
-	       const dns_name_t *reqsigner,
-	       const isc_netaddr_t *ecs,
-	       isc_uint8_t ecslen,
-	       isc_uint8_t *scope,
-	       const dns_acl_t *acl,
-	       const dns_aclenv_t *env,
-	       int *match,
-	       const dns_aclelement_t **matchelt)
 {
 	isc_uint16_t bitlen;
 	isc_prefix_t pfx;
@@ -290,8 +280,8 @@ dns_acl_match2(const isc_netaddr_t *reqaddr,
 			break;
 		}
 
-		if (dns_aclelement_match2(reqaddr, reqsigner, ecs, ecslen,
-					  scope, e, env, matchelt))
+		if (dns_aclelement_match(reqaddr, reqsigner, ecs, ecslen,
+					 scope, e, env, matchelt))
 		{
 			if (match_num == -1 || e->node_num < match_num) {
 				if (e->negative)
@@ -424,26 +414,16 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
  * a reference to a named ACL or a nested ACL, a matching element
  * returned through 'matchelt' is not necessarily 'e' itself.
  */
+
 isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
+		     const isc_netaddr_t *ecs,
+		     isc_uint8_t ecslen,
+		     isc_uint8_t *scope,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt)
-{
-	return (dns_aclelement_match2(reqaddr, reqsigner, NULL, 0, NULL,
-				      e, env, matchelt));
-}
-
-isc_boolean_t
-dns_aclelement_match2(const isc_netaddr_t *reqaddr,
-		      const dns_name_t *reqsigner,
-		      const isc_netaddr_t *ecs,
-		      isc_uint8_t ecslen,
-		      isc_uint8_t *scope,
-		      const dns_aclelement_t *e,
-		      const dns_aclenv_t *env,
-		      const dns_aclelement_t **matchelt)
 {
 	dns_acl_t *inner = NULL;
 	int indirectmatch;
@@ -493,8 +473,8 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 		INSIST(0);
 	}
 
-	result = dns_acl_match2(reqaddr, reqsigner, ecs, ecslen, scope,
-				inner, env, &indirectmatch, matchelt);
+	result = dns_acl_match(reqaddr, reqsigner, ecs, ecslen, scope,
+			       inner, env, &indirectmatch, matchelt);
 	INSIST(result == ISC_R_SUCCESS);
 
 	/*
@@ -687,8 +667,8 @@ dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
 
 	if (acl == NULL)
 		return (ISC_TRUE);
-	result = dns_acl_match2(addr, signer, ecs_addr, ecs_addrlen,
-				ecs_scope, acl, aclenv, &match, NULL);
+	result = dns_acl_match(addr, signer, ecs_addr, ecs_addrlen,
+			       ecs_scope, acl, aclenv, &match, NULL);
 	if (result == ISC_R_SUCCESS && match > 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);

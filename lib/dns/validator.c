@@ -997,7 +997,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	dns_fixedname_init(&fixedname);
 	foundname = dns_fixedname_name(&fixedname);
 	result = dns_view_find(val->view, name, type, 0, options,
-			       ISC_FALSE, NULL, NULL, foundname,
+			       ISC_FALSE, ISC_FALSE, NULL, NULL, foundname,
 			       &val->frdataset, &val->fsigrdataset);
 
 	if (result == DNS_R_NXDOMAIN) {
@@ -1153,8 +1153,8 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 
 	validator_logcreate(val, name, type, caller, "fetch");
 	return (dns_resolver_createfetch(val->view->resolver, name, type,
-					 NULL, NULL, NULL, fopts,
-					 val->event->ev_sender,
+					 NULL, NULL, NULL, NULL, 0, fopts,
+					 0, NULL, val->event->ev_sender,
 					 callback, val,
 					 &val->frdataset,
 					 &val->fsigrdataset,
@@ -1470,10 +1470,10 @@ isselfsigned(dns_validator_t *val) {
 			if (result != ISC_R_SUCCESS)
 				continue;
 
-			result = dns_dnssec_verify3(name, rdataset, dstkey,
-						    ISC_TRUE,
-						    val->view->maxbits,
-						    mctx, &sigrdata, NULL);
+			result = dns_dnssec_verify(name, rdataset, dstkey,
+						   ISC_TRUE,
+						   val->view->maxbits,
+						   mctx, &sigrdata, NULL);
 			dst_key_free(&dstkey);
 			if (result != ISC_R_SUCCESS)
 				continue;
@@ -1509,9 +1509,9 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 	dns_fixedname_init(&fixed);
 	wild = dns_fixedname_name(&fixed);
  again:
-	result = dns_dnssec_verify3(val->event->name, val->event->rdataset,
-				    key, ignore, val->view->maxbits,
-				    val->view->mctx, rdata, wild);
+	result = dns_dnssec_verify(val->event->name, val->event->rdataset,
+				   key, ignore, val->view->maxbits,
+				   val->view->mctx, rdata, wild);
 	if ((result == DNS_R_SIGEXPIRED || result == DNS_R_SIGFUTURE) &&
 	    val->view->acceptexpired)
 	{
@@ -3409,9 +3409,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 			 */
 			if (result == DNS_R_NXRRSET &&
 			    !dns_rdataset_isassociated(&val->frdataset) &&
-			    dns_view_findzonecut2(val->view, tname, found,
-						 0, 0, ISC_FALSE, ISC_FALSE,
-						 NULL, NULL) == ISC_R_SUCCESS &&
+			dns_view_findzonecut(val->view, tname, found,
+					     0, 0, ISC_FALSE, ISC_FALSE,
+					     NULL, NULL) == ISC_R_SUCCESS &&
 			    dns_name_equal(tname, found)) {
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,

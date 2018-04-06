@@ -177,8 +177,10 @@ sendquery(isc_task_t *task) {
 	request = NULL;
 	result = dns_request_createvia(requestmgr, message,
 				       have_src ? &srcaddr : NULL, &dstaddr,
-				       DNS_REQUESTOPT_TCP|DNS_REQUESTOPT_SHARE,
-				       NULL, TIMEOUT, task, recvresponse,
+				       -1,
+				       DNS_REQUESTOPT_TCP |
+				       DNS_REQUESTOPT_SHARE,
+				       NULL, TIMEOUT, 0, 0, task, recvresponse,
 				       message, &request);
 	CHECK("dns_request_create", result);
 
@@ -284,7 +286,7 @@ main(int argc, char *argv[]) {
 	if (randomfile != NULL)
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));

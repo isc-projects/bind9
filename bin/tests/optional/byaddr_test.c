@@ -132,8 +132,8 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	cache = NULL;
-	RUNTIME_CHECK(dns_cache_create(mctx, taskmgr, timermgr,
-				       dns_rdataclass_in, "rbt", 0, NULL,
+	RUNTIME_CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				       dns_rdataclass_in, "", "rbt", 0, NULL,
 				       &cache) == ISC_R_SUCCESS);
 
 	view = NULL;
@@ -205,7 +205,7 @@ main(int argc, char *argv[]) {
 			      == ISC_R_SUCCESS);
 	}
 
-	dns_view_setcache(view, cache);
+	dns_view_setcache(view, cache, ISC_FALSE);
 	dns_view_freeze(view);
 
 	dns_cache_detach(&cache);

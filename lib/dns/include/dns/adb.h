@@ -333,15 +333,9 @@ isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
-		   isc_stdtime_t now, dns_name_t *target,
-		   in_port_t port, dns_adbfind_t **find);
-isc_result_t
-dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		    void *arg, const dns_name_t *name, const dns_name_t *qname,
-		    dns_rdatatype_t qtype, unsigned int options,
-		    isc_stdtime_t now, dns_name_t *target, in_port_t port,
-		    unsigned int depth, isc_counter_t *qc,
-		    dns_adbfind_t **find);
+		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
+		   unsigned int depth, isc_counter_t *qc,
+		   dns_adbfind_t **find);
 /*%<
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -611,9 +605,7 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
  */
 
 unsigned int
-dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
-unsigned int
-dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups);
+dns_adb_probesize (dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups);
 /*%
  * Return suggested EDNS UDP size based on observed responses / failures.
  * 'lookups' is the number of times the current lookup has been attempted.

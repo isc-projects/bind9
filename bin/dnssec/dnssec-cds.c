@@ -254,8 +254,8 @@ load_db(const char *filename, dns_db_t **dbp, dns_dbnode_t **nodep) {
 			       rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load3(*dbp, filename,
-			      dns_masterformat_text, DNS_MASTER_HINT);
+	result = dns_db_load(*dbp, filename,
+			     dns_masterformat_text, DNS_MASTER_HINT);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE) {
 		fatal("can't load %s: %s", filename,
 		      isc_result_totext(result));
@@ -379,9 +379,9 @@ formatset(dns_rdataset_t *rdataset) {
 	 * which just separates fields with spaces. The huge tab stop width
 	 * eliminates any tab characters.
 	 */
-	result = dns_master_stylecreate2(&style, styleflags,
-					 0, 0, 0, 0, 0, 1000000, 0,
-					 mctx);
+	result = dns_master_stylecreate(&style, styleflags,
+					0, 0, 0, 0, 0, 1000000, 0,
+					mctx);
 	check_result(result, "dns_master_stylecreate2 failed");
 
 	result = isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
@@ -671,8 +671,11 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 			}
 
 			result = dns_dnssec_verify(name, rdataset, ki->dst,
-						   ISC_FALSE, mctx, &sigrdata);
-			if (result != ISC_R_SUCCESS) {
+						   ISC_FALSE, 0, mctx,
+						   &sigrdata, NULL);
+
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_FROMWILDCARD) {
 				vbprintf(1, "skip RRSIG by key %d:"
 					 " verification failed: %s\n",
 					 sig.keyid, isc_result_totext(result));
@@ -1234,7 +1237,7 @@ main(int argc, char *argv[]) {
 	if (ectx == NULL) {
 		setup_entropy(mctx, NULL, &ectx);
 	}
-	result = dst_lib_init(mctx, ectx,
+	result = dst_lib_init(mctx, ectx, NULL,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",

@@ -120,7 +120,7 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
+	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
 	if (logfile != NULL) {
@@ -335,7 +335,7 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_load(*db, testfile);
+	result = dns_db_load(*db, testfile, dns_masterformat_text, 0);
 	return (result);
 }
 

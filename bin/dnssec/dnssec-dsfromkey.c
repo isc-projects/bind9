@@ -114,7 +114,7 @@ loadset(const char *filename, dns_rdataset_t *rdataset) {
 		db_load_from_stream(db, stdin);
 		filename = "input";
 	} else {
-		result = dns_db_load(db, filename);
+		result = dns_db_load(db, filename, dns_masterformat_text, 0);
 		if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 			fatal("can't load %s: %s", filename,
 			      isc_result_totext(result));
@@ -479,7 +479,7 @@ main(int argc, char **argv) {
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
-	result = dst_lib_init(mctx, ectx,
+	result = dst_lib_init(mctx, ectx, NULL,
 			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",

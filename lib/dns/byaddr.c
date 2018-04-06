@@ -43,21 +43,8 @@ static char hex_digits[] = {
 };
 
 isc_result_t
-dns_byaddr_createptrname(const isc_netaddr_t *address, isc_boolean_t nibble,
+dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 			 dns_name_t *name)
-{
-	/*
-	 * We dropped bitstring labels, so all lookups will use nibbles.
-	 */
-	UNUSED(nibble);
-
-	return (dns_byaddr_createptrname2(address,
-					  DNS_BYADDROPT_IPV6INT, name));
-}
-
-isc_result_t
-dns_byaddr_createptrname2(const isc_netaddr_t *address, unsigned int options,
-			  dns_name_t *name)
 {
 	char textname[128];
 	const unsigned char *bytes;
@@ -245,8 +232,8 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 
 	dns_fixedname_init(&byaddr->name);
 
-	result = dns_byaddr_createptrname2(address, options,
-					   dns_fixedname_name(&byaddr->name));
+	result = dns_byaddr_createptrname(address, options,
+					  dns_fixedname_name(&byaddr->name));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 

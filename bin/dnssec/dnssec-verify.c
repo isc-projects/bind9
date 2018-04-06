@@ -108,7 +108,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load2(*db, file, inputformat);
+	result = dns_db_load(*db, file, inputformat, 0);
 	switch (result) {
 	case DNS_R_SEENINCLUDE:
 	case ISC_R_SUCCESS:
@@ -281,7 +281,7 @@ main(int argc, char *argv[]) {
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
 
-	result = dst_lib_init2(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
+	result = dst_lib_init(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));

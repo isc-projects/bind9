@@ -2937,20 +2937,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target,
-		   in_port_t port, dns_adbfind_t **findp)
-{
-	return (dns_adb_createfind2(adb, task, action, arg, name,
-				    qname, qtype, options, now,
-				    target, port, 0, NULL, findp));
-}
-
-isc_result_t
-dns_adb_createfind2(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		    void *arg, const dns_name_t *name, const dns_name_t *qname,
-		    dns_rdatatype_t qtype, unsigned int options,
-		    isc_stdtime_t now, dns_name_t *target,
-		    in_port_t port, unsigned int depth, isc_counter_t *qc,
-		    dns_adbfind_t **findp)
+		   in_port_t port, unsigned int depth, isc_counter_t *qc,
+		   dns_adbfind_t **findp)
 {
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
@@ -3712,12 +3700,12 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	 * matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result = dns_view_find2(adb->view, &adbname->name, rdtype, now,
-				NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
-				ISC_TF(NAME_HINTOK(adbname)),
-				(adbname->flags & NAME_STARTATZONE) != 0 ?
-				ISC_TRUE : ISC_FALSE,
-				NULL, NULL, fname, &rdataset, NULL);
+	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
+			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
+			       ISC_TF(NAME_HINTOK(adbname)),
+			       (adbname->flags & NAME_STARTATZONE) != 0 ?
+			       ISC_TRUE : ISC_FALSE,
+			       NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {
@@ -4039,9 +4027,9 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 		   adbname);
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
-		result = dns_view_findzonecut2(adb->view, &adbname->name, name,
-					       0, 0, ISC_TRUE, ISC_FALSE,
-					       &rdataset, NULL);
+		result = dns_view_findzonecut(adb->view, &adbname->name, name,
+					      0, 0, ISC_TRUE, ISC_FALSE,
+					      &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;
@@ -4055,12 +4043,12 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 	}
 	fetch->depth = depth;
 
-	result = dns_resolver_createfetch3(adb->view->resolver, &adbname->name,
-					   type, name, nameservers, NULL,
-					   NULL, 0, options, depth, qc,
-					   adb->task, fetch_callback, adbname,
-					   &fetch->rdataset, NULL,
-					   &fetch->fetch);
+	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
+					  type, name, nameservers, NULL,
+					  NULL, 0, options, depth, qc,
+					  adb->task, fetch_callback, adbname,
+					  &fetch->rdataset, NULL,
+					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -4481,12 +4469,7 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
 }
 
 unsigned int
-dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr) {
-	return dns_adb_probesize2(adb, addr, 0);
-}
-
-unsigned int
-dns_adb_probesize2(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
+dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 	int bucket;
 	unsigned int size;
 

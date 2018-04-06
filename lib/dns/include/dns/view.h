@@ -416,9 +416,7 @@ dns_view_createresolver(dns_view_t *view,
  */
 
 void
-dns_view_setcache(dns_view_t *view, dns_cache_t *cache);
-void
-dns_view_setcache2(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared);
+dns_view_setcache(dns_view_t *view, dns_cache_t *cache, isc_boolean_t shared);
 /*%<
  * Set the view's cache database.  If 'shared' is true, this means the cache
  * is created by another view and is shared with that view.  dns_view_setcache()
@@ -546,17 +544,13 @@ dns_view_thaw(dns_view_t *view);
  *
  *\li	'view' is no longer frozen.
  */
+
 isc_result_t
 dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      isc_stdtime_t now, unsigned int options,
+	      isc_boolean_t use_hints, isc_boolean_t use_static_stub,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
-isc_result_t
-dns_view_find2(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, unsigned int options,
-	       isc_boolean_t use_hints, isc_boolean_t use_static_stub,
-	       dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -703,19 +697,12 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
  *					or an error occurred.
  */
 
-/*% See dns_view_findzonecut2() */
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		     dns_name_t *fname, isc_stdtime_t now,
-		     unsigned int options, isc_boolean_t use_hints,
+		     unsigned int options,
+		     isc_boolean_t use_hints, isc_boolean_t use_cache,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
-
-isc_result_t
-dns_view_findzonecut2(dns_view_t *view, const dns_name_t *name,
-		      dns_name_t *fname, isc_stdtime_t now,
-		      unsigned int options,
-		      isc_boolean_t use_hints, isc_boolean_t use_cache,
-		      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*%<
  * Find the best known zonecut containing 'name'.
  *
@@ -907,9 +894,7 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  */
 
 isc_result_t
-dns_view_flushcache(dns_view_t *view);
-isc_result_t
-dns_view_flushcache2(dns_view_t *view, isc_boolean_t fixuponly);
+dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly);
 /*%<
  * Flush the view's cache (and ADB).  If 'fixuponly' is true, it only updates
  * the internal reference to the cache DB with omitting actual flush operation.

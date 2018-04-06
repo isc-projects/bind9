@@ -2387,14 +2387,15 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Get a query id from the dispatch.
 	 */
-	result = dns_dispatch_addresponse2(query->dispatch,
-					   &query->addrinfo->sockaddr,
-					   task,
-					   resquery_response,
-					   query,
-					   &query->id,
-					   &query->dispentry,
-					   res->socketmgr);
+	result = dns_dispatch_addresponse(query->dispatch,
+					  0,
+					  &query->addrinfo->sockaddr,
+					  task,
+					  resquery_response,
+					  query,
+					  &query->id,
+					  &query->dispentry,
+					  res->socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_temps;
 
@@ -2538,9 +2539,9 @@ resquery_send(resquery_t *query) {
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
-				udpsize = dns_adb_probesize2(fctx->adb,
-							     query->addrinfo,
-							     fctx->timeouts);
+				udpsize = dns_adb_probesize(fctx->adb,
+							    query->addrinfo,
+							    fctx->timeouts);
 				if (udpsize > res->udpsize)
 					udpsize = res->udpsize;
 			}
@@ -2761,13 +2762,13 @@ resquery_send(resquery_t *query) {
 	/*
 	 * Log the outgoing packet.
 	 */
-	dns_message_logfmtpacket2(fctx->qmessage, "sending packet to",
-				  &query->addrinfo->sockaddr,
-				  DNS_LOGCATEGORY_RESOLVER,
-				  DNS_LOGMODULE_PACKETS,
-				  &dns_master_style_comment,
-				  ISC_LOG_DEBUG(11),
-				  fctx->res->mctx);
+	dns_message_logfmtpacket(fctx->qmessage, "sending packet to",
+				 &query->addrinfo->sockaddr,
+				 DNS_LOGCATEGORY_RESOLVER,
+				 DNS_LOGMODULE_PACKETS,
+				 &dns_master_style_comment,
+				 ISC_LOG_DEBUG(11),
+				 fctx->res->mctx);
 
 	/*
 	 * We're now done with the query message.
@@ -2932,10 +2933,12 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 			result = dns_dispatch_createtcp(query->dispatchmgr,
-						     query->tcpsocket,
-						     query->fctx->res->taskmgr,
-						     4096, 2, 1, 1, 3, attrs,
-						     &query->dispatch);
+							query->tcpsocket,
+							query->fctx->res->taskmgr,
+							NULL, NULL,
+							4096, 2, 1, 1, 3,
+							attrs,
+							&query->dispatch);
 
 			/*
 			 * Regardless of whether dns_dispatch_create()
@@ -3346,13 +3349,13 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 * See what we know about this address.
 	 */
 	find = NULL;
-	result = dns_adb_createfind2(fctx->adb,
-				     res->buckets[fctx->bucketnum].task,
-				     fctx_finddone, fctx, name,
-				     &fctx->name, fctx->type,
-				     options, now, NULL,
-				     res->view->dstport,
-				     fctx->depth + 1, fctx->qc, &find);
+	result = dns_adb_createfind(fctx->adb,
+				    res->buckets[fctx->bucketnum].task,
+				    fctx_finddone, fctx, name,
+				    &fctx->name, fctx->type,
+				    options, now, NULL,
+				    res->view->dstport,
+				    fctx->depth + 1, fctx->qc, &find);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -3518,8 +3521,8 @@ fctx_getaddresses(fetchctx_t *fctx, isc_boolean_t badcache) {
 
 		dns_fixedname_init(&fixed);
 		domain = dns_fixedname_name(&fixed);
-		result = dns_fwdtable_find2(res->view->fwdtable, name,
-					    domain, &forwarders);
+		result = dns_fwdtable_find(res->view->fwdtable, name,
+					   domain, &forwarders);
 		if (result == ISC_R_SUCCESS) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
@@ -3754,7 +3757,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	if (blackhole != NULL) {
 		int match;
 
-		if (dns_acl_match(&ipaddr, NULL, blackhole,
+		if (dns_acl_match(&ipaddr, NULL, NULL, 0, NULL, blackhole,
 				  &res->view->aclenv,
 				  &match, NULL) == ISC_R_SUCCESS &&
 		    match > 0)
@@ -4599,8 +4602,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		/* Find the forwarder for this name. */
 		dns_fixedname_init(&fixed);
 		fname = dns_fixedname_name(&fixed);
-		result = dns_fwdtable_find2(fctx->res->view->fwdtable, fwdname,
-					    fname, &forwarders);
+		result = dns_fwdtable_find(fctx->res->view->fwdtable, fwdname,
+					   fname, &forwarders);
 		if (result == ISC_R_SUCCESS)
 			fctx->fwdpolicy = forwarders->fwdpolicy;
 
@@ -4614,6 +4617,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(res->view, name, fname,
 						      0, findoptions, ISC_TRUE,
+						      ISC_TRUE,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
@@ -6519,8 +6523,9 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 			isc_netaddr_fromin6(&netaddr, &in6a);
 		}
 
-		result = dns_acl_match(&netaddr, NULL, view->denyansweracl,
-				       &view->aclenv, &match, NULL);
+		result = dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
+				       view->denyansweracl, &view->aclenv,
+				       &match, NULL);
 
 		if (result == ISC_R_SUCCESS && match > 0) {
 			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
@@ -6851,8 +6856,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL,
-						  fctx->options, task,
+						  nsrdataset, NULL, NULL, 0,
+						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
@@ -7687,13 +7692,13 @@ rctx_edns(respctx_t *rctx) {
 	     fctx->rmessage->rcode == dns_rcode_yxdomain) &&
 	     bad_edns(fctx, &query->addrinfo->sockaddr))
 	{
-		dns_message_logpacket2(fctx->rmessage,
-				       "received packet (bad edns) from",
-				       &query->addrinfo->sockaddr,
-				       DNS_LOGCATEGORY_RESOLVER,
-				       DNS_LOGMODULE_RESOLVER,
-				       ISC_LOG_DEBUG(3),
-				       fctx->res->mctx);
+		dns_message_logpacket(fctx->rmessage,
+				      "received packet (bad edns) from",
+				      &query->addrinfo->sockaddr,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3),
+				      fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -7715,12 +7720,12 @@ rctx_edns(respctx_t *rctx) {
 		 * should be safe to do for any rcode we limit it to NOERROR
 		 * and NXDOMAIN.
 		 */
-		dns_message_logpacket2(fctx->rmessage,
-				       "received packet (no opt) from",
-				       &query->addrinfo->sockaddr,
-				       DNS_LOGCATEGORY_RESOLVER,
-				       DNS_LOGMODULE_RESOLVER,
-				       ISC_LOG_DEBUG(3), fctx->res->mctx);
+		dns_message_logpacket(fctx->rmessage,
+				      "received packet (no opt) from",
+				      &query->addrinfo->sockaddr,
+				      DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER,
+				      ISC_LOG_DEBUG(3), fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    DNS_FETCHOPT_NOEDNS0,
 				    DNS_FETCHOPT_NOEDNS0);
@@ -8995,7 +9000,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		result = dns_view_findzonecut(fctx->res->view,
 					      name, fname,
 					      rctx->now, findoptions,
-					      ISC_TRUE,
+					      ISC_TRUE, ISC_TRUE,
 					      &fctx->nameservers,
 					      NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -9113,8 +9118,8 @@ rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result)
 
 	result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 					  dns_rdatatype_ns,
-					  NULL, NULL, NULL,
-					  fctx->options, rctx->task,
+					  NULL, NULL, NULL, NULL, 0,
+					  fctx->options, 0, NULL, rctx->task,
 					  resume_dslookup, fctx,
 					  &fctx->nsrrset, NULL,
 					  &fctx->nsfetch);
@@ -9216,14 +9221,14 @@ rctx_logpacket(respctx_t *rctx) {
 	isc_buffer_t zb;
 #endif /* HAVE_DNSTAP */
 
-	dns_message_logfmtpacket2(rctx->fctx->rmessage,
-				  "received packet from",
-				  &rctx->query->addrinfo->sockaddr,
-				  DNS_LOGCATEGORY_RESOLVER,
-				  DNS_LOGMODULE_PACKETS,
-				  &dns_master_style_comment,
-				  ISC_LOG_DEBUG(10),
-				  rctx->fctx->res->mctx);
+	dns_message_logfmtpacket(rctx->fctx->rmessage,
+				 "received packet from",
+				 &rctx->query->addrinfo->sockaddr,
+				 DNS_LOGCATEGORY_RESOLVER,
+				 DNS_LOGMODULE_PACKETS,
+				 &dns_master_style_comment,
+				 ISC_LOG_DEBUG(10),
+				 rctx->fctx->res->mctx);
 
 #ifdef HAVE_DNSTAP
 	/*
@@ -9978,7 +9983,8 @@ dns_resolver_prime(dns_resolver_t *res) {
 		LOCK(&res->primelock);
 		result = dns_resolver_createfetch(res, dns_rootname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL, 0,
+						  NULL, NULL, NULL, NULL, 0, 0,
+						  0, NULL,
 						  res->buckets[0].task,
 						  prime_done,
 						  res, rdataset, NULL,
@@ -10172,48 +10178,13 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_rdatatype_t type,
 			 const dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
-			 unsigned int options, isc_task_t *task,
+			 const isc_sockaddr_t *client, dns_messageid_t id,
+			 unsigned int options, unsigned int depth,
+			 isc_counter_t *qc, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp)
-{
-	return (dns_resolver_createfetch3(res, name, type, domain,
-					  nameservers, forwarders, NULL, 0,
-					  options, 0, NULL, task, action, arg,
-					  rdataset, sigrdataset, fetchp));
-}
-
-isc_result_t
-dns_resolver_createfetch2(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, dns_messageid_t id,
-			  unsigned int options, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp)
-{
-	return (dns_resolver_createfetch3(res, name, type, domain,
-					  nameservers, forwarders, client, id,
-					  options, 0, NULL, task, action, arg,
-					  rdataset, sigrdataset, fetchp));
-}
-
-isc_result_t
-dns_resolver_createfetch3(dns_resolver_t *res, const dns_name_t *name,
-			  dns_rdatatype_t type,
-			  const dns_name_t *domain, dns_rdataset_t *nameservers,
-			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, dns_messageid_t id,
-			  unsigned int options, unsigned int depth,
-			  isc_counter_t *qc, isc_task_t *task,
-			  isc_taskaction_t action, void *arg,
-			  dns_rdataset_t *rdataset,
-			  dns_rdataset_t *sigrdataset,
-			  dns_fetch_t **fetchp)
 {
 	dns_fetch_t *fetch;
 	fetchctx_t *fctx = NULL;

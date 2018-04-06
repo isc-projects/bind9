@@ -85,7 +85,8 @@ start_fetch(dns_lookup_t *lookup) {
 	result = dns_resolver_createfetch(lookup->view->resolver,
 					  dns_fixedname_name(&lookup->name),
 					  lookup->type,
-					  NULL, NULL, NULL, 0,
+					  NULL, NULL, NULL, NULL, 0, 0, 0,
+					  NULL,
 					  lookup->task, fetch_done, lookup,
 					  &lookup->rdataset,
 					  &lookup->sigrdataset,
@@ -165,9 +166,9 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 		type = lookup->type;
 
 	result = dns_view_find(lookup->view, name, type, 0, 0, ISC_FALSE,
-			       &lookup->event->db, &lookup->event->node,
-			       foundname, &lookup->rdataset,
-			       &lookup->sigrdataset);
+			       ISC_FALSE, &lookup->event->db,
+			       &lookup->event->node, foundname,
+			       &lookup->rdataset, &lookup->sigrdataset);
 	return (result);
 }
 

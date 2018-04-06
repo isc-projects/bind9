@@ -355,7 +355,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
 			options |= DNS_BYADDROPT_IPV6INT;
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname2(&addr, options, name);
+		result = dns_byaddr_createptrname(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_format(name, reverse, (unsigned int)len);
@@ -1400,7 +1400,7 @@ setup_libs(void) {
 	result = isc_entropy_create(mctx, &entp);
 	check_result(result, "isc_entropy_create");
 
-	result = dst_lib_init(mctx, entp, 0);
+	result = dst_lib_init(mctx, entp, NULL, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 

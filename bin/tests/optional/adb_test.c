@@ -180,10 +180,11 @@ create_view(void) {
 	 * Cache.
 	 */
 	cache = NULL;
-	result = dns_cache_create(mctx, taskmgr, timermgr, dns_rdataclass_in,
-				  "rbt", 0, NULL, &cache);
+	result = dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				  dns_rdataclass_in, "", "rbt", 0, NULL,
+				  &cache);
 	check_result(result, "dns_cache_create");
-	dns_view_setcache(view, cache);
+	dns_view_setcache(view, cache, ISC_FALSE);
 	dns_cache_detach(&cache);
 
 	{
@@ -258,7 +259,8 @@ lookup(const char *target) {
 	options |= DNS_ADBFIND_GLUEOK;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, 0, options,
-				    now, NULL, view->dstport, &client->find);
+				    now, NULL, view->dstport, 0, NULL,
+				    &client->find);
 	if (result != ISC_R_SUCCESS)
 		printf("DNS_ADB_CREATEFIND -> %s\n", dns_result_totext(result));
 	dns_adb_dumpfind(client->find, stderr);

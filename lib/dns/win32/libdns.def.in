@@ -18,11 +18,9 @@ dns_acl_isany
 dns_acl_isinsecure
 dns_acl_isnone
 dns_acl_match
-dns_acl_match2
 dns_acl_merge
 dns_acl_none
 dns_aclelement_match
-dns_aclelement_match2
 dns_aclenv_copy
 dns_aclenv_destroy
 dns_aclenv_init
@@ -34,7 +32,6 @@ dns_adb_cancelfind
 dns_adb_changeflags
 dns_adb_create
 dns_adb_createfind
-dns_adb_createfind2
 dns_adb_destroyfind
 dns_adb_detach
 dns_adb_dump
@@ -52,7 +49,6 @@ dns_adb_marklame
 dns_adb_noedns
 dns_adb_plainresponse
 dns_adb_probesize
-dns_adb_probesize2
 dns_adb_setadbsize
 dns_adb_setcookie
 dns_adb_setquota
@@ -72,14 +68,11 @@ dns_badcache_print
 dns_byaddr_cancel
 dns_byaddr_create
 dns_byaddr_createptrname
-dns_byaddr_createptrname2
 dns_byaddr_destroy
 dns_cache_attach
 dns_cache_attachdb
 dns_cache_clean
 dns_cache_create
-dns_cache_create2
-dns_cache_create3
 dns_cache_detach
 dns_cache_dump
 dns_cache_dumpstats
@@ -145,7 +138,6 @@ dns_client_cancelupdate
 dns_client_clearservers
 dns_client_create
 dns_client_createx
-dns_client_createx2
 dns_client_destroy
 dns_client_destroyreqtrans
 dns_client_destroyrestrans
@@ -194,7 +186,6 @@ dns_db_detachnode
 dns_db_diff
 dns_db_diffx
 dns_db_dump
-dns_db_dump2
 dns_db_endload
 dns_db_expirenode
 dns_db_find
@@ -219,8 +210,6 @@ dns_db_issecure
 dns_db_isstub
 dns_db_iszone
 dns_db_load
-dns_db_load2
-dns_db_load3
 dns_db_newversion
 dns_db_nodecount
 dns_db_nodefullname
@@ -280,13 +269,10 @@ dns_difftuple_copy
 dns_difftuple_create
 dns_difftuple_free
 dns_dispatch_addresponse
-dns_dispatch_addresponse2
-dns_dispatch_addresponse3
 dns_dispatch_attach
 dns_dispatch_cancel
 dns_dispatch_changeattributes
 dns_dispatch_createtcp
-dns_dispatch_createtcp2
 dns_dispatch_detach
 dns_dispatch_getattributes
 dns_dispatch_getdscp
@@ -295,7 +281,6 @@ dns_dispatch_getlocaladdress
 dns_dispatch_getnext
 dns_dispatch_getsocket
 dns_dispatch_gettcp
-dns_dispatch_gettcp2
 dns_dispatch_getudp
 dns_dispatch_getudp_dup
 dns_dispatch_importrecv
@@ -331,10 +316,7 @@ dns_dns64_destroy
 dns_dns64_next
 dns_dns64_unlink
 dns_dnssec_findmatchingkeys
-dns_dnssec_findmatchingkeys2
 dns_dnssec_findzonekeys
-dns_dnssec_findzonekeys2
-dns_dnssec_findzonekeys3
 dns_dnssec_keyactive
 dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
@@ -346,8 +328,6 @@ dns_dnssec_syncupdate
 dns_dnssec_syncupdate
 dns_dnssec_updatekeys
 dns_dnssec_verify
-dns_dnssec_verify2
-dns_dnssec_verify3
 dns_dnssec_verifymessage
 dns_dnsseckey_create
 dns_dnsseckey_destroy
@@ -359,7 +339,6 @@ dns_dsdigest_totext
 dns_dt_attach
 dns_dt_close
 dns_dt_create
-dns_dt_create2
 dns_dt_datatotext
 dns_dt_detach
 dns_dt_getframe
@@ -393,7 +372,6 @@ dns_fwdtable_create
 dns_fwdtable_delete
 dns_fwdtable_destroy
 dns_fwdtable_find
-dns_fwdtable_find2
 dns_generalstats_create
 dns_generalstats_dump
 dns_generalstats_increment
@@ -407,7 +385,6 @@ dns_ipkeylist_copy
 dns_ipkeylist_init
 dns_ipkeylist_resize
 dns_iptable_addprefix
-dns_iptable_addprefix2
 dns_iptable_attach
 dns_iptable_create
 dns_iptable_detach
@@ -443,7 +420,6 @@ dns_keynode_managed
 dns_keynode_trust
 dns_keyring_restore
 dns_keytable_add
-dns_keytable_add2
 dns_keytable_attach
 dns_keytable_attachkeynode
 dns_keytable_create
@@ -473,30 +449,16 @@ dns_lookup_cancel
 dns_lookup_create
 dns_lookup_destroy
 dns_master_dump
-dns_master_dump2
-dns_master_dump3
 dns_master_dumpinc
-dns_master_dumpinc2
-dns_master_dumpinc3
 dns_master_dumpnode
 dns_master_dumpnodetostream
 dns_master_dumptostream
-dns_master_dumptostream2
-dns_master_dumptostream3
 dns_master_dumptostreaminc
 dns_master_initrawheader
 dns_master_loadbuffer
 dns_master_loadbufferinc
 dns_master_loadfile
-dns_master_loadfile2
-dns_master_loadfile3
-dns_master_loadfile4
-dns_master_loadfile5
 dns_master_loadfileinc
-dns_master_loadfileinc2
-dns_master_loadfileinc3
-dns_master_loadfileinc4
-dns_master_loadfileinc5
 dns_master_loadlexer
 dns_master_loadlexerinc
 dns_master_loadstream
@@ -504,7 +466,6 @@ dns_master_loadstreaminc
 dns_master_questiontotext
 dns_master_rdatasettotext
 dns_master_stylecreate
-dns_master_stylecreate2
 dns_master_styledestroy
 dns_master_styleflags
 dns_message_addname
@@ -531,9 +492,7 @@ dns_message_gettimeadjust
 dns_message_gettsig
 dns_message_gettsigkey
 dns_message_logfmtpacket
-dns_message_logfmtpacket2
 dns_message_logpacket
-dns_message_logpacket2
 dns_message_movename
 dns_message_nextname
 dns_message_parse
@@ -881,13 +840,7 @@ dns_rdatatypestats_increment
 dns_request_cancel
 dns_request_create
 dns_request_createraw
-dns_request_createraw2
-dns_request_createraw3
-dns_request_createraw4
 dns_request_createvia
-dns_request_createvia2
-dns_request_createvia3
-dns_request_createvia4
 dns_request_destroy
 dns_request_getresponse
 dns_request_usedtcp
@@ -903,8 +856,6 @@ dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
 dns_resolver_createfetch
-dns_resolver_createfetch2
-dns_resolver_createfetch3
 dns_resolver_destroyfetch
 dns_resolver_detach
 dns_resolver_disable_algorithm
@@ -1021,7 +972,6 @@ dns_ssu_mtypefromstring
 dns_ssutable_addrule
 dns_ssutable_attach
 dns_ssutable_checkrules
-dns_ssutable_checkrules2
 dns_ssutable_create
 dns_ssutable_createdlz
 dns_ssutable_detach
@@ -1073,7 +1023,6 @@ dns_tsigrcode_fromtext
 dns_tsigrcode_totext
 dns_ttl_fromtext
 dns_ttl_totext
-dns_ttl_totext2
 dns_update_signatures
 dns_update_signaturesinc
 dns_update_soaserial
@@ -1094,13 +1043,10 @@ dns_view_dialup
 dns_view_dumpdbtostream
 dns_view_excludedelegationonly
 dns_view_find
-dns_view_find2
 dns_view_findzone
 dns_view_findzonecut
-dns_view_findzonecut2
 dns_view_flushanddetach
 dns_view_flushcache
-dns_view_flushcache2
 dns_view_flushname
 dns_view_flushnode
 dns_view_freeze
@@ -1130,7 +1076,6 @@ dns_view_saventa
 dns_view_searchdlz
 dns_view_setadbstats
 dns_view_setcache
-dns_view_setcache2
 dns_view_setdstport
 dns_view_setdynamickeyring
 dns_view_setfailttl
@@ -1152,8 +1097,6 @@ dns_viewlist_find
 dns_viewlist_findzone
 dns_xfrin_attach
 dns_xfrin_create
-dns_xfrin_create2
-dns_xfrin_create3
 dns_xfrin_detach
 dns_xfrin_shutdown
 dns_zone_addnsec3chain
@@ -1175,14 +1118,11 @@ dns_zone_dialup
 dns_zone_dlzpostload
 dns_zone_dump
 dns_zone_dumptostream
-dns_zone_dumptostream2
-dns_zone_dumptostream3
 dns_zone_expire
 dns_zone_first
 dns_zone_flush
 dns_zone_forcereload
 dns_zone_forwardupdate
-dns_zone_fulldumptostream
 dns_zone_get_parentcatz
 dns_zone_get_rpz_num
 dns_zone_getadded
@@ -1220,7 +1160,6 @@ dns_zone_getnotifysrc4dscp
 dns_zone_getnotifysrc6
 dns_zone_getnotifysrc6dscp
 dns_zone_getoptions
-dns_zone_getoptions2
 dns_zone_getorigin
 dns_zone_getprivatetype
 dns_zone_getqueryacl
@@ -1234,7 +1173,6 @@ dns_zone_getrequestexpire
 dns_zone_getrequestixfr
 dns_zone_getrequeststats
 dns_zone_getserial
-dns_zone_getserial2
 dns_zone_getserialupdatemethod
 dns_zone_getsignatures
 dns_zone_getsigresigninginterval
@@ -1271,7 +1209,6 @@ dns_zone_nameonly
 dns_zone_next
 dns_zone_notify
 dns_zone_notifyreceive
-dns_zone_notifyreceive2
 dns_zone_nscheck
 dns_zone_refresh
 dns_zone_rekey
@@ -1297,8 +1234,6 @@ dns_zone_setdb
 dns_zone_setdbtype
 dns_zone_setdialup
 dns_zone_setfile
-dns_zone_setfile2
-dns_zone_setfile3
 dns_zone_setflag
 dns_zone_setforwardacl
 dns_zone_setidlein
@@ -1328,7 +1263,6 @@ dns_zone_setnotifysrc6dscp
 dns_zone_setnotifytype
 dns_zone_setnsec3param
 dns_zone_setoption
-dns_zone_setoption2
 dns_zone_setorigin
 dns_zone_setprivatetype
 dns_zone_setqueryacl
@@ -1392,7 +1326,6 @@ dns_zonemgr_unreachable
 dns_zonemgr_unreachableadd
 dns_zonemgr_unreachabledel
 dns_zt_apply
-dns_zt_apply2
 dns_zt_asyncload
 dns_zt_attach
 dns_zt_create
@@ -1409,9 +1342,6 @@ dns_zt_unmount
 dst_algorithm_supported
 dst_context_adddata
 dst_context_create
-dst_context_create2
-dst_context_create3
-dst_context_create4
 dst_context_destroy
 dst_context_sign
 dst_context_verify
@@ -1442,7 +1372,6 @@ dst_key_fromgssapi
 dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
-dst_key_generate2
 dst_key_getbits
 dst_key_getfilename
 dst_key_getgssctx
@@ -1483,7 +1412,6 @@ dst_key_unsetnum
 dst_key_unsettime
 dst_lib_destroy
 dst_lib_init
-dst_lib_init2
 dst_lib_initmsgcat
 @IF PKCS11
 dst_random_getdata

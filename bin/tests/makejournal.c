@@ -75,7 +75,7 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_load(*db, filename);
+	result = dns_db_load(*db, filename, dns_masterformat_text, 0);
 	return (result);
 }
 
@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
+	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
 	dst_active = ISC_TRUE;
 
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));

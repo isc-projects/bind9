@@ -130,10 +130,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
-			dns_rdatatype_t type, const dst_key_t *key);
-isc_boolean_t
-dns_ssutable_checkrules2(dns_ssutable_t *table, const dns_name_t *signer,
-			const dns_name_t *name, const isc_netaddr_t *addr,
 			isc_boolean_t tcp, const dns_aclenv_t *env,
 			dns_rdatatype_t type, const dst_key_t *key);
 /*%<

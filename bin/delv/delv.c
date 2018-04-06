@@ -521,17 +521,17 @@ setup_style(dns_master_style_t **stylep) {
 	}
 
 	if (multiline || (nottl && noclass))
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 24, 32, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8,
+						splitwidth, mctx);
 	else if (nottl || noclass)
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 32, 40, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8,
+						splitwidth, mctx);
 	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 32, 40, 48, 80, 8,
-						 splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8,
+						splitwidth, mctx);
 
 	if (result == ISC_R_SUCCESS)
 		*stylep = style;
@@ -1540,7 +1540,7 @@ get_reverse(char *reverse, size_t len, char *value, isc_boolean_t strict) {
 
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname2(&addr, options, name);
+		result = dns_byaddr_createptrname(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_format(name, reverse, (unsigned int)len);
@@ -1624,8 +1624,8 @@ main(int argc, char *argv[]) {
 
 	/* Create client */
 	clopt = DNS_CLIENTCREATEOPT_USECACHE;
-	result = dns_client_createx2(mctx, actx, taskmgr, socketmgr, timermgr,
-				     clopt, &client, srcaddr4, srcaddr6);
+	result = dns_client_createx(mctx, actx, taskmgr, socketmgr, timermgr,
+				    clopt, &client, srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			  isc_result_totext(result));

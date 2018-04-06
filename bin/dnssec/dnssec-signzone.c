@@ -295,8 +295,8 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
-					   ISC_TRUE, mctx, &trdata);
-		if (result == ISC_R_SUCCESS) {
+					   ISC_TRUE, 0, mctx, &trdata, NULL);
+		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 			vbprintf(3, "\tsignature verified\n");
 			INCSTAT(nverified);
 		} else {
@@ -456,8 +456,9 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	    dns_rdata_t *rrsig)
 {
 	isc_result_t result;
-	result = dns_dnssec_verify(name, set, key, ISC_FALSE, mctx, rrsig);
-	if (result == ISC_R_SUCCESS) {
+	result = dns_dnssec_verify(name, set, key, ISC_FALSE, 0, mctx, rrsig,
+				   NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
 		INCSTAT(nverified);
 		return (ISC_TRUE);
 	} else {
@@ -905,7 +906,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 			       rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load3(*dbp, filename, inputformat, DNS_MASTER_HINT);
+	result = dns_db_load(*dbp, filename, inputformat, DNS_MASTER_HINT);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		dns_db_detach(dbp);
 }
@@ -2470,7 +2471,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load2(*db, file, inputformat);
+	result = dns_db_load(*db, file, inputformat, 0);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));
@@ -2636,7 +2637,7 @@ build_final_keylist(void) {
 	 * Find keys that match this zone in the key repository.
 	 */
 	result = dns_dnssec_findmatchingkeys(gorigin, directory,
-					     mctx, &matchkeys);
+					     now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND) {
 		result = ISC_R_SUCCESS;
 	}
@@ -2985,7 +2986,8 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	check_result(result, "dns_diff_apply");
 	dns_diff_clear(&diff);
 
-	result = dns_master_dump(mctx, db, dbversion, style, filename);
+	result = dns_master_dump(mctx, db, dbversion, style, filename,
+				 dns_masterformat_text, NULL);
 	check_result(result, "dns_master_dump");
 
 	isc_mem_put(mctx, filename, filenamelen);
@@ -3503,7 +3505,7 @@ main(int argc, char *argv[]) {
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
 
-	result = dst_lib_init2(mctx, ectx, engine, eflags);
+	result = dst_lib_init(mctx, ectx, engine, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
@@ -3633,8 +3635,8 @@ main(int argc, char *argv[]) {
 	if (output_dnssec_only && set_maxttl)
 		fatal("option -D cannot be used with -M");
 
-	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
-					0, 24, 0, 0, 0, 8, mctx);
+	result = dns_master_stylecreate(&dsstyle, DNS_STYLEFLAG_NO_TTL,
+					0, 24, 0, 0, 0, 8, 0xffffffff, mctx);
 	check_result(result, "dns_master_stylecreate");
 
 	gdb = NULL;
@@ -3878,9 +3880,9 @@ main(int argc, char *argv[]) {
 			header.flags = DNS_MASTERRAW_SOURCESERIALSET;
 			header.sourceserial = serialnum;
 		}
-		result = dns_master_dumptostream3(mctx, gdb, gversion,
-						  masterstyle, outputformat,
-						  &header, outfp);
+		result = dns_master_dumptostream(mctx, gdb, gversion,
+						 masterstyle, outputformat,
+						 &header, outfp);
 		check_result(result, "dns_master_dumptostream3");
 	}
 

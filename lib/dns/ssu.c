@@ -343,19 +343,9 @@ stf_from_address(dns_name_t *stfself, const isc_netaddr_t *tcpaddr) {
 
 isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
-			const dns_name_t *name, const isc_netaddr_t *tcpaddr,
+			const dns_name_t *name, const isc_netaddr_t *addr,
+			isc_boolean_t tcp, const dns_aclenv_t *env,
 			dns_rdatatype_t type, const dst_key_t *key)
-{
-	return (dns_ssutable_checkrules2
-		(table, signer, name, tcpaddr,
-		 tcpaddr == NULL ? ISC_FALSE : ISC_TRUE,
-		 NULL, type, key));
-}
-isc_boolean_t
-dns_ssutable_checkrules2(dns_ssutable_t *table, const dns_name_t *signer,
-			 const dns_name_t *name, const isc_netaddr_t *addr,
-			 isc_boolean_t tcp, const dns_aclenv_t *env,
-			 dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_ssurule_t *rule;
 	unsigned int i;
@@ -430,8 +420,9 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, const dns_name_t *signer,
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
-			dns_acl_match(addr, NULL, env->localhost,
-				      NULL, &match, NULL);
+				dns_acl_match(addr, NULL, NULL, 0, NULL,
+					      env->localhost, NULL, &match,
+					      NULL);
 			if (match == 0) {
 				if (signer != NULL) {
 					isc_log_write(dns_lctx,

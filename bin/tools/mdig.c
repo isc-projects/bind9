@@ -268,17 +268,17 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
 	}
 	if (display_multiline || (!display_ttl && !display_class))
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 24, 32, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8,
+						display_splitwidth, mctx);
 	else if (!display_ttl || !display_class)
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 24, 32, 40, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8,
+						display_splitwidth, mctx);
 	else
-		result = dns_master_stylecreate2(&style, styleflags,
-						 24, 32, 40, 48, 80, 8,
-						 display_splitwidth, mctx);
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8,
+						display_splitwidth, mctx);
 	CHECK("dns_master_stylecreate2", result);
 
 	flags = 0;
@@ -684,12 +684,12 @@ sendquery(struct query *query, isc_task_t *task)
 	if (tcp_mode)
 		options |= DNS_REQUESTOPT_TCP | DNS_REQUESTOPT_SHARE;
 	request = NULL;
-	result = dns_request_createvia4(requestmgr, message,
-					have_src ? &srcaddr : NULL, &dstaddr,
-					dscp, options, NULL,
-					query->timeout, query->udptimeout,
-					query->udpretries, task,
-					recvresponse, message, &request);
+	result = dns_request_createvia(requestmgr, message,
+				       have_src ? &srcaddr : NULL, &dstaddr,
+				       dscp, options, NULL,
+				       query->timeout, query->udptimeout,
+				       query->udpretries, task,
+				       recvresponse, message, &request);
 	CHECK("dns_request_createvia4", result);
 
 	return ISC_R_SUCCESS;
@@ -1004,7 +1004,7 @@ get_reverse(char *reverse, size_t len, const char *value,
 			options |= DNS_BYADDROPT_IPV6INT;
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname2(&addr, options, name);
+		result = dns_byaddr_createptrname(&addr, options, name);
 		CHECK("dns_byaddr_createptrname2", result);
 		dns_name_format(name, reverse, (unsigned int)len);
 		return;
@@ -1934,7 +1934,7 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
 	RUNCHECK(isc_entropy_getdata(ectx, cookie_secret,
 				     sizeof(cookie_secret), NULL, 0));
 

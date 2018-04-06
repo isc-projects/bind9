@@ -99,18 +99,17 @@ isc_boolean_t docheckmx = ISC_FALSE;
 isc_boolean_t dochecksrv = ISC_FALSE;
 isc_boolean_t docheckns = ISC_FALSE;
 #endif
-unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
-			    DNS_ZONEOPT_CHECKMX |
-			    DNS_ZONEOPT_MANYERRORS |
-			    DNS_ZONEOPT_CHECKNAMES |
-			    DNS_ZONEOPT_CHECKINTEGRITY |
+dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS |
+			     DNS_ZONEOPT_CHECKMX |
+			     DNS_ZONEOPT_MANYERRORS |
+			     DNS_ZONEOPT_CHECKNAMES |
+			     DNS_ZONEOPT_CHECKINTEGRITY |
 #if CHECK_SIBLING
-			    DNS_ZONEOPT_CHECKSIBLING |
+			     DNS_ZONEOPT_CHECKSIBLING |
 #endif
-			    DNS_ZONEOPT_CHECKWILDCARD |
-			    DNS_ZONEOPT_WARNMXCNAME |
-			    DNS_ZONEOPT_WARNSRVCNAME;
-unsigned int zone_options2 = 0;
+			     DNS_ZONEOPT_CHECKWILDCARD |
+			     DNS_ZONEOPT_WARNMXCNAME |
+			     DNS_ZONEOPT_WARNSRVCNAME;
 
 /*
  * This needs to match the list in bin/named/log.c.
@@ -691,7 +690,8 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
 	CHECK(dns_zone_setorigin(zone, origin));
 	CHECK(dns_zone_setdbtype(zone, 1, (const char * const *) dbtype));
-	CHECK(dns_zone_setfile2(zone, filename, fileformat));
+	CHECK(dns_zone_setfile(zone, filename, fileformat,
+			       &dns_master_style_default));
 	if (journal != NULL)
 		CHECK(dns_zone_setjournal(zone, journal));
 
@@ -701,7 +701,6 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 	dns_zone_setclass(zone, rdclass);
 	dns_zone_setoption(zone, zone_options, ISC_TRUE);
-	dns_zone_setoption2(zone, zone_options2, ISC_TRUE);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
 
 	dns_zone_setmaxttl(zone, maxttl);
@@ -764,8 +763,8 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 		}
 	}
 
-	result = dns_zone_dumptostream3(zone, output, fileformat, style,
-					rawversion);
+	result = dns_zone_dumptostream(zone, output, fileformat, style,
+				       rawversion);
 	if (output != stdout)
 		(void)isc_stdio_close(output);
 

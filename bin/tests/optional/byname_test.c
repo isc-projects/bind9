@@ -120,7 +120,7 @@ do_find(isc_boolean_t want_event) {
 				    dns_fixedname_name(&fixed),
 				    dns_rootname, 0, options, 0,
 				    dns_fixedname_name(&target), 0,
-				    &find);
+				    0, NULL, &find);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LIST_EMPTY(find->list)) {
 			/*
@@ -250,8 +250,8 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_socketmgr_create(mctx, &socketmgr) == ISC_R_SUCCESS);
 
 	cache = NULL;
-	RUNTIME_CHECK(dns_cache_create(mctx, taskmgr, timermgr,
-				       dns_rdataclass_in, "rbt", 0, NULL,
+	RUNTIME_CHECK(dns_cache_create(mctx, mctx, taskmgr, timermgr,
+				       dns_rdataclass_in, "", "rbt", 0, NULL,
 				       &cache) == ISC_R_SUCCESS);
 
 	view = NULL;
@@ -322,7 +322,7 @@ main(int argc, char *argv[]) {
 			      == ISC_R_SUCCESS);
 	}
 
-	dns_view_setcache(view, cache);
+	dns_view_setcache(view, cache, ISC_FALSE);
 	dns_view_freeze(view);
 
 	dns_cache_detach(&cache);

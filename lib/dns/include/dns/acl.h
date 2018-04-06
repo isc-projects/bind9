@@ -211,21 +211,13 @@ dns_aclenv_destroy(dns_aclenv_t *env);
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_name_t *reqsigner,
+	      const isc_netaddr_t *ecs,
+	      isc_uint8_t ecslen,
+	      isc_uint8_t *scope,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
 	      const dns_aclelement_t **matchelt);
-
-isc_result_t
-dns_acl_match2(const isc_netaddr_t *reqaddr,
-	       const dns_name_t *reqsigner,
-	       const isc_netaddr_t *ecs,
-	       isc_uint8_t ecslen,
-	       isc_uint8_t *scope,
-	       const dns_acl_t *acl,
-	       const dns_aclenv_t *env,
-	       int *match,
-	       const dns_aclelement_t **matchelt);
 /*%<
  * General, low-level ACL matching.  This is expected to
  * be useful even for weird stuff like the topology and sortlist statements.
@@ -260,19 +252,12 @@ dns_acl_match2(const isc_netaddr_t *reqaddr,
 isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
+		     const isc_netaddr_t *ecs,
+		     isc_uint8_t ecslen,
+		     isc_uint8_t *scope,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
-
-isc_boolean_t
-dns_aclelement_match2(const isc_netaddr_t *reqaddr,
-		      const dns_name_t *reqsigner,
-		      const isc_netaddr_t *ecs,
-		      isc_uint8_t ecslen,
-		      isc_uint8_t *scope,
-		      const dns_aclelement_t *e,
-		      const dns_aclenv_t *env,
-		      const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.
