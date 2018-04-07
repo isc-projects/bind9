@@ -32,7 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	@PKCS11_TOOLS@
+SUBDIRS =	system @PKCS11_TOOLS@
 TESTDIRS =	system
 
 # Test programs that are built by default:
