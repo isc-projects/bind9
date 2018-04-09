@@ -3106,6 +3106,7 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 	   isc_httpdfree_t **freecb, void **freecb_args)
 {
 	isc_result_t result;
+	char *_headers = NULL;
 
 	UNUSED(url);
 	UNUSED(querystring);
@@ -3117,30 +3118,39 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 
 	if (urlinfo->isstatic) {
 		isc_time_t when;
-		char *p = strcasestr(headers, "If-Modified-Since: ");
+		char *line, *saveptr;
+		const char *if_modified_since = "If-Modified-Since: ";
+		_headers = strdup(headers);
 
-		if (p != NULL) {
-			time_t t1, t2;
-			p += strlen("If-Modified-Since: ");
-			result = isc_time_parsehttptimestamp(p, &when);
-			if (result != ISC_R_SUCCESS)
-				goto send;
+		for (line = strtok_r(_headers, "\n", &saveptr);
+		     line;
+		     line = strtok_r(NULL, "\n", &saveptr)) {
+			if (strncasecmp(line, if_modified_since, strlen(if_modified_since)) == 0) {
+				time_t t1, t2;
+				line += strlen(if_modified_since);
+				result = isc_time_parsehttptimestamp(line, &when);
+				if (result != ISC_R_SUCCESS) {
+					goto send;
+				}
 
-			result = isc_time_secondsastimet(&when, &t1);
-			if (result != ISC_R_SUCCESS)
-				goto send;
+				result = isc_time_secondsastimet(&when, &t1);
+				if (result != ISC_R_SUCCESS) {
+					goto send;
+				}
 
-			result = isc_time_secondsastimet(&urlinfo->loadtime,
-							 &t2);
-			if (result != ISC_R_SUCCESS)
-				goto send;
+				result = isc_time_secondsastimet(&urlinfo->loadtime, &t2);
+				if (result != ISC_R_SUCCESS) {
+					goto send;
+				}
 
-			if (t1 < t2)
-				goto send;
+				if (t1 < t2) {
+					goto send;
+				}
 
-			*retcode = 304;
-			*retmsg = "Not modified";
-			return (ISC_R_SUCCESS);
+				*retcode = 304;
+				*retmsg = "Not modified";
+				goto end;
+			}
 		}
 	}
 
@@ -3149,7 +3159,10 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 	*retmsg = "OK";
 	isc_buffer_reinit(b, xslmsg, strlen(xslmsg));
 	isc_buffer_add(b, strlen(xslmsg));
-
+end:
+	if (_headers) {
+		free(_headers);
+	}
 	return (ISC_R_SUCCESS);
 }
 
