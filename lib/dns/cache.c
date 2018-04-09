@@ -1233,8 +1233,7 @@ cleartree(dns_db_t *db, const dns_name_t *name) {
 	 */
 	(void)dns_db_findnode(db, name, ISC_TRUE, &top);
 
-	dns_fixedname_init(&fnodename);
-	nodename = dns_fixedname_name(&fnodename);
+	nodename = dns_fixedname_initname(&fnodename);
 
 	result = dns_db_createiterator(db, 0, &iter);
 	if (result != ISC_R_SUCCESS)

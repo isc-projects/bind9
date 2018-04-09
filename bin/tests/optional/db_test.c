@@ -121,8 +121,7 @@ select_db(char *origintext) {
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len);
 	isc_buffer_add(&source, len);
-	dns_fixedname_init(&forigin);
-	origin = dns_fixedname_name(&forigin);
+	origin = dns_fixedname_initname(&forigin);
 	result = dns_name_fromtext(origin, &source, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		print_result("bad name", result);
@@ -152,8 +151,7 @@ list(dbinfo *dbi, char *seektext) {
 	dns_name_t *seekname;
 	isc_buffer_t source;
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 
 	if (dbi->dbiterator == NULL) {
 		INSIST(dbi->iversion == NULL);
@@ -171,8 +169,7 @@ list(dbinfo *dbi, char *seektext) {
 				len = strlen(seektext);
 				isc_buffer_init(&source, seektext, len);
 				isc_buffer_add(&source, len);
-				dns_fixedname_init(&fseekname);
-				seekname = dns_fixedname_name(&fseekname);
+				seekname = dns_fixedname_initname(&fseekname);
 				result = dns_name_fromtext(seekname, &source,
 							   dns_db_origin(
 								 dbi->db),
@@ -256,8 +253,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	len = strlen(origintext);
 	isc_buffer_constinit(&source, origintext, len);
 	isc_buffer_add(&source, len);
-	dns_fixedname_init(&forigin);
-	origin = dns_fixedname_name(&forigin);
+	origin = dns_fixedname_initname(&forigin);
 	result = dns_name_fromtext(origin, &source, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, dbi, sizeof(*dbi));
@@ -454,8 +450,7 @@ main(int argc, char *argv[]) {
 	/*
 	 * Some final initialization...
 	 */
-	dns_fixedname_init(&foundname);
-	fname = dns_fixedname_name(&foundname);
+	fname = dns_fixedname_initname(&foundname);
 	dbi = NULL;
 	origin = dns_rootname;
 	version = NULL;

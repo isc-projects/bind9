@@ -99,8 +99,7 @@ test_walk(const atf_tc_t *tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&f);
-	name = dns_fixedname_name(&f);
+	name = dns_fixedname_initname(&f);
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -162,8 +161,7 @@ static void test_reverse(const atf_tc_t *tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&f);
-	name = dns_fixedname_name(&f);
+	name = dns_fixedname_initname(&f);
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -223,10 +221,8 @@ static void test_seek(const atf_tc_t *tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&f1);
-	name = dns_fixedname_name(&f1);
-	dns_fixedname_init(&f2);
-	seekname = dns_fixedname_name(&f2);
+	name = dns_fixedname_initname(&f1);
+	seekname = dns_fixedname_initname(&f2);
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -296,8 +292,7 @@ static void test_seek_empty(const atf_tc_t *tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&f1);
-	seekname = dns_fixedname_name(&f1);
+	seekname = dns_fixedname_initname(&f1);
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -353,8 +348,7 @@ static void test_seek_nx(const atf_tc_t *tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&f1);
-	seekname = dns_fixedname_name(&f1);
+	seekname = dns_fixedname_initname(&f1);
 
 	result = dns_test_begin(NULL, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);

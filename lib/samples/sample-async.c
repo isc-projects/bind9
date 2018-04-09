@@ -222,8 +222,7 @@ dispatch_query(struct query_trans *trans) {
 	namelen = strlen(buf);
 	isc_buffer_init(&b, buf, namelen);
 	isc_buffer_add(&b, namelen);
-	dns_fixedname_init(&trans->fixedname);
-	trans->qname = dns_fixedname_name(&trans->fixedname);
+	trans->qname = dns_fixedname_initname(&trans->fixedname);
 	result = dns_name_fromtext(trans->qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
