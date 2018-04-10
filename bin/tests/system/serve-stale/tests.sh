@@ -422,7 +422,7 @@ n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (stale-answer-ttl=1 max-stale-ttl=604800)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (stale-answer-ttl=1 max-stale-ttl=0)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -464,7 +464,7 @@ n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=604800)' rndc.out.test$n > /dev/null || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=1 max-stale-ttl=0)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -472,8 +472,8 @@ n=`expr $n + 1`
 echo_i "check data.example (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -481,7 +481,7 @@ n=`expr $n + 1`
 echo_i "check nodata.example (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -490,7 +490,7 @@ n=`expr $n + 1`
 echo_i "check nxdomain.example (max-stale-ttl default) ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT > dig.out.test$n
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
