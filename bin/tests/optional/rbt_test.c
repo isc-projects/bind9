@@ -110,13 +110,9 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 
 	dns_rbtnodechain_init(&chain, mctx);
 
-	dns_fixedname_init(&fixedorigin);
-	dns_fixedname_init(&fixedfullname);
-	dns_fixedname_init(&fixedfoundname);
-
-	origin = dns_fixedname_name(&fixedorigin);
-	fullname = dns_fixedname_name(&fixedfullname);
-	foundname = dns_fixedname_name(&fixedfoundname);
+	origin = dns_fixedname_initname(&fixedorigin);
+	fullname = dns_fixedname_initname(&fixedfullname);
+	foundname = dns_fixedname_initname(&fixedfoundname);
 
 	node1 = node2 = NULL;
 
@@ -194,8 +190,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 	dns_rbtnodechain_init(&chain, mctx);
 
 	dns_name_init(&foundname, NULL);
-	dns_fixedname_init(&fixedorigin);
-	origin = dns_fixedname_name(&fixedorigin);
+	origin = dns_fixedname_initname(&fixedorigin);
 
 	if (forward) {
 		printf("iterating forward\n" );
@@ -363,9 +358,8 @@ main(int argc, char **argv) {
 					printf("searching for name %s ... ",
 					       arg);
 
-					dns_fixedname_init(&fixedname);
 					foundname =
-						dns_fixedname_name(&fixedname);
+					    dns_fixedname_initname(&fixedname);
 					data = NULL;
 
 					result = dns_rbt_findname(rbt, name, 0,

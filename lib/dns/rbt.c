@@ -800,8 +800,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 	CONFIRM(dns_name_isvalid(fullname));
 
 	if (!dns_name_isabsolute(&nodename)) {
-		dns_fixedname_init(&fixed);
-		fullname = dns_fixedname_name(&fixed);
+		fullname = dns_fixedname_initname(&fixed);
 		CHECK(dns_name_concatenate(&nodename, name, fullname, NULL));
 	}
 
@@ -1191,8 +1190,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Create a copy of the name so the original name structure is
 	 * not modified.
 	 */
-	dns_fixedname_init(&fixedcopy);
-	add_name = dns_fixedname_name(&fixedcopy);
+	add_name = dns_fixedname_initname(&fixedcopy);
 	dns_name_clone(name, add_name);
 
 	if (ISC_UNLIKELY(rbt->root == NULL)) {
@@ -1212,10 +1210,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	level_count = 0;
 
-	dns_fixedname_init(&fixedprefix);
-	dns_fixedname_init(&fixedsuffix);
-	prefix = dns_fixedname_name(&fixedprefix);
-	suffix = dns_fixedname_name(&fixedsuffix);
+	prefix = dns_fixedname_initname(&fixedprefix);
+	suffix = dns_fixedname_initname(&fixedsuffix);
 
 	root = &rbt->root;
 	INSIST(IS_ROOT(*root));
@@ -1223,8 +1219,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	current = NULL;
 	child = *root;
 	dns_name_init(&current_name, current_offsets);
-	dns_fixedname_init(&fnewname);
-	new_name = dns_fixedname_name(&fnewname);
+	new_name = dns_fixedname_initname(&fnewname);
 	nlabels = dns_name_countlabels(name);
 	hlabels = 0;
 
@@ -1529,8 +1524,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	last_compared = NULL;
 	order = 0;
 
-	dns_fixedname_init(&fixedcallbackname);
-	callback_name = dns_fixedname_name(&fixedcallbackname);
+	callback_name = dns_fixedname_initname(&fixedcallbackname);
 
 	/*
 	 * search_name is the name segment being sought in each tree level.
@@ -1539,8 +1533,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	 * By using dns_name_clone, no name data should be copied thanks to
 	 * the lack of bitstring labels.
 	 */
-	dns_fixedname_init(&fixedsearchname);
-	search_name = dns_fixedname_name(&fixedsearchname);
+	search_name = dns_fixedname_initname(&fixedsearchname);
 	dns_name_clone(name, search_name);
 
 	dns_name_init(&current_name, NULL);
@@ -2219,8 +2212,7 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname, unsigned int size)
 	REQUIRE(DNS_RBTNODE_VALID(node));
 	REQUIRE(printname != NULL);
 
-	dns_fixedname_init(&fixedname);
-	name = dns_fixedname_name(&fixedname);
+	name = dns_fixedname_initname(&fixedname);
 	result = dns_rbt_fullnamefromnode(node, name);
 	if (result == ISC_R_SUCCESS)
 		dns_name_format(name, printname, size);

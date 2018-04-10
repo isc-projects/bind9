@@ -69,8 +69,7 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		n = cfg_obj_asuint32(cfg_tuple_get(obj, "keyid"));
 		isc_buffer_constinit(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_KEY;
 		RETERR(dst_key_fromfile(name, (dns_keytag_t) n, DNS_KEYALG_DH,
@@ -83,8 +82,7 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		s = cfg_obj_asstring(obj);
 		isc_buffer_constinit(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 		tctx->domain = isc_mem_get(mctx, sizeof(dns_name_t));
 		if (tctx->domain == NULL) {
@@ -102,8 +100,7 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 
 		isc_buffer_constinit(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 		RETERR(dst_gssapi_acquirecred(name, ISC_FALSE, &tctx->gsscred));
 	}

@@ -96,6 +96,9 @@
     <ClCompile Include="..\ecdb.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\fixedname.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\forward.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>

@@ -433,8 +433,7 @@ getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	dns_fixedname_init(&fnewname);
-	newname = dns_fixedname_name(&fnewname);
+	newname = dns_fixedname_initname(&fnewname);
 
 	if ((imp->flags & DNS_SDBFLAG_RELATIVERDATA) != 0)
 		origin = &sdb->common.origin;
@@ -835,8 +834,7 @@ findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	olabels = dns_name_countlabels(&db->origin);
 	nlabels = dns_name_countlabels(name);
 
-	dns_fixedname_init(&fname);
-	xname = dns_fixedname_name(&fname);
+	xname = dns_fixedname_initname(&fname);
 
 	if (rdataset == NULL) {
 		dns_rdataset_init(&xrdataset);

@@ -22,8 +22,9 @@
  * \brief
  * Fixed-size Names
  *
- * dns_fixedname_t is a convenience type containing a name, an offsets table,
- * and a dedicated buffer big enough for the longest possible name.
+ * dns_fixedname_t is a convenience type containing a name, an offsets
+ * table, and a dedicated buffer big enough for the longest possible
+ * name. This is typically used for stack-allocated names.
  *
  * MP:
  *\li	The caller must ensure any required synchronization.
@@ -64,17 +65,16 @@ struct dns_fixedname {
 	unsigned char			data[DNS_NAME_MAXWIRE];
 };
 
-#define dns_fixedname_init(fn) \
-	do { \
-		dns_name_init(&((fn)->name), (fn)->offsets); \
-		isc_buffer_init(&((fn)->buffer), (fn)->data, \
-				  DNS_NAME_MAXWIRE); \
-		dns_name_setbuffer(&((fn)->name), &((fn)->buffer)); \
-	} while (0)
+void
+dns_fixedname_init(dns_fixedname_t *fixed);
 
-#define dns_fixedname_invalidate(fn) \
-	dns_name_invalidate(&((fn)->name))
+void
+dns_fixedname_invalidate(dns_fixedname_t *fixed);
 
-#define dns_fixedname_name(fn)		(&((fn)->name))
+dns_name_t *
+dns_fixedname_name(dns_fixedname_t *fixed);
+
+dns_name_t *
+dns_fixedname_initname(dns_fixedname_t *fixed);
 
 #endif /* DNS_FIXEDNAME_H */

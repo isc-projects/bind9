@@ -60,8 +60,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	if (!dst_ds_digest_supported(digest_type))
 		return (ISC_R_NOTIMPLEMENTED);
 
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	(void)dns_name_downcase(owner, name, NULL);
 
 	memset(buffer, 0, DNS_DS_BUFFERSIZE);

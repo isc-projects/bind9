@@ -463,8 +463,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	i = 0;
 	added = 0;
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 	dns_name_copy(owner_name, name, NULL);
 	dns_rdataset_getownercase(rdataset, name);
 

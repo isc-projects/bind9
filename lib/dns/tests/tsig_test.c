@@ -272,8 +272,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 
 	/* isc_log_setdebuglevel(lctx, 99); */
 
-	dns_fixedname_init(&fkeyname);
-	keyname = dns_fixedname_name(&fkeyname);
+	keyname = dns_fixedname_initname(&fkeyname);
 	result = dns_name_fromstring(keyname, "test", 0, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 

@@ -118,8 +118,7 @@ main(int argc, char *argv[]) {
 			len = strlen(argv[0]);
 			isc_buffer_init(&source, argv[0], len);
 			isc_buffer_add(&source, len);
-			dns_fixedname_init(&oname);
-			origin = &oname.name;
+			origin = dns_fixedname_initname(&oname);
 			result = dns_name_fromtext(origin, &source,
 						   dns_rootname, 0, NULL);
 			if (result != 0) {
@@ -141,8 +140,7 @@ main(int argc, char *argv[]) {
 			len = strlen(argv[1]);
 			isc_buffer_init(&source, argv[1], len);
 			isc_buffer_add(&source, len);
-			dns_fixedname_init(&compname);
-			comp = &compname.name;
+			comp = dns_fixedname_initname(&compname);
 			result = dns_name_fromtext(comp, &source, origin,
 						   0, NULL);
 			if (result != 0) {
@@ -155,8 +153,7 @@ main(int argc, char *argv[]) {
 	} else
 		comp = NULL;
 
-	dns_fixedname_init(&wname);
-	name = dns_fixedname_name(&wname);
+	name = dns_fixedname_initname(&wname);
 	dns_fixedname_init(&wname2);
 	while (fgets(s, sizeof(s), stdin) != NULL) {
 		len = strlen(s);
@@ -209,11 +206,12 @@ main(int argc, char *argv[]) {
 		if (concatenate) {
 			if (got_name) {
 				printf("Concatenating.\n");
-				result = dns_name_concatenate(&wname.name,
-							      &wname2.name,
-							      &wname2.name,
-							      NULL);
-				name = &wname2.name;
+				result = dns_name_concatenate(
+						   dns_fixedname_name(&wname),
+						   dns_fixedname_name(&wname2),
+						   dns_fixedname_name(&wname2),
+						   NULL);
+				name = dns_fixedname_name(&wname2);
 				if (result == ISC_R_SUCCESS) {
 					if (check_absolute &&
 					    dns_name_countlabels(name) > 0) {
@@ -266,8 +264,7 @@ main(int argc, char *argv[]) {
 			if (inplace) {
 				down = name;
 			} else {
-				dns_fixedname_init(&downname);
-				down = dns_fixedname_name(&downname);
+				down = dns_fixedname_initname(&downname);
 			}
 			result = dns_name_downcase(name, down, NULL);
 			INSIST(result == ISC_R_SUCCESS);
@@ -320,10 +317,8 @@ main(int argc, char *argv[]) {
 
 		labels = dns_name_countlabels(name);
 		if (want_split && split_label < labels) {
-			dns_fixedname_init(&fprefix);
-			prefix = dns_fixedname_name(&fprefix);
-			dns_fixedname_init(&fsuffix);
-			suffix = dns_fixedname_name(&fsuffix);
+			prefix = dns_fixedname_initname(&fprefix);
+			suffix = dns_fixedname_initname(&fsuffix);
 			printf("splitting at label %u: ", split_label);
 			dns_name_split(name, split_label, prefix, suffix);
 			printf("\n    prefix = ");
@@ -334,9 +329,9 @@ main(int argc, char *argv[]) {
 
 		if (concatenate) {
 			if (got_name)
-				name = &wname2.name;
+				name = dns_fixedname_name(&wname2);
 			else
-				name = &wname.name;
+				name = dns_fixedname_name(&wname);
 		}
 	}
 

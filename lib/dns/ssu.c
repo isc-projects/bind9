@@ -456,8 +456,7 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 				continue;
 			break;
 		case DNS_SSUMATCHTYPE_SELFWILD:
-			dns_fixedname_init(&fixed);
-			wildcard = dns_fixedname_name(&fixed);
+			wildcard = dns_fixedname_initname(&fixed);
 			result = dns_name_concatenate(dns_wildcardname, signer,
 						      wildcard, NULL);
 			if (result != ISC_R_SUCCESS)
@@ -490,8 +489,7 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 				continue;
 			break;
 		case DNS_SSUMATCHTYPE_TCPSELF:
-			dns_fixedname_init(&fixed);
-			tcpself = dns_fixedname_name(&fixed);
+			tcpself = dns_fixedname_initname(&fixed);
 			reverse_from_address(tcpself, addr);
 			if (dns_name_iswildcard(rule->identity)) {
 				if (!dns_name_matcheswildcard(tcpself,
@@ -505,8 +503,7 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 				continue;
 			break;
 		case DNS_SSUMATCHTYPE_6TO4SELF:
-			dns_fixedname_init(&fixed);
-			stfself = dns_fixedname_name(&fixed);
+			stfself = dns_fixedname_initname(&fixed);
 			stf_from_address(stfself, addr);
 			if (dns_name_iswildcard(rule->identity)) {
 				if (!dns_name_matcheswildcard(stfself,

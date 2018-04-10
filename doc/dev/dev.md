@@ -874,8 +874,7 @@ name.  This allows names to be stack-allocated with minimal initialization:
         dns_fixedname_t fn;
         dns_name_t *name;
 
-        dns_fixedname_init(&fn)
-        name = dns_fixedname_name(&fn);
+        name = dns_fixedname_initname(&fn);
 
 `name` is now a pointer to a `dns_name` object in which a name can be
 stored for the duration of this function; there is no need to initialize,

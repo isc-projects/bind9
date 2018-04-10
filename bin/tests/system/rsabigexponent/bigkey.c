@@ -206,8 +206,7 @@ main(int argc, char **argv) {
 	      "isc_log_createchannel()");
 	CHECK(isc_log_usechannel(logconfig, "stderr", NULL, NULL),
 	      "isc_log_usechannel()");
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&buf, "example.", strlen("example."));
 	isc_buffer_add(&buf, strlen("example."));
 	CHECK(dns_name_fromtext(name, &buf, dns_rootname, 0, NULL),
