@@ -84,10 +84,8 @@ ATF_TC_BODY(fullcompare, tc) {
 
 	UNUSED(tc);
 
-	dns_fixedname_init(&fixed1);
-	name1 = dns_fixedname_name(&fixed1);
-	dns_fixedname_init(&fixed2);
-	name2 = dns_fixedname_name(&fixed2);
+	name1 = dns_fixedname_initname(&fixed1);
+	name2 = dns_fixedname_initname(&fixed2);
 	for (i = 0; data[i].name1 != NULL; i++) {
 		int order = 3000;
 		unsigned int nlabels = 3000;
@@ -315,8 +313,7 @@ ATF_TC_BODY(istat, tc) {
 		{ "_ta-1234-abcf-EcD89.example", ISC_FALSE }
 	};
 
-	dns_fixedname_init(&fixed);
-	name = dns_fixedname_name(&fixed);
+	name = dns_fixedname_initname(&fixed);
 
 	for (i = 0; i < sizeof(data)/sizeof(data[0]); i++) {
 		result = dns_name_fromstring(name, data[i].name, 0, NULL);
@@ -441,10 +438,8 @@ ATF_TC_BODY(hash, tc) {
 		dns_name_t *n1, *n2;
 		unsigned int h1, h2;
 
-		dns_fixedname_init(&f1);
-		n1 = dns_fixedname_name(&f1);
-		dns_fixedname_init(&f2);
-		n2 = dns_fixedname_name(&f2);
+		n1 = dns_fixedname_initname(&f1);
+		n2 = dns_fixedname_initname(&f2);
 
 		result = dns_name_fromstring2(n1, testcases[i].name1,
 					      NULL, 0, NULL);
@@ -498,10 +493,8 @@ ATF_TC_BODY(issubdomain, tc) {
 		dns_fixedname_t f1, f2;
 		dns_name_t *n1, *n2;
 
-		dns_fixedname_init(&f1);
-		n1 = dns_fixedname_name(&f1);
-		dns_fixedname_init(&f2);
-		n2 = dns_fixedname_name(&f2);
+		n1 = dns_fixedname_initname(&f1);
+		n2 = dns_fixedname_initname(&f2);
 
 		result = dns_name_fromstring2(n1, testcases[i].name1,
 					      NULL, 0, NULL);
@@ -543,8 +536,7 @@ ATF_TC_BODY(countlabels, tc) {
 		dns_fixedname_t fname;
 		dns_name_t *name;
 
-		dns_fixedname_init(&fname);
-		name = dns_fixedname_name(&fname);
+		name = dns_fixedname_initname(&fname);
 
 		result = dns_name_fromstring2(name, testcases[i].namestr,
 					      NULL, 0, NULL);
@@ -583,10 +575,8 @@ ATF_TC_BODY(getlabel, tc) {
 		unsigned char *p1, *p2;
 		unsigned int j;
 
-		dns_fixedname_init(&f1);
-		n1 = dns_fixedname_name(&f1);
-		dns_fixedname_init(&f2);
-		n2 = dns_fixedname_name(&f2);
+		n1 = dns_fixedname_initname(&f1);
+		n2 = dns_fixedname_initname(&f2);
 
 		result = dns_name_fromstring2(n1, testcases[i].name1,
 					      NULL, 0, NULL);
@@ -637,10 +627,8 @@ ATF_TC_BODY(getlabelsequence, tc) {
 		dns_name_init(&t2, NULL);
 
 		/* source names */
-		dns_fixedname_init(&f1);
-		n1 = dns_fixedname_name(&f1);
-		dns_fixedname_init(&f2);
-		n2 = dns_fixedname_name(&f2);
+		n1 = dns_fixedname_initname(&f1);
+		n2 = dns_fixedname_initname(&f2);
 
 		result = dns_name_fromstring2(n1, testcases[i].name1,
 					      NULL, 0, NULL);

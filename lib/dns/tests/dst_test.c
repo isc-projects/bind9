@@ -149,8 +149,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	/*
 	 * Read key from file in a form usable by dst_verify.
 	 */
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
+	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&b, keyname, strlen(keyname));
 	isc_buffer_add(&b, strlen(keyname));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);

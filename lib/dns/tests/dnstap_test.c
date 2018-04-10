@@ -163,8 +163,7 @@ ATF_TC_BODY(send, tc) {
 	/*
 	 * Set up some test data
 	 */
-	dns_fixedname_init(&zfname);
-	zname = dns_fixedname_name(&zfname);
+	zname = dns_fixedname_initname(&zfname);
 	isc_buffer_constinit(&zb, "example.com.", 12);
 	isc_buffer_add(&zb, 12);
 	result = dns_name_fromtext(zname, &zb, NULL, 0, NULL);
