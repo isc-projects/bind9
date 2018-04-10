@@ -317,6 +317,17 @@
       </row>
       <row rowsep="0">
 	<entry colname="1">
+	  <para><command>serve-stale</command></para>
+	</entry>
+	<entry colname="2">
+	  <para>
+	    Whether or not a stale answer is used
+	    following a resolver failure.
+	  </para>
+	</entry>
+      </row>
+      <row rowsep="0">
+	<entry colname="1">
 	  <para><command>spill</command></para>
 	</entry>
 	<entry colname="2">
