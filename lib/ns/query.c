@@ -5410,7 +5410,7 @@ query_lookup(query_ctx_t *qctx) {
 
 		dns_name_format(qctx->client->query.qname,
 				namebuf, sizeof(namebuf));
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "%s resolver failure, stale answer %s",
 			      namebuf, success ? "used" : "unavailable");

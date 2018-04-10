@@ -34,6 +34,7 @@ LIBNS_EXTERNAL_DATA isc_logcategory_t ns_categories[] = {
 	{ "update-security",            0 },
 	{ "query-errors",               0 },
 	{ "trust-anchor-telemetry",     0 },
+	{ "serve-stale",                0 },
 	{ NULL, 			0 }
 };
 

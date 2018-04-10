@@ -6113,6 +6113,8 @@ options {
 		  reloading or reconfiguring <command>named</command>
 		  will not re-enable serving of stale records if they
 		  have been disabled via <command>rndc</command>.
+		  Information about stale answers is logged under
+		  the <command>serve-stale</command> log category.
 		</para>
 	      </listitem>
 	    </varlistentry>
