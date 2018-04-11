@@ -323,7 +323,6 @@ isc_file_template(const char *path, const char *templet, char *buf,
 {
 	char *s;
 
-	REQUIRE(path != NULL);
 	REQUIRE(templet != NULL);
 	REQUIRE(buf != NULL);
 
