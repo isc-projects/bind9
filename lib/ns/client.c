@@ -610,15 +610,19 @@ exit_check(ns_client_t *client) {
 		isc_event_free((isc_event_t **)&client->sendevent);
 		isc_event_free((isc_event_t **)&client->recvevent);
 		isc_timer_detach(&client->timer);
-		if (client->delaytimer != NULL)
+		if (client->delaytimer != NULL) {
 			isc_timer_detach(&client->delaytimer);
+		}
 
-		if (client->atrdelaytimer != NULL)
+		if (client->atrdelaytimer != NULL) {
 			isc_timer_detach(&client->atrdelaytimer);
+		}
 
-		if (client->tcpbuf != NULL)
+		if (client->tcpbuf != NULL) {
 			isc_mem_put(client->mctx, client->tcpbuf,
 				    TCP_BUFFER_SIZE);
+		}
+
 		if (client->opt != NULL) {
 			INSIST(dns_rdataset_isassociated(client->opt));
 			dns_rdataset_disassociate(client->opt);
@@ -878,11 +882,12 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("senddone");
 
-	if (sevent->result != ISC_R_SUCCESS)
+	if (sevent->result != ISC_R_SUCCESS) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
 			      "error sending response: %s",
 			      isc_result_totext(sevent->result));
+	}
 
 	INSIST(client->nsends > 0);
 	client->nsends--;
@@ -894,9 +899,11 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * If the successfully sent reply message over UDP was not
-	 * truncated and also too large, send additional truncated
-	 * response (draft-song-atr-large-resp-00).
+	 * If we have successfully sent a non-truncated reply message
+	 * over UDP which was larger than the configured ATR size limit,
+	 * then we now send an additional truncated response; this
+	 * enables the client to re-query over TCP if the first answer
+	 * didn't go through (draft-song-atr-large-resp-00).
 	 */
 	if ((sevent->result == ISC_R_SUCCESS) && (!TCP_CLIENT(client)) &&
 	    ((client->message->flags & DNS_MESSAGEFLAG_TC) == 0) &&
@@ -907,14 +914,17 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 		isc_interval_t interval;
 
 		ns_client_attach(client, &dummy);
-		if (client->sctx->atrdelay >= 1000)
+		if (client->sctx->atrdelay >= 1000) {
+			/* delay >= 1 sec */
 			isc_interval_set(&interval,
 					 client->sctx->atrdelay / 1000U,
 					 ((client->sctx->atrdelay % 1000U) *
 					  1000000U));
-		else
+		} else {
+			/* delay < 1 sec */
 			isc_interval_set(&interval, 0,
 					 client->sctx->atrdelay * 1000000U);
+		}
 		result = isc_timer_create(client->manager->timermgr,
 					  isc_timertype_once, NULL, &interval,
 					  client->task, client_atrdelay,

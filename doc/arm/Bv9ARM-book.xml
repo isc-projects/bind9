@@ -4217,14 +4217,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <term><command>atr-size</command></term>
 	    <listitem>
 	      <para>
-		For UDP, specifies the minimum size of the DNS reply
-		message for which an additional truncated response (ATR)
-		will be sent after a delay of
-		<command>atr-delay</command> milliseconds. If a large
-		DNS response message is lost somehow, this feature the
-		delayed truncated response would still come through,
-		enabling quick progress to TCP. The default value is
-		65536 which effectively disables this facility.
+		Specifies the size threshold for sending an additional
+		truncated response (ATR). When sending a DNS response over
+		UDP, any message larger than this threshold will be followed,
+		after a delay of <command>atr-delay</command> milliseconds,
+		with a truncated (TC=1) message matching the query.
+		If a large DNS response message is lost in transit --
+		for example, because of a badly configured firewall --
+		then the delayed truncated response should still come
+		through, enabling the client to quickly retry with TCP.
+		The default value is 65536, which effectively disables
+		this feature as DNS messages cannot be larger than that.
 	      </para>
 	    </listitem>
 	  </varlistentry>
