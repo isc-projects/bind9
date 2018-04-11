@@ -113,6 +113,7 @@ bdb_lookup(const char *zone, const char *name, void *dbdata,
 	isc_consttextregion_t ttltext;
 	DBC *c;
 	DBT key, data;
+	char *last;
 
 	UNUSED(zone);
 #ifdef DNS_CLIENTINFO_VERSION
@@ -137,7 +138,6 @@ bdb_lookup(const char *zone, const char *name, void *dbdata,
 
 	ret = c->c_get(c, &key, &data, DB_SET);
 	while (ret == 0) {
-		char *last;
 		((char *)key.data)[key.size] = 0;
 		((char *)data.data)[data.size] = 0;
 		ttltext.base = strtok_r((char *)data.data, " ", &last);

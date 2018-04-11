@@ -108,6 +108,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	char *right_str = NULL;
 	query_list_t *tql;
 	query_segment_t *tseg = NULL;
+	char *last;
 
 	REQUIRE(querylist != NULL && *querylist == NULL);
 	REQUIRE(mctx != NULL);
@@ -158,7 +159,7 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		 * split string at the first "$". set query segment to
 		 * left portion
 		 */
-		char *last = NULL;
+		last = NULL;
 		tseg->sql = isc_mem_strdup(mctx,
 					   strtok_r(right_str, "$", &last));
 		if (tseg->sql == NULL) {
