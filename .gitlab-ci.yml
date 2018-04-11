@@ -202,6 +202,8 @@ systemtest:debian:sid:i386:
   variables:
     MAKE: gmake
     SUDO: sudo
+    TEST_PARALLEL_JOBS: 4
+    PARALLEL_JOBS_BUILD: 2
   tags:
     - freebsd11
     - amd64
@@ -216,7 +218,7 @@ unittest:freebsd11:amd64:
   dependencies:
     - build:freebsd11:amd64
 
-systemtest:debian:sid:amd64:
+systemtest:freebsd11:amd64:
   <<: *freebsd11_amd64_image
   <<: *system_test_job
   dependencies:
