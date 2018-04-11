@@ -733,7 +733,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	    dig_lookup_t *lookup)
 {
 	isc_result_t result;
-	char *cmd, *value, *last, *code;
+	char *cmd, *value, *last, *code, *extra;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
@@ -1003,7 +1003,6 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 							     "specified");
 							goto exit_or_usage;
 						}
-						char *extra;
 						code = strtok_r(value, ":", &last);
 						extra = strtok_r(NULL, "\0", &last);
 						save_opt(lookup, code, extra);
@@ -2137,6 +2136,7 @@ query_finished(void) {
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
+	char *last;
 
 	if (batchname == NULL) {
 		isc_app_shutdown();
@@ -2153,7 +2153,6 @@ query_finished(void) {
 	}
 
 	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
-		char *last;
 		debug("batch line %s", batchline);
 		for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
 		     bargc < 14 && bargv[bargc];

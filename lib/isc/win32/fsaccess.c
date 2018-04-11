@@ -59,6 +59,7 @@ is_ntfs(const char * file) {
 	char *machinename;
 	char *sharename;
 	char filename[1024];
+	char *last;
 
 	REQUIRE(filename != NULL);
 
@@ -76,7 +77,6 @@ is_ntfs(const char * file) {
 		/* Copy 'c:\' or 'c:/' and NUL terminate. */
 		strlcpy(drive, filename, ISC_MIN(3 + 1, sizeof(drive)));
 	} else if ((filename[0] == '\\') && (filename[1] == '\\')) {
-		char *last;
 		/* Find the machine and share name and rebuild the UNC */
 		strlcpy(tmpbuf, filename, sizeof(tmpbuf));
 		machinename = strtok_r(tmpbuf, "\\", &last);
