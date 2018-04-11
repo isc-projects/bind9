@@ -4,8 +4,6 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: oerdnj/bind9
   CCACHE_DIR: "/ccache"
-  MAKE: make
-  SUDO: ""
 
 stages:
   - precheck
@@ -91,7 +89,7 @@ stages:
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2
-    - ${MAKE} -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -100,9 +98,9 @@ stages:
   stage: test
   before_script:
     - rm -rf .ccache
-    - ${SUDO} bash -x bin/tests/system/ifconfig.sh up
+    - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - cd bin/tests && ${MAKE} -j${TEST_PARALLEL_JOBS:-1} -k test V=1
+    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1
   artifacts:
     untracked: true
     expire_in: '1 week'
@@ -111,9 +109,9 @@ stages:
 .unit_test: &unit_test_job
   stage: test
   before_script:
-    - export KYUA_RESULT="$(pwd)/kyua.results"
+    - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
   script:
-    - ${MAKE} unit
+    - make unit
   after_script:
     - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
   artifacts:
@@ -194,29 +192,3 @@ systemtest:debian:sid:i386:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:i386
-
-# FreeBSD 11
-
-.freebsd11-amd64: &freebsd11_amd64_image
-  variables:
-    MAKE: gmake
-    SUDO: sudo
-  tags:
-    - freebsd11
-    - amd64
-
-build:freebsd11:amd64:
-  <<: *freebsd11_amd64_image
-  <<: *build_job
-
-unittest:freebsd11:amd64:
-  <<: *freebsd11_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - build:freebsd11:amd64
-
-systemtest:debian:sid:amd64:
-  <<: *freebsd11_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - build:freebsd11:amd64
