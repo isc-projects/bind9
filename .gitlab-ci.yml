@@ -100,7 +100,8 @@ stages:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
   script:
-    - cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1
+    - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
+    - test -s bin/tests/system/systests.output
   artifacts:
     untracked: true
     expire_in: '1 week'
