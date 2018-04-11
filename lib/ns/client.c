@@ -1248,7 +1248,7 @@ client_send(ns_client_t *client) {
 #ifdef HAVE_DNSTAP
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype,
-				    &client->peeraddr, &client->interface->addr,
+				    &client->peeraddr, &client->destsockaddr,
 				    ISC_TRUE, &zr, &client->requesttime, NULL,
 				    &buffer);
 		}
@@ -1278,7 +1278,7 @@ client_send(ns_client_t *client) {
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype,
 				    &client->peeraddr,
-				    &client->interface->addr,
+				    &client->destsockaddr,
 				    ISC_FALSE, &zr,
 				    &client->requesttime, NULL, &buffer);
 		}
@@ -2824,7 +2824,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			dtmsgtype = DNS_DTTYPE_AQ;
 
 		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
-			    &client->interface->addr, TCP_CLIENT(client), NULL,
+			    &client->destsockaddr, TCP_CLIENT(client), NULL,
 			    &client->requesttime, NULL, buffer);
 #endif /* HAVE_DNSTAP */
 
