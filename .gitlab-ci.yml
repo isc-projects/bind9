@@ -88,6 +88,14 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
 
+# FreeBSD
+
+.freebsd-12-amd64: &freebsd_12_amd64_image
+  tags:
+    - freebsd12
+    - amd64
+  allow_failure: true
+
 ### Job Templates
 
 .default-triggering-rules: &default_triggering_rules
@@ -405,6 +413,24 @@ unit:gcc:bionic:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:bionic:amd64
+
+# Jobs for default CC builds on FreeBSD 12 (amd64)
+
+clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *build_job
+
+system:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - clang:freebsd12:amd64
+
+unit:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - clang:freebsd12:amd64
 
 # Jobs for GCC builds with ASAN enabled on Debian Sid (amd64)
 
