@@ -91,7 +91,8 @@ stages:
     - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2
-    - ${MAKE} -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - echo "Running ${BUILD_PARALLEL_JOBS:-1} parallel jobs"
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -102,6 +103,7 @@ stages:
     - rm -rf .ccache
     - ${SUDO} bash -x bin/tests/system/ifconfig.sh up
   script:
+    - echo "Running ${TEST_PARALLEL_JOBS:-1} parallel jobs"
     - ( cd bin/tests && ${MAKE} -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
   artifacts:
