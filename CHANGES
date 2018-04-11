@@ -1,3 +1,7 @@
+4922.	[bug]		dnstap: Log the destination address of client
+			packets rather than the interface address. 
+			[GL #197]
+
 4921.	[cleanup]	Add dns_fixedname_initname() and refactor the caller
 			code to make usage of the new function, as a part of
 			refactoring dns_fixedname_*() macros were turned into
