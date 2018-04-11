@@ -1741,6 +1741,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 	int rc;
 	char **rv;
 	isc_boolean_t global = ISC_TRUE;
+	char *last;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -1852,7 +1853,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			fatal("couldn't open batch file '%s'", batchname);
 		}
 		while (fgets(batchline, sizeof(batchline), batchfp) != 0) {
-			char *last;
 			if (batchline[0] == '\r' || batchline[0] == '\n'
 			    || batchline[0] == '#' || batchline[0] == ';')
 				continue;

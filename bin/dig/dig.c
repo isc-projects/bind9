@@ -2137,6 +2137,7 @@ query_finished(void) {
 	char batchline[MXNAME];
 	int bargc;
 	char *bargv[16];
+	char *last;
 
 	if (batchname == NULL) {
 		isc_app_shutdown();
@@ -2153,7 +2154,6 @@ query_finished(void) {
 	}
 
 	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
-		char *last;
 		debug("batch line %s", batchline);
 		for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
 		     bargc < 14 && bargv[bargc];
