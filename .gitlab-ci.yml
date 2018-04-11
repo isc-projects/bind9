@@ -87,6 +87,7 @@ stages:
 .build: &build_job
   stage: build
   before_script:
+    - if [ -x /usr/sbin/ntpdate ]; then ${SUDO} ntpdate pool.ntp.org; fi
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - ./autogen.sh
   script:
@@ -100,6 +101,7 @@ stages:
 .system_test: &system_test_job
   stage: test
   before_script:
+    - if [ -x /usr/sbin/ntpdate ]; then ${SUDO} ntpdate pool.ntp.org; fi
     - rm -rf .ccache
     - ${SUDO} bash -x bin/tests/system/ifconfig.sh up
   script:
@@ -114,6 +116,7 @@ stages:
 .unit_test: &unit_test_job
   stage: test
   before_script:
+    - if [ -x /usr/sbin/ntpdate ]; then ${SUDO} ntpdate pool.ntp.org; fi
     - export KYUA_RESULT="$(pwd)/kyua.results"
   script:
     - ${MAKE} unit
