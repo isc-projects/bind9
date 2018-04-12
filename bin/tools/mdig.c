@@ -795,18 +795,6 @@ help(void) {
 	stdout);
 }
 
-static char *
-next_token(char **stringp, const char *delim) {
-	char *res;
-
-	do {
-		res = strsep(stringp, delim);
-		if (res == NULL)
-			break;
-	} while (*res == '\0');
-	return (res);
-}
-
 ISC_PLATFORM_NORETURN_PRE static void
 fatal(const char *format, ...)
 ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
@@ -1037,24 +1025,21 @@ static void
 plus_option(char *option, struct query *query, isc_boolean_t global)
 {
 	isc_result_t result;
-	char option_store[256];
-	char *cmd, *value, *ptr, *code;
+	char *cmd, *value, *last, *code;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
-	strlcpy(option_store, option, sizeof(option_store));
-	ptr = option_store;
-	cmd = next_token(&ptr, "=");
-	if (cmd == NULL) {
-		printf(";; Invalid option %s\n", option_store);
+	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
+		printf(";; Invalid option %s\n", option);
 		return;
 	}
-	value = ptr;
 	if (strncasecmp(cmd, "no", 2) == 0) {
 		cmd += 2;
 		state = ISC_FALSE;
 	}
+	/* parse the rest of the string */
+	value = strtok_r(NULL, "", &last);
 
 #define FULLCHECK(A) \
 	do { \
@@ -1279,7 +1264,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 							fatal("ednsopt no "
 							      "code point "
 							      "specified");
-						code = next_token(&value, ":");
+						code = strtok_r(value, ":", &last);
 						save_opt(query, code, value);
 						break;
 					default:
@@ -1755,8 +1740,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 	char *bargv[64];
 	int rc;
 	char **rv;
-	char *input;
 	isc_boolean_t global = ISC_TRUE;
+	char *last;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -1868,15 +1853,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			fatal("couldn't open batch file '%s'", batchname);
 		}
 		while (fgets(batchline, sizeof(batchline), batchfp) != 0) {
-			bargc = 1;
 			if (batchline[0] == '\r' || batchline[0] == '\n'
 			    || batchline[0] == '#' || batchline[0] == ';')
 				continue;
-			input = batchline;
-			bargv[bargc] = next_token(&input, " \t\r\n");
-			while ((bargc < 14) && (bargv[bargc] != NULL)) {
-				bargc++;
-				bargv[bargc] = next_token(&input, " \t\r\n");
+			for (bargc = 1, bargv[bargc] = strtok_r(batchline, " \t\r\n", &last);
+			     (bargc < 14) && bargv[bargc];
+			     bargc++, bargv[bargc] = strtok_r(NULL, " \t\r\n", &last))
+			{
+				/* empty body */
 			}
 
 			bargv[0] = argv[0];

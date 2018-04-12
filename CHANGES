@@ -1,3 +1,6 @@
+4924.	[cleanup]	Clean up the isc_string_* namespace and leave
+			only strlcpy and strlcat. [GL #178]
+
 4923.	[cleanup]	Refactor socket and socket event options into
 			enum types. [GL !135]
 

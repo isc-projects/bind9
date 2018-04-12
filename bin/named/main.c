@@ -470,6 +470,7 @@ parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
 	const char *p;
+	char *last;
 
 	save_command_line(argc, argv);
 
@@ -607,14 +608,14 @@ parse_command_line(int argc, char *argv[]) {
 			else if (!strncmp(isc_commandline_argument,
 					  "mkeytimers=", 11))
 			{
-				p = strtok(isc_commandline_argument + 11, "/");
+				p = strtok_r(isc_commandline_argument + 11, "/", &last);
 				if (p == NULL)
 					named_main_earlyfatal("bad mkeytimer");
 				dns_zone_mkey_hour = atoi(p);
 				if (dns_zone_mkey_hour == 0)
 					named_main_earlyfatal("bad mkeytimer");
 
-				p = strtok(NULL, "/");
+				p = strtok_r(NULL, "/", &last);
 				if (p == NULL) {
 					dns_zone_mkey_day =
 						(24 * dns_zone_mkey_hour);
@@ -626,7 +627,7 @@ parse_command_line(int argc, char *argv[]) {
 				if (dns_zone_mkey_day < dns_zone_mkey_hour)
 					named_main_earlyfatal("bad mkeytimer");
 
-				p = strtok(NULL, "/");
+				p = strtok_r(NULL, "/", &last);
 				if (p == NULL) {
 					dns_zone_mkey_month =
 						(30 * dns_zone_mkey_day);

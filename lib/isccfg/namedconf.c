@@ -2552,7 +2552,7 @@ parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	isc_uint64_t value;
 	isc_uint64_t unit;
 
-	value = isc_string_touint64(str, &endp, 10);
+	value = strtoull(str, &endp, 10);
 	if (*endp == 0) {
 		*valuep = value;
 		return (ISC_R_SUCCESS);
@@ -2628,7 +2628,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 		goto cleanup;
 	}
 
-	percent = isc_string_touint64(TOKEN_STRING(pctx), &endp, 10);
+	percent = strtoull(TOKEN_STRING(pctx), &endp, 10);
 
 	if (*endp == '%' && *(endp+1) == 0) {
 		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));

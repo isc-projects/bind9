@@ -1051,34 +1051,11 @@ resolve_name(int family, const char *hostname, int flags,
 	return (error);
 }
 
-static char *
-irs_strsep(char **stringp, const char *delim) {
-	char *string = *stringp;
-	char *s;
-	const char *d;
-	char sc, dc;
-
-	if (string == NULL)
-		return (NULL);
-
-	for (s = string; *s != '\0'; s++) {
-		sc = *s;
-		for (d = delim; (dc = *d) != '\0'; d++)
-			if (sc == dc) {
-				*s++ = '\0';
-				*stringp = s;
-				return (string);
-			}
-	}
-	*stringp = NULL;
-	return (string);
-}
-
 static void
 set_order(int family, int (**net_order)(const char *, int, struct addrinfo **,
 					int, int))
 {
-	char *order, *tok;
+	char *order, *tok, *last;
 	int found;
 
 	if (family) {
@@ -1093,19 +1070,20 @@ set_order(int family, int (**net_order)(const char *, int, struct addrinfo **,
 	} else {
 		order = getenv("NET_ORDER");
 		found = 0;
-		while (order != NULL) {
-			/*
-			 * We ignore any unknown names.
-			 */
-			tok = irs_strsep(&order, ":");
+		for (tok = strtok_r(order, ":", &last);
+		     tok;
+		     tok = strtok_r(NULL, ":", &last))
+		{
 			if (strcasecmp(tok, "inet6") == 0) {
-				if ((found & FOUND_IPV6) == 0)
+				if ((found & FOUND_IPV6) == 0) {
 					*net_order++ = add_ipv6;
+				}
 				found |= FOUND_IPV6;
 			} else if (strcasecmp(tok, "inet") == 0 ||
-			    strcasecmp(tok, "inet4") == 0) {
-				if ((found & FOUND_IPV4) == 0)
+				   strcasecmp(tok, "inet4") == 0) {
+				if ((found & FOUND_IPV4) == 0) {
 					*net_order++ = add_ipv4;
+				}
 				found |= FOUND_IPV4;
 			}
 		}
