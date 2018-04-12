@@ -1049,7 +1049,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					FULLCHECK("idnin");
 #ifndef WITH_IDN_SUPPORT
 					fprintf(stderr, ";; IDN input support"
-					        " not enabled\n");
+						" not enabled\n");
 #else
 					lookup->idnin = state;
 #endif
@@ -1058,7 +1058,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					FULLCHECK("idnout");
 #ifndef WITH_IDN_OUT_SUPPORT
 					fprintf(stderr, ";; IDN output support"
-					        " not enabled\n");
+						" not enabled\n");
 #else
 					lookup->idnout = state;
 #endif

@@ -645,6 +645,8 @@
 ./bin/tests/system/checkconf/bad-lmdb-mapsize-unlimited.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/bad-many.conf	CONF-C	2005,2012,2015,2016,2018
 ./bin/tests/system/checkconf/bad-master-request-ixfr.conf	CONF-C	2014,2016,2018
+./bin/tests/system/checkconf/bad-maxcachettl.conf	CONF-C	2018
+./bin/tests/system/checkconf/bad-maxncachettl.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-options-also-notify.conf	CONF-C	2016,2018
@@ -704,6 +706,8 @@
 ./bin/tests/system/checkconf/good-glue-cache.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/good-lmdb-mapsize-largest.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/good-lmdb-mapsize-smallest.conf	CONF-C	2017,2018
+./bin/tests/system/checkconf/good-maxcachettl.conf	CONF-C	2018
+./bin/tests/system/checkconf/good-maxncachettl.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015,2016,2018
 ./bin/tests/system/checkconf/good-options-also-notify.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/good-printtime.conf	CONF-C	2016,2018
@@ -1377,10 +1381,8 @@
 ./bin/tests/system/gost/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/gost/tests.sh		SH	2010,2012,2013,2016,2018
 ./bin/tests/system/idna/clean.sh		SH	2018
-./bin/tests/system/idna/ns1/named.conf		CONF-C	2018
 ./bin/tests/system/idna/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/idna/ns1/root.db		ZONE	2018
-./bin/tests/system/idna/prereq.sh		SH	2018
 ./bin/tests/system/idna/setup.sh		SH	2018
 ./bin/tests/system/idna/tests.sh		SH	2018
 ./bin/tests/system/ifconfig.bat			BAT	2016,2018
