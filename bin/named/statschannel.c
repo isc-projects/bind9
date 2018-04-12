@@ -3122,10 +3122,12 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 		const char *if_modified_since = "If-Modified-Since: ";
 		_headers = strdup(headers);
 
+		saveptr = NULL;
 		for (line = strtok_r(_headers, "\n", &saveptr);
 		     line;
 		     line = strtok_r(NULL, "\n", &saveptr)) {
-			if (strncasecmp(line, if_modified_since, strlen(if_modified_since)) == 0) {
+			if (strncasecmp(line, if_modified_since,
+					strlen(if_modified_since)) == 0) {
 				time_t t1, t2;
 				line += strlen(if_modified_since);
 				result = isc_time_parsehttptimestamp(line, &when);

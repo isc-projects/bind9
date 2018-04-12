@@ -1070,6 +1070,7 @@ set_order(int family, int (**net_order)(const char *, int, struct addrinfo **,
 	} else {
 		order = getenv("NET_ORDER");
 		found = 0;
+		last = NULL;
 		for (tok = strtok_r(order, ":", &last);
 		     tok;
 		     tok = strtok_r(NULL, ":", &last))
