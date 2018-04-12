@@ -11,7 +11,6 @@
 
 /*! \file */
 /*
- * $Id: ssu.c,v 1.38 2011/01/06 23:47:00 tbox Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -20,6 +19,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
