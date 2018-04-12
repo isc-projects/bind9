@@ -1065,7 +1065,7 @@ options_clauses[] = {
 	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32, 0 },
 	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
-	{ "fstrm-set-reopen-interval", &cfg_type_uint32, 0 },
+	{ "fstrm-set-reopen-interval", &cfg_type_ttlval, 0 },
 #else
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1079,7 +1079,7 @@ options_clauses[] = {
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "fstrm-set-reopen-interval", &cfg_type_uint32,
+	{ "fstrm-set-reopen-interval", &cfg_type_ttlval,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
 #ifdef HAVE_GEOIP
@@ -1095,7 +1095,7 @@ options_clauses[] = {
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
 	{ "host-statistics-max", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "hostname", &cfg_type_qstringornone, 0 },
-	{ "interface-interval", &cfg_type_uint32, 0 },
+	{ "interface-interval", &cfg_type_ttlval, 0 },
 	{ "keep-response-order", &cfg_type_bracketed_aml, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
@@ -1621,8 +1621,8 @@ static cfg_type_t cfg_type_rpz_policy = {
 static cfg_tuplefielddef_t rpz_zone_fields[] = {
 	{ "zone name", &cfg_type_rpz_zone, 0 },
 	{ "log", &cfg_type_boolean, 0 },
-	{ "max-policy-ttl", &cfg_type_uint32, 0 },
-	{ "min-update-interval", &cfg_type_uint32, 0 },
+	{ "max-policy-ttl", &cfg_type_ttlval, 0 },
+	{ "min-update-interval", &cfg_type_ttlval, 0 },
 	{ "policy", &cfg_type_rpz_policy, 0 },
 	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "nsip-enable", &cfg_type_boolean, 0 },
@@ -1642,8 +1642,8 @@ static cfg_type_t cfg_type_rpz_list = {
 static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "zone list", &cfg_type_rpz_list, 0 },
 	{ "break-dnssec", &cfg_type_boolean, 0 },
-	{ "max-policy-ttl", &cfg_type_uint32, 0 },
-	{ "min-update-interval", &cfg_type_uint32, 0 },
+	{ "max-policy-ttl", &cfg_type_ttlval, 0 },
+	{ "min-update-interval", &cfg_type_ttlval, 0 },
 	{ "min-ns-dots", &cfg_type_uint32, 0 },
 	{ "nsip-wait-recurse", &cfg_type_boolean, 0 },
 	{ "qname-wait-recurse", &cfg_type_boolean, 0 },
@@ -1680,7 +1680,7 @@ static cfg_tuplefielddef_t catz_zone_fields[] = {
 	{ "default-masters", &cfg_type_namesockaddrkeylist, 0 },
 	{ "zone-directory", &cfg_type_qstring, 0 },
 	{ "in-memory", &cfg_type_boolean, 0 },
-	{ "min-update-interval", &cfg_type_uint32, 0 },
+	{ "min-update-interval", &cfg_type_ttlval, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_catz_tuple = {
@@ -1916,9 +1916,9 @@ view_clauses[] = {
 	{ "max-acache-size", &cfg_type_sizenodefault,
 	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },
-	{ "max-cache-ttl", &cfg_type_uint32, 0 },
+	{ "max-cache-ttl", &cfg_type_ttlval, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
-	{ "max-ncache-ttl", &cfg_type_uint32, 0 },
+	{ "max-ncache-ttl", &cfg_type_ttlval, 0 },
 	{ "max-recursion-depth", &cfg_type_uint32, 0 },
 	{ "max-recursion-queries", &cfg_type_uint32, 0 },
 	{ "max-stale-ttl", &cfg_type_ttlval, 0 },

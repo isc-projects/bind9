@@ -139,7 +139,7 @@ totext_soa(ARGS_TOTEXT) {
 			if (i >= 1) {
 				RETERR(str_totext(" (", target));
 				RETERR(dns_ttl_totext(num, ISC_TRUE,
-				                      ISC_TRUE, target));
+						      ISC_TRUE, target));
 				RETERR(str_totext(")", target));
 			}
 			RETERR(str_totext(tctx->linebreak, target));
