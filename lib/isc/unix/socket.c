@@ -5573,7 +5573,8 @@ isc__socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 
 isc_result_t
 isc__socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
-		 unsigned int options) {
+		 isc_socket_options_t options)
+{
 	isc__socket_t *sock = (isc__socket_t *)sock0;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
