@@ -140,6 +140,14 @@
 	  supported by default; previously the limit was 32. [GL #123]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>max-cache-ttl</command> and <command>max-ncache-ttl</command>
+	  can now use TTL value suffixes (for example, <literal>2h</literal>
+	  or <literal>1d</literal>) in addition to integer parameters.
+	  [GL #203]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

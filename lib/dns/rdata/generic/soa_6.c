@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
 #ifndef RDATA_GENERIC_SOA_6_C
@@ -139,7 +137,7 @@ totext_soa(ARGS_TOTEXT) {
 			if (i >= 1) {
 				RETERR(str_totext(" (", target));
 				RETERR(dns_ttl_totext(num, ISC_TRUE,
-				                      ISC_TRUE, target));
+						      ISC_TRUE, target));
 				RETERR(str_totext(")", target));
 			}
 			RETERR(str_totext(tctx->linebreak, target));

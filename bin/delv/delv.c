@@ -969,7 +969,7 @@ plus_option(char *option) {
 	if (cmd == NULL) {
 		printf(";; Invalid option %s\n", option);
 		return;
-	}	
+	}
 	if (strncasecmp(cmd, "no", 2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;

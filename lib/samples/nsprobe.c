@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 #include <config.h>
 
 #ifndef WIN32
@@ -478,7 +476,7 @@ set_nextqname(struct probe_trans *trans) {
 	if ((domainlen = strlcat(buf, trans->domain, sizeof(buf))) >= sizeof(buf)) {
 		return ISC_R_NOSPACE;
 	}
-	
+
 	isc_buffer_init(&b, buf, domainlen);
 	isc_buffer_add(&b, domainlen);
 	trans->qname = dns_fixedname_initname(&trans->fixedname);
