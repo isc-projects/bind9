@@ -3238,7 +3238,8 @@ isc__socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 
 isc_result_t
 isc__socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
-		 isc_socket_options_t int options) {
+		 isc_socket_options_t options)
+{
 	int bind_errno;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;

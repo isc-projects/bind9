@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
 
@@ -122,12 +120,18 @@ ISC_LANG_BEGINDECLS
  */
 #define ISC_SOCKET_MAXSCATTERGATHER	8
 
-/*%
+/*@{*/
+/*!
  * Socket options:
+ *
+ * _REUSEADDRESS:	Set SO_REUSEADDR prior to calling bind(),
+ * 			if a non-zero port is specified (applies to
+ * 			AF_INET and AF_INET6).
  */
 typedef enum {
-	ISC_SOCKET_REUSEADDRESS	= (1<<0)  /*! In isc_socket_bind() set socket option SO_REUSEADDR prior to calling bind() if a non zero port is specified (AF_INET and AF_INET6). */
+	ISC_SOCKET_REUSEADDRESS	= 0x01U,
 } isc_socket_options_t;
+/*@}*/
 
 /*%
  * Statistics counters.  Used as isc_statscounter_t values.
@@ -224,14 +228,14 @@ enum {
  * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
  */
 typedef enum {
-	ISC_SOCKEVENTATTR_ATTACHED	=	0x80000000U, /* internal */
-	ISC_SOCKEVENTATTR_TRUNC		=	0x00800000U, /* public */
-	ISC_SOCKEVENTATTR_CTRUNC	=	0x00400000U, /* public */
-	ISC_SOCKEVENTATTR_TIMESTAMP	=	0x00200000U, /* public */
-	ISC_SOCKEVENTATTR_PKTINFO	=	0x00100000U, /* public */
-	ISC_SOCKEVENTATTR_MULTICAST	=	0x00080000U, /* public */
-	ISC_SOCKEVENTATTR_DSCP		=	0x00040000U, /* public */
-	ISC_SOCKEVENTATTR_USEMINMTU	=	0x00020000U /* public */
+	ISC_SOCKEVENTATTR_ATTACHED =	0x80000000U, /* internal */
+	ISC_SOCKEVENTATTR_TRUNC =	0x00800000U, /* public */
+	ISC_SOCKEVENTATTR_CTRUNC =	0x00400000U, /* public */
+	ISC_SOCKEVENTATTR_TIMESTAMP =	0x00200000U, /* public */
+	ISC_SOCKEVENTATTR_PKTINFO =	0x00100000U, /* public */
+	ISC_SOCKEVENTATTR_MULTICAST =	0x00080000U, /* public */
+	ISC_SOCKEVENTATTR_DSCP =	0x00040000U, /* public */
+	ISC_SOCKEVENTATTR_USEMINMTU =	0x00020000U  /* public */
 } isc_sockeventattr_t;
 /*@}*/
 
@@ -250,7 +254,8 @@ struct isc_socketevent {
 	isc_sockaddr_t		address;	/*%< source address */
 	isc_time_t		timestamp;	/*%< timestamp of packet recv */
 	struct in6_pktinfo	pktinfo;	/*%< ipv6 pktinfo */
-	isc_sockeventattr_t	attributes;	/*%< see isc_sockeventattr_t enum */
+	isc_sockeventattr_t	attributes;	/*%< see isc_sockeventattr_t
+						     enum */
 	isc_eventdestructor_t   destroy;	/*%< original destructor */
 	unsigned int		dscp;		/*%< UDP dscp value */
 };
