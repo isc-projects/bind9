@@ -1,3 +1,7 @@
+4925.	[func]		max-cache-ttl and max-ncache-ttl can now take TTL
+			value suffixes (for example, 2h or 1d) in addition to
+			integer parameters. [GL #203]
+
 4924.	[cleanup]	Clean up the isc_string_* namespace and leave
 			only strlcpy and strlcat. [GL #178]
 

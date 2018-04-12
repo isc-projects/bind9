@@ -8871,8 +8871,9 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  To reduce network traffic and increase performance,
 		  the server stores negative answers. <command>max-ncache-ttl</command> is
 		  used to set a maximum retention time for these answers in
-		  the server
-		  in seconds. The default
+		  the server in seconds.
+		  For convenience, TTL-style time unit suffixes may be
+		  used to specify the value.  The default
 		  <command>max-ncache-ttl</command> is <literal>10800</literal> seconds (3 hours).
 		  <command>max-ncache-ttl</command> cannot exceed
 		  7 days and will
@@ -8887,6 +8888,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  Sets the maximum time for which the server will
 		  cache ordinary (positive) answers in seconds.
+		  For convenience, TTL-style time unit suffixes may be
+		  used to specify the value.
 		  The default is 604800 (one week).
 		  A value of zero may cause all queries to return
 		  SERVFAIL, because of lost caches of intermediate
