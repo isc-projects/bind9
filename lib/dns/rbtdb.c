@@ -5638,9 +5638,10 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_write);
 
-	for (header = rbtnode->data; header != NULL; header = header->next)
+	for (header = rbtnode->data; header != NULL; header = header->next) {
 		if (header->rdh_ttl + rbtdb->serve_stale_ttl <=
-		    now - RBTDB_VIRTUAL) {
+		    now - RBTDB_VIRTUAL)
+		{
 			/*
 			 * We don't check if refcurrent(rbtnode) == 0 and try
 			 * to free like we do in cache_find(), because
@@ -5648,10 +5649,11 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 			 * because 'node' is an argument to the function.
 			 */
 			mark_header_ancient(rbtdb, header);
-			if (log)
+			if (log) {
 				isc_log_write(dns_lctx, category, module,
 					      level, "overmem cache: stale %s",
 					      printname);
+					      }
 		} else if (force_expire) {
 			if (! RETAIN(header)) {
 				set_ttl(rbtdb, header, 0);
@@ -5662,9 +5664,11 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 					      "reprieve by RETAIN() %s",
 					      printname);
 			}
-		} else if (isc_mem_isovermem(rbtdb->common.mctx) && log)
+		} else if (isc_mem_isovermem(rbtdb->common.mctx) && log) {
 			isc_log_write(dns_lctx, category, module, level,
 				      "overmem cache: saved %s", printname);
+		}
+	}
 
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
@@ -5877,8 +5881,9 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	result = ISC_R_SUCCESS;
 
-	if (now == 0)
+	if (now == 0) {
 		isc_stdtime_get(&now);
+	}
 
 	lock = &rbtdb->node_locks[rbtnode->locknum].lock;
 	locktype = isc_rwlocktype_read;
@@ -5888,10 +5893,11 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
 	negtype = RBTDB_RDATATYPE_VALUE(0, type);
-	if (covers == 0)
+	if (covers == 0) {
 		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
-	else
+	} else {
 		sigmatchtype = 0;
+	}
 
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
@@ -5899,7 +5905,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			if ((header->rdh_ttl + rbtdb->serve_stale_ttl <
 			     now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
-			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
+			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS))
+			{
 				/*
 				 * We update the node's status only when we
 				 * can get write access.
@@ -5916,35 +5923,40 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				mark_header_ancient(rbtdb, header);
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
-			if (header->type == matchtype)
+			if (header->type == matchtype) {
 				found = header;
-			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				 header->type == negtype)
+			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
+				   header->type == negtype)
+			{
 				found = header;
-			else if (header->type == sigmatchtype)
+			} else if (header->type == sigmatchtype) {
 				foundsig = header;
+			}
 		}
 	}
 	if (found != NULL) {
 		bind_rdataset(rbtdb, rbtnode, found, now, rdataset);
-		if (!NEGATIVE(found) && foundsig != NULL)
+		if (!NEGATIVE(found) && foundsig != NULL) {
 			bind_rdataset(rbtdb, rbtnode, foundsig, now,
 				      sigrdataset);
+		}
 	}
 
 	NODE_UNLOCK(lock, locktype);
 
-	if (found == NULL)
+	if (found == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	if (NEGATIVE(found)) {
 		/*
 		 * We found a negative cache entry.
 		 */
-		if (NXDOMAIN(found))
+		if (NXDOMAIN(found)) {
 			result = DNS_R_NCACHENXDOMAIN;
-		else
+		} else {
 			result = DNS_R_NCACHENXRRSET;
+		}
 	}
 
 	update_cachestats(rbtdb, result);
@@ -6934,12 +6946,14 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	if (IS_CACHE(rbtdb)) {
-		if (tree_locked)
+		if (tree_locked) {
 			cleanup_dead_nodes(rbtdb, rbtnode->locknum);
+		}
 
 		header = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
-		if (header && header->rdh_ttl +
-		    rbtdb->serve_stale_ttl < now - RBTDB_VIRTUAL) {
+		if (header != NULL && header->rdh_ttl +
+		    rbtdb->serve_stale_ttl < now - RBTDB_VIRTUAL)
+		{
 			expire_header(rbtdb, header, tree_locked,
 				      expire_ttl);
 		}
