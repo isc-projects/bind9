@@ -702,9 +702,7 @@ modrdataset(struct dlz_example_data *state, const char *name,
 	char *full_name, *dclass, *type, *data, *ttlstr, *buf;
 	char absolute[1024];
 	isc_result_t result;
-#if defined(WIN32) || defined(_REENTRANT)
 	char *saveptr = NULL;
-#endif
 
 	buf = strdup(rdatastr);
 	if (buf == NULL)
