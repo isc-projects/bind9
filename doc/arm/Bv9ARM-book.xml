@@ -4454,6 +4454,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		    reopen a closed output stream. The minimum is 1 second,
 		    the maximum is 600 seconds (10 minutes), and the default
 		    is 5 seconds.
+		    For convenience, TTL-style time unit suffixes may be
+		    used to specify the value.
 		  </simpara>
 		</listitem>
 	      </itemizedlist>
@@ -8560,8 +8562,9 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  begin listening for queries on any newly discovered
 		  interfaces (provided they are allowed by the
 		  <command>listen-on</command> configuration), and
-		  will
-		  stop listening on interfaces that have gone away.
+		  will stop listening on interfaces that have gone away.
+		  For convenience, TTL-style time unit suffixes may be
+		  used to specify the value.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -10167,6 +10170,8 @@ deny-answer-aliases { "example.net"; };
 	    to a maximum value.
 	    The <command>max-policy-ttl</command> clause changes the
 	    maximum seconds from its default of 5.
+	    For convenience, TTL-style time unit suffixes may be
+	    used to specify the value.
 	  </para>
 
 	  <para>
@@ -10253,6 +10258,8 @@ example.com                 CNAME   rpz-tcp-only.
 	    than <option>min-update-interval</option> seconds after the most
 	    recent update, then the changes will not be carried out until this
 	    interval has elapsed.  The default is <literal>5</literal> seconds.
+	    For convenience, TTL-style time unit suffixes may be
+	    used to specify the value.
 	  </para>
 	</section>
 

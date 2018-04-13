@@ -633,10 +633,12 @@
 ./bin/tests/system/checkconf/bad-also-notify.conf	CONF-C	2012,2013,2016,2018
 ./bin/tests/system/checkconf/bad-catz-zone.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012,2013,2016,2018
+./bin/tests/system/checkconf/bad-fstrm-reopen-interval.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-glue-cache-bogus.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-in-view-dup.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-inline-slave.conf	CONF-C	2013,2016,2018
+./bin/tests/system/checkconf/bad-interface-interval.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-keep-response-order.conf	CONF-C	2015,2016,2018
 ./bin/tests/system/checkconf/bad-lifetime.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-lmdb-mapsize-bogus.conf	CONF-C	2017,2018
@@ -665,6 +667,8 @@
 ./bin/tests/system/checkconf/bad-rate-limit-slip.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-rate-limit-window.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-rpz-too-many-zones.conf	CONF-C	2018
+./bin/tests/system/checkconf/bad-rpz-ttl.conf	CONF-C	2018
+./bin/tests/system/checkconf/bad-rpz-update.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-rpz-zone.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-sharedwritable1.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-sharedwritable2.conf	CONF-C	2014,2016,2018
@@ -703,7 +707,9 @@
 ./bin/tests/system/checkconf/good-acl.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/good-class.conf	CONF-C	2015,2016,2018
 ./bin/tests/system/checkconf/good-dlv-dlv.example.com.conf	CONF-C	2017,2018
+./bin/tests/system/checkconf/good-fstrm-reopen-interval.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-glue-cache.conf	CONF-C	2017,2018
+./bin/tests/system/checkconf/good-interface-interval.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-lmdb-mapsize-largest.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/good-lmdb-mapsize-smallest.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/good-maxcachettl.conf	CONF-C	2018
@@ -712,6 +718,8 @@
 ./bin/tests/system/checkconf/good-options-also-notify.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/good-printtime.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/good-response-dot.conf	CONF-C	2017,2018
+./bin/tests/system/checkconf/good-rpz-ttl.conf	CONF-C	2018
+./bin/tests/system/checkconf/good-rpz-update.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-update-policy1.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-update-policy10.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-update-policy11.conf	CONF-C	2018
