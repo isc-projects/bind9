@@ -4275,7 +4275,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		  configurable options be consistent among these
 		  views:
 		  <command>check-names</command>,
-		  <command>cleaning-interval</command>,
 		  <command>dnssec-accept-expired</command>,
 		  <command>dnssec-validation</command>,
 		  <command>max-cache-ttl</command>,
@@ -8403,14 +8402,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>cleaning-interval</command></term>
 	      <listitem>
 		<para>
-		  This interval is effectively obsolete.  Previously,
-		  the server would remove expired resource records
-		  from the cache every <command>cleaning-interval</command> minutes.
-		  <acronym>BIND</acronym> 9 now manages cache
-		  memory in a more sophisticated manner and does not
-		  rely on the periodic cleaning any more.
-		  Specifying this option therefore has no effect on
-		  the server's behavior.
+		  This option is obsolete.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -864,7 +864,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	 * (scale * value) <= UINT32_MAX
 	 */
 	static intervaltable intervals[] = {
-		{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
 		{ "heartbeat-interval", 60, 28 * 24 * 60 },	/* 28 days */
 		{ "interface-interval", 60, 28 * 24 * 60 },	/* 28 days */
 		{ "max-transfer-idle-in", 60, 28 * 24 * 60 },	/* 28 days */

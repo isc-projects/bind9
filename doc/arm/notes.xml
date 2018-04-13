@@ -125,6 +125,12 @@
 	  if signatures and other DNSSEC data are present. [GL #866]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>cleaning-interval</command> option has been
+	  removed.  [GL !1731]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
