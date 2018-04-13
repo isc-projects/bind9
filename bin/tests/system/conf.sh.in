@@ -163,6 +163,9 @@ HAVEJSONSTATS=@JSONSTATS@
 ZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
 
+# Used key lengths
+KEYGEN_DSA="$KEYGEN -r $RANDFILE -a DSA -b 1024"
+
 . $SRCTOP/version
 
 #
@@ -308,6 +311,7 @@ export KEYCREATE
 export KEYDELETE
 export KEYFRLAB
 export KEYGEN
+export KEYGEN_DSA
 export KEYSETTOOL
 export KEYSIGNER
 export KRB5_CONFIG

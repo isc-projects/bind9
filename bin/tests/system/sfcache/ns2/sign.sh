@@ -16,8 +16,8 @@ zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN_DSA -q -n zone $zone`
+keyname2=`$KEYGEN_DSA -q -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 

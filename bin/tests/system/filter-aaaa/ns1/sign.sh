@@ -21,8 +21,8 @@ infile=signed.db.in
 zonefile=signed.db.signed
 outfile=signed.db.signed
 
-keyname1=`$KEYGEN -r $RANDFILE -a DSA -b 1024 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -r $RANDFILE -a DSA -b 1024 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN_DSA -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN_DSA -f KSK -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
