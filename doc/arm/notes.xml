@@ -140,6 +140,21 @@
 	  supported by default; previously the limit was 32. [GL #123]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Several configuration options for time periods can now use
+	  TTL value suffixes (for example, <literal>2h</literal> or
+	  <literal>1d</literal>) in addition to an integer number of
+	  seconds. These include:
+	  <command>fstrm-set-reopen-interval</command>;
+	  <command>interface-interval</command>;
+	  <command>max-cache-ttl</command>;
+	  <command>max-ncache-ttl</command>;
+	  <command>max-policy-ttl</command>;
+	  <command>min-update-interval</command>.
+	  [GL #203]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
