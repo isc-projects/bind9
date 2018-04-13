@@ -12,12 +12,4 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$GENRANDOM 800 $RANDFILE
-
-if $KEYGEN -q -a RSAMD5 -b 1024 -n zone -r $RANDFILE foo > /dev/null 2>&1
-then
-    rm -f Kfoo*
-else
-    echo "I:This test requires that --with-openssl was used." >&2
-    exit 255
-fi
+exec $SHELL $SYSTEMTESTTOP/testcrypto.sh
