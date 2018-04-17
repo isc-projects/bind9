@@ -15,6 +15,8 @@
 
 /*! \file */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -223,7 +225,7 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
  *		The interval is larger than the time since the epoch.
  */
 
-isc_uint64_t
+uint64_t
 isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
 /*%<
  * Find the difference in microseconds between time t1 and time t2.
@@ -237,7 +239,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
  *\li	The difference of t1 - t2, or 0 if t1 <= t2.
  */
 
-isc_uint32_t
+uint32_t
 isc_time_seconds(const isc_time_t *t);
 /*%<
  * Return the number of seconds since the epoch stored in a time structure.
@@ -270,7 +272,7 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp);
  *\li	Out of range
  */
 
-isc_uint32_t
+uint32_t
 isc_time_nanoseconds(const isc_time_t *t);
 /*%<
  * Return the number of nanoseconds stored in a time structure.

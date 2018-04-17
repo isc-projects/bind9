@@ -297,7 +297,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	dns_name_t name;
 	dns_offsets_t offsets;
 	isc_region_t region;
-	isc_uint16_t port;
+	uint16_t port;
 	isc_result_t result;
 
 	REQUIRE(rdata->type == dns_rdatatype_srv);

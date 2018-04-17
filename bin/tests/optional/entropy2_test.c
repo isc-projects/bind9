@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/entropy.h>
@@ -81,8 +82,8 @@ get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
 	isc_result_t result;
 	isc_time_t t;
-	isc_uint32_t sample;
-	isc_uint32_t extra;
+	uint32_t sample;
+	uint32_t extra;
 	unsigned char c;
 
 	if (!blocking)

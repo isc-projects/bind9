@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
@@ -203,8 +204,8 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 
 	obj = cfg_tuple_get(alternates, "port");
 	if (cfg_obj_isuint32(obj)) {
-		isc_uint32_t val = cfg_obj_asuint32(obj);
-		if (val > ISC_UINT16_MAX) {
+		uint32_t val = cfg_obj_asuint32(obj);
+		if (val > UINT16_MAX) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
 			if (result == ISC_R_SUCCESS)
@@ -233,8 +234,8 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 		}
 		obj = cfg_tuple_get(value, "port");
 		if (cfg_obj_isuint32(obj)) {
-			isc_uint32_t val = cfg_obj_asuint32(obj);
-			if (val > ISC_UINT16_MAX) {
+			uint32_t val = cfg_obj_asuint32(obj);
+			if (val > UINT16_MAX) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "port '%u' out of range", val);
 				if (result == ISC_R_SUCCESS)
@@ -917,7 +918,7 @@ check_dscp(const cfg_obj_t *options, isc_log_t *logctx) {
        obj = NULL;
        (void)cfg_map_get(options, "dscp", &obj);
        if (obj != NULL) {
-	       isc_uint32_t dscp = cfg_obj_asuint32(obj);
+	       uint32_t dscp = cfg_obj_asuint32(obj);
 	       if (dscp >= 64) {
 		       cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				   "'dscp' out of range (0-63)");
@@ -951,7 +952,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	const char *str;
 	dns_name_t *name;
 	isc_buffer_t b;
-	isc_uint32_t lifetime = 3600;
+	uint32_t lifetime = 3600;
 #if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 	const char *ccalg = "aes";
 #else
@@ -1015,7 +1016,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	 * have reasonable values.
 	 */
 	for (i = 0; i < sizeof(intervals) / sizeof(intervals[0]); i++) {
-		isc_uint32_t val;
+		uint32_t val;
 		obj = NULL;
 		(void)cfg_map_get(options, intervals[i].name, &obj);
 		if (obj == NULL)
@@ -1027,7 +1028,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    intervals[i].name, val,
 				    intervals[i].max);
 			result = ISC_R_RANGE;
-		} else if (val > (ISC_UINT32_MAX / intervals[i].scale)) {
+		} else if (val > (UINT32_MAX / intervals[i].scale)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%d' is out of range",
 				    intervals[i].name, val);
@@ -1038,7 +1039,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	cfg_map_get(options, "max-rsa-exponent-size", &obj);
 	if (obj != NULL) {
-		isc_uint32_t val;
+		uint32_t val;
 
 		val = cfg_obj_asuint32(obj);
 		if (val != 0 && (val < 35 || val > 4096)) {
@@ -1052,7 +1053,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	cfg_map_get(options, "sig-validity-interval", &obj);
 	if (obj != NULL) {
-		isc_uint32_t validity, resign = 0;
+		uint32_t validity, resign = 0;
 
 		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
 		resignobj = cfg_tuple_get(obj, "re-sign");
@@ -1088,7 +1089,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	cfg_map_get(options, "dnskey-sig-validity", &obj);
 	if (obj != NULL) {
-		isc_uint32_t keyvalidity;
+		uint32_t keyvalidity;
 
 		keyvalidity = cfg_obj_asuint32(obj);
 		if (keyvalidity > 3660 || keyvalidity == 0) { /* 10 years */
@@ -1385,7 +1386,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-recheck", &obj);
 	if (obj != NULL) {
-		isc_uint32_t recheck = cfg_obj_asuint32(obj);
+		uint32_t recheck = cfg_obj_asuint32(obj);
 		if (recheck > 604800) {		/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-recheck' cannot exceed one week");
@@ -1473,7 +1474,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 
 #ifdef HAVE_DNSTAP
 	for (i = 0; i < sizeof(fstrm) / sizeof(fstrm[0]); i++) {
-		isc_uint32_t value;
+		uint32_t value;
 
 		obj = NULL;
 		(void) cfg_map_get(options, fstrm[i].name, &obj);
@@ -1571,7 +1572,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "lmdb-mapsize", &obj);
 	if (obj != NULL) {
-		isc_uint64_t mapsize = cfg_obj_asuint64(obj);
+		uint64_t mapsize = cfg_obj_asuint64(obj);
 
 		if (mapsize < (1ULL << 20)) { /* 1 megabyte */
 			cfg_obj_log(obj, logctx,
@@ -1634,16 +1635,16 @@ get_masters_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) 
 
 static isc_result_t
 validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
-		 isc_uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx)
+		 uint32_t *countp, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	isc_uint32_t count = 0;
+	uint32_t count = 0;
 	isc_symtab_t *symtab = NULL;
 	isc_symvalue_t symvalue;
 	const cfg_listelt_t *element;
 	const cfg_listelt_t **stack = NULL;
-	isc_uint32_t stackcount = 0, pushed = 0;
+	uint32_t stackcount = 0, pushed = 0;
 	const cfg_obj_t *list;
 
 	REQUIRE(countp != NULL);
@@ -1698,7 +1699,7 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		/* Grow stack? */
 		if (stackcount == pushed) {
 			void * newstack;
-			isc_uint32_t newlen = stackcount + 16;
+			uint32_t newlen = stackcount + 16;
 			size_t newsize, oldsize;
 
 			newsize = newlen * sizeof(*stack);
@@ -2140,7 +2141,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (tresult != ISC_R_SUCCESS && goptions != NULL)
 			tresult = cfg_map_get(goptions, "also-notify", &obj);
 		if (tresult == ISC_R_SUCCESS && donotify) {
-			isc_uint32_t count;
+			uint32_t count;
 			tresult = validate_masters(obj, config, &count,
 						   logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
@@ -2159,7 +2160,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    znamestr);
 			result = ISC_R_FAILURE;
 		} else {
-			isc_uint32_t count;
+			uint32_t count;
 			tresult = validate_masters(obj, config, &count,
 						   logctx, mctx);
 			if (tresult != ISC_R_SUCCESS && result == ISC_R_SUCCESS)
@@ -2249,7 +2250,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
 		if (res1 == ISC_R_SUCCESS) {
-			isc_uint32_t type = cfg_obj_asuint32(obj);
+			uint32_t type = cfg_obj_asuint32(obj);
 			if (type < 0xff00U || type > 0xffffU)
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 					    "sig-signing-type: %u out of "
@@ -2569,7 +2570,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 typedef struct keyalgorithms {
 	const char *name;
-	isc_uint16_t size;
+	uint16_t size;
 } algorithmtable;
 
 isc_result_t
@@ -2629,7 +2630,7 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 		return (ISC_R_NOTFOUND);
 	}
 	if (algorithm[len] == '-') {
-		isc_uint16_t digestbits;
+		uint16_t digestbits;
 		result = isc_parse_uint16(&digestbits, algorithm + len + 1, 10);
 		if (result == ISC_R_SUCCESS || result == ISC_R_RANGE) {
 			if (result == ISC_R_RANGE ||
@@ -2941,7 +2942,7 @@ check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
-	isc_uint32_t flags, proto, alg;
+	uint32_t flags, proto, alg;
 	unsigned char keydata[4096];
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
@@ -3708,7 +3709,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 	const cfg_obj_t *unixcontrols;
 	const cfg_obj_t *keylist = NULL;
 	const char *path;
-	isc_uint32_t perm, mask;
+	uint32_t perm, mask;
 	dns_acl_t *acl = NULL;
 	isc_sockaddr_t addr;
 	int i;

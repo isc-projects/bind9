@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -201,7 +202,7 @@ static isc_stdtime_t
 setresign(dns_rdataset_t *modified) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t sig;
-	isc_int64_t when;
+	int64_t when;
 	isc_result_t result;
 
 	result = dns_rdataset_first(modified);

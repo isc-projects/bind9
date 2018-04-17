@@ -26,7 +26,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	isc_result_t result;
 	dns_name_t name;
 	isc_buffer_t buffer;
-	isc_uint32_t time_signed, time_expire;
+	uint32_t time_signed, time_expire;
 
 	REQUIRE(type == dns_rdatatype_sig);
 

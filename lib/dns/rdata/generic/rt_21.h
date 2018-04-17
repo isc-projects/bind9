@@ -19,7 +19,7 @@
 typedef struct dns_rdata_rt {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
-	isc_uint16_t		preference;
+	uint16_t		preference;
 	dns_name_t		host;
 } dns_rdata_rt_t;
 

@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -163,7 +164,7 @@ static isc_result_t
 fmt_address(isc_sockaddr_t *addr, char *buffer, size_t size) {
 	char addr_buf[100];
 	const char *ret;
-	isc_uint16_t port = 0;
+	uint16_t port = 0;
 
 	switch (addr->type.sa.sa_family) {
 	case AF_INET:
@@ -682,7 +683,7 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata) {
  */
 isc_boolean_t
 dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
-	     const char *type, const char *key, isc_uint32_t keydatalen,
+	     const char *type, const char *key, uint32_t keydatalen,
 	     unsigned char *keydata, void *dbdata)
 {
 	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;

@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -231,7 +233,7 @@ dns_compress_getedns(dns_compress_t *cctx) {
  */
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, isc_uint16_t *offset)
+			dns_name_t *prefix, uint16_t *offset)
 {
 	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
@@ -372,7 +374,7 @@ name_length(const dns_name_t *name) {
 
 void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, isc_uint16_t offset)
+		 const dns_name_t *prefix, uint16_t offset)
 {
 	dns_name_t tname, xname;
 	unsigned int start;
@@ -382,7 +384,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	dns_compressnode_t *node;
 	unsigned int length;
 	unsigned int tlength;
-	isc_uint16_t toffset;
+	uint16_t toffset;
 	unsigned char *tmp;
 	isc_region_t r;
 
@@ -430,7 +432,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		ch = tname.ndata[1];
 		i = tableindex[ch];
 		tlength = name_length(&tname);
-		toffset = (isc_uint16_t)(offset + (length - tlength));
+		toffset = (uint16_t)(offset + (length - tlength));
 		if (toffset >= 0x4000)
 			break;
 		/*
@@ -470,7 +472,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 }
 
 void
-dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
+dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 	unsigned int i;
 	dns_compressnode_t *node;
 

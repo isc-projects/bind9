@@ -20,7 +20,7 @@ typedef struct dns_rdata_x25 {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	unsigned char		*x25;
-	isc_uint8_t		x25_len;
+	uint8_t		x25_len;
 } dns_rdata_x25_t;
 
 #endif /* GENERIC_X25_19_H */

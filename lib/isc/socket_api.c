@@ -12,6 +12,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/app.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
@@ -368,8 +370,8 @@ isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 }
 
 isc_result_t
-isc_socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
-		     isc_uint32_t owner, isc_uint32_t group)
+isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
+		     uint32_t owner, uint32_t group)
 {
 	return (isc__socket_permunix(sockaddr, perm, owner, group));
 }

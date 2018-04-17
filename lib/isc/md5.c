@@ -29,6 +29,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include <pk11/site.h>
 
 #ifndef PK11_MD5_DISABLE
@@ -131,12 +133,12 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 #else
 
 static void
-byteSwap(isc_uint32_t *buf, unsigned words)
+byteSwap(uint32_t *buf, unsigned words)
 {
 	unsigned char *p = (unsigned char *)buf;
 
 	do {
-		*buf++ = (isc_uint32_t)((unsigned)p[3] << 8 | p[2]) << 16 |
+		*buf++ = (uint32_t)((unsigned)p[3] << 8 | p[2]) << 16 |
 			((unsigned)p[1] << 8 | p[0]);
 		p += 4;
 	} while (--words);
@@ -182,8 +184,8 @@ isc_md5_invalidate(isc_md5_t *ctx) {
  * the data and converts bytes into longwords for this routine.
  */
 static void
-transform(isc_uint32_t buf[4], isc_uint32_t const in[16]) {
-	register isc_uint32_t a, b, c, d;
+transform(uint32_t buf[4], uint32_t const in[16]) {
+	register uint32_t a, b, c, d;
 
 	a = buf[0];
 	b = buf[1];
@@ -270,7 +272,7 @@ transform(isc_uint32_t buf[4], isc_uint32_t const in[16]) {
  */
 void
 isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len) {
-	isc_uint32_t t;
+	uint32_t t;
 
 	/* Update byte count */
 

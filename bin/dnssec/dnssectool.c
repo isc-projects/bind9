@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef _WIN32
@@ -61,10 +62,10 @@
 static isc_heap_t *expected_chains, *found_chains;
 
 struct nsec3_chain_fixed {
-	isc_uint8_t	hash;
-	isc_uint8_t	salt_length;
-	isc_uint8_t	next_length;
-	isc_uint16_t	iterations;
+	uint8_t	hash;
+	uint8_t	salt_length;
+	uint8_t	next_length;
+	uint16_t	iterations;
 	/* unsigned char salt[0]; */
 	/* unsigned char owner[0]; */
 	/* unsigned char next[0]; */
@@ -334,10 +335,10 @@ strtottl(const char *str) {
 }
 
 isc_stdtime_t
-strtotime(const char *str, isc_int64_t now, isc_int64_t base,
+strtotime(const char *str, int64_t now, int64_t base,
 	  isc_boolean_t *setp)
 {
-	isc_int64_t val, offset;
+	int64_t val, offset;
 	isc_result_t result;
 	const char *orig = str;
 	char *endp;
@@ -499,8 +500,8 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_boolean_t conflict = ISC_FALSE;
 	dns_dnsseckeylist_t matchkeys;
 	dns_dnsseckey_t *key = NULL;
-	isc_uint16_t id, oldid;
-	isc_uint32_t rid, roldid;
+	uint16_t id, oldid;
+	uint32_t rid, roldid;
 	dns_secalg_t alg;
 	char filename[ISC_DIR_NAMEMAX];
 	isc_buffer_t fileb;
@@ -574,7 +575,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 
 isc_boolean_t
 is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
-	      dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp)
+	      dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp)
 {
 	dns_rdataset_t nsset;
 	isc_result_t result;

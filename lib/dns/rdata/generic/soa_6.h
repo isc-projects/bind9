@@ -19,11 +19,11 @@ typedef struct dns_rdata_soa {
 	isc_mem_t		*mctx;
 	dns_name_t		origin;
 	dns_name_t		contact;
-	isc_uint32_t		serial;		/*%< host order */
-	isc_uint32_t		refresh;	/*%< host order */
-	isc_uint32_t		retry;		/*%< host order */
-	isc_uint32_t		expire;		/*%< host order */
-	isc_uint32_t		minimum;	/*%< host order */
+	uint32_t		serial;		/*%< host order */
+	uint32_t		refresh;	/*%< host order */
+	uint32_t		retry;		/*%< host order */
+	uint32_t		expire;		/*%< host order */
+	uint32_t		minimum;	/*%< host order */
 } dns_rdata_soa_t;
 
 

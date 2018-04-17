@@ -15,6 +15,7 @@
 #include <config.h>
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -108,7 +109,7 @@ main(int argc, char **argv) {
 	dns_masterformat_t inputformat = dns_masterformat_text;
 	dns_masterformat_t outputformat = dns_masterformat_text;
 	dns_masterrawheader_t header;
-	isc_uint32_t rawversion = 1, serialnum = 0;
+	uint32_t rawversion = 1, serialnum = 0;
 	dns_ttl_t maxttl = 0;
 	isc_boolean_t snset = ISC_FALSE;
 	isc_boolean_t logdump = ISC_FALSE;

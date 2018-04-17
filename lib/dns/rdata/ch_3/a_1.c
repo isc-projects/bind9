@@ -65,7 +65,7 @@ totext_ch_a(ARGS_TOTEXT) {
 	dns_name_t prefix;
 	isc_boolean_t sub;
 	char buf[sizeof("0177777")];
-	isc_uint16_t addr;
+	uint16_t addr;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch); /* 3 */

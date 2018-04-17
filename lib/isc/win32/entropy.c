@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <windows.h>
 #include <wincrypt.h>
 
@@ -39,7 +41,7 @@ typedef struct {
 #include "../entropy.c"
 
 static unsigned int
-get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_filesource(isc_entropysource_t *source, uint32_t desired) {
 	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	HCRYPTPROV hcryptprov = source->sources.file.handle;
@@ -64,7 +66,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 				    (unsigned int)ndesired,
 				    (unsigned int)ndesired * 8);
 		added += (unsigned int)ndesired * 8;
-		desired -= (isc_uint32_t)ndesired;
+		desired -= (uint32_t)ndesired;
 	}
 
  out:

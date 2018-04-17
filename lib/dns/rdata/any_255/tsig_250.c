@@ -19,7 +19,7 @@ static inline isc_result_t
 fromtext_any_tsig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
-	isc_uint64_t sigtime;
+	uint64_t sigtime;
 	isc_buffer_t buffer;
 	dns_rcode_t rcode;
 	long i;
@@ -53,8 +53,8 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 		RETTOK(DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
 		RETTOK(ISC_R_RANGE);
-	RETERR(uint16_tobuffer((isc_uint16_t)(sigtime >> 32), target));
-	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffffU), target));
+	RETERR(uint16_tobuffer((uint16_t)(sigtime >> 32), target));
+	RETERR(uint32_tobuffer((uint32_t)(sigtime & 0xffffffffU), target));
 
 	/*
 	 * Fudge.
@@ -129,7 +129,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	isc_uint64_t sigtime;
+	uint64_t sigtime;
 	unsigned short n;
 
 	REQUIRE(rdata->type == dns_rdatatype_tsig);
@@ -151,12 +151,12 @@ totext_any_tsig(ARGS_TOTEXT) {
 	/*
 	 * Time Signed.
 	 */
-	sigtime = ((isc_uint64_t)sr.base[0] << 40) |
-		  ((isc_uint64_t)sr.base[1] << 32) |
-		  ((isc_uint64_t)sr.base[2] << 24) |
-		  ((isc_uint64_t)sr.base[3] << 16) |
-		  ((isc_uint64_t)sr.base[4] << 8) |
-		  (isc_uint64_t)sr.base[5];
+	sigtime = ((uint64_t)sr.base[0] << 40) |
+		  ((uint64_t)sr.base[1] << 32) |
+		  ((uint64_t)sr.base[2] << 24) |
+		  ((uint64_t)sr.base[3] << 16) |
+		  ((uint64_t)sr.base[4] << 8) |
+		  (uint64_t)sr.base[5];
 	isc_region_consume(&sr, 6);
 	bufp = &buf[sizeof(buf) - 1];
 	*bufp-- = 0;
@@ -373,9 +373,9 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 	/*
 	 * Time Signed: 48 bits.
 	 */
-	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32),
+	RETERR(uint16_tobuffer((uint16_t)(tsig->timesigned >> 32),
 			       target));
-	RETERR(uint32_tobuffer((isc_uint32_t)(tsig->timesigned & 0xffffffffU),
+	RETERR(uint32_tobuffer((uint32_t)(tsig->timesigned & 0xffffffffU),
 			       target));
 
 	/*
@@ -449,12 +449,12 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	 * Time Signed.
 	 */
 	INSIST(sr.length >= 6);
-	tsig->timesigned = ((isc_uint64_t)sr.base[0] << 40) |
-			   ((isc_uint64_t)sr.base[1] << 32) |
-			   ((isc_uint64_t)sr.base[2] << 24) |
-			   ((isc_uint64_t)sr.base[3] << 16) |
-			   ((isc_uint64_t)sr.base[4] << 8) |
-			   (isc_uint64_t)sr.base[5];
+	tsig->timesigned = ((uint64_t)sr.base[0] << 40) |
+			   ((uint64_t)sr.base[1] << 32) |
+			   ((uint64_t)sr.base[2] << 24) |
+			   ((uint64_t)sr.base[3] << 16) |
+			   ((uint64_t)sr.base[4] << 8) |
+			   (uint64_t)sr.base[5];
 	isc_region_consume(&sr, 6);
 
 	/*

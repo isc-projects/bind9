@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/magic.h>
@@ -34,7 +35,7 @@
 
 typedef struct dns_element {
 	in_port_t	port;
-	isc_uint16_t	flags;
+	uint16_t	flags;
 } dns_element_t;
 
 struct dns_portlist {

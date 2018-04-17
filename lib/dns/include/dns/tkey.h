@@ -15,6 +15,8 @@
 
 /*! \file dns/tkey.h */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -90,7 +92,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 isc_result_t
 dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 		      const dns_name_t *name, const dns_name_t *algorithm,
-		      isc_buffer_t *nonce, isc_uint32_t lifetime);
+		      isc_buffer_t *nonce, uint32_t lifetime);
 /*%<
  *	Builds a query containing a TKEY that will generate a shared
  *	secret using a Diffie-Hellman key exchange.  The shared key
@@ -117,7 +119,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       isc_uint32_t lifetime, gss_ctx_id_t *context,
+		       uint32_t lifetime, gss_ctx_id_t *context,
 		       isc_boolean_t win2k, isc_mem_t *mctx,
 		       char **err_message);
 /*%<

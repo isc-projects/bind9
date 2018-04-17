@@ -21,7 +21,7 @@ typedef struct dns_rdata_nxt {
 	isc_mem_t		*mctx;
 	dns_name_t		next;
 	unsigned char		*typebits;
-	isc_uint16_t		len;
+	uint16_t		len;
 } dns_rdata_nxt_t;
 
 #endif /* GENERIC_NXT_30_H */

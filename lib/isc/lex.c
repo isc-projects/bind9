@@ -16,6 +16,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -345,7 +346,7 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
 		isc_buffer_free(&source->pushback);
 		source->pushback = tbuf;
 	}
-	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
+	isc_buffer_putuint8(source->pushback, (uint8_t)c);
 	return (ISC_R_SUCCESS);
 }
 
@@ -362,7 +363,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	FILE *stream;
 	char *curr, *prev;
 	size_t remaining;
-	isc_uint32_t as_ulong;
+	uint32_t as_ulong;
 	unsigned int saved_options;
 	isc_result_t result;
 

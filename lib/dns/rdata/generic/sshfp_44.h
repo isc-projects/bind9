@@ -19,9 +19,9 @@
 typedef struct dns_rdata_sshfp {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
-	isc_uint8_t		algorithm;
-	isc_uint8_t		digest_type;
-	isc_uint16_t		length;
+	uint8_t		algorithm;
+	uint8_t		digest_type;
+	uint16_t		length;
 	unsigned char		*digest;
 } dns_rdata_sshfp_t;
 

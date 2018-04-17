@@ -27,9 +27,11 @@
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/buffer.h>
-#include <isc/int.h>
+#include <stdint.h>
 #include <isc/magic.h>
 #include <isc/region.h>
 #include <isc/types.h>
@@ -99,11 +101,11 @@ struct dst_key {
 	unsigned int	key_size;	/*%< size of the key in bits */
 	unsigned int	key_proto;	/*%< protocols this key is used for */
 	unsigned int	key_alg;	/*%< algorithm of the key */
-	isc_uint32_t	key_flags;	/*%< flags of the public key */
-	isc_uint16_t	key_id;		/*%< identifier of the key */
-	isc_uint16_t	key_rid;	/*%< identifier of the key when
+	uint32_t	key_flags;	/*%< flags of the public key */
+	uint16_t	key_id;		/*%< identifier of the key */
+	uint16_t	key_rid;	/*%< identifier of the key when
 					     revoked */
-	isc_uint16_t	key_bits;	/*%< hmac digest bits */
+	uint16_t	key_bits;	/*%< hmac digest bits */
 	dns_rdataclass_t key_class;	/*%< class of the key record */
 	dns_ttl_t	key_ttl;	/*%< default/initial dnskey ttl */
 	isc_mem_t	*mctx;		/*%< memory context */

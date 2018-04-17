@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/ratelimiter.h>
 #include <isc/task.h>
@@ -35,7 +37,7 @@ struct isc_ratelimiter {
 	isc_task_t *		task;
 	isc_timer_t *		timer;
 	isc_interval_t		interval;
-	isc_uint32_t		pertic;
+	uint32_t		pertic;
 	isc_boolean_t		pushpop;
 	isc_ratelimiter_state_t	state;
 	isc_event_t		shutdownevent;
@@ -123,7 +125,7 @@ isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval) {
 }
 
 void
-isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t pertic) {
+isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, uint32_t pertic) {
 
 	REQUIRE(rl != NULL);
 
@@ -201,7 +203,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	isc_event_t *p;
-	isc_uint32_t pertic;
+	uint32_t pertic;
 
 	UNUSED(task);
 

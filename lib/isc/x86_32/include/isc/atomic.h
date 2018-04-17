@@ -21,9 +21,9 @@
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
  */
-static __inline__ isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t prev = val;
+static __inline__ int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
+	int32_t prev = val;
 
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
@@ -38,9 +38,9 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 }
 
 #ifdef ISC_PLATFORM_HAVEXADDQ
-static __inline__ isc_int64_t
-isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
-	isc_int64_t prev = val;
+static __inline__ int64_t
+isc_atomic_xaddq(int64_t *p, int64_t val) {
+	int64_t prev = val;
 
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
@@ -59,7 +59,7 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
  * This routine atomically stores the value 'val' in 'p' (32-bit version).
  */
 static __inline__ void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
 		/*
@@ -80,7 +80,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * This routine atomically stores the value 'val' in 'p' (64-bit version).
  */
 static __inline__ void
-isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+isc_atomic_storeq(int64_t *p, int64_t val) {
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
 		/*
@@ -102,8 +102,8 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static __inline__ isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+static __inline__ int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 	__asm__ volatile(
 #ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
@@ -124,8 +124,8 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
  * positions of the stack frame, which would not actually point to the
  * intended address in the embedded mnemonic.
  */
-static isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+static int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -147,7 +147,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 }
 
 static void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -161,8 +161,8 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		);
 }
 
-static isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+static int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 	(void)(p);
 	(void)(cmpval);
 	(void)(val);

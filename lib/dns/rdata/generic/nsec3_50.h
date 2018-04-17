@@ -27,7 +27,7 @@ typedef struct dns_rdata_nsec3 {
 	dns_iterations_t	iterations;
 	unsigned char		salt_length;
 	unsigned char		next_length;
-	isc_uint16_t		len;
+	uint16_t		len;
 	unsigned char		*salt;
 	unsigned char		*next;
 	unsigned char		*typebits;
