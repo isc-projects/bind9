@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: getaddresses.h,v 1.11 2009/01/17 23:47:42 tbox Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1

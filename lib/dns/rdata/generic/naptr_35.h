@@ -12,7 +12,6 @@
 #ifndef GENERIC_NAPTR_35_H
 #define GENERIC_NAPTR_35_H 1
 
-/* $Id$ */
 
 /*!
  *  \brief Per RFC2915 */

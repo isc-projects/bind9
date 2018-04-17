@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: clean.sh,v 1.2 2010/06/21 02:31:45 marka Exp $
-
 #
 # Clean up after virtual time tests.
 #

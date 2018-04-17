@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: namedconf.h,v 1.18 2010/08/11 18:14:20 each Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1

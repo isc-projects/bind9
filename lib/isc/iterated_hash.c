@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: iterated_hash.c,v 1.6 2009/02/18 23:47:48 tbox Exp $ */
 
 #include "config.h"
 

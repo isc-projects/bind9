@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: version.c,v 1.15.1234.1 2012/02/11 22:37:57 each Exp $ */
 
 /*! \file */
 

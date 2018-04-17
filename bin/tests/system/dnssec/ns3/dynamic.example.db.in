@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: dynamic.example.db.in,v 1.5 2007/06/19 23:47:02 tbox Exp $
-
 ; This has the NS and glue at the apex because testing RT #2399
 ; requires we have only one name in the zone at a certain point
 ; during the test.

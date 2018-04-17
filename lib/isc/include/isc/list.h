@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1

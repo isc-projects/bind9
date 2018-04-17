@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hip_55.h,v 1.2 2009/02/26 06:09:19 marka Exp $ */
 
 #ifndef GENERIC_HIP_5_H
 #define GENERIC_HIP_5_H 1

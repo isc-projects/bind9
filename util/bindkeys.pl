@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: bindkeys.pl,v 1.7 2011/01/04 23:47:13 tbox Exp $
-
 use strict;
 use warnings;
 

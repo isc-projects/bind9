@@ -7,7 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.db,v 1.4 2012/01/31 23:47:32 tbox Exp $
 @		SOA	ns.utld hostmaster.ns.utld ( 1 3600 1200 604800 60 )
 @		NS	ns.utld
 ns.utld		A	10.53.0.4

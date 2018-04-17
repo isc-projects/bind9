@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef PK11_INTERNAL_H
 #define PK11_INTERNAL_H 1

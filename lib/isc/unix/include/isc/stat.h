@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: stat.h,v 1.5 2007/06/19 23:47:19 tbox Exp $ */
 
 #ifndef ISC_STAT_H
 #define ISC_STAT_H 1

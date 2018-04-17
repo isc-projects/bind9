@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ntgroups.c,v 1.12 2009/09/29 23:48:04 tbox Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are
