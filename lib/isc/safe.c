@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -27,10 +29,10 @@
 
 isc_boolean_t
 isc_safe_memequal(const void *s1, const void *s2, size_t n) {
-	isc_uint8_t acc = 0;
+	uint8_t acc = 0;
 
 	if (n != 0U) {
-		const isc_uint8_t *p1 = s1, *p2 = s2;
+		const uint8_t *p1 = s1, *p2 = s2;
 
 		do {
 			acc |= *p1++ ^ *p2++;

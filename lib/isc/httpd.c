@@ -15,6 +15,9 @@
 
 #include <config.h>
 
+#include <stdint.h>
+#include <string.h>
+
 #include <isc/buffer.h>
 #include <isc/httpd.h>
 #include <isc/mem.h>
@@ -24,8 +27,6 @@
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/util.h>
-
-#include <string.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -75,7 +76,7 @@ struct isc_httpd {
 	 * Received data state.
 	 */
 	char			recvbuf[HTTP_RECVLEN]; /*%< receive buffer */
-	isc_uint32_t		recvlen;	/*%< length recv'd */
+	uint32_t		recvlen;	/*%< length recv'd */
 	char		       *headers;	/*%< set in process_request() */
 	unsigned int		method;
 	char		       *url;

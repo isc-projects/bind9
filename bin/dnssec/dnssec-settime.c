@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -147,7 +148,7 @@ main(int argc, char **argv) {
 	dns_name_t	*name = NULL;
 	dns_secalg_t 	alg = 0;
 	unsigned int 	size = 0;
-	isc_uint16_t	flags = 0;
+	uint16_t	flags = 0;
 	int		prepub = -1;
 	dns_ttl_t	ttl = 0;
 	isc_stdtime_t	now;

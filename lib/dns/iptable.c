@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/radix.h>
 #include <isc/util.h>
@@ -56,7 +58,7 @@ static isc_boolean_t dns_iptable_pos = ISC_TRUE;
  */
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      isc_uint16_t bitlen, isc_boolean_t pos,
+		      uint16_t bitlen, isc_boolean_t pos,
 		      isc_boolean_t is_ecs)
 {
 	isc_result_t result;

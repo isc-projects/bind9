@@ -12,6 +12,8 @@
 /*! \file */
 
 #include <config.h>
+
+#include <stdint.h>
 #include <string.h>
 
 #include <isc/net.h>
@@ -81,7 +83,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		return (ISC_R_SUCCESS);
 	} else if (strlen(hostname) <= 127U) {
 		char tmpbuf[128], *d;
-		isc_uint32_t zone = 0;
+		uint32_t zone = 0;
 
 		strlcpy(tmpbuf, hostname, sizeof(tmpbuf));
 		d = strchr(tmpbuf, '%');

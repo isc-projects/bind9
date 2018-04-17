@@ -16,6 +16,8 @@
  ***	Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -112,7 +114,7 @@
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
 
-#define DNS_MESSAGE_HEADERLEN		12 /*%< 6 isc_uint16_t's */
+#define DNS_MESSAGE_HEADERLEN		12 /*%< 6 uint16_t's */
 
 #define DNS_MESSAGE_MAGIC		ISC_MAGIC('M','S','G','@')
 #define DNS_MESSAGE_VALID(msg)		ISC_MAGIC_VALID(msg, DNS_MESSAGE_MAGIC)
@@ -226,7 +228,7 @@ struct dns_message {
 	unsigned int			sig_reserved;
 	unsigned int			reserved; /* reserved space (render) */
 
-	isc_uint16_t			padding;
+	uint16_t			padding;
 	unsigned int			padding_off;
 
 	isc_buffer_t		       *buffer;
@@ -266,8 +268,8 @@ struct dns_message {
 };
 
 struct dns_ednsopt {
-	isc_uint16_t			code;
-	isc_uint16_t			length;
+	uint16_t			code;
+	uint16_t			length;
 	unsigned char			*value;
 };
 
@@ -1408,7 +1410,7 @@ dns_message_logfmtpacket(dns_message_t *message, const char *description,
 
 isc_result_t
 dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
-		     unsigned int version, isc_uint16_t udpsize,
+		     unsigned int version, uint16_t udpsize,
 		     unsigned int flags, dns_ednsopt_t *ednsopts, size_t count);
 /*%<
  * Built a opt record.
@@ -1434,7 +1436,7 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass);
  */
 
 void
-dns_message_setpadding(dns_message_t *msg, isc_uint16_t padding);
+dns_message_setpadding(dns_message_t *msg, uint16_t padding);
 /*%<
  * Set the padding block size in the response.
  * 0 means no padding (default).

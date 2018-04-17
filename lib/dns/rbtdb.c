@@ -20,6 +20,7 @@
 /* #define inline */
 
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/crc64.h>
 #include <isc/event.h>
@@ -106,11 +107,11 @@ typedef struct rbtdb_file_header rbtdb_file_header_t;
 
 struct rbtdb_file_header {
 	char version1[32];
-	isc_uint32_t ptrsize;
+	uint32_t ptrsize;
 	unsigned int bigendian:1;
-	isc_uint64_t tree;
-	isc_uint64_t nsec;
-	isc_uint64_t nsec3;
+	uint64_t tree;
+	uint64_t nsec;
+	uint64_t nsec3;
 
 	char version2[32];  		/* repeated; must match version1 */
 };
@@ -124,7 +125,7 @@ struct rbtdb_file_header {
 				 (rbtdb)->common.impmagic == RBTDB_MAGIC)
 
 #ifdef DNS_RBTDB_VERSION64
-typedef isc_uint64_t                    rbtdb_serial_t;
+typedef uint64_t                    rbtdb_serial_t;
 /*%
  * Make casting easier in symbolic debuggers by using different names
  * for the 64 bit version.
@@ -301,14 +302,14 @@ typedef isc_uint64_t                    rbtdb_serial_t;
 #define zone_zonecut_callback zone_zonecut_callback64
 
 #else
-typedef isc_uint32_t                    rbtdb_serial_t;
+typedef uint32_t                    rbtdb_serial_t;
 #endif
 
-typedef isc_uint32_t                    rbtdb_rdatatype_t;
+typedef uint32_t                    rbtdb_rdatatype_t;
 
 #define RBTDB_RDATATYPE_BASE(type)      ((dns_rdatatype_t)((type) & 0xFFFF))
 #define RBTDB_RDATATYPE_EXT(type)       ((dns_rdatatype_t)((type) >> 16))
-#define RBTDB_RDATATYPE_VALUE(base, ext) ((rbtdb_rdatatype_t)(((isc_uint32_t)ext) << 16) | (((isc_uint32_t)base) & 0xffff))
+#define RBTDB_RDATATYPE_VALUE(base, ext) ((rbtdb_rdatatype_t)(((uint32_t)ext) << 16) | (((uint32_t)base) & 0xffff))
 
 #define RBTDB_RDATATYPE_SIGNSEC \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec)
@@ -429,7 +430,7 @@ typedef struct rdatasetheader {
 	rbtdb_serial_t                  serial;
 	dns_ttl_t                       rdh_ttl;
 	rbtdb_rdatatype_t               type;
-	isc_uint16_t                    attributes;
+	uint16_t                    attributes;
 	dns_trust_t                     trust;
 	struct noqname                  *noqname;
 	struct noqname                  *closest;
@@ -456,7 +457,7 @@ typedef struct rdatasetheader {
 	 * this rdataset.
 	 */
 
-	isc_uint32_t                    count;
+	uint32_t                    count;
 	/*%<
 	 * Monotonously increased every time this rdataset is bound so that
 	 * it is used as the base of the starting point in DNS responses
@@ -633,17 +634,17 @@ typedef struct rbtdb_version {
 	isc_boolean_t			havensec3;
 	/* NSEC3 parameters */
 	dns_hash_t			hash;
-	isc_uint8_t			flags;
-	isc_uint16_t			iterations;
-	isc_uint8_t			salt_length;
+	uint8_t			flags;
+	uint16_t			iterations;
+	uint8_t			salt_length;
 	unsigned char			salt[DNS_NSEC3_SALTSIZE];
 
 	/*
 	 * records and bytes are covered by rwlock.
 	 */
 	isc_rwlock_t                    rwlock;
-	isc_uint64_t			records;
-	isc_uint64_t			bytes;
+	uint64_t			records;
+	uint64_t			bytes;
 
 	isc_rwlock_t                    glue_rwlock;
 	size_t                          glue_table_size;
@@ -937,7 +938,7 @@ static char FILE_VERSION[32] = "\0";
  * We don't lock this as we don't care about simultaneous updates.
  *
  * Note:
- *      Both init_count and header->count can be ISC_UINT32_MAX.
+ *      Both init_count and header->count can be UINT32_MAX.
  *      The count on the returned rdataset however can't be as
  *      that indicates that the database does not implement cyclic
  *      processing.
@@ -1148,7 +1149,7 @@ static unsigned int
 adjust_quantum(unsigned int old, isc_time_t *start) {
 	unsigned int pps = dns_pps;     /* packets per second */
 	unsigned int interval;
-	isc_uint64_t usecs;
+	uint64_t usecs;
 	isc_time_t end;
 	unsigned int nodes;
 
@@ -1658,7 +1659,7 @@ update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
 		newh->node = (dns_rbtnode_t *)p;
 	}
 	if (CASESET(old)) {
-		isc_uint16_t attr;
+		uint16_t attr;
 
 		memmove(newh->upper, old->upper, sizeof(old->upper));
 		attr = old->attributes & (RDATASET_ATTR_CASESET |
@@ -3323,7 +3324,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
 	rdataset->count = header->count++;
-	if (rdataset->count == ISC_UINT32_MAX)
+	if (rdataset->count == UINT32_MAX)
 		rdataset->count = 0;
 
 	/*
@@ -5607,7 +5608,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		isc_stdtime_get(&now);
 
 	if (isc_mem_isovermem(rbtdb->common.mctx)) {
-		isc_uint32_t val;
+		uint32_t val;
 
 		isc_random_get(&val);
 		/*
@@ -7444,7 +7445,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 
 static isc_result_t
 rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
-	      void *arg, isc_uint64_t *crc)
+	      void *arg, uint64_t *crc)
 {
 	isc_result_t result;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *) arg;
@@ -7698,7 +7699,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
  */
 static isc_result_t
 rbt_datawriter(FILE *rbtfile, unsigned char *data, void *arg,
-	       isc_uint64_t *crc)
+	       uint64_t *crc)
 {
 	rbtdb_version_t *version = (rbtdb_version_t *) arg;
 	rbtdb_serial_t serial;
@@ -7833,11 +7834,11 @@ rbtdb_write_header(FILE *rbtfile, off_t tree_location, off_t nsec_location,
 	memset(&header, 0, sizeof(rbtdb_file_header_t));
 	memmove(header.version1, FILE_VERSION, sizeof(header.version1));
 	memmove(header.version2, FILE_VERSION, sizeof(header.version2));
-	header.ptrsize = (isc_uint32_t) sizeof(void *);
+	header.ptrsize = (uint32_t) sizeof(void *);
 	header.bigendian = (1 == htonl(1)) ? 1 : 0;
-	header.tree = (isc_uint64_t) tree_location;
-	header.nsec = (isc_uint64_t) nsec_location;
-	header.nsec3 = (isc_uint64_t) nsec3_location;
+	header.tree = (uint64_t) tree_location;
+	header.nsec = (uint64_t) nsec_location;
+	header.nsec3 = (uint64_t) nsec3_location;
 	result = isc_stdio_write(&header, 1, sizeof(rbtdb_file_header_t),
 			      rbtfile, NULL);
 	fflush(rbtfile);
@@ -8050,7 +8051,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 
 static isc_result_t
 getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
-		   isc_uint8_t *flags, isc_uint16_t *iterations,
+		   uint8_t *flags, uint16_t *iterations,
 		   unsigned char *salt, size_t *salt_length)
 {
 	dns_rbtdb_t *rbtdb;
@@ -8089,8 +8090,8 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version, dns_hash_t *hash,
 }
 
 static isc_result_t
-getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-	isc_uint64_t *bytes)
+getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
+	uint64_t *bytes)
 {
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -10018,7 +10019,7 @@ rehash_gluetable(rbtdb_version_t *version) {
 	rbtdb_glue_table_node_t **oldtable;
 	rbtdb_glue_table_node_t *gluenode;
 	rbtdb_glue_table_node_t *nextgluenode;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	if (ISC_LIKELY(version->glue_table_nodecount <
 		       (version->glue_table_size * 3U)))
@@ -10069,8 +10070,8 @@ rehash_gluetable(rbtdb_version_t *version) {
 		      "rehash_gluetable(): "
 		      "resized glue table from %" PRIu64 " to "
 		      "%" PRIu64,
-		      (isc_uint64_t) oldsize,
-		      (isc_uint64_t) version->glue_table_size);
+		      (uint64_t) oldsize,
+		      (uint64_t) version->glue_table_size);
 
 	return (ISC_TRUE);
 }
@@ -10199,7 +10200,7 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
 	rbtdb_version_t *rbtversion = version;
-	isc_uint32_t idx;
+	uint32_t idx;
 	rbtdb_glue_table_node_t *cur;
 	isc_boolean_t found = ISC_FALSE;
 	isc_boolean_t restarted = ISC_FALSE;

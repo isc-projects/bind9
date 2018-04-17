@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/stats.h>
@@ -311,7 +313,7 @@ dns_generalstats_dump(dns_stats_t *stats, dns_generalstats_dumper_t dump_fn,
 }
 
 static void
-dump_rdentry(int rdcounter, isc_uint64_t value, dns_rdatastatstype_t attributes,
+dump_rdentry(int rdcounter, uint64_t value, dns_rdatastatstype_t attributes,
 	     dns_rdatatypestats_dumper_t dump_fn, void * arg)
 {
 	dns_rdatatype_t rdtype = dns_rdatatype_none; /* sentinel */
@@ -331,7 +333,7 @@ dump_rdentry(int rdcounter, isc_uint64_t value, dns_rdatastatstype_t attributes,
 }
 
 static void
-rdatatype_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
+rdatatype_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	rdatadumparg_t *rdatadumparg = arg;
 
 	dump_rdentry(counter, value, 0, rdatadumparg->fn, rdatadumparg->arg);
@@ -350,7 +352,7 @@ dns_rdatatypestats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
 }
 
 static void
-rdataset_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
+rdataset_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	rdatadumparg_t *rdatadumparg = arg;
 	unsigned int attributes;
 
@@ -399,14 +401,14 @@ dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
 }
 
 static void
-opcode_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
+opcode_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	opcodedumparg_t *opcodearg = arg;
 
 	opcodearg->fn((dns_opcode_t)counter, value, opcodearg->arg);
 }
 
 static void
-rcode_dumpcb(isc_statscounter_t counter, isc_uint64_t value, void *arg) {
+rcode_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	rcodedumparg_t *rcodearg = arg;
 
 	rcodearg->fn((dns_rcode_t)counter, value, rcodearg->arg);
@@ -454,10 +456,10 @@ LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] =
 	};
 
 isc_result_t
-dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp) {
+dns_stats_alloccounters(isc_mem_t *mctx, uint64_t **ctrp) {
 	int i;
-	isc_uint64_t *p =
-		isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(isc_uint64_t));
+	uint64_t *p =
+		isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
 	if (p == NULL)
 		return (ISC_R_NOMEMORY);
 	for (i = 0; i < DNS_STATS_NCOUNTERS; i++)
@@ -467,7 +469,7 @@ dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp) {
 }
 
 void
-dns_stats_freecounters(isc_mem_t *mctx, isc_uint64_t **ctrp) {
-	isc_mem_put(mctx, *ctrp, DNS_STATS_NCOUNTERS * sizeof(isc_uint64_t));
+dns_stats_freecounters(isc_mem_t *mctx, uint64_t **ctrp) {
+	isc_mem_put(mctx, *ctrp, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
 	*ctrp = NULL;
 }
