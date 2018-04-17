@@ -205,6 +205,7 @@ help(void) {
 "                 +padding=###        (Set padding block size [0])\n"
 "                 +[no]qr             (Print question before sending)\n"
 "                 +[no]question       (Control display of question section)\n"
+"                 +[no]raflag         (Set RA flag in query (+[no]raflag))\n"
 "                 +[no]rdflag         (Recursive mode (+[no]recurse))\n"
 "                 +[no]recurse        (Recursive mode (+[no]rdflag))\n"
 "                 +retry=###          (Set number of UDP retries) [2]\n"
@@ -217,6 +218,7 @@ help(void) {
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
 "                 +[no]stats          (Control display of statistics)\n"
 "                 +subnet=addr        (Set edns-client-subnet option)\n"
+"                 +[no]tcflag         (Set TC flag in query (+[no]tcflag))\n"
 "                 +[no]tcp            (TCP mode (+[no]vc))\n"
 "                 +timeout=###        (Set query timeout) [5]\n"
 "                 +[no]trace          (Trace delegation down from root [+dnssec])\n"
@@ -1240,6 +1242,10 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'r':
 		switch (cmd[1]) {
+		case 'a': /* raflag */
+			FULLCHECK("raflag");
+			lookup->raflag = state;
+			break;
 		case 'd': /* rdflag */
 			FULLCHECK("rdflag");
 			lookup->recurse = state;
@@ -1383,10 +1389,20 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	case 't':
 		switch (cmd[1]) {
 		case 'c': /* tcp */
-			FULLCHECK("tcp");
-			if (!is_batchfile) {
-				lookup->tcp_mode = state;
-				lookup->tcp_mode_set = ISC_TRUE;
+			switch (cmd[2]) {
+			case 'f':
+				FULLCHECK("tcflag");
+				lookup->tcflag = state;
+				break;
+			case 'p':
+				FULLCHECK("tcp");
+				if (!is_batchfile) {
+					lookup->tcp_mode = state;
+					lookup->tcp_mode_set = ISC_TRUE;
+				}
+				break;
+			default:
+				goto invalid_option;
 			}
 			break;
 		case 'i': /* timeout */

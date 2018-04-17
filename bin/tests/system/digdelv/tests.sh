@@ -140,11 +140,30 @@ if [ -x ${DIG} ] ; then
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
+  n=`expr $n + 1`
   echo_i "checking dig +header-only works ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +header-only example > dig.out.test$n || ret=1
   grep "^;; flags: qr rd; QUERY: 0, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
   grep "^;; QUESTION SECTION:" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "checking dig +raflag works ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +raflag +qr example > dig.out.test$n || ret=1
+  grep "^;; flags: rd ra ad; QUERY: 1, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
+  grep "^;; flags: qr rd ra; QUERY: 1, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "checking dig +tcflag works ($n)"
+  ret=0
+  $DIG $DIGOPTS +tcp @10.53.0.3 +tcflag +qr example > dig.out.test$n || ret=1
+  grep "^;; flags: tc rd ad; QUERY: 1, ANSWER: 0" < dig.out.test$n > /dev/null || ret=1
+  grep "^;; flags: qr rd ra; QUERY: 1, ANSWER: 0," < dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
