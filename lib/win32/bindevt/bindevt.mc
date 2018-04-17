@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: bindevt.mc,v 1.4 2007/06/19 23:47:24 tbox Exp $
-
 MessageIdTypedef=DWORD
 
 LanguageNames = (English=0x409:MSG00409)

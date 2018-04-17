@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: zonekey.c,v 1.9 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file */
 

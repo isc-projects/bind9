@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ntservice.h,v 1.6 2007/06/19 23:46:59 tbox Exp $ */
 
 #ifndef NTSERVICE_H
 #define NTSERVICE_H

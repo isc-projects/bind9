@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: fail.example.db.in,v 1.5 2007/06/19 23:47:01 tbox Exp $
-
 $TTL 300
 @	SOA ns1.fail.example. hostmaster.fail.example. (
 	    1 3600 1200 604800 3600 )

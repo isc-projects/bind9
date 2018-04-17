@@ -23,7 +23,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.h,v 1.11 2007/08/28 07:20:43 tbox Exp $ */
 
 #ifndef ISCCC_CC_H
 #define ISCCC_CC_H 1

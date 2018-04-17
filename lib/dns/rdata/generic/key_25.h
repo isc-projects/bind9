@@ -12,7 +12,6 @@
 #ifndef GENERIC_KEY_25_H
 #define GENERIC_KEY_25_H 1
 
-/* $Id: key_25.h,v 1.19 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  * \brief Per RFC2535 */

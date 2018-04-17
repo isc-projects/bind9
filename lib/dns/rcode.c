@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #include <config.h>
 #include <ctype.h>

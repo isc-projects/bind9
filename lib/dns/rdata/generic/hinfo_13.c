@@ -9,12 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hinfo_13.c,v 1.46 2009/12/04 22:06:37 tbox Exp $ */
-
-/*
- * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
- */
-
 #ifndef RDATA_GENERIC_HINFO_13_C
 #define RDATA_GENERIC_HINFO_13_C
 

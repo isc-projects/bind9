@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: portset.c,v 1.4 2008/06/24 23:24:35 marka Exp $ */
 
 /*! \file */
 

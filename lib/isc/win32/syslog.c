@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: syslog.c,v 1.10 2007/06/19 23:47:19 tbox Exp $ */
 
 #include <config.h>
 

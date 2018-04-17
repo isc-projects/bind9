@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: DNSConf-macros.h,v 1.9 2007/06/19 23:47:07 tbox Exp $ */
 
 #define CONCAT(a,b) a ## b
 #define DNSCONF_SET_STRING(FIELD)					\

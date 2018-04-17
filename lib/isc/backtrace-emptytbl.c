@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: backtrace-emptytbl.c,v 1.3 2009/09/01 20:13:44 each Exp $ */
 
 /*! \file */
 

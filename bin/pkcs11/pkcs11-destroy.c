@@ -38,7 +38,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: pkcs11-destroy.c,v 1.8 2010/01/13 21:19:52 fdupont Exp $ */
 
 /*
  * pkcs11-destroy [-m module] [-s $slot] [-i $id | -l $label]

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1

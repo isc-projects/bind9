@@ -10,8 +10,6 @@
  */
 
 /*! \file
- * \author
- * Principal Author: Bob Halley
  */
 
 #include <config.h>

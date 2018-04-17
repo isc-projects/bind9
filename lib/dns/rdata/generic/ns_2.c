@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ns_2.c,v 1.48 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
-
 #ifndef RDATA_GENERIC_NS_2_C
 #define RDATA_GENERIC_NS_2_C
 

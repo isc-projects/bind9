@@ -7,7 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: example.db.in,v 1.2 2010/06/03 06:29:03 marka Exp $
 $TTL 60
 remove. 60 IN SOA remove. . 0 0 0 0 0
 remove. 60 IN NS remove.

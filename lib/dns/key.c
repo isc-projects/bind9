@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: key.c,v 1.11 2011/10/20 21:20:02 marka Exp $ */
 
 #include <config.h>
 

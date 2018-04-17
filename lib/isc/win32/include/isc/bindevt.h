@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: bindevt.h,v 1.6 2007/06/19 23:47:20 tbox Exp $ */
 
 #ifndef ISC_BINDEVT_H
 #define ISC_BINDEVT_H 1

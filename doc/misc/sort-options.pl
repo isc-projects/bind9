@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: sort-options.pl,v 1.3 2007/09/24 23:46:48 tbox Exp $
-
 sub sortlevel() {
 	my @options = ();
 	my $fin = "";

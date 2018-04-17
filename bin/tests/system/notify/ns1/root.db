@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.db,v 1.9 2007/06/19 23:47:04 tbox Exp $
-
 $TTL 300
 . 			IN SOA	gson.nominum.com. a.root.servers.nil. (
 				2000042100   	; serial

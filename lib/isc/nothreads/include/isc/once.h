@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: once.h,v 1.6 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1

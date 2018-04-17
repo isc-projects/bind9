@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef PK11_CONSTANTS_H
 #define PK11_CONSTANTS_H 1

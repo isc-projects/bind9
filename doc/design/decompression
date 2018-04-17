@@ -4,8 +4,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 			Name Decompression
 
-	$Id: decompression,v 1.8 2004/03/05 05:04:46 marka Exp $
-
 Overview.
 
 	There are 4 type of compression: global 14 bit, global 16 bit,

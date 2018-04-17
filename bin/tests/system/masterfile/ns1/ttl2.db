@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: ttl2.db,v 1.6 2007/06/19 23:47:04 tbox Exp $
-
 @		1	IN SOA	ns hostmaster (
 				1        ; serial
 				3600

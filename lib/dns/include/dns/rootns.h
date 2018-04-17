@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rootns.h,v 1.16 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef DNS_ROOTNS_H
 #define DNS_ROOTNS_H 1

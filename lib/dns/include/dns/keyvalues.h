@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keyvalues.h,v 1.29 2010/12/23 23:47:08 tbox Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1

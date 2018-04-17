@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: tsigconf.c,v 1.35 2011/01/11 23:47:12 tbox Exp $ */
 
 /*! \file */
 

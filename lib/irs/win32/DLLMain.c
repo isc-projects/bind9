@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #include <windows.h>
 #include <signal.h>

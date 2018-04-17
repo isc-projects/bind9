@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: fsaccess.h,v 1.16 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef ISC_FSACCESS_H
 #define ISC_FSACCESS_H 1

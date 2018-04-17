@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: send.pl,v 1.7 2011/03/05 23:52:29 tbox Exp $
-
 #
 # Send a file to a given address and port using TCP.  Used for
 # configuring the test server in ans.pl.
