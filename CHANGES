@@ -1,3 +1,7 @@
+5000.	[cleanup]	Replace the usage of custom ISC boolean and integer
+			data types with C99 stdint.h and stdbool.h types.
+			[GL #9]
+
 4999.	[cleanup]	Remove custom printf implementaion in lib/isc/print.c.
 			[GL #261]
 
