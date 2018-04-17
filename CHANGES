@@ -1,3 +1,7 @@
+4941.	[cleanup]	Replace the usage of custom ISC boolean and integer
+			data types with C99 stdint.h and stdbool.h types.
+			[GL #9]
+
 4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
 			separate functions to improve code readability.
 			[GL #135]
