@@ -32,7 +32,7 @@ fromtext_gpos(ARGS_FROMTEXT) {
 	for (i = 0; i < 3; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring,
-					      ISC_FALSE));
+					      false));
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));
 	}
 	return (ISC_R_SUCCESS);
@@ -51,7 +51,7 @@ totext_gpos(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &region);
 
 	for (i = 0; i < 3; i++) {
-		RETERR(txt_totext(&region, ISC_TRUE, target));
+		RETERR(txt_totext(&region, true, target));
 		if (i != 2)
 			RETERR(str_totext(" ", target));
 	}
@@ -214,7 +214,7 @@ digest_gpos(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_gpos(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_gpos);
@@ -224,10 +224,10 @@ checkowner_gpos(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_gpos(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_gpos);
@@ -236,7 +236,7 @@ checknames_gpos(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

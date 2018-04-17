@@ -153,8 +153,8 @@ main(int argc, char *argv[]) {
 		pin = getpass("Enter Pin: ");
 	}
 
-	result = pk11_get_session(&pctx, op_type, ISC_FALSE, ISC_FALSE,
-				  ISC_TRUE, (const char *) pin, slot);
+	result = pk11_get_session(&pctx, op_type, false, false,
+				  true, (const char *) pin, slot);
 	if ((result != ISC_R_SUCCESS) &&
 	    (result != PK11_R_NORANDOMSERVICE) &&
 	    (result != PK11_R_NODIGESTSERVICE) &&

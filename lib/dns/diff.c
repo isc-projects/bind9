@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -246,7 +247,7 @@ setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 
 static isc_result_t
 diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
-	   isc_boolean_t warn)
+	   bool warn)
 {
 	dns_difftuple_t *t;
 	dns_dbnode_t *node = NULL;
@@ -309,10 +310,10 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 			node = NULL;
 			if (type != dns_rdatatype_nsec3 &&
 			    covers != dns_rdatatype_nsec3)
-				CHECK(dns_db_findnode(db, name, ISC_TRUE,
+				CHECK(dns_db_findnode(db, name, true,
 						      &node));
 			else
-				CHECK(dns_db_findnsec3node(db, name, ISC_TRUE,
+				CHECK(dns_db_findnsec3node(db, name, true,
 							   &node));
 
 			while (t != NULL &&
@@ -451,12 +452,12 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 
 isc_result_t
 dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver) {
-	return (diff_apply(diff, db, ver, ISC_TRUE));
+	return (diff_apply(diff, db, ver, true));
 }
 
 isc_result_t
 dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver) {
-	return (diff_apply(diff, db, ver, ISC_FALSE));
+	return (diff_apply(diff, db, ver, false));
 }
 
 /* XXX this duplicates lots of code in diff_apply(). */
@@ -624,7 +625,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
  again:
 		isc_buffer_init(&buf, mem, size);
 		result = dns_rdataset_totext(&rds, &t->name,
-					     ISC_FALSE, ISC_FALSE, &buf);
+					     false, false, &buf);
 
 		if (result == ISC_R_NOSPACE) {
 			isc_mem_put(diff->mctx, mem, size);

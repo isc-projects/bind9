@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -205,10 +206,10 @@ dns_portlist_remove(dns_portlist_t *portlist, int af, in_port_t port) {
 	UNLOCK(&portlist->lock);
 }
 
-isc_boolean_t
+bool
 dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port) {
 	dns_element_t *el;
-	isc_boolean_t result = ISC_FALSE;
+	bool result = false;
 
 	REQUIRE(DNS_VALID_PORTLIST(portlist));
 	REQUIRE(af == AF_INET || af == AF_INET6);
@@ -217,9 +218,9 @@ dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port) {
 		el = find_port(portlist->list, portlist->active, port);
 		if (el != NULL) {
 			if (af == AF_INET && (el->flags & DNS_PL_INET) != 0)
-				result = ISC_TRUE;
+				result = true;
 			if (af == AF_INET6 && (el->flags & DNS_PL_INET6) != 0)
-				result = ISC_TRUE;
+				result = true;
 		}
 	}
 	UNLOCK(&portlist->lock);

@@ -31,7 +31,7 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	isc_result_t result;
 	isc_buffer_t *b;
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	b = NULL;
@@ -105,7 +105,7 @@ ATF_TC_BODY(isc_buffer_reallocate, tc) {
 	isc_result_t result;
 	isc_buffer_t *b;
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	b = NULL;
@@ -142,7 +142,7 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 	size_t last_length = 10;
 	int i;
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	b = NULL;
@@ -151,7 +151,7 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, last_length);
 
-	isc_buffer_setautorealloc(b, ISC_TRUE);
+	isc_buffer_setautorealloc(b, true);
 
 	isc_buffer_putuint8(b, 1);
 
@@ -205,7 +205,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	isc_buffer_t *b, sb;
 	char buf[8];
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
@@ -214,7 +214,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	b = NULL;
 	result = isc_buffer_allocate(mctx, &b, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	isc_buffer_setautorealloc(b, ISC_TRUE);
+	isc_buffer_setautorealloc(b, true);
 
 	/*
 	 * Sanity check.
