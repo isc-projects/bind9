@@ -34,6 +34,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>		/* Required for time(). */
 #ifdef HAVE_SYS_TYPES_H
@@ -263,7 +264,7 @@ destroy(isc_rng_t *rng) {
 void
 isc_rng_detach(isc_rng_t **rngp) {
 	isc_rng_t *rng;
-	isc_boolean_t dest = ISC_FALSE;
+	bool dest = true;
 
 	REQUIRE(rngp != NULL && VALID_RNG(*rngp));
 
@@ -275,7 +276,7 @@ isc_rng_detach(isc_rng_t **rngp) {
 	INSIST(rng->references > 0);
 	rng->references--;
 	if (rng->references == 0)
-		dest = ISC_TRUE;
+		dest = true;
 	UNLOCK(&rng->lock);
 
 	if (dest)

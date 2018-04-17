@@ -20,5 +20,5 @@
 
 isc_result_t
 isc_errno_toresult(int err) {
-	return (isc___errno2result(err, ISC_FALSE, 0, 0));
+	return (isc___errno2result(err, true, 0, 0));
 }

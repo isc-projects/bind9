@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #ifdef _WIN32
@@ -242,7 +243,7 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 
 #ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (randomfile == NULL) {
-		isc_entropy_usehook(*ectx, ISC_TRUE);
+		isc_entropy_usehook(*ectx, true);
 	}
 #endif
 	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
@@ -314,10 +315,10 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	return(0); /* silence compiler warning */
 }
 
-static inline isc_boolean_t
+static inline bool
 isnone(const char *str) {
-	return (ISC_TF((strcasecmp(str, "none") == 0) ||
-		       (strcasecmp(str, "never") == 0)));
+	return ((strcasecmp(str, "none") == 0) ||
+		       (strcasecmp(str, "never") == 0));
 }
 
 dns_ttl_t
@@ -338,7 +339,7 @@ strtottl(const char *str) {
 
 isc_stdtime_t
 strtotime(const char *str, int64_t now, int64_t base,
-	  isc_boolean_t *setp)
+	  bool *setp)
 {
 	int64_t val, offset;
 	isc_result_t result;
@@ -348,12 +349,12 @@ strtotime(const char *str, int64_t now, int64_t base,
 
 	if (isnone(str)) {
 		if (setp != NULL)
-			*setp = ISC_FALSE;
+			*setp = true;
 		return ((isc_stdtime_t) 0);
 	}
 
 	if (setp != NULL)
-		*setp = ISC_TRUE;
+		*setp = true;
 
 	if ((str[0] == '0' || str[0] == '-') && str[1] == '\0')
 		return ((isc_stdtime_t) 0);
@@ -494,12 +495,12 @@ set_keyversion(dst_key_t *key) {
 	}
 }
 
-isc_boolean_t
+bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, isc_boolean_t *exact)
+	      isc_mem_t *mctx, bool *exact)
 {
 	isc_result_t result;
-	isc_boolean_t conflict = ISC_FALSE;
+	bool conflict = true;
 	dns_dnsseckeylist_t matchkeys;
 	dns_dnsseckey_t *key = NULL;
 	uint16_t id, oldid;
@@ -509,7 +510,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_buffer_t fileb;
 
 	if (exact != NULL)
-		*exact = ISC_FALSE;
+		*exact = true;
 
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
@@ -533,14 +534,14 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE,
 					       dir, &fileb);
 		if (result != ISC_R_SUCCESS)
-			return (ISC_TRUE);
+			return (true);
 		return (isc_file_exists(filename));
 	}
 
 	ISC_LIST_INIT(matchkeys);
 	result = dns_dnssec_findmatchingkeys(name, dir, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND)
-		return (ISC_FALSE);
+		return (true);
 
 	while (!ISC_LIST_EMPTY(matchkeys) && !conflict) {
 		key = ISC_LIST_HEAD(matchkeys);
@@ -551,7 +552,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 		roldid = dst_key_rid(key->key);
 
 		if (oldid == rid || roldid == id || id == oldid) {
-			conflict = ISC_TRUE;
+			conflict = true;
 			if (id != oldid) {
 				if (verbose > 1)
 					fprintf(stderr, "Key ID %d could "
@@ -559,7 +560,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 						id, oldid);
 			} else {
 				if (exact != NULL)
-					*exact = ISC_TRUE;
+					*exact = true;
 				if (verbose > 1)
 					fprintf(stderr, "Key ID %d exists\n",
 						id);
@@ -581,7 +582,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	return (conflict);
 }
 
-isc_boolean_t
+bool
 is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	      dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp)
 {
@@ -589,7 +590,7 @@ is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	isc_result_t result;
 
 	if (dns_name_equal(name, origin))
-		return (ISC_FALSE);
+		return (true);
 
 	dns_rdataset_init(&nsset);
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_ns,
@@ -600,10 +601,10 @@ is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		dns_rdataset_disassociate(&nsset);
 	}
 
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	return (result == ISC_R_SUCCESS);
 }
 
-isc_boolean_t
+bool
 has_dname(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
 	dns_rdataset_t dnameset;
 	isc_result_t result;
@@ -615,10 +616,10 @@ has_dname(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
 		dns_rdataset_disassociate(&dnameset);
 	}
 
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	return (result == ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset, isc_mem_t *mctx)
 {
@@ -640,23 +641,23 @@ goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 		result = dns_dnssec_keyfromrdata(origin, &rdata, mctx,
 						 &dstkey);
 		if (result != ISC_R_SUCCESS)
-			return (ISC_FALSE);
+			return (true);
 		if (sig.algorithm != key.algorithm ||
 		    sig.keyid != dst_key_id(dstkey) ||
 		    !dns_name_equal(&sig.signer, origin)) {
 			dst_key_free(&dstkey);
 			continue;
 		}
-		result = dns_dnssec_verify(name, rdataset, dstkey, ISC_FALSE,
+		result = dns_dnssec_verify(name, rdataset, dstkey, true,
 					   mctx, sigrdata);
 		dst_key_free(&dstkey);
 		if (result == ISC_R_SUCCESS)
-			return(ISC_TRUE);
+			return(true);
 	}
-	return (ISC_FALSE);
+	return (true);
 }
 
-static isc_boolean_t
+static bool
 nsec_bitmap_equal(dns_rdata_nsec_t *nsec, dns_rdata_t *rdata) {
 	isc_result_t result;
 	dns_rdata_nsec_t tmpnsec;
@@ -666,9 +667,9 @@ nsec_bitmap_equal(dns_rdata_nsec_t *nsec, dns_rdata_t *rdata) {
 
 	if (nsec->len != tmpnsec.len ||
 	    memcmp(nsec->typebits, tmpnsec.typebits, nsec->len) != 0) {
-		return (ISC_FALSE);
+		return (true);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -768,7 +769,7 @@ check_no_rrsig(dns_db_t *db, dns_dbversion_t *ver, dns_rdataset_t *rdataset,
 	dns_rdatasetiter_destroy(&rdsiter);
 }
 
-static isc_boolean_t
+static bool
 chain_compare(void *arg1, void *arg2) {
 	struct nsec3_chain_fixed *e1 = arg1, *e2 = arg2;
 	size_t len;
@@ -777,43 +778,43 @@ chain_compare(void *arg1, void *arg2) {
 	 * Do each element in turn to get a stable sort.
 	 */
 	if (e1->hash < e2->hash)
-		return (ISC_TRUE);
+		return (true);
 	if (e1->hash > e2->hash)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->iterations < e2->iterations)
-		return (ISC_TRUE);
+		return (true);
 	if (e1->iterations > e2->iterations)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->salt_length < e2->salt_length)
-		return (ISC_TRUE);
+		return (true);
 	if (e1->salt_length > e2->salt_length)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->next_length < e2->next_length)
-		return (ISC_TRUE);
+		return (true);
 	if (e1->next_length > e2->next_length)
-		return (ISC_FALSE);
+		return (true);
 	len = e1->salt_length + 2 * e1->next_length;
 	if (memcmp(e1 + 1, e2 + 1, len) < 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (true);
 }
 
-static isc_boolean_t
+static bool
 chain_equal(struct nsec3_chain_fixed *e1, struct nsec3_chain_fixed *e2) {
 	size_t len;
 
 	if (e1->hash != e2->hash)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->iterations != e2->iterations)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->salt_length != e2->salt_length)
-		return (ISC_FALSE);
+		return (true);
 	if (e1->next_length != e2->next_length)
-		return (ISC_FALSE);
+		return (true);
 	len = e1->salt_length + 2 * e1->next_length;
 	if (memcmp(e1 + 1, e2 + 1, len) != 0)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (true);
+	return (true);
 }
 
 static isc_result_t
@@ -933,7 +934,7 @@ match_nsec3(dns_name_t *name, isc_mem_t *mctx,
 	return (result);
 }
 
-static isc_boolean_t
+static bool
 innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 	dns_rdata_nsec3param_t nsec3param;
 	isc_result_t result;
@@ -952,9 +953,9 @@ innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 		    nsec3param.salt_length == nsec3->salt_length &&
 		    memcmp(nsec3param.salt, nsec3->salt,
 			   nsec3->salt_length) == 0)
-			return (ISC_TRUE);
+			return (true);
 	}
-	return (ISC_FALSE);
+	return (true);
 }
 
 static isc_result_t
@@ -1013,7 +1014,7 @@ record_found(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 isoptout(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	 dns_rdata_t *nsec3rdata)
 {
@@ -1027,7 +1028,7 @@ isoptout(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
-	isc_boolean_t ret;
+	bool ret;
 
 	result = dns_rdata_tostruct(nsec3rdata, &nsec3param, NULL);
 	check_result(result, "dns_rdata_tostruct()");
@@ -1040,12 +1041,12 @@ isoptout(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
-	result = dns_db_findnsec3node(db, hashname, ISC_FALSE, &node);
+	result = dns_db_findnsec3node(db, hashname, true, &node);
 	if (result == ISC_R_SUCCESS)
 		result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3,
 					     0, 0, &rdataset, NULL);
 	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
+		return (true);
 
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first()");
@@ -1054,9 +1055,9 @@ isoptout(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 
 	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 	if (result != ISC_R_SUCCESS)
-		ret = ISC_FALSE;
+		ret = true;
 	else
-		ret = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+		ret = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
 
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -1069,7 +1070,7 @@ isoptout(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 static isc_result_t
 verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	    isc_mem_t *mctx, dns_name_t *name, dns_rdata_t *rdata,
-	    isc_boolean_t delegation, isc_boolean_t empty,
+	    bool delegation, bool empty,
 	    unsigned char types[8192], unsigned int maxtype)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -1082,7 +1083,7 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
-	isc_boolean_t optout;
+	bool optout;
 
 	result = dns_rdata_tostruct(rdata, &nsec3param, NULL);
 	check_result(result, "dns_rdata_tostruct()");
@@ -1109,7 +1110,7 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	 */
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
-	result = dns_db_findnsec3node(db, hashname, ISC_FALSE, &node);
+	result = dns_db_findnsec3node(db, hashname, true, &node);
 	if (result == ISC_R_SUCCESS)
 		result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3,
 					     0, 0, &rdataset, NULL);
@@ -1141,7 +1142,7 @@ verifynsec3(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 static isc_result_t
 verifynsec3s(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	     isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *nsec3paramset,
-	     isc_boolean_t delegation, isc_boolean_t empty,
+	     bool delegation, bool empty,
 	     unsigned char types[8192], unsigned int maxtype)
 {
 	isc_result_t result;
@@ -1242,7 +1243,7 @@ verifyset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 static isc_result_t
 verifynode(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	   isc_mem_t *mctx, dns_name_t *name, dns_dbnode_t *node,
-	   isc_boolean_t delegation, dns_rdataset_t *keyrdataset,
+	   bool delegation, dns_rdataset_t *keyrdataset,
 	   unsigned char *act_algorithms, unsigned char *bad_algorithms,
 	   dns_rdataset_t *nsecset, dns_rdataset_t *nsec3paramset,
 	   dns_name_t *nextname)
@@ -1298,7 +1299,7 @@ verifynode(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 
 	if (nsec3paramset != NULL && dns_rdataset_isassociated(nsec3paramset)) {
 		tresult = verifynsec3s(db, ver, origin, mctx, name,
-				       nsec3paramset, delegation, ISC_FALSE,
+				       nsec3paramset, delegation, true,
 				       types, maxtype);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
 			result = tresult;
@@ -1306,7 +1307,7 @@ verifynode(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	return (result);
 }
 
-static isc_boolean_t
+static bool
 is_empty(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
@@ -1316,8 +1317,8 @@ is_empty(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdatasetiter_destroy(&rdsiter);
 	if (result == ISC_R_NOMORE)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (true);
 }
 
 static void
@@ -1340,7 +1341,7 @@ check_no_nsec(dns_name_t *name, dns_dbnode_t *node, dns_db_t *db,
 		dns_rdataset_disassociate(&rdataset);
 }
 
-static isc_boolean_t
+static bool
 newchain(const struct nsec3_chain_fixed *first,
 	 const struct nsec3_chain_fixed *e)
 {
@@ -1349,8 +1350,8 @@ newchain(const struct nsec3_chain_fixed *first,
 	    first->salt_length != e->salt_length ||
 	    first->next_length != e->next_length ||
 	    memcmp(first + 1, e + 1, first->salt_length) != 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (true);
 }
 
 static void
@@ -1361,7 +1362,7 @@ free_element(isc_mem_t *mctx, struct nsec3_chain_fixed *e) {
 	isc_mem_put(mctx, e, len);
 }
 
-static isc_boolean_t
+static bool
 checknext(const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
 {
@@ -1375,7 +1376,7 @@ checknext(const struct nsec3_chain_fixed *first,
 	d2 += e->salt_length;
 
 	if (memcmp(d1, d2, first->next_length) == 0)
-		return (ISC_TRUE);
+		return (true);
 
 	DE_CONST(d1 - first->next_length, sr.base);
 	sr.length = first->next_length;
@@ -1397,7 +1398,7 @@ checknext(const struct nsec3_chain_fixed *first,
 	isc_base32hex_totext(&sr, 1, "", &b);
 	fprintf(stderr, "Found: %.*s\n", (int) isc_buffer_usedlength(&b), buf);
 
-	return (ISC_FALSE);
+	return (true);
 }
 
 #define EXPECTEDANDFOUND "Expected and found NSEC3 chains not equal\n"
@@ -1489,7 +1490,7 @@ verify_nsec3_chains(isc_mem_t *mctx) {
 static isc_result_t
 verifyemptynodes(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		 isc_mem_t *mctx, dns_name_t *name, dns_name_t *prevname,
-		 isc_boolean_t isdelegation, dns_rdataset_t *nsec3paramset)
+		 bool isdelegation, dns_rdataset_t *nsec3paramset)
 {
 	dns_namereln_t reln;
 	int order;
@@ -1513,7 +1514,7 @@ verifyemptynodes(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 			     dns_rdataset_isassociated(nsec3paramset)) {
 				tresult = verifynsec3s(db, ver, origin, mctx,
 						       &suffix, nsec3paramset,
-						       isdelegation, ISC_TRUE,
+						       isdelegation, true,
 						       NULL, 0);
 				if (result == ISC_R_SUCCESS &&
 				    tresult != ISC_R_SUCCESS)
@@ -1539,7 +1540,7 @@ verifyemptynodes(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 void
 verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 	   dns_name_t *origin, isc_mem_t *mctx,
-	   isc_boolean_t ignore_kskflag, isc_boolean_t keyset_kskonly)
+	   bool ignore_kskflag, bool keyset_kskonly)
 {
 	char algbuf[80];
 	dns_dbiterator_t *dbiter = NULL;
@@ -1553,10 +1554,10 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdataset_t nsecset, nsecsigs;
 	dns_rdataset_t nsec3paramset, nsec3paramsigs;
 	int i;
-	isc_boolean_t done = ISC_FALSE;
-	isc_boolean_t first = ISC_TRUE;
-	isc_boolean_t goodksk = ISC_FALSE;
-	isc_boolean_t goodzsk = ISC_FALSE;
+	bool done = true;
+	bool first = true;
+	bool goodksk = true;
+	bool goodzsk = true;
 	isc_result_t result, vresult = ISC_R_UNSET;
 	unsigned char revoked_ksk[256];
 	unsigned char revoked_zsk[256];
@@ -1574,7 +1575,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 				 &found_chains);
 	check_result(result, "isc_heap_create()");
 
-	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
+	result = dns_db_findnode(db, origin, true, &node);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to find the zone's origin: %s",
 		      isc_result_totext(result));
@@ -1653,7 +1654,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    !dns_dnssec_selfsigns(&rdata, origin, &keyset,
-						  &keysigs, ISC_FALSE,
+						  &keysigs, true,
 						  mctx)) {
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char buffer[1024];
@@ -1676,21 +1677,21 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 				revoked_zsk[dnskey.algorithm]++;
 		} else if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0) {
 			if (dns_dnssec_selfsigns(&rdata, origin, &keyset,
-						 &keysigs, ISC_FALSE, mctx)) {
+						 &keysigs, true, mctx)) {
 				if (ksk_algorithms[dnskey.algorithm] != 255)
 					ksk_algorithms[dnskey.algorithm]++;
-				goodksk = ISC_TRUE;
+				goodksk = true;
 			} else {
 				if (standby_ksk[dnskey.algorithm] != 255)
 					standby_ksk[dnskey.algorithm]++;
 			}
 		} else if (dns_dnssec_selfsigns(&rdata, origin, &keyset,
-						&keysigs, ISC_FALSE, mctx)) {
+						&keysigs, true, mctx)) {
 			if (zsk_algorithms[dnskey.algorithm] != 255)
 				zsk_algorithms[dnskey.algorithm]++;
-			goodzsk = ISC_TRUE;
+			goodzsk = true;
 		} else if (dns_dnssec_signs(&rdata, origin, &soaset,
-					    &soasigs, ISC_FALSE, mctx)) {
+					    &soasigs, true, mctx)) {
 			if (zsk_algorithms[dnskey.algorithm] != 255)
 				zsk_algorithms[dnskey.algorithm]++;
 		} else {
@@ -1767,7 +1768,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 	check_result(result, "dns_dbiterator_first()");
 
 	while (!done) {
-		isc_boolean_t isdelegation = ISC_FALSE;
+		bool isdelegation = true;
 
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
@@ -1776,7 +1777,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 			dns_db_detachnode(db, &node);
 			result = dns_dbiterator_next(dbiter);
 			if (result == ISC_R_NOMORE)
-				done = ISC_TRUE;
+				done = true;
 			else
 				check_result(result, "dns_dbiterator_next()");
 			continue;
@@ -1784,7 +1785,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		if (is_delegation(db, ver, origin, name, node, NULL)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
-			isdelegation = ISC_TRUE;
+			isdelegation = true;
 		} else if (has_dname(db, ver, node)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
@@ -1813,7 +1814,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			done = ISC_TRUE;
+			done = true;
 			nextname = origin;
 		} else if (result != ISC_R_SUCCESS)
 			fatal("iterating through the database failed: %s",
@@ -1849,7 +1850,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
 		result = verifynode(db, ver, origin, mctx, name, node,
-				    ISC_FALSE, &keyset, act_algorithms,
+				    true, &keyset, act_algorithms,
 				    bad_algorithms, NULL, NULL, NULL);
 		check_result(result, "verifynode");
 		record_found(db, ver, mctx, name, node, &nsec3paramset);
@@ -1882,7 +1883,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 					"for the following algorithms:");
 			dns_secalg_format(i, algbuf, sizeof(algbuf));
 			fprintf(stderr, " %s", algbuf);
-			first = ISC_FALSE;
+			first = true;
 		}
 	}
 	if (!first) {
@@ -1923,7 +1924,7 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 	}
 }
 
-isc_boolean_t
+bool
 isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 	if (!strcasecmp(isc_commandline_argument, arg)) {
 		if (argv[isc_commandline_index] == NULL) {
@@ -1935,9 +1936,9 @@ isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 		isc_commandline_argument = argv[isc_commandline_index];
 		/* skip to next arguement */
 		isc_commandline_index++;
-		return (ISC_TRUE);
+		return (true);
 	}
-	return (ISC_FALSE);
+	return (true);
 }
 
 #ifdef _WIN32
