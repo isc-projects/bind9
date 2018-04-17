@@ -15,6 +15,7 @@
 /*! \file */
 
 #include <pwd.h>
+#include <stdbool.h>
 
 #include <isc/types.h>
 
@@ -49,12 +50,12 @@ void
 named_os_minprivs(void);
 
 FILE *
-named_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user);
+named_os_openfile(const char *filename, mode_t mode, bool switch_user);
 
 void
-named_os_writepidfile(const char *filename, isc_boolean_t first_time);
+named_os_writepidfile(const char *filename, bool first_time);
 
-isc_boolean_t
+bool
 named_os_issingleton(const char *filename);
 
 void

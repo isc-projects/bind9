@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stddef.h>	/* NULL */
 #include <stdlib.h>	/* NULL */
 #include <syslog.h>
@@ -32,16 +33,16 @@
 #if ISC_FIX_TV_USEC
 static inline void
 fix_tv_usec(struct timeval *tv) {
-	isc_boolean_t fixed = ISC_FALSE;
+	bool fixed = false;
 
 	if (tv->tv_usec < 0) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec -= 1;
 			tv->tv_usec += US_PER_S;
 		} while (tv->tv_usec < 0);
 	} else if (tv->tv_usec >= US_PER_S) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec += 1;
 			tv->tv_usec -= US_PER_S;

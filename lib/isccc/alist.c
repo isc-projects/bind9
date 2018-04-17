@@ -28,6 +28,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -64,29 +65,29 @@ isccc_alist_create(void)
 	return (alist);
 }
 
-isc_boolean_t
+bool
 isccc_alist_alistp(isccc_sexpr_t *alist)
 {
 	isccc_sexpr_t *car;
 
 	if (alist == NULL || alist->type != ISCCC_SEXPRTYPE_DOTTEDPAIR)
-		return (ISC_FALSE);
+		return (false);
 	car = CAR(alist);
 	if (car == NULL || car->type != ISCCC_SEXPRTYPE_STRING)
-		return (ISC_FALSE);
+		return (false);
 	if (strcmp(car->value.as_string, ALIST_TAG) != 0)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
-isc_boolean_t
+bool
 isccc_alist_emptyp(isccc_sexpr_t *alist)
 {
 	REQUIRE(isccc_alist_alistp(alist));
 
 	if (CDR(alist) == NULL)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 isccc_sexpr_t *

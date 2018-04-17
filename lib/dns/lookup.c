@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -44,7 +46,7 @@ struct dns_lookup {
 	dns_lookupevent_t *	event;
 	dns_fetch_t *		fetch;
 	unsigned int		restarts;
-	isc_boolean_t		canceled;
+	bool		canceled;
 	dns_rdataset_t		rdataset;
 	dns_rdataset_t		sigrdataset;
 };
@@ -164,8 +166,8 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 	else
 		type = lookup->type;
 
-	result = dns_view_find(lookup->view, name, type, 0, 0, ISC_FALSE,
-			       ISC_FALSE, &lookup->event->db,
+	result = dns_view_find(lookup->view, name, type, 0, 0, false,
+			       false, &lookup->event->db,
 			       &lookup->event->node, foundname,
 			       &lookup->rdataset, &lookup->sigrdataset);
 	return (result);
@@ -174,8 +176,8 @@ view_find(dns_lookup_t *lookup, dns_name_t *foundname) {
 static void
 lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 	isc_result_t result;
-	isc_boolean_t want_restart;
-	isc_boolean_t send_event;
+	bool want_restart;
+	bool send_event;
 	dns_name_t *name, *fname, *prefix;
 	dns_fixedname_t foundname, fixed;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -194,8 +196,8 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 
 	do {
 		lookup->restarts++;
-		want_restart = ISC_FALSE;
-		send_event = ISC_TRUE;
+		want_restart = false;
+		send_event = true;
 
 		if (event == NULL && !lookup->canceled) {
 			fname = dns_fixedname_initname(&foundname);
@@ -226,7 +228,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 					dns_db_detach(&lookup->event->db);
 				result = start_fetch(lookup);
 				if (result == ISC_R_SUCCESS)
-					send_event = ISC_FALSE;
+					send_event = false;
 				goto done;
 			}
 		} else if (event != NULL) {
@@ -272,8 +274,8 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			result = dns_name_copy(&cname.cname, name, NULL);
 			dns_rdata_freestruct(&cname);
 			if (result == ISC_R_SUCCESS) {
-				want_restart = ISC_TRUE;
-				send_event = ISC_FALSE;
+				want_restart = true;
+				send_event = false;
 			}
 			break;
 		case DNS_R_DNAME:
@@ -300,12 +302,12 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 						      name, NULL);
 			dns_rdata_freestruct(&dname);
 			if (result == ISC_R_SUCCESS) {
-				want_restart = ISC_TRUE;
-				send_event = ISC_FALSE;
+				want_restart = true;
+				send_event = false;
 			}
 			break;
 		default:
-			send_event = ISC_TRUE;
+			send_event = true;
 		}
 
 		if (dns_rdataset_isassociated(&lookup->rdataset))
@@ -326,9 +328,9 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 		 * Limit the number of restarts.
 		 */
 		if (want_restart && lookup->restarts == MAX_RESTARTS) {
-			want_restart = ISC_FALSE;
+			want_restart = false;
 			result = ISC_R_QUOTA;
-			send_event = ISC_TRUE;
+			send_event = true;
 		}
 
 	} while (want_restart);
@@ -423,7 +425,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	dns_view_attach(view, &lookup->view);
 	lookup->fetch = NULL;
 	lookup->restarts = 0;
-	lookup->canceled = ISC_FALSE;
+	lookup->canceled = false;
 	dns_rdataset_init(&lookup->rdataset);
 	dns_rdataset_init(&lookup->sigrdataset);
 	lookup->magic = LOOKUP_MAGIC;
@@ -457,7 +459,7 @@ dns_lookup_cancel(dns_lookup_t *lookup) {
 	LOCK(&lookup->lock);
 
 	if (!lookup->canceled) {
-		lookup->canceled = ISC_TRUE;
+		lookup->canceled = true;
 		if (lookup->fetch != NULL) {
 			INSIST(lookup->view != NULL);
 			dns_resolver_cancelfetch(lookup->fetch);

@@ -29,6 +29,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+
 #include <isc/assertions.h>
 #include <isc/md5.h>
 #include <isc/platform.h>
@@ -82,8 +84,8 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
  * Standard use is testing false and result true.
  * Testing use is testing true and result false;
  */
-isc_boolean_t
-isc_md5_check(isc_boolean_t testing) {
+bool
+isc_md5_check(bool testing) {
 	isc_md5_t ctx;
 	unsigned char input = 'a';
 	unsigned char digest[ISC_MD5_DIGESTLENGTH];
@@ -111,5 +113,5 @@ isc_md5_check(isc_boolean_t testing) {
 	/*
 	 * Must return true in standard case, should return false for testing.
 	 */
-	return (ISC_TF(memcmp(digest, expected, ISC_MD5_DIGESTLENGTH) == 0));
+	return (memcmp(digest, expected, ISC_MD5_DIGESTLENGTH) == 0);
 }

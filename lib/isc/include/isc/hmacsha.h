@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/sha1.h>
@@ -61,10 +63,10 @@ isc_hmacsha1_update(isc_hmacsha1_t *ctx, const unsigned char *buf,
 void
 isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha1_check(int testing);
 
 
@@ -82,7 +84,7 @@ isc_hmacsha224_update(isc_hmacsha224_t *ctx, const unsigned char *buf,
 void
 isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha224_verify(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len);
 
 
@@ -100,7 +102,7 @@ isc_hmacsha256_update(isc_hmacsha256_t *ctx, const unsigned char *buf,
 void
 isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha256_verify(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len);
 
 
@@ -118,7 +120,7 @@ isc_hmacsha384_update(isc_hmacsha384_t *ctx, const unsigned char *buf,
 void
 isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha384_verify(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len);
 
 
@@ -136,7 +138,7 @@ isc_hmacsha512_update(isc_hmacsha512_t *ctx, const unsigned char *buf,
 void
 isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacsha512_verify(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len);
 
 ISC_LANG_ENDDECLS

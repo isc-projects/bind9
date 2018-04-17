@@ -45,14 +45,14 @@ Types:
 		int		edns;
 		dns_name_t 	owner_name;
 		unsigned int	rdata;
-		isc_boolean_t	strict;
+		bool	strict;
 	}
 
 Functions:
 
 	void
 	dns_decompress_init(dns_decompress_t *dctx, int edns,
-			    isc_boolean_t strict);
+			    bool strict);
 	initalise dctx
 	dctx->ownername is invalidated
 
@@ -87,12 +87,12 @@ Functions:
 
 	returns dctx->edns
 
-	isc_boolean_t
+	bool
 	dns_decompress_strict(dns_decompress_t *dctx);
 
 	returns dctx->strict
 
 	dns_result_t
 	dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-			  dns_decompress_t *dctx, isc_boolean_t downcase,
+			  dns_decompress_t *dctx, bool downcase,
 			  isc_buffer_t *target)

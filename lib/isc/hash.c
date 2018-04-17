@@ -13,22 +13,23 @@
  * 32 bit Fowler/Noll/Vo FNV-1a hash code with modification for BIND
  */
 
-#include <config.h>       // IWYU pragma: keep
+#include <config.h> // IWYU pragma: keep
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <inttypes.h>
 
+#include "isc/hash.h" // IWYU pragma: keep
+#include "isc/likely.h"
 #include "isc/once.h"
 #include "isc/random.h"
-#include "isc/util.h"
-#include "isc/types.h"
-#include "isc/likely.h"
 #include "isc/result.h"
-#include "isc/hash.h"     // IWYU pragma: keep
+#include "isc/types.h"
+#include "isc/util.h"
 
 static uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
-static isc_boolean_t fnv_initialized = ISC_FALSE;
+static bool fnv_initialized = false;
 
 static unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -76,13 +77,14 @@ fnv_initialize(void) {
 		fnv_offset_basis = isc_random32();
 	}
 
-	fnv_initialized = ISC_TRUE;
+	fnv_initialized = true;
 }
 
 const void *
 isc_hash_get_initializer(void) {
 	if (ISC_UNLIKELY(!fnv_initialized))
-		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) ==
+		              ISC_R_SUCCESS);
 
 	return (&fnv_offset_basis);
 }
@@ -96,17 +98,17 @@ isc_hash_set_initializer(const void *initializer) {
 	 * isc_hash_set_initializer() is called.
 	 */
 	if (ISC_UNLIKELY(!fnv_initialized))
-		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) ==
+		              ISC_R_SUCCESS);
 
-	fnv_offset_basis = *((const unsigned int *) initializer);
+	fnv_offset_basis = *((const unsigned int *)initializer);
 }
 
 #define FNV_32_PRIME ((uint32_t)0x01000193)
 
 uint32_t
-isc_hash_function(const void *data, size_t length,
-		  isc_boolean_t case_sensitive,
-		  const uint32_t *previous_hashp)
+isc_hash_function(const void *data, size_t length, bool case_sensitive,
+                  const uint32_t *previous_hashp)
 {
 	uint32_t hval;
 	const unsigned char *bp;
@@ -115,17 +117,18 @@ isc_hash_function(const void *data, size_t length,
 	REQUIRE(length == 0 || data != NULL);
 
 	if (ISC_UNLIKELY(!fnv_initialized)) {
-		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) ==
+		              ISC_R_SUCCESS);
 	}
 
-	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
-		*previous_hashp : fnv_offset_basis;
+	hval = ISC_UNLIKELY(previous_hashp != NULL) ? *previous_hashp
+	                                            : fnv_offset_basis;
 
 	if (length == 0) {
 		return (hval);
 	}
 
-	bp = (const unsigned char *) data;
+	bp = (const unsigned char *)data;
 	be = bp + length;
 
 	/*
@@ -153,9 +156,8 @@ isc_hash_function(const void *data, size_t length,
 }
 
 uint32_t
-isc_hash_function_reverse(const void *data, size_t length,
-			  isc_boolean_t case_sensitive,
-			  const uint32_t *previous_hashp)
+isc_hash_function_reverse(const void *data, size_t length, bool case_sensitive,
+                          const uint32_t *previous_hashp)
 {
 	uint32_t hval;
 	const unsigned char *bp;
@@ -164,17 +166,18 @@ isc_hash_function_reverse(const void *data, size_t length,
 	REQUIRE(length == 0 || data != NULL);
 
 	if (ISC_UNLIKELY(!fnv_initialized)) {
-		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(isc_once_do(&fnv_once, fnv_initialize) ==
+		              ISC_R_SUCCESS);
 	}
 
-	hval = ISC_UNLIKELY(previous_hashp != NULL) ?
-		*previous_hashp : fnv_offset_basis;
+	hval = ISC_UNLIKELY(previous_hashp != NULL) ? *previous_hashp
+	                                            : fnv_offset_basis;
 
 	if (length == 0) {
 		return (hval);
 	}
 
-	bp = (const unsigned char *) data;
+	bp = (const unsigned char *)data;
 	be = bp + length;
 
 	/*

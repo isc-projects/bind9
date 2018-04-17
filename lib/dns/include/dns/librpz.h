@@ -36,6 +36,7 @@
 #define LIBRPZ_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <arpa/nameser.h>
 #include <netinet/in.h>

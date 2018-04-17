@@ -11,9 +11,9 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
-
-#include <unistd.h>		/* XXX */
+#include <unistd.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -52,7 +52,7 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_usedregion(&databuf, &datareg);
 
 	ret = dst_context_create(key, mctx,
-				 DNS_LOGCATEGORY_GENERAL, ISC_TRUE, 0, &ctx);
+				 DNS_LOGCATEGORY_GENERAL, true, 0, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
@@ -73,7 +73,7 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 	ret = dst_context_create(key, mctx,
-				 DNS_LOGCATEGORY_GENERAL, ISC_FALSE, 0, &ctx);
+				 DNS_LOGCATEGORY_GENERAL, false, 0, &ctx);
 	if (ret != ISC_R_SUCCESS) {
 		printf("contextcreate(%u) returned: %s\n", dst_key_alg(key),
 		       isc_result_totext(ret));
@@ -100,7 +100,7 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 	isc_region_t r1, r2;
 	dst_key_t *newkey = NULL;
 	isc_result_t ret;
-	isc_boolean_t match;
+	bool match;
 
 	isc_buffer_init(&buf1, buffer1, sizeof(buffer1));
 	ret = dst_key_todns(key, &buf1);
@@ -122,8 +122,8 @@ dns(dst_key_t *key, isc_mem_t *mctx) {
 		return;
 	isc_buffer_usedregion(&buf1, &r1);
 	isc_buffer_usedregion(&buf2, &r2);
-	match = ISC_TF(r1.length == r2.length &&
-		       memcmp(r1.base, r2.base, r1.length) == 0);
+	match = (r1.length == r2.length &&
+		 memcmp(r1.base, r2.base, r1.length) == 0);
 	printf("compare(%u): %s\n", dst_key_alg(key),
 	       match ? "true" : "false");
 	dst_key_free(&newkey);

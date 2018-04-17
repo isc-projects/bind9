@@ -24,7 +24,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 	unsigned long afi;
 	uint8_t prefix;
 	uint8_t len;
-	isc_boolean_t neg;
+	bool neg;
 	char *cp, *ap, *slash;
 	int n;
 
@@ -39,12 +39,12 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
-					      isc_tokentype_string, ISC_TRUE));
+					      isc_tokentype_string, true));
 		if (token.type != isc_tokentype_string)
 			break;
 
 		cp = DNS_AS_STR(token);
-		neg = ISC_TF(*cp == '!');
+		neg = (*cp == '!');
 		if (neg)
 			cp++;
 		afi = strtoul(cp, &ap, 10);
@@ -107,7 +107,7 @@ totext_in_apl(ARGS_TOTEXT) {
 	uint16_t afi;
 	uint8_t prefix;
 	uint8_t len;
-	isc_boolean_t neg;
+	bool neg;
 	unsigned char buf[16];
 	char txt[sizeof(" !64000:")];
 	const char *sep = "";
@@ -129,7 +129,7 @@ totext_in_apl(ARGS_TOTEXT) {
 		prefix = *sr.base;
 		isc_region_consume(&sr, 1);
 		len = (*sr.base & 0x7f);
-		neg = ISC_TF((*sr.base & 0x80) != 0);
+		neg = (*sr.base & 0x80);
 		isc_region_consume(&sr, 1);
 		INSIST(len <= sr.length);
 		n = snprintf(txt, sizeof(txt), "%s%s%u:", sep,
@@ -256,7 +256,7 @@ fromstruct_in_apl(ARGS_FROMSTRUCT) {
 	isc_buffer_init(&b, apl->apl, apl->apl_len);
 	isc_buffer_add(&b, apl->apl_len);
 	isc_buffer_setactive(&b, apl->apl_len);
-	return(fromwire_in_apl(rdclass, type, &b, NULL, ISC_FALSE, target));
+	return(fromwire_in_apl(rdclass, type, &b, NULL, false, target));
 }
 
 static inline isc_result_t
@@ -384,7 +384,7 @@ dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent) {
 	ent->family = (apl->apl[apl->offset] << 8) + apl->apl[apl->offset + 1];
 	ent->prefix = apl->apl[apl->offset + 2];
 	ent->length = length;
-	ent->negative = ISC_TF((apl->apl[apl->offset + 3] & 0x80) != 0);
+	ent->negative = (apl->apl[apl->offset + 3] & 0x80);
 	if (ent->length != 0)
 		ent->data = &apl->apl[apl->offset + 4];
 	else
@@ -420,7 +420,7 @@ digest_in_apl(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_in_apl(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_apl);
@@ -431,11 +431,11 @@ checkowner_in_apl(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 
-static inline isc_boolean_t
+static inline bool
 checknames_in_apl(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_apl);
@@ -445,7 +445,7 @@ checknames_in_apl(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
