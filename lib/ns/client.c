@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/aes.h>
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
@@ -248,8 +250,8 @@ static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       dns_dispatch_t *disp, isc_boolean_t tcp);
 static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       isc_socket_t *sock);
-static void compute_cookie(ns_client_t *client, isc_uint32_t when,
-			   isc_uint32_t nonce, const unsigned char *secret,
+static void compute_cookie(ns_client_t *client, uint32_t when,
+			   uint32_t nonce, const unsigned char *secret,
 			   isc_buffer_t *buf);
 
 void
@@ -869,11 +871,11 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 
 static isc_result_t
 client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
-		    isc_buffer_t *tcpbuffer, isc_uint32_t length,
+		    isc_buffer_t *tcpbuffer, uint32_t length,
 		    unsigned char *sendbuf, unsigned char **datap)
 {
 	unsigned char *data;
-	isc_uint32_t bufsize;
+	uint32_t bufsize;
 	isc_result_t result;
 
 	INSIST(datap != NULL);
@@ -898,7 +900,7 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		} else {
 			isc_buffer_init(buffer, data, TCP_BUFFER_SIZE);
 			INSIST(length <= 0xffff);
-			isc_buffer_putuint16(buffer, (isc_uint16_t)length);
+			isc_buffer_putuint16(buffer, (uint16_t)length);
 		}
 	} else {
 		data = sendbuf;
@@ -1243,7 +1245,7 @@ client_send(ns_client_t *client) {
 		client->sendcb(&buffer);
 	} else if (TCP_CLIENT(client)) {
 		isc_buffer_usedregion(&buffer, &r);
-		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t) r.length);
+		isc_buffer_putuint16(&tcpbuffer, (uint16_t) r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
 #ifdef HAVE_DNSTAP
 		if (client->view != NULL) {
@@ -1575,7 +1577,7 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		 */
 		isc_time_t expire;
 		isc_interval_t i;
-		isc_uint32_t flags = 0;
+		uint32_t flags = 0;
 
 		if ((message->flags & DNS_MESSAGEFLAG_CD) != 0)
 			flags = NS_FAILCACHE_CD;
@@ -1601,7 +1603,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	isc_result_t result;
 	dns_view_t *view;
 	dns_resolver_t *resolver;
-	isc_uint16_t udpsize;
+	uint16_t udpsize;
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	int count = 0;
 	unsigned int flags;
@@ -1638,7 +1640,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_NSID;
-		ednsopts[count].length = (isc_uint16_t)strlen(nsidp);
+		ednsopts[count].length = (uint16_t)strlen(nsidp);
 		ednsopts[count].value = (unsigned char *)nsidp;
 		count++;
 	}
@@ -1646,7 +1648,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
 		isc_buffer_t buf;
 		isc_stdtime_t now;
-		isc_uint32_t nonce;
+		uint32_t nonce;
 
 		isc_buffer_init(&buf, cookie, sizeof(cookie));
 		isc_stdtime_get(&now);
@@ -1680,9 +1682,9 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	     client->ecs.addr.family == AF_UNSPEC))
 	{
 		isc_buffer_t buf;
-		isc_uint8_t addr[16];
-		isc_uint32_t plen, addrl;
-		isc_uint16_t family;
+		uint8_t addr[16];
+		uint32_t plen, addrl;
+		uint16_t family;
 
 		/* Add CLIENT-SUBNET option. */
 
@@ -1740,7 +1742,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 		isc_buffer_init(&buf, advtimo, sizeof(advtimo));
 		isc_buffer_putuint16(&buf,
-			     (isc_uint16_t) client->sctx->advertisedtimo);
+			     (uint16_t) client->sctx->advertisedtimo);
 		ednsopts[count].code = DNS_OPT_TCP_KEEPALIVE;
 		ednsopts[count].length = 2;
 		ednsopts[count].value = advtimo;
@@ -1777,7 +1779,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 }
 
 static void
-compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
+compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 	       const unsigned char *secret, isc_buffer_t *buf)
 {
 	switch (client->sctx->cookiealg) {
@@ -1906,8 +1908,8 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	unsigned char dbuf[COOKIE_SIZE];
 	unsigned char *old;
 	isc_stdtime_t now;
-	isc_uint32_t when;
-	isc_uint32_t nonce;
+	uint32_t when;
+	uint32_t nonce;
 	isc_buffer_t db;
 
 	/*
@@ -1991,8 +1993,8 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 static isc_result_t
 process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
-	isc_uint16_t family;
-	isc_uint8_t addrlen, addrbytes, scope, *paddr;
+	uint16_t family;
+	uint8_t addrlen, addrbytes, scope, *paddr;
 	isc_netaddr_t caddr;
 
 	/*
@@ -2084,14 +2086,14 @@ process_ecs(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		return (DNS_R_OPTERR);
 	}
 
-	paddr = (isc_uint8_t *) &caddr.type;
+	paddr = (uint8_t *) &caddr.type;
 	if (addrbytes != 0U) {
 		memmove(paddr, isc_buffer_current(buf), addrbytes);
 		isc_buffer_forward(buf, addrbytes);
 		optlen -= addrbytes;
 
 		if ((addrlen % 8) != 0) {
-			isc_uint8_t bits = ~0U << (8 - (addrlen % 8));
+			uint8_t bits = ~0U << (8 - (addrlen % 8));
 			bits &= paddr[addrbytes - 1];
 			if (bits != paddr[addrbytes - 1])
 				return (DNS_R_OPTERR);
@@ -2117,7 +2119,7 @@ process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 
 	client->keytag = isc_mem_get(client->mctx, optlen);
 	if (client->keytag != NULL) {
-		client->keytag_len = (isc_uint16_t)optlen;
+		client->keytag_len = (uint16_t)optlen;
 		memmove(client->keytag, isc_buffer_current(buf), optlen);
 	}
 	isc_buffer_forward(buf, (unsigned int)optlen);
@@ -2129,8 +2131,8 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
 	isc_result_t result;
-	isc_uint16_t optcode;
-	isc_uint16_t optlen;
+	uint16_t optcode;
+	uint16_t optlen;
 
 	/*
 	 * Set the client's UDP buffer size.
@@ -2147,7 +2149,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	/*
 	 * Get the flags out of the OPT record.
 	 */
-	client->extflags = (isc_uint16_t)(opt->ttl & 0xFFFF);
+	client->extflags = (uint16_t)(opt->ttl & 0xFFFF);
 
 	/*
 	 * Do we understand this version of EDNS?
@@ -2804,7 +2806,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (client->udpsize > 512) {
 		dns_peer_t *peer = NULL;
-		isc_uint16_t udpsize = client->view->maxudp;
+		uint16_t udpsize = client->view->maxudp;
 		(void) dns_peerlist_peerbyaddr(client->view->peers,
 					       &netaddr, &peer);
 		if (peer != NULL)
@@ -3735,7 +3737,7 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
 	isc_netaddr_t tmpnetaddr;
 	isc_netaddr_t *ecs_addr = NULL;
-	isc_uint8_t ecs_addrlen = 0;
+	uint8_t ecs_addrlen = 0;
 	int match;
 
 	if (acl == NULL) {

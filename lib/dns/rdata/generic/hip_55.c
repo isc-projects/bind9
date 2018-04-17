@@ -71,7 +71,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	len = (unsigned char *)isc_buffer_used(target) - start;
 	if (len > 0xffU)
 		RETTOK(ISC_R_RANGE);
-	RETERR(uint8_tobuffer((isc_uint32_t)len, &hit_len));
+	RETERR(uint8_tobuffer((uint32_t)len, &hit_len));
 
 	/*
 	 * Public key (base64).
@@ -87,7 +87,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	len = (unsigned char *)isc_buffer_used(target) - start;
 	if (len > 0xffffU)
 		RETTOK(ISC_R_RANGE);
-	RETERR(uint16_tobuffer((isc_uint32_t)len, &key_len));
+	RETERR(uint16_tobuffer((uint32_t)len, &key_len));
 
 	if (origin == NULL)
 		origin = dns_rootname;
@@ -187,8 +187,8 @@ static inline isc_result_t
 fromwire_hip(ARGS_FROMWIRE) {
 	isc_region_t region, rr;
 	dns_name_t name;
-	isc_uint8_t hit_len;
-	isc_uint16_t key_len;
+	uint8_t hit_len;
+	uint16_t key_len;
 
 	REQUIRE(type == dns_rdatatype_hip);
 
@@ -451,8 +451,8 @@ casecompare_hip(ARGS_COMPARE) {
 	dns_name_t name1;
 	dns_name_t name2;
 	int order;
-	isc_uint8_t hit_len;
-	isc_uint16_t key_len;
+	uint8_t hit_len;
+	uint16_t key_len;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);

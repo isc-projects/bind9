@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/util.h>
 
 #include <isc/mem.h>
@@ -63,11 +65,11 @@
  * family and addr6 fields are to be used IPv6 is added.
  */
 typedef struct geoip_state {
-	isc_uint16_t subtype;
+	uint16_t subtype;
 	unsigned int family;
-	isc_uint32_t ipnum;
+	uint32_t ipnum;
 	geoipv6_t ipnum6;
-	isc_uint8_t scope;
+	uint8_t scope;
 	GeoIPRecord *record;
 	GeoIPRegion *region;
 	const char *text;
@@ -158,8 +160,8 @@ clean_state(geoip_state_t *state) {
 }
 
 static isc_result_t
-set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
-	  isc_uint8_t scope, dns_geoip_subtype_t subtype, GeoIPRecord *record,
+set_state(unsigned int family, uint32_t ipnum, const geoipv6_t *ipnum6,
+	  uint8_t scope, dns_geoip_subtype_t subtype, GeoIPRecord *record,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
 	geoip_state_t *state = NULL;
@@ -212,7 +214,7 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 }
 
 static geoip_state_t *
-get_state_for(unsigned int family, isc_uint32_t ipnum,
+get_state_for(unsigned int family, uint32_t ipnum,
 	      const geoipv6_t *ipnum6)
 {
 	geoip_state_t *state;
@@ -248,8 +250,8 @@ get_state_for(unsigned int family, isc_uint32_t ipnum,
 static const char *
 country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	       unsigned int family,
-	       isc_uint32_t ipnum, const geoipv6_t *ipnum6,
-	       isc_uint8_t *scope)
+	       uint32_t ipnum, const geoipv6_t *ipnum6,
+	       uint8_t *scope)
 {
 	geoip_state_t *prev_state = NULL;
 	const char *text = NULL;
@@ -401,9 +403,9 @@ is_city(dns_geoip_subtype_t subtype) {
  */
 static GeoIPRecord *
 city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	    unsigned int family, isc_uint32_t ipnum,
+	    unsigned int family, uint32_t ipnum,
 	    const geoipv6_t *ipnum6,
-	    isc_uint8_t *scope)
+	    uint8_t *scope)
 {
 	GeoIPRecord *record = NULL;
 	geoip_state_t *prev_state = NULL;
@@ -486,7 +488,7 @@ is_region(dns_geoip_subtype_t subtype) {
  */
 static GeoIPRegion *
 region_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	      isc_uint32_t ipnum, isc_uint8_t *scope)
+	      uint32_t ipnum, uint8_t *scope)
 {
 	GeoIPRegion *region = NULL;
 	geoip_state_t *prev_state = NULL;
@@ -523,7 +525,7 @@ region_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
  */
 static char *
 name_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	    isc_uint32_t ipnum, isc_uint8_t *scope)
+	    uint32_t ipnum, uint8_t *scope)
 {
 	char *name = NULL;
 	geoip_state_t *prev_state = NULL;
@@ -560,7 +562,7 @@ name_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
  */
 static int
 netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-		isc_uint32_t ipnum, isc_uint8_t *scope)
+		uint32_t ipnum, uint8_t *scope)
 {
 	geoip_state_t *prev_state = NULL;
 	isc_boolean_t found = ISC_FALSE;
@@ -648,7 +650,7 @@ fix_subtype(const isc_netaddr_t *reqaddr, const dns_geoip_databases_t *geoip,
 #endif /* HAVE_GEOIP */
 
 isc_boolean_t
-dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
+dns_geoip_match(const isc_netaddr_t *reqaddr, uint8_t *scope,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t *elt)
 {
@@ -663,7 +665,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 	GeoIPRecord *record;
 	GeoIPRegion *region;
 	dns_geoip_subtype_t subtype;
-	isc_uint32_t ipnum = 0;
+	uint32_t ipnum = 0;
 	int maxlen = 0, id, family;
 	const char *cs;
 	char *s;

@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdint.h>
 #include <stdarg.h>
 
 #include <isc/buffer.h>
@@ -264,10 +265,10 @@ isc_buffer_compact(isc_buffer_t *b) {
 	b->used = length;
 }
 
-isc_uint8_t
+uint8_t
 isc_buffer_getuint8(isc_buffer_t *b) {
 	unsigned char *cp;
-	isc_uint8_t result;
+	uint8_t result;
 
 	/*
 	 * Read an unsigned 8-bit integer from 'b' and return it.
@@ -278,13 +279,13 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 
 	cp = isc_buffer_current(b);
 	b->current += 1;
-	result = ((isc_uint8_t)(cp[0]));
+	result = ((uint8_t)(cp[0]));
 
 	return (result);
 }
 
 void
-isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val) {
+isc__buffer_putuint8(isc_buffer_t *b, uint8_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -296,10 +297,10 @@ isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val) {
 	ISC__BUFFER_PUTUINT8(b, val);
 }
 
-isc_uint16_t
+uint16_t
 isc_buffer_getuint16(isc_buffer_t *b) {
 	unsigned char *cp;
-	isc_uint16_t result;
+	uint16_t result;
 
 	/*
 	 * Read an unsigned 16-bit integer in network byte order from 'b',
@@ -318,7 +319,7 @@ isc_buffer_getuint16(isc_buffer_t *b) {
 }
 
 void
-isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val) {
+isc__buffer_putuint16(isc_buffer_t *b, uint16_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -331,7 +332,7 @@ isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val) {
 }
 
 void
-isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val) {
+isc__buffer_putuint24(isc_buffer_t *b, uint32_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -343,10 +344,10 @@ isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val) {
 	ISC__BUFFER_PUTUINT24(b, val);
 }
 
-isc_uint32_t
+uint32_t
 isc_buffer_getuint32(isc_buffer_t *b) {
 	unsigned char *cp;
-	isc_uint32_t result;
+	uint32_t result;
 
 	/*
 	 * Read an unsigned 32-bit integer in network byte order from 'b',
@@ -367,7 +368,7 @@ isc_buffer_getuint32(isc_buffer_t *b) {
 }
 
 void
-isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
+isc__buffer_putuint32(isc_buffer_t *b, uint32_t val) {
 	isc_result_t result;
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -379,10 +380,10 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
 	ISC__BUFFER_PUTUINT32(b, val);
 }
 
-isc_uint64_t
+uint64_t
 isc_buffer_getuint48(isc_buffer_t *b) {
 	unsigned char *cp;
-	isc_uint64_t result;
+	uint64_t result;
 
 	/*
 	 * Read an unsigned 48-bit integer in network byte order from 'b',
@@ -394,21 +395,21 @@ isc_buffer_getuint48(isc_buffer_t *b) {
 
 	cp = isc_buffer_current(b);
 	b->current += 6;
-	result = ((isc_int64_t)(cp[0])) << 40;
-	result |= ((isc_int64_t)(cp[1])) << 32;
-	result |= ((isc_int64_t)(cp[2])) << 24;
-	result |= ((isc_int64_t)(cp[3])) << 16;
-	result |= ((isc_int64_t)(cp[4])) << 8;
-	result |= ((isc_int64_t)(cp[5]));
+	result = ((int64_t)(cp[0])) << 40;
+	result |= ((int64_t)(cp[1])) << 32;
+	result |= ((int64_t)(cp[2])) << 24;
+	result |= ((int64_t)(cp[3])) << 16;
+	result |= ((int64_t)(cp[4])) << 8;
+	result |= ((int64_t)(cp[5]));
 
 	return (result);
 }
 
 void
-isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val) {
+isc__buffer_putuint48(isc_buffer_t *b, uint64_t val) {
 	isc_result_t result;
-	isc_uint16_t valhi;
-	isc_uint32_t vallo;
+	uint16_t valhi;
+	uint32_t vallo;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 	if (ISC_UNLIKELY(b->autore)) {
@@ -417,8 +418,8 @@ isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val) {
 	}
 	REQUIRE(isc_buffer_availablelength(b) >= 6);
 
-	valhi = (isc_uint16_t)(val >> 32);
-	vallo = (isc_uint32_t)(val & 0xFFFFFFFF);
+	valhi = (uint16_t)(val >> 32);
+	vallo = (uint32_t)(val & 0xFFFFFFFF);
 	ISC__BUFFER_PUTUINT16(b, valhi);
 	ISC__BUFFER_PUTUINT32(b, vallo);
 }
@@ -463,7 +464,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source) {
 }
 
 void
-isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v) {
+isc_buffer_putdecint(isc_buffer_t *b, int64_t v) {
 	unsigned int l=0;
 	unsigned char *cp;
 	char buf[21];
@@ -594,7 +595,7 @@ isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
 
 isc_result_t
 isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
-	isc_uint64_t len;
+	uint64_t len;
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));

@@ -37,7 +37,7 @@ static inline isc_result_t
 fromtext_caa(ARGS_FROMTEXT) {
 	isc_token_t token;
 	isc_textregion_t tr;
-	isc_uint8_t flags;
+	uint8_t flags;
 	unsigned int i;
 
 	REQUIRE(type == dns_rdatatype_caa);
@@ -53,7 +53,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 				      ISC_FALSE));
 	if (token.value.as_ulong > 255U)
 		RETTOK(ISC_R_RANGE);
-	flags = (isc_uint8_t)(token.value.as_ulong & 255U);
+	flags = (uint8_t)(token.value.as_ulong & 255U);
 	RETERR(uint8_tobuffer(flags, target));
 
 	/*
@@ -83,7 +83,7 @@ fromtext_caa(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_caa(ARGS_TOTEXT) {
 	isc_region_t region;
-	isc_uint8_t flags;
+	uint8_t flags;
 	char buf[256];
 
 	UNUSED(tctx);

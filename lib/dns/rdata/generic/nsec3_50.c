@@ -108,7 +108,7 @@ totext_nsec3(ARGS_TOTEXT) {
 	unsigned char hash;
 	unsigned char flags;
 	char buf[sizeof("TYPE65535")];
-	isc_uint32_t iterations;
+	uint32_t iterations;
 
 	REQUIRE(rdata->type == dns_rdatatype_nsec3);
 	REQUIRE(rdata->length != 0);

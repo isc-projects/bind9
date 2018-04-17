@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -59,7 +60,7 @@ static dns_rdataclass_t rdclass;
 static dns_fixedname_t	fixed;
 static dns_name_t	*name = NULL;
 static isc_mem_t	*mctx = NULL;
-static isc_uint32_t	ttl;
+static uint32_t	ttl;
 static isc_boolean_t	emitttl = ISC_FALSE;
 
 static isc_result_t

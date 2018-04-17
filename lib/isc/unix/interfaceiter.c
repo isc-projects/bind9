@@ -22,6 +22,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -97,7 +98,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 			 * we only consider unicast link-local addresses.
 			 */
 			if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr)) {
-				isc_uint16_t zone16;
+				uint16_t zone16;
 
 				memmove(&zone16, &sa6->sin6_addr.s6_addr[2],
 					sizeof(zone16));
@@ -105,7 +106,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 				if (zone16 != 0) {
 					/* the zone ID is embedded */
 					isc_netaddr_setzone(dst,
-							    (isc_uint32_t)zone16);
+							    (uint32_t)zone16);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
 #ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
@@ -121,7 +122,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 					zone = if_nametoindex(ifname);
 					if (zone != 0) {
 						isc_netaddr_setzone(dst,
-								    (isc_uint32_t)zone);
+								    (uint32_t)zone);
 					}
 #endif
 				}
@@ -220,7 +221,7 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 	isc_netaddr_fromin6(&iter->current.address, &addr6);
 	if (isc_netaddr_islinklocal(&iter->current.address)) {
 		isc_netaddr_setzone(&iter->current.address,
-				    (isc_uint32_t)ifindex);
+				    (uint32_t)ifindex);
 	}
 	for (i = 0; i < 16; i++) {
 		if (prefix > 8) {

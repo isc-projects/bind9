@@ -37,6 +37,8 @@
 #ifndef ISC_MD5_H
 #define ISC_MD5_H 1
 
+#include <stdint.h>
+
 #include <pk11/site.h>
 
 #ifndef PK11_MD5_DISABLE
@@ -67,9 +69,9 @@ typedef pk11_context_t isc_md5_t;
 #else
 
 typedef struct {
-	isc_uint32_t buf[4];
-	isc_uint32_t bytes[2];
-	isc_uint32_t in[16];
+	uint32_t buf[4];
+	uint32_t bytes[2];
+	uint32_t in[16];
 } isc_md5_t;
 #endif
 

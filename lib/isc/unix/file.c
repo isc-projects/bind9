@@ -47,6 +47,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>		/* Required for utimes on some platforms. */
 #include <unistd.h>		/* Required for mkstemp on NetBSD. */
@@ -202,7 +203,7 @@ isc_file_settime(const char *file, isc_time_t *when) {
 	 * we can at least cast to signed so the IRIX compiler shuts up.
 	 */
 	times[0].tv_usec = times[1].tv_usec =
-		(isc_int32_t)(isc_time_nanoseconds(when) / 1000);
+		(int32_t)(isc_time_nanoseconds(when) / 1000);
 
 	if (utimes(file, times) < 0)
 		return (isc__errno2result(errno));
@@ -273,7 +274,7 @@ isc_file_renameunique(const char *file, char *templet) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
-		isc_uint32_t which;
+		uint32_t which;
 
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
@@ -332,7 +333,7 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
-		isc_uint32_t which;
+		uint32_t which;
 
 		isc_random_get(&which);
 		*cp = alphnum[which % (sizeof(alphnum) - 1)];
