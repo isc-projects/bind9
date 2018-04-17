@@ -34,7 +34,7 @@ fromtext_x25(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_textregion.length < 4)
 		RETTOK(DNS_R_SYNTAX);
 	for (i = 0; i < token.value.as_textregion.length; i++)
@@ -54,7 +54,7 @@ totext_x25(ARGS_TOTEXT) {
 	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &region);
-	return (txt_totext(&region, ISC_TRUE, target));
+	return (txt_totext(&region, true, target));
 }
 
 static inline isc_result_t
@@ -185,7 +185,7 @@ digest_x25(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_x25(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_x25);
@@ -195,10 +195,10 @@ checkowner_x25(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_x25(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_x25);
@@ -207,7 +207,7 @@ checknames_x25(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

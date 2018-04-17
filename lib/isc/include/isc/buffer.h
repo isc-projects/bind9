@@ -99,6 +99,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/assertions.h>
@@ -184,7 +185,7 @@ struct isc_buffer {
 	/*! private internal elements */
 	isc_mem_t	       *mctx;
 	/* automatically realloc buffer at put* */
-	isc_boolean_t		autore;
+	bool		autore;
 };
 
 /***
@@ -318,7 +319,7 @@ isc__buffer_invalidate(isc_buffer_t *b);
  */
 
 void
-isc_buffer_setautorealloc(isc_buffer_t *b, isc_boolean_t enable);
+isc_buffer_setautorealloc(isc_buffer_t *b, bool enable);
 /*!<
  * \brief Enable or disable autoreallocation on 'b'.
  *
@@ -817,7 +818,7 @@ ISC_LANG_ENDDECLS
 		(_b)->mctx = NULL; \
 		ISC_LINK_INIT(_b, link); \
 		(_b)->magic = ISC_BUFFER_MAGIC; \
-		(_b)->autore = ISC_FALSE; \
+		(_b)->autore = false; \
 	} while (0)
 
 #define ISC__BUFFER_INITNULL(_b) ISC__BUFFER_INIT(_b, NULL, 0)

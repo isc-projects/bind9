@@ -17,6 +17,7 @@
  * Rate limit DNS responses.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -204,7 +205,7 @@ struct dns_rrl {
 	isc_mutex_t	lock;
 	isc_mem_t	*mctx;
 
-	isc_boolean_t	log_only;
+	bool	log_only;
 	dns_rrl_rate_t	responses_per_second;
 	dns_rrl_rate_t	referrals_per_second;
 	dns_rrl_rate_t	nodata_per_second;
@@ -260,10 +261,10 @@ typedef enum {
 
 dns_rrl_result_t
 dns_rrl(dns_view_t *view,
-	const isc_sockaddr_t *client_addr, isc_boolean_t is_tcp,
+	const isc_sockaddr_t *client_addr, bool is_tcp,
 	dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
 	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
-	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len);
+	bool wouldlog, char *log_buf, unsigned int log_buf_len);
 
 void
 dns_rrl_view_destroy(dns_view_t *view);

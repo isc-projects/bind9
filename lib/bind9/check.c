@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -63,7 +64,7 @@ static dns_name_t const dlviscorg =
 	DNS_NAME_INITABSOLUTE(dlviscorg_ndata, dlviscorg_offsets);
 
 static isc_result_t
-fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, isc_boolean_t writeable,
+fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	  isc_log_t *logctxlogc);
 
 static void
@@ -727,7 +728,7 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	const cfg_obj_t *options, *aclobj, *obj = NULL;
 	dns_acl_t *acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS, tresult;
-	isc_boolean_t recursion;
+	bool recursion;
 	const char *forview = " for view ";
 	int i = 0;
 
@@ -743,7 +744,7 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 			cfg_map_get(options, "recursion", &obj);
 	}
 	if (obj == NULL)
-		recursion = ISC_TRUE;
+		recursion = true;
 	else
 		recursion = cfg_obj_asboolean(obj);
 
@@ -776,7 +777,7 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		if (acl == NULL)
 			continue;
 
-		if (recursion == ISC_FALSE && !dns_acl_isnone(acl)) {
+		if (recursion == false && !dns_acl_isnone(acl)) {
 			cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
 				    "both \"recursion no;\" and "
 				    "\"%s\" active%s%s",
@@ -1179,7 +1180,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "dnssec-lookaside", &obj);
 	if (obj != NULL) {
 		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-					    ISC_FALSE, &symtab);
+					    false, &symtab);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 		for (element = cfg_list_first(obj);
@@ -1294,7 +1295,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	(void)cfg_map_get(options, "dnssec-must-be-secure", &obj);
 	if (obj != NULL) {
 		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-					    ISC_FALSE, &symtab);
+					    false, &symtab);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 		for (element = cfg_list_first(obj);
@@ -1648,7 +1649,7 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 	const cfg_obj_t *list;
 
 	REQUIRE(countp != NULL);
-	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE, &symtab);
+	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 	if (result != ISC_R_SUCCESS) {
 		*countp = count;
 		return (result);
@@ -1915,13 +1916,13 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	dns_fixedname_t fixedname;
 	dns_name_t *zname = NULL;
 	isc_buffer_t b;
-	isc_boolean_t root = ISC_FALSE;
-	isc_boolean_t rfc1918 = ISC_FALSE;
-	isc_boolean_t ula = ISC_FALSE;
+	bool root = false;
+	bool rfc1918 = false;
+	bool ula = false;
 	const cfg_listelt_t *element;
-	isc_boolean_t dlz;
+	bool dlz;
 	dns_masterformat_t masterformat;
-	isc_boolean_t ddns = ISC_FALSE;
+	bool ddns = false;
 	const void *clauses = NULL;
 	const char *option = NULL;
 	static const char *acls[] = {
@@ -2041,11 +2042,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;
 		if (dns_name_equal(zname, dns_rootname))
-			root = ISC_TRUE;
+			root = true;
 		else if (dns_name_isrfc1918(zname))
-			rfc1918 = ISC_TRUE;
+			rfc1918 = true;
 		else if (dns_name_isula(zname))
-			ula = ISC_TRUE;
+			ula = true;
 	}
 
 	if (ztype == CFG_ZONE_INVIEW) {
@@ -2110,7 +2111,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * shouldn't if notify is disabled.
 	 */
 	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
-		isc_boolean_t donotify = ISC_TRUE;
+		bool donotify = true;
 
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "notify", &obj);
@@ -2125,7 +2126,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				const char *notifystr = cfg_obj_asstring(obj);
 				if (ztype != CFG_ZONE_MASTER &&
 				    strcasecmp(notifystr, "master-only") == 0)
-					donotify = ISC_FALSE;
+					donotify = false;
 			}
 		}
 
@@ -2178,7 +2179,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * Master zones can't have both "allow-update" and "update-policy".
 	 */
 	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
-		isc_boolean_t signing = ISC_FALSE;
+		bool signing = false;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
 		const char *arg;
@@ -2210,7 +2211,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			res1 = cfg_map_get(goptions, "allow-update", &au);
 
 		if (res2 == ISC_R_SUCCESS)
-			ddns = ISC_TRUE;
+			ddns = true;
 		else if (res1 == ISC_R_SUCCESS) {
 			dns_acl_t *acl = NULL;
 			res1 = cfg_acl_fromconfig(au, config, logctx,
@@ -2222,7 +2223,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				result = ISC_R_FAILURE;
 			} else if (acl != NULL) {
 				if (!dns_acl_isnone(acl))
-					ddns = ISC_TRUE;
+					ddns = true;
 				dns_acl_detach(&acl);
 			}
 		}
@@ -2517,10 +2518,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * file clause as well
 	 */
 	obj = NULL;
-	dlz = ISC_FALSE;
+	dlz = false;
 	tresult = cfg_map_get(zoptions, "dlz", &obj);
 	if (tresult == ISC_R_SUCCESS)
-		dlz = ISC_TRUE;
+		dlz = true;
 
 	obj = NULL;
 	tresult = cfg_map_get(zoptions, "database", &obj);
@@ -2551,14 +2552,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
 			   (ztype == CFG_ZONE_SLAVE || ddns)) {
-			tresult = fileexist(fileobj, files, ISC_TRUE, logctx);
+			tresult = fileexist(fileobj, files, true, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
 			   (ztype == CFG_ZONE_MASTER ||
 			    ztype == CFG_ZONE_HINT))
 		{
-			tresult = fileexist(fileobj, files, ISC_FALSE, logctx);
+			tresult = fileexist(fileobj, files, false, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
 		}
@@ -2668,7 +2669,7 @@ bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 }
 
 static isc_result_t
-fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, isc_boolean_t writeable,
+fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	  isc_log_t *logctx)
 {
 	isc_result_t result;
@@ -2797,14 +2798,14 @@ static struct {
  *
  * 	"foo." is different to "foo".
  */
-static isc_boolean_t
+static bool
 rndckey_exists(const cfg_obj_t *keylist, const char *keyname) {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *obj;
 	const char *str;
 
 	if (keylist == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	for (element = cfg_list_first(keylist);
 	     element != NULL;
@@ -2813,9 +2814,9 @@ rndckey_exists(const cfg_obj_t *keylist, const char *keyname) {
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_map_getname(obj));
 		if (!strcasecmp(str, keyname))
-			return (ISC_TRUE);
+			return (true);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 static isc_result_t
@@ -2932,7 +2933,7 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 #define DLV_KSK_KEY	0x4
 
 static isc_result_t
-check_trusted_key(const cfg_obj_t *key, isc_boolean_t managed,
+check_trusted_key(const cfg_obj_t *key, bool managed,
 		  unsigned int *keyflags, isc_log_t *logctx)
 {
 	const char *keystr, *keynamestr;
@@ -3236,7 +3237,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *opts = NULL;
-	isc_boolean_t enablednssec, enablevalidation;
+	bool enablednssec, enablevalidation;
 	const char *valstr = "no";
 	unsigned int tflags, mflags;
 
@@ -3258,7 +3259,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * there are no duplicate zones.
 	 */
 	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
-				    ISC_FALSE, &symtab);
+				    false, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
@@ -3355,7 +3356,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * there are no duplicate keys.
 	 */
 	tresult = isc_symtab_create(mctx, 1000, freekey, mctx,
-				    ISC_FALSE, &symtab);
+				    false, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -3397,7 +3398,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (obj == NULL && options != NULL)
 		(void)cfg_map_get(options, "dnssec-enable", &obj);
 	if (obj == NULL)
-		enablednssec = ISC_TRUE;
+		enablednssec = true;
 	else
 		enablednssec = cfg_obj_asboolean(obj);
 
@@ -3413,7 +3414,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		enablevalidation = cfg_obj_asboolean(obj);
 		valstr = enablevalidation ? "yes" : "no";
 	} else {
-		enablevalidation = ISC_TRUE;
+		enablevalidation = true;
 		valstr = "auto";
 	}
 
@@ -3441,7 +3442,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		     element2 != NULL;
 		     element2 = cfg_list_next(element2)) {
 			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, ISC_FALSE, &tflags,
+			tresult = check_trusted_key(obj, false, &tflags,
 						    logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
@@ -3477,7 +3478,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		     element2 != NULL;
 		     element2 = cfg_list_next(element2)) {
 			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, ISC_TRUE, &mflags,
+			tresult = check_trusted_key(obj, true, &mflags,
 						    logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
@@ -3583,7 +3584,7 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 	if (logobj == NULL)
 		return (ISC_R_SUCCESS);
 
-	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE, &symtab);
+	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -3833,7 +3834,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	 * case sensitive. This will prevent people using FOO.DB and foo.db
 	 * on case sensitive file systems but that shouldn't be a major issue.
 	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE,
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, false,
 				    &files);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
@@ -3854,7 +3855,7 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		}
 	}
 
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	tresult = isc_symtab_create(mctx, 100, NULL, NULL, true, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 	for (velement = cfg_list_first(views);

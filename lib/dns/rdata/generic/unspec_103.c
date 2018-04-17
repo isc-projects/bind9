@@ -155,7 +155,7 @@ digest_unspec(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_unspec(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_unspec);
@@ -165,10 +165,10 @@ checkowner_unspec(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_unspec(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_unspec);
@@ -177,7 +177,7 @@ checknames_unspec(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
