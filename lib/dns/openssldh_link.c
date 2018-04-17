@@ -164,7 +164,7 @@ openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	DH *dh1, *dh2;
 	const BIGNUM *pub_key1 = NULL, *pub_key2 = NULL;
@@ -175,9 +175,9 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.dh;
 
 	if (dh1 == NULL && dh2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (dh1 == NULL || dh2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	DH_get0_key(dh1, &pub_key1, &priv_key1);
 	DH_get0_key(dh2, &pub_key2, &priv_key2);
@@ -186,18 +186,18 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(g1, g2) != 0 ||
 	    BN_cmp(pub_key1, pub_key2) != 0)
-		return (ISC_FALSE);
+		return (false);
 
 	if (priv_key1 != NULL || priv_key2 != NULL) {
 		if (priv_key1 == NULL || priv_key2 == NULL)
-			return (ISC_FALSE);
+			return (false);
 		if (BN_cmp(priv_key1, priv_key2) != 0)
-			return (ISC_FALSE);
+			return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
-static isc_boolean_t
+static bool
 openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	DH *dh1, *dh2;
 	const BIGNUM *p1 = NULL, *g1 = NULL, *p2 = NULL, *g2 = NULL;
@@ -206,16 +206,16 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.dh;
 
 	if (dh1 == NULL && dh2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (dh1 == NULL || dh2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	DH_get0_pqg(dh1, &p1, NULL, &g1);
 	DH_get0_pqg(dh2, &p2, NULL, &g2);
 
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(g1, g2) != 0)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
@@ -330,13 +330,13 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = key->keydata.dh;
 	const BIGNUM *priv_key = NULL;
 
 	DH_get0_key(dh, NULL, &priv_key);
-	return (ISC_TF(dh != NULL && priv_key != NULL));
+	return (dh != NULL && priv_key != NULL);
 }
 
 static void

@@ -42,7 +42,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Type covered.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	result = dns_rdatatype_fromtext(&covered, &token.value.as_textregion);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTIMPLEMENTED) {
 		i = strtol(DNS_AS_STR(token), &e, 10);
@@ -58,7 +58,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Algorithm.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &c, 1));
 
@@ -66,7 +66,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Labels.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	c = (unsigned char)token.value.as_ulong;
@@ -76,14 +76,14 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Original ttl.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	RETERR(uint32_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Signature expiration.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_expire));
 	RETERR(uint32_tobuffer(time_expire, target));
 
@@ -91,7 +91,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Time signed.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &time_signed));
 	RETERR(uint32_tobuffer(time_signed, target));
 
@@ -99,14 +99,14 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 * Key footprint.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/*
 	 * Signer.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL)
@@ -130,7 +130,7 @@ totext_sig(ARGS_TOTEXT) {
 	unsigned long foot;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_sig);
 	REQUIRE(rdata->length != 0);
@@ -547,7 +547,7 @@ covers_sig(dns_rdata_t *rdata) {
 	return (type);
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_sig(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_sig);
@@ -557,10 +557,10 @@ checkowner_sig(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_sig(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_sig);
@@ -569,7 +569,7 @@ checknames_sig(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

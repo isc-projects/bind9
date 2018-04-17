@@ -135,7 +135,7 @@ digest_spf(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_spf(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_spf);
@@ -145,10 +145,10 @@ checkowner_spf(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_spf(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_spf);
@@ -157,7 +157,7 @@ checknames_spf(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

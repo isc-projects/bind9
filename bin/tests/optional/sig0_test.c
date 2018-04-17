@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -195,7 +196,7 @@ buildquery(void) {
 
 int
 main(int argc, char *argv[]) {
-	isc_boolean_t verbose = ISC_FALSE;
+	bool verbose = false;
 	isc_socketmgr_t *socketmgr;
 	isc_timermgr_t *timermgr;
 	struct in_addr inaddr;
@@ -216,7 +217,7 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, "vp:")) != -1) {
 		switch (ch) {
 		case 'v':
-			verbose = ISC_TRUE;
+			verbose = true;
 			break;
 		case 'p':
 			port = (unsigned int)atoi(isc_commandline_argument);

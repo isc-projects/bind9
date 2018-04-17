@@ -27,6 +27,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -62,18 +63,18 @@ struct dns_peer {
 
 	isc_netaddr_t		address;
 	unsigned int		prefixlen;
-	isc_boolean_t		bogus;
+	bool		bogus;
 	dns_transfer_format_t	transfer_format;
 	uint32_t		transfers;
-	isc_boolean_t		support_ixfr;
-	isc_boolean_t		provide_ixfr;
-	isc_boolean_t		request_ixfr;
-	isc_boolean_t		support_edns;
-	isc_boolean_t		request_nsid;
-	isc_boolean_t		send_cookie;
-	isc_boolean_t		request_expire;
-	isc_boolean_t		force_tcp;
-	isc_boolean_t		tcp_keepalive;
+	bool		support_ixfr;
+	bool		provide_ixfr;
+	bool		request_ixfr;
+	bool		support_edns;
+	bool		request_nsid;
+	bool		send_cookie;
+	bool		request_expire;
+	bool		force_tcp;
+	bool		tcp_keepalive;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
 	isc_dscp_t		transfer_dscp;
@@ -138,58 +139,58 @@ void
 dns_peer_detach(dns_peer_t **list);
 
 isc_result_t
-dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setbogus(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getbogus(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestixfr(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestixfr(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setprovideixfr(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getprovideixfr(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestnsid(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestnsid(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setsendcookie(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getsendcookie(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestexpire(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestexpire(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setsupportedns(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getforcetcp(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setforcetcp(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_gettcpkeepalive(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_gettcpkeepalive(dns_peer_t *peer, bool *retval);
 
 isc_result_t
-dns_peer_settcpkeepalive(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_settcpkeepalive(dns_peer_t *peer, bool newval);
 
 isc_result_t
-dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getsupportedns(dns_peer_t *peer, bool *retval);
 
 isc_result_t
 dns_peer_settransfers(dns_peer_t *peer, uint32_t newval);

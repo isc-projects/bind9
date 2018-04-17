@@ -51,6 +51,7 @@
 #ifndef SDLZ_H
 #define SDLZ_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <dns/clientinfo.h>
@@ -212,14 +213,14 @@ typedef isc_result_t (*dns_sdlznewversion_t)(const char *zone,
  * closeversion function will be called to close the transaction.
  */
 
-typedef void (*dns_sdlzcloseversion_t)(const char *zone, isc_boolean_t commit,
+typedef void (*dns_sdlzcloseversion_t)(const char *zone, bool commit,
 				       void *driverarg, void *dbdata,
 				       void **versionp);
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface must
  * supply a closeversion method if they supply a newversion method.
  * When implemented, the driver should close the given transaction,
- * committing changes if 'commit' is ISC_TRUE. If 'commit' is not true
+ * committing changes if 'commit' is true. If 'commit' is not true
  * then all changes should be discarded and the database rolled back.
  * If the call is successful then *versionp should be set to NULL
  */
@@ -235,7 +236,7 @@ typedef isc_result_t (*dns_sdlzconfigure_t)(dns_view_t *view,
  */
 
 
-typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
+typedef bool (*dns_sdlzssumatch_t)(const char *signer,
 					    const char *name,
 					    const char *tcpaddr,
 					    const char *type,
@@ -249,7 +250,7 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a ssumatch method. If supplied, then ssumatch will be
  * called to authorize any zone updates. The driver should return
- * ISC_TRUE to allow the update, and ISC_FALSE to deny it. For a DLZ
+ * true to allow the update, and false to deny it. For a DLZ
  * controlled zone, this is the only access control on updates.
  */
 

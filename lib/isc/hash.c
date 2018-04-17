@@ -15,6 +15,7 @@
 
 #include <config.h>       // IWYU pragma: keep
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -28,7 +29,7 @@
 
 static uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
-static isc_boolean_t fnv_initialized = ISC_FALSE;
+static bool fnv_initialized = false;
 
 static unsigned char maptolower[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
@@ -76,7 +77,7 @@ fnv_initialize(void) {
 		isc_random_get(&fnv_offset_basis);
 	}
 
-	fnv_initialized = ISC_TRUE;
+	fnv_initialized = true;
 }
 
 const void *
@@ -105,7 +106,7 @@ isc_hash_set_initializer(const void *initializer) {
 
 uint32_t
 isc_hash_function(const void *data, size_t length,
-		  isc_boolean_t case_sensitive,
+		  bool case_sensitive,
 		  const uint32_t *previous_hashp)
 {
 	uint32_t hval;
@@ -154,7 +155,7 @@ isc_hash_function(const void *data, size_t length,
 
 uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
-			  isc_boolean_t case_sensitive,
+			  bool case_sensitive,
 			  const uint32_t *previous_hashp)
 {
 	uint32_t hval;

@@ -16,6 +16,7 @@
 #include <config.h>
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -24,7 +25,7 @@
 
 #include "util.h"
 
-extern isc_boolean_t verbose;
+extern bool verbose;
 extern const char *progname;
 
 void

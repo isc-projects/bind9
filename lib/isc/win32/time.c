@@ -68,13 +68,13 @@ isc_interval_set(isc_interval_t *i, unsigned int seconds,
 		+ (nanoseconds + NS_INTERVAL - 1) / NS_INTERVAL;
 }
 
-isc_boolean_t
+bool
 isc_interval_iszero(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	if (i->interval == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 void
@@ -106,15 +106,15 @@ isc_time_settoepoch(isc_time_t *t) {
 	t->absolute.dwHighDateTime = 0;
 }
 
-isc_boolean_t
+bool
 isc_time_isepoch(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	if (t->absolute.dwLowDateTime == 0 &&
 	    t->absolute.dwHighDateTime == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 isc_result_t

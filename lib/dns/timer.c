@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/result.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -29,7 +31,7 @@
 
 isc_result_t
 dns_timer_setidle(isc_timer_t *timer, unsigned int maxtime,
-		  unsigned int idletime, isc_boolean_t purge)
+		  unsigned int idletime, bool purge)
 {
 	isc_result_t result;
 	isc_interval_t maxinterval, idleinterval;

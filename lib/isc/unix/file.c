@@ -416,13 +416,13 @@ isc_file_rename(const char *oldname, const char *newname) {
 		return (isc__errno2result(errno));
 }
 
-isc_boolean_t
+bool
 isc_file_exists(const char *pathname) {
 	struct stat stats;
 
 	REQUIRE(pathname != NULL);
 
-	return (ISC_TF(file_stats(pathname, &stats) == ISC_R_SUCCESS));
+	return (file_stats(pathname, &stats) == ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -478,26 +478,26 @@ isc_file_isdirectory(const char *filename) {
 }
 
 
-isc_boolean_t
+bool
 isc_file_isabsolute(const char *filename) {
 	REQUIRE(filename != NULL);
-	return (ISC_TF(filename[0] == '/'));
+	return (filename[0] == '/');
 }
 
-isc_boolean_t
+bool
 isc_file_iscurrentdir(const char *filename) {
 	REQUIRE(filename != NULL);
-	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
+	return (filename[0] == '.' && filename[1] == '\0');
 }
 
-isc_boolean_t
+bool
 isc_file_ischdiridempotent(const char *filename) {
 	REQUIRE(filename != NULL);
 	if (isc_file_isabsolute(filename))
-		return (ISC_TRUE);
+		return (true);
 	if (isc_file_iscurrentdir(filename))
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 const char *
@@ -775,7 +775,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 	return (ISC_R_SUCCESS);
 }
 
-isc_boolean_t
+bool
 isc_file_isdirwritable(const char *path) {
-	return (ISC_TF(access(path, W_OK|X_OK) == 0));
+	return (access(path, W_OK|X_OK) == 0);
 }

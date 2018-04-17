@@ -19,15 +19,15 @@ index be16490..c9c2517 100644
   * Appends an OPT record to the packet.
   */
  static isc_result_t
--add_edns(isc_buffer_t *packet, isc_boolean_t dnssec) {
-+add_edns(isc_buffer_t *packet, isc_boolean_t dnssec,
-+	 isc_boolean_t ecs_zero, isc_boolean_t ecs_fixed,
-+	 isc_boolean_t ecs_random)
+-add_edns(isc_buffer_t *packet, bool dnssec) {
++add_edns(isc_buffer_t *packet, bool dnssec,
++	 bool ecs_zero, bool ecs_fixed,
++	 bool ecs_random)
 +{
  	unsigned char *base;
  
  	if (isc_buffer_availablelength(packet) < EDNSLEN) {
-@@ -319,7 +322,62 @@ add_edns(isc_buffer_t *packet, isc_boolean_t dnssec) {
+@@ -319,7 +322,62 @@ add_edns(isc_buffer_t *packet, bool dnssec) {
  		isc_buffer_putuint16(packet, 0x8000);
  	else
  		isc_buffer_putuint16(packet, 0);
@@ -94,9 +94,9 @@ index be16490..c9c2517 100644
 @@ -806,6 +864,8 @@ isc_result_t
  perf_dns_buildrequest(perf_dnsctx_t *ctx, const isc_textregion_t *record,
  		      uint16_t qid,
- 		      isc_boolean_t edns, isc_boolean_t dnssec,
-+		      isc_boolean_t ecs_zero, isc_boolean_t ecs_fixed,
-+		      isc_boolean_t ecs_random,
+ 		      bool edns, bool dnssec,
++		      bool ecs_zero, bool ecs_fixed,
++		      bool ecs_random,
  		      perf_dnstsigkey_t *tsigkey, isc_buffer_t *msg)
  {
  	unsigned int flags;
@@ -116,9 +116,9 @@ index 3ac98a4..4111d89 100644
 @@ -61,6 +61,8 @@ isc_result_t
  perf_dns_buildrequest(perf_dnsctx_t *ctx, const isc_textregion_t *record,
  		      uint16_t qid,
- 		      isc_boolean_t edns, isc_boolean_t dnssec,
-+		      isc_boolean_t ecs_zero, isc_boolean_t ecs_fixed,
-+		      isc_boolean_t ecs_random,
+ 		      bool edns, bool dnssec,
++		      bool ecs_zero, bool ecs_fixed,
++		      bool ecs_random,
  		      perf_dnstsigkey_t *tsigkey, isc_buffer_t *msg);
  
  #endif
@@ -128,11 +128,11 @@ index d4f2b32..3fbbada 100644
 +++ b/contrib/dnsperf-2.1.0.0-1/dnsperf.c
 @@ -103,6 +103,9 @@ typedef struct {
  	uint32_t bufsize;
- 	isc_boolean_t edns;
- 	isc_boolean_t dnssec;
-+	isc_boolean_t ecs_zero;
-+	isc_boolean_t ecs_fixed;
-+	isc_boolean_t ecs_random;
+ 	bool edns;
+ 	bool dnssec;
++	bool ecs_zero;
++	bool ecs_fixed;
++	bool ecs_random;
  	perf_dnstsigkey_t *tsigkey;
  	uint32_t max_outstanding;
  	uint32_t max_qps;
@@ -159,7 +159,7 @@ index d4f2b32..3fbbada 100644
 -	if (config->dnssec)
 +	if (config->dnssec || config->ecs_zero || config->ecs_fixed ||
 +	    config->ecs_random)
- 		config->edns = ISC_TRUE;
+ 		config->edns = true;
  
  	if (tsigkey != NULL)
 @@ -645,7 +658,11 @@ do_send(void *arg)
@@ -181,11 +181,11 @@ index 4dfbb22..e886bda 100644
 +++ b/contrib/dnsperf-2.1.0.0-1/resperf.c
 @@ -111,6 +111,9 @@ static int *socks;
  static uint64_t query_timeout;
- static isc_boolean_t edns;
- static isc_boolean_t dnssec;
-+static isc_boolean_t ecs_zero;
-+static isc_boolean_t ecs_fixed;
-+static isc_boolean_t ecs_random;
+ static bool edns;
+ static bool dnssec;
++static bool ecs_zero;
++static bool ecs_fixed;
++static bool ecs_random;
  
  static perf_datafile_t *input;
  
@@ -211,7 +211,7 @@ index 4dfbb22..e886bda 100644
  
 -	if (dnssec)
 +	if (dnssec || ecs_zero || ecs_fixed || ecs_random)
- 		edns = ISC_TRUE;
+ 		edns = true;
  
  	if (tsigkey_str != NULL)
 @@ -477,7 +489,9 @@ do_one_line(isc_buffer_t *lines, isc_buffer_t *msg) {

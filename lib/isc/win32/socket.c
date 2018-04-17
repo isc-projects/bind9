@@ -36,6 +36,7 @@
 #endif
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -328,7 +329,7 @@ struct isc_socketmgr {
 
 	/* Locked by manager lock. */
 	ISC_LIST(isc_socket_t)		socklist;
-	isc_boolean_t			bShutdown;
+	bool			bShutdown;
 	isc_condition_t			shutdown_ok;
 	HANDLE				hIoCompletionPort;
 	int				maxIOCPThreads;
@@ -363,9 +364,9 @@ static isc_result_t socket_create(isc_socketmgr_t *manager0, int pf,
 static isc_threadresult_t WINAPI SocketIoThread(LPVOID ThreadContext);
 static void maybe_free_socket(isc_socket_t **, int);
 static void free_socket(isc_socket_t **, int);
-static isc_boolean_t senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev);
-static isc_boolean_t acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev);
-static isc_boolean_t connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev);
+static bool senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev);
+static bool acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev);
+static bool connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev);
 static void send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev);
 static void send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev);
 static void send_acceptdone_event(isc_socket_t *sock, isc_socket_newconnev_t **adev);
@@ -618,7 +619,7 @@ socket_close(isc_socket_t *sock) {
 }
 
 static isc_once_t initialise_once = ISC_ONCE_INIT;
-static isc_boolean_t initialised = ISC_FALSE;
+static bool initialised = false;
 
 static void
 initialise(void) {
@@ -672,7 +673,7 @@ initialise(void) {
 
 	closesocket(sock);
 
-	initialised = ISC_TRUE;
+	initialised = true;
 }
 
 /*
@@ -744,7 +745,7 @@ queue_receive_request(isc_socket_t *sock) {
 	isc_result_t isc_result;
 
  retry:
-	need_retry = ISC_FALSE;
+	need_retry = false;
 
 	/*
 	 * If we already have a receive pending, do nothing.
@@ -804,7 +805,7 @@ queue_receive_request(isc_socket_t *sock) {
 		case WSAECONNRESET:
 			if (!sock->connected) {
 				/* soft error */
-				need_retry = ISC_TRUE;
+				need_retry = true;
 				break;
 			}
 			/* FALLTHROUGH */
@@ -1530,7 +1531,7 @@ consistent(isc_socket_t *sock) {
 	isc_socket_newconnev_t *nev;
 	unsigned int count;
 	char *crash_reason;
-	isc_boolean_t crash = ISC_FALSE;
+	bool crash = false;
 
 	REQUIRE(sock->pending_iocp == sock->pending_recv + sock->pending_send
 		+ sock->pending_accept + sock->pending_connect);
@@ -1542,7 +1543,7 @@ consistent(isc_socket_t *sock) {
 		dev = ISC_LIST_NEXT(dev, ev_link);
 	}
 	if (count > sock->pending_send) {
-		crash = ISC_TRUE;
+		crash = true;
 		crash_reason = "send_list > sock->pending_send";
 	}
 
@@ -1553,7 +1554,7 @@ consistent(isc_socket_t *sock) {
 		nev = ISC_LIST_NEXT(nev, ev_link);
 	}
 	if (count > sock->pending_accept) {
-		crash = ISC_TRUE;
+		crash = true;
 		crash_reason = "accept_list > sock->pending_accept";
 	}
 
@@ -1562,7 +1563,7 @@ consistent(isc_socket_t *sock) {
 			   ISC_MSG_DESTROYING, "SOCKET INCONSISTENT: %s",
 			   crash_reason);
 		sock_dump(sock);
-		INSIST(crash == ISC_FALSE);
+		INSIST(crash == false);
 	}
 }
 
@@ -1816,7 +1817,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	if (dup_socket) {
 #ifndef ISC_ALLOW_MAPPED
-		isc__socket_ipv6only(sock, ISC_TRUE);
+		isc__socket_ipv6only(sock, true);
 #endif
 
 		if (dup_socket->bound) {
@@ -2374,7 +2375,7 @@ internal_send(isc_socket_t *sock, isc_socketevent_t *dev,
  * These return if the done event passed in is on the list.
  * Using these ensures we will not double-send an event.
  */
-static isc_boolean_t
+static bool
 senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev)
 {
 	isc_socketevent_t *ldev;
@@ -2383,10 +2384,10 @@ senddone_is_active(isc_socket_t *sock, isc_socketevent_t *dev)
 	while (ldev != NULL && ldev != dev)
 		ldev = ISC_LIST_NEXT(ldev, ev_link);
 
-	return (ldev == NULL ? ISC_FALSE : ISC_TRUE);
+	return (ldev == NULL ? false : true);
 }
 
-static isc_boolean_t
+static bool
 acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev)
 {
 	isc_socket_newconnev_t *ldev;
@@ -2395,10 +2396,10 @@ acceptdone_is_active(isc_socket_t *sock, isc_socket_newconnev_t *dev)
 	while (ldev != NULL && ldev != dev)
 		ldev = ISC_LIST_NEXT(ldev, ev_link);
 
-	return (ldev == NULL ? ISC_FALSE : ISC_TRUE);
+	return (ldev == NULL ? false : true);
 }
 
-static isc_boolean_t
+static bool
 connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev)
 {
 	isc_socket_connev_t *cdev;
@@ -2407,7 +2408,7 @@ connectdone_is_active(isc_socket_t *sock, isc_socket_connev_t *dev)
 	while (cdev != NULL && cdev != dev)
 		cdev = ISC_LIST_NEXT(cdev, ev_link);
 
-	return (cdev == NULL ? ISC_FALSE : ISC_TRUE);
+	return (cdev == NULL ? false : true);
 }
 
 //
@@ -2701,7 +2702,7 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 
 	iocompletionport_init(manager);	/* Create the Completion Ports */
 
-	manager->bShutdown = ISC_FALSE;
+	manager->bShutdown = false;
 	manager->totalSockets = 0;
 	manager->iocp_total = 0;
 
@@ -2762,7 +2763,7 @@ isc__socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * thread.
 	 */
 	signal_iocompletionport_exit(manager);
-	manager->bShutdown = ISC_TRUE;
+	manager->bShutdown = true;
 
 	/*
 	 * Wait for threads to exit.
@@ -3856,9 +3857,9 @@ isc__socket_gettype(isc_socket_t *sock) {
 	return (type);
 }
 
-isc_boolean_t
+bool
 isc__socket_isbound(isc_socket_t *sock) {
-	isc_boolean_t val;
+	bool val;
 
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -3870,17 +3871,17 @@ isc__socket_isbound(isc_socket_t *sock) {
 	 */
 	if (sock->fd == INVALID_SOCKET) {
 		UNLOCK(&sock->lock);
-		return (ISC_FALSE);
+		return (false);
 	}
 
-	val = ((sock->bound) ? ISC_TRUE : ISC_FALSE);
+	val = ((sock->bound) ? true : false);
 	UNLOCK(&sock->lock);
 
 	return (val);
 }
 
 void
-isc__socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
+isc__socket_ipv6only(isc_socket_t *sock, bool yes) {
 #if defined(IPV6_V6ONLY)
 	int onoff = yes ? 1 : 0;
 #else
@@ -3926,7 +3927,7 @@ isc__socket_dscp(isc_socket_t *sock, isc_dscp_t dscp) {
 }
 
 void
-isc__socket_cleanunix(const isc_sockaddr_t *addr, isc_boolean_t active) {
+isc__socket_cleanunix(const isc_sockaddr_t *addr, bool active) {
 	UNUSED(addr);
 	UNUSED(active);
 }
