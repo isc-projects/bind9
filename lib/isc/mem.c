@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <inttypes.h>
@@ -115,7 +116,7 @@ static isc_mutex_t 		createlock;
  * Total size of lost memory due to a bug of external library.
  * Locked by the global lock.
  */
-static isc_uint64_t		totallost;
+static uint64_t		totallost;
 
 struct isc__mem {
 	isc_mem_t		common;
@@ -379,8 +380,8 @@ static struct isc__mempoolmethods {
 static void
 add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
 	debuglink_t *dl;
-	isc_uint32_t hash;
-	isc_uint32_t idx;
+	uint32_t hash;
+	uint32_t idx;
 
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
@@ -427,8 +428,8 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 		   const char *file, unsigned int line)
 {
 	debuglink_t *dl;
-	isc_uint32_t hash;
-	isc_uint32_t idx;
+	uint32_t hash;
+	uint32_t idx;
 
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
 		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
@@ -2334,11 +2335,11 @@ isc_mem_references(isc_mem_t *ctx0) {
 }
 
 typedef struct summarystat {
-	isc_uint64_t	total;
-	isc_uint64_t	inuse;
-	isc_uint64_t	malloced;
-	isc_uint64_t	blocksize;
-	isc_uint64_t	contextsize;
+	uint64_t	total;
+	uint64_t	inuse;
+	uint64_t	malloced;
+	uint64_t	blocksize;
+	uint64_t	contextsize;
 } summarystat_t;
 
 #ifdef HAVE_LIBXML2
@@ -2384,33 +2385,33 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "total"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->total));
+					    (uint64_t)ctx->total));
 	TRY0(xmlTextWriterEndElement(writer)); /* total */
 
 	summary->inuse += ctx->inuse;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "inuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->inuse));
+					    (uint64_t)ctx->inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* inuse */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxinuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->maxinuse));
+					    (uint64_t)ctx->maxinuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
 
 	summary->malloced += ctx->malloced;
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->malloced));
+					    (uint64_t)ctx->malloced));
 	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxmalloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->maxmalloced));
+					    (uint64_t)ctx->maxmalloced));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxmalloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "blocksize"));
@@ -2419,7 +2420,7 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 			NUM_BASIC_BLOCKS * ctx->mem_target;
 		TRY0(xmlTextWriterWriteFormatString(writer,
 					       "%" PRIu64 "",
-					       (isc_uint64_t)
+					       (uint64_t)
 					       ctx->basic_table_count *
 					       NUM_BASIC_BLOCKS *
 					       ctx->mem_target));
@@ -2435,13 +2436,13 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->hi_water));
+					    (uint64_t)ctx->hi_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* hiwater */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "lowater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
 					    "%" PRIu64 "",
-					    (isc_uint64_t)ctx->lo_water));
+					    (uint64_t)ctx->lo_water));
 	TRY0(xmlTextWriterEndElement(writer)); /* lowater */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* context */
@@ -2456,7 +2457,7 @@ int
 isc_mem_renderxml(xmlTextWriterPtr writer) {
 	isc__mem_t *ctx;
 	summarystat_t summary;
-	isc_uint64_t lost;
+	uint64_t lost;
 	int xmlrc;
 
 	memset(&summary, 0, sizeof(summary));
@@ -2602,7 +2603,7 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 	json_object_object_add(ctxobj, "maxmalloced", obj);
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		isc_uint64_t blocksize;
+		uint64_t blocksize;
 		blocksize = ctx->basic_table_count * NUM_BASIC_BLOCKS *
 			ctx->mem_target;
 		obj = json_object_new_int64(blocksize);
@@ -2640,7 +2641,7 @@ isc_mem_renderjson(json_object *memobj) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__mem_t *ctx;
 	summarystat_t summary;
-	isc_uint64_t lost;
+	uint64_t lost;
 	json_object *ctxarray, *obj;
 
 	memset(&summary, 0, sizeof(summary));

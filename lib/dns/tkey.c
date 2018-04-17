@@ -12,6 +12,8 @@
 /*! \file */
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/buffer.h>
 #include <isc/entropy.h>
 #include <isc/md5.h>
@@ -157,7 +159,7 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 
 static isc_result_t
 add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
-		isc_uint32_t ttl, dns_namelist_t *namelist)
+		uint32_t ttl, dns_namelist_t *namelist)
 {
 	isc_result_t result;
 	isc_region_t r, newr;
@@ -533,7 +535,7 @@ process_gsstkey(dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 #ifdef GSSAPI
 		OM_uint32 gret, minor, lifetime;
 #endif
-		isc_uint32_t expire;
+		uint32_t expire;
 
 		RETERR(dst_key_fromgssapi(name, gss_ctx, ring->mctx,
 					  &dstkey, &intoken));
@@ -971,7 +973,7 @@ buildquery(dns_message_t *msg, const dns_name_t *name,
 isc_result_t
 dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 		      const dns_name_t *name, const dns_name_t *algorithm,
-		      isc_buffer_t *nonce, isc_uint32_t lifetime)
+		      isc_buffer_t *nonce, uint32_t lifetime)
 {
 	dns_rdata_tkey_t tkey;
 	dns_rdata_t *rdata = NULL;
@@ -1047,7 +1049,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname,
-		       isc_buffer_t *intoken, isc_uint32_t lifetime,
+		       isc_buffer_t *intoken, uint32_t lifetime,
 		       gss_ctx_id_t *context, isc_boolean_t win2k,
 		       isc_mem_t *mctx, char **err_message)
 {

@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/commandline.h>
@@ -911,7 +912,7 @@ main(int argc, char *argv[]) {
 	}
 
 	if (time_lookups) {
-		isc_uint64_t usec;
+		uint64_t usec;
 
 		TIME_NOW(&finish);
 

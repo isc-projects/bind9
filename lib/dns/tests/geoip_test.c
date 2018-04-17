@@ -17,6 +17,7 @@
 
 #include <atf-c.h>
 
+#include <stdint.h>
 #include <unistd.h>
 
 #include <isc/print.h>
@@ -133,7 +134,7 @@ load_geoip(const char *dir) {
 }
 
 static isc_boolean_t
-do_lookup_string(const char *addr, isc_uint8_t *scope,
+do_lookup_string(const char *addr, uint8_t *scope,
 		 dns_geoip_subtype_t subtype, const char *string)
 {
 	dns_geoip_elem_t elt;
@@ -150,7 +151,7 @@ do_lookup_string(const char *addr, isc_uint8_t *scope,
 }
 
 static isc_boolean_t
-do_lookup_string_v6(const char *addr, isc_uint8_t *scope,
+do_lookup_string_v6(const char *addr, uint8_t *scope,
 		    dns_geoip_subtype_t subtype, const char *string)
 {
 	dns_geoip_elem_t elt;
@@ -167,7 +168,7 @@ do_lookup_string_v6(const char *addr, isc_uint8_t *scope,
 }
 
 static isc_boolean_t
-do_lookup_int(const char *addr, isc_uint8_t *scope,
+do_lookup_int(const char *addr, uint8_t *scope,
 	      dns_geoip_subtype_t subtype, int id)
 {
 	dns_geoip_elem_t elt;
@@ -195,7 +196,7 @@ ATF_TC_HEAD(country, tc) {
 ATF_TC_BODY(country, tc) {
 	isc_result_t result;
 	isc_boolean_t match;
-	isc_uint8_t scope;
+	uint8_t scope;
 
 	UNUSED(tc);
 
@@ -246,7 +247,7 @@ ATF_TC_HEAD(country_v6, tc) {
 ATF_TC_BODY(country_v6, tc) {
 	isc_result_t result;
 	isc_boolean_t match;
-	isc_uint8_t scope;
+	uint8_t scope;
 
 	UNUSED(tc);
 

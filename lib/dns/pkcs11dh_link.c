@@ -18,6 +18,7 @@
 #ifndef PK11_DH_DISABLE
 
 #include <ctype.h>
+#include <stdint.h>
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -642,16 +643,16 @@ pkcs11dh_destroy(dst_key_t *key) {
 }
 
 static void
-uint16_toregion(isc_uint16_t val, isc_region_t *region) {
+uint16_toregion(uint16_t val, isc_region_t *region) {
 	*region->base = (val & 0xff00) >> 8;
 	isc_region_consume(region, 1);
 	*region->base = (val & 0x00ff);
 	isc_region_consume(region, 1);
 }
 
-static isc_uint16_t
+static uint16_t
 uint16_fromregion(isc_region_t *region) {
-	isc_uint16_t val;
+	uint16_t val;
 	unsigned char *cp = region->base;
 
 	val = ((unsigned int)(cp[0])) << 8;
@@ -667,7 +668,7 @@ pkcs11dh_todns(const dst_key_t *key, isc_buffer_t *data) {
 	pk11_object_t *dh;
 	CK_ATTRIBUTE *attr;
 	isc_region_t r;
-	isc_uint16_t dnslen, plen = 0, glen = 0, publen = 0;
+	uint16_t dnslen, plen = 0, glen = 0, publen = 0;
 	CK_BYTE *prime = NULL, *base = NULL, *pub = NULL;
 
 	REQUIRE(key->keydata.pkey != NULL);
@@ -680,15 +681,15 @@ pkcs11dh_todns(const dst_key_t *key, isc_buffer_t *data) {
 		switch (attr->type) {
 		case CKA_VALUE:
 			pub = (CK_BYTE *) attr->pValue;
-			publen = (isc_uint16_t) attr->ulValueLen;
+			publen = (uint16_t) attr->ulValueLen;
 			break;
 		case CKA_PRIME:
 			prime = (CK_BYTE *) attr->pValue;
-			plen = (isc_uint16_t) attr->ulValueLen;
+			plen = (uint16_t) attr->ulValueLen;
 			break;
 		case CKA_BASE:
 			base = (CK_BYTE *) attr->pValue;
-			glen = (isc_uint16_t) attr->ulValueLen;
+			glen = (uint16_t) attr->ulValueLen;
 			break;
 		}
 	REQUIRE((prime != NULL) && (base != NULL) && (pub != NULL));
@@ -743,7 +744,7 @@ static isc_result_t
 pkcs11dh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	pk11_object_t *dh = NULL;
 	isc_region_t r;
-	isc_uint16_t plen, glen, plen_, glen_, publen;
+	uint16_t plen, glen, plen_, glen_, publen;
 	CK_BYTE *prime = NULL, *base = NULL, *pub = NULL;
 	CK_ATTRIBUTE *attr;
 	int special = 0;

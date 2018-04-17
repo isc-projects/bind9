@@ -14,6 +14,7 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
+#include <stdint.h>
 #include <windows.h>
 
 #include <isc/lang.h>
@@ -30,7 +31,7 @@
  * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 struct isc_interval {
-	isc_int64_t interval;
+	int64_t interval;
 };
 
 LIBISC_EXTERNAL_DATA extern const isc_interval_t * const isc_interval_zero;
@@ -211,7 +212,7 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
  *		The interval is larger than the time since the epoch.
  */
 
-isc_uint64_t
+uint64_t
 isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2);
 /*
  * Find the difference in milliseconds between time t1 and time t2.
@@ -235,7 +236,7 @@ isc_time_parsehttptimestamp(char *input, isc_time_t *t);
  *\li      'buf' and 't' are not NULL.
  */
 
-isc_uint32_t
+uint32_t
 isc_time_nanoseconds(const isc_time_t *t);
 /*
  * Return the number of nanoseconds stored in a time structure.
@@ -360,7 +361,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *
  */
 
-isc_uint32_t
+uint32_t
 isc_time_seconds(const isc_time_t *t);
 /*%<
  * Return the number of seconds since the epoch stored in a time structure.

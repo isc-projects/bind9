@@ -51,6 +51,8 @@
 #ifndef SDLZ_H
 #define SDLZ_H 1
 
+#include <stdint.h>
+
 #include <dns/clientinfo.h>
 #include <dns/dlz.h>
 
@@ -238,7 +240,7 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
 					    const char *tcpaddr,
 					    const char *type,
 					    const char *key,
-					    isc_uint32_t keydatalen,
+					    uint32_t keydatalen,
 					    unsigned char *keydata,
 					    void *driverarg,
 					    void *dbdata);
@@ -344,7 +346,7 @@ dns_sdlz_putrr_t dns_sdlz_putrr;
 typedef isc_result_t dns_sdlz_putsoa_t(dns_sdlzlookup_t *lookup,
 				       const char *mname,
 				       const char *rname,
-				       isc_uint32_t serial);
+				       uint32_t serial);
 dns_sdlz_putsoa_t dns_sdlz_putsoa;
 /*%<
  * This function may optionally be called from the 'authority'

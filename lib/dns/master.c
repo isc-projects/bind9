@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/magic.h>
@@ -111,7 +113,7 @@ struct dns_loadctx {
 	isc_result_t		(*load)(dns_loadctx_t *lctx);
 
 	/* Members used by all formats */
-	isc_uint32_t		maxttl;
+	uint32_t		maxttl;
 
 	/* Members specific to the text format: */
 	isc_lex_t		*lex;
@@ -123,8 +125,8 @@ struct dns_loadctx {
 	isc_boolean_t		warn_tcr;
 	isc_boolean_t		warn_sigexpired;
 	isc_boolean_t		seen_include;
-	isc_uint32_t		ttl;
-	isc_uint32_t		default_ttl;
+	uint32_t		ttl;
+	uint32_t		default_ttl;
 	dns_rdataclass_t	zclass;
 	dns_fixedname_t		fixed_top;
 	dns_name_t		*top;			/*%< top of zone */
@@ -141,9 +143,9 @@ struct dns_loadctx {
 	isc_mutex_t		lock;
 	isc_result_t		result;
 	/* locked by lock */
-	isc_uint32_t		references;
+	uint32_t		references;
 	dns_incctx_t		*inc;
-	isc_uint32_t		resign;
+	uint32_t		resign;
 	isc_stdtime_t		now;
 
 	dns_masterincludecb_t	include_cb;
@@ -507,7 +509,7 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 
 static isc_result_t
 loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
-	       unsigned int options, isc_uint32_t resign, dns_name_t *top,
+	       unsigned int options, uint32_t resign, dns_name_t *top,
 	       dns_rdataclass_t zclass, dns_name_t *origin,
 	       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
 	       dns_loaddonefunc_t done, void *done_arg,
@@ -937,7 +939,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 
 static void
 limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source,
-	  unsigned int line, isc_uint32_t *ttlp)
+	  unsigned int line, uint32_t *ttlp)
 {
 	if (*ttlp > 0x7fffffffUL) {
 		(callbacks->warn)(callbacks,
@@ -1015,7 +1017,7 @@ static isc_result_t
 load_text(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
-	isc_uint32_t ttl_offset = 0;
+	uint32_t ttl_offset = 0;
 	dns_name_t *new_name;
 	isc_boolean_t current_has_delegation = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
@@ -1229,7 +1231,7 @@ load_text(dns_loadctx_t *lctx) {
 				finish_include = ISC_TRUE;
 			} else if (strcasecmp(DNS_AS_STR(token),
 					      "$DATE") == 0) {
-				isc_int64_t dump_time64;
+				int64_t dump_time64;
 				isc_stdtime_t dump_time, current_time;
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				isc_stdtime_get(&current_time);
@@ -2135,7 +2137,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
  */
 static inline isc_result_t
 read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
-	       size_t len, FILE *f, isc_uint32_t *totallen)
+	       size_t len, FILE *f, uint32_t *totallen)
 {
 	isc_result_t result;
 
@@ -2150,7 +2152,7 @@ read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
 		isc_buffer_add(buffer, (unsigned int)len);
 		if (*totallen < len)
 			return (ISC_R_RANGE);
-		*totallen -= (isc_uint32_t)len;
+		*totallen -= (uint32_t)len;
 	} else if (isc_buffer_remaininglength(buffer) < len)
 		return (ISC_R_RANGE);
 
@@ -2345,8 +2347,8 @@ load_raw(dns_loadctx_t *lctx) {
 	     (lctx->loop_cnt == 0 || loop_cnt < lctx->loop_cnt);
 	     loop_cnt++) {
 		unsigned int i, rdcount;
-		isc_uint16_t namelen;
-		isc_uint32_t totallen;
+		uint16_t namelen;
+		uint32_t totallen;
 		size_t minlen, readlen;
 		isc_boolean_t sequential_read = ISC_FALSE;
 
@@ -2370,9 +2372,9 @@ load_raw(dns_loadctx_t *lctx) {
 		 * Validation: the input data must at least contain the common
 		 * header.
 		 */
-		minlen = sizeof(totallen) + sizeof(isc_uint16_t) +
-			sizeof(isc_uint16_t) + sizeof(isc_uint16_t) +
-			sizeof(isc_uint32_t) + sizeof(isc_uint32_t);
+		minlen = sizeof(totallen) + sizeof(uint16_t) +
+			sizeof(uint16_t) + sizeof(uint16_t) +
+			sizeof(uint32_t) + sizeof(uint32_t);
 		if (totallen < minlen) {
 			result = ISC_R_RANGE;
 			goto cleanup;
@@ -2407,7 +2409,7 @@ load_raw(dns_loadctx_t *lctx) {
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		isc_buffer_add(&target, (unsigned int)readlen);
-		totallen -= (isc_uint32_t)readlen;
+		totallen -= (uint32_t)readlen;
 
 		/* Construct RRset headers */
 		dns_rdatalist_init(&rdatalist);
@@ -2476,7 +2478,7 @@ load_raw(dns_loadctx_t *lctx) {
 
 	continue_read:
 		for (i = 0; i < rdcount; i++) {
-			isc_uint16_t rdlen;
+			uint16_t rdlen;
 
 			dns_rdata_init(&rdata[i]);
 
@@ -2586,7 +2588,7 @@ load_raw(dns_loadctx_t *lctx) {
 isc_result_t
 dns_master_loadfile(const char *master_file, dns_name_t *top,
 		    dns_name_t *origin, dns_rdataclass_t zclass,
-		    unsigned int options, isc_uint32_t resign,
+		    unsigned int options, uint32_t resign,
 		    dns_rdatacallbacks_t *callbacks,
 		    dns_masterincludecb_t include_cb, void *include_arg,
 		    isc_mem_t *mctx, dns_masterformat_t format,
@@ -2618,13 +2620,13 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 isc_result_t
 dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       dns_name_t *origin, dns_rdataclass_t zclass,
-		       unsigned int options, isc_uint32_t resign,
+		       unsigned int options, uint32_t resign,
 		       dns_rdatacallbacks_t *callbacks,
 		       isc_task_t *task, dns_loaddonefunc_t done,
 		       void *done_arg, dns_loadctx_t **lctxp,
 		       dns_masterincludecb_t include_cb, void *include_arg,
 		       isc_mem_t *mctx, dns_masterformat_t format,
-		       isc_uint32_t maxttl)
+		       uint32_t maxttl)
 {
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
@@ -2955,11 +2957,11 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	return (newlist);
 }
 
-static isc_uint32_t
+static uint32_t
 resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 	dns_rdata_t *rdata;
 	dns_rdata_rrsig_t sig;
-	isc_uint32_t when;
+	uint32_t when;
 
 	rdata = ISC_LIST_HEAD(this->rdata);
 	INSIST(rdata != NULL);

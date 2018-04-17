@@ -45,6 +45,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -95,52 +96,52 @@ typedef struct {
 	int argc;
 	char **argv;
 	int family;
-	isc_uint32_t clients;
-	isc_uint32_t threads;
-	isc_uint32_t maxruns;
-	isc_uint64_t timelimit;
+	uint32_t clients;
+	uint32_t threads;
+	uint32_t maxruns;
+	uint64_t timelimit;
 	isc_sockaddr_t server_addr;
 	isc_sockaddr_t local_addr;
-	isc_uint64_t timeout;
-	isc_uint32_t bufsize;
+	uint64_t timeout;
+	uint32_t bufsize;
 	isc_boolean_t edns;
 	isc_boolean_t dnssec;
 	perf_dnstsigkey_t *tsigkey;
-	isc_uint32_t max_outstanding;
-	isc_uint32_t max_qps;
-	isc_uint64_t stats_interval;
+	uint32_t max_outstanding;
+	uint32_t max_qps;
+	uint64_t stats_interval;
 	isc_boolean_t updates;
 	isc_boolean_t verbose;
 } config_t;
 
 typedef struct {
-	isc_uint64_t start_time;
-	isc_uint64_t end_time;
-	isc_uint64_t stop_time;
+	uint64_t start_time;
+	uint64_t end_time;
+	uint64_t stop_time;
 	struct timespec stop_time_ns;
 } times_t;
 
 typedef struct {
-	isc_uint64_t rcodecounts[16];
+	uint64_t rcodecounts[16];
 
-	isc_uint64_t num_sent;
-	isc_uint64_t num_interrupted;
-	isc_uint64_t num_timedout;
-	isc_uint64_t num_completed;
+	uint64_t num_sent;
+	uint64_t num_interrupted;
+	uint64_t num_timedout;
+	uint64_t num_completed;
 
-	isc_uint64_t total_request_size;
-	isc_uint64_t total_response_size;
+	uint64_t total_request_size;
+	uint64_t total_response_size;
 
-	isc_uint64_t latency_sum;
-	isc_uint64_t latency_sum_squares;
-	isc_uint64_t latency_min;
-	isc_uint64_t latency_max;
+	uint64_t latency_sum;
+	uint64_t latency_sum_squares;
+	uint64_t latency_min;
+	uint64_t latency_max;
 } stats_t;
 
 typedef ISC_LIST(struct query_info) query_list;
 
 typedef struct query_info {
-	isc_uint64_t timestamp;
+	uint64_t timestamp;
 	query_list *list;
 	char *desc;
 	int sock;
@@ -171,16 +172,16 @@ typedef struct {
 	perf_dnsctx_t *dnsctx;
 
 	isc_boolean_t done_sending;
-	isc_uint64_t done_send_time;
+	uint64_t done_send_time;
 
 	const config_t *config;
 	const times_t *times;
 	stats_t stats;
 
-	isc_uint32_t max_outstanding;
-	isc_uint32_t max_qps;
+	uint32_t max_outstanding;
+	uint32_t max_qps;
 
-	isc_uint64_t last_recv;
+	uint64_t last_recv;
 } threadinfo_t;
 
 static threadinfo_t *threads;
@@ -259,7 +260,7 @@ print_final_status(const config_t *config)
 }
 
 static double
-stddev(isc_uint64_t sum_of_squares, isc_uint64_t sum, isc_uint64_t total)
+stddev(uint64_t sum_of_squares, uint64_t sum, uint64_t total)
 {
 	double squared;
 
@@ -271,9 +272,9 @@ static void
 print_statistics(const config_t *config, const times_t *times, stats_t *stats)
 {
 	const char *units;
-	isc_uint64_t run_time;
+	uint64_t run_time;
 	isc_boolean_t first_rcode;
-	isc_uint64_t latency_avg;
+	uint64_t latency_avg;
 	unsigned int i;
 
 	units = config->updates ? "Updates" : "Queries";
@@ -545,7 +546,7 @@ query_move(threadinfo_t *tinfo, query_info *q, query_move_op op)
 	}
 }
 
-static inline isc_uint64_t
+static inline uint64_t
 num_outstanding(const stats_t *stats)
 {
 	return stats->num_sent - stats->num_completed - stats->num_timedout;
@@ -569,7 +570,7 @@ do_send(void *arg)
 	stats_t *stats;
 	unsigned int max_packet_size;
 	isc_buffer_t msg;
-	isc_uint64_t now, run_time, req_time;
+	uint64_t now, run_time, req_time;
 	char input_data[MAX_INPUT_DATA];
 	isc_buffer_t lines;
 	isc_region_t used;
@@ -628,7 +629,7 @@ do_send(void *arg)
 
 		q = ISC_LIST_HEAD(tinfo->unused_queries);
 		query_move(tinfo, q, prepend_outstanding);
-		q->timestamp = ISC_UINT64_MAX;
+		q->timestamp = UINT64_MAX;
 		q->sock = tinfo->socks[tinfo->current_sock++ % tinfo->nsocks];
 
 		UNLOCK(&tinfo->lock);
@@ -692,7 +693,7 @@ do_send(void *arg)
 }
 
 static void
-process_timeouts(threadinfo_t *tinfo, isc_uint64_t now)
+process_timeouts(threadinfo_t *tinfo, uint64_t now)
 {
 	struct query_info *q;
 	const config_t *config;
@@ -728,11 +729,11 @@ process_timeouts(threadinfo_t *tinfo, isc_uint64_t now)
 
 typedef struct {
 	int sock;
-	isc_uint16_t qid;
-	isc_uint16_t rcode;
+	uint16_t qid;
+	uint16_t rcode;
 	unsigned int size;
-	isc_uint64_t when;
-	isc_uint64_t sent;
+	uint64_t when;
+	uint64_t sent;
 	isc_boolean_t unexpected;
 	isc_boolean_t short_response;
 	char *desc;
@@ -743,12 +744,12 @@ recv_one(threadinfo_t *tinfo, int which_sock,
 	 unsigned char *packet_buffer, unsigned int packet_size,
 	 received_query_t *recvd, int *saved_errnop)
 {
-	isc_uint16_t *packet_header;
+	uint16_t *packet_header;
 	int s;
-	isc_uint64_t now;
+	uint64_t now;
 	int n;
 
-	packet_header = (isc_uint16_t *) packet_buffer;
+	packet_header = (uint16_t *) packet_buffer;
 
 	s = tinfo->socks[which_sock];
 	n = recv(s, packet_buffer, packet_size, 0);
@@ -802,7 +803,7 @@ do_recv(void *arg)
 	unsigned int nrecvd;
 	int saved_errno;
 	unsigned char socketbits[MAX_SOCKETS / 8];
-	isc_uint64_t now, latency;
+	uint64_t now, latency;
 	query_info *q;
 	unsigned int current_socket, last_socket;
 	unsigned int i, j;
@@ -860,7 +861,7 @@ do_recv(void *arg)
 
 			q = &tinfo->queries[recvd[i].qid];
 			if (q->list != &tinfo->outstanding_queries ||
-			    q->timestamp == ISC_UINT64_MAX ||
+			    q->timestamp == UINT64_MAX ||
 			    q->sock != recvd[i].sock)
 			{
 				recvd[i].unexpected = ISC_TRUE;
@@ -942,11 +943,11 @@ do_interval_stats(void *arg)
 {
 	threadinfo_t *tinfo;
 	stats_t total;
-	isc_uint64_t now;
-	isc_uint64_t last_interval_time;
-	isc_uint64_t last_completed;
-	isc_uint64_t interval_time;
-	isc_uint64_t num_completed;
+	uint64_t now;
+	uint64_t last_interval_time;
+	uint64_t last_completed;
+	uint64_t interval_time;
+	uint64_t num_completed;
 	double qps;
 
 	tinfo = arg;
@@ -984,7 +985,7 @@ cancel_queries(threadinfo_t *tinfo)
 			break;
 		query_move(tinfo, q, append_unused);
 
-		if (q->timestamp == ISC_UINT64_MAX)
+		if (q->timestamp == UINT64_MAX)
 			continue;
 
 		tinfo->stats.num_interrupted++;
@@ -996,10 +997,10 @@ cancel_queries(threadinfo_t *tinfo)
 	}
 }
 
-static isc_uint32_t
-per_thread(isc_uint32_t total, isc_uint32_t nthreads, unsigned int offset)
+static uint32_t
+per_thread(uint32_t total, uint32_t nthreads, unsigned int offset)
 {
-	isc_uint32_t value;
+	uint32_t value;
 
 	value = total / nthreads;
 	if (value % nthreads > offset)
@@ -1130,7 +1131,7 @@ main(int argc, char **argv)
 	if (config.timelimit > 0)
 		times.stop_time = times.start_time + config.timelimit;
 	else
-		times.stop_time = ISC_UINT64_MAX;
+		times.stop_time = UINT64_MAX;
 	times.stop_time_ns.tv_sec = times.stop_time / MILLION;
 	times.stop_time_ns.tv_nsec = (times.stop_time % MILLION) * 1000;
 
