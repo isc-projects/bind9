@@ -14,6 +14,8 @@
 
 /*! \file */
 
+#include <stdint.h>
+
 #include <isc/log.h>
 #include <isc/fuzz.h>
 #include <isc/magic.h>
@@ -84,7 +86,7 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 
 	/*% Test options and other configurables */
-	isc_uint32_t		options;
+	uint32_t		options;
 	unsigned int		delay;
 
 	unsigned int		initialtimo;
@@ -94,8 +96,8 @@ struct ns_server {
 
 	dns_acl_t		*blackholeacl;
 	dns_acl_t		*keepresporder;
-	isc_uint16_t		udpsize;
-	isc_uint16_t		transfer_tcp_message_size;
+	uint16_t		udpsize;
+	uint16_t		transfer_tcp_message_size;
 	isc_boolean_t		interface_auto;
 	dns_tkeyctx_t *		tkeyctx;
 

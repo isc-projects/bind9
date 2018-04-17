@@ -13,9 +13,10 @@
 
 #include <config.h>
 
-#include <atf-c.h>
-
+#include <stdint.h>
 #include <unistd.h>
+
+#include <atf-c.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -245,7 +246,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	isc_result_t result;
 	isc_socket_t *sock = NULL;
 	isc_task_t *task = NULL;
-	isc_uint16_t id;
+	uint16_t id;
 	struct in_addr ina;
 	unsigned char message[12];
 	unsigned int attrs;

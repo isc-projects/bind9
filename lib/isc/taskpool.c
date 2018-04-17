@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/taskpool.h>

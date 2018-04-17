@@ -11,6 +11,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include <named/fuzz.h>
 
 #ifdef ENABLE_AFL
@@ -200,7 +202,7 @@ fuzz_thread_resolver(void *arg) {
 	 * have to be updated. 0x8d, 0xf6 at the start is the ID field
 	 * which will be made to match the query.
 	 */
-	const isc_uint8_t dnskey_wf[] = {
+	const uint8_t dnskey_wf[] = {
 		0x8d, 0xf6, 0x84, 0x00, 0x00, 0x01, 0x00, 0x02,
 		0x00, 0x00, 0x00, 0x01, 0x07, 0x65, 0x78, 0x61,
 		0x6d, 0x70, 0x6c, 0x65, 0x00, 0x00, 0x30, 0x00,
@@ -282,12 +284,12 @@ fuzz_thread_resolver(void *arg) {
 	int sockfd;
 	int listenfd;
 	int loop;
-	isc_uint16_t qtype;
+	uint16_t qtype;
 	char *buf, *rbuf;
 	char *nameptr;
 	unsigned int i;
-	isc_uint8_t llen;
-	isc_uint64_t seed;
+	uint8_t llen;
+	uint64_t seed;
 
 	UNUSED(arg);
 
@@ -549,7 +551,7 @@ fuzz_thread_resolver(void *arg) {
 				 * "example."
 				 */
 				if ((nameptr - buf) < (length - 2)) {
-					isc_uint8_t hb, lb;
+					uint8_t hb, lb;
 					hb = *nameptr++;
 					lb = *nameptr++;
 					qtype = (hb << 8) | lb;

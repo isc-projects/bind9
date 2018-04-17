@@ -29,6 +29,8 @@
 
 /*! \file isccc/cc.h */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isccc/types.h>
@@ -60,17 +62,17 @@ ISC_LANG_BEGINDECLS
 /*% Send to Wire */
 isc_result_t
 isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
-		isc_uint32_t algorithm, isccc_region_t *secret);
+		uint32_t algorithm, isccc_region_t *secret);
 
 /*% Get From Wire */
 isc_result_t
 isccc_cc_fromwire(isccc_region_t *source, isccc_sexpr_t **alistp,
-		  isc_uint32_t algorithm, isccc_region_t *secret);
+		  uint32_t algorithm, isccc_region_t *secret);
 
 /*% Create Message */
 isc_result_t
-isccc_cc_createmessage(isc_uint32_t version, const char *from, const char *to,
-		       isc_uint32_t serial, isccc_time_t now,
+isccc_cc_createmessage(uint32_t version, const char *from, const char *to,
+		       uint32_t serial, isccc_time_t now,
 		       isccc_time_t expires, isccc_sexpr_t **alistp);
 
 /*% Create Acknowledgment */
@@ -97,7 +99,7 @@ isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str);
 
 /*% Define uint 32 */
 isccc_sexpr_t *
-isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, isc_uint32_t i);
+isccc_cc_defineuint32(isccc_sexpr_t *alist, const char *key, uint32_t i);
 
 /*% Lookup String */
 isc_result_t
@@ -106,7 +108,7 @@ isccc_cc_lookupstring(isccc_sexpr_t *alist, const char *key, char **strp);
 /*% Lookup uint 32 */
 isc_result_t
 isccc_cc_lookupuint32(isccc_sexpr_t *alist, const char *key,
-		      isc_uint32_t *uintp);
+		      uint32_t *uintp);
 
 /*% Create Symbol Table */
 isc_result_t

@@ -120,6 +120,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -366,7 +367,7 @@ getaddrinfo(const char *hostname, const char *servname,
 #ifdef IRS_HAVE_SIN6_SCOPE_ID
 		char *p, *ep;
 		char ntmp[NI_MAXHOST];
-		isc_uint32_t scopeid;
+		uint32_t scopeid;
 #endif
 
 #ifdef IRS_HAVE_SIN6_SCOPE_ID
@@ -385,7 +386,7 @@ getaddrinfo(const char *hostname, const char *servname,
 			 */
 
 			if (p != NULL)
-				scopeid = (isc_uint32_t)strtoul(p + 1,
+				scopeid = (uint32_t)strtoul(p + 1,
 								&ep, 10);
 			if (p != NULL && ep != NULL && ep[0] == '\0')
 				*p = '\0';

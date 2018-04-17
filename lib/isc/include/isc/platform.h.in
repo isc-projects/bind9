@@ -165,8 +165,6 @@
  *** Printing.
  ***/
 
-/*! \brief
-
 /*
  * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
  */

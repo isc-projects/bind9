@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/file.h>
 #include <isc/offset.h>
 #include <isc/print.h>
@@ -136,10 +138,10 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 				 cfg_tuple_get(fileobj, "versions");
 		const cfg_obj_t *suffixobj =
 				 cfg_tuple_get(fileobj, "suffix");
-		isc_int32_t versions = ISC_LOG_ROLLNEVER;
+		int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
 		isc_offset_t size = 0;
-		isc_uint64_t maxoffset;
+		uint64_t maxoffset;
 
 		/*
 		 * isc_offset_t is a signed integer type, so the maximum

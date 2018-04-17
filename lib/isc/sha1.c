@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/assertions.h>
 #include <isc/platform.h>
 #include <isc/safe.h>

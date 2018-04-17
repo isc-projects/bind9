@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -108,7 +109,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t tcp = ISC_FALSE;
 	isc_boolean_t rawdata = ISC_FALSE;
 	isc_result_t result;
-	isc_uint8_t c;
+	uint8_t c;
 	FILE *f;
 	int ch;
 
@@ -186,7 +187,7 @@ main(int argc, char *argv[]) {
 		while (fread(&c, 1, 1, f) != 0) {
 			result = isc_buffer_reserve(&input, 1);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
-			isc_buffer_putuint8(input, (isc_uint8_t) c);
+			isc_buffer_putuint8(input, (uint8_t) c);
 		}
 	} else {
 		char s[BUFSIZ];
@@ -220,7 +221,7 @@ main(int argc, char *argv[]) {
 				c += fromhex(*rp++);
 				result = isc_buffer_reserve(&input, 1);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				isc_buffer_putuint8(input, (isc_uint8_t) c);
+				isc_buffer_putuint8(input, (uint8_t) c);
 			}
 		}
 	}

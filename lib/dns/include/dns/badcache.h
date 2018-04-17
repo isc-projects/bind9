@@ -41,6 +41,8 @@
  ***	Imports
  ***/
 
+#include <stdint.h>
+
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -72,7 +74,7 @@ dns_badcache_destroy(dns_badcache_t **bcp);
 void
 dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		 dns_rdatatype_t type, isc_boolean_t update,
-		 isc_uint32_t flags, isc_time_t *expire);
+		 uint32_t flags, isc_time_t *expire);
 /*%
  * Adds a badcache entry to the badcache 'bc' for name 'name' and
  * type 'type'.  If an entry already exists, then it will be updated if
@@ -87,7 +89,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 
 isc_boolean_t
 dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
-		  dns_rdatatype_t type, isc_uint32_t *flagp,
+		  dns_rdatatype_t type, uint32_t *flagp,
 		  isc_time_t *now);
 /*%
  * Returns ISC_TRUE if a record is found in the badcache 'bc' matching

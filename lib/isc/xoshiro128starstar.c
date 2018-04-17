@@ -70,15 +70,15 @@ static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 #define _UNLOCK()
 #endif
 
-static inline isc_uint32_t rotl(const isc_uint32_t x, int k) {
+static inline uint32_t rotl(const uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
 
-static isc_uint32_t seed[4];
+static uint32_t seed[4];
 
-static inline isc_uint32_t
+static inline uint32_t
 next(void) {
-	isc_uint32_t result_starstar, t;
+	uint32_t result_starstar, t;
 
 	_LOCK();
 

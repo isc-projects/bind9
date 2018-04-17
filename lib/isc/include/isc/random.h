@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -25,19 +27,19 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_uint8_t
+uint8_t
 isc_random8(void);
 /*!<
  * \brief Returns a single 8-bit random value.
  */
 
-isc_uint16_t
+uint16_t
 isc_random16(void);
 /*!<
  * \brief Returns a single 16-bit random value.
  */
 
-isc_uint32_t
+uint32_t
 isc_random32(void);
 /*!<
  * \brief Returns a single 32-bit random value.
@@ -49,8 +51,8 @@ isc_random_buf(void *buf, size_t buflen);
  * \brief Fills the region buf of length buflen with random data.
  */
 
-isc_uint32_t
-isc_random_uniform(isc_uint32_t upper_bound);
+uint32_t
+isc_random_uniform(uint32_t upper_bound);
 /*!<
  * \brief Will return a single 32-bit value, uniformly distributed but
  *        less than upper_bound.  This is recommended over

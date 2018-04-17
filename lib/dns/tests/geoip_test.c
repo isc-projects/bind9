@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdint.h>
 #include <unistd.h>
 
 #include <isc/print.h>
