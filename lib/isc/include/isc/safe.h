@@ -15,16 +15,18 @@
 
 /*! \file isc/safe.h */
 
+#include <stdbool.h>
+
 #include <isc/types.h>
 #include <stdlib.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_boolean_t
+bool
 isc_safe_memequal(const void *s1, const void *s2, size_t n);
 /*%<
- * Returns ISC_TRUE iff. two blocks of memory are equal, otherwise
- * ISC_FALSE.
+ * Returns true iff. two blocks of memory are equal, otherwise
+ * false.
  *
  */
 

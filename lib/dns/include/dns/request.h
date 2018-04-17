@@ -34,6 +34,7 @@
  *\li	No anticipated impact.
  */
 
+#include <stdbool.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -374,19 +375,19 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
  *\li	Any result that dns_message_parse() can return.
  */
 
-isc_boolean_t
+bool
 dns_request_usedtcp(dns_request_t *request);
 /*%<
  * Return whether this query used TCP or not.  Setting #DNS_REQUESTOPT_TCP
  * in the call to dns_request_create() will cause the function to return
- * #ISC_TRUE, otherwise the result is based on the query message size.
+ * #true, otherwise the result is based on the query message size.
  *
  * Requires:
  *\li	'request' is a valid request.
  *
  * Returns:
- *\li	ISC_TRUE	if TCP was used.
- *\li	ISC_FALSE	if UDP was used.
+ *\li	true	if TCP was used.
+ *\li	false	if UDP was used.
  */
 
 void

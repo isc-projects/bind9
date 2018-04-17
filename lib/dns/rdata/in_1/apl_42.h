@@ -15,7 +15,7 @@
 
 
 typedef struct dns_rdata_apl_ent {
-	isc_boolean_t	negative;
+	bool	negative;
 	uint16_t	family;
 	uint8_t	prefix;
 	uint8_t	length;

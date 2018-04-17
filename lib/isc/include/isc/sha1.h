@@ -12,7 +12,6 @@
 #ifndef ISC_SHA1_H
 #define ISC_SHA1_H 1
 
-
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
 /*! \file isc/sha1.h
@@ -20,6 +19,8 @@
  * \author By Steve Reid <steve@edmweb.com>
  * \note 100% Public Domain
  */
+
+#include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/platform.h>
@@ -67,8 +68,8 @@ isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data, unsigned int len);
 void
 isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_sha1_check(isc_boolean_t testing);
+bool
+isc_sha1_check(bool testing);
 
 ISC_LANG_ENDDECLS
 
