@@ -790,13 +790,13 @@ ldap_get_results(const char *zone, const char *record,
 	case ALLNODES:
 		result = ldap_process_results((LDAP *) dbi->dbconn, ldap_msg,
 					      ldap_url->lud_attrs,
-					      ptr, boolrue);
+					      ptr, true);
 		break;
 	case AUTHORITY:
 	case LOOKUP:
 		result = ldap_process_results((LDAP *) dbi->dbconn, ldap_msg,
 					      ldap_url->lud_attrs,
-					      ptr, isc_boolean_false);
+					      ptr, false);
 		break;
 	case ALLOWXFR:
 		entries = ldap_count_entries((LDAP *) dbi->dbconn, ldap_msg);
