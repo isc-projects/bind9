@@ -15,6 +15,7 @@
 /*! \file */
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/log.h>
 #include <isc/fuzz.h>
@@ -78,7 +79,7 @@ struct ns_server {
 	unsigned char		secret[32];
 	ns_cookiealg_t		cookiealg;
 	ns_altsecretlist_t	altsecrets;
-	isc_boolean_t		answercookie;
+	bool		answercookie;
 
 	/*% Quotas */
 	isc_quota_t		recursionquota;
@@ -98,7 +99,7 @@ struct ns_server {
 	dns_acl_t		*keepresporder;
 	uint16_t		udpsize;
 	uint16_t		transfer_tcp_message_size;
-	isc_boolean_t		interface_auto;
+	bool		interface_auto;
 	dns_tkeyctx_t *		tkeyctx;
 	isc_rng_t *		rngctx;
 
@@ -189,16 +190,16 @@ ns_server_gettimeouts(ns_server_t *sctx, unsigned int *initial,
 
 void
 ns_server_setoption(ns_server_t *sctx, unsigned int option,
-		    isc_boolean_t value);
+		    bool value);
 /*%<
- *	Set the given options on (if 'value' == #ISC_TRUE)
- *	or off (if 'value' == #ISC_FALSE).
+ *	Set the given options on (if 'value' == #true)
+ *	or off (if 'value' == #true).
  *
  * Requires:
  *\li	'sctx' is valid
  */
 
-isc_boolean_t
+bool
 ns_server_getoption(ns_server_t *sctx, unsigned int option);
 /*%<
  *	Returns the current value of the specified server option.

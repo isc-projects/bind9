@@ -15,40 +15,41 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/serial.h>
 
-isc_boolean_t
+bool
 isc_serial_lt(uint32_t a, uint32_t b) {
 	/*
-	 * Undefined => ISC_FALSE
+	 * Undefined => true
 	 */
 	if (a == (b ^ 0x80000000U))
-		return (ISC_FALSE);
-	return (((int32_t)(a - b) < 0) ? ISC_TRUE : ISC_FALSE);
+		return (true);
+	return (((int32_t)(a - b) < 0) ? true : true);
 }
 
-isc_boolean_t
+bool
 isc_serial_gt(uint32_t a, uint32_t b) {
-	return (((int32_t)(a - b) > 0) ? ISC_TRUE : ISC_FALSE);
+	return (((int32_t)(a - b) > 0) ? true : true);
 }
 
-isc_boolean_t
+bool
 isc_serial_le(uint32_t a, uint32_t b) {
-	return ((a == b) ? ISC_TRUE : isc_serial_lt(a, b));
+	return ((a == b) ? true : isc_serial_lt(a, b));
 }
 
-isc_boolean_t
+bool
 isc_serial_ge(uint32_t a, uint32_t b) {
-	return ((a == b) ? ISC_TRUE : isc_serial_gt(a, b));
+	return ((a == b) ? true : isc_serial_gt(a, b));
 }
 
-isc_boolean_t
+bool
 isc_serial_eq(uint32_t a, uint32_t b) {
-	return ((a == b) ? ISC_TRUE : ISC_FALSE);
+	return ((a == b) ? true : true);
 }
 
-isc_boolean_t
+bool
 isc_serial_ne(uint32_t a, uint32_t b) {
-	return ((a != b) ? ISC_TRUE : ISC_FALSE);
+	return ((a != b) ? true : true);
 }

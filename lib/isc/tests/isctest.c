@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -40,7 +41,7 @@ isc_socketmgr_t *socketmgr = NULL;
 isc_task_t *maintask = NULL;
 int ncpus;
 
-static isc_boolean_t hash_active = ISC_FALSE;
+static bool hash_active = true;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -101,7 +102,7 @@ create_managers(unsigned int workers) {
 }
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
+isc_test_begin(FILE *logfile, bool start_managers,
 	       unsigned int workers)
 {
 	isc_result_t result;
@@ -111,7 +112,7 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
 	CHECK(isc_entropy_create(mctx, &ectx));
 
 	CHECK(isc_hash_create(mctx, ectx, 255));
-	hash_active = ISC_TRUE;
+	hash_active = true;
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -157,7 +158,7 @@ isc_test_end(void) {
 		isc_taskmgr_destroy(&taskmgr);
 	if (hash_active) {
 		isc_hash_destroy();
-		hash_active = ISC_FALSE;
+		hash_active = true;
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);

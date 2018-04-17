@@ -451,7 +451,7 @@ or the end of file was reached, but BIND's version uses result codes:
 
 Only functions which cannot fail (assuming the caller has provided valid
 arguments) should return data directly instead of a result code.  For
-example, `dns_name_issubdomain()` returns an `isc_boolean_t`, because it
+example, `dns_name_issubdomain()` returns an `bool`, because it
 has no failure mode.
 
 A result code can be converted to a human-readable error message by
@@ -1385,17 +1385,17 @@ this simply involves adding the entire record to a region and passing that
 to `digest`, because new record types are treated as opaque blobs of data
 by DNSSEC.
 
-        static isc_boolean_t
+        static bool
         checkowner[_<class>]_<type>(dns_name_t *name,
                                     dns_rdataclass_t rdclass,
                                     dns_rdatatype_t type,
-                                    isc_boolean_t wildcard);
+                                    bool wildcard);
 
 "checkowner" takes the owner name of the record and checks
 that it meets appropriate rules that are defined external to the DNS.
 In most cases this can just be a function that returns `ISC_TRUE`.
 
-        static isc_boolean_t
+        static bool
         checknames[_<class>]_<type>(dns_rdata_t *rdata,
                                     dns_name_t *owner,
                                     dns_name_t *bad);
