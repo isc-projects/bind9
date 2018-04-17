@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: request.h,v 1.31 2010/03/04 23:50:34 tbox Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1

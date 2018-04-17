@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keydata.h,v 1.2 2009/06/30 02:52:32 each Exp $ */
 
 #ifndef DNS_KEYDATA_H
 #define DNS_KEYDATA_H 1

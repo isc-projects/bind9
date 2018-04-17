@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: cache.h,v 1.32 2011/08/02 23:47:52 tbox Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1

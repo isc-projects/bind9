@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /*
  * This source was adapted from MRT's RCS Ids:

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lang.h,v 1.13 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_LANG_H
 #define ISC_LANG_H 1

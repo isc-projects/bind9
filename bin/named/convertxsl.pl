@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: convertxsl.pl,v 1.14 2008/07/17 23:43:26 jinmei Exp $
-
 use strict;
 use warnings;
 

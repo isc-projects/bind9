@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: event.h,v 1.34 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1

@@ -2,8 +2,6 @@ Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: resolver,v 1.6 2004/03/05 05:04:47 marka Exp $
-
 Multi-target Resolver
 =====================
 Due to IPv6 and other multiple-path resolving needs, the resolver in

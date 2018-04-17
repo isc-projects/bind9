@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
 $TTL 0
 test. SOA . . 0 0 0 0 0
 test. NS .

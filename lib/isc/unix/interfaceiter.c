@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: interfaceiter.c,v 1.45 2008/12/01 03:51:47 marka Exp $ */
 
 /*! \file */
 

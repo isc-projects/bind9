@@ -11,11 +11,6 @@
 
 /*! \file */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] =
-	"$Id: inet_pton.c,v 1.19 2007/06/19 23:47:17 tbox Exp $";
-#endif /* LIBC_SCCS and not lint */
-
 #include <config.h>
 
 #include <errno.h>

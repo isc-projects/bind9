@@ -10,10 +10,6 @@
  */
 
 /*! \file */
-/*
- * $Id: ssu.c,v 1.38 2011/01/06 23:47:00 tbox Exp $
- * Principal Author: Brian Wellington
- */
 
 #include <config.h>
 

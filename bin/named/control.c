@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: control.c,v 1.49 2012/01/31 23:47:31 tbox Exp $ */
 
 /*! \file */
 

@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hip_55.c,v 1.8 2011/01/13 04:59:26 tbox Exp $ */
-
-/* reviewed: TBC */
-
 /* RFC 5205 */
 
 #ifndef RDATA_GENERIC_HIP_5_C

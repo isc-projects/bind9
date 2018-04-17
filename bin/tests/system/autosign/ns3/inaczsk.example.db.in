@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: inaczsk.example.db.in,v 1.2 2011/07/08 01:43:26 each Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				1          ; serial

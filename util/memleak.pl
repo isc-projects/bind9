@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # Massage the output from ISC_MEM_DEBUG to extract mem_get() calls
 # with no corresponding mem_put().
 

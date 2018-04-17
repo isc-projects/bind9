@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: test.pl,v 1.9 2007/06/19 23:47:07 tbox Exp $
-
 push(@ARGV, "/etc/named.conf") if ! @ARGV;
 
 use DNSConf;

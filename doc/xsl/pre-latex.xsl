@@ -9,8 +9,6 @@
  - information regarding copyright ownership.
 -->
 
-<!-- $Id: pre-latex.xsl,v 1.6 2007/06/19 23:47:13 tbox Exp $ -->
-
 <!--
   - Whack &mdash; into something that won't choke LaTeX.
   - There's probably a better way to do this, but this will work for now.

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: stdtime.c,v 1.19 2007/06/19 23:47:18 tbox Exp $ */
 
 /*! \file */
 

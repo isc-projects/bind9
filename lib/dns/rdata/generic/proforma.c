@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: proforma.c,v 1.38 2009/12/04 22:06:37 tbox Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C

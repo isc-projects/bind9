@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: tkey.h,v 1.32 2011/01/08 23:47:01 tbox Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1

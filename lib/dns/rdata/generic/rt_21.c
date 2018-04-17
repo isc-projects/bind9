@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rt_21.c,v 1.48 2009/12/04 22:06:37 tbox Exp $ */
-
-/* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
-
 /* RFC1183 */
 
 #ifndef RDATA_GENERIC_RT_21_C

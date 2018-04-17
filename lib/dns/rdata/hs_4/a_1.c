@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: a_1.c,v 1.33 2009/12/04 22:06:37 tbox Exp $ */
-
-/* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
-
 #ifndef RDATA_HS_4_A_1_C
 #define RDATA_HS_4_A_1_C
 

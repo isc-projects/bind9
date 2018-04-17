@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: assertions.c,v 1.26 2009/09/29 15:06:07 fdupont Exp $ */
 
 /*! \file */
 

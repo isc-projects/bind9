@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1

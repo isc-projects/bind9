@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: bufferlist.c,v 1.17 2007/06/19 23:47:17 tbox Exp $ */
 
 /*! \file */
 

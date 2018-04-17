@@ -9,9 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
-
 for QDIR in `echo "$PATH" | tr : ' '` ../../../../contrib/queryperf; do
     QPERF=$QDIR/queryperf
     if test -f $QPERF -a -x $QPERF; then

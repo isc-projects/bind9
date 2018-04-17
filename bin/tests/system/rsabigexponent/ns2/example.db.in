@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
 $TTL 300	; 5 minutes
 @		IN SOA	mname1. . (
 			2012050601 ; serial

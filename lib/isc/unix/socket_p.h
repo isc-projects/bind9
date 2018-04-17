@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: socket_p.h,v 1.15 2009/09/02 23:48:03 tbox Exp $ */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H

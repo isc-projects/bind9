@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /*
  * This implements external update-policy rules.  This allows permission

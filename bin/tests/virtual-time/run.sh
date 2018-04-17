@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: run.sh,v 1.2 2010/06/17 05:38:05 marka Exp $
-
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 

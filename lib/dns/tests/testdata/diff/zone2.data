@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
 @ 	0	SOA . . 0 0 0 0 0
 @	0	NS @
 @	0	A 1.2.3.4

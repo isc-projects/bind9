@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: errno2result.h,v 1.10 2007/06/19 23:47:19 tbox Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1

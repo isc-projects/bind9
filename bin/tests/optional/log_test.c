@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* Principal Authors: DCL */
-
 #include <config.h>
 
 #include <stdlib.h>

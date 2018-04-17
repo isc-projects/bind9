@@ -11,8 +11,6 @@
 
 /*! \file */
 
-/* Principal Authors: DCL */
-
 #include <config.h>
 
 #include <sys/stat.h>
