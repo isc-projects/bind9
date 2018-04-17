@@ -13,6 +13,8 @@
 
 #if defined(PKCS11CRYPTO) && defined(HAVE_PKCS11_GOST)
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -77,8 +79,8 @@ isc_gost_init(isc_gost_t *ctx) {
 	CK_MECHANISM mech = { CKM_GOSTR3411, NULL, 0 };
 	int ret = ISC_R_SUCCESS;
 
-	ret = pk11_get_session(ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, 0);
+	ret = pk11_get_session(ctx, OP_GOST, true, false,
+			       false, NULL, 0);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	PK11_CALL(pkcs_C_DigestInit, (ctx->session, &mech), ISC_R_FAILURE);
@@ -167,7 +169,7 @@ pkcs11gost_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_GOST, true, false,
 			       gost->reqlogon, NULL,
 			       pk11_get_best_token(OP_GOST));
 	if (ret != ISC_R_SUCCESS)
@@ -195,7 +197,7 @@ pkcs11gost_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 9,
@@ -272,7 +274,7 @@ pkcs11gost_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_GOST, true, false,
 			       gost->reqlogon, NULL,
 			       pk11_get_best_token(OP_GOST));
 	if (ret != ISC_R_SUCCESS)
@@ -300,7 +302,7 @@ pkcs11gost_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 8,
@@ -427,7 +429,7 @@ pkcs11gost_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11gost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *gost1, *gost2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -436,19 +438,19 @@ pkcs11gost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	gost2 = key2->keydata.pkey;
 
 	if ((gost1 == NULL) && (gost2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((gost1 == NULL) || (gost2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(gost1, CKA_VALUE);
 	attr2 = pk11_attribute_bytype(gost2, CKA_VALUE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(gost1, CKA_VALUE2);
 	attr2 = pk11_attribute_bytype(gost2, CKA_VALUE2);
@@ -457,15 +459,15 @@ pkcs11gost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				attr1->ulValueLen)))
-		return (ISC_FALSE);
+		return (false);
 
 	if (!gost1->ontoken && !gost2->ontoken)
-		return (ISC_TRUE);
+		return (true);
 	else if (gost1->ontoken || gost2->ontoken ||
 		 (gost1->object != gost2->object))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -511,8 +513,8 @@ pkcs11gost_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_GOST, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_GOST));
+	ret = pk11_get_session(pk11_ctx, OP_GOST, true, false,
+			       false, NULL, pk11_get_best_token(OP_GOST));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -587,15 +589,15 @@ pkcs11gost_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11gost_isprivate(const dst_key_t *key) {
 	pk11_object_t *gost = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (gost == NULL)
-		return (ISC_FALSE);
+		return (false);
 	attr = pk11_attribute_bytype(gost, CKA_VALUE2);
-	return (ISC_TF((attr != NULL) || gost->ontoken));
+	return (attr != NULL || gost->ontoken);
 }
 
 static void

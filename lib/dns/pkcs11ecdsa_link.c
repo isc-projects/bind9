@@ -13,6 +13,8 @@
 
 #if defined(PKCS11CRYPTO) && defined(HAVE_PKCS11_ECDSA)
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -95,7 +97,7 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		slotid = ec->slot;
 	else
 		slotid = pk11_get_best_token(OP_EC);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, true, false,
 			       ec->reqlogon, NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -229,7 +231,7 @@ pkcs11ecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 7,
@@ -336,7 +338,7 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 7,
@@ -373,7 +375,7 @@ pkcs11ecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *ec1, *ec2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -382,29 +384,29 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	ec2 = key2->keydata.pkey;
 
 	if ((ec1 == NULL) && (ec2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((ec1 == NULL) || (ec2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(ec1, CKA_EC_PARAMS);
 	attr2 = pk11_attribute_bytype(ec2, CKA_EC_PARAMS);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(ec1, CKA_EC_POINT);
 	attr2 = pk11_attribute_bytype(ec2, CKA_EC_POINT);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(ec1, CKA_VALUE);
 	attr2 = pk11_attribute_bytype(ec2, CKA_VALUE);
@@ -413,15 +415,15 @@ pkcs11ecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				attr1->ulValueLen)))
-		return (ISC_FALSE);
+		return (false);
 
 	if (!ec1->ontoken && !ec2->ontoken)
-		return (ISC_TRUE);
+		return (true);
 	else if (ec1->ontoken || ec2->ontoken ||
 		 (ec1->object != ec2->object))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 #define SETCURVE() \
@@ -492,8 +494,8 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_EC));
+	ret = pk11_get_session(pk11_ctx, OP_EC, true, false,
+			       false, NULL, pk11_get_best_token(OP_EC));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -579,15 +581,15 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11ecdsa_isprivate(const dst_key_t *key) {
 	pk11_object_t *ec = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (ec == NULL)
-		return (ISC_FALSE);
+		return (false);
 	attr = pk11_attribute_bytype(ec, CKA_VALUE);
-	return (ISC_TF((attr != NULL) || ec->ontoken));
+	return (attr != NULL || ec->ontoken);
 }
 
 static void
@@ -825,8 +827,8 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	pubec = pub->keydata.pkey;
 
 	ec->object = CK_INVALID_HANDLE;
-	ec->ontoken = ISC_TRUE;
-	ec->reqlogon = ISC_TRUE;
+	ec->ontoken = true;
+	ec->reqlogon = true;
 	ec->repr = (CK_ATTRIBUTE *) isc_mem_get(key->mctx, sizeof(*attr) * 2);
 	if (ec->repr == NULL)
 		return (ISC_R_NOMEMORY);
@@ -859,7 +861,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, true, false,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -1051,8 +1053,8 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		return (ISC_R_NOMEMORY);
 	memset(ec, 0, sizeof(*ec));
 	ec->object = CK_INVALID_HANDLE;
-	ec->ontoken = ISC_TRUE;
-	ec->reqlogon = ISC_TRUE;
+	ec->ontoken = true;
+	ec->reqlogon = true;
 	key->keydata.pkey = ec;
 
 	ec->repr = (CK_ATTRIBUTE *) isc_mem_get(key->mctx, sizeof(*attr) * 2);
@@ -1072,7 +1074,7 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_EC, true, false,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;

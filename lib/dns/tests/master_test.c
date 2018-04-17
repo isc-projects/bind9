@@ -16,6 +16,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -44,7 +45,7 @@
 #define TEST_ORIGIN	"test"
 
 static dns_masterrawheader_t header;
-static isc_boolean_t headerset;
+static bool headerset;
 
 dns_name_t dns_origin;
 char origin[sizeof(TEST_ORIGIN)];
@@ -67,7 +68,7 @@ add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	UNUSED(arg);
 
 	isc_buffer_init(&target, buf, BIGBUFLEN);
-	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
+	result = dns_rdataset_totext(dataset, owner, false, false,
 				     &target);
 	return(result);
 }
@@ -76,7 +77,7 @@ static void
 rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *h) {
 	UNUSED(zone);
 	header = *h;
-	headerset = ISC_TRUE;
+	headerset = true;
 }
 
 static isc_result_t
@@ -110,7 +111,7 @@ setup_master(void (*warn)(struct dns_rdatacallbacks *, const char *, ...),
 		callbacks.warn = warn;
 	if (error != NULL)
 		callbacks.error = error;
-	headerset = ISC_FALSE;
+	headerset = false;
 	return (result);
 }
 
@@ -126,7 +127,7 @@ test_master(const char *testfile, dns_masterformat_t format,
 		return(result);
 
 	result = dns_master_loadfile2(testfile, &dns_origin, &dns_origin,
-				      dns_rdataclass_in, ISC_TRUE,
+				      dns_rdataclass_in, true,
 				      &callbacks, mctx, format);
 	return (result);
 }
@@ -152,7 +153,7 @@ ATF_TC_BODY(load, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master1.data",
@@ -175,7 +176,7 @@ ATF_TC_BODY(unexpected, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master2.data",
@@ -198,7 +199,7 @@ ATF_TC_BODY(noowner, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master3.data",
@@ -222,7 +223,7 @@ ATF_TC_BODY(nottl, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master4.data",
@@ -245,7 +246,7 @@ ATF_TC_BODY(badclass, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master5.data",
@@ -266,7 +267,7 @@ ATF_TC_BODY(toobig, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master15.data",
@@ -288,7 +289,7 @@ ATF_TC_BODY(maxrdata, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master16.data",
@@ -309,7 +310,7 @@ ATF_TC_BODY(dnskey, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master6.data",
@@ -331,7 +332,7 @@ ATF_TC_BODY(dnsnokey, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master7.data",
@@ -352,7 +353,7 @@ ATF_TC_BODY(include, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master8.data",
@@ -374,7 +375,7 @@ ATF_TC_BODY(master_includelist, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = setup_master(NULL, NULL);
@@ -382,7 +383,7 @@ ATF_TC_BODY(master_includelist, tc) {
 
 	result = dns_master_loadfile4("testdata/master/master8.data",
 				      &dns_origin, &dns_origin,
-				      dns_rdataclass_in, 0, ISC_TRUE,
+				      dns_rdataclass_in, 0, true,
 				      &callbacks, include_callback,
 				      &filename, mctx, dns_masterformat_text);
 	ATF_CHECK_EQ(result, DNS_R_SEENINCLUDE);
@@ -406,7 +407,7 @@ ATF_TC_BODY(includefail, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master9.data",
@@ -428,7 +429,7 @@ ATF_TC_BODY(blanklines, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master10.data",
@@ -449,7 +450,7 @@ ATF_TC_BODY(leadingzero, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = test_master("testdata/master/master11.data",
@@ -472,7 +473,7 @@ ATF_TC_BODY(totext, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* First, test with an empty rdataset */
@@ -512,7 +513,7 @@ ATF_TC_BODY(loadraw, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* Raw format version 0 */
@@ -569,7 +570,7 @@ ATF_TC_BODY(dumpraw, tc) {
 				   0, &target);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_create(mctx, "rbt", &dnsorigin, dns_dbtype_zone,
@@ -608,13 +609,13 @@ ATF_TC_BODY(dumpraw, tc) {
 	ATF_CHECK_EQ(header.sourceserial, 12345);
 
 	unlink("test.dump");
-	dns_db_closeversion(db, &version, ISC_FALSE);
+	dns_db_closeversion(db, &version, false);
 	dns_db_detach(&db);
 	dns_test_end();
 }
 
 static const char *warn_expect_value;
-static isc_boolean_t warn_expect_result;
+static bool warn_expect_result;
 
 static void
 warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
@@ -627,7 +628,7 @@ warn_expect(struct dns_rdatacallbacks *mycallbacks, const char *fmt, ...) {
 	vsnprintf(buf, sizeof(buf), fmt, ap);
 	va_end(ap);
 	if (warn_expect_value != NULL && strstr(buf, warn_expect_value) != NULL)
-		warn_expect_result = ISC_TRUE;
+		warn_expect_result = true;
 }
 
 /* Origin change test */
@@ -642,11 +643,11 @@ ATF_TC_BODY(neworigin, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	warn_expect_value = "record with inherited owner";
-	warn_expect_result = ISC_FALSE;
+	warn_expect_result = false;
 	result = test_master("testdata/master/master17.data",
 			     dns_masterformat_text, warn_expect, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
@@ -681,4 +682,3 @@ ATF_TP_ADD_TCS(tp) {
 
 	return (atf_no_error());
 }
-

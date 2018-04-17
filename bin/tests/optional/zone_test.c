@@ -136,7 +136,7 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_region_t r;
 
 	isc_buffer_init(&text, t, sizeof(t));
-	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
+	result = dns_rdataset_totext(rdataset, name, false, false,
 				     &text);
 	isc_buffer_usedregion(&text, &r);
 	if (result == ISC_R_SUCCESS)

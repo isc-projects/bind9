@@ -30,18 +30,18 @@ fromtext_csync(ARGS_FROMTEXT) {
 
 	/* Serial. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	RETERR(uint32_tobuffer(token.value.as_ulong, target));
 
 	/* Flags. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Type Map */
-	return (typemap_fromtext(lexer, target, ISC_TRUE));
+	return (typemap_fromtext(lexer, target, true));
 }
 
 static inline isc_result_t
@@ -100,7 +100,7 @@ fromwire_csync(ARGS_FROMWIRE) {
 	isc_buffer_forward(source, 6);
 	isc_region_consume(&sr, 6);
 
-	RETERR(typemap_test(&sr, ISC_TRUE));
+	RETERR(typemap_test(&sr, true));
 
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
 	isc_buffer_forward(source, sr.length);
@@ -153,7 +153,7 @@ fromstruct_csync(ARGS_FROMSTRUCT) {
 
 	region.base = csync->typebits;
 	region.length = csync->len;
-	RETERR(typemap_test(&region, ISC_TRUE));
+	RETERR(typemap_test(&region, true));
 	return (mem_tobuffer(target, csync->typebits, csync->len));
 }
 
@@ -226,7 +226,7 @@ digest_csync(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_csync(ARGS_CHECKOWNER) {
 
        REQUIRE(type == dns_rdatatype_csync);
@@ -236,10 +236,10 @@ checkowner_csync(ARGS_CHECKOWNER) {
        UNUSED(rdclass);
        UNUSED(wildcard);
 
-       return (ISC_TRUE);
+       return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_csync(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_csync);
@@ -248,7 +248,7 @@ checknames_csync(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

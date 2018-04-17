@@ -16,6 +16,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -230,11 +231,11 @@ dns_peer_newprefix(isc_mem_t *mem, isc_netaddr_t *addr, unsigned int prefixlen,
 	peer->address = *addr;
 	peer->prefixlen = prefixlen;
 	peer->mem = mem;
-	peer->bogus = ISC_FALSE;
+	peer->bogus = false;
 	peer->transfer_format = dns_one_answer;
 	peer->transfers = 0;
-	peer->request_ixfr = ISC_FALSE;
-	peer->provide_ixfr = ISC_FALSE;
+	peer->request_ixfr = false;
+	peer->provide_ixfr = false;
 	peer->key = NULL;
 	peer->refs = 1;
 	peer->transfer_source = NULL;
@@ -319,8 +320,8 @@ peer_delete(dns_peer_t **peer) {
 }
 
 isc_result_t
-dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setbogus(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -333,7 +334,7 @@ dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getbogus(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -346,8 +347,8 @@ dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval) {
 
 
 isc_result_t
-dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setprovideixfr(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -360,7 +361,7 @@ dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getprovideixfr(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -373,8 +374,8 @@ dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setrequestixfr(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -387,7 +388,7 @@ dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getrequestixfr(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -399,8 +400,8 @@ dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setsupportedns(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -413,7 +414,7 @@ dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getsupportedns(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -425,8 +426,8 @@ dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setrequestnsid(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -439,7 +440,7 @@ dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getrequestnsid(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -451,8 +452,8 @@ dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setsendcookie(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -465,7 +466,7 @@ dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getsendcookie(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -477,8 +478,8 @@ dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setrequestexpire(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -491,7 +492,7 @@ dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getrequestexpire(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -503,8 +504,8 @@ dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval) {
-	isc_boolean_t existed;
+dns_peer_setforcetcp(dns_peer_t *peer, bool newval) {
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -517,7 +518,7 @@ dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval) {
 }
 
 isc_result_t
-dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval) {
+dns_peer_getforcetcp(dns_peer_t *peer, bool *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -530,7 +531,7 @@ dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval) {
 
 isc_result_t
 dns_peer_settransfers(dns_peer_t *peer, uint32_t newval) {
-	isc_boolean_t existed;
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -557,7 +558,7 @@ dns_peer_gettransfers(dns_peer_t *peer, uint32_t *retval) {
 
 isc_result_t
 dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval) {
-	isc_boolean_t existed;
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -597,12 +598,12 @@ dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval) {
 
 isc_result_t
 dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval) {
-	isc_boolean_t exists = ISC_FALSE;
+	bool exists = false;
 
 	if (peer->key != NULL) {
 		dns_name_free(peer->key, peer->mem);
 		isc_mem_put(peer->mem, peer->key, sizeof(dns_name_t));
-		exists = ISC_TRUE;
+		exists = true;
 	}
 
 	peer->key = *keyval;
@@ -743,7 +744,7 @@ dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source) {
 
 isc_result_t
 dns_peer_setudpsize(dns_peer_t *peer, uint16_t udpsize) {
-	isc_boolean_t existed;
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 
@@ -771,7 +772,7 @@ dns_peer_getudpsize(dns_peer_t *peer, uint16_t *udpsize) {
 
 isc_result_t
 dns_peer_setmaxudp(dns_peer_t *peer, uint16_t maxudp) {
-	isc_boolean_t existed;
+	bool existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
 

@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/log.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -48,7 +50,7 @@ dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit) {
 		array[type / 8] &= (~mask & 0xFF);
 }
 
-isc_boolean_t
+bool
 dns_nsec_isset(const unsigned char *array, unsigned int type) {
 	unsigned int byte, shift, mask;
 
@@ -56,7 +58,7 @@ dns_nsec_isset(const unsigned char *array, unsigned int type) {
 	shift = 7 - (type % 8);
 	mask = 1 << shift;
 
-	return (ISC_TF(byte & mask));
+	return (byte & mask);
 }
 
 unsigned int
@@ -199,11 +201,11 @@ dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	return (result);
 }
 
-isc_boolean_t
+bool
 dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 	dns_rdata_nsec_t nsecstruct;
 	isc_result_t result;
-	isc_boolean_t present;
+	bool present;
 	unsigned int i, len, window;
 
 	REQUIRE(nsec != NULL);
@@ -213,7 +215,7 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 	result = dns_rdata_tostruct(nsec, &nsecstruct, NULL);
 	INSIST(result == ISC_R_SUCCESS);
 
-	present = ISC_FALSE;
+	present = false;
 	for (i = 0; i < nsecstruct.len; i += len) {
 		INSIST(i + 2 <= nsecstruct.len);
 		window = nsecstruct.typebits[i];
@@ -226,8 +228,8 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 		if ((window + 1) * 256 <= type)
 			continue;
 		if (type < (window * 256) + len * 8)
-			present = ISC_TF(dns_nsec_isset(&nsecstruct.typebits[i],
-							type % 256));
+			present = dns_nsec_isset(&nsecstruct.typebits[i],
+						 type % 256);
 		break;
 	}
 	dns_rdata_freestruct(&nsecstruct);
@@ -236,7 +238,7 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type) {
 
 isc_result_t
 dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
-		  isc_boolean_t *answer)
+		  bool *answer)
 {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
@@ -256,7 +258,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 	dns_db_detachnode(db, &node);
 
 	if (result == ISC_R_NOTFOUND)
-		*answer = ISC_FALSE;
+		*answer = false;
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	for (result = dns_rdataset_first(&rdataset);
@@ -276,9 +278,9 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 	}
 	dns_rdataset_disassociate(&rdataset);
 	if (result == ISC_R_SUCCESS)
-		*answer = ISC_TRUE;
+		*answer = true;
 	if (result == ISC_R_NOMORE) {
-		*answer = ISC_FALSE;
+		*answer = false;
 		result = ISC_R_SUCCESS;
 	}
 	return (result);
@@ -294,7 +296,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 isc_result_t
 dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 		       dns_name_t *nsecname, dns_rdataset_t *nsecset,
-		       isc_boolean_t *exists, isc_boolean_t *data,
+		       bool *exists, bool *data,
 		       dns_name_t *wild, dns_nseclog_t logit, void *arg)
 {
 	int order;
@@ -303,9 +305,9 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 	dns_namereln_t relation;
 	unsigned int olabels, nlabels, labels;
 	dns_rdata_nsec_t nsec;
-	isc_boolean_t atparent;
-	isc_boolean_t ns;
-	isc_boolean_t soa;
+	bool atparent;
+	bool ns;
+	bool soa;
 
 	REQUIRE(exists != NULL);
 	REQUIRE(data != NULL);
@@ -362,7 +364,7 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 		if (type == dns_rdatatype_cname || type == dns_rdatatype_nxt ||
 		    type == dns_rdatatype_nsec || type == dns_rdatatype_key ||
 		    !dns_nsec_typepresent(&rdata, dns_rdatatype_cname)) {
-			*exists = ISC_TRUE;
+			*exists = true;
 			*data = dns_nsec_typepresent(&rdata, type);
 			(*logit)(arg, ISC_LOG_DEBUG(3),
 				      "nsec proves name exists (owner) data=%d",
@@ -411,8 +413,8 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 		(*logit)(arg, ISC_LOG_DEBUG(3),
 			      "nsec proves name exist (empty)");
 		dns_rdata_freestruct(&nsec);
-		*exists = ISC_TRUE;
-		*data = ISC_FALSE;
+		*exists = true;
+		*data = false;
 		return (ISC_R_SUCCESS);
 	}
 	if (wild != NULL) {
@@ -438,6 +440,6 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 	}
 	dns_rdata_freestruct(&nsec);
 	(*logit)(arg, ISC_LOG_DEBUG(3), "nsec range ok");
-	*exists = ISC_FALSE;
+	*exists = false;
 	return (ISC_R_SUCCESS);
 }

@@ -40,6 +40,8 @@
  *\li	Drafts:	TBS
  */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -140,7 +142,7 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
  */
 
 isc_result_t
-dns_byaddr_createptrname(isc_netaddr_t *address, isc_boolean_t nibble,
+dns_byaddr_createptrname(isc_netaddr_t *address, bool nibble,
 			 dns_name_t *name);
 
 isc_result_t

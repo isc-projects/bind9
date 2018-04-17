@@ -382,7 +382,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
  *	ISC_R_NOTFOUND
  */
 
-isc_boolean_t
+bool
 dns_acache_cancelentry(dns_acacheentry_t *entry);
 /*
  * Cancel the use of the cache entry 'entry'.  This function is supposed to
@@ -395,7 +395,7 @@ dns_acache_cancelentry(dns_acacheentry_t *entry);
  *	'entry' is a valid additional cache entry.
  *
  * Returns:
- * 	ISC_TRUE if the entry was active when canceled
+ * 	true if the entry was active when canceled
  */
 
 void
