@@ -12,6 +12,8 @@
 /*! \file */
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -40,7 +42,7 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_entropy_t *ectx = NULL;
 
-static isc_boolean_t dst_active = ISC_FALSE;
+static bool dst_active = false;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -101,7 +103,7 @@ main(int argc, char **argv) {
 	CHECK(isc_entropy_create(mctx, &ectx));
 
 	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
-	dst_active = ISC_TRUE;
+	dst_active = true;
 
 	CHECK(isc_log_create(mctx, &lctx, &logconfig));
 	isc_log_registercategories(lctx, categories);
@@ -147,7 +149,7 @@ main(int argc, char **argv) {
 		isc_log_destroy(&lctx);
 	if (dst_active) {
 		dst_lib_destroy();
-		dst_active = ISC_FALSE;
+		dst_active = false;
 	}
 	if (ectx != NULL)
 		isc_entropy_detach(&ectx);

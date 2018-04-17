@@ -64,7 +64,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	acl->elements = NULL;
 	acl->alloc = 0;
 	acl->length = 0;
-	acl->has_negatives = ISC_FALSE;
+	acl->has_negatives = false;
 
 	ISC_LINK_INIT(acl, nextincache);
 	/*
@@ -94,7 +94,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
  * "none" is the same as "!any".
  */
 static isc_result_t
-dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
+dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target) {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
 
@@ -102,8 +102,8 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix(acl->iptable, NULL, 0, ISC_TF(!neg),
-				       ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, NULL, 0, !neg,
+				       false);
 	if (result != ISC_R_SUCCESS) {
 		dns_acl_detach(&acl);
 		return (result);
@@ -118,7 +118,7 @@ dns_acl_anyornone(isc_mem_t *mctx, isc_boolean_t neg, dns_acl_t **target) {
  */
 isc_result_t
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
-	return (dns_acl_anyornone(mctx, ISC_FALSE, target));
+	return (dns_acl_anyornone(mctx, false, target));
 }
 
 /*
@@ -126,15 +126,15 @@ dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
  */
 isc_result_t
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
-	return (dns_acl_anyornone(mctx, ISC_TRUE, target));
+	return (dns_acl_anyornone(mctx, true, target));
 }
 
 /*
- * If pos is ISC_TRUE, test whether acl is set to "{ any; }"
- * If pos is ISC_FALSE, test whether acl is set to "{ none; }"
+ * If pos is true, test whether acl is set to "{ any; }"
+ * If pos is false, test whether acl is set to "{ none; }"
  */
-static isc_boolean_t
-dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
+static bool
+dns_acl_isanyornone(dns_acl_t *acl, bool pos)
 {
 	/* Should never happen but let's be safe */
 	if (acl == NULL ||
@@ -142,37 +142,37 @@ dns_acl_isanyornone(dns_acl_t *acl, isc_boolean_t pos)
 	    acl->iptable->radix == NULL ||
 	    acl->iptable->radix->head == NULL ||
 	    acl->iptable->radix->head->prefix == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (acl->length != 0 || acl->node_count != 1)
-		return (ISC_FALSE);
+		return (false);
 
 	if (acl->iptable->radix->head->prefix->bitlen == 0 &&
 	    acl->iptable->radix->head->data[0] != NULL &&
 	    acl->iptable->radix->head->data[0] ==
 		    acl->iptable->radix->head->data[1] &&
-	    *(isc_boolean_t *) (acl->iptable->radix->head->data[0]) == pos)
-		return (ISC_TRUE);
+	    *(bool *) (acl->iptable->radix->head->data[0]) == pos)
+		return (true);
 
-	return (ISC_FALSE); /* All others */
+	return (false); /* All others */
 }
 
 /*
  * Test whether acl is set to "{ any; }"
  */
-isc_boolean_t
+bool
 dns_acl_isany(dns_acl_t *acl)
 {
-	return (dns_acl_isanyornone(acl, ISC_TRUE));
+	return (dns_acl_isanyornone(acl, true));
 }
 
 /*
  * Test whether acl is set to "{ none; }"
  */
-isc_boolean_t
+bool
 dns_acl_isnone(dns_acl_t *acl)
 {
-	return (dns_acl_isanyornone(acl, ISC_FALSE));
+	return (dns_acl_isanyornone(acl, false));
 }
 
 /*
@@ -216,7 +216,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 
 	/* Always match with host addresses. */
 	bitlen = (addr->family == AF_INET6) ? 128 : 32;
-	NETADDR_TO_PREFIX_T(addr, pfx, bitlen, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(addr, pfx, bitlen, false);
 
 	/* Assume no match. */
 	*match = 0;
@@ -228,7 +228,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	if (result == ISC_R_SUCCESS && node != NULL) {
 		int off = ISC_RADIX_OFF(&pfx);
 		match_num = node->node_num[off];
-		if (*(isc_boolean_t *) node->data[off])
+		if (*(bool *) node->data[off])
 			*match = match_num;
 		else
 			*match = -match_num;
@@ -252,7 +252,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 			addr = &v4addr;
 		}
 
-		NETADDR_TO_PREFIX_T(addr, pfx, ecslen, ISC_TRUE);
+		NETADDR_TO_PREFIX_T(addr, pfx, ecslen, true);
 
 		result = isc_radix_search(acl->iptable->radix, &node, &pfx);
 		if (result == ISC_R_SUCCESS && node != NULL) {
@@ -263,7 +263,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 				match_num = node->node_num[off];
 				if (scope != NULL)
 					*scope = node->bit;
-				if (*(isc_boolean_t *) node->data[off])
+				if (*(bool *) node->data[off])
 					*match = match_num;
 				else
 					*match = -match_num;
@@ -308,7 +308,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * an unexpected positive match in the parent ACL.
  */
 isc_result_t
-dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
+dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 {
 	isc_result_t result;
 	unsigned int newalloc, nelem, i;
@@ -386,7 +386,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 
 		/* reverse sense of positives if this is a negative acl */
 		if (!pos && !source->elements[i].negative) {
-			dest->elements[nelem + i].negative = ISC_TRUE;
+			dest->elements[nelem + i].negative = true;
 		} else {
 			dest->elements[nelem + i].negative =
 				source->elements[i].negative;
@@ -409,7 +409,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
 
 /*
  * Like dns_acl_match, but matches against the single ACL element 'e'
- * rather than a complete ACL, and returns ISC_TRUE iff it matched.
+ * rather than a complete ACL, and returns true iff it matched.
  *
  * To determine whether the match was positive or negative, the
  * caller should examine e->negative.  Since the element 'e' may be
@@ -417,7 +417,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
  * returned through 'matchelt' is not necessarily 'e' itself.
  */
 
-isc_boolean_t
+bool
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const isc_netaddr_t *ecs,
@@ -442,9 +442,9 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		    dns_name_equal(reqsigner, &e->keyname)) {
 			if (matchelt != NULL)
 				*matchelt = e;
-			return (ISC_TRUE);
+			return (true);
 		} else
-			return (ISC_FALSE);
+			return (false);
 
 	case dns_aclelementtype_nestedacl:
 		inner = e->nestedacl;
@@ -452,20 +452,20 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 
 	case dns_aclelementtype_localhost:
 		if (env == NULL || env->localhost == NULL)
-			return (ISC_FALSE);
+			return (false);
 		inner = env->localhost;
 		break;
 
 	case dns_aclelementtype_localnets:
 		if (env == NULL || env->localnets == NULL)
-			return (ISC_FALSE);
+			return (false);
 		inner = env->localnets;
 		break;
 
 #ifdef HAVE_GEOIP
 	case dns_aclelementtype_geoip:
 		if (env == NULL || env->geoip == NULL)
-			return (ISC_FALSE);
+			return (false);
 		addr = (env->geoip_use_ecs && ecs != NULL) ? ecs : reqaddr;
 		return (dns_geoip_match(addr, scope, env->geoip,
 					&e->geoip_elem));
@@ -488,7 +488,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 	if (indirectmatch > 0) {
 		if (matchelt != NULL)
 			*matchelt = e;
-		return (ISC_TRUE);
+		return (true);
 	}
 
 	/*
@@ -498,7 +498,7 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 	if (matchelt != NULL)
 		*matchelt = NULL;
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 void
@@ -551,7 +551,7 @@ dns_acl_detach(dns_acl_t **aclp) {
 
 static isc_once_t	insecure_prefix_once = ISC_ONCE_INIT;
 static isc_mutex_t	insecure_prefix_lock;
-static isc_boolean_t	insecure_prefix_found;
+static bool	insecure_prefix_found;
 
 static void
 initialize_action(void) {
@@ -567,10 +567,10 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 	/*
 	 * If all nonexistent or negative then this node is secure.
 	 */
-	if ((data[0] == NULL || !* (isc_boolean_t *) data[0]) &&
-	    (data[1] == NULL || !* (isc_boolean_t *) data[1]) &&
-	    (data[2] == NULL || !* (isc_boolean_t *) data[2]) &&
-	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
+	if ((data[0] == NULL || !* (bool *) data[0]) &&
+	    (data[1] == NULL || !* (bool *) data[1]) &&
+	    (data[2] == NULL || !* (bool *) data[2]) &&
+	    (data[3] == NULL || !* (bool *) data[3]))
 		return;
 
 	/*
@@ -579,35 +579,35 @@ is_insecure(isc_prefix_t *prefix, void **data) {
 	 */
 	if (prefix->bitlen == 32 &&
 	    htonl(prefix->add.sin.s_addr) == INADDR_LOOPBACK &&
-	    (data[1] == NULL || !* (isc_boolean_t *) data[1]) &&
-	    (data[2] == NULL || !* (isc_boolean_t *) data[2]) &&
-	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
+	    (data[1] == NULL || !* (bool *) data[1]) &&
+	    (data[2] == NULL || !* (bool *) data[2]) &&
+	    (data[3] == NULL || !* (bool *) data[3]))
 		return;
 
 	if (prefix->bitlen == 128 &&
 	    IN6_IS_ADDR_LOOPBACK(&prefix->add.sin6) &&
-	    (data[0] == NULL || !* (isc_boolean_t *) data[0]) &&
-	    (data[2] == NULL || !* (isc_boolean_t *) data[2]) &&
-	    (data[3] == NULL || !* (isc_boolean_t *) data[3]))
+	    (data[0] == NULL || !* (bool *) data[0]) &&
+	    (data[2] == NULL || !* (bool *) data[2]) &&
+	    (data[3] == NULL || !* (bool *) data[3]))
 		return;
 
 	/* Non-negated, non-loopback */
-	insecure_prefix_found = ISC_TRUE;	/* LOCKED */
+	insecure_prefix_found = true;	/* LOCKED */
 	return;
 }
 
 /*
- * Return ISC_TRUE iff the acl 'a' is considered insecure, that is,
+ * Return true iff the acl 'a' is considered insecure, that is,
  * if it contains IP addresses other than those of the local host.
  * This is intended for applications such as printing warning
  * messages for suspect ACLs; it is not intended for making access
  * control decisions.  We make no guarantee that an ACL for which
- * this function returns ISC_FALSE is safe.
+ * this function returns false is safe.
  */
-isc_boolean_t
+bool
 dns_acl_isinsecure(const dns_acl_t *a) {
 	unsigned int i;
-	isc_boolean_t insecure;
+	bool insecure;
 
 	RUNTIME_CHECK(isc_once_do(&insecure_prefix_once,
 				  initialize_action) == ISC_R_SUCCESS);
@@ -617,12 +617,12 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	 * non-loopback prefixes.
 	 */
 	LOCK(&insecure_prefix_lock);
-	insecure_prefix_found = ISC_FALSE;
+	insecure_prefix_found = false;
 	isc_radix_process(a->iptable->radix, is_insecure);
 	insecure = insecure_prefix_found;
 	UNLOCK(&insecure_prefix_lock);
 	if (insecure)
-		return (ISC_TRUE);
+		return (true);
 
 	/* Now check non-radix elements */
 	for (i = 0; i < a->length; i++) {
@@ -639,27 +639,27 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 
 		case dns_aclelementtype_nestedacl:
 			if (dns_acl_isinsecure(e->nestedacl))
-				return (ISC_TRUE);
+				return (true);
 			continue;
 
 		case dns_aclelementtype_localnets:
-			return (ISC_TRUE);
+			return (true);
 
 		default:
 			INSIST(0);
-			return (ISC_TRUE);
+			return (true);
 		}
 	}
 
 	/* No insecure elements were found. */
-	return (ISC_FALSE);
+	return (false);
 }
 
 
 /*%
  * Check whether an address/signer is allowed by a given acl/aclenv.
  */
-isc_boolean_t
+bool
 dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
 		isc_netaddr_t *ecs_addr, uint8_t ecs_addrlen,
 		uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t *aclenv)
@@ -668,12 +668,12 @@ dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
 	isc_result_t result;
 
 	if (acl == NULL)
-		return (ISC_TRUE);
+		return (true);
 	result = dns_acl_match(addr, signer, ecs_addr, ecs_addrlen,
 			       ecs_scope, acl, aclenv, &match, NULL);
 	if (result == ISC_R_SUCCESS && match > 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 /*
@@ -691,10 +691,10 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	result = dns_acl_create(mctx, 0, &env->localnets);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_localhost;
-	env->match_mapped = ISC_FALSE;
+	env->match_mapped = false;
 #ifdef HAVE_GEOIP
 	env->geoip = NULL;
-	env->geoip_use_ecs = ISC_FALSE;
+	env->geoip_use_ecs = false;
 #endif
 	return (ISC_R_SUCCESS);
 

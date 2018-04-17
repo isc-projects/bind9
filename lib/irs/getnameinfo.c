@@ -90,6 +90,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -275,7 +276,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 		dns_name_t *ptrname;
 		irs_context_t *irsctx = NULL;
 		dns_client_t *client;
-		isc_boolean_t found = ISC_FALSE;
+		bool found = false;
 		dns_namelist_t answerlist;
 		dns_rdataset_t *rdataset;
 		isc_region_t hostregion;
@@ -359,7 +360,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 							sizeof(hoststr));
 					iresult =
 						dns_name_totext(&rdata_ptr.ptr,
-								ISC_TRUE, &b);
+								true, &b);
 					dns_rdata_freestruct(&rdata_ptr);
 					if (iresult == ISC_R_SUCCESS) {
 						/*
@@ -368,7 +369,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 						 * getnameinfo() can return
 						 * at most one hostname.
 						 */
-						found = ISC_TRUE;
+						found = true;
 						isc_buffer_usedregion(
 							&b, &hostregion);
 						goto ptrfound;

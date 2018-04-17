@@ -67,7 +67,7 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 	}
 
 	prefix->family = family;
-	prefix->ecs = ISC_FALSE;
+	prefix->ecs = false;
 	prefix->mctx = NULL;
 	isc_mem_attach(mctx, &prefix->mctx);
 

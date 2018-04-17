@@ -16,6 +16,7 @@
 
 /*! \file */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -48,10 +49,10 @@ void DestroySockets(void);
 
 extern int debug;
 extern const char *journal;
-extern isc_boolean_t nomerge;
-extern isc_boolean_t docheckmx;
-extern isc_boolean_t docheckns;
-extern isc_boolean_t dochecksrv;
+extern bool nomerge;
+extern bool docheckmx;
+extern bool docheckns;
+extern bool dochecksrv;
 extern dns_zoneopt_t zone_options;
 
 ISC_LANG_ENDDECLS

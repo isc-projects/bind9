@@ -37,7 +37,7 @@ ATF_TC_BODY(create_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 8, 2, &pool);
@@ -61,7 +61,7 @@ ATF_TC_BODY(expand_pool, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 10, 2, &pool1);
@@ -114,7 +114,7 @@ ATF_TC_BODY(get_tasks, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 2, 2, &pool);
@@ -153,14 +153,14 @@ ATF_TC_BODY(set_privilege, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_taskpool_create(taskmgr, mctx, 2, 2, &pool);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE_EQ(isc_taskpool_size(pool), 2);
 
-	isc_taskpool_setprivilege(pool, ISC_TRUE);
+	isc_taskpool_setprivilege(pool, true);
 
 	isc_taskpool_gettask(pool, &task1);
 	isc_taskpool_gettask(pool, &task2);
@@ -174,7 +174,7 @@ ATF_TC_BODY(set_privilege, tc) {
 	ATF_CHECK(isc_task_privilege(task2));
 	ATF_CHECK(isc_task_privilege(task3));
 
-	isc_taskpool_setprivilege(pool, ISC_FALSE);
+	isc_taskpool_setprivilege(pool, false);
 
 	ATF_CHECK(!isc_task_privilege(task1));
 	ATF_CHECK(!isc_task_privilege(task2));

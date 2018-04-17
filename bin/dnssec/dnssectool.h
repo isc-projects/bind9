@@ -14,6 +14,7 @@
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/log.h>
@@ -68,7 +69,7 @@ dns_ttl_t strtottl(const char *str);
 
 isc_stdtime_t
 strtotime(const char *str, int64_t now, int64_t base,
-	  isc_boolean_t *setp);
+	  bool *setp);
 
 unsigned int
 strtodsdigest(const char *str);
@@ -85,20 +86,20 @@ check_keyversion(dst_key_t *key, char *keystr);
 void
 set_keyversion(dst_key_t *key);
 
-isc_boolean_t
+bool
 key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, isc_boolean_t *exact);
+	      isc_mem_t *mctx, bool *exact);
 
-isc_boolean_t
+bool
 is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		      dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp);
 
 void
 verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		   dns_name_t *origin, isc_mem_t *mctx,
-		   isc_boolean_t ignore_kskflag, isc_boolean_t keyset_kskonly);
+		   bool ignore_kskflag, bool keyset_kskonly);
 
-isc_boolean_t
+bool
 isoptarg(const char *arg, char **argv, void (*usage)(void));
 
 #ifdef _WIN32

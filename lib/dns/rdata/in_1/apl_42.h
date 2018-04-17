@@ -16,7 +16,7 @@
 /* $Id: apl_42.h,v 1.6 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_apl_ent {
-	isc_boolean_t	negative;
+	bool	negative;
 	uint16_t	family;
 	uint8_t	prefix;
 	uint8_t	length;

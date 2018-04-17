@@ -1860,37 +1860,37 @@ ATF_TC_BODY(isc_hash_function, tc) {
 
 	/* Incremental hashing */
 
-	h1 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
-	h1 = isc_hash_function("This ", 5, ISC_TRUE, &h1);
-	h1 = isc_hash_function("is ", 3, ISC_TRUE, &h1);
-	h1 = isc_hash_function("a long test", 12, ISC_TRUE, &h1);
+	h1 = isc_hash_function(NULL, 0, true, NULL);
+	h1 = isc_hash_function("This ", 5, true, &h1);
+	h1 = isc_hash_function("is ", 3, true, &h1);
+	h1 = isc_hash_function("a long test", 12, true, &h1);
 
 	h2 = isc_hash_function("This is a long test", 20,
-			       ISC_TRUE, NULL);
+			       true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Immutability of hash function */
-	h1 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
-	h2 = isc_hash_function(NULL, 0, ISC_TRUE, NULL);
+	h1 = isc_hash_function(NULL, 0, true, NULL);
+	h2 = isc_hash_function(NULL, 0, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Hash function characteristics */
-	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
-	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h1 = isc_hash_function("Hello world", 12, true, NULL);
+	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Case */
-	h1 = isc_hash_function("Hello world", 12, ISC_FALSE, NULL);
-	h2 = isc_hash_function("heLLo WorLd", 12, ISC_FALSE, NULL);
+	h1 = isc_hash_function("Hello world", 12, false, NULL);
+	h2 = isc_hash_function("heLLo WorLd", 12, false, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Unequal */
-	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
-	h2 = isc_hash_function("heLLo WorLd", 12, ISC_TRUE, NULL);
+	h1 = isc_hash_function("Hello world", 12, true, NULL);
+	h2 = isc_hash_function("heLLo WorLd", 12, true, NULL);
 
 	ATF_CHECK(h1 != h2);
 }
@@ -1907,37 +1907,37 @@ ATF_TC_BODY(isc_hash_function_reverse, tc) {
 
 	/* Incremental hashing */
 
-	h1 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
-	h1 = isc_hash_function_reverse("\000", 1, ISC_TRUE, &h1);
-	h1 = isc_hash_function_reverse("\003org", 4, ISC_TRUE, &h1);
-	h1 = isc_hash_function_reverse("\007example", 8, ISC_TRUE, &h1);
+	h1 = isc_hash_function_reverse(NULL, 0, true, NULL);
+	h1 = isc_hash_function_reverse("\000", 1, true, &h1);
+	h1 = isc_hash_function_reverse("\003org", 4, true, &h1);
+	h1 = isc_hash_function_reverse("\007example", 8, true, &h1);
 
 	h2 = isc_hash_function_reverse("\007example\003org\000", 13,
-				       ISC_TRUE, NULL);
+				       true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Immutability of hash function */
-	h1 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
-	h2 = isc_hash_function_reverse(NULL, 0, ISC_TRUE, NULL);
+	h1 = isc_hash_function_reverse(NULL, 0, true, NULL);
+	h2 = isc_hash_function_reverse(NULL, 0, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Hash function characteristics */
-	h1 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
-	h2 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
+	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
+	h2 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Case */
-	h1 = isc_hash_function_reverse("Hello world", 12, ISC_FALSE, NULL);
-	h2 = isc_hash_function_reverse("heLLo WorLd", 12, ISC_FALSE, NULL);
+	h1 = isc_hash_function_reverse("Hello world", 12, false, NULL);
+	h2 = isc_hash_function_reverse("heLLo WorLd", 12, false, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	/* Unequal */
-	h1 = isc_hash_function_reverse("Hello world", 12, ISC_TRUE, NULL);
-	h2 = isc_hash_function_reverse("heLLo WorLd", 12, ISC_TRUE, NULL);
+	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
+	h2 = isc_hash_function_reverse("heLLo WorLd", 12, true, NULL);
 
 	ATF_CHECK(h1 != h2);
 }
@@ -1952,15 +1952,15 @@ ATF_TC_BODY(isc_hash_initializer, tc) {
 
 	UNUSED(tc);
 
-	h1 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
-	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h1 = isc_hash_function("Hello world", 12, true, NULL);
+	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 
 	isc_hash_set_initializer(isc_hash_get_initializer());
 
 	/* Hash value must not change */
-	h2 = isc_hash_function("Hello world", 12, ISC_TRUE, NULL);
+	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
 	ATF_CHECK_EQ(h1, h2);
 }
@@ -1973,8 +1973,8 @@ ATF_TC_HEAD(md5_check, tc) {
 ATF_TC_BODY(md5_check, tc) {
 	UNUSED(tc);
 
-	ATF_REQUIRE(isc_md5_check(ISC_FALSE));
-	ATF_CHECK(!isc_md5_check(ISC_TRUE));
+	ATF_REQUIRE(isc_md5_check(false));
+	ATF_CHECK(!isc_md5_check(true));
 
 	ATF_REQUIRE(isc_hmacmd5_check(0));
 	ATF_CHECK(!isc_hmacmd5_check(1));
@@ -1991,8 +1991,8 @@ ATF_TC_HEAD(sha1_check, tc) {
 ATF_TC_BODY(sha1_check, tc) {
 	UNUSED(tc);
 
-	ATF_REQUIRE(isc_sha1_check(ISC_FALSE));
-	ATF_CHECK(!isc_sha1_check(ISC_TRUE));
+	ATF_REQUIRE(isc_sha1_check(false));
+	ATF_CHECK(!isc_sha1_check(true));
 
 	ATF_REQUIRE(isc_hmacsha1_check(0));
 	ATF_CHECK(!isc_hmacsha1_check(1));
