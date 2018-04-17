@@ -139,18 +139,18 @@ isccc_sexpr_free(isccc_sexpr_t **sexprp) {
 	*sexprp = NULL;
 }
 
-static isc_boolean_t
+static bool
 printable(isccc_region_t *r) {
 	unsigned char *curr;
 
 	curr = r->rstart;
 	while (curr != r->rend) {
 		if (!isprint(*curr))
-			return (ISC_FALSE);
+			return (false);
 		curr++;
 	}
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 void
@@ -254,32 +254,32 @@ isccc_sexpr_addtolist(isccc_sexpr_t **l1p, isccc_sexpr_t *l2) {
 	return (elt);
 }
 
-isc_boolean_t
+bool
 isccc_sexpr_listp(isccc_sexpr_t *sexpr) {
 	if (sexpr == NULL || sexpr->type == ISCCC_SEXPRTYPE_DOTTEDPAIR)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
-isc_boolean_t
+bool
 isccc_sexpr_emptyp(isccc_sexpr_t *sexpr) {
 	if (sexpr == NULL)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
-isc_boolean_t
+bool
 isccc_sexpr_stringp(isccc_sexpr_t *sexpr) {
 	if (sexpr != NULL && sexpr->type == ISCCC_SEXPRTYPE_STRING)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
-isc_boolean_t
+bool
 isccc_sexpr_binaryp(isccc_sexpr_t *sexpr) {
 	if (sexpr != NULL && sexpr->type == ISCCC_SEXPRTYPE_BINARY)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 char *

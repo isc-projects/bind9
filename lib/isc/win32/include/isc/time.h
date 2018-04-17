@@ -58,10 +58,10 @@ isc_interval_set(isc_interval_t *i,
  *	nanoseconds < 1000000000.
  */
 
-isc_boolean_t
+bool
 isc_interval_iszero(const isc_interval_t *i);
 /*
- * Returns ISC_TRUE iff. 'i' is the zero interval.
+ * Returns true iff. 'i' is the zero interval.
  *
  * Requires:
  *
@@ -109,10 +109,10 @@ isc_time_settoepoch(isc_time_t *t);
  *	't' is a valid pointer.
  */
 
-isc_boolean_t
+bool
 isc_time_isepoch(const isc_time_t *t);
 /*
- * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
+ * Returns true iff. 't' is the epoch ("time zero").
  *
  * Requires:
  *

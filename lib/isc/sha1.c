@@ -78,8 +78,8 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
  * Standard use is testing false and result true.
  * Testing use is testing true and result false;
  */
-isc_boolean_t
-isc_sha1_check(isc_boolean_t testing) {
+bool
+isc_sha1_check(bool testing) {
 	isc_sha1_t ctx;
 	unsigned char input = 'a';
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
@@ -108,5 +108,5 @@ isc_sha1_check(isc_boolean_t testing) {
 	/*
 	 * Must return true in standard case, should return false for testing.
 	 */
-	return (ISC_TF(memcmp(digest, expected, ISC_SHA1_DIGESTLENGTH) == 0));
+	return (memcmp(digest, expected, ISC_SHA1_DIGESTLENGTH) == 0);
 }
