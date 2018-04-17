@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/types.h>
@@ -98,7 +100,7 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_boolean_t
+static inline bool
 match(const dns_name_t *name1, const dns_name_t *name2) {
 
 	if (dns_name_iswildcard(name2))

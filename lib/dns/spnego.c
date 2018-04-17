@@ -132,6 +132,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -371,7 +372,7 @@ gssapi_spnego_decapsulate(OM_uint32 *,
 
 /* mod_auth_kerb.c */
 
-static isc_boolean_t
+static bool
 cmp_gss_type(gss_buffer_t token, gss_OID gssoid)
 {
 	unsigned char *p;

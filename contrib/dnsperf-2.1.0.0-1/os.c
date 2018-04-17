@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,7 +32,7 @@
 #include "util.h"
 
 void
-perf_os_blocksignal(int sig, isc_boolean_t block)
+perf_os_blocksignal(int sig, bool block)
 {
 	sigset_t sset;
 	int op;

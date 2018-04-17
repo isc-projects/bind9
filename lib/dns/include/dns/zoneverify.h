@@ -13,6 +13,8 @@
 
 /*! \file dns/zoneverify.h */
 
+#include <stdbool.h>
+
 #include <dns/types.h>
 
 #include <isc/types.h>
@@ -40,7 +42,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
-		      isc_mem_t *mctx, isc_boolean_t ignore_kskflag,
-		      isc_boolean_t keyset_kskonly);
+		      isc_mem_t *mctx, bool ignore_kskflag,
+		      bool keyset_kskonly);
 
 ISC_LANG_ENDDECLS

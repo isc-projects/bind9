@@ -103,14 +103,10 @@ isc_random_buf(void *buf, size_t buflen) {
 
 	for (i = 0; i + sizeof(r) <= buflen; i += sizeof(r)) {
 		r = next();
-		memmove((uint8_t *)buf + i, &r, sizeof(r)); /* Buffers cannot
-							    * really overlap
-							    * here */
+		memmove((uint8_t *)buf + i, &r, sizeof(r));
 	}
 	r = next();
-	memmove((uint8_t *)buf + i, &r, buflen % sizeof(r)); /* Buffer cannot
-							     * really overlap
-							     * here */
+	memmove((uint8_t *)buf + i, &r, buflen % sizeof(r));
 	return;
 }
 

@@ -13,6 +13,8 @@
 
 #ifdef GSSAPI
 
+#include <stdbool.h>
+
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -242,13 +244,13 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 gssapi_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	gss_ctx_id_t gsskey1 = key1->keydata.gssctx;
 	gss_ctx_id_t gsskey2 = key2->keydata.gssctx;
 
 	/* No idea */
-	return (ISC_TF(gsskey1 == gsskey2));
+	return (gsskey1 == gsskey2);
 }
 
 static isc_result_t
@@ -261,10 +263,10 @@ gssapi_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ISC_R_FAILURE);
 }
 
-static isc_boolean_t
+static bool
 gssapi_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
