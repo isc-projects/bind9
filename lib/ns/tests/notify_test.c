@@ -67,13 +67,13 @@ ATF_TC_BODY(notify_start, tc) {
 
 	UNUSED(tc);
 
-	result = ns_test_begin(NULL, ISC_TRUE);
+	result = ns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = ns_test_getclient(NULL, ISC_FALSE, &client);
+	result = ns_test_getclient(NULL, false, &client);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = ns_test_makeview("view", ISC_FALSE, &client->view);
+	result = ns_test_makeview("view", false, &client->view);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = ns_test_serve_zone("example.com", "testdata/notify/zone1.db",

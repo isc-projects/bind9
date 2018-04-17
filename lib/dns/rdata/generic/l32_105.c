@@ -33,13 +33,13 @@ fromtext_l32(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	if (inet_pton(AF_INET, DNS_AS_STR(token), &addr) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
@@ -194,7 +194,7 @@ digest_l32(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_l32(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_l32);
@@ -204,10 +204,10 @@ checkowner_l32(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_l32(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_l32);
@@ -217,7 +217,7 @@ checknames_l32(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
