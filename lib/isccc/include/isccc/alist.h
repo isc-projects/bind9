@@ -29,6 +29,7 @@
 
 /*! \file isccc/alist.h */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <isc/lang.h>
@@ -39,10 +40,10 @@ ISC_LANG_BEGINDECLS
 isccc_sexpr_t *
 isccc_alist_create(void);
 
-isc_boolean_t
+bool
 isccc_alist_alistp(isccc_sexpr_t *alist);
 
-isc_boolean_t
+bool
 isccc_alist_emptyp(isccc_sexpr_t *alist);
 
 isccc_sexpr_t *

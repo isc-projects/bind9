@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -79,8 +80,8 @@ static dns_db_t *gdb;			/* The database */
 static dns_dbversion_t *gversion;	/* The database version */
 static dns_rdataclass_t gclass;		/* The class */
 static dns_name_t *gorigin;		/* The database origin */
-static isc_boolean_t ignore_kskflag = ISC_FALSE;
-static isc_boolean_t keyset_kskonly = ISC_FALSE;
+static bool ignore_kskflag = false;
+static bool keyset_kskonly = false;
 
 /*%
  * Load the zone file from disk
@@ -206,7 +207,7 @@ main(int argc, char *argv[]) {
 			break;
 		}
 	}
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 	check_result(isc_app_start(), "isc_app_start");
 
 	result = isc_mem_create(0, 0, &mctx);
@@ -218,7 +219,7 @@ main(int argc, char *argv[]) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -249,11 +250,11 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'x':
-			keyset_kskonly = ISC_TRUE;
+			keyset_kskonly = true;
 			break;
 
 		case 'z':
-			ignore_kskflag = ISC_TRUE;
+			ignore_kskflag = true;
 			break;
 
 		case '?':
@@ -334,7 +335,7 @@ main(int argc, char *argv[]) {
 	verifyzone(gdb, gversion, gorigin, mctx,
 		   ignore_kskflag, keyset_kskonly);
 
-	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
+	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);
 
 	cleanup_logging(&log);

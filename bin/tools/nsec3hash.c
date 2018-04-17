@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -151,13 +152,13 @@ nsec3hash_rdata_print(unsigned algo, unsigned flags, unsigned iters,
 
 int
 main(int argc, char *argv[]) {
-	isc_boolean_t rdata_format = ISC_FALSE;
+	bool rdata_format = false;
 	int ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, "-r")) != -1) {
 		switch (ch) {
 		case 'r':
-			rdata_format = ISC_TRUE;
+			rdata_format = true;
 			break;
 		case '-':
 			isc_commandline_index -= 1;

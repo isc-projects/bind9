@@ -81,7 +81,7 @@ static isc_once_t		register_once = ISC_ONCE_INIT;
 
 static void
 do_register(void) {
-	isc_bind9 = ISC_FALSE;
+	isc_bind9 = false;
 
 	RUNTIME_CHECK(isc__mem_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__app_register() == ISC_R_SUCCESS);

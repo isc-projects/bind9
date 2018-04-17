@@ -15,6 +15,7 @@
 
 /*! \file */
 
+#include <stdbool.h>
 #include <termios.h>
 
 #include <isc/lang.h>
@@ -37,7 +38,7 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleepseconds);
 isc_result_t
 isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp);
 
-isc_boolean_t
+bool
 isc_keyboard_canceled(isc_keyboard_t *keyboard);
 
 ISC_LANG_ENDDECLS
