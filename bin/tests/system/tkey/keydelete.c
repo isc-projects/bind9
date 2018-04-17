@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keydelete.c,v 1.18 2011/01/11 23:47:13 tbox Exp $ */
 
 #include <config.h>
 

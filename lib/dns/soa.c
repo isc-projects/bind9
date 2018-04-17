@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: soa.c,v 1.12 2009/09/10 02:18:40 each Exp $ */
 
 /*! \file */
 

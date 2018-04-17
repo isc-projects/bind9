@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: resource.h,v 1.13 2008/07/11 23:47:09 tbox Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1

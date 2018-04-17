@@ -9,12 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/*
- * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
- */
-
 /* RFC2535 */
 
 #ifndef RDATA_GENERIC_KEY_25_C

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: config.h,v 1.16 2009/06/11 23:47:55 tbox Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1

@@ -11,10 +11,6 @@
 
 /*! \file */
 
-/*
- * Principal Author: DCL
- */
-
 #include <config.h>
 
 #include <stdlib.h>

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
-
 /* RFC2671 */
 
 #ifndef RDATA_GENERIC_OPT_41_C

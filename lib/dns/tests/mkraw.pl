@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # Convert a hexdump to binary format.
 #
 # To convert binary data to the input format for this command,

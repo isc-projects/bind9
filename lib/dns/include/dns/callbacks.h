@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: callbacks.h,v 1.26.40.1 2012/02/07 00:44:16 each Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1

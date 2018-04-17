@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: px_26.c,v 1.45 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
-
 /* RFC2163 */
 
 #ifndef RDATA_IN_1_PX_26_C

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dbiterator.c,v 1.18 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file */
 

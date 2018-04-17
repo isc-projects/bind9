@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: libgen.h,v 1.3 2009/07/17 23:47:41 tbox Exp $ */
 
 #ifndef LIBGEN_H
 #define LIBGEN_H 1

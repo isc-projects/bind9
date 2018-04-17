@@ -4,8 +4,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 			Zones
 
-	$Id: zone,v 1.10 2004/03/05 05:04:47 marka Exp $
-
 Overview
 
 	Zones are the unit of delegation in the DNS and may go from holding

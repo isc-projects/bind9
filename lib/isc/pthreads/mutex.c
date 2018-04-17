@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: mutex.c,v 1.18 2011/01/04 23:47:14 tbox Exp $ */
 
 /*! \file */
 

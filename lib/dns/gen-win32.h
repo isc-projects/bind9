@@ -38,13 +38,6 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.25 2009/01/17 23:47:42 tbox Exp $ */
-
-/*! \file
- * \author Principal Authors: Computer Systems Research Group at UC Berkeley
- * \author Principal ISC caretaker: DCL
- */
-
 /*
  * \note This file was adapted from the NetBSD project's source tree, RCS ID:
  *    NetBSD: getopt.c,v 1.15 1999/09/20 04:39:37 lukem Exp

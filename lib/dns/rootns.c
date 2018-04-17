@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rootns.c,v 1.40.476.1 2012/02/07 00:44:14 each Exp $ */
 
 /*! \file */
 

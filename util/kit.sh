@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # Make a release kit
 #
 # Usage: sh kit.sh tag tmpdir

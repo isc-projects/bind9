@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keytable.c,v 1.41 2010/06/25 23:46:51 tbox Exp $ */
 
 /*! \file */
 

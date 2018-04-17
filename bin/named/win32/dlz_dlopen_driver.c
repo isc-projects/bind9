@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dlz_dlopen_driver.c,v 1.5 2011/10/14 00:52:32 marka Exp $ */
 
 #include <config.h>
 

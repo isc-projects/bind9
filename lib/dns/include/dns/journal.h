@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: journal.h,v 1.43 2011/12/22 07:32:41 each Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1

@@ -9,7 +9,5 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: start.sh,v 1.42 2007/06/18 23:47:27 tbox Exp $
-
 . ./conf.sh
 $PERL start.pl "$@"

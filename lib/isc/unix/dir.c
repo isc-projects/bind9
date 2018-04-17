@@ -9,8 +9,7 @@
  * information regarding copyright ownership.
  */
 
-/*! \file
- * \author  Principal Authors: DCL */
+/*! \file */
 
 #include <config.h>
 

@@ -7,7 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: example.db.in,v 1.2 2010/06/03 06:29:03 marka Exp $
 $TTL 60
 optout-tld. 60 IN SOA example. . 0 0 0 0 0
 optout-tld. 60 IN NS ns6.optout-tld.

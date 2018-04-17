@@ -6,7 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: DLLMain.c,v 1.2 2011/03/10 04:36:16 each Exp $ */
 
 #include <windows.h>
 #include <signal.h>

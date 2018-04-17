@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: refcount.c,v 1.5 2007/06/19 23:47:17 tbox Exp $ */
 
 #include <config.h>
 

@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: lookup.tcl,v 1.10 2007/06/19 23:47:08 tbox Exp $
-
 #
 # Sample lookup procedure for tcldb
 #

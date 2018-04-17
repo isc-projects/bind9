@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: nosoa.secure.example.db,v 1.2 2010/06/25 23:50:13 marka Exp $
-
 $TTL 300        ; 5 minutes
 @                       IN SOA  mname1. . (
                                 2010062400 ; serial

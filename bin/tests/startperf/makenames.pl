@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: makenames.pl,v 1.3 2011/09/02 21:15:35 each Exp $
 use strict;
 
 die "Usage: makenames.pl <num> [<len>]" if (@ARGV == 0 || @ARGV > 2);

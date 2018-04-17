@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: xfrin.h,v 1.30 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1

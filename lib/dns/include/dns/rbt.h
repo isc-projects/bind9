@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rbt.h,v 1.77.666.4 2012/02/08 19:53:30 each Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1

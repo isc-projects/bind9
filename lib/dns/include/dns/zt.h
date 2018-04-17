@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: zt.h,v 1.40 2011/09/02 23:46:32 tbox Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
