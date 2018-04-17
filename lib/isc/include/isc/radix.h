@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#include <stdbool.h>
+
 #include <isc/magic.h>
 #include <isc/types.h>
 #include <isc/mutex.h>
@@ -45,7 +47,7 @@ typedef struct isc_prefix {
 	isc_mem_t *mctx;
 	unsigned int family;	/* AF_INET | AF_INET6, or AF_UNSPEC for "any" */
 	unsigned int bitlen;	/* 0 for "any" */
-	isc_boolean_t ecs;	/* ISC_TRUE for an EDNS client subnet address */
+	bool ecs;	/* true for an EDNS client subnet address */
 	isc_refcount_t refcount;
 	union {
 		struct in_addr sin;

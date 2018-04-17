@@ -22,6 +22,8 @@
 
 #ifndef PK11_MD5_DISABLE
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/md5.h>
 #include <isc/platform.h>
@@ -69,13 +71,13 @@ isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
 void
 isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
+bool
 isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
+bool
 isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len);
 
-isc_boolean_t
+bool
 isc_hmacmd5_check(int testing);
 
 ISC_LANG_ENDDECLS

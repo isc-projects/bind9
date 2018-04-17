@@ -319,7 +319,7 @@ ldap_find_avail_conn(db_list_t *dblist) {
 
 static isc_result_t
 ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
-		     void *ptr, isc_boolean_t allnodes)
+		     void *ptr, bool allnodes)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	int i = 0;
@@ -789,13 +789,13 @@ ldap_get_results(const char *zone, const char *record,
 	case ALLNODES:
 		result = ldap_process_results((LDAP *) dbi->dbconn, ldap_msg,
 					      ldap_url->lud_attrs,
-					      ptr, isc_boolean_true);
+					      ptr, true);
 		break;
 	case AUTHORITY:
 	case LOOKUP:
 		result = ldap_process_results((LDAP *) dbi->dbconn, ldap_msg,
 					      ldap_url->lud_attrs,
-					      ptr, isc_boolean_false);
+					      ptr, false);
 		break;
 	case ALLOWXFR:
 		entries = ldap_count_entries((LDAP *) dbi->dbconn, ldap_msg);

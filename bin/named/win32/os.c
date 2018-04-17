@@ -11,6 +11,7 @@
 
 #include <config.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -176,7 +177,7 @@ named_os_minprivs(void) {
 }
 
 static int
-safe_open(const char *filename, int mode, isc_boolean_t append) {
+safe_open(const char *filename, int mode, bool append) {
 	int fd;
 	struct stat sb;
 
@@ -222,13 +223,13 @@ cleanup_lockfile(void) {
 }
 
 FILE *
-named_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
+named_os_openfile(const char *filename, int mode, bool switch_user) {
 	char strbuf[ISC_STRERRORSIZE];
 	FILE *fp;
 	int fd;
 
 	UNUSED(switch_user);
-	fd = safe_open(filename, mode, ISC_FALSE);
+	fd = safe_open(filename, mode, false);
 	if (fd < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("could not open file '%s': %s",
@@ -248,7 +249,7 @@ named_os_openfile(const char *filename, int mode, isc_boolean_t switch_user) {
 }
 
 void
-named_os_writepidfile(const char *filename, isc_boolean_t first_time) {
+named_os_writepidfile(const char *filename, bool first_time) {
 	FILE *pidlockfile;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
@@ -274,7 +275,7 @@ named_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	pidlockfile = named_os_openfile(filename,
 					S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH,
-					ISC_FALSE);
+					false);
 	if (pidlockfile == NULL) {
 		free(pidfile);
 		pidfile = NULL;
@@ -298,16 +299,16 @@ named_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	(void)fclose(pidlockfile);
 }
 
-isc_boolean_t
+bool
 named_os_issingleton(const char *filename) {
 	char strbuf[ISC_STRERRORSIZE];
 	OVERLAPPED o;
 
 	if (lockfilefd != -1)
-		return (ISC_TRUE);
+		return (true);
 
 	if (strcasecmp(filename, "none") == 0)
-		return (ISC_TRUE);
+		return (true);
 
 	lockfile = strdup(filename);
 	if (lockfile == NULL) {
@@ -324,7 +325,7 @@ named_os_issingleton(const char *filename) {
 			  S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	if (lockfilefd == -1) {
 		cleanup_lockfile();
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	memset(&o, 0, sizeof(o));
@@ -333,10 +334,10 @@ named_os_issingleton(const char *filename) {
 			LOCKFILE_EXCLUSIVE_LOCK | LOCKFILE_FAIL_IMMEDIATELY,
 			0, 0, 1, &o)) {
 		cleanup_lockfile();
-		return (ISC_FALSE);
+		return (false);
 	}
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 

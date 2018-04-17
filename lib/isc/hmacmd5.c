@@ -20,6 +20,8 @@
 
 #ifndef PK11_MD5_DISABLE
 
+#include <stdbool.h>
+
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
 #include <isc/md5.h>
@@ -109,8 +111,8 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -174,8 +176,8 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 	unsigned char ipad[PADLEN];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(PADLEN)) != NULL);
 	if (len > PADLEN) {
 		CK_BYTE_PTR kPart;
@@ -323,12 +325,12 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
  * Verify signature - finalize MD5 operation and reapply MD5, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	return (isc_hmacmd5_verify2(ctx, digest, ISC_MD5_DIGESTLENGTH));
 }
 
-isc_boolean_t
+bool
 isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_MD5_DIGESTLENGTH];
 
@@ -346,7 +348,7 @@ isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
  * Standard use is testing 0 and expecting result true.
  * Testing use is testing 1..4 and expecting result false.
  */
-isc_boolean_t
+bool
 isc_hmacmd5_check(int testing) {
 	isc_hmacmd5_t ctx;
 	unsigned char key[] = { /* 0x0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b */
@@ -364,7 +366,7 @@ isc_hmacmd5_check(int testing) {
 		0xad, 0xb8, 0x48, 0x05, 0xb8, 0x8d, 0x03, 0xe5,
 		0x90, 0x1e, 0x4b, 0x05, 0x69, 0xce, 0x35, 0xea
 	};
-	isc_boolean_t result;
+	bool result;
 
 	/*
 	 * Introduce a fault for testing.

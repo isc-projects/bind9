@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <isc/entropy.h>
@@ -69,7 +70,7 @@ dns_lib_initmsgcat(void) {
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *dns_g_mctx = NULL;
 static dns_dbimplementation_t *dbimp = NULL;
-static isc_boolean_t initialize_done = ISC_FALSE;
+static bool initialize_done = false;
 static isc_mutex_t reflock;
 static unsigned int references = 0;
 
@@ -78,7 +79,7 @@ initialize(void) {
 	isc_result_t result;
 	isc_entropy_t *ectx = NULL;
 
-	REQUIRE(initialize_done == ISC_FALSE);
+	REQUIRE(initialize_done == false);
 
 	result = isc_mem_create(0, 0, &dns_g_mctx);
 	if (result != ISC_R_SUCCESS)
@@ -105,7 +106,7 @@ initialize(void) {
 	isc_hash_init();
 	isc_entropy_detach(&ectx);
 
-	initialize_done = ISC_TRUE;
+	initialize_done = true;
 	return;
 
   cleanup_dst:
@@ -148,11 +149,11 @@ dns_lib_init(void) {
 
 void
 dns_lib_shutdown(void) {
-	isc_boolean_t cleanup_ok = ISC_FALSE;
+	bool cleanup_ok = false;
 
 	LOCK(&reflock);
 	if (--references == 0)
-		cleanup_ok = ISC_TRUE;
+		cleanup_ok = true;
 	UNLOCK(&reflock);
 
 	if (!cleanup_ok)
