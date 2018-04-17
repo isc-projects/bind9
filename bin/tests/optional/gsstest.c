@@ -383,7 +383,7 @@ initctx1(isc_task_t *task, isc_event_t *event) {
 	gssctx = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(query, dns_fixedname_name(&servername),
 					dns_fixedname_name(&gssname),
-					NULL, 36000, &gssctx, ISC_TRUE,
+					NULL, 36000, &gssctx, true,
 					mctx, NULL);
 	CHECK("dns_tkey_buildgssquery", result);
 

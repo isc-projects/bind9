@@ -40,7 +40,7 @@ setup(void) {
 	isc_result_t result;
 	isc_sockaddr_t local;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);

@@ -140,7 +140,7 @@ digest_dnskey(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_dnskey(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_dnskey);
@@ -150,10 +150,10 @@ checkowner_dnskey(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_dnskey(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata != NULL);
@@ -163,7 +163,7 @@ checknames_dnskey(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

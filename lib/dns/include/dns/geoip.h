@@ -104,7 +104,7 @@ typedef struct dns_geoip_databases {
 
 ISC_LANG_BEGINDECLS
 
-isc_boolean_t
+bool
 dns_geoip_match(const isc_netaddr_t *reqaddr, uint8_t *scope,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t *elt);

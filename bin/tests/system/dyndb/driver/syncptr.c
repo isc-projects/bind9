@@ -64,7 +64,7 @@ syncptr_write(isc_task_t *task, isc_event_t *event) {
 cleanup:
 	if (db != NULL) {
 		if (version != NULL)
-			dns_db_closeversion(db, &version, ISC_TRUE);
+			dns_db_closeversion(db, &version, true);
 		dns_db_detach(&db);
 	}
 	dns_zone_detach(&pevent->zone);

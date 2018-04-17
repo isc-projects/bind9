@@ -47,6 +47,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 
@@ -56,9 +57,9 @@
 /*@{*/
 /*% Entropy callback function. */
 typedef isc_result_t (*isc_entropystart_t)(isc_entropysource_t *source,
-					   void *arg, isc_boolean_t blocking);
+					   void *arg, bool blocking);
 typedef isc_result_t (*isc_entropyget_t)(isc_entropysource_t *source,
-					 void *arg, isc_boolean_t blocking);
+					 void *arg, bool blocking);
 typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
 /*@}*/
 
@@ -319,7 +320,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
  */
 
 void
-isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
+isc_entropy_usehook(isc_entropy_t *ectx, bool onoff);
 /*!<
  * \brief Configure entropy context 'ectx' to use the hook function
  *

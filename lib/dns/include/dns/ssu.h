@@ -14,6 +14,8 @@
 
 /*! \file dns/ssu.h */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 
 #include <dns/acl.h>
@@ -95,7 +97,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep);
  */
 
 isc_result_t
-dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
+dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
 		     dns_rdatatype_t *types);
@@ -127,10 +129,10 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
  *\li		ISC_R_NOMEMORY
  */
 
-isc_boolean_t
+bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
-			isc_boolean_t tcp, const dns_aclenv_t *env,
+			bool tcp, const dns_aclenv_t *env,
 			dns_rdatatype_t type, const dst_key_t *key);
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
@@ -174,7 +176,7 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 
 
 /*% Accessor functions to extract rule components */
-isc_boolean_t	dns_ssurule_isgrant(const dns_ssurule_t *rule);
+bool	dns_ssurule_isgrant(const dns_ssurule_t *rule);
 /*% Accessor functions to extract rule components */
 dns_name_t *	dns_ssurule_identity(const dns_ssurule_t *rule);
 /*% Accessor functions to extract rule components */
@@ -205,7 +207,7 @@ isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
  *\li	#ISC_R_NOMORE
  */
 
-isc_boolean_t
+bool
 dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,

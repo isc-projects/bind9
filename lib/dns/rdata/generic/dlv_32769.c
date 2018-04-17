@@ -138,7 +138,7 @@ digest_dlv(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_dlv(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_dlv);
@@ -148,10 +148,10 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_dlv(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
@@ -160,7 +160,7 @@ checknames_dlv(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

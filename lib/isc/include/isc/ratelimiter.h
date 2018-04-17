@@ -28,6 +28,7 @@
  *** Imports.
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -64,7 +65,7 @@ isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, uint32_t perint);
  */
 
 void
-isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, isc_boolean_t pushpop);
+isc_ratelimiter_setpushpop(isc_ratelimiter_t *rl, bool pushpop);
 /*%<
  * Set / clear the ratelimiter to from push pop mode rather
  * first in - first out mode (default).

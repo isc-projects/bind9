@@ -16,6 +16,8 @@
 
 /*! \file */
 
+#include <stdbool.h>
+
 #include <isc/result.h>
 
 /*
@@ -39,9 +41,9 @@
  *
  * Hook callbacks are functions which:
  *
- *   - return a boolean value; if ISC_TRUE is returned by the callback, the
+ *   - return a boolean value; if true is returned by the callback, the
  *     function into which the hook is inserted will return at hook insertion
- *     point; if ISC_FALSE is returned by the callback, execution of the
+ *     point; if false is returned by the callback, execution of the
  *     function into which the hook is inserted continues normally,
  *
  *   - accept three pointers as arguments:
@@ -49,7 +51,7 @@
  *       - a pointer specified by the hook itself,
  *       - a pointer specified upon inserting the callback into the hook table,
  *       - a pointer to isc_result_t which will be returned by the function
- *         into which the hook is inserted if the callback returns ISC_TRUE.
+ *         into which the hook is inserted if the callback returns true.
  *
  * Hook tables are arrays which consist of a number of tuples (one tuple per
  * hook identifier), each of which determines the callback to be invoked when a
@@ -83,19 +85,19 @@
  *     return (ISC_R_SUCCESS);
  * }
  *
- * isc_boolean_t
+ * bool
  * cause_failure(void *hook_data, void *callback_data, isc_result_t *resultp) {
  *     int *valp = (int *)hook_data;
- *     isc_boolean_t *calledp = (isc_boolean_t *)callback_data;
+ *     bool *calledp = (bool *)callback_data;
  *
  *     ...
  *
  *     *resultp = ISC_R_FAILURE;
  *
- *     return (ISC_TRUE);
+ *     return (true);
  * }
  *
- * isc_boolean_t
+ * bool
  * examine_val(void *hook_data, void *callback_data, isc_result_t *resultp) {
  *     int *valp = (int *)hook_data;
  *     int *valcopyp = (int *)callback_data;
@@ -104,12 +106,12 @@
  *
  *     ...
  *
- *     return (ISC_FALSE);
+ *     return (false);
  * }
  *
  * void
  * test_foo_bar(void) {
- *     isc_boolean_t called = ISC_FALSE;
+ *     bool called = false;
  *     int valcopy;
  *
  *     ns_hook_t my_hooks[FOO_HOOKS_COUNT] = {
@@ -140,7 +142,7 @@
  * FOO_EXTRACT_VAL, cause_failure() will be called with &val as "hook_data" and
  * &called as "callback_data".  It can do whatever it pleases with these two
  * values.  Eventually, cause_failure() sets *resultp to ISC_R_FAILURE and
- * returns ISC_TRUE, which causes foo_bar() to return ISC_R_FAILURE and never
+ * returns true, which causes foo_bar() to return ISC_R_FAILURE and never
  * execute the printf() call below hook insertion point.
  *
  * Execution then returns to test_foo_bar().  Unlike before the first call to
@@ -151,7 +153,7 @@
  * replaced with "examine_hook".  Thus, when the second call to foo_bar() is
  * subsequently made, examine_val() will be called with &val as "hook_data" and
  * &valcopy as "callback_data".  Contrary to cause_failure(), extract_val()
- * returns ISC_FALSE, which means it does not access "resultp" and does not
+ * returns false, which means it does not access "resultp" and does not
  * cause foo_bar() to return at hook insertion point.  Thus, printf() will be
  * called this time and foo_bar() will return ISC_R_SUCCESS.
  */
@@ -163,7 +165,7 @@ enum {
 	NS_QUERY_HOOKS_COUNT	/* MUST BE LAST */
 };
 
-typedef isc_boolean_t
+typedef bool
 (*ns_hook_cb_t)(void *hook_data, void *callback_data, isc_result_t *resultp);
 
 typedef struct ns_hook {
