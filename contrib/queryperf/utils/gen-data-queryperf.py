@@ -1,8 +1,6 @@
 #!/usr/bin/python
 
 #
-# $Id: gen-data-queryperf.py,v 1.2 2008/06/13 18:17:08 jinmei Exp $
-#
 # Contributed by Stephane Bortzmeyer <bortzmeyer@nic.fr>
 #
 # "A small tool which may be useful with contrib/queryperf. This script

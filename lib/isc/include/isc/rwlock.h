@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rwlock.h,v 1.28 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1

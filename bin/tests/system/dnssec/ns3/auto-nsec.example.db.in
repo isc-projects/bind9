@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: auto-nsec.example.db.in,v 1.2 2011/02/15 22:02:36 marka Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2000042407 ; serial

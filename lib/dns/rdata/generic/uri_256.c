@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef GENERIC_URI_256_C
 #define GENERIC_URI_256_C 1

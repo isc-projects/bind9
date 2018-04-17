@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # XXX no command line options at all.  especially useful would be a way
 # to specify the target directory on the NT machine, since it is needed
 # in the Makefiles and otherwise config.status.win32 needs to be edited.

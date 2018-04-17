@@ -15,7 +15,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bdb.c,v 1.2 2011/10/11 00:09:02 each Exp $ */
 
 /*
  * BIND 9.1.x simple database driver

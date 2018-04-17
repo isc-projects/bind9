@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: errno2result.c,v 1.17 2008/09/12 04:46:25 marka Exp $ */
 
 #include <config.h>
 

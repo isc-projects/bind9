@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: resource.c,v 1.10 2008/07/11 23:47:09 tbox Exp $ */
 
 #include <config.h>
 

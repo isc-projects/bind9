@@ -33,7 +33,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id$ */
 
 /* pubrsa [-m module] [-s $slot] [-p pin] [-t] [-n count] */
 

@@ -7,7 +7,5 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: class10.hints,v 1.5 2007/06/19 23:47:06 tbox Exp $
-
 $TTL 3600
 .	NS	ns.

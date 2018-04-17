@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
-
 /* RFC2915 */
 
 #ifndef RDATA_GENERIC_NAPTR_35_C

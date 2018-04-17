@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: x25_19.c,v 1.41 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
-
 /* RFC1183 */
 
 #ifndef RDATA_GENERIC_X25_19_C

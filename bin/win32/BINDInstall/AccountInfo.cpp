@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: AccountInfo.cpp,v 1.10 2009/09/29 23:48:04 tbox Exp $ */
-
 /* Compiled with UNICODE */
 
 #include "stdafx.h"

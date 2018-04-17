@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: zone-edit.sh.in,v 1.2 2010/12/21 23:47:08 tbox Exp $
-
 dir=/tmp/zone-edit.$$
 mkdir ${dir} || exit 1
 trap "/bin/rm -rf ${dir}" 0

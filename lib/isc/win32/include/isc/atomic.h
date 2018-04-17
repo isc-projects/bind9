@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1

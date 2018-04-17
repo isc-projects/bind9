@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ds.h,v 1.12 2010/12/23 23:47:08 tbox Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1

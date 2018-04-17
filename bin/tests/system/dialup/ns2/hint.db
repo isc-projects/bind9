@@ -7,7 +7,5 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: hint.db,v 1.6 2007/06/19 23:47:01 tbox Exp $
-
 .	1200	NS	ns1.example
 ns1.example	A	10.53.0.1

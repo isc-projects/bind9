@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.

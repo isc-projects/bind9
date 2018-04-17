@@ -6,7 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: sqlitedb.h,v 1.1 2007/03/05 05:30:22 marka Exp $ */
 
 #include <isc/types.h>
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: spnego_asn1.c,v 1.4 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file
  * \brief Method routines generated from SPNEGO ASN.1 module.
