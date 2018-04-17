@@ -184,7 +184,7 @@ main(int argc, char **argv) {
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
 	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
+		isc_entropy_usehook(ectx, true);
 	}
 	if (randomfile != NULL) {
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
@@ -245,7 +245,7 @@ main(int argc, char **argv) {
 #ifndef PK11_MD5_DISABLE
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,
-					   dstkey, ISC_TRUE, NULL, 0, 0,
+					   dstkey, true, NULL, 0, 0,
 					   mctx, ring, &tsigkey);
 	dst_key_free(&dstkey);
 	CHECK("dns_tsigkey_createfromkey", result);

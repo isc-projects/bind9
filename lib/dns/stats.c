@@ -15,6 +15,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/magic.h>
@@ -229,7 +230,7 @@ dns_rdatatypestats_increment(dns_stats_t *stats, dns_rdatatype_t type) {
 
 static inline void
 update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
-		     isc_boolean_t increment)
+		     bool increment)
 {
 	int counter;
 	dns_rdatatype_t rdtype;
@@ -272,7 +273,7 @@ dns_rdatasetstats_increment(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
 	REQUIRE(DNS_STATS_VALID(stats) &&
 		stats->type == dns_statstype_rdataset);
 
-	update_rdatasetstats(stats, rrsettype, ISC_TRUE);
+	update_rdatasetstats(stats, rrsettype, true);
 }
 
 void
@@ -281,7 +282,7 @@ dns_rdatasetstats_decrement(dns_stats_t *stats, dns_rdatastatstype_t rrsettype)
 	REQUIRE(DNS_STATS_VALID(stats) &&
 		stats->type == dns_statstype_rdataset);
 
-	update_rdatasetstats(stats, rrsettype, ISC_FALSE);
+	update_rdatasetstats(stats, rrsettype, false);
 }
 
 void

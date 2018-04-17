@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
@@ -99,7 +100,7 @@ create_managers(unsigned int workers) {
 }
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
+isc_test_begin(FILE *logfile, bool start_managers,
 	       unsigned int workers)
 {
 	isc_result_t result;
