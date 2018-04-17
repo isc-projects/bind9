@@ -13,6 +13,7 @@
 #ifndef DNS_CATZ_H
 #define DNS_CATZ_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/ht.h>
@@ -62,7 +63,7 @@ struct dns_catz_entry_options {
 	char *zonedir;
 
 	/* zone should not be stored on disk (no 'file' statement in def */
-	isc_boolean_t in_memory;
+	bool in_memory;
 	/*
 	 * Minimal interval between catalog zone updates, if a new version
 	 * of catalog zone is received before this time the update will be
@@ -178,14 +179,14 @@ dns_catz_entry_detach(dns_catz_zone_t *zone, dns_catz_entry_t **entryp);
  * \li	entryp is not NULL, *entryp is not NULL
  */
 
-isc_boolean_t
+bool
 dns_catz_entry_validate(const dns_catz_entry_t *entry);
 /*%<
  * Validate whether entry is correct.
  * (NOT YET IMPLEMENTED: always returns true)
  */
 
-isc_boolean_t
+bool
 dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
 /*%<
  * Deep compare two entries
@@ -195,8 +196,8 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
  * \li	eb is not NULL
  *
  * Returns:
- * \li ISC_TRUE if entries are the same
- * \li ISC_FALSE if the entries differ
+ * \li true if entries are the same
+ * \li false if the entries differ
  */
 
 void

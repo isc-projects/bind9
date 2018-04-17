@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -86,26 +87,26 @@ static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
 static const char *batchname;
 static FILE *batchfp;
-static isc_boolean_t have_ipv4 = ISC_FALSE;
-static isc_boolean_t have_ipv6 = ISC_FALSE;
-static isc_boolean_t have_src = ISC_FALSE;
-static isc_boolean_t tcp_mode = ISC_FALSE;
-static isc_boolean_t besteffort = ISC_TRUE;
-static isc_boolean_t display_short_form = ISC_FALSE;
-static isc_boolean_t display_headers = ISC_TRUE;
-static isc_boolean_t display_comments = ISC_TRUE;
-static isc_boolean_t display_rrcomments = ISC_TRUE;
-static isc_boolean_t display_ttlunits = ISC_TRUE;
-static isc_boolean_t display_ttl = ISC_TRUE;
-static isc_boolean_t display_class = ISC_TRUE;
-static isc_boolean_t display_crypto = ISC_TRUE;
-static isc_boolean_t display_multiline = ISC_FALSE;
-static isc_boolean_t display_question = ISC_TRUE;
-static isc_boolean_t display_answer  = ISC_TRUE;
-static isc_boolean_t display_authority = ISC_TRUE;
-static isc_boolean_t display_additional = ISC_TRUE;
-static isc_boolean_t display_unknown_format = ISC_FALSE;
-static isc_boolean_t continue_on_error = ISC_FALSE;
+static bool have_ipv4 = false;
+static bool have_ipv6 = false;
+static bool have_src = false;
+static bool tcp_mode = false;
+static bool besteffort = true;
+static bool display_short_form = false;
+static bool display_headers = true;
+static bool display_comments = true;
+static bool display_rrcomments = true;
+static bool display_ttlunits = true;
+static bool display_ttl = true;
+static bool display_class = true;
+static bool display_crypto = true;
+static bool display_multiline = false;
+static bool display_question = true;
+static bool display_answer  = true;
+static bool display_authority = true;
+static bool display_additional = true;
+static bool display_unknown_format = false;
+static bool continue_on_error = false;
 static uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
 static char *server;
@@ -118,17 +119,17 @@ static char hexcookie[81];
 
 struct query {
 	char textname[MXNAME]; /*% Name we're going to be looking up */
-	isc_boolean_t ip6_int;
-	isc_boolean_t recurse;
-	isc_boolean_t have_aaonly;
-	isc_boolean_t have_adflag;
-	isc_boolean_t have_cdflag;
-	isc_boolean_t have_zflag;
-	isc_boolean_t dnssec;
-	isc_boolean_t expire;
-	isc_boolean_t send_cookie;
+	bool ip6_int;
+	bool recurse;
+	bool have_aaonly;
+	bool have_adflag;
+	bool have_cdflag;
+	bool have_zflag;
+	bool dnssec;
+	bool expire;
+	bool send_cookie;
 	char *cookie;
-	isc_boolean_t nsid;
+	bool nsid;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 	uint16_t udpsize;
@@ -887,7 +888,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	struct in6_addr in6;
 	uint32_t netmask = 0xffffffff;
 	char *slash = NULL;
-	isc_boolean_t parsed = ISC_FALSE;
+	bool parsed = false;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
 
 	if (strlcpy(buf, value, sizeof(buf)) >= sizeof(buf))
@@ -909,12 +910,12 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	if (sa == NULL)
 		fatal("out of memory");
 	if (inet_pton(AF_INET6, buf, &in6) == 1) {
-		parsed = ISC_TRUE;
+		parsed = true;
 		isc_sockaddr_fromin6(sa, &in6, 0);
 		if (netmask > 128)
 			netmask = 128;
 	} else if (inet_pton(AF_INET, buf, &in4) == 1) {
-		parsed = ISC_TRUE;
+		parsed = true;
 		isc_sockaddr_fromin(sa, &in4, 0);
 		if (netmask > 32)
 			netmask = 32;
@@ -924,7 +925,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		for (i = 0; i < 3 && strlen(buf) < sizeof(buf) - 2; i++) {
 			strlcat(buf, ".0", sizeof(buf));
 			if (inet_pton(AF_INET, buf, &in4) == 1) {
-				parsed = ISC_TRUE;
+				parsed = true;
 				isc_sockaddr_fromin(sa, &in4, 0);
 				break;
 			}
@@ -975,7 +976,7 @@ reverse_octets(const char *in, char **p, char *end) {
 
 static void
 get_reverse(char *reverse, size_t len, const char *value,
-	    isc_boolean_t ip6_int)
+	    bool ip6_int)
 {
 	int r;
 	isc_result_t result;
@@ -1023,12 +1024,12 @@ get_reverse(char *reverse, size_t len, const char *value,
  */
 
 static void
-plus_option(char *option, struct query *query, isc_boolean_t global)
+plus_option(char *option, struct query *query, bool global)
 {
 	isc_result_t result;
 	char *cmd, *value, *last = NULL, *code;
 	uint32_t num;
-	isc_boolean_t state = ISC_TRUE;
+	bool state = true;
 	size_t n;
 
 	INSIST(option != NULL);
@@ -1039,7 +1040,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 	}
 	if (strncasecmp(cmd, "no", 2) == 0) {
 		cmd += 2;
-		state = ISC_FALSE;
+		state = false;
 	}
 	/* parse the rest of the string */
 	value = strtok_r(NULL, "", &last);
@@ -1347,12 +1348,12 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 			GLOBAL();
 			display_short_form = state;
 			if (state) {
-				display_question = ISC_FALSE;
-				display_answer = ISC_TRUE;
-				display_authority = ISC_FALSE;
-				display_additional = ISC_FALSE;
-				display_comments = ISC_FALSE;
-				display_rrcomments = ISC_FALSE;
+				display_question = false;
+				display_answer = true;
+				display_authority = false;
+				display_additional = false;
+				display_comments = false;
+				display_rrcomments = false;
 			}
 			break;
 		case 'p': /* split */
@@ -1451,7 +1452,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 				case 'u': /* ttlunits */
 					FULLCHECK("ttlunits");
 					GLOBAL();
-					display_ttl = ISC_TRUE;
+					display_ttl = true;
 					display_ttlunits = state;
 					break;
 				default:
@@ -1508,18 +1509,18 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 }
 
 /*%
- * #ISC_TRUE returned if value was used
+ * #true returned if value was used
  */
 static const char *single_dash_opts = "46himv";
 /*static const char *dash_opts = "46bcfhiptvx";*/
-static isc_boolean_t
+static bool
 dash_option(const char *option, char *next, struct query *query,
-	    isc_boolean_t global, isc_boolean_t *setname)
+	    bool global, bool *setname)
 {
 	char opt;
 	const char *value;
 	isc_result_t result;
-	isc_boolean_t value_from_next;
+	bool value_from_next;
 	isc_consttextregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -1542,22 +1543,22 @@ dash_option(const char *option, char *next, struct query *query,
 			GLOBAL();
 			if (have_ipv4) {
 				isc_net_disableipv6();
-				have_ipv6 = ISC_FALSE;
+				have_ipv6 = false;
 			} else {
 				fatal("can't find IPv4 networking");
 				/* NOTREACHED */
-				return (ISC_FALSE);
+				return (false);
 			}
 			break;
 		case '6':
 			GLOBAL();
 			if (have_ipv6) {
 				isc_net_disableipv4();
-				have_ipv4 = ISC_FALSE;
+				have_ipv4 = false;
 			} else {
 				fatal("can't find IPv6 networking");
 				/* NOTREACHED */
-				return (ISC_FALSE);
+				return (false);
 			}
 			break;
 		case 'h':
@@ -1565,7 +1566,7 @@ dash_option(const char *option, char *next, struct query *query,
 			exit(0);
 			break;
 		case 'i':
-			query->ip6_int = ISC_TRUE;
+			query->ip6_int = true;
 			break;
 		case 'm':
 			/*
@@ -1580,14 +1581,14 @@ dash_option(const char *option, char *next, struct query *query,
 		if (strlen(option) > 1U)
 			option = &option[1];
 		else
-			return (ISC_FALSE);
+			return (false);
 	}
 	opt = option[0];
 	if (strlen(option) > 1U) {
-		value_from_next = ISC_FALSE;
+		value_from_next = false;
 		value = &option[1];
 	} else {
-		value_from_next = ISC_TRUE;
+		value_from_next = true;
 		value = next;
 	}
 	if (value == NULL)
@@ -1617,7 +1618,7 @@ dash_option(const char *option, char *next, struct query *query,
 		}
 		if (hash != NULL)
 			*hash = '#';
-		have_src = ISC_TRUE;
+		have_src = true;
 		return (value_from_next);
 	case 'c':
 		tr.base = value;
@@ -1649,7 +1650,7 @@ dash_option(const char *option, char *next, struct query *query,
 		strlcpy(query->textname, textname, sizeof(query->textname));
 		query->rdtype = dns_rdatatype_ptr;
 		query->rdclass = dns_rdataclass_in;
-		*setname = ISC_TRUE;
+		*setname = true;
 		return (value_from_next);
 	global_option:
 		fprintf(stderr, "Ignored late global option: -%s\n", option);
@@ -1660,7 +1661,7 @@ dash_option(const char *option, char *next, struct query *query,
 		usage();
 	}
 	/* NOTREACHED */
-	return (ISC_FALSE);
+	return (false);
 }
 
 static struct query *
@@ -1702,7 +1703,7 @@ preparse_args(int argc, char **argv) {
 	int rc;
 	char **rv;
 	char *option;
-	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
+	bool ipv4only = false, ipv6only = false;
 
 	rc = argc;
 	rv = argv;
@@ -1720,13 +1721,13 @@ preparse_args(int argc, char **argv) {
 				if (ipv6only) {
 					fatal("only one of -4 and -6 allowed");
 				}
-				ipv4only = ISC_TRUE;
+				ipv4only = true;
 				break;
 			case '6':
 				if (ipv4only) {
 					fatal("only one of -4 and -6 allowed");
 				}
-				ipv6only = ISC_TRUE;
+				ipv6only = true;
 				break;
 			}
 			option = &option[1];
@@ -1735,7 +1736,7 @@ preparse_args(int argc, char **argv) {
 }
 
 static void
-parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
+parse_args(bool is_batchfile, int argc, char **argv)
 {
 	struct query *query = NULL;
 	char batchline[MXNAME];
@@ -1743,7 +1744,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 	char *bargv[64];
 	int rc;
 	char **rv;
-	isc_boolean_t global = ISC_TRUE;
+	bool global = true;
 	char *last;
 
 	/*
@@ -1759,17 +1760,17 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 
 	if (!is_batchfile) {
 		default_query.textname[0] = 0;
-		default_query.ip6_int = ISC_FALSE;
-		default_query.recurse = ISC_TRUE;
-		default_query.have_aaonly = ISC_FALSE;
-		default_query.have_adflag = ISC_TRUE; /*XXX*/
-		default_query.have_cdflag = ISC_FALSE;
-		default_query.have_zflag = ISC_FALSE;
-		default_query.dnssec = ISC_FALSE;
-		default_query.expire = ISC_FALSE;
-		default_query.send_cookie = ISC_FALSE;
+		default_query.ip6_int = false;
+		default_query.recurse = true;
+		default_query.have_aaonly = false;
+		default_query.have_adflag = true; /*XXX*/
+		default_query.have_cdflag = false;
+		default_query.have_zflag = false;
+		default_query.dnssec = false;
+		default_query.expire = false;
+		default_query.send_cookie = false;
 		default_query.cookie = NULL;
-		default_query.nsid = ISC_FALSE;
+		default_query.nsid = false;
 		default_query.rdtype = dns_rdatatype_a;
 		default_query.rdclass = dns_rdataclass_in;
 		default_query.udpsize = 0;
@@ -1787,7 +1788,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 	if (is_batchfile) {
 		/* Processing '-f batchfile'. */
 		query = clone_default_query();
-		global = ISC_FALSE;
+		global = false;
 	} else
 		query = &default_query;
 
@@ -1803,7 +1804,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 		} else if (rv[0][0] == '+') {
 			plus_option(&rv[0][1], query, global);
 		} else if (rv[0][0] == '-') {
-			isc_boolean_t setname = ISC_FALSE;
+			bool setname = false;
 
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL, query,
@@ -1825,7 +1826,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 
 				default_query.textname[0] = 0;
 				query = clone_default_query();
-				global = ISC_FALSE;
+				global = false;
 			}
 		} else {
 			/*
@@ -1838,7 +1839,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			ISC_LIST_APPEND(queries, query, link);
 
 			query = clone_default_query();
-			global = ISC_FALSE;
+			global = false;
 			/* XXX Error message */
 		}
 	}
@@ -1867,7 +1868,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv)
 			}
 
 			bargv[0] = argv[0];
-			parse_args(ISC_TRUE, bargc, (char **)bargv);
+			parse_args(true, bargc, (char **)bargv);
 		}
 		if (batchfp != stdin)
 			fclose(batchfp);
@@ -1903,9 +1904,9 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
-		have_ipv4 = ISC_TRUE;
+		have_ipv4 = true;
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
-		have_ipv6 = ISC_TRUE;
+		have_ipv6 = true;
 	if (!have_ipv4 && !have_ipv6)
 		fatal("could not find either IPv4 or IPv6");
 
@@ -1925,7 +1926,7 @@ main(int argc, char *argv[]) {
 				     sizeof(cookie_secret), NULL, 0));
 
 	ISC_LIST_INIT(queries);
-	parse_args(ISC_FALSE, argc, argv);
+	parse_args(false, argc, argv);
 	if (server == NULL)
 		fatal("a server '@xxx' is required");
 
@@ -1938,10 +1939,10 @@ main(int argc, char *argv[]) {
 
 	if (isc_sockaddr_pf(&dstaddr) == PF_INET && have_ipv6) {
 		isc_net_disableipv6();
-		have_ipv6 = ISC_FALSE;
+		have_ipv6 = false;
 	} else if (isc_sockaddr_pf(&dstaddr) == PF_INET6 && have_ipv4) {
 		isc_net_disableipv4();
-		have_ipv4 = ISC_FALSE;
+		have_ipv4 = false;
 	}
 	if (have_ipv4 && have_ipv6)
 		fatal("can't choose between IPv4 and IPv6");

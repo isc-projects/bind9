@@ -195,7 +195,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	if (attr == NULL)
 		return (DST_R_INVALIDPUBLICKEY);
 
-	ret = pk11_get_session(&ctx, OP_DH, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(&ctx, OP_DH, true, false,
 			       priv->keydata.pkey->reqlogon, NULL,
 			       pk11_get_best_token(OP_DH));
 	if (ret != ISC_R_SUCCESS)
@@ -260,7 +260,7 @@ pkcs11dh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11dh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *dh1, *dh2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -269,39 +269,39 @@ pkcs11dh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.pkey;
 
 	if ((dh1 == NULL) && (dh2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((dh1 == NULL) || (dh2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_PRIME);
 	attr2 = pk11_attribute_bytype(dh2, CKA_PRIME);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_BASE);
 	attr2 = pk11_attribute_bytype(dh2, CKA_BASE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_VALUE);
 	attr2 = pk11_attribute_bytype(dh2, CKA_VALUE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_VALUE2);
 	attr2 = pk11_attribute_bytype(dh2, CKA_VALUE2);
@@ -310,18 +310,18 @@ pkcs11dh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				attr1->ulValueLen)))
-		return (ISC_FALSE);
+		return (false);
 
 	if (!dh1->ontoken && !dh2->ontoken)
-		return (ISC_TRUE);
+		return (true);
 	else if (dh1->ontoken || dh2->ontoken ||
 		 (dh1->object != dh2->object))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static isc_boolean_t
+static bool
 pkcs11dh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *dh1, *dh2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -330,31 +330,31 @@ pkcs11dh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh2 = key2->keydata.pkey;
 
 	if ((dh1 == NULL) && (dh2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((dh1 == NULL) || (dh2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_PRIME);
 	attr2 = pk11_attribute_bytype(dh2, CKA_PRIME);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dh1, CKA_BASE);
 	attr2 = pk11_attribute_bytype(dh2, CKA_BASE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -412,8 +412,8 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_DH, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_DH));
+	ret = pk11_get_session(pk11_ctx, OP_DH, true, false,
+			       false, NULL, pk11_get_best_token(OP_DH));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -595,15 +595,15 @@ pkcs11dh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11dh_isprivate(const dst_key_t *key) {
 	pk11_object_t *dh = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dh == NULL)
-		return (ISC_FALSE);
+		return (false);
 	attr = pk11_attribute_bytype(dh, CKA_VALUE2);
-	return (ISC_TF((attr != NULL) || dh->ontoken));
+	return (attr != NULL) || dh->ontoken);
 }
 
 static void

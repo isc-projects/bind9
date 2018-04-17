@@ -49,6 +49,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/event.h>
@@ -378,7 +379,7 @@ typedef struct isc_socketmethods {
 	isc_result_t	(*getsockname)(isc_socket_t *sock,
 				       isc_sockaddr_t *addressp);
 	isc_sockettype_t (*gettype)(isc_socket_t *sock);
-	void		(*ipv6only)(isc_socket_t *sock, isc_boolean_t yes);
+	void		(*ipv6only)(isc_socket_t *sock, bool yes);
 	isc_result_t    (*fdwatchpoke)(isc_socket_t *sock, int flags);
 	isc_result_t		(*dup)(isc_socket_t *socket,
 				  isc_socket_t **socketp);
@@ -1136,14 +1137,14 @@ isc_socket_gettype(isc_socket_t *sock);
  */
 
 /*@{*/
-isc_boolean_t
+bool
 isc__socket_isbound(isc_socket_t *sock);
 /*%
  * Intended for internal use in BIND9 only
  */
 
 void
-isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
+isc_socket_ipv6only(isc_socket_t *sock, bool yes);
 /*%<
  * If the socket is an IPv6 socket set/clear the IPV6_IPV6ONLY socket
  * option if the host OS supports this option.
@@ -1172,7 +1173,7 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
  */
 
 void
-isc_socket_cleanunix(const isc_sockaddr_t *addr, isc_boolean_t active);
+isc_socket_cleanunix(const isc_sockaddr_t *addr, bool active);
 
 /*%<
  * Cleanup UNIX domain sockets in the file-system.  If 'active' is true

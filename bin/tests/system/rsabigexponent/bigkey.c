@@ -176,7 +176,7 @@ main(int argc, char **argv) {
 
 	CHECK(isc_mem_create(0, 0, &mctx), "isc_mem_create()");
 	CHECK(isc_entropy_create(mctx, &ectx), "isc_entropy_create()");
-	isc_entropy_usehook(ectx, ISC_TRUE);
+	isc_entropy_usehook(ectx, true);
 	CHECK(isc_entropy_usebestsource(ectx, &source,
 					"../random.data",
 					ISC_ENTROPY_KEYBOARDNO),

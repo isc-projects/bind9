@@ -12,6 +12,7 @@
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -150,7 +151,7 @@ dns_compress_disable(dns_compress_t *cctx);
  */
 
 void
-dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive);
+dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive);
 
 /*
  *	Preserve the case of compressed domain names.
@@ -159,7 +160,7 @@ dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive);
  *		'cctx' to be initialized.
  */
 
-isc_boolean_t
+bool
 dns_compress_getsensitive(dns_compress_t *cctx);
 /*
  *	Return whether case is to be preserved when compressing
@@ -182,7 +183,7 @@ dns_compress_getedns(dns_compress_t *cctx);
  *\li		-1 .. 255
  */
 
-isc_boolean_t
+bool
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 			dns_name_t *prefix, uint16_t *offset);
 /*%<
@@ -195,10 +196,10 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
  *\li		'offset' to point to an uint16_t.
  *
  *	Ensures:
- *\li		'prefix' and 'offset' are valid if ISC_TRUE is 	returned.
+ *\li		'prefix' and 'offset' are valid if true is 	returned.
  *
  *	Returns:
- *\li		#ISC_TRUE / #ISC_FALSE
+ *\li		#true / #false
  */
 
 void
