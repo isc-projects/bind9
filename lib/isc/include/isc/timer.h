@@ -65,6 +65,8 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/types.h>
 #include <isc/event.h>
 #include <isc/eventclass.h>
@@ -116,7 +118,7 @@ typedef struct {
 	isc_result_t	(*reset)(isc_timer_t *timer, isc_timertype_t type,
 				 const isc_time_t *expires,
 				 const isc_interval_t *interval,
-				 isc_boolean_t purge);
+				 bool purge);
 	isc_result_t	(*touch)(isc_timer_t *timer);
 } isc_timermethods_t;
 
@@ -229,7 +231,7 @@ isc_timer_reset(isc_timer_t *timer,
 		isc_timertype_t type,
 		const isc_time_t *expires,
 		const isc_interval_t *interval,
-		isc_boolean_t purge);
+		bool purge);
 /*%<
  * Change the timer's type, expires, and interval values to the given
  * values.  If 'purge' is TRUE, any pending events from this timer

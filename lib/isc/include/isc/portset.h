@@ -29,6 +29,8 @@
  ***	Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/net.h>
 
 /***
@@ -62,7 +64,7 @@ isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp);
  *\li	'*portsetp' to be a valid set.
  */
 
-isc_boolean_t
+bool
 isc_portset_isset(isc_portset_t *portset, in_port_t port);
 /*%<
  * Test whether the given port is stored in the portset.
@@ -71,7 +73,7 @@ isc_portset_isset(isc_portset_t *portset, in_port_t port);
  *\li	'portset' to be a valid set.
  *
  * Returns
- * \li	#ISC_TRUE if the port is found, ISC_FALSE otherwise.
+ * \li	#true if the port is found, false otherwise.
  */
 
 unsigned int

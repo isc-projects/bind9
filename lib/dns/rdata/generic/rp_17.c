@@ -23,7 +23,7 @@ fromtext_rp(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 	int i;
-	isc_boolean_t ok;
+	bool ok;
 
 	REQUIRE(type == dns_rdatatype_rp);
 
@@ -37,12 +37,12 @@ fromtext_rp(ARGS_FROMTEXT) {
 	for (i = 0; i < 2; i++) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
-					      ISC_FALSE));
+					      false));
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin,
 					 options, target));
-		ok = ISC_TRUE;
+		ok = true;
 		if ((options & DNS_RDATA_CHECKNAMES) != 0 && i == 0)
 			ok = dns_name_ismailbox(&name);
 		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
@@ -59,7 +59,7 @@ totext_rp(ARGS_TOTEXT) {
 	dns_name_t rmail;
 	dns_name_t email;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
@@ -272,7 +272,7 @@ digest_rp(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_rp(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_rp);
@@ -282,10 +282,10 @@ checkowner_rp(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_rp(ARGS_CHECKNAMES) {
 	isc_region_t region;
 	dns_name_t name;
@@ -300,9 +300,9 @@ checknames_rp(ARGS_CHECKNAMES) {
 	if (!dns_name_ismailbox(&name)) {
 		if (bad != NULL)
 				dns_name_clone(&name, bad);
-		return (ISC_FALSE);
+		return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

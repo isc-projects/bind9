@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
@@ -261,7 +263,7 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 }
 
 static void
-report(dns_view_t *view, dns_name_t *name, isc_boolean_t missing,
+report(dns_view_t *view, dns_name_t *name, bool missing,
        dns_rdata_t *rdata)
 {
 	const char *viewname = "", *sep = "";
@@ -297,7 +299,7 @@ report(dns_view_t *view, dns_name_t *name, isc_boolean_t missing,
 			      databuf);
 }
 
-static isc_boolean_t
+static bool
 inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata) {
 	isc_result_t result;
 	dns_rdata_t current = DNS_RDATA_INIT;
@@ -306,11 +308,11 @@ inrrset(dns_rdataset_t *rrset, dns_rdata_t *rdata) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(rrset, &current);
 		if (dns_rdata_compare(rdata, &current) == 0)
-			return (ISC_TRUE);
+			return (true);
 		dns_rdata_reset(&current);
 		result = dns_rdataset_next(rrset);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 /*
@@ -345,7 +347,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&rootrrset, &rdata);
 			if (!inrrset(&hintrrset, &rdata))
-				report(view, name, ISC_TRUE, &rdata);
+				report(view, name, true, &rdata);
 			result = dns_rdataset_next(&rootrrset);
 		}
 		result = dns_rdataset_first(&hintrrset);
@@ -353,7 +355,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&hintrrset, &rdata);
 			if (!inrrset(&rootrrset, &rdata))
-				report(view, name, ISC_FALSE, &rdata);
+				report(view, name, false, &rdata);
 			result = dns_rdataset_next(&hintrrset);
 		}
 	}
@@ -363,7 +365,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&rootrrset, &rdata);
-			report(view, name, ISC_TRUE, &rdata);
+			report(view, name, true, &rdata);
 			result = dns_rdataset_next(&rootrrset);
 		}
 	}
@@ -387,7 +389,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&rootrrset, &rdata);
 			if (!inrrset(&hintrrset, &rdata))
-				report(view, name, ISC_TRUE, &rdata);
+				report(view, name, true, &rdata);
 			dns_rdata_reset(&rdata);
 			result = dns_rdataset_next(&rootrrset);
 		}
@@ -396,7 +398,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&hintrrset, &rdata);
 			if (!inrrset(&rootrrset, &rdata))
-				report(view, name, ISC_FALSE, &rdata);
+				report(view, name, false, &rdata);
 			dns_rdata_reset(&rdata);
 			result = dns_rdataset_next(&hintrrset);
 		}
@@ -407,7 +409,7 @@ check_address_records(dns_view_t *view, dns_db_t *hints, dns_db_t *db,
 		while (result == ISC_R_SUCCESS) {
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&rootrrset, &rdata);
-			report(view, name, ISC_TRUE, &rdata);
+			report(view, name, true, &rdata);
 			dns_rdata_reset(&rdata);
 			result = dns_rdataset_next(&rootrrset);
 		}

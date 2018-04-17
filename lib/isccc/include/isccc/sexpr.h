@@ -29,6 +29,7 @@
 
 /*! \file isccc/sexpr.h */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <isc/lang.h>
@@ -94,16 +95,16 @@ isccc_sexpr_setcdr(isccc_sexpr_t *pair, isccc_sexpr_t *cdr);
 isccc_sexpr_t *
 isccc_sexpr_addtolist(isccc_sexpr_t **l1p, isccc_sexpr_t *l2);
 
-isc_boolean_t
+bool
 isccc_sexpr_listp(isccc_sexpr_t *sexpr);
 
-isc_boolean_t
+bool
 isccc_sexpr_emptyp(isccc_sexpr_t *sexpr);
 
-isc_boolean_t
+bool
 isccc_sexpr_stringp(isccc_sexpr_t *sexpr);
 
-isc_boolean_t
+bool
 isccc_sexpr_binaryp(isccc_sexpr_t *sexpr);
 
 char *
