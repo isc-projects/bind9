@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -197,7 +198,7 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	return (ISC_R_SUCCESS);
 }
 
-isc_uint64_t
+uint64_t
 isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
@@ -220,7 +221,7 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	return (i3);
 }
 
-isc_uint32_t
+uint32_t
 isc_time_seconds(const isc_time_t *t) {
 	SYSTEMTIME epoch1970 = { 1970, 1, 4, 1, 0, 0, 0, 0 };
 	FILETIME temp;
@@ -236,7 +237,7 @@ isc_time_seconds(const isc_time_t *t) {
 
 	i3 = (i1.QuadPart - i2.QuadPart) / 10000000;
 
-	return ((isc_uint32_t)i3);
+	return ((uint32_t)i3);
 }
 
 isc_result_t
@@ -247,8 +248,8 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 
 	seconds = (time_t)isc_time_seconds(t);
 
-	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
-	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
+	INSIST(sizeof(unsigned int) == sizeof(uint32_t));
+	INSIST(sizeof(time_t) >= sizeof(uint32_t));
 
 	if (isc_time_seconds(t) > (~0U>>1) && seconds <= (time_t)(~0U>>1))
 		return (ISC_R_RANGE);
@@ -259,13 +260,13 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 }
 
 
-isc_uint32_t
+uint32_t
 isc_time_nanoseconds(const isc_time_t *t) {
 	ULARGE_INTEGER i;
 
 	i.LowPart  = t->absolute.dwLowDateTime;
 	i.HighPart = t->absolute.dwHighDateTime;
-	return ((isc_uint32_t)(i.QuadPart % 10000000) * 100);
+	return ((uint32_t)(i.QuadPart % 10000000) * 100);
 }
 
 void

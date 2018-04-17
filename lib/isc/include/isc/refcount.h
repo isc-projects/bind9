@@ -14,6 +14,8 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
+#include <stdint.h>
+
 #include <isc/assertions.h>
 #include <isc/atomic.h>
 #include <isc/error.h>
@@ -104,7 +106,7 @@ typedef struct isc_refcount {
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 	atomic_int_fast32_t refs;
 #else
-	isc_int32_t refs;
+	int32_t refs;
 #endif
 } isc_refcount_t;
 
@@ -118,7 +120,7 @@ typedef struct isc_refcount {
 #define isc_refcount_increment0(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
 			(&(rp)->refs, 1, memory_order_relaxed); \
 		if (_tmp != NULL)				\
@@ -128,7 +130,7 @@ typedef struct isc_refcount {
 #define isc_refcount_increment(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
 			(&(rp)->refs, 1, memory_order_relaxed); \
 		ISC_REQUIRE(prev > 0);				\
@@ -139,7 +141,7 @@ typedef struct isc_refcount {
 #define isc_refcount_decrement(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = atomic_fetch_sub_explicit		\
 			(&(rp)->refs, 1, memory_order_relaxed); \
 		ISC_REQUIRE(prev > 0);				\
@@ -156,7 +158,7 @@ typedef struct isc_refcount {
 #define isc_refcount_increment0(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
 		if (_tmp != NULL)				\
 			*_tmp = prev + 1;			\
@@ -165,7 +167,7 @@ typedef struct isc_refcount {
 #define isc_refcount_increment(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
@@ -175,7 +177,7 @@ typedef struct isc_refcount {
 #define isc_refcount_decrement(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
-		isc_int32_t prev;				\
+		int32_t prev;				\
 		prev = isc_atomic_xadd(&(rp)->refs, -1);	\
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\

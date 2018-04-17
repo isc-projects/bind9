@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -124,7 +125,7 @@ extern int h_errno;
 /* Number of addresses to request from bind9_getaddresses() */
 #define MAX_SERVERADDRS 4
 
-static isc_uint16_t dnsport = DNSDEFAULTPORT;
+static uint16_t dnsport = DNSDEFAULTPORT;
 
 #ifndef RESOLV_CONF
 #define RESOLV_CONF "/etc/resolv.conf"
@@ -188,7 +189,7 @@ static unsigned int udp_retries = 3;
 static dns_rdataclass_t defaultclass = dns_rdataclass_in;
 static dns_rdataclass_t zoneclass = dns_rdataclass_none;
 static dns_message_t *answer = NULL;
-static isc_uint32_t default_ttl = 0;
+static uint32_t default_ttl = 0;
 static isc_boolean_t default_ttl_set = ISC_FALSE;
 static isc_boolean_t checknames = ISC_TRUE;
 
@@ -239,10 +240,10 @@ recvgss(isc_task_t *task, isc_event_t *event);
 static void
 error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
-#define STATUS_MORE	(isc_uint16_t)0
-#define STATUS_SEND	(isc_uint16_t)1
-#define STATUS_QUIT	(isc_uint16_t)2
-#define STATUS_SYNTAX	(isc_uint16_t)3
+#define STATUS_MORE	(uint16_t)0
+#define STATUS_SEND	(uint16_t)1
+#define STATUS_QUIT	(uint16_t)2
+#define STATUS_SYNTAX	(uint16_t)3
 
 typedef struct entropysource entropysource_t;
 
@@ -450,9 +451,9 @@ reset_system(void) {
 
 static isc_boolean_t
 parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
-	   isc_uint16_t *digestbitsp)
+	   uint16_t *digestbitsp)
 {
-	isc_uint16_t digestbits = 0;
+	uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
 
@@ -563,7 +564,7 @@ setup_keystr(void) {
 	dns_name_t *mykeyname;
 	char *name;
 	const dns_name_t *hmacname = NULL;
-	isc_uint16_t digestbits = 0;
+	uint16_t digestbits = 0;
 
 	mykeyname = dns_fixedname_initname(&fkeyname);
 
@@ -1140,7 +1141,7 @@ pre_parse_args(int argc, char **argv) {
 static void
 parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	int ch;
-	isc_uint32_t i;
+	uint32_t i;
 	isc_result_t result;
 	isc_boolean_t force_interactive = ISC_FALSE;
 
@@ -1294,7 +1295,7 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	}
 }
 
-static isc_uint16_t
+static uint16_t
 parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_result_t result;
 	char *word;
@@ -1327,7 +1328,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	    dns_rdatatype_t rdatatype, dns_message_t *msg,
 	    dns_rdata_t *rdata)
@@ -1383,7 +1384,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	isc_result_t result;
 	char *word;
@@ -1394,7 +1395,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
 	dns_rdata_t *rdata = NULL;
-	isc_uint16_t retval;
+	uint16_t retval;
 
 	ddebug("make_prereq()");
 
@@ -1488,7 +1489,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	return (STATUS_SYNTAX);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_prereq(char *cmdline) {
 	char *word;
 	isc_boolean_t ispositive, isrrset;
@@ -1518,7 +1519,7 @@ evaluate_prereq(char *cmdline) {
 	return (make_prereq(cmdline, ispositive, isrrset));
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_server(char *cmdline) {
 	char *word, *server;
 	long port;
@@ -1574,7 +1575,7 @@ evaluate_server(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_local(char *cmdline) {
 	char *word, *local;
 	long port;
@@ -1624,7 +1625,7 @@ evaluate_local(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_key(char *cmdline) {
 	char *namestr;
 	char *secretstr;
@@ -1636,7 +1637,7 @@ evaluate_key(char *cmdline) {
 	unsigned char *secret = NULL;
 	isc_buffer_t secretbuf;
 	const dns_name_t *hmacname = NULL;
-	isc_uint16_t digestbits = 0;
+	uint16_t digestbits = 0;
 	char *n;
 
 	namestr = nsu_strsep(&cmdline, " \t\r\n");
@@ -1704,7 +1705,7 @@ evaluate_key(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_zone(char *cmdline) {
 	char *word;
 	isc_buffer_t b;
@@ -1729,7 +1730,7 @@ evaluate_zone(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_realm(char *cmdline) {
 #ifdef GSSAPI
 	char *word;
@@ -1760,11 +1761,11 @@ evaluate_realm(char *cmdline) {
 #endif
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_ttl(char *cmdline) {
 	char *word;
 	isc_result_t result;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (word == NULL || *word == 0) {
@@ -1793,7 +1794,7 @@ evaluate_ttl(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_class(char *cmdline) {
 	char *word;
 	isc_textregion_t r;
@@ -1826,11 +1827,11 @@ evaluate_class(char *cmdline) {
 	return (STATUS_MORE);
 }
 
-static isc_uint16_t
+static uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -1838,7 +1839,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
-	isc_uint16_t retval;
+	uint16_t retval;
 
 	ddebug("update_addordelete()");
 
@@ -2020,7 +2021,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	return (STATUS_SYNTAX);
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_update(char *cmdline) {
 	char *word;
 	isc_boolean_t isdelete;
@@ -2044,7 +2045,7 @@ evaluate_update(char *cmdline) {
 	return (update_addordelete(cmdline, isdelete));
 }
 
-static isc_uint16_t
+static uint16_t
 evaluate_checknames(char *cmdline) {
 	char *word;
 
@@ -2139,7 +2140,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 	isc_buffer_free(&buf);
 }
 
-static isc_uint16_t
+static uint16_t
 do_next_command(char *cmdline) {
 	char *word;
 
@@ -2257,9 +2258,9 @@ do_next_command(char *cmdline) {
 	return (STATUS_SYNTAX);
 }
 
-static isc_uint16_t
+static uint16_t
 get_next_command(void) {
-	isc_uint16_t result = STATUS_QUIT;
+	uint16_t result = STATUS_QUIT;
 	char cmdlinebuf[MAXCMD];
 	char *cmdline;
 
@@ -2297,7 +2298,7 @@ get_next_command(void) {
 
 static isc_boolean_t
 user_interaction(void) {
-	isc_uint16_t result = STATUS_MORE;
+	uint16_t result = STATUS_MORE;
 
 	ddebug("user_interaction()");
 	while ((result == STATUS_MORE) || (result == STATUS_SYNTAX)) {
@@ -2875,7 +2876,7 @@ start_gssrequest(dns_name_t *master) {
 	gss_ctx_id_t context;
 	isc_buffer_t buf;
 	isc_result_t result;
-	isc_uint32_t val = 0;
+	uint32_t val = 0;
 	dns_message_t *rmsg = NULL;
 	dns_request_t *request = NULL;
 	dns_name_t *servname;

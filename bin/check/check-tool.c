@@ -16,6 +16,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <stdint.h>
 
 #ifdef _WIN32
 #include <Winsock2.h>
@@ -735,7 +736,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	  dns_masterformat_t fileformat, const dns_master_style_t *style,
-	  const isc_uint32_t rawversion)
+	  const uint32_t rawversion)
 {
 	isc_result_t result;
 	FILE *output = stdout;

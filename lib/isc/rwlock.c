@@ -16,6 +16,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <stdint.h>
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
@@ -263,7 +264,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 
 static isc_result_t
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cntflag;
+	int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -337,7 +338,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 */
 		rwl->write_granted = 0;
 	} else {
-		isc_int32_t prev_writer;
+		int32_t prev_writer;
 
 		/* enter the waiting queue, and wait for our turn */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
@@ -364,7 +365,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 				(&rwl->cnt_and_flag, &cntflag2, WRITER_ACTIVE,
 				 memory_order_relaxed, memory_order_relaxed);
 #else
-			isc_int32_t cntflag2;
+			int32_t cntflag2;
 			cntflag2 = isc_atomic_cmpxchg(&rwl->cnt_and_flag, 0,
 						      WRITER_ACTIVE);
 #endif
@@ -393,8 +394,8 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cnt = 0;
-	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	int32_t cnt = 0;
+	int32_t max_cnt = rwl->spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
@@ -417,7 +418,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cntflag;
+	int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -534,7 +535,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 	}
 #else
 	{
-		isc_int32_t prevcnt;
+		int32_t prevcnt;
 
 		/* Try to acquire write access. */
 		prevcnt = isc_atomic_cmpxchg(&rwl->cnt_and_flag,
@@ -562,7 +563,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 void
 isc_rwlock_downgrade(isc_rwlock_t *rwl) {
-	isc_int32_t prev_readers;
+	int32_t prev_readers;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -603,7 +604,7 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 
 isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t prev_cnt;
+	int32_t prev_cnt;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -758,8 +759,8 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cnt = 0;
-	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	int32_t cnt = 0;
+	int32_t max_cnt = rwl->spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)

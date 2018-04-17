@@ -6,6 +6,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/util.h>
 
 #include <dns/dyndb.h>
@@ -146,7 +148,7 @@ static isc_result_t
 load_zone(dns_zone_t *zone) {
 	isc_result_t result;
 	isc_boolean_t zone_dynamic;
-	isc_uint32_t serial;
+	uint32_t serial;
 
 	result = dns_zone_load(zone);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE

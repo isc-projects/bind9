@@ -16,6 +16,7 @@
 #include <atf-c.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <inttypes.h>
 
@@ -201,7 +202,7 @@ ATF_TC_BODY(isc_sha1, tc) {
 		isc_sha1_init(&sha1);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_sha1_update(&sha1,
-					(const isc_uint8_t *) testcase->input,
+					(const uint8_t *) testcase->input,
 					testcase->input_len);
 		}
 		isc_sha1_final(&sha1, digest);
@@ -328,7 +329,7 @@ ATF_TC_BODY(isc_sha224, tc) {
 		isc_sha224_init(&sha224);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_sha224_update(&sha224,
-					  (const isc_uint8_t *) testcase->input,
+					  (const uint8_t *) testcase->input,
 					  testcase->input_len);
 		}
 		isc_sha224_final(digest, &sha224);
@@ -460,7 +461,7 @@ ATF_TC_BODY(isc_sha256, tc) {
 		isc_sha256_init(&sha256);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_sha256_update(&sha256,
-					  (const isc_uint8_t *) testcase->input,
+					  (const uint8_t *) testcase->input,
 					  testcase->input_len);
 		}
 		isc_sha256_final(digest, &sha256);
@@ -606,7 +607,7 @@ ATF_TC_BODY(isc_sha384, tc) {
 		isc_sha384_init(&sha384);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_sha384_update(&sha384,
-					  (const isc_uint8_t *) testcase->input,
+					  (const uint8_t *) testcase->input,
 					  testcase->input_len);
 		}
 		isc_sha384_final(digest, &sha384);
@@ -753,7 +754,7 @@ ATF_TC_BODY(isc_sha512, tc) {
 		isc_sha512_init(&sha512);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_sha512_update(&sha512,
-					  (const isc_uint8_t *) testcase->input,
+					  (const uint8_t *) testcase->input,
 					  testcase->input_len);
 		}
 		isc_sha512_final(digest, &sha512);
@@ -833,7 +834,7 @@ ATF_TC_BODY(isc_md5, tc) {
 		isc_md5_init(&md5);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_md5_update(&md5,
-				       (const isc_uint8_t *) testcase->input,
+				       (const uint8_t *) testcase->input,
 				       testcase->input_len);
 		}
 		isc_md5_final(&md5, digest);
@@ -964,7 +965,7 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacsha1_init(&hmacsha1, buffer, test_key->len);
 		isc_hmacsha1_update(&hmacsha1,
-				    (const isc_uint8_t *) testcase->input,
+				    (const uint8_t *) testcase->input,
 				    testcase->input_len);
 		isc_hmacsha1_sign(&hmacsha1, digest, ISC_SHA1_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str, sizeof(str));
@@ -1127,7 +1128,7 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacsha224_init(&hmacsha224, buffer, test_key->len);
 		isc_hmacsha224_update(&hmacsha224,
-				      (const isc_uint8_t *) testcase->input,
+				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha224_sign(&hmacsha224, digest, ISC_SHA224_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str, sizeof(str));
@@ -1290,7 +1291,7 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacsha256_init(&hmacsha256, buffer, test_key->len);
 		isc_hmacsha256_update(&hmacsha256,
-				      (const isc_uint8_t *) testcase->input,
+				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha256_sign(&hmacsha256, digest, ISC_SHA256_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str, sizeof(str));
@@ -1459,7 +1460,7 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacsha384_init(&hmacsha384, buffer, test_key->len);
 		isc_hmacsha384_update(&hmacsha384,
-				      (const isc_uint8_t *) testcase->input,
+				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha384_sign(&hmacsha384, digest, ISC_SHA384_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str, sizeof(str));
@@ -1628,7 +1629,7 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacsha512_init(&hmacsha512, buffer, test_key->len);
 		isc_hmacsha512_update(&hmacsha512,
-				      (const isc_uint8_t *) testcase->input,
+				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
 		isc_hmacsha512_sign(&hmacsha512, digest, ISC_SHA512_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str, sizeof(str));
@@ -1772,7 +1773,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 		memmove(buffer, test_key->key, test_key->len);
 		isc_hmacmd5_init(&hmacmd5, buffer, test_key->len);
 		isc_hmacmd5_update(&hmacmd5,
-				   (const isc_uint8_t *) testcase->input,
+				   (const uint8_t *) testcase->input,
 				   testcase->input_len);
 		isc_hmacmd5_sign(&hmacmd5, digest);
 		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
@@ -1790,7 +1791,7 @@ ATF_TC_HEAD(isc_crc64, tc) {
 	atf_tc_set_md_var(tc, "descr", "64-bit cyclic redundancy check");
 }
 ATF_TC_BODY(isc_crc64, tc) {
-	isc_uint64_t crc;
+	uint64_t crc;
 	int i;
 
 	UNUSED(tc);
@@ -1835,7 +1836,7 @@ ATF_TC_BODY(isc_crc64, tc) {
 		isc_crc64_init(&crc);
 		for(i = 0; i < testcase->repeats; i++) {
 			isc_crc64_update(&crc,
-				       (const isc_uint8_t *) testcase->input,
+				       (const uint8_t *) testcase->input,
 				       testcase->input_len);
 		}
 		isc_crc64_final(&crc);

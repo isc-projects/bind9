@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -207,7 +208,7 @@ typedef struct rr rr_t;
 
 struct rr {
 	/* dns_name_t name; */
-	isc_uint32_t		ttl;
+	uint32_t		ttl;
 	dns_rdata_t		rdata;
 };
 
@@ -1441,7 +1442,7 @@ update_soa_serial(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
 {
 	dns_difftuple_t *deltuple = NULL;
 	dns_difftuple_t *addtuple = NULL;
-	isc_uint32_t serial;
+	uint32_t serial;
 	isc_result_t result;
 
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_DEL, &deltuple));
@@ -1487,8 +1488,8 @@ static isc_result_t
 check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
 		    dns_rdata_t *update_rdata, isc_boolean_t *ok)
 {
-	isc_uint32_t db_serial;
-	isc_uint32_t update_serial;
+	uint32_t db_serial;
+	uint32_t update_serial;
 	isc_result_t result;
 
 	update_serial = dns_soa_getserial(update_rdata);
@@ -1945,7 +1946,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			continue;
 
 		if (tuple->rdata.type == dns_rdatatype_dnskey) {
-			isc_uint8_t alg;
+			uint8_t alg;
 			alg = tuple->rdata.data[3];
 			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
 			    alg == DST_ALG_DSA || alg == DST_ALG_ECC) {
@@ -2017,7 +2018,7 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	isc_boolean_t flag;
 	dns_name_t *name = dns_zone_getorigin(zone);
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
-	isc_uint32_t ttl = 0;
+	uint32_t ttl = 0;
 	isc_boolean_t ttl_good = ISC_FALSE;
 
 	update_log(client, zone, ISC_LOG_DEBUG(3),
@@ -2344,7 +2345,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	isc_boolean_t flag;
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_uint16_t keyid;
+	uint16_t keyid;
 	unsigned char buf[5];
 	dns_name_t *name = dns_db_origin(db);
 	dns_diff_t temp_diff;
@@ -2509,8 +2510,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t had_dnskey;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 	dns_ttl_t maxttl = 0;
-	isc_uint32_t maxrecords;
-	isc_uint64_t records;
+	uint32_t maxrecords;
+	uint64_t records;
 	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
@@ -3174,7 +3175,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 CHECK(dns_nsec3param_deletechains(db, ver, zone,
 							   ISC_TRUE, &diff));
 		} else if (has_dnskey && isdnssec(db, ver, privatetype)) {
-			isc_uint32_t interval;
+			uint32_t interval;
 			dns_update_log_t log;
 
 			interval = dns_zone_getsigvalidityinterval(zone);
@@ -3258,7 +3259,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		     tuple = ISC_LIST_NEXT(tuple, link)) {
 			isc_region_t r;
 			dns_secalg_t algorithm;
-			isc_uint16_t keyid;
+			uint16_t keyid;
 
 			if (tuple->rdata.type != dns_rdatatype_dnskey)
 				continue;

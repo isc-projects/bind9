@@ -53,6 +53,7 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -149,8 +150,8 @@ struct dns_view {
 	isc_boolean_t			sendcookie;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
-	isc_uint32_t			nta_lifetime;
-	isc_uint32_t			nta_recheck;
+	uint32_t			nta_lifetime;
+	uint32_t			nta_recheck;
 	char				*nta_file;
 	dns_ttl_t			prefetch_trigger;
 	dns_ttl_t			prefetch_eligible;
@@ -164,12 +165,12 @@ struct dns_view {
 	isc_boolean_t			checknames;
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
-	isc_uint16_t			maxudp;
+	uint16_t			maxudp;
 	dns_ttl_t			staleanswerttl;
 	dns_stale_answer_t		staleanswersok;		/* rndc setting */
 	isc_boolean_t			staleanswersenable;	/* named.conf setting */
-	isc_uint16_t			nocookieudp;
-	isc_uint16_t			padding;
+	uint16_t			nocookieudp;
+	uint16_t			padding;
 	dns_acl_t *			pad_acl;
 	unsigned int			maxbits;
 	dns_aaaa_t			v4_aaaa;
@@ -181,7 +182,7 @@ struct dns_view {
 	dns_catz_zones_t		*catzs;
 	dns_dlzdblist_t 		dlz_searched;
 	dns_dlzdblist_t 		dlz_unsearched;
-	isc_uint32_t			fail_ttl;
+	uint32_t			fail_ttl;
 	dns_badcache_t			*failcache;
 
 	/*
@@ -220,7 +221,7 @@ struct dns_view {
 	char *				new_zone_file;
 	char *				new_zone_db;
 	void *				new_zone_dbenv;
-	isc_uint64_t			new_zone_mapsize;
+	uint64_t			new_zone_mapsize;
 	void *				new_zone_config;
 	void				(*cfg_destroy)(void **);
 	isc_mutex_t			new_zone_lock;
@@ -1229,7 +1230,7 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
-		     void (*cfg_destroy)(void **), isc_uint64_t mapsize);
+		     void (*cfg_destroy)(void **), uint64_t mapsize);
 /*%<
  * Set whether or not to allow zones to be created or deleted at runtime.
  *
@@ -1291,7 +1292,7 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
  * \li 'dbp' is not NULL and *dbp is NULL.
  */
 
-isc_uint32_t
+uint32_t
 dns_view_getfailttl(dns_view_t *view);
 /*%<
  * Get the view's servfail-ttl.  zero => no servfail caching.
@@ -1301,7 +1302,7 @@ dns_view_getfailttl(dns_view_t *view);
  */
 
 void
-dns_view_setfailttl(dns_view_t *view, isc_uint32_t failttl);
+dns_view_setfailttl(dns_view_t *view, uint32_t failttl);
 /*%<
  * Set the view's servfail-ttl.  zero => no servfail caching.
  *

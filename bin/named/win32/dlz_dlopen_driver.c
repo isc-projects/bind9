@@ -16,8 +16,9 @@
 #include <windows.h>
 
 #include <stdio.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <dns/log.h>
 #include <dns/result.h>
@@ -468,7 +469,7 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
  */
 static isc_boolean_t
 dlopen_dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
-		    const char *type, const char *key, isc_uint32_t keydatalen,
+		    const char *type, const char *key, uint32_t keydatalen,
 		    unsigned char *keydata, void *driverarg, void *dbdata)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;

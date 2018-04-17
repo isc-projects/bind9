@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
@@ -739,7 +740,7 @@ cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
 	char *endp;
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	isc_uint64_t percent;
+	uint64_t percent;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
@@ -761,7 +762,7 @@ cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
 	}
 
 	CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
-	obj->value.uint32 = (isc_uint32_t)percent;
+	obj->value.uint32 = (uint32_t)percent;
 	*ret = obj;
 
  cleanup:
@@ -781,7 +782,7 @@ cfg_print_percentage(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_chars(pctx, buf, strlen(buf));
 }
 
-isc_uint32_t
+uint32_t
 cfg_obj_aspercentage(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_percentage);
 	return (obj->value.uint32);
@@ -867,7 +868,7 @@ cfg_print_fixedpoint(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_chars(pctx, buf, strlen(buf));
 }
 
-isc_uint32_t
+uint32_t
 cfg_obj_asfixedpoint(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_fixedpoint);
 	return (obj->value.uint32);
@@ -935,7 +936,7 @@ cfg_obj_isuint32(const cfg_obj_t *obj) {
 	return (ISC_TF(obj->type->rep == &cfg_rep_uint32));
 }
 
-isc_uint32_t
+uint32_t
 cfg_obj_asuint32(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_uint32);
 	return (obj->value.uint32);
@@ -956,7 +957,7 @@ cfg_obj_isuint64(const cfg_obj_t *obj) {
 	return (ISC_TF(obj->type->rep == &cfg_rep_uint64));
 }
 
-isc_uint64_t
+uint64_t
 cfg_obj_asuint64(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_uint64);
 	return (obj->value.uint64);
@@ -2306,7 +2307,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 		if ((flags & CFG_ADDR_V6OK) != 0 && strlen(s) <= 127U) {
 			char buf[128]; /* see lib/bind9/getaddresses.c */
 			char *d; /* zone delimiter */
-			isc_uint32_t zone = 0; /* scope zone ID */
+			uint32_t zone = 0; /* scope zone ID */
 
 			strlcpy(buf, s, sizeof(buf));
 			d = strchr(buf, '%');
