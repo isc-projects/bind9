@@ -28,7 +28,7 @@ ATF_TC_BODY(isc_counter, tc) {
 	isc_counter_t *counter = NULL;
 	int i;
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_counter_create(mctx, 0, &counter);

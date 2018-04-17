@@ -15,6 +15,8 @@
  * \brief SHA-1 in C
  */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
@@ -46,7 +48,7 @@ isc_sha1_update(isc_sha1_t *ctx, const unsigned char *data, unsigned int len);
 void
 isc_sha1_final(isc_sha1_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_sha1_check(isc_boolean_t testing);
+bool
+isc_sha1_check(bool testing);
 
 ISC_LANG_ENDDECLS

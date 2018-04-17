@@ -56,7 +56,7 @@ tick(isc_task_t *task, isc_event_t *event) {
 		isc_interval_set(&interval, 4, 0);
 		printf("*** resetting ti3 ***\n");
 		RUNTIME_CHECK(isc_timer_reset(ti3, isc_timertype_once,
-					      &expires, &interval, ISC_TRUE) ==
+					      &expires, &interval, true) ==
 			      ISC_R_SUCCESS);
 	}
 

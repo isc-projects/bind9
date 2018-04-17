@@ -77,6 +77,8 @@
  *	None.
  */
 
+#include <stdbool.h>
+
 #include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -196,14 +198,14 @@ isc_app_run(void);
  *\li	ISC_R_RELOAD			Reload has been requested.
  */
 
-isc_boolean_t
+bool
 isc_app_isrunning(void);
 /*!<
  * \brief Return if the ISC library application is running.
  *
  * Returns:
- *\li	ISC_TRUE    App is running.
- *\li	ISC_FALSE   App is not running.
+ *\li	true    App is running.
+ *\li	false   App is not running.
  */
 
 isc_result_t

@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/app.h>
 #include <isc/condition.h>
 #include <isc/event.h>
@@ -147,9 +149,9 @@ struct isc__taskmgr {
 #endif /* ISC_PLATFORM_USETHREADS */
 	unsigned int			tasks_running;
 	unsigned int			tasks_ready;
-	isc_boolean_t			pause_requested;
-	isc_boolean_t			exclusive_requested;
-	isc_boolean_t			exiting;
+	bool			pause_requested;
+	bool			exclusive_requested;
+	bool			exiting;
 
 	/*
 	 * Multiple threads can read/write 'excl' at the same time, so we need
@@ -194,7 +196,7 @@ isc__task_purgerange(isc_task_t *task0, void *sender, isc_eventtype_t first,
 unsigned int
 isc__task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
 		void *tag);
-isc_boolean_t
+bool
 isc_task_purgeevent(isc_task_t *task0, isc_event_t *event);
 unsigned int
 isc__task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
@@ -234,15 +236,15 @@ isc__task_beginexclusive(isc_task_t *task);
 void
 isc__task_endexclusive(isc_task_t *task0);
 void
-isc__task_setprivilege(isc_task_t *task0, isc_boolean_t priv);
-isc_boolean_t
+isc__task_setprivilege(isc_task_t *task0, bool priv);
+bool
 isc__task_privilege(isc_task_t *task0);
 void
 isc__taskmgr_setmode(isc_taskmgr_t *manager0, isc_taskmgrmode_t mode);
 isc_taskmgrmode_t
 isc__taskmgr_mode(isc_taskmgr_t *manager0);
 
-static inline isc_boolean_t
+static inline bool
 empty_readyq(isc__taskmgr_t *manager);
 
 static inline isc__task_t *
@@ -337,7 +339,7 @@ isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	isc__task_t *task;
-	isc_boolean_t exiting;
+	bool exiting;
 	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -368,14 +370,14 @@ isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	INIT_LINK(task, ready_link);
 	INIT_LINK(task, ready_priority_link);
 
-	exiting = ISC_FALSE;
+	exiting = false;
 	LOCK(&manager->lock);
 	if (!manager->exiting) {
 		if (task->quantum == 0)
 			task->quantum = manager->default_quantum;
 		APPEND(manager->tasks, task, link);
 	} else
-		exiting = ISC_TRUE;
+		exiting = true;
 	UNLOCK(&manager->lock);
 
 	if (exiting) {
@@ -412,9 +414,9 @@ isc__task_attach(isc_task_t *source0, isc_task_t **targetp) {
 	*targetp = (isc_task_t *)source;
 }
 
-static inline isc_boolean_t
+static inline bool
 task_shutdown(isc__task_t *task) {
-	isc_boolean_t was_idle = ISC_FALSE;
+	bool was_idle = false;
 	isc_event_t *event, *prev;
 
 	/*
@@ -430,7 +432,7 @@ task_shutdown(isc__task_t *task) {
 		if (task->state == task_state_idle) {
 			INSIST(EMPTY(task->events));
 			task->state = task_state_ready;
-			was_idle = ISC_TRUE;
+			was_idle = true;
 		}
 		INSIST(task->state == task_state_ready ||
 		       task->state == task_state_running);
@@ -460,7 +462,7 @@ static inline void
 task_ready(isc__task_t *task) {
 	isc__taskmgr_t *manager = task->manager;
 #ifdef USE_WORKER_THREADS
-	isc_boolean_t has_privilege = isc__task_privilege((isc_task_t *) task);
+	bool has_privilege = isc__task_privilege((isc_task_t *) task);
 #endif /* USE_WORKER_THREADS */
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -477,7 +479,7 @@ task_ready(isc__task_t *task) {
 	UNLOCK(&manager->lock);
 }
 
-static inline isc_boolean_t
+static inline bool
 task_detach(isc__task_t *task) {
 
 	/*
@@ -500,16 +502,16 @@ task_detach(isc__task_t *task) {
 		 * loop to deal with shutting down and termination.
 		 */
 		task->state = task_state_ready;
-		return (ISC_TRUE);
+		return (true);
 	}
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 void
 isc__task_detach(isc_task_t **taskp) {
 	isc__task_t *task;
-	isc_boolean_t was_idle;
+	bool was_idle;
 
 	/*
 	 * Detach *taskp from its task.
@@ -531,9 +533,9 @@ isc__task_detach(isc_task_t **taskp) {
 	*taskp = NULL;
 }
 
-static inline isc_boolean_t
+static inline bool
 task_send(isc__task_t *task, isc_event_t **eventp) {
-	isc_boolean_t was_idle = ISC_FALSE;
+	bool was_idle = false;
 	isc_event_t *event;
 
 	/*
@@ -550,7 +552,7 @@ task_send(isc__task_t *task, isc_event_t **eventp) {
 	XTRACE("task_send");
 
 	if (task->state == task_state_idle) {
-		was_idle = ISC_TRUE;
+		was_idle = true;
 		INSIST(EMPTY(task->events));
 		task->state = task_state_ready;
 	}
@@ -566,7 +568,7 @@ task_send(isc__task_t *task, isc_event_t **eventp) {
 void
 isc__task_send(isc_task_t *task0, isc_event_t **eventp) {
 	isc__task_t *task = (isc__task_t *)task0;
-	isc_boolean_t was_idle;
+	bool was_idle;
 
 	/*
 	 * Send '*event' to 'task'.
@@ -607,7 +609,7 @@ isc__task_send(isc_task_t *task0, isc_event_t **eventp) {
 
 void
 isc__task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
-	isc_boolean_t idle1, idle2;
+	bool idle1, idle2;
 	isc__task_t *task;
 
 	/*
@@ -644,7 +646,7 @@ isc__task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 static unsigned int
 dequeue_events(isc__task_t *task, void *sender, isc_eventtype_t first,
 	       isc_eventtype_t last, void *tag,
-	       isc_eventlist_t *events, isc_boolean_t purging)
+	       isc_eventlist_t *events, bool purging)
 {
 	isc_event_t *event, *next_event;
 	unsigned int count = 0;
@@ -700,7 +702,7 @@ isc__task_purgerange(isc_task_t *task0, void *sender, isc_eventtype_t first,
 	ISC_LIST_INIT(events);
 
 	count = dequeue_events(task, sender, first, last, tag, &events,
-			       ISC_TRUE);
+			       true);
 
 	for (event = HEAD(events); event != NULL; event = next_event) {
 		next_event = NEXT(event, ev_link);
@@ -728,7 +730,7 @@ isc__task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
 	return (isc__task_purgerange(task, sender, type, type, tag));
 }
 
-isc_boolean_t
+bool
 isc_task_purgeevent(isc_task_t *task0, isc_event_t *event) {
 	isc__task_t *task = (isc__task_t *)task0;
 	isc_event_t *curr_event, *next_event;
@@ -765,11 +767,11 @@ isc_task_purgeevent(isc_task_t *task0, isc_event_t *event) {
 	UNLOCK(&task->lock);
 
 	if (curr_event == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	isc_event_free(&curr_event);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 unsigned int
@@ -784,7 +786,7 @@ isc__task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
 	XTRACE("isc_task_unsendrange");
 
 	return (dequeue_events((isc__task_t *)task, sender, first,
-			       last, tag, events, ISC_FALSE));
+			       last, tag, events, false));
 }
 
 unsigned int
@@ -798,7 +800,7 @@ isc__task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
 	XTRACE("isc_task_unsend");
 
 	return (dequeue_events((isc__task_t *)task, sender, type,
-			       type, tag, events, ISC_FALSE));
+			       type, tag, events, false));
 }
 
 isc_result_t
@@ -806,7 +808,7 @@ isc__task_onshutdown(isc_task_t *task0, isc_taskaction_t action,
 		     void *arg)
 {
 	isc__task_t *task = (isc__task_t *)task0;
-	isc_boolean_t disallowed = ISC_FALSE;
+	bool disallowed = false;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *event;
 
@@ -829,7 +831,7 @@ isc__task_onshutdown(isc_task_t *task0, isc_taskaction_t action,
 
 	LOCK(&task->lock);
 	if (TASK_SHUTTINGDOWN(task)) {
-		disallowed = ISC_TRUE;
+		disallowed = true;
 		result = ISC_R_SHUTTINGDOWN;
 	} else
 		ENQUEUE(task->on_shutdown, event, ev_link);
@@ -844,7 +846,7 @@ isc__task_onshutdown(isc_task_t *task0, isc_taskaction_t action,
 void
 isc__task_shutdown(isc_task_t *task0) {
 	isc__task_t *task = (isc__task_t *)task0;
-	isc_boolean_t was_idle;
+	bool was_idle;
 
 	/*
 	 * Shutdown 'task'.
@@ -936,13 +938,13 @@ isc__task_getcurrenttimex(isc_task_t *task0, isc_time_t *t) {
  ***/
 
 /*
- * Return ISC_TRUE if the current ready list for the manager, which is
+ * Return true if the current ready list for the manager, which is
  * either ready_tasks or the ready_priority_tasks, depending on whether
  * the manager is currently in normal or privileged execution mode.
  *
  * Caller must hold the task manager lock.
  */
-static inline isc_boolean_t
+static inline bool
 empty_readyq(isc__taskmgr_t *manager) {
 	isc__tasklist_t queue;
 
@@ -951,7 +953,7 @@ empty_readyq(isc__taskmgr_t *manager) {
 	else
 		queue = manager->ready_priority_tasks;
 
-	return (ISC_TF(EMPTY(queue)));
+	return (EMPTY(queue));
 }
 
 /*
@@ -1098,9 +1100,9 @@ dispatch(isc__taskmgr_t *manager) {
 		task = pop_readyq(manager);
 		if (task != NULL) {
 			unsigned int dispatch_count = 0;
-			isc_boolean_t done = ISC_FALSE;
-			isc_boolean_t requeue = ISC_FALSE;
-			isc_boolean_t finished = ISC_FALSE;
+			bool done = false;
+			bool requeue = false;
+			bool finished = false;
 			isc_event_t *event;
 
 			INSIST(VALID_TASK(task));
@@ -1150,7 +1152,7 @@ dispatch(isc__taskmgr_t *manager) {
 				if (task->references == 0 &&
 				    EMPTY(task->events) &&
 				    !TASK_SHUTTINGDOWN(task)) {
-					isc_boolean_t was_idle;
+					bool was_idle;
 
 					/*
 					 * There are no references and no
@@ -1197,11 +1199,11 @@ dispatch(isc__taskmgr_t *manager) {
 							       ISC_MSGSET_TASK,
 							       ISC_MSG_DONE,
 							       "done"));
-						finished = ISC_TRUE;
+						finished = true;
 						task->state = task_state_done;
 					} else
 						task->state = task_state_idle;
-					done = ISC_TRUE;
+					done = true;
 				} else if (dispatch_count >= task->quantum) {
 					/*
 					 * Our quantum has expired, but
@@ -1218,8 +1220,8 @@ dispatch(isc__taskmgr_t *manager) {
 							      ISC_MSG_QUANTUM,
 							      "quantum"));
 					task->state = task_state_ready;
-					requeue = ISC_TRUE;
-					done = ISC_TRUE;
+					requeue = true;
+					done = true;
 				}
 			} while (!done);
 			UNLOCK(&task->lock);
@@ -1432,9 +1434,9 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	INIT_LIST(manager->ready_priority_tasks);
 	manager->tasks_running = 0;
 	manager->tasks_ready = 0;
-	manager->exclusive_requested = ISC_FALSE;
-	manager->pause_requested = ISC_FALSE;
-	manager->exiting = ISC_FALSE;
+	manager->exclusive_requested = false;
+	manager->pause_requested = false;
+	manager->exiting = false;
 	manager->excl = NULL;
 
 	isc_mem_attach(mctx, &manager->mctx);
@@ -1546,7 +1548,7 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 * Make sure we only get called once.
 	 */
 	INSIST(!manager->exiting);
-	manager->exiting = ISC_TRUE;
+	manager->exiting = true;
 
 	/*
 	 * If privileged mode was on, turn it off.
@@ -1627,17 +1629,17 @@ isc__taskmgr_mode(isc_taskmgr_t *manager0) {
 }
 
 #ifndef USE_WORKER_THREADS
-isc_boolean_t
+bool
 isc__taskmgr_ready(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
-	isc_boolean_t is_ready;
+	bool is_ready;
 
 #ifdef USE_SHARED_MANAGER
 	if (manager == NULL)
 		manager = taskmgr;
 #endif
 	if (manager == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	LOCK(&manager->lock);
 	is_ready = !empty_readyq(manager);
@@ -1666,7 +1668,7 @@ isc__taskmgr_dispatch(isc_taskmgr_t *manager0) {
 void
 isc__taskmgr_pause(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
-	manager->pause_requested = ISC_TRUE;
+	manager->pause_requested = true;
 	LOCK(&manager->lock);
 	while (manager->tasks_running > 0) {
 		WAIT(&manager->paused, &manager->lock);
@@ -1680,7 +1682,7 @@ isc__taskmgr_resume(isc_taskmgr_t *manager0) {
 
 	LOCK(&manager->lock);
 	if (manager->pause_requested) {
-		manager->pause_requested = ISC_FALSE;
+		manager->pause_requested = false;
 		BROADCAST(&manager->work_available);
 	}
 	UNLOCK(&manager->lock);
@@ -1736,7 +1738,7 @@ isc__task_beginexclusive(isc_task_t *task0) {
 		UNLOCK(&manager->lock);
 		return (ISC_R_LOCKBUSY);
 	}
-	manager->exclusive_requested = ISC_TRUE;
+	manager->exclusive_requested = true;
 	while (manager->tasks_running > 1) {
 		WAIT(&manager->exclusive_granted, &manager->lock);
 	}
@@ -1756,7 +1758,7 @@ isc__task_endexclusive(isc_task_t *task0) {
 	REQUIRE(task->state == task_state_running);
 	LOCK(&manager->lock);
 	REQUIRE(manager->exclusive_requested);
-	manager->exclusive_requested = ISC_FALSE;
+	manager->exclusive_requested = false;
 	BROADCAST(&manager->work_available);
 	UNLOCK(&manager->lock);
 #else
@@ -1765,13 +1767,13 @@ isc__task_endexclusive(isc_task_t *task0) {
 }
 
 void
-isc__task_setprivilege(isc_task_t *task0, isc_boolean_t priv) {
+isc__task_setprivilege(isc_task_t *task0, bool priv) {
 	isc__task_t *task = (isc__task_t *)task0;
 	isc__taskmgr_t *manager = task->manager;
-	isc_boolean_t oldpriv;
+	bool oldpriv;
 
 	LOCK(&task->lock);
-	oldpriv = ISC_TF((task->flags & TASK_F_PRIVILEGED) != 0);
+	oldpriv = (task->flags & TASK_F_PRIVILEGED);
 	if (priv)
 		task->flags |= TASK_F_PRIVILEGED;
 	else
@@ -1791,13 +1793,13 @@ isc__task_setprivilege(isc_task_t *task0, isc_boolean_t priv) {
 	UNLOCK(&manager->lock);
 }
 
-isc_boolean_t
+bool
 isc__task_privilege(isc_task_t *task0) {
 	isc__task_t *task = (isc__task_t *)task0;
-	isc_boolean_t priv;
+	bool priv;
 
 	LOCK(&task->lock);
-	priv = ISC_TF((task->flags & TASK_F_PRIVILEGED) != 0);
+	priv = (task->flags & TASK_F_PRIVILEGED);
 	UNLOCK(&task->lock);
 	return (priv);
 }
@@ -1807,7 +1809,7 @@ isc__task_register(void) {
 	return (isc_task_register(isc__taskmgr_create));
 }
 
-isc_boolean_t
+bool
 isc_task_exiting(isc_task_t *t) {
 	isc__task_t *task = (isc__task_t *)t;
 
@@ -2279,7 +2281,7 @@ isc_task_endexclusive(isc_task_t *task) {
 }
 
 void
-isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv) {
+isc_task_setprivilege(isc_task_t *task, bool priv) {
 	REQUIRE(ISCAPI_TASK_VALID(task));
 
 	if (isc_bind9)
@@ -2288,7 +2290,7 @@ isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv) {
 		task->methods->setprivilege(task, priv);
 }
 
-isc_boolean_t
+bool
 isc_task_privilege(isc_task_t *task) {
 	REQUIRE(ISCAPI_TASK_VALID(task));
 

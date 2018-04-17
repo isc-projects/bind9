@@ -130,7 +130,7 @@ digest_ninfo(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_ninfo(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_ninfo);
@@ -140,10 +140,10 @@ checkowner_ninfo(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_ninfo(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
@@ -152,7 +152,7 @@ checknames_ninfo(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
