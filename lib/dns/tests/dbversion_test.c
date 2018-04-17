@@ -15,11 +15,12 @@
 
 #include <config.h>
 
-#include <atf-c.h>
-
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+
+#include <atf-c.h>
 
 #include <isc/file.h>
 #include <isc/result.h>
@@ -565,8 +566,8 @@ static void
 getnsec3parameters(isc_assertioncallback_t callback) {
 	isc_result_t result;
 	dns_hash_t hash;
-	isc_uint8_t flags;
-	isc_uint16_t iterations;
+	uint8_t flags;
+	uint16_t iterations;
 	unsigned char salt[DNS_NSEC3_SALTSIZE];
 	size_t salt_length = sizeof(salt);
 

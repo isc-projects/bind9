@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -49,7 +50,7 @@ LIBISC_EXTERNAL_DATA isc_boolean_t pk11_verbose_init = ISC_FALSE;
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mem_t *pk11_mctx = NULL;
-static isc_int32_t allocsize = 0;
+static int32_t allocsize = 0;
 static isc_boolean_t initialized = ISC_FALSE;
 
 typedef struct pk11_session pk11_session_t;

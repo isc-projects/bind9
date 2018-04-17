@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -105,7 +106,7 @@ static isc_boolean_t display_authority = ISC_TRUE;
 static isc_boolean_t display_additional = ISC_TRUE;
 static isc_boolean_t display_unknown_format = ISC_FALSE;
 static isc_boolean_t continue_on_error = ISC_FALSE;
-static isc_uint32_t display_splitwidth = 0xffffffff;
+static uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
 static char *server;
 static isc_sockaddr_t dstaddr;
@@ -130,8 +131,8 @@ struct query {
 	isc_boolean_t nsid;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	isc_uint16_t udpsize;
-	isc_int16_t edns;
+	uint16_t udpsize;
+	int16_t edns;
 	dns_ednsopt_t *ednsopts;
 	unsigned int ednsoptscnt;
 	unsigned int ednsflags;
@@ -491,7 +492,7 @@ cleanup:
  * (e.g., NSID, COOKIE, client-subnet)
  */
 static void
-add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
+add_opt(dns_message_t *msg, uint16_t udpsize, uint16_t edns,
 	unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
@@ -588,8 +589,8 @@ sendquery(struct query *query, isc_task_t *task)
 		}
 
 		if (query->ecs_addr != NULL) {
-			isc_uint8_t addr[16], family;
-			isc_uint32_t plen;
+			uint8_t addr[16], family;
+			uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
 			struct sockaddr_in6 *sin6;
@@ -604,7 +605,7 @@ sendquery(struct query *query, isc_task_t *task)
 
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
-			opts[i].length = (isc_uint16_t) addrl + 4;
+			opts[i].length = (uint16_t) addrl + 4;
 			CHECK("isc_buffer_allocate", result);
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
@@ -635,7 +636,7 @@ sendquery(struct query *query, isc_task_t *task)
 				isc_buffer_putmem(&b, addr,
 						  (unsigned)addrl);
 
-			opts[i].value = (isc_uint8_t *) ecsbuf;
+			opts[i].value = (uint8_t *) ecsbuf;
 			i++;
 		}
 
@@ -813,9 +814,9 @@ fatal(const char *format, ...) {
 }
 
 static isc_result_t
-parse_uint_helper(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_uint_helper(uint32_t *uip, const char *value, uint32_t max,
 		  const char *desc, int base) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = isc_parse_uint32(&n, value, base);
 	if (result == ISC_R_SUCCESS && n > max)
 		result = ISC_R_RANGE;
@@ -829,13 +830,13 @@ parse_uint_helper(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 }
 
 static isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_uint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc) {
 	return (parse_uint_helper(uip, value, max, desc, 10));
 }
 
 static isc_result_t
-parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_xint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc) {
 	return (parse_uint_helper(uip, value, max, desc, 0));
 }
@@ -845,7 +846,7 @@ static unsigned char ednsoptscnt = 0;
 
 static void
 save_opt(struct query *query, char *code, char *value) {
-	isc_uint32_t num;
+	uint32_t num;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -884,7 +885,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	isc_sockaddr_t *sa = NULL;
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_uint32_t netmask = 0xffffffff;
+	uint32_t netmask = 0xffffffff;
 	char *slash = NULL;
 	isc_boolean_t parsed = ISC_FALSE;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX/128")];
@@ -1026,7 +1027,7 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 {
 	isc_result_t result;
 	char *cmd, *value, *last, *code;
-	isc_uint32_t num;
+	uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
@@ -1525,7 +1526,7 @@ dash_option(const char *option, char *next, struct query *query,
 	struct in6_addr in6;
 	in_port_t srcport;
 	char *hash;
-	isc_uint32_t num;
+	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*

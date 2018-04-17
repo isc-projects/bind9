@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdint.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -33,7 +34,7 @@ ATF_TC_HEAD(parse_overflow, tc) {
 }
 ATF_TC_BODY(parse_overflow, tc) {
 	isc_result_t result;
-	isc_uint32_t output;
+	uint32_t output;
 	UNUSED(tc);
 
 	result = isc_test_begin(NULL, ISC_TRUE, 0);

@@ -16,6 +16,8 @@
  * Id: defs.h,v 1.5.2.2 2000/01/15 14:19:16 masaki Exp
  */
 
+#include <stdint.h>
+
 #include <isc/magic.h>
 #include <isc/types.h>
 #include <isc/mutex.h>
@@ -97,7 +99,7 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 
 typedef struct isc_radix_node {
 	isc_mem_t *mctx;
-	isc_uint32_t bit;		/* bit length of the prefix */
+	uint32_t bit;		/* bit length of the prefix */
 	isc_prefix_t *prefix;		/* who we are in radix tree */
 	struct isc_radix_node *l, *r;	/* left and right children */
 	struct isc_radix_node *parent;	/* may be used */
@@ -113,7 +115,7 @@ typedef struct isc_radix_tree {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_radix_node_t *head;
-	isc_uint32_t maxbits;		/* for IP, 32 bit addresses */
+	uint32_t maxbits;		/* for IP, 32 bit addresses */
 	int num_active_node;		/* for debugging purposes */
 	int num_added_node;		/* total number of nodes */
 } isc_radix_tree_t;

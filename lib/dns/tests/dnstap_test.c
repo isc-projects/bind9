@@ -16,6 +16,7 @@
 #include <atf-c.h>
 
 #include <unistd.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -121,7 +122,7 @@ ATF_TC_BODY(send, tc) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
 	dns_dthandle_t *handle = NULL;
-	isc_uint8_t *data;
+	uint8_t *data;
 	size_t dsize;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	unsigned char qambuffer[4096], rambuffer[4096];
@@ -290,7 +291,7 @@ ATF_TC_HEAD(totext, tc) {
 ATF_TC_BODY(totext, tc) {
 	isc_result_t result;
 	dns_dthandle_t *handle = NULL;
-	isc_uint8_t *data;
+	uint8_t *data;
 	size_t dsize;
 	FILE *fp = NULL;
 

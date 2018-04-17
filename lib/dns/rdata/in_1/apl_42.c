@@ -23,8 +23,8 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 	isc_token_t token;
 	unsigned char addr[16];
 	unsigned long afi;
-	isc_uint8_t prefix;
-	isc_uint8_t len;
+	uint8_t prefix;
+	uint8_t len;
 	isc_boolean_t neg;
 	char *cp, *ap, *slash;
 	int n;
@@ -105,9 +105,9 @@ static inline isc_result_t
 totext_in_apl(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t ir;
-	isc_uint16_t afi;
-	isc_uint8_t prefix;
-	isc_uint8_t len;
+	uint16_t afi;
+	uint8_t prefix;
+	uint8_t len;
 	isc_boolean_t neg;
 	unsigned char buf[16];
 	char txt[sizeof(" !64000:")];
@@ -170,9 +170,9 @@ static inline isc_result_t
 fromwire_in_apl(ARGS_FROMWIRE) {
 	isc_region_t sr, sr2;
 	isc_region_t tr;
-	isc_uint16_t afi;
-	isc_uint8_t prefix;
-	isc_uint8_t len;
+	uint16_t afi;
+	uint8_t prefix;
+	uint8_t len;
 
 	REQUIRE(type == dns_rdatatype_apl);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -300,7 +300,7 @@ freestruct_in_apl(ARGS_FREESTRUCT) {
 
 isc_result_t
 dns_rdata_apl_first(dns_rdata_in_apl_t *apl) {
-	isc_uint32_t length;
+	uint32_t length;
 
 	REQUIRE(apl != NULL);
 	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);
@@ -326,7 +326,7 @@ dns_rdata_apl_first(dns_rdata_in_apl_t *apl) {
 
 isc_result_t
 dns_rdata_apl_next(dns_rdata_in_apl_t *apl) {
-	isc_uint32_t length;
+	uint32_t length;
 
 	REQUIRE(apl != NULL);
 	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);
@@ -358,7 +358,7 @@ dns_rdata_apl_next(dns_rdata_in_apl_t *apl) {
 
 isc_result_t
 dns_rdata_apl_current(dns_rdata_in_apl_t *apl, dns_rdata_apl_ent_t *ent) {
-	isc_uint32_t length;
+	uint32_t length;
 
 	REQUIRE(apl != NULL);
 	REQUIRE(apl->common.rdtype == dns_rdatatype_apl);

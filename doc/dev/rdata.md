@@ -393,27 +393,27 @@ empty otherwise `ISC_FALSE`.
 Make `buffer` refer to the memory in `region` and make it active.
 
         static dns_result_t
-        uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target);
+        uint32_tobuffer(uint32_t value, isc_buffer_t *target);
 
 Write the 32 bit `value` in network order to `target`.
 
 Returns `DNS_R_NOSPACE` and `DNS_R_SUCCESS`.
 
 static dns_result_t
-uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target);
+uint16_tobuffer(uint32_t value, isc_buffer_t *target);
 
 Write them 16 bit `value` in network order to `target`.
 
 Returns `ISC_R_RANGE`, `DNS_R_NOSPACE` and `DNS_R_SUCCESS`.
 
-        static isc_uint32_t
+        static uint32_t
         uint32_fromregion(isc_region_t *region);
 
 Returns the 32 bit at the start of `region` in host byte order.
 
 Requires `(region->length >= 4)`.
 
-        static isc_uint16_t
+        static uint16_t
         uint16_fromregion(isc_region_t *region);
 
 Returns the 16 bit at the start of `region` in host byte order.
