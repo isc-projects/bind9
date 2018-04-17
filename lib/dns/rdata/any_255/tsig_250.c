@@ -40,7 +40,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Algorithm Name.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL)
@@ -51,7 +51,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Time Signed: 48 bits.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	sigtime = strtoull(DNS_AS_STR(token), &e, 10);
 	if (*e != 0)
 		RETTOK(DNS_R_SYNTAX);
@@ -64,7 +64,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Fudge.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -73,7 +73,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Signature Size.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -87,7 +87,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Original ID.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -96,7 +96,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Error.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
 				!= ISC_R_SUCCESS)
 	{
@@ -113,7 +113,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	 * Other Len.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
@@ -132,7 +132,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 	char *bufp;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 	uint64_t sigtime;
 	unsigned short n;
 
@@ -563,7 +563,7 @@ digest_any_tsig(ARGS_DIGEST) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_any_tsig(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_tsig);
@@ -574,10 +574,10 @@ checkowner_any_tsig(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_any_tsig(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_tsig);
@@ -587,7 +587,7 @@ checknames_any_tsig(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

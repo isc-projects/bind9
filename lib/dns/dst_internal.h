@@ -28,6 +28,7 @@
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -141,12 +142,12 @@ struct dst_key {
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
 
 	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< timing metadata */
-	isc_boolean_t	timeset[DST_MAX_TIMES + 1];  /*%< data set? */
+	bool	timeset[DST_MAX_TIMES + 1];  /*%< data set? */
 	isc_stdtime_t	nums[DST_MAX_NUMERIC + 1];   /*%< numeric metadata */
-	isc_boolean_t	numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
-	isc_boolean_t 	inactive;      /*%< private key not present as it is
+	bool	numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
+	bool 	inactive;      /*%< private key not present as it is
 					    inactive */
-	isc_boolean_t 	external;      /*%< external key */
+	bool 	external;      /*%< external key */
 
 	int		fmt_major;     /*%< private key format, major version */
 	int		fmt_minor;     /*%< private key format, minor version */
@@ -206,12 +207,12 @@ struct dst_func {
 	isc_result_t (*computesecret)(const dst_key_t *pub,
 				      const dst_key_t *priv,
 				      isc_buffer_t *secret);
-	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
-	isc_boolean_t (*paramcompare)(const dst_key_t *key1,
+	bool (*compare)(const dst_key_t *key1, const dst_key_t *key2);
+	bool (*paramcompare)(const dst_key_t *key1,
 				      const dst_key_t *key2);
 	isc_result_t (*generate)(dst_key_t *key, int parms,
 				 void (*callback)(int));
-	isc_boolean_t (*isprivate)(const dst_key_t *key);
+	bool (*isprivate)(const dst_key_t *key);
 	void (*destroy)(dst_key_t *key);
 
 	/* conversion functions */
@@ -294,7 +295,7 @@ void * dst__mem_realloc(void *ptr, size_t size);
  * Entropy retriever using the DST entropy pool.
  */
 isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
-				  isc_boolean_t pseudo);
+				  bool pseudo);
 
 /*
  * Entropy status hook.

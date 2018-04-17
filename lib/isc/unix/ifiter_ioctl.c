@@ -11,6 +11,8 @@
 
 /* $Id: ifiter_ioctl.c,v 1.62 2009/01/18 23:48:14 tbox Exp $ */
 
+#include <stdbool.h>
+
 #include <isc/print.h>
 
 /*! \file
@@ -64,11 +66,11 @@ struct isc_interfaceiter {
 	unsigned int		pos6;		/* Current offset in
 						   SIOCGLIFCONF data */
 	isc_result_t		result6;	/* Last result code. */
-	isc_boolean_t		first6;
+	bool		first6;
 #endif
 #ifdef HAVE_TRUCLUSTER
 	int			clua_context;	/* Cluster alias context */
-	isc_boolean_t		clua_done;
+	bool		clua_done;
 	struct sockaddr		clua_sa;
 #endif
 #ifdef	__linux
@@ -304,7 +306,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	iter->pos6 = (unsigned int) -1;
 	iter->result6 = ISC_R_NOMORE;
 	iter->socket6 = -1;
-	iter->first6 = ISC_FALSE;
+	iter->first6 = false;
 #endif
 
 	/*
@@ -359,7 +361,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 #ifdef HAVE_TRUCLUSTER
 	iter->clua_context = -1;
-	iter->clua_done = ISC_TRUE;
+	iter->clua_done = true;
 #endif
 #ifdef __linux
 	iter->proc = fopen("/proc/net/if_inet6", "r");
@@ -872,7 +874,7 @@ internal_next(isc_interfaceiter_t *iter) {
 		if (iter->result6 != ISC_R_NOMORE)
 			return (iter->result6);
 		if (iter->first6) {
-			iter->first6 = ISC_FALSE;
+			iter->first6 = false;
 			return (ISC_R_SUCCESS);
 		}
 	}
@@ -882,7 +884,7 @@ internal_next(isc_interfaceiter_t *iter) {
 		clua_result = clua_getaliasaddress(&iter->clua_sa,
 						   &iter->clua_context);
 		if (clua_result != CLUA_SUCCESS)
-			iter->clua_done = ISC_TRUE;
+			iter->clua_done = true;
 		return (ISC_R_SUCCESS);
 	}
 #endif
@@ -915,13 +917,13 @@ void internal_first(isc_interfaceiter_t *iter) {
 	iter->pos6 = 0;
 	if (iter->result6 == ISC_R_NOMORE)
 		iter->result6 = ISC_R_SUCCESS;
-	iter->first6 = ISC_TRUE;
+	iter->first6 = true;
 #endif
 #ifdef HAVE_TRUCLUSTER
 	iter->clua_context = 0;
 	clua_result = clua_getaliasaddress(&iter->clua_sa,
 					   &iter->clua_context);
-	iter->clua_done = ISC_TF(clua_result != CLUA_SUCCESS);
+	iter->clua_done = (clua_result != CLUA_SUCCESS);
 #endif
 #ifdef __linux
 	linux_if_inet6_first(iter);

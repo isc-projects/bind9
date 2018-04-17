@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/app.h>
 #include <isc/lib.h>
 #include <isc/magic.h>
@@ -47,7 +49,7 @@
 #ifndef ISC_PLATFORM_USETHREADS
 irs_context_t *irs_g_context = NULL;
 #else
-static isc_boolean_t thread_key_initialized = ISC_FALSE;
+static bool thread_key_initialized = false;
 static isc_mutex_t thread_key_mutex;
 static isc_thread_key_t irs_context_key;
 static isc_once_t once = ISC_ONCE_INIT;
@@ -158,7 +160,7 @@ thread_key_init(void) {
 					  free_specific_context) != 0) {
 			result = ISC_R_FAILURE;
 		} else
-			thread_key_initialized = ISC_TRUE;
+			thread_key_initialized = true;
 
 		UNLOCK(&thread_key_mutex);
 	}

@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/mem.h>
@@ -42,10 +43,10 @@ check_result(isc_result_t result, const char *message) {
 	}
 }
 
-static inline isc_boolean_t
+static inline bool
 active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t active = ISC_FALSE;
+	bool active = false;
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 
@@ -57,7 +58,7 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, &rdataset);
 		if (rdataset.type != dns_rdatatype_nsec)
-			active = ISC_TRUE;
+			active = true;
 		dns_rdataset_disassociate(&rdataset);
 		if (!active)
 			result = dns_rdatasetiter_next(rdsiter);
@@ -87,10 +88,10 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 	    dns_name_t *name, dns_dbnode_t **nodep)
 {
 	isc_result_t result;
-	isc_boolean_t active;
+	bool active;
 
 	do {
-		active = ISC_FALSE;
+		active = false;
 		result = dns_dbiterator_current(dbiter, nodep, name);
 		if (result == ISC_R_SUCCESS) {
 			active = active_node(db, version, *nodep);
@@ -174,7 +175,7 @@ nsecify(char *filename) {
 	/*
 	 * XXXRTH  For now, we don't increment the SOA serial.
 	 */
-	dns_db_closeversion(db, &wversion, ISC_TRUE);
+	dns_db_closeversion(db, &wversion, true);
 	len = strlen(filename);
 	if (len + 4 + 1 > sizeof(newfilename))
 		fatal("filename too long");

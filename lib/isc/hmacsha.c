@@ -17,6 +17,8 @@
 
 #include "config.h"
 
+#include <stdbool.h>
+
 #include <isc/assertions.h>
 #include <isc/hmacsha.h>
 #include <isc/platform.h>
@@ -279,8 +281,8 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -342,8 +344,8 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 	unsigned char ipad[ISC_SHA1_BLOCK_LENGTH];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(ISC_SHA1_BLOCK_LENGTH))
 		      != NULL);
 	if (len > ISC_SHA1_BLOCK_LENGTH) {
@@ -449,8 +451,8 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -512,8 +514,8 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 	unsigned char ipad[ISC_SHA224_BLOCK_LENGTH];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(ISC_SHA224_BLOCK_LENGTH))
 		      != NULL);
 	if (len > ISC_SHA224_BLOCK_LENGTH) {
@@ -619,8 +621,8 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -682,8 +684,8 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 	unsigned char ipad[ISC_SHA256_BLOCK_LENGTH];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(ISC_SHA256_BLOCK_LENGTH))
 		      != NULL);
 	if (len > ISC_SHA256_BLOCK_LENGTH) {
@@ -789,8 +791,8 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -852,8 +854,8 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 	unsigned char ipad[ISC_SHA384_BLOCK_LENGTH];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(ISC_SHA384_BLOCK_LENGTH))
 		      != NULL);
 	if (len > ISC_SHA384_BLOCK_LENGTH) {
@@ -959,8 +961,8 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 #else
 	DE_CONST(key, keyTemplate[5].pValue);
 #endif
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx->object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx->session, keyTemplate,
@@ -1022,8 +1024,8 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 	unsigned char ipad[ISC_SHA512_BLOCK_LENGTH];
 	unsigned int i;
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	RUNTIME_CHECK((ctx->key = pk11_mem_get(ISC_SHA512_BLOCK_LENGTH))
 		      != NULL);
 	if (len > ISC_SHA512_BLOCK_LENGTH) {
@@ -1440,7 +1442,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
  * Verify signature - finalize SHA1 operation and reapply SHA1, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA1_DIGESTLENGTH];
 
@@ -1453,7 +1455,7 @@ isc_hmacsha1_verify(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
  * Verify signature - finalize SHA224 operation and reapply SHA224, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacsha224_verify(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA224_DIGESTLENGTH];
 
@@ -1466,7 +1468,7 @@ isc_hmacsha224_verify(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) 
  * Verify signature - finalize SHA256 operation and reapply SHA256, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacsha256_verify(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA256_DIGESTLENGTH];
 
@@ -1479,7 +1481,7 @@ isc_hmacsha256_verify(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) 
  * Verify signature - finalize SHA384 operation and reapply SHA384, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacsha384_verify(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA384_DIGESTLENGTH];
 
@@ -1492,7 +1494,7 @@ isc_hmacsha384_verify(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) 
  * Verify signature - finalize SHA512 operation and reapply SHA512, then
  * compare to the supplied digest.
  */
-isc_boolean_t
+bool
 isc_hmacsha512_verify(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_SHA512_DIGESTLENGTH];
 
@@ -1510,7 +1512,7 @@ isc_hmacsha512_verify(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) 
  * Standard use is testing 0 and expecting result true.
  * Testing use is testing 1..4 and expecting result false.
  */
-isc_boolean_t
+bool
 isc_hmacsha1_check(int testing) {
 	isc_hmacsha1_t ctx;
 	unsigned char key[] = { /* 20*0x0b */
@@ -1531,7 +1533,7 @@ isc_hmacsha1_check(int testing) {
 		0xb2, 0xab, 0xc5, 0x19, 0x8f, 0x38, 0x62, 0x36,
 		0x42, 0xbd, 0xec, 0xde
 	};
-	isc_boolean_t result;
+	bool result;
 
 	/*
 	 * Introduce a fault for testing.

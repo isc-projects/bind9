@@ -184,7 +184,7 @@ create_view(void) {
 				  dns_rdataclass_in, "", "rbt", 0, NULL,
 				  &cache);
 	check_result(result, "dns_cache_create");
-	dns_view_setcache(view, cache, ISC_FALSE);
+	dns_view_setcache(view, cache, false);
 	dns_cache_detach(&cache);
 
 	{

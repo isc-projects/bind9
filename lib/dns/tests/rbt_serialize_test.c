@@ -289,7 +289,7 @@ ATF_TC_BODY(serialize, tc) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
 	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
@@ -363,7 +363,7 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* Set up map file */

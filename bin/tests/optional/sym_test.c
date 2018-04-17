@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <string.h>
 
 #include <isc/commandline.h>
@@ -41,7 +42,7 @@ main(int argc, char *argv[]) {
 	int trace = 0;
 	int c;
 	isc_symexists_t exists_policy = isc_symexists_reject;
-	isc_boolean_t case_sensitive = ISC_FALSE;
+	bool case_sensitive = false;
 
 	while ((c = isc_commandline_parse(argc, argv, "tarc")) != -1) {
 		switch (c) {
@@ -55,7 +56,7 @@ main(int argc, char *argv[]) {
 			exists_policy = isc_symexists_replace;
 			break;
 		case 'c':
-			case_sensitive = ISC_TRUE;
+			case_sensitive = true;
 			break;
 		}
 	}

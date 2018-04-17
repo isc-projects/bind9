@@ -17,6 +17,7 @@
 #include <sys/stat.h>
 
 #include <errno.h>
+#include <stdbool.h>
 
 #include "errno2result.h"
 
@@ -30,7 +31,7 @@ isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 	struct stat statb;
 	mode_t mode;
-	isc_boolean_t is_dir = ISC_FALSE;
+	bool is_dir = false;
 	isc_fsaccess_t bits;
 	isc_result_t result;
 
@@ -38,7 +39,7 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 		return (isc__errno2result(errno));
 
 	if ((statb.st_mode & S_IFDIR) != 0)
-		is_dir = ISC_TRUE;
+		is_dir = true;
 	else if ((statb.st_mode & S_IFREG) == 0)
 		return (ISC_R_INVALIDFILE);
 
