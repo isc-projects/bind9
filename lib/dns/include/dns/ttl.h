@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ttl.h,v 1.19 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef DNS_TTL_H
 #define DNS_TTL_H 1

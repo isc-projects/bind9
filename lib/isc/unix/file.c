@@ -38,7 +38,6 @@
  * SUCH DAMAGE.
  */
 
-/* $Id$ */
 
 /*! \file */
 

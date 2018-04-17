@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dnsconf.h,v 1.3 2009/09/02 23:48:03 tbox Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1

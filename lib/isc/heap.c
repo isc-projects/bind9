@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /*! \file
  * Heap implementation of priority queues adapted from the following:

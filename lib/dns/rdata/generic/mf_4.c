@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: mf_4.c,v 1.47 2009/12/04 22:06:37 tbox Exp $ */
-
-/* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
-
 #ifndef RDATA_GENERIC_MF_4_C
 #define RDATA_GENERIC_MF_4_C
 

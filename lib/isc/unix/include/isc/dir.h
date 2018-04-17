@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dir.h,v 1.21 2007/06/19 23:47:19 tbox Exp $ */
-
-/* Principal Authors: DCL */
-
 #ifndef ISC_DIR_H
 #define ISC_DIR_H 1
 

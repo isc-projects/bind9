@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: kx_36.c,v 1.47 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
-
 /* RFC2230 */
 
 #ifndef RDATA_IN_1_KX_36_C

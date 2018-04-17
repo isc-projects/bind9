@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: dnskey.test.db.in,v 1.2 2011/02/03 06:03:15 marka Exp $
-
 $TTL 10
 dnskey.test. IN SOA dnskey.test. hostmaster.dnskey.test. 1 3600 900 2419200 3600
 dnskey.test. IN NS dnskey.test.

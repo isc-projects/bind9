@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 ps=`git log -1 --date=raw --pretty=format:%ad -- doc/arm/Bv9ARM.pdf | awk '{print $1;}'`
 for f in doc/arm/*.html
 do

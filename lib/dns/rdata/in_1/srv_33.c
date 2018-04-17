@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: srv_33.c,v 1.47 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
-
 /* RFC2782 */
 
 #ifndef RDATA_IN_1_SRV_33_C

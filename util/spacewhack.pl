@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 $0 =~ s%.*/%%;
 
 if (@ARGV != 0) {

@@ -12,7 +12,6 @@
 #ifndef GENERIC_URI_256_H
 #define GENERIC_URI_256_H 1
 
-/* $Id$ */
 
 typedef struct dns_rdata_uri {
 	dns_rdatacommon_t	common;

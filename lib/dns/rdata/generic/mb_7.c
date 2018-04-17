@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: mb_7.c,v 1.47 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
-
 #ifndef RDATA_GENERIC_MB_7_C
 #define RDATA_GENERIC_MB_7_C
 

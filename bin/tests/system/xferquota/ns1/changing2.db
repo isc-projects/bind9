@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: changing2.db,v 1.10 2007/06/19 23:47:07 tbox Exp $
-
 $TTL	600
 
 @               IN      SOA     dns1.changing. postmaster.changing. (

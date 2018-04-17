@@ -23,7 +23,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.8 2007/08/28 07:20:43 tbox Exp $ */
 
 /*! \file */
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: app.h,v 1.11 2009/09/02 23:48:03 tbox Exp $ */
 
 #ifndef ISC_APP_H
 #define ISC_APP_H 1

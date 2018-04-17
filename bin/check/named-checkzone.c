@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: named-checkzone.c,v 1.65.32.2 2012/02/07 02:45:21 each Exp $ */
 
 /*! \file */
 

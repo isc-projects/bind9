@@ -7,9 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: good1.db,v 1.2 2011/03/02 04:20:34 marka Exp $
-
-
 $TTL 600
 @		SOA     ns hostmaster 2011012708 3600 1200 604800 1200
                 NS      ns

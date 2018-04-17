@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: base32.c,v 1.6.698.1 2012/02/15 05:00:16 marka Exp $ */
 
 /*! \file */
 

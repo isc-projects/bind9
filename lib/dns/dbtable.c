@@ -9,15 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/*
- * $Id: dbtable.c,v 1.33 2007/06/19 23:47:16 tbox Exp $
- */
-
-/*! \file
- * \author
- * Principal Author: DCL
- */
-
 #include <config.h>
 
 #include <stdbool.h>

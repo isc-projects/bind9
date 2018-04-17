@@ -10,7 +10,7 @@
  */
 
 /*! \file dns/log.h
- * \author  Principal Authors: DCL */
+ */
 
 #ifndef DNS_LOG_H
 #define DNS_LOG_H 1
