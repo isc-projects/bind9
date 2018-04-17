@@ -21,6 +21,7 @@
 #include <config.h>
 
 #include <limits.h>
+#include <stdint.h>
 
 #include <isc/mutexblock.h>
 #include <isc/netaddr.h>
@@ -158,8 +159,8 @@ struct dns_adb {
 	isc_event_t			grownames;
 	isc_boolean_t			grownames_sent;
 
-	isc_uint32_t			quota;
-	isc_uint32_t			atr_freq;
+	uint32_t			quota;
+	uint32_t			atr_freq;
 	double				atr_low;
 	double				atr_high;
 	double				atr_discount;
@@ -243,7 +244,7 @@ struct dns_adbentry {
 
 	unsigned int                    flags;
 	unsigned int                    srtt;
-	isc_uint16_t			udpsize;
+	uint16_t			udpsize;
 	unsigned int			completed;
 	unsigned int			timeouts;
 	unsigned char			plain;
@@ -251,9 +252,9 @@ struct dns_adbentry {
 	unsigned char			edns;
 	unsigned char			to4096;		/* Our max. */
 
-	isc_uint8_t			mode;
-	isc_uint32_t			quota;
-	isc_uint32_t			active;
+	uint8_t			mode;
+	uint32_t			quota;
+	uint32_t			active;
 	double				atr;
 
 	/*
@@ -265,7 +266,7 @@ struct dns_adbentry {
 	unsigned char			to512;		/* plain DNS */
 	isc_sockaddr_t                  sockaddr;
 	unsigned char *			cookie;
-	isc_uint16_t			cookielen;
+	uint16_t			cookielen;
 
 	isc_stdtime_t                   expires;
 	isc_stdtime_t			lastage;
@@ -511,7 +512,7 @@ inc_stats(dns_adb_t *adb, isc_statscounter_t counter) {
  * Set adb-related statistics counters.
  */
 static inline void
-set_adbstat(dns_adb_t *adb, isc_uint64_t val, isc_statscounter_t counter) {
+set_adbstat(dns_adb_t *adb, uint64_t val, isc_statscounter_t counter) {
 	if (adb->view->adbstats != NULL)
 		isc_stats_set(adb->view->adbstats, val, counter);
 }
@@ -1812,7 +1813,7 @@ free_adblameinfo(dns_adb_t *adb, dns_adblameinfo_t **lameinfo) {
 static inline dns_adbentry_t *
 new_adbentry(dns_adb_t *adb) {
 	dns_adbentry_t *e;
-	isc_uint32_t r;
+	uint32_t r;
 
 	e = isc_mempool_get(adb->emp);
 	if (e == NULL)
@@ -4149,7 +4150,7 @@ static void
 adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 	   isc_stdtime_t now)
 {
-	isc_uint64_t new_srtt;
+	uint64_t new_srtt;
 
 	if (factor == DNS_ADB_RTTADJAGE) {
 		if (addr->entry->lastage != now) {
@@ -4161,8 +4162,8 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 		} else
 			new_srtt = addr->entry->srtt;
 	} else
-		new_srtt = ((isc_uint64_t)addr->entry->srtt / 10 * factor)
-			+ ((isc_uint64_t)rtt / 10 * (10 - factor));
+		new_srtt = ((uint64_t)addr->entry->srtt / 10 * factor)
+			+ ((uint64_t)rtt / 10 * (10 - factor));
 
 	addr->entry->srtt = (unsigned int) new_srtt;
 	addr->srtt = (unsigned int) new_srtt;
@@ -4517,7 +4518,7 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	if (addr->entry->cookie == NULL && cookie != NULL && len != 0U) {
 		addr->entry->cookie = isc_mem_get(adb->mctx, len);
 		if (addr->entry->cookie != NULL)
-			addr->entry->cookielen = (isc_uint16_t)len;
+			addr->entry->cookielen = (uint16_t)len;
 	}
 
 	if (addr->entry->cookie != NULL)
@@ -4759,7 +4760,7 @@ dns_adb_setadbsize(dns_adb_t *adb, size_t size) {
 }
 
 void
-dns_adb_setquota(dns_adb_t *adb, isc_uint32_t quota, isc_uint32_t freq,
+dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
 		 double low, double high, double discount)
 {
 	REQUIRE(DNS_ADB_VALID(adb));

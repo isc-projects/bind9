@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/random.h>
 #include <isc/taskpool.h>
@@ -96,7 +98,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 
 void
 isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp) {
-	isc_uint32_t i;
+	uint32_t i;
 	isc_random_get(&i);
 	isc_task_attach(pool->tasks[i % pool->ntasks], targetp);
 }

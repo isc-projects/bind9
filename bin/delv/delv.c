@@ -25,6 +25,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -99,7 +100,7 @@ static dns_rdatatype_t qtype = dns_rdatatype_none;
 static isc_boolean_t typeset = ISC_FALSE;
 
 static unsigned int styleflags = 0;
-static isc_uint32_t splitwidth = 0xffffffff;
+static uint32_t splitwidth = 0xffffffff;
 static isc_boolean_t
 	showcomments = ISC_TRUE,
 	showdnssec = ISC_TRUE,
@@ -147,7 +148,7 @@ static isc_result_t
 get_reverse(char *reverse, size_t len, char *value, isc_boolean_t strict);
 
 static isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_uint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc);
 
 static void
@@ -566,7 +567,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 static isc_result_t
 key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_rdata_dnskey_t keystruct;
-	isc_uint32_t flags, proto, alg;
+	uint32_t flags, proto, alg;
 	const char *keystr, *keynamestr;
 	unsigned char keydata[4096];
 	isc_buffer_t keydatabuf;
@@ -621,9 +622,9 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	if (alg > 0xff)
 		CHECK(ISC_R_RANGE);
 
-	keystruct.flags = (isc_uint16_t)flags;
-	keystruct.protocol = (isc_uint8_t)proto;
-	keystruct.algorithm = (isc_uint8_t)alg;
+	keystruct.flags = (uint16_t)flags;
+	keystruct.protocol = (uint8_t)proto;
+	keystruct.algorithm = (uint8_t)alg;
 
 	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
@@ -778,7 +779,7 @@ addserver(dns_client_t *client) {
 	struct in6_addr in6;
 	isc_sockaddr_t *sa;
 	isc_sockaddrlist_t servers;
-	isc_uint32_t destport;
+	uint32_t destport;
 	isc_result_t result;
 	dns_name_t *name = NULL;
 
@@ -869,7 +870,7 @@ findserver(dns_client_t *client) {
 	irs_resconf_t *resconf = NULL;
 	isc_sockaddrlist_t *nameservers;
 	isc_sockaddr_t *sa, *next;
-	isc_uint32_t destport;
+	uint32_t destport;
 
 	result = parse_uint(&destport, port, 0xffff, "port");
 	if (result != ISC_R_SUCCESS)
@@ -944,9 +945,9 @@ cleanup:
 }
 
 static isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_uint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = isc_parse_uint32(&n, value, 10);
 	if (result == ISC_R_SUCCESS && n > max)
 		result = ISC_R_RANGE;
@@ -1177,7 +1178,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 	struct in_addr in4;
 	struct in6_addr in6;
 	in_port_t srcport;
-	isc_uint32_t num;
+	uint32_t num;
 	char *hash;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {

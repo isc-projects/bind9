@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/hex.h>
@@ -521,7 +523,7 @@ dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 	int pass;
 	isc_boolean_t exists = ISC_FALSE;
 	isc_boolean_t maybe_remove_unsecure = ISC_FALSE;
-	isc_uint8_t flags;
+	uint8_t flags;
 	isc_buffer_t buffer;
 	isc_result_t result;
 	unsigned char *old_next;

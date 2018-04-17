@@ -16,6 +16,8 @@
 
 /*! \file dst/gssapi.h */
 
+#include <stdint.h>
+
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
@@ -170,7 +172,7 @@ ISC_FORMAT_PRINTF(2, 3);
  */
 
 char *
-gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
+gss_error_tostring(uint32_t major, uint32_t minor,
 		   char *buf, size_t buflen);
 /*
  *	Render a GSS major status/minor status pair into a string

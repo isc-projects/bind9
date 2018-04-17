@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <sys/types.h>
 #include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
 #include <sys/resource.h>

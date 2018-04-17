@@ -17,6 +17,7 @@
 
 #include <config.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -1664,7 +1665,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	isc_region_t r;
 	dns_decompress_t dctx;
 	isc_result_t ret;
-	isc_uint16_t tmpflags;
+	uint16_t tmpflags;
 	isc_buffer_t origsource;
 	isc_boolean_t seen_problem;
 	isc_boolean_t ignore_tc;
@@ -2065,7 +2066,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			if (result != ISC_R_SUCCESS) {
 				INSIST(st.used < 65536);
 				dns_compress_rollback(msg->cctx,
-						      (isc_uint16_t)st.used);
+						      (uint16_t)st.used);
 				*(msg->buffer) = st;  /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
@@ -2165,7 +2166,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				if (result != ISC_R_SUCCESS) {
 					INSIST(st.used < 65536);
 					dns_compress_rollback(msg->cctx,
-							(isc_uint16_t)st.used);
+							(uint16_t)st.used);
 					*(msg->buffer) = st;  /* rollback */
 					msg->buffer->length += msg->reserved;
 					msg->counts[sectionid] += total;
@@ -2203,7 +2204,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 void
 dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target) {
-	isc_uint16_t tmp;
+	uint16_t tmp;
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -2226,13 +2227,13 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target) {
 
 	isc_buffer_putuint16(target, tmp);
 	isc_buffer_putuint16(target,
-			    (isc_uint16_t)msg->counts[DNS_SECTION_QUESTION]);
+			    (uint16_t)msg->counts[DNS_SECTION_QUESTION]);
 	isc_buffer_putuint16(target,
-			    (isc_uint16_t)msg->counts[DNS_SECTION_ANSWER]);
+			    (uint16_t)msg->counts[DNS_SECTION_ANSWER]);
 	isc_buffer_putuint16(target,
-			    (isc_uint16_t)msg->counts[DNS_SECTION_AUTHORITY]);
+			    (uint16_t)msg->counts[DNS_SECTION_AUTHORITY]);
 	isc_buffer_putuint16(target,
-			    (isc_uint16_t)msg->counts[DNS_SECTION_ADDITIONAL]);
+			    (uint16_t)msg->counts[DNS_SECTION_ADDITIONAL]);
 }
 
 isc_result_t
@@ -2308,7 +2309,7 @@ dns_message_renderend(dns_message_t *msg) {
 	if (msg->padding_off > 0) {
 		unsigned char *cp = isc_buffer_used(msg->buffer);
 		unsigned int used, remaining;
-		isc_uint16_t len, padsize = 0;
+		uint16_t len, padsize = 0;
 
 		/* Check PAD */
 		if ((cp[-4] != 0) ||
@@ -2325,7 +2326,7 @@ dns_message_renderend(dns_message_t *msg) {
 		/* Aligned used length + reserved to padding block */
 		used = isc_buffer_usedlength(msg->buffer);
 		if (msg->padding != 0) {
-			padsize = ((isc_uint16_t)used + msg->reserved)
+			padsize = ((uint16_t)used + msg->reserved)
 				% msg->padding;
 		}
 		if (padsize != 0) {
@@ -2341,8 +2342,8 @@ dns_message_renderend(dns_message_t *msg) {
 		cp[-2] = (unsigned char)((padsize & 0xff00U) >> 8);
 		cp[-1] = (unsigned char)(padsize & 0x00ffU);
 		cp -= msg->padding_off;
-		len = ((isc_uint16_t)(cp[-2])) << 8;
-		len |= ((isc_uint16_t)(cp[-1]));
+		len = ((uint16_t)(cp[-2])) << 8;
+		len |= ((uint16_t)(cp[-1]));
 		len += padsize;
 		cp[-2] = (unsigned char)((len & 0xff00U) >> 8);
 		cp[-1] = (unsigned char)(len & 0x00ffU);
@@ -3429,8 +3430,8 @@ static isc_result_t
 render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	int i;
 	char addr[16], addr_text[64];
-	isc_uint16_t family;
-	isc_uint8_t addrlen, addrbytes, scopelen;
+	uint16_t family;
+	uint8_t addrlen, addrbytes, scopelen;
 	isc_result_t result;
 
 	/*
@@ -3497,10 +3498,10 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 	const dns_name_t *name = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	char buf[sizeof("1234567890")];
-	isc_uint32_t mbz;
+	uint32_t mbz;
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
-	isc_uint16_t optcode, optlen;
+	uint16_t optcode, optlen;
 	unsigned char *optdata;
 	unsigned int saveindent = dns_master_indent;
 
@@ -3596,7 +3597,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				ADD_STRING(target, "\n");
 			} else if (optcode == DNS_OPT_EXPIRE) {
 				if (optlen == 4) {
-					isc_uint32_t secs;
+					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
 					INDENT(style);
 					ADD_STRING(target, "EXPIRE: ");
@@ -3622,7 +3623,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				ADD_STRING(target, "KEY-TAG");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = ": ";
-					isc_uint16_t id;
+					uint16_t id;
 					while (optlen > 0U) {
 					    id = isc_buffer_getuint16(&optbuf);
 					    snprintf(buf, sizeof(buf), "%s%u",
@@ -3759,10 +3760,10 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 	const dns_name_t *name = NULL;
 	isc_result_t result;
 	char buf[sizeof(" (65000 bytes)")];
-	isc_uint32_t mbz;
+	uint32_t mbz;
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
-	isc_uint16_t optcode, optlen;
+	uint16_t optcode, optlen;
 	unsigned char *optdata;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -3849,7 +3850,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				}
 			} else if (optcode == DNS_OPT_EXPIRE) {
 				if (optlen == 4) {
-					isc_uint32_t secs;
+					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
 					ADD_STRING(target, "; EXPIRE: ");
 					snprintf(buf, sizeof(buf), "%u", secs);
@@ -3891,7 +3892,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "; KEY-TAG");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
 					const char *sep = ": ";
-					isc_uint16_t id;
+					uint16_t id;
 					while (optlen > 0U) {
 					    id = isc_buffer_getuint16(&optbuf);
 					    snprintf(buf, sizeof(buf), "%s%u",
@@ -4325,7 +4326,7 @@ logfmtpacket(dns_message_t *message, const char *description,
 
 isc_result_t
 dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
-		     unsigned int version, isc_uint16_t udpsize,
+		     unsigned int version, uint16_t udpsize,
 		     unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
@@ -4442,7 +4443,7 @@ dns_message_setclass(dns_message_t *msg, dns_rdataclass_t rdclass) {
 }
 
 void
-dns_message_setpadding(dns_message_t *msg, isc_uint16_t padding) {
+dns_message_setpadding(dns_message_t *msg, uint16_t padding) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	/* Avoid silly large padding */

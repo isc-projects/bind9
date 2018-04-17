@@ -49,6 +49,7 @@
 #error DNSTAP not configured.
 #endif /* HAVE_DNSTAP */
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -297,7 +298,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 }
 
 isc_result_t
-dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls,
+dns_dt_setupfile(dns_dtenv_t *env, uint64_t max_size, int rolls,
 		 isc_log_rollsuffix_t suffix)
 {
 	REQUIRE(VALID_DTENV(env));
@@ -710,7 +711,7 @@ cpbuf(isc_buffer_t *buf, ProtobufCBinaryData *p, protobuf_c_boolean *has) {
 static void
 setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
 	ProtobufCBinaryData *addr, protobuf_c_boolean *has_addr,
-	isc_uint32_t *port, protobuf_c_boolean *has_port)
+	uint32_t *port, protobuf_c_boolean *has_port)
 {
 	int family = isc_sockaddr_pf(sa);
 
@@ -724,7 +725,7 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
 		*port = ntohs(sa->type.sin6.sin6_port);
 	} else {
 		dm->m.socket_family = DNSTAP__SOCKET_FAMILY__INET;
-		addr->data = (isc_uint8_t *) &sa->type.sin.sin_addr.s_addr;
+		addr->data = (uint8_t *) &sa->type.sin.sin_addr.s_addr;
 		addr->len = 4;
 		*port = ntohs(sa->type.sin.sin_port);
 	}
@@ -969,7 +970,7 @@ static isc_boolean_t
 dnstap_file(struct fstrm_reader *r) {
 	fstrm_res res;
 	const struct fstrm_control *control = NULL;
-	const isc_uint8_t *rtype = NULL;
+	const uint8_t *rtype = NULL;
 	size_t dlen = strlen(DNSTAP_CONTENT_TYPE), rlen = 0;
 	size_t n = 0;
 
@@ -1057,15 +1058,15 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 }
 
 isc_result_t
-dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep) {
-	const isc_uint8_t *data;
+dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep) {
+	const uint8_t *data;
 	fstrm_res res;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(bufp != NULL);
 	REQUIRE(sizep != NULL);
 
-	data = (const isc_uint8_t *) *bufp;
+	data = (const uint8_t *) *bufp;
 
 	res = fstrm_reader_read(handle->reader, &data, sizep);
 	switch (res) {

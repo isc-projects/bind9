@@ -31,8 +31,8 @@
  * intended address or value in the embedded mnemonic.
  */
 
-static isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+static int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -50,8 +50,8 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 }
 
 #ifdef ISC_PLATFORM_HAVEXADDQ
-static isc_int64_t
-isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
+static int64_t
+isc_atomic_xaddq(int64_t *p, int64_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -70,7 +70,7 @@ isc_atomic_xaddq(isc_int64_t *p, isc_int64_t val) {
 #endif
 
 static void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -86,7 +86,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 
 #ifdef ISC_PLATFORM_HAVEATOMICSTOREQ
 static void
-isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
+isc_atomic_storeq(int64_t *p, int64_t val) {
 	(void)(p);
 	(void)(val);
 
@@ -101,8 +101,8 @@ isc_atomic_storeq(isc_int64_t *p, isc_int64_t val) {
 }
 #endif
 
-static isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+static int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 	(void)(p);
 	(void)(cmpval);
 	(void)(val);

@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -555,8 +557,8 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
 void
 isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, isc_boolean_t active);
 isc_result_t
-isc__socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
-		     isc_uint32_t owner, isc_uint32_t group);
+isc__socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
+		     uint32_t owner, uint32_t group);
 isc_result_t
 isc__socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
 		 unsigned int options);
@@ -4418,7 +4420,7 @@ watcher(void *uap) {
 #endif /* USE_WATCHER_THREAD */
 
 void
-isc__socketmgr_setreserved(isc_socketmgr_t *manager0, isc_uint32_t reserved) {
+isc__socketmgr_setreserved(isc_socketmgr_t *manager0, uint32_t reserved) {
 	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -5514,8 +5516,8 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 }
 
 isc_result_t
-isc__socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
-		    isc_uint32_t owner, isc_uint32_t group)
+isc__socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
+		    uint32_t owner, uint32_t group)
 {
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	isc_result_t result = ISC_R_SUCCESS;
