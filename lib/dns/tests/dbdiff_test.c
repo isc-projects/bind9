@@ -61,7 +61,7 @@ ATF_TC_BODY(diffx_same, tc) {
 	isc_result_t result;
 	dns_diff_t diff;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	test_create(tc, &olddb, &newdb);
@@ -71,7 +71,7 @@ ATF_TC_BODY(diffx_same, tc) {
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), ISC_TRUE);
+	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), true);
 
 	dns_diff_clear(&diff);
 	dns_db_detach(&newdb);
@@ -93,7 +93,7 @@ ATF_TC_BODY(diffx_add, tc) {
 	dns_diff_t diff;
 	int count = 0;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	test_create(tc, &olddb, &newdb);
@@ -103,7 +103,7 @@ ATF_TC_BODY(diffx_add, tc) {
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), ISC_FALSE);
+	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), false);
 	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
 	     tuple = ISC_LIST_NEXT(tuple, link)) {
 		ATF_REQUIRE_EQ(tuple->op, DNS_DIFFOP_ADD);
@@ -131,7 +131,7 @@ ATF_TC_BODY(diffx_remove, tc) {
 	dns_diff_t diff;
 	int count = 0;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	test_create(tc, &olddb, &newdb);
@@ -141,7 +141,7 @@ ATF_TC_BODY(diffx_remove, tc) {
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), ISC_FALSE);
+	ATF_REQUIRE_EQ(ISC_LIST_EMPTY(diff.tuples), false);
 	for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
 	     tuple = ISC_LIST_NEXT(tuple, link)) {
 		ATF_REQUIRE_EQ(tuple->op, DNS_DIFFOP_DEL);

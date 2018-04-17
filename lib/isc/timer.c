@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/app.h>
 #include <isc/condition.h>
 #include <isc/heap.h>
@@ -97,7 +99,7 @@ struct isc__timermgr {
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	/* Locked by manager lock. */
-	isc_boolean_t			done;
+	bool			done;
 	LIST(isc__timer_t)		timers;
 	unsigned int			nscheduled;
 	isc_time_t			due;
@@ -125,7 +127,7 @@ isc__timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 isc_result_t
 isc__timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		 const isc_time_t *expires, const isc_interval_t *interval,
-		 isc_boolean_t purge);
+		 bool purge);
 isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer);
 isc_result_t
@@ -177,13 +179,13 @@ static isc__timermgr_t *timermgr = NULL;
 #endif /* USE_SHARED_MANAGER */
 
 static inline isc_result_t
-schedule(isc__timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
+schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_result_t result;
 	isc__timermgr_t *manager;
 	isc_time_t due;
 	int cmp;
 #ifdef USE_TIMER_THREAD
-	isc_boolean_t timedwait;
+	bool timedwait;
 #endif
 
 	/*!
@@ -203,8 +205,8 @@ schedule(isc__timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 * If the manager was timed wait, we may need to signal the
 	 * manager to force a wakeup.
 	 */
-	timedwait = ISC_TF(manager->nscheduled > 0 &&
-			   isc_time_seconds(&manager->due) != 0);
+	timedwait = (manager->nscheduled > 0 &&
+		     isc_time_seconds(&manager->due) != 0);
 #endif
 
 	/*
@@ -288,7 +290,7 @@ schedule(isc__timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		if (result == ISC_R_SUCCESS &&
 		    isc_time_compare(&then, now) < 0) {
 			SIGNAL(&manager->wakeup);
-			signal_ok = ISC_FALSE;
+			signal_ok = false;
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_TIMER, ISC_LOG_WARNING,
 				      "*** POKED TIMER ***");
@@ -313,7 +315,7 @@ schedule(isc__timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 static inline void
 deschedule(isc__timer_t *timer) {
 #ifdef USE_TIMER_THREAD
-	isc_boolean_t need_wakeup = ISC_FALSE;
+	bool need_wakeup = false;
 #endif
 	isc__timermgr_t *manager;
 
@@ -325,7 +327,7 @@ deschedule(isc__timer_t *timer) {
 	if (timer->index > 0) {
 #ifdef USE_TIMER_THREAD
 		if (timer->index == 1)
-			need_wakeup = ISC_TRUE;
+			need_wakeup = true;
 #endif
 		isc_heap_delete(manager->heap, timer->index);
 		timer->index = 0;
@@ -469,7 +471,7 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 */
 
 	if (type != isc_timertype_inactive)
-		result = schedule(timer, &now, ISC_TRUE);
+		result = schedule(timer, &now, true);
 	else
 		result = ISC_R_SUCCESS;
 	if (result == ISC_R_SUCCESS)
@@ -494,7 +496,7 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 isc_result_t
 isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 		 const isc_time_t *expires, const isc_interval_t *interval,
-		 isc_boolean_t purge)
+		 bool purge)
 {
 	isc__timer_t *timer = (isc__timer_t *)timer0;
 	isc_time_t now;
@@ -503,7 +505,7 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 
 	/*
 	 * Change the timer's type, expires, and interval values to the given
-	 * values.  If 'purge' is ISC_TRUE, any pending events from this timer
+	 * values.  If 'purge' is true, any pending events from this timer
 	 * are purged from its task's event queue.
 	 */
 
@@ -558,7 +560,7 @@ isc__timer_reset(isc_timer_t *timer0, isc_timertype_t type,
 			deschedule(timer);
 			result = ISC_R_SUCCESS;
 		} else
-			result = schedule(timer, &now, ISC_TRUE);
+			result = schedule(timer, &now, true);
 	}
 
 	UNLOCK(&timer->lock);
@@ -633,7 +635,7 @@ isc__timer_attach(isc_timer_t *timer0, isc_timer_t **timerp) {
 void
 isc__timer_detach(isc_timer_t **timerp) {
 	isc__timer_t *timer;
-	isc_boolean_t free_timer = ISC_FALSE;
+	bool free_timer = false;
 
 	/*
 	 * Detach *timerp from its timer.
@@ -647,7 +649,7 @@ isc__timer_detach(isc_timer_t **timerp) {
 	REQUIRE(timer->references > 0);
 	timer->references--;
 	if (timer->references == 0)
-		free_timer = ISC_TRUE;
+		free_timer = true;
 	UNLOCK(&timer->lock);
 
 	if (free_timer)
@@ -658,12 +660,12 @@ isc__timer_detach(isc_timer_t **timerp) {
 
 static void
 dispatch(isc__timermgr_t *manager, isc_time_t *now) {
-	isc_boolean_t done = ISC_FALSE, post_event, need_schedule;
+	bool done = false, post_event, need_schedule;
 	isc_timerevent_t *event;
 	isc_eventtype_t type = 0;
 	isc__timer_t *timer;
 	isc_result_t result;
-	isc_boolean_t idle;
+	bool idle;
 
 	/*!
 	 * The caller must be holding the manager lock.
@@ -675,40 +677,40 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now) {
 		if (isc_time_compare(now, &timer->due) >= 0) {
 			if (timer->type == isc_timertype_ticker) {
 				type = ISC_TIMEREVENT_TICK;
-				post_event = ISC_TRUE;
-				need_schedule = ISC_TRUE;
+				post_event = true;
+				need_schedule = true;
 			} else if (timer->type == isc_timertype_limited) {
 				int cmp;
 				cmp = isc_time_compare(now, &timer->expires);
 				if (cmp >= 0) {
 					type = ISC_TIMEREVENT_LIFE;
-					post_event = ISC_TRUE;
-					need_schedule = ISC_FALSE;
+					post_event = true;
+					need_schedule = false;
 				} else {
 					type = ISC_TIMEREVENT_TICK;
-					post_event = ISC_TRUE;
-					need_schedule = ISC_TRUE;
+					post_event = true;
+					need_schedule = true;
 				}
 			} else if (!isc_time_isepoch(&timer->expires) &&
 				   isc_time_compare(now,
 						    &timer->expires) >= 0) {
 				type = ISC_TIMEREVENT_LIFE;
-				post_event = ISC_TRUE;
-				need_schedule = ISC_FALSE;
+				post_event = true;
+				need_schedule = false;
 			} else {
-				idle = ISC_FALSE;
+				idle = false;
 
 				LOCK(&timer->lock);
 				if (!isc_time_isepoch(&timer->idle) &&
 				    isc_time_compare(now,
 						     &timer->idle) >= 0) {
-					idle = ISC_TRUE;
+					idle = true;
 				}
 				UNLOCK(&timer->lock);
 				if (idle) {
 					type = ISC_TIMEREVENT_IDLE;
-					post_event = ISC_TRUE;
-					need_schedule = ISC_FALSE;
+					post_event = true;
+					need_schedule = false;
 				} else {
 					/*
 					 * Idle timer has been touched;
@@ -719,8 +721,8 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now) {
 								ISC_MSG_IDLERESCHED,
 								"idle reschedule"),
 						 timer);
-					post_event = ISC_FALSE;
-					need_schedule = ISC_TRUE;
+					post_event = false;
+					need_schedule = true;
 				}
 			}
 
@@ -757,7 +759,7 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now) {
 			manager->nscheduled--;
 
 			if (need_schedule) {
-				result = schedule(timer, now, ISC_FALSE);
+				result = schedule(timer, now, false);
 				if (result != ISC_R_SUCCESS)
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "%s: %u",
@@ -770,7 +772,7 @@ dispatch(isc__timermgr_t *manager, isc_time_t *now) {
 			}
 		} else {
 			manager->due = timer->due;
-			done = ISC_TRUE;
+			done = true;
 		}
 	}
 }
@@ -822,7 +824,7 @@ run(void *uap) {
 }
 #endif /* USE_TIMER_THREAD */
 
-static isc_boolean_t
+static bool
 sooner(void *v1, void *v2) {
 	isc__timer_t *t1, *t2;
 
@@ -832,8 +834,8 @@ sooner(void *v1, void *v2) {
 	REQUIRE(VALID_TIMER(t2));
 
 	if (isc_time_compare(&t1->due, &t2->due) < 0)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 static void
@@ -873,7 +875,7 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	manager->common.magic = ISCAPI_TIMERMGR_MAGIC;
 	manager->common.methods = (isc_timermgrmethods_t *)&timermgrmethods;
 	manager->mctx = NULL;
-	manager->done = ISC_FALSE;
+	manager->done = false;
 	INIT_LIST(manager->timers);
 	manager->nscheduled = 0;
 	isc_time_settoepoch(&manager->due);
@@ -971,7 +973,7 @@ isc__timermgr_destroy(isc_timermgr_t **managerp) {
 #endif
 
 	REQUIRE(EMPTY(manager->timers));
-	manager->done = ISC_TRUE;
+	manager->done = true;
 
 #ifdef USE_TIMER_THREAD
 	XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
@@ -1167,7 +1169,7 @@ isc_timer_detach(isc_timer_t **timerp) {
 isc_result_t
 isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		const isc_time_t *expires, const isc_interval_t *interval,
-		isc_boolean_t purge)
+		bool purge)
 {
 	REQUIRE(ISCAPI_TIMER_VALID(timer));
 

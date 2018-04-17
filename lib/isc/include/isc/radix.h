@@ -13,6 +13,7 @@
 #define _RADIX_H
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/magic.h>
 #include <isc/types.h>
