@@ -36,7 +36,7 @@ ATF_TC_BODY(dscp, tc) {
 	dns_peer_t *peer = NULL;
 	isc_dscp_t dscp;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*

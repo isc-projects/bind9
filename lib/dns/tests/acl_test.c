@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -44,7 +45,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_acl_any(mctx, &any);
@@ -59,10 +60,10 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_create(mctx, 1, &notany);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notnone, none, ISC_FALSE);
+	result = dns_acl_merge(notnone, none, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notany, any, ISC_FALSE);
+	result = dns_acl_merge(notany, any, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */

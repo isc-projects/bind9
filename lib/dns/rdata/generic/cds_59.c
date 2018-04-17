@@ -139,7 +139,7 @@ digest_cds(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_cds(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_cds);
@@ -149,10 +149,10 @@ checkowner_cds(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_cds(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_cds);
@@ -161,7 +161,7 @@ checknames_cds(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
