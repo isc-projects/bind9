@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: once.c,v 1.12 2007/06/18 23:47:49 tbox Exp $ */
-
-/* Principal Authors: DCL */
-
 #include <config.h>
 
 #include <windows.h>

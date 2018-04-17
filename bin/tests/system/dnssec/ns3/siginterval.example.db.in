@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: upper.example.db.in,v 1.1.2.1 2012/01/17 08:31:00 marka Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2012042407 ; serial

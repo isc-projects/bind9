@@ -44,7 +44,6 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id$ */
 
 /*! \file dns/dlz.h */
 

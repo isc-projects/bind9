@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: nsec3.h,v 1.14 2011/10/28 12:20:31 tbox Exp $ */
 
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1

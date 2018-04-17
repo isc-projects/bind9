@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
-
 #ifndef RDATA_GENERIC_TXT_16_C
 #define RDATA_GENERIC_TXT_16_C
 

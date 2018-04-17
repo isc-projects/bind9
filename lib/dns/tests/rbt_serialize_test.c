@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: rbt_test.c,v 1.1.14.8 2012/02/10 16:24:37 ckb Exp $ */
 
 /* ! \file */
 

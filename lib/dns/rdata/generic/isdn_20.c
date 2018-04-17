@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: isdn_20.c,v 1.40 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
-
 /* RFC1183 */
 
 #ifndef RDATA_GENERIC_ISDN_20_C

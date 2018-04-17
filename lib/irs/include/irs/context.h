@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: context.h,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
 
 #ifndef IRS_CONTEXT_H
 #define IRS_CONTEXT_H 1

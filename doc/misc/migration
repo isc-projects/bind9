@@ -262,6 +262,3 @@ This may cause files created by named, such as journal files, to be
 created with different file permissions than they did in BIND 8.  If
 necessary, the umask should be set explicitly in the script used to
 start the named process.
-
-
-$Id: migration,v 1.49 2008/03/18 15:42:53 jreed Exp $

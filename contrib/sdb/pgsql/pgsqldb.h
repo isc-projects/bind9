@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: pgsqldb.h,v 1.5 2007/06/19 23:47:08 tbox Exp $ */
 
 #include <isc/types.h>
 

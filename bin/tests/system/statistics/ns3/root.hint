@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
 $TTL 999999
 .			 IN NS	d.root-servers.nil.
 d.root-servers.nil.	 IN A	10.53.0.4

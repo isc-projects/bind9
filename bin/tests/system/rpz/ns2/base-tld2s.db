@@ -7,10 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
-
-
 ; RPZ rewrite responses from this signed zone
 
 $TTL	120

@@ -12,7 +12,6 @@
 #ifndef IN_1_NSAP_22_H
 #define IN_1_NSAP_22_H 1
 
-/* $Id: nsap_22.h,v 1.18 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief Per RFC1706 */

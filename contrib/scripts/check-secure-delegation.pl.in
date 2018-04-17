@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: check-secure-delegation.pl.in,v 1.2 2010/12/21 02:32:21 marka Exp $
-
 use warnings;
 use FileHandle;
 use IPC::Open2;

@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: named-bootconf.sh,v 1.12 2007/06/19 23:47:07 tbox Exp $
-
 # $NetBSD: named-bootconf.sh,v 1.5 1998/12/15 01:00:53 tron Exp $
 #
 # Copyright (c) 1995, 1998 The NetBSD Foundation, Inc.

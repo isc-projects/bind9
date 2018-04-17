@@ -12,7 +12,6 @@
 #ifndef GENERIC_NXT_30_H
 #define GENERIC_NXT_30_H 1
 
-/* $Id: nxt_30.h,v 1.25 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief RFC2535 */

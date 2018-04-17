@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: portset.h,v 1.6 2009/06/25 05:28:34 marka Exp $ */
 
 /*! \file isc/portset.h
  * \brief Transport Protocol Port Manipulation Module

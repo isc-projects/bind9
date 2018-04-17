@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: strerror.h,v 1.10 2008/12/01 23:47:45 tbox Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H

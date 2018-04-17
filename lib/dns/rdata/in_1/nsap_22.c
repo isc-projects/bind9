@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: nsap_22.c,v 1.44 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
-
 /* RFC1706 */
 
 #ifndef RDATA_IN_1_NSAP_22_C

@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
-
 #ifndef RDATA_GENERIC_NULL_10_C
 #define RDATA_GENERIC_NULL_10_C
 
