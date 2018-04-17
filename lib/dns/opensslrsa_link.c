@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/*
- * Principal Author: Brian Wellington
- */
 #ifdef OPENSSL
 #include <config.h>
 

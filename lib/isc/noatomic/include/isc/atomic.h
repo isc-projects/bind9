@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: atomic.h,v 1.4 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1

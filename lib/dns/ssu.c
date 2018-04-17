@@ -10,9 +10,6 @@
  */
 
 /*! \file */
-/*
- * Principal Author: Brian Wellington
- */
 
 #include <config.h>
 

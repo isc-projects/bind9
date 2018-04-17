@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.hint,v 1.7 2007/06/19 23:47:05 tbox Exp $
-
 $TTL 999999
 .			 IN NS	a.root-servers.nil.
 a.root-servers.nil.	 IN A	10.53.0.2

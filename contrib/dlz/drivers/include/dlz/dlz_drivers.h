@@ -14,7 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlz_drivers.h,v 1.2 2005/09/05 00:10:58 marka Exp $ */
 
 #ifndef DLZ_DRIVERS_H
 #define DLZ_DRIVERS_H 1

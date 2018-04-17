@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1

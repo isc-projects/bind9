@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: mkzonefile.pl,v 1.2 2011/09/02 21:15:35 each Exp $
 use strict;
 
 die "Usage: makenames.pl zonename num_records" if (@ARGV != 2);

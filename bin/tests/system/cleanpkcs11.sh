@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: cleanpkcs11.sh,v 1.3 2010/06/08 23:50:24 tbox Exp $
-
 SYSTEMTESTTOP=.
 . $SYSTEMTESTTOP/conf.sh
 

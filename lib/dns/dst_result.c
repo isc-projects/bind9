@@ -9,11 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/*%
- * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.7 2008/04/01 23:47:10 tbox Exp $
- */
-
 #include <config.h>
 
 #include <isc/once.h>

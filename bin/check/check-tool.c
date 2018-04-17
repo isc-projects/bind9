@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: check-tool.c,v 1.44 2011/12/22 07:32:39 each Exp $ */
 
 /*! \file */
 

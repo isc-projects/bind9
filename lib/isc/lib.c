@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lib.c,v 1.16 2009/09/02 23:48:02 tbox Exp $ */
 
 /*! \file */
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: arpaname.c,v 1.4 2009/10/27 03:05:33 marka Exp $ */
 
 #include "config.h"
 

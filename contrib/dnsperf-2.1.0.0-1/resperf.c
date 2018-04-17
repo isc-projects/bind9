@@ -34,8 +34,6 @@
 
 /***
  ***	DNS Resolution Performance Testing Tool
- ***
- ***	Version $Id: resperf.c 263304 2015-12-15 01:14:10Z bwelling $
  ***/
 
 #include <errno.h>

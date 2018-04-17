@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: stats.c,v 1.18 2009/01/27 23:47:54 tbox Exp $ */
 
 /*! \file */
 

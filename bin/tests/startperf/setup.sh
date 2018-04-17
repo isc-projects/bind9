@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: setup.sh,v 1.4 2011/09/02 21:15:35 each Exp $
-
 usage () {
     echo "Usage: $0 [-s] <number of zones> [<records per zone>]"
     echo "       -s: use the same zone file all zones"

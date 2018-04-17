@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ipseckey_45.h,v 1.4 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef GENERIC_IPSECKEY_45_H
 #define GENERIC_IPSECKEY_45_H 1

@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: testsock6.pl,v 1.5 2010/06/22 23:46:52 tbox Exp $
-
 require 5.001;
 
 use IO::Socket::INET6;

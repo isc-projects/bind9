@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: adb.h,v 1.88 2011/12/05 17:10:51 each Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1

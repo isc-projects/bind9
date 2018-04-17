@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: diff.c,v 1.26 2011/03/25 23:53:02 each Exp $ */
 
 /*! \file */
 

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
-
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
 

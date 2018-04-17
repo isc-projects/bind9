@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: xml.h,v 1.4 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_XML_H
 #define ISC_XML_H 1

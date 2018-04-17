@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: a6_38.c,v 1.56 2009/12/04 22:06:37 tbox Exp $ */
 
 /* RFC2874 */
 

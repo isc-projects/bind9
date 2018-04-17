@@ -9,8 +9,6 @@
  - information regarding copyright ownership.
 -->
 
-<!-- $Id$ -->
-
 <!-- ISC customizations for Docbook-XSL manual page generator. -->
 
 <xsl:stylesheet version="1.0"

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.62 2009/01/18 23:48:14 tbox Exp $ */
 
 #include <isc/print.h>
 

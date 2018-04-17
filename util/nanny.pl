@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # A simple nanny to make sure named stays running.
 
 $pid_file_location = '/var/run/named.pid';

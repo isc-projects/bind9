@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: os.c,v 1.8 2007/06/19 23:47:19 tbox Exp $ */
 
 #include <windows.h>
 

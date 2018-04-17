@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: master.h,v 1.57.8.1 2012/02/07 00:44:16 each Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
