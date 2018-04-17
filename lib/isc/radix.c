@@ -19,6 +19,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -238,7 +240,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	isc_radix_node_t *node;
 	isc_radix_node_t *stack[RADIX_MAXBITS + 1];
 	u_char *addr;
-	isc_uint32_t bitlen;
+	uint32_t bitlen;
 	int toff = -1, cnt = 0;
 
 	REQUIRE(radix != NULL);
@@ -306,8 +308,8 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 {
 	isc_radix_node_t *node, *new_node, *parent, *glue = NULL;
 	u_char *addr, *test_addr;
-	isc_uint32_t bitlen, fam, check_bit, differ_bit;
-	isc_uint32_t i, j, r;
+	uint32_t bitlen, fam, check_bit, differ_bit;
+	uint32_t i, j, r;
 	isc_result_t result;
 
 	REQUIRE(radix != NULL);

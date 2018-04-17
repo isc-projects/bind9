@@ -14,6 +14,8 @@
 
 /*! \file dst/dst.h */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 
@@ -694,7 +696,7 @@ dst_key_proto(const dst_key_t *key);
 unsigned int
 dst_key_alg(const dst_key_t *key);
 
-isc_uint32_t
+uint32_t
 dst_key_flags(const dst_key_t *key);
 
 dns_keytag_t
@@ -766,9 +768,9 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  *\li	"n" stores the size of a generated shared secret
  */
 
-isc_uint16_t
+uint16_t
 dst_region_computeid(const isc_region_t *source, unsigned int alg);
-isc_uint16_t
+uint16_t
 dst_region_computerid(const isc_region_t *source, unsigned int alg);
 /*%<
  * Computes the (revoked) key id of the key stored in the provided
@@ -781,7 +783,7 @@ dst_region_computerid(const isc_region_t *source, unsigned int alg);
  *\li 	the key id
  */
 
-isc_uint16_t
+uint16_t
 dst_key_getbits(const dst_key_t *key);
 /*%<
  * Get the number of digest bits required (0 == MAX).
@@ -791,7 +793,7 @@ dst_key_getbits(const dst_key_t *key);
  */
 
 void
-dst_key_setbits(dst_key_t *key, isc_uint16_t bits);
+dst_key_setbits(dst_key_t *key, uint16_t bits);
 /*%<
  * Set the number of digest bits required (0 == MAX).
  *
@@ -820,7 +822,7 @@ dst_key_getttl(const dst_key_t *key);
  */
 
 isc_result_t
-dst_key_setflags(dst_key_t *key, isc_uint32_t flags);
+dst_key_setflags(dst_key_t *key, uint32_t flags);
 /*
  * Set the key flags, and recompute the key ID.
  *
@@ -829,7 +831,7 @@ dst_key_setflags(dst_key_t *key, isc_uint32_t flags);
  */
 
 isc_result_t
-dst_key_getnum(const dst_key_t *key, int type, isc_uint32_t *valuep);
+dst_key_getnum(const dst_key_t *key, int type, uint32_t *valuep);
 /*%<
  * Get a member of the numeric metadata array and place it in '*valuep'.
  *
@@ -840,7 +842,7 @@ dst_key_getnum(const dst_key_t *key, int type, isc_uint32_t *valuep);
  */
 
 void
-dst_key_setnum(dst_key_t *key, int type, isc_uint32_t value);
+dst_key_setnum(dst_key_t *key, int type, uint32_t value);
 /*%<
  * Set a member of the numeric metadata array.
  *

@@ -30,6 +30,8 @@
 
 /*! \file isccc/ccmsg.h */
 
+#include <stdint.h>
+
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
@@ -38,7 +40,7 @@
 typedef struct isccc_ccmsg {
 	/* private (don't touch!) */
 	unsigned int		magic;
-	isc_uint32_t		size;
+	uint32_t		size;
 	isc_buffer_t		buffer;
 	unsigned int		maxsize;
 	isc_mem_t	       *mctx;

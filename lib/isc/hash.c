@@ -14,7 +14,10 @@
  */
 
 #include <config.h>       // IWYU pragma: keep
+
 #include <stddef.h>
+#include <stdint.h>
+
 #include "isc/once.h"
 #include "isc/random.h"
 #include "isc/util.h"
@@ -23,7 +26,7 @@
 #include "isc/result.h"
 #include "isc/hash.h"     // IWYU pragma: keep
 
-static isc_uint32_t fnv_offset_basis;
+static uint32_t fnv_offset_basis;
 static isc_once_t fnv_once = ISC_ONCE_INIT;
 static isc_boolean_t fnv_initialized = ISC_FALSE;
 
@@ -98,14 +101,14 @@ isc_hash_set_initializer(const void *initializer) {
 	fnv_offset_basis = *((const unsigned int *) initializer);
 }
 
-#define FNV_32_PRIME ((isc_uint32_t)0x01000193)
+#define FNV_32_PRIME ((uint32_t)0x01000193)
 
-isc_uint32_t
+uint32_t
 isc_hash_function(const void *data, size_t length,
 		  isc_boolean_t case_sensitive,
-		  const isc_uint32_t *previous_hashp)
+		  const uint32_t *previous_hashp)
 {
-	isc_uint32_t hval;
+	uint32_t hval;
 	const unsigned char *bp;
 	const unsigned char *be;
 
@@ -149,12 +152,12 @@ isc_hash_function(const void *data, size_t length,
 	return (hval);
 }
 
-isc_uint32_t
+uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
 			  isc_boolean_t case_sensitive,
-			  const isc_uint32_t *previous_hashp)
+			  const uint32_t *previous_hashp)
 {
-	isc_uint32_t hval;
+	uint32_t hval;
 	const unsigned char *bp;
 	const unsigned char *be;
 

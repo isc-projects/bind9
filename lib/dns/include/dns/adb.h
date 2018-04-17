@@ -67,6 +67,8 @@
  *** Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -770,7 +772,7 @@ dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  */
 
 void
-dns_adb_setquota(dns_adb_t *adb, isc_uint32_t quota, isc_uint32_t freq,
+dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
 		 double low, double high, double discount);
 /*%<
  * Set the baseline ADB quota, and configure parameters for the

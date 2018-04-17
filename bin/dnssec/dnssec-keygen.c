@@ -28,6 +28,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -203,7 +204,7 @@ main(int argc, char **argv) {
 	dst_key_t	*key = NULL;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0, kskflag = 0, revflag = 0;
+	uint16_t	flags = 0, kskflag = 0, revflag = 0;
 	dns_secalg_t	alg;
 	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_boolean_t	oldstyle = ISC_FALSE;

@@ -18,6 +18,7 @@
 #include <atf-c.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <isc/util.h>
@@ -201,7 +202,7 @@ ATF_TC_BODY(isc_gost_md, tc) {
 		ATF_REQUIRE(result == ISC_R_SUCCESS);
 		for(i = 0; i < testcase->repeats; i++) {
 			result = isc_gost_update(&gost,
-					(const isc_uint8_t *) testcase->input,
+					(const uint8_t *) testcase->input,
 					testcase->input_len);
 			ATF_REQUIRE(result == ISC_R_SUCCESS);
 		}

@@ -16,6 +16,7 @@
 #undef rename
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <io.h>
 #include <process.h>
@@ -57,7 +58,7 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 	trv++;
 	/* extra X's get set to 0's */
 	while (*--trv == 'X') {
-		isc_uint32_t which;
+		uint32_t which;
 
 		isc_random_get(&which);
 		*trv = alphnum[which % (sizeof(alphnum) - 1)];
