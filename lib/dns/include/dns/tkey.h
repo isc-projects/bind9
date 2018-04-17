@@ -15,6 +15,7 @@
 
 /*! \file dns/tkey.h */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -120,7 +121,7 @@ isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
 		       uint32_t lifetime, gss_ctx_id_t *context,
-		       isc_boolean_t win2k, isc_mem_t *mctx,
+		       bool win2k, isc_mem_t *mctx,
 		       char **err_message);
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
@@ -214,7 +215,7 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      isc_boolean_t win2k, char **err_message);
+		      bool win2k, char **err_message);
 
 /*
  *	Client side negotiation of GSS-TSIG.  Process the response

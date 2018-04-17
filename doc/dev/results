@@ -57,4 +57,4 @@ function's return values separate.
 
 Functions which cannot fail (assuming the caller has provided valid
 arguments) need not return a result type.  For example, dns_name_issubdomain()
-returns an isc_boolean_t, because it cannot fail.
+returns an bool, because it cannot fail.

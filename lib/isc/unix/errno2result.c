@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/result.h>
 #include <isc/strerror.h>
 #include <isc/util.h>
@@ -27,7 +29,7 @@
  * not already there.
  */
 isc_result_t
-isc___errno2result(int posixerrno, isc_boolean_t dolog,
+isc___errno2result(int posixerrno, bool dolog,
 		   const char *file, unsigned int line)
 {
 	char strbuf[ISC_STRERRORSIZE];

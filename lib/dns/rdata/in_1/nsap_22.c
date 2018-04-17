@@ -21,7 +21,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 	isc_token_t token;
 	isc_textregion_t *sr;
 	int n;
-	isc_boolean_t valid = ISC_FALSE;
+	bool valid = false;
 	int digits = 0;
 	unsigned char c = 0;
 
@@ -36,7 +36,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 
 	/* 0x<hex.string.with.periods> */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	sr = &token.value.as_textregion;
 	if (sr->length < 2)
 		RETTOK(ISC_R_UNEXPECTEDEND);
@@ -54,7 +54,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 		c += n;
 		if (++digits == 2) {
 			RETERR(mem_tobuffer(target, &c, 1));
-			valid = ISC_TRUE;
+			valid = true;
 			digits = 0;
 			c = 0;
 		}
@@ -216,7 +216,7 @@ digest_in_nsap(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_in_nsap(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_nsap);
@@ -227,10 +227,10 @@ checkowner_in_nsap(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_in_nsap(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_nsap);
@@ -240,7 +240,7 @@ checknames_in_nsap(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

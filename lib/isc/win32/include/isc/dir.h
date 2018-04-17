@@ -13,10 +13,10 @@
 #define ISC_DIR_H 1
 
 #include <windows.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/lang.h>
-#include <isc/boolean.h>
 #include <isc/result.h>
 
 #define ISC_DIR_NAMEMAX _MAX_FNAME
@@ -32,7 +32,7 @@ typedef struct {
 	unsigned int	magic;
 	char		dirname[ISC_DIR_PATHMAX];
 	isc_direntry_t	entry;
-	isc_boolean_t	entry_filled;
+	bool	entry_filled;
 	HANDLE        	search_handle;
 } isc_dir_t;
 

@@ -125,32 +125,32 @@ dst_key_class(const dst_key_t *key) {
 	return (key->key_class);
 }
 
-isc_boolean_t
+bool
 dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
-		return (ISC_FALSE);
+		return (false);
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		return (ISC_FALSE);
+		return (false);
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
 	    key->key_proto != DNS_KEYPROTO_ANY)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
-isc_boolean_t
+bool
 dst_key_isnullkey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 
 	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-		return (ISC_FALSE);
+		return (false);
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
-		return (ISC_FALSE);
+		return (false);
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
 	    key->key_proto != DNS_KEYPROTO_ANY)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
 void

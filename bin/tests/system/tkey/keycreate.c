@@ -173,7 +173,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 				    DNS_TSIG_HMACMD5_NAME,
 				    isc_buffer_base(&keybuf),
 				    isc_buffer_usedlength(&keybuf),
-				    ISC_FALSE, NULL, 0, 0, mctx, ring,
+				    false, NULL, 0, 0, mctx, ring,
 				    &initialkey);
 	CHECK("dns_tsigkey_create", result);
 
@@ -252,7 +252,7 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
 	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
+		isc_entropy_usehook(ectx, true);
 	}
 	if (randomfile != NULL) {
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));

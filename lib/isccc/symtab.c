@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/assertions.h>
@@ -57,14 +58,14 @@ struct isccc_symtab {
 	eltlist_t *			table;
 	isccc_symtabundefaction_t		undefine_action;
 	void *				undefine_arg;
-	isc_boolean_t			case_sensitive;
+	bool			case_sensitive;
 };
 
 isc_result_t
 isccc_symtab_create(unsigned int size,
 		  isccc_symtabundefaction_t undefine_action,
 		  void *undefine_arg,
-		  isc_boolean_t case_sensitive,
+		  bool case_sensitive,
 		  isccc_symtab_t **symtabp)
 {
 	isccc_symtab_t *symtab;
@@ -129,7 +130,7 @@ isccc_symtab_destroy(isccc_symtab_t **symtabp) {
 }
 
 static inline unsigned int
-hash(const char *key, isc_boolean_t case_sensitive) {
+hash(const char *key, bool case_sensitive) {
 	const char *s;
 	unsigned int h = 0;
 	unsigned int g;

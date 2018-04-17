@@ -29,9 +29,9 @@
 #include <sys/types.h>          /* Required on some systems for dirent.h. */
 
 #include <dirent.h>
+#include <stdbool.h>
 #include <unistd.h>		/* XXXDCL Required for ?. */
 
-#include <isc/boolean.h>
 #include <isc/lang.h>
 
 #ifdef NEED_OPTARG
@@ -48,18 +48,18 @@ typedef struct {
 
 ISC_LANG_BEGINDECLS
 
-static isc_boolean_t
+static bool
 start_directory(const char *path, isc_dir_t *dir) {
 	dir->handle = opendir(path);
 
 	if (dir->handle != NULL)
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 
 }
 
-static isc_boolean_t
+static bool
 next_file(isc_dir_t *dir) {
 	struct dirent *dirent;
 
@@ -72,9 +72,9 @@ next_file(isc_dir_t *dir) {
 	}
 
 	if (dir->filename != NULL)
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static void

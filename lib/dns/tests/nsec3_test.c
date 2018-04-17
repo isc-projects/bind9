@@ -135,7 +135,7 @@ ATF_TC_BODY(max_iterations, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	iteration_test("testdata/nsec3/1024.db", 150);
@@ -171,7 +171,7 @@ ATF_TC_BODY(nsec3param_salttotext, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {

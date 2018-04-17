@@ -88,8 +88,8 @@ isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len);
 void
 isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_md5_check(isc_boolean_t testing);
+bool
+isc_md5_check(bool testing);
 
 ISC_LANG_ENDDECLS
 

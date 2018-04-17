@@ -76,7 +76,7 @@ bdb_create(const char *zone, int argc, char **argv,
 		return ISC_R_FAILURE;
 	}
 
-	if (isc_file_exists(*argv) != ISC_TRUE) {
+	if (isc_file_exists(*argv) != true) {
 		isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			       DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL, isc_msgcat,
 			       ISC_MSGSET_GENERAL, ISC_MSG_FATALERROR,

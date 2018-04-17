@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <windows.h>
@@ -58,7 +59,7 @@ get_from_filesource(isc_entropysource_t *source, uint32_t desired) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		if (!CryptGenRandom(hcryptprov, (DWORD)ndesired, buf)) {
 			CryptReleaseContext(hcryptprov, 0);
-			source->bad = ISC_TRUE;
+			source->bad = true;
 			goto out;
 		}
 
@@ -78,7 +79,7 @@ get_from_filesource(isc_entropysource_t *source, uint32_t desired) {
  * pool.
  */
 static void
-fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
+fillpool(isc_entropy_t *ent, unsigned int desired, bool blocking) {
 	unsigned int added;
 	unsigned int remaining;
 	unsigned int needed;
@@ -272,7 +273,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	source->type = ENTROPY_SOURCETYPE_FILE;
 	source->ent = ent;
 	source->total = 0;
-	source->bad = ISC_FALSE;
+	source->bad = false;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
 	source->sources.file.handle = hcryptprov;

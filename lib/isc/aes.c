@@ -180,8 +180,8 @@ isc_aes_crypt(const unsigned char *key, CK_ULONG keylen,
 	pk11_context_t ctx;
 
 	DE_CONST(key, keyTemplate[5].pValue);
-	RUNTIME_CHECK(pk11_get_session(&ctx, OP_AES, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(&ctx, OP_AES, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	ctx.object = CK_INVALID_HANDLE;
 	PK11_FATALCHECK(pkcs_C_CreateObject,
 			(ctx.session, keyTemplate,

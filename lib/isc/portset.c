@@ -34,9 +34,9 @@ struct isc_portset {
 	uint32_t buf[ISC_PORTSET_BUFSIZE];
 };
 
-static inline isc_boolean_t
+static inline bool
 portset_isset(isc_portset_t *portset, in_port_t port) {
-	return (ISC_TF((portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0));
+	return ((portset->buf[port >> 5] & ((uint32_t)1 << (port & 31))) != 0);
 }
 
 static inline void
@@ -82,7 +82,7 @@ isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp) {
 	isc_mem_put(mctx, portset, sizeof(*portset));
 }
 
-isc_boolean_t
+bool
 isc_portset_isset(isc_portset_t *portset, in_port_t port) {
 	REQUIRE(portset != NULL);
 

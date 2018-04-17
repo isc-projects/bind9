@@ -29,7 +29,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	unsigned char bm[8*1024]; /* 64k bits */
 	dns_rdatatype_t covered;
 	dns_rdatatype_t maxcovered = 0;
-	isc_boolean_t first = ISC_TRUE;
+	bool first = true;
 	long n;
 
 	REQUIRE(type == dns_rdatatype_nxt);
@@ -42,7 +42,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	 * Next domain.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	if (origin == NULL)
@@ -52,7 +52,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	memset(bm, 0, sizeof(bm));
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
-					      isc_tokentype_string, ISC_TRUE));
+					      isc_tokentype_string, true));
 		if (token.type != isc_tokentype_string)
 			break;
 		n = strtol(DNS_AS_STR(token), &e, 10);
@@ -68,7 +68,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 			return (ISC_R_RANGE);
 		if (first || covered > maxcovered)
 			maxcovered = covered;
-		first = ISC_FALSE;
+		first = false;
 		bm[covered/8] |= (0x80>>(covered%8));
 	} while (1);
 	isc_lex_ungettoken(lexer, &token);
@@ -84,7 +84,7 @@ totext_nxt(ARGS_TOTEXT) {
 	unsigned int i, j;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 	REQUIRE(rdata->length != 0);
@@ -293,7 +293,7 @@ digest_nxt(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_nxt(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_nxt);
@@ -303,10 +303,10 @@ checkowner_nxt(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_nxt(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
@@ -315,7 +315,7 @@ checknames_nxt(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

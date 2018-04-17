@@ -31,7 +31,6 @@
 
 #include <stdint.h>
 
-#include <isc/boolean.h>
 #include <isc/result.h>
 
 /*% isccc_time_t typedef */

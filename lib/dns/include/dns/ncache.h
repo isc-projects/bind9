@@ -39,6 +39,8 @@
  *\li	RFC2308
  */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 
@@ -60,7 +62,7 @@ isc_result_t
 dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		     dns_dbnode_t *node, dns_rdatatype_t covers,
 		     isc_stdtime_t now, dns_ttl_t maxttl,
-		     isc_boolean_t optout, dns_rdataset_t *addedrdataset);
+		     bool optout, dns_rdataset_t *addedrdataset);
 /*%<
  * Convert the authority data from 'message' into a negative cache
  * rdataset, and store it in 'cache' at 'node' with a TTL limited to

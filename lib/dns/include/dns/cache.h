@@ -42,6 +42,8 @@
  ***	Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stats.h>
@@ -280,7 +282,7 @@ dns_cache_flush(dns_cache_t *cache);
 
 isc_result_t
 dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
-		    isc_boolean_t tree);
+		    bool tree);
 /*
  * Flush a given name from the cache.  If 'tree' is true, then
  * also flush all names under 'name'.
@@ -299,7 +301,7 @@ isc_result_t
 dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name);
 /*
  * Flush a given name from the cache.  Equivalent to
- * dns_cache_flushpartial(cache, name, ISC_FALSE).
+ * dns_cache_flushpartial(cache, name, false).
  *
  * Requires:
  *\li	'cache' to be valid.

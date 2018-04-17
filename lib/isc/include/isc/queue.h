@@ -21,8 +21,10 @@
 
 #ifndef ISC_QUEUE_H
 #define ISC_QUEUE_H 1
+
+#include <stdbool.h>
+
 #include <isc/assertions.h>
-#include <isc/boolean.h>
 #include <isc/mutex.h>
 
 #ifdef ISC_QUEUE_CHECKINIT
@@ -52,7 +54,7 @@
 		(queue).tail = (queue).head = NULL; \
 	} while (0)
 
-#define ISC_QUEUE_EMPTY(queue) ISC_TF((queue).head == NULL)
+#define ISC_QUEUE_EMPTY(queue) ((queue).head == NULL)
 
 #define ISC_QUEUE_DESTROY(queue) \
 	do { \
@@ -89,18 +91,18 @@
  */
 #define ISC_QUEUE_PUSH(queue, elt, link) \
 	do { \
-		isc_boolean_t headlocked = ISC_FALSE; \
+		bool headlocked = false; \
 		ISC_QLINK_INSIST(!ISC_QLINK_LINKED(elt, link)); \
 		if ((queue).head == NULL) { \
 			LOCK(&(queue).headlock); \
-			headlocked = ISC_TRUE; \
+			headlocked = true; \
 		} \
 		LOCK(&(queue).taillock); \
 		if ((queue).tail == NULL && !headlocked) { \
 			UNLOCK(&(queue).taillock); \
 			LOCK(&(queue).headlock); \
 			LOCK(&(queue).taillock); \
-			headlocked = ISC_TRUE; \
+			headlocked = true; \
 		} \
 		(elt)->link.prev = (queue).tail; \
 		(elt)->link.next = NULL; \

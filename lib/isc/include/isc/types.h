@@ -18,14 +18,10 @@
  * \brief
  * OS-specific types, from the OS-specific include directories.
  */
+#include <stdbool.h>
 #include <stdint.h>
 #include <isc/offset.h>
 
-/*
- * XXXDCL should isc_boolean_t be moved here, requiring an explicit include
- * of <isc/boolean.h> when ISC_TRUE/ISC_FALSE/ISC_TF() are desired?
- */
-#include <isc/boolean.h>
 /*
  * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other
  * list macros too.
@@ -107,7 +103,7 @@ typedef isc_result_t (isc_httpdaction_t)(const char *url,
 					 isc_buffer_t *body,
 					 isc_httpdfree_t **freecb,
 					 void **freecb_args);
-typedef isc_boolean_t (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
+typedef bool (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
 
 /*% Resource */
 typedef enum {

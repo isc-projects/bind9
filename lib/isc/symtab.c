@@ -15,6 +15,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <stdbool.h>
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -44,14 +45,14 @@ struct isc_symtab {
 	eltlist_t *			table;
 	isc_symtabaction_t		undefine_action;
 	void *				undefine_arg;
-	isc_boolean_t			case_sensitive;
+	bool			case_sensitive;
 };
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action,
 		  void *undefine_arg,
-		  isc_boolean_t case_sensitive,
+		  bool case_sensitive,
 		  isc_symtab_t **symtabp)
 {
 	isc_symtab_t *symtab;
@@ -118,7 +119,7 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 }
 
 static inline unsigned int
-hash(const char *key, isc_boolean_t case_sensitive) {
+hash(const char *key, bool case_sensitive) {
 	const char *s;
 	unsigned int h = 0;
 	int c;

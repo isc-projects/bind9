@@ -44,6 +44,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <isc/lang.h>
@@ -300,7 +301,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp);
 
 isc_result_t
 isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
-		       isc_tokentype_t expect, isc_boolean_t eol);
+		       isc_tokentype_t expect, bool eol);
 /*%<
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles quoted
@@ -318,7 +319,7 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
  */
 
 isc_result_t
-isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, isc_boolean_t eol);
+isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, bool eol);
 /*%<
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles end
@@ -422,7 +423,7 @@ isc_lex_setsourceline(isc_lex_t *lex, unsigned long line);
  * \li	#ISC_R_NOTFOUND - there are no sources.
  */
 
-isc_boolean_t
+bool
 isc_lex_isfile(isc_lex_t *lex);
 /*%<
  * Return whether the current input source is a file.
@@ -431,8 +432,8 @@ isc_lex_isfile(isc_lex_t *lex);
  *\li	'lex' is a valid lexer.
  *
  * Returns:
- * \li	#ISC_TRUE if the current input is a file,
- *\li	#ISC_FALSE otherwise.
+ * \li	#true if the current input is a file,
+ *\li	#false otherwise.
  */
 
 

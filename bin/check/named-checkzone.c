@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -111,8 +112,8 @@ main(int argc, char **argv) {
 	dns_masterrawheader_t header;
 	uint32_t rawversion = 1, serialnum = 0;
 	dns_ttl_t maxttl = 0;
-	isc_boolean_t snset = ISC_FALSE;
-	isc_boolean_t logdump = ISC_FALSE;
+	bool snset = false;
+	bool logdump = false;
 	FILE *errout = stdout;
 	char *endp;
 
@@ -162,7 +163,7 @@ main(int argc, char **argv) {
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	while ((c = isc_commandline_parse(argc, argv,
 			       "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:M:S:T:W:"))
@@ -180,33 +181,33 @@ main(int argc, char **argv) {
 			if (ARGCMP("full")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY |
 						DNS_ZONEOPT_CHECKSIBLING;
-				docheckmx = ISC_TRUE;
-				docheckns = ISC_TRUE;
-				dochecksrv = ISC_TRUE;
+				docheckmx = true;
+				docheckns = true;
+				dochecksrv = true;
 			} else if (ARGCMP("full-sibling")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
-				docheckmx = ISC_TRUE;
-				docheckns = ISC_TRUE;
-				dochecksrv = ISC_TRUE;
+				docheckmx = true;
+				docheckns = true;
+				dochecksrv = true;
 			} else if (ARGCMP("local")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options |= DNS_ZONEOPT_CHECKSIBLING;
-				docheckmx = ISC_FALSE;
-				docheckns = ISC_FALSE;
-				dochecksrv = ISC_FALSE;
+				docheckmx = false;
+				docheckns = false;
+				dochecksrv = false;
 			} else if (ARGCMP("local-sibling")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
-				docheckmx = ISC_FALSE;
-				docheckns = ISC_FALSE;
-				dochecksrv = ISC_FALSE;
+				docheckmx = false;
+				docheckns = false;
+				dochecksrv = false;
 			} else if (ARGCMP("none")) {
 				zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
-				docheckmx = ISC_FALSE;
-				docheckns = ISC_FALSE;
-				dochecksrv = ISC_FALSE;
+				docheckmx = false;
+				docheckns = false;
+				dochecksrv = false;
 			} else {
 				fprintf(stderr, "invalid argument to -i: %s\n",
 					isc_commandline_argument);
@@ -223,12 +224,12 @@ main(int argc, char **argv) {
 			break;
 
 		case 'j':
-			nomerge = ISC_FALSE;
+			nomerge = false;
 			break;
 
 		case 'J':
 			journal = isc_commandline_argument;
-			nomerge = ISC_FALSE;
+			nomerge = false;
 			break;
 
 		case 'k':
@@ -249,7 +250,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'L':
-			snset = ISC_TRUE;
+			snset = true;
 			endp = NULL;
 			serialnum = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0') {
@@ -508,7 +509,7 @@ main(int argc, char **argv) {
 	     strcmp(output_filename, "/dev/fd/1") == 0 ||
 	     strcmp(output_filename, "/dev/stdout") == 0)) {
 		errout = stderr;
-		logdump = ISC_FALSE;
+		logdump = false;
 	}
 
 	if (isc_commandline_index + 2 != argc)

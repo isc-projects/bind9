@@ -13,13 +13,15 @@
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1
 
+#include <stdbool.h>
+
 #include <isc/result.h>
 
-typedef isc_boolean_t isc_once_t;
+typedef bool isc_once_t;
 
-#define ISC_ONCE_INIT ISC_FALSE
+#define ISC_ONCE_INIT false
 
 #define isc_once_do(op, f) \
-	(!*(op) ? (f(), *(op) = ISC_TRUE, ISC_R_SUCCESS) : ISC_R_SUCCESS)
+	(!*(op) ? (f(), *(op) = true, ISC_R_SUCCESS) : ISC_R_SUCCESS)
 
 #endif /* ISC_ONCE_H */

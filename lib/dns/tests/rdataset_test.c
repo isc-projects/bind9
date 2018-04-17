@@ -48,7 +48,7 @@ ATF_TC_BODY(trimttl, tc) {
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	rdataset.ttl = 900;
@@ -57,7 +57,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_TRUE);
+			     true);
 	ATF_REQUIRE_EQ(rdataset.ttl, 800);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 800);
 
@@ -67,7 +67,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_TRUE);
+			     true);
 	ATF_REQUIRE_EQ(rdataset.ttl, 120);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 120);
 
@@ -77,7 +77,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_FALSE);
+			     false);
 	ATF_REQUIRE_EQ(rdataset.ttl, 0);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 0);
 
@@ -87,7 +87,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_TRUE);
+			     true);
 	ATF_REQUIRE_EQ(rdataset.ttl, 800);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 800);
 
@@ -97,7 +97,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_TRUE);
+			     true);
 	ATF_REQUIRE_EQ(rdataset.ttl, 120);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 120);
 
@@ -107,7 +107,7 @@ ATF_TC_BODY(trimttl, tc) {
 	rrsig.originalttl = 1000;
 
 	dns_rdataset_trimttl(&rdataset, &sigrdataset, &rrsig, ttltimenow,
-			     ISC_FALSE);
+			     false);
 	ATF_REQUIRE_EQ(rdataset.ttl, 0);
 	ATF_REQUIRE_EQ(sigrdataset.ttl, 0);
 

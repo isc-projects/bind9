@@ -12,6 +12,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/app.h>
@@ -23,7 +24,7 @@
 static isc_mutex_t createlock;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_appctxcreatefunc_t appctx_createfunc = NULL;
-static isc_boolean_t is_running = ISC_FALSE;
+static bool is_running = false;
 
 #define ISCAPI_APPMETHODS_VALID(m) ISC_MAGIC_VALID(m, ISCAPI_APPMETHODS_MAGIC)
 
@@ -196,9 +197,9 @@ isc_app_run() {
 	if (isc_bind9) {
 		isc_result_t result;
 
-		is_running = ISC_TRUE;
+		is_running = true;
 		result = isc__app_run();
-		is_running = ISC_FALSE;
+		is_running = false;
 
 		return (result);
 	}
@@ -206,7 +207,7 @@ isc_app_run() {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-isc_boolean_t
+bool
 isc_app_isrunning() {
 	return (is_running);
 }

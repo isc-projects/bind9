@@ -22,6 +22,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <aclapi.h>
 
 #include <sys/types.h>
@@ -144,7 +146,7 @@ FAT_fsaccess_set(const char *path, isc_fsaccess_t access) {
 
 isc_result_t
 NTFS_Access_Control(const char *filename, const char *user, int access,
-		    isc_boolean_t isdir) {
+		    bool isdir) {
 	SECURITY_DESCRIPTOR sd;
 	BYTE aclBuffer[1024];
 	PACL pacl=(PACL)&aclBuffer;
@@ -197,7 +199,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 		NTFSbits |= FILE_GENERIC_EXECUTE;
 
 	/* For directories check the directory-specific bits */
-	if (isdir == ISC_TRUE) {
+	if (isdir == true) {
 		if (caccess & ISC_FSACCESS_CREATECHILD)
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
 		if (caccess & ISC_FSACCESS_DELETECHILD)
@@ -272,7 +274,7 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 
 isc_result_t
 NTFS_fsaccess_set(const char *path, isc_fsaccess_t access,
-		  isc_boolean_t isdir){
+		  bool isdir){
 
 	/*
 	 * For NTFS we first need to get the name of the account under
@@ -289,14 +291,14 @@ NTFS_fsaccess_set(const char *path, isc_fsaccess_t access,
 isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 	struct stat statb;
-	isc_boolean_t is_dir = ISC_FALSE;
+	bool is_dir = false;
 	isc_result_t result;
 
 	if (stat(path, &statb) != 0)
 		return (isc__errno2result(errno));
 
 	if ((statb.st_mode & S_IFDIR) != 0)
-		is_dir = ISC_TRUE;
+		is_dir = true;
 	else if ((statb.st_mode & S_IFREG) == 0)
 		return (ISC_R_INVALIDFILE);
 

@@ -53,6 +53,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <dns/db.h>
 #include <dns/dlz.h>
 #include <dns/fixedname.h>
@@ -471,7 +473,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 		goto cleanup;
 	dns_zone_setview(zone, view);
 
-	dns_zone_setadded(zone, ISC_TRUE);
+	dns_zone_setadded(zone, true);
 
 	if (dlzdb->ssutable == NULL) {
 		result = dns_ssutable_createdlz(dlzdb->mctx,
@@ -521,13 +523,13 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	return (result);
 }
 
-isc_boolean_t
+bool
 dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 		 const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		 dns_rdatatype_t type, const dst_key_t *key)
 {
 	dns_dlzimplementation_t *impl;
-	isc_boolean_t r;
+	bool r;
 
 	REQUIRE(dlzdatabase != NULL);
 	REQUIRE(dlzdatabase->implementation != NULL);
@@ -538,7 +540,7 @@ dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_DLZ, ISC_LOG_INFO,
 			      "No ssumatch method for DLZ database");
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	r = impl->methods->ssumatch(signer, name, tcpaddr, type, key,

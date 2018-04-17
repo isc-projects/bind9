@@ -34,7 +34,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	if (inet_pton(AF_INET6, DNS_AS_STR(token), addr) != 1)
 		RETTOK(DNS_R_BADAAAA);
@@ -195,7 +195,7 @@ digest_in_aaaa(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_in_aaaa(ARGS_CHECKOWNER) {
 	dns_name_t prefix, suffix;
 
@@ -214,14 +214,14 @@ checkowner_in_aaaa(ARGS_CHECKOWNER) {
 		dns_name_split(name, dns_name_countlabels(name) - 2,
 			       &prefix, &suffix);
 		if (dns_name_equal(&gc_msdcs, &prefix) &&
-		    dns_name_ishostname(&suffix, ISC_FALSE))
-			return (ISC_TRUE);
+		    dns_name_ishostname(&suffix, false))
+			return (true);
 	}
 
 	return (dns_name_ishostname(name, wildcard));
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_in_aaaa(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_aaaa);
@@ -231,7 +231,7 @@ checknames_in_aaaa(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

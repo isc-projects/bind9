@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/mem.h>
@@ -170,7 +171,7 @@ isc_taskpool_destroy(isc_taskpool_t **poolp) {
 }
 
 void
-isc_taskpool_setprivilege(isc_taskpool_t *pool, isc_boolean_t priv) {
+isc_taskpool_setprivilege(isc_taskpool_t *pool, bool priv) {
 	unsigned int i;
 
 	REQUIRE(pool != NULL);

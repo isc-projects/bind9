@@ -91,7 +91,7 @@ addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata) {
 	PGresult *res;
 
 	isc_buffer_init(&b, namearray, sizeof(namearray) - 1);
-	result = dns_name_totext(name, ISC_TRUE, &b);
+	result = dns_name_totext(name, true, &b);
 	check_result(result, "dns_name_totext");
 	namearray[isc_buffer_usedlength(&b)] = 0;
 	quotestring((const unsigned char *)namearray, canonnamearray);

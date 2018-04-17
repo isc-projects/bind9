@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
@@ -77,7 +78,7 @@ struct isc_mutexstats {
 #endif
 static isc_mutexstats_t stats[ISC_MUTEX_PROFTABLESIZE];
 static int stats_next = 0;
-static isc_boolean_t stats_init = ISC_FALSE;
+static bool stats_init = false;
 static pthread_mutex_t statslock = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -93,8 +94,8 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
-	if (stats_init == ISC_FALSE)
-		stats_init = ISC_TRUE;
+	if (stats_init == false)
+		stats_init = true;
 
 	/*
 	 * If all statistics entries have been used, give up and trigger an
@@ -221,7 +222,7 @@ isc_mutex_statsprofile(FILE *fp) {
 
 #if ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)
 
-static isc_boolean_t errcheck_initialized = ISC_FALSE;
+static bool errcheck_initialized = false;
 static pthread_mutexattr_t errcheck;
 static isc_once_t once_errcheck = ISC_ONCE_INIT;
 
@@ -230,7 +231,7 @@ initialize_errcheck(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&errcheck) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype
 		      (&errcheck, PTHREAD_MUTEX_ERRORCHECK) == 0);
-	errcheck_initialized = ISC_TRUE;
+	errcheck_initialized = true;
 }
 
 isc_result_t
@@ -258,7 +259,7 @@ pthread_mutexattr_t isc__mutex_attrs = {
 #if !(ISC_MUTEX_DEBUG && defined(PTHREAD_MUTEX_ERRORCHECK)) && !ISC_MUTEX_PROFILE
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
-static isc_boolean_t attr_initialized = ISC_FALSE;
+static bool attr_initialized = false;
 static pthread_mutexattr_t attr;
 static isc_once_t once_attr = ISC_ONCE_INIT;
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
@@ -269,7 +270,7 @@ initialize_attr(void) {
 	RUNTIME_CHECK(pthread_mutexattr_init(&attr) == 0);
 	RUNTIME_CHECK(pthread_mutexattr_settype
 		      (&attr, PTHREAD_MUTEX_ADAPTIVE_NP) == 0);
-	attr_initialized = ISC_TRUE;
+	attr_initialized = true;
 }
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 

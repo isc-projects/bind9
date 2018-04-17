@@ -27,7 +27,7 @@ fromtext_mr(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
@@ -42,7 +42,7 @@ totext_mr(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
 	REQUIRE(rdata->length != 0);
@@ -194,7 +194,7 @@ digest_mr(ARGS_DIGEST) {
 	return (dns_name_digest(&name, digest, arg));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_mr(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_mr);
@@ -204,10 +204,10 @@ checkowner_mr(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_mr(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_mr);
@@ -216,7 +216,7 @@ checknames_mr(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

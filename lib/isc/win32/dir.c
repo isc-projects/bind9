@@ -43,7 +43,7 @@ isc_dir_init(isc_dir_t *dir) {
 	dir->entry.length = 0;
 	memset(&(dir->entry.find_data), 0, sizeof(dir->entry.find_data));
 
-	dir->entry_filled = ISC_FALSE;
+	dir->entry_filled = false;
 	dir->search_handle = INVALID_HANDLE_VALUE;
 
 	dir->magic = ISC_DIR_MAGIC;
@@ -100,7 +100,7 @@ isc_dir_read(isc_dir_t *dir) {
 		/*
 		 * start_directory() already filled in the first entry.
 		 */
-		dir->entry_filled = ISC_FALSE;
+		dir->entry_filled = false;
 
 	else {
 		/*
@@ -176,7 +176,7 @@ start_directory(isc_dir_t *dir)
 	REQUIRE(VALID_DIR(dir));
 	REQUIRE(dir->search_handle == INVALID_HANDLE_VALUE);
 
-	dir->entry_filled = ISC_FALSE;
+	dir->entry_filled = false;
 
 	/*
 	 * Open stream and retrieve first file.
@@ -210,7 +210,7 @@ start_directory(isc_dir_t *dir)
 		sizeof(dir->entry.name));
 	dir->entry.length = strlen(dir->entry.name);
 
-	dir->entry_filled = ISC_TRUE;
+	dir->entry_filled = true;
 
 	return (ISC_R_SUCCESS);
 }
