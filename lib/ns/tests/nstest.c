@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -806,7 +807,7 @@ ns_test_hook_catch_call(void *hook_data, void *callback_data,
  * Sleep for 'usec' microseconds.
  */
 void
-ns_test_nap(isc_uint32_t usec) {
+ns_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 

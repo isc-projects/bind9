@@ -16,6 +16,7 @@
 
 #include <atf-c.h>
 
+#include <stdint.h>
 #include <unistd.h>
 
 #include <isc/buffer.h>
@@ -76,7 +77,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	dns_rdata_t nsec3param = DNS_RDATA_INIT;
 	unsigned char bufdata[BUFSIZ];
 	isc_buffer_t buf;
-	isc_uint32_t salt;
+	uint32_t salt;
 	unsigned char *sp;
 	int slen = 4;
 

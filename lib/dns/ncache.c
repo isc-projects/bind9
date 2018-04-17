@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/buffer.h>
 #include <isc/util.h>
 
@@ -61,7 +63,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		return (ISC_R_NOSPACE);
 	count = dns_rdataset_count(rdataset);
 	INSIST(count <= 65535);
-	isc_buffer_putuint16(buffer, (isc_uint16_t)count);
+	isc_buffer_putuint16(buffer, (uint16_t)count);
 
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
@@ -74,7 +76,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		/*
 		 * Copy the rdata length to the buffer.
 		 */
-		isc_buffer_putuint16(buffer, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(buffer, (uint16_t)r.length);
 		/*
 		 * Copy the rdata to the buffer.
 		 */
@@ -366,7 +368,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			INSIST((target->used >= rdlen.used + 2) &&
 			       (target->used - rdlen.used - 2 < 65536));
 			isc_buffer_putuint16(&rdlen,
-					     (isc_uint16_t)(target->used -
+					     (uint16_t)(target->used -
 							    rdlen.used - 2));
 
 			count++;
@@ -384,7 +386,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 
  rollback:
 	INSIST(savedbuffer.used < 65536);
-	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
+	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 

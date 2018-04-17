@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -159,7 +160,7 @@ isc_test_end(void) {
  * Sleep for 'usec' microseconds.
  */
 void
-isc_test_nap(isc_uint32_t usec) {
+isc_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 

@@ -18,7 +18,7 @@ typedef struct dns_rdata_unspec_t {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	unsigned char		*data;
-	isc_uint16_t		datalen;
+	uint16_t		datalen;
 } dns_rdata_unspec_t;
 
 #endif /* GENERIC_UNSPEC_103_H */

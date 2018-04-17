@@ -25,6 +25,8 @@
  *** Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>

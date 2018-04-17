@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #ifdef USE_DNSRPS
 
 #include <isc/mem.h>

@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <atf-c.h>
 
 #include <dns/badcache.h>
@@ -38,7 +40,7 @@ typedef struct {
 	isc_boolean_t cache_entry_present; /* whether a SERVFAIL cache entry
 					      matching the query should be
 					      present */
-	isc_uint32_t cache_entry_flags;	   /* NS_FAILCACHE_* flags to set for
+	uint32_t cache_entry_flags;	   /* NS_FAILCACHE_* flags to set for
 					      the SERVFAIL cache entry */
 	isc_boolean_t servfail_expected;   /* whether a cached SERVFAIL is
 					      expected to be returned */

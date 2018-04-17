@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
@@ -56,7 +58,7 @@ struct dns_catz_zone {
 	dns_catz_options_t	zoneoptions;
 	isc_time_t		lastupdated;
 	isc_boolean_t		updatepending;
-	isc_uint32_t		version;
+	uint32_t		version;
 
 	dns_db_t		*db;
 	dns_dbversion_t		*dbversion;
@@ -426,9 +428,9 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					    &nentry->opts);
 
 		result = isc_ht_find(target->entries, key,
-				     (isc_uint32_t)keysize, (void **) &oentry);
+				     (uint32_t)keysize, (void **) &oentry);
 		if (result != ISC_R_SUCCESS) {
-			result = isc_ht_add(toadd, key, (isc_uint32_t)keysize,
+			result = isc_ht_add(toadd, key, (uint32_t)keysize,
 					    nentry);
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -442,7 +444,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		}
 
 		if (dns_catz_entry_cmp(oentry, nentry) != ISC_TRUE) {
-			result = isc_ht_add(tomod, key, (isc_uint32_t)keysize,
+			result = isc_ht_add(tomod, key, (uint32_t)keysize,
 					    nentry);
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -455,7 +457,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 		}
 		dns_catz_entry_detach(target, &oentry);
 		result = isc_ht_delete(target->entries, key,
-				       (isc_uint32_t)keysize);
+				       (uint32_t)keysize);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 	RUNTIME_CHECK(result == ISC_R_NOMORE);
@@ -649,7 +651,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	dns_catz_options_init(&new_zone->zoneoptions);
 	new_zone->active = ISC_TRUE;
 	new_zone->db_registered = ISC_FALSE;
-	new_zone->version = (isc_uint32_t)(-1);
+	new_zone->version = (uint32_t)(-1);
 	isc_refcount_init(&new_zone->refs, 1);
 
 	*zonep = new_zone;
@@ -968,7 +970,7 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 	dns_rdata_t rdata;
 	dns_rdata_txt_t rdatatxt;
 	dns_rdata_txt_string_t rdatastr;
-	isc_uint32_t tversion;
+	uint32_t tversion;
 	char t[16];
 
 	REQUIRE(zone != NULL);
@@ -1518,7 +1520,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_t *buffer = NULL;
 	isc_region_t region;
 	isc_result_t result;
-	isc_uint32_t i;
+	uint32_t i;
 	isc_netaddr_t netaddr;
 	char pbuf[sizeof("65535")]; /* used both for port number and DSCP */
 	char zname[DNS_NAME_FORMATSIZE];
@@ -1654,7 +1656,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	dns_catz_zones_t *catzs;
 	dns_catz_zone_t *zone = NULL;
 	isc_time_t now;
-	isc_uint64_t tdiff;
+	uint64_t tdiff;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_region_t r;
 
@@ -1744,7 +1746,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	dns_rdataset_t rdataset;
 	char bname[DNS_NAME_FORMATSIZE];
 	isc_buffer_t ibname;
-	isc_uint32_t vers;
+	uint32_t vers;
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(catzs != NULL);

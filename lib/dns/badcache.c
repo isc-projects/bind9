@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/log.h>
@@ -52,7 +53,7 @@ struct dns_bcentry {
 	dns_bcentry_t *		next;
 	dns_rdatatype_t 	type;
 	isc_time_t		expire;
-	isc_uint32_t		flags;
+	uint32_t		flags;
 	unsigned int		hashval;
 	dns_name_t		name;
 };
@@ -157,7 +158,7 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 void
 dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		 dns_rdatatype_t type, isc_boolean_t update,
-		 isc_uint32_t flags, isc_time_t *expire)
+		 uint32_t flags, isc_time_t *expire)
 {
 	isc_result_t result;
 	unsigned int i, hashval;
@@ -226,7 +227,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 
 isc_boolean_t
 dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
-		  dns_rdatatype_t type, isc_uint32_t *flagp,
+		  dns_rdatatype_t type, uint32_t *flagp,
 		  isc_time_t *now)
 {
 	dns_bcentry_t *bad, *prev, *next;
@@ -399,7 +400,7 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp) {
 	dns_bcentry_t *bad, *next, *prev;
 	isc_time_t now;
 	unsigned int i;
-	isc_uint64_t t;
+	uint64_t t;
 
 	REQUIRE(VALID_BADCACHE(bc));
 	REQUIRE(cachename != NULL);

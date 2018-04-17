@@ -14,6 +14,8 @@
 
 /*! \file */
 
+#include <stdint.h>
+
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/quota.h>
@@ -70,8 +72,8 @@ struct named_server {
 	isc_timer_t *		pps_timer;
 	isc_timer_t *		tat_timer;
 
-	isc_uint32_t		interface_interval;
-	isc_uint32_t		heartbeat_interval;
+	uint32_t		interface_interval;
+	uint32_t		heartbeat_interval;
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
@@ -93,7 +95,7 @@ struct named_server {
 	char			*session_keyfile;
 	dns_name_t		*session_keyname;
 	unsigned int		session_keyalg;
-	isc_uint16_t		session_keybits;
+	uint16_t		session_keybits;
 	isc_boolean_t		interface_auto;
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
 	ns_cookiealg_t		cookiealg;

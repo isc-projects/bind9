@@ -13,16 +13,19 @@
 /* ! \file */
 
 #include <config.h>
+
 #include <atf-c.h>
+
+#include <inttypes.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-
-#include <inttypes.h> /* uintptr_t */
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
@@ -99,7 +102,7 @@ delete_data(void *data, void *arg) {
 }
 
 static isc_result_t
-write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
+write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	isc_result_t result;
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
@@ -139,7 +142,7 @@ write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
 
 static isc_result_t
 fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg,
-	 isc_uint64_t *crc)
+	 uint64_t *crc)
 {
 	data_holder_t *data = p->data;
 	size_t size;
