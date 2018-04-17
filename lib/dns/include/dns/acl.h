@@ -25,6 +25,8 @@
  *** Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -188,8 +190,8 @@ dns_acl_isinsecure(const dns_acl_t *a);
 
 isc_boolean_t
 dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
-		isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
-		isc_uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t
+		isc_netaddr_t *ecs_addr, uint8_t ecs_addrlen,
+		uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t
 		*aclenv);
 /*%<
  * Return #ISC_TRUE iff the 'addr', 'signer', or ECS values are
@@ -212,8 +214,8 @@ isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_name_t *reqsigner,
 	      const isc_netaddr_t *ecs,
-	      isc_uint8_t ecslen,
-	      isc_uint8_t *scope,
+	      uint8_t ecslen,
+	      uint8_t *scope,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
@@ -253,8 +255,8 @@ isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const isc_netaddr_t *ecs,
-		     isc_uint8_t ecslen,
-		     isc_uint8_t *scope,
+		     uint8_t ecslen,
+		     uint8_t *scope,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);

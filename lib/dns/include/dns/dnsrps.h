@@ -12,10 +12,10 @@
 #ifndef DNS_DNSRPS_H
 #define DNS_DNSRPS_H
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <dns/types.h>
-
-#include <config.h>
 
 #ifdef USE_DNSRPS
 

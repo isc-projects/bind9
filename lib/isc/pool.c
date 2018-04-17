@@ -15,6 +15,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <string.h>
 
 #include <isc/mem.h>
@@ -99,7 +100,7 @@ isc_pool_create(isc_mem_t *mctx, unsigned int count,
 
 void *
 isc_pool_get(isc_pool_t *pool) {
-	isc_uint32_t i;
+	uint32_t i;
 	isc_random_get(&i);
 	return (pool->pool[i % pool->count]);
 }

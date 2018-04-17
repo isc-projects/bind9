@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/file.h>
@@ -844,7 +845,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *filename = NULL;
 	const char *dupcheck;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
-	isc_uint32_t count;
+	uint32_t count;
 	unsigned int dbargc;
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
@@ -854,7 +855,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
 	int i;
-	isc_int32_t journal_size;
+	int32_t journal_size;
 	isc_boolean_t multi;
 	isc_boolean_t alt;
 	dns_view_t *view;
@@ -1278,7 +1279,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					    value);
 				RETERR(ISC_R_RANGE);
 			}
-			journal_size = (isc_uint32_t)value;
+			journal_size = (uint32_t)value;
 		}
 		if (raw != NULL)
 			dns_zone_setjournalsize(raw, journal_size);
@@ -1411,7 +1412,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					    value);
 				RETERR(ISC_R_RANGE);
 			}
-			journal_size = (isc_uint32_t)value;
+			journal_size = (uint32_t)value;
 		}
 		dns_zone_setjournalsize(zone, journal_size);
 	}

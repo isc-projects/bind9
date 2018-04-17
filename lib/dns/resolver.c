@@ -14,6 +14,7 @@
 #include <config.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/counter.h>
 #include <isc/log.h>
@@ -303,7 +304,7 @@ struct fetchctx {
 	dns_db_t *			cache;
 	dns_adb_t *			adb;
 	isc_boolean_t			ns_ttl_ok;
-	isc_uint32_t			ns_ttl;
+	uint32_t			ns_ttl;
 	isc_counter_t *			qc;
 
 	/*%
@@ -349,8 +350,8 @@ struct fetchctx {
 	/*%
 	 * Random numbers to use for mixing up server addresses.
 	 */
-	isc_uint32_t                    rand_buf;
-	isc_uint32_t                    rand_bits;
+	uint32_t                    rand_buf;
+	uint32_t                    rand_bits;
 
 	/*%
 	 * Fetch-local statistics for detailed logging.
@@ -359,7 +360,7 @@ struct fetchctx {
 	isc_result_t			vresult; /*%< validation result  */
 	int				exitline;
 	isc_time_t			start;
-	isc_uint64_t			duration;
+	uint64_t			duration;
 	isc_boolean_t			logged;
 	unsigned int			querysent;
 	unsigned int			referrals;
@@ -429,9 +430,9 @@ typedef struct fctxcount fctxcount_t;
 struct fctxcount {
 	dns_fixedname_t			fdname;
 	dns_name_t			*domain;
-	isc_uint32_t			count;
-	isc_uint32_t			allowed;
-	isc_uint32_t			dropped;
+	uint32_t			count;
+	uint32_t			allowed;
+	uint32_t			dropped;
 	isc_stdtime_t			logged;
 	ISC_LINK(fctxcount_t)		link;
 };
@@ -478,9 +479,9 @@ struct dns_resolver {
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	zonebucket_t *			dbuckets;
-	isc_uint32_t			lame_ttl;
+	uint32_t			lame_ttl;
 	ISC_LIST(alternate_t)		alternates;
-	isc_uint16_t			udpsize;
+	uint16_t			udpsize;
 #if USE_ALGLOCK
 	isc_rwlock_t			alglock;
 #endif
@@ -1168,8 +1169,8 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 					  dns_resstatscounter_queryrtt5);
 			}
 		} else {
-			isc_uint32_t value;
-			isc_uint32_t mask;
+			uint32_t value;
+			uint32_t mask;
 
 			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
 				dns_adb_ednsto(fctx->adb, query->addrinfo,
@@ -1793,7 +1794,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 static inline isc_result_t
 fctx_addopt(dns_message_t *message, unsigned int version,
-	    isc_uint16_t udpsize, dns_ednsopt_t *ednsopts, size_t count)
+	    uint16_t udpsize, dns_ednsopt_t *ednsopts, size_t count)
 {
 	dns_rdataset_t *rdataset = NULL;
 	isc_result_t result;
@@ -2348,7 +2349,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t tcp = ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
-	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
+	uint16_t hint = 0, udpsize = 0;	/* No EDNS */
 #ifdef HAVE_DNSTAP
 	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
@@ -2536,7 +2537,7 @@ resquery_send(resquery_t *query) {
 			isc_boolean_t sendcookie = res->view->sendcookie;
 			isc_boolean_t tcpkeepalive = ISC_FALSE;
 			unsigned char cookie[64];
-			isc_uint16_t padding = 0;
+			uint16_t padding = 0;
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
@@ -2579,7 +2580,7 @@ resquery_send(resquery_t *query) {
 
 			/* Request NSID/COOKIE/VERSION for current peer? */
 			if (peer != NULL) {
-				isc_uint8_t ednsversion;
+				uint8_t ednsversion;
 				(void) dns_peer_getrequestnsid(peer, &reqnsid);
 				(void) dns_peer_getsendcookie(peer,
 							      &sendcookie);
@@ -2610,7 +2611,7 @@ resquery_send(resquery_t *query) {
 			if (sendcookie) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_COOKIE;
-				ednsopts[ednsopt].length = (isc_uint16_t)
+				ednsopts[ednsopt].length = (uint16_t)
 					dns_adb_getcookie(fctx->adb,
 							  query->addrinfo,
 							  cookie,
@@ -2756,7 +2757,7 @@ resquery_send(resquery_t *query) {
 	 */
 	if (tcp) {
 		isc_buffer_usedregion(&query->buffer, &r);
-		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(&tcpbuffer, (uint16_t)r.length);
 		isc_buffer_add(&tcpbuffer, r.length);
 	}
 
@@ -5051,9 +5052,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 	unsigned options;
-	isc_uint32_t bucketnum;
+	uint32_t bucketnum;
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
 
@@ -6205,7 +6206,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_boolean_t need_validation, secure_domain;
 	dns_name_t *aname;
 	dns_fetchevent_t *event;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 	unsigned int valoptions = 0;
 	isc_boolean_t checknta = ISC_TRUE;
 
@@ -6931,12 +6932,12 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 {
 	static const char hex[17] = "0123456789abcdef";
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	isc_uint16_t buflen, i;
+	uint16_t buflen, i;
 	unsigned char *p, *nsid;
 	unsigned char *buf = NULL, *pbuf = NULL;
 
 	/* Allocate buffer for storing hex version of the NSID */
-	buflen = (isc_uint16_t)nsid_len * 2 + 1;
+	buflen = (uint16_t)nsid_len * 2 + 1;
 	buf = isc_mem_get(mctx, buflen);
 	if (buf == NULL)
 		goto cleanup;
@@ -7594,8 +7595,8 @@ rctx_opt(respctx_t *rctx) {
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
 	isc_result_t result;
-	isc_uint16_t optcode;
-	isc_uint16_t optlen;
+	uint16_t optcode;
+	uint16_t optlen;
 	unsigned char *optvalue;
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned char cookie[8];
@@ -10476,14 +10477,14 @@ dns_resolver_taskmgr(dns_resolver_t *resolver) {
 	return (resolver->taskmgr);
 }
 
-isc_uint32_t
+uint32_t
 dns_resolver_getlamettl(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->lame_ttl);
 }
 
 void
-dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl) {
+dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	resolver->lame_ttl = lame_ttl;
 }
@@ -10530,12 +10531,12 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 }
 
 void
-dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize) {
+dns_resolver_setudpsize(dns_resolver_t *resolver, uint16_t udpsize) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	resolver->udpsize = udpsize;
 }
 
-isc_uint16_t
+uint16_t
 dns_resolver_getudpsize(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->udpsize);
@@ -10916,8 +10917,8 @@ dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
 }
 
 void
-dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
-				isc_uint32_t *min, isc_uint32_t *max)
+dns_resolver_getclientsperquery(dns_resolver_t *resolver, uint32_t *cur,
+				uint32_t *min, uint32_t *max)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
@@ -10932,8 +10933,8 @@ dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
 }
 
 void
-dns_resolver_setclientsperquery(dns_resolver_t *resolver, isc_uint32_t min,
-				isc_uint32_t max)
+dns_resolver_setclientsperquery(dns_resolver_t *resolver, uint32_t min,
+				uint32_t max)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 
@@ -10944,7 +10945,7 @@ dns_resolver_setclientsperquery(dns_resolver_t *resolver, isc_uint32_t min,
 }
 
 void
-dns_resolver_setfetchesperzone(dns_resolver_t *resolver, isc_uint32_t clients)
+dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients)
 {
 	REQUIRE(VALID_RESOLVER(resolver));
 

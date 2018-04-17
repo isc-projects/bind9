@@ -124,6 +124,8 @@
  * 	solve this problem.
  */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -148,7 +150,7 @@
 
 /*%
  * Adding any permission bits beyond 0x200 would mean typedef'ing
- * isc_fsaccess_t as isc_uint64_t, and redefining this value to
+ * isc_fsaccess_t as uint64_t, and redefining this value to
  * reflect the new range of permission types, Probably to 21 for
  * maximum flexibility.  The number of bits has to accommodate all of
  * the permission types, and three full sets of them have to fit

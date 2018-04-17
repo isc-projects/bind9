@@ -16,6 +16,8 @@
 
 /*! \file dns/rbt.h */
 
+#include <stdint.h>
+
 #include <isc/assertions.h>
 #include <isc/crc64.h>
 #include <isc/lang.h>
@@ -178,11 +180,11 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
 					    void *arg,
-					    isc_uint64_t *crc);
+					    uint64_t *crc);
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
 					   void *base, size_t offset,
-					   void *arg, isc_uint64_t *crc);
+					   void *arg, uint64_t *crc);
 
 typedef void (*dns_rbtdeleter_t)(void *, void *);
 

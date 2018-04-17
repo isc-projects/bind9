@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/string.h>
@@ -184,14 +186,14 @@ isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_name_t *reqsigner,
 	      const isc_netaddr_t *ecs,
-	      isc_uint8_t ecslen,
-	      isc_uint8_t *scope,
+	      uint8_t ecslen,
+	      uint8_t *scope,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
 	      const dns_aclelement_t **matchelt)
 {
-	isc_uint16_t bitlen;
+	uint16_t bitlen;
 	isc_prefix_t pfx;
 	isc_radix_node_t *node = NULL;
 	const isc_netaddr_t *addr = reqaddr;
@@ -419,8 +421,8 @@ isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const isc_netaddr_t *ecs,
-		     isc_uint8_t ecslen,
-		     isc_uint8_t *scope,
+		     uint8_t ecslen,
+		     uint8_t *scope,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt)
@@ -659,8 +661,8 @@ dns_acl_isinsecure(const dns_acl_t *a) {
  */
 isc_boolean_t
 dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
-		isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
-		isc_uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t *aclenv)
+		isc_netaddr_t *ecs_addr, uint8_t ecs_addrlen,
+		uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t *aclenv)
 {
 	int match;
 	isc_result_t result;

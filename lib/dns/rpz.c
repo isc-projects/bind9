@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdint.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -103,7 +104,7 @@ dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event);
  * Use a private definition of IPv6 addresses because s6_addr32 is not
  * always defined and our IPv6 addresses are in non-standard byte order
  */
-typedef isc_uint32_t		dns_rpz_cidr_word_t;
+typedef uint32_t		dns_rpz_cidr_word_t;
 #define DNS_RPZ_CIDR_WORD_BITS	((int)sizeof(dns_rpz_cidr_word_t)*8)
 #define DNS_RPZ_CIDR_KEY_BITS	((int)sizeof(dns_rpz_cidr_key_t)*8)
 #define DNS_RPZ_CIDR_WORDS	(128/DNS_RPZ_CIDR_WORD_BITS)
@@ -556,7 +557,7 @@ fix_qname_skip_recurse(dns_rpz_zones_t *rpzs) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
 		      DNS_RPZ_DEBUG_QUIET,
 		      "computed RPZ qname_skip_recurse mask=0x%" PRIx64,
-		      (isc_uint64_t) mask);
+		      (uint64_t) mask);
 	rpzs->have.qname_skip_recurse = mask;
 }
 
@@ -1580,7 +1581,7 @@ isc_result_t
 dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	dns_rpz_zone_t *zone = (dns_rpz_zone_t *) fn_arg;
 	isc_time_t now;
-	isc_uint64_t tdiff;
+	uint64_t tdiff;
 	isc_result_t result = ISC_R_SUCCESS;
 	char dname[DNS_NAME_FORMATSIZE];
 
@@ -1613,7 +1614,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		isc_time_now(&now);
 		tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
 		if (tdiff < zone->min_update_int) {
-			isc_uint64_t defer = zone->min_update_int - tdiff;
+			uint64_t defer = zone->min_update_int - tdiff;
 			isc_interval_t interval;
 			dns_name_format(&zone->origin, dname,
 					DNS_NAME_FORMATSIZE);
@@ -1688,7 +1689,7 @@ setup_update(dns_rpz_zone_t *rpz) {
 	isc_result_t result;
 	char domain[DNS_NAME_FORMATSIZE];
 	unsigned int nodecount;
-	isc_uint32_t hashsize;
+	uint32_t hashsize;
 
 	dns_name_format(&rpz->origin, domain, DNS_NAME_FORMATSIZE);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -1803,7 +1804,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 	 * If there's an update pending schedule it
 	 */
 	if (rpz->updatepending == ISC_TRUE) {
-		isc_uint64_t defer = rpz->min_update_int;
+		uint64_t defer = rpz->min_update_int;
 		isc_interval_t interval;
 		dns_name_format(&rpz->origin, dname,
 				DNS_NAME_FORMATSIZE);

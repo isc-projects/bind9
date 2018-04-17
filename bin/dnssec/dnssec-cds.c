@@ -19,6 +19,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -86,7 +87,7 @@ static dns_rdataclass_t rdclass = dns_rdataclass_in;
  * List of digest types used by ds_from_cdnskey(), filled in by add_dtype()
  * from -a arguments. The size of the array is an arbitrary limit.
  */
-static isc_uint8_t dtype[8];
+static uint8_t dtype[8];
 
 static const char *startstr  = NULL;	/* from which we derive notbefore */
 static isc_stdtime_t notbefore = 0;	/* restrict sig inception times */
@@ -129,7 +130,7 @@ static int nkey; /* number of child zone DNSKEY records */
 typedef struct keyinfo {
 	dns_rdata_t rdata;
 	dst_key_t *dst;
-	isc_uint8_t algo;
+	uint8_t algo;
 	dns_keytag_t tag;
 } keyinfo_t;
 
@@ -619,12 +620,12 @@ free_keytable(keyinfo_t **keytable_p) {
  * otherwise the key algorithm. This is used by the signature coverage
  * check functions below.
  */
-static isc_uint8_t *
+static uint8_t *
 matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	      dns_rdataset_t *sigset)
 {
 	isc_result_t result;
-	isc_uint8_t *algo;
+	uint8_t *algo;
 	int i;
 
 	algo = isc_mem_get(mctx, nkey);
@@ -707,7 +708,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
  * fetched from the child zone, any working signature is enough.
  */
 static isc_boolean_t
-signed_loose(isc_uint8_t *algo) {
+signed_loose(uint8_t *algo) {
 	isc_boolean_t ok = ISC_FALSE;
 	int i;
 	for (i = 0; i < nkey; i++) {
@@ -726,7 +727,7 @@ signed_loose(isc_uint8_t *algo) {
  * RRset.
  */
 static isc_boolean_t
-signed_strict(dns_rdataset_t *dsset, isc_uint8_t *algo) {
+signed_strict(dns_rdataset_t *dsset, uint8_t *algo) {
 	isc_result_t result;
 	isc_boolean_t all_ok = ISC_TRUE;
 
@@ -850,14 +851,14 @@ ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
  */
 static int
 cmp_dtype(const void *ap, const void *bp) {
-	int a = *(const isc_uint8_t *)ap;
-	int b = *(const isc_uint8_t *)bp;
+	int a = *(const uint8_t *)ap;
+	int b = *(const uint8_t *)bp;
 	return (a - b);
 }
 
 static void
 add_dtype(const char *dn) {
-	isc_uint8_t dt;
+	uint8_t dt;
 	unsigned i, n;
 
 	dt = strtodsdigest(dn);
@@ -874,7 +875,7 @@ add_dtype(const char *dn) {
 
 static void
 make_new_ds_set(ds_maker_func_t *ds_from_rdata,
-		isc_uint32_t ttl, dns_rdataset_t *rdset)
+		uint32_t ttl, dns_rdataset_t *rdset)
 {
 	unsigned int size = 16;
 	for (;;) {
@@ -942,7 +943,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 	dns_rdata_t *arrdata;
 	dns_rdata_ds_t *ds;
 	dns_keytag_t key_tag;
-	isc_uint8_t algorithm;
+	uint8_t algorithm;
 	isc_boolean_t match;
 	int i, j, n, d;
 
@@ -1041,7 +1042,7 @@ print_diff(const char *cmd, dns_rdataset_t *rdataset) {
 }
 
 static void
-update_diff(const char *cmd, isc_uint32_t ttl,
+update_diff(const char *cmd, uint32_t ttl,
 	    dns_rdataset_t *addset, dns_rdataset_t *delset)
 {
 	isc_result_t result;
@@ -1049,7 +1050,7 @@ update_diff(const char *cmd, isc_uint32_t ttl,
 	dns_dbnode_t *node;
 	dns_dbversion_t *ver;
 	dns_rdataset_t diffset;
-	isc_uint32_t save;
+	uint32_t save;
 
 	db = NULL;
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
@@ -1090,7 +1091,7 @@ update_diff(const char *cmd, isc_uint32_t ttl,
 }
 
 static void
-nsdiff(isc_uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
+nsdiff(uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
 	if (ttl == 0) {
 		vbprintf(1, "warning: no TTL in nsupdate script\n");
 	}
@@ -1140,7 +1141,7 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_boolean_t prefer_cdnskey = ISC_FALSE;
 	isc_boolean_t nsupdate = ISC_FALSE;
-	isc_uint32_t ttl = 0;
+	uint32_t ttl = 0;
 	int ch;
 	char *endp;
 
