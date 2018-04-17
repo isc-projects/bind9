@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -74,7 +75,7 @@ str2name(const char *namestr) {
 }
 
 static void
-create_key(isc_uint16_t flags, isc_uint8_t proto, isc_uint8_t alg,
+create_key(uint16_t flags, uint8_t proto, uint8_t alg,
 	   const char *keynamestr, const char *keystr, dst_key_t **target)
 {
 	dns_rdata_dnskey_t keystruct;

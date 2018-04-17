@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -279,7 +281,7 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
-settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, isc_uint32_t lifetime) {
+settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
 	isc_result_t result;
 	isc_interval_t interval;
 	dns_view_t *view;
@@ -343,7 +345,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
 		 isc_boolean_t force, isc_stdtime_t now,
-		 isc_uint32_t lifetime)
+		 uint32_t lifetime)
 {
 	isc_result_t result;
 	dns_nta_t *nta = NULL;

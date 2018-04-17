@@ -13,6 +13,8 @@
 #ifndef DNS_CATZ_H
 #define DNS_CATZ_H 1
 
+#include <stdint.h>
+
 #include <isc/ht.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
@@ -66,7 +68,7 @@ struct dns_catz_entry_options {
 	 * of catalog zone is received before this time the update will be
 	 * postponed. This is a global option for the whole catalog zone.
 	 */
-	isc_uint32_t min_update_interval;
+	uint32_t min_update_interval;
 };
 
 void

@@ -18,6 +18,10 @@
  * and 19.16.
  */
 
+#include <config.h>
+
+#include <stdint.h>
+
 #include <sys/param.h>
 #include <sys/sysctl.h>
 

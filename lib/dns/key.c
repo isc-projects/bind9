@@ -13,6 +13,7 @@
 #include <config.h>
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/region.h>
@@ -24,9 +25,9 @@
 
 #include "dst_internal.h"
 
-isc_uint16_t
+uint16_t
 dst_region_computeid(const isc_region_t *source, unsigned int alg) {
-	isc_uint32_t ac;
+	uint32_t ac;
 	const unsigned char *p;
 	int size;
 
@@ -46,12 +47,12 @@ dst_region_computeid(const isc_region_t *source, unsigned int alg) {
 		ac += ((*p) << 8);
 	ac += (ac >> 16) & 0xffff;
 
-	return ((isc_uint16_t)(ac & 0xffff));
+	return ((uint16_t)(ac & 0xffff));
 }
 
-isc_uint16_t
+uint16_t
 dst_region_computerid(const isc_region_t *source, unsigned int alg) {
-	isc_uint32_t ac;
+	uint32_t ac;
 	const unsigned char *p;
 	int size;
 
@@ -73,7 +74,7 @@ dst_region_computerid(const isc_region_t *source, unsigned int alg) {
 		ac += ((*p) << 8);
 	ac += (ac >> 16) & 0xffff;
 
-	return ((isc_uint16_t)(ac & 0xffff));
+	return ((uint16_t)(ac & 0xffff));
 }
 
 dns_name_t *
@@ -100,7 +101,7 @@ dst_key_alg(const dst_key_t *key) {
 	return (key->key_alg);
 }
 
-isc_uint32_t
+uint32_t
 dst_key_flags(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_flags);
@@ -153,7 +154,7 @@ dst_key_isnullkey(const dst_key_t *key) {
 }
 
 void
-dst_key_setbits(dst_key_t *key, isc_uint16_t bits) {
+dst_key_setbits(dst_key_t *key, uint16_t bits) {
 	unsigned int maxbits;
 	REQUIRE(VALID_KEY(key));
 	if (bits != 0) {
@@ -164,7 +165,7 @@ dst_key_setbits(dst_key_t *key, isc_uint16_t bits) {
 	key->key_bits = bits;
 }
 
-isc_uint16_t
+uint16_t
 dst_key_getbits(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_bits);

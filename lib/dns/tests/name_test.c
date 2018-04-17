@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -663,7 +664,7 @@ ATF_TC_HEAD(benchmark, tc) {
 static void *
 fromwire_thread(void *arg) {
 	unsigned int maxval = 32000000;
-	isc_uint8_t data[] = {
+	uint8_t data[] = {
 		3, 'w', 'w', 'w',
 		7, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
 		7, 'i', 'n', 'v', 'a', 'l', 'i', 'd',

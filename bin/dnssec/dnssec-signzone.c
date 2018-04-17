@@ -27,6 +27,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -141,7 +142,7 @@ static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_masterformat_t outputformat = dns_masterformat_text;
-static isc_uint32_t rawversion = 1, serialnum = 0;
+static uint32_t rawversion = 1, serialnum = 0;
 static isc_boolean_t snset = ISC_FALSE;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
@@ -931,7 +932,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
  * dnssec-signzone, and build DS records from that.
  */
 static isc_result_t
-loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
+loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_dbnode_t *node = NULL;
@@ -1049,7 +1050,7 @@ secure(dns_name_t *name, dns_dbnode_t *node) {
 
 static isc_boolean_t
 is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
-	      dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp)
+	      dns_name_t *name, dns_dbnode_t *node, uint32_t *ttlp)
 {
 	dns_rdataset_t nsset;
 	isc_result_t result;
@@ -1316,12 +1317,12 @@ get_soa_ttls(void) {
  * Increment (or set if nonzero) the SOA serial
  */
 static isc_result_t
-setsoaserial(isc_uint32_t serial, dns_updatemethod_t method) {
+setsoaserial(uint32_t serial, dns_updatemethod_t method) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_uint32_t old_serial, new_serial;
+	uint32_t old_serial, new_serial;
 
 	result = dns_db_getoriginnode(gdb, &node);
 	if (result != ISC_R_SUCCESS)
@@ -1654,7 +1655,7 @@ sign(isc_task_t *task, isc_event_t *event) {
  * Update / remove the DS RRset.  Preserve RRSIG(DS) if possible.
  */
 static void
-add_ds(dns_name_t *name, dns_dbnode_t *node, isc_uint32_t nsttl) {
+add_ds(dns_name_t *name, dns_dbnode_t *node, uint32_t nsttl) {
 	dns_rdataset_t dsset;
 	dns_rdataset_t sigdsset;
 	isc_result_t result;
@@ -1790,7 +1791,7 @@ nsecify(void) {
 	dns_rdatatype_t type, covers;
 	isc_boolean_t done = ISC_FALSE;
 	isc_result_t result;
-	isc_uint32_t nsttl = 0;
+	uint32_t nsttl = 0;
 
 	dns_rdataset_init(&rdataset);
 	name = dns_fixedname_initname(&fname);
@@ -2262,7 +2263,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 	isc_boolean_t active;
 	isc_boolean_t done = ISC_FALSE;
 	isc_result_t result;
-	isc_uint32_t nsttl = 0;
+	uint32_t nsttl = 0;
 	unsigned int count, nlabels;
 
 	dns_rdataset_init(&rdataset);
@@ -2832,7 +2833,7 @@ set_nsec3params(isc_boolean_t update, isc_boolean_t set_salt,
 	unsigned char orig_salt[255];
 	size_t orig_saltlen;
 	dns_hash_t orig_hash;
-	isc_uint16_t orig_iter;
+	uint16_t orig_iter;
 
 	dns_db_currentversion(gdb, &ver);
 	dns_rdataset_init(&rdataset);
@@ -3179,9 +3180,9 @@ static void
 print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 	    isc_time_t *sign_start, isc_time_t *sign_finish)
 {
-	isc_uint64_t time_us;      /* Time in microseconds */
-	isc_uint64_t time_ms;      /* Time in milliseconds */
-	isc_uint64_t sig_ms;	   /* Signatures per millisecond */
+	uint64_t time_us;      /* Time in microseconds */
+	uint64_t time_ms;      /* Time in milliseconds */
+	uint64_t sig_ms;	   /* Signatures per millisecond */
 	FILE *out = output_stdout ? stderr : stdout;
 
 	fprintf(out, "Signatures generated:               %10u\n", nsigned);
@@ -3197,7 +3198,7 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 		(unsigned int) (time_ms / 1000),
 		(unsigned int) (time_ms % 1000));
 	if (time_us > 0) {
-		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / time_us;
+		sig_ms = ((uint64_t)nsigned * 1000000000) / time_us;
 		fprintf(out, "Signatures per second:             %7u.%03u\n",
 			(unsigned int) sig_ms / 1000,
 			(unsigned int) sig_ms % 1000);
@@ -3438,7 +3439,7 @@ main(int argc, char *argv[]) {
 		case 'n':
 			endp = NULL;
 			ntasks = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0' || ntasks > ISC_INT32_MAX)
+			if (*endp != '\0' || ntasks > INT32_MAX)
 				fatal("number of cpus must be numeric");
 			break;
 

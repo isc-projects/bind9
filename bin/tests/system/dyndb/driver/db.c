@@ -12,6 +12,8 @@
  */
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -440,8 +442,8 @@ transfernode(dns_db_t *db, dns_dbnode_t **sourcep, dns_dbnode_t **targetp) {
 
 static isc_result_t
 getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
-		   dns_hash_t *hash, isc_uint8_t *flags,
-		   isc_uint16_t *iterations,
+		   dns_hash_t *hash, uint8_t *flags,
+		   uint16_t *iterations,
 		   unsigned char *salt, size_t *salt_length)
 {
 	sampledb_t *sampledb = (sampledb_t *) db;

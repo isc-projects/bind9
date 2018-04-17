@@ -13,6 +13,8 @@
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 
+#include <stdint.h>
+
 #include <isc/log.h>
 #include <isc/stdtime.h>
 #include <dns/rdatastruct.h>
@@ -49,7 +51,7 @@ cleanup_logging(isc_log_t **logp);
 dns_ttl_t strtottl(const char *str);
 
 isc_stdtime_t
-strtotime(const char *str, isc_int64_t now, isc_int64_t base,
+strtotime(const char *str, int64_t now, int64_t base,
 	  isc_boolean_t *setp);
 
 unsigned int

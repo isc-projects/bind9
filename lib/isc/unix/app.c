@@ -17,6 +17,7 @@
 #include <sys/types.h>
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -473,7 +474,7 @@ evloop(isc__appctx_t *ctx) {
 			if (result != ISC_R_SUCCESS)
 				tvp = NULL;
 			else {
-				isc_uint64_t us;
+				uint64_t us;
 
 				TIME_NOW(&now);
 				us = isc_time_microdiff(&when, &now);

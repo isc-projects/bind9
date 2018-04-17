@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/util.h>
 
 #include <isc/mem.h>
@@ -63,9 +65,9 @@
  * family and addr6 fields are to be used IPv6 is added.
  */
 typedef struct geoip_state {
-	isc_uint16_t subtype;
+	uint16_t subtype;
 	unsigned int family;
-	isc_uint32_t ipnum;
+	uint32_t ipnum;
 	geoipv6_t ipnum6;
 	GeoIPRecord *record;
 	GeoIPRegion *region;
@@ -157,7 +159,7 @@ clean_state(geoip_state_t *state) {
 }
 
 static isc_result_t
-set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
+set_state(unsigned int family, uint32_t ipnum, const geoipv6_t *ipnum6,
 	  dns_geoip_subtype_t subtype, GeoIPRecord *record,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
@@ -210,7 +212,7 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 }
 
 static geoip_state_t *
-get_state_for(unsigned int family, isc_uint32_t ipnum,
+get_state_for(unsigned int family, uint32_t ipnum,
 	      const geoipv6_t *ipnum6)
 {
 	geoip_state_t *state;
@@ -246,7 +248,7 @@ get_state_for(unsigned int family, isc_uint32_t ipnum,
 static const char *
 country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	       unsigned int family,
-	       isc_uint32_t ipnum, const geoipv6_t *ipnum6)
+	       uint32_t ipnum, const geoipv6_t *ipnum6)
 {
 	geoip_state_t *prev_state = NULL;
 	const char *text = NULL;
@@ -389,7 +391,7 @@ is_city(dns_geoip_subtype_t subtype) {
  */
 static GeoIPRecord *
 city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	    unsigned int family, isc_uint32_t ipnum,
+	    unsigned int family, uint32_t ipnum,
 	    const geoipv6_t *ipnum6)
 {
 	GeoIPRecord *record = NULL;
@@ -467,7 +469,7 @@ is_region(dns_geoip_subtype_t subtype) {
  * outside the Region database.
  */
 static GeoIPRegion *
-region_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
+region_lookup(GeoIP *db, dns_geoip_subtype_t subtype, uint32_t ipnum) {
 	GeoIPRegion *region = NULL;
 	geoip_state_t *prev_state = NULL;
 
@@ -496,7 +498,7 @@ region_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
  * or was for a search of a different subtype.
  */
 static char *
-name_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
+name_lookup(GeoIP *db, dns_geoip_subtype_t subtype, uint32_t ipnum) {
 	char *name = NULL;
 	geoip_state_t *prev_state = NULL;
 
@@ -525,7 +527,7 @@ name_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
  * different subtype.
  */
 static int
-netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
+netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype, uint32_t ipnum) {
 	geoip_state_t *prev_state = NULL;
 	isc_boolean_t found = ISC_FALSE;
 	int id = -1;
@@ -621,7 +623,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	GeoIPRecord *record;
 	GeoIPRegion *region;
 	dns_geoip_subtype_t subtype;
-	isc_uint32_t ipnum = 0;
+	uint32_t ipnum = 0;
 	int maxlen = 0, id, family;
 	const char *cs;
 	char *s;

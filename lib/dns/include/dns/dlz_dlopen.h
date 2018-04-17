@@ -15,6 +15,8 @@
 #ifndef DLZ_DLOPEN_H
 #define DLZ_DLOPEN_H
 
+#include <stdint.h>
+
 #include <dns/sdlz.h>
 
 ISC_LANG_BEGINDECLS
@@ -133,7 +135,7 @@ typedef isc_boolean_t dlz_dlopen_ssumatch_t(const char *signer,
 					    const char *tcpaddr,
 					    const char *type,
 					    const char *key,
-					    isc_uint32_t keydatalen,
+					    uint32_t keydatalen,
 					    unsigned char *keydata,
 					    void *dbdata);
 
