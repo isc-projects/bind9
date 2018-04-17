@@ -197,7 +197,7 @@ digest_openpgpkey(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_openpgpkey(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_openpgpkey);
@@ -207,10 +207,10 @@ checkowner_openpgpkey(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_openpgpkey(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_openpgpkey);
@@ -219,7 +219,7 @@ checknames_openpgpkey(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

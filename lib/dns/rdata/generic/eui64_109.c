@@ -32,7 +32,7 @@ fromtext_eui64(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	n = sscanf(DNS_AS_STR(token), "%2x-%2x-%2x-%2x-%2x-%2x-%2x-%2x",
 		   &l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7);
 	if (n != 8 || l0 > 255U || l1 > 255U || l2 > 255U || l3 > 255U ||
@@ -181,7 +181,7 @@ digest_eui64(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_eui64(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_eui64);
@@ -191,10 +191,10 @@ checkowner_eui64(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_eui64(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_eui64);
@@ -204,7 +204,7 @@ checknames_eui64(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

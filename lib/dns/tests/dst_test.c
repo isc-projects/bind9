@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/file.h>
@@ -107,7 +108,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 
 static void
 check_sig(const char *datapath, const char *sigpath, const char *keyname,
-	  dns_keytag_t id, dns_secalg_t alg, int type, isc_boolean_t expect)
+	  dns_keytag_t id, dns_secalg_t alg, int type, bool expect)
 {
 	isc_result_t result;
 	size_t rval, len;
@@ -177,7 +178,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
 	result = dst_context_create3(key, mctx, DNS_LOGCATEGORY_GENERAL,
-				     ISC_FALSE, &ctx);
+				     false, &ctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dst_context_adddata(ctx, &datareg);
@@ -200,7 +201,7 @@ ATF_TC_BODY(sig, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	struct {
 		const char *datapath;
@@ -208,29 +209,29 @@ ATF_TC_BODY(sig, tc) {
 		const char *keyname;
 		dns_keytag_t keyid;
 		dns_secalg_t alg;
-		isc_boolean_t expect;
+		bool expect;
 	} testcases[] = {
 		{
 			"testdata/dst/test1.data",
 			"testdata/dst/test1.dsasig",
-			"test.", 23616, DST_ALG_DSA, ISC_TRUE
+			"test.", 23616, DST_ALG_DSA, true
 		},
 		{
 			"testdata/dst/test1.data",
 			"testdata/dst/test1.rsasig",
-			"test.", 54622, DST_ALG_RSAMD5, ISC_TRUE
+			"test.", 54622, DST_ALG_RSAMD5, true
 		},
 		{
 			/* wrong sig */
 			"testdata/dst/test1.data",
 			"testdata/dst/test1.dsasig",
-			"test.", 54622, DST_ALG_RSAMD5, ISC_FALSE
+			"test.", 54622, DST_ALG_RSAMD5, false
 		},
 		{
 			/* wrong data */
 			"testdata/dst/test2.data",
 			"testdata/dst/test1.dsasig",
-			"test.", 23616, DST_ALG_DSA, ISC_FALSE
+			"test.", 23616, DST_ALG_DSA, false
 		},
 	};
 	unsigned int i;

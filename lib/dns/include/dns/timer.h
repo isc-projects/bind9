@@ -19,6 +19,8 @@
  ***	Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/lang.h>
 
@@ -30,14 +32,14 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_timer_setidle(isc_timer_t *timer, unsigned int maxtime,
-		  unsigned int idletime, isc_boolean_t purge);
+		  unsigned int idletime, bool purge);
 /*%<
  * Convenience function for setting up simple, one-second-granularity
  * idle timers as used by zone transfers.
  * \brief
  * Set the timer 'timer' to go off after 'idletime' seconds of inactivity,
  * or after 'maxtime' at the very latest.  Events are purged iff
- * 'purge' is ISC_TRUE.
+ * 'purge' is true.
  */
 
 ISC_LANG_ENDDECLS

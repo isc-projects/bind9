@@ -46,7 +46,7 @@ ATF_TC_BODY(isc_dh_computesecret, tc) {
 
 	UNUSED(tc);
 
-	ret = dns_test_begin(NULL, ISC_FALSE);
+	ret = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
 
 	name = dns_fixedname_initname(&fname);

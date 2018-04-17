@@ -49,9 +49,6 @@
     <ClInclude Include="..\include\isc\bind9.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\boolean.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\buffer.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>

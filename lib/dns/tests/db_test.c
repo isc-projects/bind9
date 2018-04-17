@@ -186,7 +186,7 @@ ATF_TC_BODY(dns_dbfind_staleok, tc) {
 		result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_db_findnode(db, example, ISC_TRUE, &node);
+		result = dns_db_findnode(db, example, true, &node);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		result = dns_db_addrdataset(db, node, NULL, 0, &rdataset, 0,
@@ -279,7 +279,7 @@ ATF_TC_BODY(class, tc) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
@@ -302,7 +302,7 @@ ATF_TC_BODY(dbtype, tc) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* DB has zone semantics */
@@ -341,7 +341,7 @@ ATF_TC_BODY(version, tc) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "test.test",
@@ -359,7 +359,7 @@ ATF_TC_BODY(version, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_rdataset_disassociate(&rdataset);
 	dns_db_detachnode(db, &node);
-	dns_db_closeversion(db, &ver, ISC_FALSE);
+	dns_db_closeversion(db, &ver, false);
 
 	/* Open new version for writing */
 	dns_db_currentversion(db, &ver);
@@ -386,7 +386,7 @@ ATF_TC_BODY(version, tc) {
 			     foundname, &rdataset, NULL);
 	ATF_REQUIRE_EQ(result, DNS_R_NXDOMAIN);
 
-	dns_db_closeversion(db, &new, ISC_TRUE);
+	dns_db_closeversion(db, &new, true);
 
 	/* But this should still succeed */
 	result = dns_db_find(db, name, ver, dns_rdatatype_a, 0, 0, &node,
@@ -394,7 +394,7 @@ ATF_TC_BODY(version, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	dns_rdataset_disassociate(&rdataset);
 	dns_db_detachnode(db, &node);
-	dns_db_closeversion(db, &ver, ISC_FALSE);
+	dns_db_closeversion(db, &ver, false);
 
 	dns_db_detach(&db);
 	dns_test_end();

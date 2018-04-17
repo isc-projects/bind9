@@ -12,6 +12,8 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
@@ -77,7 +79,7 @@
  * SOA serial number does not change (BIND 8 sends such
  * sequences).
  */
-static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
+static bool bind8_compat = true; /* XXX config */
 
 /**************************************************************************/
 /*
@@ -140,7 +142,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	dns_name_copy(dns_db_origin(db), zonename, NULL);
 
 	node = NULL;
-	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);
+	result = dns_db_findnode(db, zonename, false, &node);
 	if (result != ISC_R_SUCCESS)
 		goto nonode;
 
@@ -255,7 +257,7 @@ typedef struct {
 	journal_pos_t 	end;
 	uint32_t	index_size;
 	uint32_t	sourceserial;
-	isc_boolean_t	serialset;
+	bool	serialset;
 } journal_header_t;
 
 /*%
@@ -359,7 +361,7 @@ journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
 	cooked->sourceserial = decode_uint32(raw->h.sourceserial);
-	cooked->serialset = ISC_TF(raw->h.flags & JOURNAL_SERIALSET);
+	cooked->serialset = (raw->h.flags & JOURNAL_SERIALSET);
 }
 
 static void
@@ -553,8 +555,8 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 }
 
 static isc_result_t
-journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t writable,
-	     isc_boolean_t create, dns_journal_t **journalp)
+journal_open(isc_mem_t *mctx, const char *filename, bool writable,
+	     bool create, dns_journal_t **journalp)
 {
 	FILE *fp = NULL;
 	isc_result_t result;
@@ -695,10 +697,10 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 	isc_result_t result;
 	size_t namelen;
 	char backup[1024];
-	isc_boolean_t writable, create;
+	bool writable, create;
 
-	create = ISC_TF(mode & DNS_JOURNAL_CREATE);
-	writable = ISC_TF(mode & (DNS_JOURNAL_WRITE|DNS_JOURNAL_CREATE));
+	create = (mode & DNS_JOURNAL_CREATE);
+	writable = (mode & (DNS_JOURNAL_WRITE|DNS_JOURNAL_CREATE));
 
 	result = journal_open(mctx, filename, writable, create, journalp);
 	if (result == ISC_R_NOTFOUND) {
@@ -1403,7 +1405,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
  failure:
 	if (ver != NULL)
 		dns_db_closeversion(db, &ver, result == ISC_R_SUCCESS ?
-				    ISC_TRUE : ISC_FALSE);
+				    true : false);
 
 	if (source.base != NULL)
 		isc_mem_put(j->mctx, source.base, source.length);
@@ -1558,7 +1560,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 /*
  * Miscellaneous accessors.
  */
-isc_boolean_t
+bool
 dns_journal_empty(dns_journal_t *j) {
 	return (JOURNAL_EMPTY(&j->header));
 }
@@ -1581,19 +1583,19 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial) {
 		j->state == JOURNAL_STATE_TRANSACTION);
 
 	j->header.sourceserial = sourceserial;
-	j->header.serialset = ISC_TRUE;
+	j->header.serialset = true;
 	if (j->state == JOURNAL_STATE_WRITE)
 		j->state = JOURNAL_STATE_INLINE;
 }
 
-isc_boolean_t
+bool
 dns_journal_get_sourceserial(dns_journal_t *j, uint32_t *sourceserial) {
 	REQUIRE(sourceserial != NULL);
 
 	if (!j->header.serialset)
-		return (ISC_FALSE);
+		return (false);
 	*sourceserial = j->header.sourceserial;
-	return (ISC_TRUE);
+	return (true);
 }
 
 /**************************************************************************/
@@ -1906,7 +1908,7 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 	isc_result_t result;
 	dns_difftuple_t *p[2];
 	int i, t;
-	isc_boolean_t append;
+	bool append;
 
 	CHECK(dns_diff_sort(&diff[0], rdata_order));
 	CHECK(dns_diff_sort(&diff[1], rdata_order));
@@ -1939,7 +1941,7 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 		 * Identical RRs in both databases; skip them both
 		 * if the ttl differs.
 		 */
-		append = ISC_TF(p[0]->ttl != p[1]->ttl);
+		append = (p[0]->ttl != p[1]->ttl);
 		for (i = 0; i < 2; i++) {
 			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
 			if (append) {
@@ -1963,7 +1965,7 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera,
 	dns_db_t *db[2];
 	dns_dbversion_t *ver[2];
 	dns_dbiterator_t *dbit[2] = { NULL, NULL };
-	isc_boolean_t have[2] = { ISC_FALSE, ISC_FALSE };
+	bool have[2] = { false, false };
 	dns_fixedname_t fixname[2];
 	isc_result_t result, itresult[2];
 	dns_diff_t diff[2];
@@ -1998,7 +2000,7 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera,
 					    DNS_DIFFOP_DEL,
 					    &diff[i]));
 				itresult[i] = dns_dbiterator_next(dbit[i]);
-				have[i] = ISC_TRUE;
+				have[i] = true;
 			}
 		}
 
@@ -2013,7 +2015,7 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera,
 				ISC_LIST_APPENDLIST(resultdiff->tuples,
 						    diff[i].tuples, link);
 				INSIST(ISC_LIST_EMPTY(diff[i].tuples));
-				have[i] = ISC_FALSE;
+				have[i] = false;
 				goto next;
 			}
 		}
@@ -2024,21 +2026,21 @@ diff_namespace(dns_db_t *dba, dns_dbversion_t *dbvera,
 			ISC_LIST_APPENDLIST(resultdiff->tuples,
 					    diff[0].tuples, link);
 			INSIST(ISC_LIST_EMPTY(diff[0].tuples));
-			have[0] = ISC_FALSE;
+			have[0] = false;
 			continue;
 		}
 		if (t > 0) {
 			ISC_LIST_APPENDLIST(resultdiff->tuples,
 					    diff[1].tuples, link);
 			INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-			have[1] = ISC_FALSE;
+			have[1] = false;
 			continue;
 		}
 		INSIST(t == 0);
 		CHECK(dns_diff_subtract(diff, resultdiff));
 		INSIST(ISC_LIST_EMPTY(diff[0].tuples));
 		INSIST(ISC_LIST_EMPTY(diff[1].tuples));
-		have[0] = have[1] = ISC_FALSE;
+		have[0] = have[1] = false;
 	next: ;
 	}
 	if (itresult[0] != ISC_R_NOMORE)
@@ -2129,7 +2131,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	unsigned int indexend;
 	char newname[1024];
 	char backup[1024];
-	isc_boolean_t is_backup = ISC_FALSE;
+	bool is_backup = false;
 
 	REQUIRE(filename != NULL);
 
@@ -2147,10 +2149,10 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = journal_open(mctx, filename, ISC_FALSE, ISC_FALSE, &j1);
+	result = journal_open(mctx, filename, false, false, &j1);
 	if (result == ISC_R_NOTFOUND) {
-		is_backup = ISC_TRUE;
-		result = journal_open(mctx, backup, ISC_FALSE, ISC_FALSE, &j1);
+		is_backup = true;
+		result = journal_open(mctx, backup, false, false, &j1);
 	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -2184,7 +2186,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(journal_open(mctx, newname, ISC_TRUE, ISC_TRUE, &j2));
+	CHECK(journal_open(mctx, newname, true, true, &j2));
 
 	/*
 	 * Remove overhead so space test below can succeed.

@@ -54,27 +54,27 @@
 #define TOTEXTARGS "rdata, tctx, target"
 #define TOTEXTCLASS "rdata->rdclass"
 #define TOTEXTTYPE "rdata->type"
-#define TOTEXTDEF "use_default = ISC_TRUE"
+#define TOTEXTDEF "use_default = true"
 
 #define FROMWIREARGS "rdclass, type, source, dctx, options, target"
 #define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE "type"
-#define FROMWIREDEF "use_default = ISC_TRUE"
+#define FROMWIREDEF "use_default = true"
 
 #define TOWIREARGS "rdata, cctx, target"
 #define TOWIRECLASS "rdata->rdclass"
 #define TOWIRETYPE "rdata->type"
-#define TOWIREDEF "use_default = ISC_TRUE"
+#define TOWIREDEF "use_default = true"
 
 #define FROMSTRUCTARGS "rdclass, type, source, target"
 #define FROMSTRUCTCLASS "rdclass"
 #define FROMSTRUCTTYPE "type"
-#define FROMSTRUCTDEF "use_default = ISC_TRUE"
+#define FROMSTRUCTDEF "use_default = true"
 
 #define TOSTRUCTARGS "rdata, target, mctx"
 #define TOSTRUCTCLASS "rdata->rdclass"
 #define TOSTRUCTTYPE "rdata->type"
-#define TOSTRUCTDEF "use_default = ISC_TRUE"
+#define TOSTRUCTDEF "use_default = true"
 
 #define FREESTRUCTARGS "source"
 #define FREESTRUCTCLASS "common->rdclass"
@@ -84,27 +84,27 @@
 #define COMPAREARGS "rdata1, rdata2"
 #define COMPARECLASS "rdata1->rdclass"
 #define COMPARETYPE "rdata1->type"
-#define COMPAREDEF "use_default = ISC_TRUE"
+#define COMPAREDEF "use_default = true"
 
 #define ADDITIONALDATAARGS "rdata, add, arg"
 #define ADDITIONALDATACLASS "rdata->rdclass"
 #define ADDITIONALDATATYPE "rdata->type"
-#define ADDITIONALDATADEF "use_default = ISC_TRUE"
+#define ADDITIONALDATADEF "use_default = true"
 
 #define DIGESTARGS "rdata, digest, arg"
 #define DIGESTCLASS "rdata->rdclass"
 #define DIGESTTYPE "rdata->type"
-#define DIGESTDEF "use_default = ISC_TRUE"
+#define DIGESTDEF "use_default = true"
 
 #define CHECKOWNERARGS "name, rdclass, type, wildcard"
 #define CHECKOWNERCLASS "rdclass"
 #define CHECKOWNERTYPE "type"
-#define CHECKOWNERDEF "result = ISC_TRUE"
+#define CHECKOWNERDEF "result = true"
 
 #define CHECKNAMESARGS "rdata, owner, bad"
 #define CHECKNAMESCLASS "rdata->rdclass"
 #define CHECKNAMESTYPE "rdata->type"
-#define CHECKNAMESDEF "result = ISC_TRUE"
+#define CHECKNAMESDEF "result = true"
 
 static const char copyright[] =
 "/*\n"
@@ -637,7 +637,6 @@ main(int argc, char **argv) {
 		fputs("#ifndef DNS_CODE_H\n", stdout);
 		fputs("#define DNS_CODE_H 1\n\n", stdout);
 
-		fputs("#include <isc/boolean.h>\n", stdout);
 		fputs("#include <isc/result.h>\n\n", stdout);
 		fputs("#include <dns/name.h>\n\n", stdout);
 

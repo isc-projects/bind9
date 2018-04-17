@@ -41,6 +41,8 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -144,7 +146,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
  * valid flags are DNS_RDATASLAB_EXACT
  */
 
-isc_boolean_t
+bool
 dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 		    unsigned int reservelen);
 /*%<
@@ -155,9 +157,9 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
  *\li	'slab1' and 'slab2' point to slabs.
  *
  * Returns:
- *\li	ISC_TRUE if the slabs are equal, ISC_FALSE otherwise.
+ *\li	true if the slabs are equal, false otherwise.
  */
-isc_boolean_t
+bool
 dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 		     unsigned int reservelen, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type);
@@ -168,7 +170,7 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
  *\li	'slab1' and 'slab2' point to slabs.
  *
  * Returns:
- *\li	ISC_TRUE if the slabs are equal, #ISC_FALSE otherwise.
+ *\li	true if the slabs are equal, #false otherwise.
  */
 
 ISC_LANG_ENDDECLS

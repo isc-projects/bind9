@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <atf-c.h>
 
 #include <stdio.h>
@@ -28,12 +29,12 @@ struct e {
 	unsigned int index;
 };
 
-static isc_boolean_t
+static bool
 compare(void *p1, void *p2) {
 	struct e *e1 = p1;
 	struct e *e2 = p2;
 
-	return (ISC_TF(e1->value < e2->value));
+	return (e1->value < e2->value);
 }
 
 static void

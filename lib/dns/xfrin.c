@@ -15,6 +15,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -103,13 +104,13 @@ struct dns_xfrin_ctx {
 	int			connects; 	/*%< Connect in progress */
 	int			sends;		/*%< Send in progress */
 	int			recvs;	  	/*%< Receive in progress */
-	isc_boolean_t		shuttingdown;
+	bool		shuttingdown;
 	isc_result_t		shutdown_result;
 
 	dns_name_t 		name; 		/*%< Name of zone to transfer */
 	dns_rdataclass_t 	rdclass;
 
-	isc_boolean_t		checkid;
+	bool		checkid;
 	dns_messageid_t		id;
 
 	/*%
@@ -130,7 +131,7 @@ struct dns_xfrin_ctx {
 
 	/*% Incoming reply TCP message */
 	dns_tcpmsg_t		tcpmsg;
-	isc_boolean_t		tcpmsg_valid;
+	bool		tcpmsg_valid;
 
 	dns_db_t 		*db;
 	dns_dbversion_t 	*ver;
@@ -139,7 +140,7 @@ struct dns_xfrin_ctx {
 
 	xfrin_state_t 		state;
 	uint32_t 		end_serial;
-	isc_boolean_t 		is_ixfr;
+	bool 		is_ixfr;
 
 	unsigned int		nmsg;		/*%< Number of messages recvd */
 	unsigned int		nrecs;		/*%< Number of records recvd */
@@ -254,7 +255,7 @@ static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-	xfr->is_ixfr = ISC_FALSE;
+	xfr->is_ixfr = false;
 
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
@@ -346,7 +347,7 @@ static isc_result_t
 axfr_finalize(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
+	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, true));
 
 	result = ISC_R_SUCCESS;
  failure:
@@ -369,7 +370,7 @@ ixfr_init(dns_xfrin_ctx_t *xfr) {
 		return (DNS_R_FORMERR);
 	}
 
-	xfr->is_ixfr = ISC_TRUE;
+	xfr->is_ixfr = true;
 	INSIST(xfr->db != NULL);
 	xfr->difflen = 0;
 
@@ -447,7 +448,7 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 		/* XXX enter ready-to-commit state here */
 		if (xfr->ixfr.journal != NULL)
 			CHECK(dns_journal_commit(xfr->ixfr.journal));
-		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
+		dns_db_closeversion(xfr->db, &xfr->ver, true);
 		dns_zone_markdirty(xfr->zone);
 	}
 	result = ISC_R_SUCCESS;
@@ -529,7 +530,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 			FAIL(DNS_R_UPTODATE);
 		}
 		if (xfr->reqtype == dns_rdatatype_axfr)
-			xfr->checkid = ISC_FALSE;
+			xfr->checkid = false;
 		xfr->state = XFRST_FIRSTDATA;
 		break;
 
@@ -775,11 +776,11 @@ xfrin_reset(dns_xfrin_ctx_t *xfr) {
 
 	if (xfr->tcpmsg_valid) {
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
-		xfr->tcpmsg_valid = ISC_FALSE;
+		xfr->tcpmsg_valid = false;
 	}
 
 	if (xfr->ver != NULL)
-		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
+		dns_db_closeversion(xfr->db, &xfr->ver, false);
 }
 
 
@@ -802,7 +803,7 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 		(xfr->done)(xfr->zone, result);
 		xfr->done = NULL;
 	}
-	xfr->shuttingdown = ISC_TRUE;
+	xfr->shuttingdown = true;
 	xfr->shutdown_result = result;
 	maybe_free(xfr);
 }
@@ -844,13 +845,13 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->connects = 0;
 	xfr->sends = 0;
 	xfr->recvs = 0;
-	xfr->shuttingdown = ISC_FALSE;
+	xfr->shuttingdown = false;
 	xfr->shutdown_result = ISC_R_UNSET;
 
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
 	isc_random_get(&tmp);
-	xfr->checkid = ISC_TRUE;
+	xfr->checkid = true;
 	xfr->id	= (uint16_t)(tmp & 0xffff);
 	xfr->reqtype = reqtype;
 	xfr->dscp = dscp;
@@ -860,7 +861,7 @@ xfrin_create(isc_mem_t *mctx,
 	/* qbuffer */
 	/* qbuffer_data */
 	/* tcpmsg */
-	xfr->tcpmsg_valid = ISC_FALSE;
+	xfr->tcpmsg_valid = false;
 
 	xfr->db = NULL;
 	if (db != NULL)
@@ -887,7 +888,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->lasttsig = NULL;
 	xfr->tsigctx = NULL;
 	xfr->sincetsig = 0;
-	xfr->is_ixfr = ISC_FALSE;
+	xfr->is_ixfr = false;
 
 	/* ixfr.request_serial */
 	/* ixfr.current_serial */
@@ -903,7 +904,7 @@ xfrin_create(isc_mem_t *mctx,
 	CHECK(dns_timer_setidle(xfr->timer,
 				dns_zone_getmaxxfrin(xfr->zone),
 				dns_zone_getidlein(xfr->zone),
-				ISC_FALSE));
+				false));
 
 	xfr->masteraddr = *masteraddr;
 
@@ -964,11 +965,11 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	dns_compress_t cctx;
-	isc_boolean_t cleanup_cctx = ISC_FALSE;
+	bool cleanup_cctx = false;
 	isc_result_t result;
 
 	CHECK(dns_compress_init(&cctx, -1, mctx));
-	cleanup_cctx = ISC_TRUE;
+	cleanup_cctx = true;
 	CHECK(dns_message_renderbegin(msg, &cctx, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
@@ -1040,7 +1041,7 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 		  sourcetext, sep, signer);
 
 	dns_tcpmsg_init(xfr->mctx, xfr->socket, &xfr->tcpmsg);
-	xfr->tcpmsg_valid = ISC_TRUE;
+	xfr->tcpmsg_valid = true;
 
 	CHECK(xfrin_send_request(xfr));
  failure:
@@ -1152,7 +1153,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 		CHECK(dns_db_getsoaserial(xfr->db, NULL,
 					  &xfr->ixfr.request_serial));
 
-	xfr->checkid = ISC_TRUE;
+	xfr->checkid = true;
 	xfr->id++;
 	xfr->nmsg = 0;
 	xfr->nrecs = 0;
@@ -1200,7 +1201,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	if (soatuple != NULL)
 		dns_difftuple_free(&soatuple);
 	if (ver != NULL)
-		dns_db_closeversion(xfr->db, &ver, ISC_FALSE);
+		dns_db_closeversion(xfr->db, &ver, false);
 	return (result);
 }
 
@@ -1440,7 +1441,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		 * We should have no outstanding events at this
 		 * point, thus maybe_free() should succeed.
 		 */
-		xfr->shuttingdown = ISC_TRUE;
+		xfr->shuttingdown = true;
 		xfr->shutdown_result = ISC_R_SUCCESS;
 		maybe_free(xfr);
 		break;
@@ -1549,7 +1550,7 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 		dns_name_free(&xfr->name, xfr->mctx);
 
 	if (xfr->ver != NULL)
-		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
+		dns_db_closeversion(xfr->db, &xfr->ver, false);
 
 	if (xfr->db != NULL)
 		dns_db_detach(&xfr->db);
@@ -1590,7 +1591,7 @@ xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *masteraddr,
 {
 	va_list ap;
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+	if (isc_log_wouldlog(dns_lctx, level) == false)
 		return;
 
 	va_start(ap, fmt);
@@ -1608,7 +1609,7 @@ xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
 	va_list ap;
 	char zonetext[DNS_NAME_MAXTEXT+32];
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+	if (isc_log_wouldlog(dns_lctx, level) == false)
 		return;
 
 	dns_zone_name(xfr->zone, zonetext, sizeof(zonetext));

@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/mem.h>
@@ -250,7 +252,7 @@ matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 }
 
 static void
-random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
+random_test(pvalue_func_t *func, bool word_sized) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_rng_t *rng;
@@ -621,7 +623,7 @@ ATF_TC_HEAD(isc_rng_monobit_16, tc) {
 ATF_TC_BODY(isc_rng_monobit_16, tc) {
 	UNUSED(tc);
 
-	random_test(monobit, ISC_TRUE);
+	random_test(monobit, true);
 }
 
 ATF_TC(isc_rng_runs_16);
@@ -632,7 +634,7 @@ ATF_TC_HEAD(isc_rng_runs_16, tc) {
 ATF_TC_BODY(isc_rng_runs_16, tc) {
 	UNUSED(tc);
 
-	random_test(runs, ISC_TRUE);
+	random_test(runs, true);
 }
 
 ATF_TC(isc_rng_blockfrequency_16);
@@ -643,7 +645,7 @@ ATF_TC_HEAD(isc_rng_blockfrequency_16, tc) {
 ATF_TC_BODY(isc_rng_blockfrequency_16, tc) {
 	UNUSED(tc);
 
-	random_test(blockfrequency, ISC_TRUE);
+	random_test(blockfrequency, true);
 }
 
 ATF_TC(isc_rng_binarymatrixrank_16);
@@ -658,7 +660,7 @@ ATF_TC_HEAD(isc_rng_binarymatrixrank_16, tc) {
 ATF_TC_BODY(isc_rng_binarymatrixrank_16, tc) {
 	UNUSED(tc);
 
-	random_test(binarymatrixrank, ISC_TRUE);
+	random_test(binarymatrixrank, true);
 }
 
 ATF_TC(isc_rng_monobit_bytes);
@@ -669,7 +671,7 @@ ATF_TC_HEAD(isc_rng_monobit_bytes, tc) {
 ATF_TC_BODY(isc_rng_monobit_bytes, tc) {
 	UNUSED(tc);
 
-	random_test(monobit, ISC_FALSE);
+	random_test(monobit, false);
 }
 
 ATF_TC(isc_rng_runs_bytes);
@@ -680,7 +682,7 @@ ATF_TC_HEAD(isc_rng_runs_bytes, tc) {
 ATF_TC_BODY(isc_rng_runs_bytes, tc) {
 	UNUSED(tc);
 
-	random_test(runs, ISC_FALSE);
+	random_test(runs, false);
 }
 
 ATF_TC(isc_rng_blockfrequency_bytes);
@@ -691,7 +693,7 @@ ATF_TC_HEAD(isc_rng_blockfrequency_bytes, tc) {
 ATF_TC_BODY(isc_rng_blockfrequency_bytes, tc) {
 	UNUSED(tc);
 
-	random_test(blockfrequency, ISC_FALSE);
+	random_test(blockfrequency, false);
 }
 
 ATF_TC(isc_rng_binarymatrixrank_bytes);
@@ -706,7 +708,7 @@ ATF_TC_HEAD(isc_rng_binarymatrixrank_bytes, tc) {
 ATF_TC_BODY(isc_rng_binarymatrixrank_bytes, tc) {
 	UNUSED(tc);
 
-	random_test(binarymatrixrank, ISC_FALSE);
+	random_test(binarymatrixrank, false);
 }
 
 /*
