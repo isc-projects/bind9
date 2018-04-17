@@ -35,6 +35,7 @@
 #ifndef LIBRPZ_H
 #define LIBRPZ_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <arpa/nameser.h>

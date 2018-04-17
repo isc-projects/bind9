@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/buffer.h>
@@ -59,7 +60,7 @@ struct dns_bcentry {
 };
 
 static isc_result_t
-badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow);
+badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow);
 
 isc_result_t
 dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
@@ -119,7 +120,7 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 }
 
 static isc_result_t
-badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
+badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 	dns_bcentry_t **newtable, *bad, *next;
 	unsigned int newsize, i;
 
@@ -157,7 +158,7 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, isc_boolean_t grow) {
 
 void
 dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
-		 dns_rdatatype_t type, isc_boolean_t update,
+		 dns_rdatatype_t type, bool update,
 		 uint32_t flags, isc_time_t *expire)
 {
 	isc_result_t result;
@@ -175,7 +176,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	if (result != ISC_R_SUCCESS)
 		isc_time_settoepoch(&now);
 
-	hashval = dns_name_hash(name, ISC_FALSE);
+	hashval = dns_name_hash(name, false);
 	i = hashval % bc->size;
 	prev = NULL;
 	for (bad = bc->table[i]; bad != NULL; bad = next) {
@@ -215,9 +216,9 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		bc->table[i] = bad;
 		bc->count++;
 		if (bc->count > bc->size * 8)
-			badcache_resize(bc, &now, ISC_TRUE);
+			badcache_resize(bc, &now, true);
 		if (bc->count < bc->size * 2 && bc->size > bc->minsize)
-			badcache_resize(bc, &now, ISC_FALSE);
+			badcache_resize(bc, &now, false);
 	} else
 		bad->expire = *expire;
 
@@ -225,13 +226,13 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	UNLOCK(&bc->lock);
 }
 
-isc_boolean_t
+bool
 dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		  dns_rdatatype_t type, uint32_t *flagp,
 		  isc_time_t *now)
 {
 	dns_bcentry_t *bad, *prev, *next;
-	isc_boolean_t answer = ISC_FALSE;
+	bool answer = false;
 	unsigned int i;
 
 	REQUIRE(VALID_BADCACHE(bc));
@@ -255,7 +256,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 	if (bc->count == 0)
 		goto skip;
 
-	i = dns_name_hash(name, ISC_FALSE) % bc->size;
+	i = dns_name_hash(name, false) % bc->size;
 	prev = NULL;
 	for (bad = bc->table[i]; bad != NULL; bad = next) {
 		next = bad->next;
@@ -276,7 +277,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		if (bad->type == type && dns_name_equal(name, &bad->name)) {
 			if (flagp != NULL)
 				*flagp = bad->flags;
-			answer = ISC_TRUE;
+			answer = true;
 			break;
 		}
 		prev = bad;
@@ -331,7 +332,7 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS)
 		isc_time_settoepoch(&now);
-	i = dns_name_hash(name, ISC_FALSE) % bc->size;
+	i = dns_name_hash(name, false) % bc->size;
 	prev = NULL;
 	for (bad = bc->table[i]; bad != NULL; bad = next) {
 		int n;

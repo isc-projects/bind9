@@ -16,6 +16,7 @@
  ***	Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -1007,7 +1008,7 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
  */
 
 isc_result_t
-dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
+dns_message_reply(dns_message_t *msg, bool want_question_section);
 /*%<
  * Start formatting a reply to the query in 'msg'.
  *
@@ -1031,7 +1032,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  *\li	#DNS_R_FORMERR		-- the header or question section of the
  *				   message is invalid, replying is impossible.
  *				   If DNS_R_FORMERR is returned when
- *				   want_question_section is ISC_FALSE, then
+ *				   want_question_section is false, then
  *				   it's the header section that's bad;
  *				   otherwise either of the header or question
  *				   sections may be bad.

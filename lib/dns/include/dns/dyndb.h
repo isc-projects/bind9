@@ -12,6 +12,8 @@
 #ifndef DNS_DYNDB_H
 #define DNS_DYNDB_H
 
+#include <stdbool.h>
+
 #include <isc/types.h>
 
 #include <dns/types.h>
@@ -38,7 +40,7 @@ struct dns_dyndbctx {
 	dns_zonemgr_t	*zmgr;
 	isc_task_t	*task;
 	isc_timermgr_t	*timermgr;
-	isc_boolean_t	*refvar;
+	bool	*refvar;
 };
 
 #define DNS_DYNDBCTX_MAGIC	ISC_MAGIC('D', 'd', 'b', 'c')
@@ -121,7 +123,7 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
  */
 
 void
-dns_dyndb_cleanup(isc_boolean_t exiting);
+dns_dyndb_cleanup(bool exiting);
 /*%
  * Shut down and destroy all running dyndb modules.
  *

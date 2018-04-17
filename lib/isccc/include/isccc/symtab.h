@@ -71,6 +71,8 @@
  *** Imports.
  ***/
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isccc/types.h>
 
@@ -87,7 +89,7 @@ typedef union isccc_symvalue {
 typedef void (*isccc_symtabundefaction_t)(char *key, unsigned int type,
 					isccc_symvalue_t value, void *userarg);
 
-typedef isc_boolean_t (*isccc_symtabforeachaction_t)(char *key,
+typedef bool (*isccc_symtabforeachaction_t)(char *key,
 						   unsigned int type,
 						   isccc_symvalue_t value,
 						   void *userarg);
@@ -103,7 +105,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isccc_symtab_create(unsigned int size,
 		  isccc_symtabundefaction_t undefine_action, void *undefine_arg,
-		  isc_boolean_t case_sensitive, isccc_symtab_t **symtabp);
+		  bool case_sensitive, isccc_symtab_t **symtabp);
 
 void
 isccc_symtab_destroy(isccc_symtab_t **symtabp);

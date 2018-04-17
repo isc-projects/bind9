@@ -22,10 +22,11 @@
 
 ISC_LANG_BEGINDECLS
 
-#define isc_safe_memequal(s1, s2, n) ISC_TF(!CRYPTO_memcmp(s1, s2, n))
+#define isc_safe_memequal(s1, s2, n) !CRYPTO_memcmp(s1, s2, n)
+
 /*%<
- * Returns ISC_TRUE iff. two blocks of memory are equal, otherwise
- * ISC_FALSE.
+ * Returns true iff. two blocks of memory are equal, otherwise
+ * false.
  *
  */
 

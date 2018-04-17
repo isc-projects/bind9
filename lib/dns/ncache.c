@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/buffer.h>
@@ -45,7 +46,7 @@
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-	  isc_boolean_t optout, isc_boolean_t secure,
+	  bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset);
 
 static inline isc_result_t
@@ -98,23 +99,23 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	       dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, maxttl,
-			  ISC_FALSE, ISC_FALSE, addedrdataset));
+			  false, false, addedrdataset));
 }
 
 isc_result_t
 dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		     dns_dbnode_t *node, dns_rdatatype_t covers,
 		     isc_stdtime_t now, dns_ttl_t maxttl,
-		     isc_boolean_t optout, dns_rdataset_t *addedrdataset)
+		     bool optout, dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, maxttl,
-			  optout, ISC_TRUE, addedrdataset));
+			  optout, true, addedrdataset));
 }
 
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-	  isc_boolean_t optout, isc_boolean_t secure,
+	  bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset)
 {
 	isc_result_t result;

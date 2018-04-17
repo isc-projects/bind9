@@ -58,8 +58,8 @@ typedef struct vctx {
 	dns_dbversion_t *	ver;
 	dns_name_t *		origin;
 	dns_keytable_t *	secroots;
-	isc_boolean_t		goodksk;
-	isc_boolean_t		goodzsk;
+	bool		goodksk;
+	bool		goodzsk;
 	dns_rdataset_t		keyset;
 	dns_rdataset_t		keysigs;
 	dns_rdataset_t		soaset;
@@ -133,7 +133,7 @@ zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
 	va_end(ap);
 }
 
-static isc_boolean_t
+static bool
 is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	      uint32_t *ttlp)
 {
@@ -141,7 +141,7 @@ is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	isc_result_t result;
 
 	if (dns_name_equal(name, vctx->origin)) {
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	dns_rdataset_init(&nsset);
@@ -154,14 +154,14 @@ is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&nsset);
 	}
 
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	return ((result == ISC_R_SUCCESS));
 }
 
 /*%
- * Return ISC_TRUE if version 'ver' of database 'db' contains a DNAME RRset at
- * 'node'; return ISC_FALSE otherwise.
+ * Return true if version 'ver' of database 'db' contains a DNAME RRset at
+ * 'node'; return false otherwise.
  */
-static isc_boolean_t
+static bool
 has_dname(const vctx_t *vctx, dns_dbnode_t *node) {
 	dns_rdataset_t dnameset;
 	isc_result_t result;
@@ -174,10 +174,10 @@ has_dname(const vctx_t *vctx, dns_dbnode_t *node) {
 		dns_rdataset_disassociate(&dnameset);
 	}
 
-	return (ISC_TF(result == ISC_R_SUCCESS));
+	return ((result == ISC_R_SUCCESS));
 }
 
-static isc_boolean_t
+static bool
 goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset)
 {
@@ -200,7 +200,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 		result = dns_dnssec_keyfromrdata(vctx->origin, &rdata,
 						 vctx->mctx, &dstkey);
 		if (result != ISC_R_SUCCESS) {
-			return (ISC_FALSE);
+			return (false);
 		}
 		if (sig.algorithm != key.algorithm ||
 		    sig.keyid != dst_key_id(dstkey) ||
@@ -209,14 +209,14 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 			dst_key_free(&dstkey);
 			continue;
 		}
-		result = dns_dnssec_verify(name, rdataset, dstkey, ISC_FALSE,
+		result = dns_dnssec_verify(name, rdataset, dstkey, false,
 					   0, vctx->mctx, sigrdata, NULL);
 		dst_key_free(&dstkey);
 		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
-			return (ISC_TRUE);
+			return (true);
 		}
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 static isc_result_t
@@ -351,7 +351,7 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 chain_compare(void *arg1, void *arg2) {
 	struct nsec3_chain_fixed *e1 = arg1, *e2 = arg2;
 	size_t len;
@@ -360,59 +360,59 @@ chain_compare(void *arg1, void *arg2) {
 	 * Do each element in turn to get a stable sort.
 	 */
 	if (e1->hash < e2->hash) {
-		return (ISC_TRUE);
+		return (true);
 	}
 	if (e1->hash > e2->hash) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->iterations < e2->iterations) {
-		return (ISC_TRUE);
+		return (true);
 	}
 	if (e1->iterations > e2->iterations) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->salt_length < e2->salt_length) {
-		return (ISC_TRUE);
+		return (true);
 	}
 	if (e1->salt_length > e2->salt_length) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->next_length < e2->next_length) {
-		return (ISC_TRUE);
+		return (true);
 	}
 	if (e1->next_length > e2->next_length) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	len = e1->salt_length + 2 * e1->next_length;
 	if (memcmp(e1 + 1, e2 + 1, len) < 0) {
-		return (ISC_TRUE);
+		return (true);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
-static isc_boolean_t
+static bool
 chain_equal(const struct nsec3_chain_fixed *e1,
 	    const struct nsec3_chain_fixed *e2)
 {
 	size_t len;
 
 	if (e1->hash != e2->hash) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->iterations != e2->iterations) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->salt_length != e2->salt_length) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	if (e1->next_length != e2->next_length) {
-		return (ISC_FALSE);
+		return (false);
 	}
 	len = e1->salt_length + 2 * e1->next_length;
 	if (memcmp(e1 + 1, e2 + 1, len) != 0) {
-		return (ISC_FALSE);
+		return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -551,7 +551,7 @@ match_nsec3(const vctx_t *vctx, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 innsec3params(const dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 	dns_rdata_nsec3param_t nsec3param;
 	isc_result_t result;
@@ -572,10 +572,10 @@ innsec3params(const dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 		    memcmp(nsec3param.salt, nsec3->salt,
 			   nsec3->salt_length) == 0)
 		{
-			return (ISC_TRUE);
+			return (true);
 		}
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 static isc_result_t
@@ -650,7 +650,7 @@ record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 
 static isc_result_t
 isoptout(const vctx_t *vctx, const dns_rdata_t *nsec3rdata,
-	 isc_boolean_t *optout)
+	 bool *optout)
 {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -679,14 +679,14 @@ isoptout(const vctx_t *vctx, const dns_rdata_t *nsec3rdata,
 
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
-	result = dns_db_findnsec3node(vctx->db, hashname, ISC_FALSE, &node);
+	result = dns_db_findnsec3node(vctx->db, hashname, false, &node);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 					     dns_rdatatype_nsec3, 0, 0,
 					     &rdataset, NULL);
 	}
 	if (result != ISC_R_SUCCESS) {
-		*optout = ISC_FALSE;
+		*optout = false;
 		result = ISC_R_SUCCESS;
 		goto done;
 	}
@@ -702,7 +702,7 @@ isoptout(const vctx_t *vctx, const dns_rdata_t *nsec3rdata,
 
 	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	*optout = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+	*optout = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
 
  done:
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -717,8 +717,8 @@ isoptout(const vctx_t *vctx, const dns_rdata_t *nsec3rdata,
 
 static isc_result_t
 verifynsec3(const vctx_t *vctx, const dns_name_t *name,
-	    const dns_rdata_t *rdata, isc_boolean_t delegation,
-	    isc_boolean_t empty, const unsigned char types[8192],
+	    const dns_rdata_t *rdata, bool delegation,
+	    bool empty, const unsigned char types[8192],
 	    unsigned int maxtype, isc_result_t *vresult)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -731,7 +731,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
-	isc_boolean_t optout = ISC_FALSE;
+	bool optout = false;
 
 	result = dns_rdata_tostruct(rdata, &nsec3param, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -768,7 +768,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	 */
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
-	result = dns_db_findnsec3node(vctx->db, hashname, ISC_FALSE, &node);
+	result = dns_db_findnsec3node(vctx->db, hashname, false, &node);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 					     dns_rdatatype_nsec3, 0, 0,
@@ -811,8 +811,8 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 
 static isc_result_t
 verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
-	     dns_rdataset_t *nsec3paramset, isc_boolean_t delegation,
-	     isc_boolean_t empty, const unsigned char types[8192],
+	     dns_rdataset_t *nsec3paramset, bool delegation,
+	     bool empty, const unsigned char types[8192],
 	     unsigned int maxtype, isc_result_t *vresult)
 {
 	isc_result_t result;
@@ -949,7 +949,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 
 static isc_result_t
 verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
-	   isc_boolean_t delegation, dns_rdataset_t *keyrdataset,
+	   bool delegation, dns_rdataset_t *keyrdataset,
 	   dns_rdataset_t *nsecset, dns_rdataset_t *nsec3paramset,
 	   const dns_name_t *nextname, isc_result_t *vresult)
 {
@@ -1037,7 +1037,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	    dns_rdataset_isassociated(nsec3paramset))
 	{
 		result = verifynsec3s(vctx, name, nsec3paramset, delegation,
-				      ISC_FALSE, types, maxtype, &tvresult);
+				      false, types, maxtype, &tvresult);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1050,7 +1050,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 }
 
 static isc_result_t
-is_empty(const vctx_t *vctx, dns_dbnode_t *node, isc_boolean_t *empty) {
+is_empty(const vctx_t *vctx, dns_dbnode_t *node, bool *empty) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 
@@ -1063,14 +1063,14 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node, isc_boolean_t *empty) {
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdatasetiter_destroy(&rdsiter);
 
-	*empty = ISC_TF(result == ISC_R_NOMORE);
+	*empty = (result == ISC_R_NOMORE);
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 check_no_nsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node) {
-	isc_boolean_t nsec_exists = ISC_FALSE;
+	bool nsec_exists = false;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
 
@@ -1083,7 +1083,7 @@ check_no_nsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		zoneverify_log_error(vctx, "unexpected NSEC RRset at %s",
 				     namebuf);
-		nsec_exists = ISC_TRUE;
+		nsec_exists = true;
 	}
 
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -1093,7 +1093,7 @@ check_no_nsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node) {
 	return (nsec_exists ? ISC_R_FAILURE : ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 newchain(const struct nsec3_chain_fixed *first,
 	 const struct nsec3_chain_fixed *e)
 {
@@ -1103,9 +1103,9 @@ newchain(const struct nsec3_chain_fixed *first,
 	    first->next_length != e->next_length ||
 	    memcmp(first + 1, e + 1, first->salt_length) != 0)
 	{
-		return (ISC_TRUE);
+		return (true);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 static void
@@ -1124,7 +1124,7 @@ free_element_heap(void *element, void *uap) {
 	free_element(mctx, e);
 }
 
-static isc_boolean_t
+static bool
 checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
 {
@@ -1138,7 +1138,7 @@ checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	d2 += e->salt_length;
 
 	if (memcmp(d1, d2, first->next_length) == 0) {
-		return (ISC_TRUE);
+		return (true);
 	}
 
 	DE_CONST(d1 - first->next_length, sr.base);
@@ -1162,7 +1162,7 @@ checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	zoneverify_log_error(vctx, "Found: %.*s",
 			     (int)isc_buffer_usedlength(&b), buf);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 static isc_result_t
@@ -1272,7 +1272,7 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 
 static isc_result_t
 verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
-		 const dns_name_t *prevname, isc_boolean_t isdelegation,
+		 const dns_name_t *prevname, bool isdelegation,
 		 dns_rdataset_t *nsec3paramset, isc_result_t *vresult)
 {
 	dns_namereln_t reln;
@@ -1302,7 +1302,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 			{
 				result = verifynsec3s(vctx, &suffix,
 						      nsec3paramset,
-						      isdelegation, ISC_TRUE,
+						      isdelegation, true,
 						      NULL, 0, &tvresult);
 				if (result != ISC_R_SUCCESS) {
 					return (result);
@@ -1331,8 +1331,8 @@ vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	vctx->ver = ver;
 	vctx->origin = origin;
 	vctx->secroots = secroots;
-	vctx->goodksk = ISC_FALSE;
-	vctx->goodzsk = ISC_FALSE;
+	vctx->goodksk = false;
+	vctx->goodzsk = false;
 
 	dns_rdataset_init(&vctx->keyset);
 	dns_rdataset_init(&vctx->keysigs);
@@ -1398,7 +1398,7 @@ check_apex_rrsets(vctx_t *vctx) {
 	dns_dbnode_t *node = NULL;
 	isc_result_t result;
 
-	result = dns_db_findnode(vctx->db, vctx->origin, ISC_FALSE, &node);
+	result = dns_db_findnode(vctx->db, vctx->origin, false, &node);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx,
 				     "failed to find the zone's origin: %s",
@@ -1504,11 +1504,11 @@ check_apex_rrsets(vctx_t *vctx) {
  */
 static isc_result_t
 check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
-		  dns_rdata_t *rdata, isc_boolean_t is_ksk)
+		  dns_rdata_t *rdata, bool is_ksk)
 {
 	unsigned char *active_keys, *standby_keys;
 	dns_keynode_t *keynode = NULL;
-	isc_boolean_t *goodkey;
+	bool *goodkey;
 	dst_key_t *key = NULL;
 	isc_result_t result;
 
@@ -1517,14 +1517,14 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 	goodkey = (is_ksk ? &vctx->goodksk : &vctx->goodzsk);
 
 	if (dns_dnssec_selfsigns(rdata, vctx->origin, &vctx->keyset,
-				 &vctx->keysigs, ISC_FALSE, vctx->mctx))
+				 &vctx->keysigs, false, vctx->mctx))
 	{
 		if (active_keys[dnskey->algorithm] != 255) {
 			active_keys[dnskey->algorithm]++;
 		}
 	} else if (!is_ksk &&
 		   dns_dnssec_signs(rdata, vctx->origin, &vctx->soaset,
-				    &vctx->soasigs, ISC_FALSE, vctx->mctx))
+				    &vctx->soasigs, false, vctx->mctx))
 	{
 		if (active_keys[dnskey->algorithm] != 255) {
 			active_keys[dnskey->algorithm]++;
@@ -1542,7 +1542,7 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 	 * DNSKEY RRset is good enough.
 	 */
 	if (vctx->secroots == NULL) {
-		*goodkey = ISC_TRUE;
+		*goodkey = true;
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1565,7 +1565,7 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		dns_keytable_detachkeynode(vctx->secroots, &keynode);
 		dns_rdataset_settrust(&vctx->keyset, dns_trust_secure);
 		dns_rdataset_settrust(&vctx->keysigs, dns_trust_secure);
-		*goodkey = ISC_TRUE;
+		*goodkey = true;
 		break;
 	case DNS_R_PARTIALMATCH:
 	case ISC_R_NOTFOUND:
@@ -1601,7 +1601,7 @@ check_dnskey(vctx_t *vctx) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t dnskey;
 	isc_result_t result;
-	isc_boolean_t is_ksk;
+	bool is_ksk;
 
 	for (result = dns_rdataset_first(&vctx->keyset);
 	     result == ISC_R_SUCCESS;
@@ -1610,7 +1610,7 @@ check_dnskey(vctx_t *vctx) {
 		dns_rdataset_current(&vctx->keyset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		is_ksk = ISC_TF((dnskey.flags & DNS_KEYFLAG_KSK) != 0);
+		is_ksk = (dnskey.flags & DNS_KEYFLAG_KSK);
 
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0) {
 			;
@@ -1618,7 +1618,7 @@ check_dnskey(vctx_t *vctx) {
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			    !dns_dnssec_selfsigns(&rdata, vctx->origin,
 						  &vctx->keyset,
-						  &vctx->keysigs, ISC_FALSE,
+						  &vctx->keysigs, false,
 						  vctx->mctx))
 			{
 				char namebuf[DNS_NAME_FORMATSIZE];
@@ -1664,8 +1664,8 @@ check_dnskey(vctx_t *vctx) {
 }
 
 static void
-determine_active_algorithms(vctx_t *vctx, isc_boolean_t ignore_kskflag,
-			    isc_boolean_t keyset_kskonly)
+determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
+			    bool keyset_kskonly)
 {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
@@ -1724,7 +1724,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_name_t *name, *nextname, *prevname, *zonecut;
 	dns_dbnode_t *node = NULL, *nextnode;
 	dns_dbiterator_t *dbiter = NULL;
-	isc_boolean_t done = ISC_FALSE;
+	bool done = false;
 	isc_result_t tvresult;
 	isc_result_t result;
 
@@ -1750,7 +1750,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	}
 
 	while (!done) {
-		isc_boolean_t isdelegation = ISC_FALSE;
+		bool isdelegation = false;
 
 		result = dns_dbiterator_current(dbiter, &node, name);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
@@ -1768,7 +1768,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			dns_db_detachnode(vctx->db, &node);
 			result = dns_dbiterator_next(dbiter);
 			if (result == ISC_R_NOMORE) {
-				done = ISC_TRUE;
+				done = true;
 			} else if (result != ISC_R_SUCCESS) {
 				zoneverify_log_error(
 					vctx,
@@ -1781,7 +1781,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		if (is_delegation(vctx, name, node, NULL)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
-			isdelegation = ISC_TRUE;
+			isdelegation = true;
 		} else if (has_dname(vctx, node)) {
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
@@ -1789,7 +1789,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);
 		while (result == ISC_R_SUCCESS) {
-			isc_boolean_t empty;
+			bool empty;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			if (result != ISC_R_SUCCESS &&
@@ -1830,7 +1830,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			done = ISC_TRUE;
+			done = true;
 			nextname = vctx->origin;
 		} else if (result != ISC_R_SUCCESS) {
 			zoneverify_log_error(vctx,
@@ -1892,7 +1892,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 					     isc_result_totext(result));
 			goto done;
 		}
-		result = verifynode(vctx, name, node, ISC_FALSE, &vctx->keyset,
+		result = verifynode(vctx, name, node, false, &vctx->keyset,
 				    NULL, NULL, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			zoneverify_log_error(vctx, "verifynode: %s",
@@ -1918,7 +1918,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 static isc_result_t
 check_bad_algorithms(const vctx_t *vctx) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
-	isc_boolean_t first = ISC_TRUE;
+	bool first = true;
 	int i;
 
 	for (i = 0; i < 256; i++) {
@@ -1932,7 +1932,7 @@ check_bad_algorithms(const vctx_t *vctx) {
 		}
 		dns_secalg_format(i, algbuf, sizeof(algbuf));
 		zoneverify_print(vctx, " %s", algbuf);
-		first = ISC_FALSE;
+		first = false;
 	}
 
 	if (!first) {
@@ -1943,7 +1943,7 @@ check_bad_algorithms(const vctx_t *vctx) {
 }
 
 static void
-print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
+print_summary(const vctx_t *vctx, bool keyset_kskonly) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
 
@@ -1979,8 +1979,8 @@ print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
-		      isc_mem_t *mctx, isc_boolean_t ignore_kskflag,
-		      isc_boolean_t keyset_kskonly)
+		      isc_mem_t *mctx, bool ignore_kskflag,
+		      bool keyset_kskonly)
 {
 	const char *keydesc = (secroots == NULL ? "self-signed" : "trusted");
 	isc_result_t result, vresult = ISC_R_UNSET;
