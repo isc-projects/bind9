@@ -1,3 +1,7 @@
+4926.	[cleanup]	Replace the usage of custom ISC boolean and isc
+			data types with C99 stdint.h and stdbool.h types.
+			[GL #9]
+
 4925.	[func]		Several configuration options that define intervals
 			can now take TTL value suffixes (for example, 2h or 1d)
 			in addition to integer parameters. These include
