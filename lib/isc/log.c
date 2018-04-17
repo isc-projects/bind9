@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <time.h>
@@ -1223,8 +1224,8 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	isc_result_t result;
 	char *bname, *digit_end;
 	const char *dirname;
-	isc_int64_t version, last = ISC_INT64_MAX;
-	isc_int64_t to_keep[ISC_LOG_MAX_VERSIONS];
+	int64_t version, last = INT64_MAX;
+	int64_t to_keep[ISC_LOG_MAX_VERSIONS];
 	size_t bnamelen;
 	isc_dir_t dir;
 	char sep = '/';

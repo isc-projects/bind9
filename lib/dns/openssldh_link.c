@@ -36,6 +36,7 @@
 #ifndef PK11_DH_DISABLE
 
 #include <ctype.h>
+#include <stdint.h>
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -357,16 +358,16 @@ openssldh_destroy(dst_key_t *key) {
 }
 
 static void
-uint16_toregion(isc_uint16_t val, isc_region_t *region) {
+uint16_toregion(uint16_t val, isc_region_t *region) {
 	*region->base = (val & 0xff00) >> 8;
 	isc_region_consume(region, 1);
 	*region->base = (val & 0x00ff);
 	isc_region_consume(region, 1);
 }
 
-static isc_uint16_t
+static uint16_t
 uint16_fromregion(isc_region_t *region) {
-	isc_uint16_t val;
+	uint16_t val;
 	unsigned char *cp = region->base;
 
 	val = ((unsigned int)(cp[0])) << 8;
@@ -382,7 +383,7 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 	DH *dh;
 	const BIGNUM *pub_key = NULL, *p = NULL, *g = NULL;
 	isc_region_t r;
-	isc_uint16_t dnslen, plen, glen, publen;
+	uint16_t dnslen, plen, glen, publen;
 
 	REQUIRE(key->keydata.dh != NULL);
 
@@ -439,7 +440,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	DH *dh;
 	BIGNUM *pub_key = NULL, *p = NULL, *g = NULL;
 	isc_region_t r;
-	isc_uint16_t plen, glen, publen;
+	uint16_t plen, glen, publen;
 	int special = 0;
 
 	isc_buffer_remainingregion(data, &r);

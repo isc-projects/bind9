@@ -27,6 +27,8 @@
  *** Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -42,8 +44,8 @@ dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
 		       dns_rdata_dnskey_t *dnskey,
-		       isc_uint32_t refresh, isc_uint32_t addhd,
-		       isc_uint32_t removehd, isc_mem_t *mctx);
+		       uint32_t refresh, uint32_t addhd,
+		       uint32_t removehd, isc_mem_t *mctx);
 
 ISC_LANG_ENDDECLS
 

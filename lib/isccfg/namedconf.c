@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -2553,8 +2554,8 @@ static isc_result_t
 parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	char *endp;
 	unsigned int len;
-	isc_uint64_t value;
-	isc_uint64_t unit;
+	uint64_t value;
+	uint64_t unit;
 
 	value = strtoull(str, &endp, 10);
 	if (*endp == 0) {
@@ -2582,7 +2583,7 @@ parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	default:
 		return (ISC_R_FAILURE);
 	}
-	if (value > ISC_UINT64_MAX / unit)
+	if (value > UINT64_MAX / unit)
 		return (ISC_R_FAILURE);
 	*valuep = value * unit;
 	return (ISC_R_SUCCESS);
@@ -2592,7 +2593,7 @@ static isc_result_t
 parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	isc_uint64_t val;
+	uint64_t val;
 
 	UNUSED(type);
 
@@ -2621,8 +2622,8 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 	char *endp;
 	isc_result_t  result;
 	cfg_obj_t *obj = NULL;
-	isc_uint64_t val;
-	isc_uint64_t percent;
+	uint64_t val;
+	uint64_t percent;
 
 	UNUSED(type);
 
@@ -2636,7 +2637,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	if (*endp == '%' && *(endp+1) == 0) {
 		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
-		obj->value.uint32 = (isc_uint32_t)percent;
+		obj->value.uint32 = (uint32_t)percent;
 		*ret = obj;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -3994,7 +3995,7 @@ static isc_result_t
 parse_ttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 
 	UNUSED(type);
 

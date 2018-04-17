@@ -27,6 +27,8 @@
  *** Imports
  ***/
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 
 #include <dns/clientinfo.h>
@@ -198,7 +200,7 @@ dns_sdb_putnamedrdata(dns_sdballnodes_t *allnodes, const char *name,
 
 isc_result_t
 dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
-	       isc_uint32_t serial);
+	       uint32_t serial);
 /*%<
  * This function may optionally be called from the 'authority' callback
  * to simplify construction of the SOA record for 'zone'.  It will

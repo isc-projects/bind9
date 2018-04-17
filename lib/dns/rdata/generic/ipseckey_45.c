@@ -280,7 +280,7 @@ static inline isc_result_t
 fromstruct_ipseckey(ARGS_FROMSTRUCT) {
 	dns_rdata_ipseckey_t *ipseckey = source;
 	isc_region_t region;
-	isc_uint32_t n;
+	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
 	REQUIRE(source != NULL);
@@ -324,7 +324,7 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_ipseckey_t *ipseckey = target;
 	dns_name_t name;
-	isc_uint32_t n;
+	uint32_t n;
 
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 	REQUIRE(target != NULL);

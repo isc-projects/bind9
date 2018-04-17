@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -219,7 +220,7 @@ main(int argc, char *argv[]) {
 	unsigned int attrs, attrmask;
 	dns_dispatch_t *dispatchv4;
 	dns_view_t *view;
-	isc_uint16_t port = PORT;
+	uint16_t port = PORT;
 	int c;
 
 	RUNCHECK(isc_app_start());
