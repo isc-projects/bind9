@@ -1,3 +1,7 @@
+4945.	[cleanup]	Replace the usage of custom ISC boolean and integer
+			data types with C99 stdint.h and stdbool.h types.
+			[GL #9]
+
 4944.	[cleanup]	Silence cppcheck portability warnings in
 			lib/isc/tests/buffer_test.c. [GL #239]
 
