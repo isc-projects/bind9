@@ -12,6 +12,8 @@
 /*! \file */
 
 #include <config.h>
+
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 
@@ -664,7 +666,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	isc_uint32_t serial = 0;
+	uint32_t serial = 0;
 
 	UNUSED(is_batchfile);
 

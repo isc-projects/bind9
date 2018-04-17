@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
@@ -64,7 +66,7 @@ typedef ISC_LIST(controllistener_t) controllistenerlist_t;
 
 struct controlkey {
 	char *				keyname;
-	isc_uint32_t			algorithm;
+	uint32_t			algorithm;
 	isc_region_t			secret;
 	ISC_LINK(controlkey_t)		link;
 };
@@ -77,7 +79,7 @@ struct controlconnection {
 	isc_timer_t *			timer;
 	isc_buffer_t *			buffer;
 	controllistener_t *		listener;
-	isc_uint32_t			nonce;
+	uint32_t			nonce;
 	ISC_LINK(controlconnection_t)	link;
 };
 
@@ -93,9 +95,9 @@ struct controllistener {
 	controlkeylist_t		keys;
 	controlconnectionlist_t		connections;
 	isc_sockettype_t		type;
-	isc_uint32_t			perm;
-	isc_uint32_t			owner;
-	isc_uint32_t			group;
+	uint32_t			perm;
+	uint32_t			owner;
+	uint32_t			group;
 	isc_boolean_t			readonly;
 	ISC_LINK(controllistener_t)	link;
 };
@@ -330,7 +332,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	controlkey_t *key = NULL;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *response = NULL;
-	isc_uint32_t algorithm;
+	uint32_t algorithm;
 	isccc_region_t secret;
 	isc_stdtime_t now;
 	isc_buffer_t b;
@@ -341,7 +343,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *_ctrl = NULL;
 	isccc_time_t sent;
 	isccc_time_t exp;
-	isc_uint32_t nonce;
+	uint32_t nonce;
 	isccc_sexpr_t *data = NULL;
 
 	REQUIRE(event->ev_type == ISCCC_EVENT_CCMSG);
@@ -1094,7 +1096,7 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 			      socktext, isc_result_totext(result));
 
 	if (result == ISC_R_SUCCESS && type == isc_sockettype_unix) {
-		isc_uint32_t perm, owner, group;
+		uint32_t perm, owner, group;
 		perm  = cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
 		owner = cfg_obj_asuint32(cfg_tuple_get(control, "owner"));
 		group = cfg_obj_asuint32(cfg_tuple_get(control, "group"));

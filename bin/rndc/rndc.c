@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/app.h>
@@ -72,7 +73,7 @@ static unsigned int remoteport = 0;
 static isc_socketmgr_t *socketmgr = NULL;
 static isc_buffer_t *databuf;
 static isccc_ccmsg_t ccmsg;
-static isc_uint32_t algorithm;
+static uint32_t algorithm;
 static isccc_region_t secret;
 static isc_boolean_t failed = ISC_FALSE;
 static isc_boolean_t c_flag = ISC_FALSE;
@@ -82,7 +83,7 @@ static char *command;
 static char *args;
 static char program[256];
 static isc_socket_t *sock = NULL;
-static isc_uint32_t serial;
+static uint32_t serial;
 static isc_boolean_t quiet = ISC_FALSE;
 static isc_boolean_t showresult = ISC_FALSE;
 
@@ -361,7 +362,7 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *_ctrl;
 	isccc_region_t source;
 	isc_result_t result;
-	isc_uint32_t nonce;
+	uint32_t nonce;
 	isccc_sexpr_t *request = NULL;
 	isccc_time_t now;
 	isc_region_t r;
@@ -736,7 +737,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 				obj = cfg_tuple_get(address, "port");
 				if (cfg_obj_isuint32(obj)) {
 					myport = cfg_obj_asuint32(obj);
-					if (myport > ISC_UINT16_MAX ||
+					if (myport > UINT16_MAX ||
 					    myport == 0)
 						fatal("port %u out of range",
 						      myport);

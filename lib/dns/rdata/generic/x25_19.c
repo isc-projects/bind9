@@ -103,7 +103,7 @@ compare_x25(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_x25(ARGS_FROMSTRUCT) {
 	dns_rdata_x25_t *x25 = source;
-	isc_uint8_t i;
+	uint8_t i;
 
 	REQUIRE(type == dns_rdatatype_x25);
 	REQUIRE(source != NULL);

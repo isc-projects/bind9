@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/buffer.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/mem.h>
@@ -51,7 +53,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;
 	const char *s;
-	isc_uint32_t n;
+	uint32_t n;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_buffer_t b;

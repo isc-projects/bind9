@@ -49,8 +49,8 @@ struct dns_requestmgr {
 	isc_mem_t		       *mctx;
 
 	/* locked */
-	isc_int32_t			eref;
-	isc_int32_t			iref;
+	int32_t			eref;
+	int32_t			iref;
 	isc_timermgr_t		       *timermgr;
 	isc_socketmgr_t		       *socketmgr;
 	isc_taskmgr_t		       *taskmgr;
@@ -68,7 +68,7 @@ struct dns_request {
 	unsigned int			magic;
 	unsigned int			hash;
 	isc_mem_t		       *mctx;
-	isc_int32_t			flags;
+	int32_t			flags;
 	ISC_LINK(dns_request_t) 	link;
 	isc_buffer_t		       *query;
 	isc_buffer_t		       *answer;
@@ -806,7 +806,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (tcp)
-		isc_buffer_putuint16(request->query, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(request->query, (uint16_t)r.length);
 	result = isc_buffer_copyregion(request->query, &r);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1116,7 +1116,7 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	if (tcp)
-		isc_buffer_putuint16(buf2, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(buf2, (uint16_t)r.length);
 	result = isc_buffer_copyregion(buf2, &r);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

@@ -16,7 +16,7 @@
 /* $Id: txt_16.h,v 1.28 2007/06/19 23:47:17 tbox Exp $ */
 
 typedef struct dns_rdata_txt_string {
-		isc_uint8_t    length;
+		uint8_t    length;
 		unsigned char   *data;
 } dns_rdata_txt_string_t;
 
@@ -24,9 +24,9 @@ typedef struct dns_rdata_txt {
 	dns_rdatacommon_t       common;
 	isc_mem_t               *mctx;
 	unsigned char           *txt;
-	isc_uint16_t            txt_len;
+	uint16_t            txt_len;
 	/* private */
-	isc_uint16_t            offset;
+	uint16_t            offset;
 } dns_rdata_txt_t;
 
 /*

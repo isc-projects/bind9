@@ -127,7 +127,7 @@ compare_hs_a(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_hs_a(ARGS_FROMSTRUCT) {
 	dns_rdata_hs_a_t *a = source;
-	isc_uint32_t n;
+	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_a);
 	REQUIRE(rdclass == dns_rdataclass_hs);
@@ -146,7 +146,7 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_hs_a(ARGS_TOSTRUCT) {
 	dns_rdata_hs_a_t *a = target;
-	isc_uint32_t n;
+	uint32_t n;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);

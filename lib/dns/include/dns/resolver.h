@@ -44,6 +44,8 @@
  *\li	Drafts:	TBS
  */
 
+#include <stdint.h>
+
 #include <isc/lang.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
@@ -267,7 +269,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_rdatatype_t type,
 			 const dns_name_t *domain, dns_rdataset_t *nameservers,
 			 dns_forwarders_t *forwarders,
-			 const isc_sockaddr_t *client, isc_uint16_t id,
+			 const isc_sockaddr_t *client, uint16_t id,
 			 unsigned int options, unsigned int depth,
 			 isc_counter_t *qc, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
@@ -398,7 +400,7 @@ dns_resolver_socketmgr(dns_resolver_t *resolver);
 isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver);
 
-isc_uint32_t
+uint32_t
 dns_resolver_getlamettl(dns_resolver_t *resolver);
 /*%<
  * Get the resolver's lame-ttl.  zero => no lame processing.
@@ -408,7 +410,7 @@ dns_resolver_getlamettl(dns_resolver_t *resolver);
  */
 
 void
-dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl);
+dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl);
 /*%<
  * Set the resolver's lame-ttl.  zero => no lame processing.
  *
@@ -439,12 +441,12 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
  */
 
 void
-dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize);
+dns_resolver_setudpsize(dns_resolver_t *resolver, uint16_t udpsize);
 /*%<
  * Set the EDNS UDP buffer size advertised by the server.
  */
 
-isc_uint16_t
+uint16_t
 dns_resolver_getudpsize(dns_resolver_t *resolver);
 /*%<
  * Get the current EDNS UDP buffer size.
@@ -546,13 +548,13 @@ dns_resolver_gettimeout(dns_resolver_t *resolver);
 
 void
 dns_resolver_setclientsperquery(dns_resolver_t *resolver,
-				isc_uint32_t min, isc_uint32_t max);
+				uint32_t min, uint32_t max);
 void
-dns_resolver_setfetchesperzone(dns_resolver_t *resolver, isc_uint32_t clients);
+dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients);
 
 void
-dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
-				isc_uint32_t *min, isc_uint32_t *max);
+dns_resolver_getclientsperquery(dns_resolver_t *resolver, uint32_t *cur,
+				uint32_t *min, uint32_t *max);
 
 isc_boolean_t
 dns_resolver_getzeronosoattl(dns_resolver_t *resolver);

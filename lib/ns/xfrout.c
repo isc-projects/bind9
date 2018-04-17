@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#include <stdint.h>
+
 #include <isc/formatcheck.h>
 #include <isc/mem.h>
 #include <isc/timer.h>
@@ -120,7 +122,7 @@ inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
 /*% Log an RR (for debugging) */
 
 static void
-log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
+log_rr(dns_name_t *name, dns_rdata_t *rdata, uint32_t ttl) {
 	isc_result_t result;
 	isc_buffer_t buf;
 	char mem[2000];
@@ -186,7 +188,7 @@ struct rrstream_methods {
 	isc_result_t 		(*next)(rrstream_t *);
 	void			(*current)(rrstream_t *,
 					   dns_name_t **,
-					   isc_uint32_t *,
+					   uint32_t *,
 					   dns_rdata_t **);
 	void	 		(*pause)(rrstream_t *);
 	void 			(*destroy)(rrstream_t **);
@@ -227,8 +229,8 @@ static rrstream_methods_t ixfr_rrstream_methods;
 static isc_result_t
 ixfr_rrstream_create(isc_mem_t *mctx,
 		     const char *journal_filename,
-		     isc_uint32_t begin_serial,
-		     isc_uint32_t end_serial,
+		     uint32_t begin_serial,
+		     uint32_t end_serial,
 		     rrstream_t **sp)
 {
 	ixfr_rrstream_t *s;
@@ -270,7 +272,7 @@ ixfr_rrstream_next(rrstream_t *rs) {
 
 static void
 ixfr_rrstream_current(rrstream_t *rs,
-		       dns_name_t **name, isc_uint32_t *ttl,
+		       dns_name_t **name, uint32_t *ttl,
 		       dns_rdata_t **rdata)
 {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *) rs;
@@ -354,7 +356,7 @@ axfr_rrstream_first(rrstream_t *rs) {
 	/* Skip SOA records. */
 	for (;;) {
 		dns_name_t *name_dummy = NULL;
-		isc_uint32_t ttl_dummy;
+		uint32_t ttl_dummy;
 		dns_rdata_t *rdata = NULL;
 		dns_rriterator_current(&s->it, &name_dummy,
 				       &ttl_dummy, NULL, &rdata);
@@ -375,7 +377,7 @@ axfr_rrstream_next(rrstream_t *rs) {
 	/* Skip SOA records. */
 	for (;;) {
 		dns_name_t *name_dummy = NULL;
-		isc_uint32_t ttl_dummy;
+		uint32_t ttl_dummy;
 		dns_rdata_t *rdata = NULL;
 		result = dns_rriterator_next(&s->it);
 		if (result != ISC_R_SUCCESS)
@@ -389,7 +391,7 @@ axfr_rrstream_next(rrstream_t *rs) {
 }
 
 static void
-axfr_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
+axfr_rrstream_current(rrstream_t *rs, dns_name_t **name, uint32_t *ttl,
 		      dns_rdata_t **rdata)
 {
 	axfr_rrstream_t *s = (axfr_rrstream_t *) rs;
@@ -478,7 +480,7 @@ soa_rrstream_next(rrstream_t *rs) {
 }
 
 static void
-soa_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
+soa_rrstream_current(rrstream_t *rs, dns_name_t **name, uint32_t *ttl,
 		     dns_rdata_t **rdata)
 {
 	soa_rrstream_t *s = (soa_rrstream_t *) rs;
@@ -603,7 +605,7 @@ compound_rrstream_next(rrstream_t *rs) {
 }
 
 static void
-compound_rrstream_current(rrstream_t *rs, dns_name_t **name, isc_uint32_t *ttl,
+compound_rrstream_current(rrstream_t *rs, dns_name_t **name, uint32_t *ttl,
 			  dns_rdata_t **rdata)
 {
 	compound_rrstream_t *s = (compound_rrstream_t *) rs;
@@ -750,7 +752,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_boolean_t is_poll = ISC_FALSE;
 	isc_boolean_t is_dlz = ISC_FALSE;
 	isc_boolean_t is_ixfr = ISC_FALSE;
-	isc_uint32_t begin_serial = 0, current_serial;
+	uint32_t begin_serial = 0, current_serial;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -1086,7 +1088,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
 		    dns_zone_gettype(mayberaw) == dns_zone_slave) {
 			isc_time_t expiretime;
-			isc_uint32_t secs;
+			uint32_t secs;
 			dns_zone_getexpiretime(zone, &expiretime);
 			secs = isc_time_seconds(&expiretime);
 			if (secs >= client->now && result == ISC_R_SUCCESS) {
@@ -1383,7 +1385,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	 */
 	for (n_rrs = 0; ; n_rrs++) {
 		dns_name_t *name = NULL;
-		isc_uint32_t ttl;
+		uint32_t ttl;
 		dns_rdata_t *rdata = NULL;
 
 		unsigned int size;
@@ -1504,7 +1506,7 @@ sendstream(xfrout_ctx_t *xfr) {
 
 		isc_buffer_usedregion(&xfr->txbuf, &used);
 		isc_buffer_putuint16(&xfr->txlenbuf,
-				     (isc_uint16_t)used.length);
+				     (uint16_t)used.length);
 		region.base = xfr->txlenbuf.base;
 		region.length = 2 + used.length;
 		xfrout_log(xfr, ISC_LOG_DEBUG(8),
