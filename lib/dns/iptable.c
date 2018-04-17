@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/mem.h>
@@ -50,16 +51,16 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	return (result);
 }
 
-static isc_boolean_t dns_iptable_neg = ISC_FALSE;
-static isc_boolean_t dns_iptable_pos = ISC_TRUE;
+static bool dns_iptable_neg = false;
+static bool dns_iptable_pos = true;
 
 /*
  * Add an IP prefix to an existing IP table
  */
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      uint16_t bitlen, isc_boolean_t pos,
-		      isc_boolean_t is_ecs)
+		      uint16_t bitlen, bool pos,
+		      bool is_ecs)
 {
 	isc_result_t result;
 	isc_prefix_t pfx;
@@ -103,7 +104,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
  * Merge one IP table into another one.
  */
 isc_result_t
-dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
+dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos)
 {
 	isc_result_t result;
 	isc_radix_node_t *node, *new_node;
@@ -127,7 +128,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 		for (i = 0; i < 4; i++) {
 			if (!pos) {
 				if (node->data[i] &&
-				    *(isc_boolean_t *) node->data[i])
+				    *(bool *) node->data[i])
 					new_node->data[i] = &dns_iptable_neg;
 			}
 			if (node->node_num[i] > max_node)

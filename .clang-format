@@ -11,8 +11,8 @@ IndentCaseLabels:	false
 AllowShortCaseLabelsOnASingleLine:	true
 AlignTrailingComments:	true
 AlignOperands:		true
-AlignConsecutiveAssignments:	true
-AlignConsecutiveDeclarations:	true
+AlignConsecutiveAssignments:	false
+AlignConsecutiveDeclarations:	false
 AllowAllParametersOfDeclarationOnNextLine: false
 AlwaysBreakAfterDefinitionReturnType: TopLevel
 CommentPragmas: 'Copyright'

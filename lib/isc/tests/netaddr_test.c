@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -31,20 +32,20 @@ ATF_TC_BODY(netaddr_isnetzero, tc) {
 	struct in_addr ina;
 	struct {
 		const char *address;
-		isc_boolean_t expect;
+		bool expect;
 	} tests[] = {
-		{ "0.0.0.0", ISC_TRUE },
-		{ "0.0.0.1", ISC_TRUE },
-		{ "0.0.1.2", ISC_TRUE },
-		{ "0.1.2.3", ISC_TRUE },
-		{ "10.0.0.0", ISC_FALSE },
-		{ "10.9.0.0", ISC_FALSE },
-		{ "10.9.8.0", ISC_FALSE },
-		{ "10.9.8.7", ISC_FALSE },
-		{ "127.0.0.0", ISC_FALSE },
-		{ "127.0.0.1", ISC_FALSE }
+		{ "0.0.0.0", true },
+		{ "0.0.0.1", true },
+		{ "0.0.1.2", true },
+		{ "0.1.2.3", true },
+		{ "10.0.0.0", false },
+		{ "10.9.0.0", false },
+		{ "10.9.8.0", false },
+		{ "10.9.8.7", false },
+		{ "127.0.0.0", false },
+		{ "127.0.0.1", false }
 	};
-	isc_boolean_t result;
+	bool result;
 	isc_netaddr_t netaddr;
 
 	for (i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
@@ -112,14 +113,14 @@ ATF_TC_BODY(netaddr_multicast, tc) {
 	struct {
 		int family;
 		const char *addr;
-		isc_boolean_t is_multicast;
+		bool is_multicast;
 	} tests[] = {
-		{ AF_INET, "1.2.3.4", ISC_FALSE },
-		{ AF_INET, "4.3.2.1", ISC_FALSE },
-		{ AF_INET, "224.1.1.1", ISC_TRUE },
-		{ AF_INET, "1.1.1.244", ISC_FALSE },
-		{ AF_INET6, "::1", ISC_FALSE },
-		{ AF_INET6, "ff02::1", ISC_TRUE }
+		{ AF_INET, "1.2.3.4", false },
+		{ AF_INET, "4.3.2.1", false },
+		{ AF_INET, "224.1.1.1", true },
+		{ AF_INET, "1.1.1.244", false },
+		{ AF_INET6, "::1", false },
+		{ AF_INET6, "ff02::1", true }
 	};
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {

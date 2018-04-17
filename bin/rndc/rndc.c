@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -58,7 +59,7 @@
 #define SERVERADDRS 10
 
 const char *progname;
-isc_boolean_t verbose;
+bool verbose;
 
 static const char *admin_conffile;
 static const char *admin_keyfile;
@@ -66,7 +67,7 @@ static const char *version = VERSION;
 static const char *servername = NULL;
 static isc_sockaddr_t serveraddrs[SERVERADDRS];
 static isc_sockaddr_t local4, local6;
-static isc_boolean_t local4set = ISC_FALSE, local6set = ISC_FALSE;
+static bool local4set = false, local6set = false;
 static int nserveraddrs;
 static int currentaddr = 0;
 static unsigned int remoteport = 0;
@@ -75,8 +76,8 @@ static isc_buffer_t *databuf;
 static isccc_ccmsg_t ccmsg;
 static uint32_t algorithm;
 static isccc_region_t secret;
-static isc_boolean_t failed = ISC_FALSE;
-static isc_boolean_t c_flag = ISC_FALSE;
+static bool failed = false;
+static bool c_flag = false;
 static isc_mem_t *rndc_mctx;
 static int sends, recvs, connects;
 static char *command;
@@ -84,8 +85,8 @@ static char *args;
 static char program[256];
 static isc_socket_t *sock = NULL;
 static uint32_t serial;
-static isc_boolean_t quiet = ISC_FALSE;
-static isc_boolean_t showresult = ISC_FALSE;
+static bool quiet = false;
+static bool showresult = false;
 
 static void rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
@@ -221,7 +222,7 @@ Version: %s\n",
 
 static void
 preparse_args(int argc, char **argv) {
-	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
+	bool ipv4only = false, ipv6only = false;
 	int ch;
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
@@ -230,20 +231,20 @@ preparse_args(int argc, char **argv) {
 			if (ipv6only) {
 				fatal("only one of -4 and -6 allowed");
 			}
-			ipv4only = ISC_TRUE;
+			ipv4only = true;
 			break;
 		case '6':
 			if (ipv4only) {
 				fatal("only one of -4 and -6 allowed");
 			}
-			ipv6only = ISC_TRUE;
+			ipv6only = true;
 			break;
 		default:
 			break;
 		}
 	}
 
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 	isc_commandline_index = 1;
 }
 
@@ -321,7 +322,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 		fatal("bad or missing data section in response");
 	result = isccc_cc_lookupstring(data, "err", &errormsg);
 	if (result == ISC_R_SUCCESS) {
-		failed = ISC_TRUE;
+		failed = true;
 		fprintf(stderr, "%s: '%s' failed: %s\n",
 			progname, command, errormsg);
 	}
@@ -570,7 +571,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	const char *algorithmstr;
 	static char secretarray[1024];
 	const cfg_type_t *conftype = &cfg_type_rndcconf;
-	isc_boolean_t key_only = ISC_FALSE;
+	bool key_only = false;
 	const cfg_listelt_t *element;
 
 	if (! isc_file_exists(conffile)) {
@@ -583,7 +584,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		if (! isc_file_exists(conffile))
 			fatal("neither %s nor %s was found",
 			      admin_conffile, admin_keyfile);
-		key_only = ISC_TRUE;
+		key_only = true;
 	} else if (! c_flag && isc_file_exists(admin_keyfile)) {
 		fprintf(stderr, "WARNING: key file (%s) exists, but using "
 			"default configuration file (%s)\n",
@@ -772,7 +773,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		cfg_map_get(server, "source-address", &address);
 		if (address != NULL) {
 			local4 = *cfg_obj_assockaddr(address);
-			local4set = ISC_TRUE;
+			local4set = true;
 		}
 	}
 	if (!local4set && options != NULL) {
@@ -780,7 +781,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		cfg_map_get(options, "default-source-address", &address);
 		if (address != NULL) {
 			local4 = *cfg_obj_assockaddr(address);
-			local4set = ISC_TRUE;
+			local4set = true;
 		}
 	}
 
@@ -789,7 +790,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		cfg_map_get(server, "source-address-v6", &address);
 		if (address != NULL) {
 			local6 = *cfg_obj_assockaddr(address);
-			local6set = ISC_TRUE;
+			local6set = true;
 		}
 	}
 	if (!local6set && options != NULL) {
@@ -797,7 +798,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		cfg_map_get(options, "default-source-address-v6", &address);
 		if (address != NULL) {
 			local6 = *cfg_obj_assockaddr(address);
-			local6set = ISC_TRUE;
+			local6set = true;
 		}
 	}
 
@@ -807,7 +808,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 int
 main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t show_final_mem = ISC_FALSE;
+	bool show_final_mem = false;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
 	isc_log_t *log = NULL;
@@ -838,7 +839,7 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("isc_app_start() failed: %s", isc_result_totext(result));
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	preparse_args(argc, argv);
 
@@ -860,17 +861,17 @@ main(int argc, char **argv) {
 			if (inet_pton(AF_INET, isc_commandline_argument,
 				      &in) == 1) {
 				isc_sockaddr_fromin(&local4, &in, 0);
-				local4set = ISC_TRUE;
+				local4set = true;
 			} else if (inet_pton(AF_INET6, isc_commandline_argument,
 					     &in6) == 1) {
 				isc_sockaddr_fromin6(&local6, &in6, 0);
-				local6set = ISC_TRUE;
+				local6set = true;
 			}
 			break;
 
 		case 'c':
 			admin_conffile = isc_commandline_argument;
-			c_flag = ISC_TRUE;
+			c_flag = true;
 			break;
 
 		case 'k':
@@ -882,7 +883,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'm':
-			show_final_mem = ISC_TRUE;
+			show_final_mem = true;
 			break;
 
 		case 'p':
@@ -893,11 +894,11 @@ main(int argc, char **argv) {
 			break;
 
 		case 'q':
-			quiet = ISC_TRUE;
+			quiet = true;
 			break;
 
 		case 'r':
-			showresult = ISC_TRUE;
+			showresult = true;
 			break;
 
 		case 's':
@@ -905,7 +906,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'V':
-			verbose = ISC_TRUE;
+			verbose = true;
 			break;
 
 		case 'y':

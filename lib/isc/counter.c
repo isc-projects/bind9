@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include <isc/counter.h>
@@ -113,7 +114,7 @@ destroy(isc_counter_t *counter) {
 void
 isc_counter_detach(isc_counter_t **counterp) {
 	isc_counter_t *counter;
-	isc_boolean_t want_destroy = ISC_FALSE;
+	bool want_destroy = false;
 
 	REQUIRE(counterp != NULL && *counterp != NULL);
 	counter = *counterp;
@@ -125,7 +126,7 @@ isc_counter_detach(isc_counter_t **counterp) {
 	INSIST(counter->references > 0);
 	counter->references--;
 	if (counter->references == 0)
-		want_destroy = ISC_TRUE;
+		want_destroy = true;
 	UNLOCK(&counter->lock);
 
 	if (want_destroy)

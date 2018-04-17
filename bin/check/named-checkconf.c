@@ -16,6 +16,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -93,18 +94,18 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 get_maps(const cfg_obj_t **maps, const char *name, const cfg_obj_t **obj) {
 	int i;
 	for (i = 0;; i++) {
 		if (maps[i] == NULL)
-			return (ISC_FALSE);
+			return (false);
 		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
-			return (ISC_TRUE);
+			return (true);
 	}
 }
 
-static isc_boolean_t
+static bool
 get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *checknames;
@@ -115,14 +116,14 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 
 	for (i = 0;; i++) {
 		if (maps[i] == NULL)
-			return (ISC_FALSE);
+			return (false);
 		checknames = NULL;
 		result = cfg_map_get(maps[i], "check-names", &checknames);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		if (checknames != NULL && !cfg_obj_islist(checknames)) {
 			*obj = checknames;
-			return (ISC_TRUE);
+			return (true);
 		}
 		for (element = cfg_list_first(checknames);
 		     element != NULL;
@@ -137,7 +138,7 @@ get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
 				continue;
 			}
 			*obj = cfg_tuple_get(value, "mode");
-			return (ISC_TRUE);
+			return (true);
 		}
 	}
 }
@@ -170,7 +171,7 @@ configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 static isc_result_t
 configure_zone(const char *vclass, const char *view,
 	       const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
-	       const cfg_obj_t *config, isc_mem_t *mctx, isc_boolean_t list)
+	       const cfg_obj_t *config, isc_mem_t *mctx, bool list)
 {
 	int i = 0;
 	isc_result_t result;
@@ -422,7 +423,7 @@ configure_zone(const char *vclass, const char *view,
 /*% configure a view */
 static isc_result_t
 configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
-	       const cfg_obj_t *vconfig, isc_mem_t *mctx, isc_boolean_t list)
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx, bool list)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *voptions;
@@ -471,7 +472,7 @@ config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 /*% load zones from the configuration */
 static isc_result_t
 load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
-		      isc_boolean_t list_zones)
+		      bool list_zones)
 {
 	const cfg_listelt_t *element;
 	const cfg_obj_t *views;
@@ -540,12 +541,12 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	int exit_status = 0;
 	isc_entropy_t *ectx = NULL;
-	isc_boolean_t load_zones = ISC_FALSE;
-	isc_boolean_t list_zones = ISC_FALSE;
-	isc_boolean_t print = ISC_FALSE;
+	bool load_zones = false;
+	bool list_zones = false;
+	bool print = false;
 	unsigned int flags = 0;
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	/*
 	 * Process memory debugging argument first.
@@ -569,7 +570,7 @@ main(int argc, char **argv) {
 			break;
 		}
 	}
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -580,11 +581,11 @@ main(int argc, char **argv) {
 			break;
 
 		case 'j':
-			nomerge = ISC_FALSE;
+			nomerge = false;
 			break;
 
 		case 'l':
-			list_zones = ISC_TRUE;
+			list_zones = true;
 			break;
 
 		case 'm':
@@ -600,7 +601,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'p':
-			print = ISC_TRUE;
+			print = true;
 			break;
 
 		case 'v':
@@ -612,10 +613,10 @@ main(int argc, char **argv) {
 			break;
 
 		case 'z':
-			load_zones = ISC_TRUE;
-			docheckmx = ISC_FALSE;
-			docheckns = ISC_FALSE;
-			dochecksrv = ISC_FALSE;
+			load_zones = true;
+			docheckmx = false;
+			docheckns = false;
+			dochecksrv = false;
 			break;
 
 		case '?':

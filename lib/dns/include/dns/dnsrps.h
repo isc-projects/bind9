@@ -12,6 +12,7 @@
 #ifndef DNS_DNSRPS_H
 #define DNS_DNSRPS_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -97,7 +98,7 @@ isc_result_t dns_dnsrps_connect(dns_rpz_zones_t *rpzs);
 isc_result_t dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 				      dns_rpz_zones_t *rpzs,
 				      const dns_name_t *qname, isc_mem_t *mctx,
-				      isc_boolean_t have_rd);
+				      bool have_rd);
 
 #endif /* USE_DNSRPS */
 

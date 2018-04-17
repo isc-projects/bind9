@@ -20,6 +20,7 @@
  ***	Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -32,23 +33,23 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dns_ttl_totext(uint32_t src, isc_boolean_t verbose,
-	       isc_boolean_t upcase, isc_buffer_t *target);
+dns_ttl_totext(uint32_t src, bool verbose,
+	       bool upcase, isc_buffer_t *target);
 /*%<
  * Output a TTL or other time interval in a human-readable form.
  * The time interval is given as a count of seconds in 'src'.
  * The text representation is appended to 'target'.
  *
- * If 'verbose' is ISC_FALSE, use the terse BIND 8 style, like "1w2d3h4m5s".
+ * If 'verbose' is false, use the terse BIND 8 style, like "1w2d3h4m5s".
  *
- * If 'verbose' is ISC_TRUE, use a verbose style like the SOA comments
+ * If 'verbose' is true, use a verbose style like the SOA comments
  * in "dig", like "1 week 2 days 3 hours 4 minutes 5 seconds".
  *
- * If 'upcase' is ISC_TRUE, we conform to the BIND 8 style in which
+ * If 'upcase' is true, we conform to the BIND 8 style in which
  * the unit letter is capitalized if there is only a single unit
  * letter to print (for example, "1m30s", but "2M")
  *
- * If 'upcase' is ISC_FALSE, unit letters are always in lower case.
+ * If 'upcase' is false, unit letters are always in lower case.
  *
  * Returns:
  * \li	ISC_R_SUCCESS

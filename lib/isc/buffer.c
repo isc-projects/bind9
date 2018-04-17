@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -80,7 +81,7 @@ isc__buffer_invalidate(isc_buffer_t *b) {
 }
 
 void
-isc_buffer_setautorealloc(isc_buffer_t *b, isc_boolean_t enable) {
+isc_buffer_setautorealloc(isc_buffer_t *b, bool enable) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(b->mctx != NULL);
 	b->autore = enable;

@@ -24,7 +24,7 @@ fromtext_#(ARGS_FROMTEXT) {
 	REQUIRE(rdclass == #);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -137,7 +137,7 @@ digest_#(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_#(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_proforma.c#);
@@ -148,10 +148,10 @@ checkowner_#(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_#(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_proforma.c#);
@@ -161,7 +161,7 @@ checknames_#(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
