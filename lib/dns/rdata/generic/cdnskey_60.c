@@ -132,7 +132,7 @@ digest_cdnskey(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_cdnskey(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_cdnskey);
@@ -142,10 +142,10 @@ checkowner_cdnskey(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_cdnskey(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata != NULL);
@@ -155,7 +155,7 @@ checknames_cdnskey(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

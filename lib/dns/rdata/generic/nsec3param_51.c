@@ -53,13 +53,13 @@ fromtext_nsec3param(ARGS_FROMTEXT) {
 
 	/* Hash. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_hashalg_fromtext(&hashalg, &token.value.as_textregion));
 	RETERR(uint8_tobuffer(hashalg, target));
 
 	/* Flags. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	flags = token.value.as_ulong;
 	if (flags > 255U)
 		RETTOK(ISC_R_RANGE);
@@ -67,14 +67,14 @@ fromtext_nsec3param(ARGS_FROMTEXT) {
 
 	/* Iterations. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* Salt. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_textregion.length > (255*2))
 		RETTOK(DNS_R_TEXTTOOLONG);
 	if (strcmp(DNS_AS_STR(token), "-") == 0) {
@@ -281,7 +281,7 @@ digest_nsec3param(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_nsec3param(ARGS_CHECKOWNER) {
 
        REQUIRE(type == dns_rdatatype_nsec3param);
@@ -291,10 +291,10 @@ checkowner_nsec3param(ARGS_CHECKOWNER) {
        UNUSED(rdclass);
        UNUSED(wildcard);
 
-       return (ISC_TRUE);
+       return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_nsec3param(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_nsec3param);
@@ -303,7 +303,7 @@ checknames_nsec3param(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

@@ -30,7 +30,7 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 * Certificate Usage.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -39,7 +39,7 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 * Selector.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -48,7 +48,7 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	 * Matching type.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -300,7 +300,7 @@ digest_tlsa(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_tlsa(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_tlsa);
@@ -310,10 +310,10 @@ checkowner_tlsa(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_tlsa(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
@@ -322,7 +322,7 @@ checknames_tlsa(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

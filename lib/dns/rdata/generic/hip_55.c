@@ -46,7 +46,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	 * Algorithm.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -62,7 +62,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	 */
 	start = isc_buffer_used(target);
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(isc_hex_decodestring(DNS_AS_STR(token), target));
 
 	/*
@@ -78,7 +78,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	 */
 	start = isc_buffer_used(target);
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(isc_base64_decodestring(DNS_AS_STR(token), target));
 
 	/*
@@ -99,7 +99,7 @@ fromtext_hip(ARGS_FROMTEXT) {
 	do {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string,
-					      ISC_TRUE));
+					      true));
 		if (token.type != isc_tokentype_string)
 			break;
 		buffer_fromregion(&buffer, &token.value.as_region);
@@ -173,7 +173,7 @@ totext_hip(ARGS_TOTEXT) {
 	while (region.length > 0) {
 		dns_name_fromregion(&name, &region);
 
-		RETERR(dns_name_totext(&name, ISC_FALSE, target));
+		RETERR(dns_name_totext(&name, false, target));
 		isc_region_consume(&region, name.length);
 		if (region.length > 0)
 			RETERR(str_totext(tctx->linebreak, target));
@@ -381,7 +381,7 @@ digest_hip(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_hip(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_hip);
@@ -391,10 +391,10 @@ checkowner_hip(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_hip(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
@@ -403,7 +403,7 @@ checknames_hip(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 isc_result_t

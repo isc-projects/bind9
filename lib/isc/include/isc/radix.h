@@ -16,6 +16,7 @@
  * Id: defs.h,v 1.5.2.2 2000/01/15 14:19:16 masaki Exp
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/magic.h>
@@ -54,7 +55,7 @@ typedef struct isc_prefix {
 	isc_mem_t *mctx;
 	unsigned int family;	/* AF_INET | AF_INET6, or AF_UNSPEC for "any" */
 	unsigned int bitlen;	/* 0 for "any" */
-	isc_boolean_t ecs;	/* ISC_TRUE for an EDNS client subnet address */
+	bool ecs;	/* true for an EDNS client subnet address */
 	isc_refcount_t refcount;
 	union {
 		struct in_addr sin;
