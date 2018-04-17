@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 #
 # Do a quick-and-dirty conversion of .mandoc man pages to
 # DocBook SGML.

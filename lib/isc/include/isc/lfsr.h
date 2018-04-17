@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lfsr.h,v 1.17 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1

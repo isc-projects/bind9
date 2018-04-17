@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keyboard.h,v 1.6 2007/06/19 23:47:20 tbox Exp $ */
 
 #ifndef ISC_KEYBOARD_H
 #define ISC_KEYBOARD_H 1

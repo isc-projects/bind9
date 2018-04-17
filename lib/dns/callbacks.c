@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: callbacks.c,v 1.19.40.1 2012/02/07 00:44:13 each Exp $ */
 
 /*! \file */
 

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lib.h,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef DST_LIB_H
 #define DST_LIB_H 1

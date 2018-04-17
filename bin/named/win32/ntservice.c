@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ntservice.c,v 1.16 2011/01/13 08:50:29 tbox Exp $ */
 
 #include <config.h>
 #include <stdio.h>

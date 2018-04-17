@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it
 # bulletproof or foolproof.  Or pretty even.  Probably would

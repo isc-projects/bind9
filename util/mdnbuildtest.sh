@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # XXXDCL This is currently much too specific to the environment in which
 # it was written (NetBSD 1.5_alpha2 with libiconv in /usr/local/lib).  It
 # is essentially just a copy of the commands I used to test building of

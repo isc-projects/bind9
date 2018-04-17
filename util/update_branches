@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
 #  This is done so that work that is "in progress" (active) doesn't get

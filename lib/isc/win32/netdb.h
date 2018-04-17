@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: netdb.h,v 1.9 2009/01/18 23:48:14 tbox Exp $ */
 
 #ifndef NETDB_H
 #define NETDB_H 1

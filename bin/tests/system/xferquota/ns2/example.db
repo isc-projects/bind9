@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: example.db,v 1.14 2009/01/21 23:47:27 tbox Exp $
-
 $ORIGIN .
 $TTL 300	; 5 minutes
 example			IN SOA	mname1. . (

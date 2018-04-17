@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: DLLMain.c,v 1.4 2007/06/18 23:47:39 tbox Exp $ */
 
 #include <windows.h>
 #include <signal.h>

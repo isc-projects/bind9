@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: split-dnssec.example.db.in,v 1.3 2011/03/05 23:52:29 tbox Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2000042407 ; serial

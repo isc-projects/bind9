@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keygen.h,v 1.3 2009/06/11 23:47:55 tbox Exp $ */
 
 #ifndef RNDC_KEYGEN_H
 #define RNDC_KEYGEN_H 1

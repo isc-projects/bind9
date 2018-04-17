@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.db,v 1.1 2010/12/17 00:57:38 marka Exp $
-
 $TTL	120
 @		SOA	ns.utld hostmaster.ns.utld ( 46 3600 1200 604800 60 )
 @		NS	ns.utld

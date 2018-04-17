@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: afsdb_18.c,v 1.49 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
-
 /* RFC1183 */
 
 #ifndef RDATA_GENERIC_AFSDB_18_C

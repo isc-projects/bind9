@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: rsasha256.example.db.in,v 1.2 2009/10/27 22:25:37 marka Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2009102722 ; serial

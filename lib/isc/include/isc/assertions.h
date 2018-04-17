@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/*
- * $Id: assertions.h,v 1.28 2009/09/29 23:48:04 tbox Exp $
- */
 /*! \file isc/assertions.h
  */
 

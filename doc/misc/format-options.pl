@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: format-options.pl,v 1.5 2007/09/24 04:21:59 marka Exp $
-
 print <<END;
 
 This is a summary of the named.conf options supported by 

@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: runall.sh,v 1.2 2010/06/17 05:38:05 marka Exp $
-
 #
 # Run all the virtual time tests.
 #
