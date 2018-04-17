@@ -61,7 +61,7 @@ dns_portlist_remove(dns_portlist_t *portlist, int af, in_port_t port);
  *\li	'af' to be AF_INET or AF_INET6
  */
 
-isc_boolean_t
+bool
 dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port);
 /*%<
  * Find the given <port,af> tuple to the portlist.
@@ -71,7 +71,7 @@ dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port);
  *\li	'af' to be AF_INET or AF_INET6
  *
  * Returns
- * \li	#ISC_TRUE if the tuple is found, ISC_FALSE otherwise.
+ * \li	#true if the tuple is found, false otherwise.
  */
 
 void

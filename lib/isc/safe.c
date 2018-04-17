@@ -27,7 +27,7 @@
 #pragma optimize("", off)
 #endif
 
-isc_boolean_t
+bool
 isc_safe_memequal(const void *s1, const void *s2, size_t n) {
 	uint8_t acc = 0;
 
@@ -38,7 +38,7 @@ isc_safe_memequal(const void *s1, const void *s2, size_t n) {
 			acc |= *p1++ ^ *p2++;
 		} while (--n != 0U);
 	}
-	return (ISC_TF(acc == 0));
+	return (acc == 0);
 }
 
 

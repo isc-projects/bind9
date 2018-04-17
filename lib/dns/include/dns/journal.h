@@ -41,8 +41,8 @@
  ***/
 #define DNS_JOURNALOPT_RESIGN	0x00000001
 
-#define DNS_JOURNAL_READ	0x00000000	/* ISC_FALSE */
-#define DNS_JOURNAL_CREATE	0x00000001	/* ISC_TRUE */
+#define DNS_JOURNAL_READ	0x00000000	/* false */
+#define DNS_JOURNAL_CREATE	0x00000001	/* true */
 #define DNS_JOURNAL_WRITE	0x00000002
 
 #define DNS_JOURNAL_SIZE_MAX	INT32_MAX
@@ -176,7 +176,7 @@ dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
  * Reading transactions from journals.
  */
 
-isc_boolean_t
+bool
 dns_journal_empty(dns_journal_t *j);
 /*<
  * Find out if a journal is empty.
@@ -290,7 +290,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
  * exists and is non-empty 'serial' must exist in the journal.
  */
 
-isc_boolean_t
+bool
 dns_journal_get_sourceserial(dns_journal_t *j, uint32_t *sourceserial);
 void
 dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial);
@@ -298,7 +298,7 @@ dns_journal_set_sourceserial(dns_journal_t *j, uint32_t sourceserial);
  * Get and set source serial.
  *
  * Returns:
- *	 ISC_TRUE if sourceserial has previously been set.
+ *	 true if sourceserial has previously been set.
  */
 
 ISC_LANG_ENDDECLS

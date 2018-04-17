@@ -9,6 +9,9 @@
  * information regarding copyright ownership.
  */
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include <isc/magic.h>
 #include <isc/types.h>
 #include <isc/mutex.h>

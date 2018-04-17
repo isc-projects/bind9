@@ -12,6 +12,7 @@
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "isc/lang.h"
@@ -30,11 +31,11 @@ isc_hash_set_initializer(const void *initializer);
 
 uint32_t
 isc_hash_function(const void *data, size_t length,
-		  isc_boolean_t case_sensitive,
+		  bool case_sensitive,
 		  const uint32_t *previous_hashp);
 uint32_t
 isc_hash_function_reverse(const void *data, size_t length,
-			  isc_boolean_t case_sensitive,
+			  bool case_sensitive,
 			  const uint32_t *previous_hashp);
 /*!<
  * \brief Calculate a hash over data.
@@ -56,7 +57,7 @@ isc_hash_function_reverse(const void *data, size_t length,
  * 'length' is the size of the data to be hashed.
  *
  * 'case_sensitive' specifies whether the hash key should be treated as
- * case_sensitive values.  It should typically be ISC_FALSE if the hash key
+ * case_sensitive values.  It should typically be false if the hash key
  * is a DNS name.
  *
  * 'previous_hashp' is a pointer to a previous hash value returned by

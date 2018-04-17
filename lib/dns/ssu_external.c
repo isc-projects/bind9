@@ -113,7 +113,7 @@ ux_socket_connect(const char *path) {
  * time we avoid the need for locking and allow for parallel access to
  * the authorization server.
  */
-isc_boolean_t
+bool
 dns_ssu_external_match(const dns_name_t *identity,
 		       const dns_name_t *signer, const dns_name_t *name,
 		       const isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
@@ -143,13 +143,13 @@ dns_ssu_external_match(const dns_name_t *identity,
 	if (strncmp(b_identity, "local:", 6) != 0) {
 		ssu_e_log(3, "ssu_external: invalid socket path '%s'",
 			  b_identity);
-		return (ISC_FALSE);
+		return (false);
 	}
 	sock_path = &b_identity[6];
 
 	fd = ux_socket_connect(sock_path);
 	if (fd == -1)
-		return (ISC_FALSE);
+		return (false);
 
 	if (key != NULL) {
 		dst_key_format(key, b_key, sizeof(b_key));
@@ -193,7 +193,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 	data = isc_mem_allocate(mctx, req_len);
 	if (data == NULL) {
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	isc_buffer_init(&buf, data, req_len);
@@ -227,7 +227,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 		ssu_e_log(3, "ssu_external: unable to send request - %s",
 			  strbuf);
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	/* Receive the reply */
@@ -238,7 +238,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",
 			  strbuf);
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	close(fd);
@@ -248,14 +248,14 @@ dns_ssu_external_match(const dns_name_t *identity,
 	if (reply == 0) {
 		ssu_e_log(3, "ssu_external: denied external auth for '%s'",
 			  b_name);
-		return (ISC_FALSE);
+		return (false);
 	} else if (reply == 1) {
 		ssu_e_log(3, "ssu_external: allowed external auth for '%s'",
 			  b_name);
-		return (ISC_TRUE);
+		return (true);
 	}
 
 	ssu_e_log(3, "ssu_external: invalid reply 0x%08x", reply);
 
-	return (ISC_FALSE);
+	return (false);
 }
