@@ -15,6 +15,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -572,14 +573,14 @@ destroy(dns_sdb_t *sdb) {
 static void
 detach(dns_db_t **dbp) {
 	dns_sdb_t *sdb = (dns_sdb_t *)(*dbp);
-	isc_boolean_t need_destroy = ISC_FALSE;
+	bool need_destroy = false;
 
 	REQUIRE(VALID_SDB(sdb));
 	LOCK(&sdb->lock);
 	REQUIRE(sdb->references > 0);
 	sdb->references--;
 	if (sdb->references == 0)
-		need_destroy = ISC_TRUE;
+		need_destroy = true;
 	UNLOCK(&sdb->lock);
 
 	if (need_destroy)
@@ -643,9 +644,9 @@ attachversion(dns_db_t *db, dns_dbversion_t *source,
 }
 
 static void
-closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
+closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	REQUIRE(versionp != NULL && *versionp == (void *) &dummy);
-	REQUIRE(commit == ISC_FALSE);
+	REQUIRE(commit == false);
 
 	UNUSED(db);
 	UNUSED(commit);
@@ -720,7 +721,7 @@ destroynode(dns_sdbnode_t *node) {
 }
 
 static isc_result_t
-findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
+findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 	    dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
 	    dns_dbnode_t **nodep)
 {
@@ -729,13 +730,13 @@ findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 	isc_result_t result;
 	isc_buffer_t b;
 	char namestr[DNS_NAME_MAXTEXT + 1];
-	isc_boolean_t isorigin;
+	bool isorigin;
 	dns_sdbimplementation_t *imp;
 	dns_name_t relname;
 	unsigned int labels;
 
 	REQUIRE(VALID_SDB(sdb));
-	REQUIRE(create == ISC_FALSE);
+	REQUIRE(create == false);
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	UNUSED(name);
@@ -761,11 +762,11 @@ findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 				 dns_name_countlabels(&db->origin);
 			dns_name_init(&relname, NULL);
 			dns_name_getlabelsequence(name, 0, labels, &relname);
-			result = dns_name_totext(&relname, ISC_TRUE, &b);
+			result = dns_name_totext(&relname, true, &b);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		} else {
-			result = dns_name_totext(name, ISC_TRUE, &b);
+			result = dns_name_totext(name, true, &b);
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
@@ -851,7 +852,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * Look up the next label.
 		 */
 		dns_name_getlabelsequence(name, nlabels - i, i, xname);
-		result = findnodeext(db, xname, ISC_FALSE, methods,
+		result = findnodeext(db, xname, false, methods,
 				     clientinfo, &node);
 		if (result == ISC_R_NOTFOUND) {
 			/*
@@ -1023,7 +1024,7 @@ static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
 	dns_sdbnode_t *node;
-	isc_boolean_t need_destroy = ISC_FALSE;
+	bool need_destroy = false;
 
 	REQUIRE(VALID_SDB(sdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
@@ -1036,7 +1037,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	INSIST(node->references > 0);
 	node->references--;
 	if (node->references == 0)
-		need_destroy = ISC_TRUE;
+		need_destroy = true;
 	UNLOCK(&node->lock);
 
 	if (need_destroy)
@@ -1086,7 +1087,7 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	sdbiter->common.methods = &dbiterator_methods;
 	sdbiter->common.db = NULL;
 	dns_db_attach(db, &sdbiter->common.db);
-	sdbiter->common.relative_names = ISC_TF(options & DNS_DB_RELATIVENAMES);
+	sdbiter->common.relative_names = (options & DNS_DB_RELATIVENAMES);
 	sdbiter->common.magic = DNS_DBITERATOR_MAGIC;
 	ISC_LIST_INIT(sdbiter->nodelist);
 	sdbiter->current = NULL;
@@ -1216,11 +1217,11 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static isc_boolean_t
+static bool
 issecure(dns_db_t *db) {
 	UNUSED(db);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 static unsigned int
@@ -1230,14 +1231,14 @@ nodecount(dns_db_t *db) {
 	return (0);
 }
 
-static isc_boolean_t
+static bool
 ispersistent(dns_db_t *db) {
 	UNUSED(db);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
-overmem(dns_db_t *db, isc_boolean_t over) {
+overmem(dns_db_t *db, bool over) {
 	UNUSED(db);
 	UNUSED(over);
 }
@@ -1341,7 +1342,7 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		goto cleanup_lock;
 
 	isc_buffer_init(&b, zonestr, sizeof(zonestr));
-	result = dns_name_totext(origin, ISC_TRUE, &b);
+	result = dns_name_totext(origin, true, &b);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_origin;
 	isc_buffer_putuint8(&b, 0);

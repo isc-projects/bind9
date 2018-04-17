@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
@@ -48,8 +50,8 @@ struct dns_keynode {
 	unsigned int            magic;
 	isc_refcount_t          refcount;
 	dst_key_t *             key;
-	isc_boolean_t           managed;
-	isc_boolean_t		initial;
+	bool           managed;
+	bool		initial;
 	struct dns_keynode *    next;
 };
 
@@ -167,7 +169,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
  * key as the one supplied in "keyp" and, if found, update it accordingly.
  */
 static isc_result_t
-update_keynode(dst_key_t **keyp, dns_rbtnode_t *node, isc_boolean_t initial) {
+update_keynode(dst_key_t **keyp, dns_rbtnode_t *node, bool initial) {
 	dns_keynode_t *knode;
 
 	REQUIRE(keyp != NULL && *keyp != NULL);
@@ -207,8 +209,8 @@ update_keynode(dst_key_t **keyp, dns_rbtnode_t *node, isc_boolean_t initial) {
  */
 static isc_result_t
 prepend_keynode(dst_key_t **keyp, dns_rbtnode_t *node,
-		dns_keytable_t *keytable, isc_boolean_t managed,
-		isc_boolean_t initial)
+		dns_keytable_t *keytable, bool managed,
+		bool initial)
 {
 	dns_keynode_t *knode = NULL;
 	isc_result_t result;
@@ -245,7 +247,7 @@ prepend_keynode(dst_key_t **keyp, dns_rbtnode_t *node,
  * supplying key data which would allow the domain to be validated.
  */
 static isc_result_t
-insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
+insert(dns_keytable_t *keytable, bool managed, bool initial,
        const dns_name_t *keyname, dst_key_t **keyp)
 {
 	dns_rbtnode_t *node = NULL;
@@ -307,8 +309,8 @@ insert(dns_keytable_t *keytable, isc_boolean_t managed, isc_boolean_t initial,
 }
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
-		 isc_boolean_t initial, dst_key_t **keyp)
+dns_keytable_add(dns_keytable_t *keytable, bool managed,
+		 bool initial, dst_key_t **keyp)
 {
 	REQUIRE(keyp != NULL && *keyp != NULL);
 	REQUIRE(!initial || managed);
@@ -317,7 +319,7 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return (insert(keytable, ISC_TRUE, ISC_FALSE, name, NULL));
+	return (insert(keytable, true, false, name, NULL));
 }
 
 isc_result_t
@@ -334,7 +336,7 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
 	if (result == ISC_R_SUCCESS) {
 		if (node->data != NULL)
 			result = dns_rbt_deletenode(keytable->table,
-						    node, ISC_FALSE);
+						    node, false);
 		else
 			result = ISC_R_NOTFOUND;
 	} else if (result == DNS_R_PARTIALMATCH)
@@ -372,16 +374,16 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey) {
 
 	knode = node->data;
 	if (knode->next == NULL && knode->key != NULL &&
-	    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+	    dst_key_compare(knode->key, dstkey) == true)
 	{
-		result = dns_rbt_deletenode(keytable->table, node, ISC_FALSE);
+		result = dns_rbt_deletenode(keytable->table, node, false);
 		goto finish;
 	}
 
 	kprev = (dns_keynode_t **) &node->data;
 	while (knode != NULL) {
 		if (knode->key != NULL &&
-		    dst_key_compare(knode->key, dstkey) == ISC_TRUE)
+		    dst_key_compare(knode->key, dstkey) == true)
 			break;
 		kprev = &knode->next;
 		knode = knode->next;
@@ -607,7 +609,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
-			    dns_name_t *foundname, isc_boolean_t *wantdnssecp)
+			    dns_name_t *foundname, bool *wantdnssecp)
 {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
@@ -626,10 +628,10 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
 				  NULL, DNS_RBTFIND_NOOPTIONS, NULL, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		INSIST(node->data != NULL);
-		*wantdnssecp = ISC_TRUE;
+		*wantdnssecp = true;
 		result = ISC_R_SUCCESS;
 	} else if (result == ISC_R_NOTFOUND) {
-		*wantdnssecp = ISC_FALSE;
+		*wantdnssecp = false;
 		result = ISC_R_SUCCESS;
 	}
 
@@ -774,14 +776,14 @@ dns_keynode_key(dns_keynode_t *keynode) {
 	return (keynode->key);
 }
 
-isc_boolean_t
+bool
 dns_keynode_managed(dns_keynode_t *keynode) {
 	REQUIRE(VALID_KEYNODE(keynode));
 
 	return (keynode->managed);
 }
 
-isc_boolean_t
+bool
 dns_keynode_initial(dns_keynode_t *keynode) {
 	REQUIRE(VALID_KEYNODE(keynode));
 
@@ -792,7 +794,7 @@ void
 dns_keynode_trust(dns_keynode_t *keynode) {
 	REQUIRE(VALID_KEYNODE(keynode));
 
-	keynode->initial = ISC_FALSE;
+	keynode->initial = false;
 }
 
 isc_result_t
@@ -807,8 +809,8 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 		return (ISC_R_NOMEMORY);
 
 	knode->magic = KEYNODE_MAGIC;
-	knode->managed = ISC_FALSE;
-	knode->initial = ISC_FALSE;
+	knode->managed = false;
+	knode->initial = false;
 	knode->key = NULL;
 	knode->next = NULL;
 

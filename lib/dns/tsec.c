@@ -86,7 +86,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 			return (DNS_R_BADALG);
 		}
 		result = dns_tsigkey_createfromkey(dst_key_name(key),
-						   algname, key, ISC_FALSE,
+						   algname, key, false,
 						   NULL, 0, 0, mctx, NULL,
 						   &tsigkey);
 		if (result != ISC_R_SUCCESS) {

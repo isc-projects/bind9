@@ -99,8 +99,8 @@ isc_sha1_init(isc_sha1_t *ctx) {
 	CK_RV rv;
 	CK_MECHANISM mech = { CKM_SHA_1, NULL, 0 };
 
-	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, ISC_TRUE, ISC_FALSE,
-				       ISC_FALSE, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(pk11_get_session(ctx, OP_DIGEST, true, false,
+				       false, NULL, 0) == ISC_R_SUCCESS);
 	PK11_FATALCHECK(pkcs_C_DigestInit, (ctx->session, &mech));
 }
 
@@ -420,8 +420,8 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
  * Standard use is testing false and result true.
  * Testing use is testing true and result false;
  */
-isc_boolean_t
-isc_sha1_check(isc_boolean_t testing) {
+bool
+isc_sha1_check(bool testing) {
 	isc_sha1_t ctx;
 	unsigned char input = 'a';
 	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
@@ -450,5 +450,5 @@ isc_sha1_check(isc_boolean_t testing) {
 	/*
 	 * Must return true in standard case, should return false for testing.
 	 */
-	return (ISC_TF(memcmp(digest, expected, ISC_SHA1_DIGESTLENGTH) == 0));
+	return (memcmp(digest, expected, ISC_SHA1_DIGESTLENGTH) == 0);
 }

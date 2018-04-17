@@ -12,6 +12,7 @@
 /*! \file */
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -136,18 +137,17 @@ cleanup_ring(dns_tsig_keyring_t *ring);
 static void
 tsigkey_free(dns_tsigkey_t *key);
 
-isc_boolean_t
+bool
 dns__tsig_algvalid(unsigned int alg) {
+	return (
 #ifndef PK11_MD5_DISABLE
-	if (alg == DST_ALG_HMACMD5) {
-		return (ISC_TRUE);
-	}
+		alg == DST_ALG_HMACMD5 ||
 #endif
-	return (ISC_TF(alg == DST_ALG_HMACSHA1 ||
-		       alg == DST_ALG_HMACSHA224 ||
-		       alg == DST_ALG_HMACSHA256 ||
-		       alg == DST_ALG_HMACSHA384 ||
-		       alg == DST_ALG_HMACSHA512));
+		alg == DST_ALG_HMACSHA1 ||
+		alg == DST_ALG_HMACSHA224 ||
+		alg == DST_ALG_HMACSHA256 ||
+		alg == DST_ALG_HMACSHA384 ||
+		alg == DST_ALG_HMACSHA512);
 }
 
 static void
@@ -157,7 +157,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+	if (isc_log_wouldlog(dns_lctx, level) == false)
 		return;
 	if (key != NULL) {
 		dns_name_format(&key->name, namestr, sizeof(namestr));
@@ -192,7 +192,7 @@ remove_fromring(dns_tsigkey_t *tkey) {
 		ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 		tkey->ring->generated--;
 	}
-	(void)dns_rbt_deletename(tkey->ring->keys, &tkey->name, ISC_FALSE);
+	(void)dns_rbt_deletename(tkey->ring->keys, &tkey->name, false);
 }
 
 static void
@@ -255,7 +255,7 @@ keyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 
 isc_result_t
 dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
-			  dst_key_t *dstkey, isc_boolean_t generated,
+			  dst_key_t *dstkey, bool generated,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
@@ -507,17 +507,17 @@ dns__tsig_algnamefromname(const dns_name_t *algorithm) {
  * This will return an incorrect result if passed a dynamically allocated
  * dns_name_t that happens to match one of the pre-defined names.
  */
-isc_boolean_t
+bool
 dns__tsig_algallocated(const dns_name_t *algorithm) {
 	int i;
 	int n = sizeof(known_algs) / sizeof(*known_algs);
 	for (i = 0; i < n; ++i) {
 		const dns_name_t *name = known_algs[i].name;
 		if (algorithm == name) {
-			return (ISC_FALSE);
+			return (false);
 		}
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -577,7 +577,7 @@ restore_key(dns_tsig_keyring_t *ring, isc_stdtime_t now, FILE *fp) {
 		return (result);
 
 	result = dns_tsigkey_createfromkey(name, algorithm, dstkey,
-					   ISC_TRUE, creator, inception,
+					   true, creator, inception,
 					   expire, ring->mctx, ring, NULL);
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
@@ -669,7 +669,7 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
-		   unsigned char *secret, int length, isc_boolean_t generated,
+		   unsigned char *secret, int length, bool generated,
 		   const dns_name_t *creator, isc_stdtime_t inception,
 		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
@@ -785,7 +785,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	isc_result_t ret;
 	unsigned char badtimedata[BADTIMELEN];
 	unsigned int sigsize = 0;
-	isc_boolean_t response;
+	bool response;
 
 	REQUIRE(msg != NULL);
 	key = dns_message_gettsigkey(msg);
@@ -849,7 +849,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		 */
 		ret = dst_context_create(key->key, mctx,
 					 DNS_LOGCATEGORY_DNSSEC,
-					 ISC_TRUE, 0, &ctx);
+					 true, 0, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1096,7 +1096,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	uint16_t addcount, id;
 	unsigned int siglen;
 	unsigned int alg;
-	isc_boolean_t response;
+	bool response;
 
 	REQUIRE(source != NULL);
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1192,7 +1192,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		if (ret != ISC_R_SUCCESS) {
 			msg->tsigstatus = dns_tsigerror_badkey;
 			ret = dns_tsigkey_create(keyname, &tsig.algorithm,
-						 NULL, 0, ISC_FALSE, NULL,
+						 NULL, 0, false, NULL,
 						 now, now,
 						 mctx, NULL, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS)
@@ -1234,7 +1234,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 		ret = dst_context_create(key, mctx,
 					 DNS_LOGCATEGORY_DNSSEC,
-					 ISC_FALSE, 0, &ctx);
+					 false, 0, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1439,7 +1439,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	uint16_t addcount, id;
-	isc_boolean_t has_tsig = ISC_FALSE;
+	bool has_tsig = false;
 	isc_mem_t *mctx;
 	unsigned int siglen;
 	unsigned int alg;
@@ -1477,7 +1477,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 * If there is a TSIG in this message, do some checks.
 	 */
 	if (msg->tsig != NULL) {
-		has_tsig = ISC_TRUE;
+		has_tsig = true;
 
 		keyname = msg->tsigname;
 		ret = dns_rdataset_first(msg->tsig);
@@ -1530,7 +1530,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	if (msg->tsigctx == NULL) {
 		ret = dst_context_create(key, mctx,
 					 DNS_LOGCATEGORY_DNSSEC,
-					 ISC_FALSE, 0, &msg->tsigctx);
+					 false, 0, &msg->tsigctx);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
 

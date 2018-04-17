@@ -418,17 +418,17 @@ typedef void
 typedef int
 (*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *);
 
-typedef isc_boolean_t
+typedef bool
 (*dns_checkmxfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
 
-typedef isc_boolean_t
+typedef bool
 (*dns_checksrvfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
 
-typedef isc_boolean_t
+typedef bool
 (*dns_checknsfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *,
 		     dns_rdataset_t *, dns_rdataset_t *);
 
-typedef isc_boolean_t
+typedef bool
 (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, const isc_sockaddr_t *,
 		    const isc_sockaddr_t *, dns_rdataclass_t, void *);
 

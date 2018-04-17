@@ -42,7 +42,7 @@ ATF_TC_BODY(zonemgr_create, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
@@ -68,14 +68,14 @@ ATF_TC_BODY(zonemgr_managezone, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
 				    &myzonemgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_test_makezone("foo", &zone, NULL, ISC_FALSE);
+	result = dns_test_makezone("foo", &zone, NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* This should not succeed until the dns_zonemgr_setsize() is run */
@@ -116,7 +116,7 @@ ATF_TC_BODY(zonemgr_createzone, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
@@ -161,7 +161,7 @@ ATF_TC_BODY(zonemgr_unreachable, tc) {
 
 	TIME_NOW(&now);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
@@ -169,7 +169,7 @@ ATF_TC_BODY(zonemgr_unreachable, tc) {
 				    &myzonemgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_test_makezone("foo", &zone, NULL, ISC_FALSE);
+	result = dns_test_makezone("foo", &zone, NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_zonemgr_setsize(myzonemgr, 1);
