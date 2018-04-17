@@ -17,6 +17,7 @@
  * The name server command channel.
  */
 
+#include <stdbool.h>
 #include <isccc/types.h>
 
 #include <isccfg/aclconf.h>
@@ -101,7 +102,7 @@ named_controls_shutdown(named_controls_t *controls);
  */
 
 isc_result_t
-named_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
+named_control_docommand(isccc_sexpr_t *message, bool readonly,
 			isc_buffer_t **text);
 
 #endif /* NAMED_CONTROL_H */
