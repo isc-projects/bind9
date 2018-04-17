@@ -9,8 +9,6 @@
  - information regarding copyright ownership.
 -->
 
-<!-- $Id$ -->
-
 <!-- Generate ISC copyright comments from Docbook copyright metadata. -->
 
 <xsl:stylesheet version="1.0"

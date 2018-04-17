@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ratelimiter.h,v 1.23 2009/01/18 23:48:14 tbox Exp $ */
 
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1

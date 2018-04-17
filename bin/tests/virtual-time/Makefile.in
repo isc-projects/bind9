@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: Makefile.in,v 1.2 2010/06/17 05:38:04 marka Exp $
-
 TARGETS =	libvtwrapper.so
 SRCS =		vtwrapper.c
 CFLAGS +=	-fPIC

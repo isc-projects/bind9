@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
-
 /* RFC2535 */
 
 #ifndef RDATA_GENERIC_RRSIG_46_C

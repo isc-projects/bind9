@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: vtwrapper.c,v 1.4 2010/08/12 09:31:50 fdupont Exp $ */
 
 #define _GNU_SOURCE
 #include <sys/syscall.h>

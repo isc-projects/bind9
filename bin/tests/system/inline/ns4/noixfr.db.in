@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: noixfr.db.in,v 1.2 2011/08/30 23:46:52 tbox Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	ns4 . (
 				2000042407 ; serial

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dirdb.c,v 1.14 2011/10/11 23:46:45 tbox Exp $ */
 
 /*
  * A simple database driver that returns basic information about

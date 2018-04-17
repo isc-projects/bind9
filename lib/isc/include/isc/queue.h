@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /*
  * This is a generic implementation of a two-lock concurrent queue.

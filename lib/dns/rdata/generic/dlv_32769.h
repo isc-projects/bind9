@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dlv_32769.h,v 1.5 2007/06/19 23:47:17 tbox Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 #ifndef GENERIC_DLV_32769_H

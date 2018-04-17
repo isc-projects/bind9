@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: time.c,v 1.52 2009/08/14 07:51:08 marka Exp $ */
 
 #include <config.h>
 

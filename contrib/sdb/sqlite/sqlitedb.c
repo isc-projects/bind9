@@ -6,7 +6,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* $Id: sqlitedb.c,v 1.2 2011/10/11 00:09:02 each Exp $ */
 
 #include <config.h>
 

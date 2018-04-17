@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: cname_5.c,v 1.49 2009/12/04 22:06:37 tbox Exp $ */
-
-/* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
-
 #ifndef RDATA_GENERIC_CNAME_5_C
 #define RDATA_GENERIC_CNAME_5_C
 

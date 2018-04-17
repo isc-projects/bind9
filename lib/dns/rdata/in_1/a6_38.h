@@ -12,7 +12,6 @@
 #ifndef IN_1_A6_38_H
 #define IN_1_A6_38_H 1
 
-/* $Id: a6_38.h,v 1.24 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief Per RFC2874 */

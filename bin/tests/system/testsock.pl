@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: testsock.pl,v 1.20 2011/03/01 23:48:05 tbox Exp $
-
 # Test whether the interfaces on 10.53.0.* are up.
 
 require 5.001;

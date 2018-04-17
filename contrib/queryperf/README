@@ -1,6 +1,3 @@
-
-$Id: README,v 1.1 2001/07/12 02:02:09 gson Exp $
-
 This is queryperf, a DNS server query performance testing tool.
 
 It is primarily intended for measuring the performance of

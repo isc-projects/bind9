@@ -7,10 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
-
-
 ; master for slave RPZ zone
 
 $TTL	3600
