@@ -13,6 +13,7 @@
 #include <config.h>
 
 #ifndef WIN32
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -59,7 +60,7 @@ static FILE *fp;
 
 struct query_trans {
 	int id;
-	isc_boolean_t inuse;
+	bool inuse;
 	dns_rdatatype_t type;
 	dns_fixedname_t fixedname;
 	dns_name_t *qname;
@@ -138,7 +139,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 
 	if (!dns_rdataset_isassociated(rdataset))
 		return (ISC_R_SUCCESS);
-	result = dns_rdataset_totext(rdataset, owner, ISC_FALSE, ISC_FALSE,
+	result = dns_rdataset_totext(rdataset, owner, false, false,
 				     &target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -157,7 +158,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	REQUIRE(task == query_task);
-	REQUIRE(trans->inuse == ISC_TRUE);
+	REQUIRE(trans->inuse == true);
 	REQUIRE(outstanding_queries > 0);
 
 	printf("answer[%2d]\n", trans->id);
@@ -180,7 +181,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	trans->inuse = ISC_FALSE;
+	trans->inuse = false;
 	dns_fixedname_invalidate(&trans->fixedname);
 	trans->qname = NULL;
 	outstanding_queries--;
@@ -207,7 +208,7 @@ dispatch_query(struct query_trans *trans) {
 	char *cp;
 
 	REQUIRE(trans != NULL);
-	REQUIRE(trans->inuse == ISC_FALSE);
+	REQUIRE(trans->inuse == false);
 	REQUIRE(ISC_LIST_EMPTY(trans->answerlist));
 	REQUIRE(outstanding_queries < MAX_QUERIES);
 
@@ -234,7 +235,7 @@ dispatch_query(struct query_trans *trans) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	trans->inuse = ISC_TRUE;
+	trans->inuse = true;
 	outstanding_queries++;
 
 	return (ISC_R_SUCCESS);
@@ -313,7 +314,7 @@ main(int argc, char *argv[]) {
 
 	for (i = 0; i < MAX_QUERIES; i++) {
 		query_array[i].id = i;
-		query_array[i].inuse = ISC_FALSE;
+		query_array[i].inuse = false;
 		query_array[i].type = type;
 		dns_fixedname_init(&query_array[i].fixedname);
 		query_array[i].qname = NULL;
@@ -389,7 +390,7 @@ main(int argc, char *argv[]) {
 
 	/* Sanity check */
 	for (i = 0; i < MAX_QUERIES; i++)
-		INSIST(query_array[i].inuse == ISC_FALSE);
+		INSIST(query_array[i].inuse == false);
 
 	/* Cleanup */
 	isc_task_detach(&query_task);

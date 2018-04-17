@@ -226,4 +226,3 @@ write_key_file(const char *keyfile, const char *user,
 		fatal("fclose(%s) failed\n", keyfile);
 	fprintf(stderr, "wrote key file \"%s\"\n", keyfile);
 }
-

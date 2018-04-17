@@ -54,6 +54,8 @@
  ***** Imports
  *****/
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -96,8 +98,8 @@ struct dns_dbiterator {
 	unsigned int			magic;
 	dns_dbiteratormethods_t *	methods;
 	dns_db_t *			db;
-	isc_boolean_t			relative_names;
-	isc_boolean_t			cleaning;
+	bool			relative_names;
+	bool			cleaning;
 };
 
 void
@@ -220,7 +222,7 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  *
  *\li	#ISC_R_SUCCESS
  *\li	#DNS_R_NEWORIGIN			If this iterator was created with
- *					'relative_names' set to ISC_TRUE,
+ *					'relative_names' set to true,
  *					then #DNS_R_NEWORIGIN will be returned
  *					when the origin the names are
  *					relative to changes.  This result
@@ -276,12 +278,12 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
  */
 
 void
-dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, isc_boolean_t mode);
+dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode);
 /*%<
  * Indicate that the given iterator is/is not cleaning the DB.
  *
  * Notes:
- *\li	When 'mode' is ISC_TRUE,
+ *\li	When 'mode' is true,
  *
  * Requires:
  *\li	'iterator' is a valid iterator.

@@ -61,7 +61,7 @@ typedef struct driverinstance driverinstance_t;
 struct query_segment {
 	void				*cmd;
 	unsigned int			strlen;
-	isc_boolean_t			direct;
+	bool			direct;
 	DLZ_LINK(query_segment_t)	link;
 };
 

@@ -12,6 +12,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -194,18 +196,18 @@ dns_dns64_unlink(dns_dns64list_t *list, dns_dns64_t *dns64) {
 	ISC_LIST_UNLINK(*list, dns64, link);
 }
 
-isc_boolean_t
+bool
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
 		 unsigned int flags, dns_rdataset_t *rdataset,
-		 isc_boolean_t *aaaaok, size_t aaaaoklen)
+		 bool *aaaaok, size_t aaaaoklen)
 {
 	struct in6_addr in6;
 	isc_netaddr_t netaddr;
 	isc_result_t result;
 	int match;
-	isc_boolean_t answer = ISC_FALSE;
-	isc_boolean_t found = ISC_FALSE;
+	bool answer = false;
+	bool found = false;
 	unsigned int i, ok;
 
 	REQUIRE(rdataset != NULL);
@@ -237,20 +239,20 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 		if (!found && aaaaok != NULL) {
 			for (i = 0; i < aaaaoklen; i++)
-				aaaaok[i] = ISC_FALSE;
+				aaaaok[i] = false;
 		}
-		found = ISC_TRUE;
+		found = true;
 
 		/*
 		 * If we are not excluding any addresses then any AAAA
 		 * will do.
 		 */
 		if (dns64->excluded == NULL) {
-			answer = ISC_TRUE;
+			answer = true;
 			if (aaaaok == NULL)
 				goto done;
 			for (i = 0; i < aaaaoklen; i++)
-				aaaaok[i] = ISC_TRUE;
+				aaaaok[i] = true;
 			goto done;
 		}
 
@@ -269,10 +271,10 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 						       dns64->excluded,
 						       env, &match, NULL);
 				if (result == ISC_R_SUCCESS && match <= 0) {
-					answer = ISC_TRUE;
+					answer = true;
 					if (aaaaok == NULL)
 						goto done;
-					aaaaok[i] = ISC_TRUE;
+					aaaaok[i] = true;
 					ok++;
 				}
 			} else
@@ -289,7 +291,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
  done:
 	if (!found && aaaaok != NULL) {
 		for (i = 0; i < aaaaoklen; i++)
-			aaaaok[i] = ISC_TRUE;
+			aaaaok[i] = true;
 	}
-	return (found ? answer : ISC_TRUE);
+	return (found ? answer : true);
 }

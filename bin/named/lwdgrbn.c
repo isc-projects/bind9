@@ -254,7 +254,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	grbn->sigs = NULL;
 	grbn->siglen = NULL;
 
-	result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
+	result = dns_name_totext(name, true, &client->recv_buffer);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 	grbn->realname = (char *)isc_buffer_used(&b);

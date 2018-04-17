@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/app.h>
@@ -68,7 +69,7 @@ done(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char *argv[]) {
 	isc_mem_t *mctx;
-	isc_boolean_t verbose = ISC_FALSE;
+	bool verbose = false;
 	unsigned int workers = 2;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
@@ -98,7 +99,7 @@ main(int argc, char *argv[]) {
 			 */
 			break;
 		case 'v':
-			verbose = ISC_TRUE;
+			verbose = true;
 			break;
 		case 'w':
 			workers = (unsigned int)atoi(isc_commandline_argument);

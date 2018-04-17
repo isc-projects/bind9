@@ -18,6 +18,7 @@
 #ifndef PK11_DSA_DISABLE
 
 #include <string.h>
+#include <stdbool.h>
 
 #include <isc/entropy.h>
 #include <isc/mem.h>
@@ -106,7 +107,7 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_DSA, true, false,
 			       dsa->reqlogon, NULL,
 			       pk11_get_best_token(OP_DSA));
 	if (ret != ISC_R_SUCCESS)
@@ -164,7 +165,7 @@ pkcs11dsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 10,
@@ -238,7 +239,7 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_DSA, true, false,
 			       dsa->reqlogon, NULL,
 			       pk11_get_best_token(OP_DSA));
 	if (ret != ISC_R_SUCCESS)
@@ -296,7 +297,7 @@ pkcs11dsa_createctx_verify(dst_key_t *key, dst_context_t *dctx) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 9,
@@ -428,7 +429,7 @@ pkcs11dsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11dsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *dsa1, *dsa2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -437,49 +438,49 @@ pkcs11dsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dsa2 = key2->keydata.pkey;
 
 	if ((dsa1 == NULL) && (dsa2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((dsa1 == NULL) || (dsa2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dsa1, CKA_PRIME);
 	attr2 = pk11_attribute_bytype(dsa2, CKA_PRIME);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dsa1, CKA_SUBPRIME);
 	attr2 = pk11_attribute_bytype(dsa2, CKA_SUBPRIME);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dsa1, CKA_BASE);
 	attr2 = pk11_attribute_bytype(dsa2, CKA_BASE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dsa1, CKA_VALUE);
 	attr2 = pk11_attribute_bytype(dsa2, CKA_VALUE);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(dsa1, CKA_VALUE2);
 	attr2 = pk11_attribute_bytype(dsa2, CKA_VALUE2);
@@ -488,15 +489,15 @@ pkcs11dsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				attr1->ulValueLen)))
-		return (ISC_FALSE);
+		return (false);
 
 	if (!dsa1->ontoken && !dsa2->ontoken)
-		return (ISC_TRUE);
+		return (true);
 	else if (dsa1->ontoken || dsa2->ontoken ||
 		 (dsa1->object != dsa2->object))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -553,8 +554,8 @@ pkcs11dsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_DSA, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_DSA));
+	ret = pk11_get_session(pk11_ctx, OP_DSA, true, false,
+			       false, NULL, pk11_get_best_token(OP_DSA));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -660,15 +661,15 @@ pkcs11dsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11dsa_isprivate(const dst_key_t *key) {
 	pk11_object_t *dsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (dsa == NULL)
-		return (ISC_FALSE);
+		return (false);
 	attr = pk11_attribute_bytype(dsa, CKA_VALUE2);
-	return (ISC_TF((attr != NULL) || dsa->ontoken));
+	return (attr != NULL || dsa->ontoken);
 }
 
 static void

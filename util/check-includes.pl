@@ -103,12 +103,6 @@ for (<>) {
       unless $file =~ m%isc/resultclass.h%;
   }
 
-  if (/$nocomment.*ISC_(TRUE|FALSE|TF)\W/m &&
-      ! m%^#include <isc/(types|boolean).h>%m) {
-    print "$file has ISC_TRUE/FALSE/TF without <isc/(boolean|types).h>\n"
-      unless $file =~ m%isc/boolean.h%;
-  }
-
   if (/$nocomment.*ISC_PLATFORM_/m &&
       ! m%^#include <isc/platform.h>%m) {
     print "$file has ISC_PLATFORM_ without <isc/platform.h>\n"
@@ -246,10 +240,6 @@ for (<>) {
       # XXX would be good to test for files that need types.h but don't
       # include it.
       next;
-    }
-
-    if ($elided eq "<isc/boolean.h>") {
-      next if /^$nocomment.*ISC_(TRUE|FALSE|TF)\W/m;
     }
 
     if ($elided eq "<isc/platform.h>") {

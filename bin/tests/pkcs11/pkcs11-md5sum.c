@@ -52,6 +52,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -89,7 +90,7 @@ main(int argc, char *argv[]) {
 	char *lib_name = NULL;
 	char *pin = NULL;
 	int error = 0;
-	isc_boolean_t logon = ISC_TRUE;
+	bool logon = true;
 	int c, errflg = 0;
 	size_t sum = 0;
 	unsigned int i;
@@ -104,7 +105,7 @@ main(int argc, char *argv[]) {
 			op_type = OP_ANY;
 			break;
 		case 'n':
-			logon = ISC_FALSE;
+			logon = false;
 			break;
 		case 'p':
 			pin = isc_commandline_argument;
@@ -139,7 +140,7 @@ main(int argc, char *argv[]) {
 	if (logon && pin == NULL)
 		pin = getpassphrase("Enter Pin: ");
 
-	result = pk11_get_session(&pctx, op_type, ISC_FALSE, ISC_FALSE, logon,
+	result = pk11_get_session(&pctx, op_type, false, false, logon,
 				  (const char *) pin, slot);
 	if ((result != ISC_R_SUCCESS) &&
 	    (result != PK11_R_NORANDOMSERVICE) &&

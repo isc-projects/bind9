@@ -91,7 +91,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event) {
 	{
 		b = client->recv_buffer;
 
-		result = dns_name_totext(name, ISC_TRUE, &client->recv_buffer);
+		result = dns_name_totext(name, true, &client->recv_buffer);
 		if (result != ISC_R_SUCCESS)
 			goto out;
 		ns_lwdclient_log(50, "found name '%.*s'",

@@ -15,6 +15,8 @@
 
 /*! \file dns/nsec.h */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -48,7 +50,7 @@ dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
  * Build a NSEC record and add it to a database.
  */
 
-isc_boolean_t
+bool
 dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
 /*%<
  * Determine if a type is marked as present in an NSEC record.
@@ -59,11 +61,11 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
 
 isc_result_t
 dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
-		  isc_boolean_t *answer);
+		  bool *answer);
 /*
  * Report whether the DNSKEY RRset has a NSEC only algorithm.  Unknown
  * algorithms are assumed to support NSEC3.  If DNSKEY is not found,
- * *answer is set to ISC_FALSE, and ISC_R_NOTFOUND is returned.
+ * *answer is set to false, and ISC_R_NOTFOUND is returned.
  *
  * Requires:
  * 	'answer' to be non NULL.
@@ -85,7 +87,7 @@ dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit);
  * Set type bit in raw 'array' to 'bit'.
  */
 
-isc_boolean_t
+bool
 dns_nsec_isset(const unsigned char *array, unsigned int type);
 /*%<
  * Test if the corresponding 'type' bit is set in 'array'.
@@ -94,7 +96,7 @@ dns_nsec_isset(const unsigned char *array, unsigned int type);
 isc_result_t
 dns_nsec_noexistnodata(dns_rdatatype_t type, dns_name_t *name,
 		       dns_name_t *nsecname, dns_rdataset_t *nsecset,
-		       isc_boolean_t *exists, isc_boolean_t *data,
+		       bool *exists, bool *data,
 		       dns_name_t *wild, dns_nseclog_t log, void *arg);
 /*%
  * Return ISC_R_SUCCESS if we can determine that the name doesn't exist

@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/mem.h>
