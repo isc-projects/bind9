@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: AccountInfo.h,v 1.6 2007/06/19 23:47:07 tbox Exp $ */
 
 
 #define RTN_OK		0

@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: wrap.sh,v 1.3 2010/06/18 23:46:43 tbox Exp $
-
 #
 # Wrapper for named
 #

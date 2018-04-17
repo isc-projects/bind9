@@ -2,8 +2,6 @@ Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id$
-
 	dnssec-verify a tool to verify a zone is correctly signed.
 
 * check that every record that should be signed has a valid RRSIG set.

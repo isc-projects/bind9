@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
-
 /* RFC2538 */
 
 #ifndef RDATA_GENERIC_CERT_37_C

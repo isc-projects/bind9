@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: normal.db,v 1.2 2010/08/11 18:14:19 each Exp $
-
 $ORIGIN normal.example.
 $TTL 300	; 5 minutes
 @                       IN SOA	mname1. . (

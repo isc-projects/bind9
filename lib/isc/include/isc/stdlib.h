@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: stdlib.h,v 1.8 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_STDLIB_H
 #define ISC_STDLIB_H 1

@@ -4,8 +4,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 	Differentiate Services Code Point Support
 
-$Id: dscp,v 1.1.2.1 2012/02/24 05:20:36 marka Exp $
-
 Differentiate Services Code Point (DSCP) is implemented in IPv4 using the
 TOS octet and in IPv6 using the TCLASS octet.
 

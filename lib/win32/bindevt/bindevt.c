@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: bindevt.c,v 1.5 2007/06/19 23:47:24 tbox Exp $ */
 
 /*
  * bindevt.c : Defines the entry point for event log viewer DLL.

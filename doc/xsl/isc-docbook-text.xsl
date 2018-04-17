@@ -9,8 +9,6 @@
  - information regarding copyright ownership.
 -->
 
-<!-- $Id$ -->
-
 <!-- Tweaks to Docbook-XSL HTML for producing flat ASCII text. -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"

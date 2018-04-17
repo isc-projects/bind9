@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: include.db,v 1.5 2007/06/19 23:47:04 tbox Exp $
-
 ; Test $INCLUDE current domain name and origin semantics
 
 $TTL 300

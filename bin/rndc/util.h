@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: util.h,v 1.12 2009/09/29 23:48:03 tbox Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1

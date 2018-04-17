@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 /*
  * Copyright (C) 2004  Nominet, Ltd.

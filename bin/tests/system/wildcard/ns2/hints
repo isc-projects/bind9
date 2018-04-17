@@ -7,7 +7,5 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: hints,v 1.1.2.1 2010/06/01 03:55:02 marka Exp $
-
 . 0 NS ns.root-servers.nil.
 ns.root-servers.nil. 0 A 10.53.0.1

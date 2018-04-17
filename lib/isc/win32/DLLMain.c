@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: DLLMain.c,v 1.7 2007/06/18 23:47:49 tbox Exp $ */
 
 #include <windows.h>
 #include <stdio.h>

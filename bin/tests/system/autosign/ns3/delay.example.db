@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: delay.example.db,v 1.2 2011/03/26 01:19:03 each Exp $
-
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
 				2009102722 ; serial

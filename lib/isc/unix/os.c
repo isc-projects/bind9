@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: os.c,v 1.18 2007/06/19 23:47:18 tbox Exp $ */
 
 #include <config.h>
 

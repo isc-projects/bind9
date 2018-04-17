@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: builtin.c,v 1.26 2012/01/21 19:44:18 each Exp $ */
 
 /*! \file
  * \brief

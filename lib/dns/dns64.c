@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dns64.c,v 1.8 2011/03/12 04:59:47 tbox Exp $ */
 
 #include <config.h>
 
