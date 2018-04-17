@@ -547,14 +547,14 @@ rdata_from_slab(unsigned char **current,
 	unsigned char *tcurrent = *current;
 	isc_region_t region;
 	unsigned int length;
-	isc_boolean_t offline = ISC_FALSE;
+	bool offline = false;
 
 	length = *tcurrent++ * 256;
 	length += *tcurrent++;
 
 	if (type == dns_rdatatype_rrsig) {
 		if ((*tcurrent & DNS_RDATASLAB_OFFLINE) != 0)
-			offline = ISC_TRUE;
+			offline = true;
 		length--;
 		tcurrent++;
 	}
@@ -575,7 +575,7 @@ rdata_from_slab(unsigned char **current,
  * contains an rdata identical to 'rdata'.  This does case insensitive
  * comparisons per DNSSEC.
  */
-static inline isc_boolean_t
+static inline bool
 rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      dns_rdata_t *rdata)
@@ -598,12 +598,12 @@ rdata_in_slab(unsigned char *slab, unsigned int reservelen,
 
 		n = dns_rdata_compare(&trdata, rdata);
 		if (n == 0)
-			return (ISC_TRUE);
+			return (true);
 		if (n > 0)	/* In DNSSEC order. */
 			break;
 		dns_rdata_reset(&trdata);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 isc_result_t
@@ -616,7 +616,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
 	dns_rdata_t ordata = DNS_RDATA_INIT;
 	dns_rdata_t nrdata = DNS_RDATA_INIT;
-	isc_boolean_t added_something = ISC_FALSE;
+	bool added_something = false;
 	unsigned int oadded = 0;
 	unsigned int nadded = 0;
 	unsigned int nncount = 0;
@@ -702,7 +702,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 				tlength++;
 			tcount++;
 			nncount++;
-			added_something = ISC_TRUE;
+			added_something = true;
 		}
 		ncount--;
 	} while (ncount > 0);
@@ -792,14 +792,13 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	}
 
 	while (oadded < ocount || nadded < ncount) {
-		isc_boolean_t fromold;
+		bool fromold;
 		if (oadded == ocount)
-			fromold = ISC_FALSE;
+			fromold = false;
 		else if (nadded == ncount)
-			fromold = ISC_TRUE;
+			fromold = true;
 		else
-			fromold = ISC_TF(dns_rdata_compare(&ordata,
-							   &nrdata) < 0);
+			fromold = dns_rdata_compare(&ordata, &nrdata) < 0;
 		if (fromold) {
 #if DNS_RDATASET_FIXED
 			offsettable[oorder] = tcurrent - offsetbase;
@@ -1049,7 +1048,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 	return (ISC_R_SUCCESS);
 }
 
-isc_boolean_t
+bool
 dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 		    unsigned int reservelen)
 {
@@ -1066,7 +1065,7 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 	count2 += *current2++;
 
 	if (count1 != count2)
-		return (ISC_FALSE);
+		return (false);
 
 #if DNS_RDATASET_FIXED
 	current1 += (4 * count1);
@@ -1087,17 +1086,17 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 
 		if (length1 != length2 ||
 		    memcmp(current1, current2, length1) != 0)
-			return (ISC_FALSE);
+			return (false);
 
 		current1 += length1;
 		current2 += length1;
 
 		count1--;
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
-isc_boolean_t
+bool
 dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 		     unsigned int reservelen, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type)
@@ -1116,7 +1115,7 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 	count2 += *current2++;
 
 	if (count1 != count2)
-		return (ISC_FALSE);
+		return (false);
 
 #if DNS_RDATASET_FIXED
 	current1 += (4 * count1);
@@ -1127,9 +1126,9 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 		rdata_from_slab(&current1, rdclass, type, &rdata1);
 		rdata_from_slab(&current2, rdclass, type, &rdata2);
 		if (dns_rdata_compare(&rdata1, &rdata2) != 0)
-			return (ISC_FALSE);
+			return (false);
 		dns_rdata_reset(&rdata1);
 		dns_rdata_reset(&rdata2);
 	}
-	return (ISC_TRUE);
+	return (true);
 }

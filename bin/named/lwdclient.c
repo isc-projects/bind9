@@ -263,9 +263,9 @@ ns_lwdclient_recv(isc_task_t *task, isc_event_t *ev) {
 	client->address = dev->address;
 	if ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 		client->pktinfo = dev->pktinfo;
-		client->pktinfo_valid = ISC_TRUE;
+		client->pktinfo_valid = true;
 	} else
-		client->pktinfo_valid = ISC_FALSE;
+		client->pktinfo_valid = false;
 	isc_event_free(&ev);
 	dev = NULL;
 
@@ -288,12 +288,12 @@ ns_lwdclient_startrecv(ns_lwdclientmgr_t *cm) {
 	ns_lwdclient_t *client;
 	isc_result_t result;
 	isc_region_t r;
-	isc_boolean_t destroy = ISC_FALSE;
+	bool destroy = false;
 
 
 	LOCK(&cm->lock);
 	if (SHUTTINGDOWN(cm)) {
-		destroy = ISC_TRUE;
+		destroy = true;
 		result = ISC_R_SUCCESS;
 		goto unlock;
 	}
@@ -502,7 +502,7 @@ ns_lwdclient_initialize(ns_lwdclient_t *client, ns_lwdclientmgr_t *cmgr) {
 
 	client->lookup = NULL;
 
-	client->pktinfo_valid = ISC_FALSE;
+	client->pktinfo_valid = false;
 
 	LOCK(&cmgr->lock);
 	ISC_LIST_APPEND(cmgr->idle, client, link);

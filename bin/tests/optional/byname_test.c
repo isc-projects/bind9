@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -105,9 +106,9 @@ print_name(dns_name_t *name) {
 }
 
 static void
-do_find(isc_boolean_t want_event) {
+do_find(bool want_event) {
 	isc_result_t result;
-	isc_boolean_t done = ISC_FALSE;
+	bool done = false;
 	unsigned int options;
 
 	options = DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
@@ -127,7 +128,7 @@ do_find(isc_boolean_t want_event) {
 			 */
 			INSIST((find->options & DNS_ADBFIND_WANTEVENT) == 0);
 			print_addresses(find);
-			done = ISC_TRUE;
+			done = true;
 		} else {
 			/*
 			 * We don't know any of the addresses for this
@@ -138,7 +139,7 @@ do_find(isc_boolean_t want_event) {
 				 * And ADB isn't going to send us any events
 				 * either.  This query loses.
 				 */
-				done = ISC_TRUE;
+				done = true;
 			}
 			/*
 			 * If the DNS_ADBFIND_WANTEVENT flag was set, we'll
@@ -147,11 +148,11 @@ do_find(isc_boolean_t want_event) {
 		}
 	} else if (result == DNS_R_ALIAS) {
 		print_name(dns_fixedname_name(&target));
-		done = ISC_TRUE;
+		done = true;
 	} else {
 		printf("dns_adb_createfind() returned %s\n",
 		       isc_result_totext(result));
-		done = ISC_TRUE;
+		done = true;
 	}
 
 	if (done) {
@@ -171,7 +172,7 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 	dns_adb_destroyfind(&find);
 
 	if (type == DNS_EVENT_ADBMOREADDRESSES)
-		do_find(ISC_FALSE);
+		do_find(false);
 	else if (type == DNS_EVENT_ADBNOMOREADDRESSES) {
 		printf("no more addresses\n");
 		isc_app_shutdown();
@@ -184,13 +185,13 @@ adb_callback(isc_task_t *etask, isc_event_t *event) {
 static void
 run(isc_task_t *xtask, isc_event_t *event) {
 	UNUSED(xtask);
-	do_find(ISC_TRUE);
+	do_find(true);
 	isc_event_free(&event);
 }
 
 int
 main(int argc, char *argv[]) {
-	isc_boolean_t verbose = ISC_FALSE;
+	bool verbose = false;
 	unsigned int workers = 2;
 	isc_timermgr_t *timermgr;
 	int ch;
@@ -216,7 +217,7 @@ main(int argc, char *argv[]) {
 			level = (unsigned int)atoi(isc_commandline_argument);
 			break;
 		case 'v':
-			verbose = ISC_TRUE;
+			verbose = true;
 			break;
 		case 'w':
 			workers = (unsigned int)atoi(isc_commandline_argument);

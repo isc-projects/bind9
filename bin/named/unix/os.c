@@ -13,6 +13,7 @@
 
 #include <config.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 #include <sys/types.h>	/* dev_t FreeBSD 2.1 */
 #include <sys/stat.h>
@@ -107,13 +108,13 @@ static pid_t mainpid = 0;
 #endif
 
 static struct passwd *runas_pw = NULL;
-static isc_boolean_t done_setuid = ISC_FALSE;
+static bool done_setuid = false;
 static int dfd[2] = { -1, -1 };
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
-static isc_boolean_t non_root = ISC_FALSE;
-static isc_boolean_t non_root_caps = ISC_FALSE;
+static bool non_root = false;
+static bool non_root_caps = false;
 
 #ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
@@ -388,9 +389,9 @@ linux_keepcaps(void) {
 			ns_main_earlyfatal("prctl() failed: %s", strbuf);
 		}
 	} else {
-		non_root_caps = ISC_TRUE;
+		non_root_caps = true;
 		if (getuid() != 0)
-			non_root = ISC_TRUE;
+			non_root = true;
 	}
 }
 #endif
@@ -526,16 +527,16 @@ ns_os_closedevnull(void) {
 	}
 }
 
-static isc_boolean_t
+static bool
 all_digits(const char *s) {
 	if (*s == '\0')
-		return (ISC_FALSE);
+		return (false);
 	while (*s != '\0') {
 		if (!isdigit((*s)&0xff))
-			return (ISC_FALSE);
+			return (false);
 		s++;
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 void
@@ -594,7 +595,7 @@ ns_os_changeuser(void) {
 	if (runas_pw == NULL || done_setuid)
 		return;
 
-	done_setuid = ISC_TRUE;
+	done_setuid = true;
 
 #ifdef HAVE_LINUXTHREADS
 #ifdef HAVE_LINUX_CAPABILITY_H
@@ -676,7 +677,7 @@ ns_os_minprivs(void) {
 }
 
 static int
-safe_open(const char *filename, mode_t mode, isc_boolean_t append) {
+safe_open(const char *filename, mode_t mode, bool append) {
 	int fd;
 	struct stat sb;
 
@@ -830,7 +831,7 @@ setperms(uid_t uid, gid_t gid) {
 }
 
 FILE *
-ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
+ns_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	char strbuf[ISC_STRERRORSIZE], *f;
 	FILE *fp;
 	int fd;
@@ -858,7 +859,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
 
-		fd = safe_open(filename, mode, ISC_FALSE);
+		fd = safe_open(filename, mode, false);
 
 #ifndef HAVE_LINUXTHREADS
 		/* Restore UID/GID to root */
@@ -867,7 +868,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 
 		if (fd == -1) {
 #ifndef HAVE_LINUXTHREADS
-			fd = safe_open(filename, mode, ISC_FALSE);
+			fd = safe_open(filename, mode, false);
 			if (fd != -1) {
 				ns_main_earlywarning("Required root "
 						     "permissions to open "
@@ -888,7 +889,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 #endif /* HAVE_LINUXTHREADS */
 		}
 	} else {
-		fd = safe_open(filename, mode, ISC_FALSE);
+		fd = safe_open(filename, mode, false);
 	}
 
 	if (fd < 0) {
@@ -909,7 +910,7 @@ ns_os_openfile(const char *filename, mode_t mode, isc_boolean_t switch_user) {
 }
 
 void
-ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
+ns_os_writepidfile(const char *filename, bool first_time) {
 	FILE *fh;
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
@@ -959,16 +960,16 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 	(void)fclose(fh);
 }
 
-isc_boolean_t
+bool
 ns_os_issingleton(const char *filename) {
 	char strbuf[ISC_STRERRORSIZE];
 	struct flock lock;
 
 	if (singletonfd != -1)
-		return (ISC_TRUE);
+		return (true);
 
 	if (strcasecmp(filename, "none") == 0)
-		return (ISC_TRUE);
+		return (true);
 
 	/*
 	 * Make the containing directory if it doesn't exist.
@@ -983,7 +984,7 @@ ns_os_issingleton(const char *filename) {
 		if (ret == -1) {
 			ns_main_earlywarning("couldn't create '%s'", filename);
 			cleanup_lockfile();
-			return (ISC_FALSE);
+			return (false);
 		}
 	}
 
@@ -995,7 +996,7 @@ ns_os_issingleton(const char *filename) {
 			   S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 	if (singletonfd == -1) {
 		cleanup_lockfile();
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	memset(&lock, 0, sizeof(lock));
@@ -1008,10 +1009,10 @@ ns_os_issingleton(const char *filename) {
 	if (fcntl(singletonfd, F_SETLK, &lock) == -1) {
 		close(singletonfd);
 		singletonfd = -1;
-		return (ISC_FALSE);
+		return (false);
 	}
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 void

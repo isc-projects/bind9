@@ -47,8 +47,8 @@ struct ns_lwsearchctx {
 	dns_name_t *searchname;
 	unsigned int ndots;
 	ns_lwsearchlist_t *list;
-	isc_boolean_t doneexact;
-	isc_boolean_t exactfirst;
+	bool doneexact;
+	bool exactfirst;
 };
 
 isc_result_t

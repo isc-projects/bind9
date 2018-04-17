@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -96,7 +98,7 @@ ns_listenlist_detach(ns_listenlist_t **listp) {
 
 isc_result_t
 ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		      isc_boolean_t enabled, ns_listenlist_t **target)
+		      bool enabled, ns_listenlist_t **target)
 {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;

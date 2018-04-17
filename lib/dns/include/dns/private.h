@@ -9,6 +9,7 @@
  * information regarding copyright ownership.
  */
 
+#include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -24,7 +25,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		   dns_rdatatype_t privatetype,
-		   isc_boolean_t *build_nsec, isc_boolean_t *build_nsec3);
+		   bool *build_nsec, bool *build_nsec3);
 /*%<
  * Examine the NSEC, NSEC3PARAM and privatetype RRsets at the apex of the
  * database to determine which of NSEC or NSEC3 chains we are currently
@@ -36,8 +37,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
  * Requires:
  * \li	'db' is valid.
  * \li	'version' is valid or NULL.
- * \li	'build_nsec' is a pointer to a isc_boolean_t or NULL.
- * \li	'build_nsec3' is a pointer to a isc_boolean_t or NULL.
+ * \li	'build_nsec' is a pointer to a bool or NULL.
+ * \li	'build_nsec3' is a pointer to a bool or NULL.
  *
  * Returns:
  * \li 	ISC_R_SUCCESS, 'build_nsec' and 'build_nsec3' will be valid.

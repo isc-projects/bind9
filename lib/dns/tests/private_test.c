@@ -17,6 +17,7 @@
 #include <atf-c.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/buffer.h>
@@ -35,8 +36,8 @@ static dns_rdatatype_t privatetype = 65534;
 typedef struct {
 	unsigned char alg;
 	dns_keytag_t keyid;
-	isc_boolean_t remove;
-	isc_boolean_t complete;
+	bool remove;
+	bool complete;
 } signing_testcase_t;
 
 typedef struct {
@@ -44,9 +45,9 @@ typedef struct {
 	unsigned char flags;
 	unsigned int iterations;
 	unsigned long salt;
-	isc_boolean_t remove;
-	isc_boolean_t pending;
-	isc_boolean_t nonsec;
+	bool remove;
+	bool pending;
+	bool nonsec;
 } nsec3_testcase_t;
 
 /*
@@ -146,7 +147,7 @@ ATF_TC_BODY(private_signing_totext, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < ncases; i++) {
@@ -191,7 +192,7 @@ ATF_TC_BODY(private_nsec3_totext, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < ncases; i++) {
@@ -217,4 +218,3 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, private_nsec3_totext);
 	return (atf_no_error());
 }
-

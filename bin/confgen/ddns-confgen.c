@@ -19,6 +19,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -57,7 +58,7 @@
 static char program[256];
 const char *progname;
 static enum { progmode_keygen, progmode_confgen} progmode;
-isc_boolean_t verbose = ISC_FALSE; /* needed by util.c but not used here */
+bool verbose = false; /* needed by util.c but not used here */
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(int status) ISC_PLATFORM_NORETURN_POST;
@@ -90,8 +91,8 @@ Usage:\n\
 int
 main(int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_boolean_t show_final_mem = ISC_FALSE;
-	isc_boolean_t quiet = ISC_FALSE;
+	bool show_final_mem = false;
+	bool quiet = false;
 	isc_buffer_t key_txtbuffer;
 	char key_txtsecret[256];
 	isc_mem_t *mctx = NULL;
@@ -128,13 +129,13 @@ main(int argc, char **argv) {
 
 	if (PROGCMP("tsig-keygen")) {
 		progmode = progmode_keygen;
-		quiet = ISC_TRUE;
+		quiet = true;
 	} else if (PROGCMP("ddns-confgen"))
 		progmode = progmode_confgen;
 	else
 		INSIST(0);
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv,
 					   "a:hk:Mmr:qs:y:z:")) != -1) {
@@ -159,11 +160,11 @@ main(int argc, char **argv) {
 			isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 			break;
 		case 'm':
-			show_final_mem = ISC_TRUE;
+			show_final_mem = true;
 			break;
 		case 'q':
 			if (progmode == progmode_confgen)
-				quiet = ISC_TRUE;
+				quiet = true;
 			else
 				usage(1);
 			break;

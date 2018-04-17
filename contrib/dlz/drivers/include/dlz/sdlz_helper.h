@@ -57,7 +57,7 @@ typedef struct driverinstance driverinstance_t;
 struct query_segment {
 	void				*sql;
 	unsigned int			strlen;
-	isc_boolean_t			direct;
+	bool			direct;
 	ISC_LINK(query_segment_t)	link;
 };
 

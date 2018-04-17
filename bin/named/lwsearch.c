@@ -131,8 +131,8 @@ ns_lwsearchctx_init(ns_lwsearchctx_t *sctx, ns_lwsearchlist_t *list,
 	INSIST(sctx != NULL);
 	sctx->relname = name;
 	sctx->searchname = NULL;
-	sctx->doneexact = ISC_FALSE;
-	sctx->exactfirst = ISC_FALSE;
+	sctx->doneexact = false;
+	sctx->exactfirst = false;
 	sctx->ndots = ndots;
 	if (dns_name_isabsolute(name) || list == NULL) {
 		sctx->list = NULL;
@@ -141,7 +141,7 @@ ns_lwsearchctx_init(ns_lwsearchctx_t *sctx, ns_lwsearchlist_t *list,
 	sctx->list = list;
 	sctx->searchname = ISC_LIST_HEAD(sctx->list->names);
 	if (dns_name_countlabels(name) > ndots)
-		sctx->exactfirst = ISC_TRUE;
+		sctx->exactfirst = true;
 }
 
 void
@@ -160,10 +160,10 @@ ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 	if (sctx->searchname == NULL) {
 		if (sctx->exactfirst || sctx->doneexact)
 			return (ISC_R_NOMORE);
-		sctx->doneexact = ISC_TRUE;
+		sctx->doneexact = true;
 	} else {
 		if (sctx->exactfirst && !sctx->doneexact)
-			sctx->doneexact = ISC_TRUE;
+			sctx->doneexact = true;
 		else {
 			sctx->searchname = ISC_LIST_NEXT(sctx->searchname,
 							 link);
@@ -178,14 +178,14 @@ ns_lwsearchctx_next(ns_lwsearchctx_t *sctx) {
 isc_result_t
 ns_lwsearchctx_current(ns_lwsearchctx_t *sctx, dns_name_t *absname) {
 	dns_name_t *tname;
-	isc_boolean_t useexact = ISC_FALSE;
+	bool useexact = false;
 
 	REQUIRE(sctx != NULL);
 
 	if (sctx->list == NULL ||
 	    sctx->searchname == NULL ||
 	    (sctx->exactfirst && !sctx->doneexact))
-		useexact = ISC_TRUE;
+		useexact = true;
 
 	if (useexact) {
 		if (dns_name_isabsolute(sctx->relname))
