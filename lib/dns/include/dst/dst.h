@@ -14,6 +14,7 @@
 
 /*! \file dst/dst.h */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/lang.h>
@@ -172,29 +173,29 @@ dst_random_getdata(void *data, unsigned int length,
  * \li	DST_R_OPENSSLFAILURE, DST_R_CRYPTOFAILURE, or other codes on error
  */
 
-isc_boolean_t
+bool
 dst_algorithm_supported(unsigned int alg);
 /*%<
  * Checks that a given algorithm is supported by DST.
  *
  * Returns:
- * \li	ISC_TRUE
- * \li	ISC_FALSE
+ * \li	true
+ * \li	false
  */
 
-isc_boolean_t
+bool
 dst_ds_digest_supported(unsigned int digest_type);
 /*%<
  * Checks that a given digest algorithm is supported by DST.
  *
  * Returns:
- * \li	ISC_TRUE
- * \li	ISC_FALSE
+ * \li	true
+ * \li	false
  */
 
 isc_result_t
 dst_context_create(dst_key_t *key, isc_mem_t *mctx,
-		   isc_logcategory_t *category, isc_boolean_t useforsigning,
+		   isc_logcategory_t *category, bool useforsigning,
 		   int maxbits, dst_context_t **dctxp);
 /*%<
  * Creates a context to be used for a sign or verify operation.
@@ -600,7 +601,7 @@ dst_key_generate(const dns_name_t *name, unsigned int alg,
  *\li	If successful, *keyp will contain a valid key.
  */
 
-isc_boolean_t
+bool
 dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
 /*%<
  * Compares two DST keys.  Returns true if they match, false otherwise.
@@ -613,13 +614,13 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
  *\li	"key2" is a valid key.
  *
  * Returns:
- *\li 	ISC_TRUE
- * \li	ISC_FALSE
+ *\li 	true
+ * \li	false
  */
 
-isc_boolean_t
+bool
 dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
-		   isc_boolean_t match_revoked_key);
+		   bool match_revoked_key);
 /*%<
  * Compares only the public portions of two DST keys.  Returns true
  * if they match, false otherwise.  This allows us, for example, to
@@ -634,11 +635,11 @@ dst_key_pubcompare(const dst_key_t *key1, const dst_key_t *key2,
  *\li	"key2" is a valid key.
  *
  * Returns:
- *\li 	ISC_TRUE
- * \li	ISC_FALSE
+ *\li 	true
+ * \li	false
  */
 
-isc_boolean_t
+bool
 dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
 /*%<
  * Compares the parameters of two DST keys.  This is used to determine if
@@ -649,8 +650,8 @@ dst_key_paramcompare(const dst_key_t *key1, const dst_key_t *key2);
  *\li	"key2" is a valid key.
  *
  * Returns:
- *\li 	ISC_TRUE
- * \li	ISC_FALSE
+ *\li 	true
+ * \li	false
  */
 
 void
@@ -708,13 +709,13 @@ dst_key_rid(const dst_key_t *key);
 dns_rdataclass_t
 dst_key_class(const dst_key_t *key);
 
-isc_boolean_t
+bool
 dst_key_isprivate(const dst_key_t *key);
 
-isc_boolean_t
+bool
 dst_key_iszonekey(const dst_key_t *key);
 
-isc_boolean_t
+bool
 dst_key_isnullkey(const dst_key_t *key);
 
 isc_result_t
@@ -960,7 +961,7 @@ dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
 		unsigned int protocol, dns_rdataclass_t rdclass,
 		isc_mem_t *mctx, const char *keystr, dst_key_t **keyp);
 
-isc_boolean_t
+bool
 dst_key_inactive(const dst_key_t *key);
 /*%<
  * Determines if the private key is missing due the key being deemed inactive.
@@ -970,7 +971,7 @@ dst_key_inactive(const dst_key_t *key);
  */
 
 void
-dst_key_setinactive(dst_key_t *key, isc_boolean_t inactive);
+dst_key_setinactive(dst_key_t *key, bool inactive);
 /*%<
  * Set key inactive state.
  *
@@ -979,9 +980,9 @@ dst_key_setinactive(dst_key_t *key, isc_boolean_t inactive);
  */
 
 void
-dst_key_setexternal(dst_key_t *key, isc_boolean_t value);
+dst_key_setexternal(dst_key_t *key, bool value);
 
-isc_boolean_t
+bool
 dst_key_isexternal(dst_key_t *key);
 
 ISC_LANG_ENDDECLS

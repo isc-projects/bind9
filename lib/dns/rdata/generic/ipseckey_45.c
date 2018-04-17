@@ -40,7 +40,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 	 * Precedence.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -49,7 +49,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 	 * Gateway type.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0x3U)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -59,7 +59,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 	 * Algorithm.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
@@ -68,7 +68,7 @@ fromtext_ipseckey(ARGS_FROMTEXT) {
 	 * Gateway.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	switch (gateway) {
 	case 0:
@@ -176,7 +176,7 @@ totext_ipseckey(ARGS_TOTEXT) {
 
 	case 3:
 		dns_name_fromregion(&name, &region);
-		RETERR(dns_name_totext(&name, ISC_FALSE, target));
+		RETERR(dns_name_totext(&name, false, target));
 		isc_region_consume(&region, name_length(&name));
 		break;
 	}
@@ -430,7 +430,7 @@ digest_ipseckey(ARGS_DIGEST) {
 	return ((digest)(arg, &region));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_ipseckey(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_ipseckey);
@@ -440,10 +440,10 @@ checkowner_ipseckey(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_ipseckey(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
@@ -452,7 +452,7 @@ checknames_ipseckey(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

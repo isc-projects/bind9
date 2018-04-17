@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,7 +63,7 @@
 
 static isc_mem_t *mctx;
 static dns_requestmgr_t *requestmgr;
-static isc_boolean_t have_src = ISC_FALSE;
+static bool have_src = false;
 static isc_sockaddr_t srcaddr;
 static isc_sockaddr_t dstaddr;
 static int onfly;
@@ -225,7 +226,7 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(isc_app_start());
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 	while ((c = isc_commandline_parse(argc, argv, "p:r:")) != -1) {
 		switch (c) {
 		case 'p':
@@ -253,7 +254,7 @@ main(int argc, char *argv[]) {
 	argv += isc_commandline_index;
 
 	if (argc > 0) {
-		have_src = ISC_TRUE;
+		have_src = true;
 	}
 
 	dns_result_register();
@@ -280,7 +281,7 @@ main(int argc, char *argv[]) {
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
 	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
+		isc_entropy_usehook(ectx, true);
 	}
 	if (randomfile != NULL)
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));

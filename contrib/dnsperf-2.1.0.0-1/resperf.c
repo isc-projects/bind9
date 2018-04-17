@@ -39,6 +39,7 @@
  ***/
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -111,8 +112,8 @@ static unsigned int nsocks;
 static int *socks;
 
 static uint64_t query_timeout;
-static isc_boolean_t edns;
-static isc_boolean_t dnssec;
+static bool edns;
+static bool dnssec;
 
 static perf_datafile_t *input;
 
@@ -333,7 +334,7 @@ setup(int argc, char **argv)
 	input = perf_datafile_open(mctx, filename);
 
 	if (dnssec)
-		edns = ISC_TRUE;
+		edns = true;
 
 	if (tsigkey_str != NULL)
 		tsigkey = perf_dns_parsetsigkey(tsigkey_str, mctx);
@@ -386,7 +387,7 @@ print_statistics(void) {
 	int i;
 	double max_throughput;
 	double loss_at_max_throughput;
-	isc_boolean_t first_rcode;
+	bool first_rcode;
 	uint64_t run_time = time_of_end_of_run - time_of_program_start;
 
 	printf("\nStatistics:\n\n");
@@ -398,12 +399,12 @@ print_statistics(void) {
 	printf("  Queries lost:         %" PRIu64 "\n",
 	       num_queries_sent - num_responses_received);
 	printf("  Response codes:       ");
-	first_rcode = ISC_TRUE;
+	first_rcode = true;
 	for (i = 0; i < 16; i++) {
 		if (rcodecounts[i] == 0)
 			continue;
 		if (first_rcode)
-			first_rcode = ISC_FALSE;
+			first_rcode = false;
 		else
 			printf(", ");
 		printf("%s %" PRIu64 " (%.2lf%%)",
@@ -466,7 +467,7 @@ do_one_line(isc_buffer_t *lines, isc_buffer_t *msg) {
 	isc_result_t result;
 
 	isc_buffer_clear(lines);
-	result = perf_datafile_next(input, lines, ISC_FALSE);
+	result = perf_datafile_next(input, lines, false);
 	if (result != ISC_R_SUCCESS)
 		perf_log_fatal("ran out of query data");
 	isc_buffer_usedregion(lines, &used);
@@ -584,7 +585,7 @@ retire_old_queries(void)
 {
 	query_info *q;
 
-	while (ISC_TRUE) {
+	while (true) {
 		q = ISC_LIST_TAIL(outstanding_list);
 		if (q == NULL ||
 		    (time_now - q->sent_timestamp) < query_timeout)

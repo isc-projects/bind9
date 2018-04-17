@@ -44,6 +44,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/buffer.h>
@@ -370,7 +371,7 @@ dns_dispatch_starttcp(dns_dispatch_t *disp);
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		     const isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		     const isc_sockaddr_t *localaddr, bool *connected,
 		     dns_dispatch_t **dispp);
 /*
  * Attempt to connect to a existing TCP connection (connection completed

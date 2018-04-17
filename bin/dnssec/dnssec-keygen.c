@@ -28,6 +28,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -165,9 +166,9 @@ usage(void) {
 	exit (-1);
 }
 
-static isc_boolean_t
+static bool
 dsa_size_ok(int size) {
-	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
+	return (size >= 512 && size <= 1024 && size % 64 == 0);
 }
 
 static void
@@ -206,8 +207,8 @@ main(int argc, char **argv) {
 	dns_name_t	*name;
 	uint16_t	flags = 0, kskflag = 0, revflag = 0;
 	dns_secalg_t	alg;
-	isc_boolean_t	conflict = ISC_FALSE, null_key = ISC_FALSE;
-	isc_boolean_t	oldstyle = ISC_FALSE;
+	bool	conflict = false, null_key = false;
+	bool	oldstyle = false;
 	isc_mem_t	*mctx = NULL;
 	int		ch, generator = 0, param = 0;
 	int		protocol = -1, size = -1, signatory = 0;
@@ -229,24 +230,24 @@ main(int argc, char **argv) {
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
 	dns_ttl_t	ttl = 0;
-	isc_boolean_t	use_nsec3 = ISC_FALSE;
+	bool	use_nsec3 = false;
 	isc_stdtime_t	publish = 0, activate = 0, revokekey = 0;
 	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
 	int		prepub = -1;
-	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
-	isc_boolean_t	setrev = ISC_FALSE, setinact = ISC_FALSE;
-	isc_boolean_t	setdel = ISC_FALSE, setttl = ISC_FALSE;
-	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
-	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
-	isc_boolean_t	unsetdel = ISC_FALSE;
-	isc_boolean_t	genonly = ISC_FALSE;
-	isc_boolean_t	quiet = ISC_FALSE;
-	isc_boolean_t	show_progress = ISC_FALSE;
+	bool	setpub = false, setact = false;
+	bool	setrev = false, setinact = false;
+	bool	setdel = false, setttl = false;
+	bool	unsetpub = false, unsetact = false;
+	bool	unsetrev = false, unsetinact = false;
+	bool	unsetdel = false;
+	bool	genonly = false;
+	bool	quiet = false;
+	bool	show_progress = false;
 	unsigned char	c;
 	isc_stdtime_t	syncadd = 0, syncdel = 0;
-	isc_boolean_t	setsyncadd = ISC_FALSE;
-	isc_boolean_t	setsyncdel = ISC_FALSE;
+	bool	setsyncadd = false;
+	bool	setsyncdel = false;
 
 	if (argc == 1)
 		usage();
@@ -256,7 +257,7 @@ main(int argc, char **argv) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	/*
 	 * Process memory debugging argument first.
@@ -281,7 +282,7 @@ main(int argc, char **argv) {
 			break;
 		}
 	}
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -290,7 +291,7 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 	    switch (ch) {
 		case '3':
-			use_nsec3 = ISC_TRUE;
+			use_nsec3 = true;
 			break;
 		case 'a':
 			algname = isc_commandline_argument;
@@ -301,7 +302,7 @@ main(int argc, char **argv) {
 				fatal("-b requires a non-negative number");
 			break;
 		case 'C':
-			oldstyle = ISC_TRUE;
+			oldstyle = true;
 			break;
 		case 'c':
 			classname = isc_commandline_argument;
@@ -349,7 +350,7 @@ main(int argc, char **argv) {
 			break;
 		case 'L':
 			ttl = strtottl(isc_commandline_argument);
-			setttl = ISC_TRUE;
+			setttl = true;
 			break;
 		case 'n':
 			nametype = isc_commandline_argument;
@@ -363,7 +364,7 @@ main(int argc, char **argv) {
 				      "[0..255]");
 			break;
 		case 'q':
-			quiet = ISC_TRUE;
+			quiet = true;
 			break;
 		case 'r':
 			setup_entropy(mctx, isc_commandline_argument, &ectx);
@@ -399,7 +400,7 @@ main(int argc, char **argv) {
 			/* already the default */
 			break;
 		case 'G':
-			genonly = ISC_TRUE;
+			genonly = true;
 			break;
 		case 'P':
 			/* -Psync ? */
@@ -493,7 +494,7 @@ main(int argc, char **argv) {
 	}
 
 	if (!isatty(0))
-		quiet = ISC_TRUE;
+		quiet = true;
 
 	if (ectx == NULL)
 		setup_entropy(mctx, NULL, &ectx);
@@ -642,14 +643,14 @@ main(int argc, char **argv) {
 				      "prepublication interval.");
 
 			if (!setpub && !setact) {
-				setpub = setact = ISC_TRUE;
+				setpub = setact = true;
 				publish = now;
 				activate = now + prepub;
 			} else if (setpub && !setact) {
-				setact = ISC_TRUE;
+				setact = true;
 				activate = publish + prepub;
 			} else if (setact && !setpub) {
-				setpub = ISC_TRUE;
+				setpub = true;
 				publish = activate - prepub;
 			}
 
@@ -735,7 +736,7 @@ main(int argc, char **argv) {
 					"You can use dnssec-settime -D to "
 					"change this.\n", program, keystr);
 
-		setpub = setact = ISC_TRUE;
+		setpub = setact = true;
 	}
 
 	switch (alg) {
@@ -834,7 +835,7 @@ main(int argc, char **argv) {
 	case DNS_KEYALG_NSEC3RSASHA1:
 	case DNS_KEYALG_RSASHA256:
 	case DNS_KEYALG_RSASHA512:
-		show_progress = ISC_TRUE;
+		show_progress = true;
 		break;
 
 	case DNS_KEYALG_DH:
@@ -848,17 +849,17 @@ main(int argc, char **argv) {
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:
 	case DST_ALG_ED448:
-		show_progress = ISC_TRUE;
+		show_progress = true;
 		break;
 	}
 
 	if ((flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
-		null_key = ISC_TRUE;
+		null_key = true;
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
 	do {
-		conflict = ISC_FALSE;
+		conflict = false;
 
 		if (!quiet && show_progress) {
 			fprintf(stderr, "Generating key pair.");
@@ -981,7 +982,7 @@ main(int argc, char **argv) {
 		 * or another key being revoked.
 		 */
 		if (key_collision(key, name, directory, mctx, NULL)) {
-			conflict = ISC_TRUE;
+			conflict = true;
 			if (null_key) {
 				dst_key_free(&key);
 				break;
@@ -1002,7 +1003,7 @@ main(int argc, char **argv) {
 
 			dst_key_free(&key);
 		}
-	} while (conflict == ISC_TRUE);
+	} while (conflict == true);
 
 	if (conflict)
 		fatal("cannot generate a null key due to possible key ID "

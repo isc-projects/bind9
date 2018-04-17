@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/buffer.h>
@@ -1251,8 +1252,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	FILE *fp;
 	char typebuf[64];
 	const char *typestr;
-	isc_boolean_t nxrrset = ISC_FALSE;
-	isc_boolean_t stale = ISC_FALSE;
+	bool nxrrset = false;
+	bool stale = false;
 #ifdef HAVE_LIBXML2
 	xmlTextWriterPtr writer;
 	int xmlrc;
@@ -1276,11 +1277,11 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) & DNS_RDATASTATSTYPE_ATTR_NXRRSET)
 	    != 0)
-		nxrrset = ISC_TRUE;
+		nxrrset = true;
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) & DNS_RDATASTATSTYPE_ATTR_STALE)
 	    != 0)
-		stale = ISC_TRUE;
+		stale = true;
 
 	switch (dumparg->type) {
 	case isc_statsformat_file:
@@ -1918,7 +1919,7 @@ generatexml(named_server_t *server, uint32_t flags,
 		if ((flags & STATS_XML_ZONES) != 0) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "zones"));
-			result = dns_zt_apply(view->zonetable, ISC_TRUE,
+			result = dns_zt_apply(view->zonetable, true,
 					      NULL, zone_xmlrender, writer);
 			if (result != ISC_R_SUCCESS)
 				goto error;
@@ -2231,7 +2232,7 @@ wrap_jsonfree(isc_buffer_t *buffer, void *arg) {
 
 static json_object *
 addzone(char *name, char *classname, const char *ztype,
-	uint32_t serial, isc_boolean_t add_serial)
+	uint32_t serial, bool add_serial)
 {
 	json_object *node = json_object_new_object();
 
@@ -2276,10 +2277,10 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 
 	if (dns_zone_getserial(zone, &serial) != ISC_R_SUCCESS)
 		zoneobj = addzone(zone_name_only, class_only,
-				  user_zonetype(zone), 0, ISC_FALSE);
+				  user_zonetype(zone), 0, false);
 	else
 		zoneobj = addzone(zone_name_only, class_only,
-				  user_zonetype(zone), serial, ISC_TRUE);
+				  user_zonetype(zone), serial, true);
 
 	if (zoneobj == NULL)
 		return (ISC_R_NOMEMORY);
@@ -2613,7 +2614,7 @@ generatejson(named_server_t *server, size_t *msglen,
 
 			if ((flags & STATS_JSON_ZONES) != 0) {
 				result = dns_zt_apply(view->zonetable,
-						      ISC_TRUE,
+						      true,
 						      NULL, zone_jsonrender,
 						      za);
 				if (result != ISC_R_SUCCESS) {
@@ -3185,7 +3186,7 @@ shutdown_listener(named_statschannel_t *listener) {
 	isc_httpdmgr_shutdown(&listener->httpdmgr);
 }
 
-static isc_boolean_t
+static bool
 client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	named_statschannel_t *listener = arg;
 	dns_aclenv_t *env =
@@ -3203,7 +3204,7 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 			  &match, NULL) == ISC_R_SUCCESS && match > 0)
 	{
 		UNLOCK(&listener->lock);
-		return (ISC_TRUE);
+		return (true);
 	}
 	UNLOCK(&listener->lock);
 
@@ -3212,7 +3213,7 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 		      "rejected statistics connection from %s", socktext);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 static void
@@ -3284,7 +3285,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_socket_setname(sock, "statchannel", NULL);
 
 #ifndef ISC_ALLOW_MAPPED
-	isc_socket_ipv6only(sock, ISC_TRUE);
+	isc_socket_ipv6only(sock, true);
 #endif
 
 	result = isc_socket_bind(sock, addr, ISC_SOCKET_REUSEADDRESS);
@@ -3339,7 +3340,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_httpdmgr_addurl(listener->httpdmgr, "/json/v1/traffic",
 			    render_json_traffic, server);
 #endif
-	isc_httpdmgr_addurl2(listener->httpdmgr, "/bind9.xsl", ISC_TRUE,
+	isc_httpdmgr_addurl2(listener->httpdmgr, "/bind9.xsl", true,
 			     render_xsl, server);
 
 	*listenerp = listener;

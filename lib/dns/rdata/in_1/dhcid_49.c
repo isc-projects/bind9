@@ -198,7 +198,7 @@ digest_in_dhcid(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_in_dhcid(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_dhcid);
@@ -209,10 +209,10 @@ checkowner_in_dhcid(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_in_dhcid(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
@@ -222,7 +222,7 @@ checknames_in_dhcid(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

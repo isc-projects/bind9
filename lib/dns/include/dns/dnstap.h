@@ -23,6 +23,7 @@
  * file dnstap.proto, which is compiled to dnstap.pb-c.c and dnstap.pb-c.h.
  */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #ifdef HAVE_DNSTAP
@@ -96,8 +97,8 @@ struct dns_dtdata {
 
 	Dnstap__Dnstap *frame;
 
-	isc_boolean_t query;
-	isc_boolean_t tcp;
+	bool query;
+	bool tcp;
 	dns_dtmsgtype_t type;
 
 	isc_time_t qtime;
@@ -273,7 +274,7 @@ dns_dt_shutdown(void);
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	    isc_sockaddr_t *qaddr, isc_sockaddr_t *dstaddr,
-	    isc_boolean_t tcp, isc_region_t *zone, isc_time_t *qtime,
+	    bool tcp, isc_region_t *zone, isc_time_t *qtime,
 	    isc_time_t *rtime, isc_buffer_t *buf);
 /*%<
  * Sends a dnstap message to the log, if 'msgtype' is one of the message

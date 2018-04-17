@@ -17,17 +17,14 @@
 /*! \file dns/bit.h */
 
 #include <stdint.h>
-#include <isc/boolean.h>
 
 typedef uint64_t dns_bitset_t;
 
 #define DNS_BIT_SET(bit, bitset) \
-     (*(bitset) |= ((dns_bitset_t)1 << (bit)))
+	(*(bitset) |= ((dns_bitset_t)1 << (bit)))
 #define DNS_BIT_CLEAR(bit, bitset) \
-     (*(bitset) &= ~((dns_bitset_t)1 << (bit)))
+	(*(bitset) &= ~((dns_bitset_t)1 << (bit)))
 #define DNS_BIT_CHECK(bit, bitset) \
-     ISC_TF((*(bitset) & ((dns_bitset_t)1 << (bit))) \
-	    == ((dns_bitset_t)1 << (bit)))
+	((*(bitset) & ((dns_bitset_t)1 << (bit))) == ((dns_bitset_t)1 << (bit)))
 
 #endif /* DNS_BIT_H */
-

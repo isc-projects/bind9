@@ -132,7 +132,7 @@ digest_ta(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_ta(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_ta);
@@ -142,10 +142,10 @@ checkowner_ta(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_ta(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_ta);
@@ -154,7 +154,7 @@ checknames_ta(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int
