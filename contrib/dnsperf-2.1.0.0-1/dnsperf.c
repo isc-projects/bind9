@@ -41,6 +41,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -100,14 +101,14 @@ typedef struct {
 	isc_sockaddr_t local_addr;
 	uint64_t timeout;
 	uint32_t bufsize;
-	isc_boolean_t edns;
-	isc_boolean_t dnssec;
+	bool edns;
+	bool dnssec;
 	perf_dnstsigkey_t *tsigkey;
 	uint32_t max_outstanding;
 	uint32_t max_qps;
 	uint64_t stats_interval;
-	isc_boolean_t updates;
-	isc_boolean_t verbose;
+	bool updates;
+	bool verbose;
 } config_t;
 
 typedef struct {
@@ -167,7 +168,7 @@ typedef struct {
 
 	perf_dnsctx_t *dnsctx;
 
-	isc_boolean_t done_sending;
+	bool done_sending;
 	uint64_t done_send_time;
 
 	const config_t *config;
@@ -184,9 +185,9 @@ static threadinfo_t *threads;
 
 static pthread_mutex_t start_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t start_cond = PTHREAD_COND_INITIALIZER;
-static isc_boolean_t started;
+static bool started;
 
-static isc_boolean_t interrupted = ISC_FALSE;
+static bool interrupted = false;
 
 static int threadpipe[2];
 static int mainpipe[2];
@@ -269,7 +270,7 @@ print_statistics(const config_t *config, const times_t *times, stats_t *stats)
 {
 	const char *units;
 	uint64_t run_time;
-	isc_boolean_t first_rcode;
+	bool first_rcode;
 	uint64_t latency_avg;
 	unsigned int i;
 
@@ -296,12 +297,12 @@ print_statistics(const config_t *config, const times_t *times, stats_t *stats)
 	printf("\n");
 
 	printf("  Response codes:       ");
-	first_rcode = ISC_TRUE;
+	first_rcode = true;
 	for (i = 0; i < 16; i++) {
 		if (stats->rcodecounts[i] == 0)
 			continue;
 		if (first_rcode)
-			first_rcode = ISC_FALSE;
+			first_rcode = false;
 		else
 			printf(", ");
 		printf("%s %" PRIu64 " (%.2lf%%)",
@@ -481,7 +482,7 @@ setup(int argc, char **argv, config_t *config)
 	perf_datafile_setmaxruns(input, config->maxruns);
 
 	if (config->dnssec)
-		config->edns = ISC_TRUE;
+		config->edns = true;
 
 	if (tsigkey != NULL)
 		config->tsigkey = perf_dns_parsetsigkey(tsigkey, mctx);
@@ -683,7 +684,7 @@ do_send(void *arg)
 		stats->total_request_size += length;
 	}
 	tinfo->done_send_time = get_time();
-	tinfo->done_sending = ISC_TRUE;
+	tinfo->done_sending = true;
 	write(mainpipe[1], "", 1);
 	return NULL;
 }
@@ -730,12 +731,12 @@ typedef struct {
 	unsigned int size;
 	uint64_t when;
 	uint64_t sent;
-	isc_boolean_t unexpected;
-	isc_boolean_t short_response;
+	bool unexpected;
+	bool short_response;
 	char *desc;
 } received_query_t;
 
-static isc_boolean_t
+static bool
 recv_one(threadinfo_t *tinfo, int which_sock,
 	 unsigned char *packet_buffer, unsigned int packet_size,
 	 received_query_t *recvd, int *saved_errnop)
@@ -752,7 +753,7 @@ recv_one(threadinfo_t *tinfo, int which_sock,
 	now = get_time();
 	if (n < 0) {
 		*saved_errnop = errno;
-		return ISC_FALSE;
+		return false;
 	}
 	recvd->sock = s;
 	recvd->qid = ntohs(packet_header[0]);
@@ -760,10 +761,10 @@ recv_one(threadinfo_t *tinfo, int which_sock,
 	recvd->size = n;
 	recvd->when = now;
 	recvd->sent = 0;
-	recvd->unexpected = ISC_FALSE;
-	recvd->short_response = ISC_TF(n < 4);
+	recvd->unexpected = false;
+	recvd->short_response = (n < 4);
 	recvd->desc = NULL;
-	return ISC_TRUE;
+	return true;
 }
 
 static inline void
@@ -777,7 +778,7 @@ bit_set(unsigned char *bits, unsigned int bit)
 	bits[bit / 8] |= mask;
 }
 
-static inline isc_boolean_t
+static inline bool
 bit_check(unsigned char *bits, unsigned int bit)
 {
 	unsigned int shift;
@@ -785,8 +786,8 @@ bit_check(unsigned char *bits, unsigned int bit)
 	shift = 7 - (bit % 8);
 
 	if ((bits[bit / 8] >> shift) & 0x01)
-		return ISC_TRUE;
-	return ISC_FALSE;
+		return true;
+	return false;
 }
 
 static void *
@@ -860,7 +861,7 @@ do_recv(void *arg)
 			    q->timestamp == UINT64_MAX ||
 			    q->sock != recvd[i].sock)
 			{
-				recvd[i].unexpected = ISC_TRUE;
+				recvd[i].unexpected = true;
 				continue;
 			}
 			query_move(tinfo, q, append_unused);
@@ -975,7 +976,7 @@ cancel_queries(threadinfo_t *tinfo)
 {
 	struct query_info *q;
 
-	while (ISC_TRUE) {
+	while (true) {
 		q = ISC_LIST_TAIL(tinfo->outstanding_queries);
 		if (q == NULL)
 			break;
@@ -1108,7 +1109,7 @@ main(int argc, char **argv)
 
 	perf_datafile_setpipefd(input, threadpipe[0]);
 
-	perf_os_blocksignal(SIGINT, ISC_TRUE);
+	perf_os_blocksignal(SIGINT, true);
 
 	print_initial_status(&config);
 
@@ -1132,16 +1133,16 @@ main(int argc, char **argv)
 	times.stop_time_ns.tv_nsec = (times.stop_time % MILLION) * 1000;
 
 	LOCK(&start_lock);
-	started = ISC_TRUE;
+	started = true;
 	BROADCAST(&start_cond);
 	UNLOCK(&start_lock);
 
 	perf_os_handlesignal(SIGINT, handle_sigint);
-	perf_os_blocksignal(SIGINT, ISC_FALSE);
+	perf_os_blocksignal(SIGINT, false);
 	result = perf_os_waituntilreadable(mainpipe[0], intrpipe[0],
 					   times.stop_time - times.start_time);
 	if (result == ISC_R_CANCELED)
-		interrupted = ISC_TRUE;
+		interrupted = true;
 
 	times.end_time = get_time();
 

@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #ifdef _WIN32
@@ -222,10 +223,10 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 	return(0); /* silence compiler warning */
 }
 
-static inline isc_boolean_t
+static inline bool
 isnone(const char *str) {
-	return (ISC_TF((strcasecmp(str, "none") == 0) ||
-		       (strcasecmp(str, "never") == 0)));
+	return ((strcasecmp(str, "none") == 0) ||
+		(strcasecmp(str, "never") == 0));
 }
 
 dns_ttl_t
@@ -246,7 +247,7 @@ strtottl(const char *str) {
 
 isc_stdtime_t
 strtotime(const char *str, int64_t now, int64_t base,
-	  isc_boolean_t *setp)
+	  bool *setp)
 {
 	int64_t val, offset;
 	isc_result_t result;
@@ -256,12 +257,12 @@ strtotime(const char *str, int64_t now, int64_t base,
 
 	if (isnone(str)) {
 		if (setp != NULL)
-			*setp = ISC_FALSE;
+			*setp = false;
 		return ((isc_stdtime_t) 0);
 	}
 
 	if (setp != NULL)
-		*setp = ISC_TRUE;
+		*setp = true;
 
 	if ((str[0] == '0' || str[0] == '-') && str[1] == '\0')
 		return ((isc_stdtime_t) 0);
@@ -398,12 +399,12 @@ set_keyversion(dst_key_t *key) {
 	}
 }
 
-isc_boolean_t
+bool
 key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
-	      isc_mem_t *mctx, isc_boolean_t *exact)
+	      isc_mem_t *mctx, bool *exact)
 {
 	isc_result_t result;
-	isc_boolean_t conflict = ISC_FALSE;
+	bool conflict = false;
 	dns_dnsseckeylist_t matchkeys;
 	dns_dnsseckey_t *key = NULL;
 	uint16_t id, oldid;
@@ -414,7 +415,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_stdtime_t now;
 
 	if (exact != NULL)
-		*exact = ISC_FALSE;
+		*exact = false;
 
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
@@ -430,7 +431,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE,
 					       dir, &fileb);
 		if (result != ISC_R_SUCCESS)
-			return (ISC_TRUE);
+			return (true);
 		return (isc_file_exists(filename));
 	}
 
@@ -438,7 +439,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	isc_stdtime_get(&now);
 	result = dns_dnssec_findmatchingkeys(name, dir, now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND)
-		return (ISC_FALSE);
+		return (false);
 
 	while (!ISC_LIST_EMPTY(matchkeys) && !conflict) {
 		key = ISC_LIST_HEAD(matchkeys);
@@ -449,7 +450,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 		roldid = dst_key_rid(key->key);
 
 		if (oldid == rid || roldid == id || id == oldid) {
-			conflict = ISC_TRUE;
+			conflict = true;
 			if (id != oldid) {
 				if (verbose > 1)
 					fprintf(stderr, "Key ID %d could "
@@ -457,7 +458,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 						id, oldid);
 			} else {
 				if (exact != NULL)
-					*exact = ISC_TRUE;
+					*exact = true;
 				if (verbose > 1)
 					fprintf(stderr, "Key ID %d exists\n",
 						id);
@@ -479,7 +480,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	return (conflict);
 }
 
-isc_boolean_t
+bool
 isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 	if (!strcasecmp(isc_commandline_argument, arg)) {
 		if (argv[isc_commandline_index] == NULL) {
@@ -491,9 +492,9 @@ isoptarg(const char *arg, char **argv, void(*usage)(void)) {
 		isc_commandline_argument = argv[isc_commandline_index];
 		/* skip to next arguement */
 		isc_commandline_index++;
-		return (ISC_TRUE);
+		return (true);
 	}
-	return (ISC_FALSE);
+	return (false);
 }
 
 #ifdef _WIN32

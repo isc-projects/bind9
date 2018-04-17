@@ -67,6 +67,7 @@
  ***/
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -655,7 +656,7 @@ dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size);
  *\li	addr be valid.
  */
 
-isc_boolean_t
+bool
 dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 /*%
  * Return whether EDNS should be disabled for this server.
@@ -802,7 +803,7 @@ dns_adb_setquota(dns_adb_t *adb, uint32_t quota, uint32_t freq,
  *\li	'adb' is valid.
  */
 
-isc_boolean_t
+bool
 dns_adbentry_overquota(dns_adbentry_t *entry);
 /*%<
  * Returns true if the specified ADB has too many active fetches.

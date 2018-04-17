@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -119,7 +120,7 @@ struct perf_dnsctx {
 };
 
 perf_dnsctx_t *
-perf_dns_createctx(isc_boolean_t updates)
+perf_dns_createctx(bool updates)
 {
 	isc_mem_t *mctx;
 	perf_dnsctx_t *ctx;
@@ -300,7 +301,7 @@ perf_dns_destroytsigkey(perf_dnstsigkey_t **tsigkeyp)
  * Appends an OPT record to the packet.
  */
 static isc_result_t
-add_edns(isc_buffer_t *packet, isc_boolean_t dnssec) {
+add_edns(isc_buffer_t *packet, bool dnssec) {
 	unsigned char *base;
 
 	if (isc_buffer_availablelength(packet) < EDNSLEN) {
@@ -523,7 +524,7 @@ build_query(const isc_textregion_t *line, isc_buffer_t *msg)
 	return ISC_R_SUCCESS;
 }
 
-static isc_boolean_t
+static bool
 token_equals(const isc_textregion_t *token, const char *str)
 {
 	return (strlen(str) == token->length &&
@@ -643,7 +644,7 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 	unsigned char rdataarray[MAX_RDATA_LENGTH];
 	isc_textregion_t token;
 	char *str;
-	isc_boolean_t is_update;
+	bool is_update;
 	int updates = 0;
 	int prereqs = 0;
 	dns_fixedname_t fzname, foname;
@@ -683,7 +684,7 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 	isc_buffer_putuint16(msg, dns_rdatatype_soa);
 	isc_buffer_putuint16(msg, dns_rdataclass_in);
 
-	while (ISC_TRUE) {
+	while (true) {
 		input.base += strlen(input.base) + 1;
 		if (input.base >= record->base + record->length) {
 			perf_log_warning("warning: incomplete update");
@@ -696,7 +697,7 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 		dns_rdata_init(&rdata);
 		rdlen = 0;
 		rdclass = dns_rdataclass_in;
-		is_update = ISC_FALSE;
+		is_update = false;
 
 		token.base = input.base;
 		token.length = strcspn(token.base, WHITESPACE);
@@ -705,42 +706,42 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 			break;
 		} else if (token_equals(&token, "add")) {
 			result = read_update_line(ctx, &input, str, zname,
-						  ISC_TRUE,
-						  ISC_TRUE, ISC_TRUE, ISC_TRUE,
+						  true,
+						  true, true, true,
 						  oname, &ttl, &rdtype,
 						  &rdata, &rdatabuf);
 			rdclass = dns_rdataclass_in;
-			is_update = ISC_TRUE;
+			is_update = true;
 		} else if (token_equals(&token, "delete")) {
 			result = read_update_line(ctx, &input, str, zname,
-						  ISC_FALSE,
-						  ISC_FALSE, ISC_TRUE,
-						  ISC_FALSE, oname, &ttl,
+						  false,
+						  false, true,
+						  false, oname, &ttl,
 						  &rdtype, &rdata, &rdatabuf);
 			if (isc_buffer_usedlength(&rdatabuf) > 0)
 				rdclass = dns_rdataclass_none;
 			else
 				rdclass = dns_rdataclass_any;
-			is_update = ISC_TRUE;
+			is_update = true;
 		} else if (token_equals(&token, "require")) {
 			result = read_update_line(ctx, &input, str, zname,
-						  ISC_FALSE,
-						  ISC_FALSE, ISC_TRUE,
-						  ISC_FALSE, oname, &ttl,
+						  false,
+						  false, true,
+						  false, oname, &ttl,
 						  &rdtype, &rdata, &rdatabuf);
 			if (isc_buffer_usedlength(&rdatabuf) > 0)
 				rdclass = dns_rdataclass_in;
 			else
 				rdclass = dns_rdataclass_any;
-			is_update = ISC_FALSE;
+			is_update = false;
 		} else if (token_equals(&token, "prohibit")) {
 			result = read_update_line(ctx, &input, str, zname,
-						  ISC_FALSE,
-						  ISC_FALSE, ISC_FALSE,
-						  ISC_FALSE, oname, &ttl,
+						  false,
+						  false, false,
+						  false, oname, &ttl,
 						  &rdtype, &rdata, &rdatabuf);
 			rdclass = dns_rdataclass_none;
-			is_update = ISC_FALSE;
+			is_update = false;
 		} else {
 			perf_log_warning("invalid update command: %s",
 					 input.base);
@@ -803,7 +804,7 @@ build_update(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 isc_result_t
 perf_dns_buildrequest(perf_dnsctx_t *ctx, const isc_textregion_t *record,
 		      uint16_t qid,
-		      isc_boolean_t edns, isc_boolean_t dnssec,
+		      bool edns, bool dnssec,
 		      perf_dnstsigkey_t *tsigkey, isc_buffer_t *msg)
 {
 	unsigned int flags;

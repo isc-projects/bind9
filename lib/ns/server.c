@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/stats.h>
 #include <isc/util.h>
@@ -103,7 +105,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	sctx->gethostname = NULL;
 
 	sctx->matchingview = matchingview;
-	sctx->answercookie = ISC_TRUE;
+	sctx->answercookie = true;
 
 	ISC_LIST_INIT(sctx->altsecrets);
 
@@ -244,7 +246,7 @@ ns_server_gettimeouts(ns_server_t *sctx, unsigned int *initial,
 
 void
 ns_server_setoption(ns_server_t *sctx, unsigned int option,
-		    isc_boolean_t value)
+		    bool value)
 {
 	REQUIRE(SCTX_VALID(sctx));
 	if (value) {
@@ -254,9 +256,9 @@ ns_server_setoption(ns_server_t *sctx, unsigned int option,
 	}
 }
 
-isc_boolean_t
+bool
 ns_server_getoption(ns_server_t *sctx, unsigned int option) {
 	REQUIRE(SCTX_VALID(sctx));
 
-	return (ISC_TF((sctx->options & option) != 0));
+	return (sctx->options & option);
 }
