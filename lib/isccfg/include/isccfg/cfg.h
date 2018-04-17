@@ -25,6 +25,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/formatcheck.h>
@@ -180,26 +181,26 @@ cfg_parser_destroy(cfg_parser_t **pctxp);
  * more references.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isvoid(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of void type (e.g., an optional
  * value not specified).
  */
 
-isc_boolean_t
+bool
 cfg_obj_ismap(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of a map type.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isfixedpoint(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of a fixedpoint type.
  */
 
-isc_boolean_t
+bool
 cfg_obj_ispercentage(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of a percentage type.
@@ -246,7 +247,7 @@ cfg_map_count(const cfg_obj_t *mapobj);
  * \li     The number of elements in the map object.
  */
 
-isc_boolean_t
+bool
 cfg_obj_istuple(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of a map type.
@@ -264,7 +265,7 @@ cfg_tuple_get(const cfg_obj_t *tupleobj, const char *name);
  *\li	fields of said tuple type.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isuint32(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of integer type.
@@ -282,7 +283,7 @@ cfg_obj_asuint32(const cfg_obj_t *obj);
  * \li     A 32-bit unsigned integer.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isuint64(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of integer type.
@@ -324,7 +325,7 @@ cfg_obj_aspercentage(const cfg_obj_t *obj);
  * \li     A 32-bit unsigned integer.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isstring(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of string type.
@@ -343,13 +344,13 @@ cfg_obj_asstring(const cfg_obj_t *obj);
  * \li     A pointer to a null terminated string.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isboolean(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of a boolean type.
  */
 
-isc_boolean_t
+bool
 cfg_obj_asboolean(const cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of a boolean type.
@@ -361,7 +362,7 @@ cfg_obj_asboolean(const cfg_obj_t *obj);
  * \li     A boolean value.
  */
 
-isc_boolean_t
+bool
 cfg_obj_issockaddr(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is a socket address.
@@ -394,7 +395,7 @@ cfg_obj_getdscp(const cfg_obj_t *obj);
  * \li     DSCP value associated with a sockaddr, or -1.
  */
 
-isc_boolean_t
+bool
 cfg_obj_isnetprefix(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is a network prefix.
@@ -413,7 +414,7 @@ cfg_obj_asnetprefix(const cfg_obj_t *obj, isc_netaddr_t *netaddr,
  *\li	'netaddr' and 'prefixlen' are non-NULL.
  */
 
-isc_boolean_t
+bool
 cfg_obj_islist(const cfg_obj_t *obj);
 /*%<
  * Return true iff 'obj' is of list type.
@@ -447,7 +448,7 @@ cfg_list_next(const cfg_listelt_t *elt);
  */
 
 unsigned int
-cfg_list_length(const cfg_obj_t *obj, isc_boolean_t recurse);
+cfg_list_length(const cfg_obj_t *obj, bool recurse);
 /*%<
  * Returns the length of a list of configure objects.  If obj is
  * not a list, returns 0.  If recurse is true, add in the length of
@@ -496,7 +497,7 @@ cfg_print_grammar(const cfg_type_t *type,
  * Print a summary of the grammar of the configuration type 'type'.
  */
 
-isc_boolean_t
+bool
 cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type);
 /*%<
  * Return true iff 'obj' is of type 'type'.

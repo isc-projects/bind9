@@ -131,7 +131,7 @@ digest_avc(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_avc(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_avc);
@@ -141,10 +141,10 @@ checkowner_avc(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_avc(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_avc);
@@ -153,7 +153,7 @@ checknames_avc(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

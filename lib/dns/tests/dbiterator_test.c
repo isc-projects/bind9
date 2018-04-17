@@ -53,7 +53,7 @@ test_create(const atf_tc_t *tc) {
 	dns_db_t *db = NULL;
 	dns_dbiterator_t *iter = NULL;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
@@ -101,7 +101,7 @@ test_walk(const atf_tc_t *tc) {
 
 	name = dns_fixedname_initname(&f);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
@@ -163,7 +163,7 @@ static void test_reverse(const atf_tc_t *tc) {
 
 	name = dns_fixedname_initname(&f);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
@@ -224,7 +224,7 @@ static void test_seek(const atf_tc_t *tc) {
 	name = dns_fixedname_initname(&f1);
 	seekname = dns_fixedname_initname(&f2);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
@@ -294,7 +294,7 @@ static void test_seek_empty(const atf_tc_t *tc) {
 
 	seekname = dns_fixedname_initname(&f1);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
@@ -350,7 +350,7 @@ static void test_seek_nx(const atf_tc_t *tc) {
 
 	seekname = dns_fixedname_initname(&f1);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN,
