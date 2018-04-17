@@ -12,6 +12,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
@@ -113,7 +115,7 @@ isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_boolean_t
+bool
 isc_keyboard_canceled(isc_keyboard_t *keyboard) {
-	return (ISC_TF(keyboard->result == ISC_R_CANCELED));
+	return (keyboard->result == ISC_R_CANCELED);
 }
