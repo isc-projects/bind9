@@ -19,6 +19,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -261,7 +262,7 @@ load_db(const char *filename, dns_db_t **dbp, dns_dbnode_t **nodep) {
 		      isc_result_totext(result));
 	}
 
-	result = dns_db_findnode(*dbp, name, ISC_FALSE, nodep);
+	result = dns_db_findnode(*dbp, name, false, nodep);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't find %s node in %s", namestr, filename);
 	}
@@ -315,7 +316,7 @@ get_dsset_name(char *filename, size_t size,
 		}
 		isc_buffer_putstr(&buf, prefix);
 
-		result = dns_name_tofilenametext(name, ISC_FALSE, &buf);
+		result = dns_name_tofilenametext(name, false, &buf);
 		check_result(result, "dns_name_tofilenametext()");
 		if (isc_buffer_availablelength(&buf) == 0) {
 			fatal("%s: pathname too long", path);
@@ -403,7 +404,7 @@ formatset(dns_rdataset_t *rdataset) {
 
 static void
 write_parent_set(const char *path, const char *inplace,
-		 isc_boolean_t nsupdate, dns_rdataset_t *rdataset)
+		 bool nsupdate, dns_rdataset_t *rdataset)
 {
 	isc_result_t result;
 	isc_buffer_t *buf = NULL;
@@ -470,7 +471,7 @@ typedef enum { LOOSE, TIGHT } strictness_t;
 /*
  * Find out if any (C)DS record matches a particular (C)DNSKEY.
  */
-static isc_boolean_t
+static bool
 match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 {
 	isc_result_t result;
@@ -484,7 +485,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
 		dns_rdatatype_t keytype;
-		isc_boolean_t c;
+		bool c;
 
 		dns_rdataset_current(dsset, &dsrdata);
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
@@ -514,13 +515,13 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 			vbprintf(1, "found matching %s %d %d %d\n",
 				 c ? "CDS" : "DS",
 				 ds.key_tag, ds.algorithm, ds.digest_type);
-			return (ISC_TRUE);
+			return (true);
 		} else if (strictness == TIGHT) {
 			vbprintf(0, "key does not match %s %d %d %d "
 				"when it looks like it should\n",
 				 c ? "CDS" : "DS",
 				 ds.key_tag, ds.algorithm, ds.digest_type);
-			return (ISC_FALSE);
+			return (false);
 		}
 	}
 
@@ -531,7 +532,7 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 		 ? "CDNSKEY" : "DNSKEY",
 		 ki->tag, ki->algo);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 /*
@@ -671,7 +672,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 			}
 
 			result = dns_dnssec_verify(name, rdataset, ki->dst,
-						   ISC_FALSE, 0, mctx,
+						   false, 0, mctx,
 						   &sigrdata, NULL);
 
 			if (result != ISC_R_SUCCESS &&
@@ -707,13 +708,13 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
  * Consume the result of matching_sigs(). When checking records
  * fetched from the child zone, any working signature is enough.
  */
-static isc_boolean_t
+static bool
 signed_loose(uint8_t *algo) {
-	isc_boolean_t ok = ISC_FALSE;
+	bool ok = false;
 	int i;
 	for (i = 0; i < nkey; i++) {
 		if (algo[i] != 0) {
-			ok = ISC_TRUE;
+			ok = true;
 		}
 	}
 	isc_mem_put(mctx, algo, nkey);
@@ -726,10 +727,10 @@ signed_loose(uint8_t *algo) {
  * key algorithm in the DS RRset must have a signature in the DNSKEY
  * RRset.
  */
-static isc_boolean_t
+static bool
 signed_strict(dns_rdataset_t *dsset, uint8_t *algo) {
 	isc_result_t result;
-	isc_boolean_t all_ok = ISC_TRUE;
+	bool all_ok = true;
 
 	for (result = dns_rdataset_first(dsset);
 	     result == ISC_R_SUCCESS;
@@ -737,23 +738,23 @@ signed_strict(dns_rdataset_t *dsset, uint8_t *algo) {
 	{
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdata_ds_t ds;
-		isc_boolean_t ds_ok;
+		bool ds_ok;
 		int i;
 
 		dns_rdataset_current(dsset, &dsrdata);
 		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
 		check_result(result, "dns_rdata_tostruct(DS)");
 
-		ds_ok = ISC_FALSE;
+		ds_ok = false;
 		for (i = 0; i < nkey; i++) {
 			if (algo[i] == ds.algorithm) {
-				ds_ok = ISC_TRUE;
+				ds_ok = true;
 			}
 		}
 		if (!ds_ok) {
 			vbprintf(0, "missing signature for algorithm %d "
 				 "(key %d)\n", ds.algorithm, ds.key_tag);
-			all_ok = ISC_FALSE;
+			all_ok = false;
 		}
 	}
 
@@ -937,14 +938,14 @@ rdata_cmp(const void *rdata1, const void *rdata2) {
  * Ensure that every key identified by the DS RRset has the same set of
  * digest types.
  */
-static isc_boolean_t
+static bool
 consistent_digests(dns_rdataset_t *dsset) {
 	isc_result_t result;
 	dns_rdata_t *arrdata;
 	dns_rdata_ds_t *ds;
 	dns_keytag_t key_tag;
 	uint8_t algorithm;
-	isc_boolean_t match;
+	bool match;
 	int i, j, n, d;
 
 	/*
@@ -998,7 +999,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 	/*
 	 * Check subsequent keys match the first one
 	 */
-	match = ISC_TRUE;
+	match = true;
 	while (i < n) {
 		key_tag = ds[i].key_tag;
 		algorithm = ds[i].algorithm;
@@ -1007,7 +1008,7 @@ consistent_digests(dns_rdataset_t *dsset) {
 			    ds[i+j].algorithm != algorithm ||
 			    ds[i+j].digest_type != ds[j].digest_type)
 			{
-				match = ISC_FALSE;
+				match = false;
 			}
 		}
 		i += d;
@@ -1062,7 +1063,7 @@ update_diff(const char *cmd, uint32_t ttl,
 	check_result(result, "dns_db_newversion()");
 
 	node = NULL;
-	result = dns_db_findnode(db, name, ISC_TRUE, &node);
+	result = dns_db_findnode(db, name, true, &node);
 	check_result(result, "dns_db_findnode()");
 
 	dns_rdataset_init(&diffset);
@@ -1086,7 +1087,7 @@ update_diff(const char *cmd, uint32_t ttl,
 	}
 
 	dns_db_detachnode(db, &node);
-	dns_db_closeversion(db, &ver, ISC_FALSE);
+	dns_db_closeversion(db, &ver, false);
 	dns_db_detach(&db);
 }
 
@@ -1139,8 +1140,8 @@ main(int argc, char *argv[]) {
 	const char *ds_path = NULL;
 	const char *inplace = NULL;
 	isc_result_t result;
-	isc_boolean_t prefer_cdnskey = ISC_FALSE;
-	isc_boolean_t nsupdate = ISC_FALSE;
+	bool prefer_cdnskey = false;
+	bool nsupdate = false;
 	uint32_t ttl = 0;
 	int ch;
 	char *endp;
@@ -1155,7 +1156,7 @@ main(int argc, char *argv[]) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 #define OPTIONS "a:c:Dd:f:i:ms:T:uv:V"
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
@@ -1167,7 +1168,7 @@ main(int argc, char *argv[]) {
 			rdclass = strtoclass(isc_commandline_argument);
 			break;
 		case 'D':
-			prefer_cdnskey = ISC_TRUE;
+			prefer_cdnskey = true;
 			break;
 		case 'd':
 			ds_path = isc_commandline_argument;
@@ -1200,7 +1201,7 @@ main(int argc, char *argv[]) {
 			ttl = strtottl(isc_commandline_argument);
 			break;
 		case 'u':
-			nsupdate = ISC_TRUE;
+			nsupdate = true;
 			break;
 		case 'V':
 			/* Does not return. */

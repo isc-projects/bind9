@@ -36,7 +36,7 @@ print_dataset(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
 	UNUSED(arg);
 
 	isc_buffer_init(&target, buf, 64*1024);
-	result = dns_rdataset_totext(dataset, owner, ISC_FALSE, ISC_FALSE,
+	result = dns_rdataset_totext(dataset, owner, false, false,
 				     &target);
 	if (result == ISC_R_SUCCESS)
 		fprintf(stdout, "%.*s\n", (int)target.used,

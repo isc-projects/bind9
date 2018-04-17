@@ -38,7 +38,7 @@ generic_fromtext_txt(ARGS_FROMTEXT) {
 	for (;;) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring,
-					      ISC_TRUE));
+					      true));
 		if (token.type != isc_tokentype_qstring &&
 		    token.type != isc_tokentype_string)
 			break;
@@ -59,7 +59,7 @@ generic_totext_txt(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &region);
 
 	while (region.length > 0) {
-		RETERR(txt_totext(&region, ISC_TRUE, target));
+		RETERR(txt_totext(&region, true, target));
 		if (region.length > 0)
 			RETERR(str_totext(" ", target));
 	}
@@ -250,7 +250,7 @@ digest_txt(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_txt(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_txt);
@@ -260,10 +260,10 @@ checkowner_txt(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_txt(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_txt);
@@ -272,7 +272,7 @@ checknames_txt(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline isc_result_t

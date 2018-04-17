@@ -34,7 +34,7 @@
 #define NAMED_LOGMODULE_CONTROL		(&named_g_modules[2])
 
 isc_result_t
-named_log_init(isc_boolean_t safe);
+named_log_init(bool safe);
 /*%
  * Initialize the logging system and set up an initial default
  * logging default configuration that will be used until the

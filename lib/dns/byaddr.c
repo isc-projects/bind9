@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -105,7 +107,7 @@ struct dns_byaddr {
 	dns_lookup_t *		lookup;
 	isc_task_t *		task;
 	dns_byaddrevent_t *	event;
-	isc_boolean_t		canceled;
+	bool		canceled;
 };
 
 #define BYADDR_MAGIC			ISC_MAGIC('B', 'y', 'A', 'd')
@@ -244,7 +246,7 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
-	byaddr->canceled = ISC_FALSE;
+	byaddr->canceled = false;
 	byaddr->magic = BYADDR_MAGIC;
 
 	*byaddrp = byaddr;
@@ -274,7 +276,7 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr) {
 	LOCK(&byaddr->lock);
 
 	if (!byaddr->canceled) {
-		byaddr->canceled = ISC_TRUE;
+		byaddr->canceled = true;
 		if (byaddr->lookup != NULL)
 			dns_lookup_cancel(byaddr->lookup);
 	}

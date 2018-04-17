@@ -13,6 +13,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -59,13 +60,13 @@ static dns_rdataclass_t rdclass;
 static dns_fixedname_t	fixed;
 static dns_name_t	*name = NULL;
 static isc_mem_t	*mctx = NULL;
-static isc_boolean_t	setpub = ISC_FALSE, setdel = ISC_FALSE;
-static isc_boolean_t	setttl = ISC_FALSE;
+static bool	setpub = false, setdel = false;
+static bool	setttl = false;
 static isc_stdtime_t	pub = 0, del = 0;
 static dns_ttl_t	ttl = 0;
 static isc_stdtime_t	syncadd = 0, syncdel = 0;
-static isc_boolean_t	setsyncadd = ISC_FALSE;
-static isc_boolean_t	setsyncdel = ISC_FALSE;
+static bool	setsyncadd = false;
+static bool	setsyncdel = false;
 
 static isc_result_t
 initname(char *setname) {
@@ -125,7 +126,7 @@ loadset(const char *filename, dns_rdataset_t *rdataset) {
 			      isc_result_totext(result));
 	}
 
-	result = dns_db_findnode(db, name, ISC_FALSE, &node);
+	result = dns_db_findnode(db, name, false, &node);
 	if (result != ISC_R_SUCCESS)
 		fatal("can't find %s node in %s", setname, filename);
 
@@ -227,7 +228,7 @@ emit(const char *dir, dns_rdata_t *rdata) {
 		dst_key_free(&tmp);
 	}
 
-	dst_key_setexternal(key, ISC_TRUE);
+	dst_key_setexternal(key, true);
 	if (setpub)
 		dst_key_settime(key, DST_TIME_PUBLISH, pub);
 	if (setdel)
@@ -317,7 +318,7 @@ main(int argc, char **argv) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 #define CMDLINE_FLAGS "D:f:hK:L:P:v:V"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
@@ -348,7 +349,7 @@ main(int argc, char **argv) {
 			break;
 		case 'L':
 			ttl = strtottl(isc_commandline_argument);
-			setttl = ISC_TRUE;
+			setttl = true;
 			break;
 		case 'P':
 			/* -Psync ? */

@@ -14,6 +14,8 @@
 
 /*! \file */
 
+#include <stdbool.h>
+
 #include <isc/types.h>
 #include <isc/buffer.h>
 #include <isc/netaddr.h>
@@ -29,8 +31,8 @@
 typedef struct ns_dbversion {
 	dns_db_t			*db;
 	dns_dbversion_t			*version;
-	isc_boolean_t			acl_checked;
-	isc_boolean_t			queryok;
+	bool			acl_checked;
+	bool			queryok;
 	ISC_LINK(struct ns_dbversion)	link;
 } ns_dbversion_t;
 
@@ -38,7 +40,7 @@ typedef struct ns_dbversion {
 struct ns_query {
 	unsigned int			attributes;
 	unsigned int			restarts;
-	isc_boolean_t			timerset;
+	bool			timerset;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	dns_rdatatype_t			qtype;
@@ -47,8 +49,8 @@ struct ns_query {
 	dns_db_t *			gluedb;
 	dns_db_t *			authdb;
 	dns_zone_t *			authzone;
-	isc_boolean_t			authdbset;
-	isc_boolean_t			isreferral;
+	bool			authdbset;
+	bool			isreferral;
 	isc_mutex_t			fetchlock;
 	dns_fetch_t *			fetch;
 	dns_fetch_t *			prefetch;
@@ -58,7 +60,7 @@ struct ns_query {
 	ISC_LIST(ns_dbversion_t)	freeversions;
 	dns_rdataset_t *		dns64_aaaa;
 	dns_rdataset_t *		dns64_sigaaaa;
-	isc_boolean_t *			dns64_aaaaok;
+	bool *			dns64_aaaaok;
 	unsigned int			dns64_aaaaoklen;
 	unsigned int			dns64_options;
 	unsigned int			dns64_ttl;
@@ -72,8 +74,8 @@ struct ns_query {
 		isc_result_t		result;
 		dns_rdataset_t *	rdataset;
 		dns_rdataset_t *	sigrdataset;
-		isc_boolean_t		authoritative;
-		isc_boolean_t		is_zone;
+		bool		authoritative;
+		bool		is_zone;
 	} redirect;
 };
 
@@ -110,19 +112,19 @@ typedef struct query_ctx {
 
 	unsigned int options;			/* DB lookup options */
 
-	isc_boolean_t redirected;		/* nxdomain redirected? */
-	isc_boolean_t is_zone;			/* is DB a zone DB? */
-	isc_boolean_t is_staticstub_zone;
-	isc_boolean_t resuming;			/* resumed from recursion? */
-	isc_boolean_t dns64, dns64_exclude, rpz;
-	isc_boolean_t authoritative;		/* authoritative query? */
-	isc_boolean_t want_restart;		/* CNAME chain or other
+	bool redirected;		/* nxdomain redirected? */
+	bool is_zone;			/* is DB a zone DB? */
+	bool is_staticstub_zone;
+	bool resuming;			/* resumed from recursion? */
+	bool dns64, dns64_exclude, rpz;
+	bool authoritative;		/* authoritative query? */
+	bool want_restart;		/* CNAME chain or other
 						 * restart needed */
-	isc_boolean_t need_wildcardproof;	/* wilcard proof needed */
-	isc_boolean_t nxrewrite;		/* negative answer from RPZ */
-	isc_boolean_t findcoveringnsec;		/* lookup covering NSEC */
-	isc_boolean_t want_stale;		/* want stale records? */
-	isc_boolean_t answer_has_ns;		/* NS is in answer */
+	bool need_wildcardproof;	/* wilcard proof needed */
+	bool nxrewrite;		/* negative answer from RPZ */
+	bool findcoveringnsec;		/* lookup covering NSEC */
+	bool want_stale;		/* want stale records? */
+	bool answer_has_ns;		/* NS is in answer */
 	dns_fixedname_t wildcardname;		/* name needing wcard proof */
 	dns_fixedname_t dsname;			/* name needing DS */
 

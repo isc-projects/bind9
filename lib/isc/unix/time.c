@@ -17,6 +17,7 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -59,16 +60,16 @@ const isc_interval_t * const isc_interval_zero = &zero_interval;
 #if ISC_FIX_TV_USEC
 static inline void
 fix_tv_usec(struct timeval *tv) {
-	isc_boolean_t fixed = ISC_FALSE;
+	bool fixed = false;
 
 	if (tv->tv_usec < 0) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec -= 1;
 			tv->tv_usec += US_PER_S;
 		} while (tv->tv_usec < 0);
 	} else if (tv->tv_usec >= US_PER_S) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec += 1;
 			tv->tv_usec -= US_PER_S;
@@ -93,15 +94,15 @@ isc_interval_set(isc_interval_t *i,
 	i->nanoseconds = nanoseconds;
 }
 
-isc_boolean_t
+bool
 isc_interval_iszero(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (i->seconds == 0 && i->nanoseconds == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 
@@ -129,15 +130,15 @@ isc_time_settoepoch(isc_time_t *t) {
 	t->nanoseconds = 0;
 }
 
-isc_boolean_t
+bool
 isc_time_isepoch(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
 
 	if (t->seconds == 0 && t->nanoseconds == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 

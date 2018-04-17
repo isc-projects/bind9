@@ -16,6 +16,7 @@
 
 /*! \file dst/gssapi.h */
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <isc/formatcheck.h>
@@ -53,7 +54,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dst_gssapi_acquirecred(const dns_name_t *name, isc_boolean_t initiate,
+dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 		       gss_cred_id_t *cred);
 /*
  *	Acquires GSS credentials.
@@ -186,7 +187,7 @@ gss_error_tostring(uint32_t major, uint32_t minor,
  *      	Users should copy the string if they wish to keep it.
  */
 
-isc_boolean_t
+bool
 dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 				    const dns_name_t *name,
 				    const dns_name_t *realm);
@@ -197,7 +198,7 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
  *
  */
 
-isc_boolean_t
+bool
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
 				  const dns_name_t *realm);
