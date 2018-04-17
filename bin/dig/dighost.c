@@ -655,6 +655,8 @@ make_empty_lookup(void) {
 	looknew->aaonly = ISC_FALSE;
 	looknew->adflag = ISC_FALSE;
 	looknew->cdflag = ISC_FALSE;
+	looknew->raflag = ISC_FALSE;
+	looknew->tcflag = ISC_FALSE;
 	looknew->print_unknown_format = ISC_FALSE;
 	looknew->zflag = ISC_FALSE;
 	looknew->ns_search_only = ISC_FALSE;
@@ -797,6 +799,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
 	looknew->cdflag = lookold->cdflag;
+	looknew->raflag = lookold->raflag;
+	looknew->tcflag = lookold->tcflag;
 	looknew->print_unknown_format = lookold->print_unknown_format;
 	looknew->zflag = lookold->zflag;
 	looknew->ns_search_only = lookold->ns_search_only;
@@ -2233,6 +2237,16 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->cdflag) {
 		debug("CD query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_CD;
+	}
+
+	if (lookup->raflag) {
+		debug("RA query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RA;
+	}
+
+	if (lookup->tcflag) {
+		debug("TC query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_TC;
 	}
 
 	if (lookup->zflag) {

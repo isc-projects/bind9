@@ -1,3 +1,6 @@
+4926.	[func]		Add the ability to set RA and TC in queries made by
+			dig (+[no]raflag, +[no]tcflag). [GL #213]
+
 4925.	[func]		Several configuration options that define intervals
 			can now take TTL value suffixes (for example, 2h or 1d)
 			in addition to integer parameters. These include

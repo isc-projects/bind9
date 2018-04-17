@@ -954,6 +954,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]raflag</option></term>
+	  <listitem>
+	    <para>
+	      Set [do not set] the RA (Recursion Available) bit in
+	      the query. The default is +noraflag. This bit should
+	      be ignored by the server for QUERY.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]rdflag</option></term>
 	  <listitem>
 	    <para>
@@ -1092,6 +1103,17 @@
 	      the client's address information must
 	      <emphasis>not</emphasis> be used when resolving
 	      this query.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]tcflag</option></term>
+	  <listitem>
+	    <para>
+	      Set [do not set] the TC (TrunCation) bit in the query.
+	      The default is +notcflag.  This bit should be ignored
+	      by the server for QUERY.
 	    </para>
 	  </listitem>
 	</varlistentry>
