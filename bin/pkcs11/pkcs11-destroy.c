@@ -152,8 +152,8 @@ main(int argc, char *argv[]) {
 	if (pin == NULL)
 		pin = getpassphrase("Enter Pin: ");
 
-	result = pk11_get_session(&pctx, OP_ANY, ISC_FALSE, ISC_TRUE,
-				  ISC_TRUE, (const char *) pin, slot);
+	result = pk11_get_session(&pctx, OP_ANY, false, true,
+				  true, (const char *) pin, slot);
 	if (result == PK11_R_NORANDOMSERVICE ||
 	    result == PK11_R_NODIGESTSERVICE ||
 	    result == PK11_R_NOAESSERVICE) {

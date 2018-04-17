@@ -155,7 +155,7 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 
 #ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
+		isc_entropy_usehook(ectx, true);
 	}
 #endif
 	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {

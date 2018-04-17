@@ -24,6 +24,7 @@
 #include <netdb.h>
 #endif
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <stdlib.h>
@@ -95,40 +96,40 @@ static const char *port = "53";
 static isc_sockaddr_t *srcaddr4 = NULL, *srcaddr6 = NULL;
 static isc_sockaddr_t a4, a6;
 static char *curqname = NULL, *qname = NULL;
-static isc_boolean_t classset = ISC_FALSE;
+static bool classset = false;
 static dns_rdatatype_t qtype = dns_rdatatype_none;
-static isc_boolean_t typeset = ISC_FALSE;
+static bool typeset = false;
 
 static unsigned int styleflags = 0;
 static uint32_t splitwidth = 0xffffffff;
-static isc_boolean_t
-	showcomments = ISC_TRUE,
-	showdnssec = ISC_TRUE,
-	showtrust = ISC_TRUE,
-	rrcomments = ISC_TRUE,
-	noclass = ISC_FALSE,
-	nocrypto = ISC_FALSE,
-	nottl = ISC_FALSE,
-	multiline = ISC_FALSE,
-	short_form = ISC_FALSE,
-	print_unknown_format = ISC_FALSE;
+static bool
+	showcomments = true,
+	showdnssec = true,
+	showtrust = true,
+	rrcomments = true,
+	noclass = false,
+	nocrypto = false,
+	nottl = false,
+	multiline = false,
+	short_form = false,
+	print_unknown_format = false;
 
-static isc_boolean_t
-	resolve_trace = ISC_FALSE,
-	validator_trace = ISC_FALSE,
-	message_trace = ISC_FALSE;
+static bool
+	resolve_trace = false,
+	validator_trace = false,
+	message_trace = false;
 
-static isc_boolean_t
-	use_ipv4 = ISC_TRUE,
-	use_ipv6 = ISC_TRUE;
+static bool
+	use_ipv4 = true,
+	use_ipv6 = true;
 
-static isc_boolean_t
-	cdflag = ISC_FALSE,
-	no_sigs = ISC_FALSE,
-	root_validation = ISC_TRUE,
-	dlv_validation = ISC_TRUE;
+static bool
+	cdflag = false,
+	no_sigs = false,
+	root_validation = true,
+	dlv_validation = true;
 
-static isc_boolean_t use_tcp = ISC_FALSE;
+static bool use_tcp = false;
 
 static char *anchorfile = NULL;
 static char *trust_anchor = NULL;
@@ -145,7 +146,7 @@ static char anchortext[] = MANAGED_KEYS;
  * Static function prototypes
  */
 static isc_result_t
-get_reverse(char *reverse, size_t len, char *value, isc_boolean_t strict);
+get_reverse(char *reverse, size_t len, char *value, bool strict);
 
 static isc_result_t
 parse_uint(uint32_t *uip, const char *value, uint32_t max,
@@ -409,7 +410,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
-	static isc_boolean_t first = ISC_TRUE;
+	static bool first = true;
 	isc_buffer_t target;
 	isc_region_t r;
 	char *t = NULL;
@@ -431,7 +432,7 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 			putchar('\n');
 		print_status(rdataset);
 		trust = rdataset->trust;
-		first = ISC_FALSE;
+		first = false;
 	}
 
 	do {
@@ -577,7 +578,7 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 	isc_result_t result;
-	isc_boolean_t match_root = ISC_FALSE, match_dlv = ISC_FALSE;
+	bool match_root = false, match_dlv = false;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
@@ -977,7 +978,7 @@ plus_option(char *option) {
 	isc_result_t result;
 	char option_store[256];
 	char *cmd, *value, *ptr;
-	isc_boolean_t state = ISC_TRUE;
+	bool state = true;
 
 	strlcpy(option_store, option, sizeof(option_store));
 	ptr = option_store;
@@ -989,7 +990,7 @@ plus_option(char *option) {
 	value = ptr;
 	if (strncasecmp(cmd, "no", 2)==0) {
 		cmd += 2;
-		state = ISC_FALSE;
+		state = false;
 	}
 
 #define FULLCHECK(A) \
@@ -1014,7 +1015,7 @@ plus_option(char *option) {
 			break;
 		case 'l': /* class */
 			FULLCHECK("class");
-			noclass = ISC_TF(!state);
+			noclass = !!(!state);
 			break;
 		case 'o': /* comments */
 			FULLCHECK("comments");
@@ -1022,7 +1023,7 @@ plus_option(char *option) {
 			break;
 		case 'r': /* crypto */
 			FULLCHECK("crypto");
-			nocrypto = ISC_TF(!state);
+			nocrypto = !!(!state);
 			break;
 		default:
 			goto invalid_option;
@@ -1095,10 +1096,10 @@ plus_option(char *option) {
 			FULLCHECK("short");
 			short_form = state;
 			if (short_form) {
-				multiline = ISC_FALSE;
-				showcomments = ISC_FALSE;
-				showtrust = ISC_FALSE;
-				showdnssec = ISC_FALSE;
+				multiline = false;
+				showcomments = false;
+				showtrust = false;
+				showdnssec = false;
 			}
 			break;
 		case 'p': /* split */
@@ -1150,7 +1151,7 @@ plus_option(char *option) {
 			break;
 		case 't': /* ttl */
 			FULLCHECK("ttl");
-			nottl = ISC_TF(!state);
+			nottl = !!(!state);
 			break;
 		default:
 			goto invalid_option;
@@ -1178,11 +1179,11 @@ plus_option(char *option) {
  * options: "46a:b:c:d:himp:q:t:vx:";
  */
 static const char *single_dash_opts = "46himv";
-static isc_boolean_t
-dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
+static bool
+dash_option(char *option, char *next, bool *open_type_class) {
 	char opt, *value;
 	isc_result_t result;
-	isc_boolean_t value_from_next;
+	bool value_from_next;
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
@@ -1206,7 +1207,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 				fatal("IPv4 networking not available");
 			if (use_ipv6) {
 				isc_net_disableipv6();
-				use_ipv6 = ISC_FALSE;
+				use_ipv6 = false;
 			}
 			break;
 		case '6':
@@ -1214,7 +1215,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 				fatal("IPv6 networking not available");
 			if (use_ipv4) {
 				isc_net_disableipv4();
-				use_ipv4 = ISC_FALSE;
+				use_ipv4 = false;
 			}
 			break;
 		case 'h':
@@ -1222,9 +1223,9 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 			exit(0);
 			/* NOTREACHED */
 		case 'i':
-			no_sigs = ISC_TRUE;
-			dlv_validation = ISC_FALSE;
-			root_validation = ISC_FALSE;
+			no_sigs = true;
+			dlv_validation = false;
+			root_validation = false;
 			break;
 		case 'm':
 			/* handled in preparse_args() */
@@ -1239,14 +1240,14 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 		if (strlen(option) > 1U)
 			option = &option[1];
 		else
-			return (ISC_FALSE);
+			return (false);
 	}
 	opt = option[0];
 	if (strlen(option) > 1U) {
-		value_from_next = ISC_FALSE;
+		value_from_next = false;
 		value = &option[1];
 	} else {
-		value_from_next = ISC_TRUE;
+		value_from_next = true;
 		value = next;
 	}
 	if (value == NULL)
@@ -1292,13 +1293,13 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 		if (classset)
 			warn("extra query class");
 
-		*open_type_class = ISC_FALSE;
+		*open_type_class = false;
 		tr.base = value;
 		tr.length = strlen(value);
 		result = dns_rdataclass_fromtext(&rdclass,
 						 (isc_textregion_t *)&tr);
 		if (result == ISC_R_SUCCESS)
-			classset = ISC_TRUE;
+			classset = true;
 		else if (rdclass != dns_rdataclass_in)
 			warn("ignoring non-IN query class");
 		else
@@ -1323,7 +1324,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 			fatal("out of memory");
 		return (value_from_next);
 	case 't':
-		*open_type_class = ISC_FALSE;
+		*open_type_class = false;
 		tr.base = value;
 		tr.length = strlen(value);
 		result = dns_rdatatype_fromtext(&rdtype,
@@ -1335,13 +1336,13 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 			    rdtype == dns_rdatatype_axfr)
 				fatal("Transfer not supported");
 			qtype = rdtype;
-			typeset = ISC_TRUE;
+			typeset = true;
 		} else
 			warn("ignoring invalid type");
 		return (value_from_next);
 	case 'x':
 		result = get_reverse(textname, sizeof(textname), value,
-				     ISC_FALSE);
+				     false);
 		if (result == ISC_R_SUCCESS) {
 			if (curqname != NULL) {
 				isc_mem_free(mctx, curqname);
@@ -1353,7 +1354,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 			if (typeset)
 				warn("extra query type");
 			qtype = dns_rdatatype_ptr;
-			typeset = ISC_TRUE;
+			typeset = true;
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
 			exit(1);
@@ -1365,7 +1366,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
 		usage();
 	}
 	/* NOTREACHED */
-	return (ISC_FALSE);
+	return (false);
 }
 
 /*
@@ -1374,7 +1375,7 @@ dash_option(char *option, char *next, isc_boolean_t *open_type_class) {
  */
 static void
 preparse_args(int argc, char **argv) {
-	isc_boolean_t ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
+	bool ipv4only = false, ipv6only = false;
 	char *option;
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
@@ -1391,13 +1392,13 @@ preparse_args(int argc, char **argv) {
 				if (ipv6only) {
 					fatal("only one of -4 and -6 allowed");
 				}
-				ipv4only = ISC_TRUE;
+				ipv4only = true;
 				break;
 			case '6':
 				if (ipv4only) {
 					fatal("only one of -4 and -6 allowed");
 				}
-				ipv6only = ISC_TRUE;
+				ipv6only = true;
 				break;
 			}
 			option = &option[1];
@@ -1417,7 +1418,7 @@ parse_args(int argc, char **argv) {
 	isc_textregion_t tr;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
-	isc_boolean_t open_type_class = ISC_TRUE;
+	bool open_type_class = true;
 
 	for (; argc > 0; argc--, argv++) {
 		if (argv[0][0] == '@') {
@@ -1456,7 +1457,7 @@ parse_args(int argc, char **argv) {
 					    rdtype == dns_rdatatype_axfr)
 						fatal("Transfer not supported");
 					qtype = rdtype;
-					typeset = ISC_TRUE;
+					typeset = true;
 					continue;
 				}
 				result = dns_rdataclass_fromtext(&rdclass,
@@ -1525,7 +1526,7 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 static isc_result_t
-get_reverse(char *reverse, size_t len, char *value, isc_boolean_t strict) {
+get_reverse(char *reverse, size_t len, char *value, bool strict) {
 	int r;
 	isc_result_t result;
 	isc_netaddr_t addr;

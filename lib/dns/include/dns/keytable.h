@@ -34,6 +34,8 @@
  *\li	No anticipated impact.
  */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
@@ -103,11 +105,11 @@ dns_keytable_detach(dns_keytable_t **keytablep);
  */
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
+dns_keytable_add(dns_keytable_t *keytable, bool managed,
 		 dst_key_t **keyp) ISC_DEPRECATED;
 isc_result_t
-dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
-		 isc_boolean_t initial, dst_key_t **keyp);
+dns_keytable_add2(dns_keytable_t *keytable, bool managed,
+		 bool initial, dst_key_t **keyp);
 /*%<
  * Add '*keyp' to 'keytable' (using the name in '*keyp').
  * The value of keynode->managed is set to 'managed', and the
@@ -115,7 +117,7 @@ dns_keytable_add2(dns_keytable_t *keytable, isc_boolean_t managed,
  * should only be used when adding managed-keys from configuration.
  * This indicates the key is in "initializing" state, and has not yet
  * been confirmed with a key refresh query.  Once a key refresh query
- * has validated, we update the keynode with inital == ISC_FALSE.)
+ * has validated, we update the keynode with inital == false.)
  *
  * Notes:
  *
@@ -362,7 +364,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable,
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
-			    dns_name_t *foundname, isc_boolean_t *wantdnssecp);
+			    dns_name_t *foundname, bool *wantdnssecp);
 /*%<
  * Is 'name' at or beneath a trusted key?
  *
@@ -374,11 +376,11 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
  *
  *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
- *\li	'*wantsdnssecp' is a valid isc_boolean_t.
+ *\li	'*wantsdnssecp' is a valid bool.
 
  * Ensures:
  *
- *\li	On success, *wantsdnssecp will be ISC_TRUE if and only if 'name'
+ *\li	On success, *wantsdnssecp will be true if and only if 'name'
  *	is at or beneath a trusted key.  If 'foundname' is not NULL, then
  *	it will be updated to contain the name of the closest enclosing
  *	trust anchor.
@@ -408,13 +410,13 @@ dns_keynode_key(dns_keynode_t *keynode);
  * Get the DST key associated with keynode.
  */
 
-isc_boolean_t
+bool
 dns_keynode_managed(dns_keynode_t *keynode);
 /*%<
  * Is this flagged as a managed key?
  */
 
-isc_boolean_t
+bool
 dns_keynode_initial(dns_keynode_t *keynode);
 /*%<
  * Is this flagged as an initializing key?
@@ -423,7 +425,7 @@ dns_keynode_initial(dns_keynode_t *keynode);
 void
 dns_keynode_trust(dns_keynode_t *keynode);
 /*%<
- * Sets keynode->initial to ISC_FALSE in order to mark the key as
+ * Sets keynode->initial to false in order to mark the key as
  * trusted: no longer an initializing key.
  */
 

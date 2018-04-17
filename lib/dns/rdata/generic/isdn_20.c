@@ -30,12 +30,12 @@ fromtext_isdn(ARGS_FROMTEXT) {
 
 	/* ISDN-address */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
-				      ISC_FALSE));
+				      false));
 	RETTOK(txt_fromtext(&token.value.as_textregion, target));
 
 	/* sa: optional */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
-				      ISC_TRUE));
+				      true));
 	if (token.type != isc_tokentype_string &&
 	    token.type != isc_tokentype_qstring) {
 		isc_lex_ungettoken(lexer, &token);
@@ -55,11 +55,11 @@ totext_isdn(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
-	RETERR(txt_totext(&region, ISC_TRUE, target));
+	RETERR(txt_totext(&region, true, target));
 	if (region.length == 0)
 		return (ISC_R_SUCCESS);
 	RETERR(str_totext(" ", target));
-	return (txt_totext(&region, ISC_TRUE, target));
+	return (txt_totext(&region, true, target));
 }
 
 static inline isc_result_t
@@ -204,7 +204,7 @@ digest_isdn(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_isdn(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_isdn);
@@ -214,10 +214,10 @@ checkowner_isdn(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_isdn(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_isdn);
@@ -226,7 +226,7 @@ checknames_isdn(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

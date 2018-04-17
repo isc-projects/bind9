@@ -322,7 +322,7 @@ digest_opt(ARGS_DIGEST) {
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_opt(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_opt);
@@ -334,7 +334,7 @@ checkowner_opt(ARGS_CHECKOWNER) {
 	return (dns_name_equal(name, dns_rootname));
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_opt(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_opt);
@@ -343,7 +343,7 @@ checknames_opt(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

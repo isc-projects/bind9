@@ -12,6 +12,7 @@
 #include "config.h"
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #include <named/fuzz.h>
 
@@ -46,7 +47,7 @@
  */
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
-static isc_boolean_t ready;
+static bool ready;
 
 /*
  * In "client:" mode, this thread reads fuzzed query messages from AFL
@@ -124,7 +125,7 @@ fuzz_thread_client(void *arg) {
 				free(buf);
 				close(sockfd);
 				named_server_flushonshutdown(named_g_server,
-							     ISC_FALSE);
+							     false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -134,7 +135,7 @@ fuzz_thread_client(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		sent = sendto(sockfd, buf, length, 0,
 			      (struct sockaddr *) &servaddr, sizeof(servaddr));
@@ -155,7 +156,7 @@ fuzz_thread_client(void *arg) {
 	free(buf);
 	close(sockfd);
 
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -387,7 +388,7 @@ fuzz_thread_resolver(void *arg) {
 				close(sockfd);
 				close(listenfd);
 				named_server_flushonshutdown(named_g_server,
-							     ISC_FALSE);
+							     false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -401,7 +402,7 @@ fuzz_thread_resolver(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		/* Use a unique query ID. */
 		seed = 1664525 * seed + 1013904223;
@@ -582,7 +583,7 @@ fuzz_thread_resolver(void *arg) {
 	free(rbuf);
 	close(sockfd);
 	close(listenfd);
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	/*
@@ -689,7 +690,7 @@ fuzz_thread_tcp(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 		yes = 1;
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -720,7 +721,7 @@ fuzz_thread_tcp(void *arg) {
 
 	free(buf);
 	close(sockfd);
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -737,7 +738,7 @@ void
 named_fuzz_notify(void) {
 #ifdef ENABLE_AFL
 	if (getenv("AFL_CMIN")) {
-		named_server_flushonshutdown(named_g_server, ISC_FALSE);
+		named_server_flushonshutdown(named_g_server, false);
 		isc_app_shutdown();
 		return;
 	}
@@ -746,7 +747,7 @@ named_fuzz_notify(void) {
 
 	RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-	ready = ISC_TRUE;
+	ready = true;
 
 	RUNTIME_CHECK(pthread_cond_signal(&cond) == 0);
 	RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);

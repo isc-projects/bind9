@@ -43,10 +43,10 @@ ATF_TC_BODY(ns_listenlist_default, tc) {
 
 	UNUSED(tc);
 
-	result = ns_test_begin(NULL, ISC_FALSE);
+	result = ns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = ns_listenlist_default(mctx, 5300, -1, ISC_FALSE, &list);
+	result = ns_listenlist_default(mctx, 5300, -1, false, &list);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(list != NULL);
 
@@ -73,7 +73,7 @@ ATF_TC_BODY(ns_listenlist_default, tc) {
 
 	ns_listenlist_detach(&list);
 
-	result = ns_listenlist_default(mctx, 5300, -1, ISC_TRUE, &list);
+	result = ns_listenlist_default(mctx, 5300, -1, true, &list);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 
 	ATF_CHECK(!ISC_LIST_EMPTY(list->elts));

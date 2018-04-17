@@ -103,7 +103,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		isc_buffer_add(&b, strlen(s));
 		name = dns_fixedname_initname(&fname);
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-		RETERR(dst_gssapi_acquirecred(name, ISC_FALSE, &tctx->gsscred));
+		RETERR(dst_gssapi_acquirecred(name, false, &tctx->gsscred));
 	}
 
 	obj = NULL;

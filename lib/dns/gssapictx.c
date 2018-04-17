@@ -14,6 +14,7 @@
 
 #include <ctype.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -247,7 +248,7 @@ check_config(const char *gss_name) {
 #endif
 
 isc_result_t
-dst_gssapi_acquirecred(const dns_name_t *name, isc_boolean_t initiate,
+dst_gssapi_acquirecred(const dns_name_t *name, bool initiate,
 		       gss_cred_id_t *cred)
 {
 #ifdef GSSAPI
@@ -344,7 +345,7 @@ cleanup:
 #endif
 }
 
-isc_boolean_t
+bool
 dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 				    const dns_name_t *name,
 				    const dns_name_t *realm)
@@ -377,7 +378,7 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	 */
 	rname = strchr(sbuf, '@');
 	if (rname == NULL)
-		return (isc_boolean_false);
+		return (false);
 	*rname = '\0';
 	rname++;
 
@@ -391,11 +392,11 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	 */
 	sname = strchr(sbuf, '/');
 	if (sname == NULL)
-		return (isc_boolean_false);
+		return (false);
 	*sname = '\0';
 	sname++;
 	if (strcmp(sbuf, "host") != 0)
-		return (isc_boolean_false);
+		return (false);
 
 	/*
 	 * Now, we do a simple comparison between the name and the realm.
@@ -403,22 +404,22 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	if (name != NULL) {
 		if ((strcasecmp(sname, nbuf) == 0)
 		    && (strcmp(rname, rbuf) == 0))
-			return (isc_boolean_true);
+			return (true);
 	} else {
 		if (strcmp(rname, rbuf) == 0)
-			return (isc_boolean_true);
+			return (true);
 	}
 
-	return (isc_boolean_false);
+	return (false);
 #else
 	UNUSED(signer);
 	UNUSED(name);
 	UNUSED(realm);
-	return (isc_boolean_false);
+	return (false);
 #endif
 }
 
-isc_boolean_t
+bool
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
 				  const dns_name_t *realm)
@@ -452,16 +453,16 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	 */
 	rname = strchr(sbuf, '@');
 	if (rname == NULL)
-		return (isc_boolean_false);
+		return (false);
 	sname = strchr(sbuf, '$');
 	if (sname == NULL)
-		return (isc_boolean_false);
+		return (false);
 
 	/*
 	 * Verify that the $ and @ follow one another.
 	 */
 	if (rname - sname != 1)
-		return (isc_boolean_false);
+		return (false);
 
 	/*
 	 * Find the host portion of the signer's name.	Zero out the $ so
@@ -483,7 +484,7 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	if (name != NULL) {
 		nname = strchr(nbuf, '.');
 		if (nname == NULL)
-			return (isc_boolean_false);
+			return (false);
 		*nname++ = '\0';
 	}
 
@@ -494,19 +495,19 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 		if ((strcasecmp(sname, nbuf) == 0)
 		    && (strcmp(rname, rbuf) == 0)
 		    && (strcasecmp(nname, rbuf) == 0))
-			return (isc_boolean_true);
+			return (true);
 	} else {
 		if (strcmp(rname, rbuf) == 0)
-			return (isc_boolean_true);
+			return (true);
 	}
 
 
-	return (isc_boolean_false);
+	return (false);
 #else
 	UNUSED(signer);
 	UNUSED(name);
 	UNUSED(realm);
-	return (isc_boolean_false);
+	return (false);
 #endif
 }
 
