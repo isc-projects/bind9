@@ -196,6 +196,12 @@ unittest:debian:sid:amd64:
   dependencies:
     - build:debian:sid:amd64
 
+unittest:clang:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:clang:debian:sid:amd64
+
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
