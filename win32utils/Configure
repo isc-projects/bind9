@@ -232,7 +232,6 @@ my @substdefh = ("AES_CC",
 my %configdefp;
 
 my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
-                 "ISC_PLATFORM_CRYPTORANDOM",
                  "ISC_PLATFORM_HAVEATOMICSTORE",
                  "ISC_PLATFORM_HAVEATOMICSTOREQ",
                  "ISC_PLATFORM_HAVECMPXCHG",
@@ -2076,13 +2075,6 @@ if ($cookie_algorithm eq "sha1") {
     die "Unrecognized cookie algorithm: $cookie_algorithm\n";
 }
 
-# enable-crypto-rand
-if ($enable_crypto_rand eq "yes") {
-    if (($use_openssl eq "no") && ($enable_native_pkcs11 eq "no")) {
-        die "No crypto provider for random functions\n";
-    }
-    $configdefp{"ISC_PLATFORM_CRYPTORANDOM"} = "\"$cryptolib\"";
-}
 print "Cryptographic library for DNSSEC: $cryptolib\n";
 
 # enable-openssl-hash

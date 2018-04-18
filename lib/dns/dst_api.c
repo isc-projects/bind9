@@ -266,11 +266,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (dst_entropy_pool != NULL) {
 		isc_entropy_sethook(dst_random_getdata);
 	}
-#endif
 #endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
@@ -292,12 +290,10 @@ dst_lib_destroy(void) {
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
 			dst_t_func[i]->cleanup();
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (dst_entropy_pool != NULL) {
 		isc_entropy_usehook(dst_entropy_pool, ISC_FALSE);
 		isc_entropy_sethook(NULL);
 	}
-#endif
 #ifdef OPENSSL
 	dst__openssl_destroy();
 #elif PKCS11CRYPTO
@@ -1965,44 +1961,15 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	/* get entropy directly from crypto provider */
 	return (dst_random_getdata(buf, len, NULL, flags));
-#else
-	/* get entropy from entropy source or hook function */
-	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
-#endif /* ISC_PLATFORM_CRYPTORANDOM */
 #endif /* PKCS11CRYPTO */
 }
 
 unsigned int
 dst__entropy_status(void) {
-#if !defined(PKCS11CRYPTO) && !defined(ISC_PLATFORM_CRYPTORANDOM)
-#ifdef GSSAPI
-	unsigned int flags = dst_entropy_flags;
-	isc_result_t ret;
-	unsigned char buf[32];
-	static isc_boolean_t first = ISC_TRUE;
-
-	if (dst_entropy_pool == NULL)
-		return (0);
-
-	if (first) {
-		/* Someone believes RAND_status() initializes the PRNG */
-		flags &= ~ISC_ENTROPY_GOODONLY;
-		ret = isc_entropy_getdata(dst_entropy_pool, buf,
-					  sizeof(buf), NULL, flags);
-		INSIST(ret == ISC_R_SUCCESS);
-		isc_entropy_putdata(dst_entropy_pool, buf,
-				    sizeof(buf), 2 * sizeof(buf));
-		first = ISC_FALSE;
-	}
-#endif
-	return (isc_entropy_status(dst_entropy_pool));
-#else
 	/* Doesn't matter as it is not used in this case. */
 	return (0);
-#endif
 }
 
 isc_buffer_t *
