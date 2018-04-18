@@ -278,11 +278,9 @@ main(int argc, char *argv[]) {
 
 	ectx = NULL;
 	RUNCHECK(isc_entropy_create(mctx, &ectx));
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (randomfile == NULL) {
 		isc_entropy_usehook(ectx, ISC_TRUE);
 	}
-#endif
 	if (randomfile != NULL)
 		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
 
