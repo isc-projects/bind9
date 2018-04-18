@@ -108,6 +108,12 @@
 	  IDNA2003 support via (bundled) idnkit-1.0 has been removed.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The "rbtdb64" database implementation (a parallel
+	  implementation of "rbt") has been removed. [GL #217]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

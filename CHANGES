@@ -1,3 +1,6 @@
+4927.	[func]		Removed the "rbtdb64" database implementation.
+			[GL #217]
+
 4926.	[func]		Add root key sentinel support.  To disable, add
 			'root-key-sentinel no;' to named.conf. [GL #37]
 
