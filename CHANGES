@@ -1,3 +1,6 @@
+4928.	[bug]		Remove a bogus check in nslookup command line
+			argument processing. [GL #206]
+
 4927.	[placeholder]
 
 4926.	[func]		Add root key sentinel support.  To disable, add
