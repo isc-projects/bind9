@@ -60,7 +60,7 @@ list=`git ls-files -c bin lib | grep '\.c$' |
       xargs grep -L '#include ["<]config.h[">]' |
       grep -vE -e '(/win32/|bin/pkcs11/|lib/dns/rdata|lib/bind/)' \
 	       -e '(ifiter_|lib/dns/gen.c|lib/dns/spnego_asn1.c)' \
-	       -e '(lib/dns/rbtdb64.c|lib/isc/entropy.c|lib/isc/fsaccess.c)' \
+	       -e '(lib/isc/entropy.c|lib/isc/fsaccess.c)' \
 	       -e '(bin/tests/virtual-time/vtwrapper.c|symtbl.c|version.c)'`
 [ -n "$list" ] && {
     status=1

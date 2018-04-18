@@ -173,9 +173,6 @@
     <ClCompile Include="..\rbtdb.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\rbtdb64.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\rcode.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -354,9 +351,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\rbtdb.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\rbtdb64.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\rdatalist_p.h">
