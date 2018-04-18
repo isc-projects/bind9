@@ -797,7 +797,6 @@ XMLSTATS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
-ISC_PLATFORM_CRYPTORANDOM
 PKCS11_TEST
 PKCS11_ED25519
 PKCS11_GOST
@@ -1008,7 +1007,6 @@ with_eddsa
 with_aes
 with_cc_alg
 enable_openssl_hash
-enable_crypto_rand
 with_lmdb
 with_libxml2
 with_libjson
@@ -1699,7 +1697,6 @@ Optional Features:
   --enable-threads        enable multithreading
   --enable-native-pkcs11  use native PKCS11 for all crypto [default=no]
   --enable-openssl-hash   use OpenSSL for hash functions [default=yes]
-  --enable-crypto-rand    use the crypto provider for random [default=yes]
   --enable-largefile      64-bit file support
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
@@ -17410,86 +17407,6 @@ if test "rt" = "$have_clock_gt"; then
 fi
 
 #
-# Use the crypto provider (OpenSSL/PKCS#11) for random functions
-#
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for using the crypto library (vs. builtin) for random functions" >&5
-$as_echo_n "checking for using the crypto library (vs. builtin) for random functions... " >&6; }
-# Check whether --enable-crypto-rand was given.
-if test "${enable_crypto_rand+set}" = set; then :
-  enableval=$enable_crypto_rand; want_crypto_rand="$enableval"
-else
-  want_crypto_rand="auto"
-fi
-
-if test "$want_crypto_rand" = "auto"
-then
-	case "$CRYPTOLIB" in
-	"")
-		want_crypto_rand="no"
-		;;
-	pkcs11)
-		want_crypto_rand="yes"
-		;;
-	openssl)
-		saved_cflags="$CFLAGS"
-		saved_libs="$LIBS"
-		CFLAGS="$CFLAGS $DST_OPENSSL_INC"
-		LIBS="$LIBS $DST_OPENSSL_LIBS"
-		if test "$cross_compiling" = yes; then :
-  want_crypto_rand="yes"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/rand.h>
-
-unsigned char buf[128];
-
-int main()
-{
-	if (RAND_bytes(buf, 128) != 1)
-		return (1);
-	return (0);
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  want_crypto_rand="yes"
-else
-  want_crypto_rand="no"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-		CFLAGS="$saved_cflags"
-		LIBS="$saved_libs"
-		;;
-	*)
-		as_fn_error $? "Unknown crypto library define $CRYPTOLIB" "$LINENO" 5
-		;;
-	esac
-fi
-case $want_crypto_rand in
-	yes)
-		if test "$CRYPTOLIB" = ""
-		then
-			as_fn_error $? "No crypto library for random functions" "$LINENO" 5
-		fi
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"$CRYPTOLIB\"" >&5
-$as_echo "\"$CRYPTOLIB\"" >&6; }
-		ISC_PLATFORM_CRYPTORANDOM="#define ISC_PLATFORM_CRYPTORANDOM \"$CRYPTOLIB\""
-		;;
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		ISC_PLATFORM_CRYPTORANDOM="#undef ISC_PLATFORM_CRYPTORANDOM"
-		;;
-esac
-
-
-#
 # was --with-lmdb specified?
 #
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for lmdb library" >&5
@@ -26485,8 +26402,6 @@ report() {
 	    echo "    IPv6 support (--enable-ipv6)"
 	test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
 		echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-	test "no" = "$want_crypto_rand" || \
-		echo "    Crypto provider entropy source (--enable-crypto-rand)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -26577,8 +26492,6 @@ report() {
 	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
 	echo "    EDDSA algorithm support (--with-eddsa)"
-    test "yes" = "$want_crypto_rand" || \
-	echo "    Crypto provider entropy source (--enable-crypto-rand)"
 
     test "yes" = "$want_backtrace" || \
 	echo "    Print backtrace on crash (--enable-backtrace)"

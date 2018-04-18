@@ -40,7 +40,6 @@ dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 isc_result_t
 dst_random_getdata(void *data, unsigned int length,
 		   unsigned int *returned, unsigned int flags) {
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	isc_result_t ret;
 
 #ifndef DONT_REQUIRE_DST_LIB_INIT
@@ -54,29 +53,6 @@ dst_random_getdata(void *data, unsigned int length,
 	if ((ret == ISC_R_SUCCESS) && (returned != NULL))
 		*returned = length;
 	return (ret);
-#else
-	UNUSED(data);
-	UNUSED(length);
-	UNUSED(returned);
-	UNUSED(flags);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
-}
-
-#else /* PKCS11CRYPTO */
-
-#include <isc/util.h>
-
-isc_result_t
-dst_random_getdata(void *data, unsigned int length,
-		   unsigned int *returned, unsigned int flags) {
-	UNUSED(data);
-	UNUSED(length);
-	UNUSED(returned);
-	UNUSED(flags);
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 #endif /* PKCS11CRYPTO */

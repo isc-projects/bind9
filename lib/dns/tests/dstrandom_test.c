@@ -51,7 +51,6 @@ ATF_TC_BODY(isc_entropy_getdata, tc) {
 	result = dst_lib_init(mctx, ectx, NULL, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	isc_entropy_usehook(ectx, ISC_TRUE);
 
 	returned = 0;
@@ -64,7 +63,6 @@ ATF_TC_BODY(isc_entropy_getdata, tc) {
 	ATF_REQUIRE_EQ(status, 0);
 
 	isc_entropy_usehook(ectx, ISC_FALSE);
-#endif
 
 	ret = chdir(TESTS);
 	ATF_REQUIRE_EQ(ret, 0);
