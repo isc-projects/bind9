@@ -721,31 +721,31 @@ setoption(char *opt) {
 		usesearch = ISC_TRUE;
 	} else if (CHECKOPT("nodefname", 5)) {
 		usesearch = ISC_FALSE;
-	} else if (CHECKOPT("vc", 2) == 0) {
+	} else if (CHECKOPT("vc", 2)) {
 		tcpmode = ISC_TRUE;
 		tcpmode_set = ISC_TRUE;
-	} else if (CHECKOPT("novc", 4) == 0) {
+	} else if (CHECKOPT("novc", 4)) {
 		tcpmode = ISC_FALSE;
 		tcpmode_set = ISC_TRUE;
-	} else if (CHECKOPT("debug", 3) == 0) {
+	} else if (CHECKOPT("debug", 3)) {
 		short_form = ISC_FALSE;
 		showsearch = ISC_TRUE;
-	} else if (CHECKOPT("nodebug", 5) == 0) {
+	} else if (CHECKOPT("nodebug", 5)) {
 		short_form = ISC_TRUE;
 		showsearch = ISC_FALSE;
-	} else if (CHECKOPT("d2", 2) == 0) {
+	} else if (CHECKOPT("d2", 2)) {
 		debugging = ISC_TRUE;
-	} else if (CHECKOPT("nod2", 4) == 0) {
+	} else if (CHECKOPT("nod2", 4)) {
 		debugging = ISC_FALSE;
-	} else if (CHECKOPT("search", 3) == 0) {
+	} else if (CHECKOPT("search", 3)) {
 		usesearch = ISC_TRUE;
-	} else if (CHECKOPT("nosearch", 5) == 0) {
+	} else if (CHECKOPT("nosearch", 5)) {
 		usesearch = ISC_FALSE;
-	} else if (CHECKOPT("sil", 3) == 0) {
+	} else if (CHECKOPT("sil", 3)) {
 		/* deprecation_msg = ISC_FALSE; */
-	} else if (CHECKOPT("fail", 3) == 0) {
+	} else if (CHECKOPT("fail", 3)) {
 		nofail=ISC_FALSE;
-	} else if (CHECKOPT("nofail", 5) == 0) {
+	} else if (CHECKOPT("nofail", 5)) {
 		nofail=ISC_TRUE;
 	} else if (strncasecmp(opt, "ndots=", 6) == 0) {
 		set_ndots(&opt[6]);
