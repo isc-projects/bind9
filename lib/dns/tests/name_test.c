@@ -542,7 +542,7 @@ ATF_TC_BODY(countlabels, tc) {
 					      NULL, 0, NULL);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		printf("%s: expect %d labels\n",
+		printf("%s: expect %u labels\n",
 		       testcases[i].namestr, testcases[i].expect);
 
 		ATF_REQUIRE_EQ(dns_name_countlabels(name),
