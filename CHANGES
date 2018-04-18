@@ -1,3 +1,6 @@
+4926.	[func]		Add root key sentinel support.  To disable, add
+			'root-key-sentinel no;' to named.conf. [GL #37]
+
 4925.	[func]		Several configuration options that define intervals
 			can now take TTL value suffixes (for example, 2h or 1d)
 			in addition to integer parameters. These include
