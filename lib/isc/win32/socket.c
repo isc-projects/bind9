@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
  *
@@ -498,7 +496,6 @@ iocompletionport_createthreads(int total_threads, isc_socketmgr_t *manager) {
 				ISC_MSG_FAILED,
 				"Can't create IOCP thread: %s"),
 				strbuf);
-			exit(1);
 		}
 	}
 }
@@ -526,7 +523,6 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 					   "HeapCreate() failed during "
 					   "initialization: %s"),
 			    strbuf);
-		exit(1);
 	}
 
 	manager->maxIOCPThreads = min(isc_os_ncpus() + 1, MAX_IOCPTHREADS);
@@ -544,7 +540,6 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 				"CreateIoCompletionPort() failed "
 				"during initialization: %s"),
 				strbuf);
-		exit(1);
 	}
 
 	/*
@@ -589,7 +584,6 @@ iocompletionport_update(isc_socket_t *sock) {
 				"CreateIoCompletionPort() failed "
 				"during initialization: %s"),
 				strbuf);
-		exit(1);
 	}
 
 	InterlockedIncrement(&sock->manager->iocp_total);
@@ -641,7 +635,6 @@ initialise(void) {
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 					   ISC_MSG_FAILED, "failed"),
 			    strbuf);
-		exit(1);
 	}
 	/*
 	 * The following APIs do not exist as functions in a library, but
