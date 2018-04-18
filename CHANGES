@@ -1,3 +1,6 @@
+4930.	[bug]		Remove a bogus check in nslookup command line
+			argument processing. [GL #206]
+
 4929.	[func]		Add the ability to set RA and TC in queries made by
 			dig (+[no]raflag, +[no]tcflag). [GL #213]
 
