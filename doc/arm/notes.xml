@@ -52,6 +52,18 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Add root key sentinel support which enables resolvers to test
+	  which trust anchors are configured for the root.  To disable, add
+	  'root-key-sentinel no;' to named.conf. [GL #37]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
