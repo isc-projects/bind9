@@ -8536,18 +8536,7 @@ load_configuration(const char *filename, named_server_t *server,
 			}
 		}
 		if (randomdev == NULL) {
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 			isc_entropy_usehook(named_g_entropy, ISC_TRUE);
-#else
-			if ((obj != NULL) && !cfg_obj_isvoid(obj))
-				level = ISC_LOG_INFO;
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, level,
-				      "no source of entropy found");
-			if ((obj == NULL) || cfg_obj_isvoid(obj)) {
-				CHECK(ISC_R_FAILURE);
-			}
-#endif
 		} else {
 			result = isc_entropy_createfilesource(named_g_entropy,
 							      randomdev);
