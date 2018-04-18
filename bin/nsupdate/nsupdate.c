@@ -276,11 +276,9 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 		randomfile = NULL;
 	}
 
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	if (randomfile == NULL) {
 		isc_entropy_usehook(*ectx, ISC_TRUE);
 	}
-#endif
 	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
 					   usekeyboard);
 

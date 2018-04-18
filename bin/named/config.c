@@ -89,11 +89,7 @@ options {\n\
 #	pid-file \"" NAMED_LOCALSTATEDIR "/run/named/named.pid\"; \n\
 	port 53;\n\
 	prefetch 2 9;\n"
-#if defined(ISC_PLATFORM_CRYPTORANDOM)
 "	random-device none;\n"
-#elif defined(PATH_RANDOMDEV)
-"	random-device \"" PATH_RANDOMDEV "\";\n"
-#endif
 "	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
 	request-nsid false;\n\
