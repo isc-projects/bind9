@@ -162,11 +162,31 @@ precheck:debian:sid:amd64:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
 
-build:debian:sid:amd64:
+build:clang:debian:sid:amd64:
+  variables:
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
   <<: *debian_sid_amd64_image
   <<: *build_job
-    
+
+build:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+build:clang:debian:sid:i386:
+  variables:
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+  <<: *debian_sid_i386_image
+  <<: *build_job
+
 build:debian:sid:i386:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
   <<: *debian_sid_i386_image
   <<: *build_job
 
@@ -175,7 +195,13 @@ unittest:debian:sid:amd64:
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
+unittest:clang:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:clang:debian:sid:amd64
+
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
@@ -187,7 +213,7 @@ systemtest:debian:sid:amd64:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
 systemtest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *system_test_job
