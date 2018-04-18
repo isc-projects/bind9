@@ -71,7 +71,7 @@ DNSOBJS =	acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nsec.@O@ nsec3.@O@ nta.@O@ \
 		order.@O@ peer.@O@ portlist.@O@ private.@O@ \
-		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
+		rbt.@O@ rbtdb.@O@ rcode.@O@ rdata.@O@ \
 		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
 		request.@O@ resolver.@O@ result.@O@ rootns.@O@ \
 		rpz.@O@ rrl.@O@ rriterator.@O@ sdb.@O@ \
@@ -115,7 +115,7 @@ DNSSRCS =	acl.c adb.c badcache. byaddr.c \
 		log.c lookup.c master.c masterdump.c message.c \
 		name.c ncache.c nsec.c nsec3.c nta.c \
 		order.c peer.c portlist.c \
-		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c rdatalist.c \
+		rbt.c rbtdb.c rcode.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c rpz.c rrl.c rriterator.c \
 		sdb.c sdlz.c soa.c ssu.c ssu_external.c \
@@ -209,8 +209,6 @@ newrr::
 	rm -f include/dns/rdatastruct.h
 
 rdata.@O@: include
-
-rbtdb64.@O@: rbtdb64.c rbtdb.c
 
 depend: include
 subdirs: include

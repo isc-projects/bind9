@@ -56,14 +56,12 @@ struct dns_dbimplementation {
  */
 
 #include "rbtdb.h"
-#include "rbtdb64.h"
 
 static ISC_LIST(dns_dbimplementation_t) implementations;
 static isc_rwlock_t implock;
 static isc_once_t once = ISC_ONCE_INIT;
 
 static dns_dbimplementation_t rbtimp;
-static dns_dbimplementation_t rbt64imp;
 
 static void
 initialize(void) {
@@ -75,15 +73,8 @@ initialize(void) {
 	rbtimp.driverarg = NULL;
 	ISC_LINK_INIT(&rbtimp, link);
 
-	rbt64imp.name = "rbt64";
-	rbt64imp.create = dns_rbtdb64_create;
-	rbt64imp.mctx = NULL;
-	rbt64imp.driverarg = NULL;
-	ISC_LINK_INIT(&rbt64imp, link);
-
 	ISC_LIST_INIT(implementations);
 	ISC_LIST_APPEND(implementations, &rbtimp, link);
-	ISC_LIST_APPEND(implementations, &rbt64imp, link);
 }
 
 static inline dns_dbimplementation_t *

@@ -78,17 +78,9 @@
 #define MAP_FAILED	((void *)-1)
 #endif
 
-#ifdef DNS_RBTDB_VERSION64
-#include "rbtdb64.h"
-#else
 #include "rbtdb.h"
-#endif
 
-#ifdef DNS_RBTDB_VERSION64
-#define RBTDB_MAGIC                     ISC_MAGIC('R', 'B', 'D', '8')
-#else
 #define RBTDB_MAGIC                     ISC_MAGIC('R', 'B', 'D', '4')
-#endif
 
 #define CHECK(op) \
 	do { result = (op); \
@@ -125,187 +117,7 @@ struct rbtdb_file_header {
 #define VALID_RBTDB(rbtdb)      ((rbtdb) != NULL && \
 				 (rbtdb)->common.impmagic == RBTDB_MAGIC)
 
-#ifdef DNS_RBTDB_VERSION64
-typedef isc_uint64_t                    rbtdb_serial_t;
-/*%
- * Make casting easier in symbolic debuggers by using different names
- * for the 64 bit version.
- */
-#define dns_rbtdb_t dns_rbtdb64_t
-#define rdatasetheader_t rdatasetheader64_t
-#define rbtdb_version_t rbtdb_version64_t
-
-#define once once64
-#define FILE_VERSION FILE_VERSION64
-#define init_count init_count64
-
-#define cache_methods cache_methods64
-#define dbiterator_methods dbiterator_methods64
-#define rdataset_methods rdataset_methods64
-#define rdatasetiter_methods rdatasetiter_methods64
-#define slab_methods slab_methods64
-#define zone_methods zone_methods64
-
-#define activeempty activeempty64
-#define activeemtpynode activeemtpynode64
-#define add32 add64
-#define add_changed add_changed64
-#define add_empty_wildcards add_empty_wildcards64
-#define add_wildcard_magic add_wildcard_magic64
-#define addclosest addclosest64
-#define addnoqname addnoqname64
-#define addrdataset addrdataset64
-#define adjust_quantum adjust_quantum64
-#define allocate_version allocate_tversion64
-#define allrdatasets allrdatasets64
-#define attach attach64
-#define attachnode attachnode64
-#define attachversion attachversion64
-#define beginload beginload64
-#define bind_rdataset bind_rdataset64
-#define cache_find cache_find64
-#define cache_findrdataset cache_findrdataset64
-#define cache_findzonecut cache_findzonecut64
-#define cache_zonecut_callback cache_zonecut_callback64
-#define check_stale_header check_stale_header64
-#define clean_cache_node clean_cache_node64
-#define clean_stale_headers clean_stale_headers64
-#define clean_zone_node clean_zone_node64
-#define cleanup_dead_nodes cleanup_dead_nodes64
-#define cleanup_dead_nodes_callback cleanup_dead_nodes_callback64
-#define cleanup_nondirty cleanup_nondirty64
-#define closeversion closeversion64
-#define cname_and_other_data cname_and_other_data64
-#define createiterator createiterator64
-#define currentversion currentversion64
-#define dbiterator_current dbiterator_current64
-#define dbiterator_destroy dbiterator_destroy64
-#define dbiterator_first dbiterator_first64
-#define dbiterator_last dbiterator_last64
-#define dbiterator_next dbiterator_next64
-#define dbiterator_origin dbiterator_origin64
-#define dbiterator_pause dbiterator_pause64
-#define dbiterator_prev dbiterator_prev64
-#define dbiterator_seek dbiterator_seek64
-#define decrement_reference decrement_reference64
-#define delegating_type delegating_type64
-#define delete_callback delete_callback64
-#define delete_node delete_node64
-#define deleterdataset deleterdataset64
-#define dereference_iter_node dereference_iter_node64
-#define deserialize32 deserialize64
-#define detach detach64
-#define detachnode detachnode64
-#define dump dump64
-#define endload endload64
-#define expire_header expire_header64
-#define expirenode expirenode64
-#define find_closest_nsec find_closest_nsec64
-#define find_coveringnsec find_coveringnsec64
-#define find_deepest_zonecut find_deepest_zonecut64
-#define find_wildcard find_wildcard64
-#define findnode findnode64
-#define findnodeintree findnodeintree64
-#define findnsec3node findnsec3node64
-#define flush_deletions flush_deletions64
-#define free_gluelist free_gluelist64
-#define free_gluetable free_gluetable64
-#define free_noqname free_noqname64
-#define free_rbtdb free_rbtdb64
-#define free_rbtdb_callback free_rbtdb_callback64
-#define free_rdataset free_rdataset64
-#define getnsec3parameters getnsec3parameters64
-#define getoriginnode getoriginnode64
-#define getrrsetstats getrrsetstats64
-#define getservestalettl getservestalettl64
-#define getsigningtime getsigningtime64
-#define getsize getsize64
-#define glue_nsdname_cb glue_nsdname_cb64
-#define hashsize hashsize64
-#define init_file_version init_file_version64
-#define init_rdataset init_rdataset64
-#define isdnssec isdnssec64
-#define ispersistent ispersistent64
-#define issecure issecure64
-#define iszonesecure iszonesecure64
-#define loading_addrdataset loading_addrdataset64
-#define loadnode loadnode64
-#define make_least_version make_least_version64
-#define mark_header_ancient mark_header_ancient64
-#define mark_stale_header mark_stale_header64
-#define match_header_version match_header_version64
-#define matchparams matchparams64
-#define maybe_free_rbtdb maybe_free_rbtdb64
-#define need_headerupdate need_headerupdate64
-#define new_rdataset new_rdataset64
-#define new_reference new_reference64
-#define newversion newversion64
-#define nodecount nodecount64
-#define nodefullname nodefullname64
-#define overmem overmem64
-#define overmem_purge overmem_purge64
-#define previous_closest_nsec previous_closest_nsec64
-#define printnode printnode64
-#define prune_tree prune_tree64
-#define rbt_datafixer rbt_datafixer64
-#define rbt_datawriter rbt_datawriter64
-#define rbtdb_write_header rbtdb_write_header64
-#define rbtdb_zero_header rbtdb_zero_header64
-#define rdataset_addglue rdataset_addglue64
-#define rdataset_clearprefetch rdataset_clearprefetch64
-#define rdataset_clone rdataset_clone64
-#define rdataset_count rdataset_count64
-#define rdataset_current rdataset_current64
-#define rdataset_disassociate rdataset_disassociate64
-#define rdataset_expire rdataset_expire64
-#define rdataset_first rdataset_first64
-#define rdataset_getclosest rdataset_getclosest64
-#define rdataset_getnoqname rdataset_getnoqname64
-#define rdataset_getownercase rdataset_getownercase64
-#define rdataset_next rdataset_next64
-#define rdataset_setownercase rdataset_setownercase64
-#define rdataset_settrust rdataset_settrust64
-#define rdatasetiter_current rdatasetiter_current64
-#define rdatasetiter_destroy rdatasetiter_destroy64
-#define rdatasetiter_first rdatasetiter_first64
-#define rdatasetiter_next rdatasetiter_next64
-#define reactivate_node reactivate_node64
-#define reference_iter_node reference_iter_node64
-#define rehash_gluetable rehash_gluetable64
-#define resign_delete resign_delete64
-#define resign_insert resign_insert64
-#define resign_sooner resign_sooner64
-#define resigned resigned64
-#define resume_iteration resume_iteration64
-#define rollback_node rollback_node64
-#define serialize serialize64
-#define set_index set_index64
-#define set_ttl set_ttl64
-#define setcachestats setcachestats64
-#define setgluecachestats setgluecachestats64
-#define setnsec3parameters setnsec3parameters64
-#define setownercase setownercase64
-#define setservestalettl setservestalettl64
-#define setsigningtime setsigningtime64
-#define settask settask64
-#define setup_delegation setup_delegation64
-#define subtractrdataset subtractrdataset64
-#define ttl_sooner ttl_sooner64
-#define update_cachestats update_cachestats64
-#define update_header update_header64
-#define update_newheader update_newheader64
-#define update_recordsandbytes  update_recordsandbytes64
-#define update_rrsetstats update_rrsetstats64
-#define valid_glue valid_glue64
-#define zone_find zone_find64
-#define zone_findrdataset zone_findrdataset64
-#define zone_findzonecut zone_findzonecut64
-#define zone_zonecut_callback zone_zonecut_callback64
-
-#else
 typedef isc_uint32_t                    rbtdb_serial_t;
-#endif
-
 typedef isc_uint32_t                    rbtdb_rdatatype_t;
 
 #define RBTDB_RDATATYPE_BASE(type)      ((dns_rdatatype_t)((type) & 0xFFFF))
@@ -8435,12 +8247,7 @@ static dns_dbmethods_t cache_methods = {
 };
 
 isc_result_t
-#ifdef DNS_RBTDB_VERSION64
-dns_rbtdb64_create
-#else
-dns_rbtdb_create
-#endif
-		(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		 void *driverarg, dns_db_t **dbp)
 {

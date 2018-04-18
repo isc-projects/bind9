@@ -184,7 +184,6 @@
     <ClCompile Include="..\private.c" />
     <ClCompile Include="..\rbt.c" />
     <ClCompile Include="..\rbtdb.c" />
-    <ClCompile Include="..\rbtdb64.c" />
     <ClCompile Include="..\rcode.c" />
     <ClCompile Include="..\rdata.c" />
     <ClCompile Include="..\rdatalist.c" />
@@ -336,7 +335,6 @@
     <ClInclude Include="..\include\dst\lib.h" />
     <ClInclude Include="..\include\dst\result.h" />
     <ClInclude Include="..\rbtdb.h" />
-    <ClInclude Include="..\rbtdb64.h" />
     <ClInclude Include="..\rdatalist_p.h" />
     <ClInclude Include="..\spnego.h" />
   </ItemGroup>
