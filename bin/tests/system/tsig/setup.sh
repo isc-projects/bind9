@@ -17,3 +17,10 @@ $SHELL clean.sh
 copy_setports ns1/named.conf.in ns1/named.conf
 
 test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+
+if $FEATURETEST --md5
+then
+	cat ns1/named.conf.in ns1/keys-md5.conf > ns1/named.conf
+else
+	cat ns1/named.conf.in > ns1/named.conf
+fi

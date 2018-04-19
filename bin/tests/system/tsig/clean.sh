@@ -20,3 +20,4 @@ rm -f */named.run
 rm -f ns*/named.lock
 rm -f Kexample.net.*
 rm -f keygen.out?
+rm -f ns1/named.conf

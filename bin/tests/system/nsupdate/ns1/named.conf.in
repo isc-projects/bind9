@@ -33,7 +33,7 @@ controls {
 };
 
 key altkey {
-	algorithm hmac-md5;
+	algorithm hmac-sha512;
 	secret "1234abcd8765";
 };
 
