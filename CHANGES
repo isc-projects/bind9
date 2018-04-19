@@ -1,3 +1,5 @@
+4927.	[placeholder]
+
 4926.	[func]		Add root key sentinel support.  To disable, add
 			'root-key-sentinel no;' to named.conf. [GL #37]
 
