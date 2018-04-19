@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: trusted.conf.bad,v 1.9 2007/06/19 23:47:02 tbox Exp $ */
-
 trusted-keys {
-    "." 256 3 1 "AQO6Cl+slAf+iuieDim9L3kujFHQD7s/IOj03ClMOpKYcTXtK4mRpuULVfvWxDi9Ew/gj0xLnnX7z9OJHIxLI+DSrAHd8Dm0XfBEAtVtJSn70GaPZgnLMw1rk5ap2DsEoWk=";
+    "." 256 3 8 "AwEAAarwAdjV4gIhpBCjXVAScRFEx3co7k8smJdxrnqoGsl5NB7EZ9jRdgvCXbJn6v8y9jlNWVHvaC8ilhfhLh0A1vLWiWv4ijd/12xcnrY7xpG7Cu3YkxUxaXJ7Jdg/Iw1+9mGgXF1v4UbCIcw/3U3cxyk7OxYg+VSb5KBAQSR0upxV";
 };

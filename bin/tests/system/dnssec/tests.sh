@@ -1664,7 +1664,7 @@ ret=0
 $RNDCCMD 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=`cat ns1/managed.key.id`
 cp ns4/named.secroots named.secroots.test$n
-linecount=`grep "./RSAMD5/$keyid ; trusted" named.secroots.test$n | wc -l`
+linecount=`grep "./RSASHA256/$keyid ; trusted" named.secroots.test$n | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
 linecount=`cat named.secroots.test$n | wc -l`
 [ "$linecount" -eq 10 ] || ret=1
@@ -2953,7 +2953,7 @@ echo_i "check dig's +nocrypto flag ($n)"
 ret=0
 $DIG $DIGOPTS +norec +nocrypto DNSKEY . \
 	@10.53.0.1 > dig.out.dnskey.ns1.test$n || ret=1
-grep '256 3 1 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+grep '256 3 8 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
 grep 'RRSIG.* \[omitted]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +norec +nocrypto DS example \
 	@10.53.0.1 > dig.out.ds.ns1.test$n || ret=1
