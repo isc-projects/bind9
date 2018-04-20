@@ -52,7 +52,6 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/db",	 	0 },
 	{ "dns/rbtdb", 		0 },
-	{ "dns/rbtdb64", 	0 },
 	{ "dns/rbt", 		0 },
 	{ "dns/rdata", 		0 },
 	{ "dns/master", 	0 },
