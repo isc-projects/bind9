@@ -1,3 +1,6 @@
+4930.	[bug]		Remove a bogus check in nslookup command line
+			argument processing. [GL #206]
+
 4922.	[bug]		dnstap: Log the destination address of client
 			packets rather than the interface address. 
 			[GL #197]
