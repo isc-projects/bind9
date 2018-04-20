@@ -94,6 +94,8 @@ struct dig_lookup {
 		aaonly,
 		adflag,
 		cdflag,
+		raflag,
+		tcflag,
 		zflag,
 		trace, /*% dig +trace */
 		trace_root, /*% initial query for either +trace or +nssearch */

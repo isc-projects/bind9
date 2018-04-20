@@ -1,3 +1,6 @@
+4929.	[func]		Add the ability to set RA and TC in queries made by
+			dig (+[no]raflag, +[no]tcflag). [GL #213]
+
 4928.	[func]		The "dnskey-sig-validity" option allows
 			"sig-validity-interval" to be overriden for signatures
 			covering DNSKEY RRsets. [GL #145]
