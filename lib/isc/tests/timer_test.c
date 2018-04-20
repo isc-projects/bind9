@@ -138,8 +138,8 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (event->ev_type != expected_event_type) {
-		printf("expected event type %d, got %d\n",
-		       expected_event_type, (int) event->ev_type);
+		printf("expected event type %u, got %u\n",
+		       expected_event_type, event->ev_type);
 	}
 
 	result = isc_time_now(&now);
