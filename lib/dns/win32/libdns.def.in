@@ -1150,6 +1150,7 @@ dns_zone_getjournal
 dns_zone_getjournalsize
 dns_zone_getkeydirectory
 dns_zone_getkeyopts
+dns_zone_getkeyvalidityinterval
 dns_zone_getloadtime
 dns_zone_getmaxrecords
 dns_zone_getmaxttl
@@ -1247,6 +1248,7 @@ dns_zone_setjournal
 dns_zone_setjournalsize
 dns_zone_setkeydirectory
 dns_zone_setkeyopt
+dns_zone_setkeyvalidityinterval
 dns_zone_setmasters
 dns_zone_setmasterswithkeys
 dns_zone_setmaxrecords
