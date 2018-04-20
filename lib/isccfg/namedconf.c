@@ -2188,6 +2188,9 @@ zone_clauses[] = {
 	{ "sig-validity-interval", &cfg_type_validityinterval,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
 	},
+	{ "dnskey-sig-validity", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
 	{ "transfer-source", &cfg_type_sockaddr4wild,
 		CFG_ZONE_SLAVE | CFG_ZONE_STUB
 	},

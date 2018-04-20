@@ -78,6 +78,13 @@
 	  'root-key-sentinel no;' to named.conf.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>dnskey-sig-validity</command> option allows the
+	  <command>sig-validity-interval</command> to be overriden for
+	  signatures covering DNSKEY RRsets. [GL #145]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
