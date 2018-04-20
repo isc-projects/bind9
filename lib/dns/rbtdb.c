@@ -2889,19 +2889,16 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 		result = dns_rbt_addnode(tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
 			dns_rbt_namefromnode(node, &nodename);
-#ifdef DNS_RBT_USEHASH
 			node->locknum = node->hashval % rbtdb->node_lock_count;
-#else
-			node->locknum = dns_name_hash(&nodename, ISC_FALSE) %
-				rbtdb->node_lock_count;
-#endif
 			if (tree == rbtdb->tree) {
 				add_empty_wildcards(rbtdb, name);
 
 				if (dns_name_iswildcard(name)) {
-					result = add_wildcard_magic(rbtdb, name);
+					result = add_wildcard_magic(rbtdb,
+								    name);
 					if (result != ISC_R_SUCCESS) {
-						RWUNLOCK(&rbtdb->tree_lock, locktype);
+						RWUNLOCK(&rbtdb->tree_lock,
+							 locktype);
 						return (result);
 					}
 				}
@@ -7206,12 +7203,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		dns_name_t foundname;
 		dns_name_init(&foundname, NULL);
 		dns_rbt_namefromnode(node, &foundname);
-#ifdef DNS_RBT_USEHASH
 		node->locknum = node->hashval % rbtdb->node_lock_count;
-#else
-		node->locknum = dns_name_hash(&foundname, ISC_FALSE) %
-			rbtdb->node_lock_count;
-#endif
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
@@ -8455,15 +8447,9 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		 */
 		dns_name_init(&name, NULL);
 		dns_rbt_namefromnode(rbtdb->origin_node, &name);
-#ifdef DNS_RBT_USEHASH
 		rbtdb->origin_node->locknum =
 			rbtdb->origin_node->hashval %
 			rbtdb->node_lock_count;
-#else
-		rbtdb->origin_node->locknum =
-			dns_name_hash(&name, ISC_FALSE) %
-			rbtdb->node_lock_count;
-#endif
 		/*
 		 * Add an apex node to the NSEC3 tree so that NSEC3 searches
 		 * return partial matches when there is only a single NSEC3
@@ -8483,15 +8469,9 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		 */
 		dns_name_init(&name, NULL);
 		dns_rbt_namefromnode(rbtdb->nsec3_origin_node, &name);
-#ifdef DNS_RBT_USEHASH
 		rbtdb->nsec3_origin_node->locknum =
 			rbtdb->nsec3_origin_node->hashval %
 			rbtdb->node_lock_count;
-#else
-		rbtdb->nsec3_origin_node->locknum =
-			dns_name_hash(&name, ISC_FALSE) %
-			rbtdb->node_lock_count;
-#endif
 	}
 
 	/*

@@ -1,5 +1,6 @@
-4934.	[bug]		Fix lock bucket selection when the RBT's aux hashtable
-			is not used. [GL #184]
+4934.	[bug]		Removed the option to build the red black tree
+			database without a hash table; the non-hashing
+			version was buggy and is not needed. [GL #184]
 
 4933.	[bug]		Not creating signing keys for an inline signed zone
 			prevented changes applied to the raw zone from being
