@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
 
@@ -24,8 +23,6 @@
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
-
-#define DNS_RBT_USEHASH 1
 
 /*@{*/
 /*%
@@ -108,7 +105,7 @@ struct dns_rbtnode {
 	unsigned int oldnamelen : 8;    /*%< range is 1..255 */
 	/*@}*/
 
-	/* flags needed for serialization to file*/
+	/* flags needed for serialization to file */
 	unsigned int is_mmapped : 1;
 	unsigned int parent_is_relative : 1;
 	unsigned int left_is_relative : 1;
@@ -120,11 +117,15 @@ struct dns_rbtnode {
 	unsigned int rpz : 1;
 	unsigned int :0;                /* end of bitfields c/o tree lock */
 
-#ifdef DNS_RBT_USEHASH
+	/*%
+	 * These are needed for hashing. The 'uppernode' points to the
+	 * node's superdomain node in the parent subtree, so that it can
+	 * be reached from a child that was found by a hash lookup.
+	 */
 	unsigned int hashval;
 	dns_rbtnode_t *uppernode;
 	dns_rbtnode_t *hashnext;
-#endif
+
 	dns_rbtnode_t *parent;
 	dns_rbtnode_t *left;
 	dns_rbtnode_t *right;
