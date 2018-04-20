@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ntservice.c,v 1.16 2011/01/13 08:50:29 tbox Exp $ */
-
 #include <config.h>
 #include <stdio.h>
 
@@ -48,8 +46,6 @@ ntservice_init(void) {
 		if (!hServiceStatus) {
 			ns_main_earlyfatal(
 				"could not register service control handler");
-			UpdateSCM(SERVICE_STOPPED);
-			exit(1);
 		}
 		UpdateSCM(SERVICE_RUNNING);
 	} else {

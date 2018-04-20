@@ -1136,7 +1136,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 		/*
 		 * We're testing isc_task_purge.
 		 */
-		printf("purge events %p,%d,%p\n",
+		printf("purge events %p,%u,%p\n",
 		       purge_sender, purge_type_first, purge_tag);
 		purged = isc_task_purge(task, purge_sender,
 					(isc_eventtype_t)purge_type_first,
