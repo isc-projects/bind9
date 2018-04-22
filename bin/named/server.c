@@ -25,7 +25,6 @@
 #include <isc/base64.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
@@ -5664,12 +5663,7 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_entropy_getdata(named_g_entropy, view->secret,
-				     sizeof(view->secret), NULL, 0);
-	if (result != ISC_R_SUCCESS) {
-		dns_view_detach(&view);
-		return (result);
-	}
+	isc_random_buf(view->secret, sizeof(view->secret));
 
 	ISC_LIST_APPEND(*viewlist, view, link);
 	dns_view_attach(view, viewp);
@@ -8505,8 +8499,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/* Load the TKEY information from the configuration. */
 	if (options != NULL) {
 		dns_tkeyctx_t *t = NULL;
-		CHECKM(named_tkeyctx_fromconfig(options, named_g_mctx,
-						named_g_entropy, &t),
+		CHECKM(named_tkeyctx_fromconfig(options, named_g_mctx, &t),
 		       "configuring TKEY");
 		if (server->sctx->tkeyctx != NULL) {
 			dns_tkeyctx_destroy(&server->sctx->tkeyctx);
@@ -8520,61 +8513,6 @@ load_configuration(const char *filename, named_server_t *server,
 	CHECKM(named_controls_configure(named_g_server->controls, config,
 					named_g_aclconfctx),
 	       "binding control channel(s)");
-
-	/*
-	 * Open the source of entropy.
-	 */
-	if (first_time) {
-		const char *randomdev = NULL;
-		int level = ISC_LOG_ERROR;
-		obj = NULL;
-		result = named_config_get(maps, "random-device", &obj);
-		if (result == ISC_R_SUCCESS) {
-			if (!cfg_obj_isvoid(obj)) {
-				level = ISC_LOG_INFO;
-				randomdev = cfg_obj_asstring(obj);
-			}
-		}
-		if (randomdev == NULL) {
-			isc_entropy_usehook(named_g_entropy, ISC_TRUE);
-		} else {
-			result = isc_entropy_createfilesource(named_g_entropy,
-							      randomdev);
-#ifdef PATH_RANDOMDEV
-			if (named_g_fallbackentropy != NULL) {
-				level = ISC_LOG_INFO;
-			}
-#endif
-			if (result != ISC_R_SUCCESS) {
-				isc_log_write(named_g_lctx,
-					      NAMED_LOGCATEGORY_GENERAL,
-					      NAMED_LOGMODULE_SERVER,
-					      level,
-					      "could not open "
-					      "entropy source %s: %s",
-					      randomdev,
-					      isc_result_totext(result));
-			}
-#ifdef PATH_RANDOMDEV
-			if (named_g_fallbackentropy != NULL) {
-				if (result != ISC_R_SUCCESS) {
-					isc_log_write(named_g_lctx,
-						      NAMED_LOGCATEGORY_GENERAL,
-						      NAMED_LOGMODULE_SERVER,
-						      ISC_LOG_INFO,
-						      "using pre-chroot "
-						      "entropy source %s",
-						      PATH_RANDOMDEV);
-					isc_entropy_detach(&named_g_entropy);
-					isc_entropy_attach(
-						   named_g_fallbackentropy,
-						   &named_g_entropy);
-				}
-				isc_entropy_detach(&named_g_fallbackentropy);
-			}
-#endif
-		}
-	}
 
 #ifdef HAVE_LMDB
 	/*
@@ -8905,14 +8843,8 @@ load_configuration(const char *filename, named_server_t *server,
 			}
 		}
 	} else {
-		result = isc_entropy_getdata(named_g_entropy,
-					     server->sctx->secret,
-					     sizeof(server->sctx->secret),
-					     NULL,
-					     0);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		isc_random_buf(server->sctx->secret,
+			       sizeof(server->sctx->secret));
 	}
 
 	/*
@@ -9166,8 +9098,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_entropy,
-					  &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
@@ -9401,8 +9332,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->in_roothints = NULL;
 
 	/* Must be first. */
-	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_entropy,
-				named_g_engine, ISC_ENTROPY_GOODONLY),
+	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_engine),
 		   "initializing DST");
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
@@ -9432,8 +9362,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	isc_taskmgr_setexcltask(named_g_taskmgr, server->task);
 
 	server->sctx = NULL;
-	CHECKFATAL(ns_server_create(mctx, named_g_entropy,
-				    get_matching_view,
+	CHECKFATAL(ns_server_create(mctx, get_matching_view,
 				    &server->sctx),
 		   "creating server context");
 
@@ -13591,7 +13520,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	isc_rng_randombytes(named_g_server->sctx->rngctx, salt, saltlen);
+	isc_random_buf(salt, saltlen);
 
 	r.base = salt;
 	r.length = (unsigned int) saltlen;

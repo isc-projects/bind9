@@ -27,7 +27,6 @@
 
 #include <config.h>
 
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -367,38 +366,6 @@ dst__openssl_getengine(const char *engine) {
 	return (NULL);
 }
 #endif
-
-isc_result_t
-dst_random_getdata(void *data, unsigned int length,
-		   unsigned int *returned, unsigned int flags)
-{
-#ifndef DONT_REQUIRE_DST_LIB_INIT
-	INSIST(dst__memory_pool != NULL);
-#endif
-	REQUIRE(data != NULL);
-	REQUIRE(length > 0);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	if ((flags & ISC_ENTROPY_GOODONLY) == 0) {
-		if (RAND_pseudo_bytes((unsigned char *)data, (int)length) < 0)
-			return (dst__openssl_toresult2("RAND_pseudo_bytes",
-						       DST_R_OPENSSLFAILURE));
-	} else {
-		if (RAND_bytes((unsigned char *)data, (int)length) != 1)
-			return (dst__openssl_toresult2("RAND_bytes",
-						       DST_R_OPENSSLFAILURE));
-	}
-#else
-	UNUSED(flags);
-
-	if (RAND_bytes((unsigned char *)data, (int)length) != 1)
-		return (dst__openssl_toresult2("RAND_bytes",
-					       DST_R_OPENSSLFAILURE));
-#endif
-	if (returned != NULL)
-		*returned = length;
-	return (ISC_R_SUCCESS);
-}
 
 #endif /* OPENSSL */
 /*! \file */

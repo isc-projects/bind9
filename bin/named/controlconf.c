@@ -326,7 +326,6 @@ static void
 control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	controlconnection_t *conn = NULL;
 	controllistener_t *listener = NULL;
-	named_server_t *server = NULL;
 	controlkey_t *key = NULL;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *response = NULL;
@@ -348,7 +347,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 
 	conn = event->ev_arg;
 	listener = conn->listener;
-	server = listener->controls->server;
 	algorithm = DST_ALG_UNKNOWN;
 	secret.rstart = NULL;
 	text = NULL;
@@ -460,8 +458,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (conn->nonce == 0) {
 		while (conn->nonce == 0) {
-			isc_rng_randombytes(server->sctx->rngctx, &conn->nonce,
-					    sizeof(conn->nonce));
+			isc_random_buf(&conn->nonce, sizeof(conn->nonce));
 		}
 		eresult = ISC_R_SUCCESS;
 	} else

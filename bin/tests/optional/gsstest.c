@@ -17,7 +17,6 @@
 
 #include <isc/app.h>
 #include <isc/base64.h>
-#include <isc/entropy.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -435,7 +434,6 @@ main(int argc, char *argv[]) {
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatchv4;
 	dns_view_t *view;
-	isc_entropy_t *ectx;
 	isc_task_t *task;
 	isc_log_t *lctx = NULL;
 	isc_logconfig_t *lcfg = NULL;
@@ -471,11 +469,7 @@ main(int argc, char *argv[]) {
 
 	isc_log_setdebuglevel(lctx, 9);
 
-	ectx = NULL;
-	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(isc_entropy_createfilesource(ectx, "/dev/urandom"));
-
-	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, NULL));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -486,7 +480,7 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, ectx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 	isc_sockaddr_any(&bind_any);
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY |
@@ -543,7 +537,6 @@ main(int argc, char *argv[]) {
 	dns_view_detach(&view);
 
 	dst_lib_destroy();
-	isc_entropy_detach(&ectx);
 
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

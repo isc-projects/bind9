@@ -13,7 +13,6 @@
 
 #if defined(OPENSSL) && defined(HAVE_OPENSSL_ECDSA)
 
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha2.h>

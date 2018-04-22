@@ -18,7 +18,6 @@
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/mem.h>

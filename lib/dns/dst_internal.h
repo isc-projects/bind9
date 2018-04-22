@@ -284,17 +284,6 @@ void * dst__mem_alloc(size_t size);
 void   dst__mem_free(void *ptr);
 void * dst__mem_realloc(void *ptr, size_t size);
 
-/*%
- * Entropy retriever using the DST entropy pool.
- */
-isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
-				  isc_boolean_t pseudo);
-
-/*
- * Entropy status hook.
- */
-unsigned int dst__entropy_status(void);
-
 ISC_LANG_ENDDECLS
 
 #endif /* DST_DST_INTERNAL_H */

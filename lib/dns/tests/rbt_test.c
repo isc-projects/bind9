@@ -32,7 +32,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
@@ -369,8 +368,7 @@ ATF_TC_BODY(rbt_check_distance_random, tc) {
 			dns_name_t *name;
 
 			for (j = 0; j < 32; j++) {
-				isc_uint32_t v;
-				isc_random_get(&v);
+				isc_uint32_t v = isc_random();
 				namebuf[j] = 'a' + (v % 26);
 			}
 			namebuf[32] = '.';
@@ -896,8 +894,7 @@ insert_nodes(dns_rbt_t *mytree, char **names,
 			isc_result_t result;
 
 			for (j = 0; j < 32; j++) {
-				isc_uint32_t v;
-				isc_random_get(&v);
+				isc_uint32_t v = isc_random();
 				namebuf[j] = 'a' + (v % 26);
 			}
 			namebuf[32] = '.';
@@ -933,9 +930,7 @@ remove_nodes(dns_rbt_t *mytree, char **names,
 		dns_name_t *name;
 		isc_result_t result;
 
-		isc_random_get(&node);
-
-		node %= *names_count;
+		node = isc_random_uniform(*names_count);
 
 		dns_test_namefromstring(names[node], &fname);
 		name = dns_fixedname_name(&fname);
@@ -1023,8 +1018,8 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	/* Repeat the insert/remove test some 4096 times */
 	for (i = 0; i < 4096; i++) {
 		isc_uint32_t num_names;
-		isc_random_get(&num_names);
 
+		num_names = isc_random();
 		if (names_count < 1024) {
 			num_names %= 1024 - names_count;
 			num_names++;
@@ -1035,7 +1030,7 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 		insert_nodes(mytree, names, &names_count, num_names);
 		check_tree(mytree, names, names_count, __LINE__);
 
-		isc_random_get(&num_names);
+		num_names = isc_random();
 		if (names_count > 0) {
 			num_names %= names_count;
 			num_names++;
