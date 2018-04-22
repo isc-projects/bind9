@@ -14,10 +14,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnsconf.h,v 1.3 2009/09/02 23:48:03 tbox Exp $ */
-
-#ifndef ISCCFG_NAMEDCONF_H
-#define ISCCFG_NAMEDCONF_H 1
+#ifndef ISCCFG_DNSCONF_H
+#define ISCCFG_DNSCONF_H 1
 
 /*! \file
  * \brief
@@ -32,4 +30,4 @@
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_dnsconf;
 /*%< A complete dns.conf file. */
 
-#endif /* ISCCFG_CFG_H */
+#endif /* ISCCFG_DNSCONF_H */
