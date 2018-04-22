@@ -35,7 +35,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
@@ -355,7 +354,6 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 	int fd;
 	off_t filesize = 0;
 	char *base, *p, *q;
-	isc_uint32_t r;
 	int i;
 
 	UNUSED(tc);
@@ -390,14 +388,11 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 		close(fd);
 
 		/* Randomly fuzz a portion of the memory */
-		isc_random_get(&r);
-		p = base + (r % filesize);
+		p = base + (isc_random() % filesize);
 		q = base + filesize;
-		isc_random_get(&r);
-		q -= (r % (q - p));
+		q -= (isc_random() % (q - p));
 		while (p++ < q) {
-			isc_random_get(&r);
-			*p = r & 0xff;
+			*p = isc_random() & 0xff;
 		}
 
 		result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,

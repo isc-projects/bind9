@@ -23,7 +23,6 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
@@ -72,7 +71,6 @@ int verbose;
  */
 static isc_log_t *lctx = NULL;
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 
 /*
  * The domain we are working on
@@ -1233,16 +1231,11 @@ main(int argc, char *argv[]) {
 
 	setup_logging(mctx, &lctx);
 
-	if (ectx == NULL) {
-		setup_entropy(mctx, NULL, &ectx);
-	}
-	result = dst_lib_init(mctx, ectx, NULL,
-			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
 	}
-	isc_entropy_stopcallbacksources(ectx);
 
 	if (ds_path == NULL) {
 		fatal("missing -d DS pathname");
@@ -1392,7 +1385,6 @@ main(int argc, char *argv[]) {
 	free_all_sets();
 	cleanup_logging(&lctx);
 	dst_lib_destroy();
-	cleanup_entropy(&ectx);
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}

@@ -42,8 +42,6 @@ typedef struct isc_constregion		isc_constregion_t;	/*%< Const region */
 typedef struct isc_consttextregion	isc_consttextregion_t;	/*%< Const Text Region */
 typedef struct isc_counter		isc_counter_t;		/*%< Counter */
 typedef isc_int16_t			isc_dscp_t;		/*%< Diffserv code point */
-typedef struct isc_entropy		isc_entropy_t;		/*%< Entropy */
-typedef struct isc_entropysource	isc_entropysource_t;	/*%< Entropy Source */
 typedef struct isc_event		isc_event_t;		/*%< Event */
 typedef ISC_LIST(isc_event_t)		isc_eventlist_t;	/*%< Event List */
 typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
@@ -68,7 +66,6 @@ typedef struct isc_msgcat		isc_msgcat_t;		/*%< Message Catalog */
 typedef struct isc_netaddr		isc_netaddr_t;		/*%< Net Address */
 typedef struct isc_portset		isc_portset_t;		/*%< Port Set */
 typedef struct isc_quota		isc_quota_t;		/*%< Quota */
-typedef struct isc_random		isc_random_t;		/*%< Random */
 typedef struct isc_ratelimiter		isc_ratelimiter_t;	/*%< Rate Limiter */
 typedef struct isc_region		isc_region_t;		/*%< Region */
 typedef isc_uint64_t			isc_resourcevalue_t;	/*%< Resource Value */
@@ -90,8 +87,6 @@ typedef struct isc_time			isc_time_t;		/*%< Time */
 typedef struct isc_timer		isc_timer_t;		/*%< Timer */
 typedef struct isc_timermgr		isc_timermgr_t;		/*%< Timer Manager */
 
-typedef isc_result_t (*isc_entropy_getdata_t)(void *, unsigned int,
-					      unsigned int *, unsigned int);
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 

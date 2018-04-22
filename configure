@@ -995,7 +995,6 @@ enable_epoll
 enable_devpoll
 with_geoip
 with_gssapi
-with_randomdev
 enable_threads
 with_locktype
 with_libtool
@@ -1740,7 +1739,6 @@ Optional Packages:
   --with-gssapi=PATH|/path/krb5-config
                           Specify path for system-supplied GSSAPI
                           [default=yes]
-  --with-randomdev=PATH   Specify path for random device
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
   --with-openssl=PATH     Build with OpenSSL [yes|no|path]. (Crypto is
@@ -14891,81 +14889,7 @@ DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
 
 
 
-#
-# was --with-randomdev specified?
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for random device" >&5
-$as_echo_n "checking for random device... " >&6; }
-
-# Check whether --with-randomdev was given.
-if test "${with_randomdev+set}" = set; then :
-  withval=$with_randomdev; use_randomdev="$withval"
-else
-  use_randomdev="unspec"
-fi
-
-
-case "$use_randomdev" in
-	unspec)
-		case "$cross_compiling" in
-		yes)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: unspecified" >&5
-$as_echo "unspecified" >&6; }
-			as_fn_error $? " need --with-randomdev=PATH or --with-randomdev=no" "$LINENO" 5
-		esac
-		case "$host" in
-			*-openbsd*)
-				devrandom=/dev/arandom
-				;;
-			*)
-				devrandom=/dev/random
-				;;
-		esac
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $devrandom" >&5
-$as_echo "$devrandom" >&6; }
-		as_ac_File=`$as_echo "ac_cv_file_$devrandom" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $devrandom" >&5
-$as_echo_n "checking for $devrandom... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$devrandom"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define PATH_RANDOMDEV "$devrandom"
-_ACEOF
-
-fi
-
-
-		;;
-	yes)
-		as_fn_error $? "--with-randomdev must specify a path" "$LINENO" 5
-		;;
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-		;;
-	*)
-		cat >>confdefs.h <<_ACEOF
-#define PATH_RANDOMDEV "$use_randomdev"
-_ACEOF
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using \"$use_randomdev\"" >&5
-$as_echo "using \"$use_randomdev\"" >&6; }
-		;;
-esac
-
+# XXXOND: Change this to deterministic DSA generation
 #
 # Only check dsa signature generation on these platforms when performing
 # system tests.
@@ -14983,36 +14907,14 @@ fi
 
 #
 # Do we have arc4random(), etc ?
-# Will use stir and if not exist addrandom
 #
-for ac_func in arc4random
+for ac_func in arc4random arc4random_buf arc4random_uniform getrandom
 do :
-  ac_fn_c_check_func "$LINENO" "arc4random" "ac_cv_func_arc4random"
-if test "x$ac_cv_func_arc4random" = xyes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_ARC4RANDOM 1
-_ACEOF
-
-fi
-done
-
-for ac_func in arc4random_stir
-do :
-  ac_fn_c_check_func "$LINENO" "arc4random_stir" "ac_cv_func_arc4random_stir"
-if test "x$ac_cv_func_arc4random_stir" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_ARC4RANDOM_STIR 1
-_ACEOF
-
-fi
-done
-
-for ac_func in arc4random_addrandom
-do :
-  ac_fn_c_check_func "$LINENO" "arc4random_addrandom" "ac_cv_func_arc4random_addrandom"
-if test "x$ac_cv_func_arc4random_addrandom" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_ARC4RANDOM_ADDRANDOM 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi

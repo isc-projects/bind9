@@ -253,7 +253,6 @@ static void
 random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
-	isc_rng_t *rng;
 	isc_uint32_t m;
 	isc_uint32_t j;
 	isc_uint32_t histogram[11];
@@ -269,10 +268,6 @@ random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 	result = isc_mem_create(0, 0, &mctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	rng = NULL;
-	result = isc_rng_create(mctx, NULL, &rng);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	m = 1000;
 	passed = 0;
 
@@ -285,11 +280,11 @@ random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 		double p_value;
 
 		if (word_sized) {
-			for (i = 0; i < REPS; i++)
-				isc_rng_randombytes(rng, &values[i],
-						    sizeof(values[i]));
+			for (i = 0; i < REPS; i++) {
+				isc_random_buf(&values[i], sizeof(values[i]));
+			}
 		} else {
-			isc_rng_randombytes(rng, values, sizeof(values));
+			isc_random_buf(values, sizeof(values));
 		}
 
 		p_value = (*func)(mctx, values, REPS);
@@ -302,8 +297,6 @@ random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 		i = (int) floor(p_value * 10);
 		histogram[i]++;
 	}
-
-	isc_rng_detach(&rng);
 
 	/* Fold histogram[10] (p_value = 1.0) into histogram[9] for
 	 * interval [0.9, 1.0]
@@ -357,7 +350,7 @@ random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 
 /*
  * This is a frequency (monobits) test taken from the NIST SP 800-22
- * RNG test suite.
+ * RANDOM test suite.
  */
 static double
 monobit(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
@@ -610,97 +603,97 @@ binarymatrixrank(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	return (p_value);
 }
 
-ATF_TC(isc_rng_monobit_16);
-ATF_TC_HEAD(isc_rng_monobit_16, tc) {
-	atf_tc_set_md_var(tc, "descr", "Monobit test for the RNG");
+ATF_TC(isc_random_monobit_16);
+ATF_TC_HEAD(isc_random_monobit_16, tc) {
+	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_monobit_16, tc) {
+ATF_TC_BODY(isc_random_monobit_16, tc) {
 	UNUSED(tc);
 
 	random_test(monobit, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_runs_16);
-ATF_TC_HEAD(isc_rng_runs_16, tc) {
-	atf_tc_set_md_var(tc, "descr", "Runs test for the RNG");
+ATF_TC(isc_random_runs_16);
+ATF_TC_HEAD(isc_random_runs_16, tc) {
+	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_runs_16, tc) {
+ATF_TC_BODY(isc_random_runs_16, tc) {
 	UNUSED(tc);
 
 	random_test(runs, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_blockfrequency_16);
-ATF_TC_HEAD(isc_rng_blockfrequency_16, tc) {
-	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RNG");
+ATF_TC(isc_random_blockfrequency_16);
+ATF_TC_HEAD(isc_random_blockfrequency_16, tc) {
+	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_blockfrequency_16, tc) {
+ATF_TC_BODY(isc_random_blockfrequency_16, tc) {
 	UNUSED(tc);
 
 	random_test(blockfrequency, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_binarymatrixrank_16);
-ATF_TC_HEAD(isc_rng_binarymatrixrank_16, tc) {
-	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RNG");
+ATF_TC(isc_random_binarymatrixrank_16);
+ATF_TC_HEAD(isc_random_binarymatrixrank_16, tc) {
+	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
 }
 
 /*
  * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
  * test suite.
  */
-ATF_TC_BODY(isc_rng_binarymatrixrank_16, tc) {
+ATF_TC_BODY(isc_random_binarymatrixrank_16, tc) {
 	UNUSED(tc);
 
 	random_test(binarymatrixrank, ISC_TRUE);
 }
 
-ATF_TC(isc_rng_monobit_bytes);
-ATF_TC_HEAD(isc_rng_monobit_bytes, tc) {
-	atf_tc_set_md_var(tc, "descr", "Monobit test for the RNG");
+ATF_TC(isc_random_monobit_bytes);
+ATF_TC_HEAD(isc_random_monobit_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_monobit_bytes, tc) {
+ATF_TC_BODY(isc_random_monobit_bytes, tc) {
 	UNUSED(tc);
 
 	random_test(monobit, ISC_FALSE);
 }
 
-ATF_TC(isc_rng_runs_bytes);
-ATF_TC_HEAD(isc_rng_runs_bytes, tc) {
-	atf_tc_set_md_var(tc, "descr", "Runs test for the RNG");
+ATF_TC(isc_random_runs_bytes);
+ATF_TC_HEAD(isc_random_runs_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_runs_bytes, tc) {
+ATF_TC_BODY(isc_random_runs_bytes, tc) {
 	UNUSED(tc);
 
 	random_test(runs, ISC_FALSE);
 }
 
-ATF_TC(isc_rng_blockfrequency_bytes);
-ATF_TC_HEAD(isc_rng_blockfrequency_bytes, tc) {
-	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RNG");
+ATF_TC(isc_random_blockfrequency_bytes);
+ATF_TC_HEAD(isc_random_blockfrequency_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_rng_blockfrequency_bytes, tc) {
+ATF_TC_BODY(isc_random_blockfrequency_bytes, tc) {
 	UNUSED(tc);
 
 	random_test(blockfrequency, ISC_FALSE);
 }
 
-ATF_TC(isc_rng_binarymatrixrank_bytes);
-ATF_TC_HEAD(isc_rng_binarymatrixrank_bytes, tc) {
-	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RNG");
+ATF_TC(isc_random_binarymatrixrank_bytes);
+ATF_TC_HEAD(isc_random_binarymatrixrank_bytes, tc) {
+	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
 }
 
 /*
  * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
  * test suite.
  */
-ATF_TC_BODY(isc_rng_binarymatrixrank_bytes, tc) {
+ATF_TC_BODY(isc_random_binarymatrixrank_bytes, tc) {
 	UNUSED(tc);
 
 	random_test(binarymatrixrank, ISC_FALSE);
@@ -710,14 +703,14 @@ ATF_TC_BODY(isc_rng_binarymatrixrank_bytes, tc) {
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_rng_monobit_16);
-	ATF_TP_ADD_TC(tp, isc_rng_runs_16);
-	ATF_TP_ADD_TC(tp, isc_rng_blockfrequency_16);
-	ATF_TP_ADD_TC(tp, isc_rng_binarymatrixrank_16);
-	ATF_TP_ADD_TC(tp, isc_rng_monobit_bytes);
-	ATF_TP_ADD_TC(tp, isc_rng_runs_bytes);
-	ATF_TP_ADD_TC(tp, isc_rng_blockfrequency_bytes);
-	ATF_TP_ADD_TC(tp, isc_rng_binarymatrixrank_bytes);
+	ATF_TP_ADD_TC(tp, isc_random_monobit_16);
+	ATF_TP_ADD_TC(tp, isc_random_runs_16);
+	ATF_TP_ADD_TC(tp, isc_random_blockfrequency_16);
+	ATF_TP_ADD_TC(tp, isc_random_binarymatrixrank_16);
+	ATF_TP_ADD_TC(tp, isc_random_monobit_bytes);
+	ATF_TP_ADD_TC(tp, isc_random_runs_bytes);
+	ATF_TP_ADD_TC(tp, isc_random_blockfrequency_bytes);
+	ATF_TP_ADD_TC(tp, isc_random_binarymatrixrank_bytes);
 
 	return (atf_no_error());
 }

@@ -16,7 +16,6 @@
 #include <unistd.h>		/* XXX */
 
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/region.h>
@@ -228,7 +227,6 @@ generate(int alg, isc_mem_t *mctx) {
 int
 main(void) {
 	isc_mem_t *mctx = NULL;
-	isc_entropy_t *ectx = NULL;
 	isc_buffer_t b;
 	dns_fixedname_t fname;
 	dns_name_t *name;
@@ -248,14 +246,7 @@ main(void) {
 
 	dns_result_register();
 
-	result = isc_entropy_create(mctx, &ectx);
-	if (result != ISC_R_SUCCESS)
-		return (1);
-	result = isc_entropy_createfilesource(ectx, "randomfile");
-	if (result != ISC_R_SUCCESS)
-		return (1);
-	dst_lib_init(mctx, ectx, NULL,
-		     ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY);
+	dst_lib_init(mctx, NULL);
 
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&b, "test.", 5);
@@ -283,7 +274,6 @@ main(void) {
 	generate(DST_ALG_HMACMD5, mctx);
 
 	dst_lib_destroy();
-	isc_entropy_detach(&ectx);
 
 	isc_mem_put(mctx, current, 256);
 /*	isc_mem_stats(mctx, stdout);*/

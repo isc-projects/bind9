@@ -30,7 +30,6 @@
 
 #include <config.h>
 
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -58,56 +57,6 @@ static int nlocks;
 #ifdef USE_ENGINE
 static ENGINE *e = NULL;
 #endif
-
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-static RAND_METHOD *rm = NULL;
-
-static int
-entropy_get(unsigned char *buf, int num) {
-	isc_result_t result;
-	if (num < 0)
-		return (-1);
-	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_FALSE);
-	return (result == ISC_R_SUCCESS ? 1 : -1);
-}
-
-static int
-entropy_status(void) {
-	return (dst__entropy_status() > 32);
-}
-
-static int
-entropy_getpseudo(unsigned char *buf, int num) {
-	isc_result_t result;
-	if (num < 0)
-		return (-1);
-	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_TRUE);
-	return (result == ISC_R_SUCCESS ? 1 : -1);
-}
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-static void
-entropy_add(const void *buf, int num, double entropy) {
-	/*
-	 * Do nothing.  The only call to this provides no useful data anyway.
-	 */
-	UNUSED(buf);
-	UNUSED(num);
-	UNUSED(entropy);
-}
-#else
-static int
-entropy_add(const void *buf, int num, double entropy) {
-	/*
-	 * Do nothing.  The only call to this provides no useful data anyway.
-	 */
-	UNUSED(buf);
-	UNUSED(num);
-	UNUSED(entropy);
-	return (1);
-}
-#endif
-#endif /* !ISC_PLATFORM_CRYPTORANDOM */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
@@ -196,10 +145,7 @@ _set_thread_id(CRYPTO_THREADID *id)
 isc_result_t
 dst__openssl_init(const char *engine) {
 	isc_result_t result;
-#if defined(USE_ENGINE) && !defined(ISC_PLATFORM_CRYPTORANDOM)
-	ENGINE *re;
-#else
-
+#if !defined(USE_ENGINE)
 	UNUSED(engine);
 #endif
 
@@ -225,20 +171,6 @@ dst__openssl_init(const char *engine) {
 # endif
 
 	ERR_load_crypto_strings();
-#endif
-
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	rm = mem_alloc(sizeof(RAND_METHOD) FILELINE);
-	if (rm == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_mutexinit;
-	}
-	rm->seed = NULL;
-	rm->bytes = entropy_get;
-	rm->cleanup = NULL;
-	rm->add = entropy_add;
-	rm->pseudorand = entropy_getpseudo;
-	rm->status = entropy_status;
 #endif
 
 #ifdef USE_ENGINE
@@ -273,27 +205,8 @@ dst__openssl_init(const char *engine) {
 		}
 	}
 
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	re = ENGINE_get_default_RAND();
-	if (re == NULL) {
-		re = ENGINE_new();
-		if (re == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_rm;
-		}
-		ENGINE_set_RAND(re, rm);
-		ENGINE_set_default_RAND(re);
-		ENGINE_free(re);
-	} else
-		ENGINE_finish(re);
-#endif
-#else
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	RAND_set_rand_method(rm);
-#endif
 #endif /* USE_ENGINE */
 
-#ifdef ISC_PLATFORM_CRYPTORANDOM
 	/* Protect ourselves against unseeded PRNG */
 	if (RAND_status() != 1) {
 		FATAL_ERROR(__FILE__, __LINE__,
@@ -301,7 +214,6 @@ dst__openssl_init(const char *engine) {
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
-#endif
 
 	return (ISC_R_SUCCESS);
 
@@ -310,13 +222,6 @@ dst__openssl_init(const char *engine) {
 	if (e != NULL)
 		ENGINE_free(e);
 	e = NULL;
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	mem_free(rm FILELINE);
-	rm = NULL;
-#endif
-#endif
-#ifndef ISC_PLATFORM_CRYPTORANDOM
- cleanup_mutexinit:
 #endif
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_locking_callback(NULL);
@@ -332,25 +237,10 @@ void
 dst__openssl_destroy(void) {
 #if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100000L)
 	OPENSSL_cleanup();
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	if (rm != NULL) {
-		mem_free(rm FILELINE);
-		rm = NULL;
-	}
-#endif
 #else
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
 	 */
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	if (rm != NULL) {
-#if OPENSSL_VERSION_NUMBER >= 0x00907000L
-		RAND_cleanup();
-#endif
-		mem_free(rm FILELINE);
-		rm = NULL;
-	}
-#endif
 #if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 	CONF_modules_free();
 #endif
@@ -485,47 +375,6 @@ dst__openssl_getengine(const char *engine) {
 	return (NULL);
 }
 #endif
-
-isc_result_t
-dst_random_getdata(void *data, unsigned int length,
-		   unsigned int *returned, unsigned int flags)
-{
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-#ifndef DONT_REQUIRE_DST_LIB_INIT
-	INSIST(dst__memory_pool != NULL);
-#endif
-	REQUIRE(data != NULL);
-	REQUIRE(length > 0);
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	if ((flags & ISC_ENTROPY_GOODONLY) == 0) {
-		if (RAND_pseudo_bytes((unsigned char *)data, (int)length) < 0)
-			return (dst__openssl_toresult2("RAND_pseudo_bytes",
-						       DST_R_OPENSSLFAILURE));
-	} else {
-		if (RAND_bytes((unsigned char *)data, (int)length) != 1)
-			return (dst__openssl_toresult2("RAND_bytes",
-						       DST_R_OPENSSLFAILURE));
-	}
-#else
-	UNUSED(flags);
-
-	if (RAND_bytes((unsigned char *)data, (int)length) != 1)
-		return (dst__openssl_toresult2("RAND_bytes",
-					       DST_R_OPENSSLFAILURE));
-#endif
-	if (returned != NULL)
-		*returned = length;
-	return (ISC_R_SUCCESS);
-#else
-	UNUSED(data);
-	UNUSED(length);
-	UNUSED(returned);
-	UNUSED(flags);
-
-	return (ISC_R_NOTIMPLEMENTED);
-#endif
-}
 
 #endif /* OPENSSL */
 /*! \file */

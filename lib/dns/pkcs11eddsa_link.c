@@ -14,7 +14,6 @@
 #if defined(PKCS11CRYPTO) && \
     defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha2.h>

@@ -15,7 +15,6 @@
 
 #include <config.h>
 
-#include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/sha2.h>

@@ -20,7 +20,6 @@
 #include <getopt.h>
 
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -120,7 +119,6 @@ int
 main (int argc, char **argv)
 {
   isc_mem_t *mctx = NULL;
-  isc_entropy_t *ectx = NULL;
   isc_result_t result;
   char *basedn;
   ldap_info *tmp;
@@ -213,9 +211,6 @@ main (int argc, char **argv)
 
   result = isc_mem_create (0, 0, &mctx);
   isc_result_check (result, "isc_mem_create");
-
-  result = isc_entropy_create(mctx, &ectx);
-  isc_result_check (result, "isc_entropy_create");
 
   isc_buffer_init (&buff, argzone, strlen (argzone));
   isc_buffer_add (&buff, strlen (argzone));
@@ -343,7 +338,6 @@ main (int argc, char **argv)
 	printf("Operation Complete.\n");
 
   /* Cleanup */
-  isc_entropy_detach(&ectx);
   isc_mem_destroy(&mctx);
   if (zonefile)
 	free(zonefile);

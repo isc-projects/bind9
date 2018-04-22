@@ -18,7 +18,6 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -210,7 +209,6 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg;
-	isc_entropy_t *ectx;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
 	isc_timermgr_t *timermgr;
@@ -276,17 +274,7 @@ main(int argc, char *argv[]) {
 	lcfg = NULL;
 	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
 
-	ectx = NULL;
-	RUNCHECK(isc_entropy_create(mctx, &ectx));
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
-	}
-#endif
-	if (randomfile != NULL)
-		RUNCHECK(isc_entropy_createfilesource(ectx, randomfile));
-
-	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
+	RUNCHECK(dst_lib_init(mctx, NULL));
 
 	taskmgr = NULL;
 	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
@@ -298,7 +286,7 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, ectx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY |
@@ -340,7 +328,6 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_destroy(&taskmgr);
 
 	dst_lib_destroy();
-	isc_entropy_detach(&ectx);
 
 	isc_log_destroy(&lctx);
 

@@ -123,7 +123,7 @@ main(int argc, char *argv[]) {
 	isc_task_setname(task, "byaddr", NULL);
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, NULL, &dispatchmgr)
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
 		      == ISC_R_SUCCESS);
 
 	timermgr = NULL;
