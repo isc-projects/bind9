@@ -20,8 +20,8 @@
 
 ISC_LANG_BEGINDECLS
 
-void generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
-		  int keysize, isc_buffer_t *key_txtbuffer);
+void generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
+		  isc_buffer_t *key_txtbuffer);
 
 void write_key_file(const char *keyfile, const char *user,
 		    const char *keyname, isc_buffer_t *secret,

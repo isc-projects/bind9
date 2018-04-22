@@ -29,7 +29,7 @@ CWARNINGS =
 
 # Alphabetically
 UNIXOBJS =	@ISC_ISCIPV6_O@ @ISC_ISCPK11_API_O@ \
-		unix/app.@O@ unix/dir.@O@ unix/entropy.@O@ unix/errno.@O@ \
+		unix/app.@O@ unix/dir.@O@ unix/errno.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/meminfo.@O@ \
 		unix/net.@O@ unix/os.@O@ unix/resource.@O@ unix/socket.@O@ \
@@ -66,8 +66,6 @@ OBJS =		@ISC_EXTRA_OBJS@ @ISC_PK11_O@ @ISC_PK11_RESULT_O@ \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
-CHACHASRCS =	chacha_private.h
-
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
 		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
@@ -77,7 +75,7 @@ SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
 		lex.c lfsr.c lib.c log.c \
 		md5.c mem.c mutexblock.c \
 		netaddr.c netscope.c pool.c \
-		parseint.c portset.c quota.c radix.c random.c ${CHACHASRCS} \
+		parseint.c portset.c quota.c radix.c random.c \
 		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
 		safe.c serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
 		strtoul.c symtab.c task.c taskpool.c timer.c \

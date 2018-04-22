@@ -826,7 +826,7 @@ static const char *dbargv_default[] = { "rbt" };
 	do { \
 		isc_interval_t _i; \
 		isc_uint32_t _j; \
-		_j = isc_random_jitter((b), (b)/4); \
+		_j = (b) - isc_random_uniform((b)/4);	\
 		isc_interval_set(&_i, _j, 0); \
 		if (isc_time_add((a), &_i, (c)) != ISC_R_SUCCESS) { \
 			dns_zone_log(zone, ISC_LOG_WARNING, \
@@ -3579,7 +3579,7 @@ set_resigntime(dns_zone_t *zone) {
 
 	resign = rdataset.resign - zone->sigresigninginterval;
 	dns_rdataset_disassociate(&rdataset);
-	isc_random_get(&nanosecs);
+	nanosecs = isc_random();
 	nanosecs %= 1000000000;
 	isc_time_set(&zone->resigntime, resign, nanosecs);
  cleanup:
@@ -4702,8 +4702,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				DNS_ZONE_TIME_ADD(&now, zone->retry,
 						  &zone->expiretime);
 
-			delay = isc_random_jitter(zone->retry,
-						  (zone->retry * 3) / 4);
+			delay = zone->retry - isc_random_uniform((zone->retry * 3) / 4);
 			DNS_ZONE_TIME_ADD(&now, delay, &zone->refreshtime);
 			if (isc_time_compare(&zone->refreshtime,
 					     &zone->expiretime) >= 0)
@@ -6410,7 +6409,6 @@ zone_resigninc(dns_zone_t *zone) {
 	isc_boolean_t check_ksk, keyset_kskonly = ISC_FALSE;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire, stop;
-	isc_uint32_t jitter;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	unsigned int resign;
@@ -6462,8 +6460,7 @@ zone_resigninc(dns_zone_t *zone) {
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600 - 1;
+	expire = soaexpire - isc_random_uniform(3600) - 1;
 	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
@@ -7372,7 +7369,6 @@ zone_nsec3chain(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -7449,8 +7445,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	expire = soaexpire - isc_random_uniform(3600);
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -8271,7 +8266,6 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
 	unsigned int i, j;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -8330,8 +8324,7 @@ zone_sign(dns_zone_t *zone) {
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	expire = soaexpire - isc_random_uniform(3600);
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until
@@ -10090,7 +10083,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	 * Setting this to the retry time will do that.  XXXMLG
 	 * If we are successful it will be reset using zone->refresh.
 	 */
-	isc_interval_set(&i, isc_random_jitter(zone->retry, zone->retry / 4),
+	isc_interval_set(&i, zone->retry - isc_random_uniform(zone->retry / 4),
 			 0);
 	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
 	if (result != ISC_R_SUCCESS)

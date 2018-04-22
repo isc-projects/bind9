@@ -43,7 +43,7 @@ setup(void) {
 	result = dns_test_begin(NULL, ISC_TRUE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_makeview("view", &view);

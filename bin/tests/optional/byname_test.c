@@ -21,7 +21,6 @@
 
 #include <isc/app.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -39,7 +38,6 @@
 #include <dns/result.h>
 
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 static isc_taskmgr_t *taskmgr;
 static dns_view_t *view = NULL;
 static dns_adbfind_t *find = NULL;
@@ -208,8 +206,6 @@ main(int argc, char *argv[]) {
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
-
 	while ((ch = isc_commandline_parse(argc, argv, "d:vw:")) != -1) {
 		switch (ch) {
 		case 'd':
@@ -241,7 +237,7 @@ main(int argc, char *argv[]) {
 	isc_task_setname(task, "byname", NULL);
 
 	dispatchmgr = NULL;
-	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, NULL, &dispatchmgr)
+	RUNTIME_CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr)
 		      == ISC_R_SUCCESS);
 
 	timermgr = NULL;
@@ -353,8 +349,6 @@ main(int argc, char *argv[]) {
 	isc_timermgr_destroy(&timermgr);
 
 	isc_log_destroy(&lctx);
-
-	isc_entropy_detach(&ectx);
 
 	if (verbose)
 		isc_mem_stats(mctx, stdout);

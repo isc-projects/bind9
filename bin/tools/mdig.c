@@ -17,7 +17,6 @@
 
 #include <isc/app.h>
 #include <isc/base64.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/log.h>
@@ -25,6 +24,7 @@
 #include <isc/net.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/string.h>
@@ -1884,7 +1884,6 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
 	isc_log_t *lctx;
 	isc_logconfig_t *lcfg;
-	isc_entropy_t *ectx;
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
 	isc_timermgr_t *timermgr;
@@ -1915,11 +1914,8 @@ main(int argc, char *argv[]) {
 	lcfg = NULL;
 	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
 
-	ectx = NULL;
-	RUNCHECK(isc_entropy_create(mctx, &ectx));
-	RUNCHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_GOODONLY));
-	RUNCHECK(isc_entropy_getdata(ectx, cookie_secret,
-				     sizeof(cookie_secret), NULL, 0));
+	RUNCHECK(dst_lib_init(mctx, NULL));
+	isc_random_buf(cookie_secret, sizeof(cookie_secret));
 
 	ISC_LIST_INIT(queries);
 	parse_args(ISC_FALSE, argc, argv);
@@ -1953,7 +1949,7 @@ main(int argc, char *argv[]) {
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, ectx, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY;
@@ -2019,7 +2015,6 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_destroy(&taskmgr);
 
 	dst_lib_destroy();
-	isc_entropy_detach(&ectx);
 
 	isc_log_destroy(&lctx);
 

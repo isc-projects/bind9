@@ -18,7 +18,6 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/print.h>
@@ -146,7 +145,6 @@ main(int argc, char **argv) {
 	char		filename[255];
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
-	isc_entropy_t	*ectx = NULL;
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	char		*label = NULL;
@@ -347,10 +345,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	if (ectx == NULL)
-		setup_entropy(mctx, NULL, &ectx);
-	ret = dst_lib_init(mctx, ectx, engine,
-			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	ret = dst_lib_init(mctx, engine);
 	if (ret != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(ret));
@@ -618,7 +613,6 @@ main(int argc, char **argv) {
 				engine,
 #endif
 				label, NULL, mctx, &key);
-	isc_entropy_stopcallbacksources(ectx);
 
 	if (ret != ISC_R_SUCCESS) {
 		char namestr[DNS_NAME_FORMATSIZE];
@@ -737,7 +731,6 @@ main(int argc, char **argv) {
 		dst_key_free(&prevkey);
 
 	cleanup_logging(&log);
-	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	dns_name_destroy();
 	if (verbose > 10)
