@@ -20,7 +20,6 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/keyboard.h>
 #include <isc/mem.h>
@@ -114,17 +113,12 @@ alg_bits(dns_secalg_t alg) {
 }
 
 /*%
- * Generate a key of size 'keysize' using entropy source 'randomfile',
- * and place it in 'key_txtbuffer'
+ * Generate a key of size 'keysize' and place it in 'key_txtbuffer'
  */
 void
-generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
-	     int keysize, isc_buffer_t *key_txtbuffer) {
+generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
+	     isc_buffer_t *key_txtbuffer) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_entropysource_t *entropy_source = NULL;
-	int open_keyboard = ISC_ENTROPY_KEYBOARDMAYBE;
-	int entropy_flags = 0;
-	isc_entropy_t *ectx = NULL;
 	isc_buffer_t key_rawbuffer;
 	isc_region_t key_rawregion;
 	char key_rawsecret[64];
@@ -151,26 +145,7 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 		fatal("unsupported algorithm %d\n", alg);
 	}
 
-
-	DO("create entropy context", isc_entropy_create(mctx, &ectx));
-
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (randomfile == NULL) {
-		isc_entropy_usehook(ectx, ISC_TRUE);
-	}
-#endif
-	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
-		randomfile = NULL;
-		open_keyboard = ISC_ENTROPY_KEYBOARDYES;
-	}
-	DO("start entropy source", isc_entropy_usebestsource(ectx,
-							     &entropy_source,
-							     randomfile,
-							     open_keyboard));
-
-	entropy_flags = ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY;
-
-	DO("initialize dst library", dst_lib_init(mctx, ectx, NULL, entropy_flags));
+	DO("initialize dst library", dst_lib_init(mctx, NULL));
 
 	DO("generate key", dst_key_generate(dns_rootname, alg,
 					    keysize, 0, 0, DNS_KEYPROTO_ANY,
@@ -186,17 +161,9 @@ generate_key(isc_mem_t *mctx, const char *randomfile, dns_secalg_t alg,
 	DO("bsse64 encode secret", isc_base64_totext(&key_rawregion, -1, "",
 						     key_txtbuffer));
 
-	/*
-	 * Shut down the entropy source now so the "stop typing" message
-	 * does not muck with the output.
-	 */
-	if (entropy_source != NULL)
-		isc_entropy_destroysource(&entropy_source);
-
 	if (key != NULL)
 		dst_key_free(&key);
 
-	isc_entropy_detach(&ectx);
 	dst_lib_destroy();
 }
 

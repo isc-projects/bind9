@@ -70,7 +70,7 @@ fnv_initialize(void) {
 	 * again, it should not change fnv_offset_basis.
 	 */
 	while (fnv_offset_basis == 0) {
-		isc_random_get(&fnv_offset_basis);
+		fnv_offset_basis = isc_random();
 	}
 
 	fnv_initialized = ISC_TRUE;

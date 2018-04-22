@@ -1,0 +1,176 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+/*
+ * Portions of isc_random_uniform():
+ *
+ * Copyright (c) 1996, David Mazieres <dm@uun.org>
+ * Copyright (c) 2008, Damien Miller <djm@openbsd.org>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#include <config.h>
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#ifdef OPENSSL
+#include <openssl/rand.h>
+#endif /* ifdef OPENSSL */
+
+#ifdef PKCS11CRYPTO
+#include <pk11/pk11.h>
+#endif /* ifdef PKCS11CRYPTO */
+
+#include <isc/random.h>
+#include <isc/result.h>
+#include <isc/types.h>
+#include <isc/util.h>
+
+#if defined(__linux__)
+# ifdef HAVE_GETRANDOM
+#  include <sys/random.h>
+# else  /* ifdef HAVE_GETRANDOM */
+#  include <sys/syscall.h>
+#  undef getrandom
+#  if defined(SYS_getrandom)
+#   define getrandom(dst,s,flags) syscall(SYS_getrandom, \
+					  (void*)dst, \
+					  (size_t)s, \
+					  (unsigned int)flags)
+#  else  /* if defined(SYS_getrandom) */
+#   define getrandom(dst,s,flags) - 1
+#  endif /* if defined(SYS_getrandom) */
+# endif /* ifdef HAVE_GETRANDOM */
+
+static
+unsigned
+getrandom_available(void)
+{
+	uint16_t buf;
+	ssize_t ret;
+	ret = getrandom(&buf, sizeof(buf), 1 /*GRND_NONBLOCK*/);
+	return (ret == sizeof(buf) ||
+		(ret == -1 && errno == EAGAIN));
+}
+
+static int
+force_getrandom(void *buf, size_t lenbuf)
+{
+	size_t left = buflen;
+	ssize_t ret;
+	uint8_t *p = buf;
+
+	while (left > 0) {
+		ret = getrandom(p, left, 0);
+		if (ret == -1 && errno == EINTR) {
+			continue;
+		}
+
+		RUNTIME_CHECK(ret >= 0);
+
+		if (ret > 0) {
+			left -= ret;
+			p += ret;
+		}
+	}
+
+	return(0);
+}
+#endif /* __linux__ */
+
+uint32_t
+isc_random(void)
+{
+#if defined(HAVE_ARC4RANDOM)
+	return(arc4random());
+#else /* HAVE_ARC4RANDOM */
+	uint32_t ret;
+	RUNTIME_CHECK(isc_random_getdata(&ret, sizeof(ret)) == ISC_R_SUCCESS);
+	return (ret);
+#endif /* HAVE_ARC4RANDOM */
+}
+
+/*
+ * Fill the region buf of length buflen with random data.
+ */
+void
+isc_random_buf(void *buf, size_t buflen)
+{
+	REQUIRE(buf);
+	REQUIRE(buflen > 0);
+#if defined(__linux__)
+	if (have_getrandom()) {
+		isc_getrandom_hook(buf, buflen);
+		return;
+	}
+#endif /* if defined(__linux__) */
+#if defined(HAVE_ARC4RANDOM_BUF)
+	arc4random_buf(buf, buflen);
+#elif defined(OPENSSL)
+	RUNTIME_CHECK(RAND_bytes(buf, buflen) < 1);
+#elif defined(PKCS11CRYPTO)
+	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
+#endif /* if defined(HAVE_ARC4RANDOM_BUF) */
+}
+
+uint32_t
+isc_random_uniform(uint32_t upper_bound)
+{
+#if defined(HAVE_ARC4RANDOM_UNIFORM)
+	return(arc4random_uniform(upper_bound));
+#else  /* if defined(HAVE_ARC4RANDOM_UNIFORM) */
+	u_int32_t r, min;
+
+	if (upper_bound < 2) {
+		return (0);
+	}
+
+#if (ULONG_MAX > 0xffffffffUL)
+	min = 0x100000000UL % upper_bound;
+#else  /* if (ULONG_MAX > 0xffffffffUL) */
+	/* Calculate (2**32 % upper_bound) avoiding 64-bit math */
+	if (upper_bound > 0x80000000) {
+		min = 1 + ~upper_bound;         /* 2**32 - upper_bound */
+	} else {
+		/* (2**32 - (x * 2)) % x == 2**32 % x when x <= 2**31 */
+		min = ((0xffffffff - (upper_bound * 2)) + 1) % upper_bound;
+	}
+#endif /* if (ULONG_MAX > 0xffffffffUL) */
+
+	/*
+	 * This could theoretically loop forever but each retry has
+	 * p > 0.5 (worst case, usually far better) of selecting a
+	 * number inside the range we need, so it should rarely need
+	 * to re-roll.
+	 */
+	for (;;) {
+		r = isc_random();
+		if (r >= min) {
+			break;
+		}
+	}
+
+	return (r % upper_bound);
+#endif /* if defined(HAVE_ARC4RANDOM_UNIFORM) */
+}

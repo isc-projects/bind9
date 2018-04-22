@@ -37,7 +37,6 @@
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/fsaccess.h>
 #include <isc/hmacsha.h>
 #include <isc/lex.h>
@@ -72,8 +71,6 @@
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
-static isc_entropy_t *dst_entropy_pool = NULL;
-static unsigned int dst_entropy_flags = 0;
 
 static isc_boolean_t dst_initialized = ISC_FALSE;
 
@@ -148,8 +145,7 @@ default_memfree(void *arg, void *ptr) {
 #endif
 
 isc_result_t
-dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
-	     const char *engine, unsigned int eflags) {
+dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
@@ -182,10 +178,6 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 #else /* OPENSSL */
 	isc_mem_attach(mctx, &dst__memory_pool);
 #endif /* OPENSSL */
-	if (ectx != NULL) {
-		isc_entropy_attach(ectx, &dst_entropy_pool);
-		dst_entropy_flags = eflags;
-	}
 
 	dst_result_register();
 
@@ -265,13 +257,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx,
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (dst_entropy_pool != NULL) {
-		isc_entropy_sethook(dst_random_getdata);
-	}
-#endif
-#endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
+#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
+#error Either OpenSSL or PKCS#11 cryptographic provider needed.
+#endif /* !defined(OPENSSL) && !defined(PKCS11CRYPTO) */
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -292,12 +280,6 @@ dst_lib_destroy(void) {
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
 			dst_t_func[i]->cleanup();
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (dst_entropy_pool != NULL) {
-		isc_entropy_usehook(dst_entropy_pool, ISC_FALSE);
-		isc_entropy_sethook(NULL);
-	}
-#endif
 #ifdef OPENSSL
 	dst__openssl_destroy();
 #elif PKCS11CRYPTO
@@ -306,8 +288,6 @@ dst_lib_destroy(void) {
 #endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
-	if (dst_entropy_pool != NULL)
-		isc_entropy_detach(&dst_entropy_pool);
 }
 
 isc_boolean_t
@@ -1944,65 +1924,6 @@ addsuffix(char *filename, int len, const char *odirname,
 	if (n >= len)
 		return (ISC_R_NOSPACE);
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
-	unsigned int flags = dst_entropy_flags;
-
-	if (dst_entropy_pool == NULL)
-		return (ISC_R_FAILURE);
-
-	if (len == 0)
-		return (ISC_R_SUCCESS);
-
-#ifdef PKCS11CRYPTO
-	UNUSED(pseudo);
-	UNUSED(flags);
-	return (pk11_rand_bytes(buf, len));
-#else /* PKCS11CRYPTO */
-	if (pseudo)
-		flags &= ~ISC_ENTROPY_GOODONLY;
-	else
-		flags |= ISC_ENTROPY_BLOCKING;
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	/* get entropy directly from crypto provider */
-	return (dst_random_getdata(buf, len, NULL, flags));
-#else
-	/* get entropy from entropy source or hook function */
-	return (isc_entropy_getdata(dst_entropy_pool, buf, len, NULL, flags));
-#endif /* ISC_PLATFORM_CRYPTORANDOM */
-#endif /* PKCS11CRYPTO */
-}
-
-unsigned int
-dst__entropy_status(void) {
-#if !defined(PKCS11CRYPTO) && !defined(ISC_PLATFORM_CRYPTORANDOM)
-#ifdef GSSAPI
-	unsigned int flags = dst_entropy_flags;
-	isc_result_t ret;
-	unsigned char buf[32];
-	static isc_boolean_t first = ISC_TRUE;
-
-	if (dst_entropy_pool == NULL)
-		return (0);
-
-	if (first) {
-		/* Someone believes RAND_status() initializes the PRNG */
-		flags &= ~ISC_ENTROPY_GOODONLY;
-		ret = isc_entropy_getdata(dst_entropy_pool, buf,
-					  sizeof(buf), NULL, flags);
-		INSIST(ret == ISC_R_SUCCESS);
-		isc_entropy_putdata(dst_entropy_pool, buf,
-				    sizeof(buf), 2 * sizeof(buf));
-		first = ISC_FALSE;
-	}
-#endif
-	return (isc_entropy_status(dst_entropy_pool));
-#else
-	/* Doesn't matter as it is not used in this case. */
-	return (0);
-#endif
 }
 
 isc_buffer_t *

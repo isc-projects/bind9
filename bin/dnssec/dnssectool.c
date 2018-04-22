@@ -27,7 +27,6 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/heap.h>
 #include <isc/list.h>
@@ -73,15 +72,6 @@ struct nsec3_chain_fixed {
 extern int verbose;
 extern const char *program;
 
-typedef struct entropysource entropysource_t;
-
-struct entropysource {
-	isc_entropysource_t *source;
-	isc_mem_t *mctx;
-	ISC_LINK(entropysource_t) link;
-};
-
-static ISC_LIST(entropysource_t) sources;
 static fatalcallback_t *fatalcallback = NULL;
 
 void
@@ -220,63 +210,6 @@ cleanup_logging(isc_log_t **logp) {
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
-}
-
-void
-setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
-	isc_result_t result;
-	isc_entropysource_t *source = NULL;
-	entropysource_t *elt;
-	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
-
-	REQUIRE(ectx != NULL);
-
-	if (*ectx == NULL) {
-		result = isc_entropy_create(mctx, ectx);
-		if (result != ISC_R_SUCCESS)
-			fatal("could not create entropy object: %s",
-			      isc_result_totext(result));
-		ISC_LIST_INIT(sources);
-	}
-
-#ifdef ISC_PLATFORM_CRYPTORANDOM
-	if (randomfile == NULL) {
-		isc_entropy_usehook(*ectx, ISC_TRUE);
-	}
-#endif
-	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
-		usekeyboard = ISC_ENTROPY_KEYBOARDYES;
-		randomfile = NULL;
-	}
-
-	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
-					   usekeyboard);
-
-	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize entropy source: %s",
-		      isc_result_totext(result));
-
-	if (source != NULL) {
-		elt = isc_mem_get(mctx, sizeof(*elt));
-		if (elt == NULL)
-			fatal("out of memory");
-		elt->source = source;
-		elt->mctx = mctx;
-		ISC_LINK_INIT(elt, link);
-		ISC_LIST_APPEND(sources, elt, link);
-	}
-}
-
-void
-cleanup_entropy(isc_entropy_t **ectx) {
-	entropysource_t *source;
-	while (!ISC_LIST_EMPTY(sources)) {
-		source = ISC_LIST_HEAD(sources);
-		ISC_LIST_UNLINK(sources, source, link);
-		isc_entropy_destroysource(&source->source);
-		isc_mem_put(source->mctx, source, sizeof(*source));
-	}
-	isc_entropy_detach(ectx);
 }
 
 static isc_stdtime_t

@@ -934,7 +934,7 @@ main(int argc, char **argv) {
 	if (argc < 1)
 		usage(1);
 
-	isc_random_get(&serial);
+	serial = isc_random();
 
 	DO("create memory context", isc_mem_create(0, 0, &rndc_mctx));
 	DO("create socket manager", isc_socketmgr_create(rndc_mctx, &socketmgr));
