@@ -36,6 +36,7 @@
 #include <dns/dnsrps.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
+#include <dns/keytable.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
@@ -700,6 +701,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.isreferral = ISC_FALSE;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = ISC_UINT32_MAX;
+	client->query.root_key_sentinel_keyid = 0;
+	client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	client->query.root_key_sentinel_not_ta = ISC_FALSE;
 }
 
 static void
@@ -5118,6 +5122,68 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	return (ns__query_start(&qctx));
 }
 
+static isc_boolean_t
+get_root_key_sentinel_id(query_ctx_t *qctx, const char *ndata) {
+	unsigned int v = 0;
+	int i;
+
+	for (i = 0; i < 5; i++) {
+		if (ndata[i] < '0' || ndata[i] > '9') {
+			return (ISC_FALSE);
+		}
+		v *= 10;
+		v += ndata[i] - '0';
+	}
+	if (v > 65535U) {
+		return (ISC_FALSE);
+	}
+	qctx->client->query.root_key_sentinel_keyid = v;
+	return (ISC_TRUE);
+}
+
+/*%
+ * Find out if the query is for a root key sentinel and if so, record the type
+ * of root key sentinel query and the key id that is being checked for.
+ *
+ * The code is assuming a zero padded decimal field of width 5.
+ */
+static void
+root_key_sentinel_detect(query_ctx_t *qctx) {
+	const char *ndata = (const char *)qctx->client->query.qname->ndata;
+
+	if (qctx->client->query.qname->length > 30 && ndata[0] == 29 &&
+	    strncasecmp(ndata + 1, "root-key-sentinel-is-ta-", 24) == 0)
+	{
+		if (!get_root_key_sentinel_id(qctx, ndata + 25)) {
+			return;
+		}
+		qctx->client->query.root_key_sentinel_is_ta = ISC_TRUE;
+		/*
+		 * Simplify processing by disabling agressive
+		 * negative caching.
+		 */
+		qctx->findcoveringnsec = ISC_FALSE;
+		ns_client_log(qctx->client, NS_LOGCATEGORY_TAT,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "root-key-sentinel-is-ta query label found");
+	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
+	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
+	{
+		if (!get_root_key_sentinel_id(qctx, ndata + 26)) {
+			return;
+		}
+		qctx->client->query.root_key_sentinel_not_ta = ISC_TRUE;
+		/*
+		 * Simplify processing by disabling agressive
+		 * negative caching.
+		 */
+		qctx->findcoveringnsec = ISC_FALSE;
+		ns_client_log(qctx->client, NS_LOGCATEGORY_TAT,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "root-key-sentinel-not-ta query label found");
+	}
+}
+
 /*%
  * Starting point for a client query or a chaining query.
  *
@@ -5156,6 +5222,18 @@ ns__query_start(query_ctx_t *qctx) {
 			      typename, classname);
 		QUERY_ERROR(qctx, DNS_R_REFUSED);
 		return (query_done(qctx));
+	}
+
+	/*
+	 * Setup for root key sentinel processing.
+	 */
+	if (qctx->client->view->root_key_sentinel &&
+	    qctx->client->query.restarts == 0 &&
+	    (qctx->qtype == dns_rdatatype_a ||
+	     qctx->qtype == dns_rdatatype_aaaa) &&
+	    (qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
+	{
+		 root_key_sentinel_detect(qctx);
 	}
 
 	/*
@@ -6340,6 +6418,91 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 }
 
 /*%
+ * Check the configured trust anchors for a root zone trust anchor
+ * with a key id that matches qctx->client->query.root_key_sentinel_keyid.
+ *
+ * Return ISC_TRUE when found, otherwise return ISC_FALSE.
+ */
+static isc_boolean_t
+has_ta(query_ctx_t *qctx) {
+	dns_keytable_t *keytable = NULL;
+	dns_keynode_t *keynode = NULL;
+	isc_result_t result;
+
+	result = dns_view_getsecroots(qctx->client->view, &keytable);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_FALSE);
+	}
+
+	result = dns_keytable_find(keytable, dns_rootname, &keynode);
+	while (result == ISC_R_SUCCESS) {
+		dns_keynode_t *nextnode = NULL;
+		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
+		if (keyid == qctx->client->query.root_key_sentinel_keyid) {
+			dns_keytable_detachkeynode(keytable, &keynode);
+			dns_keytable_detach(&keytable);
+			return (ISC_TRUE);
+		}
+		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
+		dns_keytable_detachkeynode(keytable, &keynode);
+		keynode = nextnode;
+	}
+	dns_keytable_detach(&keytable);
+
+	return (ISC_FALSE);
+}
+
+/*%
+ * Check if a root key sentinel SERVFAIL should be returned.
+ */
+static isc_boolean_t
+root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
+	/*
+	 * Are we looking at a "root-key-sentinel" query?
+	 */
+	if (!qctx->client->query.root_key_sentinel_is_ta &&
+	    !qctx->client->query.root_key_sentinel_not_ta)
+	{
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * We only care about the query if 'result' indicates we have a cached
+	 * answer.
+	 */
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		break;
+	default:
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * Do we meet the specified conditions to return SERVFAIL?
+	 */
+	if (!qctx->is_zone &&
+	    qctx->rdataset->trust == dns_trust_secure &&
+	    ((qctx->client->query.root_key_sentinel_is_ta && !has_ta(qctx)) ||
+	     (qctx->client->query.root_key_sentinel_not_ta && has_ta(qctx))))
+	{
+		return (ISC_TRUE);
+	}
+
+	/*
+	 * As special processing may only be triggered by the original QNAME,
+	 * disable it after following a CNAME/DNAME.
+	 */
+	qctx->client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	qctx->client->query.root_key_sentinel_not_ta = ISC_FALSE;
+
+	return (ISC_FALSE);
+}
+
+/*%
  * Continue after doing a database lookup or returning from
  * recursion, and call out to the next function depending on the
  * result from the search.
@@ -6360,6 +6523,19 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		result = query_checkrpz(qctx, result);
 		if (result == ISC_R_COMPLETE)
 			return (query_done(qctx));
+	}
+
+	/*
+	 * If required, handle special "root-key-sentinel-is-ta-<keyid>" and
+	 * "root-key-sentinel-not-ta-<keyid>" labels by returning SERVFAIL.
+	 */
+	if (root_key_sentinel_return_servfail(qctx, result)) {
+		/*
+		 * Don't record this response in the SERVFAIL cache.
+		 */
+		qctx->client->attributes |= NS_CLIENTATTR_NOSETFC;
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		return (query_done(qctx));
 	}
 
 	switch (result) {
@@ -10855,7 +11031,7 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
-	 * Set NS_CLIENTATTR_WANTDNSSEC if the client has set AD in the query.
+	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.
 	 * This allows AD to be returned on queries without DO set.
 	 */
 	if ((message->flags & DNS_MESSAGEFLAG_AD) != 0)

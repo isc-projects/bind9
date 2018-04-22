@@ -195,6 +195,7 @@ options {\n\
 	resolver-nonbackoff-tries 3;\n\
 	resolver-retry-interval 800; /* in milliseconds */\n\
 #	rfc2308-type1 <obsolete>;\n\
+	root-key-sentinel yes;\n\
 	servfail-ttl 1;\n\
 #	sortlist <none>\n\
 	stale-answer-enable false;\n\
