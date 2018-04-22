@@ -19,7 +19,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/print.h>
 #include <isc/socket.h>
@@ -44,7 +43,6 @@ struct client {
 };
 
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 static isc_mempool_t *cmp;
 static isc_log_t *lctx;
 static isc_logconfig_t *lcfg;
@@ -160,7 +158,7 @@ create_managers(void) {
 	check_result(result, "isc_socketmgr_create");
 
 	dispatchmgr = NULL;
-	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 }
 
@@ -306,8 +304,6 @@ main(int argc, char **argv) {
 		      == ISC_R_SUCCESS);
 	isc_mempool_setname(cmp, "adb test clients");
 
-	result = isc_entropy_create(mctx, &ectx);
-	check_result(result, "isc_entropy_create()");
 	result = isc_log_create(mctx, &lctx, &lcfg);
 	check_result(result, "isc_log_create()");
 	isc_log_setcontext(lctx);
@@ -416,8 +412,6 @@ main(int argc, char **argv) {
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_log_destroy(&lctx);
-
-	isc_entropy_detach(&ectx);
 
 	isc_mempool_destroy(&cmp);
 	isc_mem_stats(mctx, stdout);

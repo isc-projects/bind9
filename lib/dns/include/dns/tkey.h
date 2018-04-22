@@ -37,13 +37,11 @@ struct dns_tkeyctx {
 	dns_name_t *domain;
 	gss_cred_id_t gsscred;
 	isc_mem_t *mctx;
-	isc_entropy_t *ectx;
 	char *gssapi_keytab;
 };
 
 isc_result_t
-dns_tkeyctx_create(isc_mem_t *mctx, isc_entropy_t *ectx,
-		   dns_tkeyctx_t **tctxp);
+dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp);
 /*%<
  *	Create an empty TKEY context.
  *

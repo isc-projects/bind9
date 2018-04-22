@@ -96,8 +96,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 
 void
 isc_taskpool_gettask(isc_taskpool_t *pool, isc_task_t **targetp) {
-	isc_uint32_t i;
-	isc_random_get(&i);
+	isc_uint32_t i = isc_random();
 	isc_task_attach(pool->tasks[i % pool->ntasks], targetp);
 }
 

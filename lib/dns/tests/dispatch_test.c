@@ -39,7 +39,7 @@ make_dispatchset(unsigned int ndisps) {
 	unsigned int attrs;
 	dns_dispatch_t *disp = NULL;
 
-	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -262,7 +262,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	result = isc_task_create(taskmgr, 0, &task);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	ina.s_addr = htonl(INADDR_LOOPBACK);

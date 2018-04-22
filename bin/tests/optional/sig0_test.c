@@ -19,7 +19,6 @@
 #include <isc/boolean.h>
 #include <isc/assertions.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/error.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -59,7 +58,6 @@ isc_mem_t *mctx;
 unsigned char qdata[1024], rdata[1024];
 isc_buffer_t qbuffer, rbuffer;
 isc_taskmgr_t *taskmgr;
-isc_entropy_t *ent = NULL;
 isc_task_t *task1;
 isc_log_t *lctx = NULL;
 isc_logconfig_t *logconfig = NULL;
@@ -224,8 +222,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	RUNTIME_CHECK(isc_entropy_create(mctx, &ent) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dst_lib_init(mctx, ent, NULL, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
 
 	dns_result_register();
 	dst_result_register();
@@ -278,8 +275,6 @@ main(int argc, char *argv[]) {
 	dst_key_free(&key);
 
 	dst_lib_destroy();
-
-	isc_entropy_detach(&ent);
 
 	isc_log_destroy(&lctx);
 

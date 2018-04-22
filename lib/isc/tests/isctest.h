@@ -14,7 +14,6 @@
 #include <config.h>
 
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -33,7 +32,6 @@
 	} while (0)
 
 extern isc_mem_t *mctx;
-extern isc_entropy_t *ectx;
 extern isc_log_t *lctx;
 extern isc_taskmgr_t *taskmgr;
 extern isc_timermgr_t *timermgr;

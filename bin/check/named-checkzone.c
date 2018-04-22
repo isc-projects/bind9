@@ -20,7 +20,6 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -47,7 +46,6 @@
 
 static int quiet = 0;
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 dns_zone_t *zone = NULL;
 dns_zonetype_t zonetype = dns_zone_master;
 static int dumpzone = 0;
@@ -522,7 +520,6 @@ main(int argc, char **argv) {
 	if (!quiet)
 		RUNTIME_CHECK(setup_logging(mctx, errout, &lctx)
 			      == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 
 	dns_result_register();
 
@@ -554,7 +551,6 @@ main(int argc, char **argv) {
 	destroy();
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
-	isc_entropy_detach(&ectx);
 	isc_mem_destroy(&mctx);
 #ifdef _WIN32
 	DestroySockets();
