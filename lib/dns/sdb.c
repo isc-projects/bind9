@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 #include <config.h>
@@ -1410,7 +1408,7 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	source->private5 = tempdb;
 }
 
-static dns_rdatasetmethods_t methods = {
+static dns_rdatasetmethods_t sdb_rdataset_methods = {
 	disassociate,
 	isc__rdatalist_first,
 	isc__rdatalist_next,
@@ -1445,7 +1443,7 @@ list_tordataset(dns_rdatalist_t *rdatalist,
 	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) ==
 		      ISC_R_SUCCESS);
 
-	rdataset->methods = &methods;
+	rdataset->methods = &sdb_rdataset_methods;
 	dns_db_attachnode(db, node, &rdataset->private5);
 }
 

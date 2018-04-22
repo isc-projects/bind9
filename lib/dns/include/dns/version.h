@@ -9,9 +9,10 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: version.h,v 1.9.1234.1 2012/02/11 22:37:57 each Exp $ */
-
 /*! \file dns/version.h */
+
+#ifndef DNS_VERSION_H
+#define DNS_VERSION_H 1
 
 #include <isc/platform.h>
 
@@ -22,3 +23,5 @@ LIBDNS_EXTERNAL_DATA extern const char dns_mapapi[];
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_libinterface;
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_librevision;
 LIBDNS_EXTERNAL_DATA extern const unsigned int dns_libage;
+
+#endif /* DNS_VERSION_H */
