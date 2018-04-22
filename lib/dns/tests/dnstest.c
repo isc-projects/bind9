@@ -21,7 +21,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
@@ -47,7 +46,6 @@
 #include "dnstest.h"
 
 isc_mem_t *mctx = NULL;
-isc_entropy_t *ectx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
@@ -118,9 +116,8 @@ dns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	if (debug_mem_record)
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	CHECK(isc_mem_create(0, 0, &mctx));
-	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
+	CHECK(dst_lib_init(mctx, NULL));
 	dst_active = ISC_TRUE;
 
 	if (logfile != NULL) {
@@ -170,8 +167,6 @@ dns_test_end(void) {
 		dst_lib_destroy();
 		dst_active = ISC_FALSE;
 	}
-	if (ectx != NULL)
-		isc_entropy_detach(&ectx);
 
 	cleanup_managers();
 

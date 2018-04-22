@@ -47,8 +47,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		byname_test@EXEEXT@ \
 		db_test@EXEEXT@ \
 		dst_test@EXEEXT@ \
-		entropy_test@EXEEXT@ \
-		entropy2_test@EXEEXT@ \
 		gsstest@EXEEXT@ \
 		hash_test@EXEEXT@ \
 		fsaccess_test@EXEEXT@ \
@@ -80,8 +78,6 @@ XSRCS =		adb_test.c \
 		byname_test.c \
 		db_test.c \
 		dst_test.c \
-		entropy_test.c \
-		entropy2_test.c \
 		hash_test.c \
 		fsaccess_test.c \
 		gsstest.c \

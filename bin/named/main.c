@@ -21,7 +21,6 @@
 #include <isc/backtrace.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
@@ -845,14 +844,6 @@ create_managers(void) {
 			      ISC_LOG_INFO, "using up to %u sockets", socks);
 	}
 
-	result = isc_entropy_create(named_g_mctx, &named_g_entropy);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_entropy_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -929,30 +920,6 @@ setup(void) {
 	if (instance != NULL)
 		isc_mem_free(named_g_mctx, instance);
 #endif /* HAVE_LIBSCF */
-
-#ifdef PATH_RANDOMDEV
-	/*
-	 * Initialize system's random device as fallback entropy source
-	 * if running chroot'ed.
-	 */
-	if (named_g_chrootdir != NULL) {
-		result = isc_entropy_create(named_g_mctx,
-					    &named_g_fallbackentropy);
-		if (result != ISC_R_SUCCESS)
-			named_main_earlyfatal("isc_entropy_create() failed: %s",
-					   isc_result_totext(result));
-
-		result = isc_entropy_createfilesource(named_g_fallbackentropy,
-						      PATH_RANDOMDEV);
-		if (result != ISC_R_SUCCESS) {
-			named_main_earlywarning("could not open pre-chroot "
-					     "entropy source %s: %s",
-					     PATH_RANDOMDEV,
-					     isc_result_totext(result));
-			isc_entropy_detach(&named_g_fallbackentropy);
-		}
-	}
-#endif
 
 #ifdef ISC_PLATFORM_USETHREADS
 	/*
@@ -1159,10 +1126,6 @@ cleanup(void) {
 
 	if (named_g_mapped != NULL)
 		dns_acl_detach(&named_g_mapped);
-
-	isc_entropy_detach(&named_g_entropy);
-	if (named_g_fallbackentropy != NULL)
-		isc_entropy_detach(&named_g_fallbackentropy);
 
 	named_server_destroy(&named_g_server);
 

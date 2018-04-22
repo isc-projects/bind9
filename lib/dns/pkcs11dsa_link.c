@@ -19,7 +19,6 @@
 
 #include <string.h>
 
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha1.h>

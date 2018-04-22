@@ -48,8 +48,6 @@ EXTERN unsigned int		named_g_cpus		INIT(0);
 EXTERN unsigned int		named_g_udpdisp		INIT(0);
 EXTERN isc_taskmgr_t *		named_g_taskmgr		INIT(NULL);
 EXTERN dns_dispatchmgr_t *	named_g_dispatchmgr	INIT(NULL);
-EXTERN isc_entropy_t *		named_g_entropy		INIT(NULL);
-EXTERN isc_entropy_t *		named_g_fallbackentropy	INIT(NULL);
 EXTERN unsigned int		named_g_cpus_detected	INIT(1);
 
 #ifdef ENABLE_AFL

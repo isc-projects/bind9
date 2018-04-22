@@ -57,7 +57,6 @@
 
 #include <isc/app.h>
 #include <isc/base64.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/lang.h>
@@ -178,7 +177,6 @@ unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *tsigkey = NULL;
 isc_boolean_t validated = ISC_TRUE;
-isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
 isc_boolean_t debugging = ISC_FALSE;
 isc_boolean_t debugtiming = ISC_FALSE;
@@ -1316,10 +1314,8 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 		setup_file_key();
 	else if (keysecret[0] != 0)
 		setup_text_key();
-	result = isc_entropy_getdata(entp, cookie_secret,
-				     sizeof(cookie_secret), NULL, 0);
-	if (result != ISC_R_SUCCESS)
-		fatal("unable to generate cookie secret");
+
+	isc_random_buf(cookie_secret, sizeof(cookie_secret));
 }
 
 /*%
@@ -1388,10 +1384,7 @@ setup_libs(void) {
 	result = isc_socketmgr_create(mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
 
-	result = isc_entropy_create(mctx, &entp);
-	check_result(result, "isc_entropy_create");
-
-	result = dst_lib_init(mctx, entp, NULL, 0);
+	result = dst_lib_init(mctx, NULL);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 
@@ -1877,7 +1870,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 		     srv != NULL;
 		     srv = ISC_LIST_HEAD(lookup->my_server_list)) {
 			INSIST(i > 0);
-			isc_random_get(&j);
+			j = isc_random();
 			j %= i;
 			next = ISC_LIST_NEXT(srv, link);
 			while (j-- > 0 && next != NULL) {
@@ -2205,7 +2198,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	dighost_trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
-	isc_random_get(&id);
+	id = isc_random();
 	lookup->sendmsg->id = (unsigned short)id & 0xFFFF;
 	lookup->sendmsg->opcode = lookup->opcode;
 	lookup->msgcounter = 0;
@@ -4216,10 +4209,6 @@ destroy_libs(void) {
 		debug("destroy DST lib");
 		dst_lib_destroy();
 		is_dst_up = ISC_FALSE;
-	}
-	if (entp != NULL) {
-		debug("detach from entropy");
-		isc_entropy_detach(&entp);
 	}
 
 	UNLOCK_LOOKUP;

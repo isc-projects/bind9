@@ -19,7 +19,6 @@
 #include <isc/app.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/hash.h>
@@ -73,7 +72,6 @@ int verbose;
 
 static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 static dns_masterformat_t inputformat = dns_masterformat_text;
 static dns_db_t *gdb;			/* The database */
 static dns_dbversion_t *gversion;	/* The database version */
@@ -277,10 +275,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	if (ectx == NULL)
-		setup_entropy(mctx, NULL, &ectx);
-
-	result = dst_lib_init(mctx, ectx, engine, ISC_ENTROPY_BLOCKING);
+	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
@@ -335,7 +330,6 @@ main(int argc, char *argv[]) {
 
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

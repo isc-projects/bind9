@@ -55,12 +55,6 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp);
 void
 cleanup_logging(isc_log_t **logp);
 
-void
-setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx);
-
-void
-cleanup_entropy(isc_entropy_t **ectx);
-
 dns_ttl_t strtottl(const char *str);
 
 isc_stdtime_t
