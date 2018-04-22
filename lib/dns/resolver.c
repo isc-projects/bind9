@@ -1182,7 +1182,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			 * slow.  We don't know.  Increase the RTT.
 			 */
 			INSIST(no_response);
-			isc_random_get(&value);
+			value = isc_random();
 			if (query->addrinfo->srtt > 800000)
 				mask = 0x3fff;
 			else if (query->addrinfo->srtt > 400000)

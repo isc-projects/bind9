@@ -781,7 +781,6 @@ xfrin_create(isc_mem_t *mctx,
 {
 	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
-	isc_uint32_t tmp;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
 	if (xfr == NULL)
@@ -805,9 +804,8 @@ xfrin_create(isc_mem_t *mctx,
 
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
-	isc_random_get(&tmp);
 	xfr->checkid = ISC_TRUE;
-	xfr->id	= (isc_uint16_t)(tmp & 0xffff);
+	xfr->id	= (isc_uint16_t)(isc_random() & 0xffff);
 	xfr->reqtype = reqtype;
 	xfr->dscp = dscp;
 

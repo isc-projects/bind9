@@ -1812,7 +1812,6 @@ free_adblameinfo(dns_adb_t *adb, dns_adblameinfo_t **lameinfo) {
 static inline dns_adbentry_t *
 new_adbentry(dns_adb_t *adb) {
 	dns_adbentry_t *e;
-	isc_uint32_t r;
 
 	e = isc_mempool_get(adb->emp);
 	if (e == NULL)
@@ -1835,8 +1834,7 @@ new_adbentry(dns_adb_t *adb) {
 	e->to512 = 0;
 	e->cookie = NULL;
 	e->cookielen = 0;
-	isc_random_get(&r);
-	e->srtt = (r & 0x1f) + 1;
+	e->srtt = (isc_random() & 0x1f) + 1;
 	e->lastage = 0;
 	e->expires = 0;
 	e->active = 0;

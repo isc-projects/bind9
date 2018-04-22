@@ -23,7 +23,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
-			 isc_entropy_t *ectx, dns_tkeyctx_t **tctxp);
+			 dns_tkeyctx_t **tctxp);
 /*%<
  * 	Create a TKEY context and configure it, including the default DH key
  *	and default domain, according to 'options'.
@@ -31,7 +31,6 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
  *	Requires:
  *\li		'cfg' is a valid configuration options object.
  *\li		'mctx' is not NULL
- *\li		'ectx' is not NULL
  *\li		'tctx' is not NULL
  *\li		'*tctx' is NULL
  *

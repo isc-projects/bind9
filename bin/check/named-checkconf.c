@@ -20,7 +20,6 @@
 
 #include <isc/commandline.h>
 #include <isc/dir.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -538,7 +537,6 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	int exit_status = 0;
-	isc_entropy_t *ectx = NULL;
 	isc_boolean_t load_zones = ISC_FALSE;
 	isc_boolean_t list_zones = ISC_FALSE;
 	isc_boolean_t print = ISC_FALSE;
@@ -654,7 +652,6 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
@@ -684,8 +681,6 @@ main(int argc, char **argv) {
 	dns_name_destroy();
 
 	isc_log_destroy(&logc);
-
-	isc_entropy_detach(&ectx);
 
 	isc_mem_destroy(&mctx);
 

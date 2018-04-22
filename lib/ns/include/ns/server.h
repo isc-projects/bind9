@@ -96,7 +96,6 @@ struct ns_server {
 	isc_uint16_t		transfer_tcp_message_size;
 	isc_boolean_t		interface_auto;
 	dns_tkeyctx_t *		tkeyctx;
-	isc_rng_t *		rngctx;
 
 	/*% Server id for NSID */
 	char *			server_id;
@@ -132,8 +131,8 @@ struct ns_altsecret {
 };
 
 isc_result_t
-ns_server_create(isc_mem_t *mctx, isc_entropy_t *entropy,
-		 ns_matchview_t matchingview, ns_server_t **sctxp);
+ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
+		 ns_server_t **sctxp);
 /*%<
  * Create a server context object with default settings.
  */
