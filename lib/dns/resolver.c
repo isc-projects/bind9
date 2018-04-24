@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -196,6 +196,13 @@
 #define DNS_RESOLVER_BADCACHETTL(fctx) \
 	(((fctx)->res->lame_ttl > 30 ) ? (fctx)->res->lame_ttl : 30)
 
+/*%
+ * This has to fit either
+ * name/type for normal case
+ * name/type:name/type for qname minimized case
+ */
+#define FCTX_INFO_SIZE (2*(DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE)+1)
+
 typedef struct fetchctx fetchctx_t;
 
 typedef struct query {
@@ -258,12 +265,11 @@ struct fetchctx {
 	/*% Not locked. */
 	unsigned int			magic;
 	dns_resolver_t *		res;
-	dns_name_t			name;
-	dns_rdatatype_t			type;
+	dns_name_t			fullname;
+	dns_rdatatype_t			fulltype;
 	unsigned int			options;
 	unsigned int			bucketnum;
 	unsigned int			dbucketnum;
-	char *				info;
 	isc_mem_t *			mctx;
 
 	/*% Locked by appropriate bucket lock. */
@@ -276,6 +282,8 @@ struct fetchctx {
 	ISC_LINK(struct fetchctx)       link;
 	ISC_LIST(dns_fetchevent_t)      events;
 	/*% Locked by task event serialization. */
+	/* XXXWPK TODO obviously info is used outside tasks, so there's a race */
+	char *				info;
 	dns_name_t			domain;
 	dns_rdataset_t			nameservers;
 	unsigned int			attributes;
@@ -304,6 +312,10 @@ struct fetchctx {
 	isc_boolean_t			ns_ttl_ok;
 	isc_uint32_t			ns_ttl;
 	isc_counter_t *			qc;
+	isc_boolean_t			minimized;
+	unsigned int			qmin_labels;
+	dns_name_t			name;
+	dns_rdatatype_t			type;
 
 	/*%
 	 * The number of events we're waiting for.
@@ -561,6 +573,7 @@ static void resquery_response(isc_task_t *task, isc_event_t *event);
 static void resquery_connected(isc_task_t *task, isc_event_t *event);
 static void fctx_try(fetchctx_t *fctx, isc_boolean_t retrying,
 		     isc_boolean_t badcache);
+void fctx_minimize_qname(fetchctx_t *fctx);
 static void fctx_destroy(fetchctx_t *fctx);
 static isc_boolean_t fctx_unlink(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
@@ -748,6 +761,12 @@ rctx_referral(respctx_t *rctx);
 
 static isc_result_t
 rctx_answer_none(respctx_t *rctx);
+
+static void
+rctx_follow_referral(respctx_t *rctx);
+
+static isc_result_t
+rctx_answer_minimized(respctx_t *rctx);
 
 static void
 rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
@@ -2409,8 +2428,6 @@ resquery_send(resquery_t *query) {
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
-	qname = NULL;
-	qrdataset = NULL;
 
 	/*
 	 * Set RD if the client has requested that we do a recursive query,
@@ -2435,7 +2452,7 @@ resquery_send(resquery_t *query) {
 	{
 		isc_boolean_t checknta =
 			ISC_TF((query->options & DNS_FETCHOPT_NONTA) == 0);
-		result = issecuredomain(res->view, &fctx->name, fctx->type,
+		result = issecuredomain(res->view, qname, fctx->type,
 					isc_time_seconds(&query->start),
 					checknta, &secure_domain);
 		if (result != ISC_R_SUCCESS)
@@ -2445,7 +2462,8 @@ resquery_send(resquery_t *query) {
 		if (secure_domain)
 			fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 	}
-
+	qname = NULL;
+	qrdataset = NULL;
 	/*
 	 * We don't have to set opcode because it defaults to query.
 	 */
@@ -4134,6 +4152,7 @@ fctx_destroy(fetchctx_t *fctx) {
 		dns_name_free(&fctx->domain, fctx->mctx);
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
+	dns_name_free(&fctx->fullname, fctx->mctx);
 	dns_name_free(&fctx->name, fctx->mctx);
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
@@ -4469,7 +4488,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	isc_interval_t interval;
 	dns_fixedname_t fixed;
 	unsigned int findoptions = 0;
-	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
+	char buf[FCTX_INFO_SIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	isc_mem_t *mctx;
 
@@ -4512,9 +4531,14 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	result = dns_name_dup(name, mctx, &fctx->name);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_info;
+	dns_name_init(&fctx->fullname, NULL);
+	result = dns_name_dup(name, mctx, &fctx->fullname);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_info;
 	dns_name_init(&fctx->domain, NULL);
 	dns_rdataset_init(&fctx->nameservers);
 
+	fctx->fulltype = type;
 	fctx->type = type;
 	fctx->options = options;
 	/*
@@ -4530,6 +4554,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->want_shutdown = ISC_FALSE;
 	fctx->cloned = ISC_FALSE;
 	fctx->depth = depth;
+	fctx->minimized = isc_boolean_false;
+	fctx->qmin_labels = 1;
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -4723,6 +4749,14 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->events);
 	ISC_LINK_INIT(fctx, link);
 	fctx->magic = FCTX_MAGIC;
+
+	/*
+	 * If qname minimization is enabled we need to trim
+	 * the name in fctx to proper length.
+	 */
+	if (options & DNS_FETCHOPT_QMINIMIZE) {
+		fctx_minimize_qname(fctx);
+	}
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
 
@@ -5634,6 +5668,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	unsigned int valoptions = 0;
 	isc_boolean_t checknta = ISC_TRUE;
 
+	FCTXTRACE("cache_name");
+
 	/*
 	 * The appropriate bucket lock must be held.
 	 */
@@ -6457,12 +6493,10 @@ check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type) {
 #ifndef CHECK_FOR_GLUE_IN_ANSWER
 #define CHECK_FOR_GLUE_IN_ANSWER 0
 #endif
-#if CHECK_FOR_GLUE_IN_ANSWER
 static isc_result_t
 check_answer(void *arg, const dns_name_t *addname, dns_rdatatype_t type) {
 	return (check_section(arg, addname, type, DNS_SECTION_ANSWER));
 }
-#endif
 
 static isc_boolean_t
 is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
@@ -6849,8 +6883,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
 						  nsrdataset, NULL, NULL, 0,
-						  fctx->options, 0, NULL, task,
-						  resume_dslookup, fctx,
+						  fctx->options, 0, NULL,
+						  task, resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
 		/*
@@ -7752,7 +7786,12 @@ rctx_answer(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
 	resquery_t *query = rctx->query;
 
-	if ((fctx->rmessage->flags & DNS_MESSAGEFLAG_AA) != 0 ||
+	if (fctx->minimized) {
+			result = rctx_answer_minimized(rctx);
+			if (result != ISC_R_SUCCESS) {
+				FCTXTRACE3("rctx_answer_minimized", result);
+			}
+	} else if ((fctx->rmessage->flags & DNS_MESSAGEFLAG_AA) != 0 ||
 	    ISFORWARDER(query->addrinfo))
 	{
 		result = rctx_answer_positive(rctx);
@@ -8433,7 +8472,7 @@ rctx_answer_none(respctx_t *rctx) {
 		 * The responder is insane.
 		 */
 		if (rctx->found_name == NULL) {
-			log_formerr(fctx, "invalid response");
+			log_formerr(fctx, "invalid response 1");
 			return (DNS_R_FORMERR);
 		}
 		if (!dns_name_issubdomain(rctx->found_name, &fctx->domain)) {
@@ -8451,7 +8490,7 @@ rctx_answer_none(respctx_t *rctx) {
 				" of zone %s -- invalid response",
 				nbuf, tbuf, dbuf);
 		} else {
-			log_formerr(fctx, "invalid response");
+			log_formerr(fctx, "invalid response 2");
 		}
 
 		return (DNS_R_FORMERR);
@@ -8474,7 +8513,15 @@ rctx_answer_none(respctx_t *rctx) {
 	if (result == ISC_R_COMPLETE) {
 		return (rctx->result);
 	}
-
+	
+	/*
+	 * If we're doing qname minimization this is an empty non-terminal, add
+	 * the next label to query and restart it.
+	 */
+	if (fctx->minimized) {
+		return rctx_answer_minimized(rctx);
+	}
+	 
 	/*
 	 * Since we're not doing a referral, we don't want to cache any
 	 * NS RRs we may have found.
@@ -8788,7 +8835,7 @@ static isc_result_t
 rctx_referral(respctx_t *rctx) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
-
+	
 	if (rctx->negative || rctx->ns_name == NULL) {
 		return (ISC_R_SUCCESS);
 	}
@@ -8800,6 +8847,7 @@ rctx_referral(respctx_t *rctx) {
 	 * trying other servers.
 	 */
 	if (dns_name_equal(rctx->ns_name, &fctx->domain)) {
+		FCTXTRACE("XXX2");
 		log_formerr(fctx, "non-improving referral");
 		rctx->result = DNS_R_FORMERR;
 		return (ISC_R_COMPLETE);
@@ -8842,6 +8890,10 @@ rctx_referral(respctx_t *rctx) {
 						  check_answer, fctx);
 	}
 #endif
+	if (fctx->minimized) {
+		(void)dns_rdataset_additionaldata(rctx->ns_rdataset,
+						  check_answer, fctx);
+	}
 	fctx->attributes &= ~FCTX_ATTR_GLUING;
 
 	/*
@@ -8854,6 +8906,7 @@ rctx_referral(respctx_t *rctx) {
 	if (rctx->ns_rdataset->ttl == 0) {
 		rctx->ns_rdataset->ttl = 1;
 	}
+	FCTXTRACE("XXX3");
 
 	/*
 	 * Set the current query domain to the referral name.
@@ -8886,7 +8939,40 @@ rctx_referral(respctx_t *rctx) {
 	fctx->ns_ttl_ok = ISC_FALSE;
 	log_ns_ttl(fctx, "DELEGATION");
 	rctx->result = DNS_R_DELEGATION;
+	
+	rctx_follow_referral(rctx);
+	if (rctx->fctx->minimized) {
+		/*
+		 * Reset the value
+		 */
+		fctx->qmin_labels = 1;
+		fctx_minimize_qname(rctx->fctx);
+	}
+	return (ISC_R_COMPLETE);
+}
 
+/*
+ * rctx_answer_minimized():
+ * Handles a positive response to a qname-minimized query.
+ */
+static isc_result_t
+rctx_answer_minimized(respctx_t *rctx) {
+	fetchctx_t *fctx = rctx->fctx;
+
+	FCTXTRACE("rctx_answer_minimized");
+	if (dns_rdataset_isassociated(&fctx->nameservers)) {
+		dns_rdataset_disassociate(&fctx->nameservers);
+	}
+	rctx->result = DNS_R_DELEGATION;
+	rctx_follow_referral(rctx);
+	fctx->qmin_labels++;
+	fctx_minimize_qname(rctx->fctx);
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+rctx_follow_referral(respctx_t *rctx) {
 	/*
 	 * Reinitialize 'rctx' to prepare for following the delegation:
 	 * set the get_nameservers and next_server flags appropriately and
@@ -8903,8 +8989,6 @@ rctx_referral(respctx_t *rctx) {
 	rctx->fctx->neterr = 0;
 	rctx->fctx->badresp = 0;
 	rctx->fctx->adberr = 0;
-
-	return (ISC_R_COMPLETE);
 }
 
 /*
@@ -9110,9 +9194,9 @@ rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result)
 	result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 					  dns_rdatatype_ns,
 					  NULL, NULL, NULL, NULL, 0,
-					  fctx->options, 0, NULL, rctx->task,
-					  resume_dslookup, fctx,
-					  &fctx->nsrrset, NULL,
+					  fctx->options, 0, NULL,
+					  rctx->task, resume_dslookup,
+					  fctx, &fctx->nsrrset, NULL,
 					  &fctx->nsfetch);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result, __LINE__);
@@ -10138,9 +10222,9 @@ fctx_match(fetchctx_t *fctx, const dns_name_t *name, dns_rdatatype_t type,
 	    ISC_LIST_EMPTY(fctx->events))
 		return (ISC_FALSE);
 
-	if (fctx->type != type || fctx->options != options)
+	if (fctx->fulltype != type || fctx->options != options)
 		return (ISC_FALSE);
-	return (dns_name_equal(&fctx->name, name));
+	return (dns_name_equal(&fctx->fullname, name));
 }
 
 static inline void
@@ -10162,6 +10246,50 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, level,
 		      "fetch: %s/%s", namebuf, typebuf);
+}
+
+void
+fctx_minimize_qname(fetchctx_t *fctx) {
+	unsigned int dlabels, nlabels;
+	char buf[FCTX_INFO_SIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+	dns_name_format(&fctx->fullname, buf, FCTX_INFO_SIZE);
+	dns_rdatatype_format(fctx->fulltype, typebuf, sizeof(typebuf));
+	strlcat(buf, "/", sizeof(buf));
+	strlcat(buf, typebuf, sizeof(buf));
+	
+	dlabels = dns_name_countlabels(&fctx->domain);
+	nlabels = dns_name_countlabels(&fctx->fullname);
+	dns_name_free(&fctx->name, fctx->mctx);
+	dns_name_init(&fctx->name, NULL);
+	if (dlabels + fctx->qmin_labels < nlabels) {
+		/*
+		 * We want to query for [qmin_labels from fctx->fullname] + fctx->domain
+		 */
+		char tbuf[DNS_NAME_FORMATSIZE];
+		dns_fixedname_t fname;
+		dns_fixedname_init(&fname);
+		dns_name_split(&fctx->fullname,
+			       dlabels + fctx->qmin_labels,
+			       NULL, dns_fixedname_name(&fname));
+		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx, &fctx->name);
+		fctx->type = dns_rdatatype_ns;
+		fctx->minimized = isc_boolean_true;
+		strlcat(buf, ":", sizeof(buf));
+		dns_name_format(&fctx->name, tbuf, sizeof(tbuf));
+		dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
+		strlcat(buf, tbuf, sizeof(buf));
+		strlcat(buf, "/", sizeof(buf));
+		strlcat(buf, typebuf, sizeof(buf));
+	} else {
+		/* Minimization is done, we'll ask for whole qname */
+		fctx->type = fctx->fulltype;
+		dns_name_dup(&fctx->fullname, fctx->mctx, &fctx->name);
+		fctx->minimized = isc_boolean_false;
+	}
+	isc_mem_free(fctx->mctx, fctx->info);
+	fctx->info = isc_mem_strdup(fctx->mctx, buf);
 }
 
 isc_result_t
