@@ -16,15 +16,13 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
-
 touch empty
 
 Z=cds.test
 
-keyz=$($KEYGEN -q -r $RANDFILE -a RSASHA256 $Z)
-key1=$($KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z)
-key2=$($KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z)
+keyz=$($KEYGEN -q -a RSASHA256 $Z)
+key1=$($KEYGEN -q -a RSASHA256 -f KSK $Z)
+key2=$($KEYGEN -q -a RSASHA256 -f KSK $Z)
 
 idz=$(echo $keyz | sed 's/.*+0*//')
 id1=$(echo $key1 | sed 's/.*+0*//')
@@ -85,7 +83,7 @@ sed 's/ add \(.*\) IN DS / add \1 3600 IN DS /' <UP.swap >UP.swapttl
 
 sign() {
 	cat >db.$1
-	$SIGNER >/dev/null 2>&1 -r $RANDFILE \
+	$SIGNER >/dev/null 2>&1 \
 		 -S -O full -o $Z -f sig.$1 db.$1
 }
 

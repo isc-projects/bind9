@@ -3053,8 +3053,6 @@ usage(void) {
 	fprintf(stderr, "\t\tsoa serial format of signed zone file (keep)\n");
 	fprintf(stderr, "\t-D:\n");
 	fprintf(stderr, "\t\toutput only DNSSEC-related records\n");
-	fprintf(stderr, "\t-r randomdev:\n");
-	fprintf(stderr,	"\t\ta file containing random data\n");
 	fprintf(stderr, "\t-a:\t");
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");

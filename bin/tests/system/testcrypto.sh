@@ -12,11 +12,9 @@
 SYSTEMTESTTOP=${SYSTEMTESTTOP:=..}
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
-
 prog=$0
 
-args="-r $RANDFILE"
+args=""
 alg="-a RSAMD5 -b 1024"
 quiet=0
 

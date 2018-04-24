@@ -106,8 +106,6 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\rndc\\win32\\rndcutil.vcxproj.filters",
                    "..\\bin\\tools\\win32\\arpaname.vcxproj",
                    "..\\bin\\tools\\win32\\arpaname.vcxproj.filters",
-                   "..\\bin\\tools\\win32\\genrandom.vcxproj",
-                   "..\\bin\\tools\\win32\\genrandom.vcxproj.filters",
                    "..\\bin\\tools\\win32\\journalprint.vcxproj",
                    "..\\bin\\tools\\win32\\journalprint.vcxproj.filters",
                    "..\\bin\\tools\\win32\\mdig.vcxproj",
@@ -3114,7 +3112,6 @@ sub makeinstallfile {
     print LOUT "delv.exe-BNFT\n";
     print LOUT "arpaname.exe-BNFT\n";
     print LOUT "nsec3hash.exe-BNFF\n";
-    print LOUT "genrandom.exe-BNFF\n";
     print LOUT "rndc-confgen.exe-BNFF\n";
     print LOUT "ddns-confgen.exe-BNFF\n";
     print LOUT "tsig-keygen.exe-BNFF\n";

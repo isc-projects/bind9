@@ -12,8 +12,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
-
 $SHELL clean.sh
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
@@ -56,14 +54,14 @@ ns1.update.nil.         A       10.53.0.2
 ns2.update.nil.		AAAA	::1
 EOF
 
-$DDNSCONFGEN -q -r $RANDFILE -z example.nil > ns1/ddns.key
+$DDNSCONFGEN -q -z example.nil > ns1/ddns.key
 
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-md5 -k md5-key -z keytests.nil > ns1/md5.key
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-sha1 -k sha1-key -z keytests.nil > ns1/sha1.key
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-sha224 -k sha224-key -z keytests.nil > ns1/sha224.key
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-sha256 -k sha256-key -z keytests.nil > ns1/sha256.key
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-sha384 -k sha384-key -z keytests.nil > ns1/sha384.key
-$DDNSCONFGEN -q -r $RANDFILE -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/sha512.key
+$DDNSCONFGEN -q -a hmac-md5 -k md5-key -z keytests.nil > ns1/md5.key
+$DDNSCONFGEN -q -a hmac-sha1 -k sha1-key -z keytests.nil > ns1/sha1.key
+$DDNSCONFGEN -q -a hmac-sha224 -k sha224-key -z keytests.nil > ns1/sha224.key
+$DDNSCONFGEN -q -a hmac-sha256 -k sha256-key -z keytests.nil > ns1/sha256.key
+$DDNSCONFGEN -q -a hmac-sha384 -k sha384-key -z keytests.nil > ns1/sha384.key
+$DDNSCONFGEN -q -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/sha512.key
 
 (cd ns3; $SHELL -e sign.sh)
 
