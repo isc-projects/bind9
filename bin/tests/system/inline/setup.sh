@@ -33,6 +33,7 @@ cp ns3/master.db.in ns3/updated.db
 cp ns3/master.db.in ns3/expired.db
 cp ns3/master.db.in ns3/nsec3.db
 cp ns3/master.db.in ns3/externalkey.db
+cp ns3/master.db.in ns3/removedkeys2.db
 
 touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db

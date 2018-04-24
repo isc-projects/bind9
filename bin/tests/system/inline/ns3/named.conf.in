@@ -148,3 +148,12 @@ zone "removedkeys" {
 	auto-dnssec maintain;
 	file "removedkeys.bk";
 };
+
+zone "removedkeys2" {
+	type master;
+	inline-signing yes;
+	auto-dnssec maintain;
+        allow-update { any; };
+        allow-transfer { any; };
+	file "removedkeys2.db";
+};
