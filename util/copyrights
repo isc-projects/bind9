@@ -2448,10 +2448,6 @@
 ./bin/tools/dnstap-read.c			C	2015,2016,2017,2018
 ./bin/tools/dnstap-read.docbook			SGML	2015,2016,2017,2018
 ./bin/tools/dnstap-read.html			HTML	DOCBOOK
-./bin/tools/genrandom.8				MAN	DOCBOOK
-./bin/tools/genrandom.c				C	2000,2001,2002,2003,2004,2005,2007,2009,2010,2012,2014,2016,2018
-./bin/tools/genrandom.docbook			SGML	2009,2010,2011,2014,2015,2016,2018
-./bin/tools/genrandom.html			HTML	DOCBOOK
 ./bin/tools/mdig.1				MAN	DOCBOOK
 ./bin/tools/mdig.c				C	2015,2016,2017,2018
 ./bin/tools/mdig.docbook			SGML	2015,2016,2017,2018
@@ -2475,9 +2471,6 @@
 ./bin/tools/win32/arpaname.vcxproj.filters.in	X	2013,2015,2018
 ./bin/tools/win32/arpaname.vcxproj.in		X	2013,2015,2016,2017,2018
 ./bin/tools/win32/arpaname.vcxproj.user		X	2013,2018
-./bin/tools/win32/genrandom.vcxproj.filters.in	X	2013,2015,2018
-./bin/tools/win32/genrandom.vcxproj.in		X	2013,2015,2016,2017,2018
-./bin/tools/win32/genrandom.vcxproj.user	X	2013,2018
 ./bin/tools/win32/journalprint.vcxproj.filters.in	X	2013,2015,2018
 ./bin/tools/win32/journalprint.vcxproj.in	X	2013,2015,2016,2017,2018
 ./bin/tools/win32/journalprint.vcxproj.user	X	2013,2018
@@ -2767,7 +2760,6 @@
 ./doc/arm/man.dnssec-signzone.html		X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/man.dnssec-verify.html		X	2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/man.dnstap-read.html			X	2015,2016,2017,2018
-./doc/arm/man.genrandom.html			X	2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/man.host.html				X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/man.mdig.html				X	2016,2017,2018
 ./doc/arm/man.named-checkconf.html		X	2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018

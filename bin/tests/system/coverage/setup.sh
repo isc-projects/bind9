@@ -12,8 +12,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-KEYGEN="$KEYGEN -qr $RANDFILE"
-
 $SHELL clean.sh
 
 ln -s $CHECKZONE named-compilezone

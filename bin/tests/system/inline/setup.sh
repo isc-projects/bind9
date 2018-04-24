@@ -12,8 +12,6 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
-
 cp ns1/root.db.in ns1/root.db
 rm -f ns1/root.db.signed
 

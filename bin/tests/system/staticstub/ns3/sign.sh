@@ -20,11 +20,11 @@ zonefile=example.db
 
 cp ../ns4/dsset-sub.example$TP .
 
-keyname1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 2048 -f KSK -n zone $zone`
+keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname2=`$KEYGEN -q -a RSASHA256 -b 2048 -f KSK -n zone $zone`
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+$SIGNER -g -o $zone $zonefile > /dev/null 2>&1
 
 # Configure the resolving server with a trusted key.
 
@@ -41,11 +41,11 @@ EOF
 zone=undelegated
 infile=undelegated.db.in
 zonefile=undelegated.db
-keyname1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
-keyname2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 2048 -f KSK -n zone $zone`
+keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname2=`$KEYGEN -q -a RSASHA256 -b 2048 -f KSK -n zone $zone`
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
+$SIGNER -g -o $zone $zonefile > /dev/null 2>&1
 
 cat $keyname2.key | grep -v '^; ' | $PERL -n -e '
 local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
