@@ -66,7 +66,7 @@ done
 signzone () {
     KEYNAME=`$KEYGEN -q -a rsasha256 -K $1 $2`
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
-    $SIGNER -Pp -K $1 -o $2 -f $1/$4 $1/tmp >/dev/null
+    $SIGNER -P -K $1 -o $2 -f $1/$4 $1/tmp >/dev/null
     sed -n -e 's/\(.*\) IN DNSKEY \([0-9]\{1,\} [0-9]\{1,\} [0-9]\{1,\}\) \(.*\)/trusted-keys {"\1" \2 "\3";};/p' $1/$KEYNAME.key >>trusted.conf
     DSFILENAME=dsset-`echo $2 |sed -e "s/\.$//g"`$TP
     rm $DSFILENAME $1/tmp
