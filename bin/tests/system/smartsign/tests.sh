@@ -38,7 +38,7 @@ czsk5=`$KEYGEN -q -a rsasha1 -r $RANDFILE -P now+12h -A now+12h -I now+24h $czon
 
 # explicit successor to czk5
 # (suppressing warning about lack of removal date)
-czsk6=`$KEYGEN -q -r $RANDFILE -S $czsk5 -i 6h 2>&-` 
+czsk6=`$KEYGEN -q -r $RANDFILE -S $czsk5 -i 6h 2>/dev/null` 
 
 # active ksk
 cksk1=`$KEYGEN -q -a rsasha1 -r $RANDFILE -fk -L 30 $czone`
