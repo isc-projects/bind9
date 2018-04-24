@@ -18,7 +18,7 @@ zonefile=root.db
 keyname=`$KEYGEN -a rsasha256 -qfk $zone`
 zskkeyname=`$KEYGEN -a rsasha256 -q $zone`
 
-$SIGNER -Sg -o $zone $zonefile > /dev/null 2>&-
+$SIGNER -Sg -o $zone $zonefile > /dev/null 2>&1
 
 # Configure the resolving server with a managed trusted key.
 cat $keyname.key | grep -v '^; ' | $PERL -n -e '

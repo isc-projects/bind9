@@ -42,7 +42,7 @@ showprivate () {
 checkprivate () {
     ret=0
     x=`showprivate "$@"`
-    echo $x | grep incomplete >&- 2>&- && ret=1
+    echo $x | grep incomplete >/dev/null 2>&1 && ret=1
     [ $ret = 1 ] && {
         echo "$x"
         echo_i "failed"
