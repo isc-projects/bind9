@@ -68,3 +68,15 @@ zone "inactivezsk" {
 	file "inactivezsk.db";
 	allow-update { any; };
 };
+
+zone "nokeys" {
+	type master;
+	file "nokeys.db";
+	allow-update { any; };
+};
+
+zone "removedkeys-secondary" {
+	type master;
+	file "removedkeys-secondary.db";
+	allow-update { any; };
+};
