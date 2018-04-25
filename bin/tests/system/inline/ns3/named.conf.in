@@ -141,19 +141,19 @@ zone "nokeys" {
 	file "nokeys.bk";
 };
 
-zone "removedkeys" {
+zone "removedkeys-secondary" {
 	type slave;
 	masters { 10.53.0.2; };
 	inline-signing yes;
 	auto-dnssec maintain;
-	file "removedkeys.bk";
+	file "removedkeys-secondary.bk";
 };
 
-zone "removedkeys2" {
+zone "removedkeys-primary" {
 	type master;
 	inline-signing yes;
 	auto-dnssec maintain;
         allow-update { any; };
         allow-transfer { any; };
-	file "removedkeys2.db";
+	file "removedkeys-primary.db";
 };

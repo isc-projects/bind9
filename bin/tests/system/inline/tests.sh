@@ -1135,28 +1135,28 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that changes to raw zone are not applied to a previously signed secure zone with no keys available (secondary) ($n)"
 ret=0
-# Query for bar.removedkeys/A and ensure the response is negative.  As this
+# Query for bar.removedkeys-secondary/A and ensure the response is negative.  As this
 # zone does have signing keys set up, the response must be signed.
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
 grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 # Remove the signing keys for this zone.
 [ -d ns3/removedkeys ] || mkdir ns3/removedkeys
-mv -f ns3/Kremovedkeys.+* ns3/removedkeys
+mv -f ns3/Kremovedkeys-secondary.+* ns3/removedkeys
 # Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
 # log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
 # Add a record to the raw zone on the master.
 $NSUPDATE << EOF || ret=1
-zone removedkeys.
+zone removedkeys-secondary.
 server 10.53.0.2 ${PORT}
-update add bar.removedkeys. 0 A 127.0.0.1
+update add bar.removedkeys-secondary. 0 A 127.0.0.1
 send
 EOF
-wait_until_raw_zone_update_is_processed "removedkeys"
-# Query for bar.removedkeys/A again and ensure the signer still returns a
+wait_until_raw_zone_update_is_processed "removedkeys-secondary"
+# Query for bar.removedkeys-secondary/A again and ensure the signer still returns a
 # negative, signed response.
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys. A > dig.out.ns3.post.test$n 2>&1
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.post.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1165,12 +1165,12 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that backlogged changes to raw zone are applied after keys become available (secondary) ($n)"
 ret=0
-mv ns3/removedkeys/Kremovedkeys* ns3
+mv ns3/removedkeys/Kremovedkeys-secondary* ns3
 rm -rf ns3/removedkeys
-$RNDCCMD 10.53.0.3 loadkeys removedkeys > /dev/null 2>&1
-$RNDCCMD 10.53.0.3 retransfer removedkeys > /dev/null 2>&1
-wait_until_raw_zone_update_is_processed "removedkeys"
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys. A > dig.out.ns3.test$n 2>&1
+$RNDCCMD 10.53.0.3 loadkeys removedkeys-secondary > /dev/null 2>&1
+$RNDCCMD 10.53.0.3 retransfer removedkeys-secondary > /dev/null 2>&1
+wait_until_raw_zone_update_is_processed "removedkeys-secondary"
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1178,28 +1178,28 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that changes to raw zone are not applied to a previously signed secure zone with no keys available (primary) ($n)"
 ret=0
-# Query for bar.removedkeys2/A and ensure the response is negative.  As this
+# Query for bar.removedkeys-primary/A and ensure the response is negative.  As this
 # zone does have signing keys set up, the response must be signed.
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys2. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
 grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 # Remove the signing keys for this zone.
 [ -d ns3/removedkeys ] || mkdir ns3/removedkeys
-mv -f ns3/Kremovedkeys2.+* ns3/removedkeys
+mv -f ns3/Kremovedkeys-primary.+* ns3/removedkeys
 # Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
 # log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
 # Add a record to the raw zone on the master.
 $NSUPDATE << EOF || ret=1
-zone removedkeys2.
+zone removedkeys-primary.
 server 10.53.0.3 ${PORT}
-update add bar.removedkeys2. 0 A 127.0.0.1
+update add bar.removedkeys-primary. 0 A 127.0.0.1
 send
 EOF
-wait_until_raw_zone_update_is_processed "removedkeys2"
-# Query for bar.removedkeys2/A again and ensure the signer still returns a
+wait_until_raw_zone_update_is_processed "removedkeys-primary"
+# Query for bar.removedkeys-primary/A again and ensure the signer still returns a
 # negative, signed response.
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys2. A > dig.out.ns3.post.test$n 2>&1
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.post.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1208,11 +1208,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that backlogged changes to raw zone are applied after keys become available (primary) ($n)"
 ret=0
-mv ns3/removedkeys/Kremovedkeys2.* ns3
+mv ns3/removedkeys/Kremovedkeys-primary.* ns3
 rm -rf ns3/removedkeys
-$RNDCCMD 10.53.0.3 loadkeys removedkeys2 > /dev/null 2>&1
-wait_until_raw_zone_update_is_processed "removedkeys2"
-$DIG $DIGOPTS @10.53.0.3 bar.removedkeys2. A > dig.out.ns3.test$n 2>&1
+$RNDCCMD 10.53.0.3 loadkeys removedkeys-primary > /dev/null 2>&1
+wait_until_raw_zone_update_is_processed "removedkeys-primary"
+$DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

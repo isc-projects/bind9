@@ -75,8 +75,8 @@ zone "nokeys" {
 	allow-update { any; };
 };
 
-zone "removedkeys" {
+zone "removedkeys-secondary" {
 	type master;
-	file "removedkeys.db";
+	file "removedkeys-secondary.db";
 	allow-update { any; };
 };

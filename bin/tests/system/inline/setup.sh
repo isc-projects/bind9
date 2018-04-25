@@ -22,7 +22,7 @@ cp ns2/bits.db.in ns2/bits.db
 cp ns2/bits.db.in ns2/inactiveksk.db
 cp ns2/bits.db.in ns2/inactivezsk.db
 cp ns2/bits.db.in ns2/nokeys.db
-cp ns2/bits.db.in ns2/removedkeys.db
+cp ns2/bits.db.in ns2/removedkeys-secondary.db
 cp ns2/bits.db.in ns2/retransfer.db
 cp ns2/bits.db.in ns2/retransfer3.db
 rm -f ns2/bits.db.jnl
@@ -33,7 +33,7 @@ cp ns3/master.db.in ns3/updated.db
 cp ns3/master.db.in ns3/expired.db
 cp ns3/master.db.in ns3/nsec3.db
 cp ns3/master.db.in ns3/externalkey.db
-cp ns3/master.db.in ns3/removedkeys2.db
+cp ns3/master.db.in ns3/removedkeys-primary.db
 
 touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db
