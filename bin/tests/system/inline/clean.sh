@@ -69,10 +69,6 @@ rm -f ns3/nokeys.bk
 rm -f ns3/nokeys.bk.jnl
 rm -f ns3/nokeys.bk.signed
 rm -f ns3/nokeys.bk.signed.jnl
-rm -f ns3/removedkeys-secondary.bk
-rm -f ns3/removedkeys-secondary.bk.jnl
-rm -f ns3/removedkeys-secondary.bk.signed
-rm -f ns3/removedkeys-secondary.bk.signed.jnl
 rm -f ns3/nsec3.db
 rm -f ns3/nsec3.db.jnl
 rm -f ns3/nsec3.db.signed
@@ -81,6 +77,10 @@ rm -f ns3/removedkeys-primary.db
 rm -f ns3/removedkeys-primary.db.jnl
 rm -f ns3/removedkeys-primary.db.signed
 rm -f ns3/removedkeys-primary.db.signed.jnl
+rm -f ns3/removedkeys-secondary.bk
+rm -f ns3/removedkeys-secondary.bk.jnl
+rm -f ns3/removedkeys-secondary.bk.signed
+rm -f ns3/removedkeys-secondary.bk.signed.jnl
 rm -f ns3/retransfer.bk
 rm -f ns3/retransfer.bk.jnl
 rm -f ns3/retransfer.bk.signed

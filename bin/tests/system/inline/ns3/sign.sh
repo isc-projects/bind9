@@ -96,13 +96,13 @@ keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
 
-zone=removedkeys-secondary
+zone=removedkeys-primary
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 
-zone=removedkeys-primary
+zone=removedkeys-secondary
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
