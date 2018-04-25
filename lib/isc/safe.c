@@ -25,8 +25,14 @@
 #pragma optimize("", off)
 #endif
 
+#define isc_safe_memcompare(s1, s2, len) CRYPTO_memcmp(s1, s2, len)
+#else
+
 isc_boolean_t
 isc_safe_memequal(const void *s1, const void *s2, size_t n) {
+#if defined(OPENSSL)
+	return !CRYPTO_memcmp(s1, s2, n);
+#else
 	isc_uint8_t acc = 0;
 
 	if (n != 0U) {
@@ -37,11 +43,15 @@ isc_safe_memequal(const void *s1, const void *s2, size_t n) {
 		} while (--n != 0U);
 	}
 	return (ISC_TF(acc == 0));
+#endif
 }
 
 
 int
 isc_safe_memcompare(const void *b1, const void *b2, size_t len) {
+#if defined(OPENSSL)
+	return CRYPTO_memcmp(s1, s2, n);
+#else
 	const unsigned char *p1 = b1, *p2 = b2;
 	size_t i;
 	int res = 0, done = 0;
@@ -64,6 +74,7 @@ isc_safe_memcompare(const void *b1, const void *b2, size_t len) {
 	}
 
 	return (res);
+#endif
 }
 
 void
