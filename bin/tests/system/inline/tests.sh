@@ -1135,8 +1135,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that changes to raw zone are not applied to a previously signed secure zone with no keys available (primary) ($n)"
 ret=0
-# Query for bar.removedkeys-primary/A and ensure the response is negative.  As this
-# zone does have signing keys set up, the response must be signed.
+# Query for bar.removedkeys-primary/A and ensure the response is negative.  As
+# this zone has signing keys set up, the response must be signed.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.pre.test$n 2>&1 || ret=1
 grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
@@ -1154,8 +1154,8 @@ update add bar.removedkeys-primary. 0 A 127.0.0.1
 send
 EOF
 wait_until_raw_zone_update_is_processed "removedkeys-primary"
-# Query for bar.removedkeys-primary/A again and ensure the signer still returns a
-# negative, signed response.
+# Query for bar.removedkeys-primary/A again and ensure the signer still returns
+# a negative, signed response.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.post.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.post.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
@@ -1165,11 +1165,16 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that backlogged changes to raw zone are applied after keys become available (primary) ($n)"
 ret=0
+# Restore the signing keys for this zone.
 mv ns3/removedkeys/Kremovedkeys-primary.* ns3
 rm -rf ns3/removedkeys
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-primary > /dev/null 2>&1
+# Determine what a SOA record with a bumped serial number should look like.
 BUMPED_SOA=`sed -n 's/.*\(add removedkeys-primary.*IN.*SOA\)/\1/p;' ns3/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
+# Bump the SOA serial number of the raw zone.
 $NSUPDATE << EOF || ret=1
 zone removedkeys-primary.
 server 10.53.0.3 ${PORT}
@@ -1178,6 +1183,8 @@ update ${BUMPED_SOA}
 send
 EOF
 wait_until_raw_zone_update_is_processed "removedkeys-primary"
+# Query for bar.removedkeys-primary/A again and ensure the signer now returns a
+# positive, signed response.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1216,11 +1223,16 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking that backlogged changes to raw zone are applied after keys become available (secondary) ($n)"
 ret=0
+# Restore the signing keys for this zone.
 mv ns3/removedkeys/Kremovedkeys-secondary* ns3
 rm -rf ns3/removedkeys
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-secondary > /dev/null 2>&1
+# Determine what a SOA record with a bumped serial number should look like.
 BUMPED_SOA=`sed -n 's/.*\(add removedkeys-secondary.*IN.*SOA\)/\1/p;' ns2/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+# Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
+# log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
+# Bump the SOA serial number of the raw zone on the master.
 $NSUPDATE << EOF || ret=1
 zone removedkeys-secondary.
 server 10.53.0.2 ${PORT}
@@ -1229,6 +1241,8 @@ update ${BUMPED_SOA}
 send
 EOF
 wait_until_raw_zone_update_is_processed "removedkeys-secondary"
+# Query for bar.removedkeys-secondary/A again and ensure the signer now returns
+# a positive, signed response.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
