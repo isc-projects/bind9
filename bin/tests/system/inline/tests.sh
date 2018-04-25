@@ -1187,6 +1187,7 @@ wait_until_raw_zone_update_is_processed "removedkeys-primary"
 # positive, signed response.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1245,6 +1246,7 @@ wait_until_raw_zone_update_is_processed "removedkeys-secondary"
 # a positive, signed response.
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
