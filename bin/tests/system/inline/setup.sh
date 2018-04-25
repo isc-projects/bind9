@@ -35,6 +35,8 @@ cp ns3/master.db.in ns3/nsec3.db
 cp ns3/master.db.in ns3/externalkey.db
 cp ns3/master.db.in ns3/removedkeys-primary.db
 
+mkdir ns3/removedkeys
+
 touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db
 rm -f ns4/noixfr.db.jnl

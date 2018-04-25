@@ -120,3 +120,4 @@ rm -f ns*/named.lock
 rm -f dig.out.*
 rm -f ns3/nzf-*
 rm -f rndc.out.ns*
+rm -rf ns3/removedkeys

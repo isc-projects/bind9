@@ -1141,8 +1141,7 @@ $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.pre.test$n 2>&
 grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 # Remove the signing keys for this zone.
-[ -d ns3/removedkeys ] || mkdir ns3/removedkeys
-mv -f ns3/Kremovedkeys-primary.+* ns3/removedkeys
+mv -f ns3/Kremovedkeys-primary* ns3/removedkeys
 # Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
 # log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
@@ -1166,8 +1165,7 @@ n=`expr $n + 1`
 echo_i "checking that backlogged changes to raw zone are applied after keys become available (primary) ($n)"
 ret=0
 # Restore the signing keys for this zone.
-mv ns3/removedkeys/Kremovedkeys-primary.* ns3
-rm -rf ns3/removedkeys
+mv ns3/removedkeys/Kremovedkeys-primary* ns3
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-primary > /dev/null 2>&1
 # Determine what a SOA record with a bumped serial number should look like.
 BUMPED_SOA=`sed -n 's/.*\(add removedkeys-primary.*IN.*SOA\)/\1/p;' ns3/named.run | tail -1 | awk '{$8 += 1; print $0}'`
@@ -1200,8 +1198,7 @@ $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.pre.test$n 2
 grep "status: NOERROR" dig.out.ns3.pre.test$n > /dev/null && ret=1
 grep "RRSIG" dig.out.ns3.pre.test$n > /dev/null || ret=1
 # Remove the signing keys for this zone.
-[ -d ns3/removedkeys ] || mkdir ns3/removedkeys
-mv -f ns3/Kremovedkeys-secondary.+* ns3/removedkeys
+mv -f ns3/Kremovedkeys-secondary* ns3/removedkeys
 # Ensure the wait_until_raw_zone_update_is_processed() call below will ignore
 # log messages generated before the raw zone is updated.
 nextpart ns3/named.run > /dev/null
@@ -1226,7 +1223,6 @@ echo_i "checking that backlogged changes to raw zone are applied after keys beco
 ret=0
 # Restore the signing keys for this zone.
 mv ns3/removedkeys/Kremovedkeys-secondary* ns3
-rm -rf ns3/removedkeys
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-secondary > /dev/null 2>&1
 # Determine what a SOA record with a bumped serial number should look like.
 BUMPED_SOA=`sed -n 's/.*\(add removedkeys-secondary.*IN.*SOA\)/\1/p;' ns2/named.run | tail -1 | awk '{$8 += 1; print $0}'`
