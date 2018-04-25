@@ -153,7 +153,7 @@ zone "removedkeys-primary" {
 	type master;
 	inline-signing yes;
 	auto-dnssec maintain;
-        allow-update { any; };
-        allow-transfer { any; };
+	allow-update { any; };
+	also-notify { 10.53.0.2; };
 	file "removedkeys-primary.db";
 };
