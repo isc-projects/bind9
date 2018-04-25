@@ -1,3 +1,12 @@
+4933.	[bug]		Not creating signing keys for an inline signed zone
+			prevented changes applied to the raw zone from being
+			reflected in the secure zone until signing keys were
+			made available. [GL #159]
+
+4932.	[bug]		Bumped signed serial of an inline signed zone was
+			logged even when an error occurred while updating
+			signatures. [GL #159]
+
 4918.	[bug]		Fix double free after keygen error in dnssec-keygen
 			when OpenSSL >= 1.1.0 is used and RSA_generate_key_ex
 			fails. [GL #109]

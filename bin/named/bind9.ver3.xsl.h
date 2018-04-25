@@ -5,7 +5,7 @@
 static char xslmsg[] =
 	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	"<!--\n"
-	" - Copyright (C) 2012-2014 Internet Systems Consortium, Inc. (\"ISC\")\n"
+	" - Copyright (C) Internet Systems Consortium, Inc. (\"ISC\")\n"
 	" -\n"
 	" - Permission to use, copy, modify, and/or distribute this software for any\n"
 	" - purpose with or without fee is hereby granted, provided that the above\n"
@@ -66,7 +66,7 @@ static char xslmsg[] =
 	" }\n"
 	" }\n"
 	"\n"
-	" // Server Incoming Query Types \n"
+	" // Server Incoming Query Types\n"
 	" graphs.push({\n"
 	" 'title' : \"Server Incoming Query Types\",\n"
 	" 'target': 'chart_incoming_qtypes',\n"
