@@ -1168,7 +1168,15 @@ ret=0
 mv ns3/removedkeys/Kremovedkeys-secondary* ns3
 rm -rf ns3/removedkeys
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-secondary > /dev/null 2>&1
-$RNDCCMD 10.53.0.3 retransfer removedkeys-secondary > /dev/null 2>&1
+BUMPED_SOA=`sed -n 's/.*\(add removedkeys-secondary.*IN.*SOA\)/\1/p;' ns2/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+nextpart ns3/named.run > /dev/null
+$NSUPDATE << EOF || ret=1
+zone removedkeys-secondary.
+server 10.53.0.2 ${PORT}
+update del removedkeys-secondary. SOA
+update ${BUMPED_SOA}
+send
+EOF
 wait_until_raw_zone_update_is_processed "removedkeys-secondary"
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-secondary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
@@ -1211,6 +1219,15 @@ ret=0
 mv ns3/removedkeys/Kremovedkeys-primary.* ns3
 rm -rf ns3/removedkeys
 $RNDCCMD 10.53.0.3 loadkeys removedkeys-primary > /dev/null 2>&1
+BUMPED_SOA=`sed -n 's/.*\(add removedkeys-primary.*IN.*SOA\)/\1/p;' ns3/named.run | tail -1 | awk '{$8 += 1; print $0}'`
+nextpart ns3/named.run > /dev/null
+$NSUPDATE << EOF || ret=1
+zone removedkeys-primary.
+server 10.53.0.3 ${PORT}
+update del removedkeys-primary. SOA
+update ${BUMPED_SOA}
+send
+EOF
 wait_until_raw_zone_update_is_processed "removedkeys-primary"
 $DIG $DIGOPTS @10.53.0.3 bar.removedkeys-primary. A > dig.out.ns3.test$n 2>&1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
