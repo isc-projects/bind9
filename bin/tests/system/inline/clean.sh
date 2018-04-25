@@ -15,6 +15,7 @@
 rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
+rm -f */named.run.prev
 rm -f */trusted.conf
 rm -f ns1/K*
 rm -f ns1/dsset-*
@@ -28,6 +29,10 @@ rm -f ns2/inactiveksk.db
 rm -f ns2/inactiveksk.db.jnl
 rm -f ns2/inactivezsk.db
 rm -f ns2/inactivezsk.db.jnl
+rm -f ns2/nokeys.db
+rm -f ns2/nokeys.db.jnl
+rm -f ns2/removedkeys-secondary.db
+rm -f ns2/removedkeys-secondary.db.jnl
 rm -f ns2/retransfer.db
 rm -f ns2/retransfer.db.jnl
 rm -f ns2/retransfer3.db
@@ -65,10 +70,22 @@ rm -f ns3/inactivezsk.bk
 rm -f ns3/inactivezsk.bk.jnl
 rm -f ns3/inactivezsk.bk.signed
 rm -f ns3/inactivezsk.bk.signed.jnl
+rm -f ns3/nokeys.bk
+rm -f ns3/nokeys.bk.jnl
+rm -f ns3/nokeys.bk.signed
+rm -f ns3/nokeys.bk.signed.jnl
 rm -f ns3/nsec3.db
 rm -f ns3/nsec3.db.jnl
 rm -f ns3/nsec3.db.signed
 rm -f ns3/nsec3.db.signed.jnl
+rm -f ns3/removedkeys-primary.db
+rm -f ns3/removedkeys-primary.db.jnl
+rm -f ns3/removedkeys-primary.db.signed
+rm -f ns3/removedkeys-primary.db.signed.jnl
+rm -f ns3/removedkeys-secondary.bk
+rm -f ns3/removedkeys-secondary.bk.jnl
+rm -f ns3/removedkeys-secondary.bk.signed
+rm -f ns3/removedkeys-secondary.bk.signed.jnl
 rm -f ns3/retransfer.bk
 rm -f ns3/retransfer.bk.jnl
 rm -f ns3/retransfer.bk.signed
@@ -106,3 +123,4 @@ rm -f checkgost checkdsa checkecdsa
 rm -f ns3/a-file
 rm -f dig.out.*
 rm -f rndc.out.ns*
+rm -rf ns3/removedkeys
