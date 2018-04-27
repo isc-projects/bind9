@@ -67,7 +67,6 @@ typedef struct geoip_state {
 	unsigned int family;
 	isc_uint32_t ipnum;
 	geoipv6_t ipnum6;
-	isc_uint8_t scope;
 	GeoIPRecord *record;
 	GeoIPRegion *region;
 	const char *text;
@@ -159,7 +158,7 @@ clean_state(geoip_state_t *state) {
 
 static isc_result_t
 set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
-	  isc_uint8_t scope, dns_geoip_subtype_t subtype, GeoIPRecord *record,
+	  dns_geoip_subtype_t subtype, GeoIPRecord *record,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
 	geoip_state_t *state = NULL;
@@ -201,7 +200,6 @@ set_state(unsigned int family, isc_uint32_t ipnum, const geoipv6_t *ipnum6,
 
 	state->family = family;
 	state->subtype = subtype;
-	state->scope = scope;
 	state->record = record;
 	state->region = region;
 	state->name = name;
@@ -248,12 +246,10 @@ get_state_for(unsigned int family, isc_uint32_t ipnum,
 static const char *
 country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	       unsigned int family,
-	       isc_uint32_t ipnum, const geoipv6_t *ipnum6,
-	       isc_uint8_t *scope)
+	       isc_uint32_t ipnum, const geoipv6_t *ipnum6)
 {
 	geoip_state_t *prev_state = NULL;
 	const char *text = NULL;
-	GeoIPLookup gl;
 
 	REQUIRE(db != NULL);
 
@@ -266,40 +262,35 @@ country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	prev_state = get_state_for(family, ipnum, ipnum6);
 	if (prev_state != NULL && prev_state->subtype == subtype) {
 		text = prev_state->text;
-		if (scope != NULL)
-			*scope = prev_state->scope;
 	}
 
 	if (text == NULL) {
 		switch (subtype) {
 		case dns_geoip_country_code:
 			if (family == AF_INET)
-				text = GeoIP_country_code_by_ipnum_gl(db,
-								 ipnum, &gl);
+				text = GeoIP_country_code_by_ipnum(db, ipnum);
 #ifdef HAVE_GEOIP_V6
 			else
-				text = GeoIP_country_code_by_ipnum_v6_gl(db,
-								 *ipnum6, &gl);
+				text = GeoIP_country_code_by_ipnum_v6(db,
+								      *ipnum6);
 #endif
 			break;
 		case dns_geoip_country_code3:
 			if (family == AF_INET)
-				text = GeoIP_country_code3_by_ipnum_gl(db,
-								 ipnum, &gl);
+				text = GeoIP_country_code3_by_ipnum(db, ipnum);
 #ifdef HAVE_GEOIP_V6
 			else
-				text = GeoIP_country_code3_by_ipnum_v6_gl(db,
-								 *ipnum6, &gl);
+				text = GeoIP_country_code3_by_ipnum_v6(db,
+								       *ipnum6);
 #endif
 			break;
 		case dns_geoip_country_name:
 			if (family == AF_INET)
-				text = GeoIP_country_name_by_ipnum_gl(db,
-								 ipnum, &gl);
+				text = GeoIP_country_name_by_ipnum(db, ipnum);
 #ifdef HAVE_GEOIP_V6
 			else
-				text = GeoIP_country_name_by_ipnum_v6_gl(db,
-								 *ipnum6, &gl);
+				text = GeoIP_country_name_by_ipnum_v6(db,
+								      *ipnum6);
 #endif
 			break;
 		default:
@@ -309,10 +300,7 @@ country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 		if (text == NULL)
 			return (NULL);
 
-		if (scope != NULL)
-			*scope = gl.netmask;
-
-		set_state(family, ipnum, ipnum6, gl.netmask, subtype,
+		set_state(family, ipnum, ipnum6, subtype,
 			  NULL, NULL, NULL, text, 0);
 	}
 
@@ -402,8 +390,7 @@ is_city(dns_geoip_subtype_t subtype) {
 static GeoIPRecord *
 city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	    unsigned int family, isc_uint32_t ipnum,
-	    const geoipv6_t *ipnum6,
-	    isc_uint8_t *scope)
+	    const geoipv6_t *ipnum6)
 {
 	GeoIPRecord *record = NULL;
 	geoip_state_t *prev_state = NULL;
@@ -419,8 +406,6 @@ city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	prev_state = get_state_for(family, ipnum, ipnum6);
 	if (prev_state != NULL && is_city(prev_state->subtype)) {
 		record = prev_state->record;
-		if (scope != NULL)
-			*scope = record->netmask;
 	}
 
 	if (record == NULL) {
@@ -433,11 +418,8 @@ city_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 		if (record == NULL)
 			return (NULL);
 
-		if (scope != NULL)
-			*scope = record->netmask;
-
-		set_state(family, ipnum, ipnum6, record->netmask, subtype,
-			  record, NULL, NULL, NULL, 0);
+		set_state(family, ipnum, ipnum6, subtype, record,
+			  NULL, NULL, NULL, 0);
 	}
 
 	return (record);
@@ -485,32 +467,24 @@ is_region(dns_geoip_subtype_t subtype) {
  * outside the Region database.
  */
 static GeoIPRegion *
-region_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	      isc_uint32_t ipnum, isc_uint8_t *scope)
-{
+region_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
 	GeoIPRegion *region = NULL;
 	geoip_state_t *prev_state = NULL;
-	GeoIPLookup gl;
 
 	REQUIRE(db != NULL);
 
 	prev_state = get_state_for(AF_INET, ipnum, NULL);
 	if (prev_state != NULL && is_region(prev_state->subtype)) {
 		region = prev_state->region;
-		if (scope != NULL)
-			*scope = prev_state->scope;
 	}
 
 	if (region == NULL) {
-		region = GeoIP_region_by_ipnum_gl(db, ipnum, &gl);
+		region = GeoIP_region_by_ipnum(db, ipnum);
 		if (region == NULL)
 			return (NULL);
 
-		if (scope != NULL)
-			*scope = gl.netmask;
-
-		set_state(AF_INET, ipnum, NULL, gl.netmask,
-			  subtype, NULL, region, NULL, NULL, 0);
+		set_state(AF_INET, ipnum, NULL, subtype, NULL,
+			  region, NULL, NULL, 0);
 	}
 
 	return (region);
@@ -522,32 +496,24 @@ region_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
  * or was for a search of a different subtype.
  */
 static char *
-name_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-	    isc_uint32_t ipnum, isc_uint8_t *scope)
-{
+name_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
 	char *name = NULL;
 	geoip_state_t *prev_state = NULL;
-	GeoIPLookup gl;
 
 	REQUIRE(db != NULL);
 
 	prev_state = get_state_for(AF_INET, ipnum, NULL);
 	if (prev_state != NULL && prev_state->subtype == subtype) {
 		name = prev_state->name;
-		if (scope != NULL)
-			*scope = prev_state->scope;
 	}
 
 	if (name == NULL) {
-		name = GeoIP_name_by_ipnum_gl(db, ipnum, &gl);
+		name = GeoIP_name_by_ipnum(db, ipnum);
 		if (name == NULL)
 			return (NULL);
 
-		if (scope != NULL)
-			*scope = gl.netmask;
-
-		set_state(AF_INET, ipnum, NULL, gl.netmask,
-			  subtype, NULL, NULL, name, NULL, 0);
+		set_state(AF_INET, ipnum, NULL, subtype, NULL, NULL,
+			  name, NULL, 0);
 	}
 
 	return (name);
@@ -559,12 +525,9 @@ name_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
  * different subtype.
  */
 static int
-netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
-		isc_uint32_t ipnum, isc_uint8_t *scope)
-{
+netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype, isc_uint32_t ipnum) {
 	geoip_state_t *prev_state = NULL;
 	isc_boolean_t found = ISC_FALSE;
-	GeoIPLookup gl;
 	int id = -1;
 
 	REQUIRE(db != NULL);
@@ -572,21 +535,16 @@ netspeed_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 	prev_state = get_state_for(AF_INET, ipnum, NULL);
 	if (prev_state != NULL && prev_state->subtype == subtype) {
 		id = prev_state->id;
-		if (scope != NULL)
-			*scope = prev_state->scope;
 		found = ISC_TRUE;
 	}
 
 	if (!found) {
-		id = GeoIP_id_by_ipnum_gl(db, ipnum, &gl);
+		id = GeoIP_id_by_ipnum(db, ipnum);
 		if (id == 0)
 			return (0);
 
-		if (scope != NULL)
-			*scope = gl.netmask;
-
-		set_state(AF_INET, ipnum, NULL, gl.netmask,
-			  subtype, NULL, NULL, NULL, NULL, id);
+		set_state(AF_INET, ipnum, NULL, subtype, NULL,
+			  NULL, NULL, NULL, id);
 	}
 
 	return (id);
@@ -648,7 +606,7 @@ fix_subtype(const isc_netaddr_t *reqaddr, const dns_geoip_databases_t *geoip,
 #endif /* HAVE_GEOIP */
 
 isc_boolean_t
-dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
+dns_geoip_match(const isc_netaddr_t *reqaddr,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t *elt)
 {
@@ -711,7 +669,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 
 		INSIST(elt->as_string != NULL);
 
-		cs = country_lookup(db, subtype, family, ipnum, ipnum6, scope);
+		cs = country_lookup(db, subtype, family, ipnum, ipnum6);
 		if (cs != NULL && strncasecmp(elt->as_string, cs, maxlen) == 0)
 			return (ISC_TRUE);
 		break;
@@ -732,7 +690,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 			return (ISC_FALSE);
 
 		record = city_lookup(db, subtype, family,
-				     ipnum, ipnum6, scope);
+				     ipnum, ipnum6);
 		if (record == NULL)
 			break;
 
@@ -748,7 +706,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 			return (ISC_FALSE);
 
 		record = city_lookup(db, subtype, family,
-				     ipnum, ipnum6, scope);
+				     ipnum, ipnum6);
 		if (record == NULL)
 			break;
 
@@ -762,7 +720,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 			return (ISC_FALSE);
 
 		record = city_lookup(db, subtype, family,
-				     ipnum, ipnum6, scope);
+				     ipnum, ipnum6);
 		if (record == NULL)
 			break;
 
@@ -783,7 +741,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 		if (family == AF_INET6)
 			return (ISC_FALSE);
 
-		region = region_lookup(geoip->region, subtype, ipnum, scope);
+		region = region_lookup(geoip->region, subtype, ipnum);
 		if (region == NULL)
 			break;
 
@@ -817,7 +775,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 		if (family == AF_INET6)
 			return (ISC_FALSE);
 
-		s = name_lookup(db, subtype, ipnum, scope);
+		s = name_lookup(db, subtype, ipnum);
 		if (s != NULL) {
 			size_t l;
 			if (strcasecmp(elt->as_string, s) == 0)
@@ -842,7 +800,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
 		if (family == AF_INET6)
 			return (ISC_FALSE);
 
-		id = netspeed_lookup(geoip->netspeed, subtype, ipnum, scope);
+		id = netspeed_lookup(geoip->netspeed, subtype, ipnum);
 		if (id == elt->as_int)
 			return (ISC_TRUE);
 		break;

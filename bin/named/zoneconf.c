@@ -815,11 +815,12 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 			tsig = dns_tsigkey_identity(mykey);
 		}
 
-		if (dns_acl_allowed(&netsrc, tsig, NULL, 0, NULL,
-				    view->matchclients, env) &&
-		    dns_acl_allowed(&netdst, tsig, NULL, 0, NULL,
-				    view->matchdestinations, env))
+		if (dns_acl_allowed(&netsrc, tsig, view->matchclients, env) &&
+		    dns_acl_allowed(&netdst, tsig, view->matchdestinations,
+				    env))
+		{
 			break;
+		}
 	}
 	return (ISC_TF(view == myview));
 }
