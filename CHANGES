@@ -1,3 +1,16 @@
+4934.	[func]		Authoritative server support in named for the
+			EDNS CLIENT-SUBNET option (which was experimental
+			and not practical to deploy) has been removed.
+
+			The ECS option is still supported in dig and mdig
+			via the +subnet option, and can be parsed and logged
+			when received by named, but it is no longer used
+			for ACL processing. The "geoip-use-ecs" option
+			is now obsolete; a warning will be logged if it is
+			used in named.conf. "ecs" tags in an ACL definition
+			are also obsolete and will cause the configuration
+			to fail to load.  [GL #32]
+
 4933.	[bug]		Not creating signing keys for an inline signed zone
 			prevented changes applied to the raw zone from being
 			reflected in the secure zone until signing keys were

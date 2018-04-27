@@ -46,7 +46,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.3.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 24, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 24);
 
 	node = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
@@ -56,7 +56,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.0.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 16, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 16);
 
 	node = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
@@ -66,7 +66,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.3.3");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 22, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 22);
 
 	node = NULL;
 	result = isc_radix_search(radix, &node, &prefix);

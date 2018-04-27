@@ -3606,8 +3606,7 @@ create_mapped_acl(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_iptable_addprefix(acl->iptable, &addr, 96,
-				       ISC_TRUE, ISC_FALSE);
+	result = dns_iptable_addprefix(acl->iptable, &addr, 96, ISC_TRUE);
 	if (result == ISC_R_SUCCESS)
 		dns_acl_attach(acl, &named_g_mapped);
 	dns_acl_detach(&acl);
@@ -6260,7 +6259,7 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 			return (result);
 
 		result = dns_iptable_addprefix(src_acl->iptable, &netaddr,
-					       128, ISC_TRUE, ISC_FALSE);
+					       128, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			goto clean;
 
@@ -7908,11 +7907,6 @@ load_configuration(const char *filename, named_server_t *server,
 		named_geoip_load(NULL);
 	}
 	named_g_aclconfctx->geoip = named_g_geoip;
-
-	obj = NULL;
-	result = named_config_get(maps, "geoip-use-ecs", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	env->geoip_use_ecs = cfg_obj_asboolean(obj);
 #endif /* HAVE_GEOIP */
 
 	/*
@@ -9338,7 +9332,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
  */
 static isc_result_t
 get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
-		  dns_message_t *message, dns_aclenv_t *env, dns_ecs_t *ecs,
+		  dns_message_t *message, dns_aclenv_t *env,
 		  isc_result_t *sigresult, dns_view_t **viewp)
 {
 	dns_view_t *view;
@@ -9355,9 +9349,6 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		    message->rdclass == dns_rdataclass_any)
 		{
 			dns_name_t *tsig = NULL;
-			isc_netaddr_t *addr = NULL;
-			isc_uint8_t *scope = NULL;
-			isc_uint8_t source = 0;
 
 			*sigresult = dns_message_rechecksig(message, view);
 			if (*sigresult == ISC_R_SUCCESS) {
@@ -9367,15 +9358,9 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 				tsig = dns_tsigkey_identity(tsigkey);
 			}
 
-			if (ecs != NULL) {
-				addr = &ecs->addr;
-				source = ecs->source;
-				scope = &ecs->scope;
-			}
-
-			if (dns_acl_allowed(srcaddr, tsig, addr, source,
-					    scope, view->matchclients, env) &&
-			    dns_acl_allowed(destaddr, tsig, NULL, 0, NULL,
+			if (dns_acl_allowed(srcaddr, tsig,
+					    view->matchclients, env) &&
+			    dns_acl_allowed(destaddr, tsig,
 					    view->matchdestinations, env) &&
 			    !(view->matchrecursiveonly &&
 			      (message->flags & DNS_MESSAGEFLAG_RD) == 0))
@@ -14492,7 +14477,6 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 	}
 	return (result);
 }
-
 
 static isc_result_t
 mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {

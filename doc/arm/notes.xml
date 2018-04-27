@@ -92,6 +92,28 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>named</command> can no longer use the EDNS CLIENT-SUBNET
+	  option for view selection.  In its existing form, the authoriative
+	  ECS feature was not fully RFC-compliant, and could not realistically
+	  have been deployed in production for an authoritative server; its
+	  only practical use was for testing and experimentation. In the
+	  interest of code simplification, this feature has now been removed.
+	</para>
+	<para>
+	  The ECS option is still supported in <command>dig</command> and
+	  <command>mdig</command> via the +subnet option, and can be parsed
+	  and logged when received by <command>named</command>, but
+	  it is no longer used for ACL processing. The
+	  <command>geoip-use-ecs</command> option is now obsolete;
+	  a warning will be logged if it is used in
+	  <filename>named.conf</filename>.
+	  <command>ecs</command> tags in an ACL definition are
+	  also obsolete, and will cause the configuration to fail to
+	  load if they are used. [GL #32]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>dnssec-keygen</command> can no longer generate HMAC
 	  keys for TSIG authentication. Use <command>tsig-keygen</command>
 	  to generate these keys. [RT #46404]

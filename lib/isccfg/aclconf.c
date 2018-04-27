@@ -711,7 +711,6 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 			/* Network prefix */
 			isc_netaddr_t	addr;
 			unsigned int	bitlen;
-			isc_boolean_t	setecs;
 
 			cfg_obj_asnetprefix(ce, &addr, &bitlen);
 			if (family != 0 && family != addr.family) {
@@ -739,9 +738,8 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 			 * the nestedacl element, not the iptable entry.
 			 */
 			setpos = ISC_TF(nest_level != 0 || !neg);
-			setecs = cfg_obj_istype(ce, &cfg_type_ecsprefix);
 			result = dns_iptable_addprefix(iptab, &addr, bitlen,
-						       setpos, setecs);
+						       setpos);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 
@@ -815,8 +813,7 @@ nested_acl:
 				/* Iptable entry with zero bit length. */
 				setpos = ISC_TF(nest_level != 0 || !neg);
 				result = dns_iptable_addprefix(iptab, NULL, 0,
-							       setpos,
-							       ISC_FALSE);
+							       setpos);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 
@@ -836,8 +833,7 @@ nested_acl:
 				 */
 				setpos = ISC_TF(nest_level != 0 || neg);
 				result = dns_iptable_addprefix(iptab, NULL, 0,
-							       setpos,
-							       ISC_FALSE);
+							       setpos);
 				if (result != ISC_R_SUCCESS)
 					goto cleanup;
 
