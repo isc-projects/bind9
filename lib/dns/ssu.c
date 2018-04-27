@@ -420,9 +420,8 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
-				dns_acl_match(addr, NULL, NULL, 0, NULL,
-					      env->localhost, NULL, &match,
-					      NULL);
+			dns_acl_match(addr, NULL, env->localhost,
+				      NULL, &match, NULL);
 			if (match == 0) {
 				if (signer != NULL) {
 					isc_log_write(dns_lctx,

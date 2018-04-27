@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dns64.c,v 1.8 2011/03/12 04:59:47 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/list.h>
@@ -139,8 +137,8 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		return (DNS_R_DISALLOWED);
 
 	if (dns64->clients != NULL) {
-		result = dns_acl_match(reqaddr, reqsigner, NULL, 0, NULL,
-				       dns64->clients, env, &match, NULL);
+		result = dns_acl_match(reqaddr, reqsigner, dns64->clients,
+				       env, &match, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (match <= 0)
@@ -153,8 +151,8 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 
 		memmove(&ina.s_addr, a, 4);
 		isc_netaddr_fromin(&netaddr, &ina);
-		result = dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				       dns64->mapped, env, &match, NULL);
+		result = dns_acl_match(&netaddr, NULL, dns64->mapped,
+				       env, &match, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		if (match <= 0)
@@ -228,8 +226,8 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 * Work out if this dns64 structure applies to this client.
 		 */
 		if (dns64->clients != NULL) {
-			result = dns_acl_match(reqaddr, reqsigner, NULL, 0,
-					       NULL, dns64->clients, env,
+			result = dns_acl_match(reqaddr, reqsigner,
+					       dns64->clients, env,
 					       &match, NULL);
 			if (result != ISC_R_SUCCESS)
 				continue;
@@ -267,8 +265,7 @@ dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 				memmove(&in6.s6_addr, rdata.data, 16);
 				isc_netaddr_fromin6(&netaddr, &in6);
 
-				result = dns_acl_match(&netaddr, NULL, NULL,
-						       0, NULL,
+				result = dns_acl_match(&netaddr, NULL,
 						       dns64->excluded, env,
 						       &match, NULL);
 				if (result == ISC_R_SUCCESS && match <= 0) {

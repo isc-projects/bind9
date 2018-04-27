@@ -3192,8 +3192,8 @@ client_ok(const isc_sockaddr_t *fromaddr, void *arg) {
 	isc_netaddr_fromsockaddr(&netaddr, fromaddr);
 
 	LOCK(&listener->lock);
-	if (dns_acl_match(&netaddr, NULL, NULL, 0, NULL, listener->acl, env,
-			  &match, NULL) == ISC_R_SUCCESS && match > 0)
+	if ((dns_acl_match(&netaddr, NULL, listener->acl, env,
+			   &match, NULL) == ISC_R_SUCCESS) && match > 0)
 	{
 		UNLOCK(&listener->lock);
 		return (ISC_TRUE);
