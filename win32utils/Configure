@@ -361,8 +361,7 @@ my @allcond = (@substcond, "NOTYET", "NOLONGER");
 
 # enable-xxx/disable-xxx
 
-my @enablelist = ("crypto-rand",
-                  "developer",
+my @enablelist = ("developer",
                   "fixed-rrset",
                   "intrinsics",
                   "isc-spnego",
@@ -424,7 +423,6 @@ my @help = (
 "\nOptional Features:\n",
 "  enable-intrinsics     enable instrinsic/atomic functions [default=yes]\n",
 "  enable-native-pkcs11  use native PKCS#11 for all crypto [default=no]\n",
-"  enable-crypto-rand    use crypto provider for random [default=yes]\n",
 "  enable-openssl-hash   use OpenSSL for hash functions [default=yes]\n",
 "  enable-isc-spnego     use SPNEGO from lib/dns [default=yes]\n",
 "  enable-fixed-rrset    enable fixed rrset ordering [default=no]\n",
@@ -679,10 +677,6 @@ sub myenable {
     } elsif ($key =~ /^native-pkcs11$/i) {
         if ($val =~ /^yes$/i) {
             $enable_native_pkcs11 = "yes";
-        }
-    } elsif ($key =~ /^crypto-rand$/i) {
-        if ($val =~ /^no$/i) {
-            $enable_crypto_rand = "no";
         }
     } elsif ($key =~ /^openssl-hash$/i) {
         if ($val =~ /^yes$/i) {
@@ -969,11 +963,6 @@ if ($verbose) {
         print "native-pkcs11: enabled\n";
     } else {
         print "native-pkcs11: disabled\n";
-    }
-    if ($enable_crypto_rand eq "yes") {
-        print "crypto-rand: enabled\n";
-    } else {
-        print "crypto-rand: disabled\n";
     }
     if ($enable_openssl_hash eq "yes") {
         print "openssl-hash: enabled\n";
@@ -3399,7 +3388,6 @@ exit 0;
 #  --enable-developer partially supported
 #  --enable-newstats (9.9/9.9sub only)
 #  --enable-native-pkcs11 supported
-#  --enable-crypto-rand supported
 #  --enable-openssl-version-check included without a way to disable it
 #  --enable-openssl-hash supported
 #  --enable-threads included without a way to disable it
