@@ -95,7 +95,6 @@ struct dns_aclenv {
 	isc_boolean_t match_mapped;
 #ifdef HAVE_GEOIP
 	dns_geoip_databases_t *geoip;
-	isc_boolean_t geoip_use_ecs;
 #endif
 };
 
@@ -188,9 +187,7 @@ dns_acl_isinsecure(const dns_acl_t *a);
 
 isc_boolean_t
 dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
-		isc_netaddr_t *ecs_addr, isc_uint8_t ecs_addrlen,
-		isc_uint8_t *ecs_scope, dns_acl_t *acl, dns_aclenv_t
-		*aclenv);
+		dns_acl_t *acl, dns_aclenv_t *aclenv);
 /*%<
  * Return #ISC_TRUE iff the 'addr', 'signer', or ECS values are
  * permitted by 'acl' in environment 'aclenv'.
@@ -211,9 +208,6 @@ dns_aclenv_destroy(dns_aclenv_t *env);
 isc_result_t
 dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_name_t *reqsigner,
-	      const isc_netaddr_t *ecs,
-	      isc_uint8_t ecslen,
-	      isc_uint8_t *scope,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
@@ -223,12 +217,7 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * be useful even for weird stuff like the topology and sortlist statements.
  *
  * Match the address 'reqaddr', and optionally the key name 'reqsigner',
- * and optionally the client prefix 'ecs' of length 'ecslen'
- * (reported via EDNS client subnet option) against 'acl'.
- *
- * 'reqsigner' and 'ecs' may be NULL.  If an ACL matches against 'ecs'
- * and 'ecslen', then 'scope' will be set to indicate the netmask that
- * matched.
+ * against 'acl'.  'reqsigner' may be NULL.
  *
  * If there is a match, '*match' will be set to an integer whose absolute
  * value corresponds to the order in which the matching value was inserted
@@ -252,9 +241,6 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 isc_boolean_t
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
-		     const isc_netaddr_t *ecs,
-		     isc_uint8_t ecslen,
-		     isc_uint8_t *scope,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
