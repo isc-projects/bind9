@@ -3756,11 +3756,13 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	if (blackhole != NULL) {
 		int match;
 
-		if (dns_acl_match(&ipaddr, NULL, NULL, 0, NULL, blackhole,
-				  &res->view->aclenv,
-				  &match, NULL) == ISC_R_SUCCESS &&
+		if ((dns_acl_match(&ipaddr, NULL, blackhole,
+				   &res->view->aclenv, &match,
+				   NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
+		{
 			aborted = ISC_TRUE;
+		}
 	}
 
 	if (peer != NULL &&
@@ -6517,10 +6519,8 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 			isc_netaddr_fromin6(&netaddr, &in6a);
 		}
 
-		result = dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				       view->denyansweracl, &view->aclenv,
-				       &match, NULL);
-
+		result = dns_acl_match(&netaddr, NULL, view->denyansweracl,
+				       &view->aclenv, &match, NULL);
 		if (result == ISC_R_SUCCESS && match > 0) {
 			isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 			dns_name_format(name, namebuf, sizeof(namebuf));
