@@ -230,13 +230,12 @@ address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl) {
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 
-	result = dns_acl_match(&netaddr, NULL, NULL, 0, NULL, acl, env, &match,
-			       NULL);
-
-	if (result != ISC_R_SUCCESS || match <= 0)
+	result = dns_acl_match(&netaddr, NULL, acl, env, &match, NULL);
+	if (result != ISC_R_SUCCESS || match <= 0) {
 		return (ISC_FALSE);
-	else
+	} else {
 		return (ISC_TRUE);
+	}
 }
 
 static isc_result_t
