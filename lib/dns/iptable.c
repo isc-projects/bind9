@@ -56,8 +56,7 @@ static isc_boolean_t dns_iptable_pos = ISC_TRUE;
  */
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      isc_uint16_t bitlen, isc_boolean_t pos,
-		      isc_boolean_t is_ecs)
+		      isc_uint16_t bitlen, isc_boolean_t pos)
 {
 	isc_result_t result;
 	isc_prefix_t pfx;
@@ -67,7 +66,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	INSIST(DNS_IPTABLE_VALID(tab));
 	INSIST(tab->radix);
 
-	NETADDR_TO_PREFIX_T(addr, pfx, bitlen, is_ecs);
+	NETADDR_TO_PREFIX_T(addr, pfx, bitlen);
 
 	result = isc_radix_insert(tab->radix, &node, NULL, &pfx);
 	if (result != ISC_R_SUCCESS) {
@@ -79,7 +78,7 @@ dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 	if (pfx.family == AF_UNSPEC) {
 		/* "any" or "none" */
 		INSIST(pfx.bitlen == 0);
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 2; i++) {
 			if (node->data[i] == NULL)
 				node->data[i] = pos ? &dns_iptable_pos
 						    : &dns_iptable_neg;
@@ -122,7 +121,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 		 * could be a security risk.  To prevent this, we
 		 * just leave the negative nodes negative.
 		 */
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 2; i++) {
 			if (!pos) {
 				if (node->data[i] &&
 				    *(isc_boolean_t *) node->data[i])
