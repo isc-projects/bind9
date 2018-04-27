@@ -4950,20 +4950,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		effect during the initial configuration load at server
 		startup time and is ignored on subsequent reloads.
 	      </para>
-	      <para>
-		If BIND is built with
-		<command>configure --disable-crypto-rand</command>, then
-		entropy is <emphasis>not</emphasis> sourced from the
-		cryptographic library. In this case, if
-		<command>random-device</command> is not specified, the
-		default value is the system random device,
-		<filename>/dev/random</filename> or the equivalent.
-		This default can be overridden with
-		<command>configure --with-randomdev</command>.
-		If no system random device exists, then no entropy source
-		will be configured, and <command>named</command> will only
-		be able to use pseudo-random numbers.
-	      </para>
 	    </listitem>
 	  </varlistentry>
 
