@@ -1835,6 +1835,7 @@
 ./bin/tests/system/rootkeysentinel/ns3/named.conf.in	CONF-C	2018
 ./bin/tests/system/rootkeysentinel/ns4/hint.db	ZONE	2018
 ./bin/tests/system/rootkeysentinel/ns4/named.conf.in	CONF-C	2018
+./bin/tests/system/rootkeysentinel/prereq.sh	SH	2018
 ./bin/tests/system/rootkeysentinel/setup.sh	SH	2018
 ./bin/tests/system/rootkeysentinel/tests.sh	SH	2018
 ./bin/tests/system/rpz/.gitignore		X	2017,2018
