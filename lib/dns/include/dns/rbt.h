@@ -119,8 +119,8 @@ struct dns_rbtnode {
 
 	/*%
 	 * These are needed for hashing. The 'uppernode' points to the
-	 * parent of the node in the tree, so that it can be reached from
-	 * a child that was found by a hash lookup.
+	 * node's superdomain node in the parent subtree, so that it can
+	 * be reached from a child that was found by a hash lookup.
 	 */
 	unsigned int hashval;
 	dns_rbtnode_t *uppernode;
