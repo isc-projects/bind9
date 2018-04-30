@@ -1084,12 +1084,11 @@ options_clauses[] = {
 #endif /* HAVE_DNSTAP */
 #ifdef HAVE_GEOIP
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
-	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 #else
 	{ "geoip-directory", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 #endif /* HAVE_GEOIP */
+	{ "geoip-use-ecs", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "has-old-clients", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "heartbeat-interval", &cfg_type_uint32, 0 },
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTIMP },
