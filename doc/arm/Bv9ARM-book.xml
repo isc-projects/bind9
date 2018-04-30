@@ -6599,6 +6599,22 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>validate-except</command></term>
+	      <listitem>
+		<para>
+		  A list of domain names at and beneath which DNSSEC
+		  validation should <emphasis>not</emphasis> be performed,
+		  regardless of the presence of a trust anchor above them.
+		  It may be used, for example, when configuring
+		  a domain intended only for local use, so that the lack
+		  of a secure delegation for that domain will not cause
+		  validation failures.  This is similar to configuring
+		  a negative trust anchor, but it does not expire.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>dnssec-accept-expired</command></term>
 	      <listitem>
 		<para>

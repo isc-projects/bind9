@@ -20,6 +20,7 @@ zone <string> [ <class> ] {
 	database <string>;
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	dlz <string>;
+	dnskey-sig-validity <integer>;
 	dnssec-dnskey-kskonly <boolean>;
 	dnssec-loadkeys-interval <integer>;
 	dnssec-secure-to-insecure <boolean>;
