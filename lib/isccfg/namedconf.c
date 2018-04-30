@@ -1153,7 +1153,7 @@ options_clauses[] = {
 
 static cfg_type_t cfg_type_namelist = {
 	"namelist", cfg_parse_bracketed_list, cfg_print_bracketed_list,
-	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_qstring
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
 };
 
 static keyword_type_t exclude_kw = { "exclude", &cfg_type_namelist };
@@ -1974,6 +1974,7 @@ view_clauses[] = {
 	{ "trust-anchor-telemetry", &cfg_type_boolean,
 	  CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "use-queryport-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "validate-except", &cfg_type_namelist, 0 },
 	{ "v6-bias", &cfg_type_uint32, 0 },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
