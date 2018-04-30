@@ -7391,12 +7391,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		dns_name_t foundname;
 		dns_name_init(&foundname, NULL);
 		dns_rbt_namefromnode(node, &foundname);
-#ifdef DNS_RBT_USEHASH
 		node->locknum = node->hashval % rbtdb->node_lock_count;
-#else
-		node->locknum = dns_name_hash(&foundname, ISC_FALSE) %
-			rbtdb->node_lock_count;
-#endif
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
