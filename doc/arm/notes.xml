@@ -93,7 +93,7 @@
       <listitem>
 	<para>
 	  <command>named</command> can no longer use the EDNS CLIENT-SUBNET
-	  option for view selection.  In its existing form, the authoriative
+	  option for view selection.  In its existing form, the authoritative
 	  ECS feature was not fully RFC-compliant, and could not realistically
 	  have been deployed in production for an authoritative server; its
 	  only practical use was for testing and experimentation. In the
@@ -101,7 +101,7 @@
 	</para>
 	<para>
 	  The ECS option is still supported in <command>dig</command> and
-	  <command>mdig</command> via the +subnet option, and can be parsed
+	  <command>mdig</command> via the +subnet argument, and can be parsed
 	  and logged when received by <command>named</command>, but
 	  it is no longer used for ACL processing. The
 	  <command>geoip-use-ecs</command> option is now obsolete;
