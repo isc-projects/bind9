@@ -113,9 +113,9 @@ options {
         datasize ( default | unlimited | <sizeval> );
         deallocate-on-exit <boolean>; // obsolete
         deny-answer-addresses { <address_match_element>; ... } [
-            except-from { <quoted_string>; ... } ];
-        deny-answer-aliases { <quoted_string>; ... } [ except-from {
-            <quoted_string>; ... } ];
+            except-from { <string>; ... } ];
+        deny-answer-aliases { <string>; ... } [ except-from { <string>; ...
+            } ];
         dialup ( notify | notify-passive | passive | refresh | <boolean> );
         directory <quoted_string>;
         disable-algorithms <string> { <string>;
@@ -146,15 +146,13 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder |
-            resolver ) [ ( query | response ) ]; ... }; // not configured
-        dnstap-identity ( <quoted_string> | none |
-            hostname ); // not configured
-        dnstap-output ( file | unix ) <quoted_string> [
-            size ( unlimited | <size> ) ] [ versions (
-            unlimited | <integer> ) ] [ suffix ( increment
-            | timestamp ) ]; // not configured
-        dnstap-version ( <quoted_string> | none ); // not configured
+        dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
+            response ) ]; ... };
+        dnstap-identity ( <quoted_string> | none | hostname );
+        dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
+            <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
+            increment | timestamp ) ];
+        dnstap-version ( <quoted_string> | none );
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -178,14 +176,14 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        fstrm-set-buffer-hint <integer>; // not configured
-        fstrm-set-flush-timeout <integer>; // not configured
-        fstrm-set-input-queue-size <integer>; // not configured
-        fstrm-set-output-notify-threshold <integer>; // not configured
-        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
-        fstrm-set-output-queue-size <integer>; // not configured
-        fstrm-set-reopen-interval <ttlval>; // not configured
-        geoip-directory ( <quoted_string> | none ); // not configured
+        fstrm-set-buffer-hint <integer>;
+        fstrm-set-flush-timeout <integer>;
+        fstrm-set-input-queue-size <integer>;
+        fstrm-set-output-notify-threshold <integer>;
+        fstrm-set-output-queue-model ( mpsc | spsc );
+        fstrm-set-output-queue-size <integer>;
+        fstrm-set-reopen-interval <ttlval>;
+        geoip-directory ( <quoted_string> | none );
         geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
@@ -265,7 +263,7 @@ options {
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
-        qname-minimization ( strict | relaxed | disabled );
+        qname-minimization ( strict | relaxed | disabled | off );
         query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
             <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
             port ( <integer> | * ) ) ) [ dscp <integer> ];
@@ -320,7 +318,7 @@ options {
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
-        root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-delegation-only [ exclude { <string>; ... } ];
         root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
@@ -379,6 +377,7 @@ options {
         use-v4-udp-ports { <portrange>; ... };
         use-v6-udp-ports { <portrange>; ... };
         v6-bias <integer>;
+        validate-except { <string>; ... };
         version ( <quoted_string> | none );
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
@@ -477,9 +476,9 @@ view <string> [ <class> ] {
         cleaning-interval <integer>;
         clients-per-query <integer>;
         deny-answer-addresses { <address_match_element>; ... } [
-            except-from { <quoted_string>; ... } ];
-        deny-answer-aliases { <quoted_string>; ... } [ except-from {
-            <quoted_string>; ... } ];
+            except-from { <string>; ... } ];
+        deny-answer-aliases { <string>; ... } [ except-from { <string>; ...
+            } ];
         dialup ( notify | notify-passive | passive | refresh | <boolean> );
         disable-algorithms <string> { <string>;
             ... }; // may occur multiple times
@@ -513,8 +512,8 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder |
-            resolver ) [ ( query | response ) ]; ... }; // not configured
+        dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
+            response ) ]; ... };
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -599,7 +598,7 @@ view <string> [ <class> ] {
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
-        qname-minimization ( strict | relaxed | disabled );
+        qname-minimization ( strict | relaxed | disabled | off );
         query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
             <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
             port ( <integer> | * ) ) ) [ dscp <integer> ];
@@ -649,7 +648,7 @@ view <string> [ <class> ] {
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
-        root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-delegation-only [ exclude { <string>; ... } ];
         root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
@@ -716,6 +715,7 @@ view <string> [ <class> ] {
         use-alt-transfer-source <boolean>;
         use-queryport-pool <boolean>; // obsolete
         v6-bias <integer>;
+        validate-except { <string>; ... };
         zero-no-soa-ttl <boolean>;
         zero-no-soa-ttl-cache <boolean>;
         zone <string> [ <class> ] {
@@ -802,7 +802,7 @@ view <string> [ <class> ] {
                 serial-update-method ( date | increment | unixtime );
                 server-addresses { ( <ipv4_address> | <ipv6_address> ) [
                     port <integer> ]; ... };
-                server-names { <quoted_string>; ... };
+                server-names { <string>; ... };
                 sig-signing-nodes <integer>;
                 sig-signing-signatures <integer>;
                 sig-signing-type <integer>;
@@ -906,7 +906,7 @@ zone <string> [ <class> ] {
         serial-update-method ( date | increment | unixtime );
         server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
             <integer> ]; ... };
-        server-names { <quoted_string>; ... };
+        server-names { <string>; ... };
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
         sig-signing-type <integer>;
