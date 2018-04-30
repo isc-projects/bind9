@@ -2287,8 +2287,7 @@ inithash(dns_rbt_t *rbt) {
 }
 
 /*
- * Rebuild the hashtable to reduce the necessity of walking
- * linked lists
+ * Rebuild the hashtable to reduce the load factor
  */
 static void
 rehash(dns_rbt_t *rbt, unsigned int newcount) {
@@ -2329,7 +2328,7 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 }
 
 /*
- * Add a node to the hash table, rehashing it if the node count
+ * Add a node to the hash table. Rehash the hashtable if the node count
  * rises above a critical level.
  */
 static inline void
