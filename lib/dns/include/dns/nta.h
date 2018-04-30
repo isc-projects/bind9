@@ -122,9 +122,12 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
 		 uint32_t lifetime);
 /*%<
  * Add a negative trust anchor to 'ntatable' for name 'name',
- * which will expire at time 'now' + 'lifetime'.  If 'force' is false,
- * then the name will be checked periodically to see if it's bogus;
- * if not, then the NTA will be allowed to expire early.
+ * which will expire at time 'now' + 'lifetime'.  If 'force' is true,
+ * then the NTA will persist for the entire specified lifetime.
+ * If it is false, then the name will be queried periodically and
+ * validation will be attempted to see whether it's still bogus;
+ * if validation is successful, the NTA will be allowed to expire
+ * early and validation below the NTA will resume.
  *
  * Notes:
  *
