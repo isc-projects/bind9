@@ -3684,6 +3684,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
+	dns_ntatable_t *ntatable = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -5304,8 +5305,38 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj), 0,
 					  NULL));
 		view->redirectzone = name;
-	} else
+	} else {
 		view->redirectzone = NULL;
+	}
+
+	/*
+	 * Configure dnssec-validation exceptions
+	 */
+	obj = NULL;
+	result = named_config_get(maps, "validate-except", &obj);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_view_getntatable(view, &ntatable);
+	}
+	if (result == ISC_R_SUCCESS) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			dns_fixedname_t fn;
+			dns_name_t *ntaname;
+
+			ntaname = dns_fixedname_initname(&fn);
+			obj2 = cfg_listelt_value(element);
+			CHECK(dns_name_fromstring(ntaname,
+						  cfg_obj_asstring(obj2),
+						  0, NULL));
+			CHECK(dns_ntatable_add(ntatable, ntaname,
+					       ISC_TRUE, 0, 0xffffffffU));
+		}
+	}
+	if (ntatable != NULL) {
+		dns_ntatable_detach(&ntatable);
+	}
 
 #ifdef HAVE_DNSTAP
 	/*
