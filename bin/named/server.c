@@ -3692,6 +3692,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
+	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -5348,8 +5349,35 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj), 0,
 					  NULL));
 		view->redirectzone = name;
-	} else
+	} else {
 		view->redirectzone = NULL;
+	}
+
+	/*
+	 * Exceptions to DNSSEC validation.
+	 */
+	obj = NULL;
+	result = named_config_get(maps, "validate-except", &obj);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_view_getntatable(view, &ntatable);
+	}
+	if (result == ISC_R_SUCCESS) {
+		for (element = cfg_list_first(obj);
+		     element != NULL;
+		     element = cfg_list_next(element))
+		{
+			dns_fixedname_t fntaname;
+			dns_name_t *ntaname;
+
+			ntaname = dns_fixedname_initname(&fntaname);
+			obj = cfg_listelt_value(element);
+			CHECK(dns_name_fromstring(ntaname,
+						  cfg_obj_asstring(obj),
+						  0, NULL));
+			CHECK(dns_ntatable_add(ntatable, ntaname,
+					       true, 0, 0xffffffffU));
+		}
+	}
 
 #ifdef HAVE_DNSTAP
 	/*
@@ -5362,35 +5390,51 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (clients != NULL)
+	if (ntatable != NULL) {
+		dns_ntatable_detach(&ntatable);
+	}
+	if (clients != NULL) {
 		dns_acl_detach(&clients);
-	if (mapped != NULL)
+	}
+	if (mapped != NULL) {
 		dns_acl_detach(&mapped);
-	if (excluded != NULL)
+	}
+	if (excluded != NULL) {
 		dns_acl_detach(&excluded);
-	if (ring != NULL)
+	}
+	if (ring != NULL) {
 		dns_tsigkeyring_detach(&ring);
-	if (zone != NULL)
+	}
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	if (dispatch4 != NULL)
+	}
+	if (dispatch4 != NULL) {
 		dns_dispatch_detach(&dispatch4);
-	if (dispatch6 != NULL)
+	}
+	if (dispatch6 != NULL) {
 		dns_dispatch_detach(&dispatch6);
-	if (resstats != NULL)
+	}
+	if (resstats != NULL) {
 		isc_stats_detach(&resstats);
-	if (resquerystats != NULL)
+	}
+	if (resquerystats != NULL) {
 		dns_stats_detach(&resquerystats);
-	if (order != NULL)
+	}
+	if (order != NULL) {
 		dns_order_detach(&order);
-	if (cmctx != NULL)
+	}
+	if (cmctx != NULL) {
 		isc_mem_detach(&cmctx);
-	if (hmctx != NULL)
+	}
+	if (hmctx != NULL) {
 		isc_mem_detach(&hmctx);
-
-	if (cache != NULL)
+	}
+	if (cache != NULL) {
 		dns_cache_detach(&cache);
-	if (dctx != NULL)
+	}
+	if (dctx != NULL) {
 		dns_dyndb_destroyctx(&dctx);
+	}
 
 	return (result);
 }
