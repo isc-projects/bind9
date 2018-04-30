@@ -6,6 +6,6 @@ zone <string> [ <class> ] {
 	forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
 	max-records <integer>;
 	server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ]; ... };
-	server-names { <quoted_string>; ... };
+	server-names { <string>; ... };
 	zone-statistics ( full | terse | none | <boolean> );
 };
