@@ -1764,6 +1764,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking validate-except in an insecure local domain ($n)"
+ret=0
+$DIG $DIGOPTS ns www.corp @10.53.0.4 > dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "checking positive and negative validation with negative trust anchors ($n)"
 ret=0
 
@@ -2165,10 +2174,14 @@ fi
 echo_i "sleeping for an additional 4 seconds for ns4 to fully startup"
 sleep 4
 
-# dump the NTA to a file
+# dump the NTA to a file (omit validate-except entries)
+echo_i "testing 'rndc nta'"
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.1 2>/dev/null
+# "corp" is configured as a validate-except domain and thus should be
+# omitted. only "secure.example" should be in the dump at this point.
 lines=`wc -l < rndc.out.ns4.test$n.1`
 [ "$lines" -eq 1 ] || ret=1
+grep 'secure.example' rndc.out.ns4.test$n.1 > /dev/null || ret=1
 ts=`awk '{print $3" "$4}' < rndc.out.ns4.test$n.1`
 # rndc nta outputs localtime, so append the timezone
 ts_with_zone="$ts `date +%z`"
