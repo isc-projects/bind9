@@ -1,3 +1,5 @@
+4951.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
+
 4949.	[placeholder]
 
 4948.	[bug]		When request-nsid is turned on, EDNS NSID options
