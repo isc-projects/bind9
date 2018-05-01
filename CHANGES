@@ -1,3 +1,7 @@
+5001.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 5000.	[bug]		named_server_servestale() could leave the server in
 			exclusive mode if an error occured. [GL #441]
 

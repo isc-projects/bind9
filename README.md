@@ -131,6 +131,9 @@ include:
   DNSSEC validation and are not treated as authoritative data when
   answering. This makes it easier to configure a local copy of the root
   zone as described in RFC 7706.
+* QNAME minimization is now supported
+* The "validate-except" option allows configuration of domains below which
+  DNSSEC validation should not be performed.
 
 In addition, cryptographic support has been modernized. BIND now uses the
 best available pseudo-random number generator for the platform on which
