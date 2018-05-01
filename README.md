@@ -126,6 +126,9 @@ include:
 * Support for IDNA2008 when linking with `libidn2`.
 * "Root key sentinel" support, enabling validating resolvers to indicate
   via a special query which trust anchors are configured for the root zone.
+* QNAME minimization is now supported
+* The "validate-except" option allows configuration of domains below which
+  DNSSEC validation should not be performed.
 
 In addition, cryptographic support has been modernized. BIND now uses the
 best available pseudo-random number generator for the platform on which
