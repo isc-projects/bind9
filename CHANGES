@@ -1,3 +1,7 @@
+4950.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 4949.	[placeholder]
 
 4948.	[bug]		When request-nsid is turned on, EDNS NSID options
