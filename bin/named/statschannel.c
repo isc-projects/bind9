@@ -3122,6 +3122,10 @@ render_xsl(const char *url, isc_httpdurl_t *urlinfo,
 		const char *if_modified_since = "If-Modified-Since: ";
 		_headers = strdup(headers);
 
+		if (_headers == NULL) {
+			goto send;
+		}
+
 		saveptr = NULL;
 		for (line = strtok_r(_headers, "\n", &saveptr);
 		     line;
