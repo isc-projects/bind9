@@ -1,3 +1,7 @@
+5010.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 5009.	[bug]		Upon an OpenSSL failure, the first error in the OpenSSL
 			error queue was not logged. [GL #476]
 
