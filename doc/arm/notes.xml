@@ -85,6 +85,14 @@
 	  signatures covering DNSKEY RRsets. [GL #145]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>validate-except</command> option specifies a list of
+	  domains beneath which DNSSEC validation should not be performed,
+	  regardless of whether a trust anchor has been configured above
+	  them. [GL #237]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

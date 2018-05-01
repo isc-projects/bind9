@@ -159,8 +159,8 @@ zone "cdnskey-auto.secure" {
 };
 
 zone "corp" {
-        type master;
-        file "corp.db";
+	type master;
+	file "corp.db";
 };
 
 include "trusted.conf";
