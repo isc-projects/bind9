@@ -1,3 +1,7 @@
+4986.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 4985.	[func]		Add a new slave zone option, "mirror", to enable
 			serving a non-authoritative copy of a zone that
 			is subject to DNSSEC validation before being
