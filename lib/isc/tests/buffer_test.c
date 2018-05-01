@@ -268,7 +268,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	 */
 	prev_used = used;
 	empty_fmt = "";
-	result = isc_buffer_printf(b, empty_fmt, NULL);
+	result = isc_buffer_printf(b, empty_fmt, b);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	used = isc_buffer_usedlength(b);
 	ATF_CHECK_EQ(prev_used, used);
