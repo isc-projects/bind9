@@ -1,3 +1,7 @@
+4997.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
 
 4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]
