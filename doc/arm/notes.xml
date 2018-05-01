@@ -39,6 +39,12 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The simultaneous use of stale cache records and NSEC aggressive
+	  negative caching could trigger a recursion loop. [GL #185]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  update-policy rules that otherwise ignore the name field now
 	  require that it be set to "." to ensure that any type list
 	  present is properly interpreted.  Previously, if the name field
