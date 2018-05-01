@@ -1,3 +1,7 @@
+4977.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 4976.	[bug]		Log the label with invalid prefix length correctly
 			when loading RPZ zones. [GL #254]
 
