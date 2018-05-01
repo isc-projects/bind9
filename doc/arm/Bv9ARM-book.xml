@@ -12792,6 +12792,13 @@ example.com. NS ns2.example.net.
 			to allow NS or DNAME RRsets to be added to the
 			reverse tree.
 		      </para>
+		      <para>
+			In addition when a specified for a IP6.ARPA namespaces
+			other the 2.0.0.2.IP6.ARPA the corresponding /48
+			reverse name can be updated. e.g. TCP/IPv6 connections
+			from 2001:DB8:ED0C::/48 can update records at
+			C.0.D.E.8.B.D.0.1.0.0.2.IP6.ARPA.
+		      </para>
 		      <note>
 			It is theoretically possible to spoof these TCP
 			sessions.
