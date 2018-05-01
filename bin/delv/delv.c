@@ -962,8 +962,10 @@ parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 static void
 plus_option(char *option) {
 	isc_result_t result;
-	char *cmd, *value, *last;
+	char *cmd, *value, *last = NULL;
 	isc_boolean_t state = ISC_TRUE;
+
+	INSIST(option != NULL);
 
 	cmd = strtok_r(option, "=", &last);
 	if (cmd == NULL) {

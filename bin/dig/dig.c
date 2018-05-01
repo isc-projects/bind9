@@ -735,10 +735,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	    dig_lookup_t *lookup)
 {
 	isc_result_t result;
-	char *cmd, *value, *last, *code, *extra;
+	char *cmd, *value, *last = NULL, *code, *extra;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
+
+	INSIST(option != NULL);
 
 	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
 		printf(";; Invalid option %s\n", option);
