@@ -1,3 +1,7 @@
+4934.	[security]	Simultaneous use of stale cache records and NSEC
+			aggressive negative caching could trigger a recursion
+			loop. [GL #185]
+
 4914.	[bug]		A bug in zone database reference counting could lead to
 			a crash when multiple versions of a slave zone were
 			transferred from a master in close succession.
