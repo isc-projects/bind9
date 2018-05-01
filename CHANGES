@@ -1,3 +1,5 @@
+4950.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
+
 4949.	[bug]		lib/isc/print.c failed to handle floating point
 			output correctly. [GL #261]
 
