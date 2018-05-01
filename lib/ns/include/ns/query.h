@@ -31,6 +31,18 @@ typedef struct ns_dbversion {
 	ISC_LINK(struct ns_dbversion)	link;
 } ns_dbversion_t;
 
+/*%
+ * nameserver recursion parameters, to uniquely identify a recursion
+ * query; this is used to detect a recursion loop
+ */
+typedef struct ns_query_recparam {
+	dns_rdatatype_t			qtype;
+	dns_name_t *			qname;
+	dns_fixedname_t			fqname;
+	dns_name_t *			qdomain;
+	dns_fixedname_t			fqdomain;
+} ns_query_recparam_t;
+
 /*% nameserver query structure */
 struct ns_query {
 	unsigned int			attributes;
@@ -59,6 +71,7 @@ struct ns_query {
 	unsigned int			dns64_aaaaoklen;
 	unsigned int			dns64_options;
 	unsigned int			dns64_ttl;
+
 	struct {
 		dns_db_t *      	db;
 		dns_zone_t *      	zone;
@@ -72,6 +85,8 @@ struct ns_query {
 		isc_boolean_t		authoritative;
 		isc_boolean_t		is_zone;
 	} redirect;
+
+	ns_query_recparam_t		recparam;
 };
 
 #define NS_QUERYATTR_RECURSIONOK	0x0001
