@@ -12530,9 +12530,14 @@ example.com. NS ns2.example.net.
 	    </para>
 	    <para>
 	      No signer is required for <replaceable>tcp-self</replaceable>
-	      or <replaceable>6to4-self</replaceable> however the standard
-	      reverse mapping / prefix conversion must match the identity
-	      field.
+	      or <replaceable>6to4-self</replaceable> however the
+	      standard reverse mapping / prefix conversion must
+	      match the identity field.
+	      <replaceable>tcp-self</replaceable> and
+	      <replaceable>6to4-self</replaceable> require UPDATE
+	      requests to be made over TCP and the source address
+	      of the TCP connection is used to authenticate the
+	      update request.
 	    </para>
 	    <para>
 	      The identity field specifies a name or a wildcard
