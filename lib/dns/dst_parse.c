@@ -33,7 +33,6 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.29 2011/08/18 23:46:35 tbox Exp $
  */
 
 #include <config.h>
@@ -216,9 +215,7 @@ check_rsa(const dst_private_t *priv, isc_boolean_t external) {
 		have[i] = ISC_TRUE;
 	}
 
-	mask = ~0;
-	mask <<= sizeof(mask) * 8 - TAG_SHIFT;
-	mask >>= sizeof(mask) * 8 - TAG_SHIFT;
+	mask = (1ULL << TAG_SHIFT) - 1;
 
 	if (have[TAG_RSA_ENGINE & mask])
 		ok = have[TAG_RSA_MODULUS & mask] &&
@@ -310,9 +307,7 @@ check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 		have[i] = ISC_TRUE;
 	}
 
-	mask = ~0;
-	mask <<= sizeof(mask) * 8 - TAG_SHIFT;
-	mask >>= sizeof(mask) * 8 - TAG_SHIFT;
+	mask = (1ULL << TAG_SHIFT) - 1;
 
 	if (have[TAG_ECDSA_ENGINE & mask])
 		ok = have[TAG_ECDSA_LABEL & mask];
@@ -342,9 +337,7 @@ check_eddsa(const dst_private_t *priv, isc_boolean_t external) {
 		have[i] = ISC_TRUE;
 	}
 
-	mask = ~0;
-	mask <<= sizeof(mask) * 8 - TAG_SHIFT;
-	mask >>= sizeof(mask) * 8 - TAG_SHIFT;
+	mask = (1ULL << TAG_SHIFT) - 1;
 
 	if (have[TAG_EDDSA_ENGINE & mask])
 		ok = have[TAG_EDDSA_LABEL & mask];
