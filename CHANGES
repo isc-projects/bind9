@@ -1,3 +1,7 @@
+4985.	[func]		New "validate-except" option specifies a list of
+			domains beneath which DNSSEC validation should not
+			be performed. [GL #237]
+
 4984.	[bug]		Improve handling of very large incremental
 			zone transfers to prevent journal corruption. [GL #339]
 
