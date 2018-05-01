@@ -4697,6 +4697,7 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		 */
 		if (KEEPSTALE(search->rbtdb) && stale > search->now) {
 			header->attributes |= RDATASET_ATTR_STALE;
+			*header_prev = header;
 			return ((search->options & DNS_DBFIND_STALEOK) == 0);
 		}
 
