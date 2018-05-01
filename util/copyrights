@@ -1,4 +1,3 @@
-./.clang-format					X	2018
 ./.gitattributes				X	2015,2017,2018
 ./.gitignore					X	2012,2013,2014,2015,2016,2017,2018
 ./.gitlab-ci.yml				X	2018
@@ -413,8 +412,6 @@
 ./bin/tests/system/acl/ns2/named3.conf.in	CONF-C	2008,2016,2018
 ./bin/tests/system/acl/ns2/named4.conf.in	CONF-C	2008,2016,2018
 ./bin/tests/system/acl/ns2/named5.conf.in	CONF-C	2013,2016,2018
-./bin/tests/system/acl/ns2/named6.conf.in	CONF-C	2014,2016,2018
-./bin/tests/system/acl/ns2/named7.conf.in	CONF-C	2014,2016,2018
 ./bin/tests/system/acl/ns3/example.db		ZONE	2017,2018
 ./bin/tests/system/acl/ns3/named.conf.in	CONF-C	2017,2018
 ./bin/tests/system/acl/ns4/example.db		ZONE	2017,2018
@@ -635,6 +632,7 @@
 ./bin/tests/system/checkconf/bad-catz-zone.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-dnskey-validity.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-dnssec.conf	CONF-C	2012,2013,2016,2018
+./bin/tests/system/checkconf/bad-geoip-use-ecs.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-glue-cache-bogus.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/bad-hint.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-in-view-dup.conf	CONF-C	2018
@@ -757,6 +755,7 @@
 ./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/warn-dlv-auto.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/warn-dlv-dlv.isc.org.conf	CONF-C	2017,2018
+./bin/tests/system/checkconf/warn-geoip-use-ecs.conf	CONF-C	2018
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013,2016,2018
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014,2016,2017,2018
 ./bin/tests/system/checkds/dig.bat		BAT	2016,2018

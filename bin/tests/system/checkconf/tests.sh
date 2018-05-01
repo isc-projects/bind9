@@ -396,5 +396,13 @@ grep "trusted-key for dlv.isc.org still present" checkconf.out$n > /dev/null || 
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo_i "check that 'geoip-use-ecs no' generates a warning ($n)"
+ret=0
+$CHECKCONF warn-geoip-use-ecs.conf > checkconf.out$n 2>/dev/null || ret=1
+[ -s checkconf.out$n ] || ret=1
+grep "'geoip-use-ecs' is obsolete" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
