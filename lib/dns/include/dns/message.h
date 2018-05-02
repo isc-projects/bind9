@@ -104,10 +104,26 @@
 #define DNS_OPT_PAD		12		/*%< PAD opt code */
 #define DNS_OPT_KEY_TAG		14		/*%< Key tag opt code */
 
+#define DNS_OPT_PROTOSS		20292		/*%< Cisco/OpenDNS umbrella */
+
+/* Magic number used in a PROTOSS option */
+#define PROTOSS_MAGIC		0x4f444e53U	/* "ODCS" */
+
+/* Flags for PROTOSS options - currently unused */
+#define PROTOSS_FALSIFY		0x01
+#define PROTOSS_NOECS		0x02
+
+/* PROTOSS option identity types */
+#define PROTOSS_VA		0x04		/*%< virtual appliance ID */
+#define PROTOSS_ORG		0x08		/*%< organization ID */
+#define PROTOSS_V4		0x10		/*%< v4 client address */
+#define PROTOSS_V6		0x20		/*%< v6 client address */
+#define PROTOSS_DEV		0x40		/*%< device ID */
+
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
 /*%< The number of EDNS options we know about. */
-#define DNS_EDNSOPTIONS	7
+#define DNS_EDNSOPTIONS	8
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)

@@ -97,9 +97,7 @@ if __name__ == "__main__":
     r = dns.query.udp(message, "10.53.0.2", port=5300)
     print r
 
-    # Generate a Protoss packet containing the same information as the two
-    # above options.  Basically just put the Device ID in the
-    # Protoss packet too.  This keeps some firewalls from dropping the packet.
+    # Include organization ID and Device ID
     P = Protoss(org=1816793, ip4=ipv4, device=0xdeadbeef)
     message = dns.message.make_query("a.example", "A")
     message.use_edns(options=[P])
@@ -113,10 +111,36 @@ if __name__ == "__main__":
     r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
     print r
 
-    # Generate a packet with Protoss EDNS0 options
-    # Include organization ID, Virtual Appliance ID and IPv4 address.  This
-    # would allow OpenDNS to apply filtering to the internal IP addres.
+    # Include organization ID and Virtual Appliance ID
     P = Protoss(org=1816793, va=30280231, ip4=ipv4)
+    message = dns.message.make_query("a.example", "A")
+    message.use_edns(options=[P])
+    r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
+    print r
+
+    # Query with FALSIFY flag
+    P = Protoss(org=1, ip4=ipv4, flags=1)
+    message = dns.message.make_query("a.example", "A")
+    message.use_edns(options=[P])
+    r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
+    print r
+
+    # And now with NOECS flag
+    P = Protoss(org=1, ip4=ipv4, flags=2)
+    message = dns.message.make_query("a.example", "A")
+    message.use_edns(options=[P])
+    r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
+    print r
+
+    # And now both
+    P = Protoss(org=1, ip4=ipv4, flags=3)
+    message = dns.message.make_query("a.example", "A")
+    message.use_edns(options=[P])
+    r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
+    print r
+
+    # And now an unknown flag
+    P = Protoss(org=1, ip4=ipv4, flags=4)
     message = dns.message.make_query("a.example", "A")
     message.use_edns(options=[P])
     r = dns.query.udp(message, "10.53.0.2", port=5300, timeout=10)
