@@ -114,9 +114,6 @@ struct dst_key {
 		void *generic;
 		gss_ctx_id_t gssctx;
 #ifdef OPENSSL
-#if !defined(USE_EVP) || !USE_EVP
-		RSA *rsa;
-#endif
 #ifndef PK11_DSA_DISABLE
 		DSA *dsa;
 #endif
