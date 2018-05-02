@@ -1,0 +1,8 @@
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+ns1 - root
+ns2 - example TLD
+ns3 - full resolver
+ns4 - forwarder, configured to send with PROTOSS options
