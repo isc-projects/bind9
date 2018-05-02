@@ -3491,6 +3491,8 @@ render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
 	isc_uint32_t magic;
 	isc_uint8_t version, flags;
 	isc_boolean_t first = ISC_TRUE;
+	isc_boolean_t va = ISC_FALSE, dev = ISC_FALSE, org = ISC_FALSE;
+	isc_boolean_t v4 = ISC_FALSE, v6 = ISC_FALSE;
 
 	if (isc_buffer_remaininglength(pbuf) < 4)
 		return (DNS_R_OPTERR);
@@ -3541,16 +3543,31 @@ render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
 		/* Process each identifier type */
 		switch (type) {
 		case PROTOSS_VA:
+			if (va) {
+				return (DNS_R_OPTERR);
+			}
+			va = ISC_TRUE;
+
 			value = isc_buffer_getuint32(pbuf);
 			snprintf(text, sizeof(text), "va:%u",
 				 (isc_uint32_t) value);
 			break;
 		case PROTOSS_ORG:
+			if (org) {
+				return (DNS_R_OPTERR);
+			}
+			org = ISC_TRUE;
+
 			value = isc_buffer_getuint32(pbuf);
 			snprintf(text, sizeof(text), "org:%u",
 				 (isc_uint32_t) value);
 			break;
 		case PROTOSS_V4:
+			if (v4) {
+				return (DNS_R_OPTERR);
+			}
+			v4 = ISC_TRUE;
+
 			memset(addr, 0, sizeof(addr));
 			for (i = 0; i < 4; i ++) {
 				addr[i] = isc_buffer_getuint8(pbuf);
@@ -3559,6 +3576,11 @@ render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
 			snprintf(text, sizeof(text), "ipv4:%s", addrtext);
 			break;
 		case PROTOSS_V6:
+			if (v6) {
+				return (DNS_R_OPTERR);
+			}
+			v6 = ISC_TRUE;
+
 			memset(addr, 0, sizeof(addr));
 			for (i = 0; i < 16; i ++) {
 				addr[i] = isc_buffer_getuint8(pbuf);
@@ -3567,6 +3589,11 @@ render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
 			snprintf(text, sizeof(text), "ipv6:%s", addrtext);
 			break;
 		case PROTOSS_DEV:
+			if (dev) {
+				return (DNS_R_OPTERR);
+			}
+			dev = ISC_TRUE;
+
 			value = isc_buffer_getuint32(pbuf);
 			value <<= 32;
 			value |= isc_buffer_getuint32(pbuf);
