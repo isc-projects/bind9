@@ -1428,6 +1428,7 @@ dig_ednsoptname_t optnames[] = {
 	{ 13, "CHAIN" },	/* RFC 7901 */
 	{ 14, "KEY-TAG" },	/* RFC 8145 */
 	{ 26946, "DEVICEID" },	/* Brian Hartvigsen */
+	{ 20292, "PROTOSS" },	/* Brian Hartvigsen */
 };
 
 #define N_EDNS_OPTNAMES  (sizeof(optnames) / sizeof(optnames[0]))
