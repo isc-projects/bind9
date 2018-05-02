@@ -1880,8 +1880,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			mname = NULL;
 			have_a = ISC_TRUE;
 			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    (DNS_TRUST_PENDING(rdataset->trust) ||
-			     DNS_TRUST_GLUE(rdataset->trust)) &&
+			    DNS_TRUST_PENDING(rdataset->trust) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
 				dns_rdataset_disassociate(rdataset);
@@ -1945,8 +1944,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			      !dns_rdataset_isassociated(sigrdataset)))))
 				goto addname;
 			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    (DNS_TRUST_PENDING(rdataset->trust) ||
-			     DNS_TRUST_GLUE(rdataset->trust)) &&
+			    DNS_TRUST_PENDING(rdataset->trust) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
 				dns_rdataset_disassociate(rdataset);
