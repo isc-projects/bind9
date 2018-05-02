@@ -44,6 +44,8 @@
 
 #include <dst/result.h>
 
+#include <openssl/opensslv.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
@@ -550,7 +552,15 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		DH_free(dh);
 		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
+#if LIBRESSL_VERSION_NUMBER >= 0x2070000fL
+	/*
+	 * LibreSSL 2.7 DH_get0_key requires priv_key to be set when
+	 * DH structure is empty, hence we cannot use DH_get0_key().
+	 */
+	dh->pub_key = pub_key;
+#else /* LIBRESSL_VERSION_NUMBER */
 	DH_set0_key(dh, pub_key, NULL);
+#endif /* LIBRESSL_VERSION_NUMBER */
 	isc_region_consume(&r, publen);
 
 	key->key_size = BN_num_bits(p);
