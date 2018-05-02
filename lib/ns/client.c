@@ -2166,7 +2166,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 		return (result);
 	}
 
-	/* Check for NSID request */
+	/* Check for EDNS options */
 	result = dns_rdataset_first(opt);
 	if (result == ISC_R_SUCCESS) {
 		dns_rdata_init(&rdata);
@@ -2493,6 +2493,20 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(result));
 		ns_client_error(client, result);
 		return;
+	}
+
+	/*
+	 * Maybe log incoming packet
+	 */
+	if (isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(10))) {
+		dns_message_logfmtpacket(client->message,
+					 "received client packet from",
+					 &client->peeraddr,
+					 NS_LOGCATEGORY_CLIENT,
+					 NS_LOGMODULE_CLIENT,
+					 &dns_master_style_comment,
+					 ISC_LOG_DEBUG(10),
+					 client->mctx);
 	}
 
 	/*
