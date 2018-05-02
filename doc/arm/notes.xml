@@ -40,7 +40,16 @@
       <listitem>
 	<para>
 	  The simultaneous use of stale cache records and NSEC aggressive
-	  negative caching could trigger a recursion loop. [GL #185]
+	  negative caching could trigger a recursion loop, possibly
+	  leading to an assertion failure and termination of the
+	  <command>named</command> process. (CVE-2018-5737) [GL #185]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A bug in zone database reference counting could lead to a crash
+	  when multiple versions of a slave zone were transferred from a
+	  master in close succession. (CVE-2018-5736) [GL #134]
 	</para>
       </listitem>
       <listitem>

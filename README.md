@@ -149,6 +149,11 @@ include:
 
 BIND 9.12.1 is a maintenance release.
 
+#### BIND 9.12.1-P1
+
+BIND 9.12.1-P1 addresses the security vulnerabilities disclosed in
+CVE-2018-5736 and CVE-2018-5737.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
