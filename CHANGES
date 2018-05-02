@@ -1,3 +1,6 @@
+4946.	[bug]		Additional glue was not being returned by resolver
+			for unsigned zones since change 4596. [GL #209]
+
 4945.	[func]		BIND can no longer be built without DNSSEC support.
 			A cryptography provder (i.e., OpenSSL or a hardware
 			service module with PKCS#11 support) must be
