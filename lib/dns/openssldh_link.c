@@ -50,6 +50,8 @@
 #include "dst_openssl.h"
 #include "dst_parse.h"
 
+#define PRIME2 "02"
+
 #define PRIME768 "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088" \
 	"A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25" \
 	"F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A63A3620FFFFFFFFFFFFFFFF"
@@ -71,7 +73,7 @@
 
 static isc_result_t openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
 
-static BIGNUM *bn2, *bn768, *bn1024, *bn1536;
+static BIGNUM *bn2 = NULL, *bn768 = NULL, *bn1024 = NULL, *bn1536 = NULL;
 
 #if !defined(HAVE_DH_GET0_KEY)
 /*
@@ -723,32 +725,6 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 }
 
 static void
-BN_fromhex(BIGNUM *b, const char *str) {
-	static const char hexdigits[] = "0123456789abcdef";
-	unsigned char data[512];
-	unsigned int i;
-	BIGNUM *out;
-
-	RUNTIME_CHECK(strlen(str) < 1024U && strlen(str) % 2 == 0U);
-	for (i = 0; i < strlen(str); i += 2) {
-		const char *s;
-		unsigned int high, low;
-
-		s = strchr(hexdigits, tolower((unsigned char)str[i]));
-		RUNTIME_CHECK(s != NULL);
-		high = (unsigned int)(s - hexdigits);
-
-		s = strchr(hexdigits, tolower((unsigned char)str[i + 1]));
-		RUNTIME_CHECK(s != NULL);
-		low = (unsigned int)(s - hexdigits);
-
-		data[i/2] = (unsigned char)((high << 4) + low);
-	}
-	out = BN_bin2bn(data, strlen(str)/2, b);
-	RUNTIME_CHECK(out != NULL);
-}
-
-static void
 openssldh_cleanup(void) {
 	BN_free(bn2);
 	BN_free(bn768);
@@ -784,17 +760,18 @@ isc_result_t
 dst__openssldh_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL) {
-		bn2 = BN_new();
-		bn768 = BN_new();
-		bn1024 = BN_new();
-		bn1536 = BN_new();
-		if (bn2 == NULL || bn768 == NULL ||
-		    bn1024 == NULL || bn1536 == NULL)
+		if (BN_hex2bn(&bn2, PRIME2) == 0 || bn2 == NULL) {
 			goto cleanup;
-		BN_set_word(bn2, 2);
-		BN_fromhex(bn768, PRIME768);
-		BN_fromhex(bn1024, PRIME1024);
-		BN_fromhex(bn1536, PRIME1536);
+		}
+		if (BN_hex2bn(&bn768, PRIME768) == 0 || bn768 == NULL) {
+			goto cleanup;
+		}
+		if (BN_hex2bn(&bn1024, PRIME1024) == 0 || bn1024 == NULL) {
+			goto cleanup;
+		}
+		if (BN_hex2bn(&bn1536, PRIME1536) == 0 || bn1536 == NULL) {
+			goto cleanup;
+		}
 		*funcp = &openssldh_functions;
 	}
 	return (ISC_R_SUCCESS);
