@@ -98,7 +98,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	legacy limits logfileconfig \
 	masterfile masterformat metadata mkeys \
 	names notify nslookup nsupdate nzd2nzf \
-	padding pending pipelined \
+	padding pending pipelined protoss \
 	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
 	rrchecker rrl rrsetorder rsabigexponent runtime \
 	serve-stale sfcache smartsign sortlist \
