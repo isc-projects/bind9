@@ -1191,6 +1191,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * not modified.
 	 */
 	add_name = dns_fixedname_initname(&fixedcopy);
+	INSIST(add_name != NULL);
 	dns_name_clone(name, add_name);
 
 	if (ISC_UNLIKELY(rbt->root == NULL)) {
@@ -1212,6 +1213,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	prefix = dns_fixedname_initname(&fixedprefix);
 	suffix = dns_fixedname_initname(&fixedsuffix);
+
+	INSIST(prefix != NULL);
+	INSIST(suffix != NULL);
 
 	root = &rbt->root;
 	INSIST(IS_ROOT(*root));
@@ -1534,6 +1538,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	 * the lack of bitstring labels.
 	 */
 	search_name = dns_fixedname_initname(&fixedsearchname);
+	INSIST(search_name != NULL);
 	dns_name_clone(name, search_name);
 
 	dns_name_init(&current_name, NULL);
