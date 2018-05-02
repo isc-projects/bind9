@@ -104,10 +104,12 @@
 #define DNS_OPT_PAD		12		/*%< PAD opt code */
 #define DNS_OPT_KEY_TAG		14		/*%< Key tag opt code */
 
+#define DNS_OPT_PROTOSS		20292		/*%< Cisco/OpenDNS umbrella */
+
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
 /*%< The number of EDNS options we know about. */
-#define DNS_EDNSOPTIONS	7
+#define DNS_EDNSOPTIONS	8
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD|DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
