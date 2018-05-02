@@ -64,7 +64,7 @@ PARALLEL = rpzrecurse serve-stale dnssec \
 	   legacy limits logfileconfig \
 	   masterfile masterformat metadata mkeys \
 	   names notify nslookup nsupdate nzd2nzf \
-	   padding pending pipelined qmin \
+	   padding pending pipelined protoss qmin \
 	   reclimit redirect resolver rndc rootkeysentinel rpz \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
 	   sfcache smartsign sortlist \
