@@ -13,9 +13,12 @@
 
 #include <config.h>
 
+#include <endian.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/buffer.h>
+#include <isc/hex.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -107,6 +110,7 @@ static cfg_type_t cfg_type_dnstap;
 static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
 static cfg_type_t cfg_type_filter_aaaa;
+static cfg_type_t cfg_type_hexuint64;
 static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
@@ -1936,6 +1940,9 @@ view_clauses[] = {
 	{ "nxdomain-redirect", &cfg_type_astring, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
+	{ "protoss-virtual-appliance", &cfg_type_uint32, 0 },
+	{ "protoss-organization", &cfg_type_uint32, 0 },
+	{ "protoss-device", &cfg_type_hexuint64, 0 },
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	/*
 	 * Note that the query-source option syntax is different
@@ -2426,6 +2433,7 @@ server_clauses[] = {
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "send-cookie", &cfg_type_boolean, 0 },
+	{ "send-protoss", &cfg_type_boolean, 0 },
 	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "tcp-keepalive", &cfg_type_boolean, 0 },
 	{ "tcp-only", &cfg_type_boolean, 0 },
@@ -4163,3 +4171,64 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 	pctx.indent--;
 	cfg_print_cstr(&pctx, "};\n");
 }
+
+static isc_result_t
+parse_hexuint64(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_uint64_t data, val;
+	isc_buffer_t b;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	isc_buffer_init(&b, &data, sizeof(data));
+	CHECK(isc_hex_decodestring(TOKEN_STRING(pctx), &b));
+	val = be64toh(data) >> (64 - (4 * strlen(TOKEN_STRING(pctx))));
+	CHECK(cfg_create_obj(pctx, &cfg_type_hexuint64, &obj));
+
+	obj->value.uint64 = val;
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR, "expected a valid hex integer");
+	return (result);
+}
+
+static void
+print_hexuint64(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	char hex[sizeof("0011223344556677")];
+	isc_uint64_t be, val = obj->value.uint64;
+	isc_region_t r;
+	isc_buffer_t b;
+
+	isc_buffer_init(&b, hex, sizeof(hex));
+
+	be = htobe64(val);
+	r.base = (void *) &be;
+	r.length = sizeof(be);
+
+	/* strip leading zeroes */
+	while ((isc_uint8_t) r.base[0] == 0) {
+		r.base++;
+		r.length--;
+	}
+
+	isc_hex_totext(&r, 1, "", &b);
+	isc_buffer_putuint8(&b, 0);
+	cfg_print_cstr(pctx, hex);
+}
+
+/*%
+ * A uint64 represented in hex
+ */
+static cfg_type_t cfg_type_hexuint64 = {
+	"hexuint64", parse_hexuint64, print_hexuint64, cfg_doc_terminal,
+	&cfg_rep_uint64, NULL
+};
