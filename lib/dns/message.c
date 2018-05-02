@@ -3485,6 +3485,106 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	return (result);
 }
 
+static isc_result_t
+render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
+	isc_result_t result;
+	isc_uint32_t magic;
+	isc_uint8_t version, flags;
+	isc_boolean_t first = ISC_TRUE;
+
+	if (isc_buffer_remaininglength(pbuf) < 4)
+		return (DNS_R_OPTERR);
+	magic = isc_buffer_getuint32(pbuf);
+	version = isc_buffer_getuint8(pbuf);
+	flags = isc_buffer_getuint8(pbuf);
+
+	UNUSED(version);
+	UNUSED(flags);
+
+	if (magic != 0x4f444e53U) {
+		char text[128];
+		snprintf(text, sizeof(text),
+			 ": invalid magic number 0x%08x", magic);
+		ADD_STRING(target, text);
+		return (DNS_R_OPTERR);
+	}
+
+	while (isc_buffer_remaininglength(pbuf) >= 2) {
+		isc_uint64_t value;
+		char addr[16], addrtext[64], text[128];
+		int i, need;
+
+		isc_uint16_t type = isc_buffer_getuint16(pbuf);
+		if (first) {
+			ADD_STRING(target, ": ");
+			first = ISC_FALSE;
+		} else {
+			ADD_STRING(target, "/");
+		}
+
+		/* Check remaining length */
+		switch (type) {
+		case 0x20:
+		    need = 16;
+		    break;
+		case 0x40:
+		    need = 8;
+		    break;
+		default:
+		    need = 4;
+		}
+		if (isc_buffer_remaininglength(pbuf) < need) {
+			return (DNS_R_OPTERR);
+		}
+
+		/* Process each identifier type */
+		switch (type) {
+		case 0x04:
+			value = isc_buffer_getuint32(pbuf);
+			snprintf(text, sizeof(text), "va:%u",
+				 (isc_uint32_t) value);
+			break;
+		case 0x08:
+			value = isc_buffer_getuint32(pbuf);
+			snprintf(text, sizeof(text), "org:%u",
+				 (isc_uint32_t) value);
+			break;
+		case 0x10:
+			memset(addr, 0, sizeof(addr));
+			for (i = 0; i < 4; i ++) {
+				addr[i] = isc_buffer_getuint8(pbuf);
+			}
+			inet_ntop(AF_INET, addr, addrtext, sizeof(addrtext));
+			snprintf(text, sizeof(text), "ipv4:%s", addrtext);
+			break;
+		case 0x20:
+			memset(addr, 0, sizeof(addr));
+			for (i = 0; i < 16; i ++) {
+				addr[i] = isc_buffer_getuint8(pbuf);
+			}
+			inet_ntop(AF_INET6, addr, addrtext, sizeof(addrtext));
+			snprintf(text, sizeof(text), "ipv6:%s", addrtext);
+			break;
+		case 0x40:
+			value = isc_buffer_getuint32(pbuf) << 32;
+			value |= isc_buffer_getuint32(pbuf);
+			snprintf(text, sizeof(text), "dev:%02llx",
+				 (isc_uint32_t) value);
+			break;
+		default:
+			snprintf(text, sizeof(text), "unknown:%02x", type);
+			ADD_STRING(target, text);
+			return (DNS_R_OPTERR);
+		}
+
+		ADD_STRING(target, text);
+	}
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	return (result);
+}
 
 static isc_result_t
 dns_message_pseudosectiontoyaml(dns_message_t *msg,
@@ -3634,6 +3734,23 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_PROTOSS) {
+				isc_buffer_t pbuf;
+				INDENT(style);
+				ADD_STRING(target, "PROTOSS");
+				isc_buffer_init(&pbuf,
+						isc_buffer_current(&optbuf),
+						optlen);
+				isc_buffer_add(&pbuf, optlen);
+				result = render_protoss(&pbuf, target);
+				if (result == ISC_R_NOSPACE)
+					goto cleanup;
+				if (result == ISC_R_SUCCESS) {
+					isc_buffer_forward(&optbuf, optlen);
+					ADD_STRING(target, "\n");
+					continue;
+				}
+				ADD_STRING(target, "\n");
 			} else {
 				INDENT(style);
 				ADD_STRING(target, "OPT: ");
@@ -3903,6 +4020,23 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_PROTOSS) {
+				isc_buffer_t pbuf;
+				INDENT(style);
+				ADD_STRING(target, "; PROTOSS");
+				isc_buffer_init(&pbuf,
+						isc_buffer_current(&optbuf),
+						optlen);
+				isc_buffer_add(&pbuf, optlen);
+				result = render_protoss(&pbuf, target);
+				if (result == ISC_R_NOSPACE)
+					goto cleanup;
+				if (result == ISC_R_SUCCESS) {
+					isc_buffer_forward(&optbuf, optlen);
+					ADD_STRING(target, "\n");
+					continue;
+				}
+				ADD_STRING(target, "\n");
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);
