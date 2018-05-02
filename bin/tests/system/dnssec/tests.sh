@@ -73,6 +73,18 @@ stripns () {
     awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' $1
 }
 
+# Check that for a query against a validating resolver where the
+# authoritative zone is unsigned (insecure delegation), glue is returned
+# in the additional section
+echo_i "checking that additional glue is returned for unsigned delegation ($n)"
+ret=0
+$DIG +tcp +dnssec -p ${PORT} a.insecure.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+grep "ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2" dig.out.ns4.test$n > /dev/null || ret=1
+grep "ns\.insecure\.example\..*A.10\.53\.0\.3" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 # Check the example. domain
 
 echo_i "checking that zone transfer worked ($n)"
