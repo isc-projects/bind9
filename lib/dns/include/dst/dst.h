@@ -158,7 +158,7 @@ dst_random_getdata(void *data, unsigned int length,
 		   unsigned int *returned, unsigned int flags);
 /*%<
  * Gets random data from the random generator provided by the
- * crypto library, if BIND was built with --enable-crypto-rand.
+ * crypto library.
  *
  * See isc_entropy_getdata() for parameter usage. Normally when
  * this function is available, it will be set up as a hook in the
@@ -167,7 +167,6 @@ dst_random_getdata(void *data, unsigned int length,
  *
  * Returns:
  * \li	ISC_R_SUCCESS on success
- * \li	ISC_R_NOTIMPLEMENTED if BIND is built with --disable-crypto-rand
  * \li	DST_R_OPENSSLFAILURE, DST_R_CRYPTOFAILURE, or other codes on error
  */
 
