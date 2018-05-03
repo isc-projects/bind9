@@ -812,7 +812,8 @@ static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
 static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-				     isc_uint16_t keyid, isc_boolean_t deleteit);
+				     isc_uint16_t keyid,
+				     isc_boolean_t deleteit);
 static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_dbnode_t *node, dns_name_t *name,
 				dns_diff_t *diff);
@@ -8241,15 +8242,26 @@ zone_nsec3chain(dns_zone_t *zone) {
 	INSIST(version == NULL);
 }
 
+/*%
+ * Delete all RRSIG records with the given algorithm and keyid.
+ * Remove the NSEC record and RRSIGs if nkeys is zero.
+ * If all remaining RRsets are signed with the given algorithm
+ * set *has_algp to ISC_TRUE.
+ */
 static isc_result_t
 del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_dbnode_t *node, unsigned int nkeys, dns_secalg_t algorithm,
-	isc_uint16_t keyid, dns_diff_t *diff)
+	isc_uint16_t keyid, isc_boolean_t *has_algp, dns_diff_t *diff)
 {
 	dns_rdata_rrsig_t rrsig;
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *iterator = NULL;
 	isc_result_t result;
+	isc_boolean_t alg_missed = ISC_FALSE;
+	isc_boolean_t alg_found = ISC_FALSE;
+
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_name_format(name, namebuf, sizeof(namebuf));
 
 	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -8262,6 +8274,7 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	for (result = dns_rdatasetiter_first(iterator);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(iterator)) {
+		isc_boolean_t has_alg = ISC_FALSE;
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (nkeys == 0 && rdataset.type == dns_rdatatype_nsec) {
 			for (result = dns_rdataset_first(&rdataset);
@@ -8284,13 +8297,20 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		}
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset)) {
+		     result = dns_rdataset_next(&rdataset))
+		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
-			if (rrsig.algorithm != algorithm ||
-			    rrsig.keyid != keyid)
+			if (nkeys != 0 &&
+			    (rrsig.algorithm != algorithm ||
+			     rrsig.keyid != keyid))
+			{
+				if (rrsig.algorithm == algorithm) {
+					has_alg = ISC_TRUE;
+				}
 				continue;
+			}
 			CHECK(update_one_rr(db, version, diff,
 					    DNS_DIFFOP_DELRESIGN, name,
 					    rdataset.ttl, &rdata));
@@ -8298,9 +8318,25 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_NOMORE)
 			break;
+
+		/*
+		 * After deleting, if there's still a signature for
+		 * 'algorithm', set alg_found; if not, set alg_missed.
+		 */
+		if (has_alg) {
+			alg_found = ISC_TRUE;
+		} else {
+			alg_missed = ISC_TRUE;
+		}
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+
+	/*
+	 * Set `has_algp` if the algorithm was found in every RRset:
+	 * i.e., found in at least one, and not missing from any.
+	 */
+	*has_algp = ISC_TF(alg_found && !alg_missed);
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -8330,6 +8366,7 @@ zone_sign(dns_zone_t *zone) {
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_int32_t signatures;
 	isc_boolean_t check_ksk, keyset_kskonly, is_ksk;
+	isc_boolean_t with_ksk, with_zsk;
 	isc_boolean_t commit = ISC_FALSE;
 	isc_boolean_t delegation;
 	isc_boolean_t build_nsec = ISC_FALSE;
@@ -8421,6 +8458,7 @@ zone_sign(dns_zone_t *zone) {
 		build_nsec = ISC_TRUE;
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
+		isc_boolean_t has_alg = ISC_FALSE;
 		nextsigning = ISC_LIST_NEXT(signing, link);
 
 		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
@@ -8460,6 +8498,9 @@ zone_sign(dns_zone_t *zone) {
 				zone_keys[j] = zone_keys[i];
 				j++;
 			}
+			for (i = j; i < nkeys; i++) {
+				zone_keys[i] = NULL;
+			}
 			nkeys = j;
 		}
 
@@ -8469,7 +8510,7 @@ zone_sign(dns_zone_t *zone) {
 			dns_dbiterator_pause(signing->dbiterator);
 			CHECK(del_sig(db, version, name, node, nkeys,
 				      signing->algorithm, signing->keyid,
-				      zonediff.diff));
+				      &has_alg, zonediff.diff));
 		}
 
 		/*
@@ -8500,8 +8541,10 @@ zone_sign(dns_zone_t *zone) {
 		/*
 		 * Process one node.
 		 */
+		with_ksk = ISC_FALSE;
+		with_zsk = ISC_FALSE;
 		dns_dbiterator_pause(signing->dbiterator);
-		for (i = 0; i < nkeys; i++) {
+		for (i = 0; !has_alg && i < nkeys; i++) {
 			isc_boolean_t both = ISC_FALSE;
 
 			/*
@@ -8571,6 +8614,19 @@ zone_sign(dns_zone_t *zone) {
 			else
 				is_ksk = ISC_FALSE;
 
+			/*
+			 * If deleting signatures, we need to ensure that
+			 * the RRset is still signed at least once by a
+			 * KSK and a ZSK.
+			 */
+			if (signing->deleteit && !is_ksk && with_zsk) {
+				continue;
+			}
+
+			if (signing->deleteit && is_ksk && with_ksk) {
+				continue;
+			}
+
 			CHECK(sign_a_node(db, name, node, version, build_nsec3,
 					  build_nsec, zone_keys[i], inception,
 					  expire, zone->minimum, is_ksk,
@@ -8581,8 +8637,15 @@ zone_sign(dns_zone_t *zone) {
 			 * If we are adding we are done.  Look for other keys
 			 * of the same algorithm if deleting.
 			 */
-			if (!signing->deleteit)
+			if (!signing->deleteit) {
 				break;
+			}
+			if (!is_ksk) {
+				with_zsk = ISC_TRUE;
+			}
+			if (KSK(zone_keys[i])) {
+				with_ksk = ISC_TRUE;
+			}
 		}
 
 		/*
