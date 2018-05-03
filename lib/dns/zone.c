@@ -1016,6 +1016,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->keyvalidityinterval = 0;
 	zone->sigresigninginterval = 7 * 24 * 3600;
+	zone->sigvalidityinterval = 120;
+	zone->sigresigninginterval = 30;
 	zone->view = NULL;
 	zone->prev_view = NULL;
 	zone->checkmx = NULL;
@@ -6374,6 +6376,8 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			continue;
 		}
 
+fprintf(stderr, "add_sigs: id=%u, ksk=%u, type=%u\n", dst_key_id(keys[i]), KSK(keys[i]), rdataset.type);
+
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
@@ -6463,7 +6467,8 @@ zone_resigninc(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600 - 1;
+	//expire = soaexpire - jitter % 3600 - 1;
+	expire = soaexpire - 1;
 	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
@@ -6715,6 +6720,8 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	isc_boolean_t seen_soa, seen_ns, seen_rr, seen_dname, seen_nsec,
 		      seen_nsec3, seen_ds;
 	isc_boolean_t bottom;
+
+fprintf(stderr, "sign_a_node: is_ksk=%u keyset_kskonly=%u id=%u\n", is_ksk, keyset_kskonly, dst_key_id(key));
 
 	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -7450,7 +7457,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	// expire = soaexpire - jitter % 3600 - 1;
+	expire = soaexpire - 1;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -8175,15 +8183,26 @@ zone_nsec3chain(dns_zone_t *zone) {
 	INSIST(version == NULL);
 }
 
+/*%
+ * Delete all RRSIG records with the given algorithm and keyid.
+ * Remove the NSEC record and RRSIGs if nkeys is zero.
+ * If all remaining RRsets are signed with the given algorithm
+ * set *has_algp to ISC_TRUE.
+ */
 static isc_result_t
 del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_dbnode_t *node, unsigned int nkeys, dns_secalg_t algorithm,
-	isc_uint16_t keyid, dns_diff_t *diff)
+	isc_uint16_t keyid, isc_boolean_t *has_algp, dns_diff_t *diff)
 {
 	dns_rdata_rrsig_t rrsig;
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *iterator = NULL;
 	isc_result_t result;
+	isc_boolean_t all = ISC_TRUE;
+	isc_boolean_t one = ISC_FALSE;
+
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_name_format(name, namebuf, sizeof(namebuf));
 
 	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -8196,6 +8215,7 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	for (result = dns_rdatasetiter_first(iterator);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(iterator)) {
+		isc_boolean_t has_alg = ISC_FALSE;
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (nkeys == 0 && rdataset.type == dns_rdatatype_nsec) {
 			for (result = dns_rdataset_first(&rdataset);
@@ -8222,23 +8242,38 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
-			if (rrsig.algorithm != algorithm ||
-			    rrsig.keyid != keyid)
+			if (nkeys != 0 &&
+			    (rrsig.algorithm != algorithm ||
+			     rrsig.keyid != keyid)) {
+				if (rrsig.algorithm == algorithm) {
+					has_alg = ISC_TRUE;
+				}
 				continue;
+			}
+fprintf(stderr, "del_sig(%s): delete covers=%u id=%u\n", namebuf, rdataset.covers, keyid);
 			CHECK(update_one_rr(db, version, diff,
 					    DNS_DIFFOP_DELRESIGN, name,
 					    rdataset.ttl, &rdata));
 		}
-		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_NOMORE)
 			break;
+		if (has_alg)
+			one = ISC_TRUE;
+		else
+			all = ISC_FALSE;
+fprintf(stderr, "del_sig(%s): covers=%u has_alg=%u one=%u all=%u result=%s\n",
+	namebuf, rdataset.covers, has_alg, one, all, dns_result_totext(result));
+		dns_rdataset_disassociate(&rdataset);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
+	*has_algp = ISC_TF(one && all);
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	dns_rdatasetiter_destroy(&iterator);
+fprintf(stderr, "del_sig(%s): has_alg=%u one=%u all=%u result=%s\n",
+	namebuf, *has_algp, one, all, dns_result_totext(result));
 	return (result);
 }
 
@@ -8264,6 +8299,7 @@ zone_sign(dns_zone_t *zone) {
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	isc_int32_t signatures;
 	isc_boolean_t check_ksk, keyset_kskonly, is_ksk;
+	isc_boolean_t with_ksk, with_zsk;
 	isc_boolean_t commit = ISC_FALSE;
 	isc_boolean_t delegation;
 	isc_boolean_t build_nsec = ISC_FALSE;
@@ -8331,7 +8367,8 @@ zone_sign(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	// expire = soaexpire - jitter % 3600 - 1;
+	expire = soaexpire - 1;
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until
@@ -8355,6 +8392,7 @@ zone_sign(dns_zone_t *zone) {
 		build_nsec = ISC_TRUE;
 
 	while (signing != NULL && nodes-- > 0 && signatures > 0) {
+		isc_boolean_t has_alg = ISC_FALSE;
 		nextsigning = ISC_LIST_NEXT(signing, link);
 
 		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
@@ -8394,6 +8432,8 @@ zone_sign(dns_zone_t *zone) {
 				zone_keys[j] = zone_keys[i];
 				j++;
 			}
+			for (i = j; i < nkeys; i++)
+				zone_keys[i] = NULL;
 			nkeys = j;
 		}
 
@@ -8403,7 +8443,7 @@ zone_sign(dns_zone_t *zone) {
 			dns_dbiterator_pause(signing->dbiterator);
 			CHECK(del_sig(db, version, name, node, nkeys,
 				      signing->algorithm, signing->keyid,
-				      zonediff.diff));
+				      &has_alg, zonediff.diff));
 		}
 
 		/*
@@ -8434,8 +8474,10 @@ zone_sign(dns_zone_t *zone) {
 		/*
 		 * Process one node.
 		 */
+		with_ksk = ISC_FALSE;
+		with_zsk = ISC_FALSE;
 		dns_dbiterator_pause(signing->dbiterator);
-		for (i = 0; i < nkeys; i++) {
+		for (i = 0; !has_alg && i < nkeys; i++) {
 			isc_boolean_t both = ISC_FALSE;
 
 			/*
@@ -8505,6 +8547,15 @@ zone_sign(dns_zone_t *zone) {
 			else
 				is_ksk = ISC_FALSE;
 
+			/*
+			 * Only sign once with a zsk and ksk if deleting.
+			 */
+			if (signing->deleteit && !is_ksk && with_zsk)
+				continue;
+
+			if (signing->deleteit && is_ksk && with_ksk)
+				continue;
+
 			CHECK(sign_a_node(db, name, node, version, build_nsec3,
 					  build_nsec, zone_keys[i], inception,
 					  expire, zone->minimum, is_ksk,
@@ -8517,6 +8568,10 @@ zone_sign(dns_zone_t *zone) {
 			 */
 			if (!signing->deleteit)
 				break;
+			if (!is_ksk)
+				with_zsk = ISC_TRUE;
+			if (KSK(zone_keys[i]))
+				with_ksk = ISC_TRUE;
 		}
 
 		/*
