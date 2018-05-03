@@ -258,6 +258,10 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
+	view->protoss_va = 0;
+	view->protoss_org = 0;
+	view->protoss_dev = 0;
+
 	result = isc_mutex_init(&view->new_zone_lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
