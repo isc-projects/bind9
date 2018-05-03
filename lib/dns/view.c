@@ -258,6 +258,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
+	view->protoss_opts = 0;
 	view->protoss_va = 0;
 	view->protoss_org = 0;
 	view->protoss_dev = 0;

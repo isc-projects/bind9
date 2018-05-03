@@ -234,8 +234,11 @@ struct dns_view {
 							   to log */
 
 	/*
-	 * Configured Protoss option fields (0 = unset)
+	 * Configured Protoss option fields. 'protoss_opts' is a
+	 * flag indicating which of _va, _org, and _dev have been
+	 * set.
 	 */
+	isc_uint8_t			protoss_opts;
 	isc_uint32_t			protoss_va;
 	isc_uint32_t			protoss_org;
 	isc_uint64_t			protoss_dev;

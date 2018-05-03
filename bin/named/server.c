@@ -5325,18 +5325,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = named_config_get(maps, "protoss-virtual-appliance", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_va = cfg_obj_asuint32(obj);
+		view->protoss_opts |= PROTOSS_VA;
 	}
 
 	obj = NULL;
 	result = named_config_get(maps, "protoss-organization", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_org = cfg_obj_asuint32(obj);
+		view->protoss_opts |= PROTOSS_ORG;
 	}
 
 	obj = NULL;
 	result = named_config_get(maps, "protoss-device", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_dev = cfg_obj_asuint64(obj);
+		view->protoss_opts |= PROTOSS_DEV;
 	}
 
 	result = ISC_R_SUCCESS;

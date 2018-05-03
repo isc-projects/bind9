@@ -2636,10 +2636,7 @@ resquery_send(resquery_t *query) {
 
 
 			/* Maybe send a PROTOSS option */
-			if (rd && (res->view->protoss_va != 0 ||
-				   res->view->protoss_org != 0 ||
-				   res->view->protoss_dev != 0))
-			{
+			if (rd && res->view->protoss_opts != 0) {
 				sendprotoss = ISC_TRUE;
 				if (peer != NULL) {
 					(void) dns_peer_getsendprotoss(peer,
@@ -2658,13 +2655,17 @@ resquery_send(resquery_t *query) {
 				isc_buffer_putuint8(&b, 1);	/* version */
 				isc_buffer_putuint8(&b, 0);	/* flags */
 
-				if (res->view->protoss_va != 0) {
+				if ((res->view->protoss_opts &
+				     PROTOSS_VA) != 0)
+				{
 					isc_buffer_putuint16(&b, PROTOSS_VA);
 					isc_buffer_putuint32(&b,
 						     res->view->protoss_va);
 				}
 
-				if (res->view->protoss_org != 0) {
+				if ((res->view->protoss_opts &
+				     PROTOSS_ORG) != 0)
+				{
 					isc_buffer_putuint16(&b, PROTOSS_ORG);
 					isc_buffer_putuint32(&b,
 						     res->view->protoss_org);
@@ -2689,7 +2690,9 @@ resquery_send(resquery_t *query) {
 					;
 				}
 
-				if (res->view->protoss_dev != 0) {
+				if ((res->view->protoss_opts &
+				     PROTOSS_DEV) != 0)
+				{
 					isc_uint64_t dev;
 					dev = res->view->protoss_dev;
 					isc_buffer_putuint16(&b, PROTOSS_DEV);
