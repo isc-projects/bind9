@@ -1483,6 +1483,12 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 					    cfg_obj_assockaddr(obj));
 	}
 
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "send-protoss", &obj);
+	if (obj != NULL) {
+		CHECK(dns_peer_setsendprotoss(peer, cfg_obj_asboolean(obj)));
+	}
+
 	*peerp = peer;
 	return (ISC_R_SUCCESS);
 
