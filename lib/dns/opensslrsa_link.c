@@ -123,7 +123,7 @@
 #endif
 #define DST_RET(a) {ret = a; goto err;}
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !defined(HAVE_RSA_SET0_KEY)
 /* From OpenSSL 1.1.0 */
 static int
 RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
@@ -133,8 +133,9 @@ RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
 	 * parameters MUST be non-NULL for n and e.  d may be
 	 * left NULL (in case only the public key is used).
 	 */
-	if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL))
+	if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL)) {
 		return 0;
+	}
 
 	if (n != NULL) {
 		BN_free(r->n);
@@ -159,8 +160,9 @@ RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q) {
 	 * If the fields p and q in r are NULL, the corresponding input
 	 * parameters MUST be non-NULL.
 	 */
-	if ((r->p == NULL && p == NULL) || (r->q == NULL && q == NULL))
+	if ((r->p == NULL && p == NULL) || (r->q == NULL && q == NULL)) {
 		return 0;
+	}
 
 	if (p != NULL) {
 		BN_free(r->p);
@@ -183,7 +185,9 @@ RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp) {
 	if ((r->dmp1 == NULL && dmp1 == NULL) ||
 	    (r->dmq1 == NULL && dmq1 == NULL) ||
 	    (r->iqmp == NULL && iqmp == NULL))
+	{
 		return 0;
+	}
 
 	if (dmp1 != NULL) {
 		BN_free(r->dmp1);
@@ -205,32 +209,40 @@ static void
 RSA_get0_key(const RSA *r,
 	     const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
 {
-	if (n != NULL)
+	if (n != NULL) {
 		*n = r->n;
-	if (e != NULL)
+	}
+	if (e != NULL) {
 		*e = r->e;
-	if (d != NULL)
+	}
+	if (d != NULL) {
 		*d = r->d;
+	}
 }
 
 static void
 RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q) {
-	if (p != NULL)
+	if (p != NULL) {
 		*p = r->p;
-	if (q != NULL)
-	*q = r->q;
+	}
+	if (q != NULL) {
+		*q = r->q;
+	}
 }
 
 static void
 RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1,
 		    const BIGNUM **iqmp)
 {
-	if (dmp1 != NULL)
+	if (dmp1 != NULL) {
 		*dmp1 = r->dmp1;
-	if (dmq1 != NULL)
+	}
+	if (dmq1 != NULL) {
 		*dmq1 = r->dmq1;
-	if (iqmp != NULL)
+	}
+	if (iqmp != NULL) {
 		*iqmp = r->iqmp;
+	}
 }
 
 static int

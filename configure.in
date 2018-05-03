@@ -1788,6 +1788,8 @@ DSO_METHOD_dlfcn();
 
 	AC_CHECK_FUNCS(EVP_sha256 EVP_sha384 EVP_sha512)
 
+	AC_CHECK_FUNCS([DH_get0_key ECDSA_SIG_get0 RSA_set0_key DSA_get0_pqg])
+
 	AC_MSG_CHECKING(for OpenSSL ECDSA support)
 	have_ecdsa=""
 	AC_TRY_RUN([
