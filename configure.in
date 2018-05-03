@@ -1977,7 +1977,7 @@ int main() {
 		case $have_ed448 in
 		yes)
 			AC_DEFINE(HAVE_OPENSSL_ED448, 1,
-				  [Define if your OpenSSL version supports Ed448.])],
+				  [Define if your OpenSSL version supports Ed448.])
 			;;	   
 		*)
 			;;
