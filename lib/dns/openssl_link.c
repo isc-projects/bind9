@@ -109,7 +109,7 @@ entropy_add(const void *buf, int num, double entropy) {
 #endif
 #endif /* !ISC_PLATFORM_CRYPTORANDOM */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
 lock_callback(int mode, int type, const char *file, int line) {
 	UNUSED(file);
@@ -121,7 +121,7 @@ lock_callback(int mode, int type, const char *file, int line) {
 }
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x10000000L || defined(LIBRESSL_VERSION_NUMBER)
+#if defined(LIBRESSL_VERSION_NUMBER)
 static unsigned long
 id_callback(void) {
 	return ((unsigned long)isc_thread_self());
@@ -185,7 +185,7 @@ mem_realloc(void *ptr, size_t size FLARG) {
 #endif
 }
 
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 static void
 _set_thread_id(CRYPTO_THREADID *id)
 {
@@ -218,12 +218,11 @@ dst__openssl_init(const char *engine) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
-# if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L
-	CRYPTO_THREADID_set_callback(_set_thread_id);
-# else
+# if defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_id_callback(id_callback);
+# elif OPENSSL_VERSION_NUMBER < 0x10100000L
+	CRYPTO_THREADID_set_callback(_set_thread_id);
 # endif
-
 	ERR_load_crypto_strings();
 #endif
 
@@ -330,47 +329,31 @@ dst__openssl_init(const char *engine) {
 
 void
 dst__openssl_destroy(void) {
-#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10100000L)
-	OPENSSL_cleanup();
-#ifndef ISC_PLATFORM_CRYPTORANDOM
-	if (rm != NULL) {
-		mem_free(rm FILELINE);
-		rm = NULL;
-	}
-#endif
-#else
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L) || defined(LIBRESSL_VERSION_NUMBER)
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
 	 */
 #ifndef ISC_PLATFORM_CRYPTORANDOM
 	if (rm != NULL) {
-#if OPENSSL_VERSION_NUMBER >= 0x00907000L
 		RAND_cleanup();
-#endif
 		mem_free(rm FILELINE);
 		rm = NULL;
 	}
 #endif
-#if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 	CONF_modules_free();
-#endif
 	OBJ_cleanup();
 	EVP_cleanup();
 #if defined(USE_ENGINE)
 	if (e != NULL)
 		ENGINE_free(e);
 	e = NULL;
-#if defined(USE_ENGINE) && OPENSSL_VERSION_NUMBER >= 0x00907000L
 	ENGINE_cleanup();
 #endif
-#endif
-#if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 	CRYPTO_cleanup_all_ex_data();
-#endif
 	ERR_clear_error();
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	ERR_remove_thread_state(NULL);
-#elif OPENSSL_VERSION_NUMBER < 0x10000000L || defined(LIBRESSL_VERSION_NUMBER)
+#elif defined(LIBRESSL_VERSION_NUMBER)
 	ERR_remove_state(0);
 #endif
 	ERR_free_strings();
@@ -385,6 +368,14 @@ dst__openssl_destroy(void) {
 		mem_free(locks FILELINE);
 		locks = NULL;
 	}
+#else
+	OPENSSL_cleanup();
+#ifndef ISC_PLATFORM_CRYPTORANDOM
+	if (rm != NULL) {
+		mem_free(rm FILELINE);
+		rm = NULL;
+	}
+#endif
 #endif
 }
 
