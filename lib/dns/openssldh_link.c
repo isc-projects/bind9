@@ -44,6 +44,8 @@
 
 #include <dst/result.h>
 
+#include <openssl/opensslv.h>
+
 #include "dst_internal.h"
 #include "dst_openssl.h"
 #include "dst_parse.h"
@@ -71,62 +73,81 @@ static isc_result_t openssldh_todns(const dst_key_t *key, isc_buffer_t *data);
 
 static BIGNUM *bn2, *bn768, *bn1024, *bn1536;
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !defined(HAVE_DH_GET0_KEY)
 /*
  * DH_get0_key, DH_set0_key, DH_get0_pqg and DH_set0_pqg
  * are from OpenSSL 1.1.0.
  */
 static void
 DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key) {
-	if (pub_key != NULL)
+	if (pub_key != NULL) {
 		*pub_key = dh->pub_key;
-	if (priv_key != NULL)
+	}
+	if (priv_key != NULL) {
 		*priv_key = dh->priv_key;
+	}
 }
 
 static int
 DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key) {
-	/* Note that it is valid for priv_key to be NULL */
-	if (pub_key == NULL)
-		return 0;
+	if (pub_key != NULL) {
+		BN_free(dh->pub_key);
+		dh->pub_key = pub_key;
+	}
 
-	BN_free(dh->pub_key);
-	BN_free(dh->priv_key);
-	dh->pub_key = pub_key;
-	dh->priv_key = priv_key;
+	if (priv_key != NULL) {
+		BN_free(dh->priv_key);
+		dh->priv_key = priv_key;
+	}
 
-	return 1;
+	return (1);
 }
 
 static void
 DH_get0_pqg(const DH *dh,
 	    const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
-	if (p != NULL)
+	if (p != NULL) {
 		*p = dh->p;
-	if (q != NULL)
+	}
+	if (q != NULL) {
 		*q = dh->q;
-	if (g != NULL)
+	}
+	if (g != NULL) {
 		*g = dh->g;
+	}
 }
 
 static int
-DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g) {
-	/* q is optional */
-	if (p == NULL || g == NULL)
-		return(0);
-	BN_free(dh->p);
-	BN_free(dh->q);
-	BN_free(dh->g);
-	dh->p = p;
-	dh->q = q;
-	dh->g = g;
+DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+{
+	/* If the fields p and g in d are NULL, the corresponding input
+	 * parameters MUST be non-NULL.  q may remain NULL.
+	 */
+	if ((dh->p == NULL && p == NULL)
+	    || (dh->g == NULL && g == NULL))
+	{
+		return 0;
+	}
+
+	if (p != NULL) {
+		BN_free(dh->p);
+		dh->p = p;
+	}
+	if (q != NULL) {
+		BN_free(dh->q);
+		dh->q = q;
+	}
+	if (g != NULL) {
+		BN_free(dh->g);
+		dh->g = g;
+	}
 
 	if (q != NULL) {
 		dh->length = BN_num_bits(q);
 	}
 
-	return(1);
+	return (1);
 }
 
 #define DH_clear_flags(d, f) (d)->flags &= ~(f)
@@ -545,7 +566,15 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		DH_free(dh);
 		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
+#if (LIBRESSL_VERSION_NUMBER >= 0x2070000fL) && (LIBRESSL_VERSION_NUMBER <= 0x2070200fL)
+	/*
+	 * LibreSSL << 2.7.3 DH_get0_key requires priv_key to be set when
+	 * DH structure is empty, hence we cannot use DH_get0_key().
+	 */
+	dh->pub_key = pub_key;
+#else /* LIBRESSL_VERSION_NUMBER */
 	DH_set0_key(dh, pub_key, NULL);
+#endif /* LIBRESSL_VERSION_NUMBER */
 	isc_region_consume(&r, publen);
 
 	key->key_size = BN_num_bits(p);
