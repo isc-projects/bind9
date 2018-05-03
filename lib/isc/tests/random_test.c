@@ -256,13 +256,14 @@ random_test(pvalue_func_t *func) {
 	isc_rng_t *rng;
 	isc_uint32_t m;
 	isc_uint32_t j;
-	isc_uint32_t histogram[11];
+	isc_uint32_t histogram[11] = { 0 };
 	isc_uint32_t passed;
 	double proportion;
 	double p_hat;
-	double lower_confidence;
+	double lower_confidence, higher_confidence;
 	double chi_square;
 	double p_value_t;
+	double alpha;
 
 	tables_init();
 
@@ -276,9 +277,6 @@ random_test(pvalue_func_t *func) {
 	m = 1000;
 	passed = 0;
 
-	for (j = 0; j < 11; j++)
-		histogram[j] = 0;
-
 	for (j = 0; j < m; j++) {
 		isc_uint32_t i;
 		isc_uint16_t values[REPS];
@@ -288,8 +286,9 @@ random_test(pvalue_func_t *func) {
 			values[i] = isc_rng_random(rng);
 
 		p_value = (*func)(mctx, values, REPS);
-		if (p_value >= 0.01)
+		if (p_value >= 0.01) {
 			passed++;
+		}
 
 		ATF_REQUIRE(p_value >= 0.0);
 		ATF_REQUIRE(p_value <= 1.0);
@@ -300,31 +299,34 @@ random_test(pvalue_func_t *func) {
 
 	isc_rng_detach(&rng);
 
-	/* Fold histogram[10] (p_value = 1.0) into histogram[9] for
-	 * interval [0.9, 1.0]
-	 */
-	histogram[9] += histogram[10];
-	histogram[10] = 0;
-
 	/*
 	 * Check proportion of sequences passing a test (see section
 	 * 4.2.1 in NIST SP 800-22).
 	 */
+	alpha = 0.01; /* the significance level */
 	proportion = (double) passed / (double) m;
-	p_hat = 1 - 0.01; /* alpha is 0.01 in the NIST tests */
-	lower_confidence = p_hat - (3.0 * sqrt((p_hat * (1 - p_hat)) / m));
+	p_hat = 1.0 - alpha;
+	lower_confidence = p_hat - (3.0 * sqrt((p_hat * (1.0 - p_hat)) / m));
+	higher_confidence = p_hat + (3.0 * sqrt((p_hat * (1.0 - p_hat)) / m));
 
 	/* Debug message, not displayed when running via atf-run */
 	printf("passed=%u/1000\n", passed);
-	printf("lower_confidence=%f, proportion=%f\n",
-	       lower_confidence, proportion);
+	printf("higher_confidence=%f, lower_confidence=%f, proportion=%f\n",
+	       higher_confidence, lower_confidence, proportion);
 
 	ATF_REQUIRE(proportion >= lower_confidence);
+	ATF_REQUIRE(proportion <= higher_confidence);
 
 	/*
 	 * Check uniform distribution of p-values (see section 4.2.2 in
 	 * NIST SP 800-22).
 	 */
+
+	/* Fold histogram[10] (p_value = 1.0) into histogram[9] for
+	 * interval [0.9, 1.0]
+	 */
+	histogram[9] += histogram[10];
+	histogram[10] = 0;
 
 	/* Pre-requisite that at least 55 sequences are processed. */
 	ATF_REQUIRE(m >= 55);
