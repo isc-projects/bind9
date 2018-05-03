@@ -42,19 +42,10 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-#ifdef OPENSSL
-#include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER <= 0x00908000L
-#define USE_FIX_KEY_FILES
-#endif
-#else
-#define USE_FIX_KEY_FILES
-#endif
-
-#ifdef USE_FIX_KEY_FILES
+#if !defined(OPENSSL)
 
 /*
- * Use a fixed key file pair if OpenSSL doesn't support > 32 bit exponents.
+ * Use a fixed key file pair if compiled without OpenSSL.
  */
 
 int

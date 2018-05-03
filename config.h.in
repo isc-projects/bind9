@@ -239,6 +239,12 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <edit/readline/readline.h> header file. */
 #undef HAVE_EDIT_READLINE_READLINE_H
 
+/* Define to 1 if you have the `EVP_sha1' function. */
+#undef HAVE_EVP_SHA1
+
+/* Define to 1 if you have the `EVP_sha224' function. */
+#undef HAVE_EVP_SHA224
+
 /* Define to 1 if you have the `EVP_sha256' function. */
 #undef HAVE_EVP_SHA256
 
