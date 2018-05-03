@@ -1455,6 +1455,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			validity = cfg_tuple_get(obj, "validity");
 			seconds = cfg_obj_asuint32(validity) * 86400;
+			seconds = 120;
 			dns_zone_setsigvalidityinterval(zone, seconds);
 
 			resign = cfg_tuple_get(obj, "re-sign");
@@ -1468,6 +1469,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					seconds = cfg_obj_asuint32(resign) *
 							3600;
 			}
+			seconds = 30;
 			dns_zone_setsigresigninginterval(zone, seconds);
 		}
 
