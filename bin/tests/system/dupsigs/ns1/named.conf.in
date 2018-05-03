@@ -1,0 +1,19 @@
+options {
+	recursion no;
+	max-journal-size unlimited;
+	port @PORT@;
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	pid-file "named.pid";
+};
+
+zone "signing.test" {
+	type master;
+	masterfile-format text;
+	allow-update { any; };
+	file "signing.test.db";
+	update-check-ksk yes;
+	key-directory "keys/signing.test";
+	inline-signing yes;
+	auto-dnssec maintain;
+};
