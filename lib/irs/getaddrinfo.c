@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: getaddrinfo.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -1070,22 +1068,24 @@ set_order(int family, int (**net_order)(const char *, int, struct addrinfo **,
 	} else {
 		order = getenv("NET_ORDER");
 		found = 0;
-		last = NULL;
-		for (tok = strtok_r(order, ":", &last);
-		     tok;
-		     tok = strtok_r(NULL, ":", &last))
-		{
-			if (strcasecmp(tok, "inet6") == 0) {
-				if ((found & FOUND_IPV6) == 0) {
-					*net_order++ = add_ipv6;
+		if (order != NULL) {
+			last = NULL;
+			for (tok = strtok_r(order, ":", &last);
+			     tok;
+			     tok = strtok_r(NULL, ":", &last))
+			{
+				if (strcasecmp(tok, "inet6") == 0) {
+					if ((found & FOUND_IPV6) == 0) {
+						*net_order++ = add_ipv6;
+					}
+					found |= FOUND_IPV6;
+				} else if (strcasecmp(tok, "inet") == 0 ||
+					   strcasecmp(tok, "inet4") == 0) {
+					if ((found & FOUND_IPV4) == 0) {
+						*net_order++ = add_ipv4;
+					}
+					found |= FOUND_IPV4;
 				}
-				found |= FOUND_IPV6;
-			} else if (strcasecmp(tok, "inet") == 0 ||
-				   strcasecmp(tok, "inet4") == 0) {
-				if ((found & FOUND_IPV4) == 0) {
-					*net_order++ = add_ipv4;
-				}
-				found |= FOUND_IPV4;
 			}
 		}
 

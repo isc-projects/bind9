@@ -1025,10 +1025,12 @@ static void
 plus_option(char *option, struct query *query, isc_boolean_t global)
 {
 	isc_result_t result;
-	char *cmd, *value, *last, *code;
+	char *cmd, *value, *last = NULL, *code;
 	isc_uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
+
+	INSIST(option != NULL);
 
 	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
 		printf(";; Invalid option %s\n", option);
