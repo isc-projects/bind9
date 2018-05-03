@@ -1,3 +1,6 @@
+4935.	[func]		Add support for LibreSSL >= 2.7.0 (some OpenSSL 1.1.0
+			call were added). [GL #191]
+
 4933.	[bug]		Not creating signing keys for an inline signed zone
 			prevented changes applied to the raw zone from being
 			reflected in the secure zone until signing keys were

@@ -204,6 +204,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
 
+/* Define to 1 if you have the `DH_get0_key' function. */
+#undef HAVE_DH_GET0_KEY
+
 /* Define to 1 if you have the `dlclose' function. */
 #undef HAVE_DLCLOSE
 
@@ -218,6 +221,12 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 to enable dnstap support */
 #undef HAVE_DNSTAP
+
+/* Define to 1 if you have the `DSA_get0_pqg' function. */
+#undef HAVE_DSA_GET0_PQG
+
+/* Define to 1 if you have the `ECDSA_SIG_get0' function. */
+#undef HAVE_ECDSA_SIG_GET0
 
 /* Define to 1 if you have the <editline/readline.h> header file. */
 #undef HAVE_EDITLINE_READLINE_H
@@ -428,6 +437,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <regex.h> header file. */
 #undef HAVE_REGEX_H
+
+/* Define to 1 if you have the `RSA_set0_key' function. */
+#undef HAVE_RSA_SET0_KEY
 
 /* Define to 1 if you have the <sched.h> header file. */
 #undef HAVE_SCHED_H

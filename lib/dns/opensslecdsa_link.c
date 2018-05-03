@@ -45,20 +45,23 @@
 
 #define DST_RET(a) {ret = a; goto err;}
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if !defined(HAVE_ECDSA_SIG_GET0)
 /* From OpenSSL 1.1 */
 static void
 ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
-	if (pr != NULL)
+	if (pr != NULL) {
 		*pr = sig->r;
-	if (ps != NULL)
+	}
+	if (ps != NULL) {
 		*ps = sig->s;
+	}
 }
 
 static int
 ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
-	if (r == NULL || s == NULL)
+	if (r == NULL || s == NULL) {
 		return 0;
+	}
 
 	BN_clear_free(sig->r);
 	BN_clear_free(sig->s);
