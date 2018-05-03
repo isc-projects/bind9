@@ -1,4 +1,3 @@
-./.clang-format					X	2018
 ./.gitattributes				X	2015,2017,2018
 ./.gitignore					X	2012,2013,2014,2015,2016,2017,2018
 ./.gitlab-ci.yml				X	2018
@@ -1184,6 +1183,13 @@
 ./bin/tests/system/dsdigest/prereq.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/dsdigest/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/dsdigest/tests.sh		SH	2012,2016,2018
+./bin/tests/system/dupsigs/check_journal.pl	PERL	2018
+./bin/tests/system/dupsigs/clean.sh		SH	2018
+./bin/tests/system/dupsigs/ns1/named.conf.in	CONF-C	2018
+./bin/tests/system/dupsigs/ns1/reset_keys.sh	SH	2018
+./bin/tests/system/dupsigs/ns1/signing.test.db.in	ZONE	2018
+./bin/tests/system/dupsigs/setup.sh		SH	2018
+./bin/tests/system/dupsigs/tests.sh		SH	2018
 ./bin/tests/system/dyndb/Makefile.in		MAKE	2015,2016,2018
 ./bin/tests/system/dyndb/clean.sh		SH	2015,2016,2018
 ./bin/tests/system/dyndb/driver/.gitignore	X	2015,2018
