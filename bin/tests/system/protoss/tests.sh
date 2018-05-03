@@ -10,6 +10,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 DIGOPTS="-p ${PORT}"
 
 status=0
@@ -54,6 +55,159 @@ grep "44 44 44 44" protoss.out > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+echo_i "check PROTOSS is not sent when protoss- options are not configured ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+lines=`cat protoss.out | wc -l`
+[ "$lines" -eq 0 ] || ret=1
+ttl1=`awk '/^a.example/ {print $2}' dig.out.ns5.test$n`
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+# configure protoss-virtual appliance but no server statement
+copy_setports ns5/named2.conf.in ns5/named.conf
+$RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check PROTOSS is not sent when protoss- options configured but send-protoss is not set ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+lines=`cat protoss.out | wc -l`
+[ "$lines" -eq 0 ] || ret=1
+ttl1=`awk '/^a.example/ {print $2}' dig.out.ns5.test$n`
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+# configure protoss-device but send-protoss no
+copy_setports ns5/named3.conf.in ns5/named.conf
+$RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check PROTOSS is not sent when protoss- options configured but send-protoss is explicitly no ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+lines=`cat protoss.out | wc -l`
+[ "$lines" -eq 0 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+# configure protoss-virtual-appliance and send-protoss yes
+copy_setports ns5/named4.conf.in ns5/named.conf
+$RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check Virtual Appliance option is sent when forwarding ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+grep "va:30280231" protoss.out > /dev/null || ret=1
+grep "ipv4:10.53.0.4" protoss.out > /dev/null || ret=1
+grep "ipv6:" protoss.out > /dev/null && ret=1
+grep "org:" protoss.out > /dev/null && ret=1
+grep "dev:" protoss.out > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+if $TESTSOCK6 fd92:7065:b8e:ffff::5 2>/dev/null
+then
+  echo_i "check Virtual Appliance option is sent when forwarding (ipv6 client) ($n)"
+  ret=0
+  nextpart ns3/named.run > /dev/null
+  $DIG $DIGOPTS @fd92:7065:b8e:ffff::5 -b fd92:7065:b8e:ffff::4 b.example > dig.out.ns5.test$n || ret=1
+  nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+  grep "va:30280231" protoss.out > /dev/null || ret=1
+  grep "ipv4:" protoss.out > /dev/null && ret=1
+  grep "ipv6:fd92:7065:b8e:ffff::4" protoss.out > /dev/null || ret=1
+  grep "org:" protoss.out > /dev/null && ret=1
+  grep "dev:" protoss.out > /dev/null && ret=1
+  n=`expr $n + 1`
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+fi
+
+# configure protoss-organization and send-protoss yes
+copy_setports ns5/named5.conf.in ns5/named.conf
+$RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check Organization option is sent when forwarding ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+grep "va:" protoss.out > /dev/null && ret=1
+grep "ipv4:10.53.0.4" protoss.out > /dev/null || ret=1
+grep "ipv6:" protoss.out > /dev/null && ret=1
+grep "org:1816793" protoss.out > /dev/null || ret=1
+grep "dev:" protoss.out > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+if $TESTSOCK6 fd92:7065:b8e:ffff::5 2>/dev/null
+then
+  echo_i "check Organization option is sent when forwarding (ipv6 client) ($n)"
+  ret=0
+  nextpart ns3/named.run > /dev/null
+  $DIG $DIGOPTS @fd92:7065:b8e:ffff::5 -b fd92:7065:b8e:ffff::4 b.example > dig.out.ns5.test$n || ret=1
+  nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+  grep "va:" protoss.out > /dev/null && ret=1
+  grep "ipv4:" protoss.out > /dev/null && ret=1
+  grep "ipv6:fd92:7065:b8e:ffff::4" protoss.out > /dev/null || ret=1
+  grep "org:1816793" protoss.out > /dev/null || ret=1
+  grep "dev:" protoss.out > /dev/null && ret=1
+  n=`expr $n + 1`
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+fi
+
+# configure protoss-device and send-protoss yes
+copy_setports ns5/named6.conf.in ns5/named.conf
+$RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check Device option is sent when forwarding ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+grep "va:" protoss.out > /dev/null && ret=1
+grep "ipv4:10.53.0.4" protoss.out > /dev/null || ret=1
+grep "ipv6:" protoss.out > /dev/null && ret=1
+grep "org:" protoss.out > /dev/null && ret=1
+grep "dev:deadbeef" protoss.out > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+if $TESTSOCK6 fd92:7065:b8e:ffff::5 2>/dev/null
+then
+  echo_i "check Device option is sent when forwarding (ipv6 client) ($n)"
+  ret=0
+  nextpart ns3/named.run > /dev/null
+  $DIG $DIGOPTS @fd92:7065:b8e:ffff::5 -b fd92:7065:b8e:ffff::4 b.example > dig.out.ns5.test$n || ret=1
+  nextpart ns3/named.run | grep "PROTOSS:" > protoss.out
+  grep "va:" protoss.out > /dev/null && ret=1
+  grep "ipv4:" protoss.out > /dev/null && ret=1
+  grep "ipv6:fd92:7065:b8e:ffff::4" protoss.out > /dev/null || ret=1
+  grep "org:" protoss.out > /dev/null && ret=1
+  grep "dev:deadbeef" protoss.out > /dev/null || ret=1
+  n=`expr $n + 1`
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
