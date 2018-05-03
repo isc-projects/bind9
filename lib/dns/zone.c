@@ -5906,7 +5906,7 @@ zone_resigninc(dns_zone_t *zone) {
 	isc_boolean_t check_ksk, keyset_kskonly = ISC_FALSE;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire, stop;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	unsigned int resign;
@@ -5951,15 +5951,25 @@ zone_resigninc(dns_zone_t *zone) {
 	}
 
 	isc_stdtime_get(&now);
+	sigvalidityinterval = zone->sigvalidityinterval;
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 	/*
 	 * Spread out signatures over time if they happen to be
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600 - 1;
+	if (sigvalidityinterval >= 3600U) {
+		isc_random_get(&jitter);
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
@@ -6854,7 +6864,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -6924,16 +6934,26 @@ zone_nsec3chain(dns_zone_t *zone) {
 	}
 
 	isc_stdtime_get(&now);
+	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 
 	/*
 	 * Spread out signatures over time if they happen to be
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	if (sigvalidityinterval >= 3600U) {
+		isc_random_get(&jitter);
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -7795,7 +7815,7 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i, j;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -7847,16 +7867,26 @@ zone_sign(dns_zone_t *zone) {
 	}
 
 	isc_stdtime_get(&now);
+	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 
 	/*
 	 * Spread out signatures over time if they happen to be
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
-	isc_random_get(&jitter);
-	expire = soaexpire - jitter % 3600;
+	if (sigvalidityinterval >= 3600U) {
+		isc_random_get(&jitter);
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until

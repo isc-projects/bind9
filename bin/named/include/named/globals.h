@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.92 2011/11/09 18:44:04 each Exp $ */
-
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
 
@@ -166,6 +164,7 @@ EXTERN isc_boolean_t		ns_g_notcp		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable6		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_disable4		INIT(ISC_FALSE);
 EXTERN isc_boolean_t		ns_g_fixedlocal		INIT(ISC_FALSE);
+EXTERN isc_boolean_t		ns_g_sigvalinsecs	INIT(ISC_FALSE);
 
 
 EXTERN dns_acl_t *		ns_g_mapped		INIT(NULL);

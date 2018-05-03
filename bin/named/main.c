@@ -497,6 +497,8 @@ parse_T_opt(char *option) {
 		if (dns_zone_mkey_month < dns_zone_mkey_day) {
 			ns_main_earlyfatal("bad mkeytimer");
 		}
+	} else if (!strcmp(option, "sigvalinsecs")) {
+		ns_g_sigvalinsecs = ISC_TRUE;
 	} else {
 		fprintf(stderr, "unknown -T flag '%s\n", option);
 	}
