@@ -13,6 +13,7 @@
 
 #include <config.h>
 #include <ctype.h>
+#include <endian.h>
 
 #include <isc/counter.h>
 #include <isc/log.h>
@@ -2345,6 +2346,7 @@ resquery_send(resquery_t *query) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	isc_boolean_t secure_domain;
 	isc_boolean_t tcp = ISC_TF((query->options & DNS_FETCHOPT_TCP) != 0);
+	isc_boolean_t rd = ISC_FALSE;
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 	isc_uint16_t hint = 0, udpsize = 0;	/* No EDNS */
@@ -2418,19 +2420,22 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_RECURSIVE) != 0 ||
 	    ISFORWARDER(query->addrinfo))
+	{
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_RD;
+		rd = ISC_TRUE;
+	}
 
 	/*
 	 * Set CD if the client says not to validate, or if the
 	 * question is under a secure entry point and this is a
 	 * recursive/forward query -- unless the client said not to.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0)
+	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
 		/* Do nothing */
 		;
-	else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0)
+	} else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-	else if (res->view->enablevalidation &&
+	} else if (res->view->enablevalidation &&
 		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
 		isc_boolean_t checknta =
@@ -2534,7 +2539,8 @@ resquery_send(resquery_t *query) {
 			isc_boolean_t reqnsid = res->view->requestnsid;
 			isc_boolean_t sendcookie = res->view->sendcookie;
 			isc_boolean_t tcpkeepalive = ISC_FALSE;
-			unsigned char cookie[64];
+			isc_boolean_t sendprotoss = ISC_FALSE;
+			unsigned char cookie[64], posbuf[64];
 			isc_uint16_t padding = 0;
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
@@ -2625,6 +2631,84 @@ resquery_send(resquery_t *query) {
 					inc_stats(fctx->res,
 						dns_resstatscounter_cookienew);
 				}
+				ednsopt++;
+			}
+
+
+			/*
+			 * Conditions are right to send a PROTOSS option,
+			 * but only if it's explicitly allowed in a server
+			 * statement.
+			 */
+			if (rd && res->view->protoss_opts != 0 &&
+			    peer != NULL)
+			{
+				(void) dns_peer_getsendprotoss(peer,
+							       &sendprotoss);
+			}
+			if (sendprotoss) {
+				const isc_sockaddr_t *client;
+				isc_buffer_t b;
+
+				INSIST(ednsopt < DNS_EDNSOPTIONS);
+
+				isc_buffer_init(&b, posbuf, sizeof(posbuf));
+
+				isc_buffer_putuint32(&b, PROTOSS_MAGIC);
+				isc_buffer_putuint8(&b, 1);	/* version */
+				isc_buffer_putuint8(&b, 0);	/* flags */
+
+				if ((res->view->protoss_opts &
+				     PROTOSS_VA) != 0)
+				{
+					isc_buffer_putuint16(&b, PROTOSS_VA);
+					isc_buffer_putuint32(&b,
+						     res->view->protoss_va);
+				}
+
+				if ((res->view->protoss_opts &
+				     PROTOSS_ORG) != 0)
+				{
+					isc_buffer_putuint16(&b, PROTOSS_ORG);
+					isc_buffer_putuint32(&b,
+						     res->view->protoss_org);
+				}
+
+				client = query->fctx->client;
+				switch (client->type.sa.sa_family) {
+				case AF_INET:
+					isc_buffer_putuint16(&b, PROTOSS_V4);
+					isc_buffer_putmem(&b,
+						  &client->type.sin.sin_addr,
+						  4);
+					break;
+				case AF_INET6:
+					isc_buffer_putuint16(&b, PROTOSS_V6);
+					isc_buffer_putmem(&b,
+						  &client->type.sin6.sin6_addr,
+						  16);
+					break;
+				default:
+					/* skip */
+					;
+				}
+
+				if ((res->view->protoss_opts &
+				     PROTOSS_DEV) != 0)
+				{
+					isc_uint64_t dev;
+					dev = res->view->protoss_dev;
+					isc_buffer_putuint16(&b, PROTOSS_DEV);
+					isc_buffer_putuint32(&b, dev >> 32);
+					isc_buffer_putuint32(&b,
+							     dev & 0xffffffff);
+				}
+
+				ednsopts[ednsopt].code = DNS_OPT_PROTOSS;
+				ednsopts[ednsopt].length =
+					isc_buffer_usedlength(&b);
+				ednsopts[ednsopt].value =
+					(isc_uint8_t *) posbuf;
 				ednsopt++;
 			}
 
@@ -2933,12 +3017,12 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 			result = dns_dispatch_createtcp(query->dispatchmgr,
-							query->tcpsocket,
-							query->fctx->res->taskmgr,
-							NULL, NULL,
-							4096, 2, 1, 1, 3,
-							attrs,
-							&query->dispatch);
+						query->tcpsocket,
+						query->fctx->res->taskmgr,
+						NULL, NULL,
+						4096, 2, 1, 1, 3,
+						attrs,
+						&query->dispatch);
 
 			/*
 			 * Regardless of whether dns_dispatch_create()
@@ -2954,7 +3038,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				FCTXTRACE("query canceled: "
 					  "resquery_send() failed; responding");
 
-				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE, ISC_FALSE);
+				fctx_cancelquery(&query, NULL, NULL,
+						 ISC_FALSE, ISC_FALSE);
 				fctx_done(fctx, result, __LINE__);
 			}
 			break;
