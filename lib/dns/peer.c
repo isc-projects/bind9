@@ -44,6 +44,7 @@
 #define FORCE_TCP_BIT			15
 #define SERVER_PADDING_BIT		16
 #define REQUEST_TCP_KEEPALIVE_BIT	17
+#define SEND_PROTOSS_BIT		18
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -934,6 +935,32 @@ dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion) {
 
 	if (DNS_BIT_CHECK(EDNS_VERSION_BIT, &peer->bitflags)) {
 		*ednsversion = peer->ednsversion;
+		return (ISC_R_SUCCESS);
+	} else
+		return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
+dns_peer_setsendprotoss(dns_peer_t *peer, isc_boolean_t newval) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(SEND_PROTOSS_BIT, &peer->bitflags);
+
+	peer->send_protoss = newval;
+	DNS_BIT_SET(SEND_PROTOSS_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getsendprotoss(dns_peer_t *peer, isc_boolean_t *retval) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(retval != NULL);
+
+	if (DNS_BIT_CHECK(SEND_PROTOSS_BIT, &peer->bitflags)) {
+		*retval = peer->send_protoss;
 		return (ISC_R_SUCCESS);
 	} else
 		return (ISC_R_NOTFOUND);
