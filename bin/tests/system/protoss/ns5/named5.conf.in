@@ -11,6 +11,10 @@
 
 // NS5
 
+server 10.53.0.3 {
+	send-protoss yes;
+};
+
 options {
 	query-source address 10.53.0.5;
 	notify-source 10.53.0.5;
@@ -18,10 +22,11 @@ options {
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.5; };
-	listen-on-v6 { none; };
+	listen-on-v6 { fd92:7065:b8e:ffff::5; };
 	recursion yes;
 	forward only;
 	forwarders { 10.53.0.3; };
+	protoss-organization 1816793;
 };
 
 key rndc_key {
