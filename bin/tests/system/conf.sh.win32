@@ -85,7 +85,8 @@ KRB5_CONFIG=NUL
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# v6synth
+# The "dialup", "delzone", and "dupsigs" tests are also not run by
+# default because they take a very long time to complete.
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
