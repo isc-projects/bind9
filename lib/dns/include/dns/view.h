@@ -232,6 +232,16 @@ struct dns_view {
 	dns_dtenv_t			*dtenv;		/* Dnstap environment */
 	dns_dtmsgtype_t			dttypes;	/* Dnstap message types
 							   to log */
+
+	/*
+	 * Configured Protoss option fields. 'protoss_opts' is a
+	 * flag indicating which of _va, _org, and _dev have been
+	 * set.
+	 */
+	isc_uint8_t			protoss_opts;
+	isc_uint32_t			protoss_va;
+	isc_uint32_t			protoss_org;
+	isc_uint64_t			protoss_dev;
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')
