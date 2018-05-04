@@ -1016,8 +1016,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->keyvalidityinterval = 0;
 	zone->sigresigninginterval = 7 * 24 * 3600;
-	zone->sigvalidityinterval = 120;
-	zone->sigresigninginterval = 30;
 	zone->view = NULL;
 	zone->prev_view = NULL;
 	zone->checkmx = NULL;
@@ -6414,7 +6412,7 @@ zone_resigninc(dns_zone_t *zone) {
 	isc_boolean_t check_ksk, keyset_kskonly = ISC_FALSE;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire, stop;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	unsigned int resign;
@@ -6459,16 +6457,25 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
+	sigvalidityinterval = zone->sigvalidityinterval;
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 	/*
 	 * Spread out signatures over time if they happen to be
 	 * clumped.  We don't do this for each add_sigs() call as
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	//expire = soaexpire - jitter % 3600 - 1;
-	expire = soaexpire - 1;
+	if (sigvalidityinterval >= 3600U) {
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 	stop = now + 5;
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
@@ -7379,7 +7386,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -7448,8 +7455,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
+	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 
 	/*
 	 * Spread out signatures over time if they happen to be
@@ -7457,8 +7465,16 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	// expire = soaexpire - jitter % 3600 - 1;
-	expire = soaexpire - 1;
+	if (sigvalidityinterval >= 3600U) {
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 
 	check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
@@ -8307,7 +8323,7 @@ zone_sign(dns_zone_t *zone) {
 	isc_boolean_t first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	isc_uint32_t jitter;
+	isc_uint32_t jitter, sigvalidityinterval;
 	unsigned int i, j;
 	unsigned int nkeys = 0;
 	isc_uint32_t nodes;
@@ -8358,8 +8374,9 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
+	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600;	/* Allow for clock skew. */
-	soaexpire = now + dns_zone_getsigvalidityinterval(zone);
+	soaexpire = now + sigvalidityinterval;
 
 	/*
 	 * Spread out signatures over time if they happen to be
@@ -8367,8 +8384,16 @@ zone_sign(dns_zone_t *zone) {
 	 * we still want some clustering to occur.
 	 */
 	isc_random_get(&jitter);
-	// expire = soaexpire - jitter % 3600 - 1;
-	expire = soaexpire - 1;
+	if (sigvalidityinterval >= 3600U) {
+		if (sigvalidityinterval > 7200U) {
+			jitter %= 3600;
+		} else {
+			jitter %= 1200;
+		}
+		expire = soaexpire - jitter - 1;
+	} else {
+		expire = soaexpire - 1;
+	}
 
 	/*
 	 * We keep pulling nodes off each iterator in turn until
@@ -17591,7 +17616,7 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	keyexpire = dns_zone_getkeyvalidityinterval(zone);
 	if (keyexpire == 0) {
-		keyexpire = soaexpire;
+		keyexpire = soaexpire - 1;
 	} else {
 		keyexpire += now;
 	}
