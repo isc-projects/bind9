@@ -1455,7 +1455,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		sigvalinsecs = ns_server_getoption(named_g_server->sctx,
 						   NS_SERVER_SIGVALINSECS);
 		validity = cfg_tuple_get(obj, "validity");
-		seconds = cfg_obj_asuint32(validity) * 86400;
+		seconds = cfg_obj_asuint32(validity);
 		if (!sigvalinsecs) {
 			seconds *= 86400;
 		}
