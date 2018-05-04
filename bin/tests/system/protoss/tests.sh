@@ -101,10 +101,33 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check response is cached when PROTOSS is not sent ($n)"
+ret=0
+sleep 1
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+ttl2=`awk '/^a.example/ {print $2}' dig.out.ns5.test$n`
+[ "$ttl1" -ne "$ttl2" ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 # configure protoss-virtual-appliance and send-protoss yes
 copy_setports ns5/named4.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 $RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
+
+echo_i "check response is not cached when PROTOSS is sent ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+ttl1=`awk '/^a.example/ {print $2}' dig.out.ns5.test$n`
+sleep 1
+$DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
+ttl2=`awk '/^a.example/ {print $2}' dig.out.ns5.test$n`
+[ "$ttl1" -eq 0 ] || ret=1
+[ "$ttl2" -eq 0 ] || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "check Virtual Appliance option is sent when forwarding ($n)"
 ret=0
@@ -140,7 +163,6 @@ fi
 # configure protoss-organization and send-protoss yes
 copy_setports ns5/named5.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
-$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
 
 echo_i "check Organization option is sent when forwarding ($n)"
 ret=0
@@ -176,7 +198,6 @@ fi
 # configure protoss-device and send-protoss yes
 copy_setports ns5/named6.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
-$RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
 
 echo_i "check Device option is sent when forwarding ($n)"
 ret=0
