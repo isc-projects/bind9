@@ -9320,6 +9320,53 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>protoss-virtual-appliance</command></term>
+	      <listitem>
+		<para>
+		  Sets the Virtual Appliance ID to be sent by
+		  <command>named</command> when forwarding a query to
+		  a Cisco Umbrella server. This can cause leakage of private
+		  information, and therefore should only be set by
+		  Cisco Umbrella customers; see
+		  <xref linkend="protoss"/> for details.
+		  This field is represented as an integer.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>protoss-organization</command></term>
+	      <listitem>
+		<para>
+		  Sets the Organization ID to be sent by
+		  <command>named</command> when forwarding a query to
+		  a Cisco Umbrella server. This can cause leakage of private
+		  information, and therefore should only be set by
+		  Cisco Umbrella customers; see
+		  <xref linkend="protoss"/> for details.
+		  This field is represented as an integer.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>protoss-device</command></term>
+	      <listitem>
+		<para>
+		  Sets the Device ID to be sent by
+		  <command>named</command> when forwarding a query to
+		  a Cisco Umbrella server. This can cause leakage of private
+		  information, and therefore should only be set by
+		  Cisco Umbrella customers; see
+		  <xref linkend="protoss"/> for details.
+		  This field is represented as a hexadecimal value
+		  2 to 16 digits in length, representing 1 to 8
+		  bytes. There must be an even number of digits.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>v6-bias</command></term>
 	      <listitem>
 		<para>
@@ -10566,6 +10613,37 @@ example.com                 CNAME   rpz-tcp-only.
 	    the redirect zone is tried first.
 	  </para>
 	</section>
+
+	<section xml:id="protoss"><info><title>Cisco Umbrella support (PROTOSS option)</title></info>
+	  <para>
+	    In this release of BIND, <command>named</command> supports
+	    forwarding of queries to Cisco Umbrella servers. Cisco
+	    Umbrella identifies customer queries via custom EDNS
+	    option called PROTOSS that are included with each query.
+	  </para>
+	  <para>
+	    PROTOSS options may include any combination of three
+	    identification codes: a Virtual Appliance ID, an
+	    Organization ID, or a Device ID. These are configured in
+	    <filename>named.conf</filename> by setting the
+	    <command>protoss-virtual-appliance</command>,
+	    <command>protoss-organization</command>, and
+	    <command>protoss-device</command> options. If any of
+	    these options is set, then when <command>named</command>
+	    is forwarding a message to another recursive server, it
+	    will include a PROTOSS option in the query.
+	  </para>
+	  <para>
+	    Note that the PROTOSS option also includes a copy of the
+	    client's IP address. This has serious implications for
+	    client privacy. PROTOSS must be configured cautiously and
+	    only by Cisco Umbrella customers.
+	  </para>
+	  <para>
+	    The PROTOSS option can be disabled in the <command>server</command>
+	    statement by using <command>send-protoss no</command>.
+	  </para>
+	</section>
       </section>
 
       <section xml:id="server_statement_grammar"><info><title><command>server</command> Statement Grammar</title></info>
@@ -10832,6 +10910,14 @@ example.com                 CNAME   rpz-tcp-only.
 	    option level.  The <command>named</command> server may
 	    determine that COOKIE is not supported by the remote server
 	    and not add a COOKIE EDNS option to requests.
+	  </para>
+
+	  <para>
+	    The <command>send-protoss</command> option determines
+	    whether the local server will add a PROTOSS EDNS option
+	    to queries forwarded by the server to another recursive
+	    server. The default is to send PROTOSS options in forwarded
+	    queries if any PROTOSS identifier has been configured.
 	  </para>
 	</section>
 
