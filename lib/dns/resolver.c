@@ -2652,6 +2652,8 @@ resquery_send(resquery_t *query) {
 
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 
+				query->options |= DNS_FETCHOPT_PROTOSS;
+
 				isc_buffer_init(&b, posbuf, sizeof(posbuf));
 
 				isc_buffer_putuint32(&b, PROTOSS_MAGIC);
@@ -5698,7 +5700,7 @@ findnoqname(fetchctx_t *fctx, dns_name_t *name, dns_rdatatype_t type,
 
 static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
-	   isc_stdtime_t now)
+	   isc_boolean_t zerottl, isc_stdtime_t now)
 {
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
 	dns_rdataset_t *addedrdataset = NULL;
@@ -5833,7 +5835,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		/*
 		 * Enforce the configure maximum cache TTL.
 		 */
-		if (rdataset->ttl > res->view->maxcachettl) {
+		if (zerottl) {
+			rdataset->ttl = 0;
+		} else if (rdataset->ttl > res->view->maxcachettl) {
 			rdataset->ttl = res->view->maxcachettl;
 		}
 
@@ -6182,7 +6186,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 }
 
 static inline isc_result_t
-cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now)
+cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
+	      isc_boolean_t zerottl, isc_stdtime_t now)
 {
 	isc_result_t result;
 	dns_section_t section;
@@ -6203,7 +6208,8 @@ cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now)
 			dns_message_currentname(fctx->rmessage, section,
 						&name);
 			if ((name->attributes & DNS_NAMEATTR_CACHE) != 0) {
-				result = cache_name(fctx, name, addrinfo, now);
+				result = cache_name(fctx, name, addrinfo,
+						    zerottl, now);
 				if (result != ISC_R_SUCCESS)
 					break;
 			}
@@ -7427,7 +7433,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * work to be queued to the DNSSEC validator.
 	 */
 	if (WANTCACHE(fctx)) {
-		result = cache_message(fctx, query->addrinfo, rctx.now);
+		isc_boolean_t zerottl = ISC_TF((rctx.query->options &
+						DNS_FETCHOPT_PROTOSS) != 0);
+		result = cache_message(fctx, query->addrinfo,
+				       zerottl, rctx.now);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("cache_message complete", result);
 			rctx_done(&rctx, result);
