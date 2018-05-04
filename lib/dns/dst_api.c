@@ -25,7 +25,6 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.65 2011/10/20 21:20:02 marka Exp $
  */
 
 /*! \file */
@@ -1956,14 +1955,19 @@ dst__entropy_getdata(void *buf, unsigned int len, isc_boolean_t pseudo) {
 	UNUSED(pseudo);
 	UNUSED(flags);
 	return (pk11_rand_bytes(buf, len));
-#else /* PKCS11CRYPTO */
+#elif defined(OPENSSL)
 	if (pseudo)
 		flags &= ~ISC_ENTROPY_GOODONLY;
 	else
 		flags |= ISC_ENTROPY_BLOCKING;
 	/* get entropy directly from crypto provider */
 	return (dst_random_getdata(buf, len, NULL, flags));
-#endif /* PKCS11CRYPTO */
+#else
+	UNUSED(buf);
+	UNUSED(pseudo);
+	UNUSED(flags);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
 }
 
 unsigned int
