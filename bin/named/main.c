@@ -130,6 +130,7 @@ static unsigned int delay = 0;
 static isc_boolean_t nonearest = ISC_FALSE;
 static isc_boolean_t notcp = ISC_FALSE;
 static isc_boolean_t fixedlocal = ISC_FALSE;
+static isc_boolean_t sigvalinsecs = ISC_FALSE;
 
 /*
  * -4 and -6
@@ -466,11 +467,96 @@ parse_fuzz_arg(void) {
 }
 
 static void
+parse_T_opt(char *option) {
+	const char *p;
+	char *last = NULL;
+	/*
+	 * force the server to behave (or misbehave) in
+	 * specified ways for testing purposes.
+	 *
+	 * clienttest: make clients single shot with their
+	 * 	       own memory context.
+	 * delay=xxxx: delay client responses by xxxx ms to
+	 *	       simulate remote servers.
+	 * dscp=x:     check that dscp values are as
+	 * 	       expected and assert otherwise.
+	 */
+	if (!strcmp(option, "clienttest")) {
+		clienttest = ISC_TRUE;
+	} else if (!strcmp(option, "nosoa")) {
+		nosoa = ISC_TRUE;
+	} else if (!strcmp(option, "noaa")) {
+		noaa = ISC_TRUE;
+	} else if (!strcmp(option, "maxudp512")) {
+		maxudp = 512;
+	} else if (!strcmp(option, "maxudp1460")) {
+		maxudp = 1460;
+	} else if (!strcmp(option, "dropedns")) {
+		dropedns = ISC_TRUE;
+	} else if (!strcmp(option, "noedns")) {
+		noedns = ISC_TRUE;
+	} else if (!strncmp(option, "maxudp=", 7)) {
+		maxudp = atoi(option + 7);
+	} else if (!strncmp(option, "delay=", 6)) {
+		delay = atoi(option + 6);
+	} else if (!strcmp(option, "nosyslog")) {
+		named_g_nosyslog = ISC_TRUE;
+	} else if (!strcmp(option, "nonearest")) {
+		nonearest = ISC_TRUE;
+	} else if (!strncmp(option, "dscp=", 5)) {
+		isc_dscp_check_value = atoi(option + 5);
+	} else if (!strncmp(option, "mkeytimers=", 11)) {
+		p = strtok_r(option + 11, "/", &last);
+		if (p == NULL) {
+			named_main_earlyfatal("bad mkeytimer");
+		}
+
+		dns_zone_mkey_hour = atoi(p);
+		if (dns_zone_mkey_hour == 0) {
+			named_main_earlyfatal("bad mkeytimer");
+		}
+
+		p = strtok_r(NULL, "/", &last);
+		if (p == NULL) {
+			dns_zone_mkey_day = (24 * dns_zone_mkey_hour);
+			dns_zone_mkey_month = (30 * dns_zone_mkey_day);
+			return;
+		}
+
+		dns_zone_mkey_day = atoi(p);
+		if (dns_zone_mkey_day < dns_zone_mkey_hour)
+			named_main_earlyfatal("bad mkeytimer");
+
+		p = strtok_r(NULL, "/", &last);
+		if (p == NULL) {
+			dns_zone_mkey_month = (30 * dns_zone_mkey_day);
+			return;
+		}
+
+		dns_zone_mkey_month = atoi(p);
+		if (dns_zone_mkey_month < dns_zone_mkey_day) {
+			named_main_earlyfatal("bad mkeytimer");
+		}
+	} else if (!strcmp(option, "notcp")) {
+		notcp = ISC_TRUE;
+	} else if (!strncmp(option, "tat=", 4)) {
+		named_g_tat_interval = atoi(option + 4);
+	} else if (!strcmp(option, "keepstderr")) {
+		named_g_keepstderr = ISC_TRUE;
+	} else if (!strcmp(option, "fixedlocal")) {
+		fixedlocal = ISC_TRUE;
+	} else if (!strcmp(option, "sigvalinsecs")) {
+		sigvalinsecs = ISC_TRUE;
+	} else {
+		fprintf(stderr, "unknown -T flag '%s\n", option);
+	}
+}
+
+static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	int port;
 	const char *p;
-	char *last;
 
 	save_command_line(argc, argv);
 
@@ -565,95 +651,7 @@ parse_command_line(int argc, char *argv[]) {
 			named_g_chrootdir = isc_commandline_argument;
 			break;
 		case 'T':	/* NOT DOCUMENTED */
-			/*
-			 * force the server to behave (or misbehave) in
-			 * specified ways for testing purposes.
-			 *
-			 * clienttest: make clients single shot with their
-			 * 	       own memory context.
-			 * delay=xxxx: delay client responses by xxxx ms to
-			 *	       simulate remote servers.
-			 * dscp=x:     check that dscp values are as
-			 * 	       expected and assert otherwise.
-			 */
-			if (!strcmp(isc_commandline_argument, "clienttest"))
-				clienttest = ISC_TRUE;
-			else if (!strcmp(isc_commandline_argument, "nosoa"))
-				nosoa = ISC_TRUE;
-			else if (!strcmp(isc_commandline_argument, "noaa"))
-				noaa = ISC_TRUE;
-			else if (!strcmp(isc_commandline_argument,
-					 "maxudp512"))
-				maxudp = 512;
-			else if (!strcmp(isc_commandline_argument,
-					 "maxudp1460"))
-				maxudp = 1460;
-			else if (!strcmp(isc_commandline_argument, "dropedns"))
-				dropedns = ISC_TRUE;
-			else if (!strcmp(isc_commandline_argument, "noedns"))
-				noedns = ISC_TRUE;
-			else if (!strncmp(isc_commandline_argument,
-					  "maxudp=", 7))
-				maxudp = atoi(isc_commandline_argument + 7);
-			else if (!strncmp(isc_commandline_argument,
-					  "delay=", 6))
-				delay = atoi(isc_commandline_argument + 6);
-			else if (!strcmp(isc_commandline_argument, "nosyslog"))
-				named_g_nosyslog = ISC_TRUE;
-			else if (!strcmp(isc_commandline_argument, "nonearest"))
-				nonearest = ISC_TRUE;
-			else if (!strncmp(isc_commandline_argument, "dscp=", 5))
-				isc_dscp_check_value =
-					   atoi(isc_commandline_argument + 5);
-			else if (!strncmp(isc_commandline_argument,
-					  "mkeytimers=", 11))
-			{
-				p = strtok_r(isc_commandline_argument + 11, "/", &last);
-				if (p == NULL)
-					named_main_earlyfatal("bad mkeytimer");
-				dns_zone_mkey_hour = atoi(p);
-				if (dns_zone_mkey_hour == 0)
-					named_main_earlyfatal("bad mkeytimer");
-
-				p = strtok_r(NULL, "/", &last);
-				if (p == NULL) {
-					dns_zone_mkey_day =
-						(24 * dns_zone_mkey_hour);
-					dns_zone_mkey_month =
-						(30 * dns_zone_mkey_day);
-					break;
-				}
-				dns_zone_mkey_day = atoi(p);
-				if (dns_zone_mkey_day < dns_zone_mkey_hour)
-					named_main_earlyfatal("bad mkeytimer");
-
-				p = strtok_r(NULL, "/", &last);
-				if (p == NULL) {
-					dns_zone_mkey_month =
-						(30 * dns_zone_mkey_day);
-					break;
-				}
-				dns_zone_mkey_month = atoi(p);
-				if (dns_zone_mkey_month < dns_zone_mkey_day)
-					named_main_earlyfatal("bad mkeytimer");
-			} else if (!strcmp(isc_commandline_argument, "notcp"))
-				notcp = ISC_TRUE;
-			else if (!strncmp(isc_commandline_argument, "tat=", 4))
-			{
-				named_g_tat_interval =
-					   atoi(isc_commandline_argument + 4);
-			} else if (!strcmp(isc_commandline_argument,
-					 "keepstderr"))
-			{
-				named_g_keepstderr = ISC_TRUE;
-			} else if (!strcmp(isc_commandline_argument,
-					   "fixedlocal"))
-			{
-				fixedlocal = ISC_TRUE;
-			} else {
-				fprintf(stderr, "unknown -T flag '%s\n",
-					isc_commandline_argument);
-			}
+			parse_T_opt(isc_commandline_argument);
 			break;
 		case 'U':
 			named_g_udpdisp = parse_int(isc_commandline_argument,
@@ -1149,6 +1147,8 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, ISC_TRUE);
 	if (disable6)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, ISC_TRUE);
+	if (sigvalinsecs)
+		ns_server_setoption(sctx, NS_SERVER_SIGVALINSECS, ISC_TRUE);
 
 	named_g_server->sctx->delay = delay;
 }
