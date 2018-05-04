@@ -88,8 +88,8 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2
-    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - ${SCAN_BUILD} ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2
+    - ${SCAN_BUILD} make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -161,6 +161,19 @@ precheck:debian:sid:amd64:
 #build:ubuntu:xenial:i386:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
+
+build:scan-build:debian:buster:amd64:
+  variables:
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    SCAN_BUILD: scan-build -o $CI_PROJECT_DIR/scan-build.results -j${PARALLEL_JOBS_BUILD:-1} -stats
+  <<: *debian_buster_amd64_image
+  <<: *build_job
+  when: manual
+  artifacts:
+    expire_in: '1 week'
+    paths:
+    - scan-build.results
 
 build:clang:debian:sid:amd64:
   variables:
