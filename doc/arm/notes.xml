@@ -85,6 +85,12 @@
 	  signatures covering DNSKEY RRsets. [GL #145]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Add support for forwarding queries to Cisco Umbrella
+	  servers. [GL #229]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
