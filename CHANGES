@@ -1,4 +1,5 @@
-4938.	[placeholder]
+4938.	[func]		Support for forwarding queries to Cisco Umbrella
+			servers. [GL #229]
 
 4937.	[func]		Remove support for OpenSSL < 1.0.0 [GL #191]
 
