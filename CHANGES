@@ -1,8 +1,10 @@
+4938.	[placeholder]
+
 4937.	[func]		Remove support for OpenSSL < 1.0.0 [GL #191]
 
-4936.	[func]		Always use OpenSSL or PKCS#11 random data providers and
-			remove the configure option --{enable,disable}-crypto-rand.
-			[GL #165]
+4936.	[func]		Always use OpenSSL or PKCS#11 random data providers,
+			and remove the --{enable,disable}-crypto-rand configure
+			options. [GL #165]
 
 4935.	[func]		Add support for LibreSSL >= 2.7.0 (some OpenSSL 1.1.0
 			call were added). [GL #191]
