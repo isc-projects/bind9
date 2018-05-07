@@ -56,7 +56,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "check PROTOSS is not sent when protoss- options are not configured ($n)"
+echo_i "check PROTOSS is not sent when umbrella- options are not configured ($n)"
 ret=0
 nextpart ns3/named.run > /dev/null
 $DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
@@ -68,12 +68,12 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-# configure protoss-virtual appliance but no server statement
+# configure umbrella-virtual appliance but no server statement
 copy_setports ns5/named2.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 $RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
 
-echo_i "check PROTOSS is not sent when protoss- options configured but send-protoss is not set ($n)"
+echo_i "check PROTOSS is not sent when umbrella- options configured but send-umbrella is not set ($n)"
 ret=0
 nextpart ns3/named.run > /dev/null
 $DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
@@ -85,12 +85,12 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-# configure protoss-device but send-protoss no
+# configure umbrella-device but send-umbrella no
 copy_setports ns5/named3.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 $RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
 
-echo_i "check PROTOSS is not sent when protoss- options configured but send-protoss is explicitly no ($n)"
+echo_i "check PROTOSS is not sent when umbrella- options configured but send-umbrella is explicitly no ($n)"
 ret=0
 nextpart ns3/named.run > /dev/null
 $DIG $DIGOPTS @10.53.0.5 -b 10.53.0.4 a.example > dig.out.ns5.test$n || ret=1
@@ -111,7 +111,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-# configure protoss-virtual-appliance and send-protoss yes
+# configure umbrella-virtual-appliance and send-umbrella yes
 copy_setports ns5/named4.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 $RNDCCMD 10.53.0.5 flush | sed 's/^/I:ns5 /'
@@ -160,7 +160,7 @@ then
   status=`expr $status + $ret`
 fi
 
-# configure protoss-organization and send-protoss yes
+# configure umbrella-organization and send-umbrella yes
 copy_setports ns5/named5.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 
@@ -195,7 +195,7 @@ then
   status=`expr $status + $ret`
 fi
 
-# configure protoss-device and send-protoss yes
+# configure umbrella-device and send-umbrella yes
 copy_setports ns5/named6.conf.in ns5/named.conf
 $RNDCCMD 10.53.0.5 reconfig | sed 's/^/I:ns5 /'
 
