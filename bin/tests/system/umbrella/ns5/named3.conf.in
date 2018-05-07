@@ -11,6 +11,10 @@
 
 // NS5
 
+server 10.53.0.3 {
+	send-umbrella no;
+};
+
 options {
 	query-source address 10.53.0.5;
 	notify-source 10.53.0.5;
@@ -22,7 +26,7 @@ options {
 	recursion yes;
 	forward only;
 	forwarders { 10.53.0.3; };
-	protoss-virtual-appliance 30280231;
+	umbrella-device DEADBEEF;
 };
 
 key rndc_key {
