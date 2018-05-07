@@ -64,13 +64,13 @@ PARALLEL = rpzrecurse serve-stale dnssec \
 	   legacy limits logfileconfig \
 	   masterfile masterformat metadata mkeys \
 	   names notify nslookup nsupdate nzd2nzf \
-	   padding pending pipelined protoss \
+	   padding pending pipelined \
 	   reclimit redirect resolver rndc rootkeysentinel rpz \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
 	   sfcache smartsign sortlist \
 	   spf staticstub statistics statschannel stub synthfromdnssec \
 	   tcp tools tsig tsiggss \
-	   unknown upforwd verify views wildcard \
+	   umbrella unknown upforwd verify views wildcard \
 	   xfer xferquota zero zonechecks
 
 # Produce intermediate makefile that assigns unique port numbers to each
