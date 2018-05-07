@@ -11,10 +11,6 @@
 
 // NS5
 
-server 10.53.0.3 {
-	send-protoss yes;
-};
-
 options {
 	query-source address 10.53.0.5;
 	notify-source 10.53.0.5;
@@ -26,6 +22,7 @@ options {
 	recursion yes;
 	forward only;
 	forwarders { 10.53.0.3; };
+	umbrella-virtual-appliance 30280231;
 };
 
 key rndc_key {

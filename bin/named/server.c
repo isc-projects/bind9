@@ -1484,7 +1484,7 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(cpeer, "send-protoss", &obj);
+	(void)cfg_map_get(cpeer, "send-umbrella", &obj);
 	if (obj != NULL) {
 		CHECK(dns_peer_setsendprotoss(peer, cfg_obj_asboolean(obj)));
 	}
@@ -5322,21 +5322,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 #endif /* HAVE_DNSTAP */
 
 	obj = NULL;
-	result = named_config_get(maps, "protoss-virtual-appliance", &obj);
+	result = named_config_get(maps, "umbrella-virtual-appliance", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_va = cfg_obj_asuint32(obj);
 		view->protoss_opts |= PROTOSS_VA;
 	}
 
 	obj = NULL;
-	result = named_config_get(maps, "protoss-organization", &obj);
+	result = named_config_get(maps, "umbrella-organization", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_org = cfg_obj_asuint32(obj);
 		view->protoss_opts |= PROTOSS_ORG;
 	}
 
 	obj = NULL;
-	result = named_config_get(maps, "protoss-device", &obj);
+	result = named_config_get(maps, "umbrella-device", &obj);
 	if (result == ISC_R_SUCCESS) {
 		view->protoss_dev = cfg_obj_asuint64(obj);
 		view->protoss_opts |= PROTOSS_DEV;

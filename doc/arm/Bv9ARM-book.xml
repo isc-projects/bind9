@@ -9320,7 +9320,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>protoss-virtual-appliance</command></term>
+	      <term><command>umbrella-virtual-appliance</command></term>
 	      <listitem>
 		<para>
 		  Sets the Virtual Appliance ID to be sent by
@@ -9335,7 +9335,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>protoss-organization</command></term>
+	      <term><command>umbrella-organization</command></term>
 	      <listitem>
 		<para>
 		  Sets the Organization ID to be sent by
@@ -9350,7 +9350,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>protoss-device</command></term>
+	      <term><command>umbrella-device</command></term>
 	      <listitem>
 		<para>
 		  Sets the Device ID to be sent by
@@ -10614,30 +10614,30 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-	<section xml:id="protoss"><info><title>Cisco Umbrella support (PROTOSS option)</title></info>
+	<section xml:id="protoss"><info><title>Cisco Umbrella support</title></info>
 	  <para>
 	    In this release of BIND, <command>named</command> supports
 	    forwarding of queries to Cisco Umbrella servers. Cisco
-	    Umbrella identifies customer queries via custom EDNS
-	    option called PROTOSS that are included with each query.
+	    Umbrella identifies customer queries via a custom
+	    "Protoss" EDNS option that is included with each query.
 	  </para>
 	  <para>
-	    PROTOSS options may include any combination of three
+	    Protoss options may include any combination of three
 	    identification codes: a Virtual Appliance ID, an
 	    Organization ID, or a Device ID. These are configured in
 	    <filename>named.conf</filename> by setting the
-	    <command>protoss-virtual-appliance</command>,
-	    <command>protoss-organization</command>, and
-	    <command>protoss-device</command> options. If any of
+	    <command>umbrella-virtual-appliance</command>,
+	    <command>umbrella-organization</command>, and
+	    <command>umbrella-device</command> options. If any of
 	    these options is set, then when <command>named</command>
 	    is forwarding a message to Cisco Umbrella server, it
-	    can include a PROTOSS option in the query.
+	    can include a Protoss option in the query.
 	  </para>
 	  <para>
 	    Cisco Umbrella server addresses must be explicitly
 	    configured in a <command>server</command> statement with
-	    the <command>send-protoss</command> option set to
-	    <literal>yes</literal>. PROTOSS options will not be sent
+	    the <command>send-umbrella</command> option set to
+	    <literal>yes</literal>. Protoss options will not be sent
 	    to any server that has not been explicitly configured
 	    to receive them.
 	  </para>
@@ -10649,9 +10649,9 @@ example.com                 CNAME   rpz-tcp-only.
 	    lowered to zero.
 	  </para>
 	  <para>
-	    Note that, in order to identify the client, the PROTOSS option
+	    Note that, in order to identify the client, the Protoss option
 	    includes a copy of the client's IP address. This has serious
-	    implications for client privacy. The PROTOSS option must be
+	    implications for client privacy. The Protoss option must be
 	    configured cautiously and only by Cisco Umbrella customers.
 	  </para>
 	</section>
@@ -10924,16 +10924,15 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
-	    The <command>send-protoss</command> option determines
-	    whether the local server will add a PROTOSS EDNS option
-	    to queries forwarded by the server to a Cisco Umbrella
-	    server. If set to <literal>yes</literal>, then
-	    <command>named</command> will send PROTOSS options in
-	    forwarder queries, if and only if a Cisco Umbrella
-	    customer ID has been configured via the
-	    <command>protoss-virtual-appliance</command>,
-	    <command>protoss-organization</command>, or
-	    <command>protoss-device</command> options.
+	    The <command>send-umbrella</command> option determines
+	    whether to treat the server as a Cisco Umbrella server.
+	    If set to <literal>yes</literal>, and if Cisco Umbrella
+	    has been configured via the
+	    <command>umbrella-virtual-appliance</command>,
+	    <command>umbrella-organization</command>, or
+	    <command>umbrella-device</command> options,
+	    then <command>named</command> will send an EDNS Protoss
+	    option when forwarding queries to the server.
 	  </para>
 	</section>
 
