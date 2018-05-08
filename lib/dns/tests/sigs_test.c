@@ -208,8 +208,20 @@ ATF_TC_BODY(update_sigs, tc) {
 	 */
 
 	const zonechange_t changes_add[] = {
-		{ DNS_DIFFOP_ADD, "foo.example", 300, "TXT", "foo" },
-		{ DNS_DIFFOP_ADD, "bar.example", 300, "TXT", "bar" },
+		{
+			.op = DNS_DIFFOP_ADD,
+			.owner = "foo.example",
+			.ttl = 300,
+			.type = "TXT",
+			.rdata = "foo"
+		},
+		{
+			.op = DNS_DIFFOP_ADD,
+			.owner = "bar.example",
+			.ttl = 300,
+			.type = "TXT",
+			.rdata = "bar"
+		},
 		ZONECHANGE_SENTINEL,
 	};
 	const update_sigs_test_params_t test_add = {
