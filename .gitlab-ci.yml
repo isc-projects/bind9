@@ -164,7 +164,7 @@ precheck:debian:sid:amd64:
 
 build:clang:debian:sid:amd64:
   variables:
-    CC: clang
+    CC: clang-6.0
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -178,7 +178,7 @@ build:debian:sid:amd64:
 
 build:clang:debian:sid:i386:
   variables:
-    CC: clang
+    CC: clang-6.0
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
   <<: *debian_sid_i386_image
   <<: *build_job
