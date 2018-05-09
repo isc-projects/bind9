@@ -4634,6 +4634,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->recursion = cfg_obj_asboolean(obj);
 
 	obj = NULL;
+	result = named_config_get(maps, "qname-minimization", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->qminimization = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "qname-minimization-strict", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->qmin_strict = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = named_config_get(maps, "auth-nxdomain", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->auth_nxdomain = cfg_obj_asboolean(obj);

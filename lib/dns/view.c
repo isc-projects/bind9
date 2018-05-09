@@ -182,6 +182,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	 * Initialize configuration data with default values.
 	 */
 	view->recursion = ISC_TRUE;
+	view->qminimization = ISC_FALSE;
+	view->qmin_strict = ISC_FALSE;
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->enablednssec = ISC_TRUE;
 	view->enablevalidation = ISC_TRUE;

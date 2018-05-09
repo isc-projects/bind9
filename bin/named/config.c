@@ -184,6 +184,8 @@ options {\n\
 	provide-ixfr true;\n\
 	query-source address *;\n\
 	query-source-v6 address *;\n\
+	qname-minimization no;\n\
+	qname-minimization-strict no;\n\
 	recursion true;\n\
 	request-expire true;\n\
 	request-ixfr true;\n\

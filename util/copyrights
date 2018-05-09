@@ -1728,6 +1728,15 @@
 ./bin/tests/system/pkcs11ssl/setup.sh		SH	2014,2016,2018
 ./bin/tests/system/pkcs11ssl/tests.sh		SH	2014,2016,2018
 ./bin/tests/system/pkcs11ssl/usepkcs11		X	2014,2018
+./bin/tests/system/qname-minimization/ans2/ans.py	PYTHON	2018
+./bin/tests/system/qname-minimization/clean.sh	SH	2018
+./bin/tests/system/qname-minimization/ns1/named.conf.in	CONF-C	2018
+./bin/tests/system/qname-minimization/ns1/root.db	ZONE	2018
+./bin/tests/system/qname-minimization/ns3/named.conf.in	CONF-C	2018
+./bin/tests/system/qname-minimization/ns4/named.conf.in	CONF-C	2018
+./bin/tests/system/qname-minimization/ns5/named.conf.in	CONF-C	2018
+./bin/tests/system/qname-minimization/setup.sh	SH	2018
+./bin/tests/system/qname-minimization/tests.sh	SH	2018
 ./bin/tests/system/reclimit/README		TXT.BRIEF	2014,2016,2017,2018
 ./bin/tests/system/reclimit/ans2/ans.pl		PERL	2014,2015,2016,2017,2018
 ./bin/tests/system/reclimit/ans7/ans.pl		PERL	2014,2016,2018

@@ -11025,6 +11025,15 @@ ns_query_start(ns_client_t *client) {
 	} else if (!client->view->enablevalidation)
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 
+	if (client->view->qminimization) {
+		client->query.fetchoptions |= DNS_FETCHOPT_QMINIMIZE |
+				DNS_FETCHOPT_QMIN_SKIP_ON_IP6A;
+		if (client->view->qmin_strict) {
+			client->query.fetchoptions |=
+				DNS_FETCHOPT_QMIN_STRICT;
+		}
+	}
+
 	/*
 	 * Allow glue NS records to be added to the authority section
 	 * if the answer is secure.
