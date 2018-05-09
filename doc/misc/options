@@ -263,6 +263,8 @@ options {
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;
+	qname-minimization <boolean>;
+	qname-minimization-strict <boolean>;
         query-source ( ( [ address ] ( <ipv4_address> | * ) [ port (
             <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ]
             port ( <integer> | * ) ) ) [ dscp <integer> ];
