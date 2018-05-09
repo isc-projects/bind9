@@ -405,31 +405,42 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	isc_sockaddr_t *src;
 	char full_name[256];
 	char buf[512];
-	static char last[256] = { 0 };
+	static char last[256];
 	static int count = 0;
-	int i;
+	int i, size;
 
 	UNUSED(zone);
 
-	if (state->putrr == NULL)
+	if (state->putrr == NULL) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	if (strcmp(name, "@") == 0) {
-		strncpy(full_name, state->zone_name, 255);
-		full_name[255] = '\0';
-	} else if (strcmp(state->zone_name, ".") == 0)
-		snprintf(full_name, 255, "%s.", name);
-	else
-		snprintf(full_name, 255, "%s.%s", name, state->zone_name);
+		size = snprintf(full_name, sizeof(full_name),
+				"%s", state->zone_name);
+	} else if (strcmp(state->zone_name, ".") == 0) {
+		size = snprintf(full_name, sizeof(full_name),
+				"%s.", name);
+	} else {
+		size = snprintf(full_name, sizeof(full_name),
+				"%s.%s", name, state->zone_name);
+	}
+
+	if (size < 0 ||
+	    (size_t)size >= sizeof(full_name) ||
+	    (size_t)size >= sizeof(last))
+	{
+		return (ISC_R_NOSPACE);
+	}
 
 	/*
 	 * For test purposes, log all calls to dlz_lookup()
 	 */
-	if (strncasecmp(full_name, last, 255) == 0)
+	if (strcasecmp(full_name, last) == 0) {
 		count++;
-	else {
+	} else {
 		count = 1;
-		strncpy(last, full_name, 255);
+		memcpy(last, full_name, size + 1);
 	}
 	state->log(ISC_LOG_INFO, "lookup #%d for %s", count, full_name);
 
@@ -458,7 +469,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "source-addr") == 0) {
-		strcpy(buf, "unknown");
+		strncpy(buf, "unknown", sizeof(buf));
 		if (methods != NULL &&
 		    methods->sourceip != NULL &&
 		    (methods->version - methods->age <=
