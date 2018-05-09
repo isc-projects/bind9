@@ -418,7 +418,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 				"%s.%s", name, state->zone_name);
 	}
 
-	if (size < 0 || (size_t)size > sizeof(last) - 1) {
+	if (size < 0 || (size_t)size >= sizeof(full_name)) {
 		return (ISC_R_NOSPACE);
 	}
 
