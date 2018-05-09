@@ -13836,7 +13836,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	const char *type, *file;
 	char zonename[DNS_NAME_FORMATSIZE];
 	isc_uint32_t serial, signed_serial, nodes;
-	char serbuf[16], sserbuf[16], nodebuf[16], resignbuf[512];
+	char serbuf[16], sserbuf[16], nodebuf[16];
+	char resignbuf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 2];
 	char lbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char xbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char rbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
