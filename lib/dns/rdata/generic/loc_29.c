@@ -459,7 +459,7 @@ totext_loc(ARGS_TOTEXT) {
 	isc_boolean_t below;
 	isc_region_t sr;
 	char buf[sizeof("89 59 59.999 N 179 59 59.999 E "
-			"42849672.95m 90000000m 90000000m 90000000m")];
+			"-42849672.95m 90000000m 90000000m 90000000m")];
 	char sbuf[sizeof("90000000m")];
 	char hbuf[sizeof("90000000m")];
 	char vbuf[sizeof("90000000m")];

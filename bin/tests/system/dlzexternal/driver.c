@@ -421,7 +421,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		count++;
 	else {
 		count = 1;
-		strncpy(last, full_name, 255);
+		strlcpy(last, full_name, 255);
 	}
 	state->log(ISC_LOG_INFO, "lookup #%d for %s", count, full_name);
 
