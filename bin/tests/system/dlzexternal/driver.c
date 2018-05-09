@@ -397,7 +397,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	isc_sockaddr_t *src;
 	char full_name[256];
 	char buf[512];
-	static char last[256] = { 0 };
+	static char last[256];
 	static int count = 0;
 	int i, size;
 
