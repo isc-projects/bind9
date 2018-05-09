@@ -115,6 +115,8 @@ struct dns_view {
 	dns_order_t *			order;
 	dns_fwdtable_t *		fwdtable;
 	isc_boolean_t			recursion;
+	isc_boolean_t			qminimization;
+	isc_boolean_t			qmin_strict;
 	isc_boolean_t			auth_nxdomain;
 	isc_boolean_t			use_glue_cache;
 	isc_boolean_t			minimal_any;
