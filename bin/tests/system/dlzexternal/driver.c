@@ -425,7 +425,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	/*
 	 * For test purposes, log all calls to dlz_lookup()
 	 */
-	if (strncasecmp(full_name, last, sizeof(full_name)) == 0) {
+	if (strcasecmp(full_name, last) == 0) {
 		count++;
 	} else {
 		count = 1;
