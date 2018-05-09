@@ -107,9 +107,9 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
  * uncompressed wire form of that RDATA at "dst", which is "dstlen" bytes long.
  */
 isc_result_t
-dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-			  dns_rdatatype_t rdtype, unsigned char *dst,
-			  size_t dstlen, const char *src);
+dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+			 dns_rdatatype_t rdtype, unsigned char *dst,
+			 size_t dstlen, const char *src);
 
 void
 dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);
