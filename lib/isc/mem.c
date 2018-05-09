@@ -50,7 +50,7 @@ LIBISC_EXTERNAL_DATA unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 #define ALIGNMENT_SIZE		8U		/*%< must be a power of 2 */
 #define NUM_BASIC_BLOCKS	64		/*%< must be > 1 */
 #define TABLE_INCREMENT		1024
-#define DEBUG_TABLE_COUNT	65536
+#define DEBUG_TABLE_COUNT	512U
 
 /*
  * Types.
