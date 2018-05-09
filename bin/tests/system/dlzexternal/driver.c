@@ -429,7 +429,7 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		count++;
 	} else {
 		count = 1;
-		memcpy(last, full_name, size);
+		memcpy(last, full_name, size + 1);
 	}
 	state->log(ISC_LOG_INFO, "lookup #%d for %s", count, full_name);
 
