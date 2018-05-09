@@ -41,6 +41,8 @@ struct ns_query {
 	isc_boolean_t			timerset;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
+	isc_boolean_t			minimize;
+	unsigned int			cutlabels;
 	dns_rdatatype_t			qtype;
 	unsigned int			dboptions;
 	unsigned int			fetchoptions;

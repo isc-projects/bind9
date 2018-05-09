@@ -930,6 +930,7 @@ ns_query_init(ns_client_t *client) {
 	result = isc_mutex_init(&client->query.fetchlock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	client->query.cutlabels = 0;
 	client->query.fetch = NULL;
 	client->query.prefetch = NULL;
 	client->query.authdb = NULL;
@@ -11022,6 +11023,15 @@ ns_query_start(ns_client_t *client) {
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 	} else if (!client->view->enablevalidation)
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
+		
+	if (client->view->qminimization) {
+		client->query.fetchoptions |= DNS_FETCHOPT_QMINIMIZE |
+				DNS_FETCHOPT_QMIN_SKIP_ON_IP6A;
+		if (client->view->qmin_strict) {
+			client->query.fetchoptions |=
+				DNS_FETCHOPT_QMIN_STRICT;
+		}
+	}
 
 	/*
 	 * Allow glue NS records to be added to the authority section
