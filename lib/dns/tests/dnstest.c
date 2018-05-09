@@ -442,9 +442,9 @@ dns_test_getdata(const char *file, unsigned char *buf,
 }
 
 isc_result_t
-dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-			  dns_rdatatype_t rdtype, unsigned char *dst,
-			  size_t dstlen, const char *src)
+dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+			 dns_rdatatype_t rdtype, unsigned char *dst,
+			 size_t dstlen, const char *src)
 {
 	isc_buffer_t source, target;
 	isc_lex_t *lex = NULL;

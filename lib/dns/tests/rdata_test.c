@@ -153,9 +153,9 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	/*
 	 * Try converting text form RDATA into uncompressed wire form.
 	 */
-	result = dns_test_rdata_fromstring(&rdata, rdclass, type, buf_fromtext,
-					   sizeof(buf_fromtext),
-					   text_ok->text_in);
+	result = dns_test_rdatafromstring(&rdata, rdclass, type, buf_fromtext,
+					  sizeof(buf_fromtext),
+					  text_ok->text_in);
 	/*
 	 * Check whether result is as expected.
 	 */
