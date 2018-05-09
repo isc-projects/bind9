@@ -799,7 +799,9 @@ dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char filename[ISC_DIR_NAMEMAX];
+			char filename[DNS_NAME_FORMATSIZE +
+				      DNS_SECALG_FORMATSIZE +
+				      sizeof("key file for //65535")];
 			isc_result_t result2;
 			isc_buffer_t buf;
 
@@ -1729,7 +1731,9 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 		}
 
 		if (result != ISC_R_SUCCESS) {
-			char filename[ISC_DIR_NAMEMAX];
+			char filename[DNS_NAME_FORMATSIZE +
+				      DNS_SECALG_FORMATSIZE +
+				      sizeof("key file for //65535")];
 			isc_result_t result2;
 			isc_buffer_t buf;
 
