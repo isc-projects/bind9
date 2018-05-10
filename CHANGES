@@ -1,3 +1,7 @@
+4935.	[bug]		Reduce the probabilty of double signature when deleting
+			a DNSKEY by checking if the node is otherwise signed
+			by the algorithm of the key to be deleted. [GL #240]
+
 4934.	[placeholder]
 
 4933.	[bug]		Not creating signing keys for an inline signed zone
