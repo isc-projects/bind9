@@ -1,3 +1,5 @@
+4939.	[test]		Add basic unit tests for update_sigs(). [GL #135]
+
 4938.	[placeholder]
 
 4937.	[func]		Remove support for OpenSSL < 1.0.0 [GL #191]
