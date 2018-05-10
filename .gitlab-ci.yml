@@ -15,72 +15,84 @@ stages:
   tags:
     - linux
     - docker
+    - amd64
 
 .debian-jessie-i386: &debian_jessie_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .debian-stretch-amd64: &debian_stretch_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   tags:
     - linux
     - docker
+    - amd64
 
 .debian-stretch-i386:: &debian_stretch_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .debian-buster-amd64: &debian_buster_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   tags:
     - linux
     - docker
+    - amd64
 
 .debian-buster-i386:: &debian_buster_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
   tags:
     - linux
     - docker
+    - amd64
 
 .debian-sid-i386: &debian_sid_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .ubuntu-trusty-amd64: &ubuntu_trusty_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-amd64"
   tags:
     - linux
     - docker
+    - amd64
 
 .ubuntu-trusty-i386: &ubuntu_trusty_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   tags:
     - linux
     - docker
+    - amd64
 
 .ubuntu-xenial-i386: &ubuntu_xenial_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
   tags:
     - linux
     - docker
+    - i386
 
 .build: &build_job
   stage: build
