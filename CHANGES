@@ -1,3 +1,8 @@
+4941.	[bug]		Change 4687 consumed too much memory when running
+			system tests with --with-tuning=large.  Reduced the
+			hash table size to 512 entries for 'named -m record'
+			restoring the previous memory footprint. [GL #248]
+
 4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
 			separate functions to improve code readability.
 			[GL #135]
