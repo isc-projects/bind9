@@ -1,3 +1,8 @@
+4939.	[bug]		Change 4687 consumed too much memory when running
+			system tests with --with-tuning=large.  Reduced the
+			hash table size to 512 entries for 'named -m record'
+			restoring the previous memory footprint. [GL #248]
+
 4938.	[placeholder]
 
 4937.	[func]		Remove support for OpenSSL < 1.0.0 [GL #191]
