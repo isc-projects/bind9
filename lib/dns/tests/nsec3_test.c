@@ -74,10 +74,10 @@ nsec3param_salttotext_test(const nsec3param_salttotext_test_params_t *params) {
 	/*
 	 * Prepare a dns_rdata_nsec3param_t structure for testing.
 	 */
-	result = dns_test_rdata_fromstring(&rdata, dns_rdataclass_in,
-					   dns_rdatatype_nsec3param, buf,
-					   sizeof(buf),
-					   params->nsec3param_text);
+	result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in,
+					  dns_rdatatype_nsec3param, buf,
+					  sizeof(buf),
+					  params->nsec3param_text);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
