@@ -1,3 +1,7 @@
+4941.	[bug]		Reduce the probabilty of double signature when deleting
+			a DNSKEY by checking if the node is otherwise signed
+			by the algorithm of the key to be deleted. [GL #240]
+
 4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
 			separate functions to improve code readability.
 			[GL #135]
