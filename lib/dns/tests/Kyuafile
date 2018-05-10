@@ -16,6 +16,7 @@ atf_test_program{name='private_test'}
 atf_test_program{name='rdata_test'}
 atf_test_program{name='rdataset_test'}
 atf_test_program{name='resolver_test'}
+atf_test_program{name='sigs_test'}
 atf_test_program{name='time_test'}
 atf_test_program{name='tsig_test'}
 atf_test_program{name='update_test'}

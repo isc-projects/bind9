@@ -3,7 +3,9 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
+dns__zone_findkeys
 dns__zone_loadpending
+dns__zone_updatesigs
 dns_acache_attach
 dns_acache_attachentry
 dns_acache_cancelentry
