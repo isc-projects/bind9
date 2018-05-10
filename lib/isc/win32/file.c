@@ -785,7 +785,7 @@ isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		  char *path, size_t length)
 {
-	char buf[PATH_MAX], hash[PATH_MAX];
+	char buf[PATH_MAX], hash[ISC_SHA256_DIGESTSTRINGLENGTH];
 	size_t l = 0;
 
 	REQUIRE(base != NULL);
