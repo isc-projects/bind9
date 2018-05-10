@@ -7289,6 +7289,40 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 }
 
 /*%
+ * Given a tuple which is part of a diff, return a pointer to the next tuple in
+ * that diff which has the same name and type (or NULL if no such tuple is
+ * found).
+ */
+static dns_difftuple_t *
+find_next_matching_tuple(dns_difftuple_t *cur) {
+	dns_difftuple_t *next = cur;
+
+	while ((next = ISC_LIST_NEXT(next, link)) != NULL) {
+		if (cur->rdata.type == next->rdata.type &&
+		    dns_name_equal(&cur->name, &next->name))
+		{
+			return (next);
+		}
+	}
+
+	return (NULL);
+}
+
+/*%
+ * Remove all tuples with the same name and type as 'cur' from 'src' and append
+ * them to 'dst'.
+ */
+static void
+move_matching_tuples(dns_difftuple_t *cur, dns_diff_t *src, dns_diff_t *dst) {
+	do {
+		dns_difftuple_t *next = find_next_matching_tuple(cur);
+		ISC_LIST_UNLINK(src->tuples, cur, link);
+		dns_diff_appendminimal(dst, &cur);
+		cur = next;
+	} while (cur != NULL);
+}
+
+/*%
  * Add/remove DNSSEC signatures for the list of "raw" zone changes supplied in
  * 'diff'.  Gradually remove tuples from 'diff' and append them to 'zonediff'
  * along with tuples representing relevant signature changes.
@@ -7304,9 +7338,7 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 	dns_difftuple_t *tuple;
 	isc_result_t result;
 
-	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = ISC_LIST_HEAD(diff->tuples)) {
+	while ((tuple = ISC_LIST_HEAD(diff->tuples)) != NULL) {
 		isc_stdtime_t exp = expire;
 
 		if (keyexpire != 0 &&
@@ -7337,17 +7369,14 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 			return (result);
 		}
 
-		do {
-			dns_difftuple_t *next = ISC_LIST_NEXT(tuple, link);
-			while (next != NULL &&
-			       (tuple->rdata.type != next->rdata.type ||
-				!dns_name_equal(&tuple->name, &next->name)))
-				next = ISC_LIST_NEXT(next, link);
-			ISC_LIST_UNLINK(diff->tuples, tuple, link);
-			dns_diff_appendminimal(zonediff->diff, &tuple);
-			INSIST(tuple == NULL);
-			tuple = next;
-		} while (tuple != NULL);
+		/*
+		 * Signature changes for all RRs with name tuple->name and type
+		 * tuple->rdata.type were appended to zonediff->diff.  Now we
+		 * remove all the "raw" changes with the same name and type
+		 * from diff (so that they are not processed by this loop
+		 * again) and append them to zonediff so that they get applied.
+		 */
+		move_matching_tuples(tuple, diff, zonediff->diff);
 	}
 	return (ISC_R_SUCCESS);
 }
