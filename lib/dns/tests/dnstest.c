@@ -208,57 +208,68 @@ dns_test_makeview(const char *name, dns_view_t **viewp) {
 	return (result);
 }
 
-/*
- * Create a zone with origin 'name', return a pointer to the zone object in
- * 'zonep'.  If 'view' is set, add the zone to that view; otherwise, create
- * a new view for the purpose.
- *
- * If the created view is going to be needed by the caller subsequently,
- * then 'keepview' should be set to true; this will prevent the view
- * from being detached.  In this case, the caller is responsible for
- * detaching the view.
- */
 isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		  isc_boolean_t keepview)
+		  isc_boolean_t createview)
 {
-	isc_result_t result;
+	dns_fixedname_t fixed_origin;
 	dns_zone_t *zone = NULL;
-	isc_buffer_t buffer;
-	dns_fixedname_t fixorigin;
+	isc_result_t result;
 	dns_name_t *origin;
 
-	if (view == NULL)
-		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
-	else if (!keepview)
-		keepview = ISC_TRUE;
+	REQUIRE(view == NULL || !createview);
 
-	zone = *zonep;
-	if (zone == NULL)
-		CHECK(dns_zone_create(&zone, mctx));
+	/*
+	 * Create the zone structure.
+	 */
+	result = dns_zone_create(&zone, mctx);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
-	isc_buffer_constinit(&buffer, name, strlen(name));
-	isc_buffer_add(&buffer, strlen(name));
-	origin = dns_fixedname_initname(&fixorigin);
-	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
-	CHECK(dns_zone_setorigin(zone, origin));
-	dns_zone_setview(zone, view);
+	/*
+	 * Set zone type and origin.
+	 */
 	dns_zone_settype(zone, dns_zone_master);
-	dns_zone_setclass(zone, view->rdclass);
-	dns_view_addzone(view, zone);
+	origin = dns_fixedname_initname(&fixed_origin);
+	result = dns_name_fromstring(origin, name, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_zone;
+	}
+	result = dns_zone_setorigin(zone, origin);
+	if (result != ISC_R_SUCCESS) {
+		goto detach_zone;
+	}
 
-	if (!keepview)
-		dns_view_detach(&view);
+	/*
+	 * If requested, create a view.
+	 */
+	if (createview) {
+		result = dns_test_makeview("view", &view);
+		if (result != ISC_R_SUCCESS) {
+			goto detach_zone;
+		}
+	}
+
+	/*
+	 * If a view was passed as an argument or created above, attach the
+	 * created zone to it.  Otherwise, set the zone's class to IN.
+	 */
+	if (view != NULL) {
+		dns_zone_setview(zone, view);
+		dns_zone_setclass(zone, view->rdclass);
+		dns_view_addzone(view, zone);
+	} else {
+		dns_zone_setclass(zone, dns_rdataclass_in);
+	}
 
 	*zonep = zone;
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
-	if (zone != NULL)
-		dns_zone_detach(&zone);
-	if (view != NULL)
-		dns_view_detach(&view);
+ detach_zone:
+	dns_zone_detach(&zone);
+
 	return (result);
 }
 
@@ -438,9 +449,9 @@ dns_test_getdata(const char *file, unsigned char *buf,
 }
 
 isc_result_t
-dns_test_rdata_fromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-			  dns_rdatatype_t rdtype, unsigned char *dst,
-			  size_t dstlen, const char *src)
+dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
+			 dns_rdatatype_t rdtype, unsigned char *dst,
+			 size_t dstlen, const char *src)
 {
 	isc_buffer_t source, target;
 	isc_lex_t *lex = NULL;
@@ -511,4 +522,73 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&b);
+}
+
+isc_result_t
+dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned char rdata_buf[1024];
+	dns_difftuple_t *tuple = NULL;
+	isc_consttextregion_t region;
+	dns_rdatatype_t rdatatype;
+	dns_fixedname_t fixedname;
+	dns_rdata_t rdata;
+	dns_name_t *name;
+	size_t i;
+
+	REQUIRE(diff != NULL);
+	REQUIRE(changes != NULL);
+
+	dns_diff_init(mctx, diff);
+
+	for (i = 0; changes[i].owner != NULL; i++) {
+		/*
+		 * Parse owner name.
+		 */
+		name = dns_fixedname_initname(&fixedname);
+		result = dns_name_fromstring(name, changes[i].owner, 0, mctx);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Parse RDATA type.
+		 */
+		region.base = changes[i].type;
+		region.length = strlen(changes[i].type);
+		result = dns_rdatatype_fromtext(&rdatatype,
+						(isc_textregion_t *)&region);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Parse RDATA.
+		 */
+		dns_rdata_init(&rdata);
+		result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in,
+						  rdatatype, rdata_buf,
+						  sizeof(rdata_buf),
+						  changes[i].rdata);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+
+		/*
+		 * Create a diff tuple for the parsed change and append it to
+		 * the diff.
+		 */
+		result = dns_difftuple_create(mctx, changes[i].op, name,
+					      changes[i].ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+		dns_diff_append(diff, &tuple);
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		dns_diff_clear(diff);
+	}
+
+	return (result);
 }
