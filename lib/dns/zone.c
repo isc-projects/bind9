@@ -6374,8 +6374,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			continue;
 		}
 
-fprintf(stderr, "add_sigs: id=%u, ksk=%u, type=%u\n", dst_key_id(keys[i]), KSK(keys[i]), rdataset.type);
-
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		isc_buffer_clear(&buffer);
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
@@ -6727,8 +6725,6 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	isc_boolean_t seen_soa, seen_ns, seen_rr, seen_dname, seen_nsec,
 		      seen_nsec3, seen_ds;
 	isc_boolean_t bottom;
-
-fprintf(stderr, "sign_a_node: is_ksk=%u keyset_kskonly=%u id=%u\n", is_ksk, keyset_kskonly, dst_key_id(key));
 
 	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -8266,20 +8262,17 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 				}
 				continue;
 			}
-fprintf(stderr, "del_sig(%s): delete covers=%u id=%u\n", namebuf, rdataset.covers, keyid);
 			CHECK(update_one_rr(db, version, diff,
 					    DNS_DIFFOP_DELRESIGN, name,
 					    rdataset.ttl, &rdata));
 		}
+		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_NOMORE)
 			break;
 		if (has_alg)
 			one = ISC_TRUE;
 		else
 			all = ISC_FALSE;
-fprintf(stderr, "del_sig(%s): covers=%u has_alg=%u one=%u all=%u result=%s\n",
-	namebuf, rdataset.covers, has_alg, one, all, dns_result_totext(result));
-		dns_rdataset_disassociate(&rdataset);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -8288,8 +8281,6 @@ fprintf(stderr, "del_sig(%s): covers=%u has_alg=%u one=%u all=%u result=%s\n",
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	dns_rdatasetiter_destroy(&iterator);
-fprintf(stderr, "del_sig(%s): has_alg=%u one=%u all=%u result=%s\n",
-	namebuf, *has_algp, one, all, dns_result_totext(result));
 	return (result);
 }
 
