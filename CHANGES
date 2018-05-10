@@ -1,3 +1,8 @@
+4943.	[bug]		Change 4687 consumed too much memory when running
+			system tests with --with-tuning=large.  Reduced the
+			hash table size to 512 entries for 'named -m record'
+			restoring the previous memory footprint. [GL #248]
+
 4942.	[cleanup]	Consolidate multiple instances of splitting of
 			batchline in dig into a single function. [GL #196]
 
