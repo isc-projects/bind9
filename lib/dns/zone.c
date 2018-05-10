@@ -85,6 +85,8 @@
 
 #include <dst/dst.h>
 
+#include "zone_p.h"
+
 #define ZONE_MAGIC			ISC_MAGIC('Z', 'O', 'N', 'E')
 #define DNS_ZONE_VALID(zone)		ISC_MAGIC_VALID(zone, ZONE_MAGIC)
 
@@ -415,14 +417,9 @@ struct dns_zone {
 	dns_update_state_t      *rss_state;
 };
 
-typedef struct {
-	dns_diff_t	*diff;
-	isc_boolean_t	offline;
-} zonediff_t;
-
 #define zonediff_init(z, d) \
 	do { \
-		zonediff_t *_z = (z); \
+		dns__zonediff_t *_z = (z); \
 		(_z)->diff = (d); \
 		(_z)->offline = ISC_FALSE; \
 	} while (0)
@@ -5916,10 +5913,16 @@ was_dumping(dns_zone_t *zone) {
 	return (dumping);
 }
 
-static isc_result_t
-find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       isc_mem_t *mctx, unsigned int maxkeys,
-	       dst_key_t **keys, unsigned int *nkeys)
+/*%
+ * Find up to 'maxkeys' DNSSEC keys used for signing version 'ver' of database
+ * 'db' for zone 'zone' in its key directory, then load these keys into 'keys'.
+ * Only load the public part of a given key if it is not active at timestamp
+ * 'now'.  Store the number of keys found in 'nkeys'.
+ */
+isc_result_t
+dns__zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		   isc_mem_t *mctx, unsigned int maxkeys,
+		   dst_key_t **keys, unsigned int *nkeys)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -5939,7 +5942,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 }
 
 static isc_result_t
-offline(dns_db_t *db, dns_dbversion_t *ver, zonediff_t *zonediff,
+offline(dns_db_t *db, dns_dbversion_t *ver, dns__zonediff_t *zonediff,
 	dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 {
 	isc_result_t result;
@@ -6048,7 +6051,7 @@ delsig_ok(dns_rdata_rrsig_t *rrsig_ptr, dst_key_t **keys, unsigned int nkeys,
  */
 static isc_result_t
 del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	 dns_rdatatype_t type, zonediff_t *zonediff, dst_key_t **keys,
+	 dns_rdatatype_t type, dns__zonediff_t *zonediff, dst_key_t **keys,
 	 unsigned int nkeys, isc_stdtime_t now, isc_boolean_t incremental)
 {
 	isc_result_t result;
@@ -6333,7 +6336,7 @@ zone_resigninc(dns_zone_t *zone) {
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t _sig_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	dns_rdataset_t rdataset;
@@ -6377,11 +6380,11 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:find_zone_keys -> %s",
+			     "zone_resigninc:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7208,12 +7211,18 @@ need_nsec_chain(dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
-static isc_result_t
-update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
-	    dst_key_t *zone_keys[], unsigned int nkeys, dns_zone_t *zone,
-	    isc_stdtime_t inception, isc_stdtime_t expire, isc_stdtime_t now,
-	    isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
-	    zonediff_t *zonediff)
+/*%
+ * Add/remove DNSSEC signatures for the list of "raw" zone changes supplied in
+ * 'diff'.  Gradually remove tuples from 'diff' and append them to 'zonediff'
+ * along with tuples representing relevant signature changes.
+ */
+isc_result_t
+dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
+		     dst_key_t *zone_keys[], unsigned int nkeys,
+		     dns_zone_t *zone, isc_stdtime_t inception,
+		     isc_stdtime_t expire, isc_stdtime_t now,
+		     isc_boolean_t check_ksk, isc_boolean_t keyset_kskonly,
+		     dns__zonediff_t *zonediff)
 {
 	dns_difftuple_t *tuple;
 	isc_result_t result;
@@ -7226,7 +7235,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 				  zone_keys, nkeys, now, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "update_sigs:del_sigs -> %s",
+				     "dns__zone_updatesigs:del_sigs -> %s",
 				     dns_result_totext(result));
 			return (result);
 		}
@@ -7236,7 +7245,7 @@ update_sigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 				  expire, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "update_sigs:add_sigs -> %s",
+				     "dns__zone_updatesigs:add_sigs -> %s",
 				     dns_result_totext(result));
 			return (result);
 		}
@@ -7270,7 +7279,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	dns_diff_t nsec_diff;
 	dns_diff_t nsec3_diff;
 	dns_diff_t param_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name, *nextname;
@@ -7344,11 +7353,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
-				DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:find_zone_keys -> %s",
+			     "zone_nsec3chain:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -7402,7 +7411,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 *
 	 * Note that the "signatures" variable is only used here to limit the
 	 * amount of work performed.  Actual DNSSEC signatures are only
-	 * generated by update_sigs() calls later in this function.
+	 * generated by dns__zone_updatesigs() calls later in this function.
 	 */
 	while (nsec3chain != NULL && nodes-- > 0 && signatures > 0) {
 		LOCK_ZONE(zone);
@@ -7888,12 +7897,13 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 */
 	if (nsec3chain != NULL)
 		dns_dbiterator_pause(nsec3chain->dbiterator);
-	result = update_sigs(&nsec3_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
-			     check_ksk, keyset_kskonly, &zonediff);
+	result = dns__zone_updatesigs(&nsec3_diff, db, version, zone_keys,
+				      nkeys, zone, inception, expire, now,
+				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s", dns_result_totext(result));
+			     "dns__zone_updatesigs -> %s",
+			     dns_result_totext(result));
 		goto failure;
 	}
 
@@ -7901,12 +7911,13 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 * We have changed the NSEC3PARAM or private RRsets
 	 * above so we need to update the signatures.
 	 */
-	result = update_sigs(&param_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
-			     check_ksk, keyset_kskonly, &zonediff);
+	result = dns__zone_updatesigs(&param_diff, db, version, zone_keys,
+				      nkeys, zone, inception, expire, now,
+				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s", dns_result_totext(result));
+			     "dns__zone_updatesigs -> %s",
+			     dns_result_totext(result));
 		goto failure;
 	}
 
@@ -7921,12 +7932,13 @@ zone_nsec3chain(dns_zone_t *zone) {
 		}
 	}
 
-	result = update_sigs(&nsec_diff, db, version, zone_keys,
-			     nkeys, zone, inception, expire, now,
-			     check_ksk, keyset_kskonly, &zonediff);
+	result = dns__zone_updatesigs(&nsec_diff, db, version, zone_keys,
+				      nkeys, zone, inception, expire, now,
+				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_sigs -> %s", dns_result_totext(result));
+			     "dns__zone_updatesigs -> %s",
+			     dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8169,7 +8181,7 @@ zone_sign(dns_zone_t *zone) {
 	dns_dbversion_t *version = NULL;
 	dns_diff_t _sig_diff;
 	dns_diff_t post_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	dns_fixedname_t fixed;
 	dns_fixedname_t nextfixed;
 	dns_name_t *name, *nextname;
@@ -8228,11 +8240,11 @@ zone_sign(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = find_zone_keys(zone, db, version, zone->mctx,
-				DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, version, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:find_zone_keys -> %s",
+			     "zone_sign:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -8506,12 +8518,14 @@ zone_sign(dns_zone_t *zone) {
 	}
 
 	if (ISC_LIST_HEAD(post_diff.tuples) != NULL) {
-		result = update_sigs(&post_diff, db, version, zone_keys,
-				     nkeys, zone, inception, expire, now,
-				     check_ksk, keyset_kskonly, &zonediff);
+		result = dns__zone_updatesigs(&post_diff, db, version,
+					      zone_keys, nkeys, zone,
+					      inception, expire, now,
+					      check_ksk, keyset_kskonly,
+					      &zonediff);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
-				     "update_sigs -> %s",
+				     "dns__zone_updatesigs -> %s",
 				     dns_result_totext(result));
 			goto failure;
 		}
@@ -17291,7 +17305,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 static isc_result_t
 sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	  dns_diff_t *diff, zonediff_t *zonediff)
+	  dns_diff_t *diff, dns__zonediff_t *zonediff)
 {
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire;
@@ -17300,11 +17314,11 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	unsigned int nkeys = 0, i;
 	dns_difftuple_t *tuple;
 
-	result = find_zone_keys(zone, db, ver, zone->mctx, DNS_MAXZONEKEYS,
-				zone_keys, &nkeys);
+	result = dns__zone_findkeys(zone, db, ver, zone->mctx,
+				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:find_zone_keys -> %s",
+			     "sign_apex:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
 		return (result);
 	}
@@ -17317,9 +17331,8 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
 	/*
-	 * See if update_sigs will update DNSKEY signature and if not
-	 * cause them to sign so that so that newly activated keys
-	 * are used.
+	 * See if dns__zone_updatesigs() will update DNSKEY signature and if
+	 * not cause them to sign so that newly activated keys are used.
 	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL;
@@ -17351,13 +17364,12 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		}
 	}
 
-	result = update_sigs(diff, db, ver, zone_keys, nkeys, zone,
-			     inception, soaexpire, now, check_ksk,
-			     keyset_kskonly, zonediff);
-
+	result = dns__zone_updatesigs(diff, db, ver, zone_keys, nkeys, zone,
+				      inception, soaexpire, now, check_ksk,
+				      keyset_kskonly, zonediff);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:update_sigs -> %s",
+			     "sign_apex:dns__zone_updatesigs -> %s",
 			     dns_result_totext(result));
 		goto failure;
 	}
@@ -17511,7 +17523,7 @@ zone_rekey(dns_zone_t *zone) {
 	dns_dnsseckeylist_t dnskeys, keys, rmkeys;
 	dns_dnsseckey_t *key;
 	dns_diff_t diff, _sig_diff;
-	zonediff_t zonediff;
+	dns__zonediff_t zonediff;
 	isc_boolean_t commit = ISC_FALSE, newactive = ISC_FALSE;
 	isc_boolean_t newalg = ISC_FALSE;
 	isc_boolean_t fullsign;
