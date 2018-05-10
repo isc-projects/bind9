@@ -1,3 +1,7 @@
+4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
+			separate functions to improve code readability.
+			[GL #135]
+
 4939.	[test]		Add basic unit tests for update_sigs(). [GL #135]
 
 4938.	[placeholder]
