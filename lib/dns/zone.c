@@ -8267,7 +8267,8 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
 			if (nkeys != 0 &&
 			    (rrsig.algorithm != algorithm ||
-			     rrsig.keyid != keyid)) {
+			     rrsig.keyid != keyid))
+			{
 				if (rrsig.algorithm == algorithm) {
 					has_alg = ISC_TRUE;
 				}
@@ -8280,10 +8281,11 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_NOMORE)
 			break;
-		if (has_alg)
+		if (has_alg) {
 			one = ISC_TRUE;
-		else
+		} else {
 			all = ISC_FALSE;
+		}
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -8459,8 +8461,9 @@ zone_sign(dns_zone_t *zone) {
 				zone_keys[j] = zone_keys[i];
 				j++;
 			}
-			for (i = j; i < nkeys; i++)
+			for (i = j; i < nkeys; i++) {
 				zone_keys[i] = NULL;
+			}
 			nkeys = j;
 		}
 
@@ -8577,11 +8580,13 @@ zone_sign(dns_zone_t *zone) {
 			/*
 			 * Only sign once with a zsk and ksk if deleting.
 			 */
-			if (signing->deleteit && !is_ksk && with_zsk)
+			if (signing->deleteit && !is_ksk && with_zsk) {
 				continue;
+			}
 
-			if (signing->deleteit && is_ksk && with_ksk)
+			if (signing->deleteit && is_ksk && with_ksk) {
 				continue;
+			}
 
 			CHECK(sign_a_node(db, name, node, version, build_nsec3,
 					  build_nsec, zone_keys[i], inception,
@@ -8593,12 +8598,15 @@ zone_sign(dns_zone_t *zone) {
 			 * If we are adding we are done.  Look for other keys
 			 * of the same algorithm if deleting.
 			 */
-			if (!signing->deleteit)
+			if (!signing->deleteit) {
 				break;
-			if (!is_ksk)
+			}
+			if (!is_ksk) {
 				with_zsk = ISC_TRUE;
-			if (KSK(zone_keys[i]))
+			}
+			if (KSK(zone_keys[i])) {
 				with_ksk = ISC_TRUE;
+			}
 		}
 
 		/*

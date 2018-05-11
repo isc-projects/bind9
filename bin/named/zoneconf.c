@@ -1465,10 +1465,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (cfg_obj_isvoid(resign)) {
 			seconds /= 4;
 		} else if (!sigvalinsecs) {
-			if (seconds > 7 * 86400)
+			if (seconds > 7 * 86400) {
 				seconds = cfg_obj_asuint32(resign) * 86400;
-			else
+			} else {
 				seconds = cfg_obj_asuint32(resign) * 3600;
+			}
 		} else {
 			seconds = cfg_obj_asuint32(resign);
 		}
