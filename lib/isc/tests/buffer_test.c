@@ -265,10 +265,15 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 
 	/*
 	 * Check an empty format string is properly handled.
+	 *
+	 * Note: we don't use a string literal for the format string to
+	 * avoid triggering [-Werror=format-zero-length].
+	 * Note: we have a dummy third argument as some compilers complain
+	 * without it.
 	 */
 	prev_used = used;
 	empty_fmt = "";
-	result = isc_buffer_printf(b, empty_fmt, NULL);
+	result = isc_buffer_printf(b, empty_fmt, "");
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	used = isc_buffer_usedlength(b);
 	ATF_CHECK_EQ(prev_used, used);
