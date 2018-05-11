@@ -23,11 +23,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.65 2011/10/20 21:20:02 marka Exp $
- */
-
 /*! \file */
 
 #include <config.h>

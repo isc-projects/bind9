@@ -7,9 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
-
 $TTL	120
 .		SOA	ns. hostmaster.ns. ( 1 3600 1200 604800 60 )
 		NS	ns.

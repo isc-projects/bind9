@@ -11,10 +11,6 @@
 
 /*! \file */
 
-/*
- * Principal Author: Bob Halley
- */
-
 #include <config.h>
 
 /* #define inline */

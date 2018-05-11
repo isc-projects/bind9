@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: diff.h,v 1.19 2010/06/04 23:51:14 tbox Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1

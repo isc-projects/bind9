@@ -9,12 +9,8 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: msgcat.c,v 1.18 2007/06/19 23:47:18 tbox Exp $ */
 
-/*! \file msgcat.c
- *
- * \author Principal Author: Bob Halley
- */
+/*! \file msgcat.c */
 
 #include <config.h>
 

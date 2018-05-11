@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: doxygen-input-filter.in,v 1.4 2007/06/19 23:47:13 tbox Exp $
-
 # Input filter for feeding our source code into Doxygen.
 
 # Slurp whole file at once

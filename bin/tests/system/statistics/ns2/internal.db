@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: internal.db,v 1.1.2.1 2012/01/06 22:40:47 smann Exp $
-
 $ORIGIN .
 $TTL 300	; 5 minutes
 example			IN SOA	mname1. . (

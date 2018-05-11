@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lookup.h,v 1.14 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef DNS_LOOKUP_H
 #define DNS_LOOKUP_H 1

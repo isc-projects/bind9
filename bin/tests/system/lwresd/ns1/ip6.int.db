@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: ip6.int.db,v 1.11 2007/06/19 23:47:04 tbox Exp $
-
 $TTL 300	; 5 minutes
 @	IN SOA  mname1. . (
 		2002082300	; serial

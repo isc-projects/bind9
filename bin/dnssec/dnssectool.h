@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dnssectool.h,v 1.33 2011/10/20 23:46:51 tbox Exp $ */
 
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1

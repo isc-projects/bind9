@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: named-checkconf.c,v 1.56 2011/03/12 04:59:46 tbox Exp $ */
 
 /*! \file */
 

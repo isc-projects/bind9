@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: BINDInstallDlg.h,v 1.11 2009/09/01 06:51:47 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation

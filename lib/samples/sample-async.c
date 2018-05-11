@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sample-async.c,v 1.5 2009/09/29 15:06:07 fdupont Exp $ */
 
 #include <config.h>
 

@@ -15,7 +15,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2bdb.c,v 1.3 2009/09/01 00:22:26 jinmei Exp $ */
 
 #include <stdio.h>
 

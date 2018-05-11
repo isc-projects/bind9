@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: clientinfo.h,v 1.3 2011/10/11 23:46:45 tbox Exp $ */
 
 #ifndef DNS_CLIENTINFO_H
 #define DNS_CLIENTINFO_H 1

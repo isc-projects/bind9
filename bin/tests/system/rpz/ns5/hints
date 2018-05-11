@@ -7,8 +7,5 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
-
 .	120	NS	ns.
 ns.	120	A	10.53.0.1

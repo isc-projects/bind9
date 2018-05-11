@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dlz_dlopen_driver.h,v 1.4 2011/03/17 09:25:53 fdupont Exp $ */
 
 #ifndef DLZ_DLOPEN_DRIVER_H
 #define DLZ_DLOPEN_DRIVER_H

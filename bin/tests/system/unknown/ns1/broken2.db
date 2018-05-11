@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: broken2.db,v 1.5 2007/06/19 23:47:06 tbox Exp $
-
 $TTL 300	; 5 minutes
 @			SOA	mname1. . (
 				2000062101 ; serial

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: name.h,v 1.137 2011/01/13 04:59:26 tbox Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1

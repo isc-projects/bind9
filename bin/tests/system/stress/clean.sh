@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: clean.sh,v 1.6 2007/09/26 03:22:44 marka Exp $
-
 rm -f reload.pid
 
 rm -f ns?/zones.conf

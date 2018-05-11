@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: error.h,v 1.22 2009/09/29 23:48:04 tbox Exp $ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1

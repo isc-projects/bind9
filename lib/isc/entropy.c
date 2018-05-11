@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: entropy.c,v 1.22 2010/08/10 23:48:19 tbox Exp $ */
 
 /*! \file
  * \brief

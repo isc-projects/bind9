@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: isc-config.sh.in,v 1.17 2007/06/19 23:46:59 tbox Exp $
-
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 exec_prefix_set=

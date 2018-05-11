@@ -38,7 +38,6 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.22 2008/09/25 04:02:39 tbox Exp $ */
 
 /*! \file
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -46,11 +45,6 @@
  *
  * The primary change has been to rename items to the ISC namespace
  * and format in the ISC coding style.
- */
-
-/*
- * \author Principal Authors: Computer Systems Research Group at UC Berkeley
- * \author Principal ISC caretaker: DCL
  */
 
 #include <config.h>

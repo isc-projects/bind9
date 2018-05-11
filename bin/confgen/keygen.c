@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keygen.c,v 1.4 2009/11/12 14:02:38 marka Exp $ */
 
 /*! \file */
 

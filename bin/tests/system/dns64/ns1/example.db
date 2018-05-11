@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: example.db,v 1.5 2011/02/03 12:18:11 tbox Exp $
-
 $TTL	3600
 @	SOA ns1 marka.isc.org. 0 0 0 0 1200
 @	NS ns1

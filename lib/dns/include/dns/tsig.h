@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: tsig.h,v 1.59 2011/01/11 23:47:13 tbox Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1

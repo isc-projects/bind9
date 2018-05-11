@@ -34,8 +34,6 @@
 
 /***
  ***	DNS Performance Testing Tool
- ***
- ***	Version $Id: dnsperf.c 263303 2015-12-15 01:09:36Z bwelling $
  ***/
 
 #include <errno.h>

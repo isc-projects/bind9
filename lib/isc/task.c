@@ -9,9 +9,7 @@
  * information regarding copyright ownership.
  */
 
-/*! \file
- * \author Principal Author: Bob Halley
- */
+/*! \file */
 
 /*
  * XXXRTH  Need to document the states a task can be in, and the rules

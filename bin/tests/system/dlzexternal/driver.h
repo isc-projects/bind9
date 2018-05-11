@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: driver.h,v 1.4 2011/03/17 09:25:54 fdupont Exp $ */
 
 /*
  * This header includes the declarations of entry points.

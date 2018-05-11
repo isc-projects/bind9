@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: ptr_12.c,v 1.45 2009/12/04 22:06:37 tbox Exp $ */
-
-/* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
-
 #ifndef RDATA_GENERIC_PTR_12_C
 #define RDATA_GENERIC_PTR_12_C
 

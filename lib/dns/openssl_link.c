@@ -23,9 +23,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
- * Principal Author: Brian Wellington
- */
 #ifdef OPENSSL
 
 #include <config.h>

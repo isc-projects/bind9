@@ -23,10 +23,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*%
- * Principal Author: Brian Wellington
- */
-
 #include <config.h>
 
 #include <isc/base64.h>

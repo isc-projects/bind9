@@ -9,7 +9,5 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: clean.sh,v 1.3 2011/09/02 23:46:31 tbox Exp $
-
 rm -rf zones
 rm -f named.conf

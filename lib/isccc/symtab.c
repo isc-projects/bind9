@@ -23,7 +23,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.11 2007/09/13 04:45:18 each Exp $ */
 
 /*! \file */
 

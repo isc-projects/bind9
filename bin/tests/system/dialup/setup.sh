@@ -7,7 +7,5 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: setup.sh,v 1.6 2007/06/19 23:47:01 tbox Exp $
-
 rm -f ns2/example.bk
 rm -f ns3/example.bk

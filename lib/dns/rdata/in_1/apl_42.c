@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: apl_42.c,v 1.16 2009/12/04 22:06:37 tbox Exp $ */
 
 /* RFC3123 */
 

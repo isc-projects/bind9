@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: stop.sh,v 1.25 2007/06/18 23:47:27 tbox Exp $
-
 . ./conf.sh
 $PERL ./stop.pl "$@"
 

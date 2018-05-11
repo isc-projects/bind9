@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: child.example.db,v 1.9 2007/06/19 23:47:05 tbox Exp $
-
 $TTL 300	; 5 minutes
 child.example.		IN SOA	ns2.child.example. hostmaster.child.example. (
 				2000042795 ; serial

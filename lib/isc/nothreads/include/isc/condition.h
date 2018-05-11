@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: condition.h,v 1.6 2007/06/19 23:47:18 tbox Exp $ */
 
 /*
  * This provides a limited subset of the isc_condition_t

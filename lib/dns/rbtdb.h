@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef DNS_RBTDB_H
 #define DNS_RBTDB_H 1

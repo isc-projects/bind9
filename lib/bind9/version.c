@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: version.c,v 1.8 2007/06/19 23:47:16 tbox Exp $ */
 
 /*! \file */
 
