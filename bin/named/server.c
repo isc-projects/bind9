@@ -4636,12 +4636,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "qname-minimization", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->qminimization = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	result = named_config_get(maps, "qname-minimization-strict", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->qmin_strict = cfg_obj_asboolean(obj);
+	const char * qminmode = cfg_obj_asstring(obj);
+	INSIST(qminmode != NULL);
+	if (!strcmp(qminmode, "strict")) {
+		view->qminimization = ISC_TRUE;
+		view->qmin_strict = ISC_TRUE;
+	} else if (!strcmp(qminmode, "relaxed")) {
+		view->qminimization = ISC_TRUE;
+		view->qmin_strict = ISC_FALSE;
+	} else {
+		view->qminimization = ISC_FALSE;
+		view->qmin_strict = ISC_FALSE;
+	}
 
 	obj = NULL;
 	result = named_config_get(maps, "auth-nxdomain", &obj);

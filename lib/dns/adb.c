@@ -4031,6 +4031,14 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 		nameservers = &rdataset;
 		options |= DNS_FETCHOPT_UNSHARED;
 	}
+	
+	if (adb->view->qminimization) {
+		options |= DNS_FETCHOPT_QMINIMIZE;
+		options |= DNS_FETCHOPT_QMIN_SKIP_ON_IP6A;
+		if (adb->view->qmin_strict) {
+			options |= DNS_FETCHOPT_QMIN_STRICT;
+		}
+	}
 
 	fetch = new_adbfetch(adb);
 	if (fetch == NULL) {
