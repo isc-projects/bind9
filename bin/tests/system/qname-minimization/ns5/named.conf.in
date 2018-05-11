@@ -20,8 +20,7 @@ options {
 	listen-on { 10.53.0.5; };
 	listen-on-v6 { none; };
 	recursion yes;
-	qname-minimization yes;
-	qname-minimization-strict no;
+	qname-minimization disabled;
 	querylog yes;
 	resolver-query-timeout 30;
 };
