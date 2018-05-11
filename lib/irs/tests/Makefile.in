@@ -20,7 +20,7 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude -I../include ${ISC_INCLUDES} ${IRS_INCLUDES}
-CDEFINES =	-DTESTS="\"${top_builddir}/lib/irs/tests/\""
+CDEFINES =	-DTESTS="\"${top_builddir}/lib/irs/tests/\"" @CRYPTO@
 
 CFGLIBS =	../../isccfg/libisccfg.@A@
 CFGDEPLIBS =	../../isccfg/libisccfg.@A@

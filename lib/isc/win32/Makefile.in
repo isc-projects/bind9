@@ -15,7 +15,7 @@ CINCLUDES =	-I${srcdir}/.. \
 		-I./include \
 		-I${srcdir}/include \
 		-I${srcdir}/../include
-CDEFINES =
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 # Alphabetically

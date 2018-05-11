@@ -17,7 +17,7 @@ CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../include \
 		-I${srcdir}/..
 
-CDEFINES =
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 OBJS =		condition.@O@ mutex.@O@ thread.@O@
