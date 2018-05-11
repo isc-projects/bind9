@@ -250,6 +250,7 @@ main(int argc, char *argv[]) {
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
+	POST(argv);
 
 	if (argc > 0) {
 		have_src = ISC_TRUE;

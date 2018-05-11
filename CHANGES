@@ -1,3 +1,8 @@
+4942.	[cleanup]	Consolidate multiple instances of splitting of
+			batchline in dig into a single function. [GL #196]
+
+4941.	[cleanup]	Silence clang static analyzer warnings. [GL #196]
+
 4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
 			separate functions to improve code readability.
 			[GL #135]
