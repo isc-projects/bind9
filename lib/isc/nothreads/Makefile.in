@@ -19,7 +19,7 @@ CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../include \
 		-I${srcdir}/..
 
-CDEFINES =
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 THREADOPTOBJS = condition.@O@ mutex.@O@

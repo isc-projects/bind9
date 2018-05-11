@@ -18,7 +18,7 @@ top_srcdir =	@top_srcdir@
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/../include \
 		${DNS_INCLUDES} ${ISC_INCLUDES}
 
-CDEFINES =
+CDEFINES =	@CRYPTO@
 CWARNINGS =
 
 OBJS =		os.@O@

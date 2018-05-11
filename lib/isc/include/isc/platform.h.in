@@ -19,6 +19,14 @@
  *****/
 
 /***
+ *** Enforce OpenSSL or PKCS#11 cryptography
+ ***/
+
+#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
+#error No cryptography library has been found or provided.
+#endif
+
+/***
  *** Network.
  ***/
 
