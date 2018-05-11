@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: zonekey.h,v 1.10 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef DNS_ZONEKEY_H
 #define DNS_ZONEKEY_H 1

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: cfg_test.c,v 1.25 2011/09/05 23:46:54 tbox Exp $ */
 
 /*! \file */
 

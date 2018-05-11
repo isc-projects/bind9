@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: Makefile.PL,v 1.9 2007/06/19 23:47:07 tbox Exp $
-
 use ExtUtils::MakeMaker;
 
 $ENV{CC} = "gcc";

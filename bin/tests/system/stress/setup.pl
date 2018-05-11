@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: setup.pl,v 1.6 2007/06/19 23:47:05 tbox Exp $
-
 #
 # Set up test data for zone transfer quota tests.
 #

@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: ifconfig.sh,v 1.59 2010/06/11 23:46:49 tbox Exp $
-
 #
 # Set up interface aliases for bind9 system tests.
 #

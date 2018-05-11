@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
 
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1

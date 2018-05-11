@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: iptable.h,v 1.4 2007/09/14 01:46:05 marka Exp $ */
 
 #ifndef DNS_IPTABLE_H
 #define DNS_IPTABLE_H 1

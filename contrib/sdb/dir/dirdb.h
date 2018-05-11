@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dirdb.h,v 1.5 2007/06/19 23:47:07 tbox Exp $ */
 
 #include <isc/types.h>
 

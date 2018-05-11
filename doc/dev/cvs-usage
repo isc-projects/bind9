@@ -95,7 +95,3 @@ As an example, here's how queryperf was imported:
   cd queryperf
   cvs -d rc.isc.org:/proj/cvs/isc import bind9/contrib/queryperf \
 	NOMINUM NOMINUM_20010710
-
-
-
-$Id: cvs-usage,v 1.8 2004/03/05 05:04:50 marka Exp $

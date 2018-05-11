@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: stop.pl,v 1.2 2010/06/17 05:38:05 marka Exp $
-
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
 # briefly for it to die, and then kill it if it is still alive.

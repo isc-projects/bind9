@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: opcode.h,v 1.8 2007/06/19 23:47:17 tbox Exp $ */
 
 #ifndef DNS_OPCODE_H
 #define DNS_OPCODE_H 1

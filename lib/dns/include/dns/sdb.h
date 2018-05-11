@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sdb.h,v 1.25 2011/10/11 23:46:45 tbox Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1

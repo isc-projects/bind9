@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 #
 # Check the installed bind9 header files to make sure that no header
 # depends on another header having been included first, and that

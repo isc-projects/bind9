@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: interfaceiter.c,v 1.15 2009/01/18 23:48:14 tbox Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: region.c,v 1.7 2007/06/19 23:47:17 tbox Exp $ */
 
 /*! \file */
 

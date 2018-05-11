@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: unistd.h,v 1.10 2009/07/17 23:47:41 tbox Exp $ */
 
 /* None of these are defined in NT, so define them for our use */
 #define O_NONBLOCK 1

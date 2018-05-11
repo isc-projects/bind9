@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: keydata.c,v 1.3 2009/07/01 23:47:36 tbox Exp $ */
 
 /*! \file */
 
