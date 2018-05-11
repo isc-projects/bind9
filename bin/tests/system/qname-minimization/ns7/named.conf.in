@@ -9,19 +9,18 @@
  * information regarding copyright ownership.
  */
 
-// NS3
+// NS7
 
 options {
-	query-source address 10.53.0.3;
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
+	query-source address 10.53.0.7;
+	notify-source 10.53.0.7;
+	transfer-source 10.53.0.7;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.3; };
+	listen-on { 10.53.0.7; };
 	listen-on-v6 { none; };
 	recursion yes;
-	qname-minimization no;
-	qname-minimization-strict no;
+	qname-minimization relaxed;
 	querylog yes;
 	resolver-query-timeout 30;
 };
@@ -32,7 +31,7 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.7 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
 zone "." {

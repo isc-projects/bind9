@@ -141,6 +141,10 @@ typedef enum {
 #define DNS_RESOLVER_CHECKNAMES		0x01
 #define DNS_RESOLVER_CHECKNAMESFAIL	0x02
 
+#define DNS_QMIN_MAXLABELS		7
+#define DNS_QMIN_MAX_NO_DELEGATION	3
+#define DNS_MAX_LABELS			127
+
 isc_result_t
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr,

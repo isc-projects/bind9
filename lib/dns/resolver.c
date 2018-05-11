@@ -265,6 +265,7 @@ struct fetchctx {
 	unsigned int			dbucketnum;
 	char *				info;
 	isc_mem_t *			mctx;
+	isc_stdtime_t			now;
 
 	/*% Locked by appropriate bucket lock. */
 	fetchstate			state;
@@ -689,7 +690,6 @@ typedef struct respctx {
 	isc_boolean_t ns_in_answer; 	/* NS may be in the answer section */
 	isc_boolean_t negative;		/* is this a negative response? */
 
-	isc_stdtime_t now; 		/* time info */
 	isc_time_t tnow;
 	isc_time_t *finish;
 
@@ -2542,8 +2542,8 @@ resquery_send(resquery_t *query) {
 	fctx->timeout = ISC_FALSE;
 
 	/*
-	 * Use EDNS0, unless the caller doesn't want it, or we know that
-	 * the remote server doesn't like it.
+	 * Use EDNS0, unless the caller doesn't want it, or we know that the
+	 * remote server doesn't like it.
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -4557,6 +4557,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->minimized = isc_boolean_false;
 	fctx->ip6arpaskip = isc_boolean_false;
 	fctx->qmin_labels = 1;
+	isc_stdtime_get(&fctx->now);
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -7381,7 +7382,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * work to be queued to the DNSSEC validator.
 	 */
 	if (WANTCACHE(fctx)) {
-		result = cache_message(fctx, query->addrinfo, rctx.now);
+		result = cache_message(fctx, query->addrinfo, fctx->now);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("cache_message complete", result);
 			rctx_done(&rctx, result);
@@ -7422,8 +7423,6 @@ rctx_respinit(isc_task_t *task, dns_dispatchevent_t *devent,
 	 */
 	TIME_NOW(&rctx->tnow);
 	rctx->finish = &rctx->tnow;
-	isc_stdtime_get(&rctx->now);
-
 }
 
 /*
@@ -8523,12 +8522,17 @@ rctx_answer_none(respctx_t *rctx) {
 	 * If we're doing qname minimization this is an empty non-terminal, add
 	 * the next label to query and restart it.
 	 */
-	if (fctx->minimized &&
-	    (fctx->rmessage->rcode == dns_rcode_noerror ||
-	     !(fctx->options & DNS_FETCHOPT_QMIN_STRICT))) {
+	if (fctx->minimized && fctx->rmessage->rcode == dns_rcode_noerror) {
 		return rctx_answer_minimized(rctx);
 	}
-
+	/*
+	 * Workaround for broken servers in relaxed mode - if we hit an
+	 * NXDOMAIN we go straight to the full query.
+	 */
+	if (fctx->minimized && !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
+	        fctx->qmin_labels = DNS_MAX_LABELS+1;
+		return rctx_answer_minimized(rctx);
+	}
 	/*
 	 * Since we're not doing a referral, we don't want to cache any
 	 * NS RRs we may have found.
@@ -8703,7 +8707,7 @@ rctx_ncache(respctx_t *rctx) {
 	/*
 	 * Cache any negative cache entries in the message.
 	 */
-	result = ncache_message(fctx, rctx->query->addrinfo, covers, rctx->now);
+	result = ncache_message(fctx, rctx->query->addrinfo, covers, fctx->now);
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("ncache_message complete", result);
 	}
@@ -9079,7 +9083,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		}
 		result = dns_view_findzonecut(fctx->res->view,
 					      name, fname,
-					      rctx->now, findoptions,
+					      fctx->now, findoptions,
 					      ISC_TRUE, ISC_TRUE,
 					      &fctx->nameservers,
 					      NULL);
@@ -9543,7 +9547,7 @@ rctx_lameserver(respctx_t *rctx) {
 	log_lame(fctx, query->addrinfo);
 	result = dns_adb_marklame(fctx->adb, query->addrinfo,
 				  &fctx->name, fctx->type,
-				  rctx->now + fctx->res->lame_ttl);
+				  fctx->now + fctx->res->lame_ttl);
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
@@ -10283,6 +10287,10 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		} else if (dlabels + fctx->qmin_labels > 19) {
 			fctx->qmin_labels = 35 - dlabels;
 		}
+	} else if (dlabels + fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
+	} else if (fctx->qmin_labels > DNS_QMIN_MAX_NO_DELEGATION) {
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
 	}
 	if (dlabels + fctx->qmin_labels < nlabels) {
 		/*
