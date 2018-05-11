@@ -16,6 +16,11 @@ zone=signing.test
 rm -rf keys/signing.test
 mkdir -p keys/signing.test
 
+timetodnssec() {
+    $PERL -e 'my ($S,$M,$H,$d,$m,$y,$x) = gmtime(@ARGV[0]);
+	      printf("%04u%02u%02u%02u%02u%02u\n", $y+1900,$m+1,$d,$H,$M,$S);' ${1}
+}
+
 KEYDIR=keys/signing.test
 KSK=`$KEYGEN -a RSASHA256 -K $KEYDIR -q -r $RANDFILE -f KSK $zone`
 
@@ -37,7 +42,7 @@ do
 done
 
 BASE=`date +%s`
-BASET=`date -u -r $BASE +%Y%m%d%H%M%S`
+BASET=`timetodnssec $BASE`
 
 # reset the publish and activation time on the KSK
 $SETTIME -P $BASET -A $BASET $KEYDIR/$KSK
@@ -47,16 +52,16 @@ $SETTIME -P $BASET -A $BASET $KEYDIR/$ZSK0
 
 # schedule the first roll
 R1=`expr $BASE + 300`
-R1T=`date -u -r $R1 +%Y%m%d%H%M%S`
+R1T=`timetodnssec $R1`
 
 $SETTIME -I $R1T $KEYDIR/$ZSK0
 $SETTIME -P $BASET -A $R1T $KEYDIR/$ZSK1
 
 # schedule the second roll (which includes the delete of the first key)
 R2=`expr $R1 + 300`
-R2T=`date -u -r $R2 +%Y%m%d%H%M%S`
+R2T=`timetodnssec $R2`
 DT=$R2
-DTT=`date -u -r $DT +%Y%m%d%H%M%S`
+DTT=`timetodnssec $DT`
 
 $SETTIME -D $DTT $KEYDIR/$ZSK0
 $SETTIME -I $R2T $KEYDIR/$ZSK1
@@ -65,7 +70,7 @@ $SETTIME -P $R1T -A $R2T $KEYDIR/$ZSK2
 # schedule the third roll
 # this isn't long enough for the signing to complete
 R3=`expr $R2 + 60`
-R3T=`date -u -r $R3 +%Y%m%d%H%M%S`
+R3T=`timetodnssec $R3`
 
 $SETTIME -D $R3T $KEYDIR/$ZSK1
 $SETTIME -I $R3T $KEYDIR/$ZSK2
@@ -85,7 +90,7 @@ exit
 # schedule the fourth roll
 # this isn't long enough for the signing to complete
 R4=`expr $R3 + 30`
-R4T=`date -u -d $R4 +%Y%m%d%H%M%S`
+R4T=`timetodnssec $R4`
 
 $SETTIME -D $R4T $KEYDIR/$ZSK2
 $SETTIME -I $R4T $KEYDIR/$ZSK3
