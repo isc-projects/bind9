@@ -445,7 +445,7 @@ echo_i "reset the root server"
 $SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
-$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
+$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
 copy_setports ns1/named2.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
 mkeys_reconfig_on 1
@@ -479,7 +479,7 @@ rm -f ns1/root.db.signed.jnl
 # but we actually do want post-sign verification to happen to ensure the zone
 # is correct before we break it on purpose.
 $SETTIME -R none -D none -K ns1 $standby1 > /dev/null
-$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>&-
+$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -O full -o . -f signer.out.$n ns1/root.db > /dev/null 2>/dev/null
 cp -f ns1/root.db.signed ns1/root.db.tmp
 BADSIG="SVn2tLDzpNX2rxR4xRceiCsiTqcWNKh7NQ0EQfCrVzp9WEmLw60sQ5kP xGk4FS/xSKfh89hO2O/H20Bzp0lMdtr2tKy8IMdU/mBZxQf2PXhUWRkg V2buVBKugTiOPTJSnaqYCN3rSfV1o7NtC1VNHKKK/D5g6bpDehdn5Gaq kpBhN+MSCCh9OZP2IT20luS1ARXxLlvuSVXJ3JYuuhTsQXUbX/SQpNoB Lo6ahCE55szJnmAxZEbb2KOVnSlZRA6ZBHDhdtO0S4OkvcmTutvcVV+7 w53CbKdaXhirvHIh0mZXmYk2PbPLDY7PU9wSH40UiWPOB9f00wwn6hUe uEQ1Qg=="
 # Less than a second may have passed since ns1 was started.  If we call
@@ -531,7 +531,7 @@ $SETTIME -D now -K ns1 $standby1 > /dev/null
 # "nanoseconds" field of isc_time_t, due to zone load time being seemingly
 # equal to master file modification time.
 sleep 1
-$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
+$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
 mkeys_reload_on 1
 mkeys_flush_on 2
 $DIG $DIGOPTS +noauth example. @10.53.0.2 txt > dig.out.ns2.test$n || ret=1
@@ -621,7 +621,7 @@ n=`expr $n + 1`
 echo_i "restore root server, check validation succeeds again ($n)"
 ret=0
 rm -f ns1/root.db.signed.jnl
-$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>&-
+$SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
 mkeys_reload_on 1
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
