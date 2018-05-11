@@ -34,20 +34,14 @@ def logquery(type, qname):
 ############################################################################
 # Respond to a DNS query.
 # For good. it serves:
-# ns2.good. IN A 10.53.0.2
-# zoop.boing.good. NS ns3.good.
-# ns3.good. IN A 10.53.0.3
-# too.many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.good. A 192.0.2.2
+# icky.ptang.zoop.boing.good. NS a.bit.longer.ns.name.
+# icky.icky.icky.ptang.zoop.boing.good. A 192.0.2.1
+# more.icky.icky.icky.ptang.zoop.boing.good. A 192.0.2.2
 # it responds properly (with NODATA empty response) to non-empty terminals
 #
 # For slow. it works the same as for good., but each response is delayed by 400 miliseconds
 #
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
-#
-# For 1.0.0.2.ip6.arpa it serves
-# 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa. IN PTR nee.com.
-# 1.0.0.2.ip6.arpa. IN NS ns2.good
-# ip6.arpa. IN NS ns2.good
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -69,35 +63,7 @@ def create_response(msg):
     r = dns.message.make_response(m)
     r.set_rcode(NOERROR)
 
-    if lqname.endswith("1.0.0.2.ip6.arpa."):
-        # Direct query - give direct answer
-        if lqname == "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa." and rrtype == PTR:
-            # Direct query - give direct answer
-            r.answer.append(dns.rrset.from_text("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.", 1, IN, PTR, "nee.com."))
-        elif lqname == "1.0.0.2.ip6.arpa." and rrtype == NS:
-            # NS query at the apex
-            r.answer.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 1, IN, NS, "ns2.good."))
-        elif "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.".endswith(lqname):
-            # NODATA answer
-            r.authority.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 1, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
-        else:
-            # NXDOMAIN
-            r.authority.append(dns.rrset.from_text("1.0.0.2.ip6.arpa.", 1, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
-            r.set_rcode(NXDOMAIN)
-        return r
-    elif lqname.endswith("ip6.arpa."):
-        if lqname == "ip6.arpa." and rrtype == NS:
-            # NS query at the apex
-            r.answer.append(dns.rrset.from_text("ip6.arpa.", 1, IN, NS, "ns2.good."))
-        elif "1.0.0.2.ip6.arpa.".endswith(lqname):
-            # NODATA answer
-            r.authority.append(dns.rrset.from_text("ip6.arpa.", 1, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
-        else:
-            # NXDOMAIN
-            r.authority.append(dns.rrset.from_text("ip6.arpa.", 1, IN, SOA, "ns2.good. hostmaster.arpa. 2018050100 1 1 1 1"))
-            r.set_rcode(NXDOMAIN)
-        return r
-    elif lqname.endswith("bad."):
+    if lqname.endswith("bad."):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
@@ -113,33 +79,21 @@ def create_response(msg):
         return r
 
     # Good/bad differs only in how we treat non-empty terminals
-    if lqname.endswith("zoop.boing."):
-        r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, NS, "ns3." + suffix))
-    elif lqname == "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z." and rrtype == A:
+    if lqname == "icky.icky.icky.ptang.zoop.boing." and rrtype == A:
+        r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, A, "192.0.2.1"))
+    elif lqname == "more.icky.icky.icky.ptang.zoop.boing." and rrtype == A:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, A, "192.0.2.2"))
-    elif lqname == "" and rrtype == NS:
-        r.answer.append(dns.rrset.from_text(suffix, 1, IN, NS, "ns2." + suffix))
-    elif lqname == "ns2." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("ns2."+suffix, 1, IN, A, "10.53.0.2"))
-    elif lqname == "ns2." and rrtype == AAAA:
-        r.answer.append(dns.rrset.from_text("ns2."+suffix, 1, IN, AAAA, "fd92:7065:b8e:ffff::2"))
-    elif lqname == "ns3." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("ns3."+suffix, 1, IN, A, "10.53.0.3"))
-    elif lqname == "ns3." and rrtype == AAAA:
-        r.answer.append(dns.rrset.from_text("ns3."+suffix, 1, IN, AAAA, "fd92:7065:b8e:ffff::3"))
-    elif lqname == "a.bit.longer.ns.name." and rrtype == A:
-        r.answer.append(dns.rrset.from_text("a.bit.longer.ns.name."+suffix, 1, IN, A, "10.53.0.4"))
-    elif lqname == "a.bit.longer.ns.name." and rrtype == AAAA:
-        r.answer.append(dns.rrset.from_text("a.bit.longer.ns.name."+suffix, 1, IN, AAAA, "fd92:7065:b8e:ffff::4"))
-    else:
-        r.authority.append(dns.rrset.from_text(suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
-        if bad or not \
-            ("icky.icky.icky.ptang.zoop.boing.".endswith(lqname) or \
-             "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.".endswith(lqname) or \
-             "a.bit.longer.ns.name.".endswith(lqname)):
+    elif lqname == "icky.ptang.zoop.boing." and rrtype == NS:
+        r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "a.bit.longer.ns.name."+suffix))
+    elif lqname.endswith("icky.ptang.zoop.boing."):
+        r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
+        if bad or not "more.icky.icky.icky.ptang.zoop.boing.".endswith(lqname):
             r.set_rcode(NXDOMAIN)
+    else:
+        r.set_rcode(REFUSED)
+
     if slow:
-        time.sleep(0.2)
+        time.sleep(0.4)
     return r
 
 
@@ -156,8 +110,8 @@ def sigterm(signum, frame):
 # the main loop, listening for queries on the query channel or commands
 # on the control channel and acting on them.
 ############################################################################
-ip4 = "10.53.0.2"
-ip6 = "fd92:7065:b8e:ffff::2"
+ip4 = "10.53.0.4"
+ip6 = "fd92:7065:b8e:ffff::4"
 
 try: port=int(os.environ['PORT'])
 except: port=5300

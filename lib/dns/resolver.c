@@ -265,6 +265,7 @@ struct fetchctx {
 	unsigned int			dbucketnum;
 	char *				info;
 	isc_mem_t *			mctx;
+	isc_stdtime_t			now;
 
 	/*% Locked by appropriate bucket lock. */
 	fetchstate			state;
@@ -689,7 +690,7 @@ typedef struct respctx {
 	isc_boolean_t ns_in_answer; 	/* NS may be in the answer section */
 	isc_boolean_t negative;		/* is this a negative response? */
 
-	isc_stdtime_t now; 		/* time info */
+	isc_stdtime_t now;              /* time info */
 	isc_time_t tnow;
 	isc_time_t *finish;
 
@@ -2542,8 +2543,8 @@ resquery_send(resquery_t *query) {
 	fctx->timeout = ISC_FALSE;
 
 	/*
-	 * Use EDNS0, unless the caller doesn't want it, or we know that
-	 * the remote server doesn't like it.
+	 * Use EDNS0, unless the caller doesn't want it, or we know that the
+	 * remote server doesn't like it.
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -4437,7 +4438,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, const isc_sockaddr_t *client,
 		return (ISC_R_NOMEMORY);
 	}
 	event->result = DNS_R_SERVFAIL;
-	event->qtype = fctx->type;
+	event->qtype = fctx->fulltype;
 	event->db = NULL;
 	event->node = NULL;
 	event->rdataset = rdataset;
@@ -4559,6 +4560,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->minimized = isc_boolean_false;
 	fctx->ip6arpaskip = isc_boolean_false;
 	fctx->qmin_labels = 1;
+	isc_stdtime_get(&fctx->now);
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
 	ISC_LIST_INIT(fctx->altfinds);
@@ -7423,7 +7425,6 @@ rctx_respinit(isc_task_t *task, dns_dispatchevent_t *devent,
 	TIME_NOW(&rctx->tnow);
 	rctx->finish = &rctx->tnow;
 	isc_stdtime_get(&rctx->now);
-
 }
 
 /*
@@ -8497,7 +8498,20 @@ rctx_answer_none(respctx_t *rctx) {
 		} else {
 			log_formerr(fctx, "invalid response");
 		}
-
+		/*
+		 * If we're minimizing in relaxed mode, retry with full name,
+		 * just to be safe. The error will be logged.
+		 */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO, "XXX %d %d", fctx->minimized, fctx->options & DNS_FETCHOPT_QMIN_STRICT);
+		if (fctx->minimized &&
+		    !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "disabling qname minimization for '%s'"
+				      " due to formerr", fctx->info);
+		        fctx->qmin_labels = DNS_MAX_LABELS+1;
+			return rctx_answer_minimized(rctx);
+		}
 		return (DNS_R_FORMERR);
 	}
 
@@ -8523,12 +8537,17 @@ rctx_answer_none(respctx_t *rctx) {
 	 * If we're doing qname minimization this is an empty non-terminal, add
 	 * the next label to query and restart it.
 	 */
-	if (fctx->minimized &&
-	    (fctx->rmessage->rcode == dns_rcode_noerror ||
-	     !(fctx->options & DNS_FETCHOPT_QMIN_STRICT))) {
+	if (fctx->minimized && fctx->rmessage->rcode == dns_rcode_noerror) {
 		return rctx_answer_minimized(rctx);
 	}
-
+	/*
+	 * Workaround for broken servers in relaxed mode - if we hit an
+	 * NXDOMAIN we go straight to the full query.
+	 */
+	if (fctx->minimized && !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
+	        fctx->qmin_labels = DNS_MAX_LABELS+1;
+		return rctx_answer_minimized(rctx);
+	}
 	/*
 	 * Since we're not doing a referral, we don't want to cache any
 	 * NS RRs we may have found.
@@ -9079,7 +9098,7 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		}
 		result = dns_view_findzonecut(fctx->res->view,
 					      name, fname,
-					      rctx->now, findoptions,
+					      fctx->now, findoptions,
 					      ISC_TRUE, ISC_TRUE,
 					      &fctx->nameservers,
 					      NULL);
@@ -10283,6 +10302,10 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		} else if (dlabels + fctx->qmin_labels > 19) {
 			fctx->qmin_labels = 35 - dlabels;
 		}
+	} else if (dlabels + fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
+	} else if (fctx->qmin_labels > DNS_QMIN_MAX_NO_DELEGATION) {
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
 	}
 	if (dlabels + fctx->qmin_labels < nlabels) {
 		/*
