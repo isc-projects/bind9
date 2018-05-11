@@ -74,7 +74,7 @@ tags:
 	find lib bin -name "*.[ch]" -print | @ETAGS@ -
 
 test check:
-	@if test -n "`${PERL} ${top_srcdir}/bin/tests/system/testsock.pl 2>&- || echo fail`"; then \
+	@if test -n "`${PERL} ${top_srcdir}/bin/tests/system/testsock.pl 2>/dev/null || echo fail`"; then \
 	echo I: NOTE: The tests were not run because they require that; \
 	echo I:	the IP addresses 10.53.0.1 through 10.53.0.8 are configured; \
 	echo I:	as alias addresses on the loopback interface.  Please run; \
