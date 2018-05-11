@@ -1,6 +1,16 @@
-4941.	[bug]		Reduce the probabilty of double signature when deleting
+4944.	[bug]		Reduce the probabilty of double signature when deleting
 			a DNSKEY by checking if the node is otherwise signed
 			by the algorithm of the key to be deleted. [GL #240]
+
+4943.	[bug]		Change 4687 consumed too much memory when running
+			system tests with --with-tuning=large.  Reduced the
+			hash table size to 512 entries for 'named -m record'
+			restoring the previous memory footprint. [GL #248]
+
+4942.	[cleanup]	Consolidate multiple instances of splitting of
+			batchline in dig into a single function. [GL #196]
+
+4941.	[cleanup]	Silence clang static analyzer warnings. [GL #196]
 
 4940.	[cleanup]	Extract the loop in dns__zone_updatesigs() into
 			separate functions to improve code readability.
