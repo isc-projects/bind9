@@ -13,7 +13,6 @@
 #ifndef GENERIC_NSEC3_50_H
 #define GENERIC_NSEC3_50_H 1
 
-/* $Id$ */
 
 /*!
  * \brief Per RFC 5155 */

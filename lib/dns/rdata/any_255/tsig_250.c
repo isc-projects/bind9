@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
-
 #ifndef RDATA_ANY_255_TSIG_250_C
 #define RDATA_ANY_255_TSIG_250_C
 

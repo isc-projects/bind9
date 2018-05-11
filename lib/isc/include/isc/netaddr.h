@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: netaddr.h,v 1.37 2009/01/17 23:47:43 tbox Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1

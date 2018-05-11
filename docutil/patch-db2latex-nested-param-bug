@@ -1,5 +1,3 @@
-;; $Id: patch-db2latex-nested-param-bug,v 1.1 2007/02/06 20:58:13 sra Exp $
-;;
 ;; Latest version of xsltproc doesn't like <xsl:param><xsl:param/></xsl:param>.
 
 --- xsl/lists.mod.xsl.~1~	Sat Jan 31 06:53:50 2004

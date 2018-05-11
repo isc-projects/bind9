@@ -4,8 +4,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 			Name Compression
 
-	$Id: compression,v 1.9 2004/03/05 05:04:46 marka Exp $
-
 Overview.
 
 	BIND 4.x and BIND 8.x only had one methods of compression to deal

@@ -9,10 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: mg_8.c,v 1.45 2009/12/04 22:06:37 tbox Exp $ */
-
-/* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
-
 #ifndef RDATA_GENERIC_MG_8_C
 #define RDATA_GENERIC_MG_8_C
 

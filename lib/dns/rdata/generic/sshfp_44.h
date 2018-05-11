@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: sshfp_44.h,v 1.8 2007/06/19 23:47:17 tbox Exp $ */
 
 /*!
  *  \brief Per RFC 4255 */

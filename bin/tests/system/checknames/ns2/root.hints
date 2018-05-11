@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.hints,v 1.5 2007/06/19 23:47:01 tbox Exp $
-
 $TTL 300
 . NS  ns1.
 ns1. A 10.53.0.1

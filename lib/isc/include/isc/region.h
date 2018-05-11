@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: region.h,v 1.25 2007/06/19 23:47:18 tbox Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1

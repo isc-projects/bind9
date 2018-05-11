@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: nsec.h,v 1.14 2011/06/10 23:47:32 tbox Exp $ */
 
 #ifndef DNS_NSEC_H
 #define DNS_NSEC_H 1

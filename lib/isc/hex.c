@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hex.c,v 1.20 2008/09/25 04:02:39 tbox Exp $ */
 
 /*! \file */
 

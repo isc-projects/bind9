@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: cache.in,v 1.4 2007/06/19 23:47:03 tbox Exp $
-
 ; Preloaded cache data for glue test
 
 $TTL 86400

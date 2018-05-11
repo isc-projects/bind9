@@ -9,12 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
-/*
- * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
- */
-
 /* draft-ietf-dnsext-tkey-01.txt */
 
 #ifndef RDATA_GENERIC_TKEY_249_C

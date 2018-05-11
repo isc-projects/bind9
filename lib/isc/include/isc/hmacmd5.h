@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hmacmd5.h,v 1.14 2009/02/06 23:47:42 tbox Exp $ */
 
 /*! \file isc/hmacmd5.h
  * \brief This is the header file for the HMAC-MD5 keyed hash algorithm

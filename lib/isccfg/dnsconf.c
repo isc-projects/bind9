@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: dnsconf.c,v 1.4 2009/09/02 23:48:03 tbox Exp $ */
 
 /*! \file */
 

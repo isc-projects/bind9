@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
 #

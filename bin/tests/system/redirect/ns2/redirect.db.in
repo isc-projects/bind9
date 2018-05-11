@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id$
-
 $TTL 300
 @ IN SOA ns.example.net hostmaster.example.net 0 0 0 0 0
 @ IN NS ns.example.net

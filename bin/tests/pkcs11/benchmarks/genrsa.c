@@ -33,7 +33,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id$ */
 
 /* genrsa [-m module] [-s $slot] [-p pin] [-t] [-b bits] [-n count] */
 

@@ -7,8 +7,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; $Id: root.db.in,v 1.6 2010/08/16 22:21:06 marka Exp $
-
 $TTL 30
 . 			IN SOA	a.root.servers.nil. each.isc.org. (
 				2000042100   	; serial
