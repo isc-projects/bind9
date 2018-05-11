@@ -10,14 +10,26 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+status=0
 start=`date +%s`
 end=`expr $start + 1200`
 now=$start
 while test $now -lt $end
 do
-	echo "=============== " `expr $now - $start` " ============"
+	et=`expr $now - $start`
+	echo "=============== $et ============"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl
-	$DIG axfr signing.test -p 5300 @10.53.0.1 | awk '$4 == "RRSIG" { print $11 }' | sort | uniq -c
+	$DIG axfr signing.test -p 5300 @10.53.0.1 > dig.out.at$et
+	awk '$4 == "RRSIG" { print $11 }' dig.out.at$et | sort | uniq -c
+	lines=`awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l`
+	if [ ${et} -ne 0 -a ${lines} -ne 4009 ]
+	then
+		echo_i "failed"
+		status=`expr $status + 1`
+	fi
 	sleep 20
 	now=`date +%s`
 done
+
+echo_i "exit status: $status"
+[ $status -eq 0 ] || exit 1
