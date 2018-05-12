@@ -1,3 +1,6 @@
+4945.	[bug]		Log the label with invalid prefix length correctly
+			when loading RPZ zones. [GL #254]
+
 4944.	[cleanup]	Silence cppcheck portability warnings in
 			lib/isc/tests/buffer_test.c. [GL #239]
 
