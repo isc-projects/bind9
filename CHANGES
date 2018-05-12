@@ -1,3 +1,6 @@
+4976.	[bug]		Log the label with invalid prefix length correctly
+			when loading RPZ zones. [GL #254]
+
 4975.	[bug]		The server cookie computation for sha1 and sha256 did
 			not match the method described in RFC 7873. [GL #356]
 
