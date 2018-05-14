@@ -140,7 +140,7 @@ struct dns_rpz_zone {
 	dns_ttl_t	 max_policy_ttl;
 	dns_rpz_policy_t policy;	/* DNS_RPZ_POLICY_GIVEN or override */
 
-	isc_uint32_t	 min_update_int;/* minimal interval between updates */
+	isc_uint32_t	 min_update_interval;/* minimal interval between updates */
 	isc_ht_t	 *nodes;	/* entries in zone */
 	dns_rpz_zones_t	 *rpzs;		/* owner */
 	isc_time_t	 lastupdated;	/* last time the zone was processed */
@@ -350,9 +350,9 @@ typedef struct {
 	dns_fixedname_t		_fnamef;
 } dns_rpz_st_t;
 
-#define DNS_RPZ_TTL_DEFAULT		5
-#define DNS_RPZ_MAX_TTL_DEFAULT		DNS_RPZ_TTL_DEFAULT
-#define DNS_RPZ_MINUPDATEINT_DEF	60
+#define DNS_RPZ_TTL_DEFAULT			5
+#define DNS_RPZ_MAX_TTL_DEFAULT			DNS_RPZ_TTL_DEFAULT
+#define DNS_RPZ_MINUPDATEINTERVAL_DEFAULT	60
 
 /*
  * So various response policy zone messages can be turned up or down.
