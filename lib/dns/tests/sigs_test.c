@@ -18,9 +18,28 @@
 #include <isc/util.h>
 
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#include <string.h>
+
+#include <dns/db.h>
+#include <dns/diff.h>
 #include <dns/dnssec.h>
+#include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
+#include <dns/result.h>
+#include <dns/types.h>
 #include <dns/zone.h>
+
+#include <dst/dst.h>
+
+#include <isc/buffer.h>
+#include <isc/list.h>
+#include <isc/region.h>
+#include <isc/stdtime.h>
+#include <isc/result.h>
+#include <isc/types.h>
 
 #include "../zone_p.h"
 
