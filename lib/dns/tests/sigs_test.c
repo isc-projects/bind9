@@ -15,9 +15,31 @@
 
 #include <atf-c.h>
 
+#include <isc/util.h>
+
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#include <string.h>
+
+#include <dns/db.h>
+#include <dns/diff.h>
 #include <dns/dnssec.h>
+#include <dns/fixedname.h>
+#include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
+#include <dns/result.h>
+#include <dns/types.h>
 #include <dns/zone.h>
+
+#include <dst/dst.h>
+
+#include <isc/buffer.h>
+#include <isc/list.h>
+#include <isc/region.h>
+#include <isc/stdtime.h>
+#include <isc/result.h>
+#include <isc/types.h>
 
 #include "../zone_p.h"
 
@@ -435,9 +457,23 @@ ATF_TC_BODY(updatesigs, tc) {
 
 	dns_test_end();
 }
+#else
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+        atf_tc_set_md_var(tc, "descr", "skipping dns__zone_updatesigs() test");
+}
+ATF_TC_BODY(untested, tc) {
+        UNUSED(tc);
+        atf_tc_skip("DNSSEC support not compiled in");
+}
+#endif
 
 ATF_TP_ADD_TCS(tp) {
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, updatesigs);
+#else
+	ATF_TP_ADD_TC(tp, untested);
+#endif
 
 	return (atf_no_error());
 }
