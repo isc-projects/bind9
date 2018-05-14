@@ -1,3 +1,7 @@
+4946.	[func]		Replace all random functions with isc_random(),
+			isc_random_buf() and isc_random_uniform() API.
+			[GL #221]
+
 4945.	[func]		BIND can no longer be built without DNSSEC support.
 			A cryptography provder (i.e., OpenSSL or a hardware
 			service module with PKCS#11 support) must be
