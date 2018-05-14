@@ -1,3 +1,7 @@
+4947.	[func]		Replace all random functions with isc_random(),
+			isc_random_buf() and isc_random_uniform() API.
+			[GL #221]
+
 4946.	[bug]		Additional glue was not being returned by resolver
 			for unsigned zones since change 4596. [GL #209]
 
