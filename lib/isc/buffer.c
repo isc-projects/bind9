@@ -59,7 +59,10 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 	REQUIRE(base != NULL);
 	REQUIRE(!b->autore);
 
-	(void)memmove(base, b->base, b->length);
+	if (b->length > 0) {
+		(void)memmove(base, b->base, b->length);
+	}
+
 	b->base = base;
 	b->length = length;
 }
