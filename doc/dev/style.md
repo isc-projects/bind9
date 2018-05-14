@@ -761,4 +761,6 @@ Bash should be avoided.  Some pitfalls to avoid:
   statement, or use `"cat << EOF"`.
 * To set a variable from outside awk, use `"awk '{...}' var=value"` rather
   than `"awk -vvar=value '{...}'"`
-
+* Don't close stdout/stderr descriptors (`>&-`), but redirect them to /dev/null
+  instead (`>/dev/null`) as the closed descriptor might get reused leading to
+  unpredictable behaviour when using `fprintf(stderr, ...)`
