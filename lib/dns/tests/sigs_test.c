@@ -15,6 +15,9 @@
 
 #include <atf-c.h>
 
+#include <isc/util.h>
+
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 #include <dns/db.h>
 #include <dns/dnssec.h>
 #include <dns/rdatatype.h>
@@ -437,9 +440,23 @@ ATF_TC_BODY(updatesigs, tc) {
 
 	dns_test_end();
 }
+#else
+ATF_TC(untested);
+ATF_TC_HEAD(untested, tc) {
+        atf_tc_set_md_var(tc, "descr", "skipping dns__zone_updatesigs() test");
+}
+ATF_TC_BODY(untested, tc) {
+        UNUSED(tc);
+        atf_tc_skip("DNSSEC support not compiled in");
+}
+#endif
 
 ATF_TP_ADD_TCS(tp) {
+#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, updatesigs);
+#else
+	ATF_TP_ADD_TC(tp, untested);
+#endif
 
 	return (atf_no_error());
 }
