@@ -17,7 +17,7 @@ DLZINCLUDES =	@DLZ_DRIVER_INCLUDES@
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
                 ${ISC_INCLUDES} ${DLZINCLUDES}
 
-CDEFINES =      @CONTRIB_DLZ@
+CDEFINES =      @CONTRIB_DLZ@ @CRYPTO@
 CWARNINGS =
 
 DLZLIBS = 	@DLZ_DRIVER_LIBS@

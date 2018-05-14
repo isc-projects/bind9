@@ -134,6 +134,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  BIND can no longer be built without DNSSEC support. A cryptography
+	  provder (i.e., OpenSSL or a hardware service module with
+	  PKCS#11 support) must be available. [GL #244]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Zone types <command>primary</command> and
 	  <command>secondary</command> are now available as synonyms for
 	  <command>master</command> and <command>slave</command>,
