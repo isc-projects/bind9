@@ -2577,7 +2577,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	isc_result_t result;
 	dns_name_t *newname = NULL;
 	isc_region_t r;
-	isc_buffer_t *namebuf = NULL, *rdatabuf = NULL;
+	isc_buffer_t *namebuf = NULL;
 	dns_rdatalist_t *rdatalist;
 	dns_rdataset_t *rdataset, *newrdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT, *newrdata;
@@ -2617,20 +2617,22 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 			dns_rdata_toregion(&rdata, &r);
-			rdatabuf = NULL;
-			result = isc_buffer_allocate(mctx, &rdatabuf,
-						     r.length);
-			if (result != ISC_R_SUCCESS)
-				goto fail;
-			isc_buffer_putmem(rdatabuf, r.base, r.length);
-			isc_buffer_usedregion(rdatabuf, &r);
+			if (r.length > 0) {
+				isc_buffer_t *rdatabuf = NULL;
+				result = isc_buffer_allocate(mctx, &rdatabuf,
+							     r.length);
+				if (result != ISC_R_SUCCESS)
+					goto fail;
+				isc_buffer_putmem(rdatabuf, r.base, r.length);
+				isc_buffer_usedregion(rdatabuf, &r);
+				dns_message_takebuffer(msg, &rdatabuf);
+			}
 			dns_rdata_init(newrdata);
 			dns_rdata_fromregion(newrdata, rdata.rdclass,
 					     rdata.type, &r);
 			newrdata->flags = rdata.flags;
 
 			ISC_LIST_APPEND(rdatalist->rdata, newrdata, link);
-			dns_message_takebuffer(msg, &rdatabuf);
 
 			result = dns_rdataset_next(rdataset);
 		}
