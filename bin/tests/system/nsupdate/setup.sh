@@ -19,6 +19,7 @@ copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
 
 copy_setports verylarge.in verylarge
 
@@ -77,3 +78,4 @@ cp -f ns1/maxjournal.db.in ns1/maxjournal.db
 rm -f ns1/maxjournal.db.jnl
 
 cp -f ns5/local.db.in ns5/local.db
+cp -f ns6/in-addr.db.in ns6/in-addr.db
