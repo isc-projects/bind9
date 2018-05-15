@@ -117,15 +117,6 @@ struct in6_pktinfo {
 typedef isc_uint16_t in_port_t;
 #endif
 
-/*
- * If this system does not have MSG_TRUNC (as returned from recvmsg())
- * ISC_PLATFORM_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
- * faking code in socket.c.
- */
-#ifndef MSG_TRUNC
-#define ISC_PLATFORM_RECVOVERFLOW
-#endif
-
 #define ISC__IPADDR(x)	((isc_uint32_t)htonl((isc_uint32_t)(x)))
 
 #define ISC_IPADDR_ISMULTICAST(i) \

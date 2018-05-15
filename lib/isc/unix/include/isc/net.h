@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
 
@@ -261,15 +260,6 @@ extern const struct in6_addr isc_net_in6addrloop;
  * Ensure type in_port_t is defined.
  */
 typedef isc_uint16_t in_port_t;
-#endif
-
-#ifndef MSG_TRUNC
-/*%
- * If this system does not have MSG_TRUNC (as returned from recvmsg())
- * ISC_PLATFORM_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
- * faking code in socket.c.
- */
-#define ISC_PLATFORM_RECVOVERFLOW
 #endif
 
 /*% IP address. */
