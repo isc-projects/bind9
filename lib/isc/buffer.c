@@ -59,7 +59,7 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 	REQUIRE(base != NULL);
 	REQUIRE(!b->autore);
 
-	if (b->length > 0) {
+	if (b->length > 0U) {
 		(void)memmove(base, b->base, b->length);
 	}
 
@@ -256,7 +256,7 @@ isc_buffer_compact(isc_buffer_t *b) {
 
 	src = isc_buffer_current(b);
 	length = isc_buffer_remaininglength(b);
-	if (length > 0) {
+	if (length > 0U) {
 		(void)memmove(b->base, src, (size_t)length);
 	}
 
@@ -531,7 +531,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	}
 	if (r->length > available)
 		return (ISC_R_NOSPACE);
-	if (r->length > 0) {
+	if (r->length > 0U) {
 		memmove(base, r->base, r->length);
 		b->used += r->length;
 	}
