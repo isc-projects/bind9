@@ -30,11 +30,12 @@ then
 	echo_i "failed"; status=`expr $status + 1`;
 fi
 
-# this one is now NOERROR
+# this would be NOERROR if it included a COOKIE option,
+# but is a FORMERR without one.
 echo_i "no questions"
 $PERL formerr.pl -a 10.53.0.1 -p ${PORT} noquestions > noquestions.out
 ans=`grep got: noquestions.out`
-if [ "${ans}" != "got: 000080000000000000000000" ];
+if [ "${ans}" != "got: 000080010000000000000000" ];
 then
 	echo_i "failed"; status=`expr $status + 1`;
 fi
