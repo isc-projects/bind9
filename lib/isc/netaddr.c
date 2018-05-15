@@ -166,7 +166,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 		return (ISC_R_NOSPACE);
 
 	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
-	isc_buffer_putmem(target, (unsigned char *)zbuf, zlen);
+	isc_buffer_putmem(target, (unsigned char *)zbuf, (unsigned int)zlen);
 
 	return (ISC_R_SUCCESS);
 }
