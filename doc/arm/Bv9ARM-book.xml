@@ -12461,7 +12461,7 @@ example.com. NS ns2.example.net.
 	    </para>
 	    <para>
 	      <command>update-policy</command> rules are only meaningful
-	      for zones of type <command>master</command>>, and are
+	      for zones of type <command>master</command>, and are
 	      not allowed in any other zone type.
 	      It is a configuration error to specify both
 	      <command>allow-update</command> and
