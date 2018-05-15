@@ -529,8 +529,10 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	}
 	if (r->length > available)
 		return (ISC_R_NOSPACE);
-	memmove(base, r->base, r->length);
-	b->used += r->length;
+	if (r->length > 0) {
+		memmove(base, r->base, r->length);
+		b->used += r->length;
+	}
 
 	return (ISC_R_SUCCESS);
 }

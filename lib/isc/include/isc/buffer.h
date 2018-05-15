@@ -920,7 +920,9 @@ ISC_LANG_ENDDECLS
 				== ISC_R_SUCCESS); \
 		} \
 		ISC_REQUIRE(isc_buffer_availablelength(_b) >= (unsigned int) _length); \
-		memmove(isc_buffer_used(_b), (_base), (_length)); \
+		if (_length > 0) { \
+			memmove(isc_buffer_used(_b), (_base), (_length)); \
+		} \
 		(_b)->used += (_length); \
 	} while (0)
 
