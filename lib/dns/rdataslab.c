@@ -798,7 +798,8 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		else if (nadded == ncount)
 			fromold = ISC_TRUE;
 		else
-			fromold = ISC_TF(compare_rdata(&ordata, &nrdata) < 0);
+			fromold = ISC_TF(dns_rdata_compare(&ordata,
+							   &nrdata) < 0);
 		if (fromold) {
 #if DNS_RDATASET_FIXED
 			offsettable[oorder] = tcurrent - offsetbase;
