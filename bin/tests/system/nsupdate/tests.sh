@@ -548,6 +548,63 @@ fi
 
 n=`expr $n + 1`
 ret=0
+echo_i "check that 'update-policy tcp-self' refuses update of records via UDP ($n)"
+$NSUPDATE > nsupdate.out.$n 2>&1 << END
+server 10.53.0.6 ${PORT}
+local 127.0.0.1
+update add 1.0.0.127.in-addr.arpa. 600 PTR localhost.
+send
+END
+grep REFUSED nsupdate.out.$n > /dev/null 2>&1 || ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+        +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+        -x 127.0.0.1 > dig.out.ns6.$n
+grep localhost. dig.out.ns6.$n > /dev/null 2>&1 && ret=1
+if test $ret -ne 0
+then
+echo_i "failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that 'update-policy tcp-self' permits update of records for the client's own address via TCP ($n)"
+$NSUPDATE -v > nsupdate.out.$n 2>&1 << END || ret=1
+server 10.53.0.6 ${PORT}
+local 127.0.0.1
+update add 1.0.0.127.in-addr.arpa. 600 PTR localhost.
+send
+END
+grep REFUSED nsupdate.out.$n > /dev/null 2>&1 && ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+        +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+        -x 127.0.0.1 > dig.out.ns6.$n || ret=1
+grep localhost. dig.out.ns6.$n > /dev/null 2>&1 || ret=1
+if test $ret -ne 0
+then
+echo_i "failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
+echo_i "check that 'update-policy tcp-self' refuses update of records for a different address from the client's own address via TCP ($n)"
+$NSUPDATE -v > nsupdate.out.$n 2>&1 << END
+server 10.53.0.6 ${PORT}
+local 127.0.0.1
+update add 1.0.168.192.in-addr.arpa. 600 PTR localhost.
+send
+END
+grep REFUSED nsupdate.out.$n > /dev/null 2>&1 || ret=1
+$DIG $DIGOPTS @10.53.0.6 \
+        +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+        -x 192.168.0.1 > dig.out.ns6.$n
+grep localhost. dig.out.ns6.$n > /dev/null 2>&1 && ret=1
+if test $ret -ne 0
+then
+echo_i "failed"; status=1
+fi
+
+n=`expr $n + 1`
+ret=0
 echo_i "check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
         @10.53.0.3 dnskey | \
