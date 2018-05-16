@@ -778,16 +778,22 @@ static isc_result_t
 verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	   isc_boolean_t delegation, dns_rdataset_t *keyrdataset,
 	   dns_rdataset_t *nsecset, dns_rdataset_t *nsec3paramset,
-	   dns_name_t *nextname)
+	   dns_name_t *nextname, isc_result_t *vresult)
 {
 	unsigned char types[8192];
 	unsigned int maxtype = 0;
 	dns_rdataset_t rdataset; dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result, tresult;
 
+	REQUIRE(vresult != NULL || (nsecset == NULL && nsec3paramset == NULL));
+
 	memset(types, 0, sizeof(types));
 	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdataset_init(&rdataset);
 	while (result == ISC_R_SUCCESS) {
@@ -817,23 +823,32 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&rdataset);
 		result = dns_rdatasetiter_next(rdsiter);
 	}
-	if (result != ISC_R_NOMORE)
-		fatal("rdataset iteration failed: %s",
-		      isc_result_totext(result));
 	dns_rdatasetiter_destroy(&rdsiter);
+	if (result != ISC_R_NOMORE) {
+		zoneverify_log_error(vctx, "rdataset iteration failed: %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
-	result = ISC_R_SUCCESS;
+	if (vresult == NULL) {
+		return (ISC_R_SUCCESS);
+	}
 
-	if (nsecset != NULL && dns_rdataset_isassociated(nsecset))
-		result = verifynsec(vctx, name, node, nextname);
+	*vresult = ISC_R_SUCCESS;
+
+	if (nsecset != NULL && dns_rdataset_isassociated(nsecset)) {
+		*vresult = verifynsec(vctx, name, node, nextname);
+	}
 
 	if (nsec3paramset != NULL && dns_rdataset_isassociated(nsec3paramset)) {
 		tresult = verifynsec3s(vctx, name, nsec3paramset, delegation,
 				       ISC_FALSE, types, maxtype);
-		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
-			result = tresult;
+		if (*vresult == ISC_R_SUCCESS) {
+			*vresult = tresult;
+		}
 	}
-	return (result);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1393,6 +1408,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_dbnode_t *node = NULL, *nextnode;
 	dns_dbiterator_t *dbiter = NULL;
 	isc_boolean_t done = ISC_FALSE;
+	isc_result_t tvresult;
 	isc_result_t result;
 
 	name = dns_fixedname_initname(&fname);
@@ -1507,11 +1523,16 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		}
 		result = verifynode(vctx, name, node, isdelegation,
 				    &vctx->keyset, &vctx->nsecset,
-				    &vctx->nsec3paramset, nextname);
+				    &vctx->nsec3paramset, nextname, &tvresult);
+		if (result != ISC_R_SUCCESS) {
+			dns_db_detachnode(vctx->db, &node);
+			goto done;
+		}
 		if (*vresult == ISC_R_UNSET)
 			*vresult = ISC_R_SUCCESS;
-		if (*vresult == ISC_R_SUCCESS && result != ISC_R_SUCCESS)
-			*vresult = result;
+		if (*vresult == ISC_R_SUCCESS) {
+			*vresult = tvresult;
+		}
 		if (prevname != NULL) {
 			result = verifyemptynodes(vctx, name, prevname,
 						  isdelegation,
@@ -1546,7 +1567,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			goto done;
 		}
 		result = verifynode(vctx, name, node, ISC_FALSE, &vctx->keyset,
-				    NULL, NULL, NULL);
+				    NULL, NULL, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			zoneverify_log_error(vctx,
 					     "verifynode: %s",
