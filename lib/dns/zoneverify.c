@@ -850,8 +850,9 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node) {
 	return (ISC_FALSE);
 }
 
-static void
+static isc_result_t
 check_no_nsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node) {
+	isc_boolean_t nsec_exists = ISC_FALSE;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
 
@@ -862,11 +863,15 @@ check_no_nsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node) {
 	if (result != ISC_R_NOTFOUND) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fatal("unexpected NSEC RRset at %s\n", namebuf);
+		zoneverify_log_error(vctx, "unexpected NSEC RRset at %s",
+				     namebuf);
+		nsec_exists = ISC_TRUE;
 	}
 
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
+
+	return (nsec_exists ? ISC_R_FAILURE : ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
@@ -1419,7 +1424,11 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			goto done;
 		}
 		if (!dns_name_issubdomain(name, vctx->origin)) {
-			check_no_nsec(vctx, name, node);
+			result = check_no_nsec(vctx, name, node);
+			if (result != ISC_R_SUCCESS) {
+				dns_db_detachnode(vctx->db, &node);
+				goto done;
+			}
 			dns_db_detachnode(vctx->db, &node);
 			result = dns_dbiterator_next(dbiter);
 			if (result == ISC_R_NOMORE) {
@@ -1457,7 +1466,13 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			    (zonecut != NULL &&
 			     dns_name_issubdomain(nextname, zonecut)))
 			{
-				check_no_nsec(vctx, nextname, nextnode);
+				result = check_no_nsec(vctx, nextname,
+						       nextnode);
+				if (result != ISC_R_SUCCESS) {
+					dns_db_detachnode(vctx->db, &node);
+					dns_db_detachnode(vctx->db, &nextnode);
+					goto done;
+				}
 				dns_db_detachnode(vctx->db, &nextnode);
 				result = dns_dbiterator_next(dbiter);
 				continue;
