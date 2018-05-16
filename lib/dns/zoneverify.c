@@ -698,13 +698,13 @@ verifynsec3s(const vctx_t *vctx, dns_name_t *name,
 	return (result);
 }
 
-static void
+static isc_result_t
 verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	  dns_dbnode_t *node, dns_rdataset_t *keyrdataset)
 {
 	unsigned char set_algorithms[256];
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char algbuf[80];
+	char algbuf[DNS_SECALG_FORMATSIZE];
 	char typebuf[80];
 	dns_rdataset_t sigrdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
@@ -713,7 +713,11 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 
 	dns_rdataset_init(&sigrdataset);
 	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {
@@ -726,12 +730,13 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		type_format(rdataset->type, typebuf, sizeof(typebuf));
-		fprintf(stderr, "No signatures for %s/%s\n", namebuf, typebuf);
+		zoneverify_log_error(vctx, "No signatures for %s/%s",
+				     namebuf, typebuf);
 		for (i = 0; i < 256; i++)
 			if (vctx->act_algorithms[i] != 0)
 				vctx->bad_algorithms[i] = 1;
-		dns_rdatasetiter_destroy(&rdsiter);
-		return;
+		result = ISC_R_SUCCESS;
+		goto done;
 	}
 
 	memset(set_algorithms, 0, sizeof(set_algorithms));
@@ -743,12 +748,18 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			goto done;
+		}
 		if (rdataset->ttl != sig.originalttl) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			type_format(rdataset->type, typebuf, sizeof(typebuf));
-			fprintf(stderr, "TTL mismatch for %s %s keytag %u\n",
-				namebuf, typebuf, sig.keyid);
+			zoneverify_log_error(vctx,
+					     "TTL mismatch for "
+					     "%s %s keytag %u",
+					     namebuf, typebuf, sig.keyid);
 			continue;
 		}
 		if ((set_algorithms[sig.algorithm] != 0) ||
@@ -757,7 +768,8 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 		if (goodsig(vctx, &rdata, name, keyrdataset, rdataset))
 			set_algorithms[sig.algorithm] = 1;
 	}
-	dns_rdatasetiter_destroy(&rdsiter);
+	result = ISC_R_SUCCESS;
+
 	if (memcmp(set_algorithms, vctx->act_algorithms,
 		   sizeof(set_algorithms))) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -766,12 +778,21 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 			if ((vctx->act_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0)) {
 				dns_secalg_format(i, algbuf, sizeof(algbuf));
-				fprintf(stderr, "No correct %s signature for "
-					"%s %s\n", algbuf, namebuf, typebuf);
+				zoneverify_log_error(vctx,
+						     "No correct %s signature "
+						     "for %s %s",
+						     algbuf, namebuf, typebuf);
 				vctx->bad_algorithms[i] = 1;
 			}
 	}
-	dns_rdataset_disassociate(&sigrdataset);
+
+ done:
+	if (dns_rdataset_isassociated(&sigrdataset)) {
+		dns_rdataset_disassociate(&sigrdataset);
+	}
+	dns_rdatasetiter_destroy(&rdsiter);
+
+	return (result);
 }
 
 static isc_result_t
@@ -809,7 +830,13 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		    rdataset.type != dns_rdatatype_dnskey &&
 		    (!delegation || rdataset.type == dns_rdatatype_ds ||
 		     rdataset.type == dns_rdatatype_nsec)) {
-			verifyset(vctx, &rdataset, name, node, keyrdataset);
+			result = verifyset(vctx, &rdataset, name, node,
+					   keyrdataset);
+			if (result != ISC_R_SUCCESS) {
+				dns_rdataset_disassociate(&rdataset);
+				dns_rdatasetiter_destroy(&rdsiter);
+				return (result);
+			}
 			dns_nsec_setbit(types, rdataset.type, 1);
 			if (rdataset.type > maxtype)
 				maxtype = rdataset.type;
