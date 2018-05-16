@@ -396,8 +396,8 @@ chain_equal(struct nsec3_chain_fixed *e1, struct nsec3_chain_fixed *e2) {
 }
 
 static isc_result_t
-record_nsec3(const unsigned char *rawhash, const dns_rdata_nsec3_t *nsec3,
-	     isc_mem_t *mctx, isc_heap_t *chains)
+record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
+	     const dns_rdata_nsec3_t *nsec3, isc_heap_t *chains)
 {
 	struct nsec3_chain_fixed *element;
 	size_t len;
@@ -406,7 +406,7 @@ record_nsec3(const unsigned char *rawhash, const dns_rdata_nsec3_t *nsec3,
 
 	len = sizeof(*element) + nsec3->next_length * 2 + nsec3->salt_length;
 
-	element = isc_mem_get(mctx, len);
+	element = isc_mem_get(vctx->mctx, len);
 	if (element == NULL)
 		return (ISC_R_NOMEMORY);
 	memset(element, 0, len);
@@ -422,9 +422,9 @@ record_nsec3(const unsigned char *rawhash, const dns_rdata_nsec3_t *nsec3,
 	memmove(cp, nsec3->next, nsec3->next_length);
 	result = isc_heap_insert(chains, element);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "isc_heap_insert failed: %s\n",
-			isc_result_totext(result));
-		isc_mem_put(mctx, element, len);
+		zoneverify_log_error(vctx, "isc_heap_insert failed: %s",
+				     isc_result_totext(result));
+		isc_mem_put(vctx->mctx, element, len);
 	}
 	return (result);
 }
@@ -490,8 +490,7 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	/*
 	 * Record chain.
 	 */
-	result = record_nsec3(rawhash, &nsec3, vctx->mctx,
-			      vctx->expected_chains);
+	result = record_nsec3(vctx, rawhash, &nsec3, vctx->expected_chains);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "record_nsec3(): %s",
 				     isc_result_totext(result));
@@ -582,8 +581,10 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	isc_region_consume(&hashlabel, 1);
 	isc_buffer_init(&b, owner, sizeof(owner));
 	result = isc_base32hex_decoderegion(&hashlabel, &b);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_SUCCESS;
 		goto cleanup;
+	}
 
 	for (result = dns_rdataset_first(&rdataset);
 	     result == ISC_R_SUCCESS;
@@ -604,14 +605,18 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		/*
 		 * Record chain.
 		 */
-		result = record_nsec3(owner, &nsec3, vctx->mctx,
-				      vctx->found_chains);
-		check_result(result, "record_nsec3()");
+		result = record_nsec3(vctx, owner, &nsec3, vctx->found_chains);
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "record_nsec3(): %s",
+					     isc_result_totext(result));
+			goto cleanup;
+		}
 	}
+	result = ISC_R_SUCCESS;
 
  cleanup:
 	dns_rdataset_disassociate(&rdataset);
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
