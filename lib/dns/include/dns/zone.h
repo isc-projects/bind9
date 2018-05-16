@@ -1985,6 +1985,14 @@ dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category, int level,
  */
 
 void
+dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
+	      const char *msg, va_list ap);
+/*%<
+ * Log the message 'msg...' at 'level', including text that identifies
+ * the message as applying to 'zone'.
+ */
+
+void
 dns_zone_name(dns_zone_t *zone, char *buf, size_t len);
 /*%<
  * Return the name of the zone with class and view.
