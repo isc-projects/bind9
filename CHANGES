@@ -1,3 +1,6 @@
+4946.	[bug]		Additional glue was not being returned by resolver
+			for unsigned zones since change 4596. [GL #209]
+
 4944.	[cleanup]	Silence cppcheck portability warnings in
 			lib/isc/tests/buffer_test.c. [GL #239]
 
