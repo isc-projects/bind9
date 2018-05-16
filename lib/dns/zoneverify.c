@@ -1442,14 +1442,42 @@ check_bad_algorithms(const vctx_t *vctx) {
 	}
 }
 
+static void
+print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
+	char algbuf[DNS_SECALG_FORMATSIZE];
+	int i;
+
+	fprintf(stderr, "Zone fully signed:\n");
+	for (i = 0; i < 256; i++) {
+		if ((vctx->ksk_algorithms[i] != 0) ||
+		    (vctx->standby_ksk[i] != 0) ||
+		    (vctx->revoked_ksk[i] != 0) ||
+		    (vctx->zsk_algorithms[i] != 0) ||
+		    (vctx->standby_zsk[i] != 0) ||
+		    (vctx->revoked_zsk[i] != 0)) {
+			dns_secalg_format(i, algbuf, sizeof(algbuf));
+			fprintf(stderr, "Algorithm: %s: KSKs: "
+				"%u active, %u stand-by, %u revoked\n",
+				algbuf, vctx->ksk_algorithms[i],
+				vctx->standby_ksk[i],
+				vctx->revoked_ksk[i]);
+			fprintf(stderr, "%*sZSKs: "
+				"%u active, %u %s, %u revoked\n",
+				(int) strlen(algbuf) + 13, "",
+				vctx->zsk_algorithms[i],
+				vctx->standby_zsk[i],
+				keyset_kskonly ? "present" : "stand-by",
+				vctx->revoked_zsk[i]);
+		}
+	}
+}
+
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, isc_mem_t *mctx,
 		      isc_boolean_t ignore_kskflag,
 		      isc_boolean_t keyset_kskonly)
 {
-	char algbuf[80];
-	int i;
 	isc_boolean_t goodksk = ISC_FALSE;
 	isc_boolean_t goodzsk = ISC_FALSE;
 	isc_result_t result, vresult = ISC_R_UNSET;
@@ -1488,32 +1516,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_result_totext(vresult));
 
 	if (goodksk || ignore_kskflag) {
-		/*
-		 * Print the success summary.
-		 */
-		fprintf(stderr, "Zone fully signed:\n");
-		for (i = 0; i < 256; i++) {
-			if ((vctx.ksk_algorithms[i] != 0) ||
-			    (vctx.standby_ksk[i] != 0) ||
-			    (vctx.revoked_ksk[i] != 0) ||
-			    (vctx.zsk_algorithms[i] != 0) ||
-			    (vctx.standby_zsk[i] != 0) ||
-			    (vctx.revoked_zsk[i] != 0)) {
-				dns_secalg_format(i, algbuf, sizeof(algbuf));
-				fprintf(stderr, "Algorithm: %s: KSKs: "
-					"%u active, %u stand-by, %u revoked\n",
-					algbuf, vctx.ksk_algorithms[i],
-					vctx.standby_ksk[i],
-					vctx.revoked_ksk[i]);
-				fprintf(stderr, "%*sZSKs: "
-					"%u active, %u %s, %u revoked\n",
-					(int) strlen(algbuf) + 13, "",
-					vctx.zsk_algorithms[i],
-					vctx.standby_zsk[i],
-					keyset_kskonly ? "present" : "stand-by",
-					vctx.revoked_zsk[i]);
-			}
-		}
+		print_summary(&vctx, keyset_kskonly);
 	}
 
 	vctx_destroy(&vctx);
