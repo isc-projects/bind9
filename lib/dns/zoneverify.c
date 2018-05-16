@@ -1127,60 +1127,103 @@ vctx_destroy(vctx_t *vctx) {
 	isc_heap_destroy(&vctx->found_chains);
 }
 
-static void
+static isc_result_t
 check_apex_rrsets(vctx_t *vctx) {
 	dns_dbnode_t *node = NULL;
 	isc_result_t result;
 
 	result = dns_db_findnode(vctx->db, vctx->origin, ISC_FALSE, &node);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to find the zone's origin: %s",
-		      isc_result_totext(result));
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx,
+				     "failed to find the zone's origin: %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 				     dns_rdatatype_dnskey, 0, 0,
 				     &vctx->keyset, &vctx->keysigs);
-	if (result != ISC_R_SUCCESS)
-		fatal("Zone contains no DNSSEC keys\n");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "Zone contains no DNSSEC keys");
+		goto done;
+	}
 
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 				     dns_rdatatype_soa, 0, 0,
 				     &vctx->soaset, &vctx->soasigs);
-	if (result != ISC_R_SUCCESS)
-		fatal("Zone contains no SOA record\n");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "Zone contains no SOA record");
+		goto done;
+	}
 
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 				     dns_rdatatype_nsec, 0, 0,
 				     &vctx->nsecset, &vctx->nsecsigs);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-		fatal("NSEC lookup failed\n");
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		zoneverify_log_error(vctx, "NSEC lookup failed");
+		goto done;
+	}
 
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 				     dns_rdatatype_nsec3param, 0, 0,
 				     &vctx->nsec3paramset,
 				     &vctx->nsec3paramsigs);
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
-		fatal("NSEC3PARAM lookup failed\n");
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+		zoneverify_log_error(vctx, "NSEC3PARAM lookup failed");
+		goto done;
+	}
 
-	if (!dns_rdataset_isassociated(&vctx->keysigs))
-		fatal("DNSKEY is not signed (keys offline or inactive?)\n");
+	if (!dns_rdataset_isassociated(&vctx->keysigs)) {
+		zoneverify_log_error(vctx,
+				     "DNSKEY is not signed "
+				     "(keys offline or inactive?)");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
-	if (!dns_rdataset_isassociated(&vctx->soasigs))
-		fatal("SOA is not signed (keys offline or inactive?)\n");
+	if (!dns_rdataset_isassociated(&vctx->soasigs)) {
+		zoneverify_log_error(vctx,
+				     "SOA is not signed "
+				     "(keys offline or inactive?)");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
 	if (dns_rdataset_isassociated(&vctx->nsecset) &&
 	    !dns_rdataset_isassociated(&vctx->nsecsigs))
-		fatal("NSEC is not signed (keys offline or inactive?)\n");
+	{
+		zoneverify_log_error(vctx,
+				     "NSEC is not signed "
+				     "(keys offline or inactive?)");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
 	if (dns_rdataset_isassociated(&vctx->nsec3paramset) &&
 	    !dns_rdataset_isassociated(&vctx->nsec3paramsigs))
-		fatal("NSEC3PARAM is not signed (keys offline or inactive?)\n");
+	{
+		zoneverify_log_error(vctx,
+				     "NSEC3PARAM is not signed "
+				     "(keys offline or inactive?)");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
 	if (!dns_rdataset_isassociated(&vctx->nsecset) &&
 	    !dns_rdataset_isassociated(&vctx->nsec3paramset))
-		fatal("No valid NSEC/NSEC3 chain for testing\n");
+	{
+		zoneverify_log_error(vctx,
+				     "No valid NSEC/NSEC3 chain for testing");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
+	result = ISC_R_SUCCESS;
+
+ done:
 	dns_db_detachnode(vctx->db, &node);
+
+	return (result);
 }
 
 /*%
@@ -1488,7 +1531,10 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		return (result);
 	}
 
-	check_apex_rrsets(&vctx);
+	result = check_apex_rrsets(&vctx);
+	if (result != ISC_R_SUCCESS) {
+		goto done;
+	}
 
 	check_dnskey(&vctx, &goodksk, &goodzsk);
 
@@ -1519,6 +1565,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		print_summary(&vctx, keyset_kskonly);
 	}
 
+ done:
 	vctx_destroy(&vctx);
 
 	return (result);
