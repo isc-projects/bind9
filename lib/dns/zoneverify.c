@@ -836,18 +836,23 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	return (result);
 }
 
-static isc_boolean_t
-is_empty(const vctx_t *vctx, dns_dbnode_t *node) {
+static isc_result_t
+is_empty(const vctx_t *vctx, dns_dbnode_t *node, isc_boolean_t *empty) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 
 	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 	result = dns_rdatasetiter_first(rdsiter);
 	dns_rdatasetiter_destroy(&rdsiter);
-	if (result == ISC_R_NOMORE)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+
+	*empty = ISC_TF(result == ISC_R_NOMORE);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1450,6 +1455,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);
 		while (result == ISC_R_SUCCESS) {
+			isc_boolean_t empty;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			if (result != ISC_R_SUCCESS &&
@@ -1477,12 +1483,15 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 				result = dns_dbiterator_next(dbiter);
 				continue;
 			}
-			if (is_empty(vctx, nextnode)) {
-				dns_db_detachnode(vctx->db, &nextnode);
+			result = is_empty(vctx, nextnode, &empty);
+			dns_db_detachnode(vctx->db, &nextnode);
+			if (result != ISC_R_SUCCESS) {
+				dns_db_detachnode(vctx->db, &node);
+				goto done;
+			} else if (empty) {
 				result = dns_dbiterator_next(dbiter);
 				continue;
 			}
-			dns_db_detachnode(vctx->db, &nextnode);
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
