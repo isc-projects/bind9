@@ -1258,6 +1258,54 @@ check_dnskey(vctx_t *vctx, isc_boolean_t *goodksk, isc_boolean_t *goodzsk) {
 	}
 }
 
+static void
+determine_active_algorithms(vctx_t *vctx, isc_boolean_t ignore_kskflag,
+			    isc_boolean_t keyset_kskonly)
+{
+	char algbuf[DNS_SECALG_FORMATSIZE];
+	int i;
+
+	zoneverify_print(vctx,
+			 "Verifying the zone using the following algorithms:");
+
+	for (i = 0; i < 256; i++) {
+		if (ignore_kskflag)
+			vctx->act_algorithms[i] =
+				(vctx->ksk_algorithms[i] != 0 ||
+				 vctx->zsk_algorithms[i] != 0) ? 1 : 0;
+		else
+			vctx->act_algorithms[i] =
+				vctx->ksk_algorithms[i] != 0 ? 1 : 0;
+		if (vctx->act_algorithms[i] != 0) {
+			dns_secalg_format(i, algbuf, sizeof(algbuf));
+			zoneverify_print(vctx, " %s", algbuf);
+		}
+	}
+	zoneverify_print(vctx, ".\n");
+
+	if (ignore_kskflag || keyset_kskonly) {
+		return;
+	}
+
+	for (i = 0; i < 256; i++) {
+		/*
+		 * The counts should both be zero or both be non-zero.  Mark
+		 * the algorithm as bad if this is not met.
+		 */
+		if ((vctx->ksk_algorithms[i] != 0) ==
+		    (vctx->zsk_algorithms[i] != 0))
+			continue;
+		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		zoneverify_log_error(vctx,
+				     "Missing %s for algorithm %s",
+				     (vctx->ksk_algorithms[i] != 0)
+					? "ZSK"
+					: "self-signed KSK",
+				     algbuf);
+		vctx->bad_algorithms[i] = 1;
+	}
+}
+
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, isc_mem_t *mctx,
@@ -1293,40 +1341,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		fatal("No self-signed KSK DNSKEY found.  Supply an active\n"
 		      "key with the KSK flag set, or use '-P'.");
 
-	fprintf(stderr, "Verifying the zone using the following algorithms:");
-	for (i = 0; i < 256; i++) {
-		if (ignore_kskflag)
-			vctx.act_algorithms[i] =
-				(vctx.ksk_algorithms[i] != 0 ||
-				 vctx.zsk_algorithms[i] != 0) ? 1 : 0;
-		else
-			vctx.act_algorithms[i] =
-				vctx.ksk_algorithms[i] != 0 ? 1 : 0;
-		if (vctx.act_algorithms[i] != 0) {
-			dns_secalg_format(i, algbuf, sizeof(algbuf));
-			fprintf(stderr, " %s", algbuf);
-		}
-	}
-	fprintf(stderr, ".\n");
-
-	if (!ignore_kskflag && !keyset_kskonly) {
-		for (i = 0; i < 256; i++) {
-			/*
-			 * The counts should both be zero or both be non-zero.
-			 * Mark the algorithm as bad if this is not met.
-			 */
-			if ((vctx.ksk_algorithms[i] != 0) ==
-			    (vctx.zsk_algorithms[i] != 0))
-				continue;
-			dns_secalg_format(i, algbuf, sizeof(algbuf));
-			fprintf(stderr, "Missing %s for algorithm %s\n",
-				(vctx.ksk_algorithms[i] != 0)
-				   ? "ZSK"
-				   : "self-signed KSK",
-				algbuf);
-			vctx.bad_algorithms[i] = 1;
-		}
-	}
+	determine_active_algorithms(&vctx, ignore_kskflag, keyset_kskonly);
 
 	/*
 	 * Check that all the other records were signed by keys that are
