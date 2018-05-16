@@ -33,7 +33,6 @@ DNSTAPREAD=$TOP/bin/tools/dnstap-read
 DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey
 FEATURETEST=$TOP/bin/tests/system/feature-test
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
-GENRANDOM=$TOP/bin/tools/genrandom
 IMPORTKEY=$TOP/bin/dnssec/dnssec-importkey
 JOURNALPRINT=$TOP/bin/tools/named-journalprint
 KEYFRLAB=$TOP/bin/dnssec/dnssec-keyfromlabel
@@ -58,8 +57,6 @@ SIGNER=$TOP/bin/dnssec/dnssec-signzone
 TSIGKEYGEN=$TOP/bin/confgen/tsig-keygen
 VERIFY=$TOP/bin/dnssec/dnssec-verify
 WIRETEST=$TOP/bin/tests/wire_test
-
-RANDFILE=$TOP/bin/tests/system/random.data
 
 BIGKEY=$TOP/bin/tests/system/rsabigexponent/bigkey
 GENCHECK=$TOP/bin/tests/system/rndc/gencheck
@@ -323,7 +320,6 @@ export PK11GEN
 export PK11LIST
 export PSSUSPEND
 export PYTHON
-export RANDFILE
 export RESOLVE
 export RNDC
 export RRCHECKER

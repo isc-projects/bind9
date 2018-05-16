@@ -81,7 +81,6 @@
       <arg choice="opt" rep="norepeat"><option>-p <replaceable class="parameter">protocol</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-q</option></arg>
       <arg choice="opt" rep="norepeat"><option>-R <replaceable class="parameter">date/offset</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-S <replaceable class="parameter">key</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">strength</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-t <replaceable class="parameter">type</replaceable></option></arg>
@@ -345,31 +344,6 @@
 	    round of the Miller-Rabin primality test; a space
 	    means that the number has passed all the tests and is
 	    a satisfactory key.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-r <replaceable class="parameter">randomdev</replaceable></term>
-	<listitem>
-	  <para>
-	    Specifies a source of randomness.  Normally, when generating
-	    DNSSEC keys, this option has no effect; the random number
-	    generation function provided by the cryptographic library will
-	    be used.
-	  </para>
-	  <para>
-	    If that behavior is disabled at compile time, however,
-	    the specified file will be used as entropy source
-	    for key generation.  <filename>randomdev</filename> is
-	    the name of a character device or file containing random
-	    data to be used.  The special value <filename>keyboard</filename>
-	    indicates that keyboard input should be used.
-	  </para>
-	  <para>
-	    The default is <filename>/dev/random</filename> if the
-	    operating system provides it or an equivalent device;
-	    if not, the default source of randomness is keyboard input.
 	  </para>
 	</listitem>
       </varlistentry>

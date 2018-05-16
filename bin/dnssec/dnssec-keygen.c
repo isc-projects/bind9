@@ -33,7 +33,6 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/region.h>
@@ -121,7 +120,6 @@ usage(void) {
 			"(DH only)\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
-	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
 	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
 			"records with (default: 0)\n");
 	fprintf(stderr, "    -T <rrtype>: DNSKEY | KEY (default: DNSKEY; "
@@ -218,7 +216,6 @@ main(int argc, char **argv) {
 	dst_key_t	*prevkey = NULL;
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
-	isc_entropy_t	*ectx = NULL;
 #ifdef USE_PKCS11
 	const char	*engine = PKCS11_ENGINE;
 #else
@@ -365,7 +362,8 @@ main(int argc, char **argv) {
 			quiet = ISC_TRUE;
 			break;
 		case 'r':
-			setup_entropy(mctx, isc_commandline_argument, &ectx);
+			fatal("The -r option has been deprecated.\n"
+			      "System random data is always used.\n");
 			break;
 		case 's':
 			signatory = strtol(isc_commandline_argument,
@@ -494,10 +492,7 @@ main(int argc, char **argv) {
 	if (!isatty(0))
 		quiet = ISC_TRUE;
 
-	if (ectx == NULL)
-		setup_entropy(mctx, NULL, &ectx);
-	ret = dst_lib_init(mctx, ectx, engine,
-			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	ret = dst_lib_init(mctx, engine);
 	if (ret != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(ret));
@@ -872,8 +867,6 @@ main(int argc, char **argv) {
 					       NULL);
 		}
 
-		isc_entropy_stopcallbacksources(ectx);
-
 		if (ret != ISC_R_SUCCESS) {
 			char namestr[DNS_NAME_FORMATSIZE];
 			char algstr[DNS_SECALG_FORMATSIZE];
@@ -1026,7 +1019,6 @@ main(int argc, char **argv) {
 		dst_key_free(&prevkey);
 
 	cleanup_logging(&log);
-	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	dns_name_destroy();
 	if (verbose > 10)

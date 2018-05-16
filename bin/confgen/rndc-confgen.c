@@ -29,7 +29,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/keyboard.h>
 #include <isc/mem.h>
@@ -70,7 +69,7 @@ usage(int status) {
 
 	fprintf(stderr, "\
 Usage:\n\
- %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] [-r randomfile] \
+ %s [-a] [-b bits] [-c keyfile] [-k keyname] [-p port] \
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		 generate just the key clause and write it to keyfile (%s)\n\
   -A alg:	 algorithm (default hmac-sha256)\n\
@@ -78,7 +77,6 @@ Usage:\n\
   -c keyfile:	 specify an alternate key file (requires -a)\n\
   -k keyname:	 the name as it will be used  in named.conf and rndc.conf\n\
   -p port:	 the port named will listen on and rndc will connect to\n\
-  -r randomfile: source of random data (use \"keyboard\" for key timing)\n\
   -s addr:	 the address to which rndc should connect\n\
   -t chrootdir:	 write a keyfile in chrootdir as well (requires -a)\n\
   -u user:	 set the keyfile owner to \"user\" (requires -a)\n",
@@ -95,7 +93,6 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	const char *keyname = NULL;
-	const char *randomfile = NULL;
 	const char *serveraddr = NULL;
 	dns_secalg_t alg;
 	const char *algname;
@@ -165,7 +162,7 @@ main(int argc, char **argv) {
 				      isc_commandline_argument);
 			break;
 		case 'r':
-			randomfile = isc_commandline_argument;
+			fatal("The -r option has been deprecated.");
 			break;
 		case 's':
 			serveraddr = isc_commandline_argument;
@@ -217,7 +214,7 @@ main(int argc, char **argv) {
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
-	generate_key(mctx, randomfile, alg, keysize, &key_txtbuffer);
+	generate_key(mctx, alg, keysize, &key_txtbuffer);
 
 	if (keyonly) {
 		write_key_file(keyfile, chrootdir == NULL ? user : NULL,

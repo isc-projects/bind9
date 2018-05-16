@@ -18,7 +18,6 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -117,8 +116,6 @@ dst_key_t *key;
 dns_fixedname_t fname;
 dns_name_t *name;
 unsigned int bits = 1024U;
-isc_entropy_t *ectx;
-isc_entropysource_t *source;
 isc_mem_t *mctx;
 isc_log_t *log_;
 isc_logconfig_t *logconfig;
@@ -174,13 +171,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	CHECK(isc_mem_create(0, 0, &mctx), "isc_mem_create()");
-	CHECK(isc_entropy_create(mctx, &ectx), "isc_entropy_create()");
-	isc_entropy_usehook(ectx, ISC_TRUE);
-	CHECK(isc_entropy_usebestsource(ectx, &source,
-					"../random.data",
-					ISC_ENTROPY_KEYBOARDNO),
-	      "isc_entropy_usebestsource(\"../random.data\")");
-	CHECK(dst_lib_init(mctx, ectx, NULL, 0), "dst_lib_init()");
+	CHECK(dst_lib_init(mctx, NULL), "dst_lib_init()");
 	CHECK(isc_log_create(mctx, &log_, &logconfig), "isc_log_create()");
 	isc_log_setcontext(log_);
 	dns_log_init(log_);
@@ -222,9 +213,6 @@ main(int argc, char **argv) {
 	isc_log_destroy(&log_);
 	isc_log_setcontext(NULL);
 	dns_log_setcontext(NULL);
-	if (source != NULL)
-		isc_entropy_destroysource(&source);
-	isc_entropy_detach(&ectx);
 	dst_lib_destroy();
 	dns_name_destroy();
 	isc_mem_destroy(&mctx);

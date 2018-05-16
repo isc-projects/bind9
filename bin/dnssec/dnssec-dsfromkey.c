@@ -17,7 +17,6 @@
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -359,7 +358,6 @@ main(int argc, char **argv) {
 	isc_boolean_t	showall = ISC_FALSE;
 	isc_result_t	result;
 	isc_log_t	*log = NULL;
-	isc_entropy_t	*ectx = NULL;
 	dns_rdataset_t	rdataset;
 	dns_rdata_t	rdata;
 
@@ -475,14 +473,10 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("extraneous arguments");
 
-	if (ectx == NULL)
-		setup_entropy(mctx, NULL, &ectx);
-	result = dst_lib_init(mctx, ectx, NULL,
-			      ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
+	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
-	isc_entropy_stopcallbacksources(ectx);
 
 	setup_logging(mctx, &log);
 
@@ -544,7 +538,6 @@ main(int argc, char **argv) {
 		dns_rdataset_disassociate(&rdataset);
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

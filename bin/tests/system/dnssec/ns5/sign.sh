@@ -16,7 +16,7 @@ zone=.
 infile=../ns1/root.db.in
 zonefile=root.db.signed
 
-keyname=`$KEYGEN -r $RANDFILE -a RSASHA1 -qfk $zone`
+keyname=`$KEYGEN -a RSASHA1 -qfk $zone`
 
 # copy the KSK out first, then revoke it
 cat $keyname.key | grep -v '^; ' | $PERL -n -e '
@@ -32,6 +32,6 @@ EOF
 $SETTIME -R now ${keyname}.key > /dev/null
 
 # create a current set of keys, and sign the root zone
-$KEYGEN -r $RANDFILE -a RSASHA1 -q $zone > /dev/null
-$KEYGEN -r $RANDFILE -a RSASHA1 -qfk $zone > /dev/null
-$SIGNER -S -r $RANDFILE -o $zone -f $zonefile $infile > /dev/null 2>&1
+$KEYGEN -a RSASHA1 -q $zone > /dev/null
+$KEYGEN -a RSASHA1 -qfk $zone > /dev/null
+$SIGNER -S -o $zone -f $zonefile $infile > /dev/null 2>&1

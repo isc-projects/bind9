@@ -19,7 +19,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
@@ -52,7 +51,6 @@
 #include "nstest.h"
 
 isc_mem_t *mctx = NULL;
-isc_entropy_t *ectx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
@@ -194,9 +192,9 @@ create_managers(void) {
 
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 
-	CHECK(ns_server_create(mctx, ectx, matchview, &sctx));
+	CHECK(ns_server_create(mctx, matchview, &sctx));
 
-	CHECK(dns_dispatchmgr_create(mctx, ectx, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr,
 				     socketmgr, dispatchmgr, maintask,
@@ -243,9 +241,8 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	if (debug_mem_record)
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	CHECK(isc_mem_create(0, 0, &mctx));
-	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, NULL, ISC_ENTROPY_BLOCKING));
+	CHECK(dst_lib_init(mctx, NULL));
 	dst_active = ISC_TRUE;
 
 	if (logfile != NULL) {
@@ -299,9 +296,6 @@ ns_test_end(void) {
 	}
 
 	cleanup_managers();
-
-	if (ectx != NULL)
-		isc_entropy_detach(&ectx);
 
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
@@ -557,7 +551,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Set query ID to a random value.
 	 */
-	isc_random_get(&qid);
+	qid = isc_random();
 	message->id = (dns_messageid_t)(qid & 0xffff);
 
 	/*

@@ -127,11 +127,38 @@
 	  implementation of "rbt") has been removed. [GL #217]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>-r randomdev</command> option to explicitly select
+	  random device has been removed from
+	  <command>ddns-confgen</command>,
+	  <command>rndc-confgen</command>,
+	  <command>nsupdate</command>,
+	  <command>dnssec-confgen</command>, and
+	  <command>dnssec-signzone</command> commands.
+	</para>
+	<para>
+	  The <command>-p</command> option to use pseudo-random data
+	  has been removed from <command>dnssec-signzone</command>
+	  command.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  BIND will now always you use the best CSPRNG
+	  (cryptographically-secure pseudo-random number generator)
+	  available on the platform where it is compiled.  It will use
+	  arc4random() family of functions on BSDs, getrandom() on
+	  Linux and Solaris, CryptGenRandom on Windows, and the
+	  selected cryptographic library (OpenSSL or PKCS#11) provider
+	  as the last resort. [GL #221]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  BIND can no longer be built without DNSSEC support. A cryptography

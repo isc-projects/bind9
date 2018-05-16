@@ -18,7 +18,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/os.h>
@@ -31,7 +30,6 @@
 #include "isctest.h"
 
 isc_mem_t *mctx = NULL;
-isc_entropy_t *ectx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
@@ -105,7 +103,6 @@ isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	CHECK(isc_mem_create(0, 0, &mctx));
-	CHECK(isc_entropy_create(mctx, &ectx));
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -149,8 +146,6 @@ isc_test_end(void) {
 		isc_task_detach(&maintask);
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
-	if (ectx != NULL)
-		isc_entropy_detach(&ectx);
 
 	cleanup_managers();
 

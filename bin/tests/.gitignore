@@ -1,5 +1,4 @@
 .libs
-genrandom
 headerdep_test.sh
 nxtify
 sdig

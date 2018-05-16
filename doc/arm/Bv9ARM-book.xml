@@ -18005,7 +18005,6 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-verify.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/dnstap-read.docbook"/>
-      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/genrandom.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/mdig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkconf.docbook"/>

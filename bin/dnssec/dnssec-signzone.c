@@ -34,7 +34,6 @@
 #include <isc/app.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/hash.h>
@@ -130,7 +129,6 @@ static int jitter = 0;
 static isc_boolean_t tryverify = ISC_FALSE;
 static isc_boolean_t printstats = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
-static isc_entropy_t *ectx = NULL;
 static dns_ttl_t zone_soa_min_ttl;
 static dns_ttl_t soa_ttl;
 static FILE *outfp = NULL;
@@ -282,11 +280,10 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dst_key_t *key,
 	else
 		expiry = endtime;
 
-	jendtime = (jitter != 0) ? isc_random_jitter(expiry, jitter) : expiry;
+	jendtime = (jitter != 0) ? expiry - isc_random_uniform(jitter) : expiry;
 	isc_buffer_init(&b, array, sizeof(array));
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &jendtime,
 				 mctx, &b, &trdata);
-	isc_entropy_stopcallbacksources(ectx);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dnskey '%s' failed to sign data: %s",
 		      keystr, isc_result_totext(result));
@@ -3056,8 +3053,6 @@ usage(void) {
 	fprintf(stderr, "\t\tsoa serial format of signed zone file (keep)\n");
 	fprintf(stderr, "\t-D:\n");
 	fprintf(stderr, "\t\toutput only DNSSEC-related records\n");
-	fprintf(stderr, "\t-r randomdev:\n");
-	fprintf(stderr,	"\t\ta file containing random data\n");
 	fprintf(stderr, "\t-a:\t");
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
@@ -3071,8 +3066,6 @@ usage(void) {
 #else
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
 #endif
-	fprintf(stderr, "\t-p:\t");
-	fprintf(stderr, "use pseudorandom data (faster but less secure)\n");
 	fprintf(stderr, "\t-P:\t");
 	fprintf(stderr, "disable post-sign verification\n");
 	fprintf(stderr, "\t-Q:\t");
@@ -3162,13 +3155,11 @@ main(int argc, char *argv[]) {
 	dns_dnsseckey_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-	isc_boolean_t pseudorandom = ISC_FALSE;
 #ifdef USE_PKCS11
 	const char *engine = PKCS11_ENGINE;
 #else
 	const char *engine = NULL;
 #endif
-	unsigned int eflags;
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
@@ -3397,7 +3388,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'p':
-			pseudorandom = ISC_TRUE;
+			fatal("The -p option has been deprecated.\n");
 			break;
 
 		case 'Q':
@@ -3409,7 +3400,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			setup_entropy(mctx, isc_commandline_argument, &ectx);
+			fatal("The -r options has been deprecated.\n");
 			break;
 
 		case 'S':
@@ -3485,13 +3476,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	if (ectx == NULL)
-		setup_entropy(mctx, NULL, &ectx);
-	eflags = ISC_ENTROPY_BLOCKING;
-	if (!pseudorandom)
-		eflags |= ISC_ENTROPY_GOODONLY;
-
-	result = dst_lib_init(mctx, ectx, engine, eflags);
+	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
@@ -3910,7 +3895,6 @@ main(int argc, char *argv[]) {
 
 	cleanup_logging(&log);
 	dst_lib_destroy();
-	cleanup_entropy(&ectx);
 	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);

@@ -38,7 +38,6 @@ DNSTAPREAD=$TOP/Build/$VSCONF/dnstap-read@EXEEXT@
 DSFROMKEY=$TOP/Build/$VSCONF/dnssec-dsfromkey@EXEEXT@
 FEATURETEST=$TOP/Build/$VSCONF/feature-test@EXEEXT@
 FSTRM_CAPTURE=@FSTRM_CAPTURE@
-GENRANDOM=$TOP/Build/$VSCONF/genrandom@EXEEXT@
 IMPORTKEY=$TOP/Build/$VSCONF/dnssec-importkey@EXEEXT@
 JOURNALPRINT=$TOP/Build/$VSCONF/named-journalprint@EXEEXT@
 KEYFRLAB=$TOP/Build/$VSCONF/dnssec-keyfromlabel@EXEEXT@
@@ -64,9 +63,6 @@ TSIGKEYGEN=$TOP/Build/$VSCONF/tsig-keygen@EXEEXT@
 VERIFY=$TOP/Build/$VSCONF/dnssec-verify@EXEEXT@
 
 # to port WIRETEST=$TOP/Build/$VSCONF/wire_test@EXEEXT@
-
-# this is given as argument to native WIN32 executables
-RANDFILE=`cygpath -w $TOP/bin/tests/system/random.data`
 
 BIGKEY=$TOP/Build/$VSCONF/bigkey@EXEEXT@
 GENCHECK=$TOP/Build/$VSCONF/gencheck@EXEEXT@
@@ -298,7 +294,6 @@ export PK11GEN
 export PK11LIST
 export PSSUSPEND
 export PYTHON
-export RANDFILE
 export RESOLVE
 export RNDC
 export RRCHECKER

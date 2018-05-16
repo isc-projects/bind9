@@ -78,10 +78,8 @@
       <arg choice="opt" rep="norepeat"><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-p</option></arg>
       <arg choice="opt" rep="norepeat"><option>-Q</option></arg>
       <arg choice="opt" rep="norepeat"><option>-R</option></arg>
-      <arg choice="opt" rep="norepeat"><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-S</option></arg>
       <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-T <replaceable class="parameter">ttl</replaceable></option></arg>
@@ -509,18 +507,6 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-p</term>
-        <listitem>
-          <para>
-            Use pseudo-random data when signing the zone.  This is faster,
-            but less secure, than using real random data.  This option
-            may be useful when signing large zones or when the entropy
-            source is limited.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>-P</term>
         <listitem>
           <para>
@@ -571,23 +557,6 @@
           </para>
         </listitem>
       </varlistentry>
-      <varlistentry>
-        <term>-r <replaceable class="parameter">randomdev</replaceable></term>
-        <listitem>
-          <para>
-            Specifies the source of randomness.  If the operating
-            system does not provide a <filename>/dev/random</filename>
-            or equivalent device, the default source of randomness
-            is keyboard input.  <filename>randomdev</filename>
-            specifies
-            the name of a character device or file containing random
-            data to be used instead of the default.  The special value
-            <filename>keyboard</filename> indicates that keyboard
-            input should be used.
-          </para>
-        </listitem>
-      </varlistentry>
-
       <varlistentry>
         <term>-S</term>
         <listitem>

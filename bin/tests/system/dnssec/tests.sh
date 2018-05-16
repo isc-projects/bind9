@@ -1381,8 +1381,8 @@ status=`expr $status + $ret`
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key1=`$KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example.db
@@ -1395,8 +1395,8 @@ status=`expr $status + $ret`
 echo_i "checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key1=`$KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example.db
@@ -1420,8 +1420,8 @@ status=`expr $status + $ret`
 echo_i "checking NSEC3 signing with empty nonterminals above a delegation ($n)"
 ret=0
 zone=example
-key1=`$KEYGEN -K signer -q -r $RANDFILE -a NSEC3RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key1=`$KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example3.db
@@ -1446,8 +1446,8 @@ status=`expr $status + $ret`
 echo_i "checking that dnsssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 zone=example
-key1=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
+key1=`$KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -f KSK -a RSASHA1 -b 1024 -n zone $zone`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example.db
@@ -1463,10 +1463,10 @@ status=`expr $status + $ret`
 echo_i "checking dnssec-signzone keeps valid signatures from removed keys ($n)"
 ret=0
 zone=example
-key1=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
-key2=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+key1=`$KEYGEN -K signer -q -f KSK -a RSASHA1 -b 1024 -n zone $zone`
+key2=`$KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone`
 keyid2=`echo $key2 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
-key3=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
+key3=`$KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone`
 keyid3=`echo $key3 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
 (
 cd signer
@@ -2320,7 +2320,7 @@ echo_i "checking that the NSEC3 record for the apex is properly signed when a DN
 ret=0
 (
 cd ns3
-kskname=`$KEYGEN -q -3 -a RSASHA1 -r $RANDFILE -fk update-nsec3.example`
+kskname=`$KEYGEN -q -3 -a RSASHA1 -fk update-nsec3.example`
 (
 echo zone update-nsec3.example
 echo server 10.53.0.3 ${PORT}
@@ -2661,7 +2661,7 @@ status=`expr $status + $ret`
 # includes it anyway to avoid confusion (RT #21731)
 echo_i "check dnssec-dsfromkey error message when keyfile is not found ($n)"
 ret=0
-key=`$KEYGEN -a RSASHA1 -q -r $RANDFILE example.` || ret=1
+key=`$KEYGEN -a RSASHA1 -q example.` || ret=1
 mv $key.key $key
 $DSFROMKEY $key > dsfromkey.out.$n 2>&1 && ret=1
 grep "$key.key: file not found" dsfromkey.out.$n > /dev/null || ret=1
@@ -2748,7 +2748,7 @@ cd ns3
 for file in K*.moved; do
   mv $file `basename $file .moved`
 done
-$SIGNER -S -r $RANDFILE -N increment -e now+1mi -o expiring.example expiring.example.db > /dev/null 2>&1
+$SIGNER -S -N increment -e now+1mi -o expiring.example expiring.example.db > /dev/null 2>&1
 ) || ret=1
 $RNDCCMD 10.53.0.3 reload expiring.example 2>&1 | sed 's/^/ns3 /' | cat_i
 
@@ -3115,7 +3115,7 @@ do
 	   alg=`expr $alg + 1`
 	   continue;;
 	esac
-	key1=`$KEYGEN -a $alg $size -n zone -r $RANDFILE example 2> keygen.err`
+	key1=`$KEYGEN -a $alg $size -n zone example 2> keygen.err`
 	if grep "unsupported algorithm" keygen.err > /dev/null
 	then
 		alg=`expr $alg + 1`
@@ -3130,7 +3130,7 @@ do
 		continue
 	fi
 	$SETTIME -I now+4d $key1.private > /dev/null
-	key2=`$KEYGEN -v 10 -r $RANDFILE -i 3d -S $key1.private 2> /dev/null`
+	key2=`$KEYGEN -v 10 -i 3d -S $key1.private 2> /dev/null`
 	test -f $key2.key -a -f $key2.private || {
 		ret=1
 		echo_i "'dnssec-keygen -S' failed for algorithm: $alg"
@@ -3447,8 +3447,8 @@ ret=0
 # generate signed zone with MX and AAAA records at apex.
 (
 cd signer
-$KEYGEN -q -r $RANDFILE -a RSASHA1 -3 -fK remove > /dev/null
-$KEYGEN -q -r $RANDFILE -a RSASHA1 -33 remove > /dev/null
+$KEYGEN -q -a RSASHA1 -3 -fK remove > /dev/null
+$KEYGEN -q -a RSASHA1 -33 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n 2>&1
 )
