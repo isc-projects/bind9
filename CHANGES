@@ -1,3 +1,6 @@
+4949.	[bug]		lib/isc/print.c failed to handle floating point
+			output correctly. [GL #261]
+
 4946.	[bug]		Additional glue was not being returned by resolver
 			for unsigned zones since change 4596. [GL #209]
 
