@@ -677,6 +677,7 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
+VALIDATION_DEFAULT
 UNITTESTS
 ATFLIBS
 ATFBIN
@@ -1041,6 +1042,7 @@ with_libidn2
 with_atf
 with_tuning
 enable_querytrace
+enable_auto_validation
 with_dlopen
 with_dlz_postgres
 with_dlz_mysql
@@ -1728,6 +1730,9 @@ Optional Features:
   --enable-dnsrps         enable DNS Response Policy Service API
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
+  --enable-auto-validation
+                          turn on DNSSEC validation by default, using the IANA
+                          root key [default=yes]
   --enable-full-report    report values of all configure options
 
 Optional Packages:
@@ -22610,6 +22615,32 @@ $as_echo "no" >&6; }
 esac
 
 #
+# Was --disable-auto-validation specified?
+#
+# Check whether --enable-auto-validation was given.
+if test "${enable_auto_validation+set}" = set; then :
+  enableval=$enable_auto_validation; want_autoval="$enableval"
+else
+  want_autoval="yes"
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable DNSSEC validation by default" >&5
+$as_echo_n "checking whether to enable DNSSEC validation by default... " >&6; }
+case "$want_autoval" in
+no)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	VALIDATION_DEFAULT=yes
+	;;
+*)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	VALIDATION_DEFAULT=auto
+	;;
+esac
+
+
+#
 # Substitutions
 #
 
@@ -26362,6 +26393,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
 
+    test "no" = "$want_autoval" || echo "    DNSSEC validation active by default (--enable-auto-validation)"
     echo "    Cryptographic library for DNSSEC: $CRYPTOLIB"
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
@@ -26399,6 +26431,8 @@ report() {
 
     test "yes" = "$enable_fixed" || \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+
+    test "no" = "$want_autoval" && echo "    DNSSEC validation requires configuration (--disable-auto-validation)"
 
     if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
     then
