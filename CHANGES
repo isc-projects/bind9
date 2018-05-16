@@ -1,4 +1,6 @@
-	--- 9.12.1-P1 released ---
+	--- 9.12.1-P2 released ---
+
+	--- 9.12.1-P1 (withdrawn) ---
 
 4934.	[security]	Simultaneous use of stale cache records and NSEC
 			aggressive negative caching could trigger a recursion
@@ -10,6 +12,7 @@
 			(CVE-2018-5736) [GL #134]
 
 	--- 9.12.1 released ---
+
 	--- 9.12.1rc2 released ---
 
 4904.	[bug]		Temporarily revert change #4859. [GL #124]
