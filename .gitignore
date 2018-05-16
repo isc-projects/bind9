@@ -7,6 +7,8 @@ libtool
 /isc-config.sh
 /configure.lineno
 autom4te.cache/
+*.rej
+*.orig
 *.o
 *.lo
 *.so
