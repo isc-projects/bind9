@@ -1104,7 +1104,7 @@ free_element_heap(void *element, void *uap) {
 }
 
 static isc_boolean_t
-checknext(const struct nsec3_chain_fixed *first,
+checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
 {
 	char buf[512];
@@ -1123,26 +1123,25 @@ checknext(const struct nsec3_chain_fixed *first,
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);
-	fprintf(stderr, "Break in NSEC3 chain at: %.*s\n",
-		(int) isc_buffer_usedlength(&b), buf);
+	zoneverify_log_error(vctx, "Break in NSEC3 chain at: %.*s",
+			     (int)isc_buffer_usedlength(&b), buf);
 
 	DE_CONST(d1, sr.base);
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);
-	fprintf(stderr, "Expected: %.*s\n", (int) isc_buffer_usedlength(&b),
-		buf);
+	zoneverify_log_error(vctx, "Expected: %.*s",
+			     (int)isc_buffer_usedlength(&b), buf);
 
 	DE_CONST(d2, sr.base);
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);
-	fprintf(stderr, "Found: %.*s\n", (int) isc_buffer_usedlength(&b), buf);
+	zoneverify_log_error(vctx, "Found: %.*s",
+			     (int)isc_buffer_usedlength(&b), buf);
 
 	return (ISC_FALSE);
 }
-
-#define EXPECTEDANDFOUND "Expected and found NSEC3 chains not equal\n"
 
 static isc_result_t
 verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
@@ -1164,8 +1163,12 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 				free_element(mctx, f);
 				f = NULL;
 			} else {
-				if (result == ISC_R_SUCCESS)
-					fprintf(stderr, EXPECTEDANDFOUND);
+				if (result == ISC_R_SUCCESS) {
+					zoneverify_log_error(
+						vctx,
+						"Expected and found NSEC3 "
+						"chains not equal");
+				}
 				result = ISC_R_FAILURE;
 				/*
 				 * Attempt to resync found_chain.
@@ -1183,12 +1186,14 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 				}
 			}
 		} else if (result == ISC_R_SUCCESS) {
-			fprintf(stderr, EXPECTEDANDFOUND);
+			zoneverify_log_error(vctx,
+					     "Expected and found NSEC3 chains "
+					     "not equal");
 			result = ISC_R_FAILURE;
 		}
 		if (first == NULL || newchain(first, e)) {
 			if (prev != NULL) {
-				if (!checknext(prev, first))
+				if (!checknext(vctx, prev, first))
 					result = ISC_R_FAILURE;
 				if (prev != first)
 					free_element(mctx, prev);
@@ -1198,14 +1203,14 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 			prev = first = e;
 			continue;
 		}
-		if (!checknext(prev, e))
+		if (!checknext(vctx, prev, e))
 			result = ISC_R_FAILURE;
 		if (prev != first)
 			free_element(mctx, prev);
 		prev = e;
 	}
 	if (prev != NULL) {
-		if (!checknext(prev, first))
+		if (!checknext(vctx, prev, first))
 			result = ISC_R_FAILURE;
 		if (prev != first)
 			free_element(mctx, prev);
@@ -1215,7 +1220,9 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 	do {
 		if (f != NULL) {
 			if (result == ISC_R_SUCCESS) {
-				fprintf(stderr, EXPECTEDANDFOUND);
+				zoneverify_log_error(vctx,
+						     "Expected and found "
+						     "NSEC3 chains not equal");
 				result = ISC_R_FAILURE;
 			}
 			free_element(mctx, f);
@@ -1816,28 +1823,32 @@ print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
 
-	fprintf(stderr, "Zone fully signed:\n");
+	zoneverify_print(vctx, "Zone fully signed:\n");
 	for (i = 0; i < 256; i++) {
-		if ((vctx->ksk_algorithms[i] != 0) ||
-		    (vctx->standby_ksk[i] != 0) ||
-		    (vctx->revoked_ksk[i] != 0) ||
-		    (vctx->zsk_algorithms[i] != 0) ||
-		    (vctx->standby_zsk[i] != 0) ||
-		    (vctx->revoked_zsk[i] != 0)) {
-			dns_secalg_format(i, algbuf, sizeof(algbuf));
-			fprintf(stderr, "Algorithm: %s: KSKs: "
-				"%u active, %u stand-by, %u revoked\n",
-				algbuf, vctx->ksk_algorithms[i],
-				vctx->standby_ksk[i],
-				vctx->revoked_ksk[i]);
-			fprintf(stderr, "%*sZSKs: "
-				"%u active, %u %s, %u revoked\n",
-				(int) strlen(algbuf) + 13, "",
-				vctx->zsk_algorithms[i],
-				vctx->standby_zsk[i],
-				keyset_kskonly ? "present" : "stand-by",
-				vctx->revoked_zsk[i]);
+		if ((vctx->ksk_algorithms[i] == 0) &&
+		    (vctx->standby_ksk[i] == 0) &&
+		    (vctx->revoked_ksk[i] == 0) &&
+		    (vctx->zsk_algorithms[i] == 0) &&
+		    (vctx->standby_zsk[i] == 0) &&
+		    (vctx->revoked_zsk[i] == 0))
+		{
+			continue;
 		}
+		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		zoneverify_print(vctx,
+				 "Algorithm: %s: KSKs: "
+				 "%u active, %u stand-by, %u revoked\n",
+				 algbuf, vctx->ksk_algorithms[i],
+				 vctx->standby_ksk[i],
+				 vctx->revoked_ksk[i]);
+		zoneverify_print(vctx,
+				 "%*sZSKs: "
+				 "%u active, %u %s, %u revoked\n",
+				 (int)strlen(algbuf) + 13, "",
+				 vctx->zsk_algorithms[i],
+				 vctx->standby_zsk[i],
+				 keyset_kskonly ? "present" : "stand-by",
+				 vctx->revoked_zsk[i]);
 	}
 }
 
