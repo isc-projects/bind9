@@ -39,10 +39,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#define check_dns_dbiterator_current(result) \
-	check_result((result == DNS_R_NEWORIGIN) ? ISC_R_SUCCESS : result, \
-		     "dns_dbiterator_current()")
-
 typedef struct vctx {
 	isc_mem_t *		mctx;
 	dns_zone_t *		zone;
@@ -894,6 +890,14 @@ free_element(isc_mem_t *mctx, struct nsec3_chain_fixed *e) {
 	isc_mem_put(mctx, e, len);
 }
 
+static void
+free_element_heap(void *element, void *uap) {
+	struct nsec3_chain_fixed *e = (struct nsec3_chain_fixed *)element;
+	isc_mem_t *mctx = (isc_mem_t *)uap;
+
+	free_element(mctx, e);
+}
+
 static isc_boolean_t
 checknext(const struct nsec3_chain_fixed *first,
 	  const struct nsec3_chain_fixed *e)
@@ -1123,7 +1127,9 @@ vctx_destroy(vctx_t *vctx) {
 	if (dns_rdataset_isassociated(&vctx->nsec3paramsigs)) {
 		dns_rdataset_disassociate(&vctx->nsec3paramsigs);
 	}
+	isc_heap_foreach(vctx->expected_chains, free_element_heap, vctx->mctx);
 	isc_heap_destroy(&vctx->expected_chains);
+	isc_heap_foreach(vctx->found_chains, free_element_heap, vctx->mctx);
 	isc_heap_destroy(&vctx->found_chains);
 }
 
@@ -1370,7 +1376,7 @@ determine_active_algorithms(vctx_t *vctx, isc_boolean_t ignore_kskflag,
  * Check that all the records not yet verified were signed by keys that are
  * present in the DNSKEY RRset.
  */
-static void
+static isc_result_t
 verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_fixedname_t fname, fnextname, fprevname, fzonecut;
 	dns_name_t *name, *nextname, *prevname, *zonecut;
@@ -1387,24 +1393,44 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	zonecut = NULL;
 
 	result = dns_db_createiterator(vctx->db, DNS_DB_NONSEC3, &dbiter);
-	check_result(result, "dns_db_createiterator()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx,
+				     "dns_db_createiterator(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	result = dns_dbiterator_first(dbiter);
-	check_result(result, "dns_dbiterator_first()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx,
+				     "dns_dbiterator_first(): %s",
+				     isc_result_totext(result));
+		goto done;
+	}
 
 	while (!done) {
 		isc_boolean_t isdelegation = ISC_FALSE;
 
 		result = dns_dbiterator_current(dbiter, &node, name);
-		check_dns_dbiterator_current(result);
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+			zoneverify_log_error(vctx,
+					     "dns_dbiterator_current(): %s",
+					     isc_result_totext(result));
+			goto done;
+		}
 		if (!dns_name_issubdomain(name, vctx->origin)) {
 			check_no_nsec(vctx, name, node);
 			dns_db_detachnode(vctx->db, &node);
 			result = dns_dbiterator_next(dbiter);
-			if (result == ISC_R_NOMORE)
+			if (result == ISC_R_NOMORE) {
 				done = ISC_TRUE;
-			else
-				check_result(result, "dns_dbiterator_next()");
+			} else if (result != ISC_R_SUCCESS) {
+				zoneverify_log_error(
+					vctx,
+					"dns_dbiterator_next(): %s",
+					isc_result_totext(result));
+				goto done;
+			}
 			continue;
 		}
 		if (is_delegation(vctx, name, node, NULL)) {
@@ -1417,7 +1443,16 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		while (result == ISC_R_SUCCESS) {
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
-			check_dns_dbiterator_current(result);
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_NEWORIGIN)
+			{
+				zoneverify_log_error(
+					vctx,
+					"dns_dbiterator_current(): %s",
+					isc_result_totext(result));
+				dns_db_detachnode(vctx->db, &node);
+				goto done;
+			}
 			if (!dns_name_issubdomain(nextname, vctx->origin) ||
 			    (zonecut != NULL &&
 			     dns_name_issubdomain(nextname, zonecut)))
@@ -1438,9 +1473,14 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		if (result == ISC_R_NOMORE) {
 			done = ISC_TRUE;
 			nextname = vctx->origin;
-		} else if (result != ISC_R_SUCCESS)
-			fatal("iterating through the database failed: %s",
-			      isc_result_totext(result));
+		} else if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx,
+					     "iterating through the database "
+					     "failed: %s",
+				             isc_result_totext(result));
+			dns_db_detachnode(vctx->db, &node);
+			goto done;
+		}
 		result = verifynode(vctx, name, node, isdelegation,
 				    &vctx->keyset, &vctx->nsecset,
 				    &vctx->nsec3paramset, nextname);
@@ -1463,21 +1503,43 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_dbiterator_destroy(&dbiter);
 
 	result = dns_db_createiterator(vctx->db, DNS_DB_NSEC3ONLY, &dbiter);
-	check_result(result, "dns_db_createiterator()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx,
+				     "dns_db_createiterator(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	for (result = dns_dbiterator_first(dbiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(dbiter) ) {
 		result = dns_dbiterator_current(dbiter, &node, name);
-		check_dns_dbiterator_current(result);
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
+		{
+			zoneverify_log_error(vctx,
+					     "dns_dbiterator_current(): %s",
+					     isc_result_totext(result));
+			goto done;
+		}
 		result = verifynode(vctx, name, node, ISC_FALSE, &vctx->keyset,
 				    NULL, NULL, NULL);
-		check_result(result, "verifynode");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx,
+					     "verifynode: %s",
+					     isc_result_totext(result));
+			dns_db_detachnode(vctx->db, &node);
+			goto done;
+		}
 		record_found(vctx, name, node, &vctx->nsec3paramset);
 		dns_db_detachnode(vctx->db, &node);
 	}
 
+	result = ISC_R_SUCCESS;
+
+ done:
 	dns_dbiterator_destroy(&dbiter);
+
+	return (result);
 }
 
 static isc_result_t
@@ -1572,7 +1634,10 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	determine_active_algorithms(&vctx, ignore_kskflag, keyset_kskonly);
 
-	verify_nodes(&vctx, &vresult);
+	result = verify_nodes(&vctx, &vresult);
+	if (result != ISC_R_SUCCESS) {
+		goto done;
+	}
 
 	result = verify_nsec3_chains(&vctx, mctx);
 	if (vresult == ISC_R_UNSET)
