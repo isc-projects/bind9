@@ -1884,12 +1884,18 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		goto done;
 	}
 
-	if (ignore_kskflag ) {
-		if (!vctx.goodksk && !vctx.goodzsk)
-			fatal("No self-signed DNSKEY found.");
-	} else if (!vctx.goodksk)
-		fatal("No self-signed KSK DNSKEY found.  Supply an active\n"
-		      "key with the KSK flag set, or use '-P'.");
+	if (ignore_kskflag) {
+		if (!vctx.goodksk && !vctx.goodzsk) {
+			zoneverify_log_error(&vctx,
+					     "No self-signed DNSKEY found");
+			result = ISC_R_FAILURE;
+			goto done;
+		}
+	} else if (!vctx.goodksk) {
+		zoneverify_log_error(&vctx, "No self-signed KSK DNSKEY found");
+		result = ISC_R_FAILURE;
+		goto done;
+	}
 
 	determine_active_algorithms(&vctx, ignore_kskflag, keyset_kskonly);
 
@@ -1910,9 +1916,13 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		goto done;
 	}
 
-	if (vresult != ISC_R_SUCCESS)
-		fatal("DNSSEC completeness test failed (%s).",
-		      dns_result_totext(vresult));
+	result = vresult;
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_print(&vctx,
+				 "DNSSEC completeness test failed (%s).\n",
+				 dns_result_totext(result));
+		goto done;
+	}
 
 	if (vctx.goodksk || ignore_kskflag) {
 		print_summary(&vctx, keyset_kskonly);
