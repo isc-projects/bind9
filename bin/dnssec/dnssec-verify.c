@@ -323,8 +323,11 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx, ignore_kskflag,
-			      keyset_kskonly);
+	result = dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx,
+				       ignore_kskflag, keyset_kskonly);
+	if (result != ISC_R_SUCCESS) {
+		exit(1);
+	}
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);

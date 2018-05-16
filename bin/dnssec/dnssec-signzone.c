@@ -3878,9 +3878,13 @@ main(int argc, char *argv[]) {
 	postsign();
 	TIME_NOW(&sign_finish);
 
-	if (!disable_zone_check)
-		dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx,
-				      ignore_kskflag, keyset_kskonly);
+	if (!disable_zone_check) {
+		result = dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx,
+					       ignore_kskflag, keyset_kskonly);
+		if (result != ISC_R_SUCCESS) {
+			exit(1);
+		}
+	}
 
 	if (outputformat != dns_masterformat_text) {
 		dns_masterrawheader_t header;
