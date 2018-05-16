@@ -3879,8 +3879,8 @@ main(int argc, char *argv[]) {
 	TIME_NOW(&sign_finish);
 
 	if (!disable_zone_check)
-		verifyzone(gdb, gversion, gorigin, mctx,
-			   ignore_kskflag, keyset_kskonly);
+		dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx,
+				      ignore_kskflag, keyset_kskonly);
 
 	if (outputformat != dns_masterformat_text) {
 		dns_masterrawheader_t header;
