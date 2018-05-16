@@ -63,3 +63,4 @@ rm -f nsupdate.out
 rm -f settime.out.*
 rm -f signing.out.*
 rm -f sync.key
+rm -f ns*/managed-keys.bind*

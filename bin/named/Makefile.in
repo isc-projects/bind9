@@ -130,6 +130,7 @@ config.@O@: config.c
 		-DDYNDB_LIBDIR=\"@libdir@/bind\" \
 		-DNAMED_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNAMED_SYSCONFDIR=\"${sysconfdir}\" \
+		-DVALIDATION_DEFAULT=\"@VALIDATION_DEFAULT@\" \
 		-c ${srcdir}/config.c
 
 server.@O@: server.c

@@ -4738,6 +4738,26 @@ no)
 esac
 
 #
+# Was --disable-auto-validation specified?
+#
+AC_ARG_ENABLE(auto-validation,
+	      AS_HELP_STRING([--enable-auto-validation],
+			     [turn on DNSSEC validation by default, using the IANA root key [default=yes]]),
+	      want_autoval="$enableval", want_autoval="yes")
+AC_MSG_CHECKING([whether to enable DNSSEC validation by default])
+case "$want_autoval" in
+no)
+	AC_MSG_RESULT(no)
+	VALIDATION_DEFAULT=yes
+	;;
+*)
+	AC_MSG_RESULT(yes)
+	VALIDATION_DEFAULT=auto
+	;;
+esac
+AC_SUBST(VALIDATION_DEFAULT)
+
+#
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
@@ -5370,6 +5390,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
 
+    test "no" = "$want_autoval" || echo "    DNSSEC validation active by default (--enable-auto-validation)"
     echo "    Cryptographic library for DNSSEC: $CRYPTOLIB"
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
@@ -5407,6 +5428,8 @@ report() {
 
     test "yes" = "$enable_fixed" || \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+
+    test "no" = "$want_autoval" && echo "    DNSSEC validation requires configuration (--disable-auto-validation)"
 
     if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
     then

@@ -22,3 +22,4 @@ rm -f dnsrps*.conf
 rm -f dnsrpzd.conf
 rm -f dnsrpzd-license-cur.conf dnsrpzd.rpzf dnsrpzd.sock dnsrpzd.pid
 rm -f tmp
+rm -f ns*/managed-keys.bind*

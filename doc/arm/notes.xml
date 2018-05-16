@@ -134,6 +134,17 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  The default setting for <command>dnssec-validation</command> is
+	  now <userinput>auto</userinput>, which activates DNSSEC
+	  validation using the IANA root key. (The default can be changed
+	  back to <userinput>yes</userinput>, which activates DNSSEC
+	  validation only when keys are explicitly configured in
+	  <filename>named.conf</filename>, by building BIND with
+	  <command>configure --disable-auto-validation</command>.) [GL #30]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  BIND can no longer be built without DNSSEC support. A cryptography
 	  provder (i.e., OpenSSL or a hardware service module with
 	  PKCS#11 support) must be available. [GL #244]

@@ -22,3 +22,4 @@ rm -f ns*/dnstap.out.save
 rm -f ns*/dnstap.out.save.?
 rm -f ns*/named.lock
 rm -f ydump.out
+rm -f ns*/managed-keys.bind*

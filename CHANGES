@@ -1,3 +1,11 @@
+4946.	[func]		The default setting for "dnssec-validation" is now
+			"auto", which activates DNSSEC validation using the
+			IANA root key. (The default can be changed back to
+			"yes", which activates DNSSEC validation only when keys
+			are explicitly configured in named.conf, by building
+			BIND with "configure --disable-auto-validation".)
+			[GL #30]
+
 4945.	[func]		BIND can no longer be built without DNSSEC support.
 			A cryptography provder (i.e., OpenSSL or a hardware
 			service module with PKCS#11 support) must be

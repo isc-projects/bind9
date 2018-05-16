@@ -22,3 +22,4 @@ rm -f nsupdate.out.*
 rm -f ns{1,2,3}/catalog{1,2,3,4}.example.db
 rm -rf ns2/zonedir
 rm -f ns*/*.nzd ns*/*.nzd-lock
+rm -f ns*/managed-keys.bind*

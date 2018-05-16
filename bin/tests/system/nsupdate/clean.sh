@@ -46,3 +46,4 @@ rm -f ns2/sample.db
 rm -f update.out.*
 rm -f check.out.*
 rm -f update.out.*
+rm -f ns*/managed-keys.bind* ns*/*.mkeys*
