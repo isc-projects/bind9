@@ -58,6 +58,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/time.h>
+#include <dns/zoneverify.h>
 
 #include <dst/dst.h>
 
