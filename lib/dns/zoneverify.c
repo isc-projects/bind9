@@ -594,8 +594,8 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
-isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata)
+static isc_result_t
+isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata, isc_boolean_t *optout)
 {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -607,17 +607,24 @@ isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata)
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
-	isc_boolean_t ret;
 
 	result = dns_rdata_tostruct(nsec3rdata, &nsec3param, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	dns_fixedname_init(&fixed);
 	result = dns_nsec3_hashname(&fixed, rawhash, &rhsize, vctx->origin,
 				    vctx->origin, nsec3param.hash,
 				    nsec3param.iterations, nsec3param.salt,
 				    nsec3param.salt_length);
-	check_result(result, "dns_nsec3_hashname()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_nsec3_hashname(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	dns_rdataset_init(&rdataset);
 	hashname = dns_fixedname_name(&fixed);
@@ -626,26 +633,35 @@ isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata)
 		result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 					     dns_rdatatype_nsec3, 0, 0,
 					     &rdataset, NULL);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
+	if (result != ISC_R_SUCCESS) {
+		*optout = ISC_FALSE;
+		result = ISC_R_SUCCESS;
+		goto done;
+	}
 
 	result = dns_rdataset_first(&rdataset);
-	check_result(result, "dns_rdataset_first()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_rdataset_first(): %s",
+				     isc_result_totext(result));
+		goto done;
+	}
 
 	dns_rdataset_current(&rdataset, &rdata);
 
 	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-	if (result != ISC_R_SUCCESS)
-		ret = ISC_FALSE;
-	else
-		ret = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+	if (result != ISC_R_SUCCESS) {
+		*optout = ISC_FALSE;
+	} else {
+		*optout = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+	}
 
+ done:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (node != NULL)
 		dns_db_detachnode(vctx->db, &node);
 
-	return (ret);
+	return (result);
 }
 
 static isc_result_t
@@ -664,7 +680,7 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
-	isc_boolean_t optout;
+	isc_boolean_t optout = ISC_FALSE;
 
 	result = dns_rdata_tostruct(rdata, &nsec3param, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -679,7 +695,10 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 	if (!dns_nsec3_supportedhash(nsec3param.hash))
 		return (ISC_R_SUCCESS);
 
-	optout = isoptout(vctx, rdata);
+	result = isoptout(vctx, rdata, &optout);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	dns_fixedname_init(&fixed);
 	result = dns_nsec3_hashname(&fixed, rawhash, &rhsize, name,
