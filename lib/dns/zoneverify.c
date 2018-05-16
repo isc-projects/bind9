@@ -1183,6 +1183,81 @@ check_apex_rrsets(vctx_t *vctx) {
 	dns_db_detachnode(vctx->db, &node);
 }
 
+/*%
+ * Check that the DNSKEY RR has at least one self signing KSK and one ZSK per
+ * algorithm in it (or, if -x was used, one self-signing KSK).
+ */
+static void
+check_dnskey(vctx_t *vctx, isc_boolean_t *goodksk, isc_boolean_t *goodzsk) {
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_dnskey_t dnskey;
+	isc_result_t result;
+
+	for (result = dns_rdataset_first(&vctx->keyset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&vctx->keyset)) {
+		dns_rdataset_current(&vctx->keyset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
+		check_result(result, "dns_rdata_tostruct");
+
+		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0)
+			;
+		else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
+			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
+			    !dns_dnssec_selfsigns(&rdata, vctx->origin,
+						  &vctx->keyset,
+						  &vctx->keysigs, ISC_FALSE,
+						  vctx->mctx)) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char buffer[1024];
+				isc_buffer_t buf;
+
+				dns_name_format(vctx->origin, namebuf,
+						sizeof(namebuf));
+				isc_buffer_init(&buf, buffer, sizeof(buffer));
+				result = dns_rdata_totext(&rdata, NULL, &buf);
+				check_result(result, "dns_rdata_totext");
+				fatal("revoked KSK is not self signed:\n"
+				      "%s DNSKEY %.*s", namebuf,
+				      (int)isc_buffer_usedlength(&buf), buffer);
+			}
+			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
+			     vctx->revoked_ksk[dnskey.algorithm] != 255)
+				vctx->revoked_ksk[dnskey.algorithm]++;
+			else if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 &&
+				 vctx->revoked_zsk[dnskey.algorithm] != 255)
+				vctx->revoked_zsk[dnskey.algorithm]++;
+		} else if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0) {
+			if (dns_dnssec_selfsigns(&rdata, vctx->origin,
+						 &vctx->keyset, &vctx->keysigs,
+						 ISC_FALSE, vctx->mctx)) {
+				if (vctx->ksk_algorithms[dnskey.algorithm] != 255)
+					vctx->ksk_algorithms[dnskey.algorithm]++;
+				*goodksk = ISC_TRUE;
+			} else {
+				if (vctx->standby_ksk[dnskey.algorithm] != 255)
+					vctx->standby_ksk[dnskey.algorithm]++;
+			}
+		} else if (dns_dnssec_selfsigns(&rdata, vctx->origin,
+						&vctx->keyset, &vctx->keysigs,
+						ISC_FALSE, vctx->mctx)) {
+			if (vctx->zsk_algorithms[dnskey.algorithm] != 255)
+				vctx->zsk_algorithms[dnskey.algorithm]++;
+			*goodzsk = ISC_TRUE;
+		} else if (dns_dnssec_signs(&rdata, vctx->origin,
+					    &vctx->soaset, &vctx->soasigs,
+					    ISC_FALSE, vctx->mctx)) {
+			if (vctx->zsk_algorithms[dnskey.algorithm] != 255)
+				vctx->zsk_algorithms[dnskey.algorithm]++;
+		} else {
+			if (vctx->standby_zsk[dnskey.algorithm] != 255)
+				vctx->standby_zsk[dnskey.algorithm]++;
+		}
+		dns_rdata_freestruct(&dnskey);
+		dns_rdata_reset(&rdata);
+	}
+}
+
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, isc_mem_t *mctx,
@@ -1194,8 +1269,6 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_dbnode_t *node = NULL, *nextnode = NULL;
 	dns_fixedname_t fname, fnextname, fprevname, fzonecut;
 	dns_name_t *name, *nextname, *prevname, *zonecut;
-	dns_rdata_dnskey_t dnskey;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	int i;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t first = ISC_TRUE;
@@ -1211,73 +1284,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	check_apex_rrsets(&vctx);
 
-	/*
-	 * Check that the DNSKEY RR has at least one self signing KSK
-	 * and one ZSK per algorithm in it (or, if -x was used, one
-	 * self-signing KSK).
-	 */
-	for (result = dns_rdataset_first(&vctx.keyset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&vctx.keyset)) {
-		dns_rdataset_current(&vctx.keyset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
-		check_result(result, "dns_rdata_tostruct");
-
-		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0)
-			;
-		else if ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0) {
-			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
-			    !dns_dnssec_selfsigns(&rdata, vctx.origin,
-						  &vctx.keyset, &vctx.keysigs,
-						  ISC_FALSE, vctx.mctx)) {
-				char namebuf[DNS_NAME_FORMATSIZE];
-				char buffer[1024];
-				isc_buffer_t buf;
-
-				dns_name_format(vctx.origin, namebuf,
-						sizeof(namebuf));
-				isc_buffer_init(&buf, buffer, sizeof(buffer));
-				result = dns_rdata_totext(&rdata, NULL, &buf);
-				check_result(result, "dns_rdata_totext");
-				fatal("revoked KSK is not self signed:\n"
-				      "%s DNSKEY %.*s", namebuf,
-				      (int)isc_buffer_usedlength(&buf), buffer);
-			}
-			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
-			     vctx.revoked_ksk[dnskey.algorithm] != 255)
-				vctx.revoked_ksk[dnskey.algorithm]++;
-			else if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 &&
-				 vctx.revoked_zsk[dnskey.algorithm] != 255)
-				vctx.revoked_zsk[dnskey.algorithm]++;
-		} else if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0) {
-			if (dns_dnssec_selfsigns(&rdata, vctx.origin,
-						 &vctx.keyset, &vctx.keysigs,
-						 ISC_FALSE, vctx.mctx)) {
-				if (vctx.ksk_algorithms[dnskey.algorithm] != 255)
-					vctx.ksk_algorithms[dnskey.algorithm]++;
-				goodksk = ISC_TRUE;
-			} else {
-				if (vctx.standby_ksk[dnskey.algorithm] != 255)
-					vctx.standby_ksk[dnskey.algorithm]++;
-			}
-		} else if (dns_dnssec_selfsigns(&rdata, vctx.origin,
-						&vctx.keyset, &vctx.keysigs,
-						ISC_FALSE, vctx.mctx)) {
-			if (vctx.zsk_algorithms[dnskey.algorithm] != 255)
-				vctx.zsk_algorithms[dnskey.algorithm]++;
-			goodzsk = ISC_TRUE;
-		} else if (dns_dnssec_signs(&rdata, vctx.origin, &vctx.soaset,
-					    &vctx.soasigs, ISC_FALSE,
-					    vctx.mctx)) {
-			if (vctx.zsk_algorithms[dnskey.algorithm] != 255)
-				vctx.zsk_algorithms[dnskey.algorithm]++;
-		} else {
-			if (vctx.standby_zsk[dnskey.algorithm] != 255)
-				vctx.standby_zsk[dnskey.algorithm]++;
-		}
-		dns_rdata_freestruct(&dnskey);
-		dns_rdata_reset(&rdata);
-	}
+	check_dnskey(&vctx, &goodksk, &goodzsk);
 
 	if (ignore_kskflag ) {
 		if (!goodksk && !goodzsk)
