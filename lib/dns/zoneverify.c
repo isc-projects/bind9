@@ -592,7 +592,11 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			goto cleanup;
+		}
 		if (nsec3.next_length != isc_buffer_usedlength(&b))
 			continue;
 		/*
@@ -1747,8 +1751,11 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			dns_db_detachnode(vctx->db, &node);
 			goto done;
 		}
-		record_found(vctx, name, node, &vctx->nsec3paramset);
+		result = record_found(vctx, name, node, &vctx->nsec3paramset);
 		dns_db_detachnode(vctx->db, &node);
+		if (result != ISC_R_SUCCESS) {
+			goto done;
+		}
 	}
 
 	result = ISC_R_SUCCESS;
