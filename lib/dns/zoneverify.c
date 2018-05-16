@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdarg.h>
+
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
@@ -27,6 +29,7 @@
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/types.h>
+#include <dns/zone.h>
 #include <dns/zoneverify.h>
 
 #include <isc/base32.h>
@@ -42,6 +45,7 @@
 
 typedef struct vctx {
 	isc_mem_t *		mctx;
+	dns_zone_t *		zone;
 	dns_db_t *		db;
 	dns_dbversion_t *	ver;
 	dns_name_t *		origin;
@@ -82,6 +86,44 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fprintf(stderr, "\n");
 	exit(1);
+}
+
+/*%
+ * Log a zone verification error described by 'fmt' and the variable arguments
+ * following it.  Either use dns_zone_logv() or print to stderr, depending on
+ * whether the function was invoked from within named or by a standalone tool,
+ * respectively.
+ */
+static void
+zoneverify_log_error(const vctx_t *vctx, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	if (vctx->zone != NULL) {
+		dns_zone_logv(vctx->zone, DNS_LOGCATEGORY_GENERAL,
+			      ISC_LOG_ERROR, fmt, ap);
+	} else {
+		vfprintf(stderr, fmt, ap);
+		fprintf(stderr, "\n");
+	}
+	va_end(ap);
+}
+
+/*%
+ * If invoked from a standalone tool, print a message described by 'fmt' and
+ * the variable arguments following it to stderr.
+ */
+static void
+zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
+	va_list ap;
+
+	if (vctx->zone != NULL) {
+		return;
+	}
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
 }
 
 static void
@@ -1015,14 +1057,15 @@ verifyemptynodes(const vctx_t *vctx, dns_name_t *name, dns_name_t *prevname,
 }
 
 static isc_result_t
-vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
-	  dns_name_t *origin)
+vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
+	  dns_dbversion_t *ver, dns_name_t *origin)
 {
 	isc_result_t result;
 
 	memset(vctx, 0, sizeof(*vctx));
 
 	vctx->mctx = mctx;
+	vctx->zone = zone;
 	vctx->db = db;
 	vctx->ver = ver;
 	vctx->origin = origin;
@@ -1085,8 +1128,9 @@ vctx_destroy(vctx_t *vctx) {
 }
 
 isc_result_t
-dns_zoneverify_dnssec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
-		      isc_mem_t *mctx, isc_boolean_t ignore_kskflag,
+dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		      dns_name_t *origin, isc_mem_t *mctx,
+		      isc_boolean_t ignore_kskflag,
 		      isc_boolean_t keyset_kskonly)
 {
 	char algbuf[80];
@@ -1104,7 +1148,7 @@ dns_zoneverify_dnssec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	isc_result_t result, vresult = ISC_R_UNSET;
 	vctx_t vctx;
 
-	result = vctx_init(&vctx, mctx, db, ver, origin);
+	result = vctx_init(&vctx, mctx, zone, db, ver, origin);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
