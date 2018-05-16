@@ -163,9 +163,10 @@ is_delegation(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
-static isc_boolean_t
+static isc_result_t
 goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
-	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset)
+	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset,
+	isc_boolean_t *good)
 {
 	dns_rdata_dnskey_t key;
 	dns_rdata_rrsig_t sig;
@@ -173,7 +174,13 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 	isc_result_t result;
 
 	result = dns_rdata_tostruct(sigrdata, &sig, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
+
+	*good = ISC_FALSE;
 
 	for (result = dns_rdataset_first(keyrdataset);
 	     result == ISC_R_SUCCESS;
@@ -181,11 +188,16 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(keyrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &key, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			return (result);
+		}
 		result = dns_dnssec_keyfromrdata(vctx->origin, &rdata,
 						 vctx->mctx, &dstkey);
-		if (result != ISC_R_SUCCESS)
-			return (ISC_FALSE);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
 		if (sig.algorithm != key.algorithm ||
 		    sig.keyid != dst_key_id(dstkey) ||
 		    !dns_name_equal(&sig.signer, vctx->origin)) {
@@ -196,10 +208,12 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 					   0, vctx->mctx, sigrdata, NULL);
 		dst_key_free(&dstkey);
 		if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD) {
-			return(ISC_TRUE);
+			*good = ISC_TRUE;
+			break;
 		}
 	}
-	return (ISC_FALSE);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -745,6 +759,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	     result = dns_rdataset_next(&sigrdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_rrsig_t sig;
+		isc_boolean_t good;
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
@@ -765,8 +780,14 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 		if ((set_algorithms[sig.algorithm] != 0) ||
 		    (vctx->act_algorithms[sig.algorithm] == 0))
 			continue;
-		if (goodsig(vctx, &rdata, name, keyrdataset, rdataset))
+		result = goodsig(vctx, &rdata, name, keyrdataset, rdataset,
+				 &good);
+		if (result != ISC_R_SUCCESS) {
+			goto done;
+		}
+		if (good) {
 			set_algorithms[sig.algorithm] = 1;
+		}
 	}
 	result = ISC_R_SUCCESS;
 
