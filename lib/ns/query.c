@@ -5538,10 +5538,9 @@ recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
 	       const dns_name_t *qname, const dns_name_t *qdomain)
 {
 	REQUIRE(param != NULL);
-	REQUIRE(qtype != 0);
-	REQUIRE(qname != NULL);
 
-	return (ISC_TF(param->qtype == qtype && param->qname != NULL &&
+	return (ISC_TF(param->qtype == qtype &&
+		       param->qname != NULL && qname != NULL &&
 		       param->qdomain != NULL && qdomain != NULL &&
 		       dns_name_equal(param->qname, qname) &&
 		       dns_name_equal(param->qdomain, qdomain)));
