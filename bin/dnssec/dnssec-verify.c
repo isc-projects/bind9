@@ -323,7 +323,7 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	result = dns_zoneverify_dnssec(gdb, gversion, gorigin, mctx,
+	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, mctx,
 				       ignore_kskflag, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
 		exit(1);
