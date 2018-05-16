@@ -685,7 +685,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 						pad--;
 					}
 				cp = buf;
-				while (*cp != ' ')
+				while (*cp != '\0')
 					emit(*cp++, arg);
 				while (pad > 0) {
 					emit(' ', arg);
