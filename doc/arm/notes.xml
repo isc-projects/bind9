@@ -150,13 +150,24 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  BIND will now always you use the best CSPRNG
+	  BIND will now always use the best CSPRNG
 	  (cryptographically-secure pseudo-random number generator)
 	  available on the platform where it is compiled.  It will use
 	  arc4random() family of functions on BSDs, getrandom() on
 	  Linux and Solaris, CryptGenRandom on Windows, and the
 	  selected cryptographic library (OpenSSL or PKCS#11) provider
 	  as the last resort. [GL #221]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The default setting for <command>dnssec-validation</command> is
+	  now <userinput>auto</userinput>, which activates DNSSEC
+	  validation using the IANA root key. (The default can be changed
+	  back to <userinput>yes</userinput>, which activates DNSSEC
+	  validation only when keys are explicitly configured in
+	  <filename>named.conf</filename>, by building BIND with
+	  <command>configure --disable-auto-validation</command>.) [GL #30]
 	</para>
       </listitem>
       <listitem>
