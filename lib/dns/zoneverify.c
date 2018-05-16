@@ -433,13 +433,15 @@ static isc_result_t
 match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	    dns_rdata_nsec3param_t *nsec3param, dns_rdataset_t *rdataset,
 	    unsigned char types[8192], unsigned int maxtype,
-	    unsigned char *rawhash, size_t rhsize)
+	    unsigned char *rawhash, size_t rhsize, isc_result_t *vresult)
 {
 	unsigned char cbm[8244];
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_rdata_nsec3_t nsec3;
 	isc_result_t result;
 	unsigned int len;
+
+	*vresult = ISC_R_SUCCESS;
 
 	/*
 	 * Find matching NSEC3 record.
@@ -450,7 +452,11 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			return (result);
+		}
 		if (nsec3.hash == nsec3param->hash &&
 		    nsec3.next_length == rhsize &&
 		    nsec3.iterations == nsec3param->iterations &&
@@ -461,8 +467,10 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	}
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Missing NSEC3 record for %s\n", namebuf);
-		return (result);
+		zoneverify_log_error(vctx, "Missing NSEC3 record for %s",
+				     namebuf);
+		*vresult = result;
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -471,9 +479,12 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	len = dns_nsec_compressbitmap(cbm, types, maxtype);
 	if (nsec3.len != len || memcmp(cbm, nsec3.typebits, len) != 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Bad NSEC3 record for %s, bit map "
-				"mismatch\n", namebuf);
-		return (ISC_R_FAILURE);
+		zoneverify_log_error(vctx,
+				     "Bad NSEC3 record for %s, bit map "
+				     "mismatch",
+				     namebuf);
+		*vresult = ISC_R_FAILURE;
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -481,7 +492,11 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	 */
 	result = record_nsec3(rawhash, &nsec3, vctx->mctx,
 			      vctx->expected_chains);
-	check_result(result, "record_nsec3()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "record_nsec3(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 
 	/*
 	 * Make sure there is only one NSEC3 record with this set of
@@ -493,24 +508,29 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			return (result);
+		}
 		if (nsec3.hash == nsec3param->hash &&
 		    nsec3.iterations == nsec3param->iterations &&
 		    nsec3.salt_length == nsec3param->salt_length &&
 		    memcmp(nsec3.salt, nsec3param->salt,
 			   nsec3.salt_length) == 0) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			fprintf(stderr, "Multiple NSEC3 records with the "
-				"same parameter set for %s", namebuf);
-			result = DNS_R_DUPLICATE;
-			break;
+			zoneverify_log_error(vctx,
+					     "Multiple NSEC3 records with the "
+					     "same parameter set for %s",
+					     namebuf);
+			*vresult = DNS_R_DUPLICATE;
+			return (ISC_R_SUCCESS);
 		}
 	}
 	if (result != ISC_R_NOMORE)
 		return (result);
 
-	result = ISC_R_SUCCESS;
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
@@ -676,7 +696,7 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 	dns_rdata_nsec3param_t nsec3param;
 	dns_fixedname_t fixed;
 	dns_name_t *hashname;
-	isc_result_t result;
+	isc_result_t result, tvresult;
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
@@ -738,17 +758,23 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 		result = ISC_R_SUCCESS;
 	} else if (result == ISC_R_SUCCESS) {
 		result = match_nsec3(vctx, name, &nsec3param, &rdataset, types,
-				     maxtype, rawhash, rhsize);
+				     maxtype, rawhash, rhsize, &tvresult);
+		if (result != ISC_R_SUCCESS) {
+			goto done;
+		}
+		result = tvresult;
 	}
 
 	*vresult = result;
+	result = ISC_R_SUCCESS;
 
+ done:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
 	if (node != NULL)
 		dns_db_detachnode(vctx->db, &node);
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static isc_result_t
