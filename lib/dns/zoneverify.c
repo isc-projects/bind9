@@ -532,10 +532,14 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
-innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
+static isc_result_t
+innsec3params(const vctx_t *vctx, dns_rdata_nsec3_t *nsec3,
+	      dns_rdataset_t *nsec3paramset, isc_boolean_t *found)
+{
 	dns_rdata_nsec3param_t nsec3param;
 	isc_result_t result;
+
+	*found = ISC_FALSE;
 
 	for (result = dns_rdataset_first(nsec3paramset);
 	     result == ISC_R_SUCCESS;
@@ -544,16 +548,24 @@ innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 
 		dns_rdataset_current(nsec3paramset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		if (result != ISC_R_SUCCESS) {
+			zoneverify_log_error(vctx, "dns_rdata_tostruct(): %s",
+					     isc_result_totext(result));
+			return (result);
+		}
 		if (nsec3param.flags == 0 &&
 		    nsec3param.hash == nsec3->hash &&
 		    nsec3param.iterations == nsec3->iterations &&
 		    nsec3param.salt_length == nsec3->salt_length &&
 		    memcmp(nsec3param.salt, nsec3->salt,
 			   nsec3->salt_length) == 0)
-			return (ISC_TRUE);
+		{
+			*found = ISC_TRUE;
+			break;
+		}
 	}
-	return (ISC_FALSE);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -590,6 +602,7 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_boolean_t found;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -603,8 +616,13 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		 * We only care about NSEC3 records that match a NSEC3PARAM
 		 * record.
 		 */
-		if (!innsec3params(&nsec3, nsec3paramset))
+		result = innsec3params(vctx, &nsec3, nsec3paramset, &found);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		if (!found) {
 			continue;
+		}
 
 		/*
 		 * Record chain.
