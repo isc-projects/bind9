@@ -1,3 +1,6 @@
+4946.	[bug]		lib/isc/print.c failed to handle floating point
+			output correctly. [GL #261]
+
 4945.	[func]		BIND can no longer be built without DNSSEC support.
 			A cryptography provder (i.e., OpenSSL or a hardware
 			service module with PKCS#11 support) must be
