@@ -136,7 +136,7 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
 
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_rdatatype_totext(type, &b);
-	check_result(result, "dns_rdatatype_totext()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 }
@@ -311,7 +311,7 @@ check_no_rrsig(const vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	       dns_dbnode_t *node)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char typebuf[80];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_rdataset_t sigrdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
@@ -839,7 +839,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	unsigned char set_algorithms[256];
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char algbuf[DNS_SECALG_FORMATSIZE];
-	char typebuf[80];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_rdataset_t sigrdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
