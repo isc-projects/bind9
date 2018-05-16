@@ -2207,28 +2207,36 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  To enable <command>named</command> to respond appropriately
 	  to DNS requests from DNSSEC aware clients,
 	  <command>dnssec-enable</command> must be set to yes.
-	  (This is the default setting.)
+	  This is the default setting.
 	</para>
 
 	<para>
 	  To enable <command>named</command> to validate answers from
 	  other servers, the <command>dnssec-enable</command> option
 	  must be set to <userinput>yes</userinput>, and the
-	  <command>dnssec-validation</command> options must be set to
-	  <userinput>yes</userinput> or <userinput>auto</userinput>.
+	  <command>dnssec-validation</command> option must be set to
+	  either <userinput>yes</userinput> or <userinput>auto</userinput>.
 	</para>
 
 	<para>
+	  When <command>dnssec-validation</command> is set to
+	  <userinput>auto</userinput>, a trust anchor for the DNS
+	  root zone will automatically be used. This trust anchor is
+	  provided as part of BIND and is kept up to date using RFC 5011
+	  key management.
 	  If <command>dnssec-validation</command> is set to
-	  <userinput>auto</userinput>, then a default
-	  trust anchor for the DNS root zone will be used.
-	  If it is set to <userinput>yes</userinput>, however,
-	  then at least one trust anchor must be configured
-	  with a <command>trusted-keys</command> or
-	  <command>managed-keys</command> statement in
-	  <filename>named.conf</filename>, or DNSSEC validation
-	  will not occur.  The default setting is
-	  <userinput>yes</userinput>.
+	  <userinput>yes</userinput>, then
+	  DNSSEC validation only occurs if
+	  at least one trust anchor has been explicitly configured
+	  in <filename>named.conf</filename>,
+	  using a <command>trusted-keys</command> or
+	  <command>managed-keys</command> statement.
+	  If <command>dnssec-validation</command> is set to
+	  <userinput>no</userinput>, then DNSSEC validation will
+	  not occur.
+	  The default is <userinput>auto</userinput> unless BIND is
+	  built with <command>configure --disable-auto-validation</command>,
+	  in which case the default is <userinput>yes</userinput>.
 	</para>
 
 	<para>
