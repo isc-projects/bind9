@@ -76,6 +76,7 @@
 #include <dns/soa.h>
 #include <dns/time.h>
 #include <dns/update.h>
+#include <dns/zoneverify.h>
 
 #include <dst/dst.h>
 
@@ -95,6 +96,10 @@ int verbose;
 typedef struct hashlist hashlist_t;
 
 static int nsec_datatype = dns_rdatatype_nsec;
+
+#define check_dns_dbiterator_current(result) \
+	check_result((result == DNS_R_NEWORIGIN) ? ISC_R_SUCCESS : result, \
+		     "dns_dbiterator_current()")
 
 #define IS_NSEC3	(nsec_datatype == dns_rdatatype_nsec3)
 #define OPTOUT(x)	(((x) & DNS_NSEC3FLAG_OPTOUT) != 0)
@@ -462,6 +467,19 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		INCSTAT(nverifyfailed);
 		return (ISC_FALSE);
 	}
+}
+
+static void
+type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+
+	isc_buffer_init(&b, cp, size - 1);
+	result = dns_rdatatype_totext(type, &b);
+	check_result(result, "dns_rdatatype_totext()");
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
 }
 
 /*%
@@ -1025,6 +1043,28 @@ secure(dns_name_t *name, dns_dbnode_t *node) {
 				     0, 0, &dsset, NULL);
 	if (dns_rdataset_isassociated(&dsset))
 		dns_rdataset_disassociate(&dsset);
+
+	return (ISC_TF(result == ISC_R_SUCCESS));
+}
+
+static isc_boolean_t
+is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
+	      dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp)
+{
+	dns_rdataset_t nsset;
+	isc_result_t result;
+
+	if (dns_name_equal(name, origin))
+		return (ISC_FALSE);
+
+	dns_rdataset_init(&nsset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_ns,
+				     0, 0, &nsset, NULL);
+	if (dns_rdataset_isassociated(&nsset)) {
+		if (ttlp != NULL)
+			*ttlp = nsset.ttl;
+		dns_rdataset_disassociate(&nsset);
+	}
 
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }

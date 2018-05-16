@@ -18,11 +18,6 @@
 #include <dns/rdatastruct.h>
 #include <dst/dst.h>
 
-#define check_dns_dbiterator_current(result) \
-	check_result((result == DNS_R_NEWORIGIN) ? ISC_R_SUCCESS : result, \
-		     "dns_dbiterator_current()")
-
-
 typedef void (fatalcallback_t)(void);
 
 ISC_PLATFORM_NORETURN_PRE void
@@ -41,8 +36,6 @@ vbprintf(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 ISC_PLATFORM_NORETURN_PRE void
 version(const char *program) ISC_PLATFORM_NORETURN_POST;
 
-void
-type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
 #define TYPE_FORMATSIZE 20
 
 void
@@ -79,15 +72,6 @@ set_keyversion(dst_key_t *key);
 isc_boolean_t
 key_collision(dst_key_t *key, dns_name_t *name, const char *dir,
 	      isc_mem_t *mctx, isc_boolean_t *exact);
-
-isc_boolean_t
-is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
-		      dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp);
-
-void
-verifyzone(dns_db_t *db, dns_dbversion_t *ver,
-		   dns_name_t *origin, isc_mem_t *mctx,
-		   isc_boolean_t ignore_kskflag, isc_boolean_t keyset_kskonly);
 
 isc_boolean_t
 isoptarg(const char *arg, char **argv, void (*usage)(void));

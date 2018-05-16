@@ -78,7 +78,8 @@ DNSOBJS =	acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		sdlz.@O@ soa.@O@ ssu.@O@ ssu_external.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsec.@O@ tsig.@O@ ttl.@O@ update.@O@ validator.@O@ \
-		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ zt.@O@
+		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zonekey.@O@ \
+		zoneverify.@O@ zt.@O@
 PORTDNSOBJS =	client.@O@ ecdb.@O@
 
 OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
@@ -121,7 +122,8 @@ DNSSRCS =	acl.c adb.c badcache. byaddr.c \
 		sdb.c sdlz.c soa.c ssu.c ssu_external.c \
 		stats.c tcpmsg.c time.c timer.c tkey.c \
 		tsec.c tsig.c ttl.c update.c validator.c \
-		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
+		version.c view.c xfrin.c zone.c zoneverify.c \
+		zonekey.c zt.c ${OTHERSRCS}
 PORTDNSSRCS =	client.c ecdb.c
 
 SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @DNSTAPSRCS@ @GEOIPLINKSRCS@
