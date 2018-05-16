@@ -7618,7 +7618,7 @@ rctx_opt(respctx_t *rctx) {
 				     DNS_FETCHOPT_WANTNSID) != 0)
 				{
 					log_nsid(&optbuf, optlen, query,
-						 ISC_LOG_DEBUG(3),
+						 ISC_LOG_INFO,
 						 fctx->res->mctx);
 				}
 				isc_buffer_forward(&optbuf, optlen);
