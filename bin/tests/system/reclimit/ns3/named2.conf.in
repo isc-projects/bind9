@@ -20,6 +20,8 @@ options {
 	listen-on-v6 { none; };
 	servfail-ttl 0;
 	max-recursion-depth 5;
+	recursion yes;
+	dnssec-validation yes;
 };
 
 key rndc_key {
