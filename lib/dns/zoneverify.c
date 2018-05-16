@@ -1480,26 +1480,31 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_dbiterator_destroy(&dbiter);
 }
 
-static void
+static isc_result_t
 check_bad_algorithms(const vctx_t *vctx) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	isc_boolean_t first = ISC_TRUE;
 	int i;
 
 	for (i = 0; i < 256; i++) {
-		if (vctx->bad_algorithms[i] != 0) {
-			if (first)
-				fprintf(stderr, "The zone is not fully signed "
-					"for the following algorithms:");
-			dns_secalg_format(i, algbuf, sizeof(algbuf));
-			fprintf(stderr, " %s", algbuf);
-			first = ISC_FALSE;
+		if (vctx->bad_algorithms[i] == 0) {
+			continue;
 		}
+		if (first) {
+			zoneverify_print(vctx,
+					 "The zone is not fully signed for "
+					 "the following algorithms:");
+		}
+		dns_secalg_format(i, algbuf, sizeof(algbuf));
+		zoneverify_print(vctx, " %s", algbuf);
+		first = ISC_FALSE;
 	}
+
 	if (!first) {
-		fprintf(stderr, ".\n");
-		fatal("DNSSEC completeness test failed.");
+		zoneverify_print(vctx, ".\n");
 	}
+
+	return (first ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
 static void
@@ -1575,7 +1580,11 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	if (result != ISC_R_SUCCESS && vresult == ISC_R_SUCCESS)
 		vresult = result;
 
-	check_bad_algorithms(&vctx);
+	result = check_bad_algorithms(&vctx);
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_print(&vctx, "DNSSEC completeness test failed.\n");
+		goto done;
+	}
 
 	if (vresult != ISC_R_SUCCESS)
 		fatal("DNSSEC completeness test failed (%s).",
