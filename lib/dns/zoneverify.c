@@ -72,18 +72,6 @@ struct nsec3_chain_fixed {
 	isc_uint16_t		iterations;
 };
 
-static void
-fatal(const char *format, ...) {
-	va_list args;
-
-	fprintf(stderr, "fatal: ");
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	fprintf(stderr, "\n");
-	exit(1);
-}
-
 /*%
  * Log a zone verification error described by 'fmt' and the variable arguments
  * following it.  Either use dns_zone_logv() or print to stderr, depending on
@@ -120,12 +108,6 @@ zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
-}
-
-static void
-check_result(isc_result_t result, const char *message) {
-	if (result != ISC_R_SUCCESS)
-		fatal("%s: %s", message, isc_result_totext(result));
 }
 
 static void
