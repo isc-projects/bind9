@@ -1,3 +1,8 @@
+4948.	[bug]		When request-nsid is turned on, EDNS NSID options
+			should be logged at level info. Since change 3741
+			they have been logged at debug(3) by mistake.
+			[GL !290]
+
 4947.	[func]		Replace all random functions with isc_random(),
 			isc_random_buf() and isc_random_uniform() API.
 			[GL #221]
