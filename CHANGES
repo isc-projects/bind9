@@ -1,3 +1,11 @@
+4957.	[func]		The default setting for "dnssec-validation" is now
+			"auto", which activates DNSSEC validation using the
+			IANA root key. (The default can be changed back to
+			"yes", which activates DNSSEC validation only when keys
+			are explicitly configured in named.conf, by building
+			BIND with "configure --disable-auto-validation".)
+			[GL #30]
+
 4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
 			and add isc_nonce_buf() that uses CSPRNG. [GL #289]
 
