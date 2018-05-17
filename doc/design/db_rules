@@ -6,7 +6,6 @@ Here is a more formal statement of the important database design
 rules.  Each rule has a 5 character mnemonic, for use in source code
 comments.
 
-
 Reference Safety						[DBREF]
 
 	1)	Any node reference retrieved from the database shall remain

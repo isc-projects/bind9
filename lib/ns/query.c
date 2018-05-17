@@ -5167,7 +5167,7 @@ root_key_sentinel_detect(query_ctx_t *qctx) {
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "root-key-sentinel-is-ta query label found");
 	} else if (qctx->client->query.qname->length > 31 && ndata[0] == 30 &&
-	           strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
+		   strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
 	{
 		if (!get_root_key_sentinel_id(qctx, ndata + 26)) {
 			return;

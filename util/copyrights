@@ -1,4 +1,3 @@
-./.clang-format					X	2018
 ./.gitattributes				X	2015,2017,2018
 ./.gitignore					X	2012,2013,2014,2015,2016,2017,2018
 ./.gitlab-ci.yml				X	2018
@@ -3309,7 +3308,6 @@
 ./lib/dns/tests/dnstest.c			C	2011,2012,2013,2014,2015,2016,2017,2018
 ./lib/dns/tests/dnstest.h			C	2011,2012,2014,2015,2016,2017,2018
 ./lib/dns/tests/dst_test.c			C	2018
-./lib/dns/tests/dstrandom_test.c		C	2017,2018
 ./lib/dns/tests/geoip_test.c			C	2013,2014,2015,2016,2017,2018
 ./lib/dns/tests/gost_test.c			C	2014,2015,2016,2017,2018
 ./lib/dns/tests/keytable_test.c			C	2014,2015,2016,2017,2018
@@ -3349,7 +3347,6 @@
 ./lib/dns/tests/testdata/dst/test1.dsasig	X	2018
 ./lib/dns/tests/testdata/dst/test1.rsasig	X	2018
 ./lib/dns/tests/testdata/dst/test2.data		X	2018
-./lib/dns/tests/testdata/dstrandom/random.data	X	2017,2018
 ./lib/dns/tests/testdata/master/.gitignore	X	2012,2018
 ./lib/dns/tests/testdata/master/master1.data	X	2011,2018
 ./lib/dns/tests/testdata/master/master10.data	X	2011,2018
@@ -3480,7 +3477,6 @@
 ./lib/isc/bind9.c				C	2013,2016,2018
 ./lib/isc/buffer.c				C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2012,2014,2015,2016,2017,2018
 ./lib/isc/bufferlist.c				C	1999,2000,2001,2004,2005,2007,2016,2018
-./lib/isc/chacha_private.h			X	2014,2018
 ./lib/isc/commandline.c				C.PORTION	1999,2000,2001,2004,2005,2007,2008,2014,2015,2016,2018
 ./lib/isc/counter.c				C	2014,2016,2018
 ./lib/isc/crc64.c				C	2013,2016,2018
