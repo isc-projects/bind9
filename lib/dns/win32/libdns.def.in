@@ -1209,6 +1209,7 @@ dns_zone_loadandthaw
 dns_zone_loadnew
 dns_zone_log
 dns_zone_logc
+dns_zone_logv
 dns_zone_maintenance
 dns_zone_markdirty
 dns_zone_name
