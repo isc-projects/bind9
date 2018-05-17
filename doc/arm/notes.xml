@@ -21,11 +21,33 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      BIND 9.13 is unstable development release of BIND.
+      BIND 9.13 is an unstable development release of BIND.
       This document summarizes new features and functional changes that
-      have been introduced on this branch.  With each development
-      release leading up to the stable BIND 9.14 release, this document
-      will be updated with additional features added and bugs fixed.
+      have been introduced on this branch.  With each development release
+      leading up to the stable BIND 9.14 release, this document will be
+      updated with additional features added and bugs fixed.
+    </para>
+  </section>
+
+  <section xml:id="relnotes_versions"><info><title>Note on Version Numbering</title></info>
+    <para>
+      Prior to BIND 9.13, new feature development releases were tagged
+      as "alpha" and "beta", leading up to the first stable release
+      for a given development branch, which always ended in ".0".
+    </para>
+    <para>
+      Now, however, BIND has adopted the "odd-unstable/even-stable"
+      release numbering convention. There will be no "alpha" or "beta"
+      releases in the 9.13 branch, only increasing version numbers.
+      So, for example, what would previously have been called 9.13.0a1,
+      9.13.0a2, 9.13.0b1, and so on, will instead be called 9.13.0,
+      9.13.1, 9.13.2, etc.
+    </para>
+    <para>
+      The first stable release from this development branch will be
+      renamed as 9.14.0. Thereafter, maintenance releases will continue
+      on the 9.14 branch, while unstable feature development proceeds in
+      9.15.
     </para>
   </section>
 
@@ -43,20 +65,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  update-policy rules that otherwise ignore the name field now
-	  require that it be set to "." to ensure that any type list
-	  present is properly interpreted.  If the name field was omitted
-	  from the rule declaration and a type list was present it wouldn't
-	  be interpreted as expected.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -66,16 +75,21 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  BIND now can be compiled against libidn2 library to add
-	  IDNA2008 support.  Previously BIND only supported IDNA2003
-	  using (now obsolete) idnkit-1 library.
+	  BIND now can be compiled against the <command>libidn2</command>
+	  library to add IDNA2008 support.  Previously, BIND supported
+	  IDNA2003 using the (now obsolete and unsupported)
+	  <command>idnkit-1</command> library.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Add root key sentinel support which enables resolvers to test
-	  which trust anchors are configured for the root.  To disable, add
-	  'root-key-sentinel no;' to named.conf.
+	  <command>named</command> now supports the "root key sentinel"
+	  mechanism. This enables validating resolvers to indicate to
+	  which trust anchors are configured for the root, so that
+	  information about root key rollover status can be gathered.
+	  To disable this feature, add
+	  <command>root-key-sentinel no;</command> to
+	  <filename>named.conf</filename>.
 	</para>
       </listitem>
       <listitem>
@@ -99,7 +113,7 @@
       </listitem>
       <listitem>
 	<para>
-	  Support for OpenSSL 0.9.x was removed.  OpenSSL version
+	  Support for OpenSSL 0.9.x has been removed.  OpenSSL version
 	  1.0.0 or greater, or LibreSSL is now required.
 	</para>
       </listitem>
@@ -130,7 +144,7 @@
       <listitem>
 	<para>
 	  The <command>-r randomdev</command> option to explicitly select
-	  random device has been removed from
+	  random device has been removed from the
 	  <command>ddns-confgen</command>,
 	  <command>rndc-confgen</command>,
 	  <command>nsupdate</command>,
@@ -139,7 +153,7 @@
 	</para>
 	<para>
 	  The <command>-p</command> option to use pseudo-random data
-	  has been removed from <command>dnssec-signzone</command>
+	  has been removed from the <command>dnssec-signzone</command>
 	  command.
 	</para>
       </listitem>
@@ -150,13 +164,14 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  BIND will now always you use the best CSPRNG
-	  (cryptographically-secure pseudo-random number generator)
-	  available on the platform where it is compiled.  It will use
-	  arc4random() family of functions on BSDs, getrandom() on
-	  Linux and Solaris, CryptGenRandom on Windows, and the
-	  selected cryptographic library (OpenSSL or PKCS#11) provider
-	  as the last resort. [GL #221]
+	  BIND will now always use the best CSPRNG (cryptographically-secure
+	  pseudo-random number generator) available on the platform where
+	  it is compiled.  It will use <command>arc4random()</command>
+	  family of functions on BSD operating systems,
+	  <command>getrandom()</command> on Linux and Solaris,
+	  <command>CryptGenRandom</command> on Windows, and the selected
+	  cryptography provider library (OpenSSL or PKCS#11) as the last
+	  resort. [GL #221]
 	</para>
       </listitem>
       <listitem>
@@ -205,12 +220,12 @@
 	  Several configuration options for time periods can now use
 	  TTL value suffixes (for example, <literal>2h</literal> or
 	  <literal>1d</literal>) in addition to an integer number of
-	  seconds. These include:
-	  <command>fstrm-set-reopen-interval</command>;
-	  <command>interface-interval</command>;
-	  <command>max-cache-ttl</command>;
-	  <command>max-ncache-ttl</command>;
-	  <command>max-policy-ttl</command>;
+	  seconds. These include
+	  <command>fstrm-set-reopen-interval</command>,
+	  <command>interface-interval</command>,
+	  <command>max-cache-ttl</command>,
+	  <command>max-ncache-ttl</command>,
+	  <command>max-policy-ttl</command>, and
 	  <command>min-update-interval</command>.
 	  [GL #203]
 	</para>
@@ -222,40 +237,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  When answering authoritative queries, <command>named</command>
-	  does not return the target of a cross-zone CNAME between two
-	  locally served zones; this prevents accidental cache poisoning.
-	  This same restriction was incorrectly applied to recursive
-	  queries as well; this has been fixed. [RT #47078]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash due to a race condition when
-	  rolling <command>dnstap</command> log files. [RT #46942]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc reload</command> could cause <command>named</command>
-	  to leak memory if it was invoked before the zone loading actions
-	  from a previous <command>rndc reload</command> command were
-	  completed. [RT #47076]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash when rolling a
-	  <command>dnstap</command> log file. [RT #46942]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -294,8 +276,8 @@
     <para>
       The end of life date for BIND 9.14 has not yet been determined.
       For those needing long term support, the current Extended Support
-      Version (ESV) is BIND 9.11, which will be supported until December
-      2021. See
+      Version (ESV) is BIND 9.11, which will be supported until at
+      least December 2021. See
       <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
       for details of ISC's software support policy.
     </para>

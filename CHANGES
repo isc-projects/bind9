@@ -1,3 +1,5 @@
+	--- 9.13.0 released ---
+
 4948.	[bug]		When request-nsid is turned on, EDNS NSID options
 			should be logged at level info. Since change 3741
 			they have been logged at debug(3) by mistake.
