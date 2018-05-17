@@ -11,7 +11,6 @@ tp: dh_test
 tp: dispatch_test
 tp: dnstap_test
 tp: dst_test
-tp: dstrandom_test
 tp: geoip_test
 tp: gost_test
 tp: keytable_test
