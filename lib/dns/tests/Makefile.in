@@ -143,6 +143,11 @@ dst_test@EXEEXT@: dst_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			dst_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
+dstrandom_test@EXEEXT@: dstrandom_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+			dstrandom_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS}
+
 geoip_test@EXEEXT@: geoip_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			geoip_test.@O@ dnstest.@O@ ${DNSLIBS} \
@@ -257,11 +262,6 @@ zt_test@EXEEXT@: zt_test.@O@ dnstest.@O@ \
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			zt_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
-
-dstrandom_test@EXEEXT@: dstrandom_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			dstrandom_test.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${ISCPK11LIBS} ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
