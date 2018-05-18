@@ -1877,12 +1877,18 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		} else if (result == ISC_R_SUCCESS) {
+			isc_boolean_t invalid = ISC_FALSE;
 			mname = NULL;
 			have_a = ISC_TRUE;
-			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    DNS_TRUST_PENDING(rdataset->trust) &&
+			if (additionaltype ==
+			    dns_rdatasetadditional_fromcache &&
+			    (DNS_TRUST_PENDING(rdataset->trust) ||
+			     DNS_TRUST_GLUE(rdataset->trust)) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
+				invalid = ISC_TRUE;
+			}
+			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
@@ -1891,7 +1897,8 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 					       dns_rdatatype_a, &mname)) {
 				if (mname != fname) {
 					if (mname != NULL) {
-						query_releasename(client, &fname);
+						query_releasename(client,
+								  &fname);
 						fname = mname;
 					} else
 						need_addname = ISC_TRUE;
@@ -1933,6 +1940,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		} else if (result == ISC_R_SUCCESS) {
+			isc_boolean_t invalid = ISC_FALSE;
 			mname = NULL;
 			/*
 			 * There's an A; check whether we're filtering AAAA
@@ -1943,10 +1951,16 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
 			      !dns_rdataset_isassociated(sigrdataset)))))
 				goto addname;
-			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    DNS_TRUST_PENDING(rdataset->trust) &&
+			if (additionaltype ==
+			    dns_rdatasetadditional_fromcache &&
+			    (DNS_TRUST_PENDING(rdataset->trust) ||
+			     DNS_TRUST_GLUE(rdataset->trust)) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
+				invalid = ISC_TRUE;
+			}
+
+			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
@@ -1955,7 +1969,8 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 					       dns_rdatatype_aaaa, &mname)) {
 				if (mname != fname) {
 					if (mname != NULL) {
-						query_releasename(client, &fname);
+						query_releasename(client,
+								  &fname);
 						fname = mname;
 					} else
 						need_addname = ISC_TRUE;
