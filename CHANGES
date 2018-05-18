@@ -1,3 +1,6 @@
+4949.	[protocol]	Add "HOME.ARPA" to list of built in empty zones as
+			per RFC 8375. [GL #273]
+
 4948.	[bug]		When request-nsid is turned on, EDNS NSID options
 			should be logged at level info. Since change 3741
 			they have been logged at debug(3) by mistake.

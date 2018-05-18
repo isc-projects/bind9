@@ -9540,6 +9540,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <listitem>9.E.F.IP6.ARPA</listitem>
 	      <listitem>A.E.F.IP6.ARPA</listitem>
 	      <listitem>B.E.F.IP6.ARPA</listitem>
+	      <listitem>EMPTY.AS112.ARPA</listitem>
+	      <listitem>HOME.ARPA</listitem>
 	    </itemizedlist>
 	  </para>
 	  <para>

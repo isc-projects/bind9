@@ -419,6 +419,9 @@ const char *empty_zones[] = {
 	/* RFC 7534 */
 	"EMPTY.AS112.ARPA",
 
+	/* RFC 8375 */
+	"HOME.ARPA",
+
 	NULL
 };
 
