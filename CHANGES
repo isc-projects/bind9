@@ -1,3 +1,5 @@
+4950.	[cleanup]	Remove lib/isc/print.c. [GL #261]
+
 4949.	[placeholder]
 
 4948.	[bug]		When request-nsid is turned on, EDNS NSID options
