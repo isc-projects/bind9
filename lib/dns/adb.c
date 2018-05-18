@@ -4032,7 +4032,7 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 
 	if (adb->view->qminimization) {
 		options |= DNS_FETCHOPT_QMINIMIZE;
-		options |= DNS_FETCHOPT_QMIN_SKIP_ON_IP6A;
+		options |= DNS_FETCHOPT_QMIN_SKIP_IP6A;
 		if (adb->view->qmin_strict) {
 			options |= DNS_FETCHOPT_QMIN_STRICT;
 		}

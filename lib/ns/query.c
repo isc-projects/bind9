@@ -11025,10 +11025,9 @@ ns_query_start(ns_client_t *client) {
 
 	if (client->view->qminimization) {
 		client->query.fetchoptions |= DNS_FETCHOPT_QMINIMIZE |
-				DNS_FETCHOPT_QMIN_SKIP_ON_IP6A;
+				DNS_FETCHOPT_QMIN_SKIP_IP6A;
 		if (client->view->qmin_strict) {
-			client->query.fetchoptions |=
-				DNS_FETCHOPT_QMIN_STRICT;
+			client->query.fetchoptions |= DNS_FETCHOPT_QMIN_STRICT;
 		}
 	}
 
