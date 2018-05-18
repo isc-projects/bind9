@@ -21,6 +21,7 @@ options {
 	recursion yes;
 	dnssec-validation yes;
 	notify yes;
+	qname-minimization disabled;
 };
 
 statistics-channels {
