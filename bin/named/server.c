@@ -2097,8 +2097,10 @@ configure_rpz_name2(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
 
 static isc_result_t
 configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
-		   isc_boolean_t recursive_only_def, dns_ttl_t ttl_def,
-		   isc_uint32_t minupdateint_def, const dns_rpz_zone_t *old,
+		   isc_boolean_t recursive_only_default,
+		   dns_ttl_t ttl_default,
+		   isc_uint32_t minupdateinterval_default,
+		   const dns_rpz_zone_t *old,
 		   isc_boolean_t *old_rpz_okp)
 {
 	const cfg_obj_t *rpz_obj, *obj;
@@ -2127,7 +2129,9 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "recursive-only");
-	if (cfg_obj_isvoid(obj) ? recursive_only_def : cfg_obj_asboolean(obj)) {
+	if (cfg_obj_isvoid(obj) ?
+	    recursive_only_default : cfg_obj_asboolean(obj))
+	{
 		view->rpzs->p.no_rd_ok &= ~DNS_RPZ_ZBIT(zone->num);
 	} else {
 		view->rpzs->p.no_rd_ok |= DNS_RPZ_ZBIT(zone->num);
@@ -2144,14 +2148,14 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	if (cfg_obj_isuint32(obj)) {
 		zone->max_policy_ttl = cfg_obj_asuint32(obj);
 	} else {
-		zone->max_policy_ttl = ttl_def;
+		zone->max_policy_ttl = ttl_default;
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "min-update-interval");
 	if (cfg_obj_isuint32(obj)) {
-		zone->min_update_int = cfg_obj_asuint32(obj);
+		zone->min_update_interval = cfg_obj_asuint32(obj);
 	} else {
-		zone->min_update_int = minupdateint_def;
+		zone->min_update_interval = minupdateinterval_default;
 	}
 
 	if (*old_rpz_okp && zone->max_policy_ttl != old->max_policy_ttl)
@@ -2250,11 +2254,11 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	char *rps_cstr;
 	size_t rps_cstr_size;
 	const cfg_obj_t *sub_obj;
-	isc_boolean_t recursive_only_def;
+	isc_boolean_t recursive_only_default;
 	isc_boolean_t nsip_enabled, nsdname_enabled;
 	dns_rpz_zbits_t nsip_on, nsdname_on;
-	dns_ttl_t ttl_def;
-	isc_uint32_t minupdateint_def;
+	dns_ttl_t ttl_default;
+	isc_uint32_t minupdateinterval_default;
 	dns_rpz_zones_t *zones;
 	const dns_rpz_zones_t *old;
 	dns_view_t *pview;
@@ -2345,9 +2349,9 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	sub_obj = cfg_tuple_get(rpz_obj, "recursive-only");
 	if (!cfg_obj_isvoid(sub_obj) &&
 	    !cfg_obj_asboolean(sub_obj))
-		recursive_only_def = ISC_FALSE;
+		recursive_only_default = ISC_FALSE;
 	else
-		recursive_only_def = ISC_TRUE;
+		recursive_only_default = ISC_TRUE;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "break-dnssec");
 	if (!cfg_obj_isvoid(sub_obj) &&
@@ -2358,15 +2362,15 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 
 	sub_obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
 	if (cfg_obj_isuint32(sub_obj))
-		ttl_def = cfg_obj_asuint32(sub_obj);
+		ttl_default = cfg_obj_asuint32(sub_obj);
 	else
-		ttl_def = DNS_RPZ_MAX_TTL_DEFAULT;
+		ttl_default = DNS_RPZ_MAX_TTL_DEFAULT;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "min-update-interval");
 	if (cfg_obj_isuint32(sub_obj))
-		minupdateint_def = cfg_obj_asuint32(sub_obj);
+		minupdateinterval_default = cfg_obj_asuint32(sub_obj);
 	else
-		minupdateint_def = DNS_RPZ_MINUPDATEINT_DEF;
+		minupdateinterval_default = DNS_RPZ_MINUPDATEINTERVAL_DEFAULT;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "min-ns-dots");
 	if (cfg_obj_isuint32(sub_obj))
@@ -2410,9 +2414,10 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 			old_zone = NULL;
 		}
 		result = configure_rpz_zone(view, zone_element,
-					    recursive_only_def, ttl_def,
-					    minupdateint_def, old_zone,
-					    old_rpz_okp);
+					    recursive_only_default,
+					    ttl_default,
+					    minupdateinterval_default,
+					    old_zone, old_rpz_okp);
 		if (result != ISC_R_SUCCESS) {
 			if (pview != NULL)
 				dns_view_detach(&pview);

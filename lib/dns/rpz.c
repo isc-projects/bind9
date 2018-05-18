@@ -1614,8 +1614,8 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		zone->updatepending = ISC_TRUE;
 		isc_time_now(&now);
 		tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
-		if (tdiff < zone->min_update_int) {
-			isc_uint64_t defer = zone->min_update_int - tdiff;
+		if (tdiff < zone->min_update_interval) {
+			isc_uint64_t defer = zone->min_update_interval - tdiff;
 			isc_interval_t interval;
 			dns_name_format(&zone->origin, dname,
 					DNS_NAME_FORMATSIZE);
@@ -1805,7 +1805,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 	 * If there's an update pending schedule it
 	 */
 	if (rpz->updatepending == ISC_TRUE) {
-		isc_uint64_t defer = rpz->min_update_int;
+		isc_uint64_t defer = rpz->min_update_interval;
 		isc_interval_t interval;
 		dns_name_format(&rpz->origin, dname,
 				DNS_NAME_FORMATSIZE);
