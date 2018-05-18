@@ -8509,7 +8509,7 @@ rctx_answer_none(respctx_t *rctx) {
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 				      "disabling qname minimization for '%s'"
 				      " due to formerr", fctx->info);
-		        fctx->qmin_labels = DNS_MAX_LABELS+1;
+			fctx->qmin_labels = DNS_MAX_LABELS+1;
 			return rctx_answer_minimized(rctx);
 		}
 		return (DNS_R_FORMERR);
@@ -8545,7 +8545,7 @@ rctx_answer_none(respctx_t *rctx) {
 	 * NXDOMAIN we go straight to the full query.
 	 */
 	if (fctx->minimized && !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
-	        fctx->qmin_labels = DNS_MAX_LABELS+1;
+		fctx->qmin_labels = DNS_MAX_LABELS+1;
 		return rctx_answer_minimized(rctx);
 	}
 	/*
