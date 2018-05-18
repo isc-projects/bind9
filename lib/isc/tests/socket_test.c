@@ -29,6 +29,8 @@
 #include "../task_p.h"
 #include "isctest.h"
 
+static isc_boolean_t recv_trunc;
+
 /*
  * Helper functions
  */
@@ -52,6 +54,7 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	dev = (isc_socketevent_t *) event;
 	completion->result = dev->result;
 	completion->done = ISC_TRUE;
+	recv_trunc = ISC_TF((dev->attributes & ISC_SOCKEVENTATTR_TRUNC) != 0);
 	isc_event_free(&event);
 }
 
@@ -68,6 +71,45 @@ waitfor(completion_t *completion) {
 	if (completion->done)
 		return (ISC_R_SUCCESS);
 	return (ISC_R_FAILURE);
+}
+
+/*
+ * Backport from 9.10 lib/isc/unix/socket.c.
+ */
+static void
+destroy_socketevent(isc_event_t *event) {
+	isc_socketevent_t *ev = (isc_socketevent_t *)event;
+
+	INSIST(ISC_LIST_EMPTY(ev->bufferlist));
+
+	(ev->destroy)(event);
+}
+
+static isc_socketevent_t *
+isc_socket_socketevent(isc_mem_t *mem, void *sender,
+		       isc_eventtype_t eventtype, isc_taskaction_t action,
+		       void *arg)
+{
+	isc_socketevent_t *ev;
+
+	ev = (isc_socketevent_t *)isc_event_allocate(mem, sender,
+						     eventtype, action, arg,
+						     sizeof(*ev));
+
+	if (ev == NULL)
+		return (NULL);
+
+	ev->result = ISC_R_UNSET;
+	ISC_LINK_INIT(ev, ev_link);
+	ISC_LIST_INIT(ev->bufferlist);
+	ev->region.base = NULL;
+	ev->n = 0;
+	ev->offset = 0;
+	ev->attributes = 0;
+	ev->destroy = ev->ev_destroy;
+	ev->ev_destroy = destroy_socketevent;
+
+	return (ev);
 }
 
 /*
@@ -242,12 +284,138 @@ ATF_TC_BODY(udp_dup, tc) {
 	isc_test_end();
 }
 
+/* Test UDP truncation detection */
+ATF_TC(udp_trunc);
+ATF_TC_HEAD(udp_trunc, tc) {
+	atf_tc_set_md_var(tc, "descr", "UDP Truncation detection");
+}
+ATF_TC_BODY(udp_trunc, tc) {
+	isc_result_t result;
+	isc_sockaddr_t addr1, addr2;
+	struct in_addr in;
+	isc_socket_t *s1 = NULL, *s2 = NULL;
+	isc_task_t *task = NULL;
+	char sendbuf[BUFSIZ*2], recvbuf[BUFSIZ];
+	completion_t completion;
+	isc_region_t r;
+	isc_socketevent_t *socketevent;
+
+	UNUSED(tc);
+
+	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	in.s_addr = inet_addr("127.0.0.1");
+	isc_sockaddr_fromin(&addr1, &in, 0);
+	isc_sockaddr_fromin(&addr2, &in, 0);
+
+	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	result = isc_socket_bind(s1, &addr1, ISC_SOCKET_REUSEADDRESS);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	result = isc_socket_getsockname(s1, &addr1);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr1) != 0);
+
+	result = isc_socket_create(socketmgr, PF_INET, isc_sockettype_udp, &s2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	result = isc_socket_bind(s2, &addr2, ISC_SOCKET_REUSEADDRESS);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	result = isc_socket_getsockname(s2, &addr2);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			 isc_result_totext(result));
+	ATF_REQUIRE(isc_sockaddr_getport(&addr2) != 0);
+
+	result = isc_task_create(taskmgr, 0, &task);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+
+	/*
+	 * Send a message that will not be truncated.
+	 */
+	memset(sendbuf, 0xff, sizeof(sendbuf));
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
+	r.base = (void *) sendbuf;
+	r.length = strlen(sendbuf) + 1;
+
+	completion_init(&completion);
+
+	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+					     event_done, &completion);
+	ATF_REQUIRE(socketevent != NULL);
+
+	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	waitfor(&completion);
+	ATF_CHECK(completion.done);
+	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
+
+	r.base = (void *) recvbuf;
+	r.length = BUFSIZ;
+	completion_init(&completion);
+	recv_trunc = ISC_FALSE;
+	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	waitfor(&completion);
+	ATF_CHECK(completion.done);
+	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
+	ATF_CHECK_STREQ(recvbuf, "Hello");
+	ATF_CHECK_EQ(recv_trunc, ISC_FALSE);
+
+	/*
+	 * Send a message that will be truncated.
+	 */
+	memset(sendbuf, 0xff, sizeof(sendbuf));
+	snprintf(sendbuf, sizeof(sendbuf), "Hello");
+	r.base = (void *) sendbuf;
+	r.length = sizeof(sendbuf);
+
+	completion_init(&completion);
+
+	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+					     event_done, &completion);
+	ATF_REQUIRE(socketevent != NULL);
+
+	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS, "%s",
+			   isc_result_totext(result));
+	waitfor(&completion);
+	ATF_CHECK(completion.done);
+	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
+
+	r.base = (void *) recvbuf;
+	r.length = BUFSIZ;
+	completion_init(&completion);
+	recv_trunc = ISC_FALSE;
+	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	waitfor(&completion);
+	ATF_CHECK(completion.done);
+	ATF_CHECK_EQ(completion.result, ISC_R_SUCCESS);
+	ATF_CHECK_STREQ(recvbuf, "Hello");
+	ATF_CHECK_EQ(recv_trunc, ISC_TRUE);
+
+	isc_task_detach(&task);
+
+	isc_socket_detach(&s1);
+	isc_socket_detach(&s2);
+
+	isc_test_end();
+}
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, udp_sendto);
 	ATF_TP_ADD_TC(tp, udp_dup);
+	ATF_TP_ADD_TC(tp, udp_trunc);
 
 	return (atf_no_error());
 }
