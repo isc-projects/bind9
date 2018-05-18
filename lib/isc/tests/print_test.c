@@ -50,6 +50,7 @@ ATF_TC_BODY(snprintf, tc) {
 	isc_uint64_t ll = 8589934592ULL;
 	isc_uint64_t nn = 20000000000000ULL;
 	isc_uint64_t zz = 10000000000000000000ULL;
+	float pi = 3.141;
 	int n;
 	size_t size;
 
@@ -118,6 +119,25 @@ ATF_TC_BODY(snprintf, tc) {
 	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
 	ATF_CHECK_EQ(n, 18);
 	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
+
+	n = isc_print_snprintf(buf, sizeof(buf), "%.2f", pi);
+	ATF_CHECK_EQ(n, 4);
+	ATF_CHECK_STREQ(buf, "3.14");
+
+	/* Similar to the above, but additional characters follows */
+	n = isc_print_snprintf(buf, sizeof(buf), "%.2f1592", pi);
+	ATF_CHECK_EQ(n, 8);
+	ATF_CHECK_STREQ(buf, "3.141592");
+
+	/* Similar to the above, but with leading spaces */
+	n = isc_print_snprintf(buf, sizeof(buf), "% 8.2f1592", pi);
+	ATF_CHECK_EQ(n, 12);
+	ATF_CHECK_STREQ(buf, "    3.141592");
+
+	/* Similar to the above, but with trail spaces after the 4 */
+	n = isc_print_snprintf(buf, sizeof(buf), "%-8.2f1592", pi);
+	ATF_CHECK_EQ(n, 12);
+	ATF_CHECK_STREQ(buf, "3.14    1592");
 }
 
 ATF_TC(fprintf);
