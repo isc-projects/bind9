@@ -10277,7 +10277,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    If an update to a RPZ zone (for example, via IXFR) happens less
 	    than <option>min-update-interval</option> seconds after the most
 	    recent update, then the changes will not be carried out until this
-	    interval has elapsed.  The default is <literal>5</literal> seconds.
+	    interval has elapsed.  The default is <literal>60</literal> seconds.
 	    For convenience, TTL-style time unit suffixes may be
 	    used to specify the value.
 	  </para>
