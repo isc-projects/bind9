@@ -61,6 +61,8 @@ for (;;) {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname .
 				       " 300 CNAME badcname.example.org"));
+	} elsif (($qname eq "baddname.example.net" || $qname eq "gooddname.example.net") && $qtype eq "NS") {
+		$packet->push("authority", new Net::DNS::RR("example.net IN SOA (1 2 3 4 5)"))
 	} elsif ($qname eq "foo.baddname.example.net") {
 		$packet->push("answer",
 			      new Net::DNS::RR("baddname.example.net" .
