@@ -57,7 +57,13 @@ for (;;) {
 	my $qname = $questions[0]->qname;
 	my $qtype = $questions[0]->qtype;
 
-	if ($qname eq "cname1.example.com") {
+	if ($qname eq "com" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("com 300 NS a.root-servers.nil."));
+	} elsif ($qname eq "example.com" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("example.com 300 NS a.root-servers.nil."));
+	} elsif ($qname eq "cname1.example.com") {
 		# Data for the "cname + other data / 1" test
 		$packet->push("answer", new Net::DNS::RR("cname1.example.com 300 CNAME cname1.example.com"));
 		$packet->push("answer", new Net::DNS::RR("cname1.example.com 300 A 1.2.3.4"));
@@ -65,6 +71,15 @@ for (;;) {
 		# Data for the "cname + other data / 2" test: same RRs in opposite order
 		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 A 1.2.3.4"));
 		$packet->push("answer", new Net::DNS::RR("cname2.example.com 300 CNAME cname2.example.com"));
+	} elsif ($qname eq "org" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("org 300 NS a.root-servers.nil."));
+	} elsif ($qname eq "example.org" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("example.org 300 NS a.root-servers.nil."));
+	} elsif (($qname eq "baddname.example.org" || $qname eq "gooddname.example.org") && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("example.org 300 NS a.root-servers.nil."));
 	} elsif ($qname eq "www.example.org" || $qname eq "www.example.net" ||
 		 $qname eq "badcname.example.org" ||
 		 $qname eq "goodcname.example.org" ||
@@ -81,6 +96,12 @@ for (;;) {
 				      new Net::DNS::RR($qname .
 						" 300 AAAA 2001:db8:beef::1"));
 		}
+	} elsif ($qname eq "net" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("net 300 NS a.root-servers.nil."));
+	} elsif ($qname eq "example.net" && $qtype eq "NS") {
+		$packet->header->aa(1);
+		$packet->push("answer", new Net::DNS::RR("example.net 300 NS a.root-servers.nil."));
 	} elsif ($qname eq "badcname.example.net" ||
 		 $qname eq "goodcname.example.net") {
 		# Data for CNAME/DNAME filtering.  We need to make one-level
@@ -97,7 +118,7 @@ for (;;) {
 		# expected to be accepted regardless of the filter setting.
 		$packet->push("authority", new Net::DNS::RR("sub.example.org 300 NS ns.sub.example.org"));
 		$packet->push("additional", new Net::DNS::RR("ns.sub.example.org 300 A 10.53.0.3"));
-	} elsif ($qname =~ /\.broken/) {
+	} elsif ($qname =~ /broken/) {
 		# Delegation to broken TLD.
 		$packet->push("authority", new Net::DNS::RR("broken 300 NS ns.broken"));
 		$packet->push("additional", new Net::DNS::RR("ns.broken 300 A 10.53.0.4"));
