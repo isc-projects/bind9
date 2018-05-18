@@ -180,6 +180,9 @@ char *getpassphrase(const char *);
 #if _MSC_VER < 1900
 #define snprintf _snprintf
 #endif
+#if _MSC_VER < 1800
+#error Use Visual Studio 2013 or later for %zu support.
+#endif
 #if _MSC_VER <= 1400
 #define vsnprintf _vsnprintf
 #endif
