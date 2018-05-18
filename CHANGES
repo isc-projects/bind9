@@ -1,3 +1,6 @@
+4949.	[bug]		lib/isc/print.c failed to handle floating point
+			output correctly. [GL #261]
+
 4939.	[test]		Add basic unit tests for update_sigs(). [GL #135]
 
 4935.	[func]		Add support for LibreSSL >= 2.7.0 (some OpenSSL 1.1.0

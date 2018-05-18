@@ -3773,12 +3773,14 @@ AC_CHECK_FUNC(vsnprintf, [],
 AC_MSG_CHECKING(printf for %z support)
 AC_TRY_RUN([
 #include <stdio.h>
+
+int
 main() {
 	size_t j = 0;
 	char buf[100];
 	buf[0] = 0;
 	sprintf(buf, "%zu", j);
-	exit(strcmp(buf, "0") != 0);
+	return ((buf[0] == '0' && buf[1] == '\0') ? 0 : 1);
 }
 ],
 	[AC_MSG_RESULT(yes)],
