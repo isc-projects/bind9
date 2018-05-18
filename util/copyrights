@@ -435,6 +435,8 @@
 ./bin/tests/system/additional/ns1/rt.db		ZONE	2013,2016,2018
 ./bin/tests/system/additional/ns1/rt2.db	ZONE	2013,2016,2018
 ./bin/tests/system/additional/ns1/srv.db	ZONE	2016,2018
+./bin/tests/system/additional/ns2/named.conf.in	CONF-C	2018
+./bin/tests/system/additional/ns2/root.db	ZONE	2018
 ./bin/tests/system/additional/ns3/named.conf.in	CONF-C	2017,2018
 ./bin/tests/system/additional/ns3/root.hint	ZONE	2017,2018
 ./bin/tests/system/additional/setup.sh		SH	2013,2016,2018
