@@ -34,7 +34,7 @@ def logquery(type, qname):
 ############################################################################
 # Respond to a DNS query.
 # For good. it serves:
-# zoop.boing.good. NS ns3.good. 
+# zoop.boing.good. NS ns3.good.
 # icky.ptang.zoop.boing.good. NS a.bit.longer.ns.name.good.
 # it responds properly (with NODATA empty response) to non-empty terminals
 #
