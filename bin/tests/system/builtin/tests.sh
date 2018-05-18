@@ -119,6 +119,7 @@ HOME.ARPA"
 
 n=`expr $n + 1`
 ret=0
+count=0
 echo_i "Checking expected empty zones were configured ($n)"
 for zone in ${emptyzones}
 do
@@ -126,8 +127,14 @@ do
 		echo_i "failed (empty zone $zone missing)"
 		ret=1
 	}
+	count=`expr $count + 1`
 done
+lines=`grep "automatic empty zone: " ns1/named.run | wc -l`
+test $count -eq $lines -a $count -eq 99 || {
+	ret=1; echo_i "failed (count mismatch)";
+}
 if [ $ret != 0 ] ; then status=`expr $status + $ret`; fi
+
 
 n=`expr $n + 1`
 echo_i "Checking that reconfiguring empty zones is silent ($n)"
