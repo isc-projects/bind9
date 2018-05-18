@@ -105,12 +105,15 @@ typedef enum {
 /* RESERVED ECS				0x2000 */
 /* RESERVED TCPCLIENT			0x4000 */
 #define DNS_FETCHOPT_NOCACHED		0x8000	     /*%< Force cache update. */
-#define DNS_FETCHOPT_QMINIMIZE		0x00010000   /*%< Use qname minimization. */
-#define DNS_FETCHOPT_QMIN_STRICT	0x00020000   /*%< Do not work around servers that
-							  return errors on non-empty
+#define DNS_FETCHOPT_QMINIMIZE		0x00010000   /*%< Use qname
+							  minimization. */
+#define DNS_FETCHOPT_QMIN_STRICT	0x00020000   /*%< Do not work around
+							  servers that return
+							  errors on non-empty
 							  terminals. */
-#define DNS_FETCHOPT_QMIN_SKIP_ON_IP6A	0x00040000   /*%< Skip some labels when
-							  doing qname minimization on
+#define DNS_FETCHOPT_QMIN_SKIP_IP6A	0x00040000   /*%< Skip some labels
+							  when doing qname
+							  minimization on
 							  ip6.arpa. */
 
 /* Reserved in use by adb.c		0x00400000 */

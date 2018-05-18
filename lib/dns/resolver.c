@@ -2973,7 +2973,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				FCTXTRACE("query canceled: "
 					  "resquery_send() failed; responding");
 
-				fctx_cancelquery(&query, NULL, NULL, ISC_FALSE, ISC_FALSE);
+				fctx_cancelquery(&query, NULL, NULL,
+						 ISC_FALSE, ISC_FALSE);
 				fctx_done(fctx, result, __LINE__);
 			}
 			break;
@@ -2992,7 +2993,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 * No route to remote.
 			 */
 			isc_socket_detach(&query->tcpsocket);
-			fctx_cancelquery(&query, NULL, NULL, ISC_TRUE, ISC_FALSE);
+			fctx_cancelquery(&query, NULL, NULL,
+					 ISC_TRUE, ISC_FALSE);
 			retry = ISC_TRUE;
 			break;
 
@@ -3002,7 +3004,8 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 				   sevent->result);
 
 			isc_socket_detach(&query->tcpsocket);
-			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE, ISC_FALSE);
+			fctx_cancelquery(&query, NULL, NULL,
+					 ISC_FALSE, ISC_FALSE);
 			break;
 		}
 	}
@@ -4757,8 +4760,10 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	 * If qname minimization is enabled we need to trim
 	 * the name in fctx to proper length.
 	 */
-	if (options & DNS_FETCHOPT_QMINIMIZE) {
-		fctx->ip6arpaskip = (options & DNS_FETCHOPT_QMIN_SKIP_ON_IP6A) && dns_name_issubdomain(&fctx->name, &ip6_arpa);
+	if ((options & DNS_FETCHOPT_QMINIMIZE) != 0) {
+		fctx->ip6arpaskip =
+			ISC_TF((options & DNS_FETCHOPT_QMIN_SKIP_IP6A) != 0 &&
+			       dns_name_issubdomain(&fctx->name, &ip6_arpa));
 		fctx_minimize_qname(fctx);
 	}
 
@@ -8502,15 +8507,18 @@ rctx_answer_none(respctx_t *rctx) {
 		 * If we're minimizing in relaxed mode, retry with full name,
 		 * just to be safe. The error will be logged.
 		 */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO, "XXX %d %d", fctx->minimized, fctx->options & DNS_FETCHOPT_QMIN_STRICT);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "XXX %d %d", fctx->minimized,
+			      fctx->options & DNS_FETCHOPT_QMIN_STRICT);
 		if (fctx->minimized &&
-		    !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
+		    (fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-				      "disabling qname minimization for '%s'"
-				      " due to formerr", fctx->info);
-			fctx->qmin_labels = DNS_MAX_LABELS+1;
-			return rctx_answer_minimized(rctx);
+				      "disabling qname minimization for '%s' "
+				      "due to formerr", fctx->info);
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
+			return (rctx_answer_minimized(rctx));
 		}
 		return (DNS_R_FORMERR);
 	}
@@ -10274,7 +10282,10 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 
 void
 fctx_minimize_qname(fetchctx_t *fctx) {
-	/* XXXWPK TODO we should update info to show that this query is minimized */
+	/*
+	 * XXXWPK TODO we should update info to show that this query
+	 * is minimized
+	 */
 	unsigned int dlabels, nlabels;
 
 	dlabels = dns_name_countlabels(&fctx->domain);
@@ -10283,9 +10294,9 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	dns_name_init(&fctx->name, NULL);
 	if (fctx->ip6arpaskip) {
 		/*
-		 * For ip6.arpa we want to skip some of the labels, with boundaries
-		 * at /16, /32, /48, /56, /64 and /128
-		 * in 'label count' terms that's equal to
+		 * For ip6.arpa we want to skip some of the labels, with
+		 * boundaries at /16, /32, /48, /56, /64 and /128
+		 * In 'label count' terms that's equal to
 		 *    7    11   15   17   19      35
 		 * We fix fctx->qmin_labels to point to the nearest boundary
 		 */
@@ -10309,14 +10320,16 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	}
 	if (dlabels + fctx->qmin_labels < nlabels) {
 		/*
-		 * We want to query for [qmin_labels from fctx->fullname] + fctx->domain
+		 * We want to query for
+		 * [qmin_labels from fctx->fullname] + fctx->domain
 		 */
 		dns_fixedname_t fname;
 		dns_fixedname_init(&fname);
 		dns_name_split(&fctx->fullname,
 			       dlabels + fctx->qmin_labels,
 			       NULL, dns_fixedname_name(&fname));
-		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx, &fctx->name);
+		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
+			     &fctx->name);
 		fctx->type = dns_rdatatype_ns;
 		fctx->minimized = isc_boolean_true;
 	} else {

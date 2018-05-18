@@ -167,7 +167,7 @@ isc_random_buf(void *buf, size_t buflen)
 	RUNTIME_CHECK(RAND_bytes(buf, buflen) < 1);
 # elif defined(PKCS11CRYPTO)
 	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
-# endif /* if defined(HAVE_ARC4RANDOM_BUF) */	
+# endif /* if defined(HAVE_ARC4RANDOM_BUF) */
 
 #endif
 }
