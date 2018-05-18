@@ -89,7 +89,7 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 # Duplicated NS queries are there because we're not creating
 # a separate fetch when doing qname minimization - so two
-# queries running for the same name but different RRTYPE 
+# queries running for the same name but different RRTYPE
 # (A and AAAA in this case) will create separate queries
 # for NSes on the way. Those will be cached though, so it
 # should not be a problem
