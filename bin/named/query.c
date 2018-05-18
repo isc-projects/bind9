@@ -1620,14 +1620,21 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				dns_rdataset_disassociate(sigrdataset);
 		}
 		if (result == ISC_R_SUCCESS) {
+			isc_boolean_t invalid = ISC_FALSE;
 			mname = NULL;
 #ifdef ALLOW_FILTER_AAAA
 			have_a = ISC_TRUE;
 #endif
-			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    DNS_TRUST_PENDING(rdataset->trust) &&
+			if (additionaltype ==
+			    dns_rdatasetadditional_fromcache &&
+			    (DNS_TRUST_PENDING(rdataset->trust) ||
+			     DNS_TRUST_GLUE(rdataset->trust)) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
+				invalid = ISC_TRUE;
+			}
+
+			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
@@ -1682,6 +1689,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				dns_rdataset_disassociate(sigrdataset);
 		}
 		if (result == ISC_R_SUCCESS) {
+			isc_boolean_t invalid = ISC_FALSE;
 			mname = NULL;
 			/*
 			 * There's an A; check whether we're filtering AAAA
@@ -1694,10 +1702,16 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			      !dns_rdataset_isassociated(sigrdataset)))))
 				goto addname;
 #endif
-			if (additionaltype == dns_rdatasetadditional_fromcache &&
-			    DNS_TRUST_PENDING(rdataset->trust) &&
+			if (additionaltype ==
+			    dns_rdatasetadditional_fromcache &&
+			    (DNS_TRUST_PENDING(rdataset->trust) ||
+			     DNS_TRUST_GLUE(rdataset->trust)) &&
 			    !validate(client, db, fname, rdataset, sigrdataset))
 			{
+				invalid = ISC_TRUE;
+			}
+
+			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
@@ -1859,6 +1873,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	dns_rdatasetadditional_t additionaltype;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	isc_boolean_t invalid;
 
 	/*
 	 * If we don't have an additional cache call query_addadditional.
@@ -2156,15 +2171,22 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_a, 0,
 				     client->now, rdataset, sigrdataset);
+	invalid = ISC_FALSE;
+
 	/*
-	 * If we can't promote glue/pending from the cache to secure
-	 * then drop it.
+	 * Try to promote pending/glue from the cache to secure.
+	 * If unable to do so, drop it from the response unless
+	 * it's glue, in which case it may still be needed.
 	 */
 	if (result == ISC_R_SUCCESS &&
 	    additionaltype == dns_rdatasetadditional_fromcache &&
-	    DNS_TRUST_PENDING(rdataset->trust) &&
+	    (DNS_TRUST_PENDING(rdataset->trust) ||
+	     DNS_TRUST_GLUE(rdataset->trust)) &&
 	    !validate(client, db, fname, rdataset, sigrdataset))
 	{
+		invalid = ISC_TRUE;
+	}
+	if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 		dns_rdataset_disassociate(rdataset);
 		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
@@ -2199,14 +2221,19 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_aaaa,
 				     0, client->now, rdataset, sigrdataset);
 	/*
-	 * If we can't promote glue/pending from the cache to secure
-	 * then drop it.
+	 * Try to promote pending/glue from the cache to secure.
+	 * If unable to do so, drop it from the response unless
+	 * it's glue, in which case it may still be needed.
 	 */
 	if (result == ISC_R_SUCCESS &&
 	    additionaltype == dns_rdatasetadditional_fromcache &&
-	    DNS_TRUST_PENDING(rdataset->trust) &&
+	    (DNS_TRUST_PENDING(rdataset->trust) ||
+	     DNS_TRUST_GLUE(rdataset->trust)) &&
 	    !validate(client, db, fname, rdataset, sigrdataset))
 	{
+		invalid = ISC_TRUE;
+	}
+	if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 		dns_rdataset_disassociate(rdataset);
 		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
