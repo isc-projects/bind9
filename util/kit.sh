@@ -20,7 +20,7 @@
 #   (e.g., sh kit.sh snapshot /tmp/bindkit
 #
 
-remote=--remote=repo.isc.org:/proj/git/prod/bind9.git
+remote=--remote=git@gitlab.isc.org:isc-projects/bind9.git
 
 case "${1:-}" in
 --remote=*)
@@ -84,7 +84,7 @@ mkdir $verdir || {
     echo "$0: could not create directory $tmpdir/$verdir" >&2
     exit 1
 }
-git archive --format=tar $remote $hash version | ( cd $verdir ;tar xf - )
+git archive --format=tar $remote $tag version | ( cd $verdir ;tar xf - )
 test -f $verdir/version || {
     echo "$0: could not get 'version' file" >&2
     exit 1
@@ -113,7 +113,7 @@ test ! -d $topdir || {
 
 mkdir $topdir || exit 1
 
-git archive --format=tar $remote $hash | ( cd $topdir; tar xf -)
+git archive --format=tar $remote $tag | ( cd $topdir; tar xf -)
 
 cd $topdir || exit 1
 
