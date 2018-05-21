@@ -92,7 +92,7 @@ options {
             <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
             port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
-            in-memory <boolean> ] [ min-update-interval <integer> ]; ... };
+            in-memory <boolean> ] [ min-update-interval <ttlval> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -132,6 +132,7 @@ options {
         }; // may occur multiple times
         dns64-contact <string>;
         dns64-server <string>;
+        dnskey-sig-validity <integer>;
         dnsrps-enable <boolean>; // not configured
         dnsrps-options { <unspecified-text> }; // not configured
         dnssec-accept-expired <boolean>;
@@ -182,7 +183,7 @@ options {
         fstrm-set-output-notify-threshold <integer>; // not configured
         fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
         fstrm-set-output-queue-size <integer>; // not configured
-        fstrm-set-reopen-interval <integer>; // not configured
+        fstrm-set-reopen-interval <ttlval>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
         geoip-use-ecs <boolean>; // not configured
         glue-cache <boolean>;
@@ -192,7 +193,7 @@ options {
         host-statistics-max <integer>; // not implemented
         hostname ( <quoted_string> | none );
         inline-signing <boolean>;
-        interface-interval <integer>;
+        interface-interval <ttlval>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );
         keep-response-order { <address_match_element>; ... };
@@ -213,11 +214,11 @@ options {
         match-mapped-addresses <boolean>;
         max-acache-size ( unlimited | <sizeval> ); // obsolete
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
-        max-cache-ttl <integer>;
+        max-cache-ttl <ttlval>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
         max-journal-size ( default | unlimited | <sizeval> );
-        max-ncache-ttl <integer>;
+        max-ncache-ttl <ttlval>;
         max-records <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
@@ -305,12 +306,12 @@ options {
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            max-policy-ttl <ttlval> ] [ min-update-interval <ttlval> ] [
             policy ( cname | disabled | drop | given | no-op | nodata |
             nxdomain | passthru | tcp-only <quoted_string> ) ] [
             recursive-only <boolean> ] [ nsip-enable <boolean> ] [
             nsdname-enable <boolean> ]; ... } [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            max-policy-ttl <ttlval> ] [ min-update-interval <ttlval> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [
             nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [
@@ -459,7 +460,7 @@ view <string> [ <class> ] {
             <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
             port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
-            in-memory <boolean> ] [ min-update-interval <integer> ]; ... };
+            in-memory <boolean> ] [ min-update-interval <ttlval> ]; ... };
         check-dup-records ( fail | warn | ignore );
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
@@ -497,6 +498,7 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         dns64-contact <string>;
         dns64-server <string>;
+        dnskey-sig-validity <integer>;
         dnsrps-enable <boolean>; // not configured
         dnsrps-options { <unspecified-text> }; // not configured
         dnssec-accept-expired <boolean>;
@@ -553,11 +555,11 @@ view <string> [ <class> ] {
         match-recursive-only <boolean>;
         max-acache-size ( unlimited | <sizeval> ); // obsolete
         max-cache-size ( default | unlimited | <sizeval> | <percentage> );
-        max-cache-ttl <integer>;
+        max-cache-ttl <ttlval>;
         max-clients-per-query <integer>;
         max-ixfr-log-size ( default | unlimited | <sizeval> ); // obsolete
         max-journal-size ( default | unlimited | <sizeval> );
-        max-ncache-ttl <integer>;
+        max-ncache-ttl <ttlval>;
         max-records <integer>;
         max-recursion-depth <integer>;
         max-recursion-queries <integer>;
@@ -632,20 +634,20 @@ view <string> [ <class> ] {
         response-padding { <address_match_element>; ... } block-size
             <integer>;
         response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            max-policy-ttl <ttlval> ] [ min-update-interval <ttlval> ] [
             policy ( cname | disabled | drop | given | no-op | nodata |
             nxdomain | passthru | tcp-only <quoted_string> ) ] [
             recursive-only <boolean> ] [ nsip-enable <boolean> ] [
             nsdname-enable <boolean> ]; ... } [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
+            max-policy-ttl <ttlval> ] [ min-update-interval <ttlval> ] [
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [
             nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
-        root-key-sentinel <boolean>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         send-cookie <boolean>;
@@ -743,6 +745,7 @@ view <string> [ <class> ] {
                 dialup ( notify | notify-passive | passive | refresh |
                     <boolean> );
                 dlz <string>;
+                dnskey-sig-validity <integer>;
                 dnssec-dnskey-kskonly <boolean>;
                 dnssec-loadkeys-interval <integer>;
                 dnssec-secure-to-insecure <boolean>;
@@ -850,6 +853,7 @@ zone <string> [ <class> ] {
         delegation-only <boolean>;
         dialup ( notify | notify-passive | passive | refresh | <boolean> );
         dlz <string>;
+        dnskey-sig-validity <integer>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-loadkeys-interval <integer>;
         dnssec-secure-to-insecure <boolean>;
