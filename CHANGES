@@ -49,10 +49,11 @@
 4935.	[func]		Add support for LibreSSL >= 2.7.0 (some OpenSSL 1.1.0
 			call were added). [GL #191]
 
-4934.	[security]	Simultaneous use of stale cache records and NSEC
+4934.	[security]	The serve-stale feature could cause an assertion failure
+			in rbtdb.c even when stale-answer-enable was false.
+			Simultaneous use of stale cache records and NSEC
 			aggressive negative caching could trigger a recursion
 			loop. (CVE-2018-5737) [GL #185]
-
 
 4933.	[bug]		Not creating signing keys for an inline signed zone
 			prevented changes applied to the raw zone from being
