@@ -347,6 +347,10 @@ query_lookup(query_ctx_t *qctx);
 static void
 fetch_callback(isc_task_t *task, isc_event_t *event);
 
+static void
+recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
+		const dns_name_t *qname, const dns_name_t *qdomain);
+
 static isc_result_t
 query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	      dns_name_t *qdomain, dns_rdataset_t *nameservers,
@@ -704,6 +708,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.root_key_sentinel_keyid = 0;
 	client->query.root_key_sentinel_is_ta = ISC_FALSE;
 	client->query.root_key_sentinel_not_ta = ISC_FALSE;
+	recparam_update(&client->query.recparam, 0, NULL, NULL);
 }
 
 static void
@@ -5592,6 +5597,56 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 }
 
 /*%
+ * Check whether the recursion parameters in 'param' match the current query's
+ * recursion parameters provided in 'qtype', 'qname', and 'qdomain'.
+ */
+static isc_boolean_t
+recparam_match(const ns_query_recparam_t *param, dns_rdatatype_t qtype,
+	       const dns_name_t *qname, const dns_name_t *qdomain)
+{
+	REQUIRE(param != NULL);
+
+	return (ISC_TF(param->qtype == qtype &&
+		       param->qname != NULL && qname != NULL &&
+		       param->qdomain != NULL && qdomain != NULL &&
+		       dns_name_equal(param->qname, qname) &&
+		       dns_name_equal(param->qdomain, qdomain)));
+}
+
+/*%
+ * Update 'param' with current query's recursion parameters provided in
+ * 'qtype', 'qname', and 'qdomain'.
+ */
+static void
+recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
+		const dns_name_t *qname, const dns_name_t *qdomain)
+{
+	isc_result_t result;
+
+	REQUIRE(param != NULL);
+
+	param->qtype = qtype;
+
+	if (qname == NULL) {
+		param->qname = NULL;
+	} else {
+		dns_fixedname_init(&param->fqname);
+		param->qname = dns_fixedname_name(&param->fqname);
+		result = dns_name_copy(qname, param->qname, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+
+	if (qdomain == NULL) {
+		param->qdomain = NULL;
+	} else {
+		dns_fixedname_init(&param->fqdomain);
+		param->qdomain = dns_fixedname_name(&param->fqdomain);
+		result = dns_name_copy(qdomain, param->qdomain, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+}
+
+/*%
  * Prepare client for recursion, then create a resolver fetch, with
  * the event callback set to fetch_callback(). Afterward we terminate
  * this phase of the query, and resume with a new query context when
@@ -5607,6 +5662,19 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	isc_sockaddr_t *peeraddr = NULL;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_recurse");
+
+	/*
+	 * Check recursion parameters from the previous query to see if they
+	 * match.  If not, update recursion parameters and proceed.
+	 */
+	if (recparam_match(&client->query.recparam, qtype, qname, qdomain)) {
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "recursion loop detected");
+		return (ISC_R_FAILURE);
+	}
+
+	recparam_update(&client->query.recparam, qtype, qname, qdomain);
 
 	if (!resuming)
 		inc_stats(client, ns_statscounter_recursion);
