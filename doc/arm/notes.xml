@@ -39,9 +39,10 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The simultaneous use of stale cache records and NSEC aggressive
-	  negative caching could trigger a recursion loop, possibly
-	  leading to an assertion failure and termination of the
+	  The serve-stale feature could cause an assertion failure in
+	  rbtdb.c even when stale-answer-enable was false. The
+	  simultaneous use of stale cache records and NSEC aggressive
+	  negative caching could trigger a recursion loop in the
 	  <command>named</command> process. (CVE-2018-5737) [GL #185]
 	</para>
       </listitem>
