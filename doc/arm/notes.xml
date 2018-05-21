@@ -42,11 +42,27 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  update-policy rules that otherwise ignore the name field now
-	  require that it be set to "." to ensure that any type list
-	  present is properly interpreted.  Previously, if the name field
-	  was omitted from the rule declaration but a type list was
-	  present, it wouldn't be interpreted as expected.
+	  The serve-stale feature could cause an assertion failure in
+	  rbtdb.c even when stale-answer-enable was false. The
+	  simultaneous use of stale cache records and NSEC aggressive
+	  negative caching could trigger a recursion loop in the
+	  <command>named</command> process. (CVE-2018-5737) [GL #185]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  A bug in zone database reference counting could lead to a crash
+	  when multiple versions of a slave zone were transferred from a
+	  master in close succession. (CVE-2018-5736) [GL #134]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>update-policy</command> rules that otherwise ignore the
+	  name field now require that it be set to "." to ensure that any
+	  type list present is properly interpreted.  Previously, if the
+	  name field was omitted from the rule declaration but a type list
+	  was present, it wouldn't be interpreted as expected.
 	</para>
       </listitem>
     </itemizedlist>
