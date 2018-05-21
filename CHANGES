@@ -1,3 +1,7 @@
+4934.	[security]	Simultaneous use of stale cache records and NSEC
+			aggressive negative caching could trigger a recursion
+			loop. (CVE-2018-5737) [GL #185]
+
 4950.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
 
 4949.	[placeholder]
@@ -121,10 +125,10 @@
 			like dig without IDN support.  libidn2 version 2.0
 			or higher is needed for +idnout enabled by default.
 
-4914.	[bug]		A bug in zone database reference counting could lead to
+4914.	[security]	A bug in zone database reference counting could lead to
 			a crash when multiple versions of a slave zone were
 			transferred from a master in close succession.
-			[GL #134]
+			(CVE-2018-5736) [GL #134]
 
 4913.	[test]		Re-implemented older unit tests in bin/tests as ATF,
 			removed the lib/tests unit testing library. [GL #115]
