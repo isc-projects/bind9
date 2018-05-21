@@ -36,9 +36,10 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.13.0-dev</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.13.0</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_features">New Features</a></span></dt>
@@ -53,17 +54,41 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.13.0-dev</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.13.0</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
     <p>
-      BIND 9.13 is unstable development release of BIND.
+      BIND 9.13 is an unstable development release of BIND.
       This document summarizes new features and functional changes that
-      have been introduced on this branch.  With each development
-      release leading up to the stable BIND 9.14 release, this document
-      will be updated with additional features added and bugs fixed.
+      have been introduced on this branch.  With each development release
+      leading up to the stable BIND 9.14 release, this document will be
+      updated with additional features added and bugs fixed.
+    </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_versions"></a>Note on Version Numbering</h3></div></div></div>
+    <p>
+      Prior to BIND 9.13, new feature development releases were tagged
+      as "alpha" and "beta", leading up to the first stable release
+      for a given development branch, which always ended in ".0".
+    </p>
+    <p>
+      Now, however, BIND has adopted the "odd-unstable/even-stable"
+      release numbering convention. There will be no "alpha" or "beta"
+      releases in the 9.13 branch, only increasing version numbers.
+      So, for example, what would previously have been called 9.13.0a1,
+      9.13.0a2, 9.13.0b1, and so on, will instead be called 9.13.0,
+      9.13.1, 9.13.2, etc.
+    </p>
+    <p>
+      The first stable release from this development branch will be
+      renamed as 9.14.0. Thereafter, maintenance releases will continue
+      on the 9.14 branch, while unstable feature development proceeds in
+      9.15.
     </p>
   </div>
 
@@ -82,31 +107,6 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  Addresses could be referenced after being freed during resolver
-	  processing, causing an assertion failure. The chances of this
-	  happening were remote, but the introduction of a delay in
-	  resolution increased them. This bug is disclosed in
-	  CVE-2017-3145. [RT #46839]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  update-policy rules that otherwise ignore the name field now
-	  require that it be set to "." to ensure that any type list
-	  present is properly interpreted.  If the name field was omitted
-	  from the rule declaration and a type list was present it wouldn't
-	  be interpreted as expected.
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_features"></a>New Features</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
 	  None.
@@ -116,20 +116,120 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_features"></a>New Features</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  BIND now can be compiled against the <span class="command"><strong>libidn2</strong></span>
+	  library to add IDNA2008 support.  Previously, BIND supported
+	  IDNA2003 using the (now obsolete and unsupported)
+	  <span class="command"><strong>idnkit-1</strong></span> library.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> now supports the "root key sentinel"
+	  mechanism. This enables validating resolvers to indicate to
+	  which trust anchors are configured for the root, so that
+	  information about root key rollover status can be gathered.
+	  To disable this feature, add
+	  <span class="command"><strong>root-key-sentinel no;</strong></span> to
+	  <code class="filename">named.conf</code>.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>dnskey-sig-validity</strong></span> option allows the
+	  <span class="command"><strong>sig-validity-interval</strong></span> to be overriden for
+	  signatures covering DNSKEY RRsets. [GL #145]
+	</p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
 	<p>
 	  <span class="command"><strong>dnssec-keygen</strong></span> can no longer generate HMAC
 	  keys for TSIG authentication. Use <span class="command"><strong>tsig-keygen</strong></span>
 	  to generate these keys. [RT #46404]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  Support for OpenSSL 0.9.x has been removed.  OpenSSL version
+	  1.0.0 or greater, or LibreSSL is now required.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>configure --enable-seccomp</strong></span> option,
+	  which formerly turned on system-call filtering on Linux, has
+	  been removed. [GL #93]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  IPv4 addresses in forms other than dotted-quad are no longer
+	  accepted in master files. [GL #13] [GL #56]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  IDNA2003 support via (bundled) idnkit-1.0 has been removed.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The "rbtdb64" database implementation (a parallel
+	  implementation of "rbt") has been removed. [GL #217]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>-r randomdev</strong></span> option to explicitly select
+	  random device has been removed from the
+	  <span class="command"><strong>ddns-confgen</strong></span>,
+	  <span class="command"><strong>rndc-confgen</strong></span>,
+	  <span class="command"><strong>nsupdate</strong></span>,
+	  <span class="command"><strong>dnssec-confgen</strong></span>, and
+	  <span class="command"><strong>dnssec-signzone</strong></span> commands.
+	</p>
+	<p>
+	  The <span class="command"><strong>-p</strong></span> option to use pseudo-random data
+	  has been removed from the <span class="command"><strong>dnssec-signzone</strong></span>
+	  command.
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  BIND will now always use the best CSPRNG (cryptographically-secure
+	  pseudo-random number generator) available on the platform where
+	  it is compiled.  It will use <span class="command"><strong>arc4random()</strong></span>
+	  family of functions on BSD operating systems,
+	  <span class="command"><strong>getrandom()</strong></span> on Linux and Solaris,
+	  <span class="command"><strong>CryptGenRandom</strong></span> on Windows, and the selected
+	  cryptography provider library (OpenSSL or PKCS#11) as the last
+	  resort. [GL #221]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  BIND can no longer be built without DNSSEC support. A cryptography
+	  provder (i.e., OpenSSL or a hardware service module with
+	  PKCS#11 support) must be available. [GL #244]
+	</p>
+      </li>
 <li class="listitem">
 	<p>
 	  Zone types <span class="command"><strong>primary</strong></span> and
@@ -145,32 +245,51 @@
 	  [RT #43670]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig +nssearch</strong></span> will now list name servers
+	  that have timed out, in addition to those that respond. [GL #64]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig +noidnin</strong></span> can be used to disable IDN
+	  processing on the input domain name, when BIND is compiled
+	  with IDN support.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Up to 64 <span class="command"><strong>response-policy</strong></span> zones are now
+	  supported by default; previously the limit was 32. [GL #123]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Several configuration options for time periods can now use
+	  TTL value suffixes (for example, <code class="literal">2h</code> or
+	  <code class="literal">1d</code>) in addition to an integer number of
+	  seconds. These include
+	  <span class="command"><strong>fstrm-set-reopen-interval</strong></span>,
+	  <span class="command"><strong>interface-interval</strong></span>,
+	  <span class="command"><strong>max-cache-ttl</strong></span>,
+	  <span class="command"><strong>max-ncache-ttl</strong></span>,
+	  <span class="command"><strong>max-policy-ttl</strong></span>, and
+	  <span class="command"><strong>min-update-interval</strong></span>.
+	  [GL #203]
+	</p>
+      </li>
 </ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  When answering authoritative queries, <span class="command"><strong>named</strong></span>
-	  does not return the target of a cross-zone CNAME between two
-	  locally served zones; this prevents accidental cache poisoning.
-	  This same restriction was incorrectly applied to recursive
-	  queries as well; this has been fixed. [RT #47078]
+	  None.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Attempting to validate improperly unsigned CNAME responses
-	  from secure zones could cause a validator loop. This caused
-	  a delay in returning SERVFAIL and also increased the chances
-	  of encountering the crash bug described in CVE-2017-3145.
-	  [RT #46839]
-	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">
@@ -208,8 +327,8 @@
     <p>
       The end of life date for BIND 9.14 has not yet been determined.
       For those needing long term support, the current Extended Support
-      Version (ESV) is BIND 9.11, which will be supported until December
-      2021. See
+      Version (ESV) is BIND 9.11, which will be supported until at
+      least December 2021. See
       <a class="link" href="https://www.isc.org/downloads/software-support-policy/" target="_top">https://www.isc.org/downloads/software-support-policy/</a>
       for details of ISC's software support policy.
     </p>
@@ -245,6 +364,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.0-dev</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.0 (Development Release)</p>
 </body>
 </html>

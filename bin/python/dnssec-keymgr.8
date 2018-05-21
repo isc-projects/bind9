@@ -1,4 +1,4 @@
-.\" Copyright (C) 2016, 2017 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2016-2018 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@
 dnssec-keymgr \- Ensures correct DNSKEY coverage for a zone based on a defined policy
 .SH "SYNOPSIS"
 .HP \w'\fBdnssec\-keymgr\fR\ 'u
-\fBdnssec\-keymgr\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-c\ \fR\fB\fIfile\fR\fR] [\fB\-f\fR] [\fB\-k\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-z\fR] [\fB\-g\ \fR\fB\fIpath\fR\fR] [\fB\-r\ \fR\fB\fIpath\fR\fR] [\fB\-s\ \fR\fB\fIpath\fR\fR] [zone...]
+\fBdnssec\-keymgr\fR [\fB\-K\ \fR\fB\fIdirectory\fR\fR] [\fB\-c\ \fR\fB\fIfile\fR\fR] [\fB\-f\fR] [\fB\-k\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-z\fR] [\fB\-g\ \fR\fB\fIpath\fR\fR] [\fB\-s\ \fR\fB\fIpath\fR\fR] [zone...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-keymgr\fR
@@ -121,15 +121,6 @@ Quiet: suppress printing of
 \fBdnssec\-keygen\fR
 and
 \fBdnssec\-settime\fR\&.
-.RE
-.PP
-\-r \fIrandomdev\fR
-.RS 4
-Specifies a path to a file containing random data\&. This is passed to the
-\fBdnssec\-keygen\fR
-binary using its
-\fB\-r\fR
-option\&.
 .RE
 .PP
 \-s \fIsettime\-path\fR
@@ -297,5 +288,5 @@ Allow configuration of standby keys and use of the REVOKE bit, for keys that use
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2016, 2017 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2016-2018 Internet Systems Consortium, Inc. ("ISC")
 .br

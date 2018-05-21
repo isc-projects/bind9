@@ -176,7 +176,7 @@ using the command\-line interface\&.
 .PP
 \-i
 .RS 4
-Do reverse IPv6 lookups using the obsolete RFC1886 IP6\&.INT domain, which is no longer in use\&. Obsolete bit string label queries (RFC2874) are not attempted\&.
+Do reverse IPv6 lookups using the obsolete RFC 1886 IP6\&.INT domain, which is no longer in use\&. Obsolete bit string label queries (RFC 2874) are not attempted\&.
 .RE
 .PP
 \-k \fIkeyfile\fR
@@ -210,13 +210,15 @@ from other arguments\&.
 .PP
 \-t \fItype\fR
 .RS 4
-The resource record type to query\&. It can be any valid query type which is supported in BIND 9\&. The default query type is "A", unless the
+The resource record type to query\&. It can be any valid query type\&. If it is a resource record type supported in BIND 9, it can be given by the type mnemonic (such as "NS" or "AAAA")\&. The default query type is "A", unless the
 \fB\-x\fR
 option is supplied to indicate a reverse lookup\&. A zone transfer can be requested by specifying a type of AXFR\&. When an incremental zone transfer (IXFR) is required, set the
 \fItype\fR
 to
 ixfr=N\&. The incremental zone transfer will contain the changes made to the zone since the serial number in the zone\*(Aqs SOA record was
 \fIN\fR\&.
+.sp
+All resource record types can be expressed as "TYPEnn", where "nn" is the number of the type\&. If the resource record type is not supported in BIND 9, the result will be displayed as described in RFC 3597\&.
 .RE
 .PP
 \-u
@@ -464,6 +466,11 @@ Show [or do not show] the IP address and port number that supplied the answer wh
 option is enabled\&. If short form answers are requested, the default is not to show the source address and port number of the server that provided the answer\&.
 .RE
 .PP
+\fB+[no]idnin\fR
+.RS 4
+Process [do not process] IDN domain names on input\&. This requires IDN SUPPORT to have been enabled at compile time\&. The default is to process IDN input\&.
+.RE
+.PP
 \fB+[no]idnout\fR
 .RS 4
 Convert [do not convert] puny code on output\&. This requires IDN SUPPORT to have been enabled at compile time\&. The default is to convert output\&.
@@ -525,7 +532,7 @@ Include an EDNS name server ID request when sending a query\&.
 .RS 4
 When this option is set,
 \fBdig\fR
-attempts to find the authoritative name servers for the zone containing the name being looked up and display the SOA record that each name server has for the zone\&.
+attempts to find the authoritative name servers for the zone containing the name being looked up and display the SOA record that each name server has for the zone\&. Addresses of servers that that did not respond are also printed\&.
 .RE
 .PP
 \fB+[no]onesoa\fR
@@ -555,6 +562,11 @@ Print [do not print] the query as it is sent\&. By default, the query is not pri
 \fB+[no]question\fR
 .RS 4
 Print [do not print] the question section of a query when an answer is returned\&. The default is to print the question section as a comment\&.
+.RE
+.PP
+\fB+[no]raflag\fR
+.RS 4
+Set [do not set] the RA (Recursion Available) bit in the query\&. The default is +noraflag\&. This bit should be ignored by the server for QUERY\&.
 .RE
 .PP
 \fB+[no]rdflag\fR
@@ -644,6 +656,11 @@ Send (don\*(Aqt send) an EDNS Client Subnet option with the specified IP address
 for short, sends an EDNS CLIENT\-SUBNET option with an empty address and a source prefix\-length of zero, which signals a resolver that the client\*(Aqs address information must
 \fInot\fR
 be used when resolving this query\&.
+.RE
+.PP
+\fB+[no]tcflag\fR
+.RS 4
+Set [do not set] the TC (TrunCation) bit in the query\&. The default is +notcflag\&. This bit should be ignored by the server for QUERY\&.
 .RE
 .PP
 \fB+[no]tcp\fR
@@ -775,11 +792,10 @@ If
 \fBdig\fR
 has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names\&.
 \fBdig\fR
-appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you\*(Aqd like to turn off the IDN support for some reason, defines the
-\fBIDN_DISABLE\fR
-environment variable\&. The IDN support is disabled if the variable is set when
-\fBdig\fR
-runs\&.
+appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you\*(Aqd like to turn off the IDN support for some reason, use parameters
+\fI+noidnin\fR
+and
+\fI+noidnout\fR\&.
 .SH "FILES"
 .PP
 /etc/resolv\&.conf
@@ -791,7 +807,7 @@ ${HOME}/\&.digrc
 \fBhost\fR(1),
 \fBnamed\fR(8),
 \fBdnssec-keygen\fR(8),
-RFC1035\&.
+RFC 1035\&.
 .SH "BUGS"
 .PP
 There are probably too many query options\&.
