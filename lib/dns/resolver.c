@@ -65,7 +65,7 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-
+#define WANT_QUERYTRACE
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)       isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
@@ -8507,10 +8507,6 @@ rctx_answer_none(respctx_t *rctx) {
 		 * If we're minimizing in relaxed mode, retry with full name,
 		 * just to be safe. The error will be logged.
 		 */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-			      "XXX %d %d", fctx->minimized,
-			      fctx->options & DNS_FETCHOPT_QMIN_STRICT);
 		if (fctx->minimized &&
 		    (fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
@@ -8553,7 +8549,7 @@ rctx_answer_none(respctx_t *rctx) {
 	 * NXDOMAIN we go straight to the full query.
 	 */
 	if (fctx->minimized && !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
-		fctx->qmin_labels = DNS_MAX_LABELS+1;
+		fctx->qmin_labels = DNS_MAX_LABELS + 1;
 		return rctx_answer_minimized(rctx);
 	}
 	/*
@@ -9398,15 +9394,27 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 	}
 
 	/*
-	 * Some servers do not ignore unknown EDNS options.
+	 * If we're minimizing in relaxed mode try to disable minimization.
 	 */
-	if (!NOCOOKIE(query->addrinfo) &&
+	if (fctx->minimized &&
+	    (fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0)
+	{
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+			      "disabling qname minimization for '%s'"
+			      " due to bad server", fctx->info);
+	        fctx->qmin_labels = DNS_MAX_LABELS + 1;
+		result = rctx_answer_minimized(rctx);
+	} else if (!NOCOOKIE(query->addrinfo) &&
 	    (fctx->rmessage->rcode == dns_rcode_formerr ||
 	     fctx->rmessage->rcode == dns_rcode_notimp ||
 	     fctx->rmessage->rcode == dns_rcode_refused) &&
 	     dns_adb_getcookie(fctx->adb, query->addrinfo,
 			       cookie, sizeof(cookie)) == 0U)
 	{
+		/*
+		 * Some servers do not ignore unknown EDNS options.
+		 */
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
 				    FCTX_ADDRINFO_NOCOOKIE,
 				    FCTX_ADDRINFO_NOCOOKIE);
