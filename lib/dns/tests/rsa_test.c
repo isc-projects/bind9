@@ -28,8 +28,6 @@
 
 #include "../dst_internal.h"
 
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
-
 static unsigned char d[10] = {
 	0xa, 0x10, 0xbb, 0, 0xfe, 0x15, 0x1, 0x88, 0xcc, 0x7d
 };
@@ -288,25 +286,12 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 	dst_key_free(&key);
 	dns_test_end();
 }
-#else
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping RSA test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("RSA not available");
-}
-#endif
+
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, isc_rsa_verify);
-#else
-	ATF_TP_ADD_TC(tp, untested);
-#endif
 	return (atf_no_error());
 }
 

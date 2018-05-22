@@ -44,7 +44,7 @@
 #include <dns/view.h>
 
 #include <dst/result.h>
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -75,7 +75,7 @@
 #include <named/smf_globals.h>
 #endif
 
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #endif
@@ -693,7 +693,7 @@ parse_command_line(int argc, char *argv[]) {
 #ifdef __SUNPRO_C
 			printf("compiled by Solaris Studio %x\n", __SUNPRO_C);
 #endif
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 			printf("compiled with OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
@@ -1279,7 +1279,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	pk11_result_register();
 #endif
 

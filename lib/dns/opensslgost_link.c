@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if defined(OPENSSL) && defined(HAVE_OPENSSL_GOST)
+#if HAVE_OPENSSL && HAVE_OPENSSL_GOST
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -617,11 +617,11 @@ dst__opensslgost_init(dst_func_t **funcp) {
 	return (ret);
 }
 
-#else /* HAVE_OPENSSL_GOST */
+#else /* HAVE_OPENSSL && HAVE_OPENSSL_GOST */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* HAVE_OPENSSL_GOST */
+#endif /* HAVE_OPENSSL && HAVE_OPENSSL_GOST */
 /*! \file */

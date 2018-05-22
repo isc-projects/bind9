@@ -9,6 +9,7 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
 
 /*
  * The NT Groups have two groups that are not well documented and are

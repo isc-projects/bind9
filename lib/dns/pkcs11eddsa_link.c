@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if defined(PKCS11CRYPTO) && \
+#if HAVE_PKCS11 && \
     defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 
 #include <isc/mem.h>
@@ -1172,11 +1172,11 @@ dst__pkcs11eddsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* PKCS11CRYPTO && HAVE_PKCS11_EDxxx */
+#else /* HAVE_PKCS11 && HAVE_PKCS11_EDxxx */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* PKCS11CRYPTO && HAVE_PKCS11_EDxxx */
+#endif /* HAVE_PKCS11 && HAVE_PKCS11_EDxxx */
 /*! \file */
