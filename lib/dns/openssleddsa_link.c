@@ -11,8 +11,7 @@
 
 #include <config.h>
 
-#if defined(OPENSSL) && \
-    (defined(HAVE_OPENSSL_ED25519) || defined(HAVE_OPENSSL_ED448))
+#if HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448)
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -663,11 +662,11 @@ dst__openssleddsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_OPENSSL_EDxxx */
+#else /* HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448) */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* HAVE_OPENSSL_EDxxx */
+#endif /* HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448) */
 /*! \file */

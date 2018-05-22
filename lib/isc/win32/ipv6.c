@@ -9,6 +9,7 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
 
 #include <isc/net.h>
 #include <isc/platform.h>

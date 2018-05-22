@@ -40,7 +40,7 @@
 #include <isc/string.h>
 #include <isc/types.h>
 
-#if PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
@@ -84,7 +84,7 @@ isc_md5_final(isc_md5_t *ctx, unsigned char *digest) {
 	ctx->ctx = NULL;
 }
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 
 void
 isc_md5_init(isc_md5_t *ctx) {

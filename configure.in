@@ -1471,7 +1471,7 @@ case "$use_openssl" in
 	native_pkcs11)
 		AC_MSG_RESULT(disabled because of native PKCS11)
 		DST_OPENSSL_INC=""
-		CRYPTO="-DPKCS11CRYPTO"
+		CRYPTO="PKCS11"
 		CRYPTOLIB="pkcs11"
 		OPENSSLECDSALINKOBJS=""
 		OPENSSLECDSALINKSRCS=""
@@ -1481,6 +1481,7 @@ case "$use_openssl" in
 		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
+		AC_DEFINE([HAVE_PKCS11],[1],[Define if native PKCS#11 is used as cryptographic library provider])
 		;;
 	no)
 		AC_MSG_RESULT(no)
@@ -1539,7 +1540,7 @@ If you do not want OpenSSL, use --without-openssl])
 		then
 			AC_MSG_ERROR(["$use_openssl/include/openssl/opensslv.h" not found])
 		fi
-		CRYPTO='-DOPENSSL'
+		CRYPTO='OPENSSL'
 		CRYPTOLIB="openssl"
 		if test "/usr" = "$use_openssl"
 		then
@@ -1581,7 +1582,7 @@ If you do not want OpenSSL, use --without-openssl])
 		saved_libs="$LIBS"
 		CFLAGS="$DST_OPENSSL_INC $CFLAGS"
 		LIBS="$DST_OPENSSL_LIBS $LIBS"
-
+		AC_DEFINE([HAVE_OPENSSL],[1],[Define if OpenSSL is used as cryptographic library provider.])
 		AC_MSG_CHECKING(for OpenSSL >= 1.0.0 or LibreSSL)
 		AC_TRY_COMPILE([
 #include <openssl/opensslv.h>
@@ -2014,7 +2015,7 @@ AC_MSG_CHECKING(for using OpenSSL for hash functions)
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
-	if test "X$CRYPTO" = "X-DOPENSSL"
+	if test "$CRYPTO" = "OPENSSL"
 	then
 		want_openssl_hash="yes"
 	else
@@ -2023,7 +2024,7 @@ then
 fi
 case $want_openssl_hash in
 	yes)
-		if test "X$CRYPTO" != "X-DOPENSSL"
+		if test "$CRYPTO" != "OPENSSL"
 		then
 			AC_MSG_ERROR([No OpenSSL for hash functions])
 		fi
@@ -2080,7 +2081,7 @@ case "$use_pkcs11" in
 		if ! $use_threads; then
 			AC_MSG_ERROR([PKCS11 requires thread support])
 		fi
-		if test "X$CRYPTO" = "X-DOPENSSL"
+		if test "$CRYPTO" = "OPENSSL"
 		then
 			AC_MSG_CHECKING(for OpenSSL with PKCS11 support)
 			saved_cc="$CC"
@@ -2269,7 +2270,6 @@ esac
 
 AC_SUBST(PKCS11LINKOBJS)
 AC_SUBST(PKCS11LINKSRCS)
-AC_SUBST(CRYPTO)
 AC_SUBST(PKCS11_ECDSA)
 AC_SUBST(PKCS11_GOST)
 AC_SUBST(PKCS11_ED25519)

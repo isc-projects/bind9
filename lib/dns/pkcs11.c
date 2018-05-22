@@ -9,9 +9,9 @@
  * information regarding copyright ownership.
  */
 
-#ifdef PKCS11CRYPTO
-
 #include <config.h>
+
+#if HAVE_PKCS11
 
 #include <isc/util.h>
 
@@ -37,5 +37,5 @@ dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 	return (fallback);
 }
 
-#endif /* PKCS11CRYPTO */
+#endif /* HAVE_PKCS11 */
 /*! \file */

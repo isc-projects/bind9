@@ -801,7 +801,6 @@ PKCS11_TEST
 PKCS11_ED25519
 PKCS11_GOST
 PKCS11_ECDSA
-CRYPTO
 PKCS11LINKSRCS
 PKCS11LINKOBJS
 PKCS11_PROVIDER
@@ -16174,7 +16173,7 @@ case "$use_openssl" in
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled because of native PKCS11" >&5
 $as_echo "disabled because of native PKCS11" >&6; }
 		DST_OPENSSL_INC=""
-		CRYPTO="-DPKCS11CRYPTO"
+		CRYPTO="PKCS11"
 		CRYPTOLIB="pkcs11"
 		OPENSSLECDSALINKOBJS=""
 		OPENSSLECDSALINKSRCS=""
@@ -16184,6 +16183,9 @@ $as_echo "disabled because of native PKCS11" >&6; }
 		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
+
+$as_echo "#define HAVE_PKCS11 1" >>confdefs.h
+
 		;;
 	no)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -16243,7 +16245,7 @@ $as_echo "not found" >&6; }
 		then
 			as_fn_error $? "\"$use_openssl/include/openssl/opensslv.h\" not found" "$LINENO" 5
 		fi
-		CRYPTO='-DOPENSSL'
+		CRYPTO='OPENSSL'
 		CRYPTOLIB="openssl"
 		if test "/usr" = "$use_openssl"
 		then
@@ -16286,6 +16288,8 @@ $as_echo "using OpenSSL from $use_openssl/lib and $use_openssl/include" >&6; }
 		saved_libs="$LIBS"
 		CFLAGS="$DST_OPENSSL_INC $CFLAGS"
 		LIBS="$DST_OPENSSL_LIBS $LIBS"
+
+$as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
 
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL >= 1.0.0 or LibreSSL" >&5
 $as_echo_n "checking for OpenSSL >= 1.0.0 or LibreSSL... " >&6; }
@@ -16928,7 +16932,7 @@ $as_echo_n "checking for using OpenSSL for hash functions... " >&6; }
 ISC_PLATFORM_OPENSSLHASH="#undef ISC_PLATFORM_OPENSSLHASH"
 if test "whenossl" = "$want_openssl_hash"
 then
-	if test "X$CRYPTO" = "X-DOPENSSL"
+	if test "$CRYPTO" = "OPENSSL"
 	then
 		want_openssl_hash="yes"
 	else
@@ -16937,7 +16941,7 @@ then
 fi
 case $want_openssl_hash in
 	yes)
-		if test "X$CRYPTO" != "X-DOPENSSL"
+		if test "$CRYPTO" != "OPENSSL"
 		then
 			as_fn_error $? "No OpenSSL for hash functions" "$LINENO" 5
 		fi
@@ -16999,7 +17003,7 @@ $as_echo "yes" >&6; }
 		if ! $use_threads; then
 			as_fn_error $? "PKCS11 requires thread support" "$LINENO" 5
 		fi
-		if test "X$CRYPTO" = "X-DOPENSSL"
+		if test "$CRYPTO" = "OPENSSL"
 		then
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL with PKCS11 support" >&5
 $as_echo_n "checking for OpenSSL with PKCS11 support... " >&6; }
@@ -17237,7 +17241,6 @@ $as_echo "unknown provider: tweaks are in lib/isc/include/pk11/site.h" >&6; }
 $as_echo "disabled" >&6; }
 		;;
 esac
-
 
 
 
