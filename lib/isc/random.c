@@ -36,6 +36,7 @@
 
 #ifdef OPENSSL
 #include <openssl/rand.h>
+#include <openssl/err.h>
 #endif /* ifdef OPENSSL */
 
 #ifdef PKCS11CRYPTO
@@ -164,7 +165,9 @@ isc_random_buf(void *buf, size_t buflen)
 
 /* Use crypto library as fallback when no other CSPRNG is available */
 # if defined(OPENSSL)
-	RUNTIME_CHECK(RAND_bytes(buf, buflen) < 1);
+	if (RAND_bytes(buf, buflen) < 1) {
+		FATAL_ERROR(__FILE__, __LINE__, "FATAL: RAND_bytes(): %s\n", ERR_error_string(ERR_get_error(), NULL));
+	}
 # elif defined(PKCS11CRYPTO)
 	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
 # endif /* if defined(HAVE_ARC4RANDOM_BUF) */	
