@@ -44,7 +44,7 @@
 #define TEMP_BUFFER_SZ 8192
 #define TKEY_RANDOM_AMOUNT 16
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/pk11.h>
 #endif
 

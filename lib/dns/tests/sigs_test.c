@@ -17,7 +17,7 @@
 
 #include <isc/util.h>
 
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#if HAVE_OPENSSL || HAVE_PKCS11
 #include <string.h>
 
 #include <dns/db.h>
@@ -469,7 +469,7 @@ ATF_TC_BODY(untested, tc) {
 #endif
 
 ATF_TP_ADD_TCS(tp) {
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
+#if HAVE_OPENSSL || HAVE_PKCS11
 	ATF_TP_ADD_TC(tp, updatesigs);
 #else
 	ATF_TP_ADD_TC(tp, untested);

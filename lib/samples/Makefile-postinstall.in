@@ -11,7 +11,7 @@ srcdir =	@srcdir@
 #prefix =	@prefix@
 #exec_prefix =	@exec_prefix@
 
-CDEFINES =	@CRYPTO@
+CDEFINES =
 CWARNINGS =
 
 DNSLIBS =	-ldns @DNS_CRYPTO_LIBS@

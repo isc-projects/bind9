@@ -330,6 +330,9 @@ typedef __int64 off_t;
 /* Define if your OpenSSL version supports GOST. */
 @HAVE_OPENSSL_GOST@
 
+/* Define if native PKCS#11 is used as cryptographic library provider */
+#undef HAVE_PKCS11
+
 /* Define if your PKCS11 provider supports ECDSA. */
 @HAVE_PKCS11_ECDSA@
 
@@ -347,6 +350,9 @@ typedef __int64 off_t;
 
 /* Define if your OpenSSL version supports EVP AES */
 @HAVE_OPENSSL_EVP_AES@
+
+/* Define if OpenSSL is used as cryptographic library provider. */
+#undef HAVE_OPENSSL
 
 /* Define if your OpenSSL version supports AES */
 @HAVE_OPENSSL_AES@

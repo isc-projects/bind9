@@ -377,6 +377,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <net/route.h> header file. */
 #undef HAVE_NET_ROUTE_H
 
+/* Define if OpenSSL is used as cryptographic library provider. */
+#undef HAVE_OPENSSL
+
 /* Define if your OpenSSL version supports AES */
 #undef HAVE_OPENSSL_AES
 
@@ -394,6 +397,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if your OpenSSL version supports GOST. */
 #undef HAVE_OPENSSL_GOST
+
+/* Define if native PKCS#11 is used as cryptographic library provider */
+#undef HAVE_PKCS11
 
 /* Define if your PKCS11 provider supports ECDSA. */
 #undef HAVE_PKCS11_ECDSA
