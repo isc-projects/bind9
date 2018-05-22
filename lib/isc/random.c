@@ -57,6 +57,10 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <isc/once.h>
+#endif
+
 #if defined(__linux__)
 # ifdef HAVE_GETRANDOM
 #  define have_getrandom() 1
@@ -69,8 +73,7 @@
 					  (unsigned int)flags)
 
 static unsigned
-have_getrandom(void)
-{
+have_getrandom(void) {
 	uint16_t buf;
 	ssize_t ret;
 	ret = getrandom(&buf, sizeof(buf), 1 /*GRND_NONBLOCK*/);
@@ -85,8 +88,7 @@ have_getrandom(void)
 # endif /* ifdef HAVE_GETRANDOM */
 
 static int
-getrandom_buf(void *buf, size_t buflen)
-{
+getrandom_buf(void *buf, size_t buflen) {
 	size_t left = buflen;
 	ssize_t ret;
 	uint8_t *p = buf;
@@ -116,15 +118,15 @@ static isc_once_t isc_random_once = ISC_ONCE_INIT;
 static HCRYPTPROV isc_random_hcryptprov;
 
 static void isc_random_initialize(void) {
-	RUNTIME_CHECK(CryptAcquireContext(&hcryptprov, NULL, NULL, PROV_RSA_FULL,
+	RUNTIME_CHECK(CryptAcquireContext(&isc_random_hcryptprov,
+					  NULL, NULL, PROV_RSA_FULL,
 					  CRYPT_VERIFYCONTEXT|CRYPT_SILENT));
 }
 
 #endif /* defined(_WIN32) || defined(_WIN64) */
 
 uint32_t
-isc_random(void)
-{
+isc_random(void) {
 #if defined(HAVE_ARC4RANDOM)
 	return(arc4random());
 #else /* HAVE_ARC4RANDOM */
@@ -138,14 +140,15 @@ isc_random(void)
  * Fill the region buf of length buflen with random data.
  */
 void
-isc_random_buf(void *buf, size_t buflen)
-{
+isc_random_buf(void *buf, size_t buflen) {
 	REQUIRE(buf);
 	REQUIRE(buflen > 0);
 
 #if defined(_WIN32) || defined(_WIN64)
-	RUNTIME_CHECK(isc_once_do(&once, initialize_rand) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(CryptGenRandom(isc_random_hcryptprov, (DWORD)buflen, buf));
+	RUNTIME_CHECK(isc_once_do(&isc_random_once,
+				  isc_random_initialize) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(CryptGenRandom(isc_random_hcryptprov,
+				     (DWORD)buflen, buf));
 	return;
 #elif defined(HAVE_ARC4RANDOM_BUF)
 	arc4random_buf(buf, buflen);
@@ -153,8 +156,10 @@ isc_random_buf(void *buf, size_t buflen)
 #else
 
 # if defined(__linux__)
-	/* We need to check the availability of the SYS_getrandom syscall at runtime
-	 * and fall back to crypto library provider if not available
+	/*
+	 * We need to check the availability of the SYS_getrandom
+	 * syscall at runtime and fall back to crypto library provider
+	 * if not available
 	 */
 	if (have_getrandom()) {
 		getrandom_buf(buf, buflen);
@@ -176,13 +181,12 @@ isc_random_buf(void *buf, size_t buflen)
 }
 
 uint32_t
-isc_random_uniform(uint32_t upper_bound)
-{
+isc_random_uniform(uint32_t upper_bound) {
 #if defined(HAVE_ARC4RANDOM_UNIFORM)
 	return(arc4random_uniform(upper_bound));
 #else  /* if defined(HAVE_ARC4RANDOM_UNIFORM) */
 	/* Copy of arc4random_uniform from OpenBSD */
-	u_int32_t r, min;
+	uint32_t r, min;
 
 	if (upper_bound < 2) {
 		return (0);
