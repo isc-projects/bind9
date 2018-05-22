@@ -29,7 +29,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
@@ -72,7 +72,7 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	ctx->ctx = NULL;
 }
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 
 #ifndef PK11_MD5_HMAC_REPLACE
 

@@ -12,8 +12,6 @@
 
 #include <config.h>
 
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,7 +38,7 @@
 #include <dst/dst.h>
 #include <dst/result.h>
 
-#if !defined(OPENSSL)
+#if !HAVE_OPENSSL
 
 /*
  * Use a fixed key file pair if compiled without OpenSSL.
@@ -105,7 +103,7 @@ main(int argc, char **argv) {
 
 	return(0);
 }
-#else
+#else /* !HAVE_OPENSSL */
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
@@ -220,20 +218,4 @@ main(int argc, char **argv) {
 }
 #endif
 
-#else /* OPENSSL || PKCS11CRYPTO */
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <isc/util.h>
-
-int
-main(int argc, char **argv) {
-	UNUSED(argc);
-	UNUSED(argv);
-	fprintf(stderr, "Compiled without Crypto\n");
-	exit(1);
-}
-
-#endif /* OPENSSL || PKCS11CRYPTO */
 /*! \file */

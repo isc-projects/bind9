@@ -221,7 +221,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 	}
 
 	scan_slots();
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	if (rand_token == NULL) {
 		result = PK11_R_NORANDOMSERVICE;
 		goto unlock;
@@ -236,7 +236,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 		goto unlock;
 	}
 #endif
-#endif /* PKCS11CRYPTO */
+#endif /* HAVE_PKCS11 */
 	result = ISC_R_SUCCESS;
  unlock:
 	UNLOCK(&sessionlock);
@@ -348,7 +348,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	pk11_sessionlist_t *freelist;
 	pk11_session_t *sp;
 	isc_result_t ret;
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	isc_result_t service_ret = ISC_R_SUCCESS;
 #else
 	UNUSED(need_services);
@@ -359,7 +359,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	ctx->session = CK_INVALID_HANDLE;
 
 	ret = pk11_initialize(NULL, NULL);
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	if (ret == PK11_R_NORANDOMSERVICE ||
 	    ret == PK11_R_NODIGESTSERVICE ||
 	    ret == PK11_R_NOAESSERVICE) {
@@ -368,7 +368,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 		service_ret = ret;
 	}
 	else
-#endif /* PKCS11CRYPTO */
+#endif /* HAVE_PKCS11 */
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -377,7 +377,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	UNLOCK(&sessionlock);
 
 	switch(optype) {
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	case OP_RAND:
 		token = rand_token;
 		break;
@@ -401,7 +401,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 		     token = ISC_LIST_NEXT(token, link))
 			if (token->slotid == slot)
 				break;
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 		if ((token == NULL) ||
 		    ((token->operations & (1 << optype)) == 0))
 			return (ISC_R_NOTFOUND);
@@ -454,7 +454,7 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	UNLOCK(&sessionlock);
 	ctx->handle = sp;
 	ctx->session = sp->session;
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	if (ret == ISC_R_SUCCESS)
 		ret = service_ret;
 #endif

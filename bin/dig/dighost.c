@@ -86,7 +86,7 @@
 
 #include <dig/dig.h>
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -1340,7 +1340,7 @@ setup_libs(void) {
 
 	debug("setup_libs()");
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
