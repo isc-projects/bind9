@@ -34,14 +34,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 #include <openssl/rand.h>
 #include <openssl/err.h>
-#endif /* ifdef OPENSSL */
+#endif /* ifdef HAVE_OPENSSL */
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/pk11.h>
-#endif /* ifdef PKCS11CRYPTO */
+#endif /* if HAVE_PKCS11 */
 
 #if defined(__linux__)
 # include <errno.h>
@@ -164,11 +164,11 @@ isc_random_buf(void *buf, size_t buflen)
 # endif  /* defined(__linux__) */
 
 /* Use crypto library as fallback when no other CSPRNG is available */
-# if defined(OPENSSL)
+# if HAVE_OPENSSL
 	if (RAND_bytes(buf, buflen) < 1) {
 		FATAL_ERROR(__FILE__, __LINE__, "RAND_bytes(): %s", ERR_error_string(ERR_get_error(), NULL));
 	}
-# elif defined(PKCS11CRYPTO)
+# elif HAVE_PKCS11
 	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
 # endif /* if defined(HAVE_ARC4RANDOM_BUF) */	
 

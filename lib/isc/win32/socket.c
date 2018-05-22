@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
+
 /* This code uses functions which are only available on Server 2003 and
  * higher, and Windows XP and higher.
  *

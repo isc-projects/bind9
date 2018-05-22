@@ -9,6 +9,7 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
 
 /*
  * bindevt.c : Defines the entry point for event log viewer DLL.
