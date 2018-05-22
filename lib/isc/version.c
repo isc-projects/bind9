@@ -12,6 +12,8 @@
 
 /*! \file */
 
+#include <config.h>
+
 #include <isc/version.h>
 
 const char isc_version[] = VERSION;

@@ -396,6 +396,12 @@ typedef __int64 off_t;
 /* Verbose query trace logging */
 @WANT_QUERYTRACE@
 
+/* Define if using OpenSSL crypto */
+@OPENSSL@
+
+/* Define if using PKCS11 */
+@PKCS11CRYPTO@
+
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double

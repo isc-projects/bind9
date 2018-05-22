@@ -220,7 +220,9 @@ my @substdefh = ("AES_CC",
                  "PREFER_GOSTASN1",
                  "TUNE_LARGE",
                  "WANT_QUERYTRACE",
-                 "WITH_IDN");
+                 "WITH_IDN",
+                 "OPENSSL",
+                 "PCKS11CRYPTO");
 
 # for platform.h
 
@@ -1321,6 +1323,8 @@ if ($enable_native_pkcs11 eq "yes") {
         }
     }
     $configdefd{"CRYPTO"} = "PKCS11CRYPTO";
+    $configdefh{"PKCS11CRYPTO"} = 1;
+    $configdefh{"OPENSSL"} = 0;
     if ($use_ecdsa eq "no") {
         if ($verbose) {
             print "no ECDSA support in native PKCS#11\n";
@@ -1509,6 +1513,7 @@ if ($use_openssl eq "yes") {
 
     $cryptolib = "openssl";
     $configcond{"OPENSSL"} = 1;
+    $configdefh{"OPENSSL"} = 1;
     $configdefd{"CRYPTO"} = "OPENSSL";
     $configvar{"OPENSSL_PATH"} = "$openssl_path";
     $configinc{"OPENSSL_INC"} = "$openssl_inc";
