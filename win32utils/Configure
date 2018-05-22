@@ -1959,7 +1959,11 @@ if ($cookie_algorithm eq "sha1") {
     die "Unrecognized cookie algorithm: $cookie_algorithm\n";
 }
 
-print "Cryptographic library for DNSSEC: $cryptolib\n";
+if ($cryptolib ne "") {
+    print "Cryptographic library for DNSSEC: $cryptolib\n";
+} else {
+    die "No cryptography library has been found or provided."
+}
 
 # enable-openssl-hash
 if ($enable_openssl_hash eq "yes") {
