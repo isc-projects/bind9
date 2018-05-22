@@ -3330,6 +3330,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	dns_resolver_t *res;
 	isc_boolean_t unshared;
 	isc_result_t result;
+	dns_fixedname_t target;
 
 	res = fctx->res;
 	unshared = ISC_TF((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
@@ -3349,29 +3350,31 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 * See what we know about this address.
 	 */
 	find = NULL;
+	dns_fixedname_init(&target);
 	result = dns_adb_createfind(fctx->adb,
 				    res->buckets[fctx->bucketnum].task,
-				    fctx_finddone, fctx, name,
-				    &fctx->name, fctx->type,
-				    options, now, NULL,
-				    res->view->dstport,
-				    fctx->depth + 1, fctx->qc, &find);
-	if (result != ISC_R_SUCCESS) {
-		if (result == DNS_R_ALIAS) {
-			char namebuf[DNS_NAME_FORMATSIZE];
+				    fctx_finddone, fctx, name, &fctx->name,
+				    fctx->type, options, now,
+				    dns_fixedname_name(&target),
+				    res->view->dstport, fctx->depth + 1,
+				    fctx->qc, &find);
 
-			/*
-			 * XXXRTH  Follow the CNAME/DNAME chain?
-			 */
-			dns_adb_destroyfind(&find);
-			fctx->adberr++;
-			dns_name_format(name, namebuf, sizeof(namebuf));
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-				      "skipping nameserver '%s' because it "
-				      "is a CNAME, while resolving '%s'",
-				      namebuf, fctx->info);
+	if (result == DNS_R_ALIAS) {
+		dns_adb_destroyfind(&find);
+		fctx->depth++;
+	        if (fctx->depth > res->maxdepth) {
+	                isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+                              DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+                              "too much NS indirection resolving '%s' "
+                              "(depth=%u, maxdepth=%u)",
+                              fctx->info, fctx->depth, res->maxdepth);
+	        } else {
+			findname(fctx, dns_fixedname_name(&target), port,
+				 options, flags, now, overquota,
+				 need_alternate);
 		}
+	} else if (result != ISC_R_SUCCESS) {
+		return;
 	} else if (!ISC_LIST_EMPTY(find->list)) {
 		/*
 		 * We have at least some of the addresses for the
