@@ -37,7 +37,7 @@
 
 #include <dst/dst.h>
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -69,7 +69,7 @@ usage(void) {
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 	fprintf(stderr, "    -E <engine>:\n");
-#if defined(PKCS11CRYPTO)
+#if HAVE_PKCS11
 	fprintf(stderr, "        path to PKCS#11 provider library "
 				"(default is %s)\n", PK11_LIB_LOCATION);
 #elif defined(USE_PKCS11)
@@ -173,7 +173,7 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
@@ -607,7 +607,7 @@ main(int argc, char **argv) {
 
 	/* associate the key */
 	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass,
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 				"pkcs11",
 #else
 				engine,

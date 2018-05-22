@@ -201,6 +201,7 @@ my @substdefh = ("AES_CC",
                  "HAVE_GEOIP_CITY_V6",
                  "HAVE_GEOIP_V6",
                  "HAVE_LIBXML2",
+		 "HAVE_OPENSSL",
                  "HAVE_OPENSSL_AES",
                  "HAVE_OPENSSL_DSA",
                  "HAVE_OPENSSL_ECDSA",
@@ -208,6 +209,7 @@ my @substdefh = ("AES_CC",
                  "HAVE_OPENSSL_ED448",
                  "HAVE_OPENSSL_EVP_AES",
                  "HAVE_OPENSSL_GOST",
+		 "HAVE_PKCS11",
                  "HAVE_PKCS11_ECDSA",
                  "HAVE_PKCS11_ED25519",
                  "HAVE_PKCS11_ED448",
@@ -1321,6 +1323,7 @@ if ($enable_native_pkcs11 eq "yes") {
         }
     }
     $configdefd{"CRYPTO"} = "PKCS11CRYPTO";
+    $configdefd{"HAVE_PKCS11"} = 1;
     if ($use_ecdsa eq "no") {
         if ($verbose) {
             print "no ECDSA support in native PKCS#11\n";
@@ -1514,6 +1517,7 @@ if ($use_openssl eq "yes") {
     $configinc{"OPENSSL_INC"} = "$openssl_inc";
     $configlib{"OPENSSL_LIB"} = "$openssl_lib";
     $configdll{"OPENSSL_DLL"} = "$openssl_dll";
+    $configdefd{"HAVE_OPENSSL"} = 1;
     if (-f File::Spec->catfile($openssl_inc, "openssl", "dsa.h")) {
         $configdefh{"HAVE_OPENSSL_DSA"} = 1;
     } elsif ($verbose) {
