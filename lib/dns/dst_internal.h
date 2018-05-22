@@ -47,7 +47,7 @@
 
 #include <dst/dst.h>
 
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 #ifndef PK11_DH_DISABLE
 #include <openssl/dh.h>
 #endif
@@ -112,7 +112,7 @@ struct dst_key {
 	union {
 		void *generic;
 		gss_ctx_id_t gssctx;
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 #ifndef PK11_DSA_DISABLE
 		DSA *dsa;
 #endif
@@ -120,7 +120,7 @@ struct dst_key {
 		DH *dh;
 #endif
 		EVP_PKEY *pkey;
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 		pk11_object_t *pkey;
 #endif
 #ifndef PK11_MD5_DISABLE
@@ -172,9 +172,9 @@ struct dst_context {
 		isc_hmacsha256_t *hmacsha256ctx;
 		isc_hmacsha384_t *hmacsha384ctx;
 		isc_hmacsha512_t *hmacsha512ctx;
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 		EVP_MD_CTX *evp_md_ctx;
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 		pk11_context_t *pk11_ctx;
 #endif
 	} ctxdata;

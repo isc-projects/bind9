@@ -17,7 +17,7 @@ CINCLUDES =	-I${srcdir}/include -I${srcdir}/../include \
 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} \
 		${DNS_INCLUDES} ${ISC_INCLUDES} @DST_OPENSSL_INC@
 
-CDEFINES =	@CRYPTO@
+CDEFINES =
 CWARNINGS =
 
 OBJS =		os.@O@ dlz_dlopen_driver.@O@

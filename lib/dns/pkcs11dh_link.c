@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 
 #include <config.h>
 
@@ -1125,11 +1125,11 @@ dst__pkcs11dh_init(dst_func_t **funcp) {
 }
 #endif /* !PK11_DH_DISABLE */
 
-#else /* PKCS11CRYPTO */
+#else /* HAVE_PKCS11 */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* PKCS11CRYPTO */
+#endif /* HAVE_PKCS11 */
 /*! \file */

@@ -23,7 +23,6 @@
 
 #include "dnstest.h"
 
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 /*
  * Helper functions
  */
@@ -180,27 +179,13 @@ ATF_TC_BODY(nsec3param_salttotext, tc) {
 
 	dns_test_end();
 }
-#else
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping nsec3 test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("DNSSEC not available");
-}
-#endif
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
 	ATF_TP_ADD_TC(tp, max_iterations);
 	ATF_TP_ADD_TC(tp, nsec3param_salttotext);
-#else
-	ATF_TP_ADD_TC(tp, untested);
-#endif
 
 	return (atf_no_error());
 }

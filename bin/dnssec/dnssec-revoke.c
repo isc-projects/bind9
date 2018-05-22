@@ -30,7 +30,7 @@
 
 #include <dst/dst.h>
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -49,7 +49,7 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr,	"    %s [options] keyfile\n\n", program);
 	fprintf(stderr, "Version: %s\n", VERSION);
-#if defined(PKCS11CRYPTO)
+#if HAVE_PKCS11
 	fprintf(stderr, "    -E engine:    specify PKCS#11 provider "
 					"(default: %s)\n", PK11_LIB_LOCATION);
 #elif defined(USE_PKCS11)
@@ -100,7 +100,7 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("Out of memory");
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
