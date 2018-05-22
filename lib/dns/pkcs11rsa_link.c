@@ -9,10 +9,9 @@
  * information regarding copyright ownership.
  */
 
-
-#ifdef PKCS11CRYPTO
-
 #include <config.h>
+
+#if HAVE_PKCS11
 
 #include <isc/md5.h>
 #include <isc/sha1.h>
@@ -2225,11 +2224,11 @@ dst__pkcs11rsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* PKCS11CRYPTO */
+#else /* HAVE_PKCS11 */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* PKCS11CRYPTO */
+#endif /* HAVE_PKCS11 */
 /*! \file */

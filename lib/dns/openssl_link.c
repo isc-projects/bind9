@@ -23,9 +23,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef OPENSSL
-
 #include <config.h>
+
+#if HAVE_OPENSSL
 
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -367,5 +367,5 @@ dst__openssl_getengine(const char *engine) {
 }
 #endif
 
-#endif /* OPENSSL */
+#endif /* HAVE_OPENSSL */
 /*! \file */

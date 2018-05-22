@@ -9,6 +9,8 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
+
 /*! \file
  * \brief
  * Portable SPNEGO implementation.
@@ -126,8 +128,6 @@
  * whacky compilation errors when building with MSVC and should be
  * harmless in any case.
  */
-
-#include <config.h>
 
 #include <stdlib.h>
 #include <errno.h>

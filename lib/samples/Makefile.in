@@ -20,7 +20,7 @@ CINCLUDES =	-I${srcdir}/include -I../dns/include \
 		-I${top_srcdir}/lib/irs/include \
 		-I../../lib/irs/include @ISC_OPENSSL_INC@
 
-CDEFINES =	@CRYPTO@ -DVERSION=\"${VERSION}\" \
+CDEFINES =	-DVERSION=\"${VERSION}\" \
 		-DSYSCONFDIR=\"${sysconfdir}\"
 CWARNINGS =
 

@@ -53,7 +53,7 @@
 
 #include <dst/dst.h>
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -1147,7 +1147,7 @@ main(int argc, char *argv[]) {
 		fatal("out of memory");
 	}
 
-#ifdef PKCS11CRYPTO
+#if HAVE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();

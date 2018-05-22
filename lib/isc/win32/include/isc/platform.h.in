@@ -35,7 +35,7 @@
  *** Enforce OpenSSL or PKCS#11 cryptography
  ***/
 
-#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
+#if !HAVE_OPENSSL && !HAVE_PKCS11
 #error No cryptography library has been found or provided.
 #endif
 

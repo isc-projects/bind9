@@ -27,7 +27,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
@@ -228,7 +228,7 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 	isc_safe_memwipe(newdigest, sizeof(newdigest));
 }
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 
 #if defined(PK11_SHA_1_HMAC_REPLACE) || \
     defined(PK11_SHA224_HMAC_REPLACE) || \

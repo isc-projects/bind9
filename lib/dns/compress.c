@@ -9,11 +9,11 @@
  * information regarding copyright ownership.
  */
 
+#include <config.h>
+
 /*! \file */
 
 #define DNS_NAME_USEINLINE 1
-
-#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/string.h>
