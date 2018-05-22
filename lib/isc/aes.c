@@ -126,7 +126,7 @@ isc_aes256_crypt(const unsigned char *key, const unsigned char *in,
 	AES_encrypt(in, out, &k);
 }
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 
 #include <pk11/pk11.h>
 #include <pk11/internal.h>

@@ -37,7 +37,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#if PKCS11CRYPTO
+#if HAVE_PKCS11
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
@@ -90,7 +90,7 @@ isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
 	context->ctx = NULL;
 }
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 
 void
 isc_sha1_init(isc_sha1_t *ctx) {

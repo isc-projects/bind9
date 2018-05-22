@@ -123,7 +123,7 @@ static isc_result_t	addsuffix(char *filename, int len,
 			return (_r);		\
 	} while (0);				\
 
-#if defined(OPENSSL)
+#if HAVE_OPENSSL
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
@@ -146,13 +146,11 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
-#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
 	UNUSED(engine);
-#endif
 
 	dst__memory_pool = NULL;
 
-#if defined(OPENSSL)
+#if HAVE_OPENSSL
 	UNUSED(mctx);
 	/*
 	 * When using --with-openssl, there seems to be no good way of not
@@ -170,9 +168,9 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifndef OPENSSL_LEAKS
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
 #endif
-#else /* OPENSSL */
+#else /* HAVE_OPENSSL */
 	isc_mem_attach(mctx, &dst__memory_pool);
-#endif /* OPENSSL */
+#endif /* HAVE_OPENSSL */
 
 	dst_result_register();
 
@@ -185,7 +183,7 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]));
 	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 	RETERR(dst__openssl_init(engine));
 #ifndef PK11_MD5_DISABLE
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5],
@@ -219,7 +217,7 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifdef HAVE_OPENSSL_ED448
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448]));
 #endif
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 	RETERR(dst__pkcs11_init(mctx, engine));
 #ifndef PK11_MD5_DISABLE
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
@@ -248,14 +246,11 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifdef HAVE_PKCS11_GOST
 	RETERR(dst__pkcs11gost_init(&dst_t_func[DST_ALG_ECCGOST]));
 #endif
-#endif /* if OPENSSL, elif PKCS11CRYPTO */
+#endif /* if HAVE_OPENSSL, elif HAVE_PKCS11 */
 #ifdef GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
 #endif
 
-#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
-#error Either OpenSSL or PKCS#11 cryptographic provider needed.
-#endif /* !defined(OPENSSL) && !defined(PKCS11CRYPTO) */
 	dst_initialized = ISC_TRUE;
 	return (ISC_R_SUCCESS);
 
@@ -275,13 +270,13 @@ dst_lib_destroy(void) {
 	for (i = 0; i < DST_MAX_ALGS; i++)
 		if (dst_t_func[i] != NULL && dst_t_func[i]->cleanup != NULL)
 			dst_t_func[i]->cleanup();
-#if defined(OPENSSL) || defined(PKCS11CRYPTO)
-#ifdef OPENSSL
+#if HAVE_OPENSSL
 	dst__openssl_destroy();
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 	(void) dst__pkcs11_destroy();
-#endif /* if OPENSSL, elif PKCS11CRYPTO */
-#endif /* defined(OPENSSL) || defined(PKCS11CRYPTO) */
+#else
+#error Either OpenSSL or PKCS#11 cryptographic provider needed.
+#endif /* if HAVE_OPENSSL, elif HAVE_PKCS11 */
 	if (dst__memory_pool != NULL)
 		isc_mem_detach(&dst__memory_pool);
 }
@@ -1880,19 +1875,9 @@ static isc_result_t
 algorithm_status(unsigned int alg) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 
-	if (dst_algorithm_supported(alg))
+	if (dst_algorithm_supported(alg)) {		
 		return (ISC_R_SUCCESS);
-#if !defined(OPENSSL) && !defined(PKCS11CRYPTO)
-	if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
-	    alg == DST_ALG_DSA || alg == DST_ALG_DH ||
-	    alg == DST_ALG_HMACMD5 || alg == DST_ALG_NSEC3DSA ||
-	    alg == DST_ALG_NSEC3RSASHA1 ||
-	    alg == DST_ALG_RSASHA256 || alg == DST_ALG_RSASHA512 ||
-	    alg == DST_ALG_ECCGOST ||
-	    alg == DST_ALG_ECDSA256 || alg == DST_ALG_ECDSA384 ||
-	    alg == DST_ALG_ED25519 || alg == DST_ALG_ED448)
-		return (DST_R_NOCRYPTO);
-#endif
+	}
 	return (DST_R_UNSUPPORTEDALG);
 }
 

@@ -9,8 +9,9 @@
  * information regarding copyright ownership.
  */
 
-#ifdef OPENSSL
 #include <config.h>
+
+#if HAVE_OPENSSL
 
 #include <isc/md5.h>
 #include <isc/mem.h>
@@ -1188,11 +1189,11 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* OPENSSL */
+#else /* HAVE_OPENSSL */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* OPENSSL */
+#endif /* HAVE_OPENSSL */
 /*! \file */

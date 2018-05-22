@@ -23,9 +23,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifdef OPENSSL
-
 #include <config.h>
+
+#if HAVE_OPENSSL
 
 #include <pk11/site.h>
 
@@ -689,11 +689,11 @@ dst__openssldsa_init(dst_func_t **funcp) {
 }
 #endif /* !PK11_DSA_DISABLE */
 
-#else /* OPENSSL */
+#else /* HAVE_OPENSSL */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* OPENSSL */
+#endif /* HAVE_OPENSSL */
 /*! \file */

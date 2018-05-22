@@ -40,7 +40,7 @@ typedef struct {
 #endif
 } isc_hmacmd5_t;
 
-#elif PKCS11CRYPTO
+#elif HAVE_PKCS11
 #include <pk11/pk11.h>
 
 typedef pk11_context_t isc_hmacmd5_t;

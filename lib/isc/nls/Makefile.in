@@ -16,7 +16,7 @@ CINCLUDES =	-I../unix/include \
 		-I../include \
 		-I${srcdir}/../include
 
-CDEFINES =	@CRYPTO@
+CDEFINES =
 CWARNINGS =
 
 OBJS =		msgcat.@O@

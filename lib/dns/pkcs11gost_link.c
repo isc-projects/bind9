@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if defined(PKCS11CRYPTO) && defined(HAVE_PKCS11_GOST)
+#if HAVE_PKCS11 && defined(HAVE_PKCS11_GOST)
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -944,11 +944,11 @@ dst__pkcs11gost_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* PKCS11CRYPTO && HAVE_PKCS11_GOST */
+#else /* HAVE_PKCS11 && HAVE_PKCS11_GOST */
 
 #include <isc/util.h>
 
 EMPTY_TRANSLATION_UNIT
 
-#endif /* PKCS11CRYPTO && HAVE_PKCS11_GOST */
+#endif /* HAVE_PKCS11 && HAVE_PKCS11_GOST */
 /*! \file */

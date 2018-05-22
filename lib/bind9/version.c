@@ -11,6 +11,7 @@
 
 
 /*! \file */
+#include <config.h>
 
 #include <bind9/version.h>
 
