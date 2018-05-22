@@ -110,7 +110,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 newtest "check root-key-sentinel-not-ta with bad ta and" " 'root-key-sentinel yes;' (expect NXDOMAIN)"
-$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${bad}.example A > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 root-key-sentinel-not-ta-${badid}.example A > dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
