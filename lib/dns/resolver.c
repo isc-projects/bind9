@@ -65,7 +65,7 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-#define WANT_QUERYTRACE
+
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)       isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
@@ -308,6 +308,7 @@ struct fetchctx {
 	isc_counter_t *			qc;
 	isc_boolean_t			minimized;
 	unsigned int			qmin_labels;
+	unsigned int			qmin_steps;
 	isc_boolean_t			ip6arpaskip;
 	dns_name_t			name;
 	dns_rdatatype_t			type;
@@ -4563,6 +4564,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->minimized = isc_boolean_false;
 	fctx->ip6arpaskip = isc_boolean_false;
 	fctx->qmin_labels = 1;
+	fctx->qmin_steps = 0;
 	isc_stdtime_get(&fctx->now);
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
@@ -10340,6 +10342,7 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 			     &fctx->name);
 		fctx->type = dns_rdatatype_ns;
 		fctx->minimized = isc_boolean_true;
+		fctx->qmin_steps++;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
 		fctx->type = fctx->fulltype;
@@ -10612,7 +10615,8 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 			      "%06" ISC_PRINT_QUADFORMAT "u: %s/%s "
 			      "[domain:%s,referral:%u,restart:%u,qrysent:%u,"
 			      "timeout:%u,lame:%u,quota:%u,neterr:%u,"
-			      "badresp:%u,adberr:%u,findfail:%u,valfail:%u]",
+			      "badresp:%u,adberr:%u,findfail:%u,valfail:%u,"
+			      "qminsteps:%u]",
 			      __FILE__, fctx->exitline, fctx->info,
 			      fctx->duration / US_PER_SEC,
 			      fctx->duration % US_PER_SEC,
@@ -10622,7 +10626,8 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 			      fctx->querysent, fctx->timeouts,
 			      fctx->lamecount, fctx->quotacount,
 			      fctx->neterr, fctx->badresp, fctx->adberr,
-			      fctx->findfail, fctx->valfail);
+			      fctx->findfail, fctx->valfail,
+			      fctx->qmin_steps);
 		fctx->logged = ISC_TRUE;
 	}
 
