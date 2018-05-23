@@ -1875,7 +1875,7 @@ static isc_result_t
 algorithm_status(unsigned int alg) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 
-	if (dst_algorithm_supported(alg)) {		
+	if (dst_algorithm_supported(alg)) {
 		return (ISC_R_SUCCESS);
 	}
 	return (DST_R_UNSUPPORTEDALG);
