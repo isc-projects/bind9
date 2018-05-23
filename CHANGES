@@ -1,3 +1,6 @@
+4951.	[protocol]	Add "HOME.ARPA" to list of built in empty zones as
+			per RFC 8375. [GL #273]
+
 4950.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
 
 4949.	[bug]		lib/isc/print.c failed to handle floating point
