@@ -2730,6 +2730,7 @@
 ./doc/arm/notes.conf				X	2015,2018
 ./doc/arm/notes.html				X	2014,2015,2016,2017,2018
 ./doc/arm/notes.pdf				X	2014,2015,2016,2017,2018
+./doc/arm/notes.txt				X	2018
 ./doc/arm/notes.xml				SGML	2014,2015,2016,2017,2018
 ./doc/arm/noteversion.xml.in			SGML	2015,2018
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015,2016,2018
