@@ -30,6 +30,7 @@
 
 #include <config.h>
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -96,6 +97,7 @@ getrandom_buf(void *buf, size_t buflen) {
 	while (left > 0) {
 		ret = getrandom(p, left, 0);
 		if (ret == -1 && errno == EINTR) {
+			fprintf(stderr, "getrandom_buf: getrandom() call interrupted.\n");
 			continue;
 		}
 
@@ -104,6 +106,9 @@ getrandom_buf(void *buf, size_t buflen) {
 		if (ret > 0) {
 			left -= ret;
 			p += ret;
+		}
+		if (left > 0) {
+			fprintf(stderr, "getrandom_buf: getrandom() returned less then requested bytes (%zd < %zu).\n", ret, left+ret);
 		}
 	}
 
