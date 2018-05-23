@@ -488,7 +488,7 @@ typemap_totext(isc_region_t *sr, dns_rdata_textctx_t *tctx,
 {
 	unsigned int i, j, k;
 	unsigned int window, len;
-	isc_boolean_t first = ISC_FALSE;
+	isc_boolean_t first = ISC_TRUE;
 
 	for (i = 0; i < sr->length; i += len) {
 		if (tctx != NULL &&

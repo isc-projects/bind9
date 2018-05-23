@@ -162,9 +162,9 @@ totext_nsec3(ARGS_TOTEXT) {
 	/*
 	 * Don't leave a trailing space when there's no typemap present.
 	 */
-	if (((tctx->flags & DNS_STYLEFLAG_MULTILINE) == 0) && (sr.length > 0))
+	if (((tctx->flags & DNS_STYLEFLAG_MULTILINE) == 0) && (sr.length > 0)) {
 		RETERR(str_totext(" ", target));
-
+	}
 	RETERR(typemap_totext(&sr, tctx, target));
 
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
