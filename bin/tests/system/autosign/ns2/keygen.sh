@@ -36,15 +36,7 @@ zonefile="${zone}.db"
 infile="${zonefile}.in"
 ksk=`$KEYGEN -a RSASHA1 -3 -q -fk $zone`
 $KEYGEN -a RSASHA1 -3 -q $zone > /dev/null
-cat $ksk.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > private.conf
+keyfile_to_trusted_keys $ksk > private.conf
 cp private.conf ../ns4/private.conf
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null 2>&1
 
