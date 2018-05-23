@@ -24,11 +24,11 @@ $\ = "\n";		# set output record separator
 
 $change = 0;
 $status = 0;
+$wasblank = 1;
 
 line: while (<>) {
     ($Fld1,$Fld2,$Fld3,$Fld4) = split(' ', $_, 9999);
-    $change = 0 if (!$master && $Fld1 eq "---" &&
-		    $Fld3 eq "released" && $Fld4 eq "---");
+    $change = 0 if (!$master && /^\s+--- .* ---$/);
     if ($Fld1 =~ /^[1-9][0-9]*\.$/ && $Fld2 =~ /^\[.*\]$/) {
 	if ($change != 0 && $Fld1 >= $change) {
 	    print 'bad change number', $Fld1;
@@ -39,6 +39,21 @@ line: while (<>) {
 	    $status = 1;
 	}
 	$change = $Fld1;
+	if (!$wasblank) {
+	    print 'missing blank line before change', $Fld1;
+	    $status = 1;
+	}
+    }
+    if (/^\s+--- .* ---$/) {
+	if (!$wasblank) {
+	    print 'missing blank line before release marker for', $Fld2;
+	    $status = 1;
+	}
+    }
+    if ($Fld1 eq "") {
+	$wasblank = 1;
+    } else {
+	$wasblank = 0;
     }
 }
 
