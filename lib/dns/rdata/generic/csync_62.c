@@ -69,6 +69,12 @@ totext_csync(ARGS_TOTEXT) {
 	snprintf(buf, sizeof(buf), "%lu", num);
 	RETERR(str_totext(buf, target));
 
+	/*
+	 * Don't leave a trailing space when there's no typemap present.
+	 */
+	if (sr.length > 0) {
+		RETERR(str_totext(" ", target));
+	}
 	return (typemap_totext(&sr, NULL, target));
 }
 
