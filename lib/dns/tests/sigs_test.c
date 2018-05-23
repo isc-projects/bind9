@@ -460,11 +460,11 @@ ATF_TC_BODY(updatesigs, tc) {
 #else
 ATF_TC(untested);
 ATF_TC_HEAD(untested, tc) {
-        atf_tc_set_md_var(tc, "descr", "skipping dns__zone_updatesigs() test");
+	atf_tc_set_md_var(tc, "descr", "skipping dns__zone_updatesigs() test");
 }
 ATF_TC_BODY(untested, tc) {
-        UNUSED(tc);
-        atf_tc_skip("DNSSEC support not compiled in");
+	UNUSED(tc);
+	atf_tc_skip("DNSSEC support not compiled in");
 }
 #endif
 

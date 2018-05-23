@@ -15,9 +15,11 @@ top_srcdir =	@top_srcdir@
 
 MANOBJS = Bv9ARM.html notes.html
 
+TXTOBJS = notes.txt
+
 PDFOBJS = Bv9ARM.pdf notes.pdf
 
-doc man:: ${MANOBJS} ${PDFOBJS}
+doc man:: ${MANOBJS} ${TXTOBJS} ${PDFOBJS}
 
 clean::
 	rm -f Bv9ARM.aux Bv9ARM.brf Bv9ARM.glo Bv9ARM.idx Bv9ARM.toc
@@ -41,6 +43,11 @@ notes.html: notes-wrapper.xml notes.xml releaseinfo.xml pkgversion.xml noteversi
 notes.pdf: notes-wrapper.xml notes.xml releaseinfo.xml pkgversion.xml noteversion.xml
 	${XSLTPROC} ${top_srcdir}/doc/xsl/pre-latex.xsl notes-wrapper.xml | \
 	${DBLATEX} -c notes.conf -Pdoc.layout="mainmatter" -o notes.pdf -
+
+notes.txt: notes.html
+	${W3M} -dump -cols 75 -O ascii -T text/html < notes.html | \
+		sed 's/  *$$//' | \
+		sed -e :a -e '/^\n*$$/{$$d;N;};/\n$$/ba' > notes.txt
 
 # use xmllint to process include
 Bv9ARM.html: Bv9ARM-book.xml releaseinfo.xml pkgversion.xml noteversion.xml

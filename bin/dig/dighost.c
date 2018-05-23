@@ -4719,12 +4719,12 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	idn_result_t result;
 
 	result = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP, from,
-	                        utf8_textname, sizeof(utf8_textname));
+				utf8_textname, sizeof(utf8_textname));
 	idnkit_check_result(result, "idnkit idn_encodename to utf8 failed");
 
 	result = idn_encodename(idnoptions | IDN_LOCALMAP | IDN_NAMEPREP |
-		                IDN_IDNCONV | IDN_LENCHECK,
-		                utf8_textname, to, tolen);
+				IDN_IDNCONV | IDN_LENCHECK,
+				utf8_textname, to, tolen);
 	idnkit_check_result(result, "idnkit idn_encodename to idn failed");
 	return (ISC_R_SUCCESS);
 }
