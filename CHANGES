@@ -1,5 +1,6 @@
 4951.	[protocol]	Add "HOME.ARPA" to list of built in empty zones as
 			per RFC 8375. [GL #273]
+
 	--- 9.13.0 released ---
 
 4950.	[bug]		ISC_SOCKEVENTATTR_TRUNC was not be set. [GL #238]
