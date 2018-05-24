@@ -41,8 +41,8 @@ administrative tools, including the `dig` and `delv` DNS lookup tools,
 `nsupdate` for dynamic DNS zone updates, `rndc` for remote name server
 administration, and more.
 
-BIND 9 is a complete re-write of the BIND architecture that was used in
-versions 4 and 8.  Internet Systems Consortium
+BIND 9 began as a complete re-write of the BIND architecture that was
+used in versions 4 and 8.  Internet Systems Consortium
 ([https://www.isc.org](https://www.isc.org)), a 501(c)(3) public benefit
 corporation dedicated to providing software and services in support of the
 Internet infrastructure, developed BIND 9 and is responsible for its
@@ -58,6 +58,8 @@ CHANGES file format.
 
 For up-to-date release notes and errata, see
 [http://www.isc.org/software/bind9/releasenotes](http://www.isc.org/software/bind9/releasenotes)
+
+For information about supported platforms, see [PLATFORMS](PLATFORMS.md).
 
 ### <a name="help"/> Reporting bugs and getting help
 
