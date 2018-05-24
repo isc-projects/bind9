@@ -84,7 +84,7 @@
       <listitem>
 	<para>
 	  <command>named</command> now supports the "root key sentinel"
-	  mechanism. This enables validating resolvers to indicate to
+	  mechanism. This enables validating resolvers to indicate
 	  which trust anchors are configured for the root, so that
 	  information about root key rollover status can be gathered.
 	  To disable this feature, add
