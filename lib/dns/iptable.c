@@ -140,18 +140,19 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 void
 dns_iptable_attach(dns_iptable_t *source, dns_iptable_t **target) {
 	REQUIRE(DNS_IPTABLE_VALID(source));
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*target = source;
 }
 
 void
 dns_iptable_detach(dns_iptable_t **tabp) {
 	dns_iptable_t *tab = *tabp;
-	unsigned int refs;
+	int_fast32_t refs;
 	REQUIRE(DNS_IPTABLE_VALID(tab));
-	isc_refcount_decrement(&tab->refcount, &refs);
-	if (refs == 0)
+	refs = isc_refcount_decrement(&tab->refcount);
+	if (refs == 1) {
 		destroy_iptable(tab);
+	}
 	*tabp = NULL;
 }
 
