@@ -1,0 +1,56 @@
+Supported platforms
+
+In general, this version of BIND will build and run on any POSIX-compliant
+system with a C99-compliant C compiler, BSD-style sockets, and the OpenSSL
+cryptography library. To build with multiprocessing support, a
+C11-compliant C compiler will be needed for standard atomics.
+
+ISC regularly tests BIND on many operating systems and architectures, but
+lacks the resources to test all of them. Consequently, ISC is only able to
+offer support on a "best effort" basis for some.
+
+Regularly tested platforms
+
+As of May 2018, BIND 9.13 is tested on the following systems:
+
+  * Debian 8, 9
+  * Ubuntu 16.04, 18.04
+  * Fedora 27, 28
+  * Red Hat/CentOS 6, 7
+  * FreeBSD 10.x, 11.x
+  * OpenBSD 6.3
+
+The amd64, i386, armhf and arm64 CPU architectures are all fully
+supported.
+
+Best effort
+
+The following are platforms on which BIND is known to build and run, but
+on which it is not routinely tested. ISC makes every effort to fix bugs on
+these platforms, but may be unable to do so quickly due to lack of
+hardware, less familiarity on the part of engineering staff, and other
+constraints.
+
+  * Windows 10 / x64
+  * Windows Server 2012 R2, 2016 / x64
+  * macOS 10.12+
+  * Solaris 10
+  * FreeBSD 12+
+  * OpenBSD 6.2
+  * NetBSD
+  * Older or less popular Linux distributions still supported by their
+    vendors, such as:
+      + Ubuntu 14.04, 18.10+
+      + Gentoo
+      + ArchLinux
+      + Alpine Linux
+  * OpenWRT/LEDE 17.0
+  * Other CPU architectures (mips, mipsel, sparc, ...)
+
+Unsupported platforms
+
+These are platforms on which BIND is known not to build or run:
+
+  * Platforms without at least OpenSSL 1.0.2
+  * Windows 10 / x86
+  * Windows Server 2012
