@@ -8984,7 +8984,7 @@ view_loaded(void *arg) {
 	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
 	named_server_t *server = zl->server;
 	isc_boolean_t reconfig = zl->reconfig;
-	unsigned int refs;
+	isc_refcount_t refs;
 
 
 	/*
@@ -8995,8 +8995,8 @@ view_loaded(void *arg) {
 	 * We use the zoneload reference counter to let us
 	 * know when all views are finished.
 	 */
-	isc_refcount_decrement(&zl->refs, &refs);
-	if (refs != 0)
+	refs = isc_refcount_decrement(&zl->refs);
+	if (refs > 1)
 		return (ISC_R_SUCCESS);
 
 	isc_refcount_destroy(&zl->refs);
@@ -9032,7 +9032,7 @@ load_zones(named_server_t *server, isc_boolean_t init, isc_boolean_t reconfig) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
-	unsigned int refs = 0;
+	isc_refcount_t refs;
 
 	zl = isc_mem_get(server->mctx, sizeof (*zl));
 	if (zl == NULL)
@@ -9071,13 +9071,13 @@ load_zones(named_server_t *server, isc_boolean_t init, isc_boolean_t reconfig) {
 		 * 'dns_view_asyncload' calls view_loaded if there are no
 		 * zones.
 		 */
-		isc_refcount_increment(&zl->refs, NULL);
+		isc_refcount_increment(&zl->refs);
 		CHECK(dns_view_asyncload(view, view_loaded, zl));
 	}
 
  cleanup:
-	isc_refcount_decrement(&zl->refs, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&zl->refs);
+	if (refs == 1) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof (*zl));
 	} else if (init) {
