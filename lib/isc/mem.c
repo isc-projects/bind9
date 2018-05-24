@@ -1164,8 +1164,7 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 
 		refs = isc_refcount_decrement(&ctx->references);
-
-		if (ctx->references == 1) {
+		if (refs == 1) {
 			destroy(ctx);
 		}
 
@@ -1183,9 +1182,9 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		mem_put(ctx, ptr, size);
 	}
 
-	refs = isc_refcount_decrement(&ctx->references);
 	MCTXUNLOCK(ctx, &ctx->lock);
 
+	refs = isc_refcount_decrement(&ctx->references);
 	if (refs == 1) {
 		destroy(ctx);
 	}
@@ -1204,7 +1203,7 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
-	
+
 #if ISC_MEM_TRACKLINES
 	refs = isc_refcount_decrement(&ctx->references);
 	if (refs > 1) {
@@ -2348,7 +2347,7 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 #endif
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIdFAST32,
-					    isc_refcount_current(&ctx->references)));
+				    isc_refcount_current(&ctx->references)));
 	TRY0(xmlTextWriterEndElement(writer)); /* references */
 
 	summary->total += ctx->total;
