@@ -129,7 +129,7 @@ dns_keytable_attach(dns_keytable_t *source, dns_keytable_t **targetp) {
 	REQUIRE(VALID_KEYTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references, NULL);
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
@@ -137,7 +137,7 @@ dns_keytable_attach(dns_keytable_t *source, dns_keytable_t **targetp) {
 void
 dns_keytable_detach(dns_keytable_t **keytablep) {
 	dns_keytable_t *keytable;
-	unsigned int refs;
+	int_fast32_t refs;
 
 	/*
 	 * Detach *keytablep from its keytable.
@@ -148,8 +148,8 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 	keytable = *keytablep;
 	*keytablep = NULL;
 
-	isc_refcount_decrement(&keytable->references, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&keytable->references);
+	if (refs == 1) {
 		INSIST(isc_refcount_current(&keytable->active_nodes) == 0);
 		isc_refcount_destroy(&keytable->active_nodes);
 		isc_refcount_destroy(&keytable->references);
@@ -422,7 +422,7 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
 	if (result == ISC_R_SUCCESS) {
 		if (node->data != NULL) {
-			isc_refcount_increment0(&keytable->active_nodes, NULL);
+			isc_refcount_increment0(&keytable->active_nodes);
 			dns_keynode_attach(node->data, keynodep);
 		} else
 			result = ISC_R_NOTFOUND;
@@ -450,7 +450,7 @@ dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 		return (ISC_R_NOTFOUND);
 
 	dns_keynode_attach(keynode->next, nextnodep);
-	isc_refcount_increment(&keytable->active_nodes, NULL);
+	isc_refcount_increment(&keytable->active_nodes);
 
 	return (ISC_R_SUCCESS);
 }
@@ -498,7 +498,7 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
 				break;
 		}
 		if (knode != NULL) {
-			isc_refcount_increment0(&keytable->active_nodes, NULL);
+			isc_refcount_increment0(&keytable->active_nodes);
 			dns_keynode_attach(knode, keynodep);
 		} else
 			result = DNS_R_PARTIALMATCH;
@@ -536,7 +536,7 @@ dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 			break;
 	}
 	if (knode != NULL) {
-		isc_refcount_increment(&keytable->active_nodes, NULL);
+		isc_refcount_increment(&keytable->active_nodes);
 		result = ISC_R_SUCCESS;
 		dns_keynode_attach(knode, nextnodep);
 	} else
@@ -585,7 +585,7 @@ dns_keytable_attachkeynode(dns_keytable_t *keytable, dns_keynode_t *source,
 	REQUIRE(VALID_KEYNODE(source));
 	REQUIRE(target != NULL && *target == NULL);
 
-	isc_refcount_increment(&keytable->active_nodes, NULL);
+	isc_refcount_increment(&keytable->active_nodes);
 
 	dns_keynode_attach(source, target);
 }
@@ -600,7 +600,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(keynodep != NULL && VALID_KEYNODE(*keynodep));
 
-	isc_refcount_decrement(&keytable->active_nodes, NULL);
+	isc_refcount_decrement(&keytable->active_nodes);
 	dns_keynode_detach(keytable->mctx, keynodep);
 }
 
@@ -746,7 +746,7 @@ dns_keytable_forall(dns_keytable_t *keytable,
 			result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
-	isc_refcount_increment0(&keytable->active_nodes, NULL);
+	isc_refcount_increment0(&keytable->active_nodes);
 	for (;;) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL)
@@ -758,7 +758,7 @@ dns_keytable_forall(dns_keytable_t *keytable,
 			break;
 		}
 	}
-	isc_refcount_decrement(&keytable->active_nodes, NULL);
+	isc_refcount_decrement(&keytable->active_nodes);
 
    cleanup:
 	dns_rbtnodechain_invalidate(&chain);
@@ -822,17 +822,17 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 void
 dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target) {
 	REQUIRE(VALID_KEYNODE(source));
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*target = source;
 }
 
 void
 dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **keynode) {
-	unsigned int refs;
+	int_fast32_t refs;
 	dns_keynode_t *node = *keynode;
 	REQUIRE(VALID_KEYNODE(node));
-	isc_refcount_decrement(&node->refcount, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&node->refcount);
+	if (refs == 1) {
 		if (node->key != NULL)
 			dst_key_free(&node->key);
 		isc_refcount_destroy(&node->refcount);

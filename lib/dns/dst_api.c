@@ -1163,7 +1163,7 @@ dst_key_attach(dst_key_t *source, dst_key_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(VALID_KEY(source));
 
-	isc_refcount_increment(&source->refs, NULL);
+	isc_refcount_increment(&source->refs);
 	*target = source;
 }
 
@@ -1171,7 +1171,7 @@ void
 dst_key_free(dst_key_t **keyp) {
 	isc_mem_t *mctx;
 	dst_key_t *key;
-	unsigned int refs;
+	int_fast32_t refs;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
@@ -1179,9 +1179,10 @@ dst_key_free(dst_key_t **keyp) {
 	key = *keyp;
 	mctx = key->mctx;
 
-	isc_refcount_decrement(&key->refs, &refs);
-	if (refs != 0)
+	refs = isc_refcount_decrement(&key->refs);
+	if (refs > 1) {
 		return;
+	}
 
 	isc_refcount_destroy(&key->refs);
 	if (key->keydata.generic != NULL) {
