@@ -21,6 +21,7 @@
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stats.h>
 #include <isc/util.h>
@@ -51,15 +52,8 @@ struct isc_stats {
 	isc_mem_t	*mctx;
 	int		ncounters;
 
-	isc_mutex_t	lock;
-	unsigned int	references; /* locked by lock */
+	isc_refcount_t	references;
 
-	/*%
-	 * Locked by counterlock or unlocked.
-	 */
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_t	counterlock;
-#endif
 	isc_stat_t	*counters;
 
 	/*%
@@ -81,9 +75,7 @@ isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	LOCK(&stats->lock);
-	stats->references++;
-	UNLOCK(&stats->lock);
+	isc_refcount_increment(&stats->references);
 
 	*statsp = stats;
 }
@@ -91,30 +83,23 @@ isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
 void
 isc_stats_detach(isc_stats_t **statsp) {
 	isc_stats_t *stats;
+	isc_refcount_t refcount;
 
 	REQUIRE(statsp != NULL && ISC_STATS_VALID(*statsp));
 
 	stats = *statsp;
 	*statsp = NULL;
 
-	LOCK(&stats->lock);
-	stats->references--;
+	refcount = isc_refcount_decrement(&stats->references);
 
-	if (stats->references == 0) {
+	if (refcount == 1) {
 		isc_mem_put(stats->mctx, stats->copiedcounters,
 			    sizeof(isc_stat_t) * stats->ncounters);
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc_stat_t) * stats->ncounters);
-		UNLOCK(&stats->lock);
-		DESTROYLOCK(&stats->lock);
-#if ISC_STATS_LOCKCOUNTERS
-		isc_rwlock_destroy(&stats->counterlock);
-#endif
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 		return;
 	}
-
-	UNLOCK(&stats->lock);
 }
 
 int
@@ -135,14 +120,10 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	if (stats == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
-
 	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
 	if (stats->counters == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto clean_mutex;
+		goto clean_stats;
 	}
 
 	stats->copiedcounters = isc_mem_get(mctx,
@@ -152,14 +133,7 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 		goto clean_counters;
 	}
 
-#if ISC_STATS_LOCKCOUNTERS
-	result = isc_rwlock_init(&stats->counterlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto clean_copiedcounters;
-	}
-#endif
-
-	stats->references = 1;
+	isc_refcount_init(&stats->references, 1);
 	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
@@ -170,17 +144,8 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 
 	return (result);
 
-#if ISC_STATS_LOCKCOUNTERS
-clean_copiedcounters:
-	isc_mem_put(mctx, stats->copiedcounters,
-		    sizeof(isc_stat_t) * ncounters);
-#endif
-
 clean_counters:
 	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
-
-clean_mutex:
-	DESTROYLOCK(&stats->lock);
 
 clean_stats:
 	isc_mem_put(mctx, stats, sizeof(*stats));
@@ -193,21 +158,8 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 #ifdef ISC_PLATFORM_USETHREADS
-	/*
-	 * We use a "read" lock to prevent other threads from reading the
-	 * counter while we "writing" a counter field.  The write access itself
-	 * is protected by the atomic operation.
-	 */
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
-#endif
-
 	atomic_fetch_add_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
-
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
-#endif
+				  memory_order_release);
 #else /* ISC_PLATFORM_USETHREADS */
 	stats->counters[counter]++;
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -219,16 +171,8 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(counter < stats->ncounters);
 
 #ifdef ISC_PLATFORM_USETHREADS
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
-#endif
-
 	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
-
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
-#endif
+				  memory_order_release);
 #else /* ISC_PLATFORM_USETHREADS */
 	stats->counters[counter]--;
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -243,23 +187,11 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 	REQUIRE(ISC_STATS_VALID(stats));
 
 #ifdef ISC_PLATFORM_USETHREADS
-	/*
-	 * We use a "write" lock before "reading" the statistics counters as
-	 * an exclusive lock.
-	 */
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_read);
-#endif
-
 	for (i = 0; i < stats->ncounters; i++) {
 		stats->copiedcounters[i] =
 			atomic_load_explicit(&stats->counters[i],
-					     memory_order_relaxed);
+					     memory_order_acquire);
 	}
-
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_read);
-#endif
 
 	for (i = 0; i < stats->ncounters; i++) {
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 &&
@@ -285,16 +217,8 @@ isc_stats_set(isc_stats_t *stats, isc_uint64_t val,
 	REQUIRE(counter < stats->ncounters);
 
 #ifdef ISC_PLATFORM_USETHREADS
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
-#endif
-
 	atomic_store_explicit(&stats->counters[counter], val,
-			      memory_order_relaxed);
-
-#if ISC_STATS_LOCKCOUNTERS
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
-#endif
+			      memory_order_release);
 #else /* ISC_PLATFORM_USETHREADS */
 	stats->counters[counter] = val;
 #endif /* ISC_PLATFORM_USETHREADS */

@@ -567,7 +567,7 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references, NULL);
+	(void)isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
@@ -575,7 +575,7 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 static void
 view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	dns_view_t *view;
-	unsigned int refs;
+	isc_refcount_t refs;
 	isc_boolean_t done = ISC_FALSE;
 
 	REQUIRE(viewp != NULL);
@@ -584,8 +584,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 
 	if (flush)
 		view->flush = ISC_TRUE;
-	isc_refcount_decrement(&view->references, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&view->references);
+	if (refs == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
 		LOCK(&view->lock);

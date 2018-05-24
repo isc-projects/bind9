@@ -76,14 +76,14 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 
 static void
 _deref_prefix(isc_prefix_t *prefix) {
-	int refs;
+	isc_refcount_t refs;
 
 	if (prefix == NULL)
 		return;
 
-	isc_refcount_decrement(&prefix->refcount, &refs);
+	refs = isc_refcount_decrement(&prefix->refcount);
 
-	if (refs <= 0) {
+	if (refs == 1) {
 		isc_refcount_destroy(&prefix->refcount);
 		isc_mem_putanddetach(&prefix->mctx, prefix,
 				     sizeof(isc_prefix_t));
@@ -110,7 +110,7 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 		return (ret);
 	}
 
-	isc_refcount_increment(&prefix->refcount, NULL);
+	isc_refcount_increment(&prefix->refcount);
 
 	*target = prefix;
 	return (ISC_R_SUCCESS);

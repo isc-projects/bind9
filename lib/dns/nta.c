@@ -58,19 +58,19 @@ struct dns_nta {
  */
 static void
 nta_ref(dns_nta_t *nta) {
-	isc_refcount_increment(&nta->refcount, NULL);
+	isc_refcount_increment(&nta->refcount);
 }
 
 static void
 nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
-	unsigned int refs;
+	isc_refcount_t refs;
 	dns_nta_t *nta = *ntap;
 
 	REQUIRE(VALID_NTA(nta));
 
 	*ntap = NULL;
-	isc_refcount_decrement(&nta->refcount, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&nta->refcount);
+	if (refs == 1) {
 		nta->magic = 0;
 		if (nta->timer != NULL) {
 			(void) isc_timer_reset(nta->timer,
