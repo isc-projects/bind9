@@ -17,8 +17,8 @@ rm -f ns*/named.run
 rm -f ns1/*dom*example.db
 rm -f ns2/__catz__*db
 rm -f ns2/named.conf.tmp
-rm -f ns3/dom{13,14}.example.db
+rm -f ns3/dom13.example.db ns3/dom14.example.db
 rm -f nsupdate.out.*
-rm -f ns{1,2,3}/catalog{1,2,3,4}.example.db
+rm -f ns[123]/catalog[1234].example.db
 rm -rf ns2/zonedir
 rm -f ns*/*.nzd ns*/*.nzd-lock
