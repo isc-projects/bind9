@@ -1044,28 +1044,18 @@ dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name);
  *   The following macros provide a common interface to these operations,
  *   hiding the back-end.  The usage is the same as that of isc_refcount_xxx().
  */
-#define dns_rbtnode_refinit(node, n)                            \
-	do {                                                    \
-		isc_refcount_init(&(node)->references, (n));    \
-	} while (0)
-#define dns_rbtnode_refdestroy(node)                            \
-	do {                                                    \
-		isc_refcount_destroy(&(node)->references);      \
-	} while (0)
-#define dns_rbtnode_refcurrent(node)                            \
+#define dns_rbtnode_refinit(node, n)			\
+	isc_refcount_init(&(node)->references, (n))
+#define dns_rbtnode_refdestroy(node)			\
+	isc_refcount_destroy(&(node)->references)
+#define dns_rbtnode_refcurrent(node)			\
 	isc_refcount_current(&(node)->references)
-#define dns_rbtnode_refincrement0(node, refs)                   \
-	do {                                                    \
-		isc_refcount_increment0(&(node)->references, (refs)); \
-	} while (0)
-#define dns_rbtnode_refincrement(node, refs)                    \
-	do {                                                    \
-		isc_refcount_increment(&(node)->references, (refs)); \
-	} while (0)
-#define dns_rbtnode_refdecrement(node, refs)                    \
-	do {                                                    \
-		isc_refcount_decrement(&(node)->references, (refs)); \
-	} while (0)
+#define dns_rbtnode_refincrement0(node)			\
+	isc_refcount_increment0(&(node)->references)
+#define dns_rbtnode_refincrement(node)			\
+	isc_refcount_increment(&(node)->references)
+#define dns_rbtnode_refdecrement(node)			\
+	isc_refcount_decrement(&(node)->references)
 
 void
 dns_rbtnode_nodename(dns_rbtnode_t *node, dns_name_t *name);

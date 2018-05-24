@@ -131,7 +131,7 @@ void
 dns_order_attach(dns_order_t *source, dns_order_t **target) {
 	REQUIRE(DNS_ORDER_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
-	isc_refcount_increment(&source->references, NULL);
+	isc_refcount_increment(&source->references);
 	*target = source;
 }
 
@@ -139,21 +139,20 @@ void
 dns_order_detach(dns_order_t **orderp) {
 	dns_order_t *order;
 	dns_order_ent_t *ent;
-	unsigned int references;
+	isc_refcount_t refs;
 
 	REQUIRE(orderp != NULL);
 	order = *orderp;
 	REQUIRE(DNS_ORDER_VALID(order));
-	isc_refcount_decrement(&order->references, &references);
-	*orderp = NULL;
-	if (references != 0)
-		return;
-
-	order->magic = 0;
-	while ((ent = ISC_LIST_HEAD(order->ents)) != NULL) {
-		ISC_LIST_UNLINK(order->ents, ent, link);
-		isc_mem_put(order->mctx, ent, sizeof(*ent));
+	refs = isc_refcount_decrement(&order->references);
+	if (refs == 1) {
+		order->magic = 0;
+		while ((ent = ISC_LIST_HEAD(order->ents)) != NULL) {
+			ISC_LIST_UNLINK(order->ents, ent, link);
+			isc_mem_put(order->mctx, ent, sizeof(*ent));
+		}
+		isc_refcount_destroy(&order->references);
+		isc_mem_putanddetach(&order->mctx, order, sizeof(*order));
 	}
-	isc_refcount_destroy(&order->references);
-	isc_mem_putanddetach(&order->mctx, order, sizeof(*order));
+	*orderp = NULL;
 }
