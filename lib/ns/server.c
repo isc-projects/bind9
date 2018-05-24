@@ -122,7 +122,7 @@ ns_server_attach(ns_server_t *src, ns_server_t **dest) {
 	REQUIRE(SCTX_VALID(src));
 	REQUIRE(dest != NULL && *dest == NULL);
 
-	isc_refcount_increment(&src->references, NULL);
+	(void)isc_refcount_increment(&src->references);
 
 	*dest = src;
 }
@@ -130,14 +130,14 @@ ns_server_attach(ns_server_t *src, ns_server_t **dest) {
 void
 ns_server_detach(ns_server_t **sctxp) {
 	ns_server_t *sctx;
-	unsigned int refs;
+	isc_refcount_t refs;
 
 	REQUIRE(sctxp != NULL);
 	sctx = *sctxp;
 	REQUIRE(SCTX_VALID(sctx));
 
-	isc_refcount_decrement(&sctx->references, &refs);
-	if (refs == 0) {
+	refs = isc_refcount_decrement(&sctx->references);
+	if (refs == 1) {
 		ns_altsecret_t *altsecret;
 
 		sctx->magic = 0;
