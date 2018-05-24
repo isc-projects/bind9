@@ -529,7 +529,7 @@ dns_dt_attach(dns_dtenv_t *source, dns_dtenv_t **destp) {
 	REQUIRE(VALID_DTENV(source));
 	REQUIRE(destp != NULL && *destp == NULL);
 
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*destp = source;
 }
 

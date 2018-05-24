@@ -69,7 +69,7 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	isc_refcount_increment(&sampledb->refs, NULL);
+	(void)isc_refcount_increment(&sampledb->refs);
 	*targetp = source;
 }
 
@@ -85,13 +85,14 @@ free_sampledb(sampledb_t *sampledb) {
 static void
 detach(dns_db_t **dbp) {
 	sampledb_t *sampledb = (sampledb_t *)(*dbp);
-	unsigned int refs;
+	isc_refcount_t refs;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	isc_refcount_decrement(&sampledb->refs, &refs);
-	if (refs == 0)
+	refs = isc_refcount_decrement(&sampledb->refs);
+	if (refs == 1) {
 		free_sampledb(sampledb);
+	}
 	*dbp = NULL;
 }
 

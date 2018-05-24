@@ -1479,7 +1479,7 @@ cleanup_task:
 	dns_rbt_destroy(&zones->rbt);
 
 cleanup_rbt:
-	isc_refcount_decrement(&zones->refs, NULL);
+	(void)isc_refcount_decrement(&zones->refs);
 	isc_refcount_destroy(&zones->refs);
 
 cleanup_refcount:
@@ -1565,7 +1565,7 @@ cleanup_ht:
 	isc_timer_detach(&zone->updatetimer);
 
 cleanup_timer:
-	isc_refcount_decrement(&zone->refs, NULL);
+	(void)isc_refcount_decrement(&zone->refs);
 	isc_refcount_destroy(&zone->refs);
 
 cleanup_refcount:
@@ -2048,51 +2048,64 @@ cidr_free(dns_rpz_zones_t *rpzs) {
 static void
 rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	dns_rpz_zone_t *rpz;
-	unsigned int refs;
+	isc_refcount_t refs;
 
 	rpz = *rpzp;
 	*rpzp = NULL;
-	isc_refcount_decrement(&rpz->refs, &refs);
-	if (refs != 0)
+	refs = isc_refcount_decrement(&rpz->refs);
+	if (refs > 1) {
 		return;
+	}
+
 	isc_refcount_destroy(&rpz->refs);
 
-	if (dns_name_dynamic(&rpz->origin))
+	if (dns_name_dynamic(&rpz->origin)) {
 		dns_name_free(&rpz->origin, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->client_ip))
+	}
+	if (dns_name_dynamic(&rpz->client_ip)) {
 		dns_name_free(&rpz->client_ip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->ip))
+	}
+	if (dns_name_dynamic(&rpz->ip)) {
 		dns_name_free(&rpz->ip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->nsdname))
+	}
+	if (dns_name_dynamic(&rpz->nsdname)) {
 		dns_name_free(&rpz->nsdname, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->nsip))
+	}
+	if (dns_name_dynamic(&rpz->nsip)) {
 		dns_name_free(&rpz->nsip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->passthru))
+	}
+	if (dns_name_dynamic(&rpz->passthru)) {
 		dns_name_free(&rpz->passthru, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->drop))
+	}
+	if (dns_name_dynamic(&rpz->drop)) {
 		dns_name_free(&rpz->drop, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->tcp_only))
+	}
+	if (dns_name_dynamic(&rpz->tcp_only)) {
 		dns_name_free(&rpz->tcp_only, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->cname))
+	}
+	if (dns_name_dynamic(&rpz->cname)) {
 		dns_name_free(&rpz->cname, rpzs->mctx);
-	if (rpz->db_registered)
+	}
+	if (rpz->db_registered) {
 		dns_db_updatenotify_unregister(rpz->db,
 					       dns_rpz_dbupdate_callback, rpz);
-	if (rpz->dbversion != NULL)
+	}
+	if (rpz->dbversion != NULL) {
 		dns_db_closeversion(rpz->db, &rpz->dbversion,
 				    ISC_FALSE);
-	if (rpz->db)
+	}
+	if (rpz->db) {
 		dns_db_detach(&rpz->db);
+	}
 	isc_ht_destroy(&rpz->nodes);
 	isc_timer_detach(&rpz->updatetimer);
-
 	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 }
 
 void
 dns_rpz_attach_rpzs(dns_rpz_zones_t *rpzs, dns_rpz_zones_t **rpzsp) {
 	REQUIRE(rpzsp != NULL && *rpzsp == NULL);
-	isc_refcount_increment(&rpzs->refs, NULL);
+	(void)isc_refcount_increment(&rpzs->refs);
 	*rpzsp = rpzs;
 }
 
@@ -2104,18 +2117,19 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	dns_rpz_zones_t *rpzs;
 	dns_rpz_zone_t *rpz;
 	dns_rpz_num_t rpz_num;
-	unsigned int refs;
+	isc_refcount_t refs;
 
 	REQUIRE(rpzsp != NULL);
 	rpzs = *rpzsp;
 	REQUIRE(rpzs != NULL);
 
 	*rpzsp = NULL;
-	isc_refcount_decrement(&rpzs->refs, &refs);
-	if (refs != 0) {
+	refs = isc_refcount_decrement(&rpzs->refs);
+
+	if (refs > 1) {
 		return;
 	}
-
+	
 	/*
 	 * Forget the last of view's rpz machinery after the last reference.
 	 */
