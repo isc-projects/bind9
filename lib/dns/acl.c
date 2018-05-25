@@ -234,12 +234,13 @@ dns_acl_match2(const isc_netaddr_t *reqaddr,
 
 	/* Found a match. */
 	if (result == ISC_R_SUCCESS && node != NULL) {
-		int off = ISC_RADIX_OFF(&pfx);
-		match_num = node->node_num[off];
-		if (*(isc_boolean_t *) node->data[off])
+		int fam = ISC_RADIX_FAMILY(&pfx);
+		match_num = node->node_num[fam];
+		if (*(isc_boolean_t *) node->data[fam]) {
 			*match = match_num;
-		else
+		} else {
 			*match = -match_num;
+		}
 	}
 
 	isc_refcount_destroy(&pfx.refcount);
@@ -264,17 +265,19 @@ dns_acl_match2(const isc_netaddr_t *reqaddr,
 
 		result = isc_radix_search(acl->iptable->radix, &node, &pfx);
 		if (result == ISC_R_SUCCESS && node != NULL) {
-			int off = ISC_RADIX_OFF(&pfx);
+			int off = ISC_RADIX_FAMILY(&pfx);
 			if (match_num == -1 ||
 			    node->node_num[off] < match_num)
 			{
 				match_num = node->node_num[off];
-				if (scope != NULL)
+				if (scope != NULL) {
 					*scope = node->bit;
-				if (*(isc_boolean_t *) node->data[off])
+				}
+				if (*(isc_boolean_t *) node->data[off]) {
 					*match = match_num;
-				else
+				} else {
 					*match = -match_num;
+				}
 			}
 		}
 
