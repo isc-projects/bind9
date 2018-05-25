@@ -3905,13 +3905,17 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	 */
 	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE,
 				    &files);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+		goto cleanup;
+	}
 
 	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
 				    ISC_TRUE, &inview);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+		goto cleanup;
+	}
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
@@ -3932,8 +3936,10 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	}
 
 	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+		goto cleanup;
+	}
 	for (velement = cfg_list_first(views);
 	     velement != NULL;
 	     velement = cfg_list_next(velement))
@@ -3995,12 +4001,6 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
-	if (symtab != NULL)
-		isc_symtab_destroy(&symtab);
-	if (inview != NULL)
-		isc_symtab_destroy(&inview);
-	if (files != NULL)
-		isc_symtab_destroy(&files);
 
 	if (views != NULL && options != NULL) {
 		obj = NULL;
@@ -4101,6 +4101,14 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			}
 		}
 	}
+
+cleanup:
+	if (symtab != NULL)
+		isc_symtab_destroy(&symtab);
+	if (inview != NULL)
+		isc_symtab_destroy(&inview);
+	if (files != NULL)
+		isc_symtab_destroy(&files);
 
 	return (result);
 }
