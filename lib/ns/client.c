@@ -950,11 +950,12 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		if (client->sctx->blackholeacl != NULL &&
-		    dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				  client->sctx->blackholeacl,
-				  env, &match, NULL) == ISC_R_SUCCESS &&
+		    (dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl,
+				   env, &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
+		{
 			return (DNS_R_BLACKHOLED);
+		}
 		sockflags |= ISC_SOCKFLAG_NORETRY;
 	}
 
@@ -1146,7 +1147,7 @@ client_send(ns_client_t *client) {
 			name = &client->message->tsigkey->name;
 
 		if (client->view->nocasecompress == NULL ||
-		    !dns_acl_allowed(&netaddr, name, NULL, 0, NULL,
+		    !dns_acl_allowed(&netaddr, name,
 				     client->view->nocasecompress, env))
 		{
 			dns_compress_setsensitive(&cctx, ISC_TRUE);
@@ -1755,9 +1756,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		int match;
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-		result = dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				       view->pad_acl, env, &match,
-				       NULL);
+		result = dns_acl_match(&netaddr, NULL, view->pad_acl,
+				       env, &match, NULL);
 		if (result == ISC_R_SUCCESS && match > 0) {
 			INSIST(count < DNS_EDNSOPTIONS);
 
@@ -2266,7 +2266,6 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t notimp;
 	size_t reqsize;
 	dns_aclenv_t *env;
-	dns_ecs_t *ecs = NULL;
 #ifdef HAVE_DNSTAP
 	dns_dtmsgtype_t dtmsgtype;
 #endif
@@ -2379,9 +2378,8 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	env = ns_interfacemgr_getaclenv(client->interface->mgr);
 	if (!TCP_CLIENT(client)) {
 		if (client->sctx->blackholeacl != NULL &&
-			dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				      client->sctx->blackholeacl, env, &match,
-				      NULL) == ISC_R_SUCCESS &&
+		    (dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl,
+				   env, &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
 		{
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -2632,11 +2630,8 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 
 	isc_sockaddr_fromnetaddr(&client->destsockaddr, &client->destaddr, 0);
 
-	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
-		ecs = &client->ecs;
-	}
 	result = client->sctx->matchingview(&netaddr, &client->destaddr,
-					    client->message, env, ecs,
+					    client->message, env,
 					    &sigresult, &client->view);
 	if (result != ISC_R_SUCCESS) {
 		char classname[DNS_RDATACLASS_FORMATSIZE];
@@ -3200,9 +3195,8 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 
 		if (client->sctx->blackholeacl != NULL &&
-			dns_acl_match(&netaddr, NULL, NULL, 0, NULL,
-				      client->sctx->blackholeacl,
-				      env, &match, NULL) == ISC_R_SUCCESS &&
+		    (dns_acl_match(&netaddr, NULL, client->sctx->blackholeacl,
+				   env, &match, NULL) == ISC_R_SUCCESS) &&
 		    match > 0)
 		{
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
@@ -3235,7 +3229,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 				      "no more TCP clients(accept): %s",
 				      isc_result_totext(result));
 		} else if (client->sctx->keepresporder == NULL ||
-			   !dns_acl_allowed(&netaddr, NULL, NULL, 0, NULL,
+			   !dns_acl_allowed(&netaddr, NULL,
 					    client->sctx->keepresporder, env))
 		{
 			client->pipelined = ISC_TRUE;
@@ -3733,8 +3727,6 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 	isc_result_t result;
 	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
 	isc_netaddr_t tmpnetaddr;
-	isc_netaddr_t *ecs_addr = NULL;
-	isc_uint8_t ecs_addrlen = 0;
 	int match;
 
 	if (acl == NULL) {
@@ -3749,15 +3741,8 @@ ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
 		netaddr = &tmpnetaddr;
 	}
 
-	if ((client->attributes & NS_CLIENTATTR_HAVEECS) != 0) {
-		ecs_addr = &client->ecs.addr;
-		ecs_addrlen = client->ecs.source;
-	}
-
-	result = dns_acl_match(netaddr, client->signer,
-			       ecs_addr, ecs_addrlen, NULL, acl,
+	result = dns_acl_match(netaddr, client->signer, acl,
 			       env, &match, NULL);
-
 	if (result != ISC_R_SUCCESS)
 		goto deny; /* Internal error, already logged. */
 
