@@ -1,3 +1,6 @@
+4979.	[bug]		Named-checkconf failed to detect bad in-view targets.
+			[GL #288]
+
 4978.	[test]		Fix error handling and resolver configuration in the
 			"rpz" system test. [GL #312]
 
