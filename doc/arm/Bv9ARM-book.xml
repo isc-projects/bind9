@@ -3833,6 +3833,7 @@ notrace</command>. All debugging messages in the server have a debug
     syslog daemon;
     // only send priority info and higher
     severity info;
+};
 
 channel default_debug {
     // write to named.run in the working directory
