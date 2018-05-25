@@ -86,16 +86,17 @@ dns_iptable_addprefix2(dns_iptable_t *tab, isc_netaddr_t *addr,
 	if (pfx.family == AF_UNSPEC) {
 		/* "any" or "none" */
 		INSIST(pfx.bitlen == 0);
-		for (i = 0; i < 4; i++) {
-			if (node->data[i] == NULL)
+		for (i = 0; i < RADIX_FAMILIES; i++) {
+			if (node->data[i] == NULL) {
 				node->data[i] = pos ? &dns_iptable_pos
 						    : &dns_iptable_neg;
+			}
 		}
 	} else {
 		/* any other prefix */
-		int offset = ISC_RADIX_OFF(&pfx);
-		if (node->data[offset] == NULL) {
-			node->data[offset] = pos ? &dns_iptable_pos
+		int fam = ISC_RADIX_FAMILY(&pfx);
+		if (node->data[fam] == NULL) {
+			node->data[fam] = pos ? &dns_iptable_pos
 						 : &dns_iptable_neg;
 		}
 	}
@@ -129,7 +130,7 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
 		 * could be a security risk.  To prevent this, we
 		 * just leave the negative nodes negative.
 		 */
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < RADIX_FAMILIES; i++) {
 			if (!pos) {
 				if (node->data[i] &&
 				    *(isc_boolean_t *) node->data[i])
