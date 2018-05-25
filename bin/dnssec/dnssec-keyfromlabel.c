@@ -64,7 +64,7 @@ usage(void) {
 	fprintf(stderr, "    -a algorithm: \n"
 			"        RSA | RSAMD5 | DH | DSA | RSASHA1 |\n"
 			"        NSEC3DSA | NSEC3RSASHA1 |\n"
-			"        RSASHA256 | RSASHA512 | ECCGOST |\n"
+			"        RSASHA256 | RSASHA512 |\n"
 			"        ECDSAP256SHA256 | ECDSAP384SHA384\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
@@ -427,7 +427,6 @@ main(int argc, char **argv) {
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
-			case DST_ALG_ECCGOST:
 			case DST_ALG_ECDSA256:
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:

@@ -84,7 +84,6 @@ static pk11_token_t *best_dsa_token;
 static pk11_token_t *best_dh_token;
 static pk11_token_t *digest_token;
 static pk11_token_t *best_ec_token;
-static pk11_token_t *best_gost_token;
 static pk11_token_t *aes_token;
 
 static isc_result_t free_all_sessions(void);
@@ -266,8 +265,6 @@ pk11_finalize(void) {
 			digest_token = NULL;
 		if (token == best_ec_token)
 			best_ec_token = NULL;
-		if (token == best_gost_token)
-			best_gost_token = NULL;
 		if (token == aes_token)
 			aes_token = NULL;
 		pk11_mem_put(token, sizeof(*token));
@@ -852,40 +849,10 @@ scan_slots(void) {
 			PK11_TRACEM(CKM_ECDSA);
 		}
 		if (bad)
-			goto try_gost;
+			goto try_eddsa;
 		token->operations |= 1 << OP_EC;
 		if (best_ec_token == NULL)
 			best_ec_token = token;
-
-	try_gost:
-		bad = ISC_FALSE;
-		/* does GOST require digest too? */
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3411, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_GOSTR3411);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3410_KEY_PAIR_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_GOSTR3410_KEY_PAIR_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot,
-					     CKM_GOSTR3410_WITH_GOSTR3411,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_GOSTR3410_WITH_GOSTR3411);
-		}
-		if (bad)
-			goto try_eddsa;
-		token->operations |= 1 << OP_GOST;
-		if (best_gost_token == NULL)
-			best_gost_token = token;
 
 	try_eddsa:
 #if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
@@ -948,9 +915,6 @@ pk11_get_best_token(pk11_optype_t optype) {
 		break;
 	case OP_EC:
 		token = best_ec_token;
-		break;
-	case OP_GOST:
-		token = best_gost_token;
 		break;
 	case OP_AES:
 		token = aes_token;
@@ -1340,7 +1304,6 @@ pk11_dump_tokens(void) {
 	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tdigest_token=%p\n", digest_token);
 	printf("\tbest_ec_token=%p\n", best_ec_token);
-	printf("\tbest_gost_token=%p\n", best_gost_token);
 	printf("\taes_token=%p\n", aes_token);
 
 	for (token = ISC_LIST_HEAD(tokens);

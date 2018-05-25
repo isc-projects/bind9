@@ -41,7 +41,6 @@ SRCS =		acl_test.c \
 		dst_test.c \
 		dnstest.c \
 		geoip_test.c \
-		gost_test.c \
 		keytable_test.c \
 		master_test.c \
 		name_test.c \
@@ -73,7 +72,6 @@ TARGETS =	acl_test@EXEEXT@ \
 		dnstap_test@EXEEXT@ \
 		dst_test@EXEEXT@ \
 		geoip_test@EXEEXT@ \
-		gost_test@EXEEXT@ \
 		keytable_test@EXEEXT@ \
 		master_test@EXEEXT@ \
 		name_test@EXEEXT@ \
@@ -144,11 +142,6 @@ dst_test@EXEEXT@: dst_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 geoip_test@EXEEXT@: geoip_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			geoip_test.@O@ dnstest.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS}
-
-gost_test@EXEEXT@: gost_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			gost_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
 keytable_test@EXEEXT@: keytable_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}

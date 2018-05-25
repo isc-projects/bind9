@@ -15,7 +15,6 @@ selected tokens per algorithm:
  - DH (secret derivation)
  - digest (hash)
  - EC (ECDSA, sign/verify)
- - GOST (Russian hash and sign/verify)
  - AES (encrypt/decrypt)
 
 ...and a summary of PKCS#11 tokens that have been found.
@@ -56,15 +55,12 @@ may be taken, depending on which algorithms indicate failures:
  - EC: you may wish to configure BIND9 without ECDSA support by adding
    --without-ecdsa to the "configure" arguments.
 
- - GOST: you SHOULD configure BIND9 without GOST support by adding
-   --without-gost to the "configure" arguments.
-
  - AES: you MUST reconfigure bind9 without AES support by adding
    --without-aes to configure arguments.
 
 You can disable some algorithms (e.g. DSA, DH and MD5) using the
 "disable-algorithms" option in named.conf, and some other algorithms can be
-disabled at compile time (ECDSA, GOST, AES).  Note, however, that disabling
+disabled at compile time (ECDSA, AES).  Note, however, that disabling
 algorithms can have unwanted side effects; for instance, disabling DH breaks
 TKEY support.
 
