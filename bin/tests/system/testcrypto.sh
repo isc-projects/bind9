@@ -30,11 +30,6 @@ while test "$#" -gt 0; do
                 alg="-a RSASHA1"
                 msg1="RSA cryptography"
                 ;;
-        gost|GOST)
-                alg="-a eccgost"
-                msg1="GOST cryptography"
-                msg2="--with-gost"
-                ;;
         ecdsa|ECDSA)
                 alg="-a ecdsap256sha256"
                 msg1="ECDSA cryptography"

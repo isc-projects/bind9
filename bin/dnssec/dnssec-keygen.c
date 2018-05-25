@@ -79,7 +79,7 @@ usage(void) {
 	fprintf(stderr, "    -a <algorithm>:\n");
 	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | NSEC3RSASHA1"
 				" | NSEC3DSA |\n");
-	fprintf(stderr, "        RSASHA256 | RSASHA512 | ECCGOST |\n");
+	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        ECDSAP256SHA256 | ECDSAP384SHA384 |\n");
 	fprintf(stderr, "        ED25519 | ED448 | DH\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");

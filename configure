@@ -800,7 +800,6 @@ NZDSRCS
 NZD_TOOLS
 PKCS11_TEST
 PKCS11_ED25519
-PKCS11_GOST
 PKCS11_ECDSA
 PKCS11LINKSRCS
 PKCS11LINKOBJS
@@ -820,13 +819,10 @@ ISC_OPENSSL_LIBS
 ISC_OPENSSL_INC
 ISC_PLATFORM_OPENSSLHASH
 ISC_PLATFORM_WANTAES
-OPENSSL_GOST
 OPENSSL_ED25519
 OPENSSL_ECDSA
 OPENSSLLINKSRCS
 OPENSSLLINKOBJS
-OPENSSLGOSTLINKSRCS
-OPENSSLGOSTLINKOBJS
 OPENSSLEDDSALINKSRCS
 OPENSSLEDDSALINKOBJS
 OPENSSLECDSALINKSRCS
@@ -1001,7 +997,6 @@ enable_native_pkcs11
 with_openssl
 with_pkcs11
 with_ecdsa
-with_gost
 with_eddsa
 with_aes
 with_cc_alg
@@ -1747,7 +1742,6 @@ Optional Packages:
   --with-pkcs11=PATH      Build with PKCS11 support [yes|no|path] (PATH is for
                           the PKCS11 provider)
   --with-ecdsa            Crypto ECDSA
-  --with-gost             Crypto GOST [yes|no|raw|asn1].
   --with-eddsa            Crypto EDDSA [yes|all|no].
   --with-aes              Crypto AES
   --with-cc-alg=ALG       choose the algorithm for Client Cookie
@@ -16150,7 +16144,7 @@ fi
 
 
 #
-# were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
+# were --with-ecdsa, --with-eddsa, --with-aes specified
 #
 
 # Check whether --with-ecdsa was given.
@@ -16158,14 +16152,6 @@ if test "${with_ecdsa+set}" = set; then :
   withval=$with_ecdsa; with_ecdsa="$withval"
 else
   with_ecdsa="auto"
-fi
-
-
-# Check whether --with-gost was given.
-if test "${with_gost+set}" = set; then :
-  withval=$with_gost; with_gost="$withval"
-else
-  with_gost="auto"
 fi
 
 
@@ -16245,26 +16231,7 @@ then
 	done
 fi
 OPENSSL_ECDSA=""
-OPENSSL_GOST=""
 OPENSSL_ED25519=""
-gosttype="raw"
-case "$with_gost" in
-	raw)
-		with_gost="yes"
-		;;
-	asn1)
-
-$as_echo "#define PREFER_GOSTASN1 1" >>confdefs.h
-
-		gosttype="asn1"
-		with_gost="yes"
-		;;
-	auto|yes|no)
-		;;
-	*)
-		as_fn_error $? "unknown GOST private key encoding" "$LINENO" 5
-		;;
-esac
 
 case "$use_openssl" in
 	native_pkcs11)
@@ -16277,8 +16244,6 @@ $as_echo "disabled because of native PKCS11" >&6; }
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 
@@ -16295,8 +16260,6 @@ $as_echo "no" >&6; }
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
@@ -16308,8 +16271,6 @@ $as_echo "no" >&6; }
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		as_fn_error $? "OpenSSL was not found in any of $openssldirs; use --with-openssl=/path
@@ -16663,89 +16624,6 @@ $as_echo "#define HAVE_OPENSSL_ECDSA 1" >>confdefs.h
 		;;
 	esac
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL GOST support" >&5
-$as_echo_n "checking for OpenSSL GOST support... " >&6; }
-	have_gost=""
-	case "$use_pkcs11" in
-		auto|no)
-			;;
-		*)
-			if $use_threads; then
-				CC="$CC -pthread"
-			fi
-			;;
-	esac
-	if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using --with-gost" >&5
-$as_echo "using --with-gost" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <openssl/conf.h>
-#include <openssl/engine.h>
-int main() {
-#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-	ENGINE *e;
-	EC_KEY *ek;
-
-	ek = NULL;
-	OPENSSL_config(NULL);
-
-	e = ENGINE_by_id("gost");
-	if (e == NULL)
-		return (1);
-	if (ENGINE_init(e) <= 0)
-		return (1);
-	return (0);
-#else
-	return (1);
-#endif
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_gost="yes"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	have_gost="no"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-	case "$with_gost" in
-	yes)
-	    case "$have_gost" in
-	    no)  as_fn_error $? "gost not supported" "$LINENO" 5 ;;
-	    *)  have_gost=yes ;;
-	    esac
-	    ;;
-	no)
-	    have_gost=no ;;
-	*)
-	    case "$have_gost" in
-	    yes|no) ;;
-	    *) as_fn_error $? "need --with-gost=[yes, no, raw or asn1]" "$LINENO" 5 ;;
-	    esac
-	    ;;
-	esac
-	case $have_gost in
-	yes)
-		OPENSSL_GOST="yes"
-		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
-		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
-
-$as_echo "#define HAVE_OPENSSL_GOST 1" >>confdefs.h
-
-		;;
-	*)
-		;;
-	esac
-
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL Ed25519 support" >&5
 $as_echo_n "checking for OpenSSL Ed25519 support... " >&6; }
 	have_ed25519=""
@@ -16943,9 +16821,6 @@ esac
 # This would include the system openssl path (and linker options to use
 # it as needed) if it is found.
 #
-
-
-
 
 
 
@@ -17211,7 +17086,6 @@ esac
 
 
 PKCS11_ECDSA=""
-PKCS11_GOST=""
 PKCS11_ED25519=""
 set_pk11_flavor="no"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for native PKCS11" >&5
@@ -17238,22 +17112,6 @@ $as_echo "enabled" >&6; }
 
 $as_echo "#define HAVE_PKCS11_ECDSA 1" >>confdefs.h
 
-			;;
-		esac
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 GOST" >&5
-$as_echo_n "checking for PKCS11 GOST... " >&6; }
-		case "$with_gost" in
-		yes)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
-$as_echo "enabled" >&6; }
-			PKCS11_GOST="yes"
-
-$as_echo "#define HAVE_PKCS11_GOST 1" >>confdefs.h
-
-			;;
-		*)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
 			;;
 		esac
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 Ed25519" >&5
@@ -17339,7 +17197,6 @@ $as_echo "unknown provider: tweaks are in lib/isc/include/pk11/site.h" >&6; }
 $as_echo "disabled" >&6; }
 		;;
 esac
-
 
 
 
@@ -26455,9 +26312,6 @@ report() {
 	fi
 	echo "        Provider library: $PKCS11_PROVIDER"
     fi
-    if test "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST"; then
-	echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
-    fi
     test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
 	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
@@ -26526,8 +26380,6 @@ report() {
     fi
     test "yes" = "$want_native_pkcs11" ||
 	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST" || \
-	echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
 	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
