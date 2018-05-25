@@ -1115,7 +1115,7 @@ usage(void) {
 		program);
 	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Options:\n"
-"    -a <algorithm>     digest algorithm (SHA-1 / SHA-256 / GOST / SHA-384)\n"
+"    -a <algorithm>     digest algorithm (SHA-1 / SHA-256 / SHA-384)\n"
 "    -c <class>         of domain (default IN)\n"
 "    -D                 prefer CDNSKEY records instead of CDS\n"
 "    -d <file|dir>      where to find parent dsset- file\n"

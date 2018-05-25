@@ -264,12 +264,6 @@ isc_result_t dst__pkcs11ecdsa_init(struct dst_func **funcp);
 #if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 isc_result_t dst__pkcs11eddsa_init(struct dst_func **funcp);
 #endif
-#ifdef HAVE_OPENSSL_GOST
-isc_result_t dst__opensslgost_init(struct dst_func **funcp);
-#endif
-#ifdef HAVE_PKCS11_GOST
-isc_result_t dst__pkcs11gost_init(struct dst_func **funcp);
-#endif
 
 /*%
  * Destructors

@@ -165,7 +165,6 @@
     <ClCompile Include="..\openssldsa_link.c" />
     <ClCompile Include="..\opensslecdsa_link.c" />
     <ClCompile Include="..\openssleddsa_link.c" />
-    <ClCompile Include="..\opensslgost_link.c" />
     <ClCompile Include="..\opensslrsa_link.c" />
     <ClCompile Include="..\openssl_link.c" />
 @END OPENSSL
@@ -177,7 +176,6 @@
     <ClCompile Include="..\pkcs11dsa_link.c" />
     <ClCompile Include="..\pkcs11ecdsa_link.c" />
     <ClCompile Include="..\pkcs11eddsa_link.c" />
-    <ClCompile Include="..\pkcs11gost_link.c" />
     <ClCompile Include="..\pkcs11rsa_link.c" />
 @END PKCS11
     <ClCompile Include="..\portlist.c" />
@@ -223,7 +221,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\code.h" />
-    <ClInclude Include="..\dst_gost.h" />
     <ClInclude Include="..\dst_internal.h" />
 @IF OPENSSL
     <ClInclude Include="..\dst_openssl.h" />

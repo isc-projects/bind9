@@ -208,18 +208,15 @@ my @substdefh = ("AES_CC",
                  "HAVE_OPENSSL_ED25519",
                  "HAVE_OPENSSL_ED448",
                  "HAVE_OPENSSL_EVP_AES",
-                 "HAVE_OPENSSL_GOST",
 		 "HAVE_PKCS11",
                  "HAVE_PKCS11_ECDSA",
                  "HAVE_PKCS11_ED25519",
                  "HAVE_PKCS11_ED448",
-                 "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
                  "HAVE_ZLIB",
                  "HMAC_SHA1_CC",
                  "HMAC_SHA256_CC",
                  "ISC_LIST_CHECKINIT",
-                 "PREFER_GOSTASN1",
                  "TUNE_LARGE",
                  "WANT_QUERYTRACE",
                  "WITH_IDN");
@@ -379,7 +376,6 @@ my @withlist = ("aes",
                 "extra-tests",
                 "gssapi",
                 "geoip",
-                "gost",
                 "iconv",
                 "idn",
                 "openssl",
@@ -436,7 +432,6 @@ my @help = (
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
 "  with-ecdsa            crypto ECDSA\n",
 "  with-eddsa            crypto EDDSA yes|all|no\n",
-"  with-gost[=ENC]       crypto GOST yes|no|raw|ans1\n",
 "  with-aes              crypto AES\n",
 "  with-cc-alg           choose the algorithm for cookies aes|sha1|sha256\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
@@ -484,8 +479,6 @@ my $pkcs11_path = "unknown";
 my $use_ecdsa = "auto";
 my $use_eddsa = "auto";
 my $use_ed448 = "auto";
-my $use_gost = "auto";
-my $gost_encoding = "raw";
 my $use_aes = "auto";
 my $cookie_algorithm = "aes";
 my $use_gssapi = "no";
@@ -783,13 +776,6 @@ sub mywith {
                 $use_ed448 = "yes";
             }
         }
-    } elsif ($key =~ /^gost$/i) {
-        if ($val =~ /^no$/i) {
-            $use_gost = "no";
-        } elsif ($val !~ /^no$/i) {
-            $use_gost = "yes";
-            $gost_encoding = $val;
-        }
     } elsif ($key =~ /^aes$/i) {
         if ($val =~ /^no$/i) {
             $use_aes = "no";
@@ -1033,12 +1019,6 @@ if ($verbose) {
         } else {
             print "ed448: enabled\n";
         }
-    }
-    if ($use_gost eq "no") {
-        print "gost: disabled\n";
-    } else {
-        print "gost: enabled\n";
-        print "gost private key encoding: $gost_encoding\n";
     }
     if ($use_aes eq "no") {
         print "aes: disabled\n";
@@ -1353,16 +1333,6 @@ if ($enable_native_pkcs11 eq "yes") {
             }
             $configdefh{"HAVE_PKCS11_ED448"} = 1;
         }
-    }
-    if ($use_gost eq "no") {
-        if ($verbose) {
-            print "no GOST support in native PKCS#11\n";
-        }
-    } else {
-        if ($verbose) {
-            print "enabled GOST support in native PKCS#11\n";
-        }
-        $configdefh{"HAVE_PKCS11_GOST"} = 1;
     }
     if ($use_aes eq "no") {
         if ($verbose) {
@@ -1768,72 +1738,6 @@ EOF
 if ($use_ed448 ne "no") {
     $use_ed448 = "yes";
     $configdefh{"HAVE_OPENSSL_ED448"} = 1;
-}
-
-# with-gost
-if ($use_openssl eq "no") {
-    $use_gost = "no";
-}
-if ($use_gost eq "auto") {
-    if ($verbose) {
-        print "checking for OpenSSL GOST support\n";
-    }
-    open F, ">testgost.c" || die $!;
-    print F << 'EOF';
-#include <openssl/conf.h>
-#include <openssl/engine.h>
-
-int
-main(void)
-{
-#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-        ENGINE *e;
-        EC_KEY *ek;
-
-        ek = NULL;
-        OPENSSL_config(NULL);
-
-        e = ENGINE_by_id("gost");
-        if (e == NULL)
-                return (1);
-        if (ENGINE_init(e) <= 0)
-                return (1);
-        return (0);
-#else
-        return (1);
-#endif
-}
-EOF
-    close F;
-    my $include = $configinc{"OPENSSL_INC"};
-    my $library = $configlib{"OPENSSL_LIB"};
-    $compret = `cl /nologo /MD /I "$include" testgost.c "$library"`;
-    if (grep { -f and -x } ".\\testgost.exe") {
-        `.\\testgost.exe`;
-        if ($? != 0) {
-            if ($verbose) {
-                print "GOST test failed: disabling GOST\n";
-            }
-            $use_gost = "no";
-        }
-    } else {
-        if ($verbose) {
-            print "can't compile GOST test: $compret\n";
-            print "disabling GOST\n";
-        }
-    $use_gost = "no";
-    }
-}
-
-if ($use_gost ne "no") {
-    $use_gost = "yes";
-    $configdefh{"HAVE_OPENSSL_GOST"} = 1;
-}
-
-if ($gost_encoding eq "ans1") {
-    $configdefh{"PREFER_GOSTASN1"} = 1;
-} elsif ($gost_encoding ne "raw") {
-    die "Unrecognized GOST private key encoding: $gost_encoding\n";
 }
 
 # with-aes
@@ -3306,7 +3210,6 @@ exit 0;
 #  --with-pkcs11 supported
 #  --with-ecdsa supported
 #  --with-eddsa supported
-#  --with-gost supported
 #  --with-aes supported
 #  --with-cc-alg supported
 #  --with-randomdev not supported on WIN32 (makes no sense)

@@ -123,7 +123,7 @@
 	  <para>
 	    Selects the cryptographic algorithm.  For DNSSEC keys, the value
 	    of <option>algorithm</option> must be one of RSAMD5, RSASHA1,
-	    DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512, ECCGOST,
+	    DSA, NSEC3RSASHA1, NSEC3DSA, RSASHA256, RSASHA512,
 	    ECDSAP256SHA256, ECDSAP384SHA384, ED25519 or ED448.  For
 	    TKEY, the value must be DH (Diffie Hellman); specifying
 	    his value will automatically set the <option>-T KEY</option>

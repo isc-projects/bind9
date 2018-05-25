@@ -1380,13 +1380,10 @@ AC_ARG_WITH(pkcs11,
 	    use_pkcs11="$withval", use_pkcs11="auto")
 
 #
-# were --with-ecdsa, --with-gost, --with-eddsa, --with-aes specified
+# were --with-ecdsa, --with-eddsa, --with-aes specified
 #
 AC_ARG_WITH(ecdsa, AS_HELP_STRING([--with-ecdsa], [Crypto ECDSA]),
 	    with_ecdsa="$withval", with_ecdsa="auto")
-AC_ARG_WITH(gost,
-	    AS_HELP_STRING([--with-gost], [Crypto GOST [yes|no|raw|asn1].]),
-	    with_gost="$withval", with_gost="auto")
 AC_ARG_WITH(eddsa, AS_HELP_STRING([--with-eddsa], [Crypto EDDSA [yes|all|no].]),
 	    with_eddsa="$withval", with_eddsa="auto")
 AC_ARG_WITH(aes, AS_HELP_STRING([--with-aes], [Crypto AES]),
@@ -1447,25 +1444,7 @@ then
 	done
 fi
 OPENSSL_ECDSA=""
-OPENSSL_GOST=""
 OPENSSL_ED25519=""
-gosttype="raw"
-case "$with_gost" in
-	raw)
-		with_gost="yes"
-		;;
-	asn1)
-		AC_DEFINE(PREFER_GOSTASN1, 1,
-			  [Define if GOST private keys are encoded in ASN.1.])
-		gosttype="asn1"
-		with_gost="yes"
-		;;
-	auto|yes|no)
-		;;
-	*)
-		AC_MSG_ERROR(unknown GOST private key encoding)
-		;;
-esac
 
 case "$use_openssl" in
 	native_pkcs11)
@@ -1477,8 +1456,6 @@ case "$use_openssl" in
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		AC_DEFINE([HAVE_PKCS11],[1],[Define if native PKCS#11 is used as cryptographic library provider])
@@ -1492,8 +1469,6 @@ case "$use_openssl" in
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		;;
@@ -1505,8 +1480,6 @@ case "$use_openssl" in
 		OPENSSLECDSALINKSRCS=""
 		OPENSSLEDDSALINKOBJS=""
 		OPENSSLEDDSALINKSRCS=""
-		OPENSSLGOSTLINKOBJS=""
-		OPENSSLGOSTLINKSRCS=""
 		OPENSSLLINKOBJS=""
 		OPENSSLLINKSRCS=""
 		AC_MSG_ERROR(
@@ -1733,72 +1706,6 @@ int main() {
 		;;
 	esac
 
-	AC_MSG_CHECKING(for OpenSSL GOST support)
-	have_gost=""
-	case "$use_pkcs11" in
-		auto|no)
-			;;
-		*)
-			if $use_threads; then
-				CC="$CC -pthread"
-			fi
-			;;
-	esac
-	AC_TRY_RUN([
-#include <openssl/conf.h>
-#include <openssl/engine.h>
-int main() {
-#if !defined(LIBRESSL_VERSION_NUMBER) && (OPENSSL_VERSION_NUMBER >= 0x10000000L)
-	ENGINE *e;
-	EC_KEY *ek;
-
-	ek = NULL;
-	OPENSSL_config(NULL);
-
-	e = ENGINE_by_id("gost");
-	if (e == NULL)
-		return (1);
-	if (ENGINE_init(e) <= 0)
-		return (1);
-	return (0);
-#else
-	return (1);
-#endif
-}
-],
-	[AC_MSG_RESULT(yes)
-	have_gost="yes"],
-	[AC_MSG_RESULT(no)
-	have_gost="no"],
-	[AC_MSG_RESULT(using --with-gost)])
-	case "$with_gost" in
-	yes)
-	    case "$have_gost" in
-	    no)  AC_MSG_ERROR([gost not supported]) ;;
-	    *)  have_gost=yes ;;
-	    esac
-	    ;;
-	no)
-	    have_gost=no ;;
-	*)
-	    case "$have_gost" in
-	    yes|no) ;;
-	    *) AC_MSG_ERROR([need --with-gost=[[yes, no, raw or asn1]]]) ;;
-	    esac
-	    ;;
-	esac
-	case $have_gost in
-	yes)
-		OPENSSL_GOST="yes"
-		OPENSSLGOSTLINKOBJS='${OPENSSLGOSTLINKOBJS}'
-		OPENSSLGOSTLINKSRCS='${OPENSSLGOSTLINKSRCS}'
-		AC_DEFINE(HAVE_OPENSSL_GOST, 1,
-			  [Define if your OpenSSL version supports GOST.])
-		;;
-	*)
-		;;
-	esac
-
 	AC_MSG_CHECKING(for OpenSSL Ed25519 support)
 	have_ed25519=""
 	have_ed448=""
@@ -1945,13 +1852,10 @@ AC_SUBST(OPENSSLECDSALINKOBJS)
 AC_SUBST(OPENSSLECDSALINKSRCS)
 AC_SUBST(OPENSSLEDDSALINKOBJS)
 AC_SUBST(OPENSSLEDDSALINKSRCS)
-AC_SUBST(OPENSSLGOSTLINKOBJS)
-AC_SUBST(OPENSSLGOSTLINKSRCS)
 AC_SUBST(OPENSSLLINKOBJS)
 AC_SUBST(OPENSSLLINKSRCS)
 AC_SUBST(OPENSSL_ECDSA)
 AC_SUBST(OPENSSL_ED25519)
-AC_SUBST(OPENSSL_GOST)
 
 ISC_PLATFORM_WANTAES="#undef ISC_PLATFORM_WANTAES"
 if test "yes" = "$with_aes"
@@ -2166,7 +2070,6 @@ esac
 AC_SUBST(PKCS11_PROVIDER)
 
 PKCS11_ECDSA=""
-PKCS11_GOST=""
 PKCS11_ED25519=""
 set_pk11_flavor="no"
 AC_MSG_CHECKING(for native PKCS11)
@@ -2187,18 +2090,6 @@ case "$want_native_pkcs11" in
 			PKCS11_ECDSA="yes"
 			AC_DEFINE(HAVE_PKCS11_ECDSA, 1,
 				  [Define if your PKCS11 provider supports ECDSA.])
-			;;
-		esac
-		AC_MSG_CHECKING(for PKCS11 GOST)
-		case "$with_gost" in
-		yes)
-			AC_MSG_RESULT(enabled)
-			PKCS11_GOST="yes"
-			AC_DEFINE(HAVE_PKCS11_GOST, 1,
-				  [Define if your PKCS11 provider supports GOST.])
-			;;
-		*)
-			AC_MSG_RESULT(disabled)
 			;;
 		esac
 		AC_MSG_CHECKING(for PKCS11 Ed25519)
@@ -2271,7 +2162,6 @@ esac
 AC_SUBST(PKCS11LINKOBJS)
 AC_SUBST(PKCS11LINKSRCS)
 AC_SUBST(PKCS11_ECDSA)
-AC_SUBST(PKCS11_GOST)
 AC_SUBST(PKCS11_ED25519)
 AC_SUBST(PKCS11_TEST)
 
@@ -5304,9 +5194,6 @@ report() {
 	fi
 	echo "        Provider library: $PKCS11_PROVIDER"
     fi
-    if test "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST"; then
-	echo "    GOST algorithm support (encoding: $gosttype) (--with-gost)"
-    fi
     test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
 	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
@@ -5372,8 +5259,6 @@ report() {
     fi
     test "yes" = "$want_native_pkcs11" ||
 	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_GOST" -o "yes" = "$PKCS11_GOST" || \
-	echo "    GOST algorithm support (--with-gost)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
 	echo "    ECDSA algorithm support (--with-ecdsa)"
     test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \

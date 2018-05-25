@@ -103,9 +103,6 @@ static struct parse_map map[] = {
 	{TAG_DSA_PUBLIC, "Public_value(y):"},
 #endif
 
-	{TAG_GOST_PRIVASN1, "GostAsn1:"},
-	{TAG_GOST_PRIVRAW, "PrivateKey:"},
-
 	{TAG_ECDSA_PRIVATEKEY, "PrivateKey:"},
 	{TAG_ECDSA_ENGINE, "Engine:" },
 	{TAG_ECDSA_LABEL, "Label:" },
@@ -263,20 +260,6 @@ check_dsa(const dst_private_t *priv, isc_boolean_t external) {
 #endif
 
 static int
-check_gost(const dst_private_t *priv, isc_boolean_t external) {
-
-	if (external)
-		return ((priv->nelements == 0)? 0 : -1);
-
-	if (priv->nelements != GOST_NTAGS)
-		return (-1);
-	if ((priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 0)) &&
-	    (priv->elements[0].tag != TAG(DST_ALG_ECCGOST, 1)))
-		return (-1);
-	return (0);
-}
-
-static int
 check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 	int i, j;
 	isc_boolean_t have[ECDSA_NTAGS];
@@ -408,8 +391,6 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 	case DST_ALG_NSEC3DSA:
 		return (check_dsa(priv, external));
 #endif
-	case DST_ALG_ECCGOST:
-		return (check_gost(priv, external));
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 		return (check_ecdsa(priv, external));
@@ -757,9 +738,6 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		break;
 	case DST_ALG_RSASHA512:
 		fprintf(fp, "(RSASHA512)\n");
-		break;
-	case DST_ALG_ECCGOST:
-		fprintf(fp, "(ECC-GOST)\n");
 		break;
 	case DST_ALG_ECDSA256:
 		fprintf(fp, "(ECDSAP256SHA256)\n");

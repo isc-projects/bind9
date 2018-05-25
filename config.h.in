@@ -395,9 +395,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if your OpenSSL version supports EVP AES */
 #undef HAVE_OPENSSL_EVP_AES
 
-/* Define if your OpenSSL version supports GOST. */
-#undef HAVE_OPENSSL_GOST
-
 /* Define if native PKCS#11 is used as cryptographic library provider */
 #undef HAVE_PKCS11
 
@@ -409,9 +406,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if your PKCS11 provider supports Ed448. */
 #undef HAVE_PKCS11_ED448
-
-/* Define if your PKCS11 provider supports GOST. */
-#undef HAVE_PKCS11_GOST
 
 /* Support for PTHREAD_MUTEX_ADAPTIVE_NP */
 #undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
@@ -591,9 +585,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Sets which flag to pass to open/fcntl to make non-blocking
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
-
-/* Define if GOST private keys are encoded in ASN.1. */
-#undef PREFER_GOSTASN1
 
 /* The size of `void *', as computed by sizeof. */
 #undef SIZEOF_VOID_P
