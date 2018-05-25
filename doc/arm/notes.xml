@@ -179,6 +179,15 @@
 	  command.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Support for ECC-GOST (GOST R 34.11-94) algorithm has been
+	  removed from BIND as the algorithm has been superseded by
+	  GOST R 34.11-2012 in RFC6986 and it must not be used in new
+	  deployments.  BIND will neither create new DNSSEC keys,
+	  signatures and digest, nor it will validate them.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
