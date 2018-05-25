@@ -1,3 +1,6 @@
+4952.	[protocol]	Remove support for ECC-GOST (GOST R 34.11-94).
+			[GL #295]
+
 4951.	[protocol]	Add "HOME.ARPA" to list of built in empty zones as
 			per RFC 8375. [GL #273]
 
