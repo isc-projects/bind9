@@ -1,3 +1,6 @@
+4980.	[bug]		Named-checkconf failed to detect bad in-view targets.
+			[GL #288]
+
 4979.	[bug]		Non-libcap builds were not checking whether all
 			requested capabilities are present in the permitted
 			capability set. [GL #321]
