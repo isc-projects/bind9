@@ -23,10 +23,10 @@ $PYTHON protoss.py ${PORT} > /dev/null
 nextpart ns2/named.run | grep "PROTOSS:" > protoss.out
 lines=`cat protoss.out | wc -l`
 [ "$lines" -eq 8 ] || ret=1
-grep "org:1816793/ipv4:10.0.0.4" protoss.out > /dev/null || ret=1
-grep "dev:deadbeef/org:1816793/ipv4:10.0.0.4" protoss.out > /dev/null || ret=1
-grep "dev:deadbeef/org:1816793/ipv6:fe0f::1" protoss.out > /dev/null || ret=1
-grep "va:30280231/ipv4:10.0.0.4/org:1816793" protoss.out > /dev/null || ret=1
+grep "ipv4:10.0.0.4/org:1816793" protoss.out > /dev/null || ret=1
+grep "ipv4:10.0.0.4/org:1816793/dev:deadbeef" protoss.out > /dev/null || ret=1
+grep "ipv6:fe0f::1/org:1816793/dev:deadbeef" protoss.out > /dev/null || ret=1
+grep "ipv4:10.0.0.4/org:1816793/va:30280231" protoss.out > /dev/null || ret=1
 grep '(F)' protoss.out > /dev/null || ret=1
 grep '(N)' protoss.out > /dev/null || ret=1
 grep '(FN)' protoss.out > /dev/null || ret=1
