@@ -1,3 +1,7 @@
+4953.	[bug]		Removed the option to build the red black tree
+			database without a hash table; the non-hashing
+			version was buggy and is not needed. [GL #184]
+
 4952.	[func]		Authoritative server support in named for the
 			EDNS CLIENT-SUBNET option (which was experimental
 			and not practical to deploy) has been removed.
