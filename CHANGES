@@ -1,3 +1,6 @@
+4957.	[protocol]	Remove support for ECC-GOST (GOST R 34.11-94).
+			[GL #295]
+
 4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
 			and add isc_nonce_buf() that uses CSPRNG. [GL #289]
 
