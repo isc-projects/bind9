@@ -9,13 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/*
- * This source was adapted from MRT's RCS Ids:
- * Id: radix.h,v 1.6 1999/08/03 03:32:53 masaki Exp
- * Id: mrt.h,v 1.57.2.6 1999/12/28 23:41:27 labovit Exp
- * Id: defs.h,v 1.5.2.2 2000/01/15 14:19:16 masaki Exp
- */
-
 #include <isc/magic.h>
 #include <isc/types.h>
 #include <isc/mutex.h>
@@ -85,7 +78,11 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
  * but matches all IPv6 addresses too.
  */
 
-#define ISC_RADIX_OFF(p) (((p)->family == AF_INET6) ? 1 : 0)
+#define RADIX_V4 0
+#define RADIX_V6 1
+#define RADIX_FAMILIES 2
+
+#define ISC_RADIX_FAMILY(p) (((p)->family == AF_INET6) ? RADIX_V6 : RADIX_V4)
 
 typedef struct isc_radix_node {
 	isc_mem_t *mctx;
@@ -93,8 +90,8 @@ typedef struct isc_radix_node {
 	isc_prefix_t *prefix;		/* who we are in radix tree */
 	struct isc_radix_node *l, *r;	/* left and right children */
 	struct isc_radix_node *parent;	/* may be used */
-	void *data[2];			/* pointers to IPv4 and IPV6 data */
-	int node_num[2];		/* which node this was in the tree,
+	void *data[RADIX_FAMILIES];	/* pointers to IPv4 and IPV6 data */
+	int node_num[RADIX_FAMILIES];	/* which node this was in the tree,
 					   or -1 for glue nodes */
 } isc_radix_node_t;
 
@@ -193,9 +190,6 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 #define RADIX_NBIT(x)        (0x80 >> ((x) & 0x7f))
 #define RADIX_NBYTE(x)       ((x) >> 3)
 
-#define RADIX_DATA_GET(node, type) (type *)((node)->data)
-#define RADIX_DATA_SET(node, value) ((node)->data = (void *)(value))
-
 #define RADIX_WALK(Xhead, Xnode) \
     do { \
 	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
@@ -203,22 +197,6 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 	isc_radix_node_t *Xrn = (Xhead); \
 	while ((Xnode = Xrn)) { \
 	    if (Xnode->prefix)
-
-#define RADIX_WALK_ALL(Xhead, Xnode) \
-do { \
-	isc_radix_node_t *Xstack[RADIX_MAXBITS+1]; \
-	isc_radix_node_t **Xsp = Xstack; \
-	isc_radix_node_t *Xrn = (Xhead); \
-	while ((Xnode = Xrn)) { \
-	    if (1)
-
-#define RADIX_WALK_BREAK { \
-	    if (Xsp != Xstack) { \
-		Xrn = *(--Xsp); \
-	     } else { \
-		Xrn = (radix_node_t *) 0; \
-	    } \
-	    continue; }
 
 #define RADIX_WALK_END \
 	    if (Xrn->l) { \
