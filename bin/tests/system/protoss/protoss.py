@@ -69,9 +69,11 @@ class Protoss(dns.edns.Option):
         header = struct.pack('!LBB', Protoss.MAGIC_BITS,
                              Protoss.VERSION, self.flags)
         file.write(header)
-        for key, value in self.options.iteritems():
-            print(key, value)
-            file.write(self.pack_value(key, value))
+        for key in ['ip4', 'ip6', 'org', 'device', 'va']:
+            if not key in self.options:
+                continue
+            print(key, self.options[key])
+            file.write(self.pack_value(key, self.options[key]))
 
     @classmethod
     def from_wire(cls, option, wire, current, olen):
