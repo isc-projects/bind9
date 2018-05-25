@@ -897,7 +897,7 @@ n=`expr $n + 1`
 echo_i "testing adding external keys to a inline zone ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 dnskey externalkey > dig.out.ns3.test$n
-for alg in 3 7 12 13
+for alg in 3 7 13
 do
    [ $alg = 3 -a ! -f checkdsa ] && continue;
    [ $alg = 13 -a ! -f checkecdsa ] && continue;
