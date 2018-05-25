@@ -5794,12 +5794,9 @@ options {
 	      <term><command>geoip-use-ecs</command></term>
 	      <listitem>
 		<para>
-		  When BIND is compiled with GeoIP support and configured
-		  with "geoip" ACL elements, this option indicates whether
-		  the EDNS Client Subnet option, if present in a request,
-		  should be used for matching against the GeoIP database.
-		  The default is
-		  <command>geoip-use-ecs</command> <userinput>yes</userinput>.
+		  This option was part of an experimental implementation
+		  of the EDNS CLIENT-SUBNET for authoritative servers,
+		  but is now obsolete.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -16711,37 +16708,8 @@ zone "example.com" {
 	  In addition to network addresses and prefixes, which are
 	  matched against the source address of the DNS request, ACLs
 	  may include <option>key</option> elements, which specify the
-	  name of a TSIG or SIG(0) key, or <option>ecs</option>
-	  elements, which specify a network prefix but are only matched
-	  if that prefix matches an EDNS client subnet option included
-	  in the request.
+	  name of a TSIG or SIG(0) key.
 	</para>
-	<para>
-	  The EDNS Client Subnet (ECS) option is used by a recursive
-	  resolver to inform an authoritative name server of the network
-	  address block from which the original query was received, enabling
-	  authoritative servers to give different answers to the same
-	  resolver for different resolver clients.  An ACL containing
-	  an element of the form
-	  <command>ecs <replaceable>prefix</replaceable></command>
-	  will match if a request arrives in containing an ECS option
-	  encoding an address within that prefix.  If the request has no
-	  ECS option, then "ecs" elements are simply ignored.  Addresses
-	  in ACLs that are not prefixed with "ecs" are matched only
-	  against the source address.
-	</para>
-	<note>
-	  <simpara>
-	    (Note: The authoritative ECS implementation in
-	    <command>named</command> is based on an early version of the
-	    specification, and is known to have incompatibilities with
-	    other implementations.  It is also inefficient, requiring
-	    a separate view for each client subnet to be sent different
-	    answers, and it is unable to correct for overlapping subnets in
-	    the configuration.  It can be used for testing purposes, but is
-	    not recommended for production use.)
-	  </simpara>
-	</note>
 	<para>
 	  When <acronym>BIND</acronym> 9 is built with GeoIP support,
 	  ACLs can also be used for geographic access restrictions.
@@ -16785,14 +16753,6 @@ zone "example.com" {
 	  specified, then these queries will be answered from the "city",
 	  database if it is installed, or the "region" database if it is
 	  installed, or the "country" database, in that order.
-	</para>
-	<para>
-	  By default, if a DNS query includes an EDNS Client Subnet (ECS)
-	  option which encodes a non-zero address prefix, then GeoIP ACLs
-	  will be matched against that address prefix.  Otherwise, they
-	  are matched against the source address of the query.  To
-	  prevent GeoIP ACLs from matching against ECS options, set
-	  the <command>geoip-use-ecs</command> to <literal>no</literal>.
 	</para>
 	<para>
 	  Some example GeoIP ACLs:
