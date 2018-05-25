@@ -152,6 +152,7 @@ static isc_result_t
 serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 		dns_rbtdatawriter_t datawriter, void *writer_arg,
 		uintptr_t *where, isc_uint64_t *crc);
+
 /*
  * The following functions allow you to get the actual address of a pointer
  * without having to use an if statement to check to see if that address is
@@ -204,9 +205,7 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
 #define LEFT(node)              ((node)->left)
 #define RIGHT(node)             ((node)->right)
 #define DOWN(node)              ((node)->down)
-#ifdef DNS_RBT_USEHASH
 #define UPPERNODE(node)         ((node)->uppernode)
-#endif /* DNS_RBT_USEHASH */
 #define DATA(node)              ((node)->data)
 #define IS_EMPTY(node)          ((node)->data == NULL)
 #define HASHNEXT(node)          ((node)->hashnext)
@@ -234,9 +233,10 @@ getdata(dns_rbtnode_t *node, file_header_t *header) {
  *	&lt;name_data&gt;{1..255}&lt;oldoffsetlen&gt;{1}&lt;offsets&gt;{1..128}
  *
  * &lt;name_data&gt; contains the name of the node when it was created.
- * &lt;oldoffsetlen&gt; contains the length of &lt;offsets&gt; when the node was created.
- * &lt;offsets&gt; contains the offets into name for each label when the node was
- * created.
+ * &lt;oldoffsetlen&gt; contains the length of &lt;offsets&gt; when the node
+ * was created.
+ * &lt;offsets&gt; contains the offets into name for each label when the node
+ * was created.
  */
 
 #define NAME(node)      ((unsigned char *)((node) + 1))
@@ -295,13 +295,8 @@ dns_rbtnode_nodename(dns_rbtnode_t *node, dns_name_t *name) {
 
 dns_rbtnode_t *
 dns_rbt_root(dns_rbt_t *rbt) {
-  return rbt->root;
+	return (rbt->root);
 }
-
-#ifdef DNS_RBT_USEHASH
-static isc_result_t
-inithash(dns_rbt_t *rbt);
-#endif
 
 #ifdef DEBUG
 #define inline
@@ -344,8 +339,6 @@ hexdump(const char *desc, unsigned char *data, size_t size) {
 }
 #endif /* DEBUG */
 
-#ifdef DNS_RBT_USEHASH
-
 /*
  * Upper node is the parent of the root of the passed node's
  * subtree. The passed node must not be NULL.
@@ -376,35 +369,6 @@ fixup_uppernodes(dns_rbt_t *rbt) {
 	fixup_uppernodes_helper(rbt->root, NULL);
 }
 
-#else
-
-/* The passed node must not be NULL. */
-static inline dns_rbtnode_t *
-get_subtree_root(dns_rbtnode_t *node) {
-	while (!IS_ROOT(node)) {
-		node = PARENT(node);
-	}
-
-	return (node);
-}
-
-/* Upper node is the parent of the root of the passed node's
- * subtree. The passed node must not be NULL.
- */
-static inline dns_rbtnode_t *
-get_upper_node(dns_rbtnode_t *node) {
-	dns_rbtnode_t *root = get_subtree_root(node);
-
-	/*
-	 * Return the node in the level above the argument node that points
-	 * to the level the argument node is in.  If the argument node is in
-	 * the top level, the return value is NULL.
-	 */
-	return (PARENT(root));
-}
-
-#endif /* DNS_RBT_USEHASH */
-
 size_t
 dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 	size_t nodes = 1;
@@ -425,18 +389,17 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 static isc_result_t
 create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep);
 
-#ifdef DNS_RBT_USEHASH
+static isc_result_t
+inithash(dns_rbt_t *rbt);
+
 static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name);
+
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node);
+
 static void
 rehash(dns_rbt_t *rbt, unsigned int newcount);
-#else
-#define hash_node(rbt, node, name)
-#define unhash_node(rbt, node)
-#define rehash(rbt, newcount)
-#endif
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
@@ -965,9 +928,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 		goto cleanup;
 	}
 
-#ifdef DNS_RBT_USEHASH
 	fixup_uppernodes(rbt);
-#endif /* DNS_RBT_USEHASH */
 
 	*rbtp = rbt;
 	if (originp != NULL)
@@ -990,9 +951,7 @@ isc_result_t
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	       void *deleter_arg, dns_rbt_t **rbtp)
 {
-#ifdef DNS_RBT_USEHASH
 	isc_result_t result;
-#endif
 	dns_rbt_t *rbt;
 
 	REQUIRE(mctx != NULL);
@@ -1013,13 +972,11 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	rbt->hashsize = 0;
 	rbt->mmap_location = NULL;
 
-#ifdef DNS_RBT_USEHASH
 	result = inithash(rbt);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_putanddetach(&rbt->mctx, rbt, sizeof(*rbt));
 		return (result);
 	}
-#endif
 
 	rbt->magic = RBT_MAGIC;
 
@@ -1197,9 +1154,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 		if (result == ISC_R_SUCCESS) {
 			rbt->nodecount++;
 			new_current->is_root = 1;
-#ifdef DNS_RBT_USEHASH
+
 			UPPERNODE(new_current) = NULL;
-#endif /* DNS_RBT_USEHASH */
+
 			rbt->root = new_current;
 			*nodep = new_current;
 			hash_node(rbt, new_current, name);
@@ -1371,10 +1328,9 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				PARENT(current) = new_current;
 				DOWN(new_current) = current;
 				root = &DOWN(new_current);
-#ifdef DNS_RBT_USEHASH
+
 				UPPERNODE(new_current) = UPPERNODE(current);
 				UPPERNODE(current) = new_current;
-#endif /* DNS_RBT_USEHASH */
 
 				INSIST(level_count < DNS_RBT_LEVELBLOCK);
 				level_count++;
@@ -1433,12 +1389,12 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 		result = create_node(rbt->mctx, add_name, &new_current);
 
 	if (ISC_LIKELY(result == ISC_R_SUCCESS)) {
-#ifdef DNS_RBT_USEHASH
-		if (*root == NULL)
+		if (*root == NULL) {
 			UPPERNODE(new_current) = current;
-		else
+		} else {
 			UPPERNODE(new_current) = PARENT(*root);
-#endif /* DNS_RBT_USEHASH */
+		}
+
 		addonlevel(new_current, current, order, root);
 		rbt->nodecount++;
 		*nodep = new_current;
@@ -1560,7 +1516,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			break;
 
 		if (compared == dns_namereln_none) {
-#ifdef DNS_RBT_USEHASH
 			/*
 			 * Here, current is pointing at a subtree root
 			 * node. We try to find a matching node using
@@ -1635,13 +1590,19 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				 * match a labelsequence from some other
 				 * subdomain.
 				 */
-				if (ISC_LIKELY(get_upper_node(hnode) != up_current))
+				if (ISC_LIKELY(get_upper_node(hnode) !=
+					       up_current))
+				{
 					continue;
+				}
 
 				dns_name_init(&hnode_name, NULL);
 				NODENAME(hnode, &hnode_name);
-				if (ISC_LIKELY(dns_name_equal(&hnode_name, &hash_name)))
+				if (ISC_LIKELY(dns_name_equal(&hnode_name,
+							      &hash_name)))
+				{
 					break;
+				}
 			}
 
 			if (hnode != NULL) {
@@ -1676,19 +1637,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			 */
 			current = NULL;
 			continue;
-
-#else /* DNS_RBT_USEHASH */
-
-			/*
-			 * Standard binary search tree movement.
-			 */
-			if (order < 0)
-				current = LEFT(current);
-			else
-				current = RIGHT(current);
-
-#endif /* DNS_RBT_USEHASH */
-
 		} else {
 			/*
 			 * The names have some common suffix labels.
@@ -1698,9 +1646,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			 * down pointer and search in the new tree.
 			 */
 			if (compared == dns_namereln_subdomain) {
-#ifdef DNS_RBT_USEHASH
-		subdomain:
-#endif
+ subdomain:
 				/*
 				 * Whack off the current node's common parts
 				 * for the name to search in the next level.
@@ -2264,10 +2210,8 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	node->data_is_relative = 0;
 	node->rpz = 0;
 
-#ifdef DNS_RBT_USEHASH
 	HASHNEXT(node) = NULL;
 	HASHVAL(node) = 0;
-#endif
 
 	ISC_LINK_INIT(node, deadlink);
 
@@ -2309,7 +2253,9 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef DNS_RBT_USEHASH
+/*
+ * Add a node to the hash table
+ */
 static inline void
 hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	unsigned int hash;
@@ -2324,6 +2270,9 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	rbt->hashtable[hash] = node;
 }
 
+/*
+ * Initialize hash table
+ */
 static isc_result_t
 inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
@@ -2340,6 +2289,9 @@ inithash(dns_rbt_t *rbt) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Rebuild the hashtable to reduce the load factor
+ */
 static void
 rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	unsigned int oldsize;
@@ -2378,6 +2330,10 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	isc_mem_put(rbt->mctx, oldtable, oldsize * sizeof(dns_rbtnode_t *));
 }
 
+/*
+ * Add a node to the hash table. Rehash the hashtable if the node count
+ * rises above a critical level.
+ */
 static inline void
 hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	REQUIRE(DNS_RBTNODE_VALID(node));
@@ -2388,6 +2344,9 @@ hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 	hash_add_node(rbt, node, name);
 }
 
+/*
+ * Remove a node from the hash table
+ */
 static inline void
 unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 	unsigned int bucket;
@@ -2408,7 +2367,6 @@ unhash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		HASHNEXT(bucket_node) = HASHNEXT(node);
 	}
 }
-#endif /* DNS_RBT_USEHASH */
 
 static inline void
 rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
