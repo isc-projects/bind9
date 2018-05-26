@@ -785,20 +785,28 @@
       </varlistentry>
 
       <varlistentry>
-	<term><userinput>serve-stale ( on | off | status | reset ) <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+	<term><userinput>serve-stale ( on | off | reset | status ) <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
 	<listitem>
 	  <para>
-	    Enable, disable, or reset the serving of stale answers
-	    as configured in named.conf. Serving of stale answers
-	    will remain disabled across <filename>named.conf</filename>
-	    reloads if disabled via rndc until it is reset via rndc.
+	    Enable, disable, reset, or report the current status
+            of the serving of stale answers as configured in
+            <filename>named.conf</filename>.
 	  </para>
 	  <para>
-	    Status will report whether serving of stale answers is
-	    currently enabled, disabled or not configured for a
-	    view.  If serving of stale records is configured then
-	    the values of stale-answer-ttl and max-stale-ttl are
-	    reported.
+            If serving of stale answers is disabled by
+            <command>rndc-serve-stale off</command>, then it
+	    will remain disabled even if <command>named</command>
+            is reloaded or reconfigured.
+            <command>rndc serve-stale reset</command> restores
+            the setting as configured in <filename>named.conf</filename>.
+	  </para>
+	  <para>
+	    <command>rndc serve-stale status</command> will report
+            whether serving of stale answers is currently enabled,
+            disabled by the configuration, or disabled by
+            <command>rndc</command>.  It will also report the
+	    values of <command>stale-answer-ttl</command> and
+	    <command>max-stale-ttl</command>.
 	  </para>
 	</listitem>
       </varlistentry>

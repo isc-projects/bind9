@@ -4093,7 +4093,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "max-stale-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	max_stale_ttl = cfg_obj_asuint32(obj);
+	max_stale_ttl = ISC_MAX(cfg_obj_asuint32(obj), 1);
 
 	obj = NULL;
 	result = named_config_get(maps, "stale-answer-enable", &obj);
