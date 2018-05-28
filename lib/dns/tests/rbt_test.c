@@ -368,8 +368,8 @@ ATF_TC_BODY(rbt_check_distance_random, tc) {
 			dns_name_t *name;
 
 			for (j = 0; j < 32; j++) {
-				isc_uint32_t v = isc_random();
-				namebuf[j] = 'a' + (v % 26);
+				isc_uint32_t v = isc_random_uniform(26);
+				namebuf[j] = 'a' + v;
 			}
 			namebuf[32] = '.';
 			namebuf[33] = 0;
@@ -894,8 +894,8 @@ insert_nodes(dns_rbt_t *mytree, char **names,
 			isc_result_t result;
 
 			for (j = 0; j < 32; j++) {
-				isc_uint32_t v = isc_random();
-				namebuf[j] = 'a' + (v % 26);
+				isc_uint32_t v = isc_random_uniform(26);
+				namebuf[j] = 'a' + v;
 			}
 			namebuf[32] = '.';
 			namebuf[33] = 0;
@@ -1019,9 +1019,8 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	for (i = 0; i < 4096; i++) {
 		isc_uint32_t num_names;
 
-		num_names = isc_random();
 		if (names_count < 1024) {
-			num_names %= 1024 - names_count;
+			num_names = isc_random_uniform(1024 - names_count);
 			num_names++;
 		} else {
 			num_names = 0;
@@ -1030,9 +1029,8 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 		insert_nodes(mytree, names, &names_count, num_names);
 		check_tree(mytree, names, names_count, __LINE__);
 
-		num_names = isc_random();
 		if (names_count > 0) {
-			num_names %= names_count;
+			num_names = isc_random_uniform(names_count);
 			num_names++;
 		} else {
 			num_names = 0;

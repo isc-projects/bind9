@@ -693,7 +693,8 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 		dispsock->resp = NULL;
 		dispsock->portentry = NULL;
 		dispsock->task = NULL;
-		isc_task_attach(disp->task[isc_random() % disp->ntasks], &dispsock->task);
+		isc_task_attach(disp->task[isc_random_uniform(disp->ntasks)],
+				&dispsock->task);
 		ISC_LINK_INIT(dispsock, link);
 		ISC_LINK_INIT(dispsock, blink);
 		dispsock->magic = DISPSOCK_MAGIC;
@@ -3169,7 +3170,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 	if ((options & DNS_DISPATCHOPT_FIXEDID) != 0) {
 		id = *idp;
 	} else {
-		isc_random_buf(&id, sizeof(id));
+		id = (dns_messageid_t)isc_random16();
 	}
 	ok = ISC_FALSE;
 	i = 0;

@@ -5415,12 +5415,12 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		isc_stdtime_get(&now);
 
 	if (isc_mem_isovermem(rbtdb->common.mctx)) {
-		isc_uint32_t val = isc_random();
+		isc_uint32_t val = (isc_random32() & 0x03); /* 25% probability */
 
 		/*
 		 * XXXDCL Could stand to have a better policy, like LRU.
 		 */
-		force_expire = ISC_TF(rbtnode->down == NULL && val % 4 == 0);
+		force_expire = ISC_TF(rbtnode->down == NULL && val == 0);
 
 		/*
 		 * Note that 'log' can be true IFF overmem is also true.
