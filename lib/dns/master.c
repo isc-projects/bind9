@@ -1009,6 +1009,19 @@ openfile_text(dns_loadctx_t *lctx, const char *master_file) {
 	return (isc_lex_openfile(lctx->lex, master_file));
 }
 
+static int
+find_free_name(dns_incctx_t *incctx) {
+	int i;
+
+	for (i = 0; i < (NBUFS - 1); i++) {
+		if (!incctx->in_use[i]) {
+			break;
+		}
+	}
+	INSIST(!incctx->in_use[i]);
+	return (i);
+}
+
 static isc_result_t
 load_text(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
@@ -1378,13 +1391,8 @@ load_text(dns_loadctx_t *lctx) {
 
 			/*
 			 * Normal processing resumes.
-			 *
-			 * Find a free name buffer.
 			 */
-			for (new_in_use = 0; new_in_use < NBUFS; new_in_use++)
-				if (!ictx->in_use[new_in_use])
-					break;
-			INSIST(new_in_use < NBUFS);
+			new_in_use = find_free_name(ictx);
 			new_name =
 			      dns_fixedname_initname(&ictx->fixed[new_in_use]);
 			isc_buffer_init(&buffer, token.value.as_region.base,
@@ -2082,7 +2090,6 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	dns_incctx_t *ictx;
 	dns_incctx_t *newctx = NULL;
 	isc_region_t r;
-	int new_in_use;
 
 	REQUIRE(master_file != NULL);
 	REQUIRE(DNS_LCTX_VALID(lctx));
@@ -2101,11 +2108,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 
 	/* Set current domain. */
 	if (ictx->glue != NULL || ictx->current != NULL) {
-		for (new_in_use = 0; new_in_use < NBUFS; new_in_use++)
-			if (!newctx->in_use[new_in_use])
-				break;
-		INSIST(new_in_use < NBUFS);
-		newctx->current_in_use = new_in_use;
+		newctx->current_in_use = find_free_name(newctx);
 		newctx->current =
 			dns_fixedname_name(&newctx->fixed[newctx->current_in_use]);
 		newctx->in_use[newctx->current_in_use] = ISC_TRUE;
