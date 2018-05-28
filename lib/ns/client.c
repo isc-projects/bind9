@@ -17,6 +17,7 @@
 #include <isc/hmacsha.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/nonce.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/queue.h>
@@ -1652,7 +1653,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_init(&buf, cookie, sizeof(cookie));
 		isc_stdtime_get(&now);
 
-		isc_random_buf(&nonce, sizeof(nonce));
+		isc_nonce_buf(&nonce, sizeof(nonce));
 
 		compute_cookie(client, now, nonce, client->sctx->secret, &buf);
 
