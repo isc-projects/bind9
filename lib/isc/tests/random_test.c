@@ -21,6 +21,7 @@
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/mem.h>
+#include <isc/nonce.h>
 #include <isc/print.h>
 #include <isc/util.h>
 
@@ -52,6 +53,15 @@ static double biginv =	2.22044604925031308085e-16;
 
 static double igamc(double a, double x);
 static double igam(double a, double x);
+
+typedef enum {
+	ISC_RANDOM8,
+	ISC_RANDOM16,
+	ISC_RANDOM32,
+	ISC_RANDOM_BYTES,
+	ISC_RANDOM_UNIFORM,
+	ISC_NONCE_BYTES
+} isc_random_func;
 
 static double
 igamc(double a, double x) {
@@ -250,7 +260,7 @@ matrix_binaryrank(isc_uint32_t *bits, size_t rows, size_t cols) {
 }
 
 static void
-random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
+random_test(pvalue_func_t *func, isc_random_func test_func) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_uint32_t m;
@@ -274,18 +284,41 @@ random_test(pvalue_func_t *func, isc_boolean_t word_sized) {
 
 	for (j = 0; j < m; j++) {
 		isc_uint32_t i;
-		isc_uint16_t values[REPS];
+		isc_uint32_t values[REPS];
+		isc_uint16_t *uniform_values;
 		double p_value;
 
-		if (word_sized) {
-			for (i = 0; i < REPS; i++) {
-				isc_random_buf(&values[i], sizeof(values[i]));
+		switch (test_func) {
+		case ISC_RANDOM8:
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+				values[i] = isc_random8();
 			}
-		} else {
+			break;
+		case ISC_RANDOM16:
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+				values[i] = isc_random16();
+			}
+			break;
+		case ISC_RANDOM32:
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+				values[i] = isc_random32();
+			}
+			break;
+		case ISC_RANDOM_BYTES:
 			isc_random_buf(values, sizeof(values));
+			break;
+		case ISC_RANDOM_UNIFORM:
+			uniform_values = (isc_uint16_t *)values;
+			for (i = 0; i < (sizeof(values) / sizeof(*uniform_values)); i++) {
+				uniform_values[i] = isc_random_uniform(ISC_UINT16_MAX);
+			}
+			break;
+		case ISC_NONCE_BYTES:
+			isc_nonce_buf(values, sizeof(values));
+			break;
 		}
 
-		p_value = (*func)(mctx, values, REPS);
+		p_value = (*func)(mctx, (uint16_t *)values, REPS * 2);
 		if (p_value >= 0.01) {
 			passed++;
 		}
@@ -364,7 +397,7 @@ monobit(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 
 	UNUSED(mctx);
 
-	numbits = length * 16;
+	numbits = length * sizeof(*values) * 8;
 	scount = 0;
 
 	for (i = 0; i < length; i++)
@@ -403,10 +436,10 @@ runs(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 
 	UNUSED(mctx);
 
-	numbits = length * 16;
+	numbits = length * sizeof(*values) * 8;
 	bcount = 0;
 
-	for (i = 0; i < REPS; i++)
+	for (i = 0; i < length; i++)
 		bcount += bitcounts_table[values[i]];
 
 	/* Debug message, not displayed when running via atf-run */
@@ -472,7 +505,7 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	double chi_square;
 	double p_value;
 
-	numbits = length * 16;
+	numbits = length * sizeof(*values) * 8;
 	mbits = 32000;
 	mwords = mbits / 16;
 	numblocks = numbits / mbits;
@@ -512,7 +545,7 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	isc_mem_put(mctx, pi, numblocks * sizeof(double));
 
 	/* Debug message, not displayed when running via atf-run */
-	printf("chi_square=%f\n", chi_square);
+printf("chi_square=%f\n", chi_square);
 
 	p_value = igamc(numblocks * 0.5, chi_square * 0.5);
 
@@ -605,114 +638,208 @@ binarymatrixrank(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	return (p_value);
 }
 
-ATF_TC(isc_random_monobit_16);
-ATF_TC_HEAD(isc_random_monobit_16, tc) {
+/* Tests for isc_random32() function */
+
+ATF_TC(isc_random32_monobit);
+ATF_TC_HEAD(isc_random32_monobit, tc) {
+	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
+}
+ATF_TC_BODY(isc_random32_monobit, tc) {
+	UNUSED(tc);
+
+	random_test(monobit, ISC_RANDOM32);
+}
+
+ATF_TC(isc_random32_runs);
+ATF_TC_HEAD(isc_random32_runs, tc) {
+	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
+}
+ATF_TC_BODY(isc_random32_runs, tc) {
+	UNUSED(tc);
+
+	random_test(runs, ISC_RANDOM32);
+}
+
+ATF_TC(isc_random32_blockfrequency);
+ATF_TC_HEAD(isc_random32_blockfrequency, tc) {
+	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
+}
+ATF_TC_BODY(isc_random32_blockfrequency, tc) {
+	UNUSED(tc);
+
+	random_test(blockfrequency, ISC_RANDOM32);
+}
+
+ATF_TC(isc_random32_binarymatrixrank);
+ATF_TC_HEAD(isc_random32_binarymatrixrank, tc) {
+	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
+}
+ATF_TC_BODY(isc_random32_binarymatrixrank, tc) {
+	UNUSED(tc);
+
+	random_test(binarymatrixrank, ISC_RANDOM32);
+}
+
+/* Tests for isc_random_bytes() function */
+
+ATF_TC(isc_random_bytes_monobit);
+ATF_TC_HEAD(isc_random_bytes_monobit, tc) {
 	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_monobit_16, tc) {
+ATF_TC_BODY(isc_random_bytes_monobit, tc) {
 	UNUSED(tc);
 
-	random_test(monobit, ISC_TRUE);
+	random_test(monobit, ISC_RANDOM_BYTES);
 }
 
-ATF_TC(isc_random_runs_16);
-ATF_TC_HEAD(isc_random_runs_16, tc) {
+ATF_TC(isc_random_bytes_runs);
+ATF_TC_HEAD(isc_random_bytes_runs, tc) {
 	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_runs_16, tc) {
+ATF_TC_BODY(isc_random_bytes_runs, tc) {
 	UNUSED(tc);
 
-	random_test(runs, ISC_TRUE);
+	random_test(runs, ISC_RANDOM_BYTES);
 }
 
-ATF_TC(isc_random_blockfrequency_16);
-ATF_TC_HEAD(isc_random_blockfrequency_16, tc) {
+ATF_TC(isc_random_bytes_blockfrequency);
+ATF_TC_HEAD(isc_random_bytes_blockfrequency, tc) {
 	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_blockfrequency_16, tc) {
+ATF_TC_BODY(isc_random_bytes_blockfrequency, tc) {
 	UNUSED(tc);
 
-	random_test(blockfrequency, ISC_TRUE);
+	random_test(blockfrequency, ISC_RANDOM_BYTES);
 }
 
-ATF_TC(isc_random_binarymatrixrank_16);
-ATF_TC_HEAD(isc_random_binarymatrixrank_16, tc) {
+ATF_TC(isc_random_bytes_binarymatrixrank);
+ATF_TC_HEAD(isc_random_bytes_binarymatrixrank, tc) {
 	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
 }
 
-/*
- * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
- * test suite.
- */
-ATF_TC_BODY(isc_random_binarymatrixrank_16, tc) {
+ATF_TC_BODY(isc_random_bytes_binarymatrixrank, tc) {
 	UNUSED(tc);
 
-	random_test(binarymatrixrank, ISC_TRUE);
+	random_test(binarymatrixrank, ISC_RANDOM_BYTES);
 }
 
-ATF_TC(isc_random_monobit_bytes);
-ATF_TC_HEAD(isc_random_monobit_bytes, tc) {
+
+/* Tests for isc_random_uniform() function */
+
+ATF_TC(isc_random_uniform_monobit);
+ATF_TC_HEAD(isc_random_uniform_monobit, tc) {
 	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_monobit_bytes, tc) {
+ATF_TC_BODY(isc_random_uniform_monobit, tc) {
 	UNUSED(tc);
 
-	random_test(monobit, ISC_FALSE);
+	random_test(monobit, ISC_RANDOM_UNIFORM);
 }
 
-ATF_TC(isc_random_runs_bytes);
-ATF_TC_HEAD(isc_random_runs_bytes, tc) {
+ATF_TC(isc_random_uniform_runs);
+ATF_TC_HEAD(isc_random_uniform_runs, tc) {
 	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_runs_bytes, tc) {
+ATF_TC_BODY(isc_random_uniform_runs, tc) {
 	UNUSED(tc);
 
-	random_test(runs, ISC_FALSE);
+	random_test(runs, ISC_RANDOM_UNIFORM);
 }
 
-ATF_TC(isc_random_blockfrequency_bytes);
-ATF_TC_HEAD(isc_random_blockfrequency_bytes, tc) {
+ATF_TC(isc_random_uniform_blockfrequency);
+ATF_TC_HEAD(isc_random_uniform_blockfrequency, tc) {
 	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
 }
 
-ATF_TC_BODY(isc_random_blockfrequency_bytes, tc) {
+ATF_TC_BODY(isc_random_uniform_blockfrequency, tc) {
 	UNUSED(tc);
 
-	random_test(blockfrequency, ISC_FALSE);
+	random_test(blockfrequency, ISC_RANDOM_UNIFORM);
 }
 
-ATF_TC(isc_random_binarymatrixrank_bytes);
-ATF_TC_HEAD(isc_random_binarymatrixrank_bytes, tc) {
+ATF_TC(isc_random_uniform_binarymatrixrank);
+ATF_TC_HEAD(isc_random_uniform_binarymatrixrank, tc) {
 	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
 }
 
-/*
- * This is the binary matrix rank test taken from the NIST SP 800-22 RNG
- * test suite.
- */
-ATF_TC_BODY(isc_random_binarymatrixrank_bytes, tc) {
+ATF_TC_BODY(isc_random_uniform_binarymatrixrank, tc) {
 	UNUSED(tc);
 
-	random_test(binarymatrixrank, ISC_FALSE);
+	random_test(binarymatrixrank, ISC_RANDOM_UNIFORM);
+}
+
+
+/* Tests for isc_nonce_bytes() function */
+
+ATF_TC(isc_nonce_bytes_monobit);
+ATF_TC_HEAD(isc_nonce_bytes_monobit, tc) {
+	atf_tc_set_md_var(tc, "descr", "Monobit test for the RANDOM");
+}
+
+ATF_TC_BODY(isc_nonce_bytes_monobit, tc) {
+	UNUSED(tc);
+
+	random_test(monobit, ISC_NONCE_BYTES);
+}
+
+ATF_TC(isc_nonce_bytes_runs);
+ATF_TC_HEAD(isc_nonce_bytes_runs, tc) {
+	atf_tc_set_md_var(tc, "descr", "Runs test for the RANDOM");
+}
+
+ATF_TC_BODY(isc_nonce_bytes_runs, tc) {
+	UNUSED(tc);
+
+	random_test(runs, ISC_NONCE_BYTES);
+}
+
+ATF_TC(isc_nonce_bytes_blockfrequency);
+ATF_TC_HEAD(isc_nonce_bytes_blockfrequency, tc) {
+	atf_tc_set_md_var(tc, "descr", "Block frequency test for the RANDOM");
+}
+
+ATF_TC_BODY(isc_nonce_bytes_blockfrequency, tc) {
+	UNUSED(tc);
+
+	random_test(blockfrequency, ISC_NONCE_BYTES);
+}
+
+ATF_TC(isc_nonce_bytes_binarymatrixrank);
+ATF_TC_HEAD(isc_nonce_bytes_binarymatrixrank, tc) {
+	atf_tc_set_md_var(tc, "descr", "Binary matrix rank test for the RANDOM");
+}
+
+ATF_TC_BODY(isc_nonce_bytes_binarymatrixrank, tc) {
+	UNUSED(tc);
+
+	random_test(binarymatrixrank, ISC_NONCE_BYTES);
 }
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_random_monobit_16);
-	ATF_TP_ADD_TC(tp, isc_random_runs_16);
-	ATF_TP_ADD_TC(tp, isc_random_blockfrequency_16);
-	ATF_TP_ADD_TC(tp, isc_random_binarymatrixrank_16);
-	ATF_TP_ADD_TC(tp, isc_random_monobit_bytes);
-	ATF_TP_ADD_TC(tp, isc_random_runs_bytes);
-	ATF_TP_ADD_TC(tp, isc_random_blockfrequency_bytes);
-	ATF_TP_ADD_TC(tp, isc_random_binarymatrixrank_bytes);
+	ATF_TP_ADD_TC(tp, isc_random32_monobit);
+	ATF_TP_ADD_TC(tp, isc_random32_runs);
+	ATF_TP_ADD_TC(tp, isc_random32_blockfrequency);
+	ATF_TP_ADD_TC(tp, isc_random32_binarymatrixrank);
+	ATF_TP_ADD_TC(tp, isc_random_bytes_monobit);
+	ATF_TP_ADD_TC(tp, isc_random_bytes_runs);
+	ATF_TP_ADD_TC(tp, isc_random_bytes_blockfrequency);
+	ATF_TP_ADD_TC(tp, isc_random_bytes_binarymatrixrank);
+	ATF_TP_ADD_TC(tp, isc_random_uniform_monobit);
+	ATF_TP_ADD_TC(tp, isc_random_uniform_runs);
+	ATF_TP_ADD_TC(tp, isc_random_uniform_blockfrequency);
+	ATF_TP_ADD_TC(tp, isc_random_uniform_binarymatrixrank);
+	ATF_TP_ADD_TC(tp, isc_nonce_bytes_monobit);
+	ATF_TP_ADD_TC(tp, isc_nonce_bytes_runs);
+	ATF_TP_ADD_TC(tp, isc_nonce_bytes_blockfrequency);
+	ATF_TP_ADD_TC(tp, isc_nonce_bytes_binarymatrixrank);
 
 	return (atf_no_error());
 }

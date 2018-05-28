@@ -15,6 +15,7 @@
 #include <isc/buffer.h>
 #include <isc/md5.h>
 #include <isc/mem.h>
+#include <isc/nonce.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
@@ -411,7 +412,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	if (randomdata == NULL)
 		goto failure;
 
-	isc_random_buf(randomdata, TKEY_RANDOM_AMOUNT);
+	isc_nonce_buf(randomdata, TKEY_RANDOM_AMOUNT);
 
 	r.base = randomdata;
 	r.length = TKEY_RANDOM_AMOUNT;
@@ -766,7 +767,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 			isc_buffer_t b;
 			unsigned int i, j;
 
-			isc_random_buf(randomdata, sizeof(randomdata));
+			isc_nonce_buf(randomdata, sizeof(randomdata));
 
 			for (i = 0, j = 0; i < sizeof(randomdata); i++) {
 				unsigned char val = randomdata[i];
