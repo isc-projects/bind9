@@ -32,6 +32,7 @@
 #include <isc/httpd.h>
 #include <isc/lex.h>
 #include <isc/meminfo.h>
+#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/platform.h>
 #include <isc/portset.h>
@@ -5670,7 +5671,7 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	isc_random_buf(view->secret, sizeof(view->secret));
+	isc_nonce_buf(view->secret, sizeof(view->secret));
 
 	ISC_LIST_APPEND(*viewlist, view, link);
 	dns_view_attach(view, viewp);
@@ -8845,8 +8846,8 @@ load_configuration(const char *filename, named_server_t *server,
 			}
 		}
 	} else {
-		isc_random_buf(server->sctx->secret,
-			       sizeof(server->sctx->secret));
+		isc_nonce_buf(server->sctx->secret,
+			      sizeof(server->sctx->secret));
 	}
 
 	/*

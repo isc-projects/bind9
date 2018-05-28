@@ -17,16 +17,8 @@
 #include <isc/lang.h>
 
 /*! \file isc/random.h
- * \brief Implements wrapper around system provider pseudo-random data
- * generators.
- *
- * The system providers used:
- * - On Linux - getrandom() glibc call or syscall
- * - On BSDs - arc4random()
- *
- * If neither is available, the crypto library provider is used:
- * - If OpenSSL is used - RAND_bytes()
- * - If PKCS#11 is used - pkcs_C_GenerateRandom()
+ * \brief Implements wrapper around a non-cryptographically secure
+ * pseudo-random number generator.
  *
  */
 
@@ -34,14 +26,25 @@ ISC_LANG_BEGINDECLS
 
 uint32_t
 isc_random(void);
+/*!<
+ * \brief Returns a single 32-bit random value.
+ */
 
 void
 isc_random_buf(void *buf, size_t buflen);
 /*!<
- * \brief Get random data.
+ * \brief Fills the region buf of length buflen with random data.
  */
 
 uint32_t
 isc_random_uniform(uint32_t upper_bound);
+/*!<
+ * \brief Will return a single 32-bit value, uniformly distributed but
+ *        less than upper_bound.  This is recommended over
+ *        constructions like ``isc_random() % upper_bound'' as it
+ *        avoids "modulo bias" when the upper bound is not a power of
+ *        two.  In the worst case, this function may require multiple
+ *        iterations to ensure uniformity.
+ */
 
 ISC_LANG_ENDDECLS
