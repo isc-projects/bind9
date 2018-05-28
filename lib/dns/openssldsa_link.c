@@ -33,8 +33,8 @@
 
 #include <string.h>
 
+#include <isc/entropy.h>
 #include <isc/mem.h>
-#include <isc/nonce.h>
 #include <isc/random.h>
 #include <isc/safe.h>
 #include <isc/sha1.h>
@@ -352,7 +352,7 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	UNUSED(unused);
 
-	isc_nonce_buf(rand_array, sizeof(rand_array));
+	isc_entropy_get(rand_array, sizeof(rand_array));
 
 	dsa = DSA_new();
 	if (dsa == NULL)
