@@ -22,6 +22,7 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
+#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -1917,7 +1918,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
-	isc_random_buf(cookie_secret, sizeof(cookie_secret));
+	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 
 	ISC_LIST_INIT(queries);
 	parse_args(ISC_FALSE, argc, argv);
