@@ -20,6 +20,7 @@
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/nonce.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/sockaddr.h>
@@ -295,7 +296,7 @@ main(int argc, char *argv[]) {
 	CHECK("dst_key_fromnamedfile", result);
 
 	isc_buffer_init(&nonce, noncedata, sizeof(noncedata));
-	isc_random_buf(noncedata, sizeof(noncedata));
+	isc_nonce_buf(noncedata, sizeof(noncedata));
 	isc_buffer_add(&nonce, sizeof(noncedata));
 
 	(void)isc_app_run();

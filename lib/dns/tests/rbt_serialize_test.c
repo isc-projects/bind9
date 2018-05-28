@@ -387,11 +387,11 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 		close(fd);
 
 		/* Randomly fuzz a portion of the memory */
-		p = base + (isc_random() % filesize);
+		p = base + (isc_random_uniform(filesize));
 		q = base + filesize;
-		q -= (isc_random() % (q - p));
+		q -= (isc_random_uniform(q - p));
 		while (p++ < q) {
-			*p = isc_random() & 0xff;
+			*p = isc_random_uniform(0xff);
 		}
 
 		result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
