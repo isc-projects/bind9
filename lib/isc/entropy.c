@@ -11,9 +11,8 @@
 
 #include <config.h>
 
+#include <isc/entropy.h>
 #include <isc/util.h>
-
-#include "entropy.h"
 
 #if HAVE_OPENSSL
 #include <openssl/rand.h>

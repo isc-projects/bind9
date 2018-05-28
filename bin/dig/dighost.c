@@ -57,13 +57,13 @@
 
 #include <isc/app.h>
 #include <isc/base64.h>
+#include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
-#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -1316,7 +1316,7 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 	else if (keysecret[0] != 0)
 		setup_text_key();
 
-	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
+	isc_entropy_get(cookie_secret, sizeof(cookie_secret));
 }
 
 /*%
