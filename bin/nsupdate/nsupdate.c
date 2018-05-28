@@ -29,6 +29,7 @@
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/platform.h>
@@ -2848,7 +2849,7 @@ start_gssrequest(dns_name_t *master) {
 
 	keyname = dns_fixedname_initname(&fkname);
 
-	val = isc_random();
+	isc_nonce_buf(&val, sizeof(val));
 
 	result = snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val, namestr);
 	RUNTIME_CHECK(result <= sizeof(mykeystr));

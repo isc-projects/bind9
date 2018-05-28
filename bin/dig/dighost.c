@@ -63,6 +63,7 @@
 #include <isc/log.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
+#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -1315,7 +1316,7 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 	else if (keysecret[0] != 0)
 		setup_text_key();
 
-	isc_random_buf(cookie_secret, sizeof(cookie_secret));
+	isc_nonce_buf(cookie_secret, sizeof(cookie_secret));
 }
 
 /*%
@@ -1870,8 +1871,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 		     srv != NULL;
 		     srv = ISC_LIST_HEAD(lookup->my_server_list)) {
 			INSIST(i > 0);
-			j = isc_random();
-			j %= i;
+			j = isc_random_uniform(i);
 			next = ISC_LIST_NEXT(srv, link);
 			while (j-- > 0 && next != NULL) {
 				srv = next;
@@ -2023,7 +2023,6 @@ compute_cookie(unsigned char *clientcookie, size_t len) {
 isc_boolean_t
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result;
-	isc_uint32_t id;
 	unsigned int len;
 	dig_server_t *serv;
 	dig_query_t *query;
@@ -2198,8 +2197,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	dighost_trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
-	id = isc_random();
-	lookup->sendmsg->id = (unsigned short)id & 0xFFFF;
+	lookup->sendmsg->id = (isc_int16_t)isc_random_uniform(0xffff);
 	lookup->sendmsg->opcode = lookup->opcode;
 	lookup->msgcounter = 0;
 	/*
