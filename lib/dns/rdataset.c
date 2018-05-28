@@ -410,9 +410,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			 * 'Random' order.
 			 */
 			for (i = 0; i < count; i++) {
-				isc_uint32_t val = isc_random();
+				isc_uint32_t val = isc_random32();
 
-				choice = i + (val % (count - i));
+				choice = i + val % (count - i);
 				rdata = in[i];
 				in[i] = in[choice];
 				in[choice] = rdata;
@@ -432,7 +432,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 			val = rdataset->count;
 			if (val == ISC_UINT32_MAX) {
-				val = isc_random();
+				val = isc_random32();
 			}
 			j = val % count;
 			for (i = 0; i < count; i++) {
