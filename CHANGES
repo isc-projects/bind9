@@ -1,3 +1,6 @@
+4955.	[cleanup]	Silence cppcheck warnings in lib/dns/master.c.
+			[GL #286]
+
 4954.	[func]		Messages about serving of stale answers are now
 			directed to the "serve-stale" logging category.
 			Also clarified serve-stale documentation. [GL !323]
