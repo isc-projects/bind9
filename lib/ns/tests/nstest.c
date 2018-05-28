@@ -534,7 +534,6 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	isc_buffer_t querybuf;
 	dns_compress_t cctx;
 	isc_result_t result;
-	isc_uint32_t qid;
 
 	REQUIRE(client != NULL);
 	REQUIRE(qnamestr != NULL);
@@ -550,8 +549,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Set query ID to a random value.
 	 */
-	qid = isc_random();
-	message->id = (dns_messageid_t)(qid & 0xffff);
+	message->id = (dns_messageid_t)isc_random_uniform(0xffff);
 
 	/*
 	 * Set query flags as requested by the caller.

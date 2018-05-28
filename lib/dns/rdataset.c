@@ -412,7 +412,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			for (i = 0; i < count; i++) {
 				isc_uint32_t val = isc_random();
 
-				choice = i + (val % (count - i));
+				choice = i + val % (count - i);
 				rdata = in[i];
 				in[i] = in[choice];
 				in[choice] = rdata;

@@ -3576,8 +3576,7 @@ set_resigntime(dns_zone_t *zone) {
 
 	resign = rdataset.resign - zone->sigresigninginterval;
 	dns_rdataset_disassociate(&rdataset);
-	nanosecs = isc_random();
-	nanosecs %= 1000000000;
+	nanosecs = isc_random_uniform(1000000000);
 	isc_time_set(&zone->resigntime, resign, nanosecs);
  cleanup:
 	dns_db_detach(&db);

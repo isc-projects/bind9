@@ -1834,7 +1834,7 @@ new_adbentry(dns_adb_t *adb) {
 	e->to512 = 0;
 	e->cookie = NULL;
 	e->cookielen = 0;
-	e->srtt = (isc_random() & 0x1f) + 1;
+	e->srtt = (isc_random_uniform(0x1f)) + 1;
 	e->lastage = 0;
 	e->expires = 0;
 	e->active = 0;
