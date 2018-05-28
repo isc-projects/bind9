@@ -1,3 +1,7 @@
+4954.	[func]		Messages about serving of stale answers are now
+			directed to the "serve-stale" logging category.
+			Also clarified serve-stale documentation. [GL !323]
+
 4953.	[bug]		Removed the option to build the red black tree
 			database without a hash table; the non-hashing
 			version was buggy and is not needed. [GL #184]

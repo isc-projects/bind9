@@ -5349,12 +5349,13 @@ options {
 		Specifies the TTL to be returned on stale answers.
 		The default is 1 second. The minimum allowed is
 		also 1 second; a value of 0 will be updated silently
-		to 1 second.  For stale answers to be returned,
-		they must be enabled (either in the configuration file
-		using <command>stale-answer-enable</command> or via
-		<command>rndc</command>), and
-		<option>max-stale-ttl</option> must be set to a
-		nonzero value.
+		to 1 second.
+	      </para>
+	      <para>
+		For stale answers to be returned, they must be enabled,
+		either in the configuration file using
+		<command>stale-answer-enable</command> or via
+		<command>rndc serve-stale on</command>.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -6098,18 +6099,28 @@ options {
 	      <term><command>stale-answer-enable</command></term>
 	      <listitem>
 		<para>
-		  Enable the returning of stale answers when the
-		  nameservers for the zone are not answering.  This
-		  is off by default, but can be enabled/disabled via
-		  <command>rndc serve-stale on</command> and
-		  <command>rndc serve-stale off</command>, which
-		  override the <filename>named.conf</filename>
-		  setting.  <command>rndc serve-stale reset</command>
+		  Enable the returning of "stale" cached answers when
+		  the nameservers for a zone are not answering.  The
+		  default is not to return stale answers.
+		</para>
+		<para>
+		  Stale answers can also be enabled or disabled at
+		  runtime via <command>rndc serve-stale on</command> or
+		  <command>rndc serve-stale off</command>; these
+		  override the configured setting.
+		  <command>rndc serve-stale reset</command>
 		  restores the setting to the one specified in
-		  <filename>named.conf</filename>.  Note that
-		  reloading or reconfiguring <command>named</command>
-		  will not re-enable serving of stale records if they
-		  have been disabled via <command>rndc</command>.
+		  <filename>named.conf</filename>.  Note that if
+		  stale answers have been disabled by <command>rndc</command>,
+		  then they cannot be re-enabled by reloading or
+		  reconfiguring <command>named</command>;
+		  they must be re-enabled with
+		  <command>rndc serve-stale on</command>,
+		  or the server must be restarted.
+		</para>
+		<para>
+		  Information about stale answers is logged under
+		  the <command>serve-stale</command> log category.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8901,19 +8912,21 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>max-stale-ttl</command></term>
 	      <listitem>
 		<para>
-		  Sets the maximum time for which the server will
+		  If stale answers are enabled,
+		  <command>max-stale-ttl</command>
+		  sets the maximum time for which the server will
 		  retain records past their normal expiry to
 		  return them as stale records when the servers
-		  for those records are not reachable.  The default
-		  is to not retain the record.
+		  for those records are not reachable.
+		  The default is 1 week. The minimum allowed is
+		  1 second; a value of 0 will be updated silently
+		  to 1 second.
 		</para>
 		<para>
-		  <command>rndc serve-stale</command> can be used
-		  to disable and re-enable the serving of stale
-		  records at runtime.  Reloading or reconfiguring
-		  <command>named</command> will not re-enable serving
-		  of stale records if they have been disabled via
-		  <command>rndc</command>.
+		  For stale answers to be returned, they must be enabled,
+		  either in the configuration file using
+		  <command>stale-answer-enable</command> or via
+		  <command>rndc serve-stale on</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
