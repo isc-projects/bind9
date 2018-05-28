@@ -26,10 +26,10 @@
 #include <config.h>
 
 #include <isc/buffer.h>
+#include <isc/entropy.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/md5.h>
-#include <isc/nonce.h>
 #include <isc/random.h>
 #include <isc/sha1.h>
 #include <isc/mem.h>
@@ -162,7 +162,7 @@ hmacmd5_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_MD5_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);
@@ -469,7 +469,7 @@ hmacsha1_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_SHA1_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);
@@ -759,7 +759,7 @@ hmacsha224_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_SHA224_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);
@@ -1043,7 +1043,7 @@ hmacsha256_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_SHA256_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);
@@ -1327,7 +1327,7 @@ hmacsha384_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_SHA384_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);
@@ -1611,7 +1611,7 @@ hmacsha512_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	}
 
 	memset(data, 0, ISC_SHA512_BLOCK_LENGTH);
-	isc_nonce_buf(data, bytes);
+	isc_entropy_get(data, bytes);
 
 	isc_buffer_init(&b, data, bytes);
 	isc_buffer_add(&b, bytes);

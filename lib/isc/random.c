@@ -44,14 +44,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <isc/entropy.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
 #include <isc/once.h>
-
-#include "entropy.h"
 
 static isc_once_t isc_random_once = ISC_ONCE_INIT;
 

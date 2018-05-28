@@ -15,12 +15,12 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/entropy.h>
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
-#include <isc/nonce.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>
@@ -458,7 +458,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (conn->nonce == 0) {
 		while (conn->nonce == 0) {
-			isc_nonce_buf(&conn->nonce, sizeof(conn->nonce));
+			isc_entropy_get(&conn->nonce, sizeof(conn->nonce));
 		}
 		eresult = ISC_R_SUCCESS;
 	} else
