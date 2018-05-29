@@ -35,6 +35,7 @@ AAAA a.bit.longer.ns.name.good.
 __EOF
 echo "A icky.icky.icky.ptang.zoop.boing.good." | diff ans3/query.log - > /dev/null || ret=1
 echo "A icky.icky.icky.ptang.zoop.boing.good." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -55,6 +56,7 @@ AAAA a.bit.longer.ns.name.bad.
 __EOF
 echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
 echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -76,6 +78,7 @@ AAAA a.bit.longer.ns.name.slow.
 __EOF
 echo "A icky.icky.icky.ptang.zoop.boing.slow." | diff ans3/query.log - > /dev/null || ret=1
 echo "A icky.icky.icky.ptang.zoop.boing.slow." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -115,6 +118,7 @@ cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.good.
 A icky.icky.icky.ptang.zoop.boing.good.
 __EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -126,6 +130,7 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.6 > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 echo "NS boing.bad." | diff ans2/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -149,6 +154,7 @@ AAAA a.bit.longer.ns.name.bad.
 __EOF
 echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
 echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -183,6 +189,7 @@ cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.slow.
 A icky.icky.icky.ptang.zoop.boing.slow.
 __EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -202,6 +209,7 @@ NS 0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 NS 0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 PTR 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
 __EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -254,6 +262,7 @@ cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.good.
 A more.icky.icky.icky.ptang.zoop.boing.good.
 __EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
