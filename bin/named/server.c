@@ -37,7 +37,6 @@
 #include <isc/platform.h>
 #include <isc/portset.h>
 #include <isc/print.h>
-#include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/resource.h>
 #include <isc/sha2.h>
@@ -13514,7 +13513,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	isc_random_buf(salt, saltlen);
+	isc_nonce_buf(salt, saltlen);
 
 	r.base = salt;
 	r.length = (unsigned int) saltlen;

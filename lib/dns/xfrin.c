@@ -805,7 +805,7 @@ xfrin_create(isc_mem_t *mctx,
 	dns_name_init(&xfr->name, NULL);
 	xfr->rdclass = rdclass;
 	xfr->checkid = ISC_TRUE;
-	xfr->id	= (isc_uint16_t)(isc_random_uniform(0xffff));
+	xfr->id	= (dns_messageid_t)isc_random16();
 	xfr->reqtype = reqtype;
 	xfr->dscp = dscp;
 

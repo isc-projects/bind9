@@ -3169,7 +3169,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 	if ((options & DNS_DISPATCHOPT_FIXEDID) != 0) {
 		id = *idp;
 	} else {
-		isc_random_buf(&id, sizeof(id));
+		id = (dns_messageid_t)isc_random16();
 	}
 	ok = ISC_FALSE;
 	i = 0;

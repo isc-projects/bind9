@@ -549,7 +549,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Set query ID to a random value.
 	 */
-	message->id = (dns_messageid_t)isc_random_uniform(0xffff);
+	message->id = isc_random16();
 
 	/*
 	 * Set query flags as requested by the caller.

@@ -24,8 +24,20 @@
 
 ISC_LANG_BEGINDECLS
 
+uint8_t
+isc_random8(void);
+/*!<
+ * \brief Returns a single 8-bit random value.
+ */
+
+uint16_t
+isc_random16(void);
+/*!<
+ * \brief Returns a single 16-bit random value.
+ */
+
 uint32_t
-isc_random(void);
+isc_random32(void);
 /*!<
  * \brief Returns a single 32-bit random value.
  */
