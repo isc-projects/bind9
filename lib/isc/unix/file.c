@@ -272,8 +272,7 @@ isc_file_renameunique(const char *file, char *templet) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
-		isc_uint32_t which = isc_random();
-		*cp = alphnum[which % (sizeof(alphnum) - 1)];
+		*cp = alphnum[isc_random_uniform(sizeof(alphnum) - 1)];
 		x = cp--;
 	}
 	while (link(file, templet) == -1) {
@@ -329,8 +328,7 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 
 	x = cp--;
 	while (cp >= templet && *cp == 'X') {
-		isc_uint32_t which = isc_random();
-		*cp = alphnum[which % (sizeof(alphnum) - 1)];
+		*cp = alphnum[isc_random_uniform(sizeof(alphnum) - 1)];
 		x = cp--;
 	}
 

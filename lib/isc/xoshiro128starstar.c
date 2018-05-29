@@ -8,16 +8,12 @@ See <http://creativecommons.org/publicdomain/zero/1.0/>. */
 
 #include <stdint.h>
 
-/* This is xoshiro128+ 1.0, our best and fastest 32-bit generator for 32-bit
-   floating-point numbers. We suggest to use its upper bits for
-   floating-point generation, as it is slightly faster than xoshiro128**.
-   It passes all tests we are aware of except for
-   linearity tests, as the lowest four bits have low linear complexity, so
-   if low linear complexity is not considered an issue (as it is usually
-   the case) it can be used to generate 32-bit outputs, too.
+/* This is xoshiro128** 1.0, our 32-bit all-purpose, rock-solid generator. It
+   has excellent (sub-ns) speed, a state size (128 bits) that is large
+   enough for mild parallelism, and it passes all tests we are aware of.
 
-   We suggest to use a sign test to extract a random Boolean value, and
-   right shifts to extract subsets of bits.
+   For generating just single-precision (i.e., 32-bit) floating-point
+   numbers, xoshiro128+ is even faster.
 
    The state must be seeded so that it is not everywhere zero. */
 
@@ -29,8 +25,9 @@ static inline uint32_t rotl(const uint32_t x, int k) {
 
 static uint32_t seed[4];
 
-static uint32_t next(void) {
-	const uint32_t result_plus = seed[0] + seed[3];
+static inline uint32_t
+next(void) {
+	const uint32_t result_starstar = rotl(seed[0] * 5, 7) * 9;
 
 	const uint32_t t = seed[1] << 9;
 
@@ -43,5 +40,5 @@ static uint32_t next(void) {
 
 	seed[3] = rotl(seed[3], 11);
 
-	return result_plus;
+	return result_starstar;
 }

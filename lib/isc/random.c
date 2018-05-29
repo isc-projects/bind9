@@ -44,7 +44,8 @@
 
 #include "entropy.h"
 
-#include "xoshiro128plus.c"
+#include "xoshiro128starstar.c"
+#include "pcg32.c"
 
 static isc_once_t isc_random_once = ISC_ONCE_INIT;
 
@@ -54,8 +55,24 @@ isc_random_initialize(void)
 	isc_getentropy(seed, sizeof(seed));
 }
 
+uint8_t
+isc_random8(void)
+{
+	RUNTIME_CHECK(isc_once_do(&isc_random_once,
+				  isc_random_initialize) == ISC_R_SUCCESS);
+	return (next() & 0xff);
+}
+
+uint16_t
+isc_random16(void)
+{
+	RUNTIME_CHECK(isc_once_do(&isc_random_once,
+				  isc_random_initialize) == ISC_R_SUCCESS);
+	return (next() & 0xffff);
+}
+
 uint32_t
-isc_random(void)
+isc_random32(void)
 {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);

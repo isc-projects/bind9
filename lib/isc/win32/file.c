@@ -56,8 +56,8 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 	trv++;
 	/* extra X's get set to 0's */
 	while (*--trv == 'X') {
-		isc_uint32_t which = isc_random();
-		*trv = alphnum[which % (sizeof(alphnum) - 1)];
+		isc_uint32_t which = isc_random_uniform(sizeof(alphnum) - 1);
+		*trv = alphnum[which];
 	}
 	/*
 	 * check the target directory; if you have six X's and it

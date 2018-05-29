@@ -2197,7 +2197,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	dighost_trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
-	lookup->sendmsg->id = (isc_int16_t)isc_random_uniform(0xffff);
+	lookup->sendmsg->id = (dns_messageid_t)isc_random16();
 	lookup->sendmsg->opcode = lookup->opcode;
 	lookup->msgcounter = 0;
 	/*

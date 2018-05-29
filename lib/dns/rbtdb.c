@@ -5415,7 +5415,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		isc_stdtime_get(&now);
 
 	if (isc_mem_isovermem(rbtdb->common.mctx)) {
-		isc_uint32_t val = isc_random_uniform(4);
+		isc_uint32_t val = (isc_random32() & 0x03); /* 25% probability */
 
 		/*
 		 * XXXDCL Could stand to have a better policy, like LRU.

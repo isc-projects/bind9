@@ -391,7 +391,7 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 		q = base + filesize;
 		q -= (isc_random_uniform(q - p));
 		while (p++ < q) {
-			*p = isc_random_uniform(0xff);
+			*p = isc_random8();
 		}
 
 		result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
