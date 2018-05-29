@@ -3690,7 +3690,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
-	const char * qminmode = NULL;
+	const char *qminmode = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
