@@ -33,6 +33,34 @@
  * The state must be seeded so that it is not everywhere zero.
  */
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+static volatile HANDLE _mutex = NULL;
+
+/*
+ * Initialize the mutex on the first lock attempt. On collision, each thread
+ * will attempt to allocate a mutex and compare-and-swap it into place as the
+ * global mutex. On failure to swap in the global mutex, the mutex is closed.
+ */
+#define _LOCK() { \
+	if (!_mutex) { \
+		HANDLE p = CreateMutex(NULL, FALSE, NULL); \
+		if (InterlockedCompareExchangePointer((void **)&_mutex, (void *)p, NULL)) \
+			CloseHandle(p); \
+	} \
+	WaitForSingleObject(_mutex, INFINITE); \
+}
+
+#define _UNLOCK() ReleaseMutex(_mutex)
+
+#else /* defined(_WIN32) || defined(_WIN64) */
+
+#include <pthread.h>
+static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+#define _LOCK()   pthread_mutex_lock(&_mutex)
+#define _UNLOCK() pthread_mutex_unlock(&_mutex)
+#endif /* defined(_WIN32) || defined(_WIN64) */
+
 static inline uint32_t rotl(const uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
@@ -41,6 +69,8 @@ static uint32_t seed[4];
 
 static inline uint32_t
 next(void) {
+	_LOCK();
+
 	const uint32_t result_starstar = rotl(seed[0] * 5, 7) * 9;
 
 	const uint32_t t = seed[1] << 9;
@@ -53,6 +83,8 @@ next(void) {
 	seed[2] ^= t;
 
 	seed[3] = rotl(seed[3], 11);
+
+	_UNLOCK();
 
 	return (result_starstar);
 }
