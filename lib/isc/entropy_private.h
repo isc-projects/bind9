@@ -28,7 +28,7 @@
 ISC_LANG_BEGINDECLS
 
 void
-isc_getentropy(void *buf, size_t buflen);
+isc_entropy_get(void *buf, size_t buflen);
 /*!<
  * \brief Get cryptographically-secure pseudo-random data.
  */

@@ -42,17 +42,24 @@
 
 #include <isc/once.h>
 
-#include "entropy.h"
+#include "entropy_private.h"
+
+/*
+ * The specific implementation for PRNG is included as a C file
+ * that has to provide a static variable named seed, and a function
+ * uint32_t next(void) that provides next random number.
+ *
+ * The implementation must be thread-safe.
+ */
 
 #include "xoshiro128starstar.c"
-#include "pcg32.c"
 
 static isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
 isc_random_initialize(void)
 {
-	isc_getentropy(seed, sizeof(seed));
+	isc_entropy_get(seed, sizeof(seed));
 }
 
 uint8_t
@@ -64,24 +71,21 @@ isc_random8(void)
 }
 
 uint16_t
-isc_random16(void)
-{
+isc_random16(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
 	return (next() & 0xffff);
 }
 
 uint32_t
-isc_random32(void)
-{
+isc_random32(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
 	return (next());
 }
 
 void
-isc_random_buf(void *buf, size_t buflen)
-{
+isc_random_buf(void *buf, size_t buflen) {
 	REQUIRE(buf);
 	REQUIRE(buflen > 0);
 
@@ -93,20 +97,19 @@ isc_random_buf(void *buf, size_t buflen)
 
 	for (i = 0; i + sizeof(r) <= buflen; i += sizeof(r)) {
 		r = next();
-		memcpy((uint8_t *)buf + i, &r, sizeof(r)); /* Buffers cannot
+		memmove((uint8_t *)buf + i, &r, sizeof(r)); /* Buffers cannot
 		                                            * really overlap
 		                                            * here */
 	}
 	r = next();
-	memcpy((uint8_t *)buf + i, &r, buflen % sizeof(r)); /* Buffer cannot
+	memmove((uint8_t *)buf + i, &r, buflen % sizeof(r)); /* Buffer cannot
 	                                                     * really overlap
 	                                                     * here */
 	return;
 }
 
 uint32_t
-isc_random_uniform(uint32_t upper_bound)
-{
+isc_random_uniform(uint32_t upper_bound) {
 	/* Copy of arc4random_uniform from OpenBSD */
 	uint32_t r, min;
 
