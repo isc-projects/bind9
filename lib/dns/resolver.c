@@ -9405,7 +9405,7 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 			      "disabling qname minimization for '%s'"
 			      " due to bad server", fctx->info);
-	        fctx->qmin_labels = DNS_MAX_LABELS + 1;
+		fctx->qmin_labels = DNS_MAX_LABELS + 1;
 		result = rctx_answer_minimized(rctx);
 	} else if (!NOCOOKIE(query->addrinfo) &&
 	    (fctx->rmessage->rcode == dns_rcode_formerr ||
