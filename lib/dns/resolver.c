@@ -3121,7 +3121,7 @@ mark_bad(fetchctx_t *fctx) {
 
 #ifdef ENABLE_AFL
 	if (fuzzing_resolver)
-		return ISC_FALSE;
+		return (ISC_FALSE);
 #endif
 
 	/*
@@ -8544,7 +8544,7 @@ rctx_answer_none(respctx_t *rctx) {
 	 * the next label to query and restart it.
 	 */
 	if (fctx->minimized && fctx->rmessage->rcode == dns_rcode_noerror) {
-		return rctx_answer_minimized(rctx);
+		return (rctx_answer_minimized(rctx));
 	}
 	/*
 	 * Workaround for broken servers in relaxed mode - if we hit an
@@ -8552,7 +8552,7 @@ rctx_answer_none(respctx_t *rctx) {
 	 */
 	if (fctx->minimized && !(fctx->options & DNS_FETCHOPT_QMIN_STRICT)) {
 		fctx->qmin_labels = DNS_MAX_LABELS + 1;
-		return rctx_answer_minimized(rctx);
+		return (rctx_answer_minimized(rctx));
 	}
 	/*
 	 * Since we're not doing a referral, we don't want to cache any
