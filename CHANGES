@@ -1,3 +1,6 @@
+4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
+			and add isc_nonce_buf() that uses CSPRNG. [GL #289]
+
 4955.	[cleanup]	Silence cppcheck warnings in lib/dns/master.c.
 			[GL #286]
 
