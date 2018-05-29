@@ -13,14 +13,14 @@
 
 #include <isc/util.h>
 
-#include "entropy.h"
+#include "entropy_private.h"
 
 #if HAVE_OPENSSL
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
 void
-isc_getentropy(void *buf, size_t buflen)
+isc_entropy_get(void *buf, size_t buflen)
 {
 	if (RAND_bytes(buf, buflen) < 1) {
 		FATAL_ERROR(__FILE__,
@@ -34,7 +34,7 @@ isc_getentropy(void *buf, size_t buflen)
 #include <pk11/pk11.h>
 
 void
-isc_getentropy(void *buf, size_t buflen)
+isc_entropy_get(void *buf, size_t buflen)
 {
 	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
 }
