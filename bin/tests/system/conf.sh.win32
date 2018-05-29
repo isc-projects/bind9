@@ -91,8 +91,8 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 fetchlimit filter-aaaa formerr forward geoip glue idna inline ixfr \
 	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile \
 	 masterformat metadata mkeys names notify nslookup nsupdate \
-	 nzd2nzf padding pending pipelined @PKCS11_TEST@ qmin
-         reclimit redirect resolver rndc rpz rrchecker rrl \
+	 nzd2nzf padding pending pipelined @PKCS11_TEST@ qmin \
+	 reclimit redirect resolver rndc rpz rrchecker rrl \
 	 rrsetorder rsabigexponent runtime sfcache smartsign sortlist \
 	 spf staticstub statistics statschannel stub tcp tkey tsig \
 	 tsiggss unknown upforwd verify views wildcard xfer xferquota \
