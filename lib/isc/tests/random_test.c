@@ -290,17 +290,20 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 
 		switch (test_func) {
 		case ISC_RANDOM8:
-			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++)
+			{
 				values[i] = isc_random8();
 			}
 			break;
 		case ISC_RANDOM16:
-			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++)
+			{
 				values[i] = isc_random16();
 			}
 			break;
 		case ISC_RANDOM32:
-			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++) {
+			for (i = 0; i < (sizeof(values) / sizeof(*values)); i++)
+			{
 				values[i] = isc_random32();
 			}
 			break;
@@ -309,8 +312,12 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 			break;
 		case ISC_RANDOM_UNIFORM:
 			uniform_values = (isc_uint16_t *)values;
-			for (i = 0; i < (sizeof(values) / sizeof(*uniform_values)); i++) {
-				uniform_values[i] = isc_random_uniform(ISC_UINT16_MAX);
+			for (i = 0;
+			     i < (sizeof(values) / sizeof(*uniform_values));
+			     i++)
+			{
+				uniform_values[i] =
+					isc_random_uniform(ISC_UINT16_MAX);
 			}
 			break;
 		case ISC_NONCE_BYTES:

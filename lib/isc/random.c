@@ -54,10 +54,10 @@
  */
 
 /*
- * Two contestants have been considered xoroshiro family of the
- * functions by Villa&Blackman and PCG by O'Neill.  After a
- * consideration the xoshiro128starstar function has been used as
- * uint32_t random number provider because it is very fast and has
+ * Two contestants have been considered: the xoroshiro family of the
+ * functions by Villa&Blackman, and PCG by O'Neill.  After
+ * consideration, the xoshiro128starstar function has been chosen as
+ * the uint32_t random number provider because it is very fast and has
  * good enough properties for our usage pattern.
  */
 #include "xoshiro128starstar.c"
@@ -65,14 +65,12 @@
 static isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
-isc_random_initialize(void)
-{
+isc_random_initialize(void) {
 	isc_entropy_get(seed, sizeof(seed));
 }
 
 uint8_t
-isc_random8(void)
-{
+isc_random8(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
 	return (next() & 0xff);
