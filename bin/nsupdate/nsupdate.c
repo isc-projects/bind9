@@ -29,6 +29,7 @@
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/platform.h>
@@ -2829,14 +2830,16 @@ start_gssrequest(dns_name_t *master) {
 			fatal("out of memory");
 	}
 
-	memmove(kserver, &master_servers[master_inuse], sizeof(isc_sockaddr_t));
+	memmove(kserver, &master_servers[master_inuse],
+		sizeof(isc_sockaddr_t));
 
 	servname = dns_fixedname_initname(&fname);
 
 	if (realm == NULL)
 		get_ticket_realm(gmctx);
 
-	result = snprintf(servicename, sizeof(servicename), "DNS/%s%s", namestr, realm ? realm : "");
+	result = snprintf(servicename, sizeof(servicename), "DNS/%s%s",
+			  namestr, realm ? realm : "");
 	RUNTIME_CHECK(result < sizeof(servicename));
 	isc_buffer_init(&buf, servicename, strlen(servicename));
 	isc_buffer_add(&buf, strlen(servicename));
@@ -2848,9 +2851,10 @@ start_gssrequest(dns_name_t *master) {
 
 	keyname = dns_fixedname_initname(&fkname);
 
-	val = isc_random();
+	isc_nonce_buf(&val, sizeof(val));
 
-	result = snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val, namestr);
+	result = snprintf(mykeystr, sizeof(mykeystr), "%u.sig-%s", val,
+			  namestr);
 	RUNTIME_CHECK(result <= sizeof(mykeystr));
 
 	isc_buffer_init(&buf, mykeystr, strlen(mykeystr));
