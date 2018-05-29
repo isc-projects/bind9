@@ -33,8 +33,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_THREADS_H
+#include <threads.h>
+#endif
 #include <unistd.h>
 
+#include <isc/platform.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -54,7 +58,7 @@
 
 #include "xoshiro128starstar.c"
 
-static isc_once_t isc_random_once = ISC_ONCE_INIT;
+static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
 isc_random_initialize(void)
