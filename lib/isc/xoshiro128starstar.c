@@ -35,7 +35,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-static volatile HANDLE _mtx = NULL;
+static volatile HANDLE _mutex = NULL;
 
 /*
  * Initialize the mutex on the first lock attempt. On collision, each thread
@@ -43,22 +43,22 @@ static volatile HANDLE _mtx = NULL;
  * global mutex. On failure to swap in the global mutex, the mutex is closed.
  */
 #define _LOCK() { \
-	if (!_mtx) { \
+	if (!_mutex) { \
 		HANDLE p = CreateMutex(NULL, FALSE, NULL); \
-		if (InterlockedCompareExchangePointer((void **)&_mtx, (void *)p, NULL)) \
+		if (InterlockedCompareExchangePointer((void **)&_mutex, (void *)p, NULL)) \
 			CloseHandle(p); \
 	} \
-	WaitForSingleObject(_mtx, INFINITE); \
+	WaitForSingleObject(_mutex, INFINITE); \
 }
 
-#define _ARC4_UNLOCK() ReleaseMutex(arc4random_mtx)
+#define _UNLOCK() ReleaseMutex(_mutex)
 
 #else /* defined(_WIN32) || defined(_WIN64) */
 
 #include <pthread.h>
-static pthread_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
-#define _LOCK()   pthread_mutex_lock(&_mtx)
-#define _UNLOCK() pthread_mutex_unlock(&_mtx)
+static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+#define _LOCK()   pthread_mutex_lock(&_mutex)
+#define _UNLOCK() pthread_mutex_unlock(&_mutex)
 #endif /* defined(_WIN32) || defined(_WIN64) */
 
 static inline uint32_t rotl(const uint32_t x, int k) {
