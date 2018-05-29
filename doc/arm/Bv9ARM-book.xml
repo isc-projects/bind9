@@ -4658,6 +4658,26 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  </varlistentry>
 
 	  <varlistentry>
+	    <term><command>qname-minimization</command></term>
+	    <listitem>
+	      <para>
+		This option controls QNAME minimization behaviour
+		in the BIND resolver. When set to <command>strict</command>,
+		BIND will follow the QNAME minimization algorithm to
+		the letter, as specified in RFC 7816. Setting this
+		option to <command>relaxed</command> will cause BIND
+		to fall back to normal (non-minimized) query mode
+		when it receives either NXDOMAIN or other unexpected
+		responses (e.g. SERVFAIL, improper zone cut, REFUSED)
+		to a minimized query. <command>disabled</command> disables
+		QNAME minimization completely. The current default is
+		<command>relaxed</command>, but it might be changed to
+		<command>strict</command> in a future release.
+	      </para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
 	    <term><command>tkey-gssapi-keytab</command></term>
 	    <listitem>
 	      <para>
