@@ -1032,6 +1032,7 @@ find_free_name(dns_incctx_t *incctx) {
 	return (i);
 }
 
+static isc_result_t
 load_text(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t type, covers;
