@@ -521,6 +521,15 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
 
+/* Define to 1 if you have the <threads.h> header file. */
+#undef HAVE_THREADS_H
+
+/* Define if thread_local keyword is available */
+#undef HAVE_THREAD_LOCAL
+
+/* Define if Thread-Local Storage is available */
+#undef HAVE_TLS
+
 /* Define if running under Compaq TruCluster */
 #undef HAVE_TRUCLUSTER
 
@@ -532,6 +541,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if zlib was found */
 #undef HAVE_ZLIB
+
+/* Define if __thread keyword is available */
+#undef HAVE___THREAD
 
 /* Use HMAC-SHA1 for Client Cookie generation */
 #undef HMAC_SHA1_CC
