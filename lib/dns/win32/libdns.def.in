@@ -1307,6 +1307,7 @@ dns_zone_setzeronosoattl
 dns_zone_signwithkey
 dns_zone_synckeyzone
 dns_zone_unload
+dns_zone_verifydb
 dns_zonekey_iszonekey
 dns_zonemgr_attach
 dns_zonemgr_create
