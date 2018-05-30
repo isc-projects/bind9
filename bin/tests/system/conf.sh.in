@@ -289,13 +289,33 @@ keyfile_to_managed_keys() {
     keyfile_to_keys_section "managed-keys" "initial-key " $*
 }
 
-# nextpart: read everything that's been appended to a file since the
-# last time 'nextpart' was called.
-nextpart () {
-    [ -f $1.prev ] || echo "0" > $1.prev
+# nextpartreset: reset the marker used by nextpart() and nextpartpeek()
+# so that it points to the start of the given file
+nextpartreset() {
+    echo "0" > $1.prev
+}
+
+# nextpartread: read everything that's been appended to a file since the
+# last time 'nextpart' was called and print it to stdout, print the
+# total number of lines read from that file so far to stderr
+nextpartread() {
+    [ -f $1.prev ] || nextpartreset $1
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+         END          { print NR > "/dev/stderr" }' $1
+}
+
+# nextpart: read everything that's been appended to a file since the
+# last time 'nextpart' was called
+nextpart() {
+	nextpartread $1 2> $1.prev.tmp
+	mv $1.prev.tmp $1.prev
+}
+
+# nextpartpeek: read everything that's been appended to a file since the
+# last time 'nextpart' was called
+nextpartpeek() {
+	nextpartread $1 2> /dev/null
 }
 
 # copy_setports - Copy Configuration File and Replace Ports
