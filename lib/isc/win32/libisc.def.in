@@ -471,6 +471,7 @@ isc_netaddr_setzone
 isc_netaddr_totext
 isc_netaddr_unspec
 isc_netscope_pton
+isc_nonce_buf
 isc_ntpaths_get
 isc_ntpaths_init
 isc_once_do
@@ -505,7 +506,9 @@ isc_radix_insert
 isc_radix_process
 isc_radix_remove
 isc_radix_search
-isc_random
+isc_random8
+isc_random16
+isc_random32
 isc_random_buf
 isc_random_uniform
 isc_ratelimiter_attach
