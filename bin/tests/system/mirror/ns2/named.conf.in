@@ -34,6 +34,12 @@ zone "verify-axfr" {
 	file "verify-axfr.db.signed";
 };
 
+zone "verify-ixfr" {
+	type master;
+	file "verify-ixfr.db.signed";
+	ixfr-from-differences yes;
+};
+
 zone "verify-unsigned" {
 	type master;
 	file "verify.db.in";

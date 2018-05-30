@@ -21,4 +21,5 @@ copy_setports ns3/named.conf.in ns3/named.conf
 ( cd ns2 && $SHELL -e sign.sh )
 
 cat ns2/verify-axfr.db.bad.signed > ns2/verify-axfr.db.signed
+cat ns2/verify-ixfr.db.original.signed > ns2/verify-ixfr.db.signed
 cat ns2/verify-untrusted.db.original.signed > ns2/verify-untrusted.db.signed

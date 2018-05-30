@@ -97,5 +97,49 @@ grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that an IXFR of an incorrectly signed mirror zone is rejected ($n)"
+nextpartreset ns3/named.run
+ret=0
+wait_for_transfer verify-ixfr
+nextpart ns3/named.run > /dev/null
+# Wait 1 second so that zone file timestamp changes and the subsequent
+# invocation of "rndc reload" triggers zone reload.
+sleep 1
+cat ns2/verify-ixfr.db.bad.signed > ns2/verify-ixfr.db.signed
+reload_zone verify-ixfr ${UPDATED_SERIAL_BAD}
+# Trigger IXFR.
+$RNDCCMD 10.53.0.3 refresh verify-ixfr > /dev/null 2>&1
+wait_for_transfer verify-ixfr
+# Ensure the transfer was incremental as expected.
+if [ `nextpart ns3/named.run | grep "verify-ixfr.*got incremental response" | wc -l` -eq 0 ]; then
+	echo_i "failed: did not get an incremental response"
+	ret=1
+fi
+# Ensure the new, bad version of the zone was not accepted.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+grep "No correct RSASHA256 signature for verify-ixfr SOA" ns3/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that an IXFR of an updated, correctly signed mirror zone is accepted after AXFR failover ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+# Wait 1 second so that zone file timestamp changes and the subsequent
+# invocation of "rndc reload" triggers zone reload.
+sleep 1
+cat ns2/verify-ixfr.db.good.signed > ns2/verify-ixfr.db.signed
+reload_zone verify-ixfr ${UPDATED_SERIAL_GOOD}
+# Trigger IXFR.
+$RNDCCMD 10.53.0.3 refresh verify-ixfr > /dev/null 2>&1
+wait_for_transfer verify-ixfr
+# Ensure the new, good version of the zone was accepted.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

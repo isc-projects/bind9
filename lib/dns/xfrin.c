@@ -443,6 +443,7 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 
 	CHECK(ixfr_apply(xfr));
 	if (xfr->ver != NULL) {
+		CHECK(dns_zone_verifydb(xfr->zone, xfr->db, xfr->ver));
 		/* XXX enter ready-to-commit state here */
 		if (xfr->ixfr.journal != NULL)
 			CHECK(dns_journal_commit(xfr->ixfr.journal));
