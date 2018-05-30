@@ -44,14 +44,17 @@ static volatile HANDLE _mutex = NULL;
  * will attempt to allocate a mutex and compare-and-swap it into place as the
  * global mutex. On failure to swap in the global mutex, the mutex is closed.
  */
-#define _LOCK() { \
-	if (!_mutex) { \
-		HANDLE p = CreateMutex(NULL, FALSE, NULL); \
-		if (InterlockedCompareExchangePointer((void **)&_mutex, (void *)p, NULL)) \
-			CloseHandle(p); \
-	} \
-	WaitForSingleObject(_mutex, INFINITE); \
-}
+#define _LOCK() \
+	do {								\
+		if (!_mutex) {						\
+			HANDLE p = CreateMutex(NULL, FALSE, NULL);	\
+			if (InterlockedCompareExchangePointer		\
+			    ((void **)&_mutex, (void *)p, NULL)) {	\
+				CloseHandle(p);				\
+			}						\
+		}							\
+		WaitForSingleObject(_mutex, INFINITE);			\
+	} while (0)
 
 #define _UNLOCK() ReleaseMutex(_mutex)
 
