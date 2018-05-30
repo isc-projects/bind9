@@ -15189,6 +15189,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		goto same_master;
 
 	case DNS_R_TOOMANYRECORDS:
+	case DNS_R_VERIFYFAILURE:
 		DNS_ZONE_JITTER_ADD(&now, zone->refresh, &zone->refreshtime);
 		inc_stats(zone, dns_zonestatscounter_xfrfail);
 		break;

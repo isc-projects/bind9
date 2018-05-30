@@ -9,6 +9,15 @@
  * information regarding copyright ownership.
  */
 
+key rndc_key {
+	secret "1234abcd8765";
+	algorithm hmac-sha256;
+};
+
+controls {
+	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
 options {
 	query-source address 10.53.0.2;
 	notify-source 10.53.0.2;
@@ -18,4 +27,19 @@ options {
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
 	recursion no;
+};
+
+zone "verify-axfr" {
+	type master;
+	file "verify-axfr.db.signed";
+};
+
+zone "verify-unsigned" {
+	type master;
+	file "verify.db.in";
+};
+
+zone "verify-untrusted" {
+	type master;
+	file "verify-untrusted.db.signed";
 };
