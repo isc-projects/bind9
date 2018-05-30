@@ -199,11 +199,17 @@ echoend () {
         printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 }
 
-TESTNAME="`basename $PWD`"
+SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
     echo "$@" | while read LINE ; do
-       echoinfo "I:$TESTNAME:$LINE"
+       echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+echo_ic() {
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:  $LINE"
     done
 }
 
