@@ -4604,6 +4604,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			goto cleanup;
 		}
 
+		result = dns_zone_verifydb(zone, db, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+
 		if (zone->db != NULL) {
 			unsigned int oldsoacount;
 
