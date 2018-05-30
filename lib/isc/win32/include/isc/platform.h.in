@@ -19,13 +19,6 @@
 #define ISC_PLATFORM_USETHREADS 1
 
 /*
- * Thread-Local Storage
- */
-#ifndef thread_local
-#define thread_local
-#endif
-
-/*
  * Some compatibility cludges
  */
 
