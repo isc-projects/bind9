@@ -89,7 +89,7 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 ednscompliance emptyzones \
 	 fetchlimit filter-aaaa formerr forward geoip glue gost idna inline ixfr \
 	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile \
-	 masterformat metadata mkeys names notify nslookup nsupdate \
+	 masterformat metadata mirror mkeys names notify nslookup nsupdate \
 	 nzd2nzf padding pending pipelined @PKCS11_TEST@ reclimit \
 	 redirect resolver rndc rpz rrchecker rrl \
 	 rrsetorder rsabigexponent runtime sfcache smartsign sortlist \
