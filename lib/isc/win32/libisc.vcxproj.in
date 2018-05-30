@@ -341,6 +341,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\mutexblock.h" />
     <ClInclude Include="..\include\isc\netaddr.h" />
     <ClInclude Include="..\include\isc\netscope.h" />
+    <ClInclude Include="..\include\isc\nonce.h" />
     <ClInclude Include="..\include\isc\os.h" />
     <ClInclude Include="..\include\isc\parseint.h" />
     <ClInclude Include="..\include\isc\pool.h" />
@@ -414,6 +415,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="include\isc\thread.h" />
     <ClInclude Include="include\isc\time.h" />
     <ClInclude Include="include\isc\win32os.h" />
+    <ClInclude Include="../entropy_private.h" />    
     <ClInclude Include="syslog.h" />
     <ClInclude Include="unistd.h" />
 @IF PKCS11
@@ -436,6 +438,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\commandline.c" />
     <ClCompile Include="..\counter.c" />
     <ClCompile Include="..\crc64.c" />
+    <ClCompile Include="..\entropy.c" />
     <ClCompile Include="..\error.c" />
     <ClCompile Include="..\event.c" />
     <ClCompile Include="..\hash.c" />
@@ -457,6 +460,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\mutexblock.c" />
     <ClCompile Include="..\netaddr.c" />
     <ClCompile Include="..\netscope.c" />
+    <ClCompile Include="..\nonce.c" />
     <ClCompile Include="..\nls\msgcat.c" />
     <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\pool.c" />
