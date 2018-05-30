@@ -1077,6 +1077,13 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	REQUIRE(db != NULL);
 
 	/*
+	 * Mirror zone data is treated as cache data.
+	 */
+	if (dns_zone_ismirror(zone)) {
+		return (query_checkcacheaccess(client, name, qtype, options));
+	}
+
+	/*
 	 * This limits our searching to the zone where the first name
 	 * (the query target) was looked for.  This prevents following
 	 * CNAMES or DNAMES into other zones and prevents returning
