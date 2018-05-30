@@ -1720,6 +1720,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_MULTIMASTER, multi);
 
 		obj = NULL;
+		(void)cfg_map_get(zoptions, "mirror", &obj);
+		if (obj != NULL) {
+			dns_zone_setoption(mayberaw, DNS_ZONEOPT_MIRROR,
+					   cfg_obj_asboolean(obj));
+		}
+
+		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setmaxxfrin(mayberaw, cfg_obj_asuint32(obj) * 60);

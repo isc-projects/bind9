@@ -79,8 +79,10 @@ typedef enum {
 	DNS_ZONEOPT_CHECKDUPRRFAIL   = 1<<26, /*%< fatal check-dup-records failures */
 	DNS_ZONEOPT_CHECKSPF         = 1<<27, /*%< check SPF records */
 	DNS_ZONEOPT_CHECKTTL         = 1<<28, /*%< check max-zone-ttl */
-	DNS_ZONEOPT_AUTOEMPTY        = 1<<29  /*%< automatic empty zone */
+	DNS_ZONEOPT_AUTOEMPTY        = 1<<29, /*%< automatic empty zone */
+	DNS_ZONEOPT_MIRROR           = 1<<30, /*%< mirror zone */
 } dns_zoneopt_t;
+
 /*
  * Zone key maintenance options
  */
@@ -2476,6 +2478,12 @@ dns_zone_getgluecachestats(dns_zone_t *zone);
  * Returns:
  * \li	if present, a pointer to the statistics set installed in zone;
  *	otherwise NULL.
+ */
+
+isc_boolean_t
+dns_zone_ismirror(const dns_zone_t *zone);
+/*%<
+ * Return ISC_TRUE if 'zone' is a mirror zone, return ISC_FALSE otherwise.
  */
 
 #endif /* DNS_ZONE_H */
