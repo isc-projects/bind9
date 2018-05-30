@@ -39,6 +39,12 @@ zone "sub.example" {
 	file "sub.example.db.in";
 };
 
+zone "initially-unavailable" {
+	type master;
+	file "initially-unavailable.db.signed";
+	allow-transfer { 10.53.0.254; };
+};
+
 zone "verify-axfr" {
 	type master;
 	file "verify-axfr.db.signed";

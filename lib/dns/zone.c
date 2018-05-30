@@ -19216,6 +19216,13 @@ dns_zone_getgluecachestats(dns_zone_t *zone) {
 }
 
 isc_boolean_t
+dns_zone_isloaded(const dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED));
+}
+
+isc_boolean_t
 dns_zone_ismirror(const dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 

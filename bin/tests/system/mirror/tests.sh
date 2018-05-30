@@ -16,11 +16,11 @@ DIGOPTS="-p ${PORT} +dnssec +time=1 +tries=1 +multi"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Wait until the transfer of the given zone to ns3 either completes successfully
-# or is aborted by a verification failure.
+# or is aborted by a verification failure or a REFUSED response from the master.
 wait_for_transfer() {
 	zone=`echo $1 | sed "s/\./\./g;"`
 	for i in 1 2 3 4 5 6 7 8 9 10; do
-		nextpartpeek ns3/named.run | egrep "'$zone/IN'.*Transfer status: (success|verify failure)" > /dev/null && break
+		nextpartpeek ns3/named.run | egrep "'$zone/IN'.*Transfer status: (success|verify failure|REFUSED)" > /dev/null && break
 		sleep 1
 	done
 }
@@ -264,6 +264,64 @@ $DIG $DIGOPTS @10.53.0.3 . SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 grep "flags:.* aa" dig.out.ns3.test$n > /dev/null && ret=1
 grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that resolution succeeds with unavailable mirror zone data ($n)"
+ret=0
+wait_for_transfer initially-unavailable
+# Query for a record in a zone that is set up to be mirrored, but
+# untransferrable from the configured master.  Resolution should still succeed.
+$DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A > dig.out.ns3.test$n.1 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
+# Sanity check: the authoritative server should have been queried.
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" > /dev/null || ret=1
+# Reconfigure ns2 so that the zone can be mirrored on ns3.
+sed "s/10.53.0.254/10.53.0.3/;" ns2/named.conf > ns2/named.conf.modified
+mv ns2/named.conf.modified ns2/named.conf
+$RNDCCMD 10.53.0.2 reconfig > /dev/null 2>&1
+# Flush the cache on ns3 and retransfer the mirror zone.
+$RNDCCMD 10.53.0.3 flush > /dev/null 2>&1
+nextpart ns3/named.run > /dev/null
+$RNDCCMD 10.53.0.3 retransfer initially-unavailable > /dev/null 2>&1
+wait_for_transfer initially-unavailable
+# Query for the same record again.  Resolution should still succeed.
+$DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A > dig.out.ns3.test$n.2 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.2 > /dev/null || ret=1
+# Ensure the authoritative server was not queried.
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that resolution succeeds with expired mirror zone data ($n)"
+ret=0
+# Reconfigure ns2 so that the zone from the previous test can no longer be
+# mirrored on ns3.
+sed "s/10.53.0.3/10.53.0.254/;" ns2/named.conf > ns2/named.conf.modified
+mv ns2/named.conf.modified ns2/named.conf
+$RNDCCMD 10.53.0.2 reconfig > /dev/null 2>&1
+# Stop ns3, update the timestamp of the zone file to one far in the past, then
+# restart ns3.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
+touch -t 201001010000 ns3/initially-unavailable.db.mirror
+nextpart ns3/named.run > /dev/null
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+# Ensure named treats the zone as expired and attempts to retransfer it.
+wait_for_transfer initially-unavailable
+nextpart ns3/named.run | grep "initially-unavailable.*expired" > /dev/null || ret=1
+# Query for a record in the expired zone.  Resolution should still succeed.
+$DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+# Sanity check: the authoritative server should have been queried.
+nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

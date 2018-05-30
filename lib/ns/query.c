@@ -1176,8 +1176,10 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 	/*%
 	 * Find a zone database to answer the query.
 	 */
-	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?
-		DNS_ZTFIND_NOEXACT : 0;
+	ztoptions = DNS_ZTFIND_MIRROR;
+	if ((options & DNS_GETDB_NOEXACT) != 0) {
+		ztoptions |= DNS_ZTFIND_NOEXACT;
+	}
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     &zone);
