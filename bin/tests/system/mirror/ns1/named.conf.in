@@ -20,3 +20,8 @@ options {
 	recursion no;
 	notify no;
 };
+
+zone "." {
+	type master;
+	file "root.db.signed";
+};
