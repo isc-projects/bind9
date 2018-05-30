@@ -1283,6 +1283,11 @@ if ($vcredist_path eq " --infer-- ") {
                                            "redist", "1033"));
     }
 
+    # 'VCToolsRedistDir' is available since Visual Studio 2017.
+    if ($ENV{"VCToolsRedistDir"}) {
+        push(@vcpaths, $ENV{"VCToolsRedistDir"});
+    }
+
     my $rfile;
     if ($want_win32 eq "yes") {
         $rfile = "vcredist_x86.exe";
