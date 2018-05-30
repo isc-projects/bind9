@@ -892,6 +892,8 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 			goto done;
 		}
 		if (good) {
+			dns_rdataset_settrust(rdataset, dns_trust_secure);
+			dns_rdataset_settrust(&sigrdataset, dns_trust_secure);
 			set_algorithms[sig.algorithm] = 1;
 		}
 	}
@@ -1512,6 +1514,8 @@ check_dnskey_sigs(vctx_t *vctx, dns_rdata_dnskey_t *dnskey, dns_rdata_t *rdata,
 		 * The DNSKEY RRset is signed using a trusted key.
 		 */
 		dns_keytable_detachkeynode(vctx->secroots, &keynode);
+		dns_rdataset_settrust(&vctx->keyset, dns_trust_secure);
+		dns_rdataset_settrust(&vctx->keysigs, dns_trust_secure);
 		*goodkey = ISC_TRUE;
 		break;
 	case DNS_R_PARTIALMATCH:

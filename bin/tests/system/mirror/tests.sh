@@ -246,12 +246,24 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking flags set in a response sourced from a mirror zone ($n)"
+echo_i "checking flags set in a DNSKEY response sourced from a mirror zone ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 . DNSKEY > dig.out.ns3.test$n 2>&1 || ret=1
 # Check response code and flags in the answer.
 grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 grep "flags:.* aa" dig.out.ns3.test$n > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking flags set in a SOA response sourced from a mirror zone ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 . SOA > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
