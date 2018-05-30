@@ -3880,7 +3880,7 @@ main(int argc, char *argv[]) {
 
 	if (!disable_zone_check) {
 		result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
-					       mctx, ignore_kskflag,
+					       NULL, mctx, ignore_kskflag,
 					       keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			exit(1);
