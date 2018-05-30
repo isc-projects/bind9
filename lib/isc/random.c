@@ -69,21 +69,21 @@ isc_random_initialize(void) {
 	isc_entropy_get(seed, sizeof(seed));
 }
 
-uint8_t
+isc_uint8_t
 isc_random8(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
 	return (next() & 0xff);
 }
 
-uint16_t
+isc_uint16_t
 isc_random16(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
 	return (next() & 0xffff);
 }
 
-uint32_t
+isc_uint32_t
 isc_random32(void) {
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);
@@ -99,7 +99,7 @@ isc_random_buf(void *buf, size_t buflen) {
 				  isc_random_initialize) == ISC_R_SUCCESS);
 
 	int i;
-	uint32_t r;
+	isc_uint32_t r;
 
 	for (i = 0; i + sizeof(r) <= buflen; i += sizeof(r)) {
 		r = next();
@@ -114,10 +114,10 @@ isc_random_buf(void *buf, size_t buflen) {
 	return;
 }
 
-uint32_t
+isc_uint32_t
 isc_random_uniform(uint32_t upper_bound) {
 	/* Copy of arc4random_uniform from OpenBSD */
-	uint32_t r, min;
+	isc_uint32_t r, min;
 
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
 				  isc_random_initialize) == ISC_R_SUCCESS);

@@ -63,19 +63,19 @@ static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 #define _UNLOCK() pthread_mutex_unlock(&_mutex)
 #endif /* defined(_WIN32) || defined(_WIN64) */
 
-static inline uint32_t rotl(const uint32_t x, int k) {
+static inline isc_uint32_t rotl(const isc_uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
 
-static uint32_t seed[4];
+static isc_uint32_t seed[4];
 
-static inline uint32_t
+static inline isc_uint32_t
 next(void) {
 	_LOCK();
 
-	const uint32_t result_starstar = rotl(seed[0] * 5, 7) * 9;
+	const isc_uint32_t result_starstar = rotl(seed[0] * 5, 7) * 9;
 
-	const uint32_t t = seed[1] << 9;
+	const isc_uint32_t t = seed[1] << 9;
 
 	seed[2] ^= seed[0];
 	seed[3] ^= seed[1];
