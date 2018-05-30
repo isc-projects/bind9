@@ -436,6 +436,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\commandline.c" />
     <ClCompile Include="..\counter.c" />
     <ClCompile Include="..\crc64.c" />
+    <ClCompile Include="..\entropy.c" />
     <ClCompile Include="..\error.c" />
     <ClCompile Include="..\event.c" />
     <ClCompile Include="..\hash.c" />
@@ -457,6 +458,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\mutexblock.c" />
     <ClCompile Include="..\netaddr.c" />
     <ClCompile Include="..\netscope.c" />
+    <ClCompile Include="..\nonce.c" />
     <ClCompile Include="..\nls\msgcat.c" />
     <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\pool.c" />

@@ -163,6 +163,9 @@
     <ClInclude Include="..\include\isc\netscope.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\nonce.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\os.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -516,6 +519,9 @@
     <ClCompile Include="..\event.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\entropy.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\hash.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -574,6 +580,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\netscope.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\nonce.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\parseint.c">
