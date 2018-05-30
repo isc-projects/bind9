@@ -1,3 +1,10 @@
+4958.	[func]		Add a new slave zone option, "mirror", to enable
+			serving a non-authoritative copy of a zone that
+			is subject to DNSSEC validation before being
+			used.  For now, this option is only meant to
+			facilitate deployment of an RFC 7706-style local
+			copy of the root zone. [GL #33]
+
 4957.	[cleanup]	Refactor zone logging functions. [GL #269]
 
 4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
