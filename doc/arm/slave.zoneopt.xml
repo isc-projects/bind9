@@ -49,6 +49,7 @@
 	<command>max-transfer-time-out</command> <replaceable>integer</replaceable>;
 	<command>min-refresh-time</command> <replaceable>integer</replaceable>;
 	<command>min-retry-time</command> <replaceable>integer</replaceable>;
+	<command>mirror</command> <replaceable>boolean</replaceable>;
 	<command>multi-master</command> <replaceable>boolean</replaceable>;
 	<command>notify</command> ( explicit | master-only | <replaceable>boolean</replaceable> );
 	<command>notify-delay</command> <replaceable>integer</replaceable>;
