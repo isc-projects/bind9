@@ -75,6 +75,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  A new slave zone option, <command>mirror<command>, enables
+	  serving a non-authoritative copy of a zone that is subject to
+	  DNSSEC validation before being used.  For now, this option is
+	  only meant to facilitate deployment of an RFC 7706-style local
+	  copy of the root zone.
+	</para>
+	<para>
 	  BIND now can be compiled against the <command>libidn2</command>
 	  library to add IDNA2008 support.  Previously, BIND supported
 	  IDNA2003 using the (now obsolete and unsupported)
