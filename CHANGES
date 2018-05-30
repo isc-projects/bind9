@@ -1,3 +1,5 @@
+4957.	[func]		Add QNAME minimization option to resolver. [GL #16]
+
 4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
 			and add isc_nonce_buf() that uses CSPRNG. [GL #289]
 
