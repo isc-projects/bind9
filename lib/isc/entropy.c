@@ -12,6 +12,7 @@
 #include <config.h>
 
 #include <isc/util.h>
+#include <isc/types.h>
 
 #include "entropy_private.h"
 

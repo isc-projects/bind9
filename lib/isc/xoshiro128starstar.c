@@ -34,7 +34,7 @@
  *
  * The state must be seeded so that it is not everywhere zero.
  */
-
+#if defined(ISC_PLATFORM_USETHREADS)
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 static volatile HANDLE _mutex = NULL;
@@ -44,14 +44,17 @@ static volatile HANDLE _mutex = NULL;
  * will attempt to allocate a mutex and compare-and-swap it into place as the
  * global mutex. On failure to swap in the global mutex, the mutex is closed.
  */
-#define _LOCK() { \
-	if (!_mutex) { \
-		HANDLE p = CreateMutex(NULL, FALSE, NULL); \
-		if (InterlockedCompareExchangePointer((void **)&_mutex, (void *)p, NULL)) \
-			CloseHandle(p); \
-	} \
-	WaitForSingleObject(_mutex, INFINITE); \
-}
+#define _LOCK() \
+	do {								\
+		if (!_mutex) {						\
+			HANDLE p = CreateMutex(NULL, FALSE, NULL);	\
+			if (InterlockedCompareExchangePointer		\
+			    ((void **)&_mutex, (void *)p, NULL)) {	\
+				CloseHandle(p);				\
+			}						\
+		}							\
+		WaitForSingleObject(_mutex, INFINITE);			\
+	} while (0)
 
 #define _UNLOCK() ReleaseMutex(_mutex)
 
@@ -62,20 +65,25 @@ static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 #define _LOCK()   pthread_mutex_lock(&_mutex)
 #define _UNLOCK() pthread_mutex_unlock(&_mutex)
 #endif /* defined(_WIN32) || defined(_WIN64) */
+#else /* defined(ISC_PLATFORM_USETHREADS) */
+#define _LOCK()
+#define _UNLOCK()
+#endif
 
-static inline uint32_t rotl(const uint32_t x, int k) {
+static inline isc_uint32_t rotl(const isc_uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
 
-static uint32_t seed[4];
+static isc_uint32_t seed[4];
 
-static inline uint32_t
+static inline isc_uint32_t
 next(void) {
+	isc_uint32_t result_starstar, t;
+
 	_LOCK();
 
-	const uint32_t result_starstar = rotl(seed[0] * 5, 7) * 9;
-
-	const uint32_t t = seed[1] << 9;
+	result_starstar = rotl(seed[0] * 5, 7) * 9;
+	t = seed[1] << 9;
 
 	seed[2] ^= seed[0];
 	seed[3] ^= seed[1];

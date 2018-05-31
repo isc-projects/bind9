@@ -15,7 +15,7 @@
 
 #include "entropy_private.h"
 
-inline void
+void
 isc_nonce_buf(void *buf, size_t buflen) {
-	return (isc_entropy_get(buf, buflen));
+	isc_entropy_get(buf, buflen);
 }
