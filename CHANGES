@@ -1,3 +1,7 @@
+4957.	[func]		NSID logging (enabled by the "request-nsid" option)
+			now has its own "nsid" category, instead of using the
+			"resolver" category. [GL !331]
+
 4956.	[func]		Change isc_random() to be just PRNG using xoshiro128**,
 			and add isc_nonce_buf() that uses CSPRNG. [GL #289]
 
