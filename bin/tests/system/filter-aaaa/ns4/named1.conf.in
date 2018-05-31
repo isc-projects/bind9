@@ -18,6 +18,7 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { fd92:7065:b8e:ffff::4; };
 	recursion no;
+	dnssec-validation no;
 	notify yes;
 	filter-aaaa-on-v4 break-dnssec;
 	filter-aaaa { 10.53.0.4; };

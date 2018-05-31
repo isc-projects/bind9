@@ -31,3 +31,4 @@ rm -f baseline.txt text.1 text.2 raw.1 raw.2 map.1 map.2 map.5 text.5 badmap
 rm -f ns1/Ksigned.* ns1/dsset-signed. ns1/signed.db.signed
 rm -f rndc.out
 rm -f ns*/named.lock
+rm -f ns*/managed-keys.bind*

@@ -23,3 +23,4 @@ rm -f ns7/dsset-*
 rm -f ns7/edns512-notcp.db
 rm -f ns7/signer.err
 rm -f ns7/trusted.conf
+rm -f ns*/managed-keys.bind*
