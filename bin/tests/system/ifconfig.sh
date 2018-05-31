@@ -48,6 +48,20 @@ case `uname -a` in
 	*) sys=`sh $config_guess` ;;
 esac
 
+use_ip=
+case "$sys" in
+        *-*-linux*)
+                if type ip > /dev/null; then
+                        use_ip=yes
+                elif type ifconfig > /dev/null; then
+                        :
+                else
+                        echo "$0: can't find ip or ifconfig" >&2
+                        exit 1
+                fi
+                ;;
+esac
+
 case "$1" in
 
     start|up)
@@ -80,10 +94,18 @@ case "$1" in
 					inet6 fd92:7065:b8e:${ipv6}ff::$ns up
 				;;
 			    *-*-linux*)
-				ifconfig lo:$int 10.53.$i.$ns up \
-					netmask 255.255.255.0
-				[ "$ipv6" ] && ifconfig lo inet6 add \
-					fd92:7065:b8e:${ipv6}ff::$ns/64
+                                if [ $use_ip ]; then
+                                        ip address add 10.53.$i.$ns/24 \
+                                            dev lo:$int
+                                        [ "$ipv6" ] && ip address add \
+                                            fd92:7065:b8e:${ipv6}ff::$ns/64 \
+                                            dev lo
+                                else
+                                        ifconfig lo:$int 10.53.$i.$ns up \
+                                                netmask 255.255.255.0
+                                        [ "$ipv6" ] && ifconfig lo inet6 add \
+                                                fd92:7065:b8e:${ipv6}ff::$ns/64
+                                fi
 				;;
 			    *-unknown-freebsd*)
 				ifconfig lo0 10.53.$i.$ns alias \
@@ -175,9 +197,17 @@ case "$1" in
 				ifconfig lo0:$int inet6 unplumb
 				;;
 			    *-*-linux*)
-				ifconfig lo:$int 10.53.$i.$ns down
-				[ "$ipv6" ] && ifconfig lo inet6 \
-					del fd92:7065:b8e:${ipv6}ff::$ns/64
+                                if [ $use_ip ]; then
+                                        ip address del 10.53.$i.$ns/24 \
+                                            dev lo:$int
+                                        [ "$ipv6" ] && ip address del \
+                                            fd92:7065:b8e:${ipv6}ff::$ns/64 \
+                                            dev lo
+                                else
+                                        ifconfig lo:$int 10.53.$i.$ns down
+                                        [ "$ipv6" ] && ifconfig lo inet6 \
+                                            del fd92:7065:b8e:${ipv6}ff::$ns/64
+                                fi
 				;;
 			    *-unknown-freebsd*)
 				ifconfig lo0 10.53.$i.$ns delete
