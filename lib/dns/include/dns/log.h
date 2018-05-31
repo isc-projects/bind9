@@ -40,6 +40,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
 #define DNS_LOGCATEGORY_SPILL		(&dns_categories[15])
 #define DNS_LOGCATEGORY_DNSTAP		(&dns_categories[16])
 #define DNS_LOGCATEGORY_ZONELOAD	(&dns_categories[17])
+#define DNS_LOGCATEGORY_NSID		(&dns_categories[18])
 
 /* Backwards compatibility. */
 #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL

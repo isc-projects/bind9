@@ -6964,7 +6964,7 @@ log_nsid(isc_buffer_t *opt, size_t nsid_len, resquery_t *query,
 
 	isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
 			    sizeof(addrbuf));
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NSID,
 		      DNS_LOGMODULE_RESOLVER, level,
 		      "received NSID %s (\"%s\") from %s", buf, pbuf, addrbuf);
  cleanup:
