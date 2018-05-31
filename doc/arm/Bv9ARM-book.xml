@@ -6044,7 +6044,7 @@ options {
 		  queries to authoritative name servers during iterative
 		  resolution. If the authoritative server returns an NSID
 		  option in its response, then its contents are logged in
-		  the <command>resolver</command> category at level
+		  the <command>nsid</command> category at level
 		  <command>info</command>.
 		  The default is <userinput>no</userinput>.
 		</para>
