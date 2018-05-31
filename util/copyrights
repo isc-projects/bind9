@@ -346,6 +346,7 @@
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004,2007,2012,2016,2018
 ./bin/tests/makejournal.c			C	2013,2015,2016,2017,2018
 ./bin/tests/named.conf				CONF-C	1999,2000,2001,2004,2007,2011,2015,2016,2018
+./bin/tests/optional/.gitignore			X	2018
 ./bin/tests/optional/Kchild.example.+003+04017.key	X	2000,2001,2018
 ./bin/tests/optional/Kchild.example.+003+04017.private	X	2000,2001,2018
 ./bin/tests/optional/Makefile.in		MAKE	2018
