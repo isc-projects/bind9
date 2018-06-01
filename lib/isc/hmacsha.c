@@ -23,8 +23,6 @@
 #include <isc/hmacsha.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
-#include <isc/sha1.h>
-#include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
