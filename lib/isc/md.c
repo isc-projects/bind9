@@ -11,15 +11,15 @@
 
 #include <config.h>
 
-#if !HAVE_WORKING_EVP_GET_DIGESTBYNAME
-#include <string.h>
-#endif
-
 #include <isc/util.h>
 
-#include <isc/md.h>
-
-#include <pk11/site.h>
+#ifdef UNIT_TESTING
+extern void mock_assert(const int result, const char* const expression,
+                        const char * const file, const int line);
+#undef REQUIRE
+#define REQUIRE(expression)						\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__);
+#endif
 
 #include <isc/md.h>
 
