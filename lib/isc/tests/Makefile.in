@@ -31,10 +31,11 @@ CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
 CMOCKA_LIBS =	@CMOCKA_LIBS@
 
 OBJS =		isctest.@O@
+
 SRCS =		isctest.c aes_test.c buffer_test.c \
 		counter_test.c errno_test.c file_test.c hash_test.c \
 		heap_test.c ht_test.c lex_test.c \
-		mem_test.c netaddr_test.c parse_test.c pool_test.c \
+		mem_test.c md_test.c netaddr_test.c parse_test.c pool_test.c \
 		queue_test.c radix_test.c random_test.c \
 		regex_test.c result_test.c safe_test.c sockaddr_test.c \
 		socket_test.c socket_test.c symtab_test.c task_test.c \
@@ -44,7 +45,7 @@ SUBDIRS =
 TARGETS =	aes_test@EXEEXT@ buffer_test@EXEEXT@ \
 		counter_test@EXEEXT@ errno_test@EXEEXT@ file_test@EXEEXT@ \
 		hash_test@EXEEXT@ heap_test@EXEEXT@ ht_test@EXEEXT@ \
-		lex_test@EXEEXT@ mem_test@EXEEXT@ \
+		lex_test@EXEEXT@ mem_test@EXEEXT@ md_test@EXEEXT@ \
 		netaddr_test@EXEEXT@ parse_test@EXEEXT@ pool_test@EXEEXT@ \
 		queue_test@EXEEXT@ radix_test@EXEEXT@ \
 		random_test@EXEEXT@ regex_test@EXEEXT@ result_test@EXEEXT@ \
@@ -89,6 +90,10 @@ ht_test@EXEEXT@: ht_test.@O@ ${ISCDEPLIBS}
 lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			lex_test.@O@ ${ISCLIBS} ${LIBS}
+
+md_test@EXEEXT@: md_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} ${LDFLAGS} -o $@ \
+			md_test.@O@ ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 mem_test@EXEEXT@: mem_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \

@@ -17,7 +17,6 @@
 
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
-#include <isc/md5.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
 #include <isc/string.h>

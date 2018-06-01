@@ -21,11 +21,10 @@
 
 #include <isc/lang.h>
 #include <isc/platform.h>
-#include <isc/sha1.h>
-#include <isc/sha2.h>
+#include <isc/md.h>
 #include <isc/types.h>
 
-#define ISC_HMACSHA1_KEYLENGTH ISC_SHA1_BLOCK_LENGTH
+#define ISC_HMACSHA1_KEYLENGTH   ISC_SHA1_BLOCK_LENGTH
 #define ISC_HMACSHA224_KEYLENGTH ISC_SHA224_BLOCK_LENGTH
 #define ISC_HMACSHA256_KEYLENGTH ISC_SHA256_BLOCK_LENGTH
 #define ISC_HMACSHA384_KEYLENGTH ISC_SHA384_BLOCK_LENGTH
@@ -33,6 +32,8 @@
 
 #include <openssl/opensslv.h>
 #include <openssl/hmac.h>
+
+#define ISC_HMAC_MAX_MD_CBLOCK HMAC_MAX_MD_CBLOCK
 
 typedef struct {
 	HMAC_CTX *ctx;
