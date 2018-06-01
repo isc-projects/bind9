@@ -13,7 +13,6 @@
 
 #if !USE_PKCS11
 
-#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha1.h>
