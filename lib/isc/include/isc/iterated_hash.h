@@ -9,12 +9,9 @@
  * information regarding copyright ownership.
  */
 
-
-#ifndef ISC_ITERATED_HASH_H
-#define ISC_ITERATED_HASH_H 1
+#pragma once
 
 #include <isc/lang.h>
-#include <isc/sha1.h>
 
 /*
  * The maximal hash length that can be encoded in a name
@@ -30,12 +27,10 @@
 
 ISC_LANG_BEGINDECLS
 
-int isc_iterated_hash(unsigned char out[NSEC3_MAX_HASH_LENGTH],
-		      unsigned int hashalg, int iterations,
-		      const unsigned char *salt, int saltlength,
-		      const unsigned char *in, int inlength);
+int isc_iterated_hash(unsigned char *out,
+		      const unsigned int hashalg, const int iterations,
+		      const unsigned char *salt, const int saltlength,
+		      const unsigned char *in, const int inlength);
 
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_ITERATED_HASH_H */
