@@ -28,9 +28,9 @@
 #include <isc/buffer.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
-#include <isc/md5.h>
 #include <isc/nonce.h>
 #include <isc/random.h>
+#include <isc/md.h>
 #include <isc/sha1.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -204,9 +204,9 @@ hmacmd5_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacmd5_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_md5_t md5ctx;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -219,10 +219,10 @@ hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_MD5_BLOCK_LENGTH) {
-		isc_md5_init(&md5ctx);
-		isc_md5_update(&md5ctx, r.base, r.length);
-		isc_md5_final(&md5ctx, hkey->key);
-		keylen = ISC_MD5_DIGESTLENGTH;
+		res = isc_md(ISC_MD_MD5, r.base, r.length, hkey->key, &keylen);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -355,7 +355,6 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	 * Prevent use of incorrect crypto
 	 */
 
-	RUNTIME_CHECK(isc_md5_check(ISC_FALSE));
 	RUNTIME_CHECK(isc_hmacmd5_check(0));
 
 	REQUIRE(funcp != NULL);
