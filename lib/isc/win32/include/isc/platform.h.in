@@ -42,6 +42,12 @@ typedef uint32_t socklen_t;
 
 #endif
 
+/*
+ * Remove __attribute__ ((foo)) on Windows
+ */
+
+#define __attribute__(attribute) /* do nothing */
+
 /***
  *** Network.
  ***/

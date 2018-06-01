@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/md5.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/print.h>
@@ -236,50 +236,112 @@ static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	       isc_region_t *serverrandomness, isc_buffer_t *secret)
 {
-	isc_md5_t md5ctx;
+	isc_md_t *md;
 	isc_region_t r, r2;
-	unsigned char digests[32];
+	unsigned char digests[ISC_MAX_MD_SIZE*2];
+	unsigned char *digest1, *digest2;
+	unsigned int digestslen, digestlen1 = 0, digestlen2 = 0;
 	unsigned int i;
+	isc_result_t result;
 
 	isc_buffer_usedregion(shared, &r);
+
+	md = isc_md_new();
+	if (md == NULL) {
+		return (ISC_R_NOSPACE);
+	}
 
 	/*
 	 * MD5 ( query data | DH value ).
 	 */
-	isc_md5_init(&md5ctx);
-	isc_md5_update(&md5ctx, queryrandomness->base,
-		       queryrandomness->length);
-	isc_md5_update(&md5ctx, r.base, r.length);
-	isc_md5_final(&md5ctx, digests);
+	digest1 = digests;
+
+	result = isc_md_init(md, ISC_MD_MD5);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md,
+			       queryrandomness->base,
+			       queryrandomness->length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md, r.base, r.length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_final(md, digest1, &digestlen1);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_reset(md);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
 
 	/*
 	 * MD5 ( server data | DH value ).
 	 */
-	isc_md5_init(&md5ctx);
-	isc_md5_update(&md5ctx, serverrandomness->base,
-		       serverrandomness->length);
-	isc_md5_update(&md5ctx, r.base, r.length);
-	isc_md5_final(&md5ctx, &digests[ISC_MD5_DIGESTLENGTH]);
+	digest2 = digests + digestlen1;
+
+	result = isc_md_init(md, ISC_MD_MD5);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md,
+			       serverrandomness->base,
+			       serverrandomness->length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md, r.base, r.length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_final(md, digest2, &digestlen2);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	isc_md_free(md);
+	md = NULL;
+
+	digestslen = digestlen1 + digestlen2;
 
 	/*
 	 * XOR ( DH value, MD5-1 | MD5-2).
 	 */
 	isc_buffer_availableregion(secret, &r);
 	isc_buffer_usedregion(shared, &r2);
-	if (r.length < sizeof(digests) || r.length < r2.length)
+	if (r.length < digestslen || r.length < r2.length) {
 		return (ISC_R_NOSPACE);
-	if (r2.length > sizeof(digests)) {
+	}
+	if (r2.length > digestslen) {
 		memmove(r.base, r2.base, r2.length);
-		for (i = 0; i < sizeof(digests); i++)
+		for (i = 0; i < digestslen; i++) {
 			r.base[i] ^= digests[i];
+		}
 		isc_buffer_add(secret, r2.length);
 	} else {
-		memmove(r.base, digests, sizeof(digests));
-		for (i = 0; i < r2.length; i++)
+		memmove(r.base, digests, digestslen);
+		for (i = 0; i < r2.length; i++) {
 			r.base[i] ^= r2.base[i];
-		isc_buffer_add(secret, sizeof(digests));
+		}
+		isc_buffer_add(secret, digestslen);
 	}
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+end:
+	if (md != NULL) {
+		isc_md_free(md);
+	}
+	return (result);
 }
 
 static isc_result_t

@@ -30,6 +30,12 @@ DNSDEPLIBS =	../libdns.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
+CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
+CMOCKA_LIBS =	@CMOCKA_LIBS@
+ifeq ($(LD_WRAP),true)
+CMOCKA_MEM =	-Wl,--wrap=isc__mem_put,--wrap=isc__mem_get,--wrap=isc_mem_attach,--wrap=isc_mem_detach
+endif
+
 OBJS =		dnstest.@O@
 SRCS =		acl_test.c \
 		db_test.c \

@@ -41,7 +41,6 @@
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/resource.h>
-#include <isc/sha2.h>
 #include <isc/socket.h>
 #include <isc/stat.h>
 #include <isc/stats.h>
@@ -9011,6 +9010,7 @@ load_configuration(const char *filename, named_server_t *server,
 		bool first = true;
 		isc_buffer_t b;
 		unsigned int usedlength;
+		unsigned int expectedlength;
 
 		for (element = cfg_list_first(obj);
 		     element != NULL;
@@ -9056,21 +9056,26 @@ load_configuration(const char *filename, named_server_t *server,
 			usedlength = isc_buffer_usedlength(&b);
 			switch (server->sctx->cookiealg) {
 			case ns_cookiealg_aes:
-				if (usedlength != ISC_AES128_KEYLENGTH) {
+				expectedlength = ISC_AES128_KEYLENGTH;
+				if (usedlength != expectedlength) {
 					CHECKM(ISC_R_RANGE,
 					       "AES cookie-secret must be "
 					       "128 bits");
 				}
 				break;
 			case ns_cookiealg_sha1:
-				if (usedlength != ISC_SHA1_DIGESTLENGTH) {
+				expectedlength =
+					isc_md_type_get_size(ISC_MD_SHA1);
+				if (usedlength != expectedlength) {
 					CHECKM(ISC_R_RANGE,
 					       "SHA1 cookie-secret must be "
 					       "160 bits");
 				}
 				break;
 			case ns_cookiealg_sha256:
-				if (usedlength != ISC_SHA256_DIGESTLENGTH) {
+				expectedlength =
+					isc_md_type_get_size(ISC_MD_SHA256);
+				if (usedlength != expectedlength) {
 					CHECKM(ISC_R_RANGE,
 					       "SHA256 cookie-secret must be "
 					       "256 bits");

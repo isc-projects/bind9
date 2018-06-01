@@ -2390,7 +2390,8 @@ AC_ARG_WITH([cmocka],
 
 AS_CASE([$with_cmocka],
 	[no],[:],
-	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka])],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])],
 	[*],[
 	    save_CFLAGS="$CFLAGS"
 	    save_LIBS="$LIBS"
@@ -2408,11 +2409,34 @@ AS_CASE([$with_cmocka],
 			   [
 			       CMOCKA_CFLAGS="-I$with_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+			       AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
 			   ],
 			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
 	    ])
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
+
+#
+# Check for -Wl,--wrap= support
+#
+
+save_LDFLAGS=$LDFLAGS
+LDFLAGS="--wrap=printf"
+
+LD_WRAP_TESTS=false
+enable_ld_wrap=no
+AC_MSG_CHECKING([for linker support for --wrap option])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <stdio.h>], [__wrap_printf("success"); return (0);])],
+    [enable_ld_wrap=yes
+     LD_WRAP_TESTS=true
+     AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
+# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
+AC_SUBST([LD_WRAP_TESTS])
+
+LDFLAGS=$save_LDFLAGS
 
 #
 # Check for -Wl,--wrap= support
