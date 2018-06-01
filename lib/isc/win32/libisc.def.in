@@ -548,11 +548,6 @@ isc_serial_gt
 isc_serial_le
 isc_serial_lt
 isc_serial_ne
-isc_sha1_check
-isc_sha1_final
-isc_sha1_init
-isc_sha1_invalidate
-isc_sha1_update
 isc_sha224_data
 isc_sha224_end
 isc_sha224_final

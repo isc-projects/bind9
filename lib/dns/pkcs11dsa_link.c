@@ -21,7 +21,6 @@
 
 #include <isc/mem.h>
 #include <isc/safe.h>
-#include <isc/sha1.h>
 #include <isc/util.h>
 
 #include <dst/result.h>

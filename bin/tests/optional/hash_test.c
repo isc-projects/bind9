@@ -17,7 +17,6 @@
 
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
-#include <isc/sha1.h>
 #include <isc/util.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -41,7 +40,6 @@ print_digest(const char *s, const char *hash, unsigned char *d,
 
 int
 main(int argc, char **argv) {
-	isc_sha1_t sha1;
 	isc_sha224_t sha224;
 	isc_hmacmd5_t hmacmd5;
 	isc_hmacsha1_t hmacsha1;
@@ -56,20 +54,6 @@ main(int argc, char **argv) {
 
 	UNUSED(argc);
 	UNUSED(argv);
-
-	s = "abc";
-	isc_sha1_init(&sha1);
-	memmove(buffer, s, strlen(s));
-	isc_sha1_update(&sha1, buffer, strlen(s));
-	isc_sha1_final(&sha1, digest);
-	print_digest(s, "sha1", digest, ISC_SHA1_DIGESTLENGTH/4);
-
-	s = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-	isc_sha1_init(&sha1);
-	memmove(buffer, s, strlen(s));
-	isc_sha1_update(&sha1, buffer, strlen(s));
-	isc_sha1_final(&sha1, digest);
-	print_digest(s, "sha1", digest, ISC_SHA1_DIGESTLENGTH/4);
 
 	s = "abc";
 	isc_sha224_init(&sha224);

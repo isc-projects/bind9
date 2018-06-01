@@ -37,7 +37,6 @@
 #include <isc/nonce.h>
 #include <isc/random.h>
 #include <isc/safe.h>
-#include <isc/sha1.h>
 #include <isc/util.h>
 
 #include <dst/result.h>
