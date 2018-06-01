@@ -25,7 +25,6 @@
 #include <isc/hash.h>
 #include <isc/lex.h>
 #include <isc/print.h>
-#include <isc/sha2.h>
 #include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>

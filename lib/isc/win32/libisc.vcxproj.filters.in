@@ -140,9 +140,6 @@
     <ClInclude Include="..\include\isc\magic.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\md5.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\mem.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -222,12 +219,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\serial.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\sha1.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\sha2.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\sockaddr.h">
@@ -550,9 +541,6 @@
     <ClCompile Include="..\log.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\md5.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\mem.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -608,12 +596,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\serial.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sha1.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sha2.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sockaddr.c">

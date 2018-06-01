@@ -16,9 +16,6 @@
 
 #define RRTYPE_CDS_ATTRIBUTES 0
 
-#include <isc/sha1.h>
-#include <isc/sha2.h>
-
 #include <dns/ds.h>
 
 static inline isc_result_t
