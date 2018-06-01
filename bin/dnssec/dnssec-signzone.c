@@ -40,6 +40,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>

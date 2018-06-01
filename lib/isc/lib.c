@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <openssl/evp.h>
+
 #include <isc/app.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
@@ -88,6 +90,10 @@ do_register(void) {
 	RUNTIME_CHECK(isc__task_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__socket_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__timer_register() == ISC_R_SUCCESS);
+
+#if OPENSSL_API_COMPAT < 0x10100000L
+	OpenSSL_add_all_algorithms();
+#endif
 }
 
 void
