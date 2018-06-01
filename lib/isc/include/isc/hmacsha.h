@@ -20,7 +20,7 @@
 
 #include <isc/lang.h>
 #include <isc/platform.h>
-#include <isc/sha1.h>
+#include <isc/md.h>
 #include <isc/sha2.h>
 #include <isc/types.h>
 
@@ -57,11 +57,6 @@ typedef pk11_context_t isc_hmacsha384_t;
 typedef pk11_context_t isc_hmacsha512_t;
 
 #else
-
-typedef struct {
-	isc_sha1_t sha1ctx;
-	unsigned char key[ISC_HMACSHA1_KEYLENGTH];
-} isc_hmacsha1_t;
 
 typedef struct {
 	isc_sha224_t sha224ctx;
