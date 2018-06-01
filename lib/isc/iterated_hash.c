@@ -14,29 +14,52 @@
 
 #include <stdio.h>
 
-#include <isc/sha1.h>
+#include <isc/md.h>
 #include <isc/iterated_hash.h>
+#include <isc/util.h>
+
+#define RETERR(fn, ...)							\
+	if ((err = fn ( __VA_ARGS__ )) != ISC_R_SUCCESS) {              \
+		isc_md_free(md);					\
+		return (0);                                           \
+	}
 
 int
-isc_iterated_hash(unsigned char out[ISC_SHA1_DIGESTLENGTH],
-		  unsigned int hashalg, int iterations,
-		  const unsigned char *salt, int saltlength,
-		  const unsigned char *in, int inlength)
+isc_iterated_hash(unsigned char *out,
+		  const unsigned int hashalg, const int iterations,
+		  const unsigned char *salt, const int saltlength,
+		  const unsigned char *in, const int inlength)
 {
-	isc_sha1_t ctx;
+	isc_md_t *md;
+	isc_result_t err;
 	int n = 0;
+	unsigned int outlength = 0;
+	size_t len;
+	const unsigned char *buf;
 
-	if (hashalg != 1)
+	REQUIRE(out != NULL);
+
+	if (hashalg != 1) {
 		return (0);
+	}
 
+	if ((md = isc_md_new()) == NULL) {
+		return (0);
+	}
+
+	len = inlength;
+	buf = in;
 	do {
-		isc_sha1_init(&ctx);
-		isc_sha1_update(&ctx, in, inlength);
-		isc_sha1_update(&ctx, salt, saltlength);
-		isc_sha1_final(&ctx, out);
-		in = out;
-		inlength = ISC_SHA1_DIGESTLENGTH;
+		RETERR(isc_md_init, md, ISC_MD_SHA1);
+		RETERR(isc_md_update, md, buf, len);
+		RETERR(isc_md_update, md, salt, saltlength);
+		RETERR(isc_md_final, md, out, &outlength);
+		buf = out;
+		len = outlength;
 	} while (n++ < iterations);
 
-	return (ISC_SHA1_DIGESTLENGTH);
+	isc_md_free(md);
+
+	return (outlength);
 }
+#undef RETERR

@@ -20,6 +20,7 @@
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
 #include <isc/log.h>
+#include <isc/md.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/safe.h>
