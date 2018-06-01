@@ -17,7 +17,6 @@
 
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
-#include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>
 #include <isc/print.h>
@@ -45,7 +44,6 @@ main(int argc, char **argv) {
 	isc_sha1_t sha1;
 	isc_sha224_t sha224;
 #ifndef PK11_MD5_DISABLE
-	isc_md5_t md5;
 	isc_hmacmd5_t hmacmd5;
 #endif
 	isc_hmacsha1_t hmacsha1;
@@ -90,13 +88,6 @@ main(int argc, char **argv) {
 	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
 
 #ifndef PK11_MD5_DISABLE
-	s = "abc";
-	isc_md5_init(&md5);
-	memmove(buffer, s, strlen(s));
-	isc_md5_update(&md5, buffer, strlen(s));
-	isc_md5_final(&md5, digest);
-	print_digest(s, "md5", digest, 4);
-
 	/*
 	 * The 3 HMAC-MD5 examples from RFC2104
 	 */

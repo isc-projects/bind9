@@ -13,7 +13,6 @@
 
 #if HAVE_OPENSSL
 
-#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha1.h>
