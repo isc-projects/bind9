@@ -16,11 +16,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
-#include <isc/sha1.h>
-#include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

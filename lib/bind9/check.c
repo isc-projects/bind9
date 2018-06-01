@@ -23,6 +23,7 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/log.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
@@ -30,8 +31,6 @@
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
-#include <isc/sha1.h>
-#include <isc/sha2.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>

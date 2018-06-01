@@ -17,8 +17,6 @@
 
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
-#include <isc/md5.h>
-#include <isc/sha1.h>
 #include <isc/util.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -42,57 +40,19 @@ print_digest(const char *s, const char *hash, unsigned char *d,
 
 int
 main(int argc, char **argv) {
-	isc_sha1_t sha1;
-	isc_sha224_t sha224;
-	isc_md5_t md5;
 	isc_hmacmd5_t hmacmd5;
 	isc_hmacsha1_t hmacsha1;
 	isc_hmacsha224_t hmacsha224;
 	isc_hmacsha256_t hmacsha256;
 	isc_hmacsha384_t hmacsha384;
 	isc_hmacsha512_t hmacsha512;
-	unsigned char digest[ISC_SHA512_DIGESTLENGTH];
+	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned char buffer[1024];
 	const char *s;
 	unsigned char key[20];
 
 	UNUSED(argc);
 	UNUSED(argv);
-
-	s = "abc";
-	isc_sha1_init(&sha1);
-	memmove(buffer, s, strlen(s));
-	isc_sha1_update(&sha1, buffer, strlen(s));
-	isc_sha1_final(&sha1, digest);
-	print_digest(s, "sha1", digest, ISC_SHA1_DIGESTLENGTH/4);
-
-	s = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-	isc_sha1_init(&sha1);
-	memmove(buffer, s, strlen(s));
-	isc_sha1_update(&sha1, buffer, strlen(s));
-	isc_sha1_final(&sha1, digest);
-	print_digest(s, "sha1", digest, ISC_SHA1_DIGESTLENGTH/4);
-
-	s = "abc";
-	isc_sha224_init(&sha224);
-	memmove(buffer, s, strlen(s));
-	isc_sha224_update(&sha224, buffer, strlen(s));
-	isc_sha224_final(digest, &sha224);
-	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
-
-	s = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-	isc_sha224_init(&sha224);
-	memmove(buffer, s, strlen(s));
-	isc_sha224_update(&sha224, buffer, strlen(s));
-	isc_sha224_final(digest, &sha224);
-	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
-
-	s = "abc";
-	isc_md5_init(&md5);
-	memmove(buffer, s, strlen(s));
-	isc_md5_update(&md5, buffer, strlen(s));
-	isc_md5_final(&md5, digest);
-	print_digest(s, "md5", digest, 4);
 
 	/*
 	 * The 3 HMAC-MD5 examples from RFC2104
