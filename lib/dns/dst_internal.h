@@ -34,7 +34,6 @@
 #include <isc/region.h>
 #include <isc/types.h>
 #include <isc/refcount.h>
-#include <isc/sha1.h>
 #include <isc/sha2.h>
 #include <isc/stdtime.h>
 #include <isc/hmacmd5.h>
@@ -157,7 +156,6 @@ struct dst_context {
 	union {
 		void *generic;
 		dst_gssapi_signverifyctx_t *gssctx;
-		isc_sha1_t *sha1ctx;
 		isc_sha256_t *sha256ctx;
 		isc_sha512_t *sha512ctx;
 #ifndef PK11_MD5_DISABLE

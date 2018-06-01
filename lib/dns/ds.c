@@ -18,7 +18,7 @@
 
 #include <isc/buffer.h>
 #include <isc/region.h>
-#include <isc/sha1.h>
+#include <isc/md.h>
 #include <isc/sha2.h>
 #include <isc/util.h>
 
@@ -35,6 +35,12 @@
 #include "dst_gost.h"
 #endif
 
+#define RETERR(fn, ...)							\
+        if ((err = fn ( __VA_ARGS__ )) != ISC_R_SUCCESS) {              \
+		isc_md_free(md);					\
+                return (err);                                           \
+        }
+
 isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		  unsigned int digest_type, unsigned char *buffer,
@@ -42,22 +48,21 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 {
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	unsigned char digest[ISC_SHA384_DIGESTLENGTH];
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen;
 	isc_region_t r;
 	isc_buffer_t b;
 	dns_rdata_ds_t ds;
-	isc_sha1_t sha1;
-	isc_sha256_t sha256;
-	isc_sha384_t sha384;
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-	isc_gost_t gost;
-#endif
+	isc_md_t *md;
+	isc_md_type_t md_type = 0;
+	isc_result_t err;
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->type == dns_rdatatype_dnskey);
 
-	if (!dst_ds_digest_supported(digest_type))
+	if (!dst_ds_digest_supported(digest_type)) {
 		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	name = dns_fixedname_initname(&fname);
 	(void)dns_name_downcase(owner, name, NULL);
@@ -65,87 +70,50 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	memset(buffer, 0, DNS_DS_BUFFERSIZE);
 	isc_buffer_init(&b, buffer, DNS_DS_BUFFERSIZE);
 
+	if ((md = isc_md_new()) == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
 	switch (digest_type) {
 	case DNS_DSDIGEST_SHA1:
-		isc_sha1_init(&sha1);
-		dns_name_toregion(name, &r);
-		isc_sha1_update(&sha1, r.base, r.length);
-		dns_rdata_toregion(key, &r);
-		INSIST(r.length >= 4);
-		isc_sha1_update(&sha1, r.base, r.length);
-		isc_sha1_final(&sha1, digest);
+		md_type = ISC_MD_SHA1;
 		break;
-
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-#define RETERR(x) do {					\
-	isc_result_t ret = (x);				\
-	if (ret != ISC_R_SUCCESS) {			\
-		isc_gost_invalidate(&gost);		\
-		return (ret);				\
-	}						\
-} while (0)
-
+#if 0 // defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
 	case DNS_DSDIGEST_GOST:
-		RETERR(isc_gost_init(&gost));
-		dns_name_toregion(name, &r);
-		RETERR(isc_gost_update(&gost, r.base, r.length));
-		dns_rdata_toregion(key, &r);
-		INSIST(r.length >= 4);
-		RETERR(isc_gost_update(&gost, r.base, r.length));
-		RETERR(isc_gost_final(&gost, digest));
+		md_type = ISC_MD_GOST;
 		break;
 #endif
-
 	case DNS_DSDIGEST_SHA384:
-		isc_sha384_init(&sha384);
-		dns_name_toregion(name, &r);
-		isc_sha384_update(&sha384, r.base, r.length);
-		dns_rdata_toregion(key, &r);
-		INSIST(r.length >= 4);
-		isc_sha384_update(&sha384, r.base, r.length);
-		isc_sha384_final(digest, &sha384);
+		md_type = ISC_MD_SHA384;
 		break;
 
 	case DNS_DSDIGEST_SHA256:
 	default:
-		isc_sha256_init(&sha256);
-		dns_name_toregion(name, &r);
-		isc_sha256_update(&sha256, r.base, r.length);
-		dns_rdata_toregion(key, &r);
-		INSIST(r.length >= 4);
-		isc_sha256_update(&sha256, r.base, r.length);
-		isc_sha256_final(digest, &sha256);
+		md_type = ISC_MD_SHA256;
 		break;
 	}
 
+	RETERR(isc_md_init, md, md_type);
+	
+	dns_name_toregion(name, &r);
+	RETERR(isc_md_update, md, r.base, r.length);
+	dns_rdata_toregion(key, &r);
+	INSIST(r.length >= 4);
+	RETERR(isc_md_update, md, r.base, r.length);
+	RETERR(isc_md_final, md, digest, &digestlen);
+
+	isc_md_free(md);
+	
 	ds.mctx = NULL;
 	ds.common.rdclass = key->rdclass;
 	ds.common.rdtype = dns_rdatatype_ds;
 	ds.algorithm = r.base[3];
 	ds.key_tag = dst_region_computeid(&r, ds.algorithm);
 	ds.digest_type = digest_type;
-	switch (digest_type) {
-	case DNS_DSDIGEST_SHA1:
-		ds.length = ISC_SHA1_DIGESTLENGTH;
-		break;
-
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-	case DNS_DSDIGEST_GOST:
-		ds.length = ISC_GOST_DIGESTLENGTH;
-		break;
-#endif
-
-	case DNS_DSDIGEST_SHA384:
-		ds.length = ISC_SHA384_DIGESTLENGTH;
-		break;
-
-	case DNS_DSDIGEST_SHA256:
-	default:
-		ds.length = ISC_SHA256_DIGESTLENGTH;
-		break;
-	}
 	ds.digest = digest;
+	ds.length = digestlen;
 
 	return (dns_rdata_fromstruct(rdata, key->rdclass, dns_rdatatype_ds,
 				     &ds, &b));
 }
+#undef RETERR
