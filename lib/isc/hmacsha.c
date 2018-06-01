@@ -21,7 +21,6 @@
 #include <isc/hmacsha.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
-#include <isc/sha1.h>
 #include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/types.h>
@@ -370,10 +369,18 @@ isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx) {
-	if (ctx->key != NULL)
+        CK_BYTE garbage[ISC_SHA1_DIGESTLENGTH];
+        CK_ULONG len = ISC_SHA1_DIGESTLENGTH;
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, ISC_SHA1_BLOCK_LENGTH);
+	}
 	ctx->key = NULL;
-	isc_sha1_invalidate(ctx);
+	if (ctx->handle == NULL) {
+                return;
+	}
+	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
+        isc_safe_memwipe(garbage, sizeof(garbage));
+        pk11_return_session(ctx);}
 }
 
 void
@@ -1099,77 +1106,6 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 #endif
 
 #else
-
-#define IPAD 0x36
-#define OPAD 0x5C
-
-/*
- * Start HMAC-SHA1 process.  Initialize an sha1 context and digest the key.
- */
-void
-isc_hmacsha1_init(isc_hmacsha1_t *ctx, const unsigned char *key,
-		  unsigned int len)
-{
-	unsigned char ipad[ISC_SHA1_BLOCK_LENGTH];
-	unsigned int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_sha1_t sha1ctx;
-		isc_sha1_init(&sha1ctx);
-		isc_sha1_update(&sha1ctx, key, len);
-		isc_sha1_final(&sha1ctx, ctx->key);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_sha1_init(&ctx->sha1ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < ISC_SHA1_BLOCK_LENGTH; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_sha1_update(&ctx->sha1ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacsha1_invalidate(isc_hmacsha1_t *ctx) {
-	isc_sha1_invalidate(&ctx->sha1ctx);
-	isc_safe_memwipe(ctx, sizeof(*ctx));
-}
-
-/*
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacsha1_update(isc_hmacsha1_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_sha1_update(&ctx->sha1ctx, buf, len);
-}
-
-/*
- * Compute signature - finalize SHA1 operation and reapply SHA1.
- */
-void
-isc_hmacsha1_sign(isc_hmacsha1_t *ctx, unsigned char *digest, size_t len) {
-	unsigned char opad[ISC_SHA1_BLOCK_LENGTH];
-	unsigned char newdigest[ISC_SHA1_DIGESTLENGTH];
-	unsigned int i;
-
-	REQUIRE(len <= ISC_SHA1_DIGESTLENGTH);
-	isc_sha1_final(&ctx->sha1ctx, newdigest);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < ISC_SHA1_BLOCK_LENGTH; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_sha1_init(&ctx->sha1ctx);
-	isc_sha1_update(&ctx->sha1ctx, opad, sizeof(opad));
-	isc_sha1_update(&ctx->sha1ctx, newdigest, ISC_SHA1_DIGESTLENGTH);
-	isc_sha1_final(&ctx->sha1ctx, newdigest);
-	isc_hmacsha1_invalidate(ctx);
-	memmove(digest, newdigest, len);
-	isc_safe_memwipe(newdigest, sizeof(newdigest));
-}
 
 /*
  * Start HMAC-SHA224 process.  Initialize an sha224 context and digest the key.
