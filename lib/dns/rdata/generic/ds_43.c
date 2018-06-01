@@ -18,7 +18,7 @@
 #define RRTYPE_DS_ATTRIBUTES \
 	(DNS_RDATATYPEATTR_DNSSEC|DNS_RDATATYPEATTR_ATPARENT)
 
-#include <isc/sha1.h>
+#include <isc/md.h>
 #include <isc/sha2.h>
 
 #include <dns/ds.h>

@@ -31,7 +31,6 @@
 #include <isc/nonce.h>
 #include <isc/random.h>
 #include <isc/md.h>
-#include <isc/sha1.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -370,7 +369,7 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 static isc_result_t hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha1_key {
-	unsigned char key[ISC_SHA1_BLOCK_LENGTH];
+	unsigned char key[ISC_MAX_KEY_LENGTH];
 };
 
 static isc_result_t
@@ -513,9 +512,8 @@ hmacsha1_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha1_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_sha1_t sha1ctx;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -528,10 +526,7 @@ hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA1_BLOCK_LENGTH) {
-		isc_sha1_init(&sha1ctx);
-		isc_sha1_update(&sha1ctx, r.base, r.length);
-		isc_sha1_final(&sha1ctx, hkey->key);
-		keylen = ISC_SHA1_DIGESTLENGTH;
+		isc_md(ISC_MD_SHA1, r.base, r.length, hkey->key, &keylen);
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -648,7 +643,6 @@ dst__hmacsha1_init(dst_func_t **funcp) {
 	/*
 	 * Prevent use of incorrect crypto
 	 */
-	RUNTIME_CHECK(isc_sha1_check(ISC_FALSE));
 	RUNTIME_CHECK(isc_hmacsha1_check(0));
 
 	REQUIRE(funcp != NULL);
