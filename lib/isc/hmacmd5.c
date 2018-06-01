@@ -22,7 +22,6 @@
 
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
-#include <isc/md5.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -158,7 +157,7 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	ctx->object = CK_INVALID_HANDLE;
 	pk11_return_session(ctx);
 }
-#else
+#else /* PK11_MD5_HMAC_REPLACE */
 /* Replace missing CKM_MD5_HMAC PKCS#11 mechanism */
 
 #define PADLEN 64
@@ -200,10 +199,20 @@ isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
 
 void
 isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
-	if (ctx->key != NULL)
+	CK_BYTE garbage[ISC_MD5_DIGESTLENGTH];
+	CK_ULONG len = ISC_MD5_DIGESTLENGTH;
+
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, PADLEN);
+	}
 	ctx->key = NULL;
-	isc_md5_invalidate(ctx);
+
+	if (ctx->handle == NULL) {
+		return;
+	}
+	(void) pkcs_C_DigestFinal(ctx->session, garbage, &len);
+	isc_safe_memwipe(garbage, sizeof(garbage));
+	pk11_return_session(ctx);
 }
 
 void
@@ -245,79 +254,9 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 			 (CK_ULONG_PTR) &len));
 	pk11_return_session(ctx);
 }
-#endif
+#endif /* PK11_MD5_HMAC_REPLACE */
 
-#else
-
-#define PADLEN 64
-#define IPAD 0x36
-#define OPAD 0x5C
-
-/*!
- * Start HMAC-MD5 process.  Initialize an md5 context and digest the key.
- */
-void
-isc_hmacmd5_init(isc_hmacmd5_t *ctx, const unsigned char *key,
-		 unsigned int len)
-{
-	unsigned char ipad[PADLEN];
-	int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_md5_t md5ctx;
-		isc_md5_init(&md5ctx);
-		isc_md5_update(&md5ctx, key, len);
-		isc_md5_final(&md5ctx, ctx->key);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_md5_init(&ctx->md5ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < PADLEN; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_md5_update(&ctx->md5ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
-	isc_md5_invalidate(&ctx->md5ctx);
-	isc_safe_memwipe(ctx->key, sizeof(ctx->key));
-}
-
-/*!
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_md5_update(&ctx->md5ctx, buf, len);
-}
-
-/*!
- * Compute signature - finalize MD5 operation and reapply MD5.
- */
-void
-isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
-	unsigned char opad[PADLEN];
-	int i;
-
-	isc_md5_final(&ctx->md5ctx, digest);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < PADLEN; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_md5_init(&ctx->md5ctx);
-	isc_md5_update(&ctx->md5ctx, opad, sizeof(opad));
-	isc_md5_update(&ctx->md5ctx, digest, ISC_MD5_DIGESTLENGTH);
-	isc_md5_final(&ctx->md5ctx, digest);
-	isc_hmacmd5_invalidate(ctx);
-}
-
-#endif /* !ISC_PLATFORM_OPENSSLHASH */
+#endif /* HAVE_PKCS11 */
 
 /*!
  * Verify signature - finalize MD5 operation and reapply MD5, then
