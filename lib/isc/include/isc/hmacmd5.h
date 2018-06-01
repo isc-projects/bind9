@@ -20,7 +20,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
-#include <isc/md5.h>
+#include <isc/md.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 

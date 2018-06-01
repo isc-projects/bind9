@@ -10,6 +10,7 @@ atf_test_program{name='hash_test'}
 atf_test_program{name='heap_test'}
 atf_test_program{name='ht_test'}
 atf_test_program{name='lex_test'}
+tap_test_program{name='md_test'}
 atf_test_program{name='mem_test'}
 atf_test_program{name='netaddr_test'}
 atf_test_program{name='parse_test'}
