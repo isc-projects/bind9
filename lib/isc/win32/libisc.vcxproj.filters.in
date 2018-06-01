@@ -137,9 +137,6 @@
     <ClInclude Include="..\include\isc\magic.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\md5.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\isc\mem.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -564,9 +561,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\log.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\md5.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\mem.c">

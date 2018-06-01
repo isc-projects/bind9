@@ -33,7 +33,6 @@
 #include <isc/magic.h>
 #include <isc/region.h>
 #include <isc/types.h>
-#include <isc/md5.h>
 #include <isc/refcount.h>
 #include <isc/sha1.h>
 #include <isc/sha2.h>
@@ -148,7 +147,6 @@ struct dst_context {
 	union {
 		void *generic;
 		dst_gssapi_signverifyctx_t *gssctx;
-		isc_md5_t *md5ctx;
 		isc_sha1_t *sha1ctx;
 		isc_sha256_t *sha256ctx;
 		isc_sha512_t *sha512ctx;
