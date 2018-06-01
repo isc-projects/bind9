@@ -16,7 +16,6 @@
 #if USE_PKCS11
 
 #include <isc/hmacmd5.h>
-#include <isc/sha1.h>
 #include <isc/sha2.h>
 #include <isc/mem.h>
 #include <isc/safe.h>

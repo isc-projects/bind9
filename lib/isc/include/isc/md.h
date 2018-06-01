@@ -37,6 +37,8 @@
 #define ISC_SHA512_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha512())
 
 #define ISC_MAX_MD_SIZE EVP_MAX_MD_SIZE
+#define ISC_MAX_BLOCK_SIZE EVP_MAX_BLOCK_LENGTH
+#define ISC_MAX_KEY_LENGTH EVP_MAX_KEY_LENGTH
 
 typedef EVP_MD_CTX isc_md_t;
 
