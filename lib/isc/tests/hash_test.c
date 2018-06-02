@@ -26,6 +26,7 @@
 #include <isc/crc64.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
+#include <isc/md.h>
 #include <isc/util.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -36,10 +37,10 @@
  * Test data from RFC6234
  */
 
-unsigned char digest[ISC_SHA512_DIGESTLENGTH];
+unsigned char digest[ISC_MAX_MD_SIZE];
 unsigned char buffer[1024];
 const char *s;
-char str[2 * ISC_SHA512_DIGESTLENGTH + 3];
+char str[2 * ISC_MAX_MD_SIZE + 3];
 unsigned char key[20];
 
 #define TEST_INPUT(x) (x), sizeof(x)-1

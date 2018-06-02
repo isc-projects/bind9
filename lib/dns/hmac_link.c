@@ -49,7 +49,7 @@
 static isc_result_t hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacmd5_key {
-	unsigned char key[ISC_MD5_BLOCK_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -218,7 +218,8 @@ hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_MD5_BLOCK_LENGTH) {
-		res = isc_md(ISC_MD_MD5, r.base, r.length, hkey->key, &keylen);
+		res = isc_md(ISC_MD_MD5, r.base, r.length,
+			     hkey->key, &keylen);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
@@ -365,7 +366,7 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 static isc_result_t hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha1_key {
-	unsigned char key[ISC_MAX_KEY_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -510,6 +511,7 @@ hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha1_key_t *hkey;
 	unsigned int keylen;
 	isc_region_t r;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -522,7 +524,12 @@ hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA1_BLOCK_LENGTH) {
-		isc_md(ISC_MD_SHA1, r.base, r.length, hkey->key, &keylen);
+		res = isc_md(ISC_MD_SHA1, r.base, r.length,
+			     hkey->key, &keylen);
+		REQUIRE(res != ISC_R_SUCCESS);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -650,7 +657,7 @@ dst__hmacsha1_init(dst_func_t **funcp) {
 static isc_result_t hmacsha224_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha224_key {
-	unsigned char key[ISC_SHA224_BLOCK_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -793,9 +800,9 @@ hmacsha224_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacsha224_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha224_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_sha224_t sha224ctx;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -808,10 +815,12 @@ hmacsha224_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA224_BLOCK_LENGTH) {
-		isc_sha224_init(&sha224ctx);
-		isc_sha224_update(&sha224ctx, r.base, r.length);
-		isc_sha224_final(hkey->key, &sha224ctx);
-		keylen = ISC_SHA224_DIGESTLENGTH;
+		res = isc_md(ISC_MD_SHA224, r.base, r.length,
+			     hkey->key, &keylen);
+		REQUIRE(res != ISC_R_SUCCESS);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -934,7 +943,7 @@ dst__hmacsha224_init(dst_func_t **funcp) {
 static isc_result_t hmacsha256_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha256_key {
-	unsigned char key[ISC_SHA256_BLOCK_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -1077,9 +1086,9 @@ hmacsha256_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacsha256_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha256_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_sha256_t sha256ctx;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -1092,10 +1101,12 @@ hmacsha256_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA256_BLOCK_LENGTH) {
-		isc_sha256_init(&sha256ctx);
-		isc_sha256_update(&sha256ctx, r.base, r.length);
-		isc_sha256_final(hkey->key, &sha256ctx);
-		keylen = ISC_SHA256_DIGESTLENGTH;
+		res = isc_md(ISC_MD_SHA256, r.base, r.length,
+			     hkey->key, &keylen);
+		REQUIRE(res != ISC_R_SUCCESS);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -1218,7 +1229,7 @@ dst__hmacsha256_init(dst_func_t **funcp) {
 static isc_result_t hmacsha384_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha384_key {
-	unsigned char key[ISC_SHA384_BLOCK_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -1361,9 +1372,9 @@ hmacsha384_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacsha384_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha384_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_sha384_t sha384ctx;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -1376,10 +1387,12 @@ hmacsha384_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA384_BLOCK_LENGTH) {
-		isc_sha384_init(&sha384ctx);
-		isc_sha384_update(&sha384ctx, r.base, r.length);
-		isc_sha384_final(hkey->key, &sha384ctx);
-		keylen = ISC_SHA384_DIGESTLENGTH;
+		res = isc_md(ISC_MD_SHA384, r.base, r.length,
+			     hkey->key, &keylen);
+		REQUIRE(res != ISC_R_SUCCESS);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
@@ -1502,7 +1515,7 @@ dst__hmacsha384_init(dst_func_t **funcp) {
 static isc_result_t hmacsha512_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacsha512_key {
-	unsigned char key[ISC_SHA512_BLOCK_LENGTH];
+	unsigned char key[ISC_HMAC_MAX_MD_CBLOCK];
 };
 
 static isc_result_t
@@ -1645,9 +1658,9 @@ hmacsha512_todns(const dst_key_t *key, isc_buffer_t *data) {
 static isc_result_t
 hmacsha512_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dst_hmacsha512_key_t *hkey;
-	int keylen;
+	unsigned int keylen;
 	isc_region_t r;
-	isc_sha512_t sha512ctx;
+	isc_result_t res;
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -1660,10 +1673,12 @@ hmacsha512_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memset(hkey->key, 0, sizeof(hkey->key));
 
 	if (r.length > ISC_SHA512_BLOCK_LENGTH) {
-		isc_sha512_init(&sha512ctx);
-		isc_sha512_update(&sha512ctx, r.base, r.length);
-		isc_sha512_final(hkey->key, &sha512ctx);
-		keylen = ISC_SHA512_DIGESTLENGTH;
+		res = isc_md(ISC_MD_SHA512, r.base, r.length,
+			     hkey->key, &keylen);
+		REQUIRE(res != ISC_R_SUCCESS);
+		if (res != ISC_R_SUCCESS) {
+			return (res);
+		}
 	} else {
 		memmove(hkey->key, r.base, r.length);
 		keylen = r.length;
