@@ -40,7 +40,6 @@ print_digest(const char *s, const char *hash, unsigned char *d,
 
 int
 main(int argc, char **argv) {
-	isc_sha224_t sha224;
 #ifndef PK11_MD5_DISABLE
 	isc_hmacmd5_t hmacmd5;
 #endif
@@ -49,27 +48,13 @@ main(int argc, char **argv) {
 	isc_hmacsha256_t hmacsha256;
 	isc_hmacsha384_t hmacsha384;
 	isc_hmacsha512_t hmacsha512;
-	unsigned char digest[ISC_SHA512_DIGESTLENGTH];
+	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned char buffer[1024];
 	const char *s;
 	unsigned char key[20];
 
 	UNUSED(argc);
 	UNUSED(argv);
-
-	s = "abc";
-	isc_sha224_init(&sha224);
-	memmove(buffer, s, strlen(s));
-	isc_sha224_update(&sha224, buffer, strlen(s));
-	isc_sha224_final(digest, &sha224);
-	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
-
-	s = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
-	isc_sha224_init(&sha224);
-	memmove(buffer, s, strlen(s));
-	isc_sha224_update(&sha224, buffer, strlen(s));
-	isc_sha224_final(digest, &sha224);
-	print_digest(s, "sha224", digest, ISC_SHA224_DIGESTLENGTH/4);
 
 #ifndef PK11_MD5_DISABLE
 	/*

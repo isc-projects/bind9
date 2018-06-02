@@ -23,11 +23,10 @@
 #ifndef PK11_MD5_DISABLE
 
 #include <isc/lang.h>
+#include <isc/md.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 
-#define ISC_MD5_DIGESTLENGTH 16U
-#define ISC_MD5_BLOCK_LENGTH 64U
 #define ISC_HMACMD5_KEYLENGTH 64
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
