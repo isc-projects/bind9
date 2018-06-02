@@ -39,7 +39,6 @@
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/resource.h>
-#include <isc/sha2.h>
 #include <isc/socket.h>
 #include <isc/stat.h>
 #include <isc/stats.h>
