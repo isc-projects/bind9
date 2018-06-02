@@ -29,7 +29,6 @@
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
-#include <isc/sha2.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
