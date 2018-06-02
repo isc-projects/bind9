@@ -21,7 +21,6 @@
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/md.h>
-#include <isc/sha2.h>
 #include <isc/types.h>
 
 #define ISC_HMACSHA1_KEYLENGTH ISC_SHA1_BLOCK_LENGTH
@@ -56,27 +55,6 @@ typedef pk11_context_t isc_hmacsha256_t;
 typedef pk11_context_t isc_hmacsha384_t;
 typedef pk11_context_t isc_hmacsha512_t;
 
-#else
-
-typedef struct {
-	isc_sha224_t sha224ctx;
-	unsigned char key[ISC_HMACSHA224_KEYLENGTH];
-} isc_hmacsha224_t;
-
-typedef struct {
-	isc_sha256_t sha256ctx;
-	unsigned char key[ISC_HMACSHA256_KEYLENGTH];
-} isc_hmacsha256_t;
-
-typedef struct {
-	isc_sha384_t sha384ctx;
-	unsigned char key[ISC_HMACSHA384_KEYLENGTH];
-} isc_hmacsha384_t;
-
-typedef struct {
-	isc_sha512_t sha512ctx;
-	unsigned char key[ISC_HMACSHA512_KEYLENGTH];
-} isc_hmacsha512_t;
 #endif
 
 ISC_LANG_BEGINDECLS

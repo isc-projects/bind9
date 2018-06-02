@@ -17,8 +17,6 @@
 
 #define RRTYPE_DLV_ATTRIBUTES 0
 
-#include <isc/sha2.h>
-
 #include <dns/ds.h>
 
 #include "dst_gost.h"

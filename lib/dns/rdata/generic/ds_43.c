@@ -19,7 +19,6 @@
 	(DNS_RDATATYPEATTR_DNSSEC|DNS_RDATATYPEATTR_ATPARENT)
 
 #include <isc/md.h>
-#include <isc/sha2.h>
 
 #include <dns/ds.h>
 

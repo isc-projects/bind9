@@ -20,8 +20,22 @@
 
 #include <openssl/evp.h>
 
+/* XXXOND: EVP_<alg>() can return NULL if not supported
+ *         This needs more complicated macro :)
+ */
+#define ISC_MD5_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha1())
+#define ISC_MD5_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha1())
 #define ISC_SHA1_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha1())
 #define ISC_SHA1_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha1())
+#define ISC_SHA224_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha224())
+#define ISC_SHA224_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha224())
+#define ISC_SHA256_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha256())
+#define ISC_SHA256_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha256())
+#define ISC_SHA384_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha384())
+#define ISC_SHA384_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha384())
+#define ISC_SHA512_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha512())
+#define ISC_SHA512_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha512())
+
 #define ISC_MAX_MD_SIZE EVP_MAX_MD_SIZE
 #define ISC_MAX_BLOCK_SIZE EVP_MAX_BLOCK_LENGTH
 #define ISC_MAX_KEY_LENGTH EVP_MAX_KEY_LENGTH
