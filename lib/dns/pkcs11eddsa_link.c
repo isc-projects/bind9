@@ -16,7 +16,6 @@
 
 #include <isc/mem.h>
 #include <isc/safe.h>
-#include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

@@ -21,7 +21,6 @@
 #include <isc/hmacsha.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
-#include <isc/sha2.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -547,10 +546,20 @@ isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx) {
-	if (ctx->key != NULL)
+	CK_BYTE garbage[ISC_SHA224_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA224_DIGESTLENGTH;
+
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, ISC_SHA224_BLOCK_LENGTH);
+	}
 	ctx->key = NULL;
-	isc_sha224_invalidate(ctx);
+
+	if (context->handle == NULL) {
+		return;
+	}
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	isc_safe_memwipe(garbage, sizeof(garbage));
+	pk11_return_session(context);
 }
 
 void
@@ -717,10 +726,19 @@ isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx) {
-	if (ctx->key != NULL)
+	CK_BYTE garbage[ISC_SHA256_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA256_DIGESTLENGTH;
+
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, ISC_SHA256_BLOCK_LENGTH);
+	}
 	ctx->key = NULL;
-	isc_sha256_invalidate(ctx);
+	if (context->handle == NULL) {
+		return;
+	}
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	isc_safe_memwipe(garbage, sizeof(garbage));
+	pk11_return_session(context);
 }
 
 void
@@ -887,10 +905,19 @@ isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx) {
-	if (ctx->key != NULL)
+	CK_BYTE garbage[ISC_SHA384_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA384_DIGESTLENGTH;
+
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, ISC_SHA384_BLOCK_LENGTH);
+	}
 	ctx->key = NULL;
-	isc_sha384_invalidate(ctx);
+	if (context->handle == NULL) {
+		return;
+	}
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	isc_safe_memwipe(garbage, sizeof(garbage));
+	pk11_return_session(context);
 }
 
 void
@@ -1057,10 +1084,19 @@ isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
 
 void
 isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx) {
-	if (ctx->key != NULL)
+	CK_BYTE garbage[ISC_SHA512_DIGESTLENGTH];
+	CK_ULONG len = ISC_SHA512_DIGESTLENGTH;
+
+	if (ctx->key != NULL) {
 		pk11_mem_put(ctx->key, ISC_SHA512_BLOCK_LENGTH);
+	}
 	ctx->key = NULL;
-	isc_sha512_invalidate(ctx);
+	if (context->handle == NULL) {
+		return;
+	}
+	(void) pkcs_C_DigestFinal(context->session, garbage, &len);
+	isc_safe_memwipe(garbage, sizeof(garbage));
+	pk11_return_session(context);
 }
 
 void
@@ -1105,271 +1141,6 @@ isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
 }
 #endif
 
-#else
-
-/*
- * Start HMAC-SHA224 process.  Initialize an sha224 context and digest the key.
- */
-void
-isc_hmacsha224_init(isc_hmacsha224_t *ctx, const unsigned char *key,
-		    unsigned int len)
-{
-	unsigned char ipad[ISC_SHA224_BLOCK_LENGTH];
-	unsigned int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_sha224_t sha224ctx;
-		isc_sha224_init(&sha224ctx);
-		isc_sha224_update(&sha224ctx, key, len);
-		isc_sha224_final(ctx->key, &sha224ctx);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_sha224_init(&ctx->sha224ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < ISC_SHA224_BLOCK_LENGTH; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_sha224_update(&ctx->sha224ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacsha224_invalidate(isc_hmacsha224_t *ctx) {
-	isc_safe_memwipe(ctx, sizeof(*ctx));
-}
-
-/*
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacsha224_update(isc_hmacsha224_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_sha224_update(&ctx->sha224ctx, buf, len);
-}
-
-/*
- * Compute signature - finalize SHA224 operation and reapply SHA224.
- */
-void
-isc_hmacsha224_sign(isc_hmacsha224_t *ctx, unsigned char *digest, size_t len) {
-	unsigned char opad[ISC_SHA224_BLOCK_LENGTH];
-	unsigned char newdigest[ISC_SHA224_DIGESTLENGTH];
-	unsigned int i;
-
-	REQUIRE(len <= ISC_SHA224_DIGESTLENGTH);
-	isc_sha224_final(newdigest, &ctx->sha224ctx);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < ISC_SHA224_BLOCK_LENGTH; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_sha224_init(&ctx->sha224ctx);
-	isc_sha224_update(&ctx->sha224ctx, opad, sizeof(opad));
-	isc_sha224_update(&ctx->sha224ctx, newdigest, ISC_SHA224_DIGESTLENGTH);
-	isc_sha224_final(newdigest, &ctx->sha224ctx);
-	memmove(digest, newdigest, len);
-	isc_safe_memwipe(newdigest, sizeof(newdigest));
-}
-
-/*
- * Start HMAC-SHA256 process.  Initialize an sha256 context and digest the key.
- */
-void
-isc_hmacsha256_init(isc_hmacsha256_t *ctx, const unsigned char *key,
-		    unsigned int len)
-{
-	unsigned char ipad[ISC_SHA256_BLOCK_LENGTH];
-	unsigned int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_sha256_t sha256ctx;
-		isc_sha256_init(&sha256ctx);
-		isc_sha256_update(&sha256ctx, key, len);
-		isc_sha256_final(ctx->key, &sha256ctx);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_sha256_init(&ctx->sha256ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < ISC_SHA256_BLOCK_LENGTH; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_sha256_update(&ctx->sha256ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacsha256_invalidate(isc_hmacsha256_t *ctx) {
-	isc_safe_memwipe(ctx, sizeof(*ctx));
-}
-
-/*
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacsha256_update(isc_hmacsha256_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_sha256_update(&ctx->sha256ctx, buf, len);
-}
-
-/*
- * Compute signature - finalize SHA256 operation and reapply SHA256.
- */
-void
-isc_hmacsha256_sign(isc_hmacsha256_t *ctx, unsigned char *digest, size_t len) {
-	unsigned char opad[ISC_SHA256_BLOCK_LENGTH];
-	unsigned char newdigest[ISC_SHA256_DIGESTLENGTH];
-	unsigned int i;
-
-	REQUIRE(len <= ISC_SHA256_DIGESTLENGTH);
-	isc_sha256_final(newdigest, &ctx->sha256ctx);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < ISC_SHA256_BLOCK_LENGTH; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_sha256_init(&ctx->sha256ctx);
-	isc_sha256_update(&ctx->sha256ctx, opad, sizeof(opad));
-	isc_sha256_update(&ctx->sha256ctx, newdigest, ISC_SHA256_DIGESTLENGTH);
-	isc_sha256_final(newdigest, &ctx->sha256ctx);
-	memmove(digest, newdigest, len);
-	isc_safe_memwipe(newdigest, sizeof(newdigest));
-}
-
-/*
- * Start HMAC-SHA384 process.  Initialize an sha384 context and digest the key.
- */
-void
-isc_hmacsha384_init(isc_hmacsha384_t *ctx, const unsigned char *key,
-		    unsigned int len)
-{
-	unsigned char ipad[ISC_SHA384_BLOCK_LENGTH];
-	unsigned int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_sha384_t sha384ctx;
-		isc_sha384_init(&sha384ctx);
-		isc_sha384_update(&sha384ctx, key, len);
-		isc_sha384_final(ctx->key, &sha384ctx);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_sha384_init(&ctx->sha384ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < ISC_SHA384_BLOCK_LENGTH; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_sha384_update(&ctx->sha384ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacsha384_invalidate(isc_hmacsha384_t *ctx) {
-	isc_safe_memwipe(ctx, sizeof(*ctx));
-}
-
-/*
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacsha384_update(isc_hmacsha384_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_sha384_update(&ctx->sha384ctx, buf, len);
-}
-
-/*
- * Compute signature - finalize SHA384 operation and reapply SHA384.
- */
-void
-isc_hmacsha384_sign(isc_hmacsha384_t *ctx, unsigned char *digest, size_t len) {
-	unsigned char opad[ISC_SHA384_BLOCK_LENGTH];
-	unsigned char newdigest[ISC_SHA384_DIGESTLENGTH];
-	unsigned int i;
-
-	REQUIRE(len <= ISC_SHA384_DIGESTLENGTH);
-	isc_sha384_final(newdigest, &ctx->sha384ctx);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < ISC_SHA384_BLOCK_LENGTH; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_sha384_init(&ctx->sha384ctx);
-	isc_sha384_update(&ctx->sha384ctx, opad, sizeof(opad));
-	isc_sha384_update(&ctx->sha384ctx, newdigest, ISC_SHA384_DIGESTLENGTH);
-	isc_sha384_final(newdigest, &ctx->sha384ctx);
-	memmove(digest, newdigest, len);
-	isc_safe_memwipe(newdigest, sizeof(newdigest));
-}
-
-/*
- * Start HMAC-SHA512 process.  Initialize an sha512 context and digest the key.
- */
-void
-isc_hmacsha512_init(isc_hmacsha512_t *ctx, const unsigned char *key,
-		    unsigned int len)
-{
-	unsigned char ipad[ISC_SHA512_BLOCK_LENGTH];
-	unsigned int i;
-
-	memset(ctx->key, 0, sizeof(ctx->key));
-	if (len > sizeof(ctx->key)) {
-		isc_sha512_t sha512ctx;
-		isc_sha512_init(&sha512ctx);
-		isc_sha512_update(&sha512ctx, key, len);
-		isc_sha512_final(ctx->key, &sha512ctx);
-	} else
-		memmove(ctx->key, key, len);
-
-	isc_sha512_init(&ctx->sha512ctx);
-	memset(ipad, IPAD, sizeof(ipad));
-	for (i = 0; i < ISC_SHA512_BLOCK_LENGTH; i++)
-		ipad[i] ^= ctx->key[i];
-	isc_sha512_update(&ctx->sha512ctx, ipad, sizeof(ipad));
-}
-
-void
-isc_hmacsha512_invalidate(isc_hmacsha512_t *ctx) {
-	isc_safe_memwipe(ctx, sizeof(*ctx));
-}
-
-/*
- * Update context to reflect the concatenation of another buffer full
- * of bytes.
- */
-void
-isc_hmacsha512_update(isc_hmacsha512_t *ctx, const unsigned char *buf,
-		   unsigned int len)
-{
-	isc_sha512_update(&ctx->sha512ctx, buf, len);
-}
-
-/*
- * Compute signature - finalize SHA512 operation and reapply SHA512.
- */
-void
-isc_hmacsha512_sign(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len) {
-	unsigned char opad[ISC_SHA512_BLOCK_LENGTH];
-	unsigned char newdigest[ISC_SHA512_DIGESTLENGTH];
-	unsigned int i;
-
-	REQUIRE(len <= ISC_SHA512_DIGESTLENGTH);
-	isc_sha512_final(newdigest, &ctx->sha512ctx);
-
-	memset(opad, OPAD, sizeof(opad));
-	for (i = 0; i < ISC_SHA512_BLOCK_LENGTH; i++)
-		opad[i] ^= ctx->key[i];
-
-	isc_sha512_init(&ctx->sha512ctx);
-	isc_sha512_update(&ctx->sha512ctx, opad, sizeof(opad));
-	isc_sha512_update(&ctx->sha512ctx, newdigest, ISC_SHA512_DIGESTLENGTH);
-	isc_sha512_final(newdigest, &ctx->sha512ctx);
-	memmove(digest, newdigest, len);
-	isc_safe_memwipe(newdigest, sizeof(newdigest));
-}
 #endif /* !ISC_PLATFORM_OPENSSLHASH */
 
 /*

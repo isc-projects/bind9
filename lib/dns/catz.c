@@ -14,11 +14,11 @@
 #include <config.h>
 
 #include <isc/hex.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/sha2.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -1441,7 +1441,6 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 				 isc_buffer_t **buffer)
 {
 	isc_buffer_t *tbuf = NULL;
-	isc_sha256_t sha256;
 	isc_region_t r;
 	isc_result_t result;
 	size_t rlen;
@@ -1469,7 +1468,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		goto cleanup;
 
 	/* __catz__<digest>.db */
-	rlen = ISC_SHA256_DIGESTSTRINGLENGTH + 12;
+	rlen = (ISC_SHA256_DIGESTLENGTH * 2 + 1) + 12;
 
 	/* optionally prepend with <zonedir>/ */
 	if (entry->opts.zonedir != NULL)
@@ -1486,11 +1485,9 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	isc_buffer_usedregion(tbuf, &r);
 	isc_buffer_putstr(*buffer, "__catz__");
-	if (tbuf->used > ISC_SHA256_DIGESTSTRINGLENGTH) {
-		isc_sha256_init(&sha256);
-		isc_sha256_update(&sha256, r.base, r.length);
+	if (tbuf->used > ISC_SHA256_DIGESTLENGTH * 2 + 1) {
 		/* we can do that because digest string < 2 * DNS_NAME */
-		isc_sha256_end(&sha256, (char *) r.base);
+		isc_md(ISC_MD_SHA256, r.base, r.length, r.base, NULL);
 		isc_buffer_putstr(*buffer, (char *) r.base);
 	} else {
 		isc_buffer_copyregion(*buffer, &r);
