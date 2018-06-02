@@ -19,7 +19,6 @@
 #include <isc/buffer.h>
 #include <isc/region.h>
 #include <isc/md.h>
-#include <isc/sha2.h>
 #include <isc/util.h>
 
 #include <dns/ds.h>
