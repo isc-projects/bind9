@@ -21,6 +21,8 @@
 #include <isc/file.h>
 #include <isc/result.h>
 
+#include <openssl/evp.h>
+
 ATF_TC(isc_file_sanitize);
 ATF_TC_HEAD(isc_file_sanitize, tc) {
 	atf_tc_set_md_var(tc, "descr", "sanitized filenames");
@@ -129,6 +131,7 @@ ATF_TC_BODY(isc_file_template, tc) {
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
+	OpenSSL_add_all_algorithms();
 	ATF_TP_ADD_TC(tp, isc_file_sanitize);
 	ATF_TP_ADD_TC(tp, isc_file_template);
 	return (atf_no_error());
