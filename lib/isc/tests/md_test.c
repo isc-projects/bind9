@@ -27,15 +27,19 @@
 #define TEST_INPUT(x) (x), sizeof(x)-1
 
 static int
-tohexstr(const unsigned char *d, const unsigned int len, char *out, const size_t out_size) {
+tohexstr(const unsigned char *d, const size_t len, char *out, const size_t out_size) {
 	unsigned int i;
+	int ret;
 
-	if (snprintf(out, out_size, "0x") >= out_size) {
+	ret = snprintf(out, out_size, "0x");
+	if (ret < 0 || (size_t)ret >= out_size) {
 		return (-1);
 	}
 	for (i = 0; i < len; i++) {
-		if (snprintf(out + 2 + i * 2, out_size - 2 - i * 2,
-			     "%02X", d[i]) >= out_size - 2 - i * 2) {
+		size_t left = out_size - 2 - i * 2;
+		ret = snprintf(out + 2 + i * 2, left,
+			       "%02X", d[i]);
+		if (ret < 0 || (size_t)ret >= left) {
 			return (-1);
 		}
 	}

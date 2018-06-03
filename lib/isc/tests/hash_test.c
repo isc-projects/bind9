@@ -50,20 +50,25 @@ unsigned char key[20];
  *
  * Return values: ISC_R_SUCCESS if the operation is sucessful
  */
-static isc_result_t
-tohexstr(unsigned char *d, unsigned int len, char *out, size_t out_size) {
-	char c_ret[] = "AA";
+static int
+tohexstr(const unsigned char *d, const size_t len, char *out, const size_t out_size) {
 	unsigned int i;
+	int ret;
 
-	out[0] = '\0';
-	strlcat(out, "0x", out_size);
-	for (i = 0; i < len; i++) {
-		snprintf(c_ret, sizeof(c_ret), "%02X", d[i]);
-		strlcat(out, c_ret, out_size);
+	ret = snprintf(out, out_size, "0x");
+	if (ret < 0 || (size_t)ret >= out_size) {
+		return (-1);
 	}
-	return (ISC_R_SUCCESS);
+	for (i = 0; i < len; i++) {
+		size_t left = out_size - 2 - i * 2;
+		ret = snprintf(out + 2 + i * 2, left,
+			       "%02X", d[i]);
+		if (ret < 0 || (size_t)ret >= left) {
+			return (-1);
+		}
+	}
+	return 0;
 }
-
 
 #define TEST_INPUT(x) (x), sizeof(x)-1
 
