@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#undef ISC_ASSERT_TESTING
+
 #include <atf-c.h>
 
 #include <stdlib.h>

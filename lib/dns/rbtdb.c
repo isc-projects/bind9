@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#undef ISC_ASSERT_TESTING
+
 /* #define inline */
 
 #ifdef HAVE_INTTYPES_H
