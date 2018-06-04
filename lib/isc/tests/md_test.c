@@ -154,6 +154,27 @@ isc_md_update_test(void **state) {
 }
 
 static void
+isc_md_reset_test(void **state) {
+	isc_md_t *md = *state;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen;
+
+	assert_non_null(md);
+
+	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"a", 1), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"b", 1), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_final(md, digest, &digestlen), ISC_R_SUCCESS);
+
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+
+	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"c", 1), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"d", 1), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_final(md, digest, &digestlen), ISC_R_SUCCESS);
+}
+
+static void
 isc_md_final_test(void **state) {
 	isc_md_t *md = *state;
 	unsigned char digest[ISC_MAX_MD_SIZE];
@@ -471,6 +492,9 @@ int main(void) {
 		/* isc_md_init() */
 		cmocka_unit_test_setup_teardown(isc_md_init_test, _reset, _reset),
 
+		/* isc_md_reset() */
+		cmocka_unit_test_setup_teardown(isc_md_reset_test, _reset, _reset),
+		
 		/* isc_md_init() -> isc_md_update() -> isc_md_final() */
 		cmocka_unit_test(isc_md_md5_test),
 		cmocka_unit_test(isc_md_sha1_test),
