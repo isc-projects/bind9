@@ -11,22 +11,22 @@
 
 #pragma once
 
+#include <config.h>
+
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 #include <isc/result.h>
-
-#if HAVE_OPENSSL
 
 #include <openssl/evp.h>
 
 /* XXXOND: EVP_<alg>() can return NULL if not supported
  *         This needs more complicated macro :)
  */
-#define ISC_MD5_DIGESTLENGTH (size_t)EVP_MD_size(EVP_md5())
-#define ISC_MD5_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_md5())
-#define ISC_SHA1_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha1())
-#define ISC_SHA1_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha1())
+#define ISC_MD5_DIGESTLENGTH    (size_t)EVP_MD_size(EVP_md5())
+#define ISC_MD5_BLOCK_LENGTH    (size_t)EVP_MD_block_size(EVP_md5())
+#define ISC_SHA1_DIGESTLENGTH   (size_t)EVP_MD_size(EVP_sha1())
+#define ISC_SHA1_BLOCK_LENGTH   (size_t)EVP_MD_block_size(EVP_sha1())
 #define ISC_SHA224_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha224())
 #define ISC_SHA224_BLOCK_LENGTH (size_t)EVP_MD_block_size(EVP_sha224())
 #define ISC_SHA256_DIGESTLENGTH (size_t)EVP_MD_size(EVP_sha256())
@@ -77,9 +77,3 @@ isc_md_size(const isc_md_t *md);
 
 int
 isc_md_block_size(const isc_md_t *md);
-
-#elif HAVE_PKCS11
-
-/* XXX */
-
-#endif

@@ -11,11 +11,9 @@
 
 #include <config.h>
 
+#include <isc/md.h>
 #include <isc/util.h>
 
-#include <isc/md.h>
-
-#if HAVE_OPENSSL
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
@@ -124,9 +122,3 @@ isc_md(isc_md_type_t type, const unsigned char *buf, const size_t len, unsigned 
 
 	return (ISC_R_SUCCESS);
 }
-
-#elif HAVE_PKCS11 /* HAVE_OPENSSL */
-
-/* XXX */
-
-#endif /* HAVE_PKCS11 */
