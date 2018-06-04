@@ -27,6 +27,9 @@ ISCDEPLIBS =	../libisc.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
+CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
+CMOCKA_LIBS =	@CMOCKA_LIBS@
+
 OBJS =		isctest.@O@
 SRCS =		isctest.c aes_test.c atomic_test.c buffer_test.c \
 		counter_test.c errno_test.c file_test.c hash_test.c \
