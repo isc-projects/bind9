@@ -1,3 +1,5 @@
+4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
+
 4957.	[func]		The default setting for "dnssec-validation" is now
 			"auto", which activates DNSSEC validation using the
 			IANA root key. (The default can be changed back to
