@@ -3726,10 +3726,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECKM(named_config_getport(config, &port), "port");
 	dns_view_setdstport(view, port);
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
-				 "allow-query", NULL, actx,
-				 named_g_mctx, &view->queryacl));
-
 	/*
 	 * Make the list of response policy zone names for a view that
 	 * is used for real lookups and so cares about hints.
@@ -4714,21 +4710,35 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				 "allow-query-cache-on", NULL, actx,
 				 named_g_mctx, &view->cacheonacl));
 	/*
-	 * Set "allow-query-cache", "allow-recursion", and
-	 * "allow-recursion-on" acls if configured in named.conf.
-	 * (Ignore the global defaults for now, because these ACLs
-	 * can inherit from each other when only some of them set at
-	 * the options/view level.)
+	 * Set the "allow-query", "allow-query-cache", "allow-recursion",
+	 * and "allow-recursion-on" ACLs if configured in named.conf, but
+	 * NOT from the global defaults. This is done by leaving the third
+	 * argument to configure_view_acl() NULL.
+	 *
+	 * We ignore the global defaults here because these ACLs
+	 * can inherit from each other.  If any are still unset after
+	 * applying the inheritance rules, we'll look up the defaults at
+	 * that time.
 	 */
-	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache",
-				 NULL, actx, named_g_mctx, &view->cacheacl));
+
+	/* named.conf only */
+	CHECK(configure_view_acl(vconfig, config, NULL,
+				 "allow-query", NULL, actx,
+				 named_g_mctx, &view->queryacl));
+
+	/* named.conf only */
+	CHECK(configure_view_acl(vconfig, config, NULL,
+				 "allow-query-cache", NULL, actx,
+				 named_g_mctx, &view->cacheacl));
 
 	if (strcmp(view->name, "_bind") != 0 &&
 	    view->rdclass != dns_rdataclass_chaos)
 	{
+		/* named.conf only */
 		CHECK(configure_view_acl(vconfig, config, NULL,
 					 "allow-recursion", NULL, actx,
 					 named_g_mctx, &view->recursionacl));
+		/* named.conf only */
 		CHECK(configure_view_acl(vconfig, config, NULL,
 					 "allow-recursion-on", NULL, actx,
 					 named_g_mctx, &view->recursiononacl));
@@ -4766,18 +4776,21 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		 * the global config.
 		 */
 		if (view->recursionacl == NULL) {
+			/* global default only */
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-recursion", NULL,
 						 actx, named_g_mctx,
 						 &view->recursionacl));
 		}
 		if (view->recursiononacl == NULL) {
+			/* global default only */
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-recursion-on", NULL,
 						 actx, named_g_mctx,
 						 &view->recursiononacl));
 		}
 		if (view->cacheacl == NULL) {
+			/* global default only */
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
 						 "allow-query-cache", NULL,
 						 actx, named_g_mctx,
@@ -4789,6 +4802,14 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		 * set at the options/view level, set it to none.
 		 */
 		CHECK(dns_acl_none(mctx, &view->cacheacl));
+	}
+
+	if (view->queryacl == NULL) {
+		/* global default only */
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+					 "allow-query", NULL,
+					 actx, named_g_mctx,
+					 &view->queryacl));
 	}
 
 	/*

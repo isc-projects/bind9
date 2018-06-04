@@ -65,7 +65,11 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  When recursion is enabled but the <command>allow-recursion</command>
+	  and <command>allow-query-cache</command> ACLs are not specified, they
+	  should be limited to local networks, but they were inadvertently set
+	  to match the default <command>allow-query</command>, thus allowing
+	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
 	</para>
       </listitem>
     </itemizedlist>
@@ -89,7 +93,7 @@
 	  information about root key rollover status can be gathered.
 	  To disable this feature, add
 	  <command>root-key-sentinel no;</command> to
-	  <filename>named.conf</filename>.
+	  <filename>named.conf</filename>. [GL #37]
 	</para>
       </listitem>
       <listitem>
