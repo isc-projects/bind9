@@ -2290,7 +2290,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 		if (lookup->ecs_addr != NULL) {
 			isc_uint8_t addr[16];
-			isc_uint16_t family;
+			isc_uint16_t family = 0;
 			isc_uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
