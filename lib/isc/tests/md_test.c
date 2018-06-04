@@ -118,7 +118,7 @@ isc_md_init_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
-#if UNIT_TESTING
+#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_init(NULL, ISC_MD_MD5));
 #endif
 	assert_int_equal(isc_md_init(md, 0), ISC_R_NOTIMPLEMENTED);
@@ -145,7 +145,7 @@ isc_md_update_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
-#if UNIT_TESTING
+#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_update(NULL, NULL, 0));
 #endif
 
@@ -182,8 +182,7 @@ isc_md_final_test(void **state) {
 
 	assert_non_null(md);
 
-#if UNIT_TESTING
-
+#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_final(NULL, digest, &digestlen));
 	expect_assert_failure(isc_md_final(md, NULL, &digestlen));
 #endif
