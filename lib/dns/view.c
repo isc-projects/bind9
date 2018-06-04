@@ -1511,29 +1511,21 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 }
 
 isc_result_t
-dns_view_load(dns_view_t *view, isc_boolean_t stop) {
+dns_view_load(dns_view_t *view, isc_boolean_t stop, isc_boolean_t newonly) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	return (dns_zt_load(view->zonetable, stop));
+	return (dns_zt_load(view->zonetable, stop, newonly));
 }
 
 isc_result_t
-dns_view_loadnew(dns_view_t *view, isc_boolean_t stop) {
-
+dns_view_asyncload(dns_view_t *view, isc_boolean_t newonly,
+		   dns_zt_allloaded_t callback, void *arg) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	return (dns_zt_loadnew(view->zonetable, stop));
-}
-
-isc_result_t
-dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->zonetable != NULL);
-
-	return (dns_zt_asyncload(view->zonetable, callback, arg));
+	return (dns_zt_asyncload(view->zonetable, newonly, callback, arg));
 }
 
 isc_result_t
