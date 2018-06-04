@@ -867,7 +867,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const dns_master_style_t *masterstyle = &dns_master_style_default;
 	isc_stats_t *zoneqrystats;
 	dns_stats_t *rcvquerystats;
-	dns_zonestat_level_t statlevel;
+	dns_zonestat_level_t statlevel = dns_zonestat_none;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 	isc_dscp_t dscp;
