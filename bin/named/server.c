@@ -2718,7 +2718,7 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 	catz_chgzone_event_t *event;
 	isc_task_t *task;
 	isc_result_t result;
-	isc_taskaction_t action;
+	isc_taskaction_t action = NULL;
 
 	switch (type) {
 	case DNS_EVENT_CATZADDZONE:
@@ -4356,7 +4356,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		obj2 = cfg_tuple_get(obj, "response");
 		if (!cfg_obj_isvoid(obj2)) {
 			const char *resp = cfg_obj_asstring(obj2);
-			isc_result_t r;
+			isc_result_t r = DNS_R_SERVFAIL;
 
 			if (strcasecmp(resp, "drop") == 0)
 				r = DNS_R_DROP;
@@ -5036,7 +5036,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj2 = cfg_tuple_get(obj, "response");
 	if (!cfg_obj_isvoid(obj2)) {
 		const char *resp = cfg_obj_asstring(obj2);
-		isc_result_t r;
+		isc_result_t r = DNS_R_SERVFAIL;
 
 		if (strcasecmp(resp, "drop") == 0)
 			r = DNS_R_DROP;
@@ -5281,7 +5281,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		const char *empty_dbtype[4] =
 				    { "_builtin", "empty", NULL, NULL };
 		int empty_dbtypec = 4;
-		dns_zonestat_level_t statlevel;
+		dns_zonestat_level_t statlevel = 0;
 
 		name = dns_fixedname_initname(&fixed);
 
@@ -9903,7 +9903,7 @@ static void
 named_server_reload(isc_task_t *task, isc_event_t *event) {
 	named_server_t *server = (named_server_t *)event->ev_arg;
 
-	INSIST(task = server->task);
+	INSIST(task == server->task);
 	UNUSED(task);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -12564,7 +12564,7 @@ newzone_parse(named_server_t *server, char *command, dns_view_t **viewp,
 	const char *viewname = NULL;
 	dns_rdataclass_t rdclass;
 	dns_view_t *view = NULL;
-	const char *bn;
+	const char *bn = NULL;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
 	REQUIRE(zoneobjp != NULL && *zoneobjp == NULL);
