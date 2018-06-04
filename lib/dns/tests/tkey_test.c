@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#if HAVE_CMOCKA
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -22,11 +24,12 @@
 
 #include <dns/tkey.h>
 
-static isc_mem_t mock_mctx = { 0 };
+#if LD_WRAP
+static isc_mem_t mock_mctx = { .impmagic = 0, .magic = ISCAPI_MCTX_MAGIC, .methods = NULL };
 
 void *
 __wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
-		   size_t size) __attribute__ ((unused));
+		   size_t size);
 
 void *
 __wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
@@ -42,7 +45,7 @@ __wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
 void
 __wrap_isc__mem_put(isc_mem_t *ctx0 __attribute__ ((unused)),
 		   void *ptr,
-		   size_t size __attribute__ ((unused))) __attribute__ ((unused));
+		   size_t size __attribute__ ((unused)));
 void
 __wrap_isc__mem_put(isc_mem_t *ctx0 __attribute__ ((unused)),
 		   void *ptr,
@@ -52,14 +55,14 @@ __wrap_isc__mem_put(isc_mem_t *ctx0 __attribute__ ((unused)),
 }
 
 void
-__wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) __attribute__ ((unused));
+__wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp);
 void
 __wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	*targetp = source0;
 }
 
 void
-__wrap_isc_mem_detach(isc_mem_t **ctxp) __attribute__ ((unused));
+__wrap_isc_mem_detach(isc_mem_t **ctxp);
 void
 __wrap_isc_mem_detach(isc_mem_t **ctxp) {
 	*ctxp = NULL;
@@ -86,7 +89,7 @@ _teardown(void **state) {
 }
 
 static void
-dns_tkeyctx_create_test(void **state __attribute__ ((unused))) {
+dns_tkeyctx_create_test(void **state) {
 	dns_tkeyctx_t *tctx;
 
 	tctx = NULL;
@@ -102,13 +105,29 @@ dns_tkeyctx_create_test(void **state __attribute__ ((unused))) {
 static void
 dns_tkeyctx_destroy_test(void **state) {
 	dns_tkeyctx_t *tctx = *state;
+
 	assert_non_null(tctx);
 	dns_tkeyctx_destroy(&tctx);
 }
 
-int main(void) {
-	int tkey_tests_result = 0;
+#else /* LD_WRAP */
 
+#define _setup NULL
+#define _teardown NULL
+
+static void
+dns_tkeyctx_create_test(void **state __attribute__ ((unused))) {
+	skip();
+}
+
+static void
+dns_tkeyctx_destroy_test(void **state __attribute__ ((unused))) {
+	skip();
+}
+
+#endif /* LD_WRAP */
+
+int main(void) {
 	const struct CMUnitTest tkey_tests[] = {
 		cmocka_unit_test_teardown(dns_tkeyctx_create_test, _teardown),
 		/* cmocka_unit_test(dns_tkey_processquery_test), */
@@ -121,7 +140,13 @@ int main(void) {
 		/* cmocka_unit_test(dns_tkey_gssnegotiate_test), */
 		cmocka_unit_test_setup(dns_tkeyctx_destroy_test, _setup),
 	};
-	tkey_tests_result = cmocka_run_group_tests(tkey_tests, NULL, NULL);
-
-	return (tkey_tests_result);
+	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
 }
+
+#else
+
+int main(void) {
+	return (0);
+}
+
+#endif
